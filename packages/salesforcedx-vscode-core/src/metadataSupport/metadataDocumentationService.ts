@@ -152,6 +152,154 @@ export class MetadataDocumentationService {
       FlexiPage: {
         description:
           'Represents a Lightning page. Lightning pages are custom layouts that let you design pages for use in the Salesforce mobile app and Lightning Experience.'
+      },
+      RemoteSiteSetting: {
+        description:
+          'Represents a remote site setting. Remote site settings allow you to access external URLs from Apex code and Visualforce pages.'
+      },
+      Prompt: {
+        description:
+          'Represents a prompt template for Einstein AI. Prompts define the instructions and context for AI-powered features in Salesforce.'
+      },
+      CustomMetadata: {
+        description:
+          'Represents a custom metadata type record. Custom metadata types are customizable, deployable, packageable, and upgradeable application metadata.'
+      },
+      CustomLabel: {
+        description:
+          "Represents a custom label. Custom labels enable developers to create multilingual applications by automatically presenting information in a user's native language."
+      },
+      Queue: {
+        description:
+          'Represents a queue. Queues are used to prioritize, distribute, and assign records to teams who share workloads.'
+      },
+      Group: {
+        description:
+          'Represents a public group. Public groups are collections of individual users, other groups, individual roles or territories, or roles or territories with their subordinates.'
+      },
+      Role: {
+        description:
+          'Represents a role in the role hierarchy. Roles control the level of visibility that users have into your Salesforce data.'
+      },
+      Territory2: {
+        description:
+          'Represents a territory in Territory Management 2.0. Territories are used to structure your organization and control data access based on geographical or other criteria.'
+      },
+      AssignmentRule: {
+        description:
+          'Represents an assignment rule. Assignment rules automatically assign cases to users or queues, or leads to users or queues.'
+      },
+      AutoResponseRule: {
+        description:
+          'Represents an auto-response rule. Auto-response rules automatically send email responses to leads or cases based on the attributes of the submitted record.'
+      },
+      EscalationRule: {
+        description:
+          'Represents an escalation rule. Escalation rules automatically escalate cases to the appropriate users so that cases are resolved in a timely manner.'
+      },
+      SharingRule: {
+        description:
+          'Represents a sharing rule. Sharing rules extend sharing access to users in public groups, roles, or territories.'
+      },
+      Workflow: {
+        description:
+          'Represents a workflow rule. Workflow rules automate standard internal procedures and processes to save time across your org.'
+      },
+      ApexPage: {
+        description:
+          'Represents a Visualforce page. Visualforce pages are web pages that can be displayed in the Salesforce user interface or used to override standard pages.'
+      },
+      ApexComponent: {
+        description:
+          'Represents a Visualforce component. Visualforce components are reusable sections of code that can be used on multiple Visualforce pages.'
+      },
+      ReportType: {
+        description:
+          'Represents a custom report type. Custom report types define the set of records and fields available to a report based on the relationships between a primary object and its related objects.'
+      },
+      ConnectedApp: {
+        description:
+          'Represents a connected app. Connected apps are applications that can connect to Salesforce over Identity and Data APIs.'
+      },
+      AuthProvider: {
+        description:
+          'Represents an authentication provider. Authentication providers enable users to log in to Salesforce using their login credentials from an external service.'
+      },
+      NamedCredential: {
+        description:
+          'Represents a named credential. Named credentials specify the URL of a callout endpoint and its required authentication parameters in one definition.'
+      },
+      BusinessProcess: {
+        description:
+          'Represents a business process. Business processes are used to track the stages of a record through a process, such as the sales process for opportunities.'
+      },
+      RecordType: {
+        description:
+          'Represents a record type. Record types let you offer different business processes, picklist values, and page layouts to different users.'
+      },
+      GlobalValueSet: {
+        description:
+          'Represents a global value set. Global value sets are shared sets of picklist values that you can use in custom picklist and multi-select picklist fields.'
+      },
+      PathAssistant: {
+        description:
+          'Represents a path. Paths guide users through a business process by breaking it down into stages with key fields and guidance for success.'
+      },
+      CompactLayout: {
+        description:
+          "Represents a compact layout. Compact layouts display a record's key fields at a glance in the highlights panel in Lightning Experience and Salesforce mobile app."
+      },
+      ListView: {
+        description:
+          'Represents a list view. List views are filtered lists of records that show only the records that meet specific criteria.'
+      },
+      QuickAction: {
+        description:
+          'Represents a quick action. Quick actions let users quickly create records, update records, log calls, send emails, and more.'
+      },
+      FlowDefinition: {
+        description:
+          'Represents a flow definition. Flow definitions contain the metadata for flows, including versioning and activation status.'
+      },
+      MatchingRule: {
+        description:
+          'Represents a matching rule. Matching rules determine how duplicate records are identified when users create or edit records.'
+      },
+      DuplicateRule: {
+        description:
+          'Represents a duplicate rule. Duplicate rules define what happens when users create or edit records that have duplicates.'
+      },
+      ExternalDataSource: {
+        description:
+          "Represents an external data source. External data sources specify how to connect to data that's stored outside your Salesforce org."
+      },
+      AuraDefinitionBundle: {
+        description:
+          'Represents an Aura component bundle. Aura components are the self-contained and reusable units of an app.'
+      },
+      LightningMessageChannel: {
+        description:
+          'Represents a Lightning message channel. Lightning message channels are used for communication between Lightning web components, Aura components, and Visualforce pages.'
+      },
+      Bot: {
+        description:
+          'Represents an Einstein Bot. Einstein Bots are AI-powered chatbots that can handle routine customer service tasks.'
+      },
+      CustomPermission: {
+        description:
+          'Represents a custom permission. Custom permissions give you a way to provide access to custom processes or apps.'
+      },
+      Network: {
+        description:
+          'Represents a community or site. Communities are branded spaces for your employees, customers, and partners to connect.'
+      },
+      Certificate: {
+        description:
+          'Represents a certificate. Certificates are used to authenticate single sign-on (SSO) with an external website or to authenticate API integrations.'
+      },
+      Settings: {
+        description:
+          'Represents organization settings. Settings control various features and behaviors in your Salesforce org.'
       }
       // Add more metadata types as needed from the official documentation
     };
