@@ -136,7 +136,7 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
           return this.run(response, progress, token);
         }
       );
-      channelService.showCommandWithTimestamp(`${nls.localize('channel_end')} ${this.executionName}`);
+      channelService.showCommandWithTimestamp(`\n${nls.localize('channel_end')} ${this.executionName}`);
 
       if (this.showChannelOutput) {
         channelService.showChannelOutput();

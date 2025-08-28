@@ -144,6 +144,73 @@ describe('OrgList tests', () => {
 
       expect(result).toEqual([validOrgAuth.username, orgAuthScratchOrg.username]);
     });
+
+    it('should filter out expired orgs by default', async () => {
+      const expiredDate = new Date();
+      expiredDate.setTime(expiredDate.getTime() - 60 * 60 * 1000); // 1 hour ago (expired)
+
+      const expiredOrgAuth = {
+        username: 'expired@example.com',
+        orgId: 'expiredOrgId',
+        oauthMethod: 'web' as const,
+        isDevHub: false,
+        aliases: [],
+        configs: [],
+        isExpired: false,
+        error: undefined
+      };
+
+      const orgAuths = [validOrgAuth, expiredOrgAuth];
+      getUsernameForMock.mockResolvedValueOnce(validOrgAuth.username);
+      getUsernameForMock.mockResolvedValueOnce(expiredOrgAuth.username);
+      getAuthFieldsForMock.mockResolvedValueOnce(validOrgAuth as AuthFields);
+      getAuthFieldsForMock.mockResolvedValueOnce({
+        ...validOrgAuth,
+        expirationDate: expiredDate.toISOString()
+      } as AuthFields);
+      getDevHubUsernameMock.mockResolvedValueOnce(dummyDevHubUsername);
+      getAllAliasesForMock.mockResolvedValue([]);
+
+      const result = await orgList.filterAuthInfo(orgAuths);
+
+      // Should only return the valid org, not the expired one
+      expect(result).toEqual([validOrgAuth.username]);
+    });
+
+    it('should include expired orgs when showExpired is true', async () => {
+      const expiredDate = new Date();
+      expiredDate.setTime(expiredDate.getTime() - 2 * 60 * 60 * 1000); // 2 hours ago (expired)
+
+      const expiredOrgAuth = {
+        username: 'expired@example.com',
+        orgId: 'expiredOrgId',
+        oauthMethod: 'web' as const,
+        isDevHub: false,
+        aliases: [],
+        configs: [],
+        isExpired: false,
+        error: undefined
+      };
+
+      const orgAuths = [validOrgAuth, expiredOrgAuth];
+      getUsernameForMock.mockResolvedValueOnce(validOrgAuth.username);
+      getUsernameForMock.mockResolvedValueOnce(expiredOrgAuth.username);
+      getAuthFieldsForMock.mockResolvedValueOnce(validOrgAuth as AuthFields);
+      getAuthFieldsForMock.mockResolvedValueOnce({
+        ...validOrgAuth,
+        expirationDate: expiredDate.toISOString()
+      } as AuthFields);
+      getDevHubUsernameMock.mockResolvedValueOnce(dummyDevHubUsername);
+      getAllAliasesForMock.mockResolvedValue([]);
+
+      const result = await orgList.filterAuthInfo(orgAuths, true); // showExpired = true
+
+      // Should return both orgs when showExpired is true
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual(validOrgAuth.username);
+      expect(result[1]).toContain('expired@example.com');
+      expect(result[1]).toContain('Expired');
+    });
   });
 
   describe('isOrgExpired', () => {
