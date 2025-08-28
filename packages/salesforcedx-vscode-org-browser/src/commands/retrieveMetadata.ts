@@ -11,37 +11,35 @@ import { ExtensionProviderServiceLive } from '../services/extensionProvider';
 import { MetadataRetrieveService, MetadataRetrieveServiceLive } from '../services/metadataRetrieveService';
 import { OrgBrowserNode } from '../tree/orgBrowserNode';
 
-export const registerRetrieveMetadataCommand = (context: vscode.ExtensionContext): void => {
-  context.subscriptions.push(
-    vscode.commands.registerCommand('orgBrowser.retrieveMetadata', async (node: OrgBrowserNode) => {
-      const target = getRetrieveTarget(node);
-      if (!target) return;
+export const retrieveOrgBrowserNode = async (node: OrgBrowserNode): Promise<void> => {
+  const target = getRetrieveTarget(node);
+  if (!target) return;
 
-      const retrieveEffect = pipe(
-        Effect.flatMap(MetadataRetrieveService, svc => svc.retrieve([target], node.kind === 'component')),
-        Effect.catchAll(error =>
-          Effect.sync(() => {
-            vscode.window.showErrorMessage(`Retrieve failed: ${error.message}`);
-          })
-        )
-      );
+  const retrieveEffect = pipe(
+    Effect.flatMap(MetadataRetrieveService, svc => svc.retrieve([target], node.kind === 'component')),
+    Effect.catchAll(error =>
+      Effect.sync(() => {
+        vscode.window.showErrorMessage(`Retrieve failed: ${error.message}`);
+      })
+    )
+  );
 
-      await Effect.runPromise(
-        Effect.provide(retrieveEffect, Layer.mergeAll(MetadataRetrieveServiceLive, ExtensionProviderServiceLive))
-      );
-    })
+  await Effect.runPromise(
+    Effect.provide(retrieveEffect, Layer.mergeAll(MetadataRetrieveServiceLive, ExtensionProviderServiceLive))
   );
 };
 
 const getRetrieveTarget = (node: OrgBrowserNode): MetadataMember | undefined => {
+  if (node.kind === 'folderType') {
+    // folderType nodes don't have retrieve functionality
+    return undefined;
+  }
   if (node.kind === 'type') {
+    // called retrieve on the entire type
     return { type: node.xmlName, fullName: '*' };
   }
 
   if (node.kind === 'component' && node.componentName !== undefined) {
     return { type: node.xmlName, fullName: node.componentName };
   }
-
-  // folderType nodes don't have retrieve functionality
-  return undefined;
 };

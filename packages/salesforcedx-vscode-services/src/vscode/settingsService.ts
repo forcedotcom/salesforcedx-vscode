@@ -19,7 +19,7 @@ const API_VERSION_KEY = 'apiVersion';
 // TODO: tests should also populate the settings
 const FALLBACK_INSTANCE_URL = 'https://flow-connect-8618-dev-ed.scratch.my.salesforce.com';
 const FALLBACK_ACCESS_TOKEN =
-  '00DD50000003P8h!AR4AQOs6vATJBfUfjbiLowUPTK1Our3aDkQmRNxkkOUiDSzOjpxWXM7kaIWECg.TrZI6RWj50GkD.ivWZnY_e2ZfsTw_ulSu';
+  '00DD50000003P8h!AR4AQLtTtcZo1PRvk9pFT3jbmBb62s2Kg3TVnXg02MrXSO3z3jkVPjN_7YjRTurDOaTSJBgZ_fdE8YYInTr9oTrqbz378C_M';
 const FALLBACK_API_VERSION = '64.0';
 
 /**

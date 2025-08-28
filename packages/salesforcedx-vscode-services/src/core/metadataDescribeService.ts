@@ -11,6 +11,7 @@ import type { SettingsService } from '../vscode/settingsService';
 import type { WorkspaceService } from '../vscode/workspaceService';
 import { Context, Effect, Layer, pipe } from 'effect';
 import * as S from 'effect/Schema';
+import type { DescribeSObjectResult } from 'jsforce';
 import { SdkLayer } from '../observability/spans';
 import { ChannelService } from '../vscode/channelService';
 import { ConnectionService } from './connectionService';
@@ -34,6 +35,8 @@ export type MetadataDescribeService = {
     type: string,
     folder?: string
   ) => Effect.Effect<readonly FileProperties[], Error, DescribeContext>;
+
+  readonly describeCustomObject: (objectName: string) => Effect.Effect<DescribeSObjectResult, Error, DescribeContext>;
 };
 
 export const MetadataDescribeService = Context.GenericTag<MetadataDescribeService>('MetadataDescribeService');
@@ -77,6 +80,21 @@ export const MetadataDescribeServiceLive = Layer.effect(
     ): Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext> =>
       forceRefresh ? cacheableDescribe(`fresh-${Date.now()}`) : cachedDescribe('cached');
 
+    // TODO: write this in a common place that other services can use
+    const describeCustomObject = (objectName: string): Effect.Effect<DescribeSObjectResult, Error, DescribeContext> =>
+      pipe(
+        Effect.flatMap(ConnectionService, svc => svc.getConnection),
+        Effect.flatMap(conn =>
+          Effect.tryPromise({
+            try: () => conn.sobject(objectName).describe(),
+            catch: e => new Error(`describeCustomObject failed for object ${objectName}: ${String(e)}`)
+          })
+        ),
+        Effect.tap(result => Effect.log(result.fields.map(f => f.name))),
+        Effect.withSpan('describeCustomObject', { attributes: { objectName } }),
+        Effect.provide(SdkLayer)
+      );
+
     const listMetadata = (
       type: string,
       folder?: string
@@ -99,7 +117,7 @@ export const MetadataDescribeServiceLive = Layer.effect(
         Effect.provide(SdkLayer)
       );
 
-    return { describe, listMetadata };
+    return { describe, listMetadata, describeCustomObject };
   })
 );
 

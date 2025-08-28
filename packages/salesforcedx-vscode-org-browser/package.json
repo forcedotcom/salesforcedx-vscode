@@ -123,27 +123,12 @@
       "view/item/context": [
         {
           "command": "sfdxOrgBrowser.refreshType",
-          "when": "view == sfdxOrgBrowser && viewItem == type",
+          "when": "view == sfdxOrgBrowser && (viewItem == type || viewItem == customObject || viewItem == folderType || viewItem == folder)",
           "group": "inline"
         },
         {
-          "command": "sfdxOrgBrowser.refreshType",
-          "when": "view == sfdxOrgBrowser && viewItem == folderType",
-          "group": "inline"
-        },
-        {
-          "command": "sfdxOrgBrowser.refreshType",
-          "when": "view == sfdxOrgBrowser && viewItem == folder",
-          "group": "inline"
-        },
-        {
-          "command": "orgBrowser.retrieveMetadata",
-          "when": "view == sfdxOrgBrowser && viewItem == type",
-          "group": "inline"
-        },
-        {
-          "command": "orgBrowser.retrieveMetadata",
-          "when": "view == sfdxOrgBrowser && viewItem == component",
+          "command": "sfdxOrgBrowser.retrieveMetadata",
+          "when": "view == sfdxOrgBrowser && (viewItem == type || viewItem == customObject || viewItem == component)",
           "group": "inline"
         }
       ]

@@ -7,7 +7,7 @@
 
 import { Effect } from 'effect';
 import * as vscode from 'vscode';
-import { registerRetrieveMetadataCommand } from './commands/retrieveMetadata';
+import { retrieveOrgBrowserNode } from './commands/retrieveMetadata';
 import { TREE_VIEW_ID } from './constants';
 import { ExtensionProviderService, ExtensionProviderServiceLive } from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
@@ -44,9 +44,11 @@ export const activateEffect = (
           }),
           vscode.commands.registerCommand(`${TREE_VIEW_ID}.collapseAll`, () => {
             vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_ID}.collapseAll`);
+          }),
+          vscode.commands.registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, async (node: OrgBrowserNode) => {
+            await retrieveOrgBrowserNode(node);
           })
         );
-        registerRetrieveMetadataCommand(context);
 
         // Append completion message
         yield* svc.appendToChannel('Salesforce Org Browser activation complete.');

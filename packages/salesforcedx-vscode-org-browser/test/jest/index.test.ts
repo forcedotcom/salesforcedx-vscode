@@ -13,6 +13,11 @@ jest.mock('vscode', () => ({
   commands: {
     registerCommand: jest.fn()
   },
+  workspace: {
+    getConfiguration: jest.fn(() => ({
+      get: jest.fn()
+    }))
+  },
   ExtensionContext: jest.fn(),
   TreeItemCollapsibleState: {
     None: 0,
@@ -24,6 +29,14 @@ jest.mock('vscode', () => ({
     public event = jest.fn();
     public fire = jest.fn();
     public dispose = jest.fn();
+  },
+  env: {
+    createTelemetryLogger: jest.fn(() => ({
+      logUsage: jest.fn(),
+      logError: jest.fn(),
+      dispose: jest.fn(),
+      onDidChangeEnableStates: jest.fn()
+    }))
   }
 }));
 

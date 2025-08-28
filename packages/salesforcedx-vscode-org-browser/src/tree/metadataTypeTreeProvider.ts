@@ -27,6 +27,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     return element;
   }
 
+  // TODO: split this up into smaller functions/effects
   // eslint-disable-next-line class-methods-use-this
   public async getChildren(element?: OrgBrowserNode, refresh = false): Promise<OrgBrowserNode[]> {
     const program = pipe(
@@ -50,49 +51,105 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
                 Effect.map(types =>
                   Array.from(types)
                     .toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1))
-                    .map(t => new OrgBrowserNode(isFolderType(t.xmlName) ? 'folderType' : 'type', t.xmlName))
+                    .map(
+                      t =>
+                        new OrgBrowserNode({
+                          kind: isFolderType(t.xmlName) ? 'folderType' : 'type',
+                          xmlName: t.xmlName,
+                          label: t.xmlName
+                        })
+                    )
                 )
               );
             }
+            // return the custom fields for the object
+            if (element.kind === 'customObject') {
+              // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
+              return describeService.describeCustomObject(element.componentName!).pipe(
+                Effect.map(result =>
+                  result.fields
+                    // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
+                    .filter(f => f.custom)
+                    .toSorted((a, b) => (a.name < b.name ? -1 : 1))
+                    .map(
+                      f =>
+                        new OrgBrowserNode({
+                          kind: 'component',
+                          xmlName: 'CustomField',
+                          componentName: `${element.componentName}.${f.name}`,
+                          label: `${f.name} (${f.type})`
+                        })
+                    )
+                )
+              );
+            }
+
             if (element.kind === 'type') {
               if (isFolderType(element.xmlName)) {
-                return describeService
-                  .listMetadata(`${element.xmlName}Folder`)
-                  .pipe(
-                    Effect.map(folders => folders.map(f => new OrgBrowserNode('folder', element.xmlName, f.fullName)))
-                  );
+                return describeService.listMetadata(`${element.xmlName}Folder`).pipe(
+                  Effect.map(folders =>
+                    folders.map(
+                      f =>
+                        new OrgBrowserNode({
+                          kind: 'folder',
+                          xmlName: element.xmlName,
+                          folderName: f.fullName,
+                          label: f.fullName
+                        })
+                    )
+                  )
+                );
               } else {
                 return describeService.listMetadata(element.xmlName).pipe(
                   Effect.map(components =>
-                    components.map(c => {
-                      const n = new OrgBrowserNode('component', element.xmlName, undefined, c.fullName);
-                      n.collapsibleState = vscode.TreeItemCollapsibleState.None;
-                      return n;
-                    })
+                    components.map(
+                      c =>
+                        new OrgBrowserNode({
+                          kind: element.xmlName === 'CustomObject' ? 'customObject' : 'component',
+                          xmlName: element.xmlName,
+                          componentName: c.fullName,
+                          label: c.fullName
+                        })
+                    )
                   )
                 );
               }
             }
             if (element.kind === 'folderType') {
-              return describeService
-                .listMetadata(`${element.xmlName}Folder`)
-                .pipe(
-                  Effect.map(folders => folders.map(f => new OrgBrowserNode('folder', element.xmlName, f.fullName)))
-                );
+              return describeService.listMetadata(`${element.xmlName}Folder`).pipe(
+                Effect.map(folders =>
+                  folders.map(
+                    f =>
+                      new OrgBrowserNode({
+                        kind: 'folder',
+                        xmlName: element.xmlName,
+                        folderName: f.fullName,
+                        label: f.fullName
+                      })
+                  )
+                )
+              );
             }
             if (element.kind === 'folder') {
               const { xmlName, folderName } = element;
               if (!xmlName || !folderName) return Effect.succeed([]);
-              return describeService
-                .listMetadata(xmlName, folderName)
-                .pipe(
-                  Effect.map(components =>
-                    components.map(c => new OrgBrowserNode('component', xmlName, folderName, c.fullName))
+              return describeService.listMetadata(xmlName, folderName).pipe(
+                Effect.map(components =>
+                  components.map(
+                    c =>
+                      new OrgBrowserNode({
+                        kind: 'component',
+                        xmlName,
+                        folderName,
+                        componentName: c.fullName,
+                        label: c.fullName
+                      })
                   )
-                );
+                )
+              );
             }
 
-            return Effect.succeed([]);
+            return Effect.fail(new Error(`Invalid node kind: ${element.kind}`));
           }).pipe(Effect.provide(allLayers));
         })
       ),
