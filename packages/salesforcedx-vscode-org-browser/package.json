@@ -93,7 +93,7 @@
         }
       },
       {
-        "command": "orgBrowser.retrieveMetadata",
+        "command": "sfdxOrgBrowser.retrieveMetadata",
         "title": "Retrieve Metadata",
         "icon": {
           "dark": "resources/dark/retrieve.svg",

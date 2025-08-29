@@ -80,7 +80,7 @@ export const MetadataDescribeServiceLive = Layer.effect(
     ): Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext> =>
       forceRefresh ? cacheableDescribe(`fresh-${Date.now()}`) : cachedDescribe('cached');
 
-    // TODO: write this in a common place that other services can use
+    // TODO: write the result in a common place that other services can use.  Probably do the same with ndapi describe and list
     const describeCustomObject = (objectName: string): Effect.Effect<DescribeSObjectResult, Error, DescribeContext> =>
       pipe(
         Effect.flatMap(ConnectionService, svc => svc.getConnection),
@@ -90,7 +90,7 @@ export const MetadataDescribeServiceLive = Layer.effect(
             catch: e => new Error(`describeCustomObject failed for object ${objectName}: ${String(e)}`)
           })
         ),
-        Effect.tap(result => Effect.log(result.fields.map(f => f.name))),
+        Effect.tap(result => Effect.log(result.fields.map(f => f.name).join(', '))),
         Effect.withSpan('describeCustomObject', { attributes: { objectName } }),
         Effect.provide(SdkLayer)
       );

@@ -34,13 +34,14 @@ export const activateEffect = (
         const svc = yield* ChannelService;
         yield* svc.appendToChannel('Salesforce Org Browser extension activating');
 
+        const treeProvider = new MetadataTypeTreeProvider();
         // Register the tree provider
-        vscode.window.registerTreeDataProvider(TREE_VIEW_ID, new MetadataTypeTreeProvider());
+        vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider);
 
         // Register commands
         context.subscriptions.push(
           vscode.commands.registerCommand(`${TREE_VIEW_ID}.refreshType`, async (node: OrgBrowserNode) => {
-            await new MetadataTypeTreeProvider().refreshType(node);
+            await treeProvider.refreshType(node);
           }),
           vscode.commands.registerCommand(`${TREE_VIEW_ID}.collapseAll`, () => {
             vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_ID}.collapseAll`);

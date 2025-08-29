@@ -13,7 +13,7 @@ type OrgBrowserNodeKind =
   | 'folderType'
   /** a folder in one of the folder types*/
   | 'folder'
-  /** a component that can be retrieved*/
+  /** a component that can be retrieved, the lowest level of the tree */
   | 'component'
   /** a custom object (so that its fields can be displayed and retrieved*/
   | 'customObject';
@@ -32,12 +32,9 @@ export type OrgBrowserNodeInputs = {
 const FOLDER_TYPES = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report']);
 export const isFolderType = (xmlName: string): boolean => FOLDER_TYPES.has(xmlName);
 
-export const calculateType = (xmlName: string): OrgBrowserNodeKind => {
-  if (xmlName === 'CustomObject') {
-    return 'customObject';
-  }
-  return isFolderType(xmlName) ? 'folder' : 'type';
-};
+export const calculateType = (xmlName: string): OrgBrowserNodeKind =>
+  xmlName === 'CustomObject' ? 'customObject' : isFolderType(xmlName) ? 'folder' : 'type';
+
 export class OrgBrowserNode extends vscode.TreeItem {
   public readonly kind: OrgBrowserNodeKind;
   public readonly xmlName: string;

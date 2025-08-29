@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { pipe, Effect, Layer } from 'effect';
+import type { DescribeSObjectResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { ExtensionProviderService, ExtensionProviderServiceLive } from '../services/extensionProvider';
 import { isFolderType, OrgBrowserNode } from './orgBrowserNode';
@@ -77,7 +78,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
                           kind: 'component',
                           xmlName: 'CustomField',
                           componentName: `${element.componentName}.${f.name}`,
-                          label: `${f.name} (${f.type})`
+                          label: getFieldLabel(f)
                         })
                     )
                 )
@@ -158,3 +159,21 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     return await Effect.runPromise(program);
   }
 }
+
+/** build out the label for a CustomField */
+const getFieldLabel = (f: DescribeSObjectResult['fields'][number]): string => {
+  switch (f.type) {
+    case 'string':
+    case 'textarea':
+    case 'email':
+      return `${f.name} | ${f.type} | length: ${f.length?.toLocaleString()}`;
+    case 'reference':
+      return `${f.relationshipName} | reference`;
+    case 'double':
+    case 'currency':
+    case 'percent':
+      return `${f.name} | ${f.type} | scale: ${f.scale} | precision: ${f.precision}`;
+    default:
+      return `${f.name} | ${f.type}`;
+  }
+};
