@@ -28,8 +28,7 @@
     "@salesforce/salesforcedx-apex-debugger": "64.11.1",
     "@salesforce/salesforcedx-utils": "64.11.1",
     "@salesforce/salesforcedx-utils-vscode": "64.11.1",
-    "@vscode/debugprotocol": "1.68.0",
-    "vscode-extension-telemetry": "^0.0.17"
+    "@vscode/debugprotocol": "1.68.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.1",

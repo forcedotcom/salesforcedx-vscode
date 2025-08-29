@@ -38,19 +38,16 @@
     "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "salesforcedx-vscode-apex": "64.11.1",
-    "salesforcedx-vscode-core": "64.11.1",
-    "vscode-extension-telemetry": "^0.0.17"
+    "salesforcedx-vscode-core": "64.11.1"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
-    "bundle:extension:copy": "cp ../salesforcedx-apex-replay-debugger/dist/apexreplaydebug.js ./dist/",
-    "bundle:extension:build": "node ./esbuild.config.mjs",
+    "bundle:extension": "node ./esbuild.config.mjs",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
@@ -67,30 +64,6 @@
     "onCommand:sf.launch.replay.debugger.logfile.path"
   ],
   "main": "./out/src",
-  "packaging": {
-    "assets": [
-      "OSSREADME.json",
-      "package.nls.ja.json",
-      "package.nls.json",
-      "README.md",
-      ".vscodeignore",
-      "images",
-      "resources",
-      "syntaxes",
-      "dist"
-    ],
-    "debuggers": [
-      "./dist/apexreplaydebug.js"
-    ],
-    "packageUpdates": {
-      "main": "dist/index.js",
-      "dependencies": {
-        "applicationinsights": "1.0.7",
-        "jsonpath": "1.1.1"
-      },
-      "devDependencies": {}
-    }
-  },
   "contributes": {
     "breakpoints": [
       {
@@ -208,7 +181,7 @@
       {
         "type": "apex-replay",
         "label": "Apex Replay Debugger",
-        "program": "./dist/apexreplaydebug.js",
+        "program": "./dist/apexReplayDebug.js",
         "runtime": "node",
         "languages": [
           "apex"
