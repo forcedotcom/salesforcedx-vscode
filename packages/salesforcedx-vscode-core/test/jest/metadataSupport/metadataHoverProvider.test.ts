@@ -90,23 +90,23 @@ describe('MetadataHoverProvider', () => {
   });
 
   describe('provideHover', () => {
-    it('should return null for non-metadata files', () => {
+    it('should return null for non-metadata files', async () => {
       const document = createMockDocument('test.txt', 'some text');
       const position = new vscode.Position(0, 5);
 
-      const result = hoverProvider.provideHover(document, position, {} as any);
+      const result = await hoverProvider.provideHover(document, position, {} as any);
 
       expect(result).toBeNull();
     });
 
-    it('should return null when no word at position', () => {
+    it('should return null when no word at position', async () => {
       const document = createMockDocument('test-meta.xml', '<ApexClass>');
       const position = new vscode.Position(0, 100); // Position beyond text
 
       // Mock getWordRangeAtPosition to return undefined
       document.getWordRangeAtPosition.mockReturnValue(undefined);
 
-      const result = hoverProvider.provideHover(document, position, {} as any);
+      const result = await hoverProvider.provideHover(document, position, {} as any);
 
       expect(result).toBeNull();
     });
