@@ -71,7 +71,7 @@ const finishedStatuses = [
 ];
 
 const MIN_VERSION_TO_SUPPORT_TEST_SETUP_METHODS = 61.0;
-const POLLING_FREQUENCY = Duration.milliseconds(100);
+const POLLING_FREQUENCY = Duration.seconds(1);
 const POLLING_TIMEOUT = Duration.hours(4);
 
 export class AsyncTests {
