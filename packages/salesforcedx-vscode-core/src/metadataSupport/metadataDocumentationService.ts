@@ -319,6 +319,14 @@ export class MetadataDocumentationService {
         description:
           'Represents a certificate. Certificates are used to authenticate single sign-on (SSO) with an external website or to authenticate API integrations.'
       },
+      ContentAsset: {
+        description:
+          'Represents a content asset. Content assets are files that can be referenced in Lightning components, Visualforce pages, and other places in Salesforce. They provide a way to upload and manage static resources like images, stylesheets, and JavaScript files.'
+      },
+      CspTrustedSite: {
+        description:
+          'Represents a Content Security Policy (CSP) trusted site. CSP trusted sites allow you to relax certain CSP directives for specific domains, enabling your Lightning components to load resources from external sites.'
+      },
       Settings: {
         description:
           'Represents organization settings. Settings control various features and behaviors in your Salesforce org.'
@@ -334,6 +342,7 @@ export class MetadataDocumentationService {
       ApexClass: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_classes.htm',
       ApexTrigger: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_triggers.htm',
       CustomObject: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm',
+      CustomField: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customfield.htm',
       Flow: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm'
     };
 
