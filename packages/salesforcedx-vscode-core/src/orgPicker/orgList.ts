@@ -155,7 +155,13 @@ export class OrgList implements vscode.Disposable {
         return { type: 'CONTINUE', data: {} };
       }
       default: {
-        const usernameOrAlias = selection.split(' - ', 1);
+        // Extract the username or alias from the selection
+        // Format is: "alias1,alias2,alias3 - username" or "alias1,alias2,alias3 - username - Expired ❌"
+        // or just "username" or "username - Expired ❌"
+        const cleanSelection = selection.endsWith(' - Expired ❌') ? selection.replace(' - Expired ❌', '') : selection;
+        const lastDashIndex = cleanSelection.lastIndexOf(' - ');
+        const usernameOrAlias = lastDashIndex !== -1 ? cleanSelection.substring(0, lastDashIndex) : cleanSelection;
+
         vscode.commands.executeCommand('sf.config.set', usernameOrAlias);
         return { type: 'CONTINUE', data: {} };
       }
