@@ -489,16 +489,6 @@ describe('OrgList tests', () => {
       expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'MyOrg');
     });
 
-    it('should handle organization selection with complex alias and expired indicator', async () => {
-      const orgSelection = 'My Organization - Dev Sandbox - user@example.com - Expired ❌';
-      showQuickPickMock.mockResolvedValueOnce(orgSelection);
-
-      const result = await orgList.setDefaultOrg();
-
-      expect(result).toEqual({ type: 'CONTINUE', data: {} });
-      expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'My Organization - Dev Sandbox');
-    });
-
     it('should handle org with alias containing dashes and expired indicator', async () => {
       showQuickPickMock.mockResolvedValueOnce('My Organization - Dev Sandbox - foo@bar.com - Expired ❌');
 
