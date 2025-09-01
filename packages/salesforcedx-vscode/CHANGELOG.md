@@ -1,31 +1,18 @@
-# 64.11.1 - August 28, 2025
+# 64.12.0 - September 3, 2025
+
 ## Added
 
 #### salesforcedx-vscode-core
 
-- We made some changes under the hood. ([PR #6491](https://github.com/forcedotcom/salesforcedx-vscode/pull/6491))
+- W-19158987 - remove deleted and expired orgs without cli ([PR #6500](https://github.com/forcedotcom/salesforcedx-vscode/pull/6500))
 
-- We made some changes under the hood to `SFDX: Delete This from Project and Org` command. It now runs faster. ([PR #6466](https://github.com/forcedotcom/salesforcedx-vscode/pull/6466))
-
-- We made some changes under the hood to `SFDX: Pull This Source from Org` that make the command run faster. You can now view file differences when there are conflicts. You can also ignore the differences and proceed. ([PR #6438](https://github.com/forcedotcom/salesforcedx-vscode/pull/6438))
-
-
-#### salesforcedx-vscode-soql
-
-- You can now access a walkthrough (step-by-step guide) for creating SOQL queries with the SOQL Query Builder. Find it on the VS Code Welcome page or launch it anytime by running `Open SOQL Walkthrough` from the Command Palette. ([PR #6497](https://github.com/forcedotcom/salesforcedx-vscode/pull/6497))
-
+- No library bundles W-19376651 ([PR #6490](https://github.com/forcedotcom/salesforcedx-vscode/pull/6490))
 
 ## Fixed
 
-#### salesforcedx-vscode-lightning
-
-- We made some changes under the hood. ([PR #6496](https://github.com/forcedotcom/salesforcedx-vscode/pull/6496), [PR #6492](https://github.com/forcedotcom/salesforcedx-vscode/pull/6492))
-
-#### salesforcedx-vscode-lwc
-
-- We made some changes under the hood. ([PR #6492](https://github.com/forcedotcom/salesforcedx-vscode/pull/6492))
-
 #### salesforcedx-vscode-core
 
-- We made some changes under the hood. ([PR #6495](https://github.com/forcedotcom/salesforcedx-vscode/pull/6495))
+- W-19459990 - org picker supports aliases with dashes ([PR #6521](https://github.com/forcedotcom/salesforcedx-vscode/pull/6521))
+
+- W-19441469 - deploy and retrieve for non source tracked orgs vs setting works ([PR #6507](https://github.com/forcedotcom/salesforcedx-vscode/pull/6507))
 
