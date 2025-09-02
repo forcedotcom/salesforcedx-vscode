@@ -44,7 +44,6 @@
     "lint:fix": "npm run lint -- --fix",
     "test": "jest --coverage --passWithNoTests",
     "vscode:package": "vsce package",
-    "vscode:prepublish": "npm prune --production",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "watch": "tsc -watch -p ."
