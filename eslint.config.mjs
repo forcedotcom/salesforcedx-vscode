@@ -37,7 +37,6 @@ export default [
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
-      'scripts/installVSIXFromBranch.ts',
       'scripts/vsce-bundled-extension.ts',
       'scripts/reportInstalls.ts'
     ]
