@@ -200,7 +200,7 @@
       "commandPalette": [
         {
           "command": "sf.debug.exception.breakpoint",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && !isWeb"
         }
       ]
     },
