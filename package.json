@@ -64,7 +64,6 @@
     "markdown-link-check": "^3.9.3",
     "mocha": "^11.7.1",
     "mocha-multi-reporters": "^1.1.7",
-    "ncp": "^2.0.0",
     "nyc": "15.1.0",
     "ovsx": "0.10.2",
     "prettier": "3.6.2",
@@ -72,9 +71,7 @@
     "ts-jest": "^29.4.1",
     "ts-loader": "^9.5.4",
     "ts-node": "10.9.2",
-    "typescript": "5.9.2",
-    "vscode-extension-tester": "^8.16.0",
-    "yaml": "2.6.0"
+    "typescript": "5.9.2"
   },
   "scripts": {
     "postinstall": "npm run check:peer-deps && npm run check:typescript-project-references",
@@ -91,7 +88,6 @@
     "lint": "lerna run lint",
     "lint:fix": "lerna run lint:fix",
     "test": "lerna run test",
-    "test:download-vscode": "node scripts/download-vscode",
     "coverage:report": "shx mkdir -p ./test-results && npm run coverage:merge && nyc report --reporter=html --report-dir=./test-results/coverage-report --temp-dir=coverage",
     "coverage:merge": "node scripts/mergeCoverageJson.mjs",
     "junit:report": "shx mkdir -p ./test-results && jrm ./test-results/all-junit-custom-unitTests.xml \"packages/**/junit-custom-unitTests.xml\"",
@@ -109,14 +105,12 @@
     "vscode:sha256": "node ./scripts/generate-sha256.js >> ./SHA256",
     "vscode:publish": "lerna run vscode:publish --concurrency 1",
     "watch": "lerna run --parallel watch",
-    "aggregateJUnit": "node scripts/aggregate-junit-xml.js",
     "link-lsp": "yarn link @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common && lerna exec yarn link @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn link @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc",
     "unlink-lsp": "yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common && lerna exec yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn unlink @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc",
     "report:installs": "ts-node scripts/reportInstalls.ts",
     "automation-test": "rm -rf ./e2e-temp && npm install && npm run compile && [ ! -d ./extensions ] && npm run vscode:package && mkdir -p ./extensions && find ./packages -name '*.vsix' -exec cp {} ./extensions/ \\; || true && VSIX_TO_INSTALL=./extensions node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec ./packages/salesforcedx-vscode-automation-tests/lib/test/specs/lwcLsp.e2e.js",
     "gha-automation-tests": "node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec",
-    "setup": "node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec ./packages/salesforcedx-vscode-automation-tests/lib/test/setup/anInitialSetUp.e2e.js",
-    "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code"
+    "setup": "node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec ./packages/salesforcedx-vscode-automation-tests/lib/test/setup/anInitialSetUp.e2e.js"
   },
   "husky": {
     "hooks": {

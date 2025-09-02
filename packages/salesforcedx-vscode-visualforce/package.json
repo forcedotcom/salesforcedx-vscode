@@ -27,14 +27,12 @@
     "@salesforce/salesforcedx-visualforce-language-server": "64.11.1",
     "@salesforce/salesforcedx-visualforce-markup-language-server": "64.11.1",
     "salesforcedx-vscode-core": "64.11.1",
-    "vscode-extension-telemetry": "^0.0.17",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
     "vscode-languageserver-types": "^3.17.5"
   },
   "devDependencies": {
-    "@types/node": "^22.15.1",
-    "cross-env": "5.2.0"
+    "@types/node": "^22.15.1"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
