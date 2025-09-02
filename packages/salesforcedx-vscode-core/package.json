@@ -1005,6 +1005,82 @@
         "scopeName": "manifest.text.xml",
         "path": "./syntaxes/manifestXML.tmLanguage.json"
       }
+    ],
+    "walkthroughs": [
+      {
+        "id": "sf.org-browser",
+        "title": "%org_browser_walkthrough_title%",
+        "description": "%org_browser_walkthrough_description%",
+        "steps": [
+          {
+            "id": "open-org-browser",
+            "title": "%org_browser_walkthrough_open_title%",
+            "description": "%org_browser_walkthrough_open_description%",
+            "media": {
+              "image": "images/walkthrough/org-browser.png",
+              "altText": "%org_browser_walkthrough_open_alt%"
+            },
+            "completionEvents": [
+              "onCommand:workbench.view.extension.metadata"
+            ]
+          },
+          {
+            "id": "browse-metadata-types",
+            "title": "%org_browser_walkthrough_browse_title%",
+            "description": "%org_browser_walkthrough_browse_description%",
+            "media": {
+              "image": "images/walkthrough/org-browser.png",
+              "altText": "%org_browser_walkthrough_browse_alt%"
+            }
+          },
+          {
+            "id": "retrieve-metadata",
+            "title": "%org_browser_walkthrough_retrieve_title%",
+            "description": "%org_browser_walkthrough_retrieve_description%",
+            "media": {
+              "image": "images/walkthrough/org-browser.png",
+              "altText": "%org_browser_walkthrough_retrieve_alt%"
+            }
+          }
+        ]
+      },
+      {
+        "id": "sf.connected-org",
+        "title": "%connected_org_walkthrough_title%",
+        "description": "%connected_org_walkthrough_description%",
+        "steps": [
+          {
+            "id": "understand-default-org",
+            "title": "%connected_org_walkthrough_understand_title%",
+            "description": "%connected_org_walkthrough_understand_description%",
+            "media": {
+              "image": "images/walkthrough/org-picker.png",
+              "altText": "%connected_org_walkthrough_understand_alt%"
+            }
+          },
+          {
+            "id": "set-default-org",
+            "title": "%connected_org_walkthrough_set_title%",
+            "description": "%connected_org_walkthrough_set_description%",
+            "media": {
+              "image": "images/walkthrough/org-picker.png",
+              "altText": "%connected_org_walkthrough_set_alt%"
+            },
+            "completionEvents": [
+              "onCommand:sf.set.default.org"
+            ]
+          },
+          {
+            "id": "open-default-org",
+            "title": "%connected_org_walkthrough_open_title%",
+            "description": "%connected_org_walkthrough_open_description%",
+            "media": {
+              "image": "images/walkthrough/org-picker.png",
+              "altText": "%connected_org_walkthrough_open_alt%"
+            }
+          }
+        ]
+      }
     ]
   }
 }
