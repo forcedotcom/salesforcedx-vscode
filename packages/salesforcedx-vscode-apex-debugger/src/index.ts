@@ -241,6 +241,7 @@ const registerDebugHandlers = (): vscode.Disposable => {
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   console.log('Apex Debugger Extension Activated');
+
   const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
   const fileWatchers = registerFileWatchers();

@@ -29,7 +29,6 @@
     "vscode-languageserver-protocol": "^3.17.5"
   },
   "devDependencies": {
-    "cross-env": "5.2.0",
     "salesforcedx-vscode-core": "64.12.0"
   },
   "extensionDependencies": [
