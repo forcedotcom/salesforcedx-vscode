@@ -46,19 +46,14 @@ export const getHTMLMode = (htmlLanguageService: HTMLLanguageService): LanguageM
       formatParams: FormattingOptions,
       settings: Settings = globalSettings
     ) => {
-      let formatSettings: HTMLFormatConfiguration = settings?.visualforce?.format;
-      if (formatSettings) {
-        formatSettings = merge(formatSettings, {});
-      } else {
-        formatSettings = {};
-      }
+      const formatSettings: HTMLFormatConfiguration = settings?.visualforce?.format ?? {};
+
       if (formatSettings.contentUnformatted) {
         formatSettings.contentUnformatted = `${formatSettings.contentUnformatted},script`;
       } else {
         formatSettings.contentUnformatted = 'script';
       }
-      formatSettings = merge(formatParams, formatSettings);
-      return htmlLanguageService.format(document, range, formatSettings);
+      return htmlLanguageService.format(document, range, { ...formatParams, ...formatSettings });
     },
     doAutoClose: (document: TextDocument, position: Position) => {
       const offset = document.offsetAt(position);
@@ -75,13 +70,4 @@ export const getHTMLMode = (htmlLanguageService: HTMLLanguageService): LanguageM
       htmlDocuments.dispose();
     }
   };
-};
-
-const merge = (src: any, dst: any): any => {
-  for (const key in src) {
-    if (src.hasOwnProperty(key)) {
-      dst[key] = src[key];
-    }
-  }
-  return dst;
 };

@@ -30,12 +30,12 @@ import {
   TransportKind
 } from 'vscode-languageclient/node';
 import {
-  ColorPresentationParams,
+  type ColorPresentationParams,
   ColorPresentationRequest,
-  DocumentColorParams,
+  type DocumentColorParams,
   DocumentColorRequest,
-  ColorInformation as LSPColorInformation,
-  ColorPresentation as LSPColorPresentation
+  type ColorInformation as LSPColorInformation,
+  type ColorPresentation as LSPColorPresentation
 } from 'vscode-languageserver-protocol';
 import { EMPTY_ELEMENTS } from './htmlEmptyTagsShared';
 import { activateTagClosing } from './tagClosing';

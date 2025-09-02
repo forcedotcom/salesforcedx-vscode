@@ -9,6 +9,7 @@ import {
   DocumentContext,
   getLanguageService as getHTMLLanguageService
 } from '@salesforce/salesforcedx-visualforce-markup-language-server';
+import { LanguageSettings } from 'vscode-css-languageservice';
 import { ColorInformation, ColorPresentation } from 'vscode-languageserver-protocol';
 import {
   CompletionItem,
@@ -36,7 +37,7 @@ import { getJavascriptMode } from './javascriptMode';
 
 export { ColorInformation };
 
-export type Settings = {
+export type Settings = LanguageSettings & {
   css?: any;
   visualforce?: any;
   javascript?: any;
