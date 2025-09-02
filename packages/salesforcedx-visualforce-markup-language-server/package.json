@@ -11,12 +11,8 @@
     "onView:never"
   ],
   "main": "out/src",
-  "devDependencies": {
-    "@types/node": "^22.15.1"
-  },
   "dependencies": {
     "vscode-languageserver-types": "^3.4.0",
-    "vscode-nls": "^2.0.2",
     "vscode-uri": "^3.1.0"
   },
   "scripts": {
