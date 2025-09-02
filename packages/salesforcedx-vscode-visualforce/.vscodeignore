@@ -1,11 +1,48 @@
+.gitignore
+.eslint.json
 .vscode/**
 .vscode-test/**
-out/test/**
+*.xml
+*.vsix
+out/**
 test/**
 src/**
 **/*.map
-.gitignore
+**/*.ts
+**/tsconfig.json
+test/**
+src/**
 tsconfig.json
-images/**
-!images/VSCodeVisualforce.png
-typings/**
+coverage
+esbuild.config.mjs
+jest.config.js
+node_modules
+
+# do not reach outside the package
+../../**
+../**
+
+# local rxjs node modules
+node_modules/rxjs/src/**
+node_modules/rxjs/bundles/**
+node_modules/rxjs/_esm5/**
+node_modules/rxjs/_esm2015/**
+node_modules/typescript/**
+
+# ignore unused rxjs code
+node_modules/rxjs/src/**
+node_modules/rxjs/bundles/**
+node_modules/rxjs/_esm5/**
+node_modules/rxjs/_esm2015/**
+
+# ignore unused jsforce code
+node_modules/jsforce/test/**
+node_modules/jsforce/build/**
+
+# ignore unused sfdx-faye code
+node_modules/sfdx-faye/examples/**
+node_modules/sfdx-faye/site/**
+node_modules/sfdx-faye/spec/**
+
+# ignore unused dayjs code
+node_modules/dayjs/esm/**

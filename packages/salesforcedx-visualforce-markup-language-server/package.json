@@ -12,8 +12,7 @@
   ],
   "main": "out/src",
   "devDependencies": {
-    "@types/node": "^22.15.1",
-    "shx": "0.4.0"
+    "@types/node": "^22.15.1"
   },
   "dependencies": {
     "vscode-languageserver-types": "^3.4.0",
