@@ -13,9 +13,6 @@ process.on('uncaughtException', err => {
 // Verbose output
 process.env.DEBUG = '*';
 
-const NODE_VERSION = '12.4.0';
-const LERNA_VERSION = '3.13.1';
-
 module.exports = {
   checkVSCodeVersion: () => {
     const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
