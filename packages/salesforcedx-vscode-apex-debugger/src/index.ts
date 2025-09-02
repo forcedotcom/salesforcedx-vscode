@@ -242,10 +242,6 @@ const registerDebugHandlers = (): vscode.Disposable => {
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   console.log('Apex Debugger Extension Activated');
 
-  // Set web environment context
-  const isWeb = vscode.env.uiKind === vscode.UIKind.Web;
-  void vscode.commands.executeCommand('setContext', 'sf:isWeb', isWeb);
-
   const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
   const fileWatchers = registerFileWatchers();

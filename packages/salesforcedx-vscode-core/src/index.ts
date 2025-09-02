@@ -394,10 +394,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   void vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
 
-  // Set web environment context
-  const isWeb = vscode.env.uiKind === vscode.UIKind.Web;
-  void vscode.commands.executeCommand('setContext', 'sf:isWeb', isWeb);
-
   if (internalDev) {
     // Internal Dev commands
     const internalCommands = registerInternalDevCommands();
