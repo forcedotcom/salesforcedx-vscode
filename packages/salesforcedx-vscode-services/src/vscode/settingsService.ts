@@ -16,12 +16,8 @@ const API_VERSION_KEY = 'apiVersion';
 
 const FALLBACK_API_VERSION = '64.0';
 
-const isNonEmptyString = (value: string | undefined): Effect.Effect<string, Error, never> => {
-  if (value === undefined || value.length === 0) {
-    return Effect.fail(new Error('Value is empty'));
-  }
-  return Effect.succeed(value);
-};
+const isNonEmptyString = (value: string | undefined): Effect.Effect<string, Error, never> =>
+  value === undefined || value.length === 0 ? Effect.fail(new Error('Value is empty')) : Effect.succeed(value);
 
 /**
  * Service for interacting with VSCode settings
