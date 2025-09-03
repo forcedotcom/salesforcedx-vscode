@@ -18,8 +18,7 @@ const API_VERSION_KEY = 'apiVersion';
 // by implementing the vscode auth provider https://github.com/microsoft/vscode-extension-samples/blob/main/authenticationprovider-sample/src/extension.ts
 // TODO: tests should also populate the settings
 const FALLBACK_INSTANCE_URL = 'https://flow-connect-8618-dev-ed.scratch.my.salesforce.com';
-const FALLBACK_ACCESS_TOKEN =
-  '00DD50000003P8h!AR4AQLtTtcZo1PRvk9pFT3jbmBb62s2Kg3TVnXg02MrXSO3z3jkVPjN_7YjRTurDOaTSJBgZ_fdE8YYInTr9oTrqbz378C_M';
+const FALLBACK_ACCESS_TOKEN = '<insert test token here>';
 const FALLBACK_API_VERSION = '64.0';
 
 /**
