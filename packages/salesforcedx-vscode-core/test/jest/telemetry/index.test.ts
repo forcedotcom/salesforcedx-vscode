@@ -7,7 +7,7 @@
 
 import { TELEMETRY_GLOBAL_USER_ID } from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'node:os';
-import { extensions, window, Extension } from 'vscode';
+import { extensions, window, workspace, Extension } from 'vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { SalesforceCoreSettings } from '../../../src/settings/salesforceCoreSettings';
@@ -25,6 +25,14 @@ describe('Telemetry', () => {
     jest.spyOn(SalesforceCoreSettings.prototype, 'getTelemetryEnabled').mockReturnValue(true);
     teleSpy = jest.spyOn(telemetryService, 'setCliTelemetryEnabled');
     cliSpy = jest.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
+
+    // Mock createFileSystemWatcher to return a proper mock object
+    jest.spyOn(workspace, 'createFileSystemWatcher').mockReturnValue({
+      onDidChange: jest.fn(),
+      onDidCreate: jest.fn(),
+      onDidDelete: jest.fn(),
+      dispose: jest.fn()
+    } as any);
   });
 
   afterEach(() => {

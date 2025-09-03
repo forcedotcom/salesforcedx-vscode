@@ -9,7 +9,9 @@ import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils'
 import { randomBytes } from 'node:crypto';
 import { ExtensionContext } from 'vscode';
 import { CliCommandExecutor, workspaceUtils } from '..';
-import { TELEMETRY_GLOBAL_USER_ID } from '../constants';
+import { TELEMETRY_GLOBAL_USER_ID, UNAUTHENTICATED_USER } from '../constants';
+import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
+import { getSharedTelemetryUserId, hashUserIdentifier } from '../helpers/telemetryUtils';
 
 export class UserService {
   private static getRandomUserId = (): string => randomBytes(20).toString('hex');
@@ -23,6 +25,7 @@ export class UserService {
     return result;
   }
 
+  /** Gets the original telemetry user ID using CLI-based approach */
   public static async getTelemetryUserId(extensionContext: ExtensionContext): Promise<string> {
     // Defining UserId in globalState and using the same in appInsights reporter.
     // Assigns cliId to UserId when it's undefined in global state.
@@ -52,3 +55,46 @@ export class UserService {
     return globalStateUserId;
   }
 }
+
+/** Interface for providing shared telemetry user ID from Core extension */
+export interface SharedTelemetryProvider {
+  getSharedTelemetryUserId(): Promise<string | undefined>;
+}
+
+/** Default implementation that uses the existing getSharedTelemetryUserId function */
+export class DefaultSharedTelemetryProvider implements SharedTelemetryProvider {
+  public async getSharedTelemetryUserId(): Promise<string | undefined> {
+    return await getSharedTelemetryUserId();
+  }
+}
+
+/**
+ * Gets the webUserId telemetry ID using workspace context instead of CLI.
+ * This is additional to the original telemetry ID and uses hashed orgId + userId.
+ * Used to track web users who cannot have CLI installed.
+ */
+export const getWebTelemetryUserId = async (
+  extensionContext: ExtensionContext,
+  sharedTelemetryProvider?: SharedTelemetryProvider
+): Promise<string> => {
+  // First, try to get the shared telemetry user ID from the provided provider
+  if (sharedTelemetryProvider) {
+    const sharedUserId = await sharedTelemetryProvider.getSharedTelemetryUserId();
+    if (sharedUserId) {
+      return sharedUserId;
+    }
+  }
+
+  // Calculate the webUserId field ID based on the orgId and userId
+  const context = WorkspaceContextUtil.getInstance();
+  const orgId = context.orgId;
+  const userId = context.username;
+
+  // If we have org authorization data available (orgId + userId), use hashed value for webUserId field
+  if (orgId && userId) {
+    return hashUserIdentifier(orgId, userId);
+  }
+
+  // No org authorization available yet, return unauthenticated user for webUserId field
+  return UNAUTHENTICATED_USER;
+};
