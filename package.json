@@ -40,7 +40,6 @@
     "@vscode/vsce": "2.32.0",
     "acorn": "8.15.0",
     "check-peer-dependencies": "4.3.0",
-    "commitizen": "^4.2.5",
     "cz-conventional-changelog": "3.3.0",
     "depcheck": "1.4.3",
     "esbuild": "0.25.0",
@@ -76,7 +75,6 @@
   "scripts": {
     "postinstall": "npm run check:peer-deps && npm run check:typescript-project-references",
     "bootstrap": "npm install",
-    "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",
     "changelog": "ts-node ./scripts/create-release-notes.ts",
     "clean": "lerna run clean && git clean -xfd",
@@ -117,11 +115,6 @@
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
       "pre-commit": "npx lerna run compile,lint && npm run check:peer-deps && npm run check:typescript-project-references && ts-node scripts/package-lock.validation.ts",
       "pre-push": "npx lerna run compile,lint,test"
-    }
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
     }
   }
 }
