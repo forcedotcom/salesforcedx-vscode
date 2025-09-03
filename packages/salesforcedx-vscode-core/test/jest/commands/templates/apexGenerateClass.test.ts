@@ -39,7 +39,7 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
 });
 
 const testProjectPath = path.resolve('test', 'project', 'path');
-const testClassesDir = path.resolve('force-app', 'main', 'default', 'classes');
+const testClassesDir = path.join('force-app', 'main', 'default', 'classes');
 const testClassesPath = path.join(testProjectPath, testClassesDir);
 const selectFileNameMocked = jest.mocked(SelectFileName);
 const metadataTypeGathererMocked = jest.mocked(MetadataTypeGatherer);
