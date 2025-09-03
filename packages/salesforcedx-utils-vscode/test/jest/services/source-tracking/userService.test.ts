@@ -131,15 +131,10 @@ describe('UserService', () => {
 });
 
 describe('getWebTelemetryUserId', () => {
-  let fakeExtensionContext: ExtensionContext;
   let workspaceContextSpy: jest.SpyInstance;
   let mockSharedTelemetryProvider: DefaultSharedTelemetryProvider;
 
   beforeEach(() => {
-    fakeExtensionContext = {
-      globalState: { get: jest.fn(), update: jest.fn() }
-    } as unknown as ExtensionContext;
-
     workspaceContextSpy = jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
       orgId: undefined,
       username: undefined
@@ -158,7 +153,7 @@ describe('getWebTelemetryUserId', () => {
     const sharedUserId = 'shared-user-id-123';
     mockSharedTelemetryProvider.getSharedTelemetryUserId = jest.fn().mockResolvedValue(sharedUserId);
 
-    const result = await getWebTelemetryUserId(fakeExtensionContext, mockSharedTelemetryProvider);
+    const result = await getWebTelemetryUserId(mockSharedTelemetryProvider);
 
     expect(result).toBe(sharedUserId);
     expect(mockSharedTelemetryProvider.getSharedTelemetryUserId).toHaveBeenCalled();
@@ -173,7 +168,7 @@ describe('getWebTelemetryUserId', () => {
       username
     });
 
-    const result = await getWebTelemetryUserId(fakeExtensionContext, mockSharedTelemetryProvider);
+    const result = await getWebTelemetryUserId(mockSharedTelemetryProvider);
 
     expect(result).toMatch(/^[a-f0-9]{64}$/); // SHA-256 hash format
   });
@@ -184,7 +179,7 @@ describe('getWebTelemetryUserId', () => {
       username: undefined
     });
 
-    const result = await getWebTelemetryUserId(fakeExtensionContext, mockSharedTelemetryProvider);
+    const result = await getWebTelemetryUserId(mockSharedTelemetryProvider);
 
     expect(result).toBe(UNAUTHENTICATED_USER);
   });

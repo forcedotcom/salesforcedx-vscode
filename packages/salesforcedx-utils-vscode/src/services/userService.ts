@@ -74,7 +74,6 @@ export class DefaultSharedTelemetryProvider implements SharedTelemetryProvider {
  * Used to track web users who cannot have CLI installed.
  */
 export const getWebTelemetryUserId = async (
-  extensionContext: ExtensionContext,
   sharedTelemetryProvider?: SharedTelemetryProvider
 ): Promise<string> => {
   // First, try to get the shared telemetry user ID from the provided provider
