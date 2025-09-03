@@ -8,6 +8,12 @@
   "references": [
     {
       "path": "../salesforcedx-vscode-core"
+    },
+    {
+      "path": "../salesforcedx-visualforce-language-server"
+    },
+    {
+      "path": "../salesforcedx-visualforce-markup-language-server"
     }
   ]
 }
