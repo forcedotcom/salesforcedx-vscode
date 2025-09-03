@@ -158,7 +158,7 @@ export class TelemetryService implements TelemetryServiceInterface {
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
       const userId = this.extensionContext ? await UserService.getTelemetryUserId(this.extensionContext) : 'unknown';
       const webUserId = this.extensionContext
-        ? await getWebTelemetryUserId(this.getSharedTelemetryProvider(this.extensionContext))
+        ? await getWebTelemetryUserId(this.extensionContext, this.getSharedTelemetryProvider(this.extensionContext))
         : 'unknown';
       const reporterConfig: TelemetryReporterConfig = {
         extName: this.extensionName,
@@ -213,7 +213,7 @@ export class TelemetryService implements TelemetryServiceInterface {
 
     // Get the updated user ID (original) and webUserId field
     const userId = await UserService.getTelemetryUserId(extensionContext);
-    const webUserId = await getWebTelemetryUserId(this.getSharedTelemetryProvider(extensionContext));
+    const webUserId = await getWebTelemetryUserId(extensionContext, this.getSharedTelemetryProvider(extensionContext));
 
     // Dispose existing reporters
     for (const reporter of this.reporters) {
@@ -375,7 +375,7 @@ export class TelemetryService implements TelemetryServiceInterface {
         } catch {
           console.log(
             `There was an error sending an exception report to: ${typeof reporter} ` +
-            `name: ${String(name)} message: ${String(message)}`
+              `name: ${String(name)} message: ${String(message)}`
           );
         }
       });
