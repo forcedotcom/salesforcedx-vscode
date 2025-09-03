@@ -11,16 +11,11 @@
     "reinstall": "git checkout -- package-lock.json && git clean -xfd && npm install"
   },
   "devDependencies": {
-    "@commitlint/config-conventional": "19.5.0",
     "@salesforce/salesforcedx-vscode-test-tools": "1.1.7",
     "@types/chai": "^4.3.17",
     "@types/mocha": "^10.0.9",
     "@typescript-eslint/eslint-plugin": "^8.12.2",
     "chai": "^4.5.0",
-    "eslint": "^9.32.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "2.32.0",
-    "eslint-plugin-prettier": "^5.2.1",
     "husky": "9.1.6",
     "mocha": "^10.8.2",
     "vscode-extension-tester": "^8.16.0"
