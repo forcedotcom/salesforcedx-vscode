@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { O11yService } from '@salesforce/o11y-reporter';
 import { workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../../../src/context/workspaceContextUtil';
-import { O11yService } from '../../../../src/services/o11yService';
 import { O11yReporter } from '../../../../src/telemetry/reporters/o11yReporter';
 
 describe('O11yReporter', () => {

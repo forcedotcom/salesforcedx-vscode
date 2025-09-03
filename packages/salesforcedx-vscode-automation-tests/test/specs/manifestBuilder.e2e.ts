@@ -14,7 +14,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { validateCommand } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
-import { createCustomObjects } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
+import { createCustomObjects, createOrOverwriteFile } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   clearOutputView,
@@ -26,6 +26,8 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { DefaultTreeItem, InputBox, after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Manifest Builder', () => {
@@ -35,11 +37,15 @@ describe('Manifest Builder', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'ManifestBuilder'
+    testSuiteSuffixName: 'ManifestBuilder',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
   });
 
   it('Generate Manifest File', async () => {
@@ -106,9 +112,8 @@ describe('Manifest Builder', () => {
       await inputBox.confirm();
       await inputBox.confirm();
       await inputBox.confirm();
+      await pause(Duration.seconds(1));
 
-      const workbench = getWorkbench();
-      const textEditor = await getTextEditor(workbench, 'manifest.xml');
       const content = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<Package xmlns="http://soap.sforce.com/2006/04/metadata">',
@@ -120,8 +125,8 @@ describe('Manifest Builder', () => {
         '</Package>'
       ].join('\n');
 
-      await textEditor.setText(content);
-      await textEditor.save();
+      const manifestPath = path.join(testSetup.projectFolderPath!, 'manifest', 'manifest.xml');
+      await createOrOverwriteFile(manifestPath, content);
       await pause(Duration.seconds(1));
     }
   });

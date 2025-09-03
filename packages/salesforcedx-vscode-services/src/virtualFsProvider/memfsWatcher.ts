@@ -7,7 +7,8 @@
 
 import { fs } from '@salesforce/core/fs';
 import { Effect, Schedule, Stream } from 'effect';
-import { FileChangeInfo } from 'node:fs/promises';
+// eslint-disable-next-line no-restricted-imports
+import type { FileChangeInfo } from 'node:fs/promises';
 import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
 import { SdkLayer } from '../observability/spans';
@@ -37,7 +38,7 @@ export const startWatch = (): Effect.Effect<void, Error, ChannelService | Indexe
       // if there are "change" events AND non-change events for the same file, drop the change events.  We prefer the "rename" (create) event.
       Stream.changesWith((a, b) => a.eventType === 'change' && b.eventType !== 'change' && a.filename === b.filename),
       Stream.changesWith((a, b) => b.eventType === 'change' && a.eventType !== 'change' && a.filename === b.filename),
-      Stream.schedule(Schedule.spaced(1)), // prevent the unduplicable IDB writes from happening simultaneously.  That causes hangs
+      Stream.schedule(Schedule.spaced(1)), // prevent the IDB writes from happening simultaneously.  That causes hangs
       Stream.mapEffect(updateIDB),
       Stream.runDrain,
       Effect.forkDaemon // Run in a daemon fiber that won't block

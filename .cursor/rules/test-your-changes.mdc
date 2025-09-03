@@ -7,7 +7,7 @@ alwaysApply: true
 when you changes a file, you should run relevant compile, linters then unit tests so that you cna propose valid changes.
 `npm run compile`
 `npm run lint`
-`npm run test:unit`
+`npm run test`
 
 If there are errors with those, you don't have a valid proposal. Iterate until you succeed, or are stuck and then propose a solution that could work.
 

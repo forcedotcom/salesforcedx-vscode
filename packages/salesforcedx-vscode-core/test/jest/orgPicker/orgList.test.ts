@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthFields, OrgAuthorization, StateAggregator } from '@salesforce/core-bundle';
+import { AuthFields, OrgAuthorization, StateAggregator } from '@salesforce/core';
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
@@ -143,6 +143,73 @@ describe('OrgList tests', () => {
       const result = await orgList.filterAuthInfo(orgAuths);
 
       expect(result).toEqual([validOrgAuth.username, orgAuthScratchOrg.username]);
+    });
+
+    it('should filter out expired orgs by default', async () => {
+      const expiredDate = new Date();
+      expiredDate.setTime(expiredDate.getTime() - 60 * 60 * 1000); // 1 hour ago (expired)
+
+      const expiredOrgAuth = {
+        username: 'expired@example.com',
+        orgId: 'expiredOrgId',
+        oauthMethod: 'web' as const,
+        isDevHub: false,
+        aliases: [],
+        configs: [],
+        isExpired: false,
+        error: undefined
+      };
+
+      const orgAuths = [validOrgAuth, expiredOrgAuth];
+      getUsernameForMock.mockResolvedValueOnce(validOrgAuth.username);
+      getUsernameForMock.mockResolvedValueOnce(expiredOrgAuth.username);
+      getAuthFieldsForMock.mockResolvedValueOnce(validOrgAuth as AuthFields);
+      getAuthFieldsForMock.mockResolvedValueOnce({
+        ...validOrgAuth,
+        expirationDate: expiredDate.toISOString()
+      } as AuthFields);
+      getDevHubUsernameMock.mockResolvedValueOnce(dummyDevHubUsername);
+      getAllAliasesForMock.mockResolvedValue([]);
+
+      const result = await orgList.filterAuthInfo(orgAuths);
+
+      // Should only return the valid org, not the expired one
+      expect(result).toEqual([validOrgAuth.username]);
+    });
+
+    it('should include expired orgs when showExpired is true', async () => {
+      const expiredDate = new Date();
+      expiredDate.setTime(expiredDate.getTime() - 2 * 60 * 60 * 1000); // 2 hours ago (expired)
+
+      const expiredOrgAuth = {
+        username: 'expired@example.com',
+        orgId: 'expiredOrgId',
+        oauthMethod: 'web' as const,
+        isDevHub: false,
+        aliases: [],
+        configs: [],
+        isExpired: false,
+        error: undefined
+      };
+
+      const orgAuths = [validOrgAuth, expiredOrgAuth];
+      getUsernameForMock.mockResolvedValueOnce(validOrgAuth.username);
+      getUsernameForMock.mockResolvedValueOnce(expiredOrgAuth.username);
+      getAuthFieldsForMock.mockResolvedValueOnce(validOrgAuth as AuthFields);
+      getAuthFieldsForMock.mockResolvedValueOnce({
+        ...validOrgAuth,
+        expirationDate: expiredDate.toISOString()
+      } as AuthFields);
+      getDevHubUsernameMock.mockResolvedValueOnce(dummyDevHubUsername);
+      getAllAliasesForMock.mockResolvedValue([]);
+
+      const result = await orgList.filterAuthInfo(orgAuths, true); // showExpired = true
+
+      // Should return both orgs when showExpired is true
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual(validOrgAuth.username);
+      expect(result[1]).toContain('expired@example.com');
+      expect(result[1]).toContain('Expired');
     });
   });
 
@@ -288,6 +355,184 @@ describe('OrgList tests', () => {
       expect(consoleErrorMock);
       // Clean up
       consoleErrorMock.mockRestore();
+    });
+  });
+
+  describe('setDefaultOrg tests', () => {
+    let showQuickPickMock: jest.SpyInstance;
+    let executeCommandMock: jest.SpyInstance;
+
+    beforeEach(() => {
+      showQuickPickMock = jest.spyOn(vscode.window, 'showQuickPick');
+      executeCommandMock = jest.spyOn(vscode.commands, 'executeCommand');
+      // Mock getOrgAuthorizations to return an empty array to avoid dependency issues
+      jest.spyOn(orgList, 'getOrgAuthorizations').mockResolvedValue([]);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    describe('Org picker SFDX commands', () => {
+      it('should handle org login web authorization selection', async () => {
+        showQuickPickMock.mockResolvedValueOnce(`$(plus) ${nls.localize('org_login_web_authorize_org_text')}`);
+
+        const result = await orgList.setDefaultOrg();
+
+        expect(result).toEqual({ type: 'CONTINUE', data: {} });
+        expect(executeCommandMock).toHaveBeenCalledWith('sf.org.login.web');
+      });
+
+      it('should handle org login web dev hub authorization selection', async () => {
+        showQuickPickMock.mockResolvedValueOnce(`$(plus) ${nls.localize('org_login_web_authorize_dev_hub_text')}`);
+
+        const result = await orgList.setDefaultOrg();
+
+        expect(result).toEqual({ type: 'CONTINUE', data: {} });
+        expect(executeCommandMock).toHaveBeenCalledWith('sf.org.login.web.dev.hub');
+      });
+
+      it('should handle create default scratch org selection', async () => {
+        showQuickPickMock.mockResolvedValueOnce(`$(plus) ${nls.localize('org_create_default_scratch_org_text')}`);
+
+        const result = await orgList.setDefaultOrg();
+
+        expect(result).toEqual({ type: 'CONTINUE', data: {} });
+        expect(executeCommandMock).toHaveBeenCalledWith('sf.org.create');
+      });
+
+      it('should handle org login access token selection', async () => {
+        showQuickPickMock.mockResolvedValueOnce(`$(plus) ${nls.localize('org_login_access_token_text')}`);
+
+        const result = await orgList.setDefaultOrg();
+
+        expect(result).toEqual({ type: 'CONTINUE', data: {} });
+        expect(executeCommandMock).toHaveBeenCalledWith('sf.org.login.access.token');
+      });
+
+      it('should handle org list clean selection', async () => {
+        showQuickPickMock.mockResolvedValueOnce(`$(plus) ${nls.localize('org_list_clean_text')}`);
+
+        const result = await orgList.setDefaultOrg();
+
+        expect(result).toEqual({ type: 'CONTINUE', data: {} });
+        expect(executeCommandMock).toHaveBeenCalledWith('sf.org.list.clean');
+      });
+
+      it('should handle cancellation when no selection is made', async () => {
+        showQuickPickMock.mockResolvedValueOnce(undefined);
+
+        const result = await orgList.setDefaultOrg();
+
+        expect(result).toEqual({ type: 'CANCEL' });
+        expect(executeCommandMock).not.toHaveBeenCalled();
+      });
+    });
+
+    it('should handle organization selection with simple alias', async () => {
+      const orgSelection = 'MyOrg - user@example.com';
+      showQuickPickMock.mockResolvedValueOnce(orgSelection);
+
+      const result = await orgList.setDefaultOrg();
+
+      expect(result).toEqual({ type: 'CONTINUE', data: {} });
+      expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'MyOrg');
+    });
+
+    it('should handle organization selection with alias containing dashes', async () => {
+      const orgSelection = 'My Organization - Dev Sandbox - foo@bar.com';
+      showQuickPickMock.mockResolvedValueOnce(orgSelection);
+
+      const result = await orgList.setDefaultOrg();
+
+      expect(result).toEqual({ type: 'CONTINUE', data: {} });
+      expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'My Organization - Dev Sandbox');
+    });
+
+    it('should handle organization selection with multiple dashes in alias', async () => {
+      const orgSelection = 'Sales - Force - Dev - Hub - admin@company.com';
+      showQuickPickMock.mockResolvedValueOnce(orgSelection);
+
+      const result = await orgList.setDefaultOrg();
+
+      expect(result).toEqual({ type: 'CONTINUE', data: {} });
+      expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'Sales - Force - Dev - Hub');
+    });
+
+    it('should handle organization selection with no alias (just username)', async () => {
+      const orgSelection = 'user@example.com';
+      showQuickPickMock.mockResolvedValueOnce(orgSelection);
+
+      const result = await orgList.setDefaultOrg();
+
+      expect(result).toEqual({ type: 'CONTINUE', data: {} });
+      expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'user@example.com');
+    });
+
+    it('should handle organization selection with comma-separated aliases', async () => {
+      const orgSelection = 'alias1,alias2,alias3 - user@example.com';
+      showQuickPickMock.mockResolvedValueOnce(orgSelection);
+
+      const result = await orgList.setDefaultOrg();
+
+      expect(result).toEqual({ type: 'CONTINUE', data: {} });
+      expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'alias1,alias2,alias3');
+    });
+
+    it('should handle organization selection with expired org indicator', async () => {
+      const orgSelection = 'MyOrg - user@example.com - Expired ❌';
+      showQuickPickMock.mockResolvedValueOnce(orgSelection);
+
+      const result = await orgList.setDefaultOrg();
+
+      expect(result).toEqual({ type: 'CONTINUE', data: {} });
+      expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'MyOrg');
+    });
+
+    it('should handle org with alias containing dashes and expired indicator', async () => {
+      showQuickPickMock.mockResolvedValueOnce('My Organization - Dev Sandbox - foo@bar.com - Expired ❌');
+
+      const result = await orgList.setDefaultOrg();
+
+      expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'My Organization - Dev Sandbox');
+      expect(result).toEqual({ type: 'CONTINUE', data: {} });
+    });
+
+    it('should handle org with no alias, just username and expired indicator', async () => {
+      showQuickPickMock.mockResolvedValueOnce('admin@company.com - Expired ❌');
+
+      const result = await orgList.setDefaultOrg();
+
+      expect(executeCommandMock).toHaveBeenCalledWith('sf.config.set', 'admin@company.com');
+      expect(result).toEqual({ type: 'CONTINUE', data: {} });
+    });
+
+    it('should handle complex aliases with dashes and multiple aliases', async () => {
+      showQuickPickMock.mockResolvedValueOnce(
+        'Sales - Force - Dev - Hub,Another - Complex - Alias,Simple Alias - admin@company.com'
+      );
+
+      const result = await orgList.setDefaultOrg();
+
+      expect(executeCommandMock).toHaveBeenCalledWith(
+        'sf.config.set',
+        'Sales - Force - Dev - Hub,Another - Complex - Alias,Simple Alias'
+      );
+      expect(result).toEqual({ type: 'CONTINUE', data: {} });
+    });
+
+    it('should handle complex aliases with dashes and expired indicator', async () => {
+      showQuickPickMock.mockResolvedValueOnce(
+        'Sales - Force - Dev - Hub,Another - Complex - Alias - admin@company.com - Expired ❌'
+      );
+
+      const result = await orgList.setDefaultOrg();
+
+      expect(executeCommandMock).toHaveBeenCalledWith(
+        'sf.config.set',
+        'Sales - Force - Dev - Hub,Another - Complex - Alias'
+      );
+      expect(result).toEqual({ type: 'CONTINUE', data: {} });
     });
   });
 });

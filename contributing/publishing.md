@@ -20,36 +20,41 @@ For more information about publishing take a look at:
 
 # Steps
 
-## Creating a Release Branch
+## Create a Release Branch
 
-The release branch is typically created from a scheduled job in GitHub Actions. This scheduled job creates the release branch off of the `develop` branch on Mondays at 1PM GMT (i.e. 5AM or 6AM Pacific time depending on daylight savings). Release branches are in the format of `release/vXX.YY.ZZ`.
+A scheduled [Github Action](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/createReleaseBranch.yml) creates the release branch off of the `develop` branch on Mondays at 1PM GMT (i.e. 5AM or 6AM Pacific time depending on daylight savings). Release branches are in the format of `release/vXX.YY.ZZ`.
 
 If any code changes are made between the time the release branch is automatically created and the actual release time, the engineer should run the `Create Release Branch` workflow with `patch` selected from the dropdown to create a new branch that contains those code changes.
-
-## Updating the Change Log
-
-The changelog will be automatically generated as part of the Create Release Branch workflow. This task will gather commits that should be published (like `feat` or `fix`) and write the update to `CHANGELOG.md`. If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), then the changelog entry for the upcoming release can be skipped. The workflow will then push the changelog to the release branch with the commit name of `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ are the numbers of the current release.
-
-The engineer should work with the team and doc writer to update and finalize the contents of the changelog. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `CHANGELOG.md` and clicking on the pencil icon to edit the file.
 
 ## Compare Changes in the Release
 
 When verifying the release, verify that it contains changes. One can see the changes in GitHub using an URL to diff the changes between releases, with an URl in the format of https://github.com/forcedotcom/salesforcedx-vscode/compare/release/v57.7.0...release/v57.8.0.
 
-If no changes were made the previous week, then the release can be skipped.
+If no changes were made the previous week, then the release can be skipped (no actions beyond this point)
+
+## Updating the Changelog
+
+The changelog will be automatically generated as part of the Create Release Branch workflow. This task will gather commits that should be published (like `feat` or `fix`) and write the update to `CHANGELOG.md`. If there are no commits worth publishing (for instance, if everything was a `chore` or a `ci` commit), then the changelog entry for the upcoming release can be skipped. The workflow will then push the changelog to the release branch with the commit name of `chore: generated CHANGELOG for vXX.YY.ZZ`, where XX.YY.ZZ are the numbers of the current release.
+
+The engineer should edit the contents of the changelog, and have the team and doc writer review. During the update process, if the writer wants to make further changes to changelog through the browser, they can do that by switching the branch from develop to release/vXX.YY.ZZ and go to `CHANGELOG.md` and clicking on the pencil icon to edit the file.
 
 ## Merging the Release Branch into Main
 
-After everyone is satisfied with the changelog updates, it's time to prepare the `main` branch with the new changes for the publish. A GitHub Action workflow is executed to merge the release branch. We are specifically using the rebase strategy because we want all the commits from our release branch to be applied on top of the commits in the `main` branch.
+After everyone is satisfied with the changelog updates, use the [PreRelease](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/prerelease.yml) workflow instead of just merging because we want all the commits from our release branch to be applied on top of the commits in the `main` branch.
 
-### To run the merge process:
-
-1. From the GitHub repository navigate to the Actions tab, and select the PreRelease workflow on the left
+1. From the GitHub repository navigate to the Actions tab, and select the [PreRelease](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/prerelease.yml) workflow on the left
 1. Click the 'Run Workflow' dropdown button on the right
 1. In the form that appears, set the branch to `develop`, and set the 'branch to be released' input box to the name of the release (eg `release/v58.0.0`)
 1. Click the 'Run Workflow' button.
 
 The PreRelease job will verify if the version of the branch to be merged is newer than what is currently in the `main` branch and update `main` with the release branch.
+
+### Potential Errors
+If you get `error: failed to push some refs to 'https://github.com/forcedotcom/salesforcedx-vscode'` on the merge step
+1. check out the merge branch locally
+2. `git merge` main into it
+3. push
+4. run `PreRelease` workflow again 
 
 ## Publishing Main
 
@@ -66,8 +71,10 @@ Before approving the release to the marketplace, download the vsix files from th
 
 Alternatively, you can download the files using the [gh cli](https://cli.github.com/) and then upload them all at once. Replace `v57.3.0` with the tag name for the release that you are testing, and to whatever download directory you would like. Additionally, `code` can be replaced by `code-insiders`.
 
-`> gh release download v57.3.0 --dir ~/Downloads/v57.3.0 --pattern '*.vsix'`
-`> find ~/Downloads/v53.3.0 -type f -name "*.vsix" -exec code --install-extension {} \;`
+```sh
+gh release download v64.8.0 --dir ~/Downloads/v64.8.0 --pattern '*.vsix' --repo forcedotcom/salesforcedx-vscode
+find ~/Downloads/v64.8.0 -type f -name "*.vsix" -exec code --install-extension {} \;
+```
 
 After completing your release testing following our internal template, approve the publish job "Publish in Microsoft Marketplace" and "Publish in Open VSX Registry" to allow the extensions to be uploaded and complete the release process.
 

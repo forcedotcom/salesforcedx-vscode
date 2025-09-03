@@ -5,15 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Command } from '@salesforce/salesforcedx-utils';
+import { Command, CommandExecution } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecutor,
-  CommandExecution,
   ContinueResponse,
   workspaceUtils,
-  ProgressNotification
+  ProgressNotification,
+  Properties,
+  Measurements,
+  TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import { Properties, Measurements } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { PROJECT_RETRIEVE_START_LOG_NAME, PROJECT_DEPLOY_START_LOG_NAME } from '../../constants';
@@ -27,8 +28,8 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
   public static errorCollection = vscode.languages.createDiagnosticCollection('push-errors');
   protected showChannelOutput = true;
   protected executionCwd = workspaceUtils.getRootWorkspacePath();
-  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<[number, number]>();
-  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this.onDidFinishExecutionEventEmitter.event;
+  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<number>();
+  public readonly onDidFinishExecution: vscode.Event<number> = this.onDidFinishExecutionEventEmitter.event;
 
   protected attachExecution(
     execution: CommandExecution,
@@ -53,15 +54,15 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
 
   public logMetric(
     logName: string | undefined,
-    hrstart: [number, number],
+    startTime: number,
     properties?: Properties,
     measurements?: Measurements
   ) {
-    telemetryService.sendCommandEvent(logName, hrstart, properties, measurements);
+    telemetryService.sendCommandEvent(logName, startTime, properties, measurements);
   }
 
   public execute(response: ContinueResponse<T>): void | Promise<void> {
-    const startTime = process.hrtime();
+    const startTime = TimingUtils.getCurrentTime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
@@ -99,7 +100,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
    * Base method (no-op) that is overridden by sub-classes
    * projectDeployStart and projectRetrieveStart to update the local cache's
    * timestamps post-operation, in order to be in sync for the
-   * "Detect Conflicts at Sync" setting.
+   * "Detect Conflicts for Deploy and Retrieve" setting.
    */
 
   public abstract build(data: T): Command;

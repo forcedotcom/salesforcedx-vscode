@@ -5,235 +5,77 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
-  CliCommandExecution,
-  CliCommandExecutor,
   ContinueResponse,
   EmptyParametersGatherer,
-  ProjectDeployStartResultParser,
-  ProjectDeployStartResult,
+  errorToString,
   SfWorkspaceChecker,
-  Table,
-  TelemetryBuilder,
+  SourceTrackingService,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
-import { PersistentStorageService } from '../conflict';
+
 import { PROJECT_DEPLOY_START_LOG_NAME } from '../constants';
-import { handlePushDiagnosticErrors } from '../diagnostics';
-import { coerceMessageKey, nls } from '../messages';
+import { WorkspaceContext } from '../context/workspaceContext';
+import { nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
-import { telemetryService } from '../telemetry';
-import { DeployRetrieveExecutor } from './baseDeployRetrieve';
-import { CommandParams, FlagParameter, SfCommandlet, SfCommandletExecutor } from './util';
+import { DeployRetrieveOperationType } from '../util/types';
+import { DeployExecutor } from './deployExecutor';
+import { SfCommandlet } from './util';
 
-export enum DeployType {
-  Deploy = 'deploy',
-  Push = 'push'
-}
-
-const pushCommand: CommandParams = {
-  command: 'project:deploy:start',
-  description: {
-    default: 'project_deploy_start_default_org_text',
-    ignoreConflicts: 'project_deploy_start_ignore_conflicts_default_org_text'
-  },
-  logName: { default: 'project_deploy_start_default_scratch_org' }
-};
-
-export class ProjectDeployStartExecutor extends SfCommandletExecutor<{}> {
-  private flag: string | undefined;
-  constructor(
-    flag?: string,
-    public params: CommandParams = pushCommand,
-    showChannelOutput: boolean = true
-  ) {
-    super();
-    this.flag = flag;
+export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
+  constructor(showChannelOutput: boolean = true, ignoreConflicts: boolean = false) {
+    const localizedCommandName = ignoreConflicts
+      ? nls.localize('project_deploy_start_ignore_conflicts_default_org_text')
+      : nls.localize('project_deploy_start_default_org_text');
+    super(localizedCommandName, PROJECT_DEPLOY_START_LOG_NAME);
     this.showChannelOutput = showChannelOutput;
+    this.ignoreConflicts = ignoreConflicts;
   }
 
-  protected getDeployType() {
-    return DeployType.Push;
+  protected readonly operationType: DeployRetrieveOperationType = 'push';
+
+  public async run(
+    response: ContinueResponse<{}>,
+    progress?: vscode.Progress<{
+      message?: string | undefined;
+      increment?: number | undefined;
+    }>,
+    token?: vscode.CancellationToken
+  ): Promise<boolean> {
+    const components = await this.getComponents(response);
+    return this.performOperation(components, token);
   }
 
-  public build(_data: {}): Command {
-    const builder = new SfCommandBuilder()
-      .withDescription(nls.localize(coerceMessageKey(this.params.description.default)))
-      .withArg(this.params.command)
-      .withJson()
-      .withLogName(this.params.logName.default);
-    if (this.flag === '--ignore-conflicts') {
-      builder.withArg(this.flag);
-      builder.withDescription(nls.localize(coerceMessageKey(this.params.description.ignoreConflicts)));
+  protected async getComponents(_response: ContinueResponse<{}>): Promise<ComponentSet> {
+    const projectPath = workspaceUtils.getRootWorkspacePath() ?? '';
+    try {
+      const connection = await WorkspaceContext.getInstance().getConnection();
+      if (!connection) {
+        throw new Error(nls.localize('error_source_tracking_connection_failed'));
+      }
+
+      const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
+      if (!sourceTracking) {
+        throw new Error(nls.localize('error_source_tracking_service_failed'));
+      }
+
+      // Get local changes using the proper method
+      const localComponentSets = await sourceTracking.localChangesAsComponentSet(false);
+      const localComponentSet = localComponentSets[0] ?? new ComponentSet();
+
+      return localComponentSet;
+    } catch (error) {
+      throw new Error(`Source tracking setup failed: ${errorToString(error)}`);
     }
-    return builder.build();
-  }
-
-  public execute(response: ContinueResponse<string>): void {
-    const startTime = process.hrtime();
-    const cancellationTokenSource = new vscode.CancellationTokenSource();
-    const cancellationToken = cancellationTokenSource.token;
-    const workspacePath = workspaceUtils.getRootWorkspacePath() ?? '';
-    const execFilePathOrPaths = this.getDeployType() === DeployType.Deploy ? response.data : '';
-    const execution = new CliCommandExecutor(this.build(response.data), {
-      cwd: workspacePath,
-      env: { SF_JSON_TO_STDOUT: 'true' }
-    }).execute(cancellationToken);
-    channelService.streamCommandStartStop(execution);
-
-    let stdOut = '';
-    execution.stdoutSubject.subscribe(realData => {
-      stdOut += realData.toString();
-    });
-
-    execution.processExitSubject.subscribe(async exitCode => {
-      await this.exitProcessHandlerPush(exitCode, stdOut, workspacePath, execFilePathOrPaths, execution, startTime);
-    });
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-  }
-
-  protected async exitProcessHandlerPush(
-    exitCode: number | undefined,
-    stdOut: string,
-    workspacePath: string,
-    execFilePathOrPaths: string,
-    execution: CliCommandExecution,
-    startTime: [number, number]
-  ): Promise<void> {
-    if (execution.command.logName === PROJECT_DEPLOY_START_LOG_NAME) {
-      const pushResult = this.parseOutput(stdOut);
-      if (exitCode === 0) {
-        this.updateCache(pushResult);
-      }
-
-      const telemetry = new TelemetryBuilder();
-      let success = false;
-      try {
-        SfCommandletExecutor.errorCollection.clear();
-        DeployRetrieveExecutor.errorCollection.clear();
-        if (stdOut) {
-          const pushParser = new ProjectDeployStartResultParser(stdOut);
-          const errors = pushParser.getErrors();
-          if (errors && !pushParser.hasConflicts()) {
-            channelService.showChannelOutput();
-            handlePushDiagnosticErrors(
-              errors,
-              workspacePath,
-              execFilePathOrPaths,
-              SfCommandletExecutor.errorCollection
-            );
-          } else {
-            success = true;
-          }
-          this.outputResult(pushParser);
-        }
-      } catch (e) {
-        SfCommandletExecutor.errorCollection.clear();
-        DeployRetrieveExecutor.errorCollection.clear();
-        if (e.name !== 'ProjectDeployStartParserFail') {
-          e.message = 'Error while creating diagnostics for vscode problem view.';
-        }
-        telemetryService.sendException(execution.command.logName, `Error: name = ${e.name} message = ${e.message}`);
-        console.error(e.message);
-      }
-      telemetry.addProperty('success', String(success));
-      this.logMetric(execution.command.logName, startTime, telemetry.build().properties);
-      this.onDidFinishExecutionEventEmitter.fire(startTime);
-    }
-  }
-
-  /**
-   * Pass the pushed source to PersistentStorageService for
-   * updating of timestamps, so that conflict detection will behave as expected
-   * @param pushResult that comes from stdOut after cli push operation
-   */
-  protected updateCache(pushResult: any): void {
-    const pushedSource = pushResult.result.files;
-
-    const instance = PersistentStorageService.getInstance();
-    instance.setPropertiesForFilesPushPull(pushedSource);
-  }
-
-  public outputResult(parser: ProjectDeployStartResultParser) {
-    const table = new Table();
-    const titleType = this.getDeployType();
-
-    const successes = parser.getSuccesses();
-    const errors = parser.getErrors();
-    const pushedSource = successes ? successes.result.files : undefined;
-    if (pushedSource || parser.hasConflicts()) {
-      const rows = pushedSource ?? errors?.files;
-      const title = !parser.hasConflicts() ? nls.localize(`table_title_${titleType}ed_source`) : undefined;
-      const outputTable = this.getOutputTable(table, rows, title);
-      if (parser.hasConflicts()) {
-        channelService.appendLine(`${nls.localize('push_conflicts_error')}\n`);
-      }
-      channelService.appendLine(outputTable);
-      if (pushedSource && pushedSource.length === 0) {
-        const noResults = `${nls.localize('table_no_results_found')}\n`;
-        channelService.appendLine(noResults);
-      }
-    }
-
-    if (errors && !parser.hasConflicts()) {
-      const { name, message, files } = errors;
-      if (files) {
-        const outputTable = this.getErrorTable(table, files, titleType);
-        channelService.appendLine(outputTable);
-      } else if (name && message) {
-        channelService.appendLine(`${name}: ${message}\n`);
-      } else {
-        console.log(`There were errors parsing the push operation response.  Raw response: ${JSON.stringify(errors)}`);
-      }
-    }
-  }
-
-  protected getOutputTable(
-    table: Table,
-    rows: ProjectDeployStartResult[] | undefined,
-    outputTableTitle: string | undefined
-  ) {
-    const outputTable = table.createTable(
-      rows ?? [],
-      [
-        { key: 'state', label: nls.localize('table_header_state') },
-        { key: 'fullName', label: nls.localize('table_header_full_name') },
-        { key: 'type', label: nls.localize('table_header_type') },
-        { key: 'filePath', label: nls.localize('table_header_project_path') }
-      ],
-      outputTableTitle
-    );
-    return outputTable;
-  }
-
-  protected getErrorTable(table: Table, result: ProjectDeployStartResult[], titleType: string) {
-    const outputTable = table.createTable(
-      result,
-      [
-        {
-          key: 'filePath',
-          label: nls.localize('table_header_project_path')
-        },
-        { key: 'error', label: nls.localize('table_header_errors') }
-      ],
-      nls.localize(coerceMessageKey(`table_title_${titleType}_errors`))
-    );
-    return outputTable;
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
-
-export async function projectDeployStart(this: FlagParameter<string>, isDeployOnSave: boolean) {
+export const projectDeployStart = async (isDeployOnSave: boolean, ignoreConflicts = false) => {
   const showOutputPanel = !(isDeployOnSave && !salesforceCoreSettings.getDeployOnSaveShowOutputPanel());
+  const executor = new ProjectDeployStartExecutor(showOutputPanel, ignoreConflicts);
 
-  const { flag } = this || {};
-  const executor = new ProjectDeployStartExecutor(flag, pushCommand, showOutputPanel);
-
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), executor);
   await commandlet.run();
-}
+};

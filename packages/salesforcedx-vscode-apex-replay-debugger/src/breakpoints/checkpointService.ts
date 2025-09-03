@@ -18,7 +18,7 @@ import {
   OVERLAY_ACTION_DELETE_URL
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { OrgDisplay, OrgInfo, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
-import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
+import { code2ProtocolConverter, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { URI } from 'vscode-uri';
@@ -39,7 +39,6 @@ import {
 } from '../commands/queryExistingOverlayActionIdsCommand';
 import { retrieveLineBreakpointInfo, VSCodeWindowTypeEnum, writeToDebuggerOutputWindow } from '../index';
 import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
 
 // below dependencies must be required for bundling to work properly
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -82,7 +81,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     if (vscode.workspace.workspaceFolders?.[0]) {
       this.salesforceProject = URI.file(vscode.workspace.workspaceFolders[0].uri.fsPath).fsPath;
       try {
-        this.orgInfo = await new OrgDisplay().getOrgInfo();
+        this.orgInfo = await new OrgDisplay().getOrgInfo(this.salesforceProject);
       } catch (error) {
         let errorMessage: string;
 
@@ -214,7 +213,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
         errorString = reason;
       }
     );
-    // The resturn string will be the overlay Id and will end up being
+    // The return string will be the overlay Id and will end up being
     // used if the node is deleted
     if (returnString) {
       const result = JSON.parse(returnString) as ApexExecutionOverlaySuccessResult;
@@ -468,7 +467,10 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
         );
         writeToDebuggerOutputWindow(errorMsg, true, VSCodeWindowTypeEnum.Error);
       }
-      telemetryService.sendCheckpointEvent(errorMsg);
+      // Send checkpoint event using shared telemetry service
+      TelemetryService.getInstance().sendEventData('apexReplayDebugger.checkpoint', {
+        errorMessage: errorMsg
+      });
       creatingCheckpoints = false;
     }
     if (updateError) {

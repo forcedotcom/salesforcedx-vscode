@@ -19,6 +19,7 @@ import eslintPluginJest from 'eslint-plugin-jest';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import eslintPluginBarrelFiles from 'eslint-plugin-barrel-files';
 import functional from 'eslint-plugin-functional';
+import eslintPluginWorkspaces from 'eslint-plugin-workspaces';
 
 import noDuplicateI18nValues from './eslint-local-rules/no-duplicate-i18n-values.js';
 
@@ -38,7 +39,6 @@ export default [
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
-      'scripts/installVSIXFromBranch.ts',
       'scripts/vsce-bundled-extension.ts',
       'scripts/reportInstalls.ts'
     ]
@@ -67,10 +67,12 @@ export default [
       unicorn: eslintPluginUnicorn,
       local: { rules: localRules },
       'barrel-files': eslintPluginBarrelFiles,
-      functional: functional
+      functional: functional,
+      workspaces: eslintPluginWorkspaces
     },
     rules: {
       'local/no-duplicate-i18n-values': 'error',
+      'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
       'unicorn/consistent-function-scoping': 'error',
       'unicorn/explicit-length-check': 'error',
@@ -134,7 +136,7 @@ export default [
           }
         }
       ],
-      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'warn',
       '@typescript-eslint/no-misused-spread': 'error',
       '@typescript-eslint/no-unsafe-argument': 'warn',
@@ -291,6 +293,18 @@ export default [
         }
       ],
       'import/no-self-import': 'error',
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['node:fs', 'fs-extra'],
+              message:
+                "Use VSCode's fs API instead of Node.js fs for web extension compatibility. See https://code.visualstudio.com/api/references/vscode-api#FileSystem for documentation."
+            }
+          ]
+        }
+      ],
       'jsdoc/check-alignment': 'error',
       'jsdoc/check-indentation': 'error',
       'jsdoc/newline-after-description': 'off',
@@ -310,6 +324,13 @@ export default [
       'no-invalid-this': 'off',
       'no-new-wrappers': 'error',
       'no-param-reassign': 'error',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "MemberExpression[object.name='process'][property.name='hrtime']",
+          message: 'Do not use process.hrtime(). Use globalThis.performance.now() instead.'
+        }
+      ],
       'no-shadow': 'off',
       'no-self-assign': 'error',
       'no-self-compare': 'error',
@@ -356,7 +377,12 @@ export default [
     }
   },
   {
-    files: ['packages/salesforcedx**/test/jest/**/*', 'packages/salesforcedx**/test/unit/**/*'],
+    files: [
+      'packages/salesforcedx**/test/jest/**/*',
+      'packages/salesforcedx**/test/unit/**/*',
+      'packages/salesforcedx**/test/web/**/*',
+      'packages/salesforcedx-vscode-automation-tests/**/*'
+    ],
     plugins: {
       '@typescript-eslint': typescriptEslint,
       jest: eslintPluginJest
@@ -385,6 +411,7 @@ export default [
       '@typescript-eslint/unbound-method': 'off',
       'jest/unbound-method': 'error',
       'no-useless-constructor': 'off',
+      'no-restricted-imports': 'off',
       'no-param-reassign': 'off'
     }
   },
@@ -394,6 +421,7 @@ export default [
     files: [
       'packages/salesforcedx-visualforce-markup-language-server/**',
       'packages/salesforcedx-visualforce-language-server/**',
+      'packages/salesforcedx-apex-replay-debugger/**',
       'packages/salesforcedx-vscode-soql/**'
     ],
     rules: {
@@ -411,7 +439,7 @@ export default [
     }
   },
   {
-    // Effect-specific rules for new Effect services-baesd packages
+    // Effect-specific rules for new Effect services-based packages
     files: ['packages/salesforcedx-vscode-services/**/*.ts', 'packages/salesforcedx-vscode-org-browser/**/*.ts'],
     rules: {
       'barrel-files/avoid-barrel-files': 'error',

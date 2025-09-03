@@ -9,7 +9,8 @@ import { getTestResultsFolder, ActivationTracker } from '@salesforce/salesforced
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
-import { CodeCoverage, StatusBarToggle } from './codecoverage';
+import { CodeCoverageHandler as CodeCoverage } from './codecoverage/colorizer';
+import { StatusBarToggle } from './codecoverage/statusBarToggle';
 import {
   anonApexDebug,
   anonApexExecute,
@@ -57,7 +58,8 @@ export const activate = async (context: vscode.ExtensionContext) => {
   const workspaceContext = vscodeCoreExtension.exports.WorkspaceContext.getInstance();
 
   // Telemetry
-  const telemetryService = vscodeCoreExtension.exports.services.TelemetryService.getInstance();
+  const { name } = context.extension.packageJSON;
+  const telemetryService = vscodeCoreExtension.exports.services.TelemetryService.getInstance(name);
   await telemetryService.initializeService(context);
   if (!telemetryService) {
     throw new Error('Could not fetch a telemetry service instance');
@@ -86,6 +88,14 @@ export const activate = async (context: vscode.ExtensionContext) => {
   languageClientManager.setStatusBarInstance(languageServerStatusBarItem);
   await createLanguageClient(context, languageServerStatusBarItem);
 
+  // Register settings change handler for LSP parity capabilities
+  const lspParitySettingsWatcher = vscode.workspace.onDidChangeConfiguration(event => {
+    if (event.affectsConfiguration('salesforcedx-vscode-apex.advanced.lspParityCapabilities')) {
+      void vscode.commands.executeCommand('sf.apex.languageServer.restart', 'commandPalette');
+    }
+  });
+  context.subscriptions.push(lspParitySettingsWatcher);
+
   // Javadoc support
   configureApexLanguage();
 
@@ -110,7 +120,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
     languageClientManager
   };
 
-  void activationTracker.markActivationStop(new Date());
+  void activationTracker.markActivationStop();
 
   setImmediate(() => {
     // Resolve any found orphan language servers in the background

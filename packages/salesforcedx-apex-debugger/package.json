@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-apex-debugger",
   "displayName": "Apex Debugger Adapter",
   "description": "Implements the VS Code Debug Protocol for the Apex Debugger",
-  "version": "64.5.0",
+  "version": "64.12.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "main": "out/src",
@@ -13,8 +13,8 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core-bundle": "^8.18.1",
-    "@salesforce/salesforcedx-utils": "64.5.0",
+    "@salesforce/core": "^8.19.1",
+    "@salesforce/salesforcedx-utils": "64.12.0",
     "@vscode/debugadapter": "1.68.0",
     "@vscode/debugprotocol": "1.68.0",
     "async-lock": "1.4.1",
@@ -26,7 +26,7 @@
     "@types/chai": "4.3.3",
     "@types/jest": "^29.5.5",
     "@types/mocha": "^10",
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.15.1",
     "@types/sinon": "^2.3.7",
     "@vscode/debugadapter-testsupport": "1.68.0",
     "chai": "^4.0.2",
@@ -37,7 +37,7 @@
     "mocha-multi-reporters": "^1.1.7",
     "nyc": "^15",
     "sinon": "^13.0.1",
-    "ts-jest": "^29.1.1",
+    "ts-jest": "^29.4.1",
     "vscode-uri": "^3.1.0"
   },
   "scripts": {
@@ -47,9 +47,7 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "jest --coverage --forceExit",
-    "test:integration": "jest --coverage --forceExit -c ./jest.integration.config.js"
+    "test": "jest --coverage --forceExit"
   },
   "nyc": {
     "reporter": [

@@ -6,13 +6,14 @@
  */
 
 import { ContinueResponse, LocalComponent, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, RetrieveResult } from '@salesforce/source-deploy-retrieve-bundle';
-import { ComponentLike } from '@salesforce/source-deploy-retrieve-bundle/lib/src/resolve/types';
+import { ComponentSet, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import type { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/resolve/types';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { SalesforcePackageDirectories } from '../../salesforceProject';
-import { RetrieveExecutor } from '../baseDeployRetrieve';
+import { salesforceCoreSettings } from '../../settings';
+import { RetrieveExecutor } from '../retrieveExecutor';
 
 export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<LocalComponent[]> {
   private openAfterRetrieve: boolean;
@@ -20,6 +21,8 @@ export class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<LocalCom
   constructor(openAfterRetrieve = false) {
     super(nls.localize('retrieve_this_source_text'), 'retrieve_with_sourcepath');
     this.openAfterRetrieve = openAfterRetrieve;
+    // Apply the global conflict detection setting for general retrieve commands
+    this.ignoreConflicts = !salesforceCoreSettings.getConflictDetectionEnabled();
   }
 
   protected async getComponents(response: ContinueResponse<LocalComponent[]>): Promise<ComponentSet> {

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  createCommand,
   Duration,
   log,
   pause,
@@ -24,10 +23,6 @@ import {
   enableBooleanSetting,
   isBooleanSettingEnabled
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
-import {
-  getExtensionsToVerifyActive,
-  verifyExtensionsAreRunning
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   acceptNotification,
@@ -36,28 +31,37 @@ import {
   dismissAllNotifications,
   executeQuickPick,
   getTextEditor,
-  reloadWindow,
-  verifyOutputPanelText,
-  getWorkbench
+  getWorkbench,
+  replaceLineInFile,
+  verifyOutputPanelText
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { after, DefaultTreeItem } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Deploy and Retrieve', () => {
   const pathToClass = path.join('force-app', 'main', 'default', 'classes', 'MyClass');
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'DeployAndRetrieve'
+    testSuiteSuffixName: 'DeployAndRetrieve',
+    extensionConfigs: defaultExtensionConfigs
   };
   before('Set up the testing environment', async () => {
     log('Deploy and Retrieve - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
+
+    // Hide copilot
+    await tryToHideCopilot();
 
     // Create Apex Class
     const classText = [
@@ -69,21 +73,7 @@ describe('Deploy and Retrieve', () => {
       '}'
     ].join('\n');
     await dismissAllNotifications();
-    await createApexClass('MyClass', classText);
-    const successNotificationWasFound = await verifyNotificationWithRetry(
-      /SFDX: Create Apex Class successfully ran/,
-      Duration.TEN_MINUTES
-    );
-    expect(successNotificationWasFound).to.equal(true);
-
-    const outputPanelText = await attemptToFindOutputPanelText(
-      'Salesforce CLI',
-      'Finished SFDX: Create Apex Class',
-      10
-    );
-    expect(outputPanelText).to.not.be.undefined;
-    expect(outputPanelText).to.contain(`${pathToClass}.cls`);
-    expect(outputPanelText).to.contain(`${pathToClass}.cls-meta.xml`);
+    await createApexClass('MyClass', classesFolderPath, classText);
   });
 
   it('Verify Source Tracking Setting is enabled', async () => {
@@ -112,14 +102,15 @@ describe('Deploy and Retrieve', () => {
 
   it('Modify the file and deploy again - ST enabled', async () => {
     logTestStart(testSetup, 'Modify the file and deploy again - ST enabled');
-    const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
+    // Get the path to MyClass.cls file
+    const myClassPath = `${testSetup.projectFolderPath}/force-app/main/default/classes/MyClass.cls`;
+
     // Modify the file by adding a comment.
-    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, '\t//say hello to a given name');
-    await textEditor.save();
+    await replaceLineInFile(myClassPath, 2, '\t//say hello to a given name');
+    await pause(Duration.seconds(2));
 
     // Deploy running SFDX: Deploy This Source to Org
     await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Changed  ');
@@ -139,9 +130,7 @@ describe('Deploy and Retrieve', () => {
 
       await validateCommand('Deploy', 'to', 'ST', 'ApexClass', ['MyClass'], 'Unchanged  ');
     });
-  }
 
-  if (process.platform !== 'darwin') {
     it('Deploy with context menu from explorer view', async () => {
       logTestStart(testSetup, 'Deploy with context menu from explorer view');
       // Clear the Output view first.
@@ -190,15 +179,18 @@ describe('Deploy and Retrieve', () => {
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
+    // Get the path to MyClass.cls file
+    const myClassPath = `${testSetup.projectFolderPath}/force-app/main/default/classes/MyClass.cls`;
+
     // Modify the file by changing the comment.
-    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, '\t//modified comment');
-    await textEditor.save();
+    await replaceLineInFile(myClassPath, 2, '\t//modified comment');
+    await pause(Duration.seconds(2));
 
     // Retrieve running SFDX: Retrieve This Source from Org
 
     await runAndValidateCommand('Retrieve', 'from', 'ST', 'ApexClass', 'MyClass');
     // Retrieve operation will overwrite the file, hence the the comment will remain as before the modification
+    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
     const textAfterRetrieve = await textEditor.getText();
     expect(textAfterRetrieve).to.not.contain('modified comment');
   });
@@ -253,7 +245,6 @@ describe('Deploy and Retrieve', () => {
 
   it('Prefer Deploy on Save when `Push or deploy on save` is enabled', async () => {
     logTestStart(testSetup, "Prefer Deploy on Save when 'Push or deploy on save' is enabled");
-    const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
@@ -267,9 +258,14 @@ describe('Deploy and Retrieve', () => {
 
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
+
+    // Get the path to MyClass.cls file
+    const myClassPath = `${testSetup.projectFolderPath}/force-app/main/default/classes/MyClass.cls`;
+
     // Modify the file and save to trigger deploy
+    await replaceLineInFile(myClassPath, 2, "\t// let's trigger deploy");
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, "\t// let's trigger deploy");
     await textEditor.save();
     await pause(Duration.seconds(5));
 
@@ -277,15 +273,14 @@ describe('Deploy and Retrieve', () => {
     await validateCommand('Deploy', 'to', 'on save', 'ApexClass', ['MyClass']);
   });
 
-  it('Disable Source Tracking Setting', async () => {
-    logTestStart(testSetup, 'Disable Source Tracking Setting');
-    await executeQuickPick('Notifications: Clear All Notifications', Duration.seconds(1));
+  it('Disable Source Tracking and Deploy On Save Settings', async () => {
+    logTestStart(testSetup, 'Disable Source Tracking and Deploy On Save Settings');
 
     expect(await disableBooleanSetting(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE)).to.equal(false);
-
-    // Reload window to update cache and get the setting behavior to work
-    await reloadWindow();
-    await verifyExtensionsAreRunning(getExtensionsToVerifyActive(), Duration.seconds(100));
+    await pause(Duration.seconds(3));
+    expect(await disableBooleanSetting(WSK.PUSH_OR_DEPLOY_ON_SAVE_ENABLED)).to.equal(false);
+    await pause(Duration.seconds(3));
+    expect(await disableBooleanSetting(WSK.PUSH_OR_DEPLOY_ON_SAVE_PREFER_DEPLOY_ON_SAVE)).to.equal(false);
   });
 
   it('Deploy with SFDX: Deploy This Source to Org - ST disabled', async () => {
@@ -312,25 +307,41 @@ describe('Deploy and Retrieve', () => {
 
   it('Modify the file and deploy again - ST disabled', async () => {
     logTestStart(testSetup, 'Modify the file and deploy again - ST disabled');
-    const workbench = getWorkbench();
     // Clear the Output view first.
     await clearOutputView(Duration.seconds(2));
 
+    // Get the path to MyClass.cls file
+    const myClassPath = `${testSetup.projectFolderPath}/force-app/main/default/classes/MyClass.cls`;
+
     // Modify the file by adding a comment.
-    const textEditor = await getTextEditor(workbench, 'MyClass.cls');
-    await textEditor.setTextAtLine(2, '\t//say hello to a given name');
-    await textEditor.save();
+    await replaceLineInFile(myClassPath, 2, '\t//say hello to a given name');
+    await pause(Duration.seconds(2));
 
     // Deploy running SFDX: Deploy This Source to Org
     await runAndValidateCommand('Deploy', 'to', 'no-ST', 'ApexClass', 'MyClass', 'Changed  ');
   });
 
+  it('Re-enable Source Tracking', async () => {
+    logTestStart(testSetup, 'Re-enable Source Tracking');
+
+    expect(await enableBooleanSetting(WSK.ENABLE_SOURCE_TRACKING_FOR_DEPLOY_AND_RETRIEVE)).to.equal(true);
+    await pause(Duration.seconds(3));
+  });
+
   it('SFDX: Delete This from Project and Org - Command Palette', async () => {
     logTestStart(testSetup, 'SFDX: Delete This from Project and Org - Command Palette');
     const workbench = getWorkbench();
+    // Close all notifications
+    await dismissAllNotifications();
 
-    // Run SFDX: Push Source to Default Org and Ignore Conflicts to be in sync with remote
+    // Run SFDX: Push Source to Default Org to be in sync with remote
     await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
+
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
+    await verifyNotificationWithRetry(
+      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
+      Duration.TEN_MINUTES
+    );
 
     // Clear the Output view first.
     await clearOutputView();
@@ -378,7 +389,7 @@ describe('Deploy and Retrieve', () => {
       'ApexClass',
       `${pathToClass}.cls`,
       `${pathToClass}.cls-meta.xml`,
-      'ended with exit code 0'
+      'Ended SFDX: Delete from Project and Org'
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -389,11 +400,14 @@ describe('Deploy and Retrieve', () => {
       logTestStart(testSetup, 'Create and push 2 apex classes');
 
       // Create the Apex Classes.
-      await createCommand('Apex Class', 'ExampleApexClass1', 'classes', 'cls');
-      await createCommand('Apex Class', 'ExampleApexClass2', 'classes', 'cls');
+      await createApexClass('ExampleApexClass1', classesFolderPath);
+      await createApexClass('ExampleApexClass2', classesFolderPath);
 
-      // Reload the VSCode window to allow the LWC to be indexed by the Apex Language Server
-      await reloadWindow(Duration.seconds(20));
+      // Close all notifications
+      await dismissAllNotifications();
+
+      // Clear the Output view
+      await clearOutputView();
 
       // Push source to org
       await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
@@ -408,23 +422,22 @@ describe('Deploy and Retrieve', () => {
     it('SFDX: Delete This from Project and Org - Right click from editor view', async () => {
       logTestStart(testSetup, 'SFDX: Delete This from Project and Org - Right click from editor view');
       const workbench = getWorkbench();
-      // Clear the Output view first.
-      await clearOutputView();
 
       // Clear notifications
       await dismissAllNotifications();
+
+      // Clear the Output view
+      await clearOutputView();
 
       const textEditor = await getTextEditor(workbench, 'ExampleApexClass1.cls');
       const contextMenu = await textEditor.openContextMenu();
       await contextMenu.select('SFDX: Delete This from Project and Org');
 
       // Make sure we get a notification for the source delete
-      const notificationFound = await verifyNotificationWithRetry(
+      await verifyNotificationWithRetry(
         /Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org\. Are you sure you want to delete this source from your project and your org\?/,
         Duration.ONE_MINUTE
       );
-
-      expect(notificationFound).to.equal(true);
 
       // Confirm deletion
       const accepted = await acceptNotification(
@@ -463,7 +476,7 @@ describe('Deploy and Retrieve', () => {
         'ApexClass',
         `${pathToClassDeleteFromProjectAndOrg}.cls`,
         `${pathToClassDeleteFromProjectAndOrg}.cls-meta.xml`,
-        'ended with exit code 0'
+        'Ended SFDX: Delete from Project and Org'
       ];
 
       await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -545,7 +558,7 @@ describe('Deploy and Retrieve', () => {
         'ApexClass',
         `${pathToClassDeleteFromProjectAndOrg}.cls`,
         `${pathToClassDeleteFromProjectAndOrg}.cls-meta.xml`,
-        'ended with exit code 0'
+        'Ended SFDX: Delete from Project and Org'
       ];
 
       await verifyOutputPanelText(outputPanelText, expectedTexts);

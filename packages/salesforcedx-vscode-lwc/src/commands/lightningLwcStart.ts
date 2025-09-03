@@ -14,7 +14,8 @@ import {
   SfCommandlet,
   SfCommandletExecutor,
   SfWorkspaceChecker,
-  ContinueResponse
+  ContinueResponse,
+  TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { Subject } from 'rxjs/Subject';
 import * as vscode from 'vscode';
@@ -64,7 +65,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
   }
 
   public execute(_response: ContinueResponse<{}>): void {
-    const startTime = process.hrtime();
+    const startTime = TimingUtils.getCurrentTime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -94,12 +95,13 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
       progress.asObservable()
     );
 
-    // listen for server startup
+    // listen for server startup.  Promise seems to be legal and work for rxjs subscriptions
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     execution.stdoutSubject.subscribe(async data => {
       if (!serverStarted && data?.toString().includes('Server up')) {
         serverStarted = true;
         progress.complete();
-        notificationService.showSuccessfulExecution(executionName, channelService).catch();
+        await notificationService.showSuccessfulExecution(executionName, channelService).catch();
 
         DevServerService.instance.setBaseUrlFromDevServerUpMessage(data.toString());
 
@@ -115,7 +117,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
       }
     });
 
-    execution.stderrSubject.subscribe(async data => {
+    execution.stderrSubject.subscribe(data => {
       if (!printedError && data) {
         let errorCode = -1;
         if (data.toString().includes(errorHints.SERVER_STARTUP_FAILED)) {
@@ -135,7 +137,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
       }
     });
 
-    execution.processExitSubject.subscribe(async exitCode => {
+    execution.processExitSubject.subscribe(exitCode => {
       if (!printedError) {
         this.handleErrors(cancellationToken, serverHandler, serverStarted, exitCode);
         printedError = true;
@@ -196,11 +198,11 @@ export const lightningLwcStart = async () => {
     }
   }
 
-  const preconditionChecker = new SfWorkspaceChecker();
-  const parameterGatherer = new EmptyParametersGatherer();
-  const executor = new LightningLwcStartExecutor();
-
-  const commandlet = new SfCommandlet(preconditionChecker, parameterGatherer, executor);
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
+    new EmptyParametersGatherer(),
+    new LightningLwcStartExecutor()
+  );
 
   await commandlet.run();
 };

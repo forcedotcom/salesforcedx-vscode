@@ -4,12 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  getRootWorkspacePath,
-  ProjectRetrieveStartResult,
-  ProjectDeployStartResult
-} from '@salesforce/salesforcedx-utils-vscode';
-import { DeployResult, FileProperties } from '@salesforce/source-deploy-retrieve-bundle';
+import { getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
+import { DeployResult, FileProperties } from '@salesforce/source-deploy-retrieve';
 import { ExtensionContext, Memento } from 'vscode';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
@@ -57,21 +53,12 @@ export class PersistentStorageService {
 
   public setPropertiesForFilesDeploy(result: DeployResult) {
     const fileResponses = result.getFileResponses();
+    // Use current timestamp for successful deployments to ensure cache is up-to-date
+    // This prevents false conflicts when the same files are modified again
+    const currentTimestamp = new Date().toISOString();
     for (const file of fileResponses) {
       this.setPropertiesForFile(this.makeKey(file.type, file.fullName), {
-        lastModifiedDate: String(result.response.lastModifiedDate)
-      });
-    }
-  }
-
-  public setPropertiesForFilesPushPull(pushOrPullResults: ProjectDeployStartResult[] | ProjectRetrieveStartResult[]) {
-    const afterPushPullTimestamp = new Date().toISOString();
-    for (const file of pushOrPullResults) {
-      if (!file.fullName) {
-        continue;
-      }
-      this.setPropertiesForFile(this.makeKey(file.type, file.fullName), {
-        lastModifiedDate: afterPushPullTimestamp
+        lastModifiedDate: currentTimestamp
       });
     }
   }

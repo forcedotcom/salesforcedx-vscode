@@ -5,18 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ContinueResponse, SfWorkspaceChecker, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'node:path';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { SalesforcePackageDirectories } from '../salesforceProject';
-import { RetrieveExecutor } from './baseDeployRetrieve';
+import { salesforceCoreSettings } from '../settings';
+import { RetrieveExecutor } from './retrieveExecutor';
 import { FilePathGatherer, SfCommandlet } from './util';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
 class LibraryRetrieveManifestExecutor extends RetrieveExecutor<string> {
   constructor() {
     super(nls.localize('retrieve_this_source_text'), 'retrieve_with_manifest');
+    // Apply the global conflict detection setting for general retrieve commands
+    this.ignoreConflicts = !salesforceCoreSettings.getConflictDetectionEnabled();
   }
 
   protected async getComponents(response: ContinueResponse<string>): Promise<ComponentSet> {

@@ -6,46 +6,33 @@
  */
 import {
   ContinueResponse,
-  getRelativeProjectPath,
-  getRootWorkspacePath,
   LibraryCommandletExecutor,
+  getRelativeProjectPath,
   Row,
-  SourceTrackingService,
-  SourceTrackingType,
-  Table
+  Table,
+  notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
-import {
-  ComponentSet,
-  DeployResult,
-  MetadataApiDeploy,
-  MetadataApiRetrieve,
-  RetrieveResult
-} from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet, MetadataApiDeploy, MetadataApiRetrieve } from '@salesforce/source-deploy-retrieve';
 import {
   ComponentStatus,
   FileResponse,
   FileResponseFailure,
+  MetadataTransferResult,
   RequestStatus
-} from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
-import { join } from 'node:path';
+} from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
-import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { TELEMETRY_METADATA_COUNT } from '../constants';
-import { WorkspaceContext, workspaceContextUtils } from '../context';
-import { handleDeployDiagnostics } from '../diagnostics';
 import { nls } from '../messages';
-import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
-import { DeployQueue, salesforceCoreSettings } from '../settings';
-import { createComponentCount, formatException, SfCommandletExecutor } from './util';
+import { DeployRetrieveOperationType } from '../util/types';
+import { createComponentCount, formatException } from './util';
+import { SfCommandletExecutor } from './util/sfCommandletExecutor';
 
-type DeployRetrieveResult = DeployResult | RetrieveResult;
-type DeployRetrieveOperation = MetadataApiDeploy | MetadataApiRetrieve;
-
-export abstract class DeployRetrieveExecutor<T> extends LibraryCommandletExecutor<T> {
+export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult> extends LibraryCommandletExecutor<T> {
   public static errorCollection = vscode.languages.createDiagnosticCollection('deploy-errors');
   protected cancellable: boolean = true;
+  protected ignoreConflicts: boolean = false;
 
   constructor(executionName: string, logName: string) {
     super(executionName, logName, OUTPUT_CHANNEL);
@@ -59,7 +46,7 @@ export abstract class DeployRetrieveExecutor<T> extends LibraryCommandletExecuto
     }>,
     token?: vscode.CancellationToken
   ): Promise<boolean> {
-    let result: DeployRetrieveResult | undefined;
+    let result: R | undefined;
 
     try {
       const components = await this.getComponents(response);
@@ -70,17 +57,33 @@ export abstract class DeployRetrieveExecutor<T> extends LibraryCommandletExecuto
 
       result = await this.doOperation(components, token);
 
+      // If result is undefined, it means no components were processed (empty ComponentSet)
+      // This is considered a successful operation since there's nothing to do
+      if (result === undefined) {
+        return true;
+      }
+
       const status = result?.response.status;
 
       return status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial;
     } catch (e) {
+      // Handle user cancellation from conflict dialog
+      if (e instanceof Error && e.message === 'CONFLICT_CANCELLED') {
+        // Disable failure notifications and show cancellation notification
+        this.showFailureNotifications = false;
+        notificationService.showCanceledExecution(this.executionName);
+        return false; // Return false to indicate operation was not successful
+      }
       throw formatException(e);
     } finally {
       await this.postOperation(result);
     }
   }
 
-  protected setupCancellation(operation: DeployRetrieveOperation | undefined, token?: vscode.CancellationToken) {
+  protected setupCancellation(
+    operation: MetadataApiDeploy | MetadataApiRetrieve | undefined,
+    token?: vscode.CancellationToken
+  ) {
     if (token && operation) {
       token.onCancellationRequested(async () => {
         await operation.cancel();
@@ -89,214 +92,202 @@ export abstract class DeployRetrieveExecutor<T> extends LibraryCommandletExecuto
   }
 
   protected abstract getComponents(response: ContinueResponse<T>): Promise<ComponentSet>;
-  protected abstract doOperation(
-    components: ComponentSet,
-    token?: vscode.CancellationToken
-  ): Promise<DeployRetrieveResult | undefined>;
-  protected abstract postOperation(result: DeployRetrieveResult | undefined): Promise<void>;
-}
+  protected abstract doOperation(components: ComponentSet, token?: vscode.CancellationToken): Promise<R | undefined>;
+  protected abstract postOperation(result: R | undefined): Promise<void>;
 
-export abstract class DeployExecutor<T> extends DeployRetrieveExecutor<T> {
-  protected async doOperation(
-    components: ComponentSet,
-    token: vscode.CancellationToken
-  ): Promise<DeployResult | undefined> {
-    const projectPath = getRootWorkspacePath();
-    const connection = await WorkspaceContext.getInstance().getConnection();
-    components.projectDirectory = projectPath;
-    const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
-    if (sourceTrackingEnabled) {
-      const sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
-      await sourceTracking.ensureLocalTracking();
-    }
+  /**
+   * The operation type for this executor
+   */
+  protected abstract readonly operationType: DeployRetrieveOperationType;
 
-    const operation = await components.deploy({
-      usernameOrConnection: connection
-    });
+  /**
+   * Shared method to perform the actual operation (deploy or retrieve)
+   * This eliminates duplication between performDeployment and performRetrieve methods
+   * @param components The ComponentSet to operate on
+   * @param token Cancellation token
+   * @returns Promise<boolean> True if operation succeeded, false otherwise
+   */
+  protected async performOperation(components: ComponentSet, token?: vscode.CancellationToken): Promise<boolean> {
+    let result: R | undefined;
 
-    this.setupCancellation(operation, token);
-
-    return operation.pollStatus();
-  }
-
-  protected async postOperation(result: DeployResult | undefined): Promise<void> {
     try {
-      if (result) {
-        // Update Persistent Storage for the files that were deployed
-        PersistentStorageService.getInstance().setPropertiesForFilesDeploy(result);
+      // Set API versions
+      await componentSetUtils.setApiVersion(components);
+      await componentSetUtils.setSourceApiVersion(components);
 
-        const relativePackageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
-        const output = this.createOutput(result, relativePackageDirs);
-        channelService.appendLine(output);
+      // Add telemetry
+      this.telemetry.addProperty(TELEMETRY_METADATA_COUNT, JSON.stringify(createComponentCount(components)));
 
-        const success = result.response.status === RequestStatus.Succeeded;
-        if (!success) {
-          this.unsuccessfulOperationHandler(result, DeployRetrieveExecutor.errorCollection);
-        } else {
-          DeployRetrieveExecutor.errorCollection.clear();
-          SfCommandletExecutor.errorCollection.clear();
-        }
+      // Perform the operation
+      result = await this.doOperation(components, token ?? new vscode.CancellationTokenSource().token);
+
+      // If result is undefined, it means no components were processed (empty ComponentSet)
+      // This is considered a successful operation since there's nothing to do
+      if (result === undefined) {
+        return true;
       }
+
+      const status = result?.response.status;
+
+      return status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial;
+    } catch (e) {
+      // Handle user cancellation from conflict dialog
+      if (e instanceof Error && e.message === 'CONFLICT_CANCELLED') {
+        // Disable failure notifications
+        this.showFailureNotifications = false;
+        notificationService.showCanceledExecution(this.executionName);
+        return false; // Return false to indicate operation was not successful
+      }
+      throw formatException(e);
     } finally {
-      await DeployQueue.get().unlock();
+      await this.postOperation(result);
     }
-  }
-
-  protected unsuccessfulOperationHandler(result: DeployResult, errorCollection: any) {
-    handleDeployDiagnostics(result, errorCollection);
-  }
-
-  private createOutput(result: DeployResult, relativePackageDirs: string[]): string {
-    const table = new Table();
-
-    const rowsWithRelativePaths = result.getFileResponses().map(response => {
-      response.filePath = getRelativeProjectPath(response.filePath, relativePackageDirs);
-      return response;
-    });
-
-    let output: string;
-
-    if (result.response.status === RequestStatus.Succeeded) {
-      output = table.createTable(
-        rowsWithRelativePaths,
-        [
-          { key: 'state', label: nls.localize('table_header_state') },
-          { key: 'fullName', label: nls.localize('table_header_full_name') },
-          { key: 'type', label: nls.localize('table_header_type') },
-          {
-            key: 'filePath',
-            label: nls.localize('table_header_project_path')
-          }
-        ],
-        nls.localize('table_title_deployed_source')
-      );
-    } else {
-      output = table.createTable(
-        rowsWithRelativePaths.filter(isSdrFailure),
-        [
-          {
-            key: 'filePath',
-            label: nls.localize('table_header_project_path')
-          },
-          { key: 'error', label: nls.localize('table_header_errors') }
-        ],
-        nls.localize('table_title_deploy_errors')
-      );
-    }
-
-    return output;
-  }
-}
-
-export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T> {
-  private sourceTracking?: SourceTrackingType;
-
-  protected async doOperation(
-    components: ComponentSet,
-    token: vscode.CancellationToken
-  ): Promise<RetrieveResult | undefined> {
-    const projectPath = getRootWorkspacePath();
-    const connection = await WorkspaceContext.getInstance().getConnection();
-    const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
-    if (sourceTrackingEnabled) {
-      const orgType = await workspaceContextUtils.getWorkspaceOrgType();
-      if (orgType === workspaceContextUtils.OrgType.SourceTracked) {
-        this.sourceTracking = await SourceTrackingService.getSourceTracking(projectPath, connection);
-      }
-    }
-
-    const defaultOutput = join(projectPath, (await SalesforcePackageDirectories.getDefaultPackageDir()) ?? '');
-
-    const operation = await components.retrieve({
-      usernameOrConnection: connection,
-      output: defaultOutput,
-      merge: true,
-      suppressEvents: false
-    });
-
-    this.setupCancellation(operation, token);
-
-    const result: RetrieveResult = await operation.pollStatus();
-    if (sourceTrackingEnabled) {
-      const status = result?.response?.status;
-      if ((status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial) && this.sourceTracking) {
-        await SourceTrackingService.updateSourceTrackingAfterRetrieve(this.sourceTracking, result);
-      }
-    }
-
-    return result;
-  }
-
-  protected async postOperation(result: RetrieveResult | undefined): Promise<void> {
-    if (result) {
-      DeployRetrieveExecutor.errorCollection.clear();
-      SfCommandletExecutor.errorCollection.clear();
-      const relativePackageDirs = await SalesforcePackageDirectories.getPackageDirectoryPaths();
-      const output = this.createOutput(result, relativePackageDirs);
-      channelService.appendLine(output);
-      if (result?.response?.fileProperties !== undefined) {
-        PersistentStorageService.getInstance().setPropertiesForFilesRetrieve(result.response.fileProperties);
-      }
-    }
-  }
-
-  private createOutput(result: RetrieveResult, relativePackageDirs: string[]): string {
-    const successes: Row[] = [];
-    const failures: Row[] = [];
-
-    for (const response of result.getFileResponses()) {
-      response.filePath = getRelativeProjectPath(response.filePath, relativePackageDirs);
-      if (response.state !== ComponentStatus.Failed) {
-        successes.push(response);
-      } else {
-        failures.push(response);
-      }
-    }
-
-    return this.createOutputTable(successes, failures);
-  }
-
-  private createOutputTable(successes: Row[], failures: Row[]): string {
-    const table = new Table();
-
-    let output = '';
-
-    if (successes.length > 0) {
-      output += table.createTable(
-        successes,
-        [
-          { key: 'fullName', label: nls.localize('table_header_full_name') },
-          { key: 'type', label: nls.localize('table_header_type') },
-          {
-            key: 'filePath',
-            label: nls.localize('table_header_project_path')
-          }
-        ],
-        nls.localize('lib_retrieve_result_title')
-      );
-    }
-
-    if (failures.length > 0) {
-      if (successes.length > 0) {
-        output += '\n';
-      }
-      output += table.createTable(
-        failures,
-        [
-          { key: 'fullName', label: nls.localize('table_header_full_name') },
-          { key: 'type', label: nls.localize('table_header_type') },
-          { key: 'error', label: nls.localize('table_header_message') }
-        ],
-        nls.localize('lib_retrieve_message_title')
-      );
-    }
-
-    if (output === '') {
-      output = `${nls.localize('lib_retrieve_no_results')}\n`;
-    }
-    return output;
   }
 }
 
 const isSdrFailure = (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
   fileResponse.state === ComponentStatus.Failed;
+
+/**
+ * Handle empty ComponentSet scenarios by showing appropriate output and clearing error collections
+ * This can be used by any deploy/retrieve command when there are no components to process
+ * @param operationType The type of operation ('push' | 'deploy' | 'pull' | 'retrieve')
+ * @param isSuccess Whether the operation was successful
+ */
+export const handleEmptyComponentSet = (
+  operationType: DeployRetrieveOperationType,
+  isSuccess: boolean = true
+): void => {
+  const output = createOperationOutput([], [], operationType, isSuccess);
+
+  channelService.appendLine(output);
+
+  // Clear any existing errors since this is a successful "no changes" scenario
+  DeployRetrieveExecutor.errorCollection.clear();
+  SfCommandletExecutor.errorCollection.clear();
+};
+
+/**
+ * Shared utility to create output tables for deploy and retrieve operations
+ */
+interface OutputTableConfig {
+  successColumns: { key: string; label: string }[];
+  failureColumns: { key: string; label: string }[];
+  successTitle: string;
+  failureTitle: string;
+  noResultsMessage?: string;
+}
+
+/**
+ * Common column definitions to reduce duplication
+ */
+const COMMON_COLUMNS = {
+  fullName: { key: 'fullName', label: nls.localize('table_header_full_name') },
+  type: { key: 'type', label: nls.localize('table_header_type') },
+  filePath: { key: 'filePath', label: nls.localize('table_header_project_path') },
+  state: { key: 'state', label: nls.localize('table_header_state') },
+  error: { key: 'error', label: nls.localize('table_header_errors') },
+  message: { key: 'error', label: nls.localize('table_header_message') }
+} as const;
+
+const createOutputTable = (
+  fileResponses: FileResponse[],
+  relativePackageDirs: string[],
+  config: OutputTableConfig
+): string => {
+  const table = new Table();
+  const successes: Row[] = [];
+  const failures: Row[] = [];
+
+  // Process file responses and separate successes from failures
+  for (const response of fileResponses) {
+    response.filePath = getRelativeProjectPath(response.filePath, relativePackageDirs);
+    if (response.state !== ComponentStatus.Failed) {
+      successes.push(response);
+    } else {
+      failures.push(response);
+    }
+  }
+
+  let output = '';
+
+  // Create success table if there are successful operations
+  if (successes.length > 0) {
+    output += table.createTable(successes, config.successColumns, config.successTitle);
+  }
+
+  // Create failure table if there are failed operations
+  if (failures.length > 0) {
+    if (successes.length > 0) {
+      output += '\n';
+    }
+    output += table.createTable(failures, config.failureColumns, config.failureTitle);
+  }
+
+  // Handle case where there are no results - show empty table with title for deploy/push operations
+  if (output === '') {
+    if (config.noResultsMessage) {
+      // For retrieve operations, use the noResultsMessage
+      output = `${config.noResultsMessage}\n`;
+    } else {
+      // For deploy/push operations, show empty table with title (like old CLI behavior)
+      output = table.createTable([], config.successColumns, config.successTitle);
+      output += `\n${nls.localize('table_no_results_found')}\n`;
+    }
+  }
+
+  return output;
+};
+
+/** Create output for deploy, retrieve, push, or pull operations */
+export const createOperationOutput = (
+  fileResponses: FileResponse[],
+  relativePackageDirs: string[],
+  operationType: DeployRetrieveOperationType,
+  isSuccess?: boolean
+): string => {
+  // Base configuration for all operations
+  const baseSuccessColumns = [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.filePath];
+  const baseFailureColumns = [COMMON_COLUMNS.filePath, COMMON_COLUMNS.error];
+
+  const configs: Record<DeployRetrieveOperationType, OutputTableConfig> = {
+    deploy: {
+      successColumns: [COMMON_COLUMNS.state, ...baseSuccessColumns],
+      failureColumns: baseFailureColumns,
+      successTitle: nls.localize('table_title_deployed_source'),
+      failureTitle: nls.localize('table_title_deploy_errors')
+    },
+    push: {
+      successColumns: [COMMON_COLUMNS.state, ...baseSuccessColumns],
+      failureColumns: baseFailureColumns,
+      successTitle: nls.localize('table_title_pushed_source'),
+      failureTitle: nls.localize('table_title_push_errors')
+    },
+    retrieve: {
+      successColumns: baseSuccessColumns,
+      failureColumns: [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.message],
+      successTitle: nls.localize('lib_retrieve_result_title'),
+      failureTitle: nls.localize('lib_retrieve_message_title'),
+      noResultsMessage: nls.localize('lib_retrieve_no_results')
+    },
+    pull: {
+      successColumns: [COMMON_COLUMNS.state, ...baseSuccessColumns],
+      failureColumns: [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.message],
+      successTitle: nls.localize('table_title_pulled_source'),
+      failureTitle: nls.localize('table_title_pull_errors')
+    },
+    delete: {
+      successColumns: [COMMON_COLUMNS.state, ...baseSuccessColumns],
+      failureColumns: [COMMON_COLUMNS.fullName, COMMON_COLUMNS.type, COMMON_COLUMNS.message],
+      successTitle: nls.localize('table_title_deleted_source'),
+      failureTitle: nls.localize('table_title_delete_errors')
+    }
+  };
+
+  const responses =
+    (operationType === 'deploy' || operationType === 'push') && isSuccess === false
+      ? fileResponses.filter(isSdrFailure)
+      : fileResponses;
+
+  return createOutputTable(responses, relativePackageDirs, configs[operationType]);
+};

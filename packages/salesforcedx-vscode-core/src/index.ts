@@ -11,13 +11,14 @@ import {
   SFDX_CORE_CONFIGURATION_NAME,
   SfWorkspaceChecker,
   TelemetryService,
+  TimingUtils,
   TraceFlags,
   WorkspaceContextUtil,
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath,
   isSalesforceProjectOpened
 } from '@salesforce/salesforcedx-utils-vscode';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve-bundle';
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -79,17 +80,16 @@ import {
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './commands';
-import { isvDebugBootstrap } from './commands/isvdebugging';
+import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
-import { FlagParameter, SelectFileName, SelectOutputDir, SfCommandlet, SfCommandletExecutor } from './commands/util';
+import { SelectFileName, SelectOutputDir, SfCommandlet, SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
-import { decorators, showDemoMode } from './decorators';
-import { isDemoMode } from './modes/demoMode';
+import { decorators } from './decorators';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
@@ -101,10 +101,6 @@ import { showTelemetryMessage, telemetryService } from './telemetry';
 import { MetricsReporter } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel, setUpOrgExpirationWatcher } from './util';
 import { OrgAuthInfo } from './util/authInfo';
-
-const flagIgnoreConflicts: FlagParameter<string> = {
-  flag: '--ignore-conflicts'
-};
 
 const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable => {
   // Customer-facing commands
@@ -131,16 +127,17 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
   );
   const deploySourcePathCmd = vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths);
   const projectRetrieveStartCmd = vscode.commands.registerCommand('sf.project.retrieve.start', projectRetrieveStart);
-  const projectDeployStartCmd = vscode.commands.registerCommand('sf.project.deploy.start', projectDeployStart);
+  const projectDeployStartCmd = vscode.commands.registerCommand(
+    'sf.project.deploy.start',
+    async (isDeployOnSave: boolean) => projectDeployStart(isDeployOnSave, false)
+  );
   const projectRetrieveStartIgnoreConflictsCmd = vscode.commands.registerCommand(
     'sf.project.retrieve.start.ignore.conflicts',
-    projectRetrieveStart,
-    flagIgnoreConflicts
+    () => projectRetrieveStart(true)
   );
   const projectDeployStartIgnoreConflictsCmd = vscode.commands.registerCommand(
     'sf.project.deploy.start.ignore.conflicts',
-    projectDeployStart,
-    flagIgnoreConflicts
+    async (isDeployOnSave: boolean) => projectDeployStart(isDeployOnSave, true)
   );
   const retrieveCmd = vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths);
   const retrieveCurrentFileCmd = vscode.commands.registerCommand(
@@ -369,6 +366,7 @@ const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promi
 };
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
+  const activationStartTime = TimingUtils.getCurrentTime();
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
   const rootWorkspacePath = getRootWorkspacePath();
   // Switch to the project directory so that the main @salesforce
@@ -415,7 +413,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
       telemetryService
     };
 
-    telemetryService.sendExtensionActivationEvent(activateTracker.activationInfo.startActivateHrTime);
+    telemetryService.sendExtensionActivationEvent(activationStartTime);
     MetricsReporter.extensionPackStatus();
     console.log('SF CLI Extension Activated (internal dev mode)');
     return internalApi;
@@ -525,11 +523,6 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   await decorators.showOrg();
 
   await setUpOrgExpirationWatcher(newOrgList);
-
-  // Demo mode decorator
-  if (isDemoMode()) {
-    showDemoMode();
-  }
 };
 
 export const deactivate = async (): Promise<void> => {

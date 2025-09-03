@@ -20,6 +20,8 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('SOQL', () => {
@@ -29,21 +31,26 @@ describe('SOQL', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'SOQL'
+    testSuiteSuffixName: 'SOQL',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+
+    // Hide copilot
+    await tryToHideCopilot();
   });
 
   it('SFDX: Create Query in SOQL Builder', async () => {
     logTestStart(testSetup, 'SFDX: Create Query in SOQL Builder');
-    await pause(Duration.seconds(20));
     // Run SFDX: Create Query in SOQL Builder
     await executeQuickPick('SFDX: Create Query in SOQL Builder', Duration.seconds(3));
+    // wait for the soql builder
+    await pause(Duration.seconds(20));
 
     // Verify the command took us to the soql builder
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const editorView = workbench.getEditorView();
     const activeTab = await editorView.getActiveTab();
     const title = await activeTab?.getTitle();
@@ -54,7 +61,7 @@ describe('SOQL', () => {
     logTestStart(testSetup, 'Switch Between SOQL Builder and Text Editor - from SOQL Builder');
 
     // Click Switch Between SOQL Builder and Text Editor
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const editorView = workbench.getEditorView();
     const toggleSOQLButton = await editorView.getAction('Switch Between SOQL Builder and Text Editor');
     expect(toggleSOQLButton).to.not.be.undefined;
@@ -75,7 +82,7 @@ describe('SOQL', () => {
     await reloadWindow(Duration.seconds(5));
 
     // Click Switch Between SOQL Builder and Text Editor
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const editorView = workbench.getEditorView();
     const toggleSOQLButton = await editorView.getAction('Switch Between SOQL Builder and Text Editor');
     expect(toggleSOQLButton).to.not.be.undefined;
@@ -91,7 +98,7 @@ describe('SOQL', () => {
 
   it.skip('Verify the contents of the soql file', async () => {
     const expectedText = ['SELECT COUNT()', 'from Account'].join('\n');
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'countAccounts.soql');
     const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
     expect(textGeneratedFromTemplate).to.be(expectedText);

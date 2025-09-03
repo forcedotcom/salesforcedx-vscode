@@ -16,6 +16,39 @@ jest.mock('../../../src/util/authInfo', () => ({
   }
 }));
 
+jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
+  ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
+  ConfigUtil: {
+    getTargetOrgOrAlias: jest.fn().mockResolvedValue('test@example.com')
+  }
+}));
+
+jest.mock('vscode', () => ({
+  window: {
+    createStatusBarItem: jest.fn(),
+    createOutputChannel: jest.fn().mockReturnValue({
+      appendLine: jest.fn(),
+      show: jest.fn(),
+      dispose: jest.fn()
+    })
+  },
+  workspace: {
+    workspaceFolders: [
+      {
+        uri: { fsPath: '/mock/workspace/path' },
+        name: 'test-workspace',
+        index: 0
+      }
+    ]
+  },
+  StatusBarAlignment: {
+    Left: 1
+  },
+  Disposable: class MockDisposable {
+    public dispose() {}
+  }
+}));
+
 describe('workspaceContext', () => {
   describe('handleCliConfigChange', () => {
     const mockWorkspaceContextUtil = {

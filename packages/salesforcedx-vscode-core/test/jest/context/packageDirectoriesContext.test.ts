@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfProject } from '@salesforce/core-bundle';
+import { SfProject } from '@salesforce/core/project';
 import { workspaceUtils, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -14,9 +14,7 @@ import { checkPackageDirectoriesEditorView } from '../../../src/context/packageD
 
 // Mock all external dependencies
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
-  const mockTelemetryService = {
-    hrTimeToMilliseconds: jest.fn().mockReturnValue(100)
-  };
+  const mockTelemetryService = {};
 
   return {
     workspaceUtils: {
@@ -52,9 +50,9 @@ jest.mock('vscode', () => ({
   }
 }));
 
-jest.mock('@salesforce/source-tracking-bundle', () => ({}));
-jest.mock('@salesforce/source-deploy-retrieve-bundle', () => ({}));
-jest.mock('@salesforce/core-bundle', () => ({
+jest.mock('@salesforce/source-tracking', () => ({}));
+jest.mock('@salesforce/source-deploy-retrieve', () => ({}));
+jest.mock('@salesforce/core/project', () => ({
   SfProject: {
     resolve: jest.fn()
   }
@@ -86,9 +84,7 @@ describe('packageDirectoriesContext', () => {
     });
 
     // Ensure TelemetryService mock is properly set up
-    (TelemetryService.getInstance as jest.Mock).mockReturnValue({
-      hrTimeToMilliseconds: jest.fn().mockReturnValue(100)
-    });
+    (TelemetryService.getInstance as jest.Mock).mockReturnValue({});
 
     // Mock the directory reading for each level
     (vscode.workspace.fs.readDirectory as jest.Mock).mockImplementation((uri: URI) => {

@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.5.0",
+  "version": "64.12.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,17 +24,15 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-language-server": "64.5.0",
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "64.5.0",
-    "salesforcedx-vscode-core": "64.5.0",
-    "vscode-extension-telemetry": "^0.0.17",
+    "@salesforce/salesforcedx-visualforce-language-server": "64.12.0",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "64.12.0",
+    "salesforcedx-vscode-core": "64.12.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
     "vscode-languageserver-types": "^3.17.5"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "cross-env": "5.2.0"
+    "@types/node": "^22.15.1"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
@@ -47,19 +45,13 @@
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
-    "test": "npm run test:vscode-integration",
-    "test:jest": "jest --coverage",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration",
-    "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
+    "test": "jest --coverage --passWithNoTests",
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:prepublish": "npm prune --production",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "watch": "tsc -watch -p ."
   },
-  "activationEvents": [
-    "workspaceContains:sfdx-project.json"
-  ],
   "main": "./out/src/extension",
   "serverPath": [
     "..",

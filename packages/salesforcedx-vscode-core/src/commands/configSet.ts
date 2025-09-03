@@ -75,10 +75,11 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
-
 export const configSet = async (usernameOrAlias: string): Promise<void> => {
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new ConfigSetExecutor(usernameOrAlias));
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
+    new EmptyParametersGatherer(),
+    new ConfigSetExecutor(usernameOrAlias)
+  );
   await commandlet.run();
 };

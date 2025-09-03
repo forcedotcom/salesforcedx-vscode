@@ -24,14 +24,14 @@ import {
   VscodeDebuggerMessage,
   VscodeDebuggerMessageType
 } from '@salesforce/salesforcedx-apex-debugger';
+import { ActivationTracker, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
-import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context';
 import { getActiveApexExtension } from './context/apexExtension';
+import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context/isvContext';
 import { nls } from './messages';
-import { telemetryService } from './telemetry';
 
 const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> = new Map();
 const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
@@ -225,7 +225,13 @@ const registerDebugHandlers = (): vscode.Disposable => {
       }
 
       if (event.event === SEND_METRIC_EVENT && isMetric(event.body)) {
-        telemetryService.sendMetricEvent(event);
+        // Send metric event using core telemetry service
+        if (salesforceCoreExtension?.exports?.telemetryService) {
+          // Convert the debug event to telemetry format
+          const telemetryService = salesforceCoreExtension.exports.telemetryService;
+          const eventData = event.body as any;
+          telemetryService.sendEventData('apexDebuggerMetric', eventData.properties, eventData.measurements);
+        }
       }
     }
   });
@@ -235,7 +241,7 @@ const registerDebugHandlers = (): vscode.Disposable => {
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   console.log('Apex Debugger Extension Activated');
-  const extensionHRStart = process.hrtime();
+
   const commands = registerCommands();
   const debugHandlers = registerDebugHandlers();
   const fileWatchers = registerFileWatchers();
@@ -263,16 +269,19 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     }
 
     // Telemetry
-    telemetryService.initializeService(
-      salesforceCoreExtension.exports.telemetryService.getReporters(),
-      await salesforceCoreExtension.exports.telemetryService.isTelemetryEnabled()
-    );
+    const telemetryService = TelemetryService.getInstance();
+    await telemetryService.initializeService(extensionContext);
+    const activationTracker = new ActivationTracker(extensionContext, telemetryService);
+    await activationTracker.markActivationStop();
+  } else {
+    console.warn('Salesforce Core Extension not available - telemetry will not be initialized');
   }
-
-  telemetryService.sendExtensionActivationEvent(extensionHRStart);
 };
 
 export const deactivate = () => {
   console.log('Apex Debugger Extension Deactivated');
-  telemetryService.sendExtensionDeactivationEvent();
+  // Send deactivation event using shared service if available
+  if (salesforceCoreExtension?.exports?.telemetryService) {
+    salesforceCoreExtension.exports.telemetryService.sendExtensionDeactivationEvent();
+  }
 };

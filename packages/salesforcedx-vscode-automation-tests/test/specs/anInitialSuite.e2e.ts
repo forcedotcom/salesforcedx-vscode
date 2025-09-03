@@ -19,6 +19,9 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction/workbench';
 import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
+import { logTestStart } from '../utils/loggingHelper';
 /*
 anInitialSuite.e2e.ts is a special case.  We want to validate that the Salesforce extensions and
 most SFDX commands are not present at start up.
@@ -39,12 +42,15 @@ describe('An Initial Suite', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'AnInitialSuite'
+    testSuiteSuffixName: 'AnInitialSuite',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   let testSetup: TestSetup;
   describe('Verify our extensions are not initially loaded', () => {
     it('Verify our extensions are not initially loaded', async () => {
+      log('--------------------------------');
+      log('AnInitialSuite: Verifying our extensions are not initially loaded');
       await pause(Duration.seconds(20));
       await zoom('Out', 4, Duration.seconds(1));
 
@@ -63,6 +69,8 @@ describe('An Initial Suite', () => {
     });
 
     it('Verify the default SFDX commands are present when no project is loaded', async () => {
+      log('--------------------------------');
+      log('AnInitialSuite: Verifying the default SFDX commands are present when no project is loaded');
       const workbench = getWorkbench();
       const prompt = await openCommandPromptWithCommand(workbench, 'SFDX:');
 
@@ -91,6 +99,7 @@ describe('An Initial Suite', () => {
       }
 
       expect(expectedSfdxCommandsFound).to.be.equal(3);
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       expect(unexpectedSfdxCommandWasFound).to.be.false;
 
       // Escape out of the pick list.
@@ -101,9 +110,13 @@ describe('An Initial Suite', () => {
   describe('Verify that SFDX commands are present after an SFDX project has been created', () => {
     before('Set up the testing environment', async () => {
       testSetup = await TestSetup.setUp(testReqConfig);
+
+      // Hide copilot
+      await tryToHideCopilot();
     });
 
     it('Verify that SFDX commands are present after an SFDX project has been created', async () => {
+      logTestStart(testSetup, 'Verifying that SFDX commands are present after an SFDX project has been created');
       const workbench = getWorkbench();
       const prompt = await openCommandPromptWithCommand(workbench, 'SFDX:');
       const quickPicks = await prompt.getQuickPicks();
@@ -116,7 +129,6 @@ describe('An Initial Suite', () => {
       expect(commands).to.include('SFDX: Authorize an Org');
       expect(commands).to.include('SFDX: Authorize an Org using Session ID');
       expect(commands).to.include('SFDX: Cancel Active Command');
-      expect(commands).to.include('SFDX: Configure Apex Debug Exceptions');
       expect(commands).to.include('SFDX: Create a Default Scratch Org...');
       expect(commands).to.include('SFDX: Create and Set Up Project for ISV Debugging');
       expect(commands).to.include('SFDX: Create Apex Class');

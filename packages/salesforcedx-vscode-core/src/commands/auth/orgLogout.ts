@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover } from '@salesforce/core-bundle';
+import { AuthRemover } from '@salesforce/core';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   ConfigUtil,
@@ -40,12 +40,8 @@ export class OrgLogoutAll extends SfCommandletExecutor<{}> {
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
-const parameterGatherer = new EmptyParametersGatherer();
-const executor = new OrgLogoutAll();
-const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, executor);
-
 export const orgLogoutAll = async () => {
+  const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), new OrgLogoutAll());
   await commandlet.run();
 };
 

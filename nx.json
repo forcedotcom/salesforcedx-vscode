@@ -25,10 +25,10 @@
         "{workspaceRoot}/eslint.config.mjs"
       ]
     },
-    "test:unit": {
+    "test": {
       "cache": true,
       "dependsOn": [
-        "^test:unit"
+        "^test"
       ],
       "outputs": [
         "{projectRoot}/coverage"
@@ -60,7 +60,6 @@
       ],
       "inputs": [
         "{projectRoot}/esbuild.config.mjs",
-        "{projectRoot}/esbuild.config.js",
         "{projectRoot}/package.json",
         "{workspaceRoot}/package.json",
         "{workspaceRoot}/scripts/vsce-bundled-extension.ts",

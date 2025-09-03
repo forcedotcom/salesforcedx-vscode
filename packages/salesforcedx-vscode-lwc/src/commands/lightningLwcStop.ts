@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../channel';
 import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
@@ -16,13 +16,15 @@ const logName = 'lightning_lwc_stop';
 const commandName = nls.localize('lightning_lwc_stop_text');
 
 export const lightningLwcStop = async () => {
-  const startTime = process.hrtime();
+  const startTime = TimingUtils.getCurrentTime();
 
   try {
     if (DevServerService.instance.isServerHandlerRegistered()) {
       channelService.appendLine(nls.localize('lightning_lwc_stop_in_progress'));
       await DevServerService.instance.stopServer();
-      notificationService.showSuccessfulExecution(nls.localize('lightning_lwc_stop_text'), channelService).catch();
+      await notificationService
+        .showSuccessfulExecution(nls.localize('lightning_lwc_stop_text'), channelService)
+        .catch();
       telemetryService.sendCommandEvent(logName, startTime);
     } else {
       notificationService.showWarningMessage(nls.localize('lightning_lwc_stop_not_running'));

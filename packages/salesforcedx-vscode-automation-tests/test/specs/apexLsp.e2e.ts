@@ -20,7 +20,9 @@ import {
   getWorkbench,
   getStatusBarItemWhichIncludes,
   getTextEditor,
-  getOutputViewText
+  getOutputViewText,
+  moveCursorWithFallback,
+  reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import {
   executeQuickPick,
@@ -30,6 +32,8 @@ import { expect } from 'chai';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { By, InputBox, WebElement, after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 // Types
@@ -108,7 +112,12 @@ const setupTestEnvironment = async (): Promise<void> => {
   log(`ApexLsp - JAVA_HOME: ${EnvironmentSettings.getInstance().javaHome}`);
   // Allow time for VSCode to fully initialize and load extensions
   await pause(Duration.seconds(10));
-  await createApexClassWithTest('ExampleClass');
+  await createApexClassWithTest('ExampleClass', PATHS.apexClass);
+
+  // Reload window to get the language server to recognize the new classes (Windows only)
+  if (process.platform === 'win32') {
+    await reloadWindow(Duration.seconds(20));
+  }
 };
 
 const verifyIndexing = async (testSetup: TestSetup): Promise<void> => {
@@ -126,7 +135,7 @@ const testGoToDefinition = async (testSetup: TestSetup): Promise<void> => {
   const workbench = getWorkbench();
   const textEditor = await getTextEditor(workbench, 'ExampleClassTest.cls');
 
-  await textEditor.moveCursor(6, 20);
+  await moveCursorWithFallback(textEditor, 6, 20);
   // Allow time for LSP to process cursor movement and prepare definition lookup
   await pause(Duration.seconds(2));
   // Wait for quick pick to appear and be clickable
@@ -169,8 +178,8 @@ const testLspRestart = async (testSetup: TestSetup, cleanDb: boolean): Promise<v
   if (cleanDb) {
     const releaseDir = findReleaseDir();
     const standardApexLibraryPath = path.normalize(path.join(PATHS.tools, releaseDir, 'StandardApexLibrary'));
-    await removeFolder(standardApexLibraryPath);
-    expect(await getFolderName(standardApexLibraryPath)).to.equal(null);
+    removeFolder(standardApexLibraryPath);
+    expect(getFolderName(standardApexLibraryPath)).to.equal(null);
   }
 
   const restartCommand = await executeQuickPick('Restart Apex Language Server');
@@ -221,18 +230,17 @@ describe('Apex LSP', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: false,
-    testSuiteSuffixName: 'ApexLsp'
+    testSuiteSuffixName: 'ApexLsp',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
-    await setupTestEnvironment();
-  });
 
-  beforeEach(function () {
-    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
-      this.skip();
-    }
+    // Hide copilot
+    await tryToHideCopilot();
+
+    await setupTestEnvironment();
   });
 
   it('Verify LSP finished indexing', async () => {
@@ -265,7 +273,7 @@ describe('Apex LSP', () => {
 
   after('Tear down and clean up the testing environment', async () => {
     log(`${testSetup.testSuiteSuffixName} - Tear down and clean up the testing environment`);
-    await removeFolder(PATHS.apexClass);
+    removeFolder(PATHS.apexClass);
     await testSetup?.tearDown();
   });
 });

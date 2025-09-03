@@ -13,7 +13,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { WorkspaceContext } from '../context';
-import { handleStartCommand, handleFinishCommand } from '../utils/channelUtils';
+import { handleFinishCommand, handleStartCommand } from '../utils/channelUtils';
 
 const command = 'start_apex_debug_logging';
 
@@ -37,8 +37,6 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
 
     extensionContext.workspaceState.update(userSpecificKey, expirationDate);
     showTraceFlagExpiration(expirationDate);
-
-    await handleFinishCommand(command, true);
   } catch {
     const expirationDate = extensionContext.workspaceState.get<Date>(userSpecificKey);
     if (expirationDate) {
@@ -47,5 +45,7 @@ export const turnOnLogging = async (extensionContext: vscode.ExtensionContext): 
         `Trace flag already exists. It will expire at ${expirationDateValidated.toLocaleTimeString()}.`
       );
     }
+  } finally {
+    void handleFinishCommand(command, true);
   }
 };

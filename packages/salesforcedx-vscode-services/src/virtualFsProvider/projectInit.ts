@@ -33,7 +33,7 @@ const getDirsToCreate = (): string[] => [
 const createConfigFiles = (fsp: fsProvider): void => {
   Object.entries(TEMPLATES).forEach(([name, content]) => {
     const uri = vscode.Uri.parse(`${sampleProjectPath}/${name}`);
-    fsp.writeFile(uri, Buffer.from(content.join('\n')), {
+    fsp.writeFile(uri, new Uint8Array(Buffer.from(content.join('\n'))), {
       create: true,
       overwrite: true
     });
@@ -64,18 +64,22 @@ const createVSCodeFiles = (fsp: fsProvider): void => {
   // Create .vscode directory and config files
   fsp.writeFile(
     vscode.Uri.parse(`${sampleProjectPath}/.vscode/tasks.json`),
-    Buffer.from(JSON.stringify({ version: '2.0.0', tasks: [] }, null, 2)),
+    new Uint8Array(Buffer.from(JSON.stringify({ version: '2.0.0', tasks: [] }, null, 2))),
     { create: true, overwrite: true }
   );
   fsp.writeFile(
     vscode.Uri.parse(`${sampleProjectPath}/.vscode/launch.json`),
-    Buffer.from(JSON.stringify({ version: '0.2.0', configurations: [] }, null, 2)),
+    new Uint8Array(Buffer.from(JSON.stringify({ version: '0.2.0', configurations: [] }, null, 2))),
     { create: true, overwrite: true }
   );
-  fsp.writeFile(vscode.Uri.parse(`${sampleProjectPath}/.vscode/mcp.json`), Buffer.from(JSON.stringify({}, null, 2)), {
-    create: true,
-    overwrite: true
-  });
+  fsp.writeFile(
+    vscode.Uri.parse(`${sampleProjectPath}/.vscode/mcp.json`),
+    new Uint8Array(Buffer.from(JSON.stringify({}, null, 2))),
+    {
+      create: true,
+      overwrite: true
+    }
+  );
 };
 
 /** Creates the files for an empty sfdx project */

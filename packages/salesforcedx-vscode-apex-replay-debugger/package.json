@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.5.0",
+  "version": "64.12.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,23 +24,20 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node-bundle": "^8.2.2",
-    "@salesforce/salesforcedx-apex-replay-debugger": "64.5.0",
-    "@salesforce/salesforcedx-utils": "64.5.0",
-    "@salesforce/salesforcedx-utils-vscode": "64.5.0",
+    "@salesforce/apex-node": "^8.2.7",
+    "@salesforce/salesforcedx-apex-replay-debugger": "64.12.0",
+    "@salesforce/salesforcedx-utils": "64.12.0",
+    "@salesforce/salesforcedx-utils-vscode": "64.12.0",
     "async-lock": "1.4.1",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.18.1",
+    "@salesforce/core": "^8.18.4",
     "@types/async-lock": "1.4.2",
-    "@types/node": "^20.0.0",
-    "cross-env": "5.2.0",
+    "@types/node": "^22.15.1",
     "esbuild": "0.25.0",
-    "esbuild-plugin-pino": "^2.2.2",
-    "salesforcedx-vscode-apex": "64.5.0",
-    "salesforcedx-vscode-core": "64.5.0",
-    "vscode-extension-telemetry": "^0.0.17"
+    "salesforcedx-vscode-apex": "64.12.0",
+    "salesforcedx-vscode-core": "64.12.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
@@ -49,7 +46,7 @@
   "scripts": {
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
     "bundle:extension:copy": "cp ../salesforcedx-apex-replay-debugger/dist/apexreplaydebug.js ./dist/",
-    "bundle:extension:build": "node ./esbuild.config.js",
+    "bundle:extension:build": "node ./esbuild.config.mjs",
     "vscode:prepublish": "npm prune --production",
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -59,15 +56,13 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "npm run test:vscode-integration",
-    "test:unit": "jest --coverage",
-    "test:vscode-integration": "node ../../scripts/run-vscode-integration-tests-with-top-level-extensions",
-    "test:vscode-insiders-integration": "cross-env CODE_VERSION=insiders npm run test:vscode-integration"
+    "test": "jest --coverage"
   },
   "activationEvents": [
     "onDebugResolve:apex",
     "onCommand:extension.replay-debugger.getLogFileName",
-    "workspaceContains:sfdx-project.json"
+    "onCommand:sf.launch.replay.debugger.logfile",
+    "onCommand:sf.launch.replay.debugger.logfile.path"
   ],
   "main": "./out/src",
   "packaging": {
@@ -211,7 +206,7 @@
       {
         "type": "apex-replay",
         "label": "Apex Replay Debugger",
-        "program": "./node_modules/@salesforce/salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js",
+        "program": "./dist/apexreplaydebug.js",
         "runtime": "node",
         "languages": [
           "apex"

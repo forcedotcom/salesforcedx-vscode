@@ -6,7 +6,7 @@
  */
 
 import { readDirectory, isDirectory } from '@salesforce/salesforcedx-utils-vscode';
-import { SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
+import type { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -92,6 +92,52 @@ export const diffFolder = async (cache: MetadataCacheResult, username: string): 
   const diffs = await diff(localPath, remotePath);
 
   conflictView.visualizeDifferences(nls.localize('source_diff_folder_title', username), username, true, diffs, true);
+};
+
+export const diffMultipleFiles = async (
+  username: string,
+  selectedPaths: string[],
+  cache: MetadataCacheResult
+): Promise<void> => {
+  // Process files in parallel
+  const diffEntries = await Promise.all(
+    selectedPaths.slice(0, cache.cache.components.length).map(async (localFile, index) => {
+      const remoteComponent = cache.cache.components[index];
+
+      // Create a diff entry for each file
+      const localRelPath = path.relative(cache.project.baseDirectory, localFile);
+      const remoteRelPath = path.relative(
+        cache.cache.baseDirectory,
+        remoteComponent.content ?? remoteComponent.xml ?? ''
+      );
+
+      return {
+        localRelPath,
+        remoteRelPath,
+        localLastModifiedDate: undefined,
+        remoteLastModifiedDate: undefined
+      };
+    })
+  );
+
+  const different = new Set<TimestampFileProperties>(diffEntries);
+
+  const diffResults = {
+    different,
+    localRoot: cache.project.baseDirectory,
+    remoteRoot: cache.cache.baseDirectory,
+    scannedLocal: selectedPaths.length,
+    scannedRemote: cache.cache.components.length
+  };
+
+  // Show all diffs in the sidebar like folder diff
+  conflictView.visualizeDifferences(
+    nls.localize('source_diff_folder_title', username),
+    username,
+    true,
+    diffResults,
+    true
+  );
 };
 
 /**

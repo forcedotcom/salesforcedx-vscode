@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.5.0",
+  "version": "64.12.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,30 +24,28 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/aura-language-server": "4.12.3",
-    "@salesforce/lightning-lsp-common": "4.12.3",
-    "@salesforce/salesforcedx-utils-vscode": "64.5.0",
+    "@salesforce/aura-language-server": "4.12.7",
+    "@salesforce/lightning-lsp-common": "4.12.7",
+    "@salesforce/salesforcedx-utils-vscode": "64.12.0",
     "applicationinsights": "1.0.7",
+    "vscode-html-languageservice": "^5.5.1",
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.15.1",
     "@types/which": "^1.3.1",
-    "cross-env": "5.2.0",
-    "esbuild": "0.25.0",
-    "esbuild-plugin-pino": "^2.2.2"
+    "esbuild": "0.25.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "node ./esbuild.config.js",
+    "bundle:extension": "node ./esbuild.config.mjs",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
-    "test": "npm run test:jest && npm run test:vscode-integration",
-    "test:unit": "jest --coverage",
+    "test": "jest --coverage",
     "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:prepublish": "npm prune --production",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -55,7 +53,7 @@
     "watch": "tsc -watch -p ."
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json",
+    "workspaceContains:**/aura/**",
     "workspaceContains:**/workspace-user.xml"
   ],
   "main": "./out/src",
@@ -92,8 +90,8 @@
       ],
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/aura-language-server": "4.12.3",
-        "@salesforce/lightning-lsp-common": "4.12.3"
+        "@salesforce/aura-language-server": "4.12.7",
+        "@salesforce/lightning-lsp-common": "4.12.7"
       },
       "devDependencies": {}
     }

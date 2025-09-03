@@ -23,6 +23,8 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { DefaultTreeItem, TreeItem, Workbench } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('SObjects Definitions', () => {
@@ -32,13 +34,17 @@ describe('SObjects Definitions', () => {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'sObjectsDefinitions'
+    testSuiteSuffixName: 'sObjectsDefinitions',
+    extensionConfigs: defaultExtensionConfigs
   };
   let projectName: string;
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
     projectName = testSetup.tempProjectName;
+
+    // Hide copilot
+    await tryToHideCopilot();
 
     log(`${testSetup.testSuiteSuffixName} - calling createCustomObjects()`);
 
@@ -53,7 +59,7 @@ describe('SObjects Definitions', () => {
 
   it("Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder", async () => {
     logTestStart(testSetup, "Check Custom Objects 'Customer__c' and 'Product__c' are within objects folder");
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const sidebar = await workbench.getSideBar().wait();
     const content = await sidebar.getContent().wait();
 
@@ -114,7 +120,7 @@ describe('SObjects Definitions', () => {
 
     await verifyOutputPanelTxt('Custom sObjects', 2);
 
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const treeViewSection = await verifySObjectFolders(workbench, projectName, 'customObjects');
 
     // Verify if custom Objects Customer__c and Product__c are within 'customObjects' folder
@@ -130,7 +136,7 @@ describe('SObjects Definitions', () => {
 
     await verifyOutputPanelTxt('Standard sObjects');
 
-    const workbench = await getWorkbench();
+    const workbench = getWorkbench();
     const treeViewSection = await verifySObjectFolders(workbench, projectName, 'standardObjects');
 
     const accountSObject = await treeViewSection.findItem('Account.cls');

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection } from '@salesforce/core-bundle';
+import { AuthInfo, Connection } from '@salesforce/core';
 import {
   type SObjectCategory,
   type SObjectRefreshSource,
@@ -27,6 +27,7 @@ import {
   projectPaths,
   SfCommandlet,
   SfWorkspaceChecker,
+  TimingUtils,
   WorkspaceContextUtil
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
@@ -101,7 +102,7 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
       await vscode.window.showErrorMessage(nls.localize('sobjects_no_refresh_if_already_active_error_text'));
       return;
     }
-    const startTime = process.hrtime();
+    const startTime = TimingUtils.getCurrentTime();
     RefreshSObjectsExecutor.isActive = true;
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -123,7 +124,6 @@ export class RefreshSObjectsExecutor extends SfCommandletExecutor<{}> {
     ProgressNotification.show(execution, cancellationTokenSource, progressLocation);
 
     try {
-      // @ts-expect-error - TODO: remove when core-bundle is no longer used (conn types differ)
       const result = await writeSobjectFiles({
         emitter: execution.cmdEmitter,
         cancellationToken,

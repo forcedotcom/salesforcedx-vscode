@@ -11,21 +11,31 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import {
+  retryOperation,
+  verifyNotificationWithRetry
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createApexClassWithBugs } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { continueDebugging } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   attemptToFindOutputPanelText,
   clearOutputView,
+  dismissAllNotifications,
   executeQuickPick,
   getStatusBarItemWhichIncludes,
   getTextEditor,
   getWorkbench,
+  moveCursorWithFallback,
+  replaceLineInFile,
   waitForNotificationToGoAway
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
+import * as path from 'node:path';
 import { By, InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 /**
@@ -36,28 +46,40 @@ import { logTestStart } from '../utils/loggingHelper';
 describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () => {
   let prompt: QuickOpenBox | InputBox;
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'TrailApexReplayDebugger'
+    testSuiteSuffixName: 'TrailApexReplayDebugger',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     log('TrailApexReplayDebugger - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
+
+    // Hide chat copilot
+    await tryToHideCopilot();
 
     // Create Apex class AccountService
-    await createApexClassWithBugs();
+    await createApexClassWithBugs(classesFolderPath);
+
+    // Dismiss all notifications so the push one can be seen
+    await dismissAllNotifications();
 
     // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
 
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
+  });
+
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
   });
 
   it('Verify LSP finished indexing', async () => {
@@ -86,17 +108,16 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(outputPanelText).to.contain('Expected: CRM, Actual: SFDC');
   });
 
-  // This is broken and will be fixed with W-19004812 https://gus.lightning.force.com/a07EE00002Ht4taYAB
-  it.skip('Set Breakpoints and Checkpoints', async () => {
+  it('Set Breakpoints and Checkpoints', async () => {
     logTestStart(testSetup, 'Set Breakpoints and Checkpoints');
     // Get open text editor
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'AccountService.cls');
-    await textEditor.moveCursor(8, 5);
+    await moveCursorWithFallback(textEditor, 8, 5);
     await pause(Duration.seconds(1));
 
     // Run SFDX: Toggle Checkpoint.
-    prompt = await executeQuickPick('SFDX: Toggle Checkpoint', Duration.seconds(1));
+    prompt = await executeQuickPick('SFDX: Toggle Checkpoint', Duration.seconds(10));
 
     // Verify checkpoint is present
     const breakpoints = await workbench.findElements(By.css('div.codicon-debug-breakpoint-conditional'));
@@ -113,7 +134,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(outputPanelText).to.contain(
       'SFDX: Update Checkpoints in Org, Step 6 of 6: Confirming successful checkpoint creation'
     );
-    expect(outputPanelText).to.contain('Ending SFDX: Update Checkpoints in Org');
+    expect(outputPanelText).to.contain('Ended SFDX: Update Checkpoints in Org');
   });
 
   it('SFDX: Turn On Apex Debug Log for Replay Debugger', async () => {
@@ -134,8 +155,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
       'Starting SFDX: Turn On Apex Debug Log for Replay Debugger',
       10
     );
-    expect(outputPanelText).to.contain('SFDX: Turn On Apex Debug Log for Replay Debugger');
-    expect(outputPanelText).to.contain('ended with exit code 0');
+    expect(outputPanelText).to.contain('Ended SFDX: Turn On Apex Debug Log for Replay Debugger');
   });
 
   it('Run Apex Tests', async () => {
@@ -156,21 +176,32 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(outputPanelText).to.contain('Expected: CRM, Actual: SFDC');
   });
 
-  // This is broken and will be fixed with W-19004812 https://gus.lightning.force.com/a07EE00002Ht4taYAB
-  it.skip('SFDX: Get Apex Debug Logs', async () => {
+  it('SFDX: Get Apex Debug Logs', async () => {
     logTestStart(testSetup, 'SFDX: Get Apex Debug Logs');
+    await executeQuickPick('View: Close All Editors', Duration.seconds(1));
+
     // Run SFDX: Get Apex Debug Logs
     const workbench = getWorkbench();
-    prompt = await executeQuickPick('SFDX: Get Apex Debug Logs', Duration.seconds(0));
 
-    // Wait for the command to execute
-    await waitForNotificationToGoAway(/Getting Apex debug logs/, Duration.TEN_MINUTES);
-    await pause(Duration.seconds(2));
     // Select a log file
-    const quickPicks = await prompt.getQuickPicks();
-    expect(quickPicks).to.not.be.undefined;
-    expect(quickPicks.length).to.be.greaterThan(0);
-    await prompt.selectQuickPick('User User - ApexTestHandler');
+    await retryOperation(
+      async () => {
+        prompt = await executeQuickPick('SFDX: Get Apex Debug Logs', Duration.seconds(0));
+
+        // Wait for the command to execute
+        await waitForNotificationToGoAway(/Getting Apex debug logs/, Duration.TEN_MINUTES);
+        await pause(Duration.seconds(5));
+
+        const quickPicks = await prompt.getQuickPicks();
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        expect(quickPicks, 'quickPicks undefined').to.not.be.undefined;
+        expect(quickPicks.length, 'No quick picks found').to.be.greaterThan(0);
+        await prompt.selectQuickPick('User User - ApexTestHandler');
+        await pause(Duration.seconds(2));
+      },
+      3,
+      'Failed to select log file from quick picks'
+    );
 
     await verifyNotificationWithRetry(/SFDX: Get Apex Debug Logs successfully ran/, Duration.TEN_MINUTES);
 
@@ -178,7 +209,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     const outputPanelText = await attemptToFindOutputPanelText('Apex', 'Starting SFDX: Get Apex Debug Logs', 10);
     expect(outputPanelText).to.contain('|EXECUTION_STARTED');
     expect(outputPanelText).to.contain('|EXECUTION_FINISHED');
-    expect(outputPanelText).to.contain('ended SFDX: Get Apex Debug Logs');
+    expect(outputPanelText).to.contain('Ended SFDX: Get Apex Debug Logs');
 
     // Verify content on log file
     const editorView = workbench.getEditorView();
@@ -194,8 +225,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     expect(executionFinished).to.be.greaterThan(0);
   });
 
-  // This is broken and will be fixed with W-19004812 https://gus.lightning.force.com/a07EE00002Ht4taYAB
-  it.skip('Replay an Apex Debug Log', async () => {
+  it('Replay an Apex Debug Log', async () => {
     logTestStart(testSetup, 'Replay an Apex Debug Log');
     // Run SFDX: Launch Apex Replay Debugger with Current File
     await executeQuickPick('SFDX: Launch Apex Replay Debugger with Current File', Duration.seconds(30));
@@ -207,20 +237,18 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
   it('Push Fixed Metadata to Org', async () => {
     if (process.platform === 'darwin') {
       logTestStart(testSetup, 'Push Fixed Metadata to Org');
-      // Get open text editor
-      const workbench = getWorkbench();
-      const textEditor = await getTextEditor(workbench, 'AccountService.cls');
-      await textEditor.setTextAtLine(6, '\t\t\tTickerSymbol = tickerSymbol');
-      await textEditor.save();
+
+      // Get the path to AccountService.cls file
+      const accountServicePath = path.join(classesFolderPath, 'AccountService.cls');
+
+      // Fix the test
+      await replaceLineInFile(accountServicePath, 6, '\t\t\tTickerSymbol = tickerSymbol');
       await pause(Duration.seconds(2));
 
       // Push source to org
-      await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(10));
+      await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(10));
 
-      await verifyNotificationWithRetry(
-        /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-        Duration.TEN_MINUTES
-      );
+      await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
     }
   });
 

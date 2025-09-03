@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigAggregator } from '@salesforce/core-bundle';
+import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import {
   OrgDisplay,
   RequestService,
@@ -139,12 +139,22 @@ export class ApexVariable extends Variable {
   private readonly kind: ApexVariableKind;
 
   constructor(value: Value, kind: ApexVariableKind, variableReference?: number, numOfChildren?: number) {
-    super(value.name, ApexVariable.valueAsString(value), variableReference, numOfChildren);
+    // For collection types, pass numOfChildren as indexedVariables to parent constructor
+    const indexedVariables = kind === ApexVariableKind.Collection && numOfChildren !== undefined && numOfChildren > 0
+      ? numOfChildren
+      : undefined;
+
+    super(value.name, ApexVariable.valueAsString(value), variableReference, indexedVariables);
     this.declaredTypeRef = value.declaredTypeRef;
     this.kind = kind;
     this.type = value.nameForMessages;
     this.evaluateName = this.value;
     this.slot = 'slot' in value && typeof value.slot === 'number' ? value.slot : Number.MAX_SAFE_INTEGER;
+
+    // Explicitly set indexedVariables if the parent constructor didn't set it properly
+    if (kind === ApexVariableKind.Collection && numOfChildren !== undefined && numOfChildren > 0) {
+      this.indexedVariables = numOfChildren;
+    }
   }
 
   public static valueAsString(value: Value): string {
@@ -586,7 +596,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
       } else {
-        const orgInfo = await new OrgDisplay().getOrgInfo();
+        const orgInfo = await new OrgDisplay().getOrgInfo(args.salesforceProject);
         this.myRequestService.instanceUrl = orgInfo.instanceUrl;
         this.myRequestService.accessToken = orgInfo.accessToken;
       }

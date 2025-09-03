@@ -13,6 +13,7 @@ export {
   deleteFile,
   ensureCurrentWorkingDirIsProjectPath,
   fileOrFolderExists,
+  isEmptyDirectory,
   isDirectory,
   isFile,
   readDirectory,
@@ -23,7 +24,12 @@ export {
   writeFile
 } from './fs';
 export { fileExtensionsMatch, getRelativeProjectPath, getTestResultsFolder, projectPaths, TOOLS } from './paths';
-export { TraceFlags, showTraceFlagExpiration, disposeTraceFlagExpiration, getTraceFlagExpirationKey } from './traceFlags';
+export {
+  TraceFlags,
+  showTraceFlagExpiration,
+  disposeTraceFlagExpiration,
+  getTraceFlagExpirationKey
+} from './traceFlags';
 export {
   difference,
   extractJson,
@@ -35,3 +41,4 @@ export {
   isNullOrUndefined
 } from './utils';
 export { isAlphaNumSpaceString, isAlphaNumString, isInteger, isIntegerInRange, isRecordIdFormat } from './validations';
+export { errorToString, isError, isErrorString, getErrorMessage, getErrorStack } from './errorUtils';

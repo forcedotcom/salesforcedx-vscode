@@ -24,24 +24,34 @@ import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/te
 import {
   closeCurrentEditor,
   dismissAllNotifications,
-  getWorkbench
+  getWorkbench,
+  zoom
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, ModalDialog, after } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Org Browser', () => {
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'OrgBrowser'
+    testSuiteSuffixName: 'OrgBrowser',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
+
+    // Hide copilot
+    await tryToHideCopilot();
   });
 
   it('Check Org Browser is connected to target org', async () => {
@@ -68,9 +78,13 @@ describe('Org Browser', () => {
       'Certificates',
       'Communities'
     ];
+
+    await zoom('Out', 2, Duration.seconds(1));
+
     for (const type of metadataTypes) {
       const element = await findTypeInOrgBrowser(type);
-      expect(element).to.not.be.undefined;
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+      expect(element, `Metadata type ${type} is not available`).to.not.be.undefined;
     }
   });
 
@@ -97,7 +111,11 @@ describe('Org Browser', () => {
       '\t}',
       '}'
     ].join('\n');
-    await createApexClass('MyClass', classText);
+    await createApexClass('MyClass', classesFolderPath, classText);
+
+    // Close all notifications
+    await dismissAllNotifications();
+
     await runAndValidateCommand('Deploy', 'to', 'ST', 'ApexClass', 'MyClass', 'Created  ');
 
     await closeCurrentEditor();
@@ -118,6 +136,8 @@ describe('Org Browser', () => {
 
   it('Retrieve This Source from Org', async () => {
     logTestStart(testSetup, 'Retrieve This Source from Org');
+    // Close all notifications
+    await dismissAllNotifications();
     const myClassLabelEl = await findTypeInOrgBrowser('MyClass');
     expect(myClassLabelEl).to.not.be.undefined;
     await myClassLabelEl?.click();

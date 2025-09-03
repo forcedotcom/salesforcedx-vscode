@@ -18,7 +18,8 @@ import {
   ParametersGatherer,
   SfWorkspaceChecker,
   workspaceUtils,
-  ProgressNotification
+  ProgressNotification,
+  TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -59,7 +60,7 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
   }
 
   public async execute(response: ContinueResponse<AliasAndFileSelection>): Promise<void> {
-    const startTime = process.hrtime();
+    const startTime = TimingUtils.getCurrentTime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
@@ -162,17 +163,16 @@ type Alias = {
 
 type AliasAndFileSelection = Alias & FileSelection;
 
-const preconditionChecker = new CompositePreconditionChecker(new SfWorkspaceChecker(), new DevUsernameChecker());
-const parameterGatherer = new CompositeParametersGatherer(
-  new FileSelector(
-    nls.localize('parameter_gatherer_enter_scratch_org_def_files'),
-    nls.localize('error_no_scratch_def'),
-    'config/**/*-scratch-def.json'
-  ),
-  new AliasGatherer()
-);
-
 export const orgCreate = (): void => {
+  const preconditionChecker = new CompositePreconditionChecker(new SfWorkspaceChecker(), new DevUsernameChecker());
+  const parameterGatherer = new CompositeParametersGatherer(
+    new FileSelector(
+      nls.localize('parameter_gatherer_enter_scratch_org_def_files'),
+      nls.localize('error_no_scratch_def'),
+      'config/**/*-scratch-def.json'
+    ),
+    new AliasGatherer()
+  );
   const commandlet = new SfCommandlet(preconditionChecker, parameterGatherer, new OrgCreateExecutor());
   void commandlet.run();
 };

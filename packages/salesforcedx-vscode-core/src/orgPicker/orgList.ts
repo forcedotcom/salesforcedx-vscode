@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core-bundle';
+import { AuthFields, AuthInfo, OrgAuthorization } from '@salesforce/core';
 import { CancelResponse, ConfigUtil, ContinueResponse, OrgUserInfo } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { WorkspaceContext } from '../context';
@@ -25,7 +25,7 @@ export class OrgList implements vscode.Disposable {
       this.displayTargetOrg(orgInfo.alias ?? orgInfo.username)
     );
     const { username, alias } = WorkspaceContext.getInstance();
-    this.displayTargetOrg(alias ?? username);
+    void this.displayTargetOrg(alias ?? username);
   }
 
   private displayTargetOrg(targetOrgOrAlias?: string) {
@@ -57,19 +57,17 @@ export class OrgList implements vscode.Disposable {
   public async isOrgExpired(targetOrgOrAlias: string): Promise<boolean> {
     const username = await ConfigUtil.getUsernameFor(targetOrgOrAlias);
     const authFields = await getAuthFieldsFor(username);
-    const today = new Date();
     let expirationDate;
     if (authFields.expirationDate) {
       expirationDate = new Date(authFields.expirationDate);
     }
-    return expirationDate ? expirationDate < today : false;
+    return expirationDate ? expirationDate < new Date() : false;
   }
 
-  public async filterAuthInfo(orgAuthorizations: OrgAuthorization[]): Promise<string[]> {
+  public async filterAuthInfo(orgAuthorizations: OrgAuthorization[], showExpired: boolean = false): Promise<string[]> {
     const targetDevHub = await OrgAuthInfo.getDevHubUsername();
 
     const authList = [];
-    const today = new Date();
     for (const orgAuth of orgAuthorizations) {
       // When this is called right after logging out of an org, there can
       // still be a cached Org Auth in the list with a "No auth information found"
@@ -88,11 +86,15 @@ export class OrgList implements vscode.Disposable {
         // scratch orgs parented by other (non-default) devHub orgs
         continue;
       }
-      const isExpired = authFields?.expirationDate ? today >= new Date(authFields.expirationDate) : false;
+      const isExpired = authFields?.expirationDate ? new Date(authFields.expirationDate) < new Date() : false;
+
+      // Skip expired orgs unless explicitly requested to show them
+      if (isExpired && !showExpired) {
+        continue;
+      }
 
       const aliases = await ConfigUtil.getAllAliasesFor(orgAuth.username);
-      let authListItem =
-        aliases && aliases.length > 0 ? `${aliases.join(',')} - ${orgAuth.username}` : orgAuth.username;
+      let authListItem = aliases?.length > 0 ? `${aliases.join(',')} - ${orgAuth.username}` : orgAuth.username;
 
       if (isExpired) {
         authListItem += ` - ${nls.localize('org_expired')} ${String.fromCodePoint(0x274c)}`; // cross-mark
@@ -153,7 +155,13 @@ export class OrgList implements vscode.Disposable {
         return { type: 'CONTINUE', data: {} };
       }
       default: {
-        const usernameOrAlias = selection.split(' - ', 1);
+        // Extract the username or alias from the selection
+        // Format is: "alias1,alias2,alias3 - username" or "alias1,alias2,alias3 - username - Expired ❌"
+        // or just "username" or "username - Expired ❌"
+        const cleanSelection = selection.endsWith(' - Expired ❌') ? selection.replace(' - Expired ❌', '') : selection;
+        const lastDashIndex = cleanSelection.lastIndexOf(' - ');
+        const usernameOrAlias = lastDashIndex !== -1 ? cleanSelection.substring(0, lastDashIndex) : cleanSelection;
+
         vscode.commands.executeCommand('sf.config.set', usernameOrAlias);
         return { type: 'CONTINUE', data: {} };
       }

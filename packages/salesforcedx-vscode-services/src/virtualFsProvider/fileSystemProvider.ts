@@ -12,7 +12,8 @@
 import { fs } from '@salesforce/core/fs';
 import { Effect, pipe } from 'effect';
 import { Buffer } from 'node:buffer';
-import { Dirent } from 'node:fs';
+// eslint-disable-next-line no-restricted-imports
+import type { Dirent } from 'node:fs';
 import * as vscode from 'vscode';
 import { emitter } from './memfsWatcher';
 /**

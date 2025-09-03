@@ -11,7 +11,6 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { EnvironmentSettings } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/environmentSettings';
 import {
   retryOperation,
   verifyNotificationWithRetry
@@ -36,58 +35,97 @@ import {
   getStatusBarItemWhichIncludes,
   getTextEditor,
   getWorkbench,
+  replaceLineInFile,
   verifyOutputPanelText,
-  waitForAndGetCodeLens
+  waitForAndGetCodeLens,
+  zoom
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import * as semver from 'semver';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
+import { defaultExtensionConfigs } from '../testData/constants';
+import { getFolderPath } from '../utils/buildFilePathHelper';
+import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
+
+// Helper function to find a checkbox element using multiple selectors.
+// Tries different selectors in order until one works.
+const findCheckboxElement = async (prompt: InputBox | QuickOpenBox) => {
+  const selectors = [
+    'div.monaco-custom-toggle.monaco-checkbox', // VSCode 1.103.0
+    'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox',
+    'input.quick-input-list-checkbox'
+  ];
+
+  for (const selector of selectors) {
+    try {
+      const element = await prompt.findElement(By.css(selector));
+      if (element) {
+        return element;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  throw new Error(`Could not find checkbox element with any of the selectors: ${selectors.join(', ')}`);
+};
 
 describe('Run Apex Tests', () => {
   let prompt: InputBox | QuickOpenBox;
   let testSetup: TestSetup;
+  let classesFolderPath: string;
   const testReqConfig: TestReqConfig = {
     projectConfig: {
       projectShape: ProjectShapeOption.NEW
     },
     isOrgRequired: true,
-    testSuiteSuffixName: 'RunApexTests'
+    testSuiteSuffixName: 'RunApexTests',
+    extensionConfigs: defaultExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {
     log('RunApexTests - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
+    classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
+
+    // Hide copilot
+    await tryToHideCopilot();
 
     // Create Apex class 1 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass1'),
+      () => createApexClassWithTest('ExampleApexClass1', classesFolderPath),
       2,
       'RunApexTests - Error creating Apex class 1 and test'
     );
 
     // Create Apex class 2 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass2'),
+      () => createApexClassWithTest('ExampleApexClass2', classesFolderPath),
       2,
       'RunApexTests - Error creating Apex class 2 and test'
     );
 
     // Create Apex class 3 and test
     await retryOperation(
-      () => createApexClassWithTest('ExampleApexClass3'),
+      () => createApexClassWithTest('ExampleApexClass3', classesFolderPath),
       2,
       'RunApexTests - Error creating Apex class 3 and test'
     );
 
-    // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    // Dismiss all notifications so the push one can be seen
+    await dismissAllNotifications();
 
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    // Push source to org
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
+
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
+  });
+
+  beforeEach(function () {
+    if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
+      this.skip();
+    }
   });
 
   it('Verify LSP finished indexing', async () => {
@@ -110,6 +148,7 @@ describe('Run Apex Tests', () => {
 
     // Click the "Run All Tests" code lens at the top of the class
     const runAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Run All Tests');
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(runAllTestsOption).to.not.be.undefined;
     await runAllTestsOption!.click();
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
@@ -125,7 +164,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass1Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -142,6 +181,7 @@ describe('Run Apex Tests', () => {
 
     // Click the "Run Test" code lens at the top of one of the test methods
     const runTestOption = await waitForAndGetCodeLens(textEditor, 'Run Test');
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(runTestOption).to.not.be.undefined;
     await runTestOption!.click();
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
@@ -157,7 +197,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass2Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -191,7 +231,7 @@ describe('Run Apex Tests', () => {
       'ExampleApexClass1Test.validateSayHello  Pass',
       'ExampleApexClass2Test.validateSayHello  Pass',
       'ExampleApexClass3Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -221,7 +261,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass1Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
     await verifyOutputPanelText(outputPanelText, expectedTexts);
   });
@@ -263,7 +303,7 @@ describe('Run Apex Tests', () => {
       'ExampleApexClass1Test.validateSayHello  Pass',
       'ExampleApexClass2Test.validateSayHello  Pass',
       'ExampleApexClass3Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
     await verifyOutputPanelText(outputPanelText, expectedTexts);
 
@@ -287,8 +327,9 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass2Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(terminalText).to.not.be.undefined;
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
@@ -299,12 +340,7 @@ describe('Run Apex Tests', () => {
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
-    const terminalText = await runTestCaseFromSideBar(
-      workbench,
-      'Apex Tests',
-      'validateSayHello',
-      'Run Single Test'
-    );
+    const terminalText = await runTestCaseFromSideBar(workbench, 'Apex Tests', 'validateSayHello', 'Run Single Test');
     const expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -312,26 +348,26 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass1Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(terminalText).to.not.be.undefined;
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
   it('Run a test that fails and fix it', async () => {
     logTestStart(testSetup, 'Run a test that fails and fix it');
+
+    await zoom('Out', 2); // Zoom out the editor view
+
     // Create Apex class AccountService
-    await createApexClassWithBugs();
+    await createApexClassWithBugs(classesFolderPath);
 
     // Push source to org
-    const workbench = getWorkbench();
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
 
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
 
     // Clear the Output view.
     await dismissAllNotifications();
@@ -354,19 +390,15 @@ describe('Run Apex Tests', () => {
     await verifyOutputPanelText(outputPanelText, expectedTexts);
 
     // Fix test
-    const textEditor = await getTextEditor(workbench, 'AccountService.cls');
-    await textEditor.setTextAtLine(6, '\t\t\tTickerSymbol = tickerSymbol');
-    await textEditor.save();
+    const accountServicePath = `${testSetup.projectFolderPath}/force-app/main/default/classes/AccountService.cls`;
+    await replaceLineInFile(accountServicePath, 6, '\t\t\tTickerSymbol = tickerSymbol');
     await pause(Duration.seconds(1));
 
     // Push source to org
-    await executeQuickPick('SFDX: Push Source to Default Org and Ignore Conflicts', Duration.seconds(1));
+    await executeQuickPick('SFDX: Push Source to Default Org', Duration.seconds(1));
 
-    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org and Ignore Conflicts successfully ran".
-    await verifyNotificationWithRetry(
-      /SFDX: Push Source to Default Org and Ignore Conflicts successfully ran/,
-      Duration.TEN_MINUTES
-    );
+    // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
 
     // Clear the Output view.
     await dismissAllNotifications();
@@ -391,7 +423,7 @@ describe('Run Apex Tests', () => {
       'Pass Rate            100%',
       'TEST NAME',
       'AccountServiceTest.should_create_account  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -409,13 +441,7 @@ describe('Run Apex Tests', () => {
 
     // Choose tests that will belong to the new Apex Test Suite
     await prompt.setText('ExampleApexClass1Test');
-    // Use different selector depending on VSCode version
-    const selector =
-      EnvironmentSettings.getInstance().vscodeVersion === 'latest' ||
-      semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
-        ? 'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox'
-        : 'input.quick-input-list-checkbox';
-    const checkbox = await prompt.findElement(By.css(selector));
+    const checkbox = await findCheckboxElement(prompt);
     await checkbox.click();
     await clickFilePathOkButton();
 
@@ -434,16 +460,10 @@ describe('Run Apex Tests', () => {
 
     // Choose tests that will belong to the already created Apex Test Suite
     await prompt.setText('ExampleApexClass2Test');
-    // Use different selector depending on VSCode version
-    const selector =
-      EnvironmentSettings.getInstance().vscodeVersion === 'latest' ||
-      semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
-        ? 'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox'
-        : 'input.quick-input-list-checkbox';
 
     await retryOperation(
       async () => {
-        const checkbox = await prompt.findElement(By.css(selector));
+        const checkbox = await findCheckboxElement(prompt);
         await checkbox.click();
       },
       2,
@@ -475,14 +495,13 @@ describe('Run Apex Tests', () => {
     const expectedTexts = [
       '=== Test Summary',
       'TEST NAME',
-      'ended SFDX: Run Apex Tests',
       'Outcome              Passed',
       'Tests Ran            2',
       'Pass Rate            100%',
       'TEST NAME',
       'ExampleApexClass1Test.validateSayHello  Pass',
       'ExampleApexClass2Test.validateSayHello  Pass',
-      'ended SFDX: Run Apex Tests'
+      'Ended SFDX: Run Apex Tests'
     ];
     await verifyOutputPanelText(outputPanelText, expectedTexts);
   });

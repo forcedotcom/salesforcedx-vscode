@@ -4,14 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Command } from '@salesforce/salesforcedx-utils';
-import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-service-provider';
+import { Command, CommandExecution } from '@salesforce/salesforcedx-utils';
 import * as vscode from 'vscode';
-import { CliCommandExecutor, CommandExecution } from '../cli';
+import { CliCommandExecutor } from '../cli';
+import { TimingUtils } from '../helpers/timingUtils';
 import { TelemetryBuilder, TelemetryService } from '../index';
 import { nls } from '../messages';
 import { SettingsService } from '../settings';
-import { CommandletExecutor, ContinueResponse } from '../types';
+import { Properties, Measurements, TelemetryData, CommandletExecutor, ContinueResponse } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
 import { ChannelService } from './channelService';
 import { ProgressNotification, notificationService } from './index';
@@ -20,8 +20,8 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
   private outputChannel?: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected executionCwd = getRootWorkspacePath();
-  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<[number, number]>();
-  public readonly onDidFinishExecution: vscode.Event<[number, number]> = this.onDidFinishExecutionEventEmitter.event;
+  protected onDidFinishExecutionEventEmitter = new vscode.EventEmitter<number>();
+  public readonly onDidFinishExecution: vscode.Event<number> = this.onDidFinishExecutionEventEmitter.event;
 
   constructor(outputChannel?: vscode.OutputChannel) {
     this.outputChannel = outputChannel;
@@ -46,15 +46,15 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
 
   public logMetric(
     logName: string | undefined,
-    hrstart: [number, number],
+    startTime: number,
     properties?: Properties,
     measurements?: Measurements
   ) {
-    TelemetryService.getInstance().sendCommandEvent(logName, hrstart, properties, measurements);
+    TelemetryService.getInstance().sendCommandEvent(logName, startTime, properties, measurements);
   }
 
   public execute(response: ContinueResponse<T>): void {
-    const startTime = process.hrtime();
+    const startTime = TimingUtils.getCurrentTime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
     const execution = new CliCommandExecutor(this.build(response.data), {
@@ -75,8 +75,8 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
 export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor<T> {
   protected cancellable: boolean = false;
   private cancelled: boolean = false;
-  private readonly executionName: string;
-  private readonly logName: string;
+  protected readonly executionName: string;
+  protected readonly logName: string;
   private readonly outputChannel: vscode.OutputChannel;
   protected showChannelOutput = true;
   protected showSuccessNotifications = true;
@@ -110,7 +110,7 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
   ): Promise<boolean>;
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
-    const startTime = process.hrtime();
+    const startTime = TimingUtils.getCurrentTime();
     const channelService = new ChannelService(this.outputChannel);
     const telemetryService = TelemetryService.getInstance();
     if (SettingsService.getEnableClearOutputBeforeEachCommand()) {
@@ -136,7 +136,7 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
           return this.run(response, progress, token);
         }
       );
-      channelService.showCommandWithTimestamp(`${nls.localize('channel_end')} ${this.executionName}`);
+      channelService.showCommandWithTimestamp(`\n${nls.localize('channel_end')} ${this.executionName}`);
 
       if (this.showChannelOutput) {
         channelService.showChannelOutput();

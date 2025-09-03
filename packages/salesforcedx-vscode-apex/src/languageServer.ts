@@ -38,6 +38,10 @@ const JDWP_DEBUG_PORT = 2739;
 const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
 const SUSPEND_LANGUAGE_SERVER_STARTUP = process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'true';
 const LANGUAGE_SERVER_LOG_LEVEL = process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERROR';
+
+// LSP providers controlled by the lspParityCapabilities setting
+const LSP_PARITY_PROVIDERS = ['provideDocumentSymbols'];
+
 // eslint-disable-next-line no-var
 declare var v8debug: any;
 
@@ -134,6 +138,14 @@ export const createLanguageServer = async (extensionContext: vscode.ExtensionCon
 
 const buildClientOptions = (): ApexLanguageClientOptions => {
   const soqlExtensionInstalled = isSOQLExtensionInstalled();
+  const lspParityCapabilities = vscode.workspace
+    .getConfiguration()
+    .get<boolean>('salesforcedx-vscode-apex.advanced.lspParityCapabilities', true);
+
+  // Create middleware that disables parity providers when setting is true
+  const parityMiddleware: Record<string, () => null> = lspParityCapabilities
+    ? Object.fromEntries(LSP_PARITY_PROVIDERS.map(provider => [provider, () => null]))
+    : {};
 
   return {
     // Register the server for Apex documents
@@ -171,7 +183,10 @@ const buildClientOptions = (): ApexLanguageClientOptions => {
       apexOASMethodAccessModifiers: retrieveGeneralMethodAccessModifiers().join(','),
       apexOASPropAccessModifiers: retrieveGeneralPropAccessModifiers().join(',')
     },
-    ...(soqlExtensionInstalled ? { middleware: soqlMiddleware } : {}),
+    middleware: {
+      ...parityMiddleware,
+      ...(soqlExtensionInstalled ? soqlMiddleware : {})
+    },
     errorHandler: new ApexErrorHandler()
   };
 };

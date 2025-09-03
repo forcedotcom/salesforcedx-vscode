@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, AuthSideEffects } from '@salesforce/core-bundle';
+import { AuthInfo, type AuthSideEffects } from '@salesforce/core';
 import { LibraryCommandletExecutor, ContinueResponse, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../channels/index';
@@ -49,10 +49,11 @@ class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenP
   }
 }
 
-const workspaceChecker = new SfWorkspaceChecker();
-const parameterGatherer = new AccessTokenParamsGatherer();
-
 export const orgLoginAccessToken = async () => {
-  const commandlet = new SfCommandlet(workspaceChecker, parameterGatherer, new OrgLoginAccessTokenExecutor());
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
+    new AccessTokenParamsGatherer(),
+    new OrgLoginAccessTokenExecutor()
+  );
   await commandlet.run();
 };
