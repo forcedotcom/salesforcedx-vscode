@@ -9,8 +9,10 @@ import {
   CompositeParametersGatherer,
   LocalComponent,
   ParametersGatherer,
-  SfWorkspaceChecker
+  SfWorkspaceChecker,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as path from 'node:path';
 import type { URI } from 'vscode-uri';
 import { MetadataTypeGatherer, OverwriteComponentPrompt, SfCommandlet, SimpleGatherer } from '../util';
 import { getParamGatherers } from './apexGenerateClass';
@@ -38,7 +40,7 @@ export const apexGenerateUnitTestClass = async (
             outputdir: outputDirectory
           })
         : new SimpleGatherer<OutputDirParameter>({
-            outputdir: outputDirectory.fsPath
+            outputdir: path.relative(workspaceUtils.getRootWorkspacePath(), outputDirectory.fsPath)
           });
   } else {
     outputDirGatherer = gatherers.outputDirGatherer;
