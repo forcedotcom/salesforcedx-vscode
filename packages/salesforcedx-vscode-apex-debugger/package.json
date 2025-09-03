@@ -28,12 +28,10 @@
     "@salesforce/salesforcedx-apex-debugger": "64.12.0",
     "@salesforce/salesforcedx-utils": "64.12.0",
     "@salesforce/salesforcedx-utils-vscode": "64.12.0",
-    "@vscode/debugprotocol": "1.68.0",
-    "vscode-extension-telemetry": "^0.0.17"
+    "@vscode/debugprotocol": "1.68.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.1",
-    "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "salesforcedx-vscode-apex": "64.12.0"
   },
@@ -200,7 +198,7 @@
       "commandPalette": [
         {
           "command": "sf.debug.exception.breakpoint",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && !isWeb"
         }
       ]
     },

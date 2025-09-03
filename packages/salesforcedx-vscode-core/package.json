@@ -44,7 +44,6 @@
   "devDependencies": {
     "@types/jest": "^29.5.5",
     "@types/node": "^22.15.1",
-    "cross-env": "5.2.0",
     "esbuild": "0.25.0",
     "jest": "^29.7.0",
     "jest-junit": "14.0.1",
@@ -307,23 +306,23 @@
         },
         {
           "command": "sf.org.login.web.dev.hub",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && !isWeb"
         },
         {
           "command": "sf.org.login.access.token",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && !isWeb"
         },
         {
           "command": "sf.org.login.web",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && !isWeb"
         },
         {
           "command": "sf.org.logout.all",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && !isWeb"
         },
         {
           "command": "sf.org.logout.default",
-          "when": "sf:project_opened && sf:has_target_org"
+          "when": "sf:project_opened && sf:has_target_org && !isWeb"
         },
         {
           "command": "sf.open.documentation",
@@ -331,11 +330,11 @@
         },
         {
           "command": "sf.org.create",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && !isWeb"
         },
         {
           "command": "sf.org.open",
-          "when": "sf:project_opened && sf:has_target_org"
+          "when": "sf:project_opened && sf:has_target_org && !isWeb"
         },
         {
           "command": "sf.project.retrieve.start",
@@ -399,15 +398,15 @@
         },
         {
           "command": "sf.alias.list",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && !isWeb"
         },
         {
           "command": "sf.org.display.default",
-          "when": "sf:project_opened && sf:has_target_org"
+          "when": "sf:project_opened && sf:has_target_org && !isWeb"
         },
         {
           "command": "sf.org.display.username",
-          "when": "sf:project_opened && sf:has_target_org"
+          "when": "sf:project_opened && sf:has_target_org && !isWeb"
         },
         {
           "command": "sf.data.query.input",
@@ -419,11 +418,11 @@
         },
         {
           "command": "sf.project.generate",
-          "when": "!sf:internal_dev"
+          "when": "!sf:internal_dev && !isWeb"
         },
         {
           "command": "sf.project.generate.with.manifest",
-          "when": "!sf:internal_dev"
+          "when": "!sf:internal_dev && !isWeb"
         },
         {
           "command": "sf.project.generate.manifest",
@@ -439,15 +438,15 @@
         },
         {
           "command": "sf.start.apex.debug.logging",
-          "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_target_org"
+          "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_target_org && !isWeb"
         },
         {
           "command": "sf.stop.apex.debug.logging",
-          "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_target_org"
+          "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_target_org && !isWeb"
         },
         {
           "command": "sf.debug.isv.bootstrap",
-          "when": "!sf:internal_dev"
+          "when": "!sf:internal_dev && !isWeb"
         },
         {
           "command": "sf.retrieve.component",
@@ -487,15 +486,15 @@
         },
         {
           "command": "sf.org.delete.default",
-          "when": "sf:project_opened && sf:has_target_org"
+          "when": "sf:project_opened && sf:has_target_org && !isWeb"
         },
         {
           "command": "sf.org.delete.username",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && !isWeb"
         },
         {
           "command": "sf.org.list.clean",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && !isWeb"
         },
         {
           "command": "sf.delete.source.current.file",
@@ -1004,6 +1003,82 @@
         "language": "forcesourcemanifest",
         "scopeName": "manifest.text.xml",
         "path": "./syntaxes/manifestXML.tmLanguage.json"
+      }
+    ],
+    "walkthroughs": [
+      {
+        "id": "sf.org-browser",
+        "title": "%org_browser_walkthrough_title%",
+        "description": "%org_browser_walkthrough_description%",
+        "steps": [
+          {
+            "id": "open-org-browser",
+            "title": "%org_browser_walkthrough_open_title%",
+            "description": "%org_browser_walkthrough_open_description%",
+            "media": {
+              "image": "images/walkthrough/org-browser.png",
+              "altText": "%org_browser_walkthrough_open_alt%"
+            },
+            "completionEvents": [
+              "onCommand:workbench.view.extension.metadata"
+            ]
+          },
+          {
+            "id": "browse-metadata-types",
+            "title": "%org_browser_walkthrough_browse_title%",
+            "description": "%org_browser_walkthrough_browse_description%",
+            "media": {
+              "image": "images/walkthrough/org-browser.png",
+              "altText": "%org_browser_walkthrough_browse_alt%"
+            }
+          },
+          {
+            "id": "retrieve-metadata",
+            "title": "%org_browser_walkthrough_retrieve_title%",
+            "description": "%org_browser_walkthrough_retrieve_description%",
+            "media": {
+              "image": "images/walkthrough/org-browser.png",
+              "altText": "%org_browser_walkthrough_retrieve_alt%"
+            }
+          }
+        ]
+      },
+      {
+        "id": "sf.connected-org",
+        "title": "%connected_org_walkthrough_title%",
+        "description": "%connected_org_walkthrough_description%",
+        "steps": [
+          {
+            "id": "understand-default-org",
+            "title": "%connected_org_walkthrough_understand_title%",
+            "description": "%connected_org_walkthrough_understand_description%",
+            "media": {
+              "image": "images/walkthrough/org-picker.png",
+              "altText": "%connected_org_walkthrough_understand_alt%"
+            }
+          },
+          {
+            "id": "set-default-org",
+            "title": "%connected_org_walkthrough_set_title%",
+            "description": "%connected_org_walkthrough_set_description%",
+            "media": {
+              "image": "images/walkthrough/org-picker.png",
+              "altText": "%connected_org_walkthrough_set_alt%"
+            },
+            "completionEvents": [
+              "onCommand:sf.set.default.org"
+            ]
+          },
+          {
+            "id": "open-default-org",
+            "title": "%connected_org_walkthrough_open_title%",
+            "description": "%connected_org_walkthrough_open_description%",
+            "media": {
+              "image": "images/walkthrough/org-picker.png",
+              "altText": "%connected_org_walkthrough_open_alt%"
+            }
+          }
+        ]
       }
     ]
   }
