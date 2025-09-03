@@ -14,12 +14,14 @@ const INSTANCE_URL_KEY = 'instanceUrl';
 const ACCESS_TOKEN_KEY = 'accessToken';
 const API_VERSION_KEY = 'apiVersion';
 
-// TODO: prompt the user for a refresh token, and then use that to get the access token
-// by implementing the vscode auth provider https://github.com/microsoft/vscode-extension-samples/blob/main/authenticationprovider-sample/src/extension.ts
-// TODO: tests should also populate the settings
-const FALLBACK_INSTANCE_URL = 'https://example.my.salesforce.com';
-const FALLBACK_ACCESS_TOKEN = 'placeholder_token_for_testing';
 const FALLBACK_API_VERSION = '64.0';
+
+const isNonEmptyString = (value: string | undefined): Effect.Effect<string, Error, never> => {
+  if (value === undefined || value.length === 0) {
+    return Effect.fail(new Error('Value is empty'));
+  }
+  return Effect.succeed(value);
+};
 
 /**
  * Service for interacting with VSCode settings
@@ -94,22 +96,14 @@ export const SettingsServiceLive = Layer.succeed(SettingsService, {
     }),
 
   getInstanceUrl: Effect.try({
-    try: () => {
-      const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
-      const value = config.get<string>(INSTANCE_URL_KEY) ?? FALLBACK_INSTANCE_URL;
-      return value.length > 0 ? value : FALLBACK_INSTANCE_URL;
-    },
+    try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY),
     catch: error => new Error(`Failed to get instanceUrl: ${String(error)}`)
-  }),
+  }).pipe(Effect.flatMap(isNonEmptyString)),
 
   getAccessToken: Effect.try({
-    try: () => {
-      const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
-      const value = config.get<string>(ACCESS_TOKEN_KEY) ?? FALLBACK_ACCESS_TOKEN;
-      return value.length > 0 ? value : FALLBACK_ACCESS_TOKEN;
-    },
+    try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(ACCESS_TOKEN_KEY),
     catch: error => new Error(`Failed to get accessToken: ${String(error)}`)
-  }),
+  }).pipe(Effect.flatMap(isNonEmptyString)),
 
   getApiVersion: Effect.try({
     try: () => {
