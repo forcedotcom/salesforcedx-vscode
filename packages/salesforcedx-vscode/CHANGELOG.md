@@ -14,4 +14,4 @@
 
 - We fixed an issue where org aliases that contain dashes couldn't be set as default orgs. ([PR #6521](https://github.com/forcedotcom/salesforcedx-vscode/pull/6521))
 
-- We fixed an issue where deploy and retrieve were failing when the `Enable Source Tracking For Deploy And Retrieve` setting was enabled for for non-source-tracked orgs. ([PR #6507](https://github.com/forcedotcom/salesforcedx-vscode/pull/6507))
+- We fixed an issue where deploy and retrieve were failing when the `Enable Source Tracking For Deploy And Retrieve` setting was enabled for non-source-tracked orgs. ([PR #6507](https://github.com/forcedotcom/salesforcedx-vscode/pull/6507))
