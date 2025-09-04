@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- We introduced significant improvements to the org cleanup and display functionality in the CLI Integration extension. The main changes involve refactoring the org list clean command to fix a bug to actually remove expired or deleted orgs while providing user feedback with detailed messages and a table display of remaining orgs. ([PR #6500](https://github.com/forcedotcom/salesforcedx-vscode/pull/6500))
+- We refactored the org cleanup logic to ensure expired or deleted orgs are properly removed. The update also adds clearer user feedback through detailed messages and a table view of the remaining orgs. ([PR #6500](https://github.com/forcedotcom/salesforcedx-vscode/pull/6500))
 
 - We improved the bundling of our extensions to reduce the extensions size. ([PR #6490](https://github.com/forcedotcom/salesforcedx-vscode/pull/6490))
 
@@ -12,6 +12,6 @@
 
 #### salesforcedx-vscode-core
 
-- We fixed a bug where org aliases that contain dashes could not be set as default orgs. ([PR #6521](https://github.com/forcedotcom/salesforcedx-vscode/pull/6521))
+- We fixed an issue where org aliases that contain dashes couldn't be set as default orgs. ([PR #6521](https://github.com/forcedotcom/salesforcedx-vscode/pull/6521))
 
-- We fixed a bug where deploy and retrieve was failing when enable source tracking for deploy and retrieve setting was enabled for non source tracked orgs. ([PR #6507](https://github.com/forcedotcom/salesforcedx-vscode/pull/6507))
+- We fixed an issue where deploy and retrieve were failing when the `Enable Source Tracking For Deploy And Retrieve` setting was enabled for for non-source-tracked orgs. ([PR #6507](https://github.com/forcedotcom/salesforcedx-vscode/pull/6507))
