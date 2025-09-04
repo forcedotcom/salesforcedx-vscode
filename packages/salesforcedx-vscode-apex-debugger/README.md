@@ -2,8 +2,6 @@
 
 This extension enables VS Code to use the real-time Apex Debugger with your scratch orgs and to use ISV Customer Debugger with your subscribers’ sandbox orgs.
 
-**DO NOT INSTALL THIS EXTENSION DIRECTLY. Install the complete [Salesforce Extension Pack](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode) instead.**
-
 ## Documentation
 
 For documentation, visit the [Salesforce Extensions for Visual Studio Code](https://developer.salesforce.com/tools/vscode) documentation site.
