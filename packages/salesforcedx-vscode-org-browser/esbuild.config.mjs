@@ -7,18 +7,24 @@
 import { build } from 'esbuild';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
+import { writeFile } from 'fs/promises';
 
-await build({
+const nodeBuild = await build({
   ...nodeConfig,
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
-  plugins: [...(nodeConfig.plugins ?? [])]
+  plugins: [...(nodeConfig.plugins ?? [])],
+  metafile: true
 });
 
 // Browser build (browser environment)
-await build({
+const browserBuild = await build({
   ...commonConfigBrowser,
   external: ['vscode'],
   entryPoints: ['./out/src/index.js'],
-  outfile: './dist/browser.js'
+  outfile: './dist/browser.js',
+  metafile: true
 });
+
+await writeFile('dist/node-metafile.json', JSON.stringify(nodeBuild.metafile, null, 2));
+await writeFile('dist/browser-metafile.json', JSON.stringify(browserBuild.metafile, null, 2));
