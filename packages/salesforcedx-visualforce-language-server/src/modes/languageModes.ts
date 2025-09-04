@@ -9,7 +9,9 @@ import {
   DocumentContext,
   getLanguageService as getHTMLLanguageService
 } from '@salesforce/salesforcedx-visualforce-markup-language-server';
+import { LanguageSettings } from 'vscode-css-languageservice';
 import { ColorInformation, ColorPresentation } from 'vscode-languageserver-protocol';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   CompletionItem,
   CompletionList,
@@ -24,10 +26,8 @@ import {
   Range,
   SignatureHelp,
   SymbolInformation,
-  TextDocument,
   TextEdit
 } from 'vscode-languageserver-types';
-
 import { getLanguageModelCache, LanguageModelCache } from '../languageModelCache';
 import { getCSSMode } from './cssMode';
 import { getDocumentRegions, HTMLDocumentRegions } from './embeddedSupport';
@@ -36,7 +36,7 @@ import { getJavascriptMode } from './javascriptMode';
 
 export { ColorInformation };
 
-export type Settings = {
+export type Settings = LanguageSettings & {
   css?: any;
   visualforce?: any;
   javascript?: any;

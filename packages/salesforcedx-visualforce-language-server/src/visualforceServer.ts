@@ -37,14 +37,11 @@ import {
 } from 'vscode-languageserver-protocol';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Diagnostic, DocumentLink, SymbolInformation } from 'vscode-languageserver-types';
-import * as nls from 'vscode-nls';
 import { URI } from 'vscode-uri';
 import { format } from './modes/formatting';
 import { getLanguageModes, LanguageModes, Settings } from './modes/languageModes';
 
 import { pushAll } from './utils/arrays';
-
-nls.config(process.env['VSCODE_NLS_CONFIG']);
 
 namespace TagCloseRequest {
   export const type: RequestType<TextDocumentPositionParams, string, any> = new RequestType('html/tag');
