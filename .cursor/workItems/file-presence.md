@@ -13,3 +13,5 @@ So we need to translate from remote metadata type/name to a filename, then searc
 3. you can use SDR's `filePathsFromMetadataComponent` to get a proposed filename
 
 Propose the 2 best icons from vscode's icon set
+
+Start with only the `component` type.

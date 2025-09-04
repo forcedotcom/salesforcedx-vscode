@@ -8,8 +8,7 @@
 import {
   type RetrieveResult,
   type MetadataMember,
-  type MetadataRegistry,
-  RegistryAccess,
+  type RegistryAccess,
   MetadataApiRetrieve,
   ComponentSet
 } from '@salesforce/source-deploy-retrieve';
@@ -24,6 +23,7 @@ import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
+import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
 
 export type MetadataRetrieveService = {
@@ -43,11 +43,15 @@ export type MetadataRetrieveService = {
     | ConfigService
     | ChannelService
     | SettingsService
-    | MetadataRetrieveService
+    | MetadataRegistryService
   >;
 
-  readonly getRegistry: () => Effect.Effect<Readonly<MetadataRegistry>, Error, WorkspaceService>;
-  readonly getRegistryAccess: () => Effect.Effect<RegistryAccess, Error, WorkspaceService>;
+  /** given a type and name, return a glob pattern that can be used to search for the file in the local project */
+  readonly getLocationGlob: (
+    type: string,
+    name: string
+    // folder?: string
+  ) => Effect.Effect<string, Error, WorkspaceService | MetadataRegistryService>;
 };
 
 export const MetadataRetrieveService = Context.GenericTag<MetadataRetrieveService>('MetadataRetrieveService');
@@ -61,17 +65,6 @@ const buildComponentSet = (
     catch: e => new Error('Failed to build ComponentSet', { cause: e })
   }).pipe(Effect.withSpan('buildComponentSet'));
 
-const getRegistryAccess = (): Effect.Effect<RegistryAccess, Error, WorkspaceService> =>
-  Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo).pipe(
-    Effect.flatMap(workspaceInfo =>
-      Effect.try({
-        try: () => new RegistryAccess(undefined, workspaceInfo.fsPath),
-        catch: (error: unknown) => new Error(`Failed to create RegistryAccess: ${String(error)}`)
-      })
-    ),
-    Effect.withSpan('getRegistryAccess')
-  );
-
 const retrieve = (
   members: MetadataMember[]
 ): Effect.Effect<
@@ -83,7 +76,7 @@ const retrieve = (
   | ConfigService
   | ChannelService
   | SettingsService
-  | MetadataRetrieveService
+  | MetadataRegistryService
 > =>
   Effect.all(
     [
@@ -91,7 +84,7 @@ const retrieve = (
       Effect.flatMap(ProjectService, service => service.getSfProject),
       Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo),
       Effect.succeed(ChannelService),
-      Effect.flatMap(MetadataRetrieveService, service => service.getRegistryAccess())
+      Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess())
     ],
     { concurrency: 'unbounded' }
   ).pipe(
@@ -136,26 +129,23 @@ const retrieve = (
     Effect.provide(SdkLayer)
   );
 
-export const MetadataRetrieveServiceLive = Layer.scoped(
+const getLocationGlob = (
+  type: string,
+  name: string
+  // folder?: string
+): Effect.Effect<string, Error, WorkspaceService | MetadataRegistryService> =>
+  Effect.gen(function* () {
+    const registryAccess = yield* Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess());
+    const mdType = registryAccess.getTypeByName(type);
+    return `**/${mdType.directoryName}/${name}.${mdType.suffix}-meta.xml`;
+  });
+
+export const MetadataRetrieveServiceLive = Layer.effect(
   MetadataRetrieveService,
   Effect.gen(function* () {
-    // Create shared registry access once and derive everything from it
-    const cachedGetRegistryAccessEffect = yield* Effect.cached(getRegistryAccess());
-
-    // Derive registry from the cached registry access
-    const cachedGetRegistryEffect = yield* Effect.cached(
-      Effect.flatMap(cachedGetRegistryAccessEffect, registryAccess =>
-        Effect.try({
-          try: () => registryAccess.getRegistry(),
-          catch: (error: unknown) => new Error(`Failed to get registry: ${String(error)}`)
-        })
-      ).pipe(Effect.withSpan('getRegistry (cached)'))
-    );
-
     return {
       retrieve,
-      getRegistry: (): Effect.Effect<Readonly<MetadataRegistry>, Error, WorkspaceService> => cachedGetRegistryEffect,
-      getRegistryAccess: (): Effect.Effect<RegistryAccess, Error, WorkspaceService> => cachedGetRegistryAccessEffect
+      getLocationGlob
     };
   })
 );

@@ -43,7 +43,8 @@ const retrieve = (
         api.services.ProjectServiceLive,
         api.services.ChannelServiceLayer('Salesforce Org Browser'),
         api.services.SettingsServiceLive,
-        api.services.SdkLayer
+        api.services.SdkLayer,
+        api.services.MetadataRegistryServiceLive
       );
 
       return Effect.provide(

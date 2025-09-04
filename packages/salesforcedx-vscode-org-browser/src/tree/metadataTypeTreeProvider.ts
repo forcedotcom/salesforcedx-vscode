@@ -7,7 +7,8 @@
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 
-import { MetadataDescribeService } from 'salesforcedx-vscode-services/src/core/metadataDescribeService';
+import type { MetadataDescribeService } from 'salesforcedx-vscode-services/src/core/metadataDescribeService';
+
 import * as vscode from 'vscode';
 import { ExtensionProviderService, ExtensionProviderServiceLive } from '../services/extensionProvider';
 import { isFolderType, OrgBrowserNode } from './orgBrowserNode';
@@ -17,6 +18,7 @@ type CustomObjectField = Effect.Effect.Success<
   ReturnType<MetadataDescribeService['describeCustomObject']>
 >['fields'][number];
 type MetadataListResultItem = Effect.Effect.Success<ReturnType<MetadataDescribeService['listMetadata']>>[number];
+
 export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrowserNode> {
   private _onDidChangeTreeData: vscode.EventEmitter<OrgBrowserNode | undefined | void> = new vscode.EventEmitter();
   public readonly onDidChangeTreeData: vscode.Event<OrgBrowserNode | undefined | void> =
@@ -50,6 +52,8 @@ const program = (
     Effect.flatMap(api => {
       const allLayers = Layer.mergeAll(
         api.services.MetadataDescribeServiceLive,
+        api.services.MetadataRegistryServiceLive,
+        api.services.MetadataRetrieveServiceLive,
         api.services.ConnectionServiceLive,
         api.services.ConfigServiceLive,
         api.services.WorkspaceServiceLive,
@@ -74,7 +78,7 @@ const program = (
                 // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
                 .filter(f => f.custom)
                 .toSorted((a, b) => (a.name < b.name ? -1 : 1))
-                .map(customObjectToOrgBrowserNode(element))
+                .map(createCustomFieldNode(element))
             )
           );
         }
@@ -140,7 +144,7 @@ const mdapiDescribeToOrgBrowserNode = (t: MetadataDescribeResultItem): OrgBrowse
     label: t.xmlName
   });
 
-const customObjectToOrgBrowserNode =
+const createCustomFieldNode =
   (element: OrgBrowserNode) =>
   (f: CustomObjectField): OrgBrowserNode =>
     new OrgBrowserNode({

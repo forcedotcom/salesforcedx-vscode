@@ -15,6 +15,7 @@ import { sampleProjectName } from './constants';
 import { ConfigService, ConfigServiceLive } from './core/configService';
 import { ConnectionService, ConnectionServiceLive } from './core/connectionService';
 import { MetadataDescribeService, MetadataDescribeServiceLive } from './core/metadataDescribeService';
+import { MetadataRegistryService, MetadataRegistryServiceLive } from './core/metadataRegistryService';
 import { MetadataRetrieveService, MetadataRetrieveServiceLive } from './core/metadataRetrieveService';
 import { ProjectService, ProjectServiceLive } from './core/projectService';
 import { webAppInsightsReporter } from './observability/applicationInsightsWebExporter';
@@ -49,6 +50,8 @@ export type SalesforceVSCodeServicesApi = {
     ConfigServiceLive: typeof ConfigServiceLive;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataDescribeServiceLive: typeof MetadataDescribeServiceLive;
+    MetadataRegistryService: typeof MetadataRegistryService;
+    MetadataRegistryServiceLive: typeof MetadataRegistryServiceLive;
     MetadataRetrieveService: typeof MetadataRetrieveService;
     MetadataRetrieveServiceLive: typeof MetadataRetrieveServiceLive;
     SettingsService: typeof SettingsService;
@@ -124,6 +127,8 @@ export const activate = async (
       ConfigServiceLive,
       MetadataDescribeService,
       MetadataDescribeServiceLive,
+      MetadataRegistryService,
+      MetadataRegistryServiceLive,
       MetadataRetrieveService,
       MetadataRetrieveServiceLive,
       SettingsService,
