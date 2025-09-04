@@ -6,8 +6,12 @@
  */
 
 import { SfProject } from '@salesforce/core/project';
-import { Cache, Context, Duration, Effect, Layer } from 'effect';
+import * as Cache from 'effect/Cache';
+import * as Context from 'effect/Context';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
+import * as Layer from 'effect/Layer';
 import { SdkLayer } from '../observability/spans';
 import { WorkspaceService } from '../vscode/workspaceService';
 

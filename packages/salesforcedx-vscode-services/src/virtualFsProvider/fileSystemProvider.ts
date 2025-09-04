@@ -10,7 +10,7 @@
 /* eslint-disable functional/no-throw-statements */
 
 import { fs } from '@salesforce/core/fs';
-import { Effect, pipe } from 'effect';
+import * as Effect from 'effect/Effect';
 import { Buffer } from 'node:buffer';
 // eslint-disable-next-line no-restricted-imports
 import type { Dirent } from 'node:fs';
@@ -61,17 +61,15 @@ export class FsProvider implements vscode.FileSystemProvider {
     content: Uint8Array,
     options: { create: boolean; overwrite: boolean }
   ): Promise<void> {
-    const program = pipe(
-      // Validate file existence
-      Effect.sync(() => {
-        if (!options.create && !this.exists(uri)) {
-          return Effect.fail(vscode.FileSystemError.FileNotFound(uri));
-        }
-        if (!options.overwrite && this.exists(uri)) {
-          return Effect.fail(vscode.FileSystemError.FileExists(uri));
-        }
-        return Effect.succeed(undefined);
-      }),
+    const program = Effect.sync(() => {
+      if (!options.create && !this.exists(uri)) {
+        return Effect.fail(vscode.FileSystemError.FileNotFound(uri));
+      }
+      if (!options.overwrite && this.exists(uri)) {
+        return Effect.fail(vscode.FileSystemError.FileExists(uri));
+      }
+      return Effect.succeed(undefined);
+    }).pipe(
       // Write file to filesystem
       Effect.flatMap(() =>
         Effect.tryPromise({

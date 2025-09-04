@@ -13,7 +13,8 @@ jest.mock('os', () => ({
 
 import { activate, deactivate } from '../../src/index';
 import { ChannelService } from '../../src/vscode/channelService';
-import { Layer, Effect } from 'effect';
+import * as Layer from 'effect/Layer';
+import * as Effect from 'effect/Effect';
 import { projectFiles } from '../../src/virtualFsProvider/projectInit';
 import { SettingsServiceLive } from '../../src/vscode/settingsService';
 

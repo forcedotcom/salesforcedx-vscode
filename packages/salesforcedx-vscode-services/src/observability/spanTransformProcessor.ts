@@ -6,7 +6,8 @@
  */
 import { Context } from '@opentelemetry/api';
 import { Span, BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
-import { Effect, SubscriptionRef } from 'effect';
+import * as Effect from 'effect/Effect';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
 import { env, UIKind, version, workspace } from 'vscode';
 import { defaultOrgRef } from '../core/defaultOrgService';

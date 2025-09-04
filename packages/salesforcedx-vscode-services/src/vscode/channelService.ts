@@ -4,7 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Context, Effect, Layer, pipe } from 'effect';
+import * as Context from 'effect/Context';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 
 export type ChannelService = {
@@ -30,11 +32,10 @@ export const ChannelServiceLayer = (channelName: string): Layer.Layer<ChannelSer
       return {
         getChannel: Effect.sync(() => channel),
         appendToChannel: (message: string) =>
-          pipe(
-            Effect.try({
-              try: () => channel.appendLine(message),
-              catch: e => new Error(`Failed to append to channel: ${String(e)}`)
-            }),
+          Effect.try({
+            try: () => channel.appendLine(message),
+            catch: e => new Error(`Failed to append to channel: ${String(e)}`)
+          }).pipe(
             // channelLogging is "best effort" and will not cause a failure
             Effect.catchAll(() => Effect.succeed(undefined))
           )

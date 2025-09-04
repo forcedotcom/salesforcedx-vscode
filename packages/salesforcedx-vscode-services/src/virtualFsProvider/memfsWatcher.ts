@@ -6,7 +6,9 @@
  */
 
 import { fs } from '@salesforce/core/fs';
-import { Effect, Schedule, Stream } from 'effect';
+import * as Effect from 'effect/Effect';
+import * as Schedule from 'effect/Schedule';
+import * as Stream from 'effect/Stream';
 // eslint-disable-next-line no-restricted-imports
 import type { FileChangeInfo } from 'node:fs/promises';
 import * as vscode from 'vscode';

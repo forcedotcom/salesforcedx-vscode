@@ -14,7 +14,9 @@ import {
   ComponentSet
 } from '@salesforce/source-deploy-retrieve';
 
-import { Context, Effect, Layer, pipe } from 'effect';
+import * as Context from 'effect/Context';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { SdkLayer } from '../observability/spans';
 import { ChannelService } from '../vscode/channelService';
@@ -83,17 +85,16 @@ const retrieve = (
   | SettingsService
   | MetadataRetrieveService
 > =>
-  pipe(
-    Effect.all(
-      [
-        Effect.flatMap(ConnectionService, service => service.getConnection),
-        Effect.flatMap(ProjectService, service => service.getSfProject),
-        Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo),
-        Effect.succeed(ChannelService),
-        Effect.flatMap(MetadataRetrieveService, service => service.getRegistryAccess())
-      ],
-      { concurrency: 'unbounded' }
-    ),
+  Effect.all(
+    [
+      Effect.flatMap(ConnectionService, service => service.getConnection),
+      Effect.flatMap(ProjectService, service => service.getSfProject),
+      Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo),
+      Effect.succeed(ChannelService),
+      Effect.flatMap(MetadataRetrieveService, service => service.getRegistryAccess())
+    ],
+    { concurrency: 'unbounded' }
+  ).pipe(
     Effect.flatMap(([connection, project, workspaceDescription, channelService, registryAccess]) =>
       Effect.flatMap(buildComponentSet(members, registryAccess), componentSet =>
         workspaceDescription.isEmpty

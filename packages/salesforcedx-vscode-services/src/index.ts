@@ -6,7 +6,10 @@
  */
 
 import { Global } from '@salesforce/core';
-import { Effect, Layer, Scope, Exit } from 'effect';
+import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
+import * as Layer from 'effect/Layer';
+import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { sampleProjectName } from './constants';
 import { ConfigService, ConfigServiceLive } from './core/configService';

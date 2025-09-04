@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
-import { Context, Effect, Layer, Option, pipe } from 'effect';
+import * as Context from 'effect/Context';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ExtensionProviderService } from './extensionProvider';
@@ -29,8 +32,8 @@ const retrieve = (
   members: MetadataMember[],
   openInEditor = false
 ): Effect.Effect<RetrieveResult, Error, ExtensionProviderService> =>
-  pipe(
-    Effect.flatMap(ExtensionProviderService, svc => svc.getServicesApi),
+  ExtensionProviderService.pipe(
+    Effect.flatMap(svc => svc.getServicesApi),
     Effect.flatMap(api => {
       const allLayers = Layer.mergeAll(
         api.services.MetadataRetrieveServiceLive,
@@ -43,16 +46,15 @@ const retrieve = (
         api.services.SdkLayer
       );
 
-      return pipe(
-        Effect.provide(
-          pipe(
-            Effect.flatMap(api.services.MetadataRetrieveService, svc => svc.retrieve(members)),
-            Effect.tap(result => {
-              const fileResponses = result.getFileResponses();
-              const fileCount = fileResponses?.length || 0;
-              return Effect.flatMap(api.services.ChannelService, channel =>
-                pipe(
-                  channel.appendToChannel(`Retrieve completed. ${fileCount} files retrieved successfully.`),
+      return Effect.provide(
+        Effect.flatMap(api.services.MetadataRetrieveService, svc => svc.retrieve(members)).pipe(
+          Effect.tap(result => {
+            const fileResponses = result.getFileResponses();
+            const fileCount = fileResponses?.length || 0;
+            return Effect.flatMap(api.services.ChannelService, channel =>
+              channel
+                .appendToChannel(`Retrieve completed. ${fileCount} files retrieved successfully.`)
+                .pipe(
                   Effect.tap(() =>
                     fileCount > 0
                       ? channel.appendToChannel(
@@ -61,16 +63,15 @@ const retrieve = (
                       : Effect.fail(new Error('No files retrieved'))
                   )
                 )
-              );
-            })
-          ),
-          allLayers
+            );
+          })
         ),
+        allLayers
+      ).pipe(
         Effect.mapError(e => new Error(`Retrieve failed: ${String(e)}`)),
         Effect.tap(result =>
           openInEditor
-            ? pipe(
-                Effect.sync(() => findFirstSuccessfulFile(result)),
+            ? Effect.sync(() => findFirstSuccessfulFile(result)).pipe(
                 Effect.flatMap(fileOption =>
                   Option.match(fileOption, {
                     onNone: () => Effect.succeed(undefined),
@@ -89,17 +90,16 @@ const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> 
   Option.fromNullable(result.getFileResponses()?.[0]?.filePath);
 
 const openFileInEditor = (filePath: string): Effect.Effect<void, Error> =>
-  pipe(
-    Effect.tryPromise({
-      try: () =>
-        vscode.workspace.openTextDocument(
-          URI.from({
-            scheme: vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file',
-            path: filePath
-          })
-        ),
-      catch: e => new Error(`Failed to open document at ${filePath}: ${String(e)}`)
-    }),
+  Effect.tryPromise({
+    try: () =>
+      vscode.workspace.openTextDocument(
+        URI.from({
+          scheme: vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file',
+          path: filePath
+        })
+      ),
+    catch: e => new Error(`Failed to open document at ${filePath}: ${String(e)}`)
+  }).pipe(
     Effect.flatMap(document =>
       Effect.tryPromise({
         try: () => vscode.window.showTextDocument(document),

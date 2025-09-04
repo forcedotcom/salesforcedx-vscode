@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { MetadataMember } from '@salesforce/source-deploy-retrieve';
-import { Effect, Layer, pipe } from 'effect';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { ExtensionProviderServiceLive } from '../services/extensionProvider';
 import { MetadataRetrieveService, MetadataRetrieveServiceLive } from '../services/metadataRetrieveService';
@@ -15,18 +16,17 @@ export const retrieveOrgBrowserNode = async (node: OrgBrowserNode): Promise<void
   const target = getRetrieveTarget(node);
   if (!target) return;
 
-  const retrieveEffect = pipe(
-    Effect.flatMap(MetadataRetrieveService, svc => svc.retrieve([target], node.kind === 'component')),
+  const retrieveEffect = MetadataRetrieveService.pipe(
+    Effect.flatMap(svc => svc.retrieve([target], node.kind === 'component')),
     Effect.catchAll(error =>
       Effect.sync(() => {
         vscode.window.showErrorMessage(`Retrieve failed: ${error.message}`);
       })
-    )
+    ),
+    Effect.provide(Layer.mergeAll(MetadataRetrieveServiceLive, ExtensionProviderServiceLive))
   );
 
-  await Effect.runPromise(
-    Effect.provide(retrieveEffect, Layer.mergeAll(MetadataRetrieveServiceLive, ExtensionProviderServiceLive))
-  );
+  await Effect.runPromise(retrieveEffect);
 };
 
 const getRetrieveTarget = (node: OrgBrowserNode): MetadataMember | undefined => {

@@ -4,7 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { pipe, Effect, Layer } from 'effect';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+
 import type { DescribeSObjectResult } from 'jsforce';
 import * as vscode from 'vscode';
 import { ExtensionProviderService, ExtensionProviderServiceLive } from '../services/extensionProvider';
@@ -31,8 +33,8 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   // TODO: split this up into smaller functions/effects
   // eslint-disable-next-line class-methods-use-this
   public async getChildren(element?: OrgBrowserNode, refresh = false): Promise<OrgBrowserNode[]> {
-    const program = pipe(
-      Effect.flatMap(ExtensionProviderService, svcProvider =>
+    const program = ExtensionProviderService.pipe(
+      Effect.flatMap(svcProvider =>
         Effect.flatMap(svcProvider.getServicesApi, api => {
           const fsWithChannel = Layer.provideMerge(
             api.services.FsServiceLive,

@@ -9,7 +9,9 @@ import type { ConfigService } from './configService';
 import type { DescribeMetadataObject } from './schemas/describeMetadataObject';
 import type { SettingsService } from '../vscode/settingsService';
 import type { WorkspaceService } from '../vscode/workspaceService';
-import { Context, Effect, Layer, pipe } from 'effect';
+import * as Context from 'effect/Context';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as S from 'effect/Schema';
 import type { DescribeSObjectResult } from 'jsforce';
 import { SdkLayer } from '../observability/spans';
@@ -50,28 +52,24 @@ export const MetadataDescribeServiceLive = Layer.effect(
     const cacheableDescribe = (
       _key: string = 'cached'
     ): Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext> =>
-      pipe(
-        Effect.flatMap(ConnectionService, svc => svc.getConnection),
+      Effect.flatMap(ConnectionService, svc => svc.getConnection).pipe(
         Effect.flatMap(conn =>
-          pipe(
-            Effect.tryPromise({
-              try: () => conn.metadata.describe(),
-              catch: e => new Error(`Describe failed: ${String(e)}`)
-            }).pipe(Effect.withSpan('describe (API call)')),
+          Effect.tryPromise({
+            try: () => conn.metadata.describe(),
+            catch: e => new Error(`Describe failed: ${String(e)}`)
+          }).pipe(
+            Effect.withSpan('describe (API call)'),
             Effect.map(result => result.metadataObjects.filter(obj => !NON_SUPPORTED_TYPES.has(obj.xmlName))),
             Effect.tap(result =>
-              pipe(
-                Effect.flatMap(ChannelService, channel =>
-                  channel.appendToChannel(`Metadata describe call completed. Found ${result.length} metadata types.`)
-                ),
-                Effect.catchAll(() => Effect.succeed(void 0))
-              )
+              Effect.flatMap(ChannelService, channel =>
+                channel.appendToChannel(`Metadata describe call completed. Found ${result.length} metadata types.`)
+              ).pipe(Effect.catchAll(() => Effect.succeed(void 0)))
             )
           )
-        )
-      )
-        .pipe(Effect.withSpan('cacheableDescribe'))
-        .pipe(Effect.provide(SdkLayer));
+        ),
+        Effect.withSpan('cacheableDescribe'),
+        Effect.provide(SdkLayer)
+      );
 
     const cachedDescribe = yield* Effect.cachedFunction(cacheableDescribe);
 
@@ -82,8 +80,7 @@ export const MetadataDescribeServiceLive = Layer.effect(
 
     // TODO: write the result in a common place that other services can use.  Probably do the same with ndapi describe and list
     const describeCustomObject = (objectName: string): Effect.Effect<DescribeSObjectResult, Error, DescribeContext> =>
-      pipe(
-        Effect.flatMap(ConnectionService, svc => svc.getConnection),
+      Effect.flatMap(ConnectionService, svc => svc.getConnection).pipe(
         Effect.flatMap(conn =>
           Effect.tryPromise({
             try: () => conn.sobject(objectName).describe(),
@@ -99,14 +96,13 @@ export const MetadataDescribeServiceLive = Layer.effect(
       type: string,
       folder?: string
     ): Effect.Effect<readonly FileProperties[], Error, DescribeContext> =>
-      pipe(
-        Effect.flatMap(ConnectionService, svc => svc.getConnection),
+      Effect.flatMap(ConnectionService, svc => svc.getConnection).pipe(
         Effect.flatMap(conn =>
-          pipe(
-            Effect.tryPromise({
-              try: () => conn.metadata.list({ type, ...(folder ? { folder } : {}) }),
-              catch: e => new Error(`listMetadata failed for type ${type}: ${String(e)}`)
-            }).pipe(Effect.withSpan('listMetadata (API call)')),
+          Effect.tryPromise({
+            try: () => conn.metadata.list({ type, ...(folder ? { folder } : {}) }),
+            catch: e => new Error(`listMetadata failed for type ${type}: ${String(e)}`)
+          }).pipe(
+            Effect.withSpan('listMetadata (API call)'),
             Effect.map(ensureArray),
             Effect.map(arr => arr.sort((a, b) => a.fullName.localeCompare(b.fullName))),
             Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),

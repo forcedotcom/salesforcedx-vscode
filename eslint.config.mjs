@@ -20,6 +20,7 @@ import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import eslintPluginBarrelFiles from 'eslint-plugin-barrel-files';
 import functional from 'eslint-plugin-functional';
 import eslintPluginWorkspaces from 'eslint-plugin-workspaces';
+import effectPlugin from '@effect/eslint-plugin';
 
 import noDuplicateI18nValues from './eslint-local-rules/no-duplicate-i18n-values.js';
 
@@ -68,7 +69,8 @@ export default [
       local: { rules: localRules },
       'barrel-files': eslintPluginBarrelFiles,
       functional: functional,
-      workspaces: eslintPluginWorkspaces
+      workspaces: eslintPluginWorkspaces,
+      effect: effectPlugin
     },
     rules: {
       'local/no-duplicate-i18n-values': 'error',
@@ -442,6 +444,7 @@ export default [
     // Effect-specific rules for new Effect services-based packages
     files: ['packages/salesforcedx-vscode-services/**/*.ts', 'packages/salesforcedx-vscode-org-browser/**/*.ts'],
     rules: {
+      'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
       'barrel-files/avoid-barrel-files': 'error',
       'barrel-files/avoid-re-export-all': 'error',
       'functional/no-throw-statements': 'error',
@@ -501,6 +504,8 @@ export default [
     ],
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import
+      'effect/no-import-from-barrel-package': ['off'],
+
       'import/order': 'off',
       'functional/no-throw-statements': 'off',
       'functional/no-try-statements': 'off',

@@ -6,7 +6,12 @@
  */
 
 import { AuthInfo, Connection, Global } from '@salesforce/core';
-import { Context, Duration, Effect, Layer, Cache, pipe, SubscriptionRef } from 'effect';
+import * as Cache from 'effect/Cache';
+import * as Context from 'effect/Context';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { SdkLayer } from '../observability/spans';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -142,8 +147,7 @@ const updateDefaultOrgRef = (conn: Connection): Effect.Effect<DefaultOrgInfo, Er
 /** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */
 const getDevHubId = (scratchOrgUsername?: string): Effect.Effect<string | undefined, Error> =>
   scratchOrgUsername
-    ? pipe(
-        Effect.promise(() => AuthInfo.create({ username: scratchOrgUsername })),
+    ? Effect.promise(() => AuthInfo.create({ username: scratchOrgUsername })).pipe(
         Effect.map(authInfo => authInfo.getFields().orgId)
       )
     : Effect.succeed(undefined);

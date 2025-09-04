@@ -7,9 +7,12 @@
 
 import { Global } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import { Cache, Context, Duration, Effect, Layer, pipe } from 'effect';
-// import * as vscode from 'vscode';
-// import { URI } from 'vscode-uri';
+import * as Cache from 'effect/Cache';
+import * as Context from 'effect/Context';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import { pipe } from 'effect/Function';
+import * as Layer from 'effect/Layer';
 import { SdkLayer } from '../observability/spans';
 import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';

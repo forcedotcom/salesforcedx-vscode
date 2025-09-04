@@ -6,7 +6,9 @@
  */
 import { Global } from '@salesforce/core';
 import { fs } from '@salesforce/core/fs';
-import { Context, Effect, Layer } from 'effect';
+import * as Context from 'effect/Context';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { Buffer } from 'node:buffer';
 import { dirname } from 'node:path';
 import * as vscode from 'vscode';
@@ -91,7 +93,6 @@ export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, E
       Effect.async<A, Error>(resume => {
         // eslint-disable-next-line functional/no-try-statements
         try {
-          // Use strict durability for write operations to ensure data is written to disk
           const transaction = db.transaction(STORE_NAME, mode);
           const store = transaction.objectStore(STORE_NAME);
           const request = f(store);
