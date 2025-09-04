@@ -21,7 +21,7 @@ const nodeBuild = await build({
 const browserBuild = await build({
   ...commonConfigBrowser,
   entryPoints: ['./out/src/index.js'],
-  outfile: './dist/browser.js',
+  outfile: './dist/web/index.js',
   metafile: true
 });
 

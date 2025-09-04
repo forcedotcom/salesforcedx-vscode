@@ -70,7 +70,7 @@
   ],
   "main": "dist/index.js",
   "types": "out/src/index.d.ts",
-  "browser": "./dist/browser.js",
+  "browser": "./dist/web/index.js",
   "contributes": {
     "configuration": {
       "title": "Salesforce Services Configuration",

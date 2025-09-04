@@ -55,7 +55,7 @@
     "test": "jest --coverage"
   },
   "main": "./dist/index.js",
-  "browser": "./dist/browser.js",
+  "browser": "./dist/web/index.js",
   "contributes": {
     "viewsWelcome": [
       {

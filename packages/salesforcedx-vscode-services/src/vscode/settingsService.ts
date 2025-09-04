@@ -18,8 +18,12 @@ const API_VERSION_KEY = 'apiVersion';
 
 const FALLBACK_API_VERSION = '64.0';
 
-const isNonEmptyString = (value: string | undefined): Effect.Effect<string, Error, never> =>
-  value === undefined || value.length === 0 ? Effect.fail(new Error('Value is empty')) : Effect.succeed(value);
+const isNonEmptyString =
+  (key: string) =>
+  (value: string | undefined): Effect.Effect<string, Error, never> =>
+    value === undefined || value.length === 0
+      ? Effect.fail(new Error(`Value for ${key} is empty`))
+      : Effect.succeed(value);
 
 /**
  * Service for interacting with VSCode settings
@@ -96,12 +100,12 @@ export const SettingsServiceLive = Layer.succeed(SettingsService, {
   getInstanceUrl: Effect.try({
     try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY),
     catch: error => new Error(`Failed to get instanceUrl: ${String(error)}`)
-  }).pipe(Effect.flatMap(isNonEmptyString)),
+  }).pipe(Effect.flatMap(isNonEmptyString(INSTANCE_URL_KEY))),
 
   getAccessToken: Effect.try({
     try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(ACCESS_TOKEN_KEY),
     catch: error => new Error(`Failed to get accessToken: ${String(error)}`)
-  }).pipe(Effect.flatMap(isNonEmptyString)),
+  }).pipe(Effect.flatMap(isNonEmptyString(ACCESS_TOKEN_KEY))),
 
   getApiVersion: Effect.try({
     try: () => {
