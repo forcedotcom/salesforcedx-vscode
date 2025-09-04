@@ -1,7 +1,7 @@
 {
   "name": "salesforcedx-vscode-org-browser",
   "displayName": "Salesforce Org Browser",
-  "description": "Provides org browsing capabilities for Salesforce development",
+  "description": "View and retrieve metadata from your Salesforce org",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "icon": "images/VSCodeOrgBrowser.png",
+  "icon": "images/VSCodeBundle.png",
   "galleryBanner": {
     "color": "#ECECEC",
     "theme": "light"
@@ -44,7 +44,6 @@
     "run:web": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --open-devtools --port 3001",
     "start:web:test": "npx vscode-test-web --browserType=chromium --port=3000 --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --browserOption=--disable-features=IsolateOrigins,site-per-process",
     "test:web": "playwright test --config=playwright.web.config.ts",
-    "vscode:prepublish": "npm prune --production",
     "vscode:package": "npm run bundle:extension && vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",

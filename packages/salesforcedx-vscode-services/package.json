@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "icon": "images/VSCodeServices.png",
+  "icon": "images/VSCodeBundle.png",
   "galleryBanner": {
     "color": "#ECECEC",
     "theme": "light"
@@ -37,10 +37,10 @@
     "@salesforce/core": "^8.19.1",
     "@salesforce/source-deploy-retrieve": "^12.22.8",
     "@salesforce/source-tracking": "^7.4.9",
+    "@vscode/extension-telemetry": "^1.0.0",
     "effect": "^3.16.12",
     "jsforce": "^3.10.2",
-    "vscode-uri": "^3.1.0",
-    "@vscode/extension-telemetry": "^1.0.0"
+    "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -55,7 +55,6 @@
   },
   "scripts": {
     "bundle:extension": "node esbuild.config.mjs",
-    "bundle:extension:dev": "node esbuild.config.mjs",
     "vscode:package": "npm run bundle:extension && vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",

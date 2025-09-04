@@ -1,17 +1,23 @@
 .vscode/**
 .vscode-test/**
-out/test/**
+.vscode-web/**
+out/**
 test/**
 src/**
 **/*.map
 .gitignore
 tsconfig.json
+jest.config.js
+esbuild.config.mjs
+junit*
 
-# ignore unused rxjs code
-node_modules/rxjs/src/**
-node_modules/rxjs/bundles/**
-node_modules/rxjs/_esm5/**
-node_modules/rxjs/_esm2015/**
+node_modules
+dist/*-metafile.json
+playwright*.ts
+design
+context
+coverage
 
-# ignore unused dayjs code
-node_modules/dayjs/esm/**
+# do not reach outside the package
+../../**
+../**

@@ -1,11 +1,23 @@
 .vscode/**
 .vscode-test/**
-out/test/**
+.vscode-web/**
+out/**
 test/**
 src/**
 **/*.map
 .gitignore
 tsconfig.json
+jest.config.js
+esbuild.config.mjs
+junit*
 
-# ignore unused rxjs code
 node_modules
+dist/*-metafile.json
+playwright*.ts
+design
+context
+coverage
+
+# do not reach outside the package
+../../**
+../**
