@@ -78,20 +78,15 @@ const program = (
             )
           );
         }
-
-        if (element.kind === 'type') {
-          return isFolderType(element.xmlName)
-            ? describeService
-                .listMetadata(`${element.xmlName}Folder`)
-                .pipe(Effect.map(folders => folders.map(listMetadataToFolder(element))))
-            : describeService
-                .listMetadata(element.xmlName)
-                .pipe(Effect.map(components => components.map(listMetadataToComponent(element))));
-        }
-        if (element.kind === 'folderType') {
+        if (element.kind === 'folderType' || (element.kind === 'type' && isFolderType(element.xmlName))) {
           return describeService
             .listMetadata(`${element.xmlName}Folder`)
             .pipe(Effect.map(folders => folders.map(listMetadataToFolder(element))));
+        }
+        if (element.kind === 'type') {
+          return describeService
+            .listMetadata(element.xmlName)
+            .pipe(Effect.map(components => components.map(listMetadataToComponent(element))));
         }
         if (element.kind === 'folder') {
           const { xmlName, folderName } = element;
