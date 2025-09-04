@@ -43,7 +43,7 @@
     "check-peer-dependencies": "4.3.0",
     "commitizen": "^4.2.5",
     "cz-conventional-changelog": "3.3.0",
-    "depcheck": "1.4.3",
+    "depcheck": "1.4.7",
     "esbuild": "0.25.0",
     "esbuild-plugin-copy": "2.1.1",
     "eslint": "^9.32.0",
