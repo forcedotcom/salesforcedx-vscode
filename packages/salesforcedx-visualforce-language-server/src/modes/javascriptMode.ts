@@ -21,6 +21,7 @@ import {
   HighlightSpanKind,
   ScriptElementKind
 } from 'typescript';
+import type { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   CompletionItem,
   CompletionItemKind,
@@ -41,7 +42,6 @@ import {
   SignatureInformation,
   SymbolInformation,
   SymbolKind,
-  TextDocument,
   TextEdit
 } from 'vscode-languageserver-types';
 import { getLanguageModelCache, LanguageModelCache } from '../languageModelCache';
@@ -273,7 +273,7 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
           }
         };
 
-        items.forEach(item => collectSymbols(item));
+        items.filter(item => item.text).forEach(item => collectSymbols(item));
         return result;
       }
       return null;
@@ -283,7 +283,7 @@ export const getJavascriptMode = (documentRegions: LanguageModelCache<HTMLDocume
       const definition = jsLanguageService.getDefinitionAtPosition(FILE_NAME, currentTextDocument.offsetAt(position));
       if (definition) {
         return definition
-          .filter(d => d.fileName === FILE_NAME)
+          .filter(d => d.fileName === FILE_NAME && d.name)
           .map(d => ({
             uri: document.uri,
             range: convertRange(currentTextDocument, d.textSpan)

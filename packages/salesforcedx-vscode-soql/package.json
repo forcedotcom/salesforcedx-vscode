@@ -48,7 +48,6 @@
     "@salesforce/core": "^8.18.4",
     "@salesforce/salesforcedx-utils": "64.12.0",
     "@salesforce/ts-types": "2.0.12",
-    "@types/node": "^22.15.1",
     "@types/papaparse": "^5.2.3",
     "esbuild": "0.25.0",
     "salesforcedx-vscode-core": "64.12.0"

@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { getCSSLanguageService, Stylesheet } from 'vscode-css-languageservice';
-import { Position, TextDocument } from 'vscode-languageserver-types';
+import { getCSSLanguageService, type Stylesheet } from 'vscode-css-languageservice';
+import type { TextDocument } from 'vscode-languageserver-textdocument';
+import type { Position } from 'vscode-languageserver-types';
 import { getLanguageModelCache, LanguageModelCache } from '../languageModelCache';
 import { CSS_STYLE_RULE, HTMLDocumentRegions } from './embeddedSupport';
 import { ColorInformation, LanguageMode, Settings } from './languageModes';
@@ -44,7 +45,7 @@ export const getCSSMode = (documentRegions: LanguageModelCache<HTMLDocumentRegio
       const embedded = embeddedCSSDocuments.get(document);
       return cssLanguageService
         .findDocumentSymbols(embedded, cssStylesheets.get(embedded))
-        .filter(s => s.name !== CSS_STYLE_RULE);
+        .filter(s => s.name && s.name !== CSS_STYLE_RULE);
     },
     findDefinition: (document: TextDocument, position: Position) => {
       const embedded = embeddedCSSDocuments.get(document);
@@ -60,7 +61,12 @@ export const getCSSMode = (documentRegions: LanguageModelCache<HTMLDocumentRegio
     },
     getColorPresentations: (document: TextDocument, colorInfo: ColorInformation) => {
       const embedded = embeddedCSSDocuments.get(document);
-      return cssLanguageService.getColorPresentations(embedded, cssStylesheets.get(embedded), colorInfo);
+      return cssLanguageService.getColorPresentations(
+        embedded,
+        cssStylesheets.get(embedded),
+        colorInfo.color,
+        colorInfo.range
+      );
     },
     onDocumentRemoved: (document: TextDocument) => {
       embeddedCSSDocuments.onDocumentRemoved(document);

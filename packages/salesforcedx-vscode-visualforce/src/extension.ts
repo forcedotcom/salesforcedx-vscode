@@ -30,12 +30,12 @@ import {
   TransportKind
 } from 'vscode-languageclient/node';
 import {
-  ColorPresentationParams,
+  type ColorPresentationParams,
   ColorPresentationRequest,
-  DocumentColorParams,
+  type DocumentColorParams,
   DocumentColorRequest,
-  ColorInformation as LSPColorInformation,
-  ColorPresentation as LSPColorPresentation
+  type ColorInformation as LSPColorInformation,
+  type ColorPresentation as LSPColorPresentation
 } from 'vscode-languageserver-protocol';
 import { EMPTY_ELEMENTS } from './htmlEmptyTagsShared';
 import { activateTagClosing } from './tagClosing';
@@ -57,40 +57,34 @@ export const activate = async (context: ExtensionContext) => {
   telemetryService = salesforceCoreExtension?.exports?.services?.TelemetryService.getInstance();
   await telemetryService?.initializeService(context);
   const extensionStartTime = globalThis.performance.now();
-  const toDispose = context.subscriptions;
 
   // The server is implemented in node
-  const serverModule = context.asAbsolutePath(path.join(...context.extension.packageJSON.serverPath));
-  // The debug options for the server
-  const debugOptions = { execArgv: ['--nolazy', '--inspect=6004'] };
+  const module = context.asAbsolutePath(path.join('dist', 'visualforceServer.js'));
 
   // If the extension is launch in debug mode the debug server options are use
   // Otherwise the run options are used
   const serverOptions: ServerOptions = {
-    run: { module: serverModule, transport: TransportKind.ipc },
+    run: { module, transport: TransportKind.ipc },
     debug: {
-      module: serverModule,
+      module,
       transport: TransportKind.ipc,
-      options: debugOptions
+      options: { execArgv: ['--nolazy', '--inspect=6004'] }
     }
   };
 
-  const documentSelector = [
-    {
-      language: 'visualforce',
-      scheme: 'file'
-    }
-  ];
-  const embeddedLanguages = { css: true, javascript: true };
-
   // Options to control the language client
   const clientOptions: LanguageClientOptions = {
-    documentSelector,
+    documentSelector: [
+      {
+        language: 'visualforce',
+        scheme: 'file'
+      }
+    ],
     synchronize: {
       configurationSection: ['visualforce', 'css', 'javascript'] // the settings to synchronize
     },
     initializationOptions: {
-      embeddedLanguages
+      embeddedLanguages: { css: true, javascript: true }
     }
   };
 
@@ -99,54 +93,62 @@ export const activate = async (context: ExtensionContext) => {
   client.registerFeature(new ConfigurationFeature(client));
 
   await client.start();
-  toDispose.push(client);
+  context.subscriptions.push(client);
   let disposable: Disposable;
   try {
-    disposable = languages.registerColorProvider(documentSelector, {
-      provideDocumentColors: (document: TextDocument): Thenable<ColorInformation[]> => {
-        const params: DocumentColorParams = {
-          textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(document)
-        };
-        return client.sendRequest(DocumentColorRequest.type, params).then((symbols: LSPColorInformation[]) =>
-          symbols.map((symbol: LSPColorInformation) => {
-            const range = client.protocol2CodeConverter.asRange(symbol.range);
-            const color = new Color(symbol.color.red, symbol.color.green, symbol.color.blue, symbol.color.alpha);
-            return new ColorInformation(range, color);
-          })
-        );
-      },
-      provideColorPresentations: (
-        color: Color,
-        colorContext: { document: TextDocument; range: Range }
-      ): Thenable<ColorPresentation[]> => {
-        const params: ColorPresentationParams = {
-          textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(colorContext.document),
-          range: client.code2ProtocolConverter.asRange(colorContext.range),
-          color
-        };
-        return client
-          .sendRequest(ColorPresentationRequest.type, params)
-          .then(async (presentations: LSPColorPresentation[]) =>
-            Promise.all(
-              presentations.map(async (p: LSPColorPresentation) => {
-                const presentation = new ColorPresentation(p.label);
-                presentation.textEdit = p.textEdit && client.protocol2CodeConverter.asTextEdit(p.textEdit);
-                presentation.additionalTextEdits =
-                  p.additionalTextEdits && (await client.protocol2CodeConverter.asTextEdits(p.additionalTextEdits));
-                return presentation;
-              })
-            )
+    disposable = languages.registerColorProvider(
+      [
+        {
+          language: 'visualforce',
+          scheme: 'file'
+        }
+      ],
+      {
+        provideDocumentColors: (document: TextDocument): Thenable<ColorInformation[]> => {
+          const params: DocumentColorParams = {
+            textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(document)
+          };
+          return client.sendRequest(DocumentColorRequest.type, params).then((symbols: LSPColorInformation[]) =>
+            symbols.map((symbol: LSPColorInformation) => {
+              const range = client.protocol2CodeConverter.asRange(symbol.range);
+              const color = new Color(symbol.color.red, symbol.color.green, symbol.color.blue, symbol.color.alpha);
+              return new ColorInformation(range, color);
+            })
           );
+        },
+        provideColorPresentations: (
+          color: Color,
+          colorContext: { document: TextDocument; range: Range }
+        ): Thenable<ColorPresentation[]> => {
+          const params: ColorPresentationParams = {
+            textDocument: client.code2ProtocolConverter.asTextDocumentIdentifier(colorContext.document),
+            range: client.code2ProtocolConverter.asRange(colorContext.range),
+            color
+          };
+          return client
+            .sendRequest(ColorPresentationRequest.type, params)
+            .then(async (presentations: LSPColorPresentation[]) =>
+              Promise.all(
+                presentations.map(async (p: LSPColorPresentation) => {
+                  const presentation = new ColorPresentation(p.label);
+                  presentation.textEdit = p.textEdit && client.protocol2CodeConverter.asTextEdit(p.textEdit);
+                  presentation.additionalTextEdits =
+                    p.additionalTextEdits && (await client.protocol2CodeConverter.asTextEdits(p.additionalTextEdits));
+                  return presentation;
+                })
+              )
+            );
+        }
       }
-    });
-    toDispose.push(disposable);
+    );
+    context.subscriptions.push(disposable);
 
     const tagRequestor = (document: TextDocument, position: Position) => {
       const param = client.code2ProtocolConverter.asTextDocumentPositionParams(document, position);
       return client.sendRequest(TagCloseRequest.type, param);
     };
     disposable = activateTagClosing(tagRequestor, { visualforce: true }, 'visualforce.autoClosingTags');
-    toDispose.push(disposable);
+    context.subscriptions.push(disposable);
   } catch {
     telemetryService?.sendExtensionActivationEvent(extensionStartTime);
   }

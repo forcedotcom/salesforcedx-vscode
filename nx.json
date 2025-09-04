@@ -64,6 +64,9 @@
         "{projectRoot}/dist",
         "{projectRoot}/.vscodeignore",
         "{projectRoot}/src/**"
+      ],
+      "outputs": [
+        "{projectRoot}/out/**/*.vsix"
       ]
     }
   }
