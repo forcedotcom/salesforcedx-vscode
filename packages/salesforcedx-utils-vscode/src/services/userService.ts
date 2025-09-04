@@ -9,7 +9,7 @@ import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils'
 import { randomBytes } from 'node:crypto';
 import { ExtensionContext } from 'vscode';
 import { CliCommandExecutor, workspaceUtils } from '..';
-import { TELEMETRY_GLOBAL_USER_ID, UNAUTHENTICATED_USER } from '../constants';
+import { TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID, UNAUTHENTICATED_USER } from '../constants';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { getSharedTelemetryUserId, hashUserIdentifier } from '../helpers/telemetryUtils';
 
@@ -98,7 +98,8 @@ export const getWebTelemetryUserId = async (
   }
 
   // Calculate the telemetry ID based on the orgId and userId
-  const globalStateUserId = extensionContext?.globalState.get<string | undefined>(TELEMETRY_GLOBAL_USER_ID);
+  extensionContext?.globalState.update(TELEMETRY_GLOBAL_WEB_USER_ID, undefined);
+  const globalStateUserId = extensionContext?.globalState.get<string | undefined>(TELEMETRY_GLOBAL_WEB_USER_ID);
 
   const context = WorkspaceContextUtil.getInstance();
   const orgId = context.orgId;
@@ -109,7 +110,7 @@ export const getWebTelemetryUserId = async (
     // If globalStateUserId is undefined or is the anonymous user ID, replace it with the hashed value
     if (!globalStateUserId || globalStateUserId === UNAUTHENTICATED_USER) {
       const hashedUserId = hashUserIdentifier(orgId, userId);
-      await extensionContext?.globalState.update(TELEMETRY_GLOBAL_USER_ID, hashedUserId);
+      await extensionContext?.globalState.update(TELEMETRY_GLOBAL_WEB_USER_ID, hashedUserId);
       return hashedUserId;
     }
 
@@ -123,6 +124,6 @@ export const getWebTelemetryUserId = async (
   }
 
   // If globalStateUserId is undefined and no org data available, use the anonymous user ID
-  await extensionContext?.globalState.update(TELEMETRY_GLOBAL_USER_ID, UNAUTHENTICATED_USER);
+  await extensionContext?.globalState.update(TELEMETRY_GLOBAL_WEB_USER_ID, UNAUTHENTICATED_USER);
   return UNAUTHENTICATED_USER;
 };
