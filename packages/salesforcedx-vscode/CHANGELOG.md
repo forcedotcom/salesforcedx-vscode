@@ -1,31 +1,17 @@
-# 64.11.1 - August 28, 2025
+# 64.12.0 - September 3, 2025
+
 ## Added
 
 #### salesforcedx-vscode-core
 
-- We made some changes under the hood. ([PR #6491](https://github.com/forcedotcom/salesforcedx-vscode/pull/6491))
+- We refactored the org cleanup logic to ensure expired or deleted orgs are properly removed. The update also adds clearer user feedback through detailed messages and a table view of the remaining orgs. ([PR #6500](https://github.com/forcedotcom/salesforcedx-vscode/pull/6500))
 
-- We made some changes under the hood to `SFDX: Delete This from Project and Org` command. It now runs faster. ([PR #6466](https://github.com/forcedotcom/salesforcedx-vscode/pull/6466))
-
-- We made some changes under the hood to `SFDX: Pull This Source from Org` that make the command run faster. You can now view file differences when there are conflicts. You can also ignore the differences and proceed. ([PR #6438](https://github.com/forcedotcom/salesforcedx-vscode/pull/6438))
-
-
-#### salesforcedx-vscode-soql
-
-- You can now access a walkthrough (step-by-step guide) for creating SOQL queries with the SOQL Query Builder. Find it on the VS Code Welcome page or launch it anytime by running `Open SOQL Walkthrough` from the Command Palette. ([PR #6497](https://github.com/forcedotcom/salesforcedx-vscode/pull/6497))
-
+- We improved the bundling of our extensions to reduce the extensions size. ([PR #6490](https://github.com/forcedotcom/salesforcedx-vscode/pull/6490))
 
 ## Fixed
 
-#### salesforcedx-vscode-lightning
-
-- We made some changes under the hood. ([PR #6496](https://github.com/forcedotcom/salesforcedx-vscode/pull/6496), [PR #6492](https://github.com/forcedotcom/salesforcedx-vscode/pull/6492))
-
-#### salesforcedx-vscode-lwc
-
-- We made some changes under the hood. ([PR #6492](https://github.com/forcedotcom/salesforcedx-vscode/pull/6492))
-
 #### salesforcedx-vscode-core
 
-- We made some changes under the hood. ([PR #6495](https://github.com/forcedotcom/salesforcedx-vscode/pull/6495))
+- We fixed an issue where org aliases that contain dashes couldn't be set as default orgs. ([PR #6521](https://github.com/forcedotcom/salesforcedx-vscode/pull/6521))
 
+- We fixed an issue where deploy and retrieve were failing when the `Enable Source Tracking For Deploy And Retrieve` setting was enabled for non-source-tracked orgs. ([PR #6507](https://github.com/forcedotcom/salesforcedx-vscode/pull/6507))
