@@ -35,7 +35,7 @@
     "@types/node": "^22.15.1",
     "@types/semver": "7.5.8",
     "@types/vscode": "1.90.0",
-    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
     "@typescript-eslint/parser": "^8.41.0",
     "@vscode/test-electron": "2.3.0",
     "@vscode/vsce": "3.6.0",

@@ -14,7 +14,7 @@
     "@salesforce/salesforcedx-vscode-test-tools": "1.1.7",
     "@types/chai": "^4.3.17",
     "@types/mocha": "^10.0.9",
-    "@typescript-eslint/eslint-plugin": "^8.12.2",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
     "chai": "^4.5.0",
     "husky": "9.1.6",
     "mocha": "^10.8.2",
