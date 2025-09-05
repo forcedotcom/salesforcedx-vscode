@@ -26,9 +26,14 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
     private extensionId: string,
     private extensionVersion: string,
     o11yUploadEndpoint: string,
-    private readonly userId: string
+    private readonly userId: string,
+    private readonly webUserId: string
   ) {
-    super(() => this.toDispose.forEach(d => d?.dispose()));
+    super(() => {
+      this.toDispose.forEach(d => {
+        d?.dispose();
+      });
+    });
     this.o11yService = O11yService.getInstance(extensionId);
     this.userOptIn = true; // Assume opt-in for now
     this.o11yUploadEndpoint = o11yUploadEndpoint;
@@ -79,7 +84,7 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
     };
   }
 
-  private aggregateLoggingProperties() {
+  private aggregateLoggingProperties(): { [key: string]: string } {
     const commonProperties = { ...this.getUserProperties(), ...this.getCommonProperties() };
     return isInternalHost() ? { ...commonProperties, ...this.getInternalProperties() } : commonProperties;
   }
@@ -93,8 +98,16 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
       const orgId = WorkspaceContextUtil.getInstance().orgId ?? '';
       const orgShape = WorkspaceContextUtil.getInstance().orgShape ?? '';
       const devHubId = WorkspaceContextUtil.getInstance().devHubId ?? '';
-      let props = properties ? { ...properties, ...this.aggregateLoggingProperties() } : {};
-      props = this.applyTelemetryTag(orgId ? { ...props, orgId, orgShape, devHubId } : props);
+
+      // Add webUserId field to customDimensions
+      let props = properties
+        ? { ...properties, ...this.aggregateLoggingProperties() }
+        : { ...this.aggregateLoggingProperties() };
+      props = this.applyTelemetryTag(
+        orgId
+          ? { ...props, orgId, orgShape, devHubId, webUserId: this.webUserId }
+          : { ...props, webUserId: this.webUserId }
+      );
 
       this.o11yService.logEvent({
         name: `${this.extensionId}/${eventName}`,
@@ -120,8 +133,14 @@ export class O11yReporter extends Disposable implements TelemetryReporter {
       const orgId = WorkspaceContextUtil.getInstance().orgId ?? '';
       const orgShape = WorkspaceContextUtil.getInstance().orgShape ?? '';
       const devHubId = WorkspaceContextUtil.getInstance().devHubId ?? '';
+
+      // Add webUserId field to customDimensions
       const baseProps = { orgId, orgShape, devHubId };
-      const props = this.applyTelemetryTag({ ...baseProps, ...this.aggregateLoggingProperties() });
+      const props = this.applyTelemetryTag({
+        ...baseProps,
+        ...this.aggregateLoggingProperties(),
+        webUserId: this.webUserId
+      });
 
       this.o11yService.logEvent({
         exception: error,

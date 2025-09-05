@@ -7,8 +7,19 @@
 
 import { CommandOutput } from '@salesforce/salesforcedx-utils';
 import { ExtensionContext } from 'vscode';
-import { CliCommandExecution, CliCommandExecutor, TelemetryService, workspaceUtils } from '../../../../src';
-import { UserService } from '../../../../src/services/userService';
+import {
+  CliCommandExecution,
+  CliCommandExecutor,
+  TelemetryService,
+  WorkspaceContextUtil,
+  workspaceUtils
+} from '../../../../src';
+import { UNAUTHENTICATED_USER } from '../../../../src/constants';
+import {
+  UserService,
+  getWebTelemetryUserId,
+  DefaultSharedTelemetryProvider
+} from '../../../../src/services/userService';
 
 describe('UserService', () => {
   const fakeCliTelemetryData = {
@@ -37,6 +48,7 @@ describe('UserService', () => {
         .spyOn(CommandOutput.prototype, 'getCmdResult')
         .mockResolvedValue(JSON.stringify(fakeCliTelemetryData));
     });
+
     it('should return command output of sf telemetry', async () => {
       const fakePath = '/fine/total';
       const fakeExecution = 'FindCliIdValue';
@@ -54,6 +66,7 @@ describe('UserService', () => {
       expect(result).toBe(fakeCliTelemetryData);
     });
   });
+
   describe('getTelemetryUserId', () => {
     const fakeCliIdUndefined = {
       result: {
@@ -114,5 +127,65 @@ describe('UserService', () => {
       expect(uId).not.toBe(randomId);
       expect(uId).toBe(globalTelemetryUserId);
     });
+  });
+});
+
+describe('getWebTelemetryUserId', () => {
+  let fakeExtensionContext: ExtensionContext;
+  let workspaceContextSpy: jest.SpyInstance;
+  let mockSharedTelemetryProvider: DefaultSharedTelemetryProvider;
+
+  beforeEach(() => {
+    fakeExtensionContext = {
+      globalState: { get: jest.fn(), update: jest.fn() }
+    } as unknown as ExtensionContext;
+
+    workspaceContextSpy = jest.spyOn(WorkspaceContextUtil, 'getInstance').mockReturnValue({
+      orgId: undefined,
+      username: undefined
+    } as any);
+
+    mockSharedTelemetryProvider = {
+      getSharedTelemetryUserId: jest.fn().mockResolvedValue(undefined)
+    } as any;
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('should return shared telemetry user ID when available from provider', async () => {
+    const sharedUserId = 'shared-user-id-123';
+    mockSharedTelemetryProvider.getSharedTelemetryUserId = jest.fn().mockResolvedValue(sharedUserId);
+
+    const result = await getWebTelemetryUserId(fakeExtensionContext, mockSharedTelemetryProvider);
+
+    expect(result).toBe(sharedUserId);
+    expect(mockSharedTelemetryProvider.getSharedTelemetryUserId).toHaveBeenCalled();
+  });
+
+  it('should return hashed user ID when org data is available', async () => {
+    const orgId = 'test-org-id';
+    const username = 'test-user@example.com';
+
+    workspaceContextSpy.mockReturnValue({
+      orgId,
+      username
+    });
+
+    const result = await getWebTelemetryUserId(fakeExtensionContext, mockSharedTelemetryProvider);
+
+    expect(result).toMatch(/^[a-f0-9]{64}$/); // SHA-256 hash format
+  });
+
+  it('should return UNAUTHENTICATED_USER when no org data is available', async () => {
+    workspaceContextSpy.mockReturnValue({
+      orgId: undefined,
+      username: undefined
+    });
+
+    const result = await getWebTelemetryUserId(fakeExtensionContext, mockSharedTelemetryProvider);
+
+    expect(result).toBe(UNAUTHENTICATED_USER);
   });
 });
