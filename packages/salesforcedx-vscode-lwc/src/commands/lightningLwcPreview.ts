@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -8,7 +8,6 @@
 // leaving as is because this extension is being replaced
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { componentUtil } from '@salesforce/lightning-lsp-common';
 import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   notificationService,
@@ -30,6 +29,7 @@ import { nls } from '../messages';
 import { DevServerService } from '../service/devServerService';
 import { PreviewService } from '../service/previewService';
 import { telemetryService } from '../telemetry';
+import { moduleFromDirectory, moduleFromFile } from '../util/componentUtils';
 import { openBrowser, showError } from './commandUtils';
 import { LightningLwcStartExecutor } from './lightningLwcStart';
 
@@ -153,8 +153,8 @@ const lwcPreview = async (sourceUri: URI) => {
     const isSFDX = true; // TODO support non SFDX Projects
     const isDirectory = fileStats.type === vscode.FileType.Directory;
     const componentName = isDirectory
-      ? componentUtil.moduleFromDirectory(resourcePath, isSFDX)
-      : componentUtil.moduleFromFile(resourcePath, isSFDX);
+      ? moduleFromDirectory(resourcePath, isSFDX)
+      : moduleFromFile(resourcePath, isSFDX);
     if (!componentName) {
       const message = nls.localize('lightning_lwc_preview_unsupported', resourcePath);
       showError(new Error(message), logName, commandName);
@@ -422,15 +422,15 @@ const selectTargetApp = async (
   try {
     if (await fileOrFolderExists(configFile)) {
       const fileContent = await readFile(configFile);
-      const json = JSON.parse(fileContent);
+      const json = JSON.parse(fileContent) as { apps: { android: any[]; ios: any[] } };
       const appDefinitionsForSelectedPlatform =
         platformSelection.id === PreviewPlatformType.Android ? json.apps.android : json.apps.ios;
 
       const apps = Array.from<any>(appDefinitionsForSelectedPlatform);
 
       apps.forEach(app => {
-        const label: string = app.name;
-        const detail: string = app.id;
+        const label: string = (app as { name: string; id: string }).name;
+        const detail: string = (app as { name: string; id: string }).id;
         items.push({ label, detail });
       });
     }
