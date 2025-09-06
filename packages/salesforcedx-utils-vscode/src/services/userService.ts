@@ -99,7 +99,7 @@ export const getWebTelemetryUserId = async (
 
   // Calculate the telemetry ID based on the orgId and userId
   extensionContext?.globalState.update(TELEMETRY_GLOBAL_WEB_USER_ID, undefined);
-  const globalStateUserId = extensionContext?.globalState.get<string | undefined>(TELEMETRY_GLOBAL_WEB_USER_ID);
+  const globalStateWebUserId = extensionContext?.globalState.get<string | undefined>(TELEMETRY_GLOBAL_WEB_USER_ID);
 
   const context = WorkspaceContextUtil.getInstance();
   const orgId = context.orgId;
@@ -107,23 +107,23 @@ export const getWebTelemetryUserId = async (
 
   // If we have org authorization data available (orgId + userId)
   if (orgId && userId) {
-    // If globalStateUserId is undefined or is the anonymous user ID, replace it with the hashed value
-    if (!globalStateUserId || globalStateUserId === UNAUTHENTICATED_USER) {
+    // If globalStateWebUserId is undefined or is the anonymous user ID, replace it with the hashed value
+    if (!globalStateWebUserId || globalStateWebUserId === UNAUTHENTICATED_USER) {
       const hashedUserId = hashUserIdentifier(orgId, userId);
       await extensionContext?.globalState.update(TELEMETRY_GLOBAL_WEB_USER_ID, hashedUserId);
       return hashedUserId;
     }
 
-    // If globalStateUserId already exists and is not the anonymous user ID, keep it (don't change on new org auth)
-    return globalStateUserId;
+    // If globalStateWebUserId already exists and is not the anonymous user ID, keep it (don't change on new org auth)
+    return globalStateWebUserId;
   }
 
   // No org authorization available yet
-  if (globalStateUserId) {
-    return globalStateUserId;
+  if (globalStateWebUserId) {
+    return globalStateWebUserId;
   }
 
-  // If globalStateUserId is undefined and no org data available, use the anonymous user ID
+  // If globalStateWebUserId is undefined and no org data available, use the anonymous user ID
   await extensionContext?.globalState.update(TELEMETRY_GLOBAL_WEB_USER_ID, UNAUTHENTICATED_USER);
   return UNAUTHENTICATED_USER;
 };
