@@ -640,14 +640,14 @@
   resolved "https://registry.yarnpkg.com/@pkgr/core/-/core-0.2.5.tgz#8a8edc680b845e57bdf2a5d93b06fce85af4fe4b"
   integrity sha512-YRx7tFgLkrpFkDAzVSV5sUJydmf2ZDrW+O3IbQ1JyeMW7B0FiWroFJTnR4/fD9CsusnAn4qRUcbb5jFnZSd6uw==
 
-"@salesforce/core@^8.22.0":
-  version "8.22.0"
-  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-8.22.0.tgz#7c4dc70b6a00c7b17230dc91bba8c2e36a995d87"
-  integrity sha512-TK9kODqvgIUuCP9L3jqrR1e5JLMzPGnAsCXwdtQrD/AjKMj7bT+NRQeuF+55X7aiEtcedO/fs49ldPvBf9bkOA==
+"@salesforce/core@^8.23.0":
+  version "8.23.0"
+  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-8.23.0.tgz#19e9effb2175507538157255d969e08925f91f76"
+  integrity sha512-njdJlo+SYtmuCBE1p8lwbcQF6oRsE1ZkcEQUElpu4WhB+DT/0mv7oN3eeYfh9Ss9Px95sSgzPJhEFLsZLwGJ4w==
   dependencies:
     "@jsforce/jsforce-node" "^3.10.4"
     "@salesforce/kit" "^3.2.2"
-    "@salesforce/schemas" "^1.9.1"
+    "@salesforce/schemas" "^1.10.0"
     "@salesforce/ts-types" "^2.0.11"
     ajv "^8.17.1"
     change-case "^4.1.2"
@@ -672,10 +672,10 @@
   dependencies:
     "@salesforce/ts-types" "^2.0.12"
 
-"@salesforce/schemas@^1.9.1":
-  version "1.9.1"
-  resolved "https://registry.yarnpkg.com/@salesforce/schemas/-/schemas-1.9.1.tgz#ea843c732068c4ac2dadbe1d22b44e714cfe661d"
-  integrity sha512-9I8kZBYT7HFXsbz2ukkSyZDRPjSsfRyx3pKGCsjWe2av8wuNm6tYUnmuXzMH5JoVSu3MvtOeIlwp5fFURdsNjg==
+"@salesforce/schemas@^1.10.0":
+  version "1.10.3"
+  resolved "https://registry.yarnpkg.com/@salesforce/schemas/-/schemas-1.10.3.tgz#52c867fdd60679cf216110aa49542b7ad391f5d1"
+  integrity sha512-FKfvtrYTcvTXE9advzS25/DEY9yJhEyLvStm++eQFtnAaX1pe4G3oGHgiQ0q55BM5+0AlCh0+0CVtQv1t4oJRA==
 
 "@salesforce/ts-types@^2.0.10", "@salesforce/ts-types@^2.0.11", "@salesforce/ts-types@^2.0.12":
   version "2.0.12"
