@@ -53,8 +53,7 @@ class QuickLaunch {
       return false;
     }
 
-    const traceFlags = new TraceFlags(connection);
-    if (!(await traceFlags.ensureTraceFlags())) {
+    if (!(await new TraceFlags(connection).ensureTraceFlags())) {
       return false;
     }
 

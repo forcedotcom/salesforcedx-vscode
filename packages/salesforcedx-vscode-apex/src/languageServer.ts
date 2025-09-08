@@ -21,6 +21,7 @@ import { LSP_ERR, UBER_JAR_NAME } from './constants';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
+import { rewriteNamespaceLens } from './namespaceLensRewriter';
 import * as requirements from './requirements';
 import {
   retrieveEnableApexLSErrorToTelemetry,
@@ -158,31 +159,16 @@ export const buildClientOptions = (): ApexLanguageClientOptions => {
     token: vscode.CancellationToken,
     next: ProvideCodeLensesSignature
   ) => {
-    const lenses = await next(document, token);
-    // Jorje sticks the namespace from sfdx-project.json on the arguments, like ns.class.method
-    // org may or may not actually use the namespace (ex: scratch org with --no-namespace)
-    // ns represents the namespace that came from auth files (ie, when the org is created/auth'd)
-    const ns =
-      (await (await getVscodeCoreExtension()).exports.OrgAuthInfo.getAuthFields()).namespacePrefix ?? undefined;
-    return lenses?.map(lens => {
-      if (ns !== undefined || !lens.command?.title) {
-        return lens; // it's okay to leave the namespace in place
-      }
-      if (['Run Test', 'Debug Test'].includes(lens.command.title)) {
-        // namespace.class.method => class.method
-        console.log(`provideCodeLenses Middleware > Single test originally: ${lens.command.arguments}`);
-        lens.command.arguments = lens.command.arguments?.map((arg: string) => arg.split('.').slice(-2).join('.'));
-        console.log(`provideCodeLenses Middleware > Single test modified: ${lens.command.arguments}`);
-      } else if (['Run All Tests', 'Debug All Tests'].includes(lens.command.title)) {
-        // namespace.class => class
-        console.log(`provideCodeLenses Middleware > All tests originally: ${lens.command.arguments}`);
-        lens.command.arguments = lens.command.arguments?.map((arg: string) => arg.split('.').at(-1));
-        console.log(`provideCodeLenses Middleware > All tests modified: ${lens.command.arguments}`);
-      }
-      // TODO: remove after testing
-      // lens.command!.title = `${lens.command!.title} ${lens.command!.command} ${lens.command!.arguments} [ns=${ns}]`;
-      return lens;
-    });
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+    const [nsFromOrg, nsFromProject, lenses] = await Promise.all([
+      // convert null to undefined
+      vscodeCoreExtension.exports.OrgAuthInfo.getAuthFields().then(fields => fields.namespacePrefix ?? undefined),
+      vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance().then(
+        cfg => cfg.getContents().namespace
+      ),
+      next(document, token)
+    ]);
+    return lenses?.map(rewriteNamespaceLens(nsFromOrg)(nsFromProject));
   };
 
   return {
