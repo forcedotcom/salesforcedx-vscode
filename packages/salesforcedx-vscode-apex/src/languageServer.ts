@@ -154,23 +154,6 @@ export const buildClientOptions = (): ApexLanguageClientOptions => {
     ? Object.fromEntries(LSP_PARITY_PROVIDERS.map(provider => [provider, () => null]))
     : {};
 
-  const provideCodeLenses = async (
-    document: vscode.TextDocument,
-    token: vscode.CancellationToken,
-    next: ProvideCodeLensesSignature
-  ) => {
-    const vscodeCoreExtension = await getVscodeCoreExtension();
-    const [nsFromOrg, nsFromProject, lenses] = await Promise.all([
-      // convert null to undefined
-      vscodeCoreExtension.exports.OrgAuthInfo.getAuthFields().then(fields => fields.namespacePrefix ?? undefined),
-      vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance().then(
-        cfg => cfg.getContents().namespace
-      ),
-      next(document, token)
-    ]);
-    return lenses?.map(rewriteNamespaceLens(nsFromOrg)(nsFromProject));
-  };
-
   return {
     // Register the server for Apex documents
     documentSelector: [
@@ -214,4 +197,19 @@ export const buildClientOptions = (): ApexLanguageClientOptions => {
     },
     errorHandler: new ApexErrorHandler()
   };
+};
+
+const provideCodeLenses = async (
+  document: vscode.TextDocument,
+  token: vscode.CancellationToken,
+  next: ProvideCodeLensesSignature
+) => {
+  const vscodeCoreExtension = await getVscodeCoreExtension();
+  const [nsFromOrg, nsFromProject, lenses] = await Promise.all([
+    // convert null to undefined
+    vscodeCoreExtension.exports.OrgAuthInfo.getAuthFields().then(fields => fields.namespacePrefix ?? undefined),
+    vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance().then(cfg => cfg.getContents().namespace),
+    next(document, token)
+  ]);
+  return lenses?.map(rewriteNamespaceLens(nsFromOrg)(nsFromProject));
 };
