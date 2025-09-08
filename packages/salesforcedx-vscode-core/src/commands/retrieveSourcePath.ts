@@ -10,12 +10,13 @@ import {
   PostconditionChecker,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { SalesforcePackageDirectories } from '../salesforceProject';
+import { salesforceCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './retrieveExecutor';
 import { LibraryPathsGatherer, SfCommandlet } from './util';
@@ -24,6 +25,8 @@ import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<string[]> {
   constructor() {
     super(nls.localize('retrieve_this_source_text'), 'retrieve_with_sourcepath');
+    // Apply the global conflict detection setting for general deploy commands
+    this.ignoreConflicts = !salesforceCoreSettings.getConflictDetectionEnabled();
   }
 
   public async getComponents(response: ContinueResponse<string[]>): Promise<ComponentSet> {

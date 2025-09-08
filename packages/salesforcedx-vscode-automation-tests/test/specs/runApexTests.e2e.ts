@@ -11,7 +11,6 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { EnvironmentSettings } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/environmentSettings';
 import {
   retryOperation,
   verifyNotificationWithRetry
@@ -38,15 +37,38 @@ import {
   getWorkbench,
   replaceLineInFile,
   verifyOutputPanelText,
-  waitForAndGetCodeLens
+  waitForAndGetCodeLens,
+  zoom
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import * as semver from 'semver';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
+
+// Helper function to find a checkbox element using multiple selectors.
+// Tries different selectors in order until one works.
+const findCheckboxElement = async (prompt: InputBox | QuickOpenBox) => {
+  const selectors = [
+    'div.monaco-custom-toggle.monaco-checkbox', // VSCode 1.103.0
+    'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox',
+    'input.quick-input-list-checkbox'
+  ];
+
+  for (const selector of selectors) {
+    try {
+      const element = await prompt.findElement(By.css(selector));
+      if (element) {
+        return element;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  throw new Error(`Could not find checkbox element with any of the selectors: ${selectors.join(', ')}`);
+};
 
 describe('Run Apex Tests', () => {
   let prompt: InputBox | QuickOpenBox;
@@ -126,6 +148,7 @@ describe('Run Apex Tests', () => {
 
     // Click the "Run All Tests" code lens at the top of the class
     const runAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Run All Tests');
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(runAllTestsOption).to.not.be.undefined;
     await runAllTestsOption!.click();
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
@@ -158,6 +181,7 @@ describe('Run Apex Tests', () => {
 
     // Click the "Run Test" code lens at the top of one of the test methods
     const runTestOption = await waitForAndGetCodeLens(textEditor, 'Run Test');
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(runTestOption).to.not.be.undefined;
     await runTestOption!.click();
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
@@ -305,6 +329,7 @@ describe('Run Apex Tests', () => {
       'ExampleApexClass2Test.validateSayHello  Pass',
       'Ended SFDX: Run Apex Tests'
     ];
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(terminalText).to.not.be.undefined;
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
@@ -325,12 +350,16 @@ describe('Run Apex Tests', () => {
       'ExampleApexClass1Test.validateSayHello  Pass',
       'Ended SFDX: Run Apex Tests'
     ];
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(terminalText).to.not.be.undefined;
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
   it('Run a test that fails and fix it', async () => {
     logTestStart(testSetup, 'Run a test that fails and fix it');
+
+    await zoom('Out', 2); // Zoom out the editor view
+
     // Create Apex class AccountService
     await createApexClassWithBugs(classesFolderPath);
 
@@ -412,13 +441,7 @@ describe('Run Apex Tests', () => {
 
     // Choose tests that will belong to the new Apex Test Suite
     await prompt.setText('ExampleApexClass1Test');
-    // Use different selector depending on VSCode version
-    const selector =
-      EnvironmentSettings.getInstance().vscodeVersion === 'latest' ||
-        semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
-        ? 'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox'
-        : 'input.quick-input-list-checkbox';
-    const checkbox = await prompt.findElement(By.css(selector));
+    const checkbox = await findCheckboxElement(prompt);
     await checkbox.click();
     await clickFilePathOkButton();
 
@@ -437,16 +460,10 @@ describe('Run Apex Tests', () => {
 
     // Choose tests that will belong to the already created Apex Test Suite
     await prompt.setText('ExampleApexClass2Test');
-    // Use different selector depending on VSCode version
-    const selector =
-      EnvironmentSettings.getInstance().vscodeVersion === 'latest' ||
-        semver.gte(EnvironmentSettings.getInstance().vscodeVersion, '1.100.0')
-        ? 'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox'
-        : 'input.quick-input-list-checkbox';
 
     await retryOperation(
       async () => {
-        const checkbox = await prompt.findElement(By.css(selector));
+        const checkbox = await findCheckboxElement(prompt);
         await checkbox.click();
       },
       2,

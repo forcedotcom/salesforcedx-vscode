@@ -18,7 +18,7 @@ import {
   MetadataApiRetrieve,
   RetrieveResult,
   SourceComponent
-} from '@salesforce/source-deploy-retrieve-bundle';
+} from '@salesforce/source-deploy-retrieve';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -70,7 +70,7 @@ export class MetadataCacheService {
   private static PROPERTIES_FILE = 'file-props.json';
 
   private cachePath: string;
-  private componentPath?: string | string[];
+  private componentPath?: string[];
   private projectPath?: string;
   private isManifest: boolean = false;
   private sourceComponents: ComponentSet;
@@ -83,12 +83,12 @@ export class MetadataCacheService {
   /**
    * Specify the base project path and component path(s) that will define the metadata to cache for the project.
    *
-   * @param componentPath A path referring to a project folder, an individual component resource, or an array of component paths
+   * @param componentPaths An array of paths referring to project folders, individual component resources, or manifest files
    * @param projectPath The base path of a SFDX Project
-   * @param isManifest Whether the componentPath references a manifest file (only applicable when componentPath is a string)
+   * @param isManifest Whether the componentPaths reference manifest files
    */
-  public initialize(componentPath: string | string[], projectPath: string, isManifest: boolean = false): void {
-    this.componentPath = componentPath;
+  public initialize(componentPaths: string[], projectPath: string, isManifest: boolean = false): void {
+    this.componentPath = componentPaths;
     this.projectPath = projectPath;
     this.isManifest = isManifest;
   }
@@ -96,18 +96,17 @@ export class MetadataCacheService {
   /**
    * Load a metadata cache based on a project path that defines a set of components.
    *
-   * @param componentPath A path referring to a project folder, an individual component resource,
-   * a manifest file, or an array of component paths
+   * @param componentPaths An array of paths referring to project folders, individual component resources, or manifest files
    * @param projectPath The base path of a SFDX Project
-   * @param isManifest Whether the componentPath references a manifest file (only applicable when componentPath is a string)
+   * @param isManifest Whether the componentPaths reference manifest files
    * @returns MetadataCacheResult describing the project and cache folders
    */
   public async loadCache(
-    componentPath: string | string[],
+    componentPaths: string[],
     projectPath: string,
     isManifest: boolean = false
   ): Promise<MetadataCacheResult | undefined> {
-    this.initialize(componentPath, projectPath, isManifest);
+    this.initialize(componentPaths, projectPath, isManifest);
     const components = await this.getSourceComponents();
     if (components.size === 0) {
       return undefined;
@@ -121,19 +120,15 @@ export class MetadataCacheService {
     if (this.componentPath && this.projectPath) {
       const packageDirs = await SalesforcePackageDirectories.getPackageDirectoryFullPaths();
 
-      if (this.isManifest && typeof this.componentPath === 'string') {
+      if (this.isManifest) {
+        // For manifest files, we expect only one path in the array
         this.sourceComponents = await ComponentSet.fromManifest({
-          manifestPath: this.componentPath,
+          manifestPath: this.componentPath[0],
           resolveSourcePaths: packageDirs,
           forceAddWildcards: true
         });
       } else {
-        // ComponentSet.fromSource can handle both string and string[]
-        if (Array.isArray(this.componentPath)) {
-          this.sourceComponents = ComponentSet.fromSource(this.componentPath);
-        } else {
-          this.sourceComponents = ComponentSet.fromSource(this.componentPath);
-        }
+        this.sourceComponents = ComponentSet.fromSource(this.componentPath);
       }
       return this.sourceComponents;
     }
@@ -170,9 +165,9 @@ export class MetadataCacheService {
       const projCommon = this.findLongestCommonDir(sourceComps, this.projectPath);
 
       let selectedType = PathType.Unknown;
-      if (Array.isArray(this.componentPath)) {
+      if (this.componentPath.length > 1) {
         selectedType = PathType.Multiple;
-      } else if (await isDirectory(this.componentPath)) {
+      } else if (await isDirectory(this.componentPath[0])) {
         selectedType = PathType.Folder;
       } else if (this.isManifest) {
         selectedType = PathType.Manifest;
@@ -400,7 +395,7 @@ export class MetadataCacheExecutor extends RetrieveExecutor<string> {
   }
 
   protected async getComponents(response: any): Promise<ComponentSet> {
-    this.cacheService.initialize(response.data, workspaceUtils.getRootWorkspacePath(), this.isManifest);
+    this.cacheService.initialize([response.data], workspaceUtils.getRootWorkspacePath(), this.isManifest);
     return this.cacheService.getSourceComponents();
   }
 

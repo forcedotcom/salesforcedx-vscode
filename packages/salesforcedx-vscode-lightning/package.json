@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.8.0",
+  "version": "64.13.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,24 +24,22 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/aura-language-server": "4.12.4",
-    "@salesforce/lightning-lsp-common": "4.12.4",
-    "@salesforce/salesforcedx-utils-vscode": "64.8.0",
+    "@salesforce/aura-language-server": "4.12.7",
+    "@salesforce/lightning-lsp-common": "4.12.7",
+    "@salesforce/salesforcedx-utils-vscode": "64.13.0",
     "applicationinsights": "1.0.7",
+    "vscode-html-languageservice": "^5.5.1",
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
     "@types/which": "^1.3.1",
-    "cross-env": "5.2.0",
-    "esbuild": "0.25.0",
-    "esbuild-plugin-pino": "^2.2.2"
+    "esbuild": "0.25.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "node ./esbuild.config.js",
+    "bundle:extension": "node ./esbuild.config.mjs",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./",
     "lint": "eslint .",
@@ -91,8 +89,8 @@
       ],
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/aura-language-server": "4.12.4",
-        "@salesforce/lightning-lsp-common": "4.12.4"
+        "@salesforce/aura-language-server": "4.12.7",
+        "@salesforce/lightning-lsp-common": "4.12.7"
       },
       "devDependencies": {}
     }

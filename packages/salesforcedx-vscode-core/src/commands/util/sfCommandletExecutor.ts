@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Command } from '@salesforce/salesforcedx-utils';
+import { Command, CommandExecution } from '@salesforce/salesforcedx-utils';
 import {
   CliCommandExecutor,
-  CommandExecution,
   ContinueResponse,
   workspaceUtils,
   ProgressNotification,
@@ -101,7 +100,7 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
    * Base method (no-op) that is overridden by sub-classes
    * projectDeployStart and projectRetrieveStart to update the local cache's
    * timestamps post-operation, in order to be in sync for the
-   * "Detect Conflicts at Sync" setting.
+   * "Detect Conflicts for Deploy and Retrieve" setting.
    */
 
   public abstract build(data: T): Command;

@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Connection, Org, SfProject } from '@salesforce/core-bundle';
-import { SourceTracking, SourceTrackingOptions } from '@salesforce/source-tracking-bundle';
+import { Connection, Org, SfProject } from '@salesforce/core';
+import { SourceTracking, SourceTrackingOptions } from '@salesforce/source-tracking';
 
 /*
  * The SourceTrackingProvider class is used to instantiate
@@ -26,15 +26,30 @@ export class SourceTrackingProvider {
     this.sourceTrackers = new Map<string, SourceTracking>();
   }
 
-  public async getSourceTracker(projectPath: string, connection: Connection): Promise<SourceTracking> {
+  public async getSourceTracker(
+    projectPath: string,
+    connection: Connection,
+    ignoreConflicts?: boolean
+  ): Promise<SourceTracking> {
     const username = connection.getUsername();
     const key = projectPath + username;
     let sourceTracker = this.sourceTrackers.get(key);
     if (!sourceTracker) {
-      sourceTracker = await this.createSourceTracking(projectPath, connection);
+      sourceTracker = await this.createSourceTracking(projectPath, connection, ignoreConflicts);
       this.sourceTrackers.set(key, sourceTracker);
     }
     return sourceTracker;
+  }
+
+  /**
+   * Clears the cached source tracking instance for a specific project and connection.
+   * This is useful to force a fresh source tracking instance, particularly for pull operations
+   * where stale remote tracking data might cause issues.
+   */
+  public clearSourceTracker(projectPath: string, connection: Connection): void {
+    const username = connection.getUsername();
+    const key = projectPath + username;
+    this.sourceTrackers.delete(key);
   }
 
   /**
@@ -46,7 +61,11 @@ export class SourceTrackingProvider {
    * is no need to call process.chdir here as has been done in VSCE
    * with other core types like Config and ConfigAggregator.
    */
-  private async createSourceTracking(projectPath: string, connection: Connection): Promise<SourceTracking> {
+  private async createSourceTracking(
+    projectPath: string,
+    connection: Connection,
+    ignoreConflicts?: boolean
+  ): Promise<SourceTracking> {
     const project = await SfProject.resolve(projectPath);
     const org = await Org.create({ connection });
     const options: SourceTrackingOptions = {
@@ -57,7 +76,7 @@ export class SourceTrackingProvider {
       // commands (which use SourceTracking.getChanges()).
       ignoreLocalCache: true,
       subscribeSDREvents: true,
-      ignoreConflicts: true
+      ignoreConflicts: ignoreConflicts ?? true
     };
     const sourceTracking = await SourceTracking.create(options);
     return sourceTracking;

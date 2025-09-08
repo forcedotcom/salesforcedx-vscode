@@ -17,6 +17,7 @@ import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import eslintPluginJest from 'eslint-plugin-jest';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
+import eslintPluginWorkspaces from 'eslint-plugin-workspaces';
 
 import noDuplicateI18nValues from './eslint-local-rules/no-duplicate-i18n-values.js';
 
@@ -36,7 +37,6 @@ export default [
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
-      'scripts/installVSIXFromBranch.ts',
       'scripts/vsce-bundled-extension.ts',
       'scripts/reportInstalls.ts'
     ]
@@ -63,10 +63,12 @@ export default [
       'prefer-arrow': eslintPluginPreferArrow,
       '@stylistic/eslint-plugin-ts': stylistic,
       unicorn: eslintPluginUnicorn,
-      local: { rules: localRules }
+      local: { rules: localRules },
+      workspaces: eslintPluginWorkspaces
     },
     rules: {
       'local/no-duplicate-i18n-values': 'error',
+      'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
       'unicorn/consistent-function-scoping': 'error',
       'unicorn/explicit-length-check': 'error',

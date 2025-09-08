@@ -1,18 +1,17 @@
-# 64.8.0 - August 6, 2025
+# 64.12.0 - September 3, 2025
 
 ## Added
 
 #### salesforcedx-vscode-core
 
-- We improved the extension activation logic so that the extension no longer activate as soon as a project with an `sfdx-project.json` is opened. Instead:
+- We refactored the org cleanup logic to ensure expired or deleted orgs are properly removed. The update also adds clearer user feedback through detailed messages and a table view of the remaining orgs. ([PR #6500](https://github.com/forcedotcom/salesforcedx-vscode/pull/6500))
 
-  - Debugger extensions (Replay and Interactive) activate only when a debugger command is run.
-  - The Visualforce extension activates only when a `.page` or `.component` file is opened.
-  - Aura and LWC extensions activate only if your project contains `aura/` or `lwc/` folders.
-    This update improves startup performance by limiting unnecessary activations. ([PR #6397](https://github.com/forcedotcom/salesforcedx-vscode/pull/6397))
+- We improved the bundling of our extensions to reduce the extensions size. ([PR #6490](https://github.com/forcedotcom/salesforcedx-vscode/pull/6490))
 
-- Push operations now use a shared library instead of running a CLI command. ([PR #6422](https://github.com/forcedotcom/salesforcedx-vscode/pull/6422)).
+## Fixed
 
-#### salesforedx-vscode-apex
+#### salesforcedx-vscode-core
 
-- Our new TypeScript-based Apex Language Server is stepping in for some tasks previously handled by the Java-based version. If you experience issues, use the new **Enable LSP Parity Capabilities** setting to switch back to the old behavior. ([PR #6433](https://github.com/forcedotcom/salesforcedx-vscode/pull/6433))
+- We fixed an issue where org aliases that contain dashes couldn't be set as default orgs. ([PR #6521](https://github.com/forcedotcom/salesforcedx-vscode/pull/6521))
+
+- We fixed an issue where deploy and retrieve were failing when the `Enable Source Tracking For Deploy And Retrieve` setting was enabled for non-source-tracked orgs. ([PR #6507](https://github.com/forcedotcom/salesforcedx-vscode/pull/6507))

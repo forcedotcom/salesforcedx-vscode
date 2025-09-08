@@ -19,8 +19,9 @@ export type ComponentName = {
   name?: string;
 };
 
-export const isContinue = (contineOrCancel: ContinueOrCancel): contineOrCancel is ContinueResponse<OneOrMany> =>
-  Reflect.get(contineOrCancel, 'type') === 'CONTINUE';
+export type DeployRetrieveOperationType = 'deploy' | 'retrieve' | 'push' | 'pull' | 'delete';
+export const isContinue = (continueOrCancel: ContinueOrCancel): continueOrCancel is ContinueResponse<OneOrMany> =>
+  Reflect.get(continueOrCancel, 'type') === 'CONTINUE';
 
 export const isComponentName = (component: ComponentName | LocalComponent): component is ComponentName =>
   Reflect.has(component, 'name');

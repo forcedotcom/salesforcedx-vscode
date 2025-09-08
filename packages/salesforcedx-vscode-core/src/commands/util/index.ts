@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { CommandParams } from './commandParams';
 export { CommandletExecutor } from './commandletExecutor';
 export { CompositePostconditionChecker } from './compositePostconditionChecker';
 export { CompositePreconditionChecker } from './compositePreconditionChecker';
@@ -18,7 +17,6 @@ export { formatException } from './formatException';
 export { LibraryPathsGatherer } from './libraryPathsGatherer';
 export { OverwriteComponentPrompt } from './overwriteComponentPrompt';
 export {
-  DemoModePromptGatherer,
   FilePathGatherer,
   FileSelection,
   FileSelector,

@@ -5,13 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ContinueResponse, SfWorkspaceChecker, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { join } from 'node:path';
 import { URI } from 'vscode-uri';
 import { TimestampConflictChecker } from '../commands/util/timestampConflictChecker';
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
 import { SalesforcePackageDirectories } from '../salesforceProject';
+import { salesforceCoreSettings } from '../settings';
 import { DeployExecutor } from './deployExecutor';
 import { FilePathGatherer, SfCommandlet } from './util';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
@@ -19,6 +20,8 @@ import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 class LibraryDeployManifestExecutor extends DeployExecutor<string> {
   constructor() {
     super(nls.localize('deploy_this_source_text'), 'deploy_with_manifest');
+    // Apply the global conflict detection setting for general deploy commands
+    this.ignoreConflicts = !salesforceCoreSettings.getConflictDetectionEnabled();
   }
 
   protected async getComponents(response: ContinueResponse<string>): Promise<ComponentSet> {
@@ -53,7 +56,7 @@ export const deployManifest = async (manifestUri: URI) => {
       new SfWorkspaceChecker(),
       new FilePathGatherer(resolved),
       new LibraryDeployManifestExecutor(),
-      new TimestampConflictChecker(true, messages)
+      new TimestampConflictChecker(true, messages, 'deploy')
     );
     await commandlet.run();
   }

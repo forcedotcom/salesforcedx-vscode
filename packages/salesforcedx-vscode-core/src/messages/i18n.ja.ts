@@ -158,10 +158,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   error_writing_installed_package_info: 'installed-package.json の書き込み中にエラー: %s',
   error_cleanup_temp_files: '一時ファイルのクリーンアップ中にエラー: %s',
 
-  demo_mode_status_tooltip:
-    'VS Code のSalesforce 拡張機能をデモモードで実行しています。本番環境に接続するときに確認を求められます。',
-  demo_mode_prompt:
-    'デモモードまたは共有マシンで、ビジネスまたは本番組織を認証することは推奨されません。認証を続ける場合、組織を使用した後、必ず "SFDX: すべての認証済み組織からログアウト" を実行してください。',
   org_logout_all_text: 'SFDX: すべての認証済み組織からログアウト',
 
   manifest_editor_title_message: 'マニフェストエディタ',
@@ -226,13 +222,14 @@ export const messages: Partial<Record<MessageKey, string>> = {
     'メタデータのデプロイ中に競合が検出されました。競合を上書きして進めるか、キャンセルして競合を表示するかを選択してください。',
   conflict_detect_conflicts_during_retrieve:
     'メタデータの取得中に競合が検出されました。競合を上書きして進めるか、キャンセルして競合を表示するかを選択してください。',
-  conflict_detect_override: '競合を上書き',
-  conflict_detect_show_conflicts: '競合を表示',
+  conflict_detect_override_deploy: '競合を上書き',
+  conflict_detect_show_conflicts_deploy: '競合を表示',
 
   conflict_detect_no_target_org: 'このプロジェクトにはデフォルトのユーザ名がありません',
   conflict_detect_no_default_package_dir: 'このプロジェクトにはデフォルトのパッケージディレクトリがありません',
   conflict_detect_view_init: '競合検出ビューが初期化されていません',
-  conflict_detect_not_enabled: '組織との差分を表示するために、Detect Conflicts at Sync 設定を有効化してください',
+  conflict_detect_not_enabled:
+    '組織との差分を表示するために、Detect Conflicts for Deploy and Retrieve 設定を有効化してください',
 
   conflict_detect_no_conflicts: '競合がありません',
 

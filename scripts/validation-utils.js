@@ -13,73 +13,12 @@ process.on('uncaughtException', err => {
 // Verbose output
 process.env.DEBUG = '*';
 
-const NODE_VERSION = '12.4.0';
-const LERNA_VERSION = '3.13.1';
-
 module.exports = {
   checkVSCodeVersion: () => {
     const nextVersion = process.env['SALESFORCEDX_VSCODE_VERSION'];
     if (!nextVersion || !nextVersion.match(/^(\d+)\.(\d+)\.(\d+)$/)) {
       logger.error(`You must set environment variable 'SALESFORCEDX_VSCODE_VERSION'.`);
       logger.info(`To set: 'export SALESFORCEDX_VSCODE_VERSION=xx.yy.zz'. Where xx.yy.zz is the release number.`);
-      process.exit(-1);
-    }
-  },
-
-  checkEnvironmentVariables: () => {
-    logger.header('\nVerifying environment variables have been set.');
-    module.exports.checkVSCodeVersion();
-  },
-
-  checkNodeVersion: () => {
-    logger.header('\nVerifying node version ' + NODE_VERSION + ' is installed.');
-    const [version, major, minor, patch] = process.version.match(/^v(\d+)\.?(\d+)\.?(\*|\d+)$/);
-    if (parseInt(major) != NODE_VERSION.split('.')[0] || parseInt(minor) < NODE_VERSION.split('.')[1]) {
-      logger.error('Please update from node version ' + process.version + ' to ' + NODE_VERSION);
-      process.exit(-1);
-    }
-  },
-
-  checkLernaInstall: () => {
-    logger.header(`\nVerifying lerna is installed for node version ${NODE_VERSION}.`);
-    try {
-      const lernaPath = execSync('which lerna', { encoding: 'utf8' }).trim();
-      if (!lernaPath.includes(NODE_VERSION)) {
-        logger.info(`Lerna location: ${lernaPath}`);
-        logger.info(
-          `Lerna is not installed for node version ${NODE_VERSION} - Installing lerna version ${LERNA_VERSION}`
-        );
-        execSync('npm install -g lerna@' + LERNA_VERSION, { stdio: 'inherit' });
-      }
-    } catch (error) {
-      logger.info(
-        `Lerna is not installed for node version ${NODE_VERSION} - Installing lerna version ${LERNA_VERSION}`
-      );
-      execSync('npm install -g lerna@' + LERNA_VERSION, { stdio: 'inherit' });
-    }
-  },
-
-  checkVSCEInstall: () => {
-    logger.header(`\nVerifying vsce is installed for node version ${NODE_VERSION}.`);
-    try {
-      const vscePath = execSync('which vsce', { encoding: 'utf8' }).trim();
-      if (!vscePath.includes(NODE_VERSION)) {
-        logger.info('VSCE Location: ' + vscePath);
-        logger.info(`VSCE not found for node version ${NODE_VERSION} - Installing latest version.`);
-        execSync('npm install -g vsce', { stdio: 'inherit' });
-      }
-    } catch (error) {
-      logger.info(`VSCE not found for node version ${NODE_VERSION} - Installing latest version.`);
-      execSync('npm install -g vsce', { stdio: 'inherit' });
-    }
-  },
-
-  checkSalesforcePublisherAccess: () => {
-    logger.header('\nVerifying access to the Salesforce publisher.');
-    const publishers = execSync('vsce ls-publishers', { encoding: 'utf8' }).trim();
-    if (!publishers.includes('salesforce')) {
-      logger.error('You do not have access to the salesforce publisher id as part of vsce.');
-      logger.info('Either the marketplace token is incorrect or your access to our publisher was removed.');
       process.exit(-1);
     }
   },

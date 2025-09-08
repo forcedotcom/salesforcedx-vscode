@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection, StateAggregator, Org, AuthFields } from '@salesforce/core-bundle';
+import { AuthFields, AuthInfo, Connection, StateAggregator, Org } from '@salesforce/core';
 import { ConfigSource, ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';

@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "64.8.0",
+  "version": "64.13.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -32,8 +32,8 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "1.8.1",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "64.8.0",
-    "@salesforce/salesforcedx-utils-vscode": "64.8.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "64.13.0",
+    "@salesforce/salesforcedx-utils-vscode": "64.13.0",
     "@salesforce/soql-builder-ui": "1.0.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/soql-data-view": "0.1.0",
@@ -46,14 +46,11 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.18.4",
-    "@salesforce/salesforcedx-utils": "64.8.0",
+    "@salesforce/salesforcedx-utils": "64.13.0",
     "@salesforce/ts-types": "2.0.12",
-    "@types/node": "^20.0.0",
     "@types/papaparse": "^5.2.3",
-    "cross-env": "5.2.0",
     "esbuild": "0.25.0",
-    "esbuild-plugin-pino": "^2.2.2",
-    "salesforcedx-vscode-core": "64.8.0"
+    "salesforcedx-vscode-core": "64.13.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
@@ -113,6 +110,10 @@
         "command": "soql.builder.toggle",
         "title": "%soql_builder_toggle%",
         "icon": "$(go-to-file)"
+      },
+      {
+        "command": "soql.walkthrough.open",
+        "title": "%soql_walkthrough_open%"
       }
     ],
     "menus": {
@@ -124,6 +125,10 @@
         {
           "command": "soql.builder.toggle",
           "when": "false"
+        },
+        {
+          "command": "soql.walkthrough.open",
+          "when": "sf:project_opened"
         }
       ],
       "editor/title": [
@@ -144,6 +149,63 @@
           "description": "%soql_validation_flag%"
         }
       }
-    }
+    },
+    "walkthroughs": [
+      {
+        "id": "soqlWalkthrough",
+        "title": "%soql_walkthrough_title%",
+        "description": "%soql_walkthrough_description%",
+        "steps": [
+          {
+            "id": "step1",
+            "title": "%soql_walkthrough_step1_title%",
+            "description": "%soql_walkthrough_step1_description%",
+            "media": {
+              "image": "images/SOQL_Builder_50.16.0.gif",
+              "altText": "%soql_walkthrough_step1_alt%"
+            }
+          },
+          {
+            "id": "step2",
+            "title": "%soql_walkthrough_step2_title%",
+            "description": "%soql_walkthrough_step2_description%",
+            "media": {
+              "image": "images/SOQL_Builder_50.16.0.gif",
+              "altText": "%soql_walkthrough_step2_alt%"
+            },
+            "completionEvents": [
+              "onCommand:soql.builder.open.new"
+            ]
+          },
+          {
+            "id": "step3",
+            "title": "%soql_walkthrough_step3_title%",
+            "description": "%soql_walkthrough_step3_description%",
+            "media": {
+              "image": "images/SOQL_Builder_50.16.0.gif",
+              "altText": "%soql_walkthrough_step3_alt%"
+            }
+          },
+          {
+            "id": "step4",
+            "title": "%soql_walkthrough_step4_title%",
+            "description": "%soql_walkthrough_step4_description%",
+            "media": {
+              "image": "images/SOQL_Builder_50.16.0.gif",
+              "altText": "%soql_walkthrough_step4_alt%"
+            }
+          },
+          {
+            "id": "step5",
+            "title": "%soql_walkthrough_step5_title%",
+            "description": "%soql_walkthrough_step5_description%",
+            "media": {
+              "image": "images/SOQL_Builder_50.16.0.gif",
+              "altText": "%soql_walkthrough_step5_alt%"
+            }
+          }
+        ]
+      }
+    ]
   }
 }

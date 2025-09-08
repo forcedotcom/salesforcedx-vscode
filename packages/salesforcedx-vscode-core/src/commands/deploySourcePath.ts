@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ContinueResponse, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import type { URI } from 'vscode-uri';
 import { getConflictMessagesFor } from '../conflict/messages';
 import { nls } from '../messages';
@@ -21,6 +21,8 @@ class LibraryDeploySourcePathExecutor extends DeployExecutor<string[]> {
   constructor(showChannelOutput: boolean = true) {
     super(nls.localize('deploy_this_source_text'), 'deploy_with_sourcepath');
     this.showChannelOutput = showChannelOutput;
+    // Apply the global conflict detection setting for general deploy commands
+    this.ignoreConflicts = !salesforceCoreSettings.getConflictDetectionEnabled();
   }
 
   public async getComponents(response: ContinueResponse<string[]>): Promise<ComponentSet> {
@@ -72,7 +74,10 @@ export const deploySourcePaths = async (
       new SfWorkspaceChecker(),
       new LibraryPathsGatherer(resolvedUris),
       new LibraryDeploySourcePathExecutor(showOutputPanel),
-      new CompositePostconditionChecker(new SourcePathChecker(), new TimestampConflictChecker(false, messages))
+      new CompositePostconditionChecker(
+        new SourcePathChecker(),
+        new TimestampConflictChecker(false, messages, 'deploy')
+      )
     );
 
     await commandlet.run();

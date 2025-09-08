@@ -9,10 +9,6 @@ module.exports = {
     console.log(CYAN_BOLD, str);
   },
 
-  debug: str => {
-    console.log(str);
-  },
-
   info: str => {
     console.log(YELLOW, str);
   },

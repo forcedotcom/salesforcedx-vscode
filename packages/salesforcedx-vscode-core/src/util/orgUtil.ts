@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthFields, AuthInfo } from '@salesforce/core-bundle';
+import { AuthFields, AuthInfo } from '@salesforce/core';
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -38,7 +38,6 @@ export const checkForSoonToBeExpiredOrgs = async (orgList: OrgList): Promise<voi
 
   try {
     const daysBeforeExpire = 5;
-    const today = new Date();
     const daysUntilExpiration = new Date();
     daysUntilExpiration.setDate(daysUntilExpiration.getDate() + daysBeforeExpire);
 
@@ -63,7 +62,7 @@ export const checkForSoonToBeExpiredOrgs = async (orgList: OrgList): Promise<voi
 
       // Filter out the expired orgs.
       const expirationDate = new Date(authFields.expirationDate);
-      if (expirationDate < today) {
+      if (expirationDate < new Date()) {
         if (orgAuthorization.username === (await ConfigUtil.getUsername())) {
           void notificationService.showWarningMessage(nls.localize('default_org_expired'));
         }

@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { isDirectory } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, SourceComponent } from '@salesforce/source-deploy-retrieve-bundle';
+import { ComponentSet, SourceComponent } from '@salesforce/source-deploy-retrieve';
+import * as path from 'node:path';
 import { MetadataCacheService, PathType } from '../../../src/conflict';
 import { WorkspaceContext } from '../../../src/context';
 import { SalesforcePackageDirectories } from '../../../src/salesforceProject';
@@ -57,6 +58,16 @@ describe('MetadataCacheService', () => {
     { fullName: 'Test2', type: 'layout' }
   ]);
 
+  const testPath = path.join(path.sep, 'test', 'path');
+  const projectPath = path.join(path.sep, 'project', 'path');
+  const testPath1 = path.join(path.sep, 'test', 'path1');
+  const testPath2 = path.join(path.sep, 'test', 'path2');
+  const testDirectoryPath = path.join(path.sep, 'test', 'directory');
+  const packageDirPath = path.join(path.sep, 'package', 'dir');
+  const testManifestPath = path.join(path.sep, 'test', 'manifest.xml');
+  const cachePath = path.join(path.sep, 'cache', 'path', 'TestClass.cls');
+  const testPropsPath = path.join(path.sep, 'test', 'props.json');
+
   beforeEach(() => {
     isDirectoryMock = isDirectory as jest.MockedFunction<typeof isDirectory>;
   });
@@ -78,8 +89,8 @@ describe('MetadataCacheService', () => {
       // Mock the getSourceComponents method on dummyComponentSet
       jest.spyOn(dummyComponentSet, 'getSourceComponents').mockReturnValue({
         toArray: () => [
-          { fullName: 'Test', type: 'apexclass', content: '/test/path/Test.cls' },
-          { fullName: 'Test2', type: 'layout', content: '/test/path/Test2.layout' }
+          { fullName: 'Test', type: 'apexclass', content: path.join(testPath, 'Test.cls') },
+          { fullName: 'Test2', type: 'layout', content: path.join(testPath, 'Test2.layout') }
         ]
       } as any);
     });
@@ -102,7 +113,7 @@ describe('MetadataCacheService', () => {
         const metadataCacheService = new MetadataCacheService('');
         jest.spyOn(metadataCacheService, 'getSourceComponents').mockResolvedValue(dummyEmptyComponentSet);
 
-        await metadataCacheService.loadCache('', '');
+        await metadataCacheService.loadCache([''], '');
 
         expect(metadataCacheService.getSourceComponents).toHaveBeenCalled();
         expect(retrieveStub).not.toHaveBeenCalled();
@@ -111,7 +122,7 @@ describe('MetadataCacheService', () => {
       it('should handle string componentPath', async () => {
         const metadataCacheService = new MetadataCacheService('test-user');
         jest.spyOn(metadataCacheService, 'getSourceComponents').mockResolvedValue(dummyComponentSet);
-        jest.spyOn(metadataCacheService, 'saveProperties' as any).mockResolvedValue('/test/props.json');
+        jest.spyOn(metadataCacheService, 'saveProperties' as any).mockResolvedValue(testPropsPath);
 
         // Mock the sourceComponents property that processResults uses
         (metadataCacheService as any).sourceComponents = dummyComponentSet;
@@ -124,18 +135,18 @@ describe('MetadataCacheService', () => {
           pollStatus: jest.fn().mockResolvedValue(mockRetrieveResult)
         } as any);
 
-        const result = await metadataCacheService.loadCache('/test/path', '/project/path');
+        const result = await metadataCacheService.loadCache([testPath], projectPath);
 
         expect(metadataCacheService.getSourceComponents).toHaveBeenCalled();
         expect(result).toBeDefined();
-        expect(result?.selectedPath).toBe('/test/path');
+        expect(result?.selectedPath).toEqual([testPath]);
       });
 
       it('should handle array componentPath', async () => {
         const metadataCacheService = new MetadataCacheService('test-user');
-        const componentPaths = ['/test/path1', '/test/path2'];
+        const componentPaths = [testPath1, testPath2];
         jest.spyOn(metadataCacheService, 'getSourceComponents').mockResolvedValue(dummyComponentSet);
-        jest.spyOn(metadataCacheService, 'saveProperties' as any).mockResolvedValue('/test/props.json');
+        jest.spyOn(metadataCacheService, 'saveProperties' as any).mockResolvedValue(testPropsPath);
 
         // Mock the sourceComponents property that processResults uses
         (metadataCacheService as any).sourceComponents = dummyComponentSet;
@@ -148,7 +159,7 @@ describe('MetadataCacheService', () => {
           pollStatus: jest.fn().mockResolvedValue(mockRetrieveResult)
         } as any);
 
-        const result = await metadataCacheService.loadCache(componentPaths, '/project/path');
+        const result = await metadataCacheService.loadCache(componentPaths, projectPath);
 
         expect(metadataCacheService.getSourceComponents).toHaveBeenCalled();
         expect(result).toBeDefined();
@@ -158,9 +169,9 @@ describe('MetadataCacheService', () => {
 
       it('should handle single file in array componentPath', async () => {
         const metadataCacheService = new MetadataCacheService('test-user');
-        const componentPaths = ['/test/path1'];
+        const componentPaths = [testPath];
         jest.spyOn(metadataCacheService, 'getSourceComponents').mockResolvedValue(dummyComponentSet);
-        jest.spyOn(metadataCacheService, 'saveProperties' as any).mockResolvedValue('/test/props.json');
+        jest.spyOn(metadataCacheService, 'saveProperties' as any).mockResolvedValue(testPropsPath);
 
         // Mock the sourceComponents property that processResults uses
         (metadataCacheService as any).sourceComponents = dummyComponentSet;
@@ -173,12 +184,12 @@ describe('MetadataCacheService', () => {
           pollStatus: jest.fn().mockResolvedValue(mockRetrieveResult)
         } as any);
 
-        const result = await metadataCacheService.loadCache(componentPaths, '/project/path');
+        const result = await metadataCacheService.loadCache(componentPaths, projectPath);
 
         expect(metadataCacheService.getSourceComponents).toHaveBeenCalled();
         expect(result).toBeDefined();
         expect(result?.selectedPath).toEqual(componentPaths);
-        expect(result?.selectedType).toBe(PathType.Multiple);
+        expect(result?.selectedType).toBe(PathType.Individual);
       });
     });
   });
@@ -186,29 +197,29 @@ describe('MetadataCacheService', () => {
   describe('initialize', () => {
     it('should initialize with string componentPath', () => {
       const metadataCacheService = new MetadataCacheService('test-user');
-      metadataCacheService.initialize('/test/path', '/project/path', false);
+      metadataCacheService.initialize([testPath], projectPath, false);
 
       // Access private properties for testing
-      expect((metadataCacheService as any).componentPath).toBe('/test/path');
-      expect((metadataCacheService as any).projectPath).toBe('/project/path');
+      expect((metadataCacheService as any).componentPath).toEqual([testPath]);
+      expect((metadataCacheService as any).projectPath).toBe(projectPath);
       expect((metadataCacheService as any).isManifest).toBe(false);
     });
 
     it('should initialize with array componentPath', () => {
       const metadataCacheService = new MetadataCacheService('test-user');
-      const componentPaths = ['/test/path1', '/test/path2'];
-      metadataCacheService.initialize(componentPaths, '/project/path', false);
+      const componentPaths = [testPath1, testPath2];
+      metadataCacheService.initialize(componentPaths, projectPath, false);
 
       expect((metadataCacheService as any).componentPath).toEqual(componentPaths);
-      expect((metadataCacheService as any).projectPath).toBe('/project/path');
+      expect((metadataCacheService as any).projectPath).toBe(projectPath);
       expect((metadataCacheService as any).isManifest).toBe(false);
     });
 
     it('should initialize with manifest flag', () => {
       const metadataCacheService = new MetadataCacheService('test-user');
-      metadataCacheService.initialize('/test/manifest.xml', '/project/path', true);
+      metadataCacheService.initialize([testManifestPath], projectPath, true);
 
-      expect((metadataCacheService as any).componentPath).toBe('/test/manifest.xml');
+      expect((metadataCacheService as any).componentPath).toEqual([testManifestPath]);
       expect((metadataCacheService as any).isManifest).toBe(true);
     });
   });
@@ -220,29 +231,29 @@ describe('MetadataCacheService', () => {
       // Mock the getSourceComponents method on dummyComponentSet
       jest.spyOn(dummyComponentSet, 'getSourceComponents').mockReturnValue({
         toArray: () => [
-          { fullName: 'Test', type: 'apexclass', content: '/test/path/Test.cls' },
-          { fullName: 'Test2', type: 'layout', content: '/test/path/Test2.layout' }
+          { fullName: 'Test', type: 'apexclass', content: path.join(testPath, 'Test.cls') },
+          { fullName: 'Test2', type: 'layout', content: path.join(testPath, 'Test2.layout') }
         ]
       } as any);
     });
 
     it('should handle string componentPath', async () => {
       const metadataCacheService = new MetadataCacheService('test-user');
-      metadataCacheService.initialize('/test/path', '/project/path', false);
+      metadataCacheService.initialize([testPath], projectPath, false);
 
       // Mock ComponentSet.fromSource to return a ComponentSet
       jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(dummyComponentSet);
 
       const result = await metadataCacheService.getSourceComponents();
 
-      expect(ComponentSet.fromSource).toHaveBeenCalledWith('/test/path');
+      expect(ComponentSet.fromSource).toHaveBeenCalledWith([testPath]);
       expect(result).toBe(dummyComponentSet);
     });
 
     it('should handle array componentPath', async () => {
       const metadataCacheService = new MetadataCacheService('test-user');
-      const componentPaths = ['/test/path1', '/test/path2'];
-      metadataCacheService.initialize(componentPaths, '/project/path', false);
+      const componentPaths = [testPath1, testPath2];
+      metadataCacheService.initialize(componentPaths, projectPath, false);
 
       // Mock ComponentSet.fromSource to return a ComponentSet
       jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(dummyComponentSet);
@@ -255,10 +266,10 @@ describe('MetadataCacheService', () => {
 
     it('should handle manifest componentPath', async () => {
       const metadataCacheService = new MetadataCacheService('test-user');
-      metadataCacheService.initialize('/test/manifest.xml', '/project/path', true);
+      metadataCacheService.initialize([testManifestPath], projectPath, true);
 
       // Mock SalesforcePackageDirectories.getPackageDirectoryFullPaths directly
-      jest.spyOn(SalesforcePackageDirectories, 'getPackageDirectoryFullPaths').mockResolvedValue(['/package/dir']);
+      jest.spyOn(SalesforcePackageDirectories, 'getPackageDirectoryFullPaths').mockResolvedValue([packageDirPath]);
 
       // Mock ComponentSet.fromManifest to return a ComponentSet
       jest.spyOn(ComponentSet, 'fromManifest').mockResolvedValue(dummyComponentSet);
@@ -266,8 +277,8 @@ describe('MetadataCacheService', () => {
       const result = await metadataCacheService.getSourceComponents();
 
       expect(ComponentSet.fromManifest).toHaveBeenCalledWith({
-        manifestPath: '/test/manifest.xml',
-        resolveSourcePaths: ['/package/dir'],
+        manifestPath: testManifestPath,
+        resolveSourcePaths: [packageDirPath],
         forceAddWildcards: true
       });
       expect(result).toBe(dummyComponentSet);
@@ -286,11 +297,15 @@ describe('MetadataCacheService', () => {
   describe('processResults', () => {
     it('should set PathType.Multiple for array componentPath', async () => {
       const metadataCacheService = new MetadataCacheService('test-user');
-      const componentPaths = ['/test/path1', '/test/path2'];
-      metadataCacheService.initialize(componentPaths, '/project/path', false);
+      const componentPaths = [testPath1, testPath2];
+      metadataCacheService.initialize(componentPaths, projectPath, false);
 
       const mockComponents = [
-        { type: { name: 'ApexClass' }, fullName: 'TestClass', content: '/cache/path/TestClass.cls' } as SourceComponent
+        {
+          type: { name: 'ApexClass' },
+          fullName: 'TestClass',
+          content: cachePath
+        } as SourceComponent
       ];
       const testComponentSet = new ComponentSet();
       jest.spyOn(testComponentSet, 'getSourceComponents').mockReturnValue({
@@ -314,12 +329,16 @@ describe('MetadataCacheService', () => {
 
     it('should set PathType.Folder for directory componentPath', async () => {
       const metadataCacheService = new MetadataCacheService('test-user');
-      metadataCacheService.initialize('/test/directory', '/project/path', false);
+      metadataCacheService.initialize([testDirectoryPath], projectPath, false);
 
       isDirectoryMock.mockResolvedValue(true);
 
       const mockComponents = [
-        { type: { name: 'ApexClass' }, fullName: 'TestClass', content: '/cache/path/TestClass.cls' } as SourceComponent
+        {
+          type: { name: 'ApexClass' },
+          fullName: 'TestClass',
+          content: cachePath
+        } as SourceComponent
       ];
       const testComponentSet = new ComponentSet();
       jest.spyOn(testComponentSet, 'getSourceComponents').mockReturnValue({
@@ -337,16 +356,20 @@ describe('MetadataCacheService', () => {
       const result = await metadataCacheService.processResults(mockResult as any);
 
       expect(result).toBeDefined();
-      expect(result?.selectedPath).toBe('/test/directory');
+      expect(result?.selectedPath).toEqual([testDirectoryPath]);
       expect(result?.selectedType).toBe(PathType.Folder);
     });
 
     it('should set PathType.Manifest for manifest componentPath', async () => {
       const metadataCacheService = new MetadataCacheService('test-user');
-      metadataCacheService.initialize('/test/manifest.xml', '/project/path', true);
+      metadataCacheService.initialize([testManifestPath], projectPath, true);
 
       const mockComponents = [
-        { type: { name: 'ApexClass' }, fullName: 'TestClass', content: '/cache/path/TestClass.cls' } as SourceComponent
+        {
+          type: { name: 'ApexClass' },
+          fullName: 'TestClass',
+          content: cachePath
+        } as SourceComponent
       ];
       const testComponentSet = new ComponentSet();
       jest.spyOn(testComponentSet, 'getSourceComponents').mockReturnValue({
@@ -364,18 +387,22 @@ describe('MetadataCacheService', () => {
       const result = await metadataCacheService.processResults(mockResult as any);
 
       expect(result).toBeDefined();
-      expect(result?.selectedPath).toBe('/test/manifest.xml');
+      expect(result?.selectedPath).toEqual([testManifestPath]);
       expect(result?.selectedType).toBe(PathType.Manifest);
     });
 
     it('should set PathType.Individual for single file componentPath', async () => {
       const metadataCacheService = new MetadataCacheService('test-user');
-      metadataCacheService.initialize('/test/file.cls', '/project/path', false);
+      metadataCacheService.initialize([path.join(path.sep, 'test', 'file.cls')], projectPath, false);
 
       isDirectoryMock.mockResolvedValue(false);
 
       const mockComponents = [
-        { type: { name: 'ApexClass' }, fullName: 'TestClass', content: '/cache/path/TestClass.cls' } as SourceComponent
+        {
+          type: { name: 'ApexClass' },
+          fullName: 'TestClass',
+          content: cachePath
+        } as SourceComponent
       ];
       const testComponentSet = new ComponentSet();
       jest.spyOn(testComponentSet, 'getSourceComponents').mockReturnValue({
@@ -393,13 +420,13 @@ describe('MetadataCacheService', () => {
       const result = await metadataCacheService.processResults(mockResult as any);
 
       expect(result).toBeDefined();
-      expect(result?.selectedPath).toBe('/test/file.cls');
+      expect(result?.selectedPath).toEqual([path.join(path.sep, 'test', 'file.cls')]);
       expect(result?.selectedType).toBe(PathType.Individual);
     });
 
     it('should return undefined when no components', async () => {
       const metadataCacheService = new MetadataCacheService('test-user');
-      metadataCacheService.initialize('/test/path', '/project/path', false);
+      metadataCacheService.initialize([testPath], projectPath, false);
 
       const testComponentSet = new ComponentSet();
       jest.spyOn(testComponentSet, 'getSourceComponents').mockReturnValue({
@@ -418,7 +445,7 @@ describe('MetadataCacheService', () => {
 
     it('should return undefined when no result', async () => {
       const metadataCacheService = new MetadataCacheService('test-user');
-      metadataCacheService.initialize('/test/path', '/project/path', false);
+      metadataCacheService.initialize([testPath], projectPath, false);
 
       const result = await metadataCacheService.processResults(undefined);
 

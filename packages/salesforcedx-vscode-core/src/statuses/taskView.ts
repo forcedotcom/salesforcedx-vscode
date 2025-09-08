@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode';
+import type { CommandExecution } from '@salesforce/salesforcedx-utils';
 import {
   CancellationTokenSource,
   Event,
@@ -82,8 +82,8 @@ export class TaskViewService implements TreeDataProvider<Task> {
 }
 
 export class Task extends TreeItem {
-  public readonly label?: string;
-  public readonly collapsibleState?: TreeItemCollapsibleState;
+  public readonly label?: string = undefined;
+  public readonly collapsibleState?: TreeItemCollapsibleState = undefined;
   private readonly taskViewProvider: TaskViewService;
   private readonly execution: CommandExecution;
   private readonly cancellationTokenSource?: CancellationTokenSource;

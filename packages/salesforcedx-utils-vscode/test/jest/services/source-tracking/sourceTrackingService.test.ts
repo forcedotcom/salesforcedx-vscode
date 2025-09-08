@@ -4,15 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as path from 'node:path';
 import { WorkspaceContextUtil } from '../../../../src';
+import { SourceTrackingProvider } from '../../../../src/providers/sourceTrackingProvider';
 import { SourceTrackingService } from '../../../../src/services';
 import { testData } from './testData';
 
-jest.mock('@salesforce/core-bundle', () => ({
-  ...jest.requireActual('@salesforce/core-bundle'),
+jest.mock('@salesforce/core', () => ({
+  ...jest.requireActual('@salesforce/core'),
   Org: { create: jest.fn() },
   SfProject: { resolve: jest.fn() }
 }));
+
+jest.mock('../../../../src/providers/sourceTrackingProvider');
 
 describe('Source Tracking Service', () => {
   describe('updateSourceTrackingAfterRetrieve', () => {
@@ -83,6 +87,37 @@ describe('Source Tracking Service', () => {
       expect(getSourceTrackingForCurrentProjectMock).toHaveBeenCalled();
       expect(getStatusMock).toHaveBeenCalled();
       expect(formattedOutput).toMatchSnapshot();
+    });
+  });
+
+  describe('clearSourceTracking', () => {
+    const mockConnection = {
+      getUsername: jest.fn().mockReturnValue('test@example.com')
+    } as any;
+    const mockSourceTracking = {
+      updateTrackingFromRetrieve: jest.fn(),
+      updateTrackingFromDeploy: jest.fn(),
+      getStatus: jest.fn(),
+      localChangesAsComponentSet: jest.fn(),
+      ensureRemoteTracking: jest.fn(),
+      maybeApplyRemoteDeletesToLocal: jest.fn()
+    } as any;
+    const mockProvider: SourceTrackingProvider = {
+      getSourceTracker: jest.fn().mockResolvedValue(mockSourceTracking),
+      clearSourceTracker: jest.fn()
+    } as any;
+
+    beforeEach(() => {
+      (SourceTrackingProvider.getInstance as jest.Mock).mockReturnValue(mockProvider);
+    });
+
+    it('should call clearSourceTracker on the provider with valid parameters', () => {
+      const projectPath = path.join('test', 'project', 'path');
+
+      SourceTrackingService.clearSourceTracking(projectPath, mockConnection);
+
+      expect(SourceTrackingProvider.getInstance).toHaveBeenCalled();
+      expect(mockProvider.clearSourceTracker).toHaveBeenCalledWith(projectPath, mockConnection);
     });
   });
 });
