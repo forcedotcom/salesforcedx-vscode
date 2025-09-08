@@ -7,11 +7,11 @@
 
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { retrieveOrgBrowserNode } from './commands/retrieveMetadata';
+import { retrieveOrgBrowserTreeItemCommand } from './commands/retrieveMetadata';
 import { TREE_VIEW_ID } from './constants';
 import { ExtensionProviderService, ExtensionProviderServiceLive } from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
-import { OrgBrowserNode } from './tree/orgBrowserNode';
+import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> =>
   Effect.runPromise(Effect.provide(activateEffect(context), ExtensionProviderServiceLive));
@@ -40,14 +40,14 @@ export const activateEffect = (
 
         // Register commands
         context.subscriptions.push(
-          vscode.commands.registerCommand(`${TREE_VIEW_ID}.refreshType`, async (node: OrgBrowserNode) => {
+          vscode.commands.registerCommand(`${TREE_VIEW_ID}.refreshType`, async (node: OrgBrowserTreeItem) => {
             await treeProvider.refreshType(node);
           }),
           vscode.commands.registerCommand(`${TREE_VIEW_ID}.collapseAll`, () => {
             vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_ID}.collapseAll`);
           }),
-          vscode.commands.registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, async (node: OrgBrowserNode) => {
-            await retrieveOrgBrowserNode(node);
+          vscode.commands.registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, async (node: OrgBrowserTreeItem) => {
+            await retrieveOrgBrowserTreeItemCommand(node, treeProvider);
           })
         );
 

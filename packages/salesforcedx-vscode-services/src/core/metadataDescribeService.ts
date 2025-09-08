@@ -112,7 +112,6 @@ export const MetadataDescribeServiceLive = Layer.effect(
         Effect.withSpan('listMetadata', { attributes: { metadataType: type, folder } }),
         Effect.provide(SdkLayer)
       );
-
     return { describe, listMetadata, describeCustomObject };
   })
 );

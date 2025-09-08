@@ -21,6 +21,7 @@ export const ExtensionProviderService = Context.GenericTag<ExtensionProviderServ
 const isSalesforceVSCodeServicesApi = (api: unknown): api is SalesforceVSCodeServicesApi =>
   api !== null && api !== undefined && typeof api === 'object' && 'services' in api;
 
+/** connect to the Salesforce Services extension and get all of its API services */
 const getServicesApi = Effect.sync(() =>
   vscode.extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services')
 ).pipe(

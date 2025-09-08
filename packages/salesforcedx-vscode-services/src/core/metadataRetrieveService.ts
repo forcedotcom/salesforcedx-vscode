@@ -10,8 +10,10 @@ import {
   type MetadataMember,
   type RegistryAccess,
   MetadataApiRetrieve,
-  ComponentSet
+  ComponentSet,
+  MetadataType
 } from '@salesforce/source-deploy-retrieve';
+import { filePathsFromMetadataComponent } from '@salesforce/source-deploy-retrieve/lib/src/utils/filePathGenerator';
 
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
@@ -47,11 +49,7 @@ export type MetadataRetrieveService = {
   >;
 
   /** given a type and name, return a glob pattern that can be used to search for the file in the local project */
-  readonly getLocationGlob: (
-    type: string,
-    name: string
-    // folder?: string
-  ) => Effect.Effect<string, Error, WorkspaceService | MetadataRegistryService>;
+  readonly getFilePath: (type: MetadataType, name: string) => Effect.Effect<string[], Error, MetadataRegistryService>;
 };
 
 export const MetadataRetrieveService = Context.GenericTag<MetadataRetrieveService>('MetadataRetrieveService');
@@ -129,23 +127,15 @@ const retrieve = (
     Effect.provide(SdkLayer)
   );
 
-const getLocationGlob = (
-  type: string,
-  name: string
-  // folder?: string
-): Effect.Effect<string, Error, WorkspaceService | MetadataRegistryService> =>
-  Effect.gen(function* () {
-    const registryAccess = yield* Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess());
-    const mdType = registryAccess.getTypeByName(type);
-    return `**/${mdType.directoryName}/${name}.${mdType.suffix}-meta.xml`;
-  });
+const getFilePath = (type: MetadataType, name: string): Effect.Effect<string[], Error> =>
+  Effect.try(() => filePathsFromMetadataComponent({ type, fullName: name }));
 
 export const MetadataRetrieveServiceLive = Layer.effect(
   MetadataRetrieveService,
   Effect.gen(function* () {
     return {
       retrieve,
-      getLocationGlob
+      getFilePath
     };
   })
 );

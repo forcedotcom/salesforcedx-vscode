@@ -10,9 +10,13 @@ import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { ExtensionProviderServiceLive } from '../services/extensionProvider';
 import { MetadataRetrieveService, MetadataRetrieveServiceLive } from '../services/metadataRetrieveService';
-import { OrgBrowserNode } from '../tree/orgBrowserNode';
+import { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider';
+import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 
-export const retrieveOrgBrowserNode = async (node: OrgBrowserNode): Promise<void> => {
+export const retrieveOrgBrowserTreeItemCommand = async (
+  node: OrgBrowserTreeItem,
+  treeProvider: MetadataTypeTreeProvider
+): Promise<void> => {
   const target = getRetrieveTarget(node);
   if (!target) return;
 
@@ -25,11 +29,17 @@ export const retrieveOrgBrowserNode = async (node: OrgBrowserNode): Promise<void
     ),
     Effect.provide(Layer.mergeAll(MetadataRetrieveServiceLive, ExtensionProviderServiceLive))
   );
-
   await Effect.runPromise(retrieveEffect);
+
+  if (node.kind === 'component') {
+    node.iconPath = getIconPath(true);
+    treeProvider.fireChangeEvent(node);
+  } else {
+    await treeProvider.refreshType(node);
+  }
 };
 
-const getRetrieveTarget = (node: OrgBrowserNode): MetadataMember | undefined => {
+const getRetrieveTarget = (node: OrgBrowserTreeItem): MetadataMember | undefined => {
   if (node.kind === 'folderType') {
     // folderType nodes don't have retrieve functionality
     return undefined;
