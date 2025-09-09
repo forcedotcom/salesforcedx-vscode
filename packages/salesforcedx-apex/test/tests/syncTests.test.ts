@@ -18,7 +18,8 @@ import {
   ApexCodeCoverage,
   ResultFormat,
   OutputDirConfig,
-  TestResult
+  TestResult,
+  TestCategory
 } from '../../src/tests/types';
 import { nls } from '../../src/i18n';
 import {
@@ -270,6 +271,132 @@ describe('Run Apex tests synchronously', () => {
           nls.localize('invalidsObjectErr', ['ApexClass', errMsg])
         );
       }
+    });
+  });
+
+  describe('Test Category Support in Sync Tests', () => {
+    let syncTests: SyncTests;
+
+    beforeEach(() => {
+      syncTests = new SyncTests(mockConnection);
+    });
+
+    it('should assign Apex category to regular Apex tests', async () => {
+      const mockSyncResult = {
+        numTestsRun: 1,
+        numFailures: 0,
+        totalTime: 100,
+        successes: [
+          {
+            id: '01pxx00000NWwb3AAD',
+            methodName: 'testMethod',
+            name: 'TestApexClass',
+            namespace: null as string | null, // Regular Apex test without namespace
+            seeAllData: false,
+            time: 50
+          }
+        ],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        failures: [] as any[],
+        apexLogId: '07Lxx00000cxy6YUAQ'
+      };
+
+      const result = await syncTests.formatSyncResults(
+        mockSyncResult,
+        Date.now()
+      );
+
+      expect(result.tests).to.have.length(1);
+      expect(result.tests[0].category).to.equal(TestCategory.Apex);
+      expect(result.tests[0].apexClass.fullName).to.equal('TestApexClass');
+    });
+
+    it('should assign Flow category to Flow tests', async () => {
+      const mockSyncResult = {
+        numTestsRun: 1,
+        numFailures: 0,
+        totalTime: 100,
+        successes: [
+          {
+            id: '01pxx00000FlowTest01',
+            methodName: 'testFlowMethod',
+            name: 'TestFlowClass',
+            namespace: 'FlowTesting.TestFlow', // Flow test namespace
+            seeAllData: false,
+            time: 75
+          }
+        ],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        failures: [] as any[],
+        apexLogId: '07Lxx00000cxy6YUAQ'
+      };
+
+      const result = await syncTests.formatSyncResults(
+        mockSyncResult,
+        Date.now()
+      );
+
+      expect(result.tests).to.have.length(1);
+      expect(result.tests[0].category).to.equal(TestCategory.Flow);
+      expect(result.tests[0].apexClass.fullName).to.equal(
+        'FlowTesting.TestFlow.TestFlowClass'
+      );
+    });
+
+    it('should assign correct categories for namespaced tests', async () => {
+      const mockSyncResult = {
+        numTestsRun: 2,
+        numFailures: 0,
+        totalTime: 150,
+        successes: [
+          {
+            id: '01pxx00000CustomTest',
+            methodName: 'testCustomMethod',
+            name: 'CustomTestClass',
+            namespace: 'myorg',
+            seeAllData: false,
+            time: 60
+          },
+          {
+            id: '01pxx00000FlowTest02',
+            methodName: 'testAnotherFlow',
+            name: 'AnotherFlowTest',
+            namespace: 'FlowTesting.AnotherFlow',
+            seeAllData: false,
+            time: 90
+          }
+        ],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        failures: [] as any[],
+        apexLogId: '07Lxx00000cxy6YUAQ'
+      };
+
+      const result = await syncTests.formatSyncResults(
+        mockSyncResult,
+        Date.now()
+      );
+
+      expect(result.tests).to.have.length(2);
+
+      // Verify custom namespace Apex test
+      const customApexTest = result.tests.find(
+        (t) => t.methodName === 'testCustomMethod'
+      );
+      expect(customApexTest).to.exist;
+      expect(customApexTest.category).to.equal(TestCategory.Apex);
+      expect(customApexTest.apexClass.fullName).to.equal(
+        'myorg.CustomTestClass'
+      );
+
+      // Verify Flow test with extended namespace
+      const flowTest = result.tests.find(
+        (t) => t.methodName === 'testAnotherFlow'
+      );
+      expect(flowTest).to.exist;
+      expect(flowTest.category).to.equal(TestCategory.Flow);
+      expect(flowTest.apexClass.fullName).to.equal(
+        'FlowTesting.AnotherFlow.AnotherFlowTest'
+      );
     });
   });
 });

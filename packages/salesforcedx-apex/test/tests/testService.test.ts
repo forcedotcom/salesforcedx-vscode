@@ -10,6 +10,7 @@ import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub, spy } from 'sinon';
 import { TestService } from '../../src';
+import { TestLevel } from '../../src/tests/types';
 
 let mockConnection: Connection;
 let sandboxStub: SinonSandbox;
@@ -285,6 +286,235 @@ describe('Apex Test Suites', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (testService as any).buildTestPayload(tests);
       expect(result.tests.toString()).to.equal(testsPayload.tests.toString());
+    });
+
+    it('should correctly identify and separate Flow tests from Apex tests', async () => {
+      const tests =
+        'TestClass1.method1,FlowTesting.TestFlow.TestFlowClass.method1,TestClass2.method2';
+
+      const testService = new TestService(mockConnection);
+      // Mock the processFlowTest and processApexTest methods
+      const processFlowTestSpy = sandboxStub.spy(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        testService as any,
+        'processFlowTest'
+      );
+      const processApexTestSpy = sandboxStub.spy(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        testService as any,
+        'processApexTest'
+      );
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (testService as any).buildTestPayload(tests);
+
+      // Verify that processFlowTest was called for Flow test
+      expect(processFlowTestSpy.calledOnce).to.be.true;
+      expect(processFlowTestSpy.args[0][0]).to.deep.equal([
+        'FlowTesting',
+        'TestFlow',
+        'TestFlowClass',
+        'method1'
+      ]);
+
+      // Verify that processApexTest was called for Apex tests
+      expect(processApexTestSpy.calledTwice).to.be.true;
+      expect(processApexTestSpy.args[0][0]).to.deep.equal([
+        'TestClass1',
+        'method1'
+      ]);
+      expect(processApexTestSpy.args[1][0]).to.deep.equal([
+        'TestClass2',
+        'method2'
+      ]);
+    });
+
+    it('should handle only Flow tests in test payload', async () => {
+      const tests =
+        'FlowTesting.TestFlow1.TestFlowClass1.method1,FlowTesting.TestFlow2.TestFlowClass2.method2';
+
+      const testService = new TestService(mockConnection);
+      const processFlowTestSpy = sandboxStub.spy(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        testService as any,
+        'processFlowTest'
+      );
+      const processApexTestSpy = sandboxStub.spy(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        testService as any,
+        'processApexTest'
+      );
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (testService as any).buildTestPayload(tests);
+
+      // Verify that only processFlowTest was called
+      expect(processFlowTestSpy.calledTwice).to.be.true;
+      expect(processApexTestSpy.notCalled).to.be.true;
+    });
+
+    it('should handle only Apex tests in test payload', async () => {
+      const tests =
+        'TestClass1.method1,TestClass2.method2,namespace.TestClass3.method3';
+
+      const testService = new TestService(mockConnection);
+      const processFlowTestSpy = sandboxStub.spy(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        testService as any,
+        'processFlowTest'
+      );
+      const processApexTestSpy = sandboxStub.spy(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        testService as any,
+        'processApexTest'
+      );
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (testService as any).buildTestPayload(tests);
+
+      // Verify that only processApexTest was called
+      expect(processApexTestSpy.calledThrice).to.be.true;
+      expect(processFlowTestSpy.notCalled).to.be.true;
+    });
+  });
+
+  describe('Category Support in Test Payloads', () => {
+    let testService: TestService;
+
+    beforeEach(() => {
+      testService = new TestService(mockConnection);
+    });
+
+    describe('buildSyncPayload', () => {
+      it('should include category in sync payload when category is provided', async () => {
+        const result = await testService.buildSyncPayload(
+          TestLevel.RunLocalTests,
+          undefined,
+          undefined,
+          'Flow'
+        );
+
+        expect(result).to.deep.equal({
+          testLevel: TestLevel.RunLocalTests,
+          category: ['Flow']
+        });
+      });
+
+      it('should handle multiple categories in sync payload', async () => {
+        const result = await testService.buildSyncPayload(
+          TestLevel.RunLocalTests,
+          undefined,
+          undefined,
+          'Flow,Apex'
+        );
+
+        expect(result).to.deep.equal({
+          testLevel: TestLevel.RunLocalTests,
+          category: ['Flow', 'Apex']
+        });
+      });
+
+      it('should not include category in sync payload when category is not provided', async () => {
+        const result = await testService.buildSyncPayload(
+          TestLevel.RunLocalTests,
+          'TestClass.method1', // Provide tests to avoid validation error
+          undefined,
+          undefined
+        );
+
+        expect(result).to.not.have.property('category');
+        expect(result.testLevel).to.equal(TestLevel.RunSpecifiedTests);
+      });
+
+      it('should handle classnames with category for Flow tests in sync payload', async () => {
+        // Mock the buildClassPayloadForFlow method
+        const mockFlowPayload = {
+          testLevel: TestLevel.RunSpecifiedTests,
+          tests: [{ className: 'FlowTestClass' }]
+        };
+        sandboxStub
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .stub(testService as any, 'buildClassPayloadForFlow')
+          .resolves(mockFlowPayload);
+
+        const result = await testService.buildSyncPayload(
+          TestLevel.RunSpecifiedTests,
+          undefined,
+          'FlowTestClass',
+          'Flow'
+        );
+
+        expect(result).to.deep.equal(mockFlowPayload);
+      });
+    });
+
+    describe('buildAsyncPayload', () => {
+      it('should include category in async payload when not provided', async () => {
+        const result = await testService.buildAsyncPayload(
+          TestLevel.RunLocalTests,
+          undefined,
+          undefined,
+          undefined,
+          'Flow'
+        );
+
+        expect(result).to.deep.equal({
+          suiteNames: undefined,
+          testLevel: TestLevel.RunLocalTests,
+          category: ['Flow']
+        });
+      });
+
+      it('should not include category in async payload when not provided', async () => {
+        const result = await testService.buildAsyncPayload(
+          TestLevel.RunSpecifiedTests,
+          undefined,
+          'TestClass',
+          undefined,
+          undefined
+        );
+
+        expect(result).to.deep.equal({
+          testLevel: TestLevel.RunSpecifiedTests,
+          tests: [{ className: 'TestClass' }]
+        });
+        expect(result).to.not.have.property('category');
+      });
+    });
+
+    describe('Private utility methods', () => {
+      it('should correctly identify when category is provided (hasCategory)', () => {
+        // Test hasCategory method behavior through public interface
+        // Since hasCategory is private, we test its behavior indirectly
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const testServiceAny = testService as any;
+
+        // Test that valid categories return truthy values
+        expect(testServiceAny.hasCategory('Flow')).to.be.ok;
+        expect(testServiceAny.hasCategory('Flow,Apex')).to.be.ok;
+
+        // Test that invalid categories return falsy values
+        expect(testServiceAny.hasCategory('')).to.not.be.ok;
+        expect(testServiceAny.hasCategory(null)).to.not.be.ok;
+        expect(testServiceAny.hasCategory(undefined)).to.not.be.ok;
+      });
+
+      it('should correctly convert category string to array (toArray)', () => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const testServiceAny = testService as any;
+
+        expect(testServiceAny.toArray('Flow')).to.deep.equal(['Flow']);
+        expect(testServiceAny.toArray('Flow,Apex')).to.deep.equal([
+          'Flow',
+          'Apex'
+        ]);
+        expect(testServiceAny.toArray('Flow,Apex,Custom')).to.deep.equal([
+          'Flow',
+          'Apex',
+          'Custom'
+        ]);
+        expect(testServiceAny.toArray('')).to.deep.equal(['']);
+      });
     });
   });
 });

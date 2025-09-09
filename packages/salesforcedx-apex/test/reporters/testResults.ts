@@ -738,6 +738,183 @@ export const junitMissingVal = util.format(
 );
 export const junitSetup = util.format(successTemplate, setupProperties);
 
+// Test data with category field for testing showCategory functionality
+export const testResultsWithCategory: TestResult = {
+  summary: {
+    failRate: '33%',
+    testsRan: 3,
+    orgId: '00D3t000001vIruEAE',
+    outcome: 'Completed',
+    passRate: '67%',
+    skipRate: '0%',
+    testStartTime: isoStartTime,
+    testExecutionTimeInMs: 5463,
+    testTotalTimeInMs: 5463,
+    commandTimeInMs: 6000,
+    testRunId: '7073t000061uwZI',
+    userId: '0053t000007OxppAAC',
+    username: 'tpo-3',
+    failing: 1,
+    skipped: 0,
+    passing: 2,
+    hostname: 'https://na139.salesforce.com'
+  },
+  tests: [
+    {
+      id: '07M3t000003bQwqEAE',
+      queueItemId: '7093t000000c0eWAAQ',
+      stackTrace: null,
+      message: null,
+      asyncApexJobId: '7073t000061uwZIAAY',
+      methodName: 'should_create_account',
+      outcome: ApexTestResultOutcome.Pass,
+      apexLogId: null,
+      apexClass: {
+        id: '01p3t000000ivLzAAI',
+        name: 'AccountServiceTest',
+        namespacePrefix: null,
+        fullName: 'AccountServiceTest'
+      },
+      runTime: 86,
+      testTimestamp: '2020-11-09T18:02:51.000+0000',
+      fullName: 'AccountServiceTest.should_create_account',
+      category: 'Apex'
+    },
+    {
+      id: '07M3t000003bQwgEAE',
+      queueItemId: '7093t000000c0eXAAQ',
+      stackTrace: null,
+      message: '',
+      asyncApexJobId: '7073t000061uwZIAAY',
+      methodName: 'testCallout',
+      outcome: ApexTestResultOutcome.Pass,
+      apexLogId: null,
+      apexClass: {
+        id: '01p3t000000imbvAAA',
+        name: 'AwesomeCalculatorTest',
+        namespacePrefix: null,
+        fullName: 'AwesomeCalculatorTest'
+      },
+      runTime: 23,
+      testTimestamp: '2020-11-09T18:02:51.000+0000',
+      fullName: 'AwesomeCalculatorTest.testCallout',
+      category: 'Flow'
+    },
+    {
+      id: '07M3t000003bQwmEAE',
+      queueItemId: '7093t000000c0eZAAQ',
+      stackTrace:
+        'Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1',
+      message:
+        'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',
+      asyncApexJobId: '7073t000061uwZIAAY',
+      methodName: 'testMissingAnimal',
+      outcome: ApexTestResultOutcome.Fail,
+      apexLogId: null,
+      apexClass: {
+        id: '01p3t000001ytUmAAI',
+        name: 'AnimalLocatorTest',
+        namespacePrefix: null,
+        fullName: 'AnimalLocatorTest'
+      },
+      runTime: 5,
+      testTimestamp: '2020-11-09T18:02:51.000+0000',
+      fullName: 'AnimalLocatorTest.testMissingAnimal',
+      category: 'Apex'
+    }
+  ],
+  setup: []
+};
+
+// Test data with category field and code coverage for detailed coverage tests
+export const coverageResultWithCategory: TestResult = {
+  ...coverageResult,
+  tests: [
+    {
+      ...coverageResult.tests[0],
+      category: 'Apex',
+      perClassCoverage: [
+        {
+          apexClassOrTriggerName: 'AccountService',
+          apexClassOrTriggerId: '01p3t000000ivLzAAI',
+          apexTestClassId: '01p3t000000ivLzAAI',
+          apexTestMethodName: 'should_create_account',
+          numLinesCovered: 17,
+          numLinesUncovered: 3,
+          percentage: '85%'
+        }
+      ]
+    },
+    {
+      ...coverageResult.tests[1],
+      category: 'Flow',
+      perClassCoverage: [
+        {
+          apexClassOrTriggerName: 'CalculatorUtils',
+          apexClassOrTriggerId: '01p3t000000imbvAAA',
+          apexTestClassId: '01p3t000000imbvAAA',
+          apexTestMethodName: 'testCallout',
+          numLinesCovered: 23,
+          numLinesUncovered: 2,
+          percentage: '92%'
+        }
+      ]
+    }
+  ]
+};
+
+// Test data with category field, code coverage and failed tests for concise mode testing
+export const coverageFailResultWithCategory: TestResult = {
+  ...coverageFailResult,
+  tests: [
+    {
+      ...coverageFailResult.tests[0],
+      category: 'Apex',
+      perClassCoverage: [
+        {
+          apexClassOrTriggerName: 'AccountService',
+          apexClassOrTriggerId: '01p3t000000ivLzAAI',
+          apexTestClassId: '01p3t000000ivLzAAI',
+          apexTestMethodName: 'should_create_account',
+          numLinesCovered: 17,
+          numLinesUncovered: 3,
+          percentage: '85%'
+        }
+      ]
+    },
+    {
+      ...coverageFailResult.tests[1],
+      category: 'Flow',
+      perClassCoverage: [
+        {
+          apexClassOrTriggerName: 'CalculatorUtils',
+          apexClassOrTriggerId: '01p3t000000imbvAAA',
+          apexTestClassId: '01p3t000000imbvAAA',
+          apexTestMethodName: 'testCallout',
+          numLinesCovered: 23,
+          numLinesUncovered: 2,
+          percentage: '92%'
+        }
+      ]
+    },
+    {
+      ...coverageFailResult.tests[2],
+      category: 'Apex',
+      perClassCoverage: [
+        {
+          apexClassOrTriggerName: 'AnimalLocator',
+          apexClassOrTriggerId: '01p3t000001ytUmAAI',
+          apexTestClassId: '01p3t000001ytUmAAI',
+          apexTestMethodName: 'testMissingAnimal',
+          numLinesCovered: 5,
+          numLinesUncovered: 8,
+          percentage: '38%'
+        }
+      ]
+    }
+  ]
+};
+
 export function getTestData() {
   return {
     testResults: structuredClone(testResults),
@@ -747,6 +924,11 @@ export function getTestData() {
     junitMissingVal: junitMissingVal.toString(),
     junitSetup: junitSetup.toString(),
     setupResult: structuredClone(setupResult),
-    successResult: structuredClone(successResult)
+    successResult: structuredClone(successResult),
+    testResultsWithCategory: structuredClone(testResultsWithCategory),
+    coverageResultWithCategory: structuredClone(coverageResultWithCategory),
+    coverageFailResultWithCategory: structuredClone(
+      coverageFailResultWithCategory
+    )
   };
 }

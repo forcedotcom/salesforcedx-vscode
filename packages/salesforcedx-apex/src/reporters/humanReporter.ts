@@ -22,16 +22,17 @@ export class HumanReporter {
   public format(
     testResult: TestResult,
     detailedCoverage: boolean,
-    concise: boolean = false
+    concise: boolean = false,
+    showCategory: boolean = false
   ): string {
     HeapMonitor.getInstance().checkHeapSize('HumanReporter.format');
     try {
       return [
         ...(!testResult.codecoverage || !detailedCoverage
-          ? [this.formatTestResults(testResult.tests, concise)]
+          ? [this.formatTestResults(testResult.tests, concise, showCategory)]
           : []),
         ...(testResult.codecoverage && detailedCoverage
-          ? [this.formatDetailedCov(testResult, concise)]
+          ? [this.formatDetailedCov(testResult, concise, showCategory)]
           : []),
         ...(testResult.codecoverage && !concise
           ? [this.formatCodeCov(testResult.codecoverage)]
@@ -118,7 +119,8 @@ export class HumanReporter {
   @elapsedTime()
   private formatTestResults(
     tests: ApexTestResultData[],
-    concise: boolean
+    concise: boolean,
+    showCategory: boolean
   ): string {
     const testRowArray: Row[] = tests
       .filter(
@@ -129,6 +131,7 @@ export class HumanReporter {
       )
       .map((elem) => ({
         name: elem.fullName,
+        ...(showCategory && { category: elem.category }),
         outcome: elem.outcome,
         msg: buildMsg(elem),
         runtime:
@@ -136,19 +139,30 @@ export class HumanReporter {
       }));
 
     if (testRowArray.length > 0) {
-      return new Table().createTable(
-        testRowArray,
-        [
-          {
-            key: 'name',
-            label: nls.localize('testNameColHeader')
-          },
-          { key: 'outcome', label: nls.localize('outcomeColHeader') },
-          { key: 'msg', label: nls.localize('msgColHeader') },
-          { key: 'runtime', label: nls.localize('runtimeColHeader') }
-        ],
-        nls.localize('testResultsHeader')
-      );
+      if (showCategory) {
+        return new Table().createTable(
+          testRowArray,
+          [
+            { key: 'name', label: nls.localize('testNameColHeader') },
+            { key: 'category', label: nls.localize('categoryColHeader') },
+            { key: 'outcome', label: nls.localize('outcomeColHeader') },
+            { key: 'msg', label: nls.localize('msgColHeader') },
+            { key: 'runtime', label: nls.localize('runtimeColHeader') }
+          ],
+          nls.localize('testResultsHeader')
+        );
+      } else {
+        return new Table().createTable(
+          testRowArray,
+          [
+            { key: 'name', label: nls.localize('testNameColHeader') },
+            { key: 'outcome', label: nls.localize('outcomeColHeader') },
+            { key: 'msg', label: nls.localize('msgColHeader') },
+            { key: 'runtime', label: nls.localize('runtimeColHeader') }
+          ],
+          nls.localize('testResultsHeader')
+        );
+      }
     }
     return '';
   }
@@ -179,7 +193,11 @@ export class HumanReporter {
   }
 
   @elapsedTime()
-  private formatDetailedCov(testResult: TestResult, concise: boolean): string {
+  private formatDetailedCov(
+    testResult: TestResult,
+    concise: boolean,
+    showCategory: boolean
+  ): string {
     const testRowArray: Row[] = testResult.tests
       .filter(
         (elem: ApexTestResultData) =>
@@ -190,6 +208,7 @@ export class HumanReporter {
       .flatMap((elem) => {
         const base = {
           name: elem.fullName,
+          ...(showCategory && { category: elem.category }),
           outcome: elem.outcome,
           msg: buildMsg(elem),
           runtime: `${elem.runTime}`
@@ -211,6 +230,36 @@ export class HumanReporter {
       });
 
     if (testRowArray.length > 0) {
+      if (showCategory) {
+        return new Table().createTable(
+          testRowArray,
+          [
+            {
+              key: 'name',
+              label: nls.localize('testNameColHeader')
+            },
+            {
+              key: 'coveredClassName',
+              label: nls.localize('classTestedHeader')
+            },
+            {
+              key: 'category',
+              label: nls.localize('categoryColHeader')
+            },
+            {
+              key: 'outcome',
+              label: nls.localize('outcomeColHeader')
+            },
+            {
+              key: 'coveredClassPercentage',
+              label: nls.localize('percentColHeader')
+            },
+            { key: 'msg', label: nls.localize('msgColHeader') },
+            { key: 'runtime', label: nls.localize('runtimeColHeader') }
+          ],
+          nls.localize('detailedCodeCovHeader', [testResult.summary.testRunId])
+        );
+      }
       return new Table().createTable(
         testRowArray,
         [

@@ -20,6 +20,7 @@ export {
   OutputDirConfig,
   ResultFormat,
   SyncTestConfiguration,
+  TestCategory,
   TestItem,
   TestLevel,
   TestResult,

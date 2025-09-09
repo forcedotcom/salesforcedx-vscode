@@ -63,6 +63,7 @@ export const messages = {
   testNameColHeader: 'TEST NAME',
   testSetupMethodNameColHeader: 'TEST SETUP METHOD NAME',
   outcomeColHeader: 'OUTCOME',
+  categoryColHeader: 'CATEGORY',
   msgColHeader: 'MESSAGE',
   runtimeColHeader: 'RUNTIME (MS)',
   setupTimeColHeader: 'SETUP TIME',
