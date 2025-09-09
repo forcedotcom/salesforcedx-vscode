@@ -143,7 +143,7 @@ export const createLanguageServer = async (extensionContext: vscode.ExtensionCon
   return client;
 };
 
-export const buildClientOptions = (): ApexLanguageClientOptions => {
+const buildClientOptions = (): ApexLanguageClientOptions => {
   const soqlExtensionInstalled = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-soql') !== undefined;
   const lspParityCapabilities = vscode.workspace
     .getConfiguration()
