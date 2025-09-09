@@ -557,7 +557,7 @@
 
 "@jsforce/jsforce-node@^3.10.4", "@jsforce/jsforce-node@^3.10.5":
   version "3.10.5"
-  resolved "https://registry.yarnpkg.com/@jsforce/jsforce-node/-/jsforce-node-3.10.5.tgz#dcb7eec4520bcc0e2d8754d71a68a3ecf17054b4"
+  resolved "https://registry.npmjs.org/@jsforce/jsforce-node/-/jsforce-node-3.10.5.tgz"
   integrity sha512-0nAxqKlLWxb9EY2ZJRdIh9qkFV85JUZL9wOGgLVYnKqRKF8iUWEMDy6CvOU7OwQEMgkY1micZON6IrUlPLIM8w==
   dependencies:
     "@sindresorhus/is" "^4"
@@ -642,7 +642,7 @@
 
 "@salesforce/core@^8.23.0":
   version "8.23.0"
-  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-8.23.0.tgz#19e9effb2175507538157255d969e08925f91f76"
+  resolved "https://registry.npmjs.org/@salesforce/core/-/core-8.23.0.tgz"
   integrity sha512-njdJlo+SYtmuCBE1p8lwbcQF6oRsE1ZkcEQUElpu4WhB+DT/0mv7oN3eeYfh9Ss9Px95sSgzPJhEFLsZLwGJ4w==
   dependencies:
     "@jsforce/jsforce-node" "^3.10.4"
@@ -667,14 +667,14 @@
 
 "@salesforce/kit@^3.2.2", "@salesforce/kit@^3.2.4":
   version "3.2.4"
-  resolved "https://registry.yarnpkg.com/@salesforce/kit/-/kit-3.2.4.tgz#69fb56974685e41d26ae5db30a7261acdc731bb6"
+  resolved "https://registry.npmjs.org/@salesforce/kit/-/kit-3.2.4.tgz"
   integrity sha512-9buqZ2puIGWqjUFWYNroSeNih4d1s9kdQAzZfutr/Re/JMl6xBct0ATO5LVb1ty5UhdBruJrVaiTg03PqVKU+Q==
   dependencies:
     "@salesforce/ts-types" "^2.0.12"
 
 "@salesforce/schemas@^1.10.0":
   version "1.10.3"
-  resolved "https://registry.yarnpkg.com/@salesforce/schemas/-/schemas-1.10.3.tgz#52c867fdd60679cf216110aa49542b7ad391f5d1"
+  resolved "https://registry.npmjs.org/@salesforce/schemas/-/schemas-1.10.3.tgz"
   integrity sha512-FKfvtrYTcvTXE9advzS25/DEY9yJhEyLvStm++eQFtnAaX1pe4G3oGHgiQ0q55BM5+0AlCh0+0CVtQv1t4oJRA==
 
 "@salesforce/ts-types@^2.0.10", "@salesforce/ts-types@^2.0.11", "@salesforce/ts-types@^2.0.12":
@@ -735,10 +735,30 @@
   resolved "https://registry.npmjs.org/@tsconfig/node16/-/node16-1.0.4.tgz"
   integrity sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==
 
+"@types/chai-jest-snapshot@^1.3.8":
+  version "1.3.8"
+  resolved "https://registry.npmjs.org/@types/chai-jest-snapshot/-/chai-jest-snapshot-1.3.8.tgz"
+  integrity sha512-1t0qP5/Gjy8eGXVAJjtJ4heNyWaxISnXdPa54OatwuCHb0H4ypZuvnCvCoVCYvk/gFEyg9leJpBzPA7LtAKd/Q==
+  dependencies:
+    "@types/chai" "*"
+    "@types/mocha" "*"
+
+"@types/chai@*":
+  version "5.2.2"
+  resolved "https://registry.npmjs.org/@types/chai/-/chai-5.2.2.tgz"
+  integrity sha512-8kB30R7Hwqf40JPiKhVzodJs2Qc1ZJ5zuT3uzw5Hq/dhNCl3G3l83jfpdI1e20BP348+fV7VIL/+FxaXkqBmWg==
+  dependencies:
+    "@types/deep-eql" "*"
+
 "@types/chai@^4.3.17":
   version "4.3.20"
   resolved "https://registry.npmjs.org/@types/chai/-/chai-4.3.20.tgz"
   integrity sha512-/pC9HAB5I/xMlc5FP77qjCnI16ChlJfW0tGa0IUcFn38VJrTV6DeZ60NU5KZBtaOZqjdpwTWohz5HU1RrhiYxQ==
+
+"@types/deep-eql@*":
+  version "4.0.2"
+  resolved "https://registry.npmjs.org/@types/deep-eql/-/deep-eql-4.0.2.tgz"
+  integrity sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==
 
 "@types/istanbul-lib-coverage@*", "@types/istanbul-lib-coverage@^2.0.6":
   version "2.0.6"
@@ -769,14 +789,14 @@
   resolved "https://registry.npmjs.org/@types/minimist/-/minimist-1.2.5.tgz"
   integrity sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag==
 
-"@types/mocha@^10.0.10":
+"@types/mocha@*", "@types/mocha@^10.0.10":
   version "10.0.10"
   resolved "https://registry.npmjs.org/@types/mocha/-/mocha-10.0.10.tgz"
   integrity sha512-xPyYSz1cMPnJQhl0CLMH68j3gprKZaTjG3s5Vi+fDgx+uhG9NOXwbVt52eFS8ECyXhyKcjDLCBEqBExKuiZb7Q==
 
 "@types/node@^18":
   version "18.19.124"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.19.124.tgz#6f49e4fab8274910691a900e8a14316cbf3c7a31"
+  resolved "https://registry.npmjs.org/@types/node/-/node-18.19.124.tgz"
   integrity sha512-hY4YWZFLs3ku6D2Gqo3RchTd9VRCcrjqp/I0mmohYeUVA5Y8eCXKJEasHxLAJVZRJuQogfd1GiJ9lgogBgKeuQ==
   dependencies:
     undici-types "~5.26.4"
@@ -1972,7 +1992,7 @@ fast-diff@^1.1.2:
   resolved "https://registry.npmjs.org/fast-diff/-/fast-diff-1.3.0.tgz"
   integrity sha512-VxPP4NqbUjj6MaAOafWeUn2cXWLcCtljklUtZf0Ind4XQ+QPtmA0b18zZy0jIQx+ExRVCR/ZQpBmik5lXshNsw==
 
-fast-glob@^3.2.9, fast-glob@^3.3.2:
+fast-glob@^3.2.7, fast-glob@^3.2.9, fast-glob@^3.3.2:
   version "3.3.3"
   resolved "https://registry.npmjs.org/fast-glob/-/fast-glob-3.3.3.tgz"
   integrity sha512-7MptL8U0cqcFdzIzwOTHoilX9x5BrNqye7Z/LuC7kCMRio1EMSyqRK3BEAUD7sXRq4iT4AzTVuZdhgQ2TCvYLg==
@@ -3204,6 +3224,13 @@ mocha-junit-reporter@^2.2.1:
     mkdirp "^3.0.0"
     strip-ansi "^6.0.1"
     xml "^1.0.1"
+
+mocha-snap@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.npmjs.org/mocha-snap/-/mocha-snap-5.0.0.tgz"
+  integrity sha512-tl0iQb2zkN1pE1vzQSSnuEyR8GkB/uECMdvK5dcXPEjC316K4bzNd36TgLEXadMyQDhy0ny6FZxChm6rJAs9+Q==
+  dependencies:
+    fast-glob "^3.2.7"
 
 mocha@^10.8.2:
   version "10.8.2"
