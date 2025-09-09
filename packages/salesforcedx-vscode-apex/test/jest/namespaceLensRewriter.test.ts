@@ -121,7 +121,6 @@ describe('rewriteNamespaceLens Unit Tests', () => {
           ]);
 
           const result = rewriter(lens);
-
           expect(result.command?.arguments).toEqual(['MyClass.testMethod', 'MyNamespace.MyClass', 'SomeOtherArg']);
         });
 
@@ -133,10 +132,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
 
         it('should handle undefined arguments', () => {
           const lens = createMockCodeLens(title);
-          const rewriter = rewriteNamespaceLens()('MyNamespace');
-
           const result = rewriter(lens);
-
           expect(result.command?.arguments).toBeUndefined();
         });
       });
@@ -159,7 +155,6 @@ describe('rewriteNamespaceLens Unit Tests', () => {
 
         it('should handle multiple arguments', () => {
           const lens = createMockCodeLens(title, ['MyNamespace.MyClass', 'MyNamespace.AnotherClass']);
-          const rewriter = rewriteNamespaceLens()('MyNamespace');
 
           const result = rewriter(lens);
 
