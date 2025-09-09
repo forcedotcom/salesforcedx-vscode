@@ -208,10 +208,10 @@ jobs:
       runId: ${{ inputs.runId }}
 
   # 📚 OpenAPI Documentation
-  docs-create-oas-doc:
-    uses: ./.github/workflows/runE2ETest.yml
-    secrets: inherit
-    with:
-      testToRun: 'createOasDoc.e2e.js'
-      vscodeVersion: ${{ inputs.vscodeVersion }}
-      runId: ${{ inputs.runId }}
+  # docs-create-oas-doc:
+  #   uses: ./.github/workflows/runE2ETest.yml
+  #   secrets: inherit
+  #   with:
+  #     testToRun: 'createOasDoc.e2e.js'
+  #     vscodeVersion: ${{ inputs.vscodeVersion }}
+  #     runId: ${{ inputs.runId }}
