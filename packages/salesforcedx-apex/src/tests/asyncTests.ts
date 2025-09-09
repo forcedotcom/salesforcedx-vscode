@@ -62,6 +62,26 @@ import fs from 'node:fs/promises';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bfj = require('bfj');
 
+/**
+ * Standalone function for writing async test results to file - easier to test
+ */
+export const writeAsyncResultsToFile = async (
+  formattedResults: TestResult,
+  runId: string
+): Promise<void> => {
+  const rawResultsPath = path.join(os.tmpdir(), runId, 'rawResults.json');
+  await fs.mkdir(path.dirname(rawResultsPath), { recursive: true });
+  const writeStream = createWriteStream(
+    path.join(os.tmpdir(), runId, 'rawResults.json')
+  );
+  const stringifyStream = bfj.stringify(formattedResults, {
+    bufferLength: getBufferSize(),
+    iterables: 'ignore',
+    space: getJsonIndent()
+  });
+  return await pipeline(stringifyStream, writeStream);
+};
+
 const finishedStatuses = [
   ApexTestRunResultStatus.Aborted,
   ApexTestRunResultStatus.Failed,
@@ -239,18 +259,10 @@ export class AsyncTests {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.writeResultsToFile');
     try {
       if (this.logger.shouldLog(LoggerLevel.DEBUG)) {
-        const rawResultsPath = path.join(os.tmpdir(), runId, 'rawResults.json');
-        await fs.mkdir(path.dirname(rawResultsPath), { recursive: true });
-        const writeStream = createWriteStream(
-          path.join(os.tmpdir(), runId, 'rawResults.json')
+        await writeAsyncResultsToFile(formattedResults, runId);
+        this.logger.debug(
+          `Raw results written to: ${path.join(os.tmpdir(), runId, 'rawResults.json')}`
         );
-        this.logger.debug(`Raw results written to: ${writeStream.path}`);
-        const stringifyStream = bfj.stringify(formattedResults, {
-          bufferLength: getBufferSize(),
-          iterables: 'ignore',
-          space: getJsonIndent()
-        });
-        return await pipeline(stringifyStream, writeStream);
       }
     } finally {
       HeapMonitor.getInstance().checkHeapSize('asyncTests.writeResultsToFile');

@@ -45,6 +45,122 @@ import { createWriteStream } from 'node:fs';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bfj = require('bfj');
 
+/**
+ * Standalone function for writing test result files - easier to test
+ */
+export const writeResultFiles = async (
+  result: TestResult | TestRunIdResult,
+  outputDirConfig: OutputDirConfig,
+  codeCoverage = false,
+  runPipeline: (
+    readable: Readable,
+    filePath: string,
+    transform?: Transform
+  ) => Promise<string>
+): Promise<string[]> => {
+  const filesWritten: string[] = [];
+  const { dirPath, resultFormats, fileInfos } = outputDirConfig;
+
+  if (
+    resultFormats &&
+    !resultFormats.every((format) => format in ResultFormat)
+  ) {
+    throw new Error(nls.localize('resultFormatErr'));
+  }
+
+  await mkdir(dirPath, { recursive: true });
+
+  const testRunId = isTestResult(result)
+    ? result.summary.testRunId
+    : result.testRunId;
+
+  try {
+    await writeFile(join(dirPath, 'test-run-id.txt'), testRunId);
+    filesWritten.push(join(dirPath, 'test-run-id.txt'));
+  } catch (err) {
+    console.error(`Error writing file: ${err}`);
+  }
+
+  if (resultFormats) {
+    if (!isTestResult(result)) {
+      throw new Error(nls.localize('runIdFormatErr'));
+    }
+    for (const format of resultFormats) {
+      let filePath;
+      let readable;
+      switch (format) {
+        case ResultFormat.json:
+          filePath = join(
+            dirPath,
+            `test-result-${testRunId || 'default'}.json`
+          );
+          readable = TestResultStringifyStream.fromTestResult(result, {
+            bufferSize: getBufferSize()
+          });
+          break;
+        case ResultFormat.tap:
+          filePath = join(dirPath, `test-result-${testRunId}-tap.txt`);
+          readable = new TapFormatTransformer(result, undefined, {
+            bufferSize: getBufferSize()
+          });
+          break;
+        case ResultFormat.junit:
+          filePath = join(
+            dirPath,
+            `test-result-${testRunId || 'default'}-junit.xml`
+          );
+          readable = new JUnitFormatTransformer(result, {
+            bufferSize: getBufferSize()
+          });
+          break;
+      }
+      if (filePath && readable) {
+        filesWritten.push(await runPipeline(readable, filePath));
+      }
+    }
+  }
+
+  if (codeCoverage) {
+    if (!isTestResult(result)) {
+      throw new Error(nls.localize('covIdFormatErr'));
+    }
+    const filePath = join(
+      dirPath,
+      `test-result-${testRunId}-codecoverage.json`
+    );
+    const c = result.tests
+      .map((record) => record.perClassCoverage)
+      .filter((pcc) => pcc?.length);
+    filesWritten.push(
+      await runPipeline(
+        bfj.stringify(c, {
+          bufferLength: getBufferSize(),
+          iterables: 'ignore',
+          space: getJsonIndent()
+        }),
+        filePath
+      )
+    );
+  }
+
+  if (fileInfos) {
+    for (const fileInfo of fileInfos) {
+      const filePath = join(dirPath, fileInfo.filename);
+      const readable =
+        typeof fileInfo.content === 'string'
+          ? Readable.from([fileInfo.content])
+          : bfj.stringify(fileInfo.content, {
+              bufferLength: getBufferSize(),
+              iterables: 'ignore',
+              space: getJsonIndent()
+            });
+      filesWritten.push(await runPipeline(readable, filePath));
+    }
+  }
+
+  return filesWritten;
+};
+
 export class TestService {
   private readonly connection: Connection;
   public readonly asyncService: AsyncTests;
@@ -281,107 +397,12 @@ export class TestService {
     HeapMonitor.getInstance().startMonitoring();
     HeapMonitor.getInstance().checkHeapSize('testService.writeResultFiles');
     try {
-      const filesWritten: string[] = [];
-      const { dirPath, resultFormats, fileInfos } = outputDirConfig;
-
-      if (
-        resultFormats &&
-        !resultFormats.every((format) => format in ResultFormat)
-      ) {
-        throw new Error(nls.localize('resultFormatErr'));
-      }
-
-      await mkdir(dirPath, { recursive: true });
-
-      const testRunId = isTestResult(result)
-        ? result.summary.testRunId
-        : result.testRunId;
-
-      try {
-        await writeFile(join(dirPath, 'test-run-id.txt'), testRunId);
-        filesWritten.push(join(dirPath, 'test-run-id.txt'));
-      } catch (err) {
-        console.error(`Error writing file: ${err}`);
-      }
-
-      if (resultFormats) {
-        if (!isTestResult(result)) {
-          throw new Error(nls.localize('runIdFormatErr'));
-        }
-        for (const format of resultFormats) {
-          let filePath;
-          let readable;
-          switch (format) {
-            case ResultFormat.json:
-              filePath = join(
-                dirPath,
-                `test-result-${testRunId || 'default'}.json`
-              );
-              readable = TestResultStringifyStream.fromTestResult(result, {
-                bufferSize: getBufferSize()
-              });
-              break;
-            case ResultFormat.tap:
-              filePath = join(dirPath, `test-result-${testRunId}-tap.txt`);
-              readable = new TapFormatTransformer(result, undefined, {
-                bufferSize: getBufferSize()
-              });
-              break;
-            case ResultFormat.junit:
-              filePath = join(
-                dirPath,
-                `test-result-${testRunId || 'default'}-junit.xml`
-              );
-              readable = new JUnitFormatTransformer(result, {
-                bufferSize: getBufferSize()
-              });
-              break;
-          }
-          if (filePath && readable) {
-            filesWritten.push(await this.runPipeline(readable, filePath));
-          }
-        }
-      }
-
-      if (codeCoverage) {
-        if (!isTestResult(result)) {
-          throw new Error(nls.localize('covIdFormatErr'));
-        }
-        const filePath = join(
-          dirPath,
-          `test-result-${testRunId}-codecoverage.json`
-        );
-        const c = result.tests
-          .map((record) => record.perClassCoverage)
-          .filter((pcc) => pcc?.length);
-        filesWritten.push(
-          await this.runPipeline(
-            bfj.stringify(c, {
-              bufferLength: getBufferSize(),
-              iterables: 'ignore',
-              space: getJsonIndent()
-            }),
-            filePath
-          )
-        );
-      }
-
-      if (fileInfos) {
-        for (const fileInfo of fileInfos) {
-          const filePath = join(dirPath, fileInfo.filename);
-          const readable =
-            typeof fileInfo.content === 'string'
-              ? Readable.from([fileInfo.content])
-              : bfj.stringify(fileInfo.content, {
-                  bufferLength: getBufferSize(),
-                  iterables: 'ignore',
-                  space: getJsonIndent()
-                });
-          filesWritten.push(await this.runPipeline(readable, filePath));
-        }
-      }
-
-      return filesWritten;
+      return await writeResultFiles(
+        result,
+        outputDirConfig,
+        codeCoverage,
+        this.runPipeline.bind(this)
+      );
     } finally {
       HeapMonitor.getInstance().checkHeapSize('testService.writeResultFiles');
       HeapMonitor.getInstance().stopMonitoring();
