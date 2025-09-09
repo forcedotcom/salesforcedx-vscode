@@ -14,6 +14,7 @@ import {
   OrgAuthorization,
   Org
 } from '@salesforce/core';
+import { getConnectionStatusFromError, shouldRemoveOrg } from '@salesforce/salesforcedx-utils';
 import { SfWorkspaceChecker, Table, Column, Row, ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
@@ -312,37 +313,4 @@ export const orgList = (): void => {
   const executor = new OrgListCleanExecutor();
   const commandlet = new SfCommandlet(new SfWorkspaceChecker(), parameterGatherer, executor);
   void commandlet.run();
-};
-
-/** Check if error indicates org should be removed */
-export const shouldRemoveOrg = (error: any): boolean => {
-  const message = (error instanceof Error ? error.message : String(error)).toLowerCase();
-  return (
-    message.includes('invalid_login') ||
-    message.includes('no such org') ||
-    message.includes('namedorgnotfound') ||
-    message.includes('noauthinfofound')
-  );
-};
-
-/** Get connection status from error */
-export const getConnectionStatusFromError = (err: any, username?: string): string => {
-  const message = err instanceof Error ? err.message : String(err);
-  const lowerMsg = message.toLowerCase();
-
-  if (lowerMsg.includes('maintenance')) return 'Down (Maintenance)';
-  if (lowerMsg.includes('<html>') || lowerMsg.includes('<!doctype html>')) return 'Bad Response';
-  if (
-    lowerMsg.includes('expired access/refresh token') ||
-    lowerMsg.includes('invalid_session_id') ||
-    lowerMsg.includes('bad_oauth_token') ||
-    lowerMsg.includes('refreshtokenautherror')
-  ) {
-    return 'Unable to refresh session: expired access/refresh token';
-  }
-  if (shouldRemoveOrg(err)) {
-    return username ? `Invalid org: ${username}` : 'Invalid org';
-  }
-
-  return message;
 };
