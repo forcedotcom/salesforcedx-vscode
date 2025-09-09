@@ -1,17 +1,24 @@
-# 64.12.0 - September 3, 2025
+# 64.13.1 - September 11, 2025
 
 ## Added
 
 #### salesforcedx-vscode-core
 
-- We refactored the org cleanup logic to ensure expired or deleted orgs are properly removed. The update also adds clearer user feedback through detailed messages and a table view of the remaining orgs. ([PR #6500](https://github.com/forcedotcom/salesforcedx-vscode/pull/6500))
+- Bundle vf packages W-19480954 ([PR #6527](https://github.com/forcedotcom/salesforcedx-vscode/pull/6527))
 
-- We improved the bundling of our extensions to reduce the extensions size. ([PR #6490](https://github.com/forcedotcom/salesforcedx-vscode/pull/6490))
+- W-19451086 - org browser and org picker walkthrough ([PR #6526](https://github.com/forcedotcom/salesforcedx-vscode/pull/6526))
 
 ## Fixed
 
+#### salesforcedx-vscode-apex
+
+- Disable guided json for apex rest OAS gen ([PR #6540](https://github.com/forcedotcom/salesforcedx-vscode/pull/6540))
+
+#### salesforcedx-vscode-apex-debugger
+
+- Remove incorrect disclaimer in Apex Interactive Debugger README ([PR #6537](https://github.com/forcedotcom/salesforcedx-vscode/pull/6537))
+
 #### salesforcedx-vscode-core
 
-- We fixed an issue where org aliases that contain dashes couldn't be set as default orgs. ([PR #6521](https://github.com/forcedotcom/salesforcedx-vscode/pull/6521))
+- W-18337792 - org display for orgs with conn errors ([PR #6530](https://github.com/forcedotcom/salesforcedx-vscode/pull/6530))
 
-- We fixed an issue where deploy and retrieve were failing when the `Enable Source Tracking For Deploy And Retrieve` setting was enabled for non-source-tracked orgs. ([PR #6507](https://github.com/forcedotcom/salesforcedx-vscode/pull/6507))
