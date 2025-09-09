@@ -11,7 +11,7 @@ export type OrgInfo = {
   createdBy: string;
   createdDate: string;
   expirationDate: string;
-  status: string;
+  status: string; // only present for scratch orgs
   edition: string;
   orgName: string;
   accessToken: string;
@@ -42,14 +42,4 @@ export type ScratchOrgQueryResult = {
   ExpirationDate: string;
   Edition: string;
   OrgName: string;
-};
-
-export type ScratchOrgInfo = {
-  status: string;
-  createdBy: string;
-  createdDate: string;
-  expirationDate: string;
-  edition: string;
-  orgName: string;
-  password?: string;
 };
