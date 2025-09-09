@@ -6,14 +6,13 @@
  */
 
 import { AuthRemover, AuthInfo, ConfigAggregator, Org } from '@salesforce/core';
+import { shouldRemoveOrg, getConnectionStatusFromError } from '@salesforce/salesforcedx-utils';
 import { ConfigUtil, notificationService, Table } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../../../src/channels';
 import {
   determineConnectedStatusForNonScratchOrg,
   removeExpiredAndDeletedOrgs,
-  displayRemainingOrgs,
-  shouldRemoveOrg,
-  getConnectionStatusFromError
+  displayRemainingOrgs
 } from '../../../src/commands/orgList';
 import { nls } from '../../../src/messages';
 import { getAuthFieldsFor } from '../../../src/util/orgUtil';
