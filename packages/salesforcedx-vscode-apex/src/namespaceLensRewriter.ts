@@ -22,20 +22,20 @@ export const rewriteNamespaceLens =
 
     if (singleTest.includes(lens.command.title)) {
       // namespace.class.method => class.method
-      console.log(`provideCodeLenses Middleware > Single test originally: ${lens.command.arguments}`);
+      console.debug(`provideCodeLenses Middleware > Single test originally: ${lens.command.arguments}`);
       lens.command.arguments = lens.command.arguments?.map((arg: string) =>
         arg.startsWith(`${namespaceFromProject}.`) && arg.split('.').length === 3
           ? arg.split('.').slice(-2).join('.')
           : arg
       );
-      console.log(`provideCodeLenses Middleware > Single test modified: ${lens.command.arguments}`);
+      console.debug(`provideCodeLenses Middleware > Single test modified: ${lens.command.arguments}`);
     } else if (allTests.includes(lens.command.title)) {
       // namespace.class => class
-      console.log(`provideCodeLenses Middleware > All tests originally: ${lens.command.arguments}`);
+      console.debug(`provideCodeLenses Middleware > All tests originally: ${lens.command.arguments}`);
       lens.command.arguments = lens.command.arguments?.map((arg: string) =>
         arg.startsWith(`${namespaceFromProject}.`) && arg.split('.').length === 2 ? arg.split('.').at(-1) : arg
       );
-      console.log(`provideCodeLenses Middleware > All tests modified: ${lens.command.arguments}`);
+      console.debug(`provideCodeLenses Middleware > All tests modified: ${lens.command.arguments}`);
     }
     return lens;
   };
