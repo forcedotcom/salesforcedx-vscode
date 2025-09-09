@@ -1,3 +1,12 @@
+# [8.3.0](https://github.com/forcedotcom/salesforcedx-apex/compare/8.2.13...8.3.0) (2025-09-09)
+
+
+### Features
+
+* add support for multiple test categories in a single test run ([#568](https://github.com/forcedotcom/salesforcedx-apex/issues/568)) ([a89b222](https://github.com/forcedotcom/salesforcedx-apex/commit/a89b2224c9da2323390703e918505e266c16440e))
+
+
+
 ## [8.2.13](https://github.com/forcedotcom/salesforcedx-apex/compare/8.2.12...8.2.13) (2025-09-07)
 
 
