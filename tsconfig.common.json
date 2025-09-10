@@ -6,8 +6,8 @@
   "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
     "composite": true,
-    "target": "ES2022",
-    "lib": ["es2022", "dom"],
+    "target": "ES2023",
+    "lib": ["es2023", "dom"],
     "module": "node16",
     "moduleResolution": "Node16",
     "esModuleInterop": false,

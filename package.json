@@ -76,7 +76,6 @@
   "scripts": {
     "postinstall": "npm run check:peer-deps && npm run check:typescript-project-references",
     "bootstrap": "npm install",
-    "commit": "git-cz",
     "changelog": "ts-node ./scripts/create-release-notes.ts",
     "clean": "lerna run clean && git clean -xfd",
     "reinstall": "git checkout -- package-lock.json && npm run clean && npm install",
