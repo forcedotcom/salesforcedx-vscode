@@ -18,7 +18,7 @@
   "scripts": {
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./ && npm run copy:files",
-    "copy:files": "npx shx cp src/beautify/beautify-* out/src/beautify",
+    "copy:files": "shx cp src/beautify/beautify-* out/src/beautify",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "test": "jest --coverage",

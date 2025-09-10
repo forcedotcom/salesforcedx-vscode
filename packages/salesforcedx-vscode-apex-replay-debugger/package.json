@@ -33,10 +33,7 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.18.4",
-    "@tsconfig/node22": "22.0.2",
     "@types/async-lock": "1.4.2",
-    "@types/jest": "^29.5.5",
-    "@types/vscode": "1.90.0",
     "esbuild": "0.25.0",
     "salesforcedx-vscode-apex": "64.13.1",
     "salesforcedx-vscode-core": "64.13.1"
@@ -47,14 +44,14 @@
   ],
   "scripts": {
     "bundle:extension": "node ./esbuild.config.mjs",
-    "vscode:package": "npx vsce package",
+    "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
-    "clean": "npx shx rm -rf node_modules && npx shx rm -rf out && npx shx rm -rf coverage && npx shx rm -rf .nyc_output",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "jest --coverage"
   },
   "activationEvents": [

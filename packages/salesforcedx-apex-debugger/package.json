@@ -22,13 +22,10 @@
     "request-light": "^0.8.0"
   },
   "devDependencies": {
-    "@tsconfig/node22": "22.0.2",
     "@types/async-lock": "1.4.2",
     "@types/chai": "4.3.3",
-    "@types/jest": "29.5.14",
     "@types/mocha": "^10",
     "@types/sinon": "^2.3.7",
-    "@types/vscode": "1.90.0",
     "@vscode/debugadapter-testsupport": "1.68.0",
     "chai": "^4.0.2",
     "jest": "^29.7.0",
@@ -42,7 +39,7 @@
     "vscode-uri": "^3.1.0"
   },
   "scripts": {
-    "bundle:debugger": "npx esbuild ./src/adapter/apexDebug.ts --bundle --outfile=dist/apexDebug.js --format=cjs --platform=node --minify",
+    "bundle:debugger": "esbuild ./src/adapter/apexDebug.ts --bundle --outfile=dist/apexDebug.js --format=cjs --platform=node --minify",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
