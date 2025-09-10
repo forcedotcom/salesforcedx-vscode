@@ -30,7 +30,7 @@ const resolveSfProject = (fsPath: string): Effect.Effect<SfProject, Error, never
     catch: error => new Error('Project Resolution Error', { cause: error })
   }).pipe(Effect.withSpan('resolveSfProject', { attributes: { fsPath } }));
 
-export const ProjectServiceLive = Layer.scoped(
+export const ProjectServiceLive = Layer.effect(
   ProjectService,
   Effect.gen(function* () {
     // Create Effect's Cache for SfProject resolution with capacity and TTL
@@ -40,17 +40,14 @@ export const ProjectServiceLive = Layer.scoped(
       lookup: resolveSfProject // Lookup function that resolves SfProject for given fsPath
     }).pipe(Effect.withSpan('sfProjectCache'));
 
-    const getSfProject = pipe(
-      WorkspaceService,
+    const getSfProject = WorkspaceService.pipe(
       Effect.flatMap(ws => ws.getWorkspaceInfo),
       Effect.flatMap(workspaceDescription =>
         workspaceDescription.isEmpty
           ? Effect.fail(new Error('No workspace open'))
           : sfProjectCache.get(workspaceDescription.fsPath)
       )
-    )
-      .pipe(Effect.withSpan('getSfProject'))
-      .pipe(Effect.provide(SdkLayer));
+    ).pipe(Effect.withSpan('getSfProject'), Effect.provide(SdkLayer));
 
     const isSalesforceProject = pipe(
       WorkspaceService,

@@ -4,12 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { MetadataMember } from '@salesforce/source-deploy-retrieve';
+import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
-import { ExtensionProviderServiceLive } from '../services/extensionProvider';
-import { MetadataRetrieveService, MetadataRetrieveServiceLive } from '../services/metadataRetrieveService';
+import { ExtensionProviderService, ExtensionProviderServiceLive } from '../services/extensionProvider';
 import { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 
@@ -20,24 +19,56 @@ export const retrieveOrgBrowserTreeItemCommand = async (
   const target = getRetrieveTarget(node);
   if (!target) return;
 
-  const retrieveEffect = MetadataRetrieveService.pipe(
-    Effect.flatMap(svc => svc.retrieve([target], node.kind === 'component')),
+  await Effect.runPromise(retrieveEffect(node, treeProvider, target));
+};
+
+const retrieveEffect = (
+  node: OrgBrowserTreeItem,
+  treeProvider: MetadataTypeTreeProvider,
+  target: MetadataMember
+): Effect.Effect<RetrieveResult | void, never, never> =>
+  Effect.gen(function* () {
+    const extensionProvider = yield* ExtensionProviderService;
+    const api = yield* extensionProvider.getServicesApi;
+
+    // Create the layers we need
+    const allLayers = Layer.mergeAll(
+      api.services.MetadataRetrieveServiceLive,
+      api.services.ChannelServiceLayer('Salesforce Org Browser'),
+      api.services.ConnectionServiceLive,
+      api.services.ConfigServiceLive,
+      api.services.WorkspaceServiceLive,
+      api.services.ProjectServiceLive,
+      api.services.SettingsServiceLive,
+      api.services.SdkLayer,
+      api.services.MetadataRegistryServiceLive
+    );
+
+    // Run the retrieve operation
+    const result = yield* Effect.provide(
+      Effect.flatMap(api.services.MetadataRetrieveService, svc => svc.retrieve([target])),
+      allLayers
+    );
+
+    // Handle post-retrieve UI updates
+    yield* Effect.promise(async () => {
+      if (node.kind === 'component') {
+        node.iconPath = getIconPath(true);
+        treeProvider.fireChangeEvent(node);
+      } else {
+        await treeProvider.refreshType(node);
+      }
+    });
+
+    return result;
+  }).pipe(
+    Effect.provide(ExtensionProviderServiceLive),
     Effect.catchAll(error =>
       Effect.sync(() => {
-        vscode.window.showErrorMessage(`Retrieve failed: ${error.message}`);
+        vscode.window.showErrorMessage(`Retrieve failed: ${String(error)}`);
       })
-    ),
-    Effect.provide(Layer.mergeAll(MetadataRetrieveServiceLive, ExtensionProviderServiceLive))
+    )
   );
-  await Effect.runPromise(retrieveEffect);
-
-  if (node.kind === 'component') {
-    node.iconPath = getIconPath(true);
-    treeProvider.fireChangeEvent(node);
-  } else {
-    await treeProvider.refreshType(node);
-  }
-};
 
 const getRetrieveTarget = (node: OrgBrowserTreeItem): MetadataMember | undefined => {
   if (node.kind === 'folderType') {

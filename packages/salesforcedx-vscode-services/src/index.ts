@@ -79,10 +79,7 @@ const createActivationEffect = (
  * Both service tags/types and their default Live implementations are exported.
  * Consumers should get both from the API, not via direct imports.
  */
-export const activate = async (
-  context: vscode.ExtensionContext,
-  channelServiceLayer = ChannelServiceLayer('Salesforce Services')
-): Promise<SalesforceVSCodeServicesApi> => {
+export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
   if (Global.isWeb) {
     // set the theme as early as possible.  TODO: manage this from CBW instead of in an extension
     const config = vscode.workspace.getConfiguration();
@@ -94,6 +91,8 @@ export const activate = async (
   }
   // Create persistent scope for the extension
   extensionScope = await Effect.runPromise(Scope.make());
+
+  const channelServiceLayer = ChannelServiceLayer('Salesforce Services');
 
   const requirements = Layer.mergeAll(
     WorkspaceServiceLive,

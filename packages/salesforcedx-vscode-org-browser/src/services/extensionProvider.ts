@@ -44,10 +44,8 @@ export const AllServicesLayer = Layer.unwrapEffect(
   Effect.gen(function* () {
     const extensionProvider = yield* ExtensionProviderService;
     const api = yield* extensionProvider.getServicesApi;
-
     // Merge all the service layers from the API
     return Layer.mergeAll(
-      api.services.ChannelServiceLayer('Salesforce Org Browser'),
       api.services.ConfigServiceLive,
       api.services.ConnectionServiceLive,
       api.services.FsServiceLive,
@@ -56,7 +54,8 @@ export const AllServicesLayer = Layer.unwrapEffect(
       api.services.ProjectServiceLive,
       api.services.SdkLayer,
       api.services.SettingsServiceLive,
-      api.services.WorkspaceServiceLive
+      api.services.WorkspaceServiceLive,
+      api.services.ChannelServiceLayer('Salesforce Org Browser')
     );
   }).pipe(Effect.provide(ExtensionProviderServiceLive))
 );

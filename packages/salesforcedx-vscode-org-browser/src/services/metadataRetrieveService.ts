@@ -46,7 +46,6 @@ const retrieve = (
         api.services.SdkLayer,
         api.services.MetadataRegistryServiceLive
       );
-
       return Effect.provide(
         Effect.flatMap(api.services.MetadataRetrieveService, svc => svc.retrieve(members)).pipe(
           Effect.tap(result => {
