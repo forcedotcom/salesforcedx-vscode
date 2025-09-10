@@ -9,7 +9,7 @@
     "@salesforce/core": "^8.23.0",
     "@salesforce/kit": "^3.2.4",
     "@types/istanbul-reports": "^3.0.4",
-    "bfj": "8.0.0",
+    "json-stream-stringify": "^3.1.6",
     "fast-glob": "^3.3.2",
     "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",

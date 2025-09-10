@@ -43,7 +43,6 @@ import {
 } from './types';
 import {
   calculatePercentage,
-  getBufferSize,
   getJsonIndent,
   transformTestResult,
   queryAll,
@@ -60,8 +59,7 @@ import * as os from 'node:os';
 import path from 'path';
 import fs from 'node:fs/promises';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const bfj = require('bfj');
+import { JsonStreamStringify } from 'json-stream-stringify';
 
 /**
  * Standalone function for writing async test results to file - easier to test
@@ -75,11 +73,11 @@ export const writeAsyncResultsToFile = async (
   const writeStream = createWriteStream(
     path.join(os.tmpdir(), runId, 'rawResults.json')
   );
-  const stringifyStream = bfj.stringify(formattedResults, {
-    bufferLength: getBufferSize(),
-    iterables: 'ignore',
-    space: getJsonIndent()
-  });
+  const stringifyStream = new JsonStreamStringify(
+    formattedResults,
+    null,
+    getJsonIndent()
+  );
   return await pipeline(stringifyStream, writeStream);
 };
 

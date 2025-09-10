@@ -43,12 +43,7 @@ import { Transform } from 'stream';
 import { pipeline } from 'node:stream/promises';
 import { createWriteStream } from 'node:fs';
 
-/**
- * The library jsonpath that bfj depends on cannot be bundled through esbuild.
- * Please pay attention whenever you deal with bfj
- */
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const bfj = require('bfj');
+import { JsonStreamStringify } from 'json-stream-stringify';
 
 /**
  * Standalone function for writing test result files - easier to test
@@ -118,6 +113,8 @@ export const writeResultFiles = async (
             bufferSize: getBufferSize()
           });
           break;
+        default:
+          throw new Error(nls.localize('resultFormatErr'));
       }
       if (filePath && readable) {
         filesWritten.push(await runPipeline(readable, filePath));
@@ -138,11 +135,7 @@ export const writeResultFiles = async (
       .filter((pcc) => pcc?.length);
     filesWritten.push(
       await runPipeline(
-        bfj.stringify(c, {
-          bufferLength: getBufferSize(),
-          iterables: 'ignore',
-          space: getJsonIndent()
-        }),
+        new JsonStreamStringify(c, null, getJsonIndent()),
         filePath
       )
     );
@@ -154,11 +147,7 @@ export const writeResultFiles = async (
       const readable =
         typeof fileInfo.content === 'string'
           ? Readable.from([fileInfo.content])
-          : bfj.stringify(fileInfo.content, {
-              bufferLength: getBufferSize(),
-              iterables: 'ignore',
-              space: getJsonIndent()
-            });
+          : new JsonStreamStringify(fileInfo.content, null, getJsonIndent());
       filesWritten.push(await runPipeline(readable, filePath));
     }
   }
