@@ -1,3 +1,12 @@
+## [8.3.2](https://github.com/forcedotcom/salesforcedx-apex/compare/8.3.1...8.3.2) (2025-09-10)
+
+
+### Bug Fixes
+
+* change from 100ms to 1s ([afc5ee6](https://github.com/forcedotcom/salesforcedx-apex/commit/afc5ee66297f39c6fe67c0f7d999c8ee63a42c29))
+
+
+
 ## [8.3.1](https://github.com/forcedotcom/salesforcedx-apex/compare/8.3.0...8.3.1) (2025-09-10)
 
 
