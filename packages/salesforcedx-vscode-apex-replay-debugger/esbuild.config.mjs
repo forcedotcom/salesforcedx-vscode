@@ -9,7 +9,15 @@ import { build } from 'esbuild';
 
 await build({
   ...nodeConfig,
-  external: ['vscode', 'esprima', '../include/module.js', '../include/action.js'],
-  entryPoints: ['./src/index.ts', '../salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js'],
+  external: ['vscode'],
+  entryPoints: ['./src/index.ts'],
   outdir: 'dist'
+});
+
+await build({
+  ...nodeConfig,
+  external: ['vscode'],
+  entryPoints: ['../salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js'],
+  // do this as file to keep it from adding relative paths
+  outfile: 'dist/apexReplayDebug.js'
 });

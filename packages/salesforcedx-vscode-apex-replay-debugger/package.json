@@ -47,7 +47,6 @@
   ],
   "scripts": {
     "bundle:extension": "node ./esbuild.config.mjs",
-    "vscode:prepublish": "npm prune --production",
     "vscode:package": "npx vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
