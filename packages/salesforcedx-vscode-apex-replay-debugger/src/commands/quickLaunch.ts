@@ -53,12 +53,11 @@ class QuickLaunch {
       return false;
     }
 
-    const traceFlags = new TraceFlags(connection);
-    if (!(await traceFlags.ensureTraceFlags())) {
+    if (!(await new TraceFlags(connection).ensureTraceFlags())) {
       return false;
     }
 
-    const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints(true);
+    const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints();
     if (oneOrMoreCheckpoints) {
       const createCheckpointsResult = await CheckpointService.sfCreateCheckpoints();
       if (!createCheckpointsResult) {

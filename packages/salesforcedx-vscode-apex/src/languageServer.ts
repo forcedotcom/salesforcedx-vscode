@@ -8,13 +8,20 @@
 import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { Executable, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/node';
+import {
+  Executable,
+  LanguageClientOptions,
+  ProvideCodeLensesSignature,
+  RevealOutputChannelOn
+} from 'vscode-languageclient/node';
 import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, UBER_JAR_NAME } from './constants';
+import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
+import { rewriteNamespaceLens } from './namespaceLensRewriter';
 import * as requirements from './requirements';
 import {
   retrieveEnableApexLSErrorToTelemetry,
@@ -137,7 +144,7 @@ export const createLanguageServer = async (extensionContext: vscode.ExtensionCon
 };
 
 const buildClientOptions = (): ApexLanguageClientOptions => {
-  const soqlExtensionInstalled = isSOQLExtensionInstalled();
+  const soqlExtensionInstalled = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-soql') !== undefined;
   const lspParityCapabilities = vscode.workspace
     .getConfiguration()
     .get<boolean>('salesforcedx-vscode-apex.advanced.lspParityCapabilities', true);
@@ -185,14 +192,24 @@ const buildClientOptions = (): ApexLanguageClientOptions => {
     },
     middleware: {
       ...parityMiddleware,
-      ...(soqlExtensionInstalled ? soqlMiddleware : {})
+      ...(soqlExtensionInstalled ? soqlMiddleware : {}),
+      provideCodeLenses
     },
     errorHandler: new ApexErrorHandler()
   };
 };
 
-const isSOQLExtensionInstalled = () => {
-  const soqlExtensionName = 'salesforce.salesforcedx-vscode-soql';
-  const soqlExtension = vscode.extensions.getExtension(soqlExtensionName);
-  return soqlExtension !== undefined;
+const provideCodeLenses = async (
+  document: vscode.TextDocument,
+  token: vscode.CancellationToken,
+  next: ProvideCodeLensesSignature
+) => {
+  const vscodeCoreExtension = await getVscodeCoreExtension();
+  const [nsFromOrg, nsFromProject, lenses] = await Promise.all([
+    // convert null to undefined
+    vscodeCoreExtension.exports.OrgAuthInfo.getAuthFields().then(fields => fields.namespacePrefix ?? undefined),
+    vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance().then(cfg => cfg.getContents().namespace),
+    next(document, token)
+  ]);
+  return lenses?.map(rewriteNamespaceLens(nsFromOrg)(nsFromProject));
 };

@@ -54,9 +54,7 @@ if (!salesforceCoreExtension) {
   throw new Error('Salesforce Core Extension not initialized');
 }
 
-const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>(
-  'salesforce.salesforcedx-vscode-apex'
-);
+const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
 if (!salesforceApexExtension) {
   throw new Error('Salesforce Apex Extension not initialized');
 }
@@ -190,14 +188,14 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   await salesforceCoreExtension.exports.services.WorkspaceContext.getInstance().initialize(extensionContext);
 
   // Debug Tests command
-  const debugTests = vscode.commands.registerCommand('sf.test.view.debugTests', async test => {
+  const debugTests = vscode.commands.registerCommand('sf.test.view.debugTests', async (test: { name: string }) => {
     await setupAndDebugTests(test.name);
   });
 
   // Debug Single Test command
-  const debugTest = vscode.commands.registerCommand('sf.test.view.debugSingleTest', async test => {
-    const name = test.name.split('.');
-    await setupAndDebugTests(name[0], name[1]);
+  const debugTest = vscode.commands.registerCommand('sf.test.view.debugSingleTest', async (test: { name: string }) => {
+    const [method, className, namespace] = test.name.split('.').toReversed();
+    await setupAndDebugTests(namespace ? `${namespace}.${className}` : className, method);
   });
 
   extensionContext.subscriptions.push(

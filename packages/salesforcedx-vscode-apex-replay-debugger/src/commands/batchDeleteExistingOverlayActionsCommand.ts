@@ -8,11 +8,11 @@
 import { COMPOSITE_BATCH_URL } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { BaseCommand, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
 
-export type BatchRequests = {
+type BatchRequests = {
   batchRequests: BatchRequest[];
 };
 
-export type BatchRequest = {
+type BatchRequest = {
   method: RestHttpMethodEnum;
   url: string;
 };

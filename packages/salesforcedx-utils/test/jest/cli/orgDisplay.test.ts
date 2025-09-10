@@ -108,7 +108,8 @@ describe('OrgDisplay unit tests.', () => {
       createdBy: 'admin@example.com',
       createdDate: '2024-01-01T00:00:00.000+0000',
       expirationDate: '',
-      status: 'Active',
+      status: 'Connected',
+
       edition: 'Enterprise',
       orgName: 'Test Org',
       accessToken: 'test-token',

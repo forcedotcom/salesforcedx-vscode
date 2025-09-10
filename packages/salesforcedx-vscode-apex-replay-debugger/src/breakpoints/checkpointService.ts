@@ -19,6 +19,7 @@ import {
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { OrgDisplay, OrgInfo, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
 import { code2ProtocolConverter, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { URI } from 'vscode-uri';
@@ -29,9 +30,7 @@ import {
 } from '../commands/apexExecutionOverlayActionCommand';
 import {
   BatchDeleteExistingOverlayActionCommand,
-  BatchDeleteResponse,
-  BatchRequest,
-  BatchRequests
+  BatchDeleteResponse
 } from '../commands/batchDeleteExistingOverlayActionsCommand';
 import {
   QueryExistingOverlayActionIdsCommand,
@@ -131,34 +130,22 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     return element.getChildren();
   }
 
-  public hasFiveOrLessActiveCheckpoints(displayError: boolean): boolean {
-    let numEnabledCheckpoints = 0;
-    for (const cpNode of this.getChildren() as CheckpointNode[]) {
-      if (cpNode.isCheckpointEnabled()) {
-        numEnabledCheckpoints++;
-      }
-    }
-    const fiveOrLess = numEnabledCheckpoints <= MAX_ALLOWED_CHECKPOINTS;
-    if (!fiveOrLess && displayError) {
+  public hasFiveOrLessActiveCheckpoints(): boolean {
+    const numEnabledCheckpoints = getEnabledCheckpointCount(this);
+    if (numEnabledCheckpoints > MAX_ALLOWED_CHECKPOINTS) {
       const errorMessage = nls.localize('up_to_five_checkpoints', numEnabledCheckpoints);
       writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
     }
-    return fiveOrLess;
+    return true;
   }
 
-  public hasOneOrMoreActiveCheckpoints(displayError: boolean): boolean {
-    let numEnabledCheckpoints = 0;
-    for (const cpNode of this.getChildren() as CheckpointNode[]) {
-      if (cpNode.isCheckpointEnabled()) {
-        numEnabledCheckpoints++;
-      }
-    }
-    const oneOrMore = numEnabledCheckpoints > 0;
-    if (!oneOrMore && displayError) {
+  public hasOneOrMoreActiveCheckpoints(): boolean {
+    const numEnabledCheckpoints = getEnabledCheckpointCount(this);
+    if (numEnabledCheckpoints === 0) {
       const errorMessage = nls.localize('no_enabled_checkpoints');
       writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Warning);
     }
-    return oneOrMore;
+    return true;
   }
 
   public createCheckpointNode(
@@ -181,12 +168,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
   }
 
   public returnCheckpointNodeIfAlreadyExists(breakpointIdInput: string): CheckpointNode | undefined {
-    for (const cp of this.checkpoints) {
-      if (breakpointIdInput === cp.getBreakpointId()) {
-        return cp;
-      }
-    }
-    return undefined;
+    return this.checkpoints.find(cp => cp.getBreakpointId() === breakpointIdInput);
   }
 
   public deleteCheckpointNodeIfExists(breakpointIdInput: string): void {
@@ -226,13 +208,11 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     if (errorString) {
       try {
         const result = JSON.parse(errorString) as ApexExecutionOverlayFailureResult[];
-        if (result[0].errorCode === FIELD_INTEGRITY_EXCEPTION) {
-          const errorMessage = nls.localize('local_source_is_out_of_sync_with_the_server');
-          writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-        } else {
-          const errorMessage = `${result[0].message}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
-          writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-        }
+        const errorMessage =
+          result[0].errorCode === FIELD_INTEGRITY_EXCEPTION
+            ? nls.localize('local_source_is_out_of_sync_with_the_server')
+            : `${result[0].message}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
+        writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
       } catch {
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         const errorMessage = `${errorString}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
@@ -244,12 +224,14 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
 
   // Make VS Code the source of truth for checkpoints
   public async clearExistingCheckpoints(): Promise<boolean> {
-    const salesforceCoreExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core');
+    const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
+      'salesforce.salesforcedx-vscode-core'
+    );
     if (!salesforceCoreExtension?.isActive) {
       await salesforceCoreExtension?.activate();
     }
     if (salesforceCoreExtension?.exports) {
-      const userId = await salesforceCoreExtension.exports.getUserId(this.salesforceProject);
+      const userId = await salesforceCoreExtension.exports.getUserId();
       if (userId) {
         const queryCommand = new QueryExistingOverlayActionIdsCommand(userId);
         let errorString;
@@ -267,16 +249,11 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
           if (successResult) {
             // If there are things to delete then create the batchRequest
             if (successResult.records.length > 0) {
-              const requests: BatchRequest[] = [];
-              for (const record of successResult.records) {
-                const request: BatchRequest = {
+              const batchRequests = {
+                batchRequests: successResult.records.map(record => ({
                   method: RestHttpMethodEnum.Delete,
                   url: OVERLAY_ACTION_DELETE_URL + record.Id
-                };
-                requests.push(request);
-              }
-              const batchRequests: BatchRequests = {
-                batchRequests: requests
+                }))
               };
               const batchDeleteCommand = new BatchDeleteExistingOverlayActionCommand(batchRequests);
 
@@ -399,7 +376,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
             }
 
             // There can be a max of five active checkpoints
-            if (!checkpointService.hasFiveOrLessActiveCheckpoints(true)) {
+            if (!checkpointService.hasFiveOrLessActiveCheckpoints()) {
               updateError = true;
               return false;
             }
@@ -438,14 +415,13 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
               increment: 70,
               message: localizedProgressMessage
             });
-            // This should probably be batched but it makes dealing with errors kind of a pain
-            for (const cpNode of checkpointService.getChildren() as CheckpointNode[]) {
-              if (cpNode.isCheckpointEnabled()) {
-                if (!(await checkpointService.executeCreateApexExecutionOverlayActionCommand(cpNode))) {
-                  updateError = true;
-                }
-              }
-            }
+            updateError = (
+              await Promise.allSettled(
+                (checkpointService.getChildren() as CheckpointNode[])
+                  .filter(cpNode => cpNode.isCheckpointEnabled())
+                  .map(cpNode => checkpointService.executeCreateApexExecutionOverlayActionCommand(cpNode))
+              )
+            ).some(promise => promise.status === 'rejected');
 
             progress.report({
               increment: 100,
@@ -487,7 +463,11 @@ abstract class BaseNode extends TreeItem {
 }
 
 export class CheckpointNode extends BaseNode {
-  private readonly children: CheckpointInfoNode[] = [];
+  private readonly children: (
+    | CheckpointInfoActionScriptNode
+    | CheckpointInfoActionScriptTypeNode
+    | CheckpointInfoIterationNode
+  )[] = [];
   private readonly breakpointId: string;
   private readonly checkpointOverlayAction: ApexExecutionOverlayAction;
   private uri: string;
@@ -509,12 +489,11 @@ export class CheckpointNode extends BaseNode {
     this.actionObjectId = undefined;
 
     // Create the items that the user is going to be able to control (Type, Script, Iteration)
-    const cpASTNode = new CheckpointInfoActionScriptTypeNode(this.checkpointOverlayAction);
-    this.children.push(cpASTNode);
-    const cpScriptNode = new CheckpointInfoActionScriptNode(this.checkpointOverlayAction);
-    this.children.push(cpScriptNode);
-    const cpIterationNode = new CheckpointInfoIterationNode(this.checkpointOverlayAction);
-    this.children.push(cpIterationNode);
+    this.children.push(
+      new CheckpointInfoActionScriptTypeNode(this.checkpointOverlayAction),
+      new CheckpointInfoActionScriptNode(this.checkpointOverlayAction),
+      new CheckpointInfoIterationNode(this.checkpointOverlayAction)
+    );
   }
 
   public createJSonStringForOverlayAction(): string {
@@ -603,7 +582,11 @@ export class CheckpointNode extends BaseNode {
     return this.uri;
   }
 
-  public getChildren(): CheckpointInfoNode[] {
+  public getChildren(): (
+    | CheckpointInfoActionScriptNode
+    | CheckpointInfoActionScriptTypeNode
+    | CheckpointInfoIterationNode
+  )[] {
     return this.children;
   }
 
@@ -616,14 +599,8 @@ export class CheckpointNode extends BaseNode {
   }
 }
 
-class CheckpointInfoNode extends BaseNode {
-  public getChildren(): BaseNode[] {
-    return [];
-  }
-}
-
 // Remove the tags when the nodes using the checkpointOverlayAction become editable.
-class CheckpointInfoActionScriptNode extends CheckpointInfoNode {
+class CheckpointInfoActionScriptNode extends BaseNode {
   private checkpointOverlayAction: ApexExecutionOverlayAction;
   constructor(cpOverlayActionInput: ApexExecutionOverlayAction) {
     super(EDITABLE_FIELD_LABEL_ACTION_SCRIPT + cpOverlayActionInput.ActionScript);
@@ -638,7 +615,7 @@ class CheckpointInfoActionScriptNode extends CheckpointInfoNode {
   }
 }
 
-class CheckpointInfoActionScriptTypeNode extends CheckpointInfoNode {
+class CheckpointInfoActionScriptTypeNode extends BaseNode {
   private checkpointOverlayAction: ApexExecutionOverlayAction;
   constructor(cpOverlayActionInput: ApexExecutionOverlayAction) {
     super(EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE + cpOverlayActionInput.ActionScriptType);
@@ -653,7 +630,7 @@ class CheckpointInfoActionScriptTypeNode extends CheckpointInfoNode {
   }
 }
 
-class CheckpointInfoIterationNode extends CheckpointInfoNode {
+class CheckpointInfoIterationNode extends BaseNode {
   private checkpointOverlayAction: ApexExecutionOverlayAction;
   constructor(cpOverlayActionInput: ApexExecutionOverlayAction) {
     super(EDITABLE_FIELD_LABEL_ITERATIONS + cpOverlayActionInput.Iteration);
@@ -861,3 +838,6 @@ const checkpointUtils = {
   fetchActiveEditorUri,
   fetchActiveSelectionLineNumber
 };
+
+const getEnabledCheckpointCount = (service: CheckpointService): number =>
+  (service.getChildren() as CheckpointNode[]).filter(cpNode => cpNode.isCheckpointEnabled()).length;
