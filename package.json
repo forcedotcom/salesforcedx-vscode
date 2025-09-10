@@ -12,7 +12,7 @@
     "@actions/core": "^1.11.0",
     "@actions/github": "^6.0.0",
     "@salesforce/vscode-service-provider": "1.5.0",
-    "node": "^22.15.1",
+    "node": "^22.19.0",
     "npm": "^10",
     "semver": "^7.5.4",
     "ts-node": "10.9.2"
@@ -32,17 +32,17 @@
     "@types/cross-spawn": "6.0.6",
     "@types/jest": "^29.5.5",
     "@types/mocha": "^10.0.10",
+    "@types/node": "^22.15.1",
     "@types/semver": "7.5.8",
     "@types/vscode": "1.90.0",
-    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
     "@typescript-eslint/parser": "^8.41.0",
     "@vscode/test-electron": "2.3.0",
-    "@vscode/vsce": "2.32.0",
+    "@vscode/vsce": "3.6.0",
     "acorn": "8.15.0",
     "check-peer-dependencies": "4.3.0",
-    "commitizen": "^4.2.5",
     "cz-conventional-changelog": "3.3.0",
-    "depcheck": "1.4.3",
+    "depcheck": "1.4.7",
     "esbuild": "0.25.0",
     "esbuild-plugin-copy": "2.1.1",
     "eslint": "^9.32.0",
@@ -76,7 +76,6 @@
   "scripts": {
     "postinstall": "npm run check:peer-deps && npm run check:typescript-project-references",
     "bootstrap": "npm install",
-    "commit-init": "commitizen init cz-conventional-changelog --save-dev --save-exact --force",
     "commit": "git-cz",
     "changelog": "ts-node ./scripts/create-release-notes.ts",
     "clean": "lerna run clean && git clean -xfd",
@@ -88,6 +87,7 @@
     "lint": "lerna run lint",
     "lint:fix": "lerna run lint:fix",
     "test": "lerna run test",
+    "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
     "coverage:report": "shx mkdir -p ./test-results && npm run coverage:merge && nyc report --reporter=html --report-dir=./test-results/coverage-report --temp-dir=coverage",
     "coverage:merge": "node scripts/mergeCoverageJson.mjs",
     "junit:report": "shx mkdir -p ./test-results && jrm ./test-results/all-junit-custom-unitTests.xml \"packages/**/junit-custom-unitTests.xml\"",
@@ -117,11 +117,6 @@
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
       "pre-commit": "npx lerna run compile,lint && npm run check:peer-deps && npm run check:typescript-project-references && ts-node scripts/package-lock.validation.ts",
       "pre-push": "npx lerna run compile,lint,test"
-    }
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
     }
   }
 }

@@ -36,3 +36,37 @@ const ansiRegex = ({ onlyFirst = false } = {}): RegExp => {
 
   return new RegExp(pattern, onlyFirst ? undefined : 'g');
 };
+
+/** Get connection status from error */
+export const getConnectionStatusFromError = (err: any, username?: string): string => {
+  const message = err instanceof Error ? err.message : String(err);
+  const lowerMsg = message.toLowerCase();
+
+  if (lowerMsg.includes('maintenance')) return 'Down (Maintenance)';
+  if (lowerMsg.includes('<html>') || lowerMsg.includes('<!doctype html>')) return 'Bad Response';
+  if (
+    lowerMsg.includes('expired access/refresh token') ||
+    lowerMsg.includes('invalid_session_id') ||
+    lowerMsg.includes('bad_oauth_token') ||
+    lowerMsg.includes('refreshtokenautherror')
+  ) {
+    return 'Unable to refresh session: expired access/refresh token';
+  }
+  if (shouldRemoveOrg(err)) {
+    return username ? `Invalid org: ${username}` : 'Invalid org';
+  }
+
+  return message;
+};
+
+/** Check if org should be removed based on error */
+export const shouldRemoveOrg = (err: any): boolean => {
+  const message = err instanceof Error ? err.message : String(err);
+  const lowerMsg = message.toLowerCase();
+  return (
+    lowerMsg.includes('invalid_login') ||
+    lowerMsg.includes('no such org') ||
+    lowerMsg.includes('namedorgnotfound') ||
+    lowerMsg.includes('noauthinfofound')
+  );
+};
