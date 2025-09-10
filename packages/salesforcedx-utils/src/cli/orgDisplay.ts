@@ -6,6 +6,7 @@
  */
 
 import { AuthInfo, Connection, Org, StateAggregator, ConfigAggregator } from '@salesforce/core';
+import { getConnectionStatusFromError } from '../helpers/utils';
 import { messages } from '../i18n/i18n';
 import { OrgInfo, OrgQueryResult, ScratchOrgQueryResult, ScratchOrgInfo } from '../types/orgInfo';
 
@@ -53,58 +54,100 @@ export class OrgDisplay {
 
   public async getOrgInfo(salesforceProject?: string): Promise<OrgInfo> {
     const username = await this.getUsername(salesforceProject);
-    const authInfo = await AuthInfo.create({ username });
-    const connection = await Connection.create({ authInfo });
-    const org = await Org.create({ connection });
 
-    return this.getOrgInfoFromConnection(org, connection, authInfo, username);
+    try {
+      const authInfo = await AuthInfo.create({ username });
+      const connection = await Connection.create({ authInfo });
+      const org = await Org.create({ connection });
+
+      return getOrgInfoFromConnection(org, connection, authInfo, username);
+    } catch (error) {
+      // If we can't create a connection, still return org info with error status
+      return getOrgInfoWithError(username, error);
+    }
+  }
+}
+
+/** Create OrgInfo object with common fields */
+const createOrgInfo = (
+  username: string,
+  authFields: any,
+  alias: string,
+  connectionStatus: string,
+  overrides: Partial<OrgInfo> = {}
+): OrgInfo => ({
+  username,
+  devHubId: authFields?.devHubUsername ?? '',
+  id: authFields?.orgId ?? '',
+  createdBy: '',
+  createdDate: '',
+  expirationDate: authFields?.expirationDate ?? '',
+  status: connectionStatus,
+  edition: '',
+  orgName: '',
+  accessToken: authFields?.accessToken ?? '',
+  instanceUrl: authFields?.instanceUrl ?? '',
+  clientId: authFields?.clientId ?? '',
+  apiVersion: authFields?.instanceApiVersion ?? '',
+  alias,
+  connectionStatus,
+  password: '',
+  ...overrides
+});
+
+/** Get org info from an established connection */
+const getOrgInfoFromConnection = async (
+  org: Org,
+  connection: Connection,
+  authInfo: AuthInfo,
+  username: string
+): Promise<OrgInfo> => {
+  const authFields = authInfo.getFields(true);
+
+  // Get alias using StateAggregator
+  const stateAggregator = await StateAggregator.getInstance();
+  const aliases = stateAggregator.aliases.getAll(username);
+  const alias = aliases.length > 0 ? aliases[0] : '';
+
+  // Check if this is a scratch org
+  const isScratchOrg = Boolean(authFields.devHubUsername);
+
+  // Test connection to determine status
+  let connectionStatus = 'Disconnected';
+  try {
+    await connection.identity();
+    connectionStatus = 'Connected';
+  } catch (error) {
+    connectionStatus = getConnectionStatusFromError(error, username);
   }
 
-  private async getOrgInfoFromConnection(
-    org: Org,
-    connection: Connection,
-    authInfo: AuthInfo,
-    username: string
-  ): Promise<OrgInfo> {
-    const authFields = authInfo.getFields(true);
-
-    // Get alias using StateAggregator
-    const stateAggregator = await StateAggregator.getInstance();
-    const aliases = stateAggregator.aliases.getAll(username);
-    const alias = aliases.length > 0 ? aliases[0] : '';
-
-    // Check if this is a scratch org
-    const isScratchOrg = Boolean(authFields.devHubUsername);
-
-    // Test connection to determine status
-    let connectionStatus = 'Disconnected';
-    try {
-      await connection.identity();
-      connectionStatus = 'Connected';
-    } catch {
-      connectionStatus = 'Disconnected';
-    }
-
-    // Get organization details via SOQL
-    const orgQuery = await connection.singleRecordQuery<OrgQueryResult>(
+  // Get organization details via SOQL
+  let orgQuery: OrgQueryResult;
+  try {
+    orgQuery = await connection.singleRecordQuery<OrgQueryResult>(
       'SELECT Id, Name, CreatedDate, CreatedBy.Username, OrganizationType, InstanceName, IsSandbox FROM Organization'
     );
+  } catch (error) {
+    // If SOQL query fails, return basic info with error status
+    return getOrgInfoWithError(username, error);
+  }
 
-    // For scratch orgs, get detailed information from the dev hub
-    let scratchOrgInfo: ScratchOrgInfo = {
-      status: 'Active',
-      createdBy: orgQuery.CreatedBy.Username,
-      createdDate: orgQuery.CreatedDate,
-      expirationDate: '',
-      edition: 'Developer',
-      orgName: orgQuery.Name
-    };
+  // For scratch orgs, get detailed information from the dev hub
+  let scratchOrgInfo: ScratchOrgInfo = {
+    status: 'Active',
+    createdBy: orgQuery.CreatedBy.Username,
+    createdDate: orgQuery.CreatedDate,
+    expirationDate: '',
+    edition: 'Developer',
+    orgName: orgQuery.Name
+  };
 
-    if (isScratchOrg && authFields.orgId) {
-      try {
-        const hubOrg = await org.getDevHubOrg();
-        if (hubOrg) {
-          const hubConnection = hubOrg.getConnection();
+  if (isScratchOrg && authFields.orgId) {
+    try {
+      const hubOrg = await org.getDevHubOrg();
+      if (hubOrg) {
+        const hubConnection = hubOrg.getConnection();
+        try {
           // Query the dev hub for scratch org information
           const scratchOrgQuery = await hubConnection.singleRecordQuery<ScratchOrgQueryResult>(
             `SELECT Status, CreatedBy.Username, CreatedDate, ExpirationDate, Edition, OrgName FROM ScratchOrgInfo WHERE ScratchOrg = '${authFields.orgId.substring(
@@ -122,46 +165,67 @@ export class OrgDisplay {
             orgName: scratchOrgQuery.OrgName,
             password: authFields.password ?? ''
           };
+        } catch {
+          // If dev hub query fails, fall back to basic info with connection status as error
+          scratchOrgInfo.status = connectionStatus;
         }
-      } catch {
-        // If we can't get scratch org info, fall back to basic info
-        scratchOrgInfo.expirationDate = authFields.expirationDate ?? '';
       }
+    } catch {
+      // If we can't get scratch org info, fall back to basic info
+      scratchOrgInfo.expirationDate = authFields.expirationDate ?? '';
     }
-
-    // Determine org type and status
-    let edition = scratchOrgInfo.edition;
-    const status = scratchOrgInfo.status;
-
-    if (!isScratchOrg) {
-      if (orgQuery.IsSandbox) {
-        edition = 'Sandbox';
-      } else if (orgQuery.OrganizationType === 'Enterprise') {
-        edition = 'Enterprise';
-      } else if (orgQuery.OrganizationType === 'Professional') {
-        edition = 'Professional';
-      }
-    }
-
-    const orgInfo: OrgInfo = {
-      username,
-      devHubId: authFields.devHubUsername ?? '',
-      id: authFields.orgId ?? orgQuery.Id,
-      createdBy: scratchOrgInfo.createdBy,
-      createdDate: scratchOrgInfo.createdDate,
-      expirationDate: scratchOrgInfo.expirationDate,
-      status,
-      edition,
-      orgName: scratchOrgInfo.orgName,
-      accessToken: authFields.accessToken ?? '',
-      instanceUrl: authFields.instanceUrl ?? '',
-      clientId: authFields.clientId ?? '',
-      apiVersion: authFields.instanceApiVersion ?? '',
-      alias,
-      connectionStatus,
-      password: scratchOrgInfo.password ?? ''
-    };
-
-    return orgInfo;
   }
-}
+
+  // Determine org type and status
+  let edition = scratchOrgInfo.edition;
+  const status = scratchOrgInfo.status;
+
+  if (!isScratchOrg) {
+    if (orgQuery.IsSandbox) {
+      edition = 'Sandbox';
+    } else if (orgQuery.OrganizationType === 'Enterprise') {
+      edition = 'Enterprise';
+    } else if (orgQuery.OrganizationType === 'Professional') {
+      edition = 'Professional';
+    }
+  }
+
+  const orgInfo = createOrgInfo(username, authFields, alias, connectionStatus, {
+    id: authFields.orgId ?? orgQuery.Id,
+    createdBy: scratchOrgInfo.createdBy,
+    createdDate: scratchOrgInfo.createdDate,
+    expirationDate: scratchOrgInfo.expirationDate,
+    status,
+    edition,
+    orgName: scratchOrgInfo.orgName,
+    password: scratchOrgInfo.password ?? ''
+  });
+
+  return orgInfo;
+};
+
+/** Get org info with error status when connection fails */
+const getOrgInfoWithError = async (username: string, error: any): Promise<OrgInfo> => {
+  const connectionStatus = getConnectionStatusFromError(error, username);
+
+  // Try to get basic auth info without creating a connection
+  let authFields: any = {};
+  let alias = '';
+
+  try {
+    const authInfo = await AuthInfo.create({ username });
+    authFields = authInfo.getFields(true);
+
+    // Get alias using StateAggregator
+    const stateAggregator = await StateAggregator.getInstance();
+    const aliases = stateAggregator.aliases.getAll(username);
+    alias = aliases.length > 0 ? aliases[0] : '';
+  } catch {
+    // If we can't even get auth info, use minimal info
+  }
+
+  // Return basic org info with error status
+  const orgInfo = createOrgInfo(username, authFields, alias, connectionStatus);
+
+  return orgInfo;
+};

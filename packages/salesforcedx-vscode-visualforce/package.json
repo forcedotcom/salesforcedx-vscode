@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "64.11.1",
+  "version": "64.13.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,75 +24,31 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-language-server": "64.11.1",
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "64.11.1",
-    "salesforcedx-vscode-core": "64.11.1",
+    "vscode-css-languageservice": "^6.3.7",
     "vscode-languageclient": "^9.0.1",
-    "vscode-languageserver-protocol": "^3.17.5",
-    "vscode-languageserver-types": "^3.17.5"
+    "vscode-languageserver-protocol": "^3.17.5"
   },
   "devDependencies": {
-    "@types/node": "^22.15.1",
-    "cross-env": "5.2.0"
+    "@salesforce/salesforcedx-visualforce-language-server": "64.13.1",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "64.13.1",
+    "salesforcedx-vscode-core": "64.13.1"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
-    "bundle:extension:build": "esbuild ./src/extension.ts  --bundle --outfile=dist/index.js --format=cjs --platform=node --external:vscode --minify",
-    "bundle:extension:copy": "cp ../salesforcedx-visualforce-language-server/dist/visualforceServer.js ./dist/",
+    "bundle:extension": "node ./esbuild.config.mjs",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "test": "jest --coverage --passWithNoTests",
-    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
-    "vscode:prepublish": "npm prune --production",
+    "vscode:package": "vsce package",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "watch": "tsc -watch -p ."
   },
-  "main": "./out/src/extension",
-  "serverPath": [
-    "..",
-    "..",
-    "node_modules",
-    "@salesforce",
-    "salesforcedx-visualforce-language-server",
-    "out",
-    "src",
-    "visualforceServer.js"
-  ],
-  "packaging": {
-    "assets": [
-      "LICENSE.txt",
-      "package.nls.ja.json",
-      "package.nls.json",
-      "README.md",
-      ".vscodeignore",
-      "OSSREADME.json",
-      "images",
-      "syntaxes",
-      "images",
-      "dist"
-    ],
-    "packageUpdates": {
-      "main": "dist/index.js",
-      "dependencies": {
-        "vscode-css-languageservice": "^2.1.9",
-        "vscode-languageserver": "^9.0.1",
-        "vscode-languageserver-protocol": "^3.17.5",
-        "vscode-languageserver-types": "^3.17.5",
-        "vscode-nls": "^2.0.2"
-      },
-      "devDependencies": {},
-      "serverPath": [
-        "dist",
-        "visualforceServer.js"
-      ]
-    }
-  },
+  "main": "./dist/index.js",
   "contributes": {
     "languages": [
       {
