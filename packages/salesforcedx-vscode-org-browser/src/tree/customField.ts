@@ -5,46 +5,50 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Effect from 'effect/Effect';
-import { MetadataRegistryService } from 'salesforcedx-vscode-services/src/core/metadataRegistryService';
-import { MetadataRetrieveService } from 'salesforcedx-vscode-services/src/core/metadataRetrieveService';
-import { SdkLayer } from 'salesforcedx-vscode-services/src/observability/spans';
-import type { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
-import { fileIsPresent, getFileGlob } from './filePresence';
+import * as Layer from 'effect/Layer';
+import { ExtensionProviderService, ExtensionProviderServiceLive } from '../services/extensionProvider';
+import { getFilePaths } from './filePresence';
 import { OrgBrowserTreeItem } from './orgBrowserNode';
 import { CustomObjectField, MetadataListResultItem } from './types';
 
 export const createCustomFieldNode =
   (element: OrgBrowserTreeItem) =>
-  (
-    f: CustomObjectField
-  ): Effect.Effect<OrgBrowserTreeItem, Error, MetadataRetrieveService | MetadataRegistryService | WorkspaceService> =>
-    Effect.gen(function* () {
-      // Create a MetadataListResultItem-like object for the custom field
-      const fieldMetadata: MetadataListResultItem = {
-        fullName: `${element.componentName}.${f.name}`,
-        type: 'CustomField'
-      };
+  (f: CustomObjectField): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
+    ExtensionProviderService.pipe(
+      Effect.flatMap(svc => svc.getServicesApi),
+      Effect.flatMap(api => {
+        const allLayers = Layer.mergeAll(
+          api.services.MetadataRetrieveServiceLive,
+          api.services.MetadataRegistryServiceLive,
+          api.services.WorkspaceServiceLive,
+          api.services.ProjectServiceLive,
+          api.services.SdkLayer
+        );
 
-      // special filter to keep from returning true when the parent object is found but the field is not
-      const globs = (yield* getFileGlob('CustomField')(fieldMetadata)).filter(g => g.endsWith('field-meta.xml'));
-      // TODO: find a way to short-circuit this so the first "true" the returns is all we need
-      const isPresent = (yield* Effect.all(
-        globs.map(glob => fileIsPresent(glob)),
-        { concurrency: 'unbounded' }
-      )).some(a => a);
+        return Effect.gen(function* () {
+          // Create a MetadataListResultItem-like object for the custom field
+          const fieldMetadata: MetadataListResultItem = {
+            fullName: `${element.componentName}.${removeNamespacePrefix(element)(f).name}`,
+            type: 'CustomField'
+          };
 
-      return new OrgBrowserTreeItem({
-        kind: 'component',
-        xmlName: 'CustomField',
-        componentName: `${element.componentName}.${f.name}`,
-        label: getFieldLabel(f),
-        filePresent: isPresent
-      });
-    }).pipe(
-      Effect.withSpan('createCustomFieldNode', {
-        attributes: { xmlName: 'CustomField', componentName: `${element.componentName}.${f.name}` }
+          const filePaths = yield* getFilePaths(fieldMetadata);
+
+          return new OrgBrowserTreeItem({
+            kind: 'component',
+            xmlName: 'CustomField',
+            componentName: `${element.componentName}.${f.name}`,
+            label: getFieldLabel(removeNamespacePrefix(element)(f)),
+            filePresent: filePaths.length > 0
+          });
+        }).pipe(
+          Effect.withSpan('createCustomFieldNode', {
+            attributes: { xmlName: 'CustomField', componentName: `${element.componentName}.${f.name}` }
+          }),
+          Effect.provide(allLayers)
+        );
       }),
-      Effect.provide(SdkLayer)
+      Effect.provide(ExtensionProviderServiceLive)
     );
 
 /** build out the label for a CustomField */
@@ -64,3 +68,8 @@ const getFieldLabel = (f: CustomObjectField): string => {
       return `${f.name} | ${f.type}`;
   }
 };
+
+const removeNamespacePrefix =
+  (element: OrgBrowserTreeItem) =>
+  (f: CustomObjectField): CustomObjectField =>
+    element.namespace ? { ...f, name: f.name.replace(`${element.namespace}__`, '') } : f;

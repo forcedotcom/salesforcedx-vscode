@@ -18,7 +18,6 @@ import { MetadataDescribeService, MetadataDescribeServiceLive } from './core/met
 import { MetadataRegistryService, MetadataRegistryServiceLive } from './core/metadataRegistryService';
 import { MetadataRetrieveService, MetadataRetrieveServiceLive } from './core/metadataRetrieveService';
 import { ProjectService, ProjectServiceLive } from './core/projectService';
-import { webAppInsightsReporter } from './observability/applicationInsightsWebExporter';
 import { SdkLayer } from './observability/spans';
 import { fsPrefix } from './virtualFsProvider/constants';
 import { FsProvider } from './virtualFsProvider/fileSystemProvider';
@@ -84,11 +83,14 @@ export const activate = async (
   context: vscode.ExtensionContext,
   channelServiceLayer = ChannelServiceLayer('Salesforce Services')
 ): Promise<SalesforceVSCodeServicesApi> => {
-  // set the theme as early as possible.  TODO: manage this from CBW instead of in an extension
   if (Global.isWeb) {
+    // set the theme as early as possible.  TODO: manage this from CBW instead of in an extension
     const config = vscode.workspace.getConfiguration();
     await config.update('workbench.colorTheme', 'Monokai', vscode.ConfigurationTarget.Global);
-    context.subscriptions.push(webAppInsightsReporter);
+    if (process.env.ESBUILD_PLATFORM === 'web') {
+      const { getWebAppInsightsReporter } = await import('./observability/applicationInsightsWebExporter.js');
+      context.subscriptions.push(getWebAppInsightsReporter());
+    }
   }
   // Create persistent scope for the extension
   extensionScope = await Effect.runPromise(Scope.make());

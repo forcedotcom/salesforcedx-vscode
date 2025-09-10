@@ -19,8 +19,13 @@ import { TelemetryReporter } from '@vscode/extension-telemetry';
 import { workspace } from 'vscode';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
 
-// TODO: make an effect/service/layer/etc
-export const webAppInsightsReporter = new TelemetryReporter(DEFAULT_AI_CONNECTION_STRING);
+// TODO: should this be in Effect?
+// Lazy initialization to avoid bundling issues
+const _webAppInsightsReporter: { instance: TelemetryReporter | undefined } = { instance: undefined };
+export const getWebAppInsightsReporter = (): TelemetryReporter => {
+  _webAppInsightsReporter.instance ??= new TelemetryReporter(DEFAULT_AI_CONNECTION_STRING);
+  return _webAppInsightsReporter.instance;
+};
 
 const getSpanKindName = (kind: SpanKind): string =>
   kind === SpanKind.INTERNAL
@@ -79,12 +84,13 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
 
       // eslint-disable-next-line functional/no-try-statements
       try {
+        const reporter = getWebAppInsightsReporter();
         if (success) {
           // Use dangerous method to bypass telemetry level checks for development
-          webAppInsightsReporter.sendDangerousTelemetryEvent(span.name, props, measurements);
+          reporter.sendDangerousTelemetryEvent(span.name, props, measurements);
         } else {
           // Use dangerous method to bypass telemetry level checks for development
-          webAppInsightsReporter.sendDangerousTelemetryErrorEvent(span.name, props, measurements);
+          reporter.sendDangerousTelemetryErrorEvent(span.name, props, measurements);
         }
       } catch (error) {
         console.error('❌ Failed to send dangerous telemetry:', error);

@@ -56,8 +56,6 @@ export const activateEffect = (
       }).pipe(Effect.withSpan('activation:salesforcedx-vscode-org-browser'), Effect.provide(SdkLayer)),
       ChannelServiceLayer
     );
-
-    // do various activation things here
   });
 
 export const deactivateEffect = Effect.gen(function* () {

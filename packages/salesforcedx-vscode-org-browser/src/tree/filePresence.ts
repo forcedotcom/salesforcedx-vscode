@@ -4,32 +4,45 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import { MetadataRegistryService } from 'salesforcedx-vscode-services/src/core/metadataRegistryService';
-import { MetadataRetrieveService } from 'salesforcedx-vscode-services/src/core/metadataRetrieveService';
-import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
-import * as vscode from 'vscode';
-import { MetadataListResultItem } from './types';
+import * as Layer from 'effect/Layer';
+import { ExtensionProviderService, ExtensionProviderServiceLive } from '../services/extensionProvider';
 
-const ignoredGlob = '**/.*';
+// since we can't file search on the web, we'll use ComponentSet to find local file paths for the component
+export const getFilePaths = (member: MetadataMember): Effect.Effect<string[], Error, never> =>
+  ExtensionProviderService.pipe(
+    Effect.flatMap(svcProvider => svcProvider.getServicesApi),
+    Effect.flatMap(api => {
+      const allLayers = Layer.mergeAll(
+        api.services.MetadataRetrieveServiceLive,
+        api.services.MetadataRegistryServiceLive,
+        api.services.WorkspaceServiceLive,
+        api.services.ProjectServiceLive,
+        api.services.SdkLayer
+      );
 
-export const fileIsPresent = (glob: string): Effect.Effect<boolean, Error> =>
-  Effect.promise(() => vscode.workspace.findFiles(glob, ignoredGlob, 1))
-    .pipe(
-      Effect.tap(files => Effect.log(`files: ${files.map(f => f.fsPath).join(', ')}`)),
-      Effect.map(files => files.length > 0)
-    )
-    .pipe(Effect.withSpan('fileIsPresent', { attributes: { glob } }));
-
-export const getFileGlob =
-  (xmlName: string) =>
-  (
-    c: MetadataListResultItem
-  ): Effect.Effect<string[], Error, MetadataRetrieveService | MetadataRegistryService | WorkspaceService> =>
-    Effect.gen(function* () {
-      const reg = yield* (yield* MetadataRegistryService).getRegistryAccess();
-      const type = reg.getTypeByName(xmlName);
-      const basicPaths = yield* (yield* MetadataRetrieveService).getFilePath(type, c.fullName);
-      yield* Effect.annotateCurrentSpan({ paths: basicPaths });
-      return basicPaths.map(path => `**/${path}`);
-    }).pipe(Effect.withSpan('getFileGlob', { attributes: { xmlName, fullName: c.fullName } }));
+      return Effect.gen(function* () {
+        yield* Effect.log('beforeGetProject');
+        const projectService = yield* api.services.ProjectService;
+        const dirs = (yield* projectService.getSfProject).getPackageDirectories().map(directory => directory.fullPath);
+        yield* Effect.log('afterGetProject');
+        const retrieveService = yield* api.services.MetadataRetrieveService;
+        const componentSet = yield* retrieveService.buildComponentSetFromSource([member], dirs);
+        yield* Effect.log('afterBuildComponentSet');
+        yield* Effect.annotateCurrentSpan({
+          size: componentSet.size,
+          sourceComponents: Array.from(componentSet.getSourceComponents()).map(c => c.fullName)
+        });
+        const paths = Array.from(componentSet.getSourceComponents()).flatMap(c =>
+          [c.xml, c.content].filter(f => f !== undefined)
+        );
+        yield* Effect.annotateCurrentSpan({ paths });
+        return paths;
+      }).pipe(
+        Effect.withSpan('getFilePaths', { attributes: { type: member.type, fullName: member.fullName } }),
+        Effect.provide(allLayers)
+      );
+    }),
+    Effect.provide(ExtensionProviderServiceLive)
+  );

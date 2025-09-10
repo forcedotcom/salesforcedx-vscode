@@ -38,3 +38,25 @@ export const ExtensionProviderServiceLive = Layer.effect(
     getServicesApi
   }))
 );
+
+/** Layer that provides all services from the SalesforceVSCodeServicesApi */
+export const AllServicesLayer = Layer.unwrapEffect(
+  Effect.gen(function* () {
+    const extensionProvider = yield* ExtensionProviderService;
+    const api = yield* extensionProvider.getServicesApi;
+
+    // Merge all the service layers from the API
+    return Layer.mergeAll(
+      api.services.ChannelServiceLayer('Salesforce Org Browser'),
+      api.services.ConfigServiceLive,
+      api.services.ConnectionServiceLive,
+      api.services.FsServiceLive,
+      api.services.MetadataRetrieveServiceLive,
+      api.services.MetadataRegistryServiceLive,
+      api.services.ProjectServiceLive,
+      api.services.SdkLayer,
+      api.services.SettingsServiceLive,
+      api.services.WorkspaceServiceLive
+    );
+  }).pipe(Effect.provide(ExtensionProviderServiceLive))
+);

@@ -7,14 +7,10 @@
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 
-import { MetadataRegistryService } from 'salesforcedx-vscode-services/src/core/metadataRegistryService';
-import { MetadataRetrieveService } from 'salesforcedx-vscode-services/src/core/metadataRetrieveService';
-import { SdkLayer } from 'salesforcedx-vscode-services/src/observability/spans';
-import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
 import * as vscode from 'vscode';
 import { ExtensionProviderService, ExtensionProviderServiceLive } from '../services/extensionProvider';
 import { createCustomFieldNode } from './customField';
-import { getFileGlob, fileIsPresent } from './filePresence';
+import { getFilePaths } from './filePresence';
 import { isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
 import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
 
@@ -55,6 +51,7 @@ const getChildrenOfTreeItem = (
     Effect.flatMap(svcProvider => svcProvider.getServicesApi),
     Effect.flatMap(api => {
       const allLayers = Layer.mergeAll(
+        api.services.ProjectServiceLive,
         api.services.MetadataDescribeServiceLive,
         api.services.MetadataRegistryServiceLive,
         api.services.MetadataRetrieveServiceLive,
@@ -63,7 +60,6 @@ const getChildrenOfTreeItem = (
         api.services.WorkspaceServiceLive,
         api.services.SettingsServiceLive,
         api.services.SdkLayer,
-        api.services.MetadataRegistryServiceLive,
         Layer.provideMerge(api.services.FsServiceLive, api.services.ChannelServiceLayer('Salesforce Org Browser'))
       );
       return Effect.flatMap(api.services.MetadataDescribeService, describeService => {
@@ -78,107 +74,105 @@ const getChildrenOfTreeItem = (
         }
         if (element.kind === 'customObject') {
           // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
-          return describeService.describeCustomObject(element.componentName!).pipe(
-            Effect.flatMap(result =>
-              Effect.all(
-                result.fields
-                  // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
-                  .filter(f => f.custom)
-                  .toSorted((a, b) => (a.name < b.name ? -1 : 1))
-                  .map(createCustomFieldNode(element)),
-                { concurrency: 'unbounded' }
-              )
+          return describeService
+            .describeCustomObject(
+              element.namespace ? `${element.namespace}__${element.componentName!}` : element.componentName!
             )
-          );
+            .pipe(
+              Effect.flatMap(result =>
+                Effect.all(
+                  result.fields
+                    // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
+                    .filter(f => f.custom)
+                    .toSorted((a, b) => (a.name < b.name ? -1 : 1))
+                    .map(createCustomFieldNode(element)),
+                  { concurrency: 'unbounded' }
+                )
+              )
+            );
         }
         if (element.kind === 'folderType' || (element.kind === 'type' && isFolderType(element.xmlName))) {
           return describeService
             .listMetadata(`${element.xmlName}Folder`)
-            .pipe(Effect.map(folders => folders.map(listMetadataToFolder(element))));
+            .pipe(Effect.map(folders => folders.filter(globalMetadataFilter).map(listMetadataToFolder(element))));
         }
         if (element.kind === 'type') {
-          return describeService
-            .listMetadata(element.xmlName)
-            .pipe(
-              Effect.flatMap(components =>
-                Effect.all(components.map(listMetadataToComponent(element)), { concurrency: 'unbounded' })
-              )
-            );
+          return describeService.listMetadata(element.xmlName).pipe(
+            Effect.flatMap(components =>
+              Effect.all(components.filter(globalMetadataFilter).map(listMetadataToComponent(element)), {
+                concurrency: 'unbounded'
+              })
+            )
+          );
         }
         if (element.kind === 'folder') {
           const { xmlName, folderName } = element;
           if (!xmlName || !folderName) return Effect.succeed([]);
-          return describeService
-            .listMetadata(xmlName, folderName)
-            .pipe(
-              Effect.flatMap(components =>
-                Effect.all(components.map(listMetadataToFolderItem(element)), { concurrency: 'unbounded' })
-              )
-            );
+          return describeService.listMetadata(xmlName, folderName).pipe(
+            Effect.flatMap(components =>
+              Effect.all(components.filter(globalMetadataFilter).map(listMetadataToFolderItem(element)), {
+                concurrency: 'unbounded'
+              })
+            )
+          );
         }
 
-        return Effect.fail(new Error(`Invalid node kind: ${element.kind}`));
-      }).pipe(Effect.provide(allLayers));
+        return Effect.die(new Error(`Invalid node kind: ${element.kind}`));
+      }).pipe(Effect.provide(allLayers), Effect.withSpan('getChildrenOfTreeItem'));
     }),
-    Effect.withSpan('getChildrenOfTreeItem'),
     Effect.provide(ExtensionProviderServiceLive)
   );
 
 const listMetadataToComponent =
   (element: OrgBrowserTreeItem) =>
-  (
-    c: MetadataListResultItem
-  ): Effect.Effect<OrgBrowserTreeItem, Error, MetadataRetrieveService | MetadataRegistryService | WorkspaceService> =>
+  (c: MetadataListResultItem): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
     Effect.gen(function* () {
-      const globs = yield* getFileGlob(element.xmlName)(c);
-      const isPresent = yield* fileIsPresent(globs[0]);
+      const filePaths = yield* getFilePaths(c);
 
       return new OrgBrowserTreeItem({
         kind: element.xmlName === 'CustomObject' ? 'customObject' : 'component',
+        namespace: c.namespacePrefix,
         xmlName: element.xmlName,
         componentName: c.fullName,
         label: c.fullName,
-        filePresent: isPresent
+        filePresent: filePaths.length > 0
       });
     }).pipe(
       Effect.withSpan('listMetadataToComponent', {
         attributes: { xmlName: element.xmlName, componentName: c.fullName }
-      }),
-      Effect.provide(SdkLayer)
+      })
     );
 
 const listMetadataToFolder =
   (element: OrgBrowserTreeItem) =>
-  (f: MetadataListResultItem): OrgBrowserTreeItem =>
+  (c: MetadataListResultItem): OrgBrowserTreeItem =>
     new OrgBrowserTreeItem({
       kind: 'folder',
       xmlName: element.xmlName,
-      folderName: f.fullName,
-      label: f.fullName
+      namespace: c.namespacePrefix,
+      folderName: c.fullName,
+      label: c.fullName
     });
 
 const listMetadataToFolderItem =
   (element: OrgBrowserTreeItem) =>
-  (
-    c: MetadataListResultItem
-  ): Effect.Effect<OrgBrowserTreeItem, Error, MetadataRetrieveService | MetadataRegistryService | WorkspaceService> =>
+  (c: MetadataListResultItem): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
     Effect.gen(function* () {
-      const globs = yield* getFileGlob(element.xmlName)(c);
-      const isPresent = yield* fileIsPresent(globs[0]);
+      const filePaths = yield* getFilePaths(c);
 
       return new OrgBrowserTreeItem({
         kind: 'component',
+        namespace: c.namespacePrefix,
         xmlName: element.xmlName,
         folderName: element.folderName,
         componentName: c.fullName,
         label: c.fullName,
-        filePresent: isPresent
+        filePresent: filePaths.length > 0
       });
     }).pipe(
       Effect.withSpan('listMetadataToFolderItem', {
         attributes: { xmlName: element.xmlName, componentName: c.fullName }
-      }),
-      Effect.provide(SdkLayer)
+      })
     );
 
 const mdapiDescribeToOrgBrowserNode = (t: MetadataDescribeResultItem): OrgBrowserTreeItem =>
@@ -187,3 +181,10 @@ const mdapiDescribeToOrgBrowserNode = (t: MetadataDescribeResultItem): OrgBrowse
     xmlName: t.xmlName,
     label: t.xmlName
   });
+
+/** applies to all listMetadata calls */
+const globalMetadataFilter = (i: MetadataListResultItem): boolean => hasFullName(i) && isSupportedManageableState(i);
+
+const hasFullName = (i: MetadataListResultItem): boolean => Boolean(i.fullName);
+const isSupportedManageableState = (i: MetadataListResultItem): boolean =>
+  !i.manageableState || ['unmanaged', 'installedEditable', 'deprecatedEditable'].includes(i.manageableState);

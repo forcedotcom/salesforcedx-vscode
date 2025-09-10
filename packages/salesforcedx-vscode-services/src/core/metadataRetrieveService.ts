@@ -8,7 +8,6 @@
 import {
   type RetrieveResult,
   type MetadataMember,
-  type RegistryAccess,
   MetadataApiRetrieve,
   ComponentSet,
   MetadataType
@@ -50,18 +49,42 @@ export type MetadataRetrieveService = {
 
   /** given a type and name, return a glob pattern that can be used to search for the file in the local project */
   readonly getFilePath: (type: MetadataType, name: string) => Effect.Effect<string[], Error, MetadataRegistryService>;
+
+  readonly buildComponentSet: (
+    members: MetadataMember[]
+  ) => Effect.Effect<ComponentSet, Error, MetadataRegistryService | WorkspaceService>;
+
+  readonly buildComponentSetFromSource: (
+    members: MetadataMember[],
+    sourcePaths: string[]
+  ) => Effect.Effect<ComponentSet, Error, MetadataRegistryService | WorkspaceService>;
 };
 
 export const MetadataRetrieveService = Context.GenericTag<MetadataRetrieveService>('MetadataRetrieveService');
 
-const buildComponentSet = (
+const buildComponentSetFromSource = (
   members: MetadataMember[],
-  registryAccess: RegistryAccess
-): Effect.Effect<ComponentSet, Error> =>
-  Effect.try({
-    try: () => new ComponentSet(members, registryAccess),
-    catch: e => new Error('Failed to build ComponentSet', { cause: e })
-  }).pipe(Effect.withSpan('buildComponentSet'));
+  sourcePaths: string[]
+): Effect.Effect<ComponentSet, Error, MetadataRegistryService | WorkspaceService> =>
+  Effect.gen(function* () {
+    const include = members.length > 0 ? yield* buildComponentSet(members) : undefined;
+    const registryAccess = yield* (yield* MetadataRegistryService).getRegistryAccess();
+    return yield* Effect.try({
+      try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
+      catch: e => new Error('Failed to build ComponentSet from source', { cause: e })
+    }).pipe(Effect.withSpan('buildComponentSetFromSource'));
+  });
+
+const buildComponentSet = (
+  members: MetadataMember[]
+): Effect.Effect<ComponentSet, Error, MetadataRegistryService | WorkspaceService> =>
+  Effect.gen(function* () {
+    const registryAccess = yield* (yield* MetadataRegistryService).getRegistryAccess();
+    return yield* Effect.try({
+      try: () => new ComponentSet(members, registryAccess),
+      catch: e => new Error('Failed to build ComponentSet', { cause: e })
+    }).pipe(Effect.withSpan('buildComponentSet'));
+  });
 
 const retrieve = (
   members: MetadataMember[]
@@ -87,7 +110,7 @@ const retrieve = (
     { concurrency: 'unbounded' }
   ).pipe(
     Effect.flatMap(([connection, project, workspaceDescription, channelService, registryAccess]) =>
-      Effect.flatMap(buildComponentSet(members, registryAccess), componentSet =>
+      Effect.flatMap(buildComponentSet(members), componentSet =>
         workspaceDescription.isEmpty
           ? Effect.fail(new Error('No workspace path found'))
           : Effect.flatMap(channelService, _channel =>
@@ -135,7 +158,9 @@ export const MetadataRetrieveServiceLive = Layer.effect(
   Effect.gen(function* () {
     return {
       retrieve,
-      getFilePath
+      getFilePath,
+      buildComponentSet,
+      buildComponentSetFromSource
     };
-  })
+  }).pipe(Effect.provide(SdkLayer), Effect.withSpan('MetadataRetrieveServiceLive'))
 );

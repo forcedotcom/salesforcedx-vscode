@@ -28,6 +28,7 @@ export type OrgBrowserTreeItemInputs = {
   label: string;
   /** Whether the file is present in the local workspace */
   filePresent?: boolean;
+  namespace?: string;
 };
 
 // Types that have folders
@@ -44,12 +45,14 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
   public readonly folderName?: string;
   /** the name of the component that you could use to retrieve the node.  One of the [xmlName] */
   public readonly componentName?: string;
+  public readonly namespace?: string;
 
   constructor(inputs: OrgBrowserTreeItemInputs) {
     super(
       inputs.label,
       inputs.kind === 'component' ? vscode.TreeItemCollapsibleState.None : vscode.TreeItemCollapsibleState.Collapsed
     );
+    this.namespace = inputs.namespace;
     this.kind = inputs.kind;
     this.xmlName = inputs.xmlName;
     this.folderName = inputs.folderName;

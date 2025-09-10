@@ -102,6 +102,7 @@ export const MetadataDescribeServiceLive = Layer.effect(
             try: () => conn.metadata.list({ type, ...(folder ? { folder } : {}) }),
             catch: e => new Error(`listMetadata failed for type ${type}: ${String(e)}`)
           }).pipe(
+            Effect.tap(result => Effect.annotateCurrentSpan({ result })),
             Effect.withSpan('listMetadata (API call)'),
             Effect.map(ensureArray),
             Effect.map(arr => arr.sort((a, b) => a.fullName.localeCompare(b.fullName))),
