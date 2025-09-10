@@ -19,5 +19,5 @@
 
 #### salesforcedx-vscode-core
 
-- W-18337792 - We improved error handling so that org info is returned with clear status when connection or query failures occur. ([PR #6530](https://github.com/forcedotcom/salesforcedx-vscode/pull/6530))
+- We improved error handling so that org info is returned with clear status when connection or query failures occur. ([PR #6530](https://github.com/forcedotcom/salesforcedx-vscode/pull/6530))
 
