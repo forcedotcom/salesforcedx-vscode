@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "npx eslint ./test **/*.ts",
-    "copy:files": "shx mkdir -p lib/test/testData/files && shx cp ./test/testData/files/* lib/test/testData/files",
+    "copy:files": "npx shx mkdir -p lib/test/testData/files && npx shx cp ./test/testData/files/* lib/test/testData/files",
     "compile": "tsc --project ./tsconfig.json && npm run copy:files",
     "extester": "extest --help",
     "reinstall": "git checkout -- package-lock.json && git clean -xfd && npm install"

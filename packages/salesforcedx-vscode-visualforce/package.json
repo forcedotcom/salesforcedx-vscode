@@ -31,6 +31,8 @@
   "devDependencies": {
     "@salesforce/salesforcedx-visualforce-language-server": "64.13.1",
     "@salesforce/salesforcedx-visualforce-markup-language-server": "64.13.1",
+    "@tsconfig/node22": "22.0.2",
+    "@types/jest": "^29.5.5",
     "salesforcedx-vscode-core": "64.13.1"
   },
   "extensionDependencies": [
@@ -43,7 +45,7 @@
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "test": "jest --coverage --passWithNoTests",
-    "vscode:package": "vsce package",
+    "vscode:package": "npx vsce package",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "watch": "tsc -watch -p ."

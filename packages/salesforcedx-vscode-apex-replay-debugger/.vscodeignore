@@ -4,7 +4,6 @@
 .vscode-test/**
 *.xml
 *.vsix
-out/**
 test/**
 src/**
 **/*.map
