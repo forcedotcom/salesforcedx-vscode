@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- We’ve added new walkthroughs for the Org Browser and Prg Picker features—enjoy exploring and learning about them! ([PR #6526](https://github.com/forcedotcom/salesforcedx-vscode/pull/6526))
+- We’ve added new walkthroughs for the Org Browser and Org Picker features—enjoy exploring and learning about them! ([PR #6526](https://github.com/forcedotcom/salesforcedx-vscode/pull/6526))
 - We made some changes under the hood. ([PR #6527](https://github.com/forcedotcom/salesforcedx-vscode/pull/6527))
 
 ## Fixed
