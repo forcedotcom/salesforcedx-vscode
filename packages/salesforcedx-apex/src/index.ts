@@ -39,6 +39,9 @@ export {
   TestLevel,
   TestResult,
   TestService,
-  TestRunIdResult
+  TestRunIdResult,
+  writeResultFiles,
+  writeAsyncResultsToFile,
+  PerClassCoverage
 } from './tests';
 export { ApexDiagnostic, Row, Table } from './utils';

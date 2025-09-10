@@ -28,6 +28,7 @@ import {
 import {
   calculateCodeCoverage,
   calculatePercentage,
+  computeTestCategory,
   transformTestResult
 } from './utils';
 import type { HttpRequest } from '@jsforce/jsforce-node';
@@ -216,7 +217,8 @@ export class SyncTests {
       },
       runTime: item.time ?? 0,
       testTimestamp: '',
-      fullName: `${nms}${item.name}.${item.methodName}`
+      fullName: `${nms}${item.name}.${item.methodName}`,
+      category: computeTestCategory(item.namespace)
     };
 
     if (outcome === ApexTestResultOutcome.Fail) {

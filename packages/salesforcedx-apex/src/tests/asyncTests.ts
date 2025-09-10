@@ -38,11 +38,11 @@ import {
   TestResultRaw,
   TestRunIdResult,
   FlowTestResult,
-  ApexTestResultRecord
+  ApexTestResultRecord,
+  TestCategory
 } from './types';
 import {
   calculatePercentage,
-  getBufferSize,
   getJsonIndent,
   transformTestResult,
   queryAll,
@@ -59,8 +59,27 @@ import * as os from 'node:os';
 import path from 'path';
 import fs from 'node:fs/promises';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const bfj = require('bfj');
+import { JsonStreamStringify } from 'json-stream-stringify';
+
+/**
+ * Standalone function for writing async test results to file - easier to test
+ */
+export const writeAsyncResultsToFile = async (
+  formattedResults: TestResult,
+  runId: string
+): Promise<void> => {
+  const rawResultsPath = path.join(os.tmpdir(), runId, 'rawResults.json');
+  await fs.mkdir(path.dirname(rawResultsPath), { recursive: true });
+  const writeStream = createWriteStream(
+    path.join(os.tmpdir(), runId, 'rawResults.json')
+  );
+  const stringifyStream = new JsonStreamStringify(
+    formattedResults,
+    null,
+    getJsonIndent()
+  );
+  return await pipeline(stringifyStream, writeStream);
+};
 
 const finishedStatuses = [
   ApexTestRunResultStatus.Aborted,
@@ -239,18 +258,10 @@ export class AsyncTests {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.writeResultsToFile');
     try {
       if (this.logger.shouldLog(LoggerLevel.DEBUG)) {
-        const rawResultsPath = path.join(os.tmpdir(), runId, 'rawResults.json');
-        await fs.mkdir(path.dirname(rawResultsPath), { recursive: true });
-        const writeStream = createWriteStream(
-          path.join(os.tmpdir(), runId, 'rawResults.json')
+        await writeAsyncResultsToFile(formattedResults, runId);
+        this.logger.debug(
+          `Raw results written to: ${path.join(os.tmpdir(), runId, 'rawResults.json')}`
         );
-        this.logger.debug(`Raw results written to: ${writeStream.path}`);
-        const stringifyStream = bfj.stringify(formattedResults, {
-          bufferLength: getBufferSize(),
-          iterables: 'ignore',
-          space: getJsonIndent()
-        });
-        return await pipeline(stringifyStream, writeStream);
       }
     } finally {
       HeapMonitor.getInstance().checkHeapSize('asyncTests.writeResultsToFile');
@@ -472,32 +483,21 @@ export class AsyncTests {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.getAsyncTestResults');
     const hasIsTestSetupField = await this.supportsTestSetupFeature();
     try {
-      const resultIds = testQueueResult.records.map((record) => record.Id);
-      const isFlowRunTest = await this.isJobIdForFlowTestRun(resultIds[0]);
-      const testResultQuery = isFlowRunTest
-        ? `SELECT Id, ApexTestQueueItemId, Result, TestStartDateTime,TestEndDateTime, FlowTest.DeveloperName, FlowDefinition.DeveloperName, FlowDefinition.NamespacePrefix FROM FlowTestResult WHERE ApexTestQueueItemId IN (%s)`
-        : hasIsTestSetupField
-          ? `SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, IsTestSetup, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN (%s)`
-          : `SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN (%s)`;
-
-      // iterate thru ids, create query with id, & compare query length to char limit
-      const queries: string[] = [];
-      for (let i = 0; i < resultIds.length; i += QUERY_RECORD_LIMIT) {
-        const recordSet: string[] = resultIds
-          .slice(i, i + QUERY_RECORD_LIMIT)
-          .map((id) => `'${id}'`);
-        const query: string = util.format(testResultQuery, recordSet.join(','));
-        queries.push(query);
-      }
-      const connection = await this.defineApiVersion();
-      const queryPromises = queries.map(async (query) =>
-        queryAll(connection, query, true)
+      const { apexTestIds, flowTestIds } = this.mapTestResultsByCategory(
+        testQueueResult.records
       );
-      const testResults = await Promise.all(queryPromises);
-      if (isFlowRunTest) {
-        return this.convertFlowTestResult(testResults as FlowTestResult[]);
+
+      const allTestResults: ApexTestResult[] = [];
+      if (apexTestIds.length > 0) {
+        allTestResults.push(
+          ...(await this.getApexTestResults(apexTestIds, hasIsTestSetupField))
+        );
       }
-      return testResults as ApexTestResult[];
+      if (flowTestIds.length > 0) {
+        allTestResults.push(...(await this.getFlowTestResults(flowTestIds)));
+      }
+
+      return allTestResults as ApexTestResult[];
     } finally {
       HeapMonitor.getInstance().checkHeapSize('asyncTests.getAsyncTestResults');
     }
@@ -541,7 +541,8 @@ export class AsyncTests {
       return {
         done: flowtestResult.done,
         totalSize: tmpRecords.length,
-        records: tmpRecords
+        records: tmpRecords,
+        category: TestCategory.Flow
       };
     });
   }
@@ -610,7 +611,8 @@ export class AsyncTests {
             runTime: item.RunTime ?? 0,
             testTimestamp: item.TestTimestamp, // TODO: convert timestamp
             fullName: `${item.ApexClass.FullName}.${item.MethodName}`,
-            ...(diagnostic ? { diagnostic } : {})
+            ...(diagnostic ? { diagnostic } : {}),
+            category: result.category
           });
         });
       }
@@ -754,5 +756,96 @@ export class AsyncTests {
         `Error creating new connection with API version ${newVersion}: ${e.message}`
       );
     }
+  }
+
+  /**
+   * Maps test results by category (Apex vs Flow tests)
+   */
+  public mapTestResultsByCategory(records: ApexTestQueueItemRecord[]): {
+    apexTestIds: string[];
+    flowTestIds: string[];
+  } {
+    if (!records?.length) {
+      return { apexTestIds: [], flowTestIds: [] };
+    }
+    return {
+      apexTestIds: records
+        .filter((r) => r.ApexClassId !== null)
+        .map((r) => r.Id),
+      flowTestIds: records
+        .filter((r) => r.ApexClassId === null)
+        .map((r) => r.Id)
+    };
+  }
+
+  public async getFlowTestResults(
+    recordIds: string[]
+  ): Promise<ApexTestResult[]> {
+    const queryTemplate = `SELECT Id, ApexTestQueueItemId, Result, TestStartDateTime,TestEndDateTime, FlowTest.DeveloperName, FlowDefinition.DeveloperName, FlowDefinition.NamespacePrefix FROM FlowTestResult WHERE ApexTestQueueItemId IN (%s)`;
+    const queries = this.buildChunkedQueries(queryTemplate, recordIds);
+
+    const connection = await this.defineApiVersion();
+    const queryPromises = queries.map(async (query) =>
+      queryAll(connection, query, true)
+    );
+
+    const testResults = await Promise.all(queryPromises);
+    return this.convertFlowTestResult(testResults as FlowTestResult[]);
+  }
+
+  public async getApexTestResults(
+    recordIds: string[],
+    isTestSetup: boolean
+  ): Promise<ApexTestResult[]> {
+    const queryTemplate = isTestSetup
+      ? `SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, IsTestSetup, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN (%s)`
+      : `SELECT Id, QueueItemId, StackTrace, Message, RunTime, TestTimestamp, AsyncApexJobId, MethodName, Outcome, ApexLogId, ApexClass.Id, ApexClass.Name, ApexClass.NamespacePrefix FROM ApexTestResult WHERE QueueItemId IN (%s)`;
+    const queries = this.buildChunkedQueries(queryTemplate, recordIds);
+
+    const connection = await this.defineApiVersion();
+    const queryPromises = queries.map(async (query) =>
+      queryAll(connection, query, true)
+    );
+
+    const testResults = await Promise.all(queryPromises);
+    return testResults.map(
+      (result) =>
+        ({
+          ...result,
+          category: TestCategory.Apex
+        }) as ApexTestResult
+    );
+  }
+
+  /**
+   * Splits record IDs into multiple queries to respect Salesforce query limits
+   * @param queryTemplate SOQL query template with %s placeholder for IDs
+   * @param recordIds Array of record IDs to include in queries
+   * @returns Array of complete SOQL queries ready to execute
+   */
+  public buildChunkedQueries(
+    queryTemplate: string,
+    recordIds: string[]
+  ): string[] {
+    if (!queryTemplate?.includes('%s')) {
+      throw new Error(
+        'Query template must contain %s placeholder for record IDs'
+      );
+    }
+
+    if (!recordIds?.length) {
+      return [];
+    }
+
+    const queries: string[] = [];
+
+    for (let i = 0; i < recordIds.length; i += QUERY_RECORD_LIMIT) {
+      const chunk = recordIds.slice(i, i + QUERY_RECORD_LIMIT);
+      const quotedIds = chunk.map((id) => `'${id}'`).join(',');
+      const query = util.format(queryTemplate, quotedIds);
+      queries.push(query);
+    }
+
+    return queries;
   }
 }

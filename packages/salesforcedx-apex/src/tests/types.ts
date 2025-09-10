@@ -22,6 +22,24 @@ export const enum TestLevel {
   RunSpecifiedTests = 'RunSpecifiedTests'
 }
 
+export const enum TestCategory {
+  /**
+   * Apex test classes and methods written in Apex code
+   */
+  Apex = 'Apex',
+  /**
+   * Flow tests that validate Salesforce Flow functionality
+   */
+  Flow = 'Flow'
+}
+
+export const enum TestCategoryPrefix {
+  /**
+   * Prefix identifier used to detect Flow tests in test names
+   */
+  FlowTest = 'FlowTesting.'
+}
+
 export type AsyncTestConfiguration = {
   /**
    * Comma-separated list of class names
@@ -60,7 +78,7 @@ export type AsyncTestConfiguration = {
    * Category for this run, for Flow or Apex
    */
 
-  category?: string;
+  category?: string[];
 };
 
 export enum ResultFormat {
@@ -121,7 +139,7 @@ export type AsyncTestArrayConfiguration = {
    */
   skipCodeCoverage?: boolean;
 
-  category?: string;
+  category?: string[];
 };
 
 export type SyncTestConfiguration = {
@@ -143,6 +161,10 @@ export type SyncTestConfiguration = {
    * Allows for faster tests by skipping code coverage
    */
   skipCodeCoverage?: boolean;
+  /**
+   * Category for this run, for Flow or Apex
+   */
+  category?: string[];
 };
 
 type SyncTestSuccess = {
@@ -265,6 +287,7 @@ export type ApexTestResultRecord = {
 
 export type ApexTestResult = {
   done: boolean;
+  category?: string;
   totalSize: number;
   records: ApexTestResultRecord[];
 };
@@ -344,7 +367,7 @@ export type ApexTestQueueItemRecord = {
    * The status of the job
    */
   Status: ApexTestQueueItemStatus;
-  ApexClassId: string;
+  ApexClassId: string | null;
   /**
    * The ID of the associated ApexTestRunResult object
    */
@@ -419,6 +442,10 @@ export type ApexTestResultData = {
    */
   perClassCoverage?: PerClassCoverage[];
   diagnostic?: ApexDiagnostic;
+  /**
+   * The category of the test (Apex or Flow)
+   */
+  category?: string;
 };
 
 export type ApexTestResultDataRaw = ApexTestResultData & {

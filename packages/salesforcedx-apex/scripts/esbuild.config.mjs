@@ -1,26 +1,24 @@
-/**
- * NOTE: This file does NOT really generate a bundle version of apex-node
- * apex-node is bundled directly in salesforcedx-vscode
- * The file is only used to detect any potential risks to esbuild.
- **/
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { build } from 'esbuild';
-
 
 await build({
   bundle: true,
   format: 'cjs',
   platform: 'node',
-  external: [
-    'jsonpath'
-  ], // The whitelist of dependencies that are not bundle-able
+  external: [], // The whitelist of dependencies that are not bundle-able
   keepNames: true,
-  plugins: [
-  ],
+  plugins: [],
   supported: {
     'dynamic-import': false
   },
   logOverride: {
-    'unsupported-dynamic-import': 'error',
-  },      entryPoints: ['./lib/src/index.js'],
-    outdir: 'dist'
+    'unsupported-dynamic-import': 'error'
+  },
+  entryPoints: ['./lib/src/index.js'],
+  outdir: 'dist'
 });

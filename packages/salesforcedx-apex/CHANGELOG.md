@@ -1,3 +1,43 @@
+## [8.3.1](https://github.com/forcedotcom/salesforcedx-apex/compare/8.3.0...8.3.1) (2025-09-10)
+
+
+
+# [8.3.0](https://github.com/forcedotcom/salesforcedx-apex/compare/8.2.13...8.3.0) (2025-09-09)
+
+
+### Features
+
+* add support for multiple test categories in a single test run ([#568](https://github.com/forcedotcom/salesforcedx-apex/issues/568)) ([a89b222](https://github.com/forcedotcom/salesforcedx-apex/commit/a89b2224c9da2323390703e918505e266c16440e))
+
+
+
+## [8.2.13](https://github.com/forcedotcom/salesforcedx-apex/compare/8.2.12...8.2.13) (2025-09-07)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/kit from 3.2.3 to 3.2.4 ([cfdc643](https://github.com/forcedotcom/salesforcedx-apex/commit/cfdc64300b70db57e1dda4e99dd2b09c82a7662d))
+
+
+
+## [8.2.12](https://github.com/forcedotcom/salesforcedx-apex/compare/8.2.11...8.2.12) (2025-09-07)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/core from 8.22.0 to 8.23.0 ([dacd088](https://github.com/forcedotcom/salesforcedx-apex/commit/dacd088d4ad4264766f07b3ceb5ca8a655dd1886))
+
+
+
+## [8.2.11](https://github.com/forcedotcom/salesforcedx-apex/compare/8.2.10...8.2.11) (2025-08-31)
+
+
+### Bug Fixes
+
+* **deps:** bump @salesforce/core from 8.21.3 to 8.22.0 ([82ef204](https://github.com/forcedotcom/salesforcedx-apex/commit/82ef204512ba047afaab22344a262e8e11fc88b9))
+
+
+
 ## [8.2.10](https://github.com/forcedotcom/salesforcedx-apex/compare/8.2.9...8.2.10) (2025-08-24)
 
 

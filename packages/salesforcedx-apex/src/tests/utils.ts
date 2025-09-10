@@ -12,6 +12,8 @@ import {
   ApexTestResultDataRaw,
   ApexTestSetupData,
   NamespaceInfo,
+  TestCategory,
+  TestCategoryPrefix,
   TestResult,
   TestResultRaw
 } from './types';
@@ -214,6 +216,14 @@ export const calculateCodeCoverage = async (
       await codeCoverageInstance.getOrgWideCoverage();
   }
 };
+
+export const computeTestCategory = (
+  testNamespace: string | null
+): TestCategory =>
+  isFlowTest(testNamespace) ? TestCategory.Flow : TestCategory.Apex;
+
+export const isFlowTest = (test: string | null): boolean =>
+  test?.startsWith(TestCategoryPrefix.FlowTest) ?? false;
 
 const transformToApexTestSetupData = (
   testData: Omit<ApexTestResultDataRaw, 'isTestSetup'>

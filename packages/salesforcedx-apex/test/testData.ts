@@ -12,6 +12,7 @@ import {
   ApexTestResultRecord,
   ApexTestRunResultStatus,
   SyncTestResult,
+  TestCategory,
   TestResult
 } from '../src/tests/types';
 
@@ -205,6 +206,7 @@ export const flowTestResultData: TestResult = {
       stackTrace: '',
       message: '',
       asyncApexJobId: '7092M000000Vt94QAC',
+      category: TestCategory.Flow,
       methodName: 'FlowName_FlowTestName',
       outcome: ApexTestResultOutcome.Pass,
       apexLogId: '',
@@ -250,6 +252,7 @@ export const missingTimeTestData: TestResult = {
       stackTrace: null,
       message: null,
       asyncApexJobId: testRunId,
+      category: TestCategory.Apex,
       methodName: 'testLoggerLog',
       outcome: ApexTestResultOutcome.Pass,
       apexLogId: null,
@@ -295,6 +298,7 @@ export const skippedTestData: TestResult = {
       stackTrace: null,
       message: null,
       asyncApexJobId: testRunId,
+      category: TestCategory.Apex,
       methodName: 'testLoggerLog',
       outcome: ApexTestResultOutcome.Skip,
       apexLogId: null,
@@ -342,6 +346,7 @@ export const diagnosticResult: TestResult = {
       stackTrace: 'Class.LIFXControllerTest.makeData: line 6, column 1',
       message: 'System.AssertException: Assertion Failed',
       asyncApexJobId: testRunId,
+      category: TestCategory.Apex,
       methodName: 'testLoggerLog',
       outcome: ApexTestResultOutcome.Fail,
       apexLogId: null,
@@ -379,6 +384,7 @@ export const diagnosticFailure: TestResult = {
       stackTrace: 'Class.LIFXControllerTest.makeData',
       message: 'System.AssertException: Assertion Failed',
       asyncApexJobId: testRunId,
+      category: TestCategory.Apex,
       methodName: 'testLoggerLog',
       outcome: ApexTestResultOutcome.Fail,
       apexLogId: null,

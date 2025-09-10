@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { TestService } from './testService';
+export { TestService, writeResultFiles } from './testService';
 export {
   ApexCodeCoverageAggregate,
   ApexCodeCoverageAggregateRecord,
@@ -20,8 +20,11 @@ export {
   OutputDirConfig,
   ResultFormat,
   SyncTestConfiguration,
+  TestCategory,
   TestItem,
   TestLevel,
   TestResult,
-  TestRunIdResult
+  TestRunIdResult,
+  PerClassCoverage
 } from './types';
+export { writeAsyncResultsToFile } from './asyncTests';
