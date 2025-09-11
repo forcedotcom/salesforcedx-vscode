@@ -100,7 +100,7 @@ describe('Telemetry', () => {
       expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_USER_ID);
       expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_WEB_USER_ID);
       expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_VALUE);
-      expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_INTERNAL_VALUE);
+      expect(globalStateTelemetrySpy).toHaveBeenLastCalledWith(TELEMETRY_INTERNAL_VALUE);
       expect(mShowInformation).not.toHaveBeenCalled();
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
