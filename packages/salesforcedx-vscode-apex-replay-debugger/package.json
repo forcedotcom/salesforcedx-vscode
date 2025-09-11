@@ -60,7 +60,7 @@
     "onCommand:sf.launch.replay.debugger.logfile",
     "onCommand:sf.launch.replay.debugger.logfile.path"
   ],
-  "main": "./out/src/index.js",
+  "main": "./dist/index.js",
   "contributes": {
     "breakpoints": [
       {
