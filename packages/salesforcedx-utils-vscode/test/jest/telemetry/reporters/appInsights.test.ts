@@ -37,7 +37,7 @@ describe('AppInsights', () => {
     });
 
     it('should send telemetry data to appInsightsClient.trackEvent', () => {
-      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, '', fakeUserId, false);
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, '', fakeUserId, 'test-webUser', false);
       (appInsights as any).userOptIn = true;
       (appInsights as any).appInsightsClient = {
         trackException: trackExceptionMock,
@@ -75,7 +75,7 @@ describe('AppInsights', () => {
     };
 
     beforeEach(() => {
-      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, 'aKey', fakeUserId, false);
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, 'aKey', fakeUserId, 'test-webUser', false);
       (appInsights as any).appInsightsClient = appInsightsClientMock;
     });
 
@@ -107,7 +107,7 @@ describe('AppInsights', () => {
     let commonProperties: CommonProperties;
 
     beforeEach(() => {
-      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, fakeKey, fakeUserId, false);
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, fakeKey, fakeUserId, 'test-webUser', false);
       commonProperties = appInsights['getCommonProperties']();
     });
 
@@ -137,7 +137,7 @@ describe('AppInsights', () => {
         shell: '/bin/bash',
         homedir: '/home/testuser'
       });
-      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, fakeKey, fakeUserId, false);
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, fakeKey, fakeUserId, 'test-webUser', false);
       internalProperties = appInsights['getInternalProperties']();
     });
 
@@ -183,7 +183,7 @@ describe('AppInsights', () => {
         shell: '/bin/bash',
         homedir: '/home/testuser'
       });
-      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, fakeKey, fakeUserId, false);
+      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, fakeKey, fakeUserId, 'test-webUser', false);
     });
 
     afterEach(() => {
@@ -198,14 +198,14 @@ describe('AppInsights', () => {
       const commonProps = appInsights['getCommonProperties']();
       const internalProps = appInsights['getInternalProperties']();
       const result = appInsights['aggregateLoggingProperties']();
-      expect(result).toEqual({ ...commonProps, ...internalProps });
+      expect(result).toEqual({ ...commonProps, ...internalProps, webUserId: 'test-webUser' });
     });
 
     it('should return common properties when is not internal user', () => {
       jest.spyOn(os, 'hostname').mockReturnValue('test.salesforce.com');
       const commonProps = appInsights['getCommonProperties']();
       const result = appInsights['aggregateLoggingProperties']();
-      expect(result).toEqual(commonProps);
+      expect(result).toEqual({ ...commonProps, webUserId: 'test-webUser' });
     });
   });
 });

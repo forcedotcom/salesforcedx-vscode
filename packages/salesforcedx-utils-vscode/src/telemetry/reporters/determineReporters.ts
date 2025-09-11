@@ -28,14 +28,14 @@ const clearO11yInitializationPromise = (extName: string) => {
 };
 
 export const determineReporters = (config: TelemetryReporterConfig) => {
-  const { extName, version, aiKey, userId, reporterName, isDevMode } = config;
+  const { extName, version, aiKey, userId, reporterName, isDevMode, webUserId } = config;
   const reporters: TelemetryReporter[] = [];
 
   if (isDevMode) {
     addDevModeReporter(reporters, extName);
   } else {
     addO11yReporter(reporters, extName);
-    addAppInsightsReporter(reporters, reporterName, version, aiKey, userId);
+    addAppInsightsReporter(reporters, reporterName, version, aiKey, userId, webUserId);
     addLogstreamReporter(reporters, extName);
   }
   return reporters;
@@ -54,17 +54,19 @@ const addAppInsightsReporter = (
   reporterName: string,
   version: string,
   aiKey: string,
-  userId: string
+  userId: string,
+  webUserId: string
 ) => {
   console.log('adding AppInsights reporter.');
-  reporters.push(new AppInsights(reporterName, version, aiKey, userId, true));
+  reporters.push(new AppInsights(reporterName, version, aiKey, userId, webUserId, true));
 };
 
 export const initializeO11yReporter = async (
   extName: string,
   o11yUploadEndpoint: string,
   userId: string,
-  version: string
+  version: string,
+  webUserId: string
 ): Promise<void> => {
   if (o11yReporterInstances.has(extName)) return;
 
@@ -73,7 +75,7 @@ export const initializeO11yReporter = async (
     return;
   }
 
-  const o11yReporterInstance = new O11yReporter(extName, version, o11yUploadEndpoint, userId);
+  const o11yReporterInstance = new O11yReporter(extName, version, o11yUploadEndpoint, userId, webUserId);
   const initPromise = o11yReporterInstance
     .initialize(extName)
     .catch(err => {

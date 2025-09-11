@@ -8,6 +8,7 @@ exports[`AppInsights sendTelemetryEvent and sendExceptionEvent should send orgId
     "devHubId": "",
     "orgId": "000dummyOrgId",
     "orgShape": "",
+    "webUserId": "test-webUser",
   },
 }
 `;
@@ -20,6 +21,7 @@ exports[`AppInsights sendTelemetryEvent and sendExceptionEvent should send telem
     "devHubId": "",
     "orgId": "000dummyOrgId",
     "orgShape": "",
+    "webUserId": "test-webUser",
   },
 }
 `;
