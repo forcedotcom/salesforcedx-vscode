@@ -7,6 +7,7 @@
 
 import { createHash } from 'node:crypto';
 import { ExtensionContext, extensions } from 'vscode';
+import { TelemetryServiceProvider, TelemetryService } from '../services/telemetry';
 
 // Type definition for the Core extension API
 interface SalesforceVSCodeCoreApi {
@@ -43,9 +44,6 @@ export const hashUserIdentifier = (orgId: string, userId: string): string =>
  * This ensures that all extensions (Core, Apex, etc.) use the updated hashed user ID in the webUserId field.
  */
 export const refreshAllExtensionReporters = async (coreExtensionContext: ExtensionContext): Promise<void> => {
-  // Import here to avoid circular dependency
-  const { TelemetryServiceProvider, TelemetryService } = await import('../services/telemetry.js');
-
   console.log('Refreshing telemetry reporters for all extensions...');
 
   const refreshPromises: Promise<void>[] = [];
