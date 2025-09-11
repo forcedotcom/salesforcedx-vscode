@@ -4,51 +4,44 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { MetadataTypeTreeProvider } from './metadataTypeTreeProvider';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
-import { ExtensionProviderService, ExtensionProviderServiceLive } from '../services/extensionProvider';
-import { getFilePaths } from './filePresence';
+import * as Queue from 'effect/Queue';
+import { AllServicesLayer } from '../services/extensionProvider';
+import { backgroundFilePresenceCheckQueue } from './filePresence';
 import { OrgBrowserTreeItem } from './orgBrowserNode';
 import { CustomObjectField, MetadataListResultItem } from './types';
 
 export const createCustomFieldNode =
+  (treeProvider: MetadataTypeTreeProvider) =>
   (element: OrgBrowserTreeItem) =>
   (f: CustomObjectField): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
-    ExtensionProviderService.pipe(
-      Effect.flatMap(svc => svc.getServicesApi),
-      Effect.flatMap(api => {
-        const allLayers = Layer.mergeAll(
-          api.services.MetadataRetrieveServiceLive,
-          api.services.MetadataRegistryServiceLive,
-          api.services.WorkspaceServiceLive,
-          api.services.ProjectServiceLive,
-          api.services.SdkLayer
-        );
+    Effect.gen(function* () {
+      // Create a MetadataListResultItem-like object for the custom field
+      const fieldMetadata: MetadataListResultItem = {
+        fullName: `${element.componentName}.${removeNamespacePrefix(element)(f).name}`,
+        type: 'CustomField'
+      };
 
-        return Effect.gen(function* () {
-          // Create a MetadataListResultItem-like object for the custom field
-          const fieldMetadata: MetadataListResultItem = {
-            fullName: `${element.componentName}.${removeNamespacePrefix(element)(f).name}`,
-            type: 'CustomField'
-          };
+      const treeItem = new OrgBrowserTreeItem({
+        kind: 'component',
+        xmlName: 'CustomField',
+        componentName: `${element.componentName}.${f.name}`,
+        label: getFieldLabel(removeNamespacePrefix(element)(f))
+      });
+      yield* Queue.offer(backgroundFilePresenceCheckQueue, {
+        treeItem,
+        c: fieldMetadata,
+        treeProvider,
+        parent: element
+      });
 
-          const filePaths = yield* getFilePaths(fieldMetadata);
-
-          return new OrgBrowserTreeItem({
-            kind: 'component',
-            xmlName: 'CustomField',
-            componentName: `${element.componentName}.${f.name}`,
-            label: getFieldLabel(removeNamespacePrefix(element)(f)),
-            filePresent: filePaths.length > 0
-          });
-        }).pipe(
-          Effect.withSpan('createCustomFieldNode', {
-            attributes: { xmlName: 'CustomField', componentName: `${element.componentName}.${f.name}` }
-          }),
-          Effect.provide(allLayers)
-        );
+      return treeItem;
+    }).pipe(
+      Effect.withSpan('createCustomFieldNode', {
+        attributes: { xmlName: 'CustomField', componentName: `${element.componentName}.${f.name}` }
       }),
-      Effect.provide(ExtensionProviderServiceLive)
+      Effect.provide(AllServicesLayer)
     );
 
 /** build out the label for a CustomField */

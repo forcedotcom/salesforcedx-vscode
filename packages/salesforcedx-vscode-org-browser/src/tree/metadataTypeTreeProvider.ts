@@ -5,12 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
-
+import * as Queue from 'effect/Queue';
 import * as vscode from 'vscode';
-import { ExtensionProviderService, ExtensionProviderServiceLive } from '../services/extensionProvider';
+import {
+  AllServicesLayer,
+  ExtensionProviderService,
+  ExtensionProviderServiceLive
+} from '../services/extensionProvider';
 import { createCustomFieldNode } from './customField';
-import { getFilePaths } from './filePresence';
+import { backgroundFilePresenceCheckQueue } from './filePresence';
 import { isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
 import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
 
@@ -37,32 +40,20 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     return element;
   }
 
-  // eslint-disable-next-line class-methods-use-this
   public async getChildren(element?: OrgBrowserTreeItem, refresh = false): Promise<OrgBrowserTreeItem[]> {
-    return await Effect.runPromise(getChildrenOfTreeItem(element, refresh));
+    return await Effect.runPromise(getChildrenOfTreeItem(element, refresh, this));
   }
 }
 
 const getChildrenOfTreeItem = (
   element: OrgBrowserTreeItem | undefined,
-  refresh: boolean
+  refresh: boolean,
+  treeProvider: MetadataTypeTreeProvider
 ): Effect.Effect<OrgBrowserTreeItem[], Error, never> =>
   ExtensionProviderService.pipe(
     Effect.flatMap(svcProvider => svcProvider.getServicesApi),
-    Effect.flatMap(api => {
-      const allLayers = Layer.mergeAll(
-        api.services.ProjectServiceLive,
-        api.services.MetadataDescribeServiceLive,
-        api.services.MetadataRegistryServiceLive,
-        api.services.MetadataRetrieveServiceLive,
-        api.services.ConnectionServiceLive,
-        api.services.ConfigServiceLive,
-        api.services.WorkspaceServiceLive,
-        api.services.SettingsServiceLive,
-        api.services.SdkLayer,
-        Layer.provideMerge(api.services.FsServiceLive, api.services.ChannelServiceLayer('Salesforce Org Browser'))
-      );
-      return Effect.flatMap(api.services.MetadataDescribeService, describeService => {
+    Effect.flatMap(api =>
+      Effect.flatMap(api.services.MetadataDescribeService, describeService => {
         if (!element) {
           return describeService
             .describe(refresh)
@@ -85,7 +76,7 @@ const getChildrenOfTreeItem = (
                     // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
                     .filter(f => f.custom)
                     .toSorted((a, b) => (a.name < b.name ? -1 : 1))
-                    .map(createCustomFieldNode(element)),
+                    .map(createCustomFieldNode(treeProvider)(element)),
                   { concurrency: 'unbounded' }
                 )
               )
@@ -99,7 +90,7 @@ const getChildrenOfTreeItem = (
         if (element.kind === 'type') {
           return describeService.listMetadata(element.xmlName).pipe(
             Effect.flatMap(components =>
-              Effect.all(components.filter(globalMetadataFilter).map(listMetadataToComponent(element)), {
+              Effect.all(components.filter(globalMetadataFilter).map(listMetadataToComponent(treeProvider)(element)), {
                 concurrency: 'unbounded'
               })
             )
@@ -110,7 +101,7 @@ const getChildrenOfTreeItem = (
           if (!xmlName || !folderName) return Effect.succeed([]);
           return describeService.listMetadata(xmlName, folderName).pipe(
             Effect.flatMap(components =>
-              Effect.all(components.filter(globalMetadataFilter).map(listMetadataToFolderItem(element)), {
+              Effect.all(components.filter(globalMetadataFilter).map(listMetadataToFolderItem(treeProvider)(element)), {
                 concurrency: 'unbounded'
               })
             )
@@ -118,25 +109,25 @@ const getChildrenOfTreeItem = (
         }
 
         return Effect.die(new Error(`Invalid node kind: ${element.kind}`));
-      }).pipe(Effect.provide(allLayers), Effect.withSpan('getChildrenOfTreeItem'));
-    }),
+      }).pipe(Effect.provide(AllServicesLayer), Effect.withSpan('getChildrenOfTreeItem'))
+    ),
     Effect.provide(ExtensionProviderServiceLive)
   );
 
 const listMetadataToComponent =
+  (treeProvider: MetadataTypeTreeProvider) =>
   (element: OrgBrowserTreeItem) =>
   (c: MetadataListResultItem): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
     Effect.gen(function* () {
-      const filePaths = yield* getFilePaths(c);
-
-      return new OrgBrowserTreeItem({
+      const treeItem = new OrgBrowserTreeItem({
         kind: element.xmlName === 'CustomObject' ? 'customObject' : 'component',
         namespace: c.namespacePrefix,
         xmlName: element.xmlName,
         componentName: c.fullName,
-        label: c.fullName,
-        filePresent: filePaths.length > 0
+        label: c.fullName
       });
+      yield* Queue.offer(backgroundFilePresenceCheckQueue, { treeItem, c, treeProvider, parent: element });
+      return treeItem;
     }).pipe(
       Effect.withSpan('listMetadataToComponent', {
         attributes: { xmlName: element.xmlName, componentName: c.fullName }
@@ -155,20 +146,20 @@ const listMetadataToFolder =
     });
 
 const listMetadataToFolderItem =
+  (treeProvider: MetadataTypeTreeProvider) =>
   (element: OrgBrowserTreeItem) =>
   (c: MetadataListResultItem): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
     Effect.gen(function* () {
-      const filePaths = yield* getFilePaths(c);
-
-      return new OrgBrowserTreeItem({
+      const treeItem = new OrgBrowserTreeItem({
         kind: 'component',
         namespace: c.namespacePrefix,
         xmlName: element.xmlName,
         folderName: element.folderName,
         componentName: c.fullName,
-        label: c.fullName,
-        filePresent: filePaths.length > 0
+        label: c.fullName
       });
+      yield* Queue.offer(backgroundFilePresenceCheckQueue, { treeItem, c, treeProvider, parent: element });
+      return treeItem;
     }).pipe(
       Effect.withSpan('listMetadataToFolderItem', {
         attributes: { xmlName: element.xmlName, componentName: c.fullName }

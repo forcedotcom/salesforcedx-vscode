@@ -46,6 +46,7 @@ export const AllServicesLayer = Layer.unwrapEffect(
     const api = yield* extensionProvider.getServicesApi;
     // Merge all the service layers from the API
     return Layer.mergeAll(
+      ExtensionProviderServiceLive,
       api.services.ConfigService.Default,
       api.services.ConnectionService.Default,
       api.services.FsService.Default,
