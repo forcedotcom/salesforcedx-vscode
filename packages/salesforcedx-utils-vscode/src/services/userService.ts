@@ -6,13 +6,16 @@
  */
 
 import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import { randomBytes } from 'node:crypto';
 import { ExtensionContext } from 'vscode';
 import { CliCommandExecutor, workspaceUtils } from '..';
 import { TELEMETRY_GLOBAL_USER_ID } from '../constants';
 
 export class UserService {
-  private static getRandomUserId = (): string => randomBytes(20).toString('hex');
+  private static getRandomUserId = (): string => {
+    const array = new Uint8Array(20);
+    globalThis.crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  };
 
   private static async executeCliTelemetry(): Promise<string> {
     const command = new SfCommandBuilder().withArg('telemetry').withJson().build();
