@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover } from '@salesforce/core-bundle';
+import { AuthRemover } from '@salesforce/core';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   ConfigUtil,

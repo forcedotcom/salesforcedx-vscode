@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-automation-tests",
-  "version": "64.11.1",
+  "version": "64.13.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -10,33 +10,14 @@
     "extester": "extest --help",
     "reinstall": "git checkout -- package-lock.json && git clean -xfd && npm install"
   },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
-  },
   "devDependencies": {
-    "@commitlint/config-conventional": "19.5.0",
     "@salesforce/salesforcedx-vscode-test-tools": "1.1.7",
     "@types/chai": "^4.3.17",
-    "@types/cross-spawn": "^6.0.6",
     "@types/mocha": "^10.0.9",
-    "@types/semver": "^7.7.0",
-    "@typescript-eslint/eslint-plugin": "^8.12.2",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
     "chai": "^4.5.0",
-    "commitizen": "^4.3.1",
-    "cross-spawn": "^7.0.3",
-    "eslint": "^9.32.0",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "2.31.0",
-    "eslint-plugin-prettier": "^5.2.1",
-    "fast-glob": "^3.3.2",
     "husky": "9.1.6",
     "mocha": "^10.8.2",
-    "prettier": "3.6.2",
-    "semver": "^7.6.3",
-    "ts-node": "10.9.2",
-    "typescript": "5.9.2",
     "vscode-extension-tester": "^8.16.0"
   }
 }

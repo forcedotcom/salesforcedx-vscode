@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Org, StateAggregator, ConfigAggregator } from '@salesforce/core-bundle';
+import { AuthInfo, Connection, Org, StateAggregator, ConfigAggregator } from '@salesforce/core';
 import { OrgDisplay } from '../../../src';
 
 // Mock the Salesforce Core classes
-jest.mock('@salesforce/core-bundle', () => ({
+jest.mock('@salesforce/core', () => ({
   AuthInfo: {
     create: jest.fn()
   },
@@ -76,7 +76,7 @@ describe('OrgDisplay unit tests.', () => {
     mockStateAggregator = {
       aliases: {
         getAll: jest.fn().mockReturnValue([]),
-        getUsername: jest.fn().mockImplementation((usernameOrAlias) => usernameOrAlias)
+        getUsername: jest.fn().mockImplementation(usernameOrAlias => usernameOrAlias)
       }
     };
 
@@ -108,7 +108,8 @@ describe('OrgDisplay unit tests.', () => {
       createdBy: 'admin@example.com',
       createdDate: '2024-01-01T00:00:00.000+0000',
       expirationDate: '',
-      status: 'Active',
+      status: 'Connected',
+
       edition: 'Enterprise',
       orgName: 'Test Org',
       accessToken: 'test-token',
@@ -219,5 +220,58 @@ describe('OrgDisplay unit tests.', () => {
     const result = await orgDisplayWithUsername.getOrgInfo();
 
     expect(result.alias).toBe('');
+  });
+
+  it('Should handle authentication errors gracefully and show error in status field.', async () => {
+    const orgDisplayWithUsername = new OrgDisplay('test@example.com');
+
+    // Mock AuthInfo.create to throw an authentication error
+    const authError = new Error('Error authenticating with the refresh token due to: expired access/refresh token');
+    jest.mocked(AuthInfo).create.mockRejectedValue(authError);
+
+    const result = await orgDisplayWithUsername.getOrgInfo();
+
+    expect(result.username).toBe('test@example.com');
+    expect(result.status).toBe('Unable to refresh session: expired access/refresh token');
+    expect(result.connectionStatus).toBe('Unable to refresh session: expired access/refresh token');
+    // Should still return basic org structure even with error
+    expect(result.id).toBe('');
+    expect(result.instanceUrl).toBe('');
+    expect(result.accessToken).toBe('');
+  });
+
+  it('Should handle connection errors gracefully and show error in status field.', async () => {
+    const orgDisplayWithUsername = new OrgDisplay('test@example.com');
+
+    // Mock connection.identity to throw an authentication error
+    const connectionError = new Error(
+      'Error authenticating with the refresh token due to: expired access/refresh token'
+    );
+    mockConnection.identity.mockRejectedValue(connectionError);
+
+    const result = await orgDisplayWithUsername.getOrgInfo();
+
+    expect(result.username).toBe('test@example.com');
+    expect(result.connectionStatus).toBe('Unable to refresh session: expired access/refresh token');
+    // Should still have other org info since AuthInfo creation succeeded
+    expect(result.accessToken).toBe('test-token');
+    expect(result.instanceUrl).toBe('https://test.salesforce.com');
+  });
+
+  it('Should handle SOQL query errors gracefully and return error status.', async () => {
+    const orgDisplayWithUsername = new OrgDisplay('test@example.com');
+
+    // Mock singleRecordQuery to throw an authentication error
+    const queryError = new Error('Error authenticating with the refresh token due to: expired access/refresh token');
+    mockConnection.singleRecordQuery.mockRejectedValue(queryError);
+
+    const result = await orgDisplayWithUsername.getOrgInfo();
+
+    expect(result.username).toBe('test@example.com');
+    expect(result.status).toBe('Unable to refresh session: expired access/refresh token');
+    expect(result.connectionStatus).toBe('Unable to refresh session: expired access/refresh token');
+    // Should still have auth info since AuthInfo and Connection creation succeeded
+    expect(result.accessToken).toBe('test-token');
+    expect(result.instanceUrl).toBe('https://test.salesforce.com');
   });
 });

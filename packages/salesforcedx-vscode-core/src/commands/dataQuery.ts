@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection, Tooling } from '@salesforce/core-bundle/org/connection';
+import { Connection } from '@salesforce/core';
 import {
   CancelResponse,
   Column,
@@ -44,7 +44,7 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
       const connection = await WorkspaceContext.getInstance().getConnection();
 
       // Execute query using the appropriate API
-      const queryResult = await this.runSoqlQuery(api === 'TOOLING' ? connection.tooling : connection, query);
+      const queryResult = await runSoqlQuery(connection, query, api === 'TOOLING');
 
       // Display results in table format
       displayTableResults(queryResult);
@@ -58,36 +58,6 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
       channelService.appendLine(errorMessage);
       return false;
     }
-  }
-
-  /**
-   * Executes a SOQL query using the provided connection (REST or Tooling API).
-   * Applies user-configured query limits if set, otherwise allows results under Salesforce limits.
-   *
-   * @param connection - Salesforce connection (REST or Tooling API)
-   * @param query - SOQL query string to execute
-   * @returns Promise resolving to query results with records and metadata
-   */
-  private async runSoqlQuery(connection: Connection | Tooling, query: string): Promise<QueryResult> {
-    channelService.appendLine(nls.localize('data_query_running_query'));
-
-    // Get user-configured query limit (if any)
-    const maxFetch = await getMaxFetch();
-
-    // Execute query with appropriate options (with or without maxFetch limit)
-    const result = await connection.query(query, buildQueryOptions(maxFetch));
-
-    // Show warning if user-configured limit caused records to be truncated
-    if (maxFetch !== undefined && result.records.length > 0 && result.totalSize > result.records.length) {
-      const missingRecords = result.totalSize - result.records.length;
-      channelService.appendLine(
-        nls.localize('data_query_warning_limit', missingRecords, maxFetch, result.totalSize, maxFetch)
-      );
-    }
-
-    channelService.appendLine(nls.localize('data_query_complete', result.totalSize));
-
-    return result;
   }
 
   private async saveResultsToCSV(queryResult: QueryResult): Promise<void> {
@@ -211,25 +181,99 @@ export const generateTableOutput = (records: QueryResult['records'], title: stri
     return '';
   }
 
-  const fields = Object.keys(firstRecord).filter(key => key !== 'attributes');
-  // If no fields after filtering attributes, return empty string
-  if (fields.length === 0) {
+  // Flatten nested objects into separate columns
+  // Examine all records to find the complete field structure
+  const flattenedFields = getAllFlattenedFields(records.filter(isRecord));
+
+  // If no fields after flattening, return empty string
+  if (flattenedFields.length === 0) {
     return '';
   }
 
-  const columns: Column[] = fields.map(field => ({
+  const columns: Column[] = flattenedFields.map(field => ({
     key: field,
     label: field
   }));
-  const rows: Row[] = records
-    .filter(isRecord)
-    .map(record => Object.fromEntries(fields.map(field => [field, formatFieldValueForDisplay(record[field])])));
+
+  const rows: Row[] = records.filter(isRecord).map(record => {
+    const flattenedRecord = flattenRecord(record);
+    return Object.fromEntries(
+      flattenedFields.map(field => [field, formatFieldValueForDisplay(flattenedRecord[field])])
+    );
+  });
 
   return new Table().createTable(rows, columns, title);
 };
 
 const isRecord = (record: unknown): record is Record<string, unknown> =>
   Boolean(record) && typeof record === 'object' && !Array.isArray(record);
+
+/**
+ * Flattens a record by converting nested objects to dot notation field names
+ */
+const flattenRecord = (record: Record<string, unknown>): Record<string, unknown> => {
+  const flattened: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(record)) {
+    if (key === 'attributes') {
+      continue; // Skip attributes field
+    }
+
+    if (isRecord(value)) {
+      // Flatten nested object
+      for (const [nestedKey, nestedValue] of Object.entries(value)) {
+        if (nestedKey !== 'attributes') {
+          flattened[`${key}.${nestedKey}`] = nestedValue;
+        }
+      }
+    } else {
+      // Keep primitive values as-is
+      flattened[key] = value;
+    }
+  }
+
+  return flattened;
+};
+
+/**
+ * Gets all possible flattened field names by examining all records
+ * Preserves the original field order from the query
+ */
+const getAllFlattenedFields = (records: Record<string, unknown>[]): string[] => {
+  const fieldOrder: string[] = [];
+  const seenFields = new Set<string>();
+
+  // First pass: collect all possible fields while preserving order
+  for (const record of records) {
+    for (const [key, value] of Object.entries(record)) {
+      if (key === 'attributes') {
+        continue;
+      }
+
+      if (isRecord(value)) {
+        // Add nested fields with dot notation
+        for (const nestedKey of Object.keys(value)) {
+          if (nestedKey !== 'attributes') {
+            const fieldName = `${key}.${nestedKey}`;
+            if (!seenFields.has(fieldName)) {
+              fieldOrder.push(fieldName);
+              seenFields.add(fieldName);
+            }
+          }
+        }
+      } else if (value !== null) {
+        // Only add primitive fields that are not null
+        // (null relationship objects shouldn't create columns)
+        if (!seenFields.has(key)) {
+          fieldOrder.push(key);
+          seenFields.add(key);
+        }
+      }
+    }
+  }
+
+  return fieldOrder;
+};
 
 /**
  * Converts query records to CSV format
@@ -291,8 +335,23 @@ export const formatFieldValueForDisplay = (value: unknown): string => {
   if (value === null || value === undefined) {
     return '';
   }
-  if (typeof value === 'object') {
-    return 'Id' in value ? String(value.Id) : '[Object]';
+  if (typeof value === 'object' && isRecord(value)) {
+    // Handle nested objects (like relationship fields)
+    const obj = value;
+
+    // Filter out attributes field and collect all values
+    const values = Object.entries(obj)
+      .filter(([key]) => key !== 'attributes')
+      .map(([_key, val]) => String(val))
+      .join(', ');
+
+    if (values) {
+      // Truncate long values for display
+      return values.length > 50 ? `${values.substring(0, 47)}...` : values;
+    }
+
+    // Fallback for empty objects
+    return '[Object]';
   }
   const stringValue = String(value);
   // Truncate long values for display
@@ -394,4 +453,34 @@ export const formatErrorMessage = (error: unknown): string => {
 
   // Default error message
   return nls.localize('data_query_error_message', errorString);
+};
+
+/**
+ * Executes a SOQL query using the provided connection (REST or Tooling API).
+ * Applies user-configured query limits if set, otherwise allows results under Salesforce limits.
+ *
+ * @param connection - Salesforce connection (REST or Tooling API)
+ * @param query - SOQL query string to execute
+ * @returns Promise resolving to query results with records and metadata
+ */
+const runSoqlQuery = async (connection: Connection, query: string, useTooling = false): Promise<QueryResult> => {
+  channelService.appendLine(nls.localize('data_query_running_query'));
+
+  // Get user-configured query limit (if any)
+  const maxFetch = await getMaxFetch();
+
+  // Execute query with appropriate options (with or without maxFetch limit)
+  const result = await (useTooling ? connection.tooling : connection).query(query, buildQueryOptions(maxFetch));
+
+  // Show warning if user-configured limit caused records to be truncated
+  if (maxFetch !== undefined && result.records.length > 0 && result.totalSize > result.records.length) {
+    const missingRecords = result.totalSize - result.records.length;
+    channelService.appendLine(
+      nls.localize('data_query_warning_limit', missingRecords, maxFetch, result.totalSize, maxFetch)
+    );
+  }
+
+  channelService.appendLine(nls.localize('data_query_complete', result.totalSize));
+
+  return result;
 };

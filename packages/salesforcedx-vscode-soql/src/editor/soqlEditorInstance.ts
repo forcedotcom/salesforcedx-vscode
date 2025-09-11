@@ -244,7 +244,6 @@ export class SOQLEditorInstance {
 
     const queryText = this.document.getText();
     const conn = await workspaceContext.getConnection();
-    // @ts-expect-error - mismatch in Logger between core and core-bundle
     const queryData = await runQuery(conn)(queryText);
     await this.openQueryDataView(queryData);
     this.runQueryDone();

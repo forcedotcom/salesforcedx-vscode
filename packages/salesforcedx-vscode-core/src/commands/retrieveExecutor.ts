@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core-bundle';
+import { Connection } from '@salesforce/core';
 import { getRootWorkspacePath, SourceTrackingService, SourceTrackingType } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet, RetrieveResult } from '@salesforce/source-deploy-retrieve-bundle';
-import { RequestStatus } from '@salesforce/source-deploy-retrieve-bundle/lib/src/client/types';
+import { ComponentSet, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import { RequestStatus } from '@salesforce/source-deploy-retrieve/lib/src/client/types';
 import { join } from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
@@ -61,12 +61,15 @@ export abstract class RetrieveExecutor<T> extends DeployRetrieveExecutor<T, Retr
     const connection = await WorkspaceContext.getInstance().getConnection();
 
     // Set up source tracking based on org type and settings:
-    // - Source-tracked orgs: Always use source tracking
-    // - Non-source-tracked orgs: Only if the setting is enabled
+    // - Source-tracked orgs: Use source tracking only if the setting is enabled (for performance control) if it's a retrieve, if it's a pull always use source tracking
+    // - Non-source-tracked orgs: Never use source tracking
     const orgType = await workspaceContextUtils.getWorkspaceOrgType();
     const sourceTrackingEnabled = salesforceCoreSettings.getEnableSourceTrackingForDeployAndRetrieve();
 
-    if (orgType === workspaceContextUtils.OrgType.SourceTracked || sourceTrackingEnabled) {
+    if (
+      orgType === workspaceContextUtils.OrgType.SourceTracked &&
+      (this.operationType === 'pull' || sourceTrackingEnabled)
+    ) {
       this.sourceTracking = await SourceTrackingService.getSourceTracking(
         projectPath,
         connection,

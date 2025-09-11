@@ -36,17 +36,6 @@
       "isBackground": false
     },
     {
-      "label": "Commitizen Initialization",
-      "command": "npm",
-      "type": "shell",
-      "presentation": {
-        "focus": false,
-        "panel": "shared"
-      },
-      "args": ["run", "commit-init"],
-      "isBackground": false
-    },
-    {
       "label": "Compile",
       "group": {
         "kind": "build",
@@ -120,6 +109,6 @@
       "id": "releaseOverride",
       "type": "promptString",
       "description": "(Optional) Release Version: Leave blank to grab the latest release, or provide the release manually (Ex 57.13.1)"
-    },
+    }
   ]
 }

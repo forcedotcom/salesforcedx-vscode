@@ -1,29 +1,23 @@
 {
   "name": "@salesforce/salesforcedx-visualforce-language-server",
   "description": "Visualforce language server",
-  "version": "64.11.1",
+  "version": "64.13.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.90.0"
   },
   "dependencies": {
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "64.11.1",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "64.13.1",
     "typescript": "5.9.2",
-    "vscode-css-languageservice": "^2.1.9",
+    "vscode-css-languageservice": "^6.3.7",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
     "vscode-languageserver-textdocument": "^1.0.12",
     "vscode-languageserver-types": "^3.17.5",
-    "vscode-nls": "^2.0.2",
     "vscode-uri": "^3.1.0"
   },
-  "devDependencies": {
-    "@types/node": "^22.15.1",
-    "shx": "0.4.0"
-  },
   "scripts": {
-    "bundle:debugger": "esbuild ./src/visualforceServer.ts  --bundle --outfile=dist/visualforceServer.js --format=cjs --platform=node --external:vscode-nls --external:vscode-languageserver-types --external:vscode-languageserver-protocol --external:vscode-css-languageservice --external:vscode-languageserver --minify",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./",
     "lint": "eslint .",

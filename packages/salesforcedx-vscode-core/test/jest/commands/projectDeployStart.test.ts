@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { workspaceUtils, nls, SourceTrackingService } from '@salesforce/salesforcedx-utils-vscode';
-import { ComponentSet } from '@salesforce/source-deploy-retrieve-bundle';
+import { workspaceUtils, SourceTrackingService, nls } from '@salesforce/salesforcedx-utils-vscode';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { channelService } from '../../../src/channels';
 import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { ProjectDeployStartExecutor, projectDeployStart } from '../../../src/commands/projectDeployStart';
@@ -123,12 +123,20 @@ describe('ProjectDeployStart', () => {
         jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue('/test/project/path');
         jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(new ComponentSet());
         jest.spyOn(salesforceCoreSettings, 'getEnableSourceTrackingForDeployAndRetrieve').mockReturnValue(false);
+        jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
+          getConnection: jest.fn().mockResolvedValue({})
+        } as any);
       });
 
       it('should return empty ComponentSet when source tracking is disabled and no changes', async () => {
         // Arrange
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
+        const mockComponentSet = new ComponentSet();
+        const mockSourceTracking = {
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
+        };
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockResolvedValue(mockSourceTracking);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
@@ -143,6 +151,11 @@ describe('ProjectDeployStart', () => {
         jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue('');
         const executor = new ProjectDeployStartExecutor();
         const mockResponse = {} as any;
+        const mockComponentSet = new ComponentSet();
+        const mockSourceTracking = {
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([mockComponentSet])
+        };
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockResolvedValue(mockSourceTracking);
 
         // Act
         const result = await (executor as any).getComponents(mockResponse);
@@ -423,6 +436,9 @@ describe('ProjectDeployStart', () => {
         jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue('/test/project/path');
         jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
         jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(new ComponentSet());
+        jest.spyOn(WorkspaceContext, 'getInstance').mockReturnValue({
+          getConnection: jest.fn().mockResolvedValue({})
+        } as any);
       });
 
       it('should handle empty ComponentSet and return early with success message', async () => {
@@ -433,6 +449,11 @@ describe('ProjectDeployStart', () => {
         jest.spyOn(ComponentSet, 'fromSource').mockReturnValue(emptyComponentSet);
         jest.spyOn(emptyComponentSet, 'size', 'get').mockReturnValue(0);
         jest.spyOn(salesforceCoreSettings, 'getConflictDetectionEnabled').mockReturnValue(false);
+
+        const mockSourceTracking = {
+          localChangesAsComponentSet: jest.fn().mockResolvedValue([emptyComponentSet])
+        };
+        (SourceTrackingService.getSourceTracking as jest.Mock).mockResolvedValue(mockSourceTracking);
 
         // Act
         const result = await executor.run(mockResponse);

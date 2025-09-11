@@ -17,7 +17,8 @@ describe('TelemetryReporterConfig', () => {
       aiKey: '1234567890',
       userId: 'user123',
       reporterName: 'test-extension-name',
-      isDevMode: false
+      isDevMode: false,
+      webUserId: 'webUser123'
     };
   });
 
@@ -78,5 +79,14 @@ describe('TelemetryReporterConfig', () => {
   it('should have the updated isDevMode flag', () => {
     config.isDevMode = true;
     expect(config.isDevMode).toBe(true);
+  });
+
+  it('config should have webUserId property of type string', () => {
+    expect(config).toHaveProperty('webUserId');
+    expect(typeof config.webUserId).toBe('string');
+  });
+
+  it('should have the correct webUserId field', () => {
+    expect(config.webUserId).toBe('webUser123');
   });
 });

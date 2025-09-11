@@ -1,7 +1,7 @@
 {
   "name": "@salesforce/salesforcedx-utils",
   "displayName": "Node Utilities for VS Code",
-  "version": "64.11.1",
+  "version": "64.13.1",
   "description": "Provides node specific utilities for the Salesforce VSCode extensions",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
@@ -15,7 +15,7 @@
     "test": "jest --coverage"
   },
   "dependencies": {
-    "@salesforce/core-bundle": "^8.18.4",
+    "@salesforce/core": "^8.19.1",
     "cross-spawn": "7.0.6",
     "request-light": "^0.8.0",
     "rxjs": "^5.4.1",
@@ -23,7 +23,6 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.5",
-    "@types/node": "^22.15.1",
     "jest": "^29.7.0",
     "ts-jest": "^29.4.1"
   }

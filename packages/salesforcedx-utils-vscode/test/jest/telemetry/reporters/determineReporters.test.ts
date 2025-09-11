@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* eslint-disable import/extensions */
-/* eslint-disable import/no-unresolved */
 // @ts-nocheck
 
 /**
@@ -139,23 +137,26 @@ describe('initializeO11yReporter', () => {
 
   it('should initialize and add an O11yReporter instance', async () => {
     const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
-    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version);
-    expect(O11yReporterMock).toHaveBeenCalledWith(extName, version, o11yUploadEndpoint, userId);
+    const webUserId = 'test-webUserId';
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
+    expect(O11yReporterMock).toHaveBeenCalledWith(extName, version, o11yUploadEndpoint, userId, webUserId);
     expect(initializeMock).toHaveBeenCalledWith(extName);
   });
 
   it('should not re-initialize if already initialized', async () => {
     const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
-    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version);
+    const webUserId = 'test-webUserId';
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
     O11yReporterMock.mockClear();
     initializeMock.mockClear();
-    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version);
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
     expect(O11yReporterMock).not.toHaveBeenCalled();
     expect(initializeMock).not.toHaveBeenCalled();
   });
 
   it('should wait for in-progress initialization if called concurrently', async () => {
     const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
+    const webUserId = 'test-webUserId';
     let resolveInit: (() => void) | undefined;
     initializeMock.mockImplementation(
       () =>
@@ -163,8 +164,8 @@ describe('initializeO11yReporter', () => {
           resolveInit = res;
         })
     );
-    const p1 = initializeO11yReporter(extName, o11yUploadEndpoint, userId, version);
-    const p2 = initializeO11yReporter(extName, o11yUploadEndpoint, userId, version);
+    const p1 = initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
+    const p2 = initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
     if (resolveInit) {
       resolveInit();
     }
@@ -175,11 +176,14 @@ describe('initializeO11yReporter', () => {
 
   it('should clean up if initialization fails', async () => {
     const { initializeO11yReporter } = await import('../../../../src/telemetry/reporters/determineReporters');
+    const webUserId = 'test-webUserId';
     initializeMock.mockRejectedValue(new Error('fail!'));
-    await expect(initializeO11yReporter(extName, o11yUploadEndpoint, userId, version)).resolves.toBeUndefined();
+    await expect(
+      initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId)
+    ).resolves.toBeUndefined();
     // Try again, should attempt to re-initialize
     initializeMock.mockResolvedValue(undefined);
-    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version);
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
     expect(O11yReporterMock).toHaveBeenCalledTimes(2);
   });
 
@@ -187,7 +191,8 @@ describe('initializeO11yReporter', () => {
     const { initializeO11yReporter, determineReporters: reImportedDetermineReporters } = await import(
       '../../../../src/telemetry/reporters/determineReporters'
     );
-    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version);
+    const webUserId = 'test-webUserId';
+    await initializeO11yReporter(extName, o11yUploadEndpoint, userId, version, webUserId);
     const config = {
       extName,
       version,
