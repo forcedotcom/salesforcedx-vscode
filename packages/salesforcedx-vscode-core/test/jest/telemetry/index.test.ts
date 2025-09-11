@@ -96,7 +96,7 @@ describe('Telemetry', () => {
       expect(telemetryEnabled).toEqual(true);
 
       await showTelemetryMessage(mockExtensionContext);
-      expect(globalStateTelemetrySpy).toHaveBeenCalledTimes(6);
+      expect(globalStateTelemetrySpy).toHaveBeenCalledTimes(4);
       expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_USER_ID);
       expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_WEB_USER_ID);
       expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_VALUE);
