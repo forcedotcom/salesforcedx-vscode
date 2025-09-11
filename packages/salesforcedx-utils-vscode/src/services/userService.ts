@@ -98,7 +98,6 @@ export const getWebTelemetryUserId = async (
   }
 
   // Calculate the telemetry ID based on the orgId and userId
-  extensionContext?.globalState.update(TELEMETRY_GLOBAL_WEB_USER_ID, undefined);
   const globalStateWebUserId = extensionContext?.globalState.get<string | undefined>(TELEMETRY_GLOBAL_WEB_USER_ID);
 
   const context = WorkspaceContextUtil.getInstance();
