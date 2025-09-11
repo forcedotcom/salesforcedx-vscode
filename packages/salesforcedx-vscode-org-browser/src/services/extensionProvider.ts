@@ -46,15 +46,16 @@ export const AllServicesLayer = Layer.unwrapEffect(
     const api = yield* extensionProvider.getServicesApi;
     // Merge all the service layers from the API
     return Layer.mergeAll(
-      api.services.ConfigServiceLive,
-      api.services.ConnectionServiceLive,
-      api.services.FsServiceLive,
-      api.services.MetadataRetrieveServiceLive,
-      api.services.MetadataRegistryServiceLive,
-      api.services.ProjectServiceLive,
+      api.services.ConfigService.Default,
+      api.services.ConnectionService.Default,
+      api.services.FsService.Default,
+      api.services.MetadataRetrieveService.Default,
+      api.services.MetadataRegistryService.Default,
+      api.services.MetadataDescribeService.Default,
+      api.services.ProjectService.Default,
       api.services.SdkLayer,
-      api.services.SettingsServiceLive,
-      api.services.WorkspaceServiceLive,
+      api.services.SettingsService.Default,
+      api.services.WorkspaceService.Default,
       api.services.ChannelServiceLayer('Salesforce Org Browser')
     );
   }).pipe(Effect.provide(ExtensionProviderServiceLive))

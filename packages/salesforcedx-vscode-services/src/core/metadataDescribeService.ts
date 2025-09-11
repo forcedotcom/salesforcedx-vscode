@@ -9,9 +9,7 @@ import type { ConfigService } from './configService';
 import type { DescribeMetadataObject } from './schemas/describeMetadataObject';
 import type { SettingsService } from '../vscode/settingsService';
 import type { WorkspaceService } from '../vscode/workspaceService';
-import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as S from 'effect/Schema';
 import type { DescribeSObjectResult } from 'jsforce';
 import { SdkLayer } from '../observability/spans';
@@ -21,33 +19,10 @@ import { FilePropertiesSchema, type FileProperties } from './schemas/filePropert
 
 type DescribeContext = ConnectionService | ConfigService | WorkspaceService | ChannelService | SettingsService;
 
-export type MetadataDescribeService = {
-  /**
-   * Performs a Metadata API describe and returns the result.
-   * When forceRefresh=true, bypasses the cache and makes a fresh API call.
-   */
-  readonly describe: (
-    forceRefresh?: boolean
-  ) => Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext>;
-  /**
-   * Calls the Metadata API list method for a given type and optional folder.
-   * Returns the list of metadata components for that type.
-   */
-  readonly listMetadata: (
-    type: string,
-    folder?: string
-  ) => Effect.Effect<readonly FileProperties[], Error, DescribeContext>;
-
-  readonly describeCustomObject: (objectName: string) => Effect.Effect<DescribeSObjectResult, Error, DescribeContext>;
-};
-
-export const MetadataDescribeService = Context.GenericTag<MetadataDescribeService>('MetadataDescribeService');
-
 const NON_SUPPORTED_TYPES = new Set(['InstalledPackage', 'Profile', 'Scontrol']);
 
-export const MetadataDescribeServiceLive = Layer.effect(
-  MetadataDescribeService,
-  Effect.gen(function* () {
+export class MetadataDescribeService extends Effect.Service<MetadataDescribeService>()('MetadataDescribeService', {
+  effect: Effect.gen(function* () {
     // a task that can be cached - uses the key parameter for caching
     const cacheableDescribe = (
       _key: string = 'cached'
@@ -113,8 +88,21 @@ export const MetadataDescribeServiceLive = Layer.effect(
         Effect.withSpan('listMetadata', { attributes: { metadataType: type, folder } }),
         Effect.provide(SdkLayer)
       );
-    return { describe, listMetadata, describeCustomObject };
-  })
-);
+    return {
+      /**
+       * Performs a Metadata API describe and returns the result.
+       * When forceRefresh=true, bypasses the cache and makes a fresh API call.
+       */
+      describe,
+      /**
+       * Calls the Metadata API list method for a given type and optional folder.
+       * Returns the list of metadata components for that type.
+       */
+      listMetadata,
+      describeCustomObject
+    } as const;
+  }),
+  dependencies: [ConnectionService.Default]
+}) {}
 
 const ensureArray = <T>(value: T | T[]): T[] => (Array.isArray(value) ? value : [value]);

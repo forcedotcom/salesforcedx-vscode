@@ -7,19 +7,8 @@
 
 import { type MetadataRegistry, RegistryAccess } from '@salesforce/source-deploy-retrieve';
 
-import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import { WorkspaceService } from '../vscode/workspaceService';
-
-export type MetadataRegistryService = {
-  /** Get the metadata registry (cached) */
-  readonly getRegistry: () => Effect.Effect<Readonly<MetadataRegistry>, Error, WorkspaceService>;
-  /** Get the registry access (cached) */
-  readonly getRegistryAccess: () => Effect.Effect<RegistryAccess, Error, WorkspaceService>;
-};
-
-export const MetadataRegistryService = Context.GenericTag<MetadataRegistryService>('MetadataRegistryService');
 
 /** Create a new RegistryAccess instance */
 const getRegistryAccess = (): Effect.Effect<RegistryAccess, Error, WorkspaceService> =>
@@ -33,9 +22,8 @@ const getRegistryAccess = (): Effect.Effect<RegistryAccess, Error, WorkspaceServ
     Effect.withSpan('getRegistryAccess')
   );
 
-export const MetadataRegistryServiceLive = Layer.scoped(
-  MetadataRegistryService,
-  Effect.gen(function* () {
+export class MetadataRegistryService extends Effect.Service<MetadataRegistryService>()('MetadataRegistryService', {
+  scoped: Effect.gen(function* () {
     // Create shared registry access once and cache it
     const cachedGetRegistryAccessEffect = yield* Effect.cached(getRegistryAccess());
 
@@ -50,8 +38,10 @@ export const MetadataRegistryServiceLive = Layer.scoped(
     );
 
     return {
+      /** Get the metadata registry (cached) */
       getRegistry: (): Effect.Effect<Readonly<MetadataRegistry>, Error, WorkspaceService> => cachedGetRegistryEffect,
+      /** Get the registry access (cached) */
       getRegistryAccess: (): Effect.Effect<RegistryAccess, Error, WorkspaceService> => cachedGetRegistryAccessEffect
-    };
+    } as const;
   })
-);
+}) {}

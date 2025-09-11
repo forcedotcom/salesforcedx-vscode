@@ -7,22 +7,11 @@
 
 import { SfProject } from '@salesforce/core/project';
 import * as Cache from 'effect/Cache';
-import * as Context from 'effect/Context';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
-import * as Layer from 'effect/Layer';
 import { SdkLayer } from '../observability/spans';
 import { WorkspaceService } from '../vscode/workspaceService';
-
-export type ProjectService = {
-  /** Check if we're in a Salesforce project (sfdx-project.json exists) */
-  readonly isSalesforceProject: Effect.Effect<boolean, Error, WorkspaceService>;
-  /** Get the SfProject instance for the workspace (fails if not a Salesforce project) */
-  readonly getSfProject: Effect.Effect<SfProject, Error, WorkspaceService>;
-};
-
-export const ProjectService = Context.GenericTag<ProjectService>('ProjectService');
 
 const resolveSfProject = (fsPath: string): Effect.Effect<SfProject, Error, never> =>
   Effect.tryPromise({
@@ -30,41 +19,41 @@ const resolveSfProject = (fsPath: string): Effect.Effect<SfProject, Error, never
     catch: error => new Error('Project Resolution Error', { cause: error })
   }).pipe(Effect.withSpan('resolveSfProject', { attributes: { fsPath } }));
 
-export const ProjectServiceLive = Layer.effect(
-  ProjectService,
-  Effect.gen(function* () {
-    // Create Effect's Cache for SfProject resolution with capacity and TTL
-    const sfProjectCache = yield* Cache.make({
-      capacity: 10, // Maximum number of cached SfProject instances
-      timeToLive: Duration.minutes(10), // Projects expire after 10 minutes (project structure changes are infrequent)
-      lookup: resolveSfProject // Lookup function that resolves SfProject for given fsPath
-    }).pipe(Effect.withSpan('sfProjectCache'));
+// Global cache - created once at module level, not scoped to any consumer
+const globalSfProjectCache = Effect.runSync(
+  Cache.make({
+    capacity: 10, // Maximum number of cached SfProject instances
+    timeToLive: Duration.minutes(10), // Projects expire after 10 minutes (project structure changes are infrequent)
+    lookup: resolveSfProject // Lookup function that resolves SfProject for given fsPath
+  }).pipe(Effect.withSpan('sfProjectCache'))
+);
 
-    const getSfProject = WorkspaceService.pipe(
-      Effect.flatMap(ws => ws.getWorkspaceInfo),
-      Effect.flatMap(workspaceDescription =>
-        workspaceDescription.isEmpty
-          ? Effect.fail(new Error('No workspace open'))
-          : sfProjectCache.get(workspaceDescription.fsPath)
-      )
-    ).pipe(Effect.withSpan('getSfProject'), Effect.provide(SdkLayer));
-
-    const isSalesforceProject = pipe(
+export class ProjectService extends Effect.Service<ProjectService>()('ProjectService', {
+  succeed: {
+    /** Check if we're in a Salesforce project (sfdx-project.json exists) */
+    isSalesforceProject: pipe(
       WorkspaceService,
       Effect.flatMap(ws => ws.getWorkspaceInfo),
       Effect.flatMap(workspaceDescription =>
         workspaceDescription.isEmpty
           ? Effect.succeed(false)
-          : sfProjectCache.get(workspaceDescription.fsPath).pipe(
+          : globalSfProjectCache.get(workspaceDescription.fsPath).pipe(
               Effect.map(() => true),
               Effect.catchAll(() => Effect.succeed(false))
             )
       )
-    );
-
-    return {
-      getSfProject,
-      isSalesforceProject
-    };
-  })
-);
+    ),
+    /** Get the SfProject instance for the workspace (fails if not a Salesforce project) */
+    getSfProject: WorkspaceService.pipe(
+      Effect.flatMap(ws => ws.getWorkspaceInfo),
+      Effect.flatMap(workspaceDescription =>
+        workspaceDescription.isEmpty
+          ? Effect.fail(new Error('No workspace open'))
+          : globalSfProjectCache.get(workspaceDescription.fsPath)
+      ),
+      Effect.withSpan('getSfProject'),
+      Effect.provide(SdkLayer)
+    )
+  } as const,
+  dependencies: [WorkspaceService.Default]
+}) {}

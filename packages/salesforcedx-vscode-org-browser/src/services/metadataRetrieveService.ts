@@ -11,7 +11,7 @@ import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { ExtensionProviderService } from './extensionProvider';
+import { AllServicesLayer, ExtensionProviderService } from './extensionProvider';
 
 export type MetadataRetrieveService = {
   /**
@@ -34,23 +34,12 @@ const retrieve = (
 ): Effect.Effect<RetrieveResult, Error, ExtensionProviderService> =>
   ExtensionProviderService.pipe(
     Effect.flatMap(svc => svc.getServicesApi),
-    Effect.flatMap(api => {
-      const allLayers = Layer.mergeAll(
-        api.services.MetadataRetrieveServiceLive,
-        api.services.ConnectionServiceLive,
-        api.services.ConfigServiceLive,
-        api.services.WorkspaceServiceLive,
-        api.services.ProjectServiceLive,
-        api.services.ChannelServiceLayer('Salesforce Org Browser'),
-        api.services.SettingsServiceLive,
-        api.services.SdkLayer,
-        api.services.MetadataRegistryServiceLive
-      );
-      return Effect.provide(
+    Effect.flatMap(api =>
+      Effect.provide(
         Effect.flatMap(api.services.MetadataRetrieveService, svc => svc.retrieve(members)).pipe(
           Effect.tap(result => {
             const fileResponses = result.getFileResponses();
-            const fileCount = fileResponses?.length || 0;
+            const fileCount = fileResponses?.length ?? 0;
             return Effect.flatMap(api.services.ChannelService, channel =>
               channel
                 .appendToChannel(`Retrieve completed. ${fileCount} files retrieved successfully.`)
@@ -66,7 +55,7 @@ const retrieve = (
             );
           })
         ),
-        allLayers
+        AllServicesLayer
       ).pipe(
         Effect.mapError(e => new Error(`Retrieve failed: ${String(e)}`)),
         Effect.tap(result =>
@@ -82,8 +71,8 @@ const retrieve = (
               )
             : Effect.succeed(undefined)
         )
-      );
-    })
+      )
+    )
   );
 
 const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> =>

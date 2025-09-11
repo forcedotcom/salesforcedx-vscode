@@ -44,11 +44,11 @@ import * as vscode from 'vscode';
 import { Effect, Context, Layer } from 'effect';
 import { activateEffect, deactivateEffect } from '../../src/index';
 import { ExtensionProviderService } from '../../src/services/extensionProvider';
-import { ConnectionService, ConnectionServiceLive } from 'salesforcedx-vscode-services/src/core/connectionService';
-import { ProjectService, ProjectServiceLive } from 'salesforcedx-vscode-services/src/core/projectService';
-import { WorkspaceService, WorkspaceServiceLive } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
-import { FsService, FsServiceLive } from 'salesforcedx-vscode-services/src/vscode/fsService';
-import { ConfigService, ConfigServiceLive } from 'salesforcedx-vscode-services/src/core/configService';
+import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
+import { ProjectService } from 'salesforcedx-vscode-services/src/core/projectService';
+import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
+import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
+import { ConfigService } from 'salesforcedx-vscode-services/src/core/configService';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 
 // 1. Full OutputChannel mock
@@ -85,19 +85,13 @@ const MockExtensionProviderServiceLive = Layer.effect(
         ({
           services: {
             ConnectionService: {} as typeof ConnectionService,
-            ConnectionServiceLive: {} as typeof ConnectionServiceLive,
             ProjectService: {} as typeof ProjectService,
-            ProjectServiceLive: {} as typeof ProjectServiceLive,
             ChannelService: MockChannelService,
             ChannelServiceLayer: MockChannelServiceLayer,
             WorkspaceService,
-            WorkspaceServiceLive,
             FsService,
-            FsServiceLive,
             ConfigService,
-            ConfigServiceLive,
-            MetadataRetrieveService: {} as typeof ConnectionService, // Use a real type if available
-            MetadataRetrieveServiceLive: {} as typeof ConnectionServiceLive // Use a real type if available
+            MetadataRetrieveService: {} as typeof ConnectionService // Use a real type if available
           }
         }) as unknown as SalesforceVSCodeServicesApi
     )

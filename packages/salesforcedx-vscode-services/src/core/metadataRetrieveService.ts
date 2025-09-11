@@ -14,9 +14,7 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import { filePathsFromMetadataComponent } from '@salesforce/source-deploy-retrieve/lib/src/utils/filePathGenerator';
 
-import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { SdkLayer } from '../observability/spans';
 import { ChannelService } from '../vscode/channelService';
@@ -26,41 +24,6 @@ import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
-
-export type MetadataRetrieveService = {
-  /**
-   * Retrieve one or more metadata components from the default org.
-   * @param members - Array of MetadataMember (type, fullName)
-   * @returns Effect that resolves to SDR's RetrieveResult
-   */
-  readonly retrieve: (
-    members: MetadataMember[]
-  ) => Effect.Effect<
-    RetrieveResult,
-    unknown,
-    | ConnectionService
-    | ProjectService
-    | WorkspaceService
-    | ConfigService
-    | ChannelService
-    | SettingsService
-    | MetadataRegistryService
-  >;
-
-  /** given a type and name, return a glob pattern that can be used to search for the file in the local project */
-  readonly getFilePath: (type: MetadataType, name: string) => Effect.Effect<string[], Error, MetadataRegistryService>;
-
-  readonly buildComponentSet: (
-    members: MetadataMember[]
-  ) => Effect.Effect<ComponentSet, Error, MetadataRegistryService | WorkspaceService>;
-
-  readonly buildComponentSetFromSource: (
-    members: MetadataMember[],
-    sourcePaths: string[]
-  ) => Effect.Effect<ComponentSet, Error, MetadataRegistryService | WorkspaceService>;
-};
-
-export const MetadataRetrieveService = Context.GenericTag<MetadataRetrieveService>('MetadataRetrieveService');
 
 const buildComponentSetFromSource = (
   members: MetadataMember[],
@@ -72,8 +35,8 @@ const buildComponentSetFromSource = (
     return yield* Effect.try({
       try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
       catch: e => new Error('Failed to build ComponentSet from source', { cause: e })
-    }).pipe(Effect.withSpan('buildComponentSetFromSource'));
-  });
+    });
+  }).pipe(Effect.withSpan('buildComponentSetFromSource'));
 
 const buildComponentSet = (
   members: MetadataMember[]
@@ -83,8 +46,8 @@ const buildComponentSet = (
     return yield* Effect.try({
       try: () => new ComponentSet(members, registryAccess),
       catch: e => new Error('Failed to build ComponentSet', { cause: e })
-    }).pipe(Effect.withSpan('buildComponentSet'));
-  });
+    });
+  }).pipe(Effect.withSpan('buildComponentSet'));
 
 const retrieve = (
   members: MetadataMember[]
@@ -153,14 +116,17 @@ const retrieve = (
 const getFilePath = (type: MetadataType, name: string): Effect.Effect<string[], Error> =>
   Effect.try(() => filePathsFromMetadataComponent({ type, fullName: name }));
 
-export const MetadataRetrieveServiceLive = Layer.effect(
-  MetadataRetrieveService,
-  Effect.gen(function* () {
-    return {
-      retrieve,
-      getFilePath,
-      buildComponentSet,
-      buildComponentSetFromSource
-    };
-  }).pipe(Effect.provide(SdkLayer), Effect.withSpan('MetadataRetrieveServiceLive'))
-);
+export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()('MetadataRetrieveService', {
+  succeed: {
+    /**
+     * Retrieve one or more metadata components from the default org.
+     * @param members - Array of MetadataMember (type, fullName)
+     * @returns Effect that resolves to SDR's RetrieveResult
+     */
+    retrieve,
+    /** given a type and name, return a glob pattern that can be used to search for the file in the local project */
+    getFilePath,
+    buildComponentSet,
+    buildComponentSetFromSource
+  } as const
+}) {}

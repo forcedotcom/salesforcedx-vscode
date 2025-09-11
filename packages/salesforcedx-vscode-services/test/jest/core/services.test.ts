@@ -5,29 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConnectionService, ConnectionServiceLive } from '../../../src/core/connectionService';
-import { ProjectService, ProjectServiceLive } from '../../../src/core/projectService';
+import { ConnectionService } from '../../../src/core/connectionService';
+import { ProjectService } from '../../../src/core/projectService';
 
 describe('Effect Services', () => {
   describe('ConnectionService', () => {
-    it('should be defined as a service tag', () => {
+    it('should be defined as a service class', () => {
       expect(ConnectionService).toBeDefined();
-      expect(typeof ConnectionService).toBe('object');
+      expect(typeof ConnectionService).toBe('function');
     });
 
-    it('should have a live implementation', () => {
-      expect(ConnectionServiceLive).toBeDefined();
+    it('should have a default implementation', () => {
+      expect(ConnectionService.Default).toBeDefined();
     });
   });
 
   describe('ProjectService', () => {
-    it('should be defined as a service tag', () => {
+    it('should be defined as a service class', () => {
       expect(ProjectService).toBeDefined();
-      expect(typeof ProjectService).toBe('object');
+      expect(typeof ProjectService).toBe('function');
     });
 
-    it('should have a live implementation', () => {
-      expect(ProjectServiceLive).toBeDefined();
+    it('should have a default implementation', () => {
+      expect(ProjectService.Default).toBeDefined();
     });
   });
 });

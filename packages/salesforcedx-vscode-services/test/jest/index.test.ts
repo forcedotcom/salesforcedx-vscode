@@ -14,7 +14,7 @@ jest.mock('os', () => ({
 import { activate, deactivate } from '../../src/index';
 import * as Effect from 'effect/Effect';
 import { projectFiles } from '../../src/virtualFsProvider/projectInit';
-import { SettingsServiceLive } from '../../src/vscode/settingsService';
+import { SettingsService } from '../../src/vscode/settingsService';
 
 // Mock indexedDB API for Node.js environment
 const mockIndexedDB: Partial<IDBFactory> = {
@@ -233,8 +233,8 @@ describe('Extension', () => {
 
     // Test that projectFiles handles homedir issues gracefully
     // In environments where os.homedir() returns undefined, this should fail gracefully
-    await expect(Effect.runPromise(Effect.provide(projectFiles(mockFsProvider), SettingsServiceLive))).rejects.toThrow(
-      /The "path" argument must be of type string/
-    );
+    await expect(
+      Effect.runPromise(Effect.provide(projectFiles(mockFsProvider), SettingsService.Default))
+    ).rejects.toThrow(/The "path" argument must be of type string/);
   });
 });

@@ -7,23 +7,13 @@
 
 import { AuthInfo, Connection, Global } from '@salesforce/core';
 import * as Cache from 'effect/Cache';
-import * as Context from 'effect/Context';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { SdkLayer } from '../observability/spans';
 import { SettingsService } from '../vscode/settingsService';
-import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
 import { DefaultOrgInfo, defaultOrgRef } from './defaultOrgService';
-
-export type ConnectionService = {
-  /** Get a Connection to the target org */
-  readonly getConnection: Effect.Effect<Connection, Error, ConfigService | WorkspaceService | SettingsService>;
-};
-
-export const ConnectionService = Context.GenericTag<ConnectionService>('ConnectionService');
 
 type WebConnectionKey = {
   instanceUrl: string;
@@ -79,12 +69,11 @@ const cache = Effect.runSync(
   })
 );
 
-export const ConnectionServiceLive = Layer.effect(
-  ConnectionService,
-  Effect.gen(function* () {
+export class ConnectionService extends Effect.Service<ConnectionService>()('ConnectionService', {
+  effect: Effect.gen(function* () {
     return {
+      /** Get a Connection to the target org */
       getConnection: Effect.gen(function* () {
-        yield* Effect.annotateCurrentSpan({ isWeb: Global.isWeb });
         if (Global.isWeb) {
           // Web environment - get connection from settings
           const settingsService = yield* SettingsService;
@@ -116,11 +105,12 @@ export const ConnectionServiceLive = Layer.effect(
         Effect.provide(SdkLayer),
         Effect.withSpan('getConnection')
       )
-    };
-  })
-);
+    } as const;
+  }),
+  dependencies: [SettingsService.Default, ConfigService.Default]
+}) {}
 
-//** this info is used for quite a bit (ex: telemetry) so one we make the conenction, we capture the info and store it in a ref */
+//** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
 const updateDefaultOrgRef = (conn: Connection): Effect.Effect<DefaultOrgInfo, Error> =>
   Effect.gen(function* () {
     const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();

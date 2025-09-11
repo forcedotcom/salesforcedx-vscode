@@ -6,7 +6,6 @@
  */
 import { Global } from '@salesforce/core';
 import { fs } from '@salesforce/core/fs';
-import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { Buffer } from 'node:buffer';
@@ -24,19 +23,6 @@ const DB_NAME = 'fsProviderDB';
 const STORE_NAME = 'files';
 const DB_VERSION = 1;
 
-export type IndexedDBStorageService = {
-  /** Load state from IndexedDB into memfs */
-  readonly loadState: () => Effect.Effect<void, Error>;
-  /** Save a file to IndexedDB */
-  readonly saveFile: (path: string) => Effect.Effect<void, Error>;
-  /** Delete a file from IndexedDB */
-  readonly deleteFile: (path: string) => Effect.Effect<void, Error>;
-  /** Load a specific file from IndexedDB */
-  readonly loadFile: (path: string) => Effect.Effect<void, Error>;
-};
-
-export const IndexedDBStorageService = Context.GenericTag<IndexedDBStorageService>('IndexedDBStorageService');
-
 const isOpenRequestEvent = (event: Event): event is Event & { target: IDBOpenDBRequest } =>
   event.target instanceof IDBOpenDBRequest;
 
@@ -48,19 +34,8 @@ const ensureOpenRequestEvent = (event: Event): Event & { target: IDBOpenDBReques
   return event;
 };
 
-export const IndexedDBStorageServicesNoop: Layer.Layer<IndexedDBStorageService, never> = Layer.sync(
-  IndexedDBStorageService,
-  () => ({
-    loadState: () => Effect.succeed(undefined),
-    saveFile: () => Effect.succeed(undefined),
-    deleteFile: () => Effect.succeed(undefined),
-    loadFile: () => Effect.succeed(undefined)
-  })
-);
-
-export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, Error> = Layer.scoped(
-  IndexedDBStorageService,
-  Effect.gen(function* () {
+export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageService>()('IndexedDBStorageService', {
+  scoped: Effect.gen(function* () {
     const db = yield* Effect.async<IDBDatabase, Error>(resume => {
       const openRequest = indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -161,17 +136,32 @@ export const IndexedDBStorageServiceLive: Layer.Layer<IndexedDBStorageService, E
         Effect.provide(SdkLayer)
       );
     return {
+      /** Load state from IndexedDB into memfs */
       loadState,
+      /** Save a file to IndexedDB */
       saveFile,
+      /** Delete a file from IndexedDB */
       deleteFile,
+      /** Load a specific file from IndexedDB */
       loadFile
-    };
+    } as const;
+  })
+}) {}
+
+// Noop implementation for non-web environments
+const IndexedDBStorageServicesNoop: Layer.Layer<IndexedDBStorageService, never> = Layer.succeed(
+  IndexedDBStorageService,
+  new IndexedDBStorageService({
+    loadState: () => Effect.succeed(undefined),
+    saveFile: () => Effect.succeed(undefined),
+    deleteFile: () => Effect.succeed(undefined),
+    loadFile: () => Effect.succeed(undefined)
   })
 );
 
 // Expose a single, memoized layer instance to ensure one shared IndexedDB connection only if web.  Otherwise, use a dummy layer.
 export const IndexedDBStorageServiceShared = Global.isWeb
-  ? Layer.unwrapEffect(Layer.memoize(IndexedDBStorageServiceLive))
+  ? Layer.unwrapEffect(Layer.memoize(IndexedDBStorageService.Default))
   : IndexedDBStorageServicesNoop;
 
 const writeFileWithOrWithoutDir = (entry: SerializedFileWithPath): void => {

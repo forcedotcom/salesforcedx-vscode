@@ -6,21 +6,12 @@
  */
 
 import { Global } from '@salesforce/core';
-import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
 import { SdkLayer } from '../observability/spans';
 
-export type WorkspaceService = {
-  /** Get info about the workspace */
-  readonly getWorkspaceInfo: Effect.Effect<WorkspaceInfo, never, never>;
-};
-
-export const WorkspaceService = Context.GenericTag<WorkspaceService>('WorkspaceService');
-
-type WorkspaceInfo = {
+export type WorkspaceInfo = {
   /** includes the file:// or other schemeprefix */
   path: string;
   /** the path without the scheme prefix */
@@ -47,20 +38,20 @@ const getWorkspaceInfoTask = Effect.sync(() => {
       workspaceName: vscode.workspace.name
     })
   ),
-  Effect.withSpan('getWorkspaceInfo'),
+  Effect.withSpan('getWorkspaceInfoTask ( cache miss )'),
   Effect.provide(SdkLayer)
 );
 
-export const WorkspaceServiceLive = Layer.scoped(
-  WorkspaceService,
-  Effect.gen(function* () {
-    // Create the cached effect once at service creation time
-    const cachedGetWorkspaceInfo = yield* Effect.cached(getWorkspaceInfoTask);
-
-    return {
-      getWorkspaceInfo: cachedGetWorkspaceInfo
-    };
-  })
+// Global cached workspace info - created once at module level
+const globalCachedWorkspaceInfo = Effect.runSync(
+  Effect.cached(getWorkspaceInfoTask).pipe(Effect.withSpan('getWorkspaceInfo'))
 );
+
+export class WorkspaceService extends Effect.Service<WorkspaceService>()('WorkspaceService', {
+  succeed: {
+    /** Get info about the workspace */
+    getWorkspaceInfo: globalCachedWorkspaceInfo
+  } as const
+}) {}
 
 const getPathWithSchema = (uri: vscode.Uri): string => (uri.scheme === 'file' ? uri.fsPath : uri.toString());

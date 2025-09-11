@@ -6,9 +6,12 @@
  */
 import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
-import { ExtensionProviderService, ExtensionProviderServiceLive } from '../services/extensionProvider';
+import {
+  AllServicesLayer,
+  ExtensionProviderService,
+  ExtensionProviderServiceLive
+} from '../services/extensionProvider';
 import { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 
@@ -30,19 +33,7 @@ const retrieveEffect = (
   Effect.gen(function* () {
     const extensionProvider = yield* ExtensionProviderService;
     const api = yield* extensionProvider.getServicesApi;
-
-    // Create the layers we need
-    const allLayers = Layer.mergeAll(
-      api.services.MetadataRetrieveServiceLive,
-      api.services.ChannelServiceLayer('Salesforce Org Browser'),
-      api.services.ConnectionServiceLive,
-      api.services.ConfigServiceLive,
-      api.services.WorkspaceServiceLive,
-      api.services.ProjectServiceLive,
-      api.services.SettingsServiceLive,
-      api.services.SdkLayer,
-      api.services.MetadataRegistryServiceLive
-    );
+    const allLayers = AllServicesLayer;
 
     // Run the retrieve operation
     const result = yield* Effect.provide(
