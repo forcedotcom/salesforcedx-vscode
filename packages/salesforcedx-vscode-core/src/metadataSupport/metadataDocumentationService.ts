@@ -167,6 +167,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a document folder. Document folders are used to organize and categorize documents in Salesforce, providing a hierarchical structure for document management and access control.'
       },
+      EmailFolder: {
+        description:
+          'Represents an email folder. Email folders are used to organize and categorize email templates in Salesforce, providing structure for email template management and access control.'
+      },
       EmailTemplate: {
         description:
           'Represents an email template. Email templates are preformatted emails that communicate a standard message.'
@@ -352,6 +356,7 @@ export class MetadataDocumentationService {
       CustomObject: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm',
       CustomField: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customfield.htm',
       DocumentFolder: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_document.htm',
+      EmailFolder: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailtemplate.htm',
       Flow: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm'
     };
 
