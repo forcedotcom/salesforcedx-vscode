@@ -16,8 +16,12 @@ const API_VERSION_KEY = 'apiVersion';
 
 const FALLBACK_API_VERSION = '64.0';
 
-const isNonEmptyString = (value: string | undefined): Effect.Effect<string, Error, never> =>
-  value === undefined || value.length === 0 ? Effect.fail(new Error('Value is empty')) : Effect.succeed(value);
+const isNonEmptyString =
+  (key: string) =>
+  (value: string | undefined): Effect.Effect<string, Error, never> =>
+    value === undefined || value.length === 0
+      ? Effect.fail(new Error(`Value for ${key} is empty`))
+      : Effect.succeed(value);
 
 export class SettingsService extends Effect.Service<SettingsService>()('SettingsService', {
   succeed: {
@@ -57,7 +61,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
     getInstanceUrl: Effect.try({
       try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY),
       catch: error => new Error(`Failed to get instanceUrl: ${String(error)}`)
-    }).pipe(Effect.flatMap(isNonEmptyString)),
+    }).pipe(Effect.flatMap(isNonEmptyString(INSTANCE_URL_KEY))),
 
     /**
      * Get the Salesforce access token from settings
@@ -65,7 +69,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
     getAccessToken: Effect.try({
       try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(ACCESS_TOKEN_KEY),
       catch: error => new Error(`Failed to get accessToken: ${String(error)}`)
-    }).pipe(Effect.flatMap(isNonEmptyString)),
+    }).pipe(Effect.flatMap(isNonEmptyString(ACCESS_TOKEN_KEY))),
 
     /**
      * Get the Salesforce API version from settings.  In the form of '64.0'

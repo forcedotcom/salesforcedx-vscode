@@ -22,7 +22,7 @@ const browserBuild = await build({
   ...commonConfigBrowser,
   external: ['vscode'],
   entryPoints: ['./out/src/index.js'],
-  outfile: './dist/browser.js',
+  outdir: './dist/web',
   metafile: true
 });
 
