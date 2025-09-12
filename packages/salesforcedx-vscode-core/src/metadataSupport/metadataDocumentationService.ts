@@ -215,6 +215,10 @@ export class MetadataDocumentationService {
         description:
           "Represents a custom label. Custom labels enable developers to create multilingual applications by automatically presenting information in a user's native language."
       },
+      CustomLabels: {
+        description:
+          'Represents a collection of custom labels. CustomLabels is a container metadata type that holds multiple CustomLabel definitions in a single file for easier management and deployment.'
+      },
       Queue: {
         description:
           'Represents a queue. Queues are used to prioritize, distribute, and assign records to teams who share workloads.'
