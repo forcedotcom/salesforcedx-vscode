@@ -8,21 +8,12 @@
 import { Global } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import * as Cache from 'effect/Cache';
-import * as Context from 'effect/Context';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
-import * as Layer from 'effect/Layer';
 import { SdkLayer } from '../observability/spans';
 import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';
-
-export type ConfigService = {
-  /** Get a ConfigAggregator for the current workspace */
-  readonly getConfigAggregator: Effect.Effect<ConfigAggregator, Error, WorkspaceService>;
-};
-
-export const ConfigService = Context.GenericTag<ConfigService>('ConfigService');
 
 const createConfigAggregator = (projectPath: string): Effect.Effect<ConfigAggregator, Error, never> =>
   Effect.tryPromise({
@@ -30,37 +21,34 @@ const createConfigAggregator = (projectPath: string): Effect.Effect<ConfigAggreg
     catch: (error: unknown) => new Error(`Failed to get ConfigAggregator at ${projectPath}: ${String(error)}`)
   }).pipe(Effect.withSpan('createConfigAggregator', { attributes: { projectPath } }));
 
-export const ConfigServiceLive = Layer.scoped(
-  ConfigService,
-  Effect.gen(function* () {
-    // Create Effect's Cache with capacity and TTL for better performance and memory management
-    const configCache = yield* Cache.make({
-      capacity: 50, // Maximum number of cached ConfigAggregators
-      timeToLive: Duration.minutes(Global.isWeb ? 30 : 0), // Do not cache on desktop
-      lookup: createConfigAggregator // Lookup function that creates ConfigAggregator for a given projectPath
-    });
-
-    return {
-      getConfigAggregator: pipe(
-        WorkspaceService,
-        Effect.flatMap(ws => ws.getWorkspaceInfo),
-        Effect.flatMap(workspaceDescription =>
-          workspaceDescription.isEmpty
-            ? Effect.fail(new Error('No workspace project path found'))
-            : Effect.succeed(workspaceDescription.path.replace(fsPrefix, '').replace(':/', ''))
-        ),
-        Effect.tap(projectPath => Effect.annotateCurrentSpan({ projectPath })),
-        Effect.flatMap(projectPath =>
-          Effect.gen(function* () {
-            return yield* configCache.get(projectPath);
-          })
-        ),
-        // stateless when org can change: always reload only on desktop
-        Effect.flatMap(agg => (Global.isWeb ? Effect.succeed(agg) : Effect.promise(() => agg.reload()))),
-        Effect.tap(agg => Effect.annotateCurrentSpan({ ...agg.getConfig() })),
-        Effect.withSpan('getConfigAggregator'),
-        Effect.provide(SdkLayer)
-      )
-    };
+// Global cache - created once at module level, not scoped to any consumer
+const globalConfigCache = Effect.runSync(
+  Cache.make({
+    capacity: 50, // Maximum number of cached ConfigAggregators
+    timeToLive: Duration.minutes(Global.isWeb ? 30 : 1), // Do not cache much desktop
+    lookup: createConfigAggregator // Lookup function that creates ConfigAggregator for a given projectPath
   })
 );
+
+export class ConfigService extends Effect.Service<ConfigService>()('ConfigService', {
+  succeed: {
+    /** Get a ConfigAggregator for the current workspace */
+    getConfigAggregator: pipe(
+      WorkspaceService,
+      Effect.flatMap(ws => ws.getWorkspaceInfo),
+      Effect.flatMap(workspaceDescription =>
+        workspaceDescription.isEmpty
+          ? Effect.fail(new Error('No workspace project path found'))
+          : Effect.succeed(workspaceDescription.path.replace(fsPrefix, '').replace(':/', ''))
+      ),
+      Effect.tap(projectPath => Effect.annotateCurrentSpan({ projectPath })),
+      Effect.flatMap(projectPath => globalConfigCache.get(projectPath)),
+      // stateless when org can change: always reload only on desktop
+      Effect.flatMap(agg => (Global.isWeb ? Effect.succeed(agg) : Effect.promise(() => agg.reload()))),
+      Effect.tap(agg => Effect.annotateCurrentSpan({ ...agg.getConfig() })),
+      Effect.withSpan('getConfigAggregator'),
+      Effect.provide(SdkLayer)
+    )
+  } as const,
+  dependencies: [WorkspaceService.Default]
+}) {}

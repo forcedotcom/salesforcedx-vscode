@@ -83,8 +83,8 @@ jspm_packages/
 *.vsix
 
 # VS Code tests
-.vscode-test/
-
+.vscode-test
+.vscode-web
 # Eclipse
 .project
 

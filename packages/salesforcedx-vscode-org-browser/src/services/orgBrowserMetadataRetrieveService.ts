@@ -11,9 +11,9 @@ import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { ExtensionProviderService } from './extensionProvider';
+import { AllServicesLayer, ExtensionProviderService } from './extensionProvider';
 
-export type MetadataRetrieveService = {
+export type OrgBrowserRetrieveService = {
   /**
    * Retrieve metadata components and optionally open them in the editor
    * @param members - Array of MetadataMember to retrieve
@@ -26,7 +26,7 @@ export type MetadataRetrieveService = {
   ) => Effect.Effect<RetrieveResult, Error, ExtensionProviderService>;
 };
 
-export const MetadataRetrieveService = Context.GenericTag<MetadataRetrieveService>('MetadataRetrieveService');
+export const OrgBrowserRetrieveService = Context.GenericTag<OrgBrowserRetrieveService>('OrgBrowserRetrieveService');
 
 const retrieve = (
   members: MetadataMember[],
@@ -34,23 +34,12 @@ const retrieve = (
 ): Effect.Effect<RetrieveResult, Error, ExtensionProviderService> =>
   ExtensionProviderService.pipe(
     Effect.flatMap(svc => svc.getServicesApi),
-    Effect.flatMap(api => {
-      const allLayers = Layer.mergeAll(
-        api.services.MetadataRetrieveServiceLive,
-        api.services.ConnectionServiceLive,
-        api.services.ConfigServiceLive,
-        api.services.WorkspaceServiceLive,
-        api.services.ProjectServiceLive,
-        api.services.ChannelServiceLayer('Salesforce Org Browser'),
-        api.services.SettingsServiceLive,
-        api.services.SdkLayer
-      );
-
-      return Effect.provide(
+    Effect.flatMap(api =>
+      Effect.provide(
         Effect.flatMap(api.services.MetadataRetrieveService, svc => svc.retrieve(members)).pipe(
           Effect.tap(result => {
             const fileResponses = result.getFileResponses();
-            const fileCount = fileResponses?.length || 0;
+            const fileCount = fileResponses?.length ?? 0;
             return Effect.flatMap(api.services.ChannelService, channel =>
               channel
                 .appendToChannel(`Retrieve completed. ${fileCount} files retrieved successfully.`)
@@ -66,7 +55,7 @@ const retrieve = (
             );
           })
         ),
-        allLayers
+        AllServicesLayer
       ).pipe(
         Effect.mapError(e => new Error(`Retrieve failed: ${String(e)}`)),
         Effect.tap(result =>
@@ -82,8 +71,8 @@ const retrieve = (
               )
             : Effect.succeed(undefined)
         )
-      );
-    })
+      )
+    )
   );
 
 const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> =>
@@ -106,8 +95,8 @@ const openFileInEditor = (filePath: string): Effect.Effect<void, Error> =>
         catch: e => new Error(`Failed to show document at ${filePath}: ${String(e)}`)
       })
     ),
-    Effect.map(() => undefined),
+    Effect.map((): void => undefined),
     Effect.withSpan('openFileInEditor', { attributes: { filePath } })
   );
 
-export const MetadataRetrieveServiceLive = Layer.effect(MetadataRetrieveService, Effect.succeed({ retrieve }));
+export const OrgBrowserRetrieveServiceLive = Layer.effect(OrgBrowserRetrieveService, Effect.succeed({ retrieve }));

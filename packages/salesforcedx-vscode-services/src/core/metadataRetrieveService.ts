@@ -8,15 +8,11 @@
 import {
   type RetrieveResult,
   type MetadataMember,
-  type MetadataRegistry,
-  RegistryAccess,
   MetadataApiRetrieve,
   ComponentSet
 } from '@salesforce/source-deploy-retrieve';
 
-import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { SdkLayer } from '../observability/spans';
 import { ChannelService } from '../vscode/channelService';
@@ -24,53 +20,35 @@ import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
+import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
 
-export type MetadataRetrieveService = {
-  /**
-   * Retrieve one or more metadata components from the default org.
-   * @param members - Array of MetadataMember (type, fullName)
-   * @returns Effect that resolves to SDR's RetrieveResult
-   */
-  readonly retrieve: (
-    members: MetadataMember[]
-  ) => Effect.Effect<
-    RetrieveResult,
-    unknown,
-    | ConnectionService
-    | ProjectService
-    | WorkspaceService
-    | ConfigService
-    | ChannelService
-    | SettingsService
-    | MetadataRetrieveService
-  >;
-
-  readonly getRegistry: () => Effect.Effect<Readonly<MetadataRegistry>, Error, WorkspaceService>;
-  readonly getRegistryAccess: () => Effect.Effect<RegistryAccess, Error, WorkspaceService>;
-};
-
-export const MetadataRetrieveService = Context.GenericTag<MetadataRetrieveService>('MetadataRetrieveService');
+const buildComponentSetFromSource = (
+  members: MetadataMember[],
+  sourcePaths: string[]
+): Effect.Effect<ComponentSet, Error, MetadataRegistryService | WorkspaceService> =>
+  Effect.gen(function* () {
+    console.log('buildComponentSetFromSource', members, sourcePaths);
+    const include = members.length > 0 ? yield* buildComponentSet(members) : undefined;
+    const registryAccess = yield* (yield* MetadataRegistryService).getRegistryAccess();
+    const cs = yield* Effect.try({
+      try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
+      catch: e => new Error('Failed to build ComponentSet from source', { cause: e })
+    });
+    yield* Effect.annotateCurrentSpan({ size: cs.size });
+    return cs;
+  }).pipe(Effect.withSpan('buildComponentSetFromSource'));
 
 const buildComponentSet = (
-  members: MetadataMember[],
-  registryAccess: RegistryAccess
-): Effect.Effect<ComponentSet, Error> =>
-  Effect.try({
-    try: () => new ComponentSet(members, registryAccess),
-    catch: e => new Error('Failed to build ComponentSet', { cause: e })
+  members: MetadataMember[]
+): Effect.Effect<ComponentSet, Error, MetadataRegistryService | WorkspaceService> =>
+  Effect.gen(function* () {
+    const registryAccess = yield* (yield* MetadataRegistryService).getRegistryAccess();
+    return yield* Effect.try({
+      try: () => new ComponentSet(members, registryAccess),
+      catch: e => new Error('Failed to build ComponentSet', { cause: e })
+    });
   }).pipe(Effect.withSpan('buildComponentSet'));
-
-const getRegistryAccess = (): Effect.Effect<RegistryAccess, Error, WorkspaceService> =>
-  Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo).pipe(
-    Effect.flatMap(workspaceInfo =>
-      Effect.try({
-        try: () => new RegistryAccess(undefined, workspaceInfo.fsPath),
-        catch: (error: unknown) => new Error(`Failed to create RegistryAccess: ${String(error)}`)
-      })
-    ),
-    Effect.withSpan('getRegistryAccess')
-  );
 
 const retrieve = (
   members: MetadataMember[]
@@ -83,7 +61,7 @@ const retrieve = (
   | ConfigService
   | ChannelService
   | SettingsService
-  | MetadataRetrieveService
+  | MetadataRegistryService
 > =>
   Effect.all(
     [
@@ -91,12 +69,12 @@ const retrieve = (
       Effect.flatMap(ProjectService, service => service.getSfProject),
       Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo),
       Effect.succeed(ChannelService),
-      Effect.flatMap(MetadataRetrieveService, service => service.getRegistryAccess())
+      Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess())
     ],
     { concurrency: 'unbounded' }
   ).pipe(
     Effect.flatMap(([connection, project, workspaceDescription, channelService, registryAccess]) =>
-      Effect.flatMap(buildComponentSet(members, registryAccess), componentSet =>
+      Effect.flatMap(buildComponentSet(members), componentSet =>
         workspaceDescription.isEmpty
           ? Effect.fail(new Error('No workspace path found'))
           : Effect.flatMap(channelService, _channel =>
@@ -136,26 +114,15 @@ const retrieve = (
     Effect.provide(SdkLayer)
   );
 
-export const MetadataRetrieveServiceLive = Layer.scoped(
-  MetadataRetrieveService,
-  Effect.gen(function* () {
-    // Create shared registry access once and derive everything from it
-    const cachedGetRegistryAccessEffect = yield* Effect.cached(getRegistryAccess());
-
-    // Derive registry from the cached registry access
-    const cachedGetRegistryEffect = yield* Effect.cached(
-      Effect.flatMap(cachedGetRegistryAccessEffect, registryAccess =>
-        Effect.try({
-          try: () => registryAccess.getRegistry(),
-          catch: (error: unknown) => new Error(`Failed to get registry: ${String(error)}`)
-        })
-      ).pipe(Effect.withSpan('getRegistry (cached)'))
-    );
-
-    return {
-      retrieve,
-      getRegistry: (): Effect.Effect<Readonly<MetadataRegistry>, Error, WorkspaceService> => cachedGetRegistryEffect,
-      getRegistryAccess: (): Effect.Effect<RegistryAccess, Error, WorkspaceService> => cachedGetRegistryAccessEffect
-    };
-  })
-);
+export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()('MetadataRetrieveService', {
+  succeed: {
+    /**
+     * Retrieve one or more metadata components from the default org.
+     * @param members - Array of MetadataMember (type, fullName)
+     * @returns Effect that resolves to SDR's RetrieveResult
+     */
+    retrieve,
+    buildComponentSet,
+    buildComponentSetFromSource
+  } as const
+}) {}

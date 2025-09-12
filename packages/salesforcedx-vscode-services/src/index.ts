@@ -12,12 +12,12 @@ import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { sampleProjectName } from './constants';
-import { ConfigService, ConfigServiceLive } from './core/configService';
-import { ConnectionService, ConnectionServiceLive } from './core/connectionService';
-import { MetadataDescribeService, MetadataDescribeServiceLive } from './core/metadataDescribeService';
-import { MetadataRetrieveService, MetadataRetrieveServiceLive } from './core/metadataRetrieveService';
-import { ProjectService, ProjectServiceLive } from './core/projectService';
-import { webAppInsightsReporter } from './observability/applicationInsightsWebExporter';
+import { ConfigService } from './core/configService';
+import { ConnectionService } from './core/connectionService';
+import { MetadataDescribeService } from './core/metadataDescribeService';
+import { MetadataRegistryService } from './core/metadataRegistryService';
+import { MetadataRetrieveService } from './core/metadataRetrieveService';
+import { ProjectService } from './core/projectService';
 import { SdkLayer } from './observability/spans';
 import { fsPrefix } from './virtualFsProvider/constants';
 import { FsProvider } from './virtualFsProvider/fileSystemProvider';
@@ -25,9 +25,9 @@ import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './virtua
 import { startWatch } from './virtualFsProvider/memfsWatcher';
 import { projectFiles } from './virtualFsProvider/projectInit';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
-import { FsService, FsServiceLive } from './vscode/fsService';
-import { SettingsService, SettingsServiceLive } from './vscode/settingsService';
-import { WorkspaceService, WorkspaceServiceLive } from './vscode/workspaceService';
+import { FsService } from './vscode/fsService';
+import { SettingsService } from './vscode/settingsService';
+import { WorkspaceService } from './vscode/workspaceService';
 
 // Persistent scope for the extension lifecycle
 // eslint-disable-next-line functional/no-let
@@ -36,23 +36,16 @@ let extensionScope: Scope.CloseableScope | undefined;
 export type SalesforceVSCodeServicesApi = {
   services: {
     ConnectionService: typeof ConnectionService;
-    ConnectionServiceLive: typeof ConnectionServiceLive;
     ProjectService: typeof ProjectService;
-    ProjectServiceLive: typeof ProjectServiceLive;
     ChannelService: typeof ChannelService;
     ChannelServiceLayer: typeof ChannelServiceLayer;
     WorkspaceService: typeof WorkspaceService;
-    WorkspaceServiceLive: typeof WorkspaceServiceLive;
     FsService: typeof FsService;
-    FsServiceLive: typeof FsServiceLive;
     ConfigService: typeof ConfigService;
-    ConfigServiceLive: typeof ConfigServiceLive;
     MetadataDescribeService: typeof MetadataDescribeService;
-    MetadataDescribeServiceLive: typeof MetadataDescribeServiceLive;
+    MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
-    MetadataRetrieveServiceLive: typeof MetadataRetrieveServiceLive;
     SettingsService: typeof SettingsService;
-    SettingsServiceLive: typeof SettingsServiceLive;
     SdkLayer: typeof SdkLayer;
   };
 };
@@ -77,22 +70,24 @@ const createActivationEffect = (
  * Both service tags/types and their default Live implementations are exported.
  * Consumers should get both from the API, not via direct imports.
  */
-export const activate = async (
-  context: vscode.ExtensionContext,
-  channelServiceLayer = ChannelServiceLayer('Salesforce Services')
-): Promise<SalesforceVSCodeServicesApi> => {
-  // set the theme as early as possible.  TODO: manage this from CBW instead of in an extension
+export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
   if (Global.isWeb) {
+    // set the theme as early as possible.  TODO: manage this from CBW instead of in an extension
     const config = vscode.workspace.getConfiguration();
     await config.update('workbench.colorTheme', 'Monokai', vscode.ConfigurationTarget.Global);
-    context.subscriptions.push(webAppInsightsReporter);
+    if (process.env.ESBUILD_PLATFORM === 'web') {
+      const { getWebAppInsightsReporter } = await import('./observability/applicationInsightsWebExporter.js');
+      context.subscriptions.push(getWebAppInsightsReporter());
+    }
   }
   // Create persistent scope for the extension
   extensionScope = await Effect.runPromise(Scope.make());
 
+  const channelServiceLayer = ChannelServiceLayer('Salesforce Services');
+
   const requirements = Layer.mergeAll(
-    WorkspaceServiceLive,
-    SettingsServiceLive,
+    WorkspaceService.Default,
+    SettingsService.Default,
     IndexedDBStorageServiceShared,
     SdkLayer,
     channelServiceLayer
@@ -111,23 +106,16 @@ export const activate = async (
   return {
     services: {
       ConnectionService,
-      ConnectionServiceLive,
       ProjectService,
-      ProjectServiceLive,
       ChannelService,
       ChannelServiceLayer,
       WorkspaceService,
-      WorkspaceServiceLive,
       FsService,
-      FsServiceLive,
       ConfigService,
-      ConfigServiceLive,
       MetadataDescribeService,
-      MetadataDescribeServiceLive,
+      MetadataRegistryService,
       MetadataRetrieveService,
-      MetadataRetrieveServiceLive,
       SettingsService,
-      SettingsServiceLive,
       SdkLayer
     }
   };

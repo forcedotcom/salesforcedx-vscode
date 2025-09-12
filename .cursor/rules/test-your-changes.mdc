@@ -9,7 +9,7 @@ when you changes a file, you should run relevant compile, linters then unit test
 `npm run lint`
 `npm run test`
 
-If there are errors with those, you don't have a valid proposal. Iterate until you succeed, or are stuck and then propose a solution that could work.
+If there are errors with those, you don't have a valid proposal. Iterate until you succeed, or are stuck and then propose a solution that could work. They should pass at the repo-level,not just a single-workspace.
 
 don't change both /src and /test unless it's to refactor imports or rename. "real changes" should be one or the other.
 

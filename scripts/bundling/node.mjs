@@ -3,6 +3,7 @@ export const nodeConfig = {
   bundle: true,
   format: 'cjs',
   platform: 'node',
+  target: 'es2023',
   keepNames: true,
   minify: true,
   supported: {
@@ -13,6 +14,7 @@ export const nodeConfig = {
   },
   define: {
     // this prevents the logger from writing to any files, obviating the need for pino-bundling stuff
-    'process.env.SF_DISABLE_LOG_FILE': "'true'"
+    'process.env.SF_DISABLE_LOG_FILE': "'true'",
+    'process.env.ESBUILD_PLATFORM': "'node'"
   }
 };

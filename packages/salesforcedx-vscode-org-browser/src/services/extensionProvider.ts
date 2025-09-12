@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
+import { OrgBrowserRetrieveServiceLive } from './orgBrowserMetadataRetrieveService';
 
 export type ExtensionProviderService = {
   /** Get the SalesforceVSCodeServicesApi, activating if needed */
@@ -21,6 +22,7 @@ export const ExtensionProviderService = Context.GenericTag<ExtensionProviderServ
 const isSalesforceVSCodeServicesApi = (api: unknown): api is SalesforceVSCodeServicesApi =>
   api !== null && api !== undefined && typeof api === 'object' && 'services' in api;
 
+/** connect to the Salesforce Services extension and get all of its API services */
 const getServicesApi = Effect.sync(() =>
   vscode.extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services')
 ).pipe(
@@ -31,9 +33,33 @@ const getServicesApi = Effect.sync(() =>
   )
 );
 
-export const ExtensionProviderServiceLive = Layer.effect(
+const ExtensionProviderServiceLive = Layer.effect(
   ExtensionProviderService,
   Effect.sync(() => ({
     getServicesApi
   }))
+);
+
+/** Layer that provides all services from the SalesforceVSCodeServicesApi */
+export const AllServicesLayer = Layer.unwrapEffect(
+  Effect.gen(function* () {
+    const extensionProvider = yield* ExtensionProviderService;
+    const api = yield* extensionProvider.getServicesApi;
+    // Merge all the service layers from the API
+    return Layer.mergeAll(
+      ExtensionProviderServiceLive,
+      api.services.ConfigService.Default,
+      api.services.ConnectionService.Default,
+      api.services.FsService.Default,
+      api.services.MetadataRetrieveService.Default,
+      api.services.MetadataRegistryService.Default,
+      api.services.MetadataDescribeService.Default,
+      api.services.ProjectService.Default,
+      api.services.SdkLayer,
+      api.services.SettingsService.Default,
+      api.services.WorkspaceService.Default,
+      api.services.ChannelServiceLayer('Salesforce Org Browser'),
+      OrgBrowserRetrieveServiceLive
+    );
+  }).pipe(Effect.provide(ExtensionProviderServiceLive))
 );

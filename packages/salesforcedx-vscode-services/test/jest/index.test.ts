@@ -12,11 +12,9 @@ jest.mock('os', () => ({
 }));
 
 import { activate, deactivate } from '../../src/index';
-import { ChannelService } from '../../src/vscode/channelService';
-import * as Layer from 'effect/Layer';
 import * as Effect from 'effect/Effect';
 import { projectFiles } from '../../src/virtualFsProvider/projectInit';
-import { SettingsServiceLive } from '../../src/vscode/settingsService';
+import { SettingsService } from '../../src/vscode/settingsService';
 
 // Mock indexedDB API for Node.js environment
 const mockIndexedDB: Partial<IDBFactory> = {
@@ -161,30 +159,6 @@ jest.mock('node:fs', () => ({
   }
 }));
 
-// Create a mock ChannelService
-const mockChannelService = {
-  getChannel: Effect.sync(() => ({
-    appendLine: jest.fn(),
-    append: jest.fn(),
-    clear: jest.fn(),
-    show: jest.fn(),
-    hide: jest.fn(),
-    dispose: jest.fn(),
-    name: 'mock',
-    replace: jest.fn(),
-    logLevel: 0,
-    onDidChangeLogLevel: jest.fn(),
-    trace: jest.fn(),
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn()
-  })),
-  appendToChannel: (_message: string): Effect.Effect<void, never, never> => Effect.sync(() => {})
-};
-
-const MockChannelServiceLayer = Layer.succeed(ChannelService, mockChannelService);
-
 describe('Extension', () => {
   beforeEach(() => {
     // Mock workspace.workspaceFolders to have at least one folder
@@ -226,7 +200,7 @@ describe('Extension', () => {
     // In environments where os.homedir() returns undefined, activation may fail
     // but should still return the API
     try {
-      const api = await activate(context, MockChannelServiceLayer);
+      const api = await activate(context);
       expect(api).toBeDefined();
       expect(api.services).toBeDefined();
       expect(api.services.ConnectionService).toBeDefined();
@@ -259,8 +233,8 @@ describe('Extension', () => {
 
     // Test that projectFiles handles homedir issues gracefully
     // In environments where os.homedir() returns undefined, this should fail gracefully
-    await expect(Effect.runPromise(Effect.provide(projectFiles(mockFsProvider), SettingsServiceLive))).rejects.toThrow(
-      /The "path" argument must be of type string/
-    );
+    await expect(
+      Effect.runPromise(Effect.provide(projectFiles(mockFsProvider), SettingsService.Default))
+    ).rejects.toThrow(/The "path" argument must be of type string/);
   });
 });
