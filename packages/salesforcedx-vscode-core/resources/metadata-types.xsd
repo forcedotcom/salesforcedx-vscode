@@ -36342,6 +36342,7 @@ Total metadata types: 758+
   <xsd:element name="CustomLabels" type="tns:CustomLabels" />
   <xsd:element name="Translations" type="tns:Translations" />
   <xsd:element name="GlobalValueSet" type="tns:GlobalValueSet" />
+  <xsd:element name="GlobalValueSetTranslation" type="tns:GlobalValueSetTranslation" />
   <xsd:element name="StandardValueSet" type="tns:StandardValueSet" />
   <xsd:element name="PathAssistant" type="tns:PathAssistant" />
   <xsd:element name="CompactLayout" type="tns:CompactLayout" />

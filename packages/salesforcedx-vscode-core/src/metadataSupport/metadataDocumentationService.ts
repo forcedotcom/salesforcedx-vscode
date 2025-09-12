@@ -287,6 +287,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a global value set. Global value sets are shared sets of picklist values that you can use in custom picklist and multi-select picklist fields.'
       },
+      GlobalValueSetTranslation: {
+        description:
+          'Represents a translation for a global value set. Global value set translations provide localized labels and values for global value sets in different languages and locales.'
+      },
       PathAssistant: {
         description:
           'Represents a path. Paths guide users through a business process by breaking it down into stages with key fields and guidance for success.'
