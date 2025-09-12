@@ -183,6 +183,18 @@ export class MetadataDocumentationService {
         description:
           'Represents a Lightning web component bundle. A Lightning web component bundle contains all the resources for a Lightning web component: JavaScript, HTML, CSS, SVG resources, and a configuration file.'
       },
+      FeatureParameterBoolean: {
+        description:
+          'Represents a boolean feature parameter. Feature parameters are used to configure and control various features and behaviors in Salesforce applications, with boolean parameters representing true/false settings.'
+      },
+      FeatureParameterDate: {
+        description:
+          'Represents a date feature parameter. Feature parameters are used to configure and control various features and behaviors in Salesforce applications, with date parameters representing date-based settings and constraints.'
+      },
+      FeatureParameterInteger: {
+        description:
+          'Represents an integer feature parameter. Feature parameters are used to configure and control various features and behaviors in Salesforce applications, with integer parameters representing numeric settings and limits.'
+      },
       FlexiPage: {
         description:
           'Represents a Lightning page. Lightning pages are custom layouts that let you design pages for use in the Salesforce mobile app and Lightning Experience.'

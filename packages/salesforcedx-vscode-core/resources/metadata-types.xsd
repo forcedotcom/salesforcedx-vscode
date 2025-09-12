@@ -36282,6 +36282,9 @@ Total metadata types: 758+
   <xsd:element name="EmailTemplate" type="tns:EmailTemplate" />
   <xsd:element name="StaticResource" type="tns:StaticResource" />
   <xsd:element name="LightningComponentBundle" type="tns:LightningComponentBundle" />
+  <xsd:element name="FeatureParameterBoolean" type="tns:FeatureParameterBoolean" />
+  <xsd:element name="FeatureParameterDate" type="tns:FeatureParameterDate" />
+  <xsd:element name="FeatureParameterInteger" type="tns:FeatureParameterInteger" />
   <xsd:element name="FlexiPage" type="tns:FlexiPage" />
 
   <!-- Additional commonly used metadata types -->
