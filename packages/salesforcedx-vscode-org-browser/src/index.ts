@@ -9,16 +9,18 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { retrieveOrgBrowserTreeItemCommand } from './commands/retrieveMetadata';
 import { TREE_VIEW_ID } from './constants';
-import { AllServicesLayer, ExtensionProviderService, ExtensionProviderServiceLive } from './services/extensionProvider';
+import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
+// the vscode APIs delegate quickly to Effects
 export const activate = async (context: vscode.ExtensionContext): Promise<void> =>
-  Effect.runPromise(Effect.provide(activateEffect(context), ExtensionProviderServiceLive));
+  Effect.runPromise(Effect.provide(activateEffect(context), AllServicesLayer));
 
 export const deactivate = async (): Promise<void> =>
-  Effect.runPromise(Effect.provide(deactivateEffect, ExtensionProviderServiceLive));
+  Effect.runPromise(Effect.provide(deactivateEffect, AllServicesLayer));
 
+// export for testing
 export const activateEffect = (
   context: vscode.ExtensionContext
 ): Effect.Effect<void, Error, ExtensionProviderService> =>

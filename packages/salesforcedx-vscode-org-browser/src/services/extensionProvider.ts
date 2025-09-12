@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
+import { OrgBrowserRetrieveServiceLive } from './orgBrowserMetadataRetrieveService';
 
 export type ExtensionProviderService = {
   /** Get the SalesforceVSCodeServicesApi, activating if needed */
@@ -32,7 +33,7 @@ const getServicesApi = Effect.sync(() =>
   )
 );
 
-export const ExtensionProviderServiceLive = Layer.effect(
+const ExtensionProviderServiceLive = Layer.effect(
   ExtensionProviderService,
   Effect.sync(() => ({
     getServicesApi
@@ -57,7 +58,8 @@ export const AllServicesLayer = Layer.unwrapEffect(
       api.services.SdkLayer,
       api.services.SettingsService.Default,
       api.services.WorkspaceService.Default,
-      api.services.ChannelServiceLayer('Salesforce Org Browser')
+      api.services.ChannelServiceLayer('Salesforce Org Browser'),
+      OrgBrowserRetrieveServiceLive
     );
   }).pipe(Effect.provide(ExtensionProviderServiceLive))
 );

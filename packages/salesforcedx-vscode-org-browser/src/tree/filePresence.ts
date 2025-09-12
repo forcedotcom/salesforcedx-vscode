@@ -9,11 +9,7 @@ import type { MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Queue from 'effect/Queue';
 
-import {
-  AllServicesLayer,
-  ExtensionProviderService,
-  ExtensionProviderServiceLive
-} from '../services/extensionProvider';
+import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { getIconPath, OrgBrowserTreeItem } from './orgBrowserNode';
 import { MetadataListResultItem } from './types';
 
@@ -79,10 +75,7 @@ const getFilePaths = (member: MetadataMember): Effect.Effect<string[], Error, ne
         );
         yield* Effect.annotateCurrentSpan({ paths });
         return paths;
-      }).pipe(
-        Effect.withSpan('getFilePaths', { attributes: { type: member.type, fullName: member.fullName } }),
-        Effect.provide(AllServicesLayer)
-      )
+      }).pipe(Effect.withSpan('getFilePaths', { attributes: { type: member.type, fullName: member.fullName } }))
     ),
-    Effect.provide(ExtensionProviderServiceLive)
+    Effect.provide(AllServicesLayer)
   );

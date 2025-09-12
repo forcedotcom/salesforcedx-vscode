@@ -9,10 +9,8 @@ import {
   type RetrieveResult,
   type MetadataMember,
   MetadataApiRetrieve,
-  ComponentSet,
-  MetadataType
+  ComponentSet
 } from '@salesforce/source-deploy-retrieve';
-import { filePathsFromMetadataComponent } from '@salesforce/source-deploy-retrieve/lib/src/utils/filePathGenerator';
 
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
@@ -30,12 +28,15 @@ const buildComponentSetFromSource = (
   sourcePaths: string[]
 ): Effect.Effect<ComponentSet, Error, MetadataRegistryService | WorkspaceService> =>
   Effect.gen(function* () {
+    console.log('buildComponentSetFromSource', members, sourcePaths);
     const include = members.length > 0 ? yield* buildComponentSet(members) : undefined;
     const registryAccess = yield* (yield* MetadataRegistryService).getRegistryAccess();
-    return yield* Effect.try({
+    const cs = yield* Effect.try({
       try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
       catch: e => new Error('Failed to build ComponentSet from source', { cause: e })
     });
+    yield* Effect.annotateCurrentSpan({ size: cs.size });
+    return cs;
   }).pipe(Effect.withSpan('buildComponentSetFromSource'));
 
 const buildComponentSet = (
@@ -113,9 +114,6 @@ const retrieve = (
     Effect.provide(SdkLayer)
   );
 
-const getFilePath = (type: MetadataType, name: string): Effect.Effect<string[], Error> =>
-  Effect.try(() => filePathsFromMetadataComponent({ type, fullName: name }));
-
 export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()('MetadataRetrieveService', {
   succeed: {
     /**
@@ -124,8 +122,6 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
      * @returns Effect that resolves to SDR's RetrieveResult
      */
     retrieve,
-    /** given a type and name, return a glob pattern that can be used to search for the file in the local project */
-    getFilePath,
     buildComponentSet,
     buildComponentSetFromSource
   } as const

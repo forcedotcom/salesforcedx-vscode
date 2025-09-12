@@ -13,7 +13,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { AllServicesLayer, ExtensionProviderService } from './extensionProvider';
 
-export type MetadataRetrieveService = {
+export type OrgBrowserRetrieveService = {
   /**
    * Retrieve metadata components and optionally open them in the editor
    * @param members - Array of MetadataMember to retrieve
@@ -26,7 +26,7 @@ export type MetadataRetrieveService = {
   ) => Effect.Effect<RetrieveResult, Error, ExtensionProviderService>;
 };
 
-export const MetadataRetrieveService = Context.GenericTag<MetadataRetrieveService>('MetadataRetrieveService');
+export const OrgBrowserRetrieveService = Context.GenericTag<OrgBrowserRetrieveService>('OrgBrowserRetrieveService');
 
 const retrieve = (
   members: MetadataMember[],
@@ -99,4 +99,4 @@ const openFileInEditor = (filePath: string): Effect.Effect<void, Error> =>
     Effect.withSpan('openFileInEditor', { attributes: { filePath } })
   );
 
-export const MetadataRetrieveServiceLive = Layer.effect(MetadataRetrieveService, Effect.succeed({ retrieve }));
+export const OrgBrowserRetrieveServiceLive = Layer.effect(OrgBrowserRetrieveService, Effect.succeed({ retrieve }));
