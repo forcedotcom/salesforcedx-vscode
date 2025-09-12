@@ -159,6 +159,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a dashboard. Dashboards are visual displays of key metrics and trends for records in your org.'
       },
+      Document: {
+        description:
+          'Represents a document. Documents are files that you can upload and store in Salesforce, such as presentations, spreadsheets, images, and other file types that can be shared and accessed by users.'
+      },
       EmailTemplate: {
         description:
           'Represents an email template. Email templates are preformatted emails that communicate a standard message.'
