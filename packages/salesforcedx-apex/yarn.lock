@@ -555,15 +555,15 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@jsforce/jsforce-node@^3.10.4", "@jsforce/jsforce-node@^3.10.5":
-  version "3.10.5"
-  resolved "https://registry.npmjs.org/@jsforce/jsforce-node/-/jsforce-node-3.10.5.tgz"
-  integrity sha512-0nAxqKlLWxb9EY2ZJRdIh9qkFV85JUZL9wOGgLVYnKqRKF8iUWEMDy6CvOU7OwQEMgkY1micZON6IrUlPLIM8w==
+"@jsforce/jsforce-node@^3.10.4", "@jsforce/jsforce-node@^3.10.7":
+  version "3.10.7"
+  resolved "https://registry.yarnpkg.com/@jsforce/jsforce-node/-/jsforce-node-3.10.7.tgz#9a377e8da925d1eec713ca43ea0bc1ba6aafd7f6"
+  integrity sha512-+2E7c/rRqB2QRtjFiBOkJwyZWw1vViQ2eeHIfLnF8WT6t8J5h16KyJ4dMyiw4JJx/WUT7xtNFiZ0kz85LS//cw==
   dependencies:
     "@sindresorhus/is" "^4"
     base64url "^3.0.1"
     csv-parse "^5.5.2"
-    csv-stringify "^6.4.4"
+    csv-stringify "^6.6.0"
     faye "^1.4.0"
     form-data "^4.0.4"
     https-proxy-agent "^5.0.0"
@@ -1521,10 +1521,10 @@ csv-parse@^5.5.2:
   resolved "https://registry.npmjs.org/csv-parse/-/csv-parse-5.6.0.tgz"
   integrity sha512-l3nz3euub2QMg5ouu5U09Ew9Wf6/wQ8I++ch1loQ0ljmzhmfZYrH9fflS22i/PQEvsPvxCwxgz5q7UB8K1JO4Q==
 
-csv-stringify@^6.4.4:
-  version "6.5.2"
-  resolved "https://registry.npmjs.org/csv-stringify/-/csv-stringify-6.5.2.tgz"
-  integrity sha512-RFPahj0sXcmUyjrObAK+DOWtMvMIFV328n4qZJhgX3x2RqkQgOTU2mCUmiFR0CzM6AzChlRSUErjiJeEt8BaQA==
+csv-stringify@^6.6.0:
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/csv-stringify/-/csv-stringify-6.6.0.tgz#d384859cfb71d0a4a73c5bcc36a4daf5440cb033"
+  integrity sha512-YW32lKOmIBgbxtu3g5SaiqWNwa/9ISQt2EcgOq0+RAIFufFp9is6tqNnKahqE5kuKvrnYAzs28r+s6pXJR8Vcw==
 
 dargs@^7.0.0:
   version "7.0.0"
