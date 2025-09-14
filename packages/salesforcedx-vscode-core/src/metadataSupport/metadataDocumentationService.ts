@@ -139,6 +139,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a validation rule. Validation rules verify that data entered by users in records meets the standards you specify.'
       },
+      WebLink: {
+        description:
+          'Represents a custom link or button. WebLinks allow users to interact with external websites, execute custom JavaScript, or invoke Visualforce pages directly from Salesforce records.'
+      },
       WorkflowRule: {
         description:
           'Represents a workflow rule. Workflow rules automate standard internal procedures and processes to save time across your org.'
