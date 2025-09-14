@@ -23,7 +23,7 @@ export interface MetadataTypeDocumentation {
   name: string;
   description: string;
   fields?: MetadataFieldInfo[];
-  developerGuideUrl?: string;
+  developerGuideUrls?: string[];
 }
 
 /**
@@ -92,7 +92,7 @@ export class MetadataDocumentationService {
         name: typeName,
         description: typeInfo.description ?? '',
         fields: typeInfo.fields,
-        developerGuideUrl: await this.getDeveloperGuideUrl(typeName)
+        developerGuideUrls: this.getDeveloperGuideUrls(typeName)
       });
     }
   }
@@ -368,7 +368,7 @@ export class MetadataDocumentationService {
   }
 
   /** Generate developer guide URL for a metadata type with fallback patterns */
-  private async getDeveloperGuideUrl(metadataType: string): Promise<string> {
+  private getDeveloperGuideUrls(metadataType: string): string[] {
     // Known specific URLs that don't follow standard patterns
     const knownUrls: Record<string, string> = {
       ApexClass: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_classes.htm',
@@ -382,7 +382,7 @@ export class MetadataDocumentationService {
 
     // Return known URL if available
     if (knownUrls[metadataType]) {
-      return knownUrls[metadataType];
+      return [knownUrls[metadataType]];
     }
 
     // Try multiple URL patterns for unknown metadata types
@@ -398,37 +398,7 @@ export class MetadataDocumentationService {
       `${baseUrl}/meta_${typeNameLower.replace(/([A-Z])/g, '$1').toLowerCase()}.htm` // remove camelCase
     ];
 
-    // Test each URL to see if it redirects to the intro page
-    for (const url of potentialUrls) {
-      const isValid = await this.isValidDocumentationUrl(url);
-      if (isValid) {
-        return url;
-      }
-    }
-
-    // If no valid URL found, fall back to the metadata types list
-    return 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_types_list.htm';
-  }
-
-  /** Check if a URL is valid documentation (doesn't redirect to intro page) */
-  private async isValidDocumentationUrl(url: string): Promise<boolean> {
-    try {
-      // Use fetch with HEAD request to check redirect without downloading content
-      const response = await fetch(url, {
-        method: 'HEAD',
-        redirect: 'follow' // Follow redirects to see final destination
-      });
-
-      // Check if the final URL is the intro page (indicates invalid metadata type)
-      const finalUrl = response.url;
-
-      // Return false if it redirects to intro page or if response is not ok
-      return response.ok && !finalUrl.includes('meta_intro.htm');
-    } catch (error) {
-      // If fetch fails (network error, etc.), assume URL is invalid
-      console.warn(`Failed to validate URL ${url}:`, error);
-      return false;
-    }
+    return potentialUrls;
   }
 
   /**

@@ -66,8 +66,15 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
           }
         }
 
-        if (documentation.developerGuideUrl) {
-          markdownContent.appendMarkdown(`\n\n[📖 View in Developer Guide](${documentation.developerGuideUrl})`);
+        if (documentation.developerGuideUrls && documentation.developerGuideUrls.length > 0) {
+          if (documentation.developerGuideUrls.length === 1) {
+            markdownContent.appendMarkdown(`\n\n[📖 View in Developer Guide](${documentation.developerGuideUrls[0]})`);
+          } else {
+            markdownContent.appendMarkdown('\n\n**Documentation Links (best guess first):**');
+            documentation.developerGuideUrls.forEach((url, index) => {
+              markdownContent.appendMarkdown(`\n- [Option ${index + 1}](${url})`);
+            });
+          }
         }
 
         return new vscode.Hover(markdownContent, wordRange);
