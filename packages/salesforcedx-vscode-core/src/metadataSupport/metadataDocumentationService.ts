@@ -199,6 +199,10 @@ export class MetadataDocumentationService {
         description:
           'Represents an integer feature parameter. Feature parameters are used to configure and control various features and behaviors in Salesforce applications, with integer parameters representing numeric settings and limits.'
       },
+      FieldSet: {
+        description:
+          'Represents a field set. Field sets are groupings of fields that can be referenced dynamically in Visualforce pages and Apex code, allowing for flexible and reusable components that adapt to field configuration changes.'
+      },
       FlexiPage: {
         description:
           'Represents a Lightning page. Lightning pages are custom layouts that let you design pages for use in the Salesforce mobile app and Lightning Experience.'
