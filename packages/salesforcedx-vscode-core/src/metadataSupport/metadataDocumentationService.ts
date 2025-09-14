@@ -175,6 +175,10 @@ export class MetadataDocumentationService {
         description:
           'Represents an email template. Email templates are preformatted emails that communicate a standard message.'
       },
+      Letterhead: {
+        description:
+          'Represents a letterhead used by Classic email templates. Letterheads define branding elements such as logos, colors, and layout applied to email content.'
+      },
       StaticResource: {
         description:
           'Represents a static resource. Static resources allow you to upload content that you can reference in a Visualforce page.'
