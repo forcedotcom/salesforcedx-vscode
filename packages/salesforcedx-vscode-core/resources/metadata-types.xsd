@@ -36360,6 +36360,7 @@ Total metadata types: 758+
   <xsd:element name="FlowDefinition" type="tns:FlowDefinition" />
   <xsd:element name="CallCenter" type="tns:CallCenter" />
   <xsd:element name="MatchingRule" type="tns:MatchingRule" />
+  <xsd:element name="MatchingRules" type="tns:MatchingRules" />
   <xsd:element name="DuplicateRule" type="tns:DuplicateRule" />
   <xsd:element name="CleanDataService" type="tns:CleanDataService" />
   <xsd:element name="Territory2Settings" type="tns:Territory2Settings" />

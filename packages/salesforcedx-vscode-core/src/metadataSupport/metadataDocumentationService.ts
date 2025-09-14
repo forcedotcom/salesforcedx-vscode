@@ -323,6 +323,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a matching rule. Matching rules determine how duplicate records are identified when users create or edit records.'
       },
+      MatchingRules: {
+        description:
+          'Represents a collection of matching rules. MatchingRules contains multiple MatchingRule definitions that determine how duplicate records are identified for a specific object.'
+      },
       DuplicateRule: {
         description:
           'Represents a duplicate rule. Duplicate rules define what happens when users create or edit records that have duplicates.'
@@ -382,7 +386,8 @@ export class MetadataDocumentationService {
       CustomField: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customfield.htm',
       DocumentFolder: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_document.htm',
       EmailFolder: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailtemplate.htm',
-      Flow: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm'
+      Flow: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm',
+      MatchingRules: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_matchingrule.htm'
     };
 
     // Return known URL if available
