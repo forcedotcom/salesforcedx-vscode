@@ -239,6 +239,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a custom notification type. Custom notification types define the structure and behavior of custom notifications that can be sent to users in Salesforce.'
       },
+      CustomObjectTranslation: {
+        description:
+          'Represents a custom object translation. CustomObjectTranslation contains translated labels, field translations, and other localized content for custom objects to support multiple languages and internationalization.'
+      },
       Queue: {
         description:
           'Represents a queue. Queues are used to prioritize, distribute, and assign records to teams who share workloads.'
