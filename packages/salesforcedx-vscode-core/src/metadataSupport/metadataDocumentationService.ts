@@ -223,6 +223,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a collection of custom labels. CustomLabels is a container metadata type that holds multiple CustomLabel definitions in a single file for easier management and deployment.'
       },
+      CustomNotificationType: {
+        description:
+          'Represents a custom notification type. Custom notification types define the structure and behavior of custom notifications that can be sent to users in Salesforce.'
+      },
       Queue: {
         description:
           'Represents a queue. Queues are used to prioritize, distribute, and assign records to teams who share workloads.'

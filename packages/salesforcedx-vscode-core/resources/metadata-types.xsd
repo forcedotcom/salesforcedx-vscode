@@ -36387,6 +36387,7 @@ Total metadata types: 758+
   <xsd:element name="WaveXmd" type="tns:WaveXmd" />
   <xsd:element name="EclairGeoData" type="tns:EclairGeoData" />
   <xsd:element name="CustomPermission" type="tns:CustomPermission" />
+  <xsd:element name="CustomNotificationType" type="tns:CustomNotificationType" />
   <xsd:element name="CustomObjectTranslation" type="tns:CustomObjectTranslation" />
   <xsd:element name="PlatformCachePartition" type="tns:PlatformCachePartition" />
   <xsd:element name="Audience" type="tns:Audience" />
