@@ -36273,6 +36273,7 @@ Total metadata types: 758+
   <xsd:element name="Profile" type="tns:Profile" />
   <xsd:element name="PermissionSet" type="tns:PermissionSet" />
   <xsd:element name="CustomField" type="tns:CustomField" />
+  <xsd:element name="CustomFieldTranslation" type="tns:CustomFieldTranslation" />
   <xsd:element name="ValidationRule" type="tns:ValidationRule" />
   <xsd:element name="WorkflowRule" type="tns:WorkflowRule" />
   <xsd:element name="CustomTab" type="tns:CustomTab" />

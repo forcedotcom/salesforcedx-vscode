@@ -135,6 +135,10 @@ export class MetadataDocumentationService {
         description:
           "Represents a custom field. Custom fields allow you to store additional information that's unique to your organization."
       },
+      CustomFieldTranslation: {
+        description:
+          'Represents a custom field translation. CustomFieldTranslation contains the translated label and help text for custom fields in different languages for internationalization support.'
+      },
       ValidationRule: {
         description:
           'Represents a validation rule. Validation rules verify that data entered by users in records meets the standards you specify.'
@@ -396,6 +400,8 @@ export class MetadataDocumentationService {
       ApexComponent: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_component.htm',
       CustomObject: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm',
       CustomField: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customfield.htm',
+      CustomFieldTranslation:
+        'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customobjecttranslation.htm',
       DocumentFolder: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_document.htm',
       EmailFolder: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailtemplate.htm',
       Flow: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm',
