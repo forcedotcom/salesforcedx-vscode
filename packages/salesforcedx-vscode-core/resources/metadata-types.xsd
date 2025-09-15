@@ -9383,19 +9383,19 @@ Total metadata types: 758+
      <xsd:element name="name" type="xsd:string"/>
     </xsd:sequence>
    </xsd:complexType>
-   <xsd:complexType name="CustomFieldTranslation">
-    <xsd:all>
-      <xsd:element name="caseValues" minOccurs="0" type="tns:ObjectNameCaseValue"/>
-      <xsd:element name="gender" minOccurs="0" type="tns:Gender"/>
-      <xsd:element name="help" minOccurs="0" type="xsd:string"/>
-      <xsd:element name="label" minOccurs="0" type="xsd:string"/>
-      <xsd:element name="lookupFilter" minOccurs="0" type="tns:LookupFilterTranslation"/>
-      <xsd:element name="name" minOccurs="0" type="xsd:string"/>
-      <xsd:element name="picklistValues" minOccurs="0" type="tns:PicklistValueTranslation"/>
-      <xsd:element name="relationshipLabel" minOccurs="0" type="xsd:string"/>
-      <xsd:element name="startsWith" minOccurs="0" type="tns:StartsWith"/>
-    </xsd:all>
-   </xsd:complexType>
+  <xsd:complexType name="CustomFieldTranslation">
+   <xsd:choice minOccurs="0" maxOccurs="unbounded">
+    <xsd:element name="caseValues" type="tns:ObjectNameCaseValue"/>
+    <xsd:element name="gender" type="tns:Gender"/>
+    <xsd:element name="help" type="xsd:string"/>
+    <xsd:element name="label" type="xsd:string"/>
+    <xsd:element name="lookupFilter" type="tns:LookupFilterTranslation"/>
+    <xsd:element name="name" type="xsd:string"/>
+    <xsd:element name="picklistValues" type="tns:PicklistValueTranslation"/>
+    <xsd:element name="relationshipLabel" type="xsd:string"/>
+    <xsd:element name="startsWith" type="tns:StartsWith"/>
+   </xsd:choice>
+  </xsd:complexType>
    <xsd:complexType name="LookupFilterTranslation">
     <xsd:sequence>
      <xsd:element name="errorMessage" type="xsd:string"/>
