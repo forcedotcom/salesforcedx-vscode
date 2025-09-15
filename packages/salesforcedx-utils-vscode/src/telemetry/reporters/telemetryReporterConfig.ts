@@ -11,4 +11,5 @@ export interface TelemetryReporterConfig {
   userId: string;
   reporterName: string;
   isDevMode: boolean;
+  webUserId: string;
 }

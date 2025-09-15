@@ -107,6 +107,7 @@ export class WorkspaceContextUtil {
     } else {
       this._username = undefined;
       this._alias = undefined;
+      this._orgId = undefined;
     }
 
     this.onOrgChangeEmitter.fire({
