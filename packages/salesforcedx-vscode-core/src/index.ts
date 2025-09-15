@@ -536,12 +536,7 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   const hoverProviderDisposable = vscode.languages.registerHoverProvider(
     [
       { scheme: 'file', language: 'xml' },
-      { scheme: 'file', pattern: '**/*-meta.xml' },
-      { scheme: 'file', pattern: '**/*.object-meta.xml' },
-      { scheme: 'file', pattern: '**/*.flow-meta.xml' },
-      { scheme: 'file', pattern: '**/*.layout-meta.xml' },
-      { scheme: 'file', pattern: '**/*.profile-meta.xml' },
-      { scheme: 'file', pattern: '**/*.permissionset-meta.xml' }
+      { scheme: 'file', pattern: '**/*-meta.xml' }
     ],
     metadataHoverProvider
   );
