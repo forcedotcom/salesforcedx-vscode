@@ -17,7 +17,7 @@
     - We added support for no-namespace projects during debugging.
     - Fixed an issue where the Apex Replay Debugger could not run on Apex test classes when the project had a namespace but the connected org did not.
 
-Thank you [Justin Lyon](https://github.com/justin-lyon) for logging this issue. ([PR #6467](https://github.com/forcedotcom/salesforcedx-vscode/pull/6467), [6458](https://github.com/forcedotcom/salesforcedx-vscode/issues/6458))
+Thank you [Justin Lyon](https://github.com/justin-lyon) for logging this issue. ([PR #6467](https://github.com/forcedotcom/salesforcedx-vscode/pull/6467), [ISSUE #6458](https://github.com/forcedotcom/salesforcedx-vscode/issues/6458))
 
 #### salesforce-vscode-visualforce
 
