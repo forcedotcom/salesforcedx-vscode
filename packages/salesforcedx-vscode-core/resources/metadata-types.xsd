@@ -28326,16 +28326,16 @@ Total metadata types: 758+
      <xsd:element name="relatedTableJoinColumn" type="xsd:string"/>
     </xsd:sequence>
    </xsd:complexType>
-   <xsd:complexType name="ReportFilterItem">
-    <xsd:sequence>
-     <xsd:element name="column" type="xsd:string"/>
-     <xsd:element name="columnToColumn" minOccurs="0" type="xsd:boolean"/>
-     <xsd:element name="isUnlocked" minOccurs="0" type="xsd:boolean"/>
-     <xsd:element name="operator" type="tns:FilterOperation"/>
-     <xsd:element name="snapshot" minOccurs="0" type="xsd:string"/>
-     <xsd:element name="value" minOccurs="0" type="xsd:string"/>
-    </xsd:sequence>
-   </xsd:complexType>
+  <xsd:complexType name="ReportFilterItem">
+   <xsd:all>
+    <xsd:element name="column" minOccurs="0" type="xsd:string"/>
+    <xsd:element name="columnToColumn" minOccurs="0" type="xsd:boolean"/>
+    <xsd:element name="isUnlocked" minOccurs="0" type="xsd:boolean"/>
+    <xsd:element name="operator" minOccurs="0" type="tns:FilterOperation"/>
+    <xsd:element name="snapshot" minOccurs="0" type="xsd:string"/>
+    <xsd:element name="value" minOccurs="0" type="xsd:string"/>
+   </xsd:all>
+  </xsd:complexType>
    <xsd:simpleType name="ObjectFilterOperator">
     <xsd:restriction base="xsd:string">
      <xsd:enumeration value="with"/>
