@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-core
 
-- [W-19176017] new webUserId telemetry entry for hashed (orgID-userID) to identify users on the web ([PR #6528](https://github.com/forcedotcom/salesforcedx-vscode/pull/6528))
+- We made some changes under the hood. ([PR #6528](https://github.com/forcedotcom/salesforcedx-vscode/pull/6528))
 
 ## Fixed
 
