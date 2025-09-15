@@ -22546,10 +22546,16 @@ Total metadata types: 758+
     </xsd:sequence>
    </xsd:complexType>
    <xsd:complexType name="TargetConfig">
-    <xsd:sequence>
-     <xsd:element name="supportedFormFactors" minOccurs="0" type="tns:SupportedFormFactors"/>
-    </xsd:sequence>
+    <xsd:choice minOccurs="0" maxOccurs="unbounded">
+     <xsd:element name="objects" type="tns:Objects"/>
+     <xsd:element name="supportedFormFactors" type="tns:SupportedFormFactors"/>
+    </xsd:choice>
     <xsd:attribute name="targets" type="xsd:string"/>
+   </xsd:complexType>
+   <xsd:complexType name="Objects">
+    <xsd:sequence>
+     <xsd:element name="object" minOccurs="0" maxOccurs="unbounded" type="xsd:string"/>
+    </xsd:sequence>
    </xsd:complexType>
    <xsd:complexType name="SupportedFormFactors">
     <xsd:sequence>
