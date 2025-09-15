@@ -22531,7 +22531,7 @@ Total metadata types: 758+
        <xsd:element name="lwcResources" type="tns:LwcResources"/>
        <xsd:element name="masterLabel" type="xsd:string"/>
        <xsd:element name="runtimeNamespace" type="xsd:string"/>
-       <xsd:element name="targetConfigs" type="xsd:base64Binary"/>
+       <xsd:element name="targetConfigs" type="tns:TargetConfigs"/>
        <xsd:element name="targets" type="tns:Targets"/>
        <xsd:element name="fullName" type="xsd:string"/>
        <xsd:element name="module" type="xsd:string"/>
@@ -22539,6 +22539,25 @@ Total metadata types: 758+
       <xsd:attribute name="fqn" type="xsd:string"/>
      </xsd:extension>
     </xsd:complexContent>
+   </xsd:complexType>
+   <xsd:complexType name="TargetConfigs">
+    <xsd:sequence>
+     <xsd:element name="targetConfig" minOccurs="0" maxOccurs="unbounded" type="tns:TargetConfig"/>
+    </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="TargetConfig">
+    <xsd:sequence>
+     <xsd:element name="supportedFormFactors" minOccurs="0" type="tns:SupportedFormFactors"/>
+    </xsd:sequence>
+    <xsd:attribute name="targets" type="xsd:string"/>
+   </xsd:complexType>
+   <xsd:complexType name="SupportedFormFactors">
+    <xsd:sequence>
+     <xsd:element name="supportedFormFactor" minOccurs="0" maxOccurs="unbounded" type="tns:SupportedFormFactor"/>
+    </xsd:sequence>
+   </xsd:complexType>
+   <xsd:complexType name="SupportedFormFactor">
+    <xsd:attribute name="type" type="xsd:string"/>
    </xsd:complexType>
    <xsd:complexType name="Capabilities">
     <xsd:sequence>
