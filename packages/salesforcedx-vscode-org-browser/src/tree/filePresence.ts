@@ -9,6 +9,7 @@ import type { MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Queue from 'effect/Queue';
 
+import type { AnySpan } from 'effect/Tracer';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { getIconPath, OrgBrowserTreeItem } from './orgBrowserNode';
 import { MetadataListResultItem } from './types';
@@ -19,6 +20,7 @@ type BackgroundFilePresenceCheckRequest = {
   c: MetadataListResultItem;
   treeProvider: MetadataTypeTreeProvider;
   parent: OrgBrowserTreeItem;
+  originalSpan: AnySpan;
 };
 
 /** a queue, not an effect that returns a queue, so that there's only one instance of it */
@@ -37,7 +39,8 @@ const backgroundFilePresenceCheck = (req: BackgroundFilePresenceCheckRequest): E
   }).pipe(
     Effect.catchAll(() => Effect.succeed(undefined)), // Ignore errors in background job
     Effect.withSpan('backgroundFilePresenceCheck', {
-      attributes: { xmlName: req.parent.xmlName, componentName: req.c.fullName }
+      attributes: { xmlName: req.parent.xmlName, componentName: req.c.fullName },
+      parent: req.originalSpan
     })
   );
 
