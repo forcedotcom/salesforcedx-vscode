@@ -8792,13 +8792,15 @@ Total metadata types: 758+
    <xsd:complexType name="CustomLabel">
     <xsd:complexContent>
      <xsd:extension base="tns:Metadata">
-      <xsd:sequence>
-       <xsd:element name="categories" minOccurs="0" type="xsd:string"/>
+      <xsd:choice minOccurs="0" maxOccurs="unbounded">
+       <xsd:element name="categories" type="xsd:string"/>
        <xsd:element name="language" type="xsd:string"/>
        <xsd:element name="protected" type="xsd:boolean"/>
        <xsd:element name="shortDescription" type="xsd:string"/>
        <xsd:element name="value" type="xsd:string"/>
-      </xsd:sequence>
+       <xsd:element name="fullName" type="xsd:string"/>
+       <xsd:element name="module" type="xsd:string"/>
+      </xsd:choice>
      </xsd:extension>
     </xsd:complexContent>
    </xsd:complexType>
