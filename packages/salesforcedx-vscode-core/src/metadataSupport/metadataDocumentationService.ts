@@ -402,6 +402,7 @@ export class MetadataDocumentationService {
       ApexClass: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_classes.htm',
       ApexTrigger: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_triggers.htm',
       ApexComponent: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_component.htm',
+      ApexPage: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_pages.htm',
       CustomObject: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm',
       CustomField: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customfield.htm',
       CustomFieldTranslation:
