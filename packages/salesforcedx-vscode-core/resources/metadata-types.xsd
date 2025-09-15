@@ -9320,15 +9320,15 @@ Total metadata types: 758+
      </xsd:extension>
     </xsd:complexContent>
    </xsd:complexType>
-   <xsd:complexType name="ObjectNameCaseValue">
-    <xsd:sequence>
-     <xsd:element name="article" minOccurs="0" type="tns:Article"/>
-     <xsd:element name="caseType" minOccurs="0" type="tns:CaseType"/>
-     <xsd:element name="plural" minOccurs="0" type="xsd:boolean"/>
-     <xsd:element name="possessive" minOccurs="0" type="tns:Possessive"/>
-     <xsd:element name="value" type="xsd:string"/>
-    </xsd:sequence>
-   </xsd:complexType>
+  <xsd:complexType name="ObjectNameCaseValue">
+   <xsd:all>
+    <xsd:element name="article" minOccurs="0" type="tns:Article"/>
+    <xsd:element name="caseType" minOccurs="0" type="tns:CaseType"/>
+    <xsd:element name="plural" minOccurs="0" type="xsd:boolean"/>
+    <xsd:element name="possessive" minOccurs="0" type="tns:Possessive"/>
+    <xsd:element name="value" minOccurs="0" type="xsd:string"/>
+   </xsd:all>
+  </xsd:complexType>
    <xsd:simpleType name="Article">
     <xsd:restriction base="xsd:string">
      <xsd:enumeration value="None"/>
