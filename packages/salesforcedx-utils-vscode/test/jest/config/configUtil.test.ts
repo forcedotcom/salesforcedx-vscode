@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Config, Org, StateAggregator } from '@salesforce/core';
+import * as path from 'node:path';
 import { ConfigUtil, TARGET_ORG_KEY, workspaceUtils } from '../../../src';
 import { ConfigAggregatorProvider } from './../../../src/providers/configAggregatorProvider';
 
@@ -52,7 +53,7 @@ describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', ()
     await ConfigUtil.setTargetOrgOrAlias(username);
     expect(workspacePathStub).toHaveBeenCalledTimes(2); // Once for config creation, once for updateConfigAndStateAggregators
     expect(chdirStub).not.toHaveBeenCalled();
-    expect(configStub).toHaveBeenCalledWith({ filePath: expect.stringContaining('.sfdx/sfdx-config.json') });
+    expect(configStub).toHaveBeenCalledWith({ filePath: expect.stringContaining(`.sfdx${path.sep}sfdx-config.json`) });
   });
 
   it('should be able to set username or alias to an empty string', async () => {
@@ -116,6 +117,6 @@ describe('testing unsetTargetOrg', () => {
     await ConfigUtil.unsetTargetOrg();
     expect(workspacePathStub).toHaveBeenCalledTimes(2); // Once for config creation, once for updateConfigAndStateAggregators
     expect(chdirStub).not.toHaveBeenCalled();
-    expect(configStub).toHaveBeenCalledWith({ filePath: expect.stringContaining('.sfdx/sfdx-config.json') });
+    expect(configStub).toHaveBeenCalledWith({ filePath: expect.stringContaining(`.sfdx${path.sep}sfdx-config.json`) });
   });
 });
