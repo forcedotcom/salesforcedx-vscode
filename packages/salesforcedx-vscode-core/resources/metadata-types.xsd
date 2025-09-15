@@ -31167,13 +31167,13 @@ Total metadata types: 758+
      <xsd:element name="videoLink" minOccurs="0" type="xsd:string"/>
     </xsd:sequence>
    </xsd:complexType>
-   <xsd:complexType name="GlobalQuickActionTranslation">
-    <xsd:sequence>
-     <xsd:element name="aspect" minOccurs="0" type="xsd:string"/>
-     <xsd:element name="label" type="xsd:string"/>
-     <xsd:element name="name" type="xsd:string"/>
-    </xsd:sequence>
-   </xsd:complexType>
+  <xsd:complexType name="GlobalQuickActionTranslation">
+   <xsd:all>
+    <xsd:element name="aspect" minOccurs="0" type="xsd:string"/>
+    <xsd:element name="label" minOccurs="0" type="xsd:string"/>
+    <xsd:element name="name" minOccurs="0" type="xsd:string"/>
+   </xsd:all>
+  </xsd:complexType>
    <xsd:complexType name="ReportTypeTranslation">
     <xsd:sequence>
      <xsd:element name="description" minOccurs="0" type="xsd:string"/>
