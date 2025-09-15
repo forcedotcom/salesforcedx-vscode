@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TELEMETRY_GLOBAL_USER_ID } from '@salesforce/salesforcedx-utils-vscode';
+import { TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID } from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'node:os';
 import { extensions, window, workspace, Extension } from 'vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
@@ -51,6 +51,9 @@ describe('Telemetry', () => {
       }
       if (key === 'telemetryWebUserId') {
         return 'mock-web-user-id';
+      }
+      if (key === TELEMETRY_GLOBAL_WEB_USER_ID) {
+        return undefined; // Allow getWebTelemetryUserId to generate its own value
       }
       if (key === TELEMETRY_GLOBAL_VALUE) {
         return globalMsgShown;
@@ -98,6 +101,7 @@ describe('Telemetry', () => {
       await showTelemetryMessage(mockExtensionContext);
       expect(globalStateTelemetrySpy).toHaveBeenCalledTimes(4);
       expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_USER_ID);
+      expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_WEB_USER_ID);
       expect(globalStateTelemetrySpy).toHaveBeenCalledWith(TELEMETRY_GLOBAL_VALUE);
       expect(globalStateTelemetrySpy).toHaveBeenLastCalledWith(TELEMETRY_INTERNAL_VALUE);
       expect(mShowInformation).not.toHaveBeenCalled();
