@@ -82,30 +82,6 @@ export class MetadataXmlSupport {
         {
           systemId: this.getLocalFilePath(['metadata-types.xsd'], extensionContext)[0],
           pattern: '**/*-meta.xml'
-        },
-        {
-          systemId: this.getLocalFilePath(['metadata-types.xsd'], extensionContext)[0],
-          pattern: '**/classes/*.cls-meta.xml'
-        },
-        {
-          systemId: this.getLocalFilePath(['metadata-types.xsd'], extensionContext)[0],
-          pattern: '**/triggers/*.trigger-meta.xml'
-        },
-        {
-          systemId: this.getLocalFilePath(['metadata-types.xsd'], extensionContext)[0],
-          pattern: '**/objects/*.object-meta.xml'
-        },
-        {
-          systemId: this.getLocalFilePath(['metadata-types.xsd'], extensionContext)[0],
-          pattern: '**/flows/*.flow-meta.xml'
-        },
-        {
-          systemId: this.getLocalFilePath(['metadata-types.xsd'], extensionContext)[0],
-          pattern: '**/layouts/*.layout-meta.xml'
-        },
-        {
-          systemId: this.getLocalFilePath(['metadata-types.xsd'], extensionContext)[0],
-          pattern: '**/lwc/*/*.js-meta.xml'
         }
       ];
 
