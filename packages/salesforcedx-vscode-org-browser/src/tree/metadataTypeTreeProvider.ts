@@ -106,8 +106,8 @@ const getChildrenOfTreeItem = (
 
       return Effect.die(new Error(`Invalid node kind: ${element.kind}`));
     }),
-    Effect.provide(AllServicesLayer),
-    Effect.withSpan('getChildrenOfTreeItem', { attributes: { element: element?.xmlName } })
+    Effect.withSpan('getChildrenOfTreeItem', { attributes: { element: element?.xmlName, refresh } }),
+    Effect.provide(AllServicesLayer)
   );
 
 const listMetadataToComponent =

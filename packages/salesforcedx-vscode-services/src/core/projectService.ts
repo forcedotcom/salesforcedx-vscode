@@ -17,7 +17,7 @@ const resolveSfProject = (fsPath: string): Effect.Effect<SfProject, Error, never
   Effect.tryPromise({
     try: () => SfProject.resolve(fsPath),
     catch: error => new Error('Project Resolution Error', { cause: error })
-  }).pipe(Effect.withSpan('resolveSfProject', { attributes: { fsPath } }));
+  }).pipe(Effect.withSpan('resolveSfProject', { attributes: { fsPath } }), Effect.provide(SdkLayer));
 
 // Global cache - created once at module level, not scoped to any consumer
 const globalSfProjectCache = Effect.runSync(
