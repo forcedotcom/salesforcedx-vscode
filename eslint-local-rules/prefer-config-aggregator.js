@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+const path = require('path');
+
 module.exports = {
   meta: {
     type: 'suggestion',
@@ -34,7 +36,7 @@ module.exports = {
           if (configImport) {
             // Skip if this is in a test file
             const filename = context.getFilename();
-            if (filename.includes('.test.') || filename.includes('/test/')) {
+            if (filename.includes('.test.') || filename.includes(`${path.sep}test${path.sep}`)) {
               return;
             }
 
@@ -103,7 +105,7 @@ module.exports = {
 
           // Skip if this is in a test file
           const filename = context.getFilename();
-          if (filename.includes('.test.') || filename.includes('/test/')) {
+          if (filename.includes('.test.') || filename.includes(`${path.sep}test${path.sep}`)) {
             return;
           }
 

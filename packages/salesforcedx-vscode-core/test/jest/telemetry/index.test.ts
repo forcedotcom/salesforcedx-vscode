@@ -26,7 +26,7 @@ describe('Telemetry', () => {
     teleSpy = jest.spyOn(telemetryService, 'setCliTelemetryEnabled');
     cliSpy = jest.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
 
-    // Mock workspace.createFileSystemWatcher
+    // Mock createFileSystemWatcher to return a proper mock object
     jest.spyOn(workspace, 'createFileSystemWatcher').mockReturnValue({
       onDidChange: jest.fn(),
       onDidCreate: jest.fn(),
@@ -47,10 +47,7 @@ describe('Telemetry', () => {
 
     const handleTelemetryMsgShown = (key: string, globalMsgShown: boolean, internalMsgShown: boolean) => {
       if (key === TELEMETRY_GLOBAL_USER_ID) {
-        return 'mock-user-id';
-      }
-      if (key === 'telemetryWebUserId') {
-        return 'mock-web-user-id';
+        return key;
       }
       if (key === TELEMETRY_GLOBAL_WEB_USER_ID) {
         return undefined; // Allow getWebTelemetryUserId to generate its own value
@@ -61,7 +58,7 @@ describe('Telemetry', () => {
       if (key === TELEMETRY_INTERNAL_VALUE) {
         return internalMsgShown;
       }
-      throw new Error(`unknown key: ${key}`);
+      throw new Error('unknown key');
     };
 
     beforeEach(() => {
