@@ -9297,22 +9297,22 @@ Total metadata types: 758+
    <xsd:complexType name="CustomObjectTranslation">
     <xsd:complexContent>
      <xsd:extension base="tns:Metadata">
-      <xsd:sequence>
-       <xsd:element name="caseValues" minOccurs="0" maxOccurs="unbounded" type="tns:ObjectNameCaseValue"/>
-       <xsd:element name="fieldSets" minOccurs="0" maxOccurs="unbounded" type="tns:FieldSetTranslation"/>
-       <xsd:element name="fields" minOccurs="0" maxOccurs="unbounded" type="tns:CustomFieldTranslation"/>
-       <xsd:element name="gender" minOccurs="0" type="tns:Gender"/>
-       <xsd:element name="layouts" minOccurs="0" maxOccurs="unbounded" type="tns:LayoutTranslation"/>
-       <xsd:element name="nameFieldLabel" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="quickActions" minOccurs="0" maxOccurs="unbounded" type="tns:QuickActionTranslation"/>
-       <xsd:element name="recordTypes" minOccurs="0" maxOccurs="unbounded" type="tns:RecordTypeTranslation"/>
-       <xsd:element name="sharingReasons" minOccurs="0" maxOccurs="unbounded" type="tns:SharingReasonTranslation"/>
-       <xsd:element name="standardFields" minOccurs="0" maxOccurs="unbounded" type="tns:StandardFieldTranslation"/>
-       <xsd:element name="startsWith" minOccurs="0" type="tns:StartsWith"/>
-       <xsd:element name="validationRules" minOccurs="0" maxOccurs="unbounded" type="tns:ValidationRuleTranslation"/>
-       <xsd:element name="webLinks" minOccurs="0" maxOccurs="unbounded" type="tns:WebLinkTranslation"/>
-       <xsd:element name="workflowTasks" minOccurs="0" maxOccurs="unbounded" type="tns:WorkflowTaskTranslation"/>
-      </xsd:sequence>
+      <xsd:choice minOccurs="0" maxOccurs="unbounded">
+       <xsd:element name="caseValues" type="tns:ObjectNameCaseValue"/>
+       <xsd:element name="fieldSets" type="tns:FieldSetTranslation"/>
+       <xsd:element name="fields" type="tns:CustomFieldTranslation"/>
+       <xsd:element name="gender" type="tns:Gender"/>
+       <xsd:element name="layouts" type="tns:LayoutTranslation"/>
+       <xsd:element name="nameFieldLabel" type="xsd:string"/>
+       <xsd:element name="quickActions" type="tns:QuickActionTranslation"/>
+       <xsd:element name="recordTypes" type="tns:RecordTypeTranslation"/>
+       <xsd:element name="sharingReasons" type="tns:SharingReasonTranslation"/>
+       <xsd:element name="standardFields" type="tns:StandardFieldTranslation"/>
+       <xsd:element name="startsWith" type="tns:StartsWith"/>
+       <xsd:element name="validationRules" type="tns:ValidationRuleTranslation"/>
+       <xsd:element name="webLinks" type="tns:WebLinkTranslation"/>
+       <xsd:element name="workflowTasks" type="tns:WorkflowTaskTranslation"/>
+      </xsd:choice>
      </xsd:extension>
     </xsd:complexContent>
    </xsd:complexType>
@@ -9380,17 +9380,17 @@ Total metadata types: 758+
     </xsd:sequence>
    </xsd:complexType>
    <xsd:complexType name="CustomFieldTranslation">
-    <xsd:sequence>
-     <xsd:element name="caseValues" minOccurs="0" maxOccurs="unbounded" type="tns:ObjectNameCaseValue"/>
-     <xsd:element name="gender" minOccurs="0" type="tns:Gender"/>
-     <xsd:element name="help" minOccurs="0" type="xsd:string"/>
-     <xsd:element name="label" minOccurs="0" type="xsd:string"/>
-     <xsd:element name="lookupFilter" minOccurs="0" type="tns:LookupFilterTranslation"/>
-     <xsd:element name="name" type="xsd:string"/>
-     <xsd:element name="picklistValues" minOccurs="0" maxOccurs="unbounded" type="tns:PicklistValueTranslation"/>
-     <xsd:element name="relationshipLabel" minOccurs="0" type="xsd:string"/>
-     <xsd:element name="startsWith" minOccurs="0" type="tns:StartsWith"/>
-    </xsd:sequence>
+    <xsd:all>
+      <xsd:element name="caseValues" minOccurs="0" type="tns:ObjectNameCaseValue"/>
+      <xsd:element name="gender" minOccurs="0" type="tns:Gender"/>
+      <xsd:element name="help" minOccurs="0" type="xsd:string"/>
+      <xsd:element name="label" minOccurs="0" type="xsd:string"/>
+      <xsd:element name="lookupFilter" minOccurs="0" type="tns:LookupFilterTranslation"/>
+      <xsd:element name="name" minOccurs="0" type="xsd:string"/>
+      <xsd:element name="picklistValues" minOccurs="0" type="tns:PicklistValueTranslation"/>
+      <xsd:element name="relationshipLabel" minOccurs="0" type="xsd:string"/>
+      <xsd:element name="startsWith" minOccurs="0" type="tns:StartsWith"/>
+    </xsd:all>
    </xsd:complexType>
    <xsd:complexType name="LookupFilterTranslation">
     <xsd:sequence>
@@ -9445,12 +9445,12 @@ Total metadata types: 758+
      <xsd:element name="name" type="xsd:string"/>
     </xsd:sequence>
    </xsd:complexType>
-   <xsd:complexType name="StandardFieldTranslation">
-    <xsd:sequence>
-     <xsd:element name="label" minOccurs="0" type="xsd:string"/>
-     <xsd:element name="name" type="xsd:string"/>
-    </xsd:sequence>
-   </xsd:complexType>
+  <xsd:complexType name="StandardFieldTranslation">
+   <xsd:all>
+    <xsd:element name="label" minOccurs="0" type="xsd:string"/>
+    <xsd:element name="name" minOccurs="0" type="xsd:string"/>
+   </xsd:all>
+  </xsd:complexType>
    <xsd:complexType name="ValidationRuleTranslation">
     <xsd:sequence>
      <xsd:element name="errorMessage" type="xsd:string"/>
