@@ -8181,31 +8181,31 @@ Total metadata types: 758+
    <xsd:complexType name="CustomApplication">
     <xsd:complexContent>
      <xsd:extension base="tns:Metadata">
-      <xsd:sequence>
-       <xsd:element name="actionOverrides" minOccurs="0" maxOccurs="unbounded" type="tns:AppActionOverride"/>
-       <xsd:element name="brand" minOccurs="0" type="tns:AppBrand"/>
-       <xsd:element name="consoleConfig" minOccurs="0" type="tns:ServiceCloudConsoleConfig"/>
-       <xsd:element name="defaultLandingTab" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="description" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="formFactors" minOccurs="0" maxOccurs="unbounded" type="tns:FormFactor"/>
-       <xsd:element name="isNavAutoTempTabsDisabled" minOccurs="0" type="xsd:boolean"/>
-       <xsd:element name="isNavPersonalizationDisabled" minOccurs="0" type="xsd:boolean"/>
-       <xsd:element name="isNavTabPersistenceDisabled" minOccurs="0" type="xsd:boolean"/>
-       <xsd:element name="isOmniPinnedViewEnabled" minOccurs="0" type="xsd:boolean"/>
-       <xsd:element name="isServiceCloudConsole" minOccurs="0" type="xsd:boolean"/>
-       <xsd:element name="label" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="logo" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="navType" minOccurs="0" type="tns:NavType"/>
-       <xsd:element name="preferences" minOccurs="0" type="tns:AppPreferences"/>
-       <xsd:element name="profileActionOverrides" minOccurs="0" maxOccurs="unbounded" type="tns:AppProfileActionOverride"/>
-       <xsd:element name="setupExperience" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="subscriberTabs" minOccurs="0" maxOccurs="unbounded" type="xsd:string"/>
-       <xsd:element name="tabSetType" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="tabs" minOccurs="0" maxOccurs="unbounded" type="xsd:string"/>
-       <xsd:element name="uiType" minOccurs="0" type="tns:UiType"/>
-       <xsd:element name="utilityBar" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="workspaceConfig" minOccurs="0" type="tns:AppWorkspaceConfig"/>
-      </xsd:sequence>
+      <xsd:choice minOccurs="0" maxOccurs="unbounded">
+       <xsd:element name="actionOverrides" type="tns:AppActionOverride"/>
+       <xsd:element name="brand" type="tns:AppBrand"/>
+       <xsd:element name="consoleConfig" type="tns:ServiceCloudConsoleConfig"/>
+       <xsd:element name="defaultLandingTab" type="xsd:string"/>
+       <xsd:element name="description" type="xsd:string"/>
+       <xsd:element name="formFactors" type="tns:FormFactor"/>
+       <xsd:element name="isNavAutoTempTabsDisabled" type="xsd:boolean"/>
+       <xsd:element name="isNavPersonalizationDisabled" type="xsd:boolean"/>
+       <xsd:element name="isNavTabPersistenceDisabled" type="xsd:boolean"/>
+       <xsd:element name="isOmniPinnedViewEnabled" type="xsd:boolean"/>
+       <xsd:element name="isServiceCloudConsole" type="xsd:boolean"/>
+       <xsd:element name="label" type="xsd:string"/>
+       <xsd:element name="logo" type="xsd:string"/>
+       <xsd:element name="navType" type="tns:NavType"/>
+       <xsd:element name="preferences" type="tns:AppPreferences"/>
+       <xsd:element name="profileActionOverrides" type="tns:AppProfileActionOverride"/>
+       <xsd:element name="setupExperience" type="xsd:string"/>
+       <xsd:element name="subscriberTabs" type="xsd:string"/>
+       <xsd:element name="tabSetType" type="xsd:string"/>
+       <xsd:element name="tabs" type="xsd:string"/>
+       <xsd:element name="uiType" type="tns:UiType"/>
+       <xsd:element name="utilityBar" type="xsd:string"/>
+       <xsd:element name="workspaceConfig" type="tns:AppWorkspaceConfig"/>
+      </xsd:choice>
      </xsd:extension>
     </xsd:complexContent>
    </xsd:complexType>
