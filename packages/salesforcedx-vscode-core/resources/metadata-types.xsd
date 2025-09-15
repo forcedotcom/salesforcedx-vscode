@@ -22549,8 +22549,16 @@ Total metadata types: 758+
     <xsd:choice minOccurs="0" maxOccurs="unbounded">
      <xsd:element name="objects" type="tns:Objects"/>
      <xsd:element name="supportedFormFactors" type="tns:SupportedFormFactors"/>
+     <xsd:element name="property" type="tns:Property"/>
     </xsd:choice>
     <xsd:attribute name="targets" type="xsd:string"/>
+   </xsd:complexType>
+   <xsd:complexType name="Property">
+    <xsd:attribute name="name" type="xsd:string"/>
+    <xsd:attribute name="label" type="xsd:string"/>
+    <xsd:attribute name="type" type="xsd:string"/>
+    <xsd:attribute name="required" type="xsd:boolean"/>
+    <xsd:attribute name="role" type="xsd:string"/>
    </xsd:complexType>
    <xsd:complexType name="Objects">
     <xsd:sequence>
