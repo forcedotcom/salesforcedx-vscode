@@ -31174,14 +31174,14 @@ Total metadata types: 758+
     <xsd:element name="name" minOccurs="0" type="xsd:string"/>
    </xsd:all>
   </xsd:complexType>
-   <xsd:complexType name="ReportTypeTranslation">
-    <xsd:sequence>
-     <xsd:element name="description" minOccurs="0" type="xsd:string"/>
-     <xsd:element name="label" minOccurs="0" type="xsd:string"/>
-     <xsd:element name="name" type="xsd:string"/>
-     <xsd:element name="sections" minOccurs="0" maxOccurs="unbounded" type="tns:ReportTypeSectionTranslation"/>
-    </xsd:sequence>
-   </xsd:complexType>
+  <xsd:complexType name="ReportTypeTranslation">
+   <xsd:choice minOccurs="0" maxOccurs="unbounded">
+    <xsd:element name="description" type="xsd:string"/>
+    <xsd:element name="label" type="xsd:string"/>
+    <xsd:element name="name" type="xsd:string"/>
+    <xsd:element name="sections" type="tns:ReportTypeSectionTranslation"/>
+   </xsd:choice>
+  </xsd:complexType>
    <xsd:complexType name="ReportTypeSectionTranslation">
     <xsd:sequence>
      <xsd:element name="columns" minOccurs="0" maxOccurs="unbounded" type="tns:ReportTypeColumnTranslation"/>
