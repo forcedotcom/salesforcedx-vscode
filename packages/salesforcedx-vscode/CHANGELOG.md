@@ -10,10 +10,17 @@
 
 #### salesforcedx-vscode-core
 
-- SFDX: Execute SOQL Query With Currently Selected Text correctly displays the value for fields that have dot notation ([PR #6539](https://github.com/forcedotcom/salesforcedx-vscode/pull/6539))
+- We fixed the **SFDX: Execute SOQL Query With Currently Selected Text** command so that columns with parent relationship fields now display their actual values instead of [Object]. This brings the output in line with the `sf data query -q` CLI command. ([PR #6539](https://github.com/forcedotcom/salesforcedx-vscode/pull/6539))
 
-- Support no-namespace on debug W-19282034 ([PR #6467](https://github.com/forcedotcom/salesforcedx-vscode/pull/6467))
+- We improved namespace handling by checking the org auth file to confirm whether a scratch org has a namespace.
+    - orgDisplay now shows the namespace.
+    - We added support for no-namespace projects during debugging.
+    - Fixed an issue where the Apex Replay Debugger could not run on Apex test classes when the project had a namespace but the connected org did not.
+
+Thank you [Justin Lyon](https://github.com/justin-lyon) for logging this issue. ([PR #6467](https://github.com/forcedotcom/salesforcedx-vscode/pull/6467), [6458](https://github.com/forcedotcom/salesforcedx-vscode/issues/6458))
 
 #### salesforce-vscode-visualforce
 
-- Certain `<style>` tags in VF no longer cause errors in the language server. ([PR #6527](https://github.com/forcedotcom/salesforcedx-vscode/pull/6527/), github issues [5593](https://github.com/forcedotcom/salesforcedx-vscode/issues/5593), [5602](https://github.com/forcedotcom/salesforcedx-vscode/issues/5602))
+- We fixed an issue where `<style>` tags in VF pages caused the Visualforce Language Server to throw errors on save or format. VF pages with <style>` tags now work as expected without breaking formatting or highlighting.
+
+Thank you [Humaira Zaman](https://github.com/humairazaman-devsinc) and [Charlie Jonas](https://github.com/ChuckJonas) for logging issues. ([PR #6527](https://github.com/forcedotcom/salesforcedx-vscode/pull/6527/) [5593](https://github.com/forcedotcom/salesforcedx-vscode/issues/5593), [5602](https://github.com/forcedotcom/salesforcedx-vscode/issues/5602))
