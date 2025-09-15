@@ -22536,6 +22536,7 @@ Total metadata types: 758+
        <xsd:element name="fullName" type="xsd:string"/>
        <xsd:element name="module" type="xsd:string"/>
       </xsd:choice>
+      <xsd:attribute name="fqn" type="xsd:string"/>
      </xsd:extension>
     </xsd:complexContent>
    </xsd:complexType>
