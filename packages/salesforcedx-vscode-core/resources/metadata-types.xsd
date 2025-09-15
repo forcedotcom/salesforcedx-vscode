@@ -36413,6 +36413,7 @@ Total metadata types: 758+
   <xsd:element name="ExternalDataSource" type="tns:ExternalDataSource" />
   <xsd:element name="NamedCredential" type="tns:NamedCredential" />
   <xsd:element name="ExternalServiceRegistration" type="tns:ExternalServiceRegistration" />
+  <xsd:element name="ExperienceBundle" type="tns:ExperienceBundle" />
   <xsd:element name="FlowCategory" type="tns:FlowCategory" />
   <xsd:element name="LightningBolt" type="tns:LightningBolt" />
   <xsd:element name="LightningExperienceTheme" type="tns:LightningExperienceTheme" />

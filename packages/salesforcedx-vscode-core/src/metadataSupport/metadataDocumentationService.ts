@@ -187,6 +187,10 @@ export class MetadataDocumentationService {
         description:
           'Represents an email template. Email templates are preformatted emails that communicate a standard message.'
       },
+      ExperienceBundle: {
+        description:
+          'Represents an Experience Bundle. Experience Bundles are collections of resources and configurations that define the structure, branding, and functionality of Salesforce Experience Cloud sites, including templates, themes, and components.'
+      },
       Letterhead: {
         description:
           'Represents a letterhead used by Classic email templates. Letterheads define branding elements such as logos, colors, and layout applied to email content.'
