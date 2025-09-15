@@ -30958,12 +30958,12 @@ Total metadata types: 758+
      <xsd:element name="name" type="xsd:string"/>
     </xsd:sequence>
    </xsd:complexType>
-   <xsd:complexType name="CustomLabelTranslation">
-    <xsd:sequence>
-     <xsd:element name="label" type="xsd:string"/>
-     <xsd:element name="name" type="xsd:string"/>
-    </xsd:sequence>
-   </xsd:complexType>
+  <xsd:complexType name="CustomLabelTranslation">
+   <xsd:all>
+    <xsd:element name="label" minOccurs="0" type="xsd:string"/>
+    <xsd:element name="name" minOccurs="0" type="xsd:string"/>
+   </xsd:all>
+  </xsd:complexType>
    <xsd:complexType name="CustomPageWebLinkTranslation">
     <xsd:sequence>
      <xsd:element name="label" type="xsd:string"/>
