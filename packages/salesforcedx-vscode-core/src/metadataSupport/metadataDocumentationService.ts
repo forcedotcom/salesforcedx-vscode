@@ -287,6 +287,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a Visualforce component. Visualforce components are reusable sections of code that can be used on multiple Visualforce pages.'
       },
+      ReportFolder: {
+        description:
+          'Represents a report folder. Report folders are used to organize and categorize reports in Salesforce, providing a hierarchical structure for report management and access control.'
+      },
       ReportType: {
         description:
           'Represents a custom report type. Custom report types define the set of records and fields available to a report based on the relationships between a primary object and its related objects.'
@@ -410,7 +414,8 @@ export class MetadataDocumentationService {
       DocumentFolder: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_document.htm',
       EmailFolder: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailtemplate.htm',
       Flow: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm',
-      MatchingRules: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_matchingrule.htm'
+      MatchingRules: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_matchingrule.htm',
+      ReportFolder: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm'
     };
 
     // Return known URL if available
