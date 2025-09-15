@@ -39,7 +39,7 @@ describe('Telemetry', () => {
 
     const handleTelemetryMsgShown = (key: string, globalMsgShown: boolean, internalMsgShown: boolean) => {
       if (key === TELEMETRY_GLOBAL_USER_ID) {
-        return key;
+        return 'mock-user-id';
       }
       if (key === TELEMETRY_GLOBAL_VALUE) {
         return globalMsgShown;
@@ -47,7 +47,7 @@ describe('Telemetry', () => {
       if (key === TELEMETRY_INTERNAL_VALUE) {
         return internalMsgShown;
       }
-      throw new Error('unknown key');
+      throw new Error(`unknown key: ${key}`);
     };
 
     beforeEach(() => {

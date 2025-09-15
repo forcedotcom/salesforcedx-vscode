@@ -66,7 +66,7 @@ export default class SalesforceProjectConfig {
 
   public static async getValue<T extends JsonArray | string | undefined>(key: string): Promise<T> {
     const projectConfig = await SalesforceProjectConfig.getInstance();
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions, local/prefer-config-aggregator
     return projectConfig.get(key) as T;
   }
 }

@@ -282,12 +282,12 @@ describe('Interactive debugger adapter - unit', () => {
       breakpointHasLineNumberMappingSpy = sinon.stub(BreakpointService.prototype, 'hasLineNumberMapping').returns(true);
 
       args.connectType = 'ISV_DEBUGGER';
-      const config = new Map<string, string>();
-      config.set('org-isv-debugger-sid', '123');
-      config.set('org-isv-debugger-url', 'instanceurl');
+      const mockSettings = new Map<string, string>();
+      mockSettings.set('org-isv-debugger-sid', '123');
+      mockSettings.set('org-isv-debugger-url', 'instanceurl');
       configGetSpy.returns(
         Promise.resolve({
-          getPropertyValue: (key: string) => config.get(key)
+          getPropertyValue: (key: string) => mockSettings.get(key)
         } as any)
       );
 
@@ -322,12 +322,12 @@ describe('Interactive debugger adapter - unit', () => {
       breakpointHasLineNumberMappingSpy = sinon.stub(BreakpointService.prototype, 'hasLineNumberMapping').returns(true);
 
       args.connectType = 'ISV_DEBUGGER';
-      const config = new Map<string, string>();
-      config.set('nonexistent-sid', '123');
-      config.set('nonexistent-url', 'instanceurl');
+      const mockSettings = new Map<string, string>();
+      mockSettings.set('nonexistent-sid', '123');
+      mockSettings.set('nonexistent-url', 'instanceurl');
       configGetSpy.returns(
         Promise.resolve({
-          getPropertyValue: (key: string) => config.get(key)
+          getPropertyValue: (key: string) => mockSettings.get(key)
         } as any)
       );
 

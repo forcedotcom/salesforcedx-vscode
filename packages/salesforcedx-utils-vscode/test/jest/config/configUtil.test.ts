@@ -47,13 +47,12 @@ describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', ()
     expect(writeMock).toHaveBeenCalled();
   });
 
-  it('should change the current working directory to the original working directory', async () => {
+  it('should use filePath parameter instead of changing directory', async () => {
     const username = 'vscodeO';
     await ConfigUtil.setTargetOrgOrAlias(username);
-    expect(workspacePathStub).toHaveBeenCalledTimes(2);
-    expect(chdirStub).toHaveBeenCalledTimes(2);
-    expect(chdirStub).toHaveBeenNthCalledWith(1, fakeWorkspace);
-    expect(chdirStub).toHaveBeenNthCalledWith(2, fakeOriginalDirectory);
+    expect(workspacePathStub).toHaveBeenCalledTimes(2); // Once for config creation, once for updateConfigAndStateAggregators
+    expect(chdirStub).not.toHaveBeenCalled();
+    expect(configStub).toHaveBeenCalledWith({ filePath: expect.stringContaining('.sfdx/sfdx-config.json') });
   });
 
   it('should be able to set username or alias to an empty string', async () => {
@@ -113,11 +112,10 @@ describe('testing unsetTargetOrg', () => {
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
   });
 
-  it('should change the current working directory to the original working directory', async () => {
+  it('should use filePath parameter instead of changing directory', async () => {
     await ConfigUtil.unsetTargetOrg();
-    expect(workspacePathStub).toHaveBeenCalledTimes(2);
-    expect(chdirStub).toHaveBeenCalledTimes(2);
-    expect(chdirStub).toHaveBeenNthCalledWith(1, fakeWorkspace);
-    expect(chdirStub).toHaveBeenNthCalledWith(2, fakeOriginalDirectory);
+    expect(workspacePathStub).toHaveBeenCalledTimes(2); // Once for config creation, once for updateConfigAndStateAggregators
+    expect(chdirStub).not.toHaveBeenCalled();
+    expect(configStub).toHaveBeenCalledWith({ filePath: expect.stringContaining('.sfdx/sfdx-config.json') });
   });
 });
