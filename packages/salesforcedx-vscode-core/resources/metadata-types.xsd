@@ -9200,29 +9200,31 @@ Total metadata types: 758+
    <xsd:complexType name="WebLink">
     <xsd:complexContent>
      <xsd:extension base="tns:Metadata">
-      <xsd:sequence>
+      <xsd:choice minOccurs="0" maxOccurs="unbounded">
        <xsd:element name="availability" type="tns:WebLinkAvailability"/>
-       <xsd:element name="description" minOccurs="0" type="xsd:string"/>
+       <xsd:element name="description" type="xsd:string"/>
        <xsd:element name="displayType" type="tns:WebLinkDisplayType"/>
-       <xsd:element name="encodingKey" minOccurs="0" type="tns:Encoding"/>
-       <xsd:element name="hasMenubar" minOccurs="0" type="xsd:boolean"/>
-       <xsd:element name="hasScrollbars" minOccurs="0" type="xsd:boolean"/>
-       <xsd:element name="hasToolbar" minOccurs="0" type="xsd:boolean"/>
-       <xsd:element name="height" minOccurs="0" type="xsd:int"/>
-       <xsd:element name="isResizable" minOccurs="0" type="xsd:boolean"/>
+       <xsd:element name="encodingKey" type="tns:Encoding"/>
+       <xsd:element name="hasMenubar" type="xsd:boolean"/>
+       <xsd:element name="hasScrollbars" type="xsd:boolean"/>
+       <xsd:element name="hasToolbar" type="xsd:boolean"/>
+       <xsd:element name="height" type="xsd:int"/>
+       <xsd:element name="isResizable" type="xsd:boolean"/>
        <xsd:element name="linkType" type="tns:WebLinkType"/>
-       <xsd:element name="masterLabel" minOccurs="0" type="xsd:string"/>
+       <xsd:element name="masterLabel" type="xsd:string"/>
        <xsd:element name="openType" type="tns:WebLinkWindowType"/>
-       <xsd:element name="page" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="position" minOccurs="0" type="tns:WebLinkPosition"/>
+       <xsd:element name="page" type="xsd:string"/>
+       <xsd:element name="position" type="tns:WebLinkPosition"/>
        <xsd:element name="protected" type="xsd:boolean"/>
-       <xsd:element name="requireRowSelection" minOccurs="0" type="xsd:boolean"/>
-       <xsd:element name="scontrol" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="showsLocation" minOccurs="0" type="xsd:boolean"/>
-       <xsd:element name="showsStatus" minOccurs="0" type="xsd:boolean"/>
-       <xsd:element name="url" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="width" minOccurs="0" type="xsd:int"/>
-      </xsd:sequence>
+       <xsd:element name="requireRowSelection" type="xsd:boolean"/>
+       <xsd:element name="scontrol" type="xsd:string"/>
+       <xsd:element name="showsLocation" type="xsd:boolean"/>
+       <xsd:element name="showsStatus" type="xsd:boolean"/>
+       <xsd:element name="url" type="xsd:string"/>
+       <xsd:element name="width" type="xsd:int"/>
+       <xsd:element name="fullName" type="xsd:string"/>
+       <xsd:element name="module" type="xsd:string"/>
+      </xsd:choice>
      </xsd:extension>
     </xsd:complexContent>
    </xsd:complexType>
