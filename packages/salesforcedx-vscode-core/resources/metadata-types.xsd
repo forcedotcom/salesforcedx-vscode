@@ -17193,16 +17193,16 @@ Total metadata types: 758+
      <xsd:element name="fieldInstance" minOccurs="0" type="tns:FieldInstance"/>
     </xsd:sequence>
    </xsd:complexType>
-   <xsd:complexType name="ComponentInstance">
-    <xsd:sequence>
-     <xsd:element name="componentInstanceProperties" minOccurs="0" maxOccurs="unbounded" type="tns:ComponentInstanceProperty"/>
-     <xsd:element name="componentName" type="xsd:string"/>
-     <xsd:element name="componentType" minOccurs="0" type="tns:ComponentInstanceType"/>
-     <xsd:element name="flexipageDataSources" minOccurs="0" maxOccurs="unbounded" type="tns:FlexipageDataSource"/>
-     <xsd:element name="identifier" minOccurs="0" type="xsd:string"/>
-     <xsd:element name="visibilityRule" minOccurs="0" type="tns:UiFormulaRule"/>
-    </xsd:sequence>
-   </xsd:complexType>
+  <xsd:complexType name="ComponentInstance">
+   <xsd:choice minOccurs="0" maxOccurs="unbounded">
+    <xsd:element name="componentInstanceProperties" type="tns:ComponentInstanceProperty"/>
+    <xsd:element name="componentName" type="xsd:string"/>
+    <xsd:element name="componentType" type="tns:ComponentInstanceType"/>
+    <xsd:element name="flexipageDataSources" type="tns:FlexipageDataSource"/>
+    <xsd:element name="identifier" type="xsd:string"/>
+    <xsd:element name="visibilityRule" type="tns:UiFormulaRule"/>
+   </xsd:choice>
+  </xsd:complexType>
    <xsd:complexType name="ComponentInstanceProperty">
     <xsd:sequence>
      <xsd:element name="name" minOccurs="0" type="xsd:string"/>
