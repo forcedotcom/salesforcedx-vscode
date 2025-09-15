@@ -10,7 +10,9 @@
 
 #### salesforcedx-vscode-core
 
-- We fixed the **SFDX: Execute SOQL Query With Currently Selected Text** command so that columns with parent relationship fields now display their actual values instead of [Object]. This brings the output in line with the `sf data query -q` CLI command. ([PR #6539](https://github.com/forcedotcom/salesforcedx-vscode/pull/6539), [ISSUE #6536](https://github.com/forcedotcom/salesforcedx-vscode/issues/6536))
+- We fixed the **SFDX: Execute SOQL Query With Currently Selected Text** command so that columns with parent relationship fields now display their actual values instead of [Object]. This brings the output in line with the `sf data query -q` CLI command.
+
+Thank you [jh480](https://github.com/jh480) for logging this issue. ([PR #6539](https://github.com/forcedotcom/salesforcedx-vscode/pull/6539), [ISSUE #6536](https://github.com/forcedotcom/salesforcedx-vscode/issues/6536))
 
 - We improved namespace handling by checking the org auth file to confirm whether a scratch org has a namespace.
     - orgDisplay now shows the namespace.
