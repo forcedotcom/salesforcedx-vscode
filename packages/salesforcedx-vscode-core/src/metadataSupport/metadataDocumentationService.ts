@@ -103,6 +103,10 @@ export class MetadataDocumentationService {
    */
   private getOfficialMetadataTypes(): Record<string, Partial<MetadataTypeDocumentation>> {
     return {
+      Audience: {
+        description:
+          'Represents an audience definition. Audiences are used to define groups of users or contacts based on specific criteria for targeting in marketing campaigns, personalization, or content delivery.'
+      },
       ApexClass: {
         description:
           'Represents an Apex class. An Apex class is a template or blueprint from which Apex objects are created. Classes consist of other classes, user-defined methods, variables, exception types, and static initialization code.'
