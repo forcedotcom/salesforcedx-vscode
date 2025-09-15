@@ -259,6 +259,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a territory in Territory Management 2.0. Territories are used to structure your organization and control data access based on geographical or other criteria.'
       },
+      Translations: {
+        description:
+          'Represents a translations file. Translations contain localized text for custom labels, custom fields, and other customizable text elements to support multiple languages in Salesforce.'
+      },
       AssignmentRule: {
         description:
           'Represents an assignment rule. Assignment rules automatically assign cases to users or queues, or leads to users or queues.'
