@@ -22522,18 +22522,20 @@ Total metadata types: 758+
    <xsd:complexType name="LightningComponentBundle">
     <xsd:complexContent>
      <xsd:extension base="tns:Metadata">
-      <xsd:sequence>
-       <xsd:element name="apiVersion" minOccurs="0" type="xsd:double"/>
-       <xsd:element name="capabilities" minOccurs="0" type="tns:Capabilities"/>
-       <xsd:element name="description" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="isExplicitImport" minOccurs="0" type="xsd:boolean"/>
-       <xsd:element name="isExposed" minOccurs="0" type="xsd:boolean"/>
-       <xsd:element name="lwcResources" minOccurs="0" type="tns:LwcResources"/>
-       <xsd:element name="masterLabel" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="runtimeNamespace" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="targetConfigs" minOccurs="0" type="xsd:base64Binary"/>
-       <xsd:element name="targets" minOccurs="0" type="tns:Targets"/>
-      </xsd:sequence>
+      <xsd:choice minOccurs="0" maxOccurs="unbounded">
+       <xsd:element name="apiVersion" type="xsd:double"/>
+       <xsd:element name="capabilities" type="tns:Capabilities"/>
+       <xsd:element name="description" type="xsd:string"/>
+       <xsd:element name="isExplicitImport" type="xsd:boolean"/>
+       <xsd:element name="isExposed" type="xsd:boolean"/>
+       <xsd:element name="lwcResources" type="tns:LwcResources"/>
+       <xsd:element name="masterLabel" type="xsd:string"/>
+       <xsd:element name="runtimeNamespace" type="xsd:string"/>
+       <xsd:element name="targetConfigs" type="xsd:base64Binary"/>
+       <xsd:element name="targets" type="tns:Targets"/>
+       <xsd:element name="fullName" type="xsd:string"/>
+       <xsd:element name="module" type="xsd:string"/>
+      </xsd:choice>
      </xsd:extension>
     </xsd:complexContent>
    </xsd:complexType>
