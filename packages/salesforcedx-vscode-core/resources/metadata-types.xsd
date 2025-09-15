@@ -30847,25 +30847,25 @@ Total metadata types: 758+
    <xsd:complexType name="Translations">
     <xsd:complexContent>
      <xsd:extension base="tns:Metadata">
-      <xsd:sequence>
-       <xsd:element name="botBlocks" minOccurs="0" maxOccurs="unbounded" type="tns:BotBlockTranslation"/>
-       <xsd:element name="botTemplates" minOccurs="0" maxOccurs="unbounded" type="tns:BotTemplateTranslation"/>
-       <xsd:element name="bots" minOccurs="0" maxOccurs="unbounded" type="tns:BotTranslation"/>
-       <xsd:element name="conversationMessageDefinitions" minOccurs="0" maxOccurs="unbounded" type="tns:ConversationMessageDefinitionTranslation"/>
-       <xsd:element name="customApplications" minOccurs="0" maxOccurs="unbounded" type="tns:CustomApplicationTranslation"/>
-       <xsd:element name="customLabels" minOccurs="0" maxOccurs="unbounded" type="tns:CustomLabelTranslation"/>
-       <xsd:element name="customPageWebLinks" minOccurs="0" maxOccurs="unbounded" type="tns:CustomPageWebLinkTranslation"/>
-       <xsd:element name="customTabs" minOccurs="0" maxOccurs="unbounded" type="tns:CustomTabTranslation"/>
-       <xsd:element name="dataConnectors" minOccurs="0" maxOccurs="unbounded" type="tns:DataConnectorTranslation"/>
-       <xsd:element name="desFieldTemplateMessages" minOccurs="0" maxOccurs="unbounded" type="tns:ExplainabilityMsgTemplateFieldTranslation"/>
-       <xsd:element name="flowDefinitions" minOccurs="0" maxOccurs="unbounded" type="tns:FlowDefinitionTranslation"/>
-       <xsd:element name="identityVerificationCustomFieldLabels" minOccurs="0" maxOccurs="unbounded" type="tns:IdentityVerificationFieldTranslation"/>
-       <xsd:element name="pipelineInspMetricConfigs" minOccurs="0" maxOccurs="unbounded" type="tns:PipelineInspMetricConfigTranslation"/>
-       <xsd:element name="prompts" minOccurs="0" maxOccurs="unbounded" type="tns:PromptTranslation"/>
-       <xsd:element name="quickActions" minOccurs="0" maxOccurs="unbounded" type="tns:GlobalQuickActionTranslation"/>
-       <xsd:element name="reportTypes" minOccurs="0" maxOccurs="unbounded" type="tns:ReportTypeTranslation"/>
-       <xsd:element name="scontrols" minOccurs="0" maxOccurs="unbounded" type="tns:ScontrolTranslation"/>
-      </xsd:sequence>
+      <xsd:choice minOccurs="0" maxOccurs="unbounded">
+       <xsd:element name="botBlocks" type="tns:BotBlockTranslation"/>
+       <xsd:element name="botTemplates" type="tns:BotTemplateTranslation"/>
+       <xsd:element name="bots" type="tns:BotTranslation"/>
+       <xsd:element name="conversationMessageDefinitions" type="tns:ConversationMessageDefinitionTranslation"/>
+       <xsd:element name="customApplications" type="tns:CustomApplicationTranslation"/>
+       <xsd:element name="customLabels" type="tns:CustomLabelTranslation"/>
+       <xsd:element name="customPageWebLinks" type="tns:CustomPageWebLinkTranslation"/>
+       <xsd:element name="customTabs" type="tns:CustomTabTranslation"/>
+       <xsd:element name="dataConnectors" type="tns:DataConnectorTranslation"/>
+       <xsd:element name="desFieldTemplateMessages" type="tns:ExplainabilityMsgTemplateFieldTranslation"/>
+       <xsd:element name="flowDefinitions" type="tns:FlowDefinitionTranslation"/>
+       <xsd:element name="identityVerificationCustomFieldLabels" type="tns:IdentityVerificationFieldTranslation"/>
+       <xsd:element name="pipelineInspMetricConfigs" type="tns:PipelineInspMetricConfigTranslation"/>
+       <xsd:element name="prompts" type="tns:PromptTranslation"/>
+       <xsd:element name="quickActions" type="tns:GlobalQuickActionTranslation"/>
+       <xsd:element name="reportTypes" type="tns:ReportTypeTranslation"/>
+       <xsd:element name="scontrols" type="tns:ScontrolTranslation"/>
+      </xsd:choice>
      </xsd:extension>
     </xsd:complexContent>
    </xsd:complexType>
