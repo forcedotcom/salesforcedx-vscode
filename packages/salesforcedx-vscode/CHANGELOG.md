@@ -1,23 +1,16 @@
-# 64.13.1 - September 11, 2025
+# 64.14.0 - September 17, 2025
 
 ## Added
 
 #### salesforcedx-vscode-core
 
-- We’ve added new walkthroughs for the Org Browser and Org Picker features—enjoy exploring and learning about them! ([PR #6526](https://github.com/forcedotcom/salesforcedx-vscode/pull/6526))
-- We made some changes under the hood. ([PR #6527](https://github.com/forcedotcom/salesforcedx-vscode/pull/6527))
+- [W-19176017]  new webUserId telemetry entry for hashed (orgID-userID) to identify users on the web ([PR #6528](https://github.com/forcedotcom/salesforcedx-vscode/pull/6528))
 
 ## Fixed
 
-#### salesforcedx-vscode-apex
-
--  We made some changes under the hood. ([PR #6540](https://github.com/forcedotcom/salesforcedx-vscode/pull/6540))
-
-#### salesforcedx-vscode-apex-debugger
-
-- We removed an incorrect disclaimer from the Apex Interactive Debugger README. ([PR #6537](https://github.com/forcedotcom/salesforcedx-vscode/pull/6537))
-
 #### salesforcedx-vscode-core
 
-- We improved error handling so that org info is returned with clear status when connection or query failures occur. ([PR #6530](https://github.com/forcedotcom/salesforcedx-vscode/pull/6530))
+- SFDX: Execute SOQL Query With Currently Selected Text correctly displays the value for fields that have dot notation ([PR #6539](https://github.com/forcedotcom/salesforcedx-vscode/pull/6539))
+
+- Support no-namespace on debug W-19282034 ([PR #6467](https://github.com/forcedotcom/salesforcedx-vscode/pull/6467))
 
