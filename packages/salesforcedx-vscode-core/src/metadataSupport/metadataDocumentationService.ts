@@ -131,6 +131,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a profile. Profiles define how users access objects and data, and what they can do within the application.'
       },
+      ProfilePasswordPolicy: {
+        description:
+          'Represents a profile password policy. Profile password policies define password requirements and security settings for users assigned to specific profiles, including password complexity, expiration, and lockout rules.'
+      },
       PermissionSet: {
         description:
           "Represents a permission set. Permission sets extend users' functional access without changing their profiles."
