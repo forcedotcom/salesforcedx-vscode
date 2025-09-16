@@ -534,7 +534,7 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
 
   // Register hover provider for XML files
   const hoverProviderDisposable = vscode.languages.registerHoverProvider(
-    [{ scheme: 'file', pattern: '**/*-meta.xml' }],
+    { scheme: 'file', language: 'xml' },
     metadataHoverProvider
   );
   extensionContext.subscriptions.push(hoverProviderDisposable);

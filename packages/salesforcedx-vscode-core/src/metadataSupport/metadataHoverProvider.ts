@@ -117,35 +117,41 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
   }
 
   /**
-   * Check if the document is likely a metadata file
+   * Check if the document is likely a Salesforce metadata file
    */
   private isMetadataFile(document: vscode.TextDocument): boolean {
+    // Since we're now registered for all XML files, check if this is a Salesforce metadata file
+    // by looking for the Salesforce metadata namespace or common metadata file patterns
     const fileName = path.basename(document.fileName);
-    const fileExtension = path.extname(fileName);
+    const documentText = document.getText();
 
-    // Check for common metadata file patterns
+    // Check for Salesforce metadata namespace
+    if (documentText.includes('http://soap.sforce.com/2006/04/metadata')) {
+      return true;
+    }
+
+    // Check for common Salesforce metadata file naming patterns
     return (
-      fileExtension === '.xml' &&
-      (fileName.endsWith('-meta.xml') ||
-        fileName.includes('.object') ||
-        fileName.includes('.flow') ||
-        fileName.includes('.layout') ||
-        fileName.includes('.profile') ||
-        fileName.includes('.permissionset') ||
-        fileName.includes('.app') ||
-        fileName.includes('.tab') ||
-        fileName.includes('.trigger') ||
-        fileName.includes('.cls') ||
-        fileName.includes('.component') ||
-        fileName.includes('.page') ||
-        fileName.includes('.email') ||
-        fileName.includes('.report') ||
-        fileName.includes('.dashboard') ||
-        fileName.includes('.resource') ||
-        fileName.includes('.workflow') ||
-        fileName.includes('.validationRule') ||
-        fileName.includes('.customField') ||
-        document.getText().includes('http://soap.sforce.com/2006/04/metadata'))
+      fileName.endsWith('-meta.xml') ||
+      fileName.includes('.object') ||
+      fileName.includes('.flow') ||
+      fileName.includes('.layout') ||
+      fileName.includes('.profile') ||
+      fileName.includes('.permissionset') ||
+      fileName.includes('.profilePasswordPolicy') ||
+      fileName.includes('.app') ||
+      fileName.includes('.tab') ||
+      fileName.includes('.trigger') ||
+      fileName.includes('.cls') ||
+      fileName.includes('.component') ||
+      fileName.includes('.page') ||
+      fileName.includes('.email') ||
+      fileName.includes('.report') ||
+      fileName.includes('.dashboard') ||
+      fileName.includes('.resource') ||
+      fileName.includes('.workflow') ||
+      fileName.includes('.validationRule') ||
+      fileName.includes('.customField')
     );
   }
 
