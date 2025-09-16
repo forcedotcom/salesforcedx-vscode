@@ -323,6 +323,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a navigation menu. Navigation menus define the structure and items that appear in navigation components for Experience Cloud sites, providing organized access to pages and content.'
       },
+      NetworkBranding: {
+        description:
+          'Represents network branding settings. Network branding defines the visual appearance and styling of Experience Cloud sites, including themes, colors, logos, and other branding elements that customize the user interface.'
+      },
       BusinessProcess: {
         description:
           'Represents a business process. Business processes are used to track the stages of a record through a process, such as the sales process for opportunities.'
