@@ -478,8 +478,7 @@ export class MetadataDocumentationService {
       `${baseUrl}/meta_${typeNameLower}.htm`,
       `${baseUrl}/meta_${typeNameLower}s.htm`, // plural form
       `${baseUrl}/meta_${typeNameLower}es.htm`, // plural form with es suffix
-      `${baseUrl}/meta_${typeNameLower.replace(/([A-Z])/g, '_$1').toLowerCase()}.htm`, // snake_case
-      `${baseUrl}/meta_${typeNameLower.replace(/([A-Z])/g, '$1').toLowerCase()}.htm` // remove camelCase
+      `${baseUrl}/meta_${metadataType.replace(/([A-Z])/g, '_$1').toLowerCase()}.htm` // snake_case
     ];
 
     return potentialUrls;
