@@ -347,6 +347,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a path. Paths guide users through a business process by breaking it down into stages with key fields and guidance for success.'
       },
+      PlatformEventChannelMember: {
+        description:
+          'Represents a platform event channel member. Platform event channel members define the relationship between platform event channels and the platform events that are published to those channels, enabling event-driven architecture and real-time data streaming.'
+      },
       CompactLayout: {
         description:
           "Represents a compact layout. Compact layouts display a record's key fields at a glance in the highlights panel in Lightning Experience and Salesforce mobile app."
