@@ -399,6 +399,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a custom permission. Custom permissions give you a way to provide access to custom processes or apps.'
       },
+      CustomSite: {
+        description:
+          'Represents a custom site. Custom sites enable you to create public websites and applications that are directly integrated with your Salesforce organization, without requiring users to log in with a Salesforce username and password.'
+      },
       Network: {
         description:
           'Represents a community or site. Communities are branded spaces for your employees, customers, and partners to connect.'
@@ -435,6 +439,7 @@ export class MetadataDocumentationService {
       CustomField: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customfield.htm',
       CustomFieldTranslation:
         'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customobjecttranslation.htm',
+      CustomSite: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sites.htm',
       CustomTab: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_tab.htm',
       DocumentFolder: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_document.htm',
       EmailFolder: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailtemplate.htm',
