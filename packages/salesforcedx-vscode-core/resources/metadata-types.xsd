@@ -36373,6 +36373,7 @@ Total metadata types: 758+
   <xsd:element name="CustomSite" type="tns:CustomSite" />
   <xsd:element name="Portal" type="tns:Portal" />
   <xsd:element name="Community" type="tns:Community" />
+  <xsd:element name="NavigationMenu" type="tns:NavigationMenu" />
   <xsd:element name="Network" type="tns:Network" />
   <xsd:element name="ConnectedApp" type="tns:ConnectedApp" />
   <xsd:element name="AuthProvider" type="tns:AuthProvider" />

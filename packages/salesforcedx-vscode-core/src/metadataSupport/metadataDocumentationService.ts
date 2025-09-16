@@ -319,6 +319,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a named credential. Named credentials specify the URL of a callout endpoint and its required authentication parameters in one definition.'
       },
+      NavigationMenu: {
+        description:
+          'Represents a navigation menu. Navigation menus define the structure and items that appear in navigation components for Experience Cloud sites, providing organized access to pages and content.'
+      },
       BusinessProcess: {
         description:
           'Represents a business process. Business processes are used to track the stages of a record through a process, such as the sales process for opportunities.'
