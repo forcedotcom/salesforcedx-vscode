@@ -4,27 +4,27 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-export interface MetadataFieldInfo {
+export type MetadataFieldInfo = {
   name: string;
   type: string;
   description: string;
   required?: boolean;
-}
+};
 
-export interface MetadataFieldDocumentation {
+export type MetadataFieldDocumentation = {
   name: string;
   type: string;
   description: string;
   required?: boolean;
   validValues?: string[];
-}
+};
 
-export interface MetadataTypeDocumentation {
+export type MetadataTypeDocumentation = {
   name: string;
   description: string;
   fields?: MetadataFieldInfo[];
   developerGuideUrls?: string[];
-}
+};
 
 /**
  * Service for loading and providing metadata type documentation
