@@ -36319,6 +36319,7 @@ Total metadata types: 758+
   <xsd:element name="Layout" type="tns:Layout" />
   <xsd:element name="Profile" type="tns:Profile" />
   <xsd:element name="ProfilePasswordPolicy" type="tns:ProfilePasswordPolicy" />
+  <xsd:element name="ProfileSessionSetting" type="tns:ProfileSessionSetting" />
   <xsd:element name="PermissionSet" type="tns:PermissionSet" />
   <xsd:element name="CustomField" type="tns:CustomField" />
   <xsd:element name="CustomFieldTranslation" type="tns:CustomFieldTranslation" />

@@ -135,6 +135,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a profile password policy. Profile password policies define password requirements and security settings for users assigned to specific profiles, including password complexity, expiration, and lockout rules.'
       },
+      ProfileSessionSetting: {
+        description:
+          'Represents profile session settings. Profile session settings define session security and timeout configurations for users assigned to specific profiles, including session timeout, IP restrictions, and login hours.'
+      },
       PermissionSet: {
         description:
           "Represents a permission set. Permission sets extend users' functional access without changing their profiles."
