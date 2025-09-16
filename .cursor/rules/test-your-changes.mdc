@@ -1,24 +1,21 @@
 ---
-description:
+description: Validation steps for code changes
 globs:
 alwaysApply: true
 ---
 
-when you changes a file, you should run relevant compile, linters then unit tests so that you cna propose valid changes.
-`npm run compile`
-`npm run lint`
-`npm run test`
+After ANY code change, run these in order from repo root. Avoid responding while failures are present, iterate more.
 
-If there are errors with those, you don't have a valid proposal. Iterate until you succeed, or are stuck and then propose a solution that could work. They should pass at the repo-level,not just a single-workspace.
+1. `npm run compile` - must pass
+2. `npm run lint` - fix any new errors
+3. `npm run test` - must pass
+4. `npx knip` - check for dead code related to your changes
+   - **Fix ALL unused exports** - if knip shows unused exports, remove them immediately unless they're used for tests
+   - Don't leave any exports that are only used within the same file
 
-don't change both /src and /test unless it's to refactor imports or rename. "real changes" should be one or the other.
+Rules:
 
-If you're testing bundles, you'll need to run `npx lerna run bundle:extension` to recreate the bundled code that'l used for the browser test. You can do this for the entire project if you need to bundle multiple ext (ex: orgBrowser AND services)
-
-- if you need to trigger a rebuild of the services extension, you can increment its Index.ts (ex: name: 'Code Builder 7:48',
-  )
-- if you need to trigger a rebuild of the orgBrowser extension, you can increment `Salesforce Org Browser extension is now active!` with a similar timestamp
-
-check to see if a browser is already running on 3000/CDP in case the human has one open for manual testing.
-
-run all tests from the 'salesforcedx-vscode' project level
+- Don't change /src AND /test together (except imports/renames)
+- Bundle changes need: `npx lerna run bundle:extension`
+- Port 3001 for tests (not 3000 - Docker/Grafana uses that)
+- All commands run from salesforcedx-vscode root

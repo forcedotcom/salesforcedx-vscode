@@ -43,8 +43,8 @@ export const connectToCDPBrowser = async (port: number = 9222): Promise<CDPConne
     throw new Error('No pages found in browser context');
   }
 
-  // Find the VS Code page (usually the one with localhost:3000)
-  const page = pages.find(p => p.url().includes('localhost:3000')) ?? pages[0];
+  // Find the VS Code page (usually the one with localhost:3001)
+  const page = pages.find(p => p.url().includes('localhost:3001')) ?? pages[0];
   console.log(`Connected to page: ${page.url()}`);
 
   // Set up console message tracking

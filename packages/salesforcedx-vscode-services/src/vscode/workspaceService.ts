@@ -11,7 +11,7 @@ import * as os from 'node:os';
 import * as vscode from 'vscode';
 import { SdkLayer } from '../observability/spans';
 
-export type WorkspaceInfo = {
+type WorkspaceInfo = {
   /** includes the file:// or other schemeprefix */
   path: string;
   /** the path without the scheme prefix */
@@ -20,7 +20,7 @@ export type WorkspaceInfo = {
   isVirtualFs: boolean;
 };
 
-const getWorkspaceInfoTask = Effect.sync(() => {
+const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
   const folders = vscode.workspace.workspaceFolders;
   return {
     path: getPathWithSchema(folders?.[0]?.uri ?? vscode.Uri.parse('')),

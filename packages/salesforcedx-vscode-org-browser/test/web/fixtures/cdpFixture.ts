@@ -44,8 +44,8 @@ export const test = base.extend<OrgBrowserFixtures>({
       console.log('✅ Successfully connected via CDP - using realistic browser environment');
 
       // Navigate to VS Code if not already there
-      if (!connection.page.url().includes('localhost:3000')) {
-        await connection.page.goto('http://localhost:3000/');
+      if (!connection.page.url().includes('localhost:3001')) {
+        await connection.page.goto('http://localhost:3001/');
       }
 
       // Wait for VS Code to fully load

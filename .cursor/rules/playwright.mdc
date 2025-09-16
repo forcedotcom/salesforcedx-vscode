@@ -1,0 +1,19 @@
+---
+description: playwright tests and helpers
+alwaysApply: false
+---
+
+Never use `waitForTimeout`. Always wait for something specific on the page:
+
+- Use `page.waitForSelector()` to wait for elements to appear
+- Use `expect(locator).toBeVisible()` to wait for visibility
+- Use `page.waitForLoadState()` for page state changes
+- Use `page.waitForResponse()` for network requests
+
+Prefer `expect` assertions that will fail with clear messages instead of logging failures to the console.
+
+Use `ControlOrMeta` so tests work across OSes.
+
+Fail early, avoid creating fallbacks.
+
+Use emojis infrequently.

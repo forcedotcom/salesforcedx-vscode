@@ -32,7 +32,7 @@ export const checkBrowserConnection = async (
 
     if (isExistingBrowser) {
       console.log('⚠️ Test is running in an existing browser session that might be in use for manual testing.');
-      console.log('⚠️ Please close any browser instances on port 3000 before running this test.');
+      console.log('⚠️ Please close any browser instances on port 3001 before running this test.');
       throw new Error('Browser in use for manual testing - test failed');
     }
 

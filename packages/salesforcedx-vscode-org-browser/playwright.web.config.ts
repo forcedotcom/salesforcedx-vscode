@@ -23,7 +23,7 @@ export default defineConfig({
     ['list'] // Also show list output for immediate feedback
   ],
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:3001',
     trace: 'on-first-retry',
     screenshot: 'on',
     video: 'on',
@@ -52,7 +52,7 @@ export default defineConfig({
 
   webServer: {
     command: 'npm run start:web:test',
-    url: 'http://localhost:3000',
+    url: 'http://localhost:3001',
     timeout: 120 * 1000,
     reuseExistingServer: !process.env.CI
   }
