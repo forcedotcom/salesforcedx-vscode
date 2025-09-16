@@ -10,8 +10,8 @@ import { ConfigUtil, TARGET_ORG_KEY, workspaceUtils } from '../../../src';
 import { ConfigAggregatorProvider } from './../../../src/providers/configAggregatorProvider';
 
 describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', () => {
-  const fakeOriginalDirectory = 'test/directory';
-  const fakeWorkspace = 'test/workspace/';
+  const fakeOriginalDirectory = `test${path.sep}directory`;
+  const fakeWorkspace = `test${path.sep}workspace`;
 
   let workspacePathStub: jest.SpyInstance;
   let configStub: jest.SpyInstance;
@@ -53,7 +53,7 @@ describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', ()
     await ConfigUtil.setTargetOrgOrAlias(username);
     expect(workspacePathStub).toHaveBeenCalledTimes(2); // Once for config creation, once for updateConfigAndStateAggregators
     expect(chdirStub).not.toHaveBeenCalled();
-    expect(configStub).toHaveBeenCalledWith({ isGlobal: false, rootFolder: `test${path.sep}workspace${path.sep}` });
+    expect(configStub).toHaveBeenCalledWith({ isGlobal: false, rootFolder: `test${path.sep}workspace` });
   });
 
   it('should be able to set username or alias to an empty string', async () => {
@@ -76,8 +76,8 @@ describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', ()
 });
 
 describe('testing unsetTargetOrg', () => {
-  const fakeOriginalDirectory = 'test/directory';
-  const fakeWorkspace = 'test/workspace/';
+  const fakeOriginalDirectory = `test${path.sep}directory`;
+  const fakeWorkspace = `test${path.sep}workspace`;
 
   let workspacePathStub: jest.SpyInstance;
   let configStub: jest.SpyInstance;
@@ -117,6 +117,6 @@ describe('testing unsetTargetOrg', () => {
     await ConfigUtil.unsetTargetOrg();
     expect(workspacePathStub).toHaveBeenCalledTimes(2); // Once for config creation, once for updateConfigAndStateAggregators
     expect(chdirStub).not.toHaveBeenCalled();
-    expect(configStub).toHaveBeenCalledWith({ isGlobal: false, rootFolder: `test${path.sep}workspace${path.sep}` });
+    expect(configStub).toHaveBeenCalledWith({ isGlobal: false, rootFolder: `test${path.sep}workspace` });
   });
 });
