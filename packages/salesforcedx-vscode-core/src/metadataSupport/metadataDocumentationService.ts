@@ -295,6 +295,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a sharing rule. Sharing rules extend sharing access to users in public groups, roles, or territories.'
       },
+      SharingRules: {
+        description:
+          'Represents sharing rules for an object. Sharing rules contain multiple sharing rule definitions that determine how records are shared with users, groups, roles, or territories based on criteria or ownership.'
+      },
       Workflow: {
         description:
           'Represents a workflow rule. Workflow rules automate standard internal procedures and processes to save time across your org.'

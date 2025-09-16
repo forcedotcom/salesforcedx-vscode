@@ -36494,6 +36494,7 @@ Total metadata types: 758+
   <xsd:element name="SearchSettings" type="tns:SearchSettings" />
   <xsd:element name="SecuritySettings" type="tns:SecuritySettings" />
   <xsd:element name="SharingSettings" type="tns:SharingSettings" />
+  <xsd:element name="SharingRules" type="tns:SharingRules" />
   <xsd:element name="TrialOrgSettings" type="tns:TrialOrgSettings" />
   <xsd:element name="UserManagementSettings" type="tns:UserManagementSettings" />
 
