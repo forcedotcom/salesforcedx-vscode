@@ -355,6 +355,10 @@ export class MetadataDocumentationService {
         description:
           'Represents a translation for a global value set. Global value set translations provide localized labels and values for global value sets in different languages and locales.'
       },
+      Package: {
+        description:
+          'Represents a package. Packages are containers that bundle metadata components together for distribution and deployment across Salesforce organizations, enabling modular development and managed distribution of applications and customizations.'
+      },
       PathAssistant: {
         description:
           'Represents a path. Paths guide users through a business process by breaking it down into stages with key fields and guidance for success.'
