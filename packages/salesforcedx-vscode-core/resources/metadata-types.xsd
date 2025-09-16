@@ -22673,24 +22673,26 @@ Total metadata types: 758+
      <xsd:enumeration value="SLDS_v2"/>
     </xsd:restriction>
    </xsd:simpleType>
-   <xsd:complexType name="LightningMessageChannel">
-    <xsd:complexContent>
-     <xsd:extension base="tns:Metadata">
-      <xsd:sequence>
-       <xsd:element name="description" minOccurs="0" type="xsd:string"/>
-       <xsd:element name="isExposed" minOccurs="0" type="xsd:boolean"/>
-       <xsd:element name="lightningMessageFields" minOccurs="0" maxOccurs="unbounded" type="tns:LightningMessageField"/>
-       <xsd:element name="masterLabel" type="xsd:string"/>
-      </xsd:sequence>
-     </xsd:extension>
-    </xsd:complexContent>
-   </xsd:complexType>
-   <xsd:complexType name="LightningMessageField">
-    <xsd:sequence>
-     <xsd:element name="description" minOccurs="0" type="xsd:string"/>
-     <xsd:element name="fieldName" type="xsd:string"/>
-    </xsd:sequence>
-   </xsd:complexType>
+  <xsd:complexType name="LightningMessageChannel">
+   <xsd:complexContent>
+    <xsd:extension base="tns:Metadata">
+     <xsd:choice minOccurs="0" maxOccurs="unbounded">
+      <xsd:element name="description" type="xsd:string"/>
+      <xsd:element name="isExposed" type="xsd:boolean"/>
+      <xsd:element name="lightningMessageFields" type="tns:LightningMessageField"/>
+      <xsd:element name="masterLabel" type="xsd:string"/>
+      <xsd:element name="fullName" type="xsd:string"/>
+      <xsd:element name="module" type="xsd:string"/>
+     </xsd:choice>
+    </xsd:extension>
+   </xsd:complexContent>
+  </xsd:complexType>
+  <xsd:complexType name="LightningMessageField">
+   <xsd:choice minOccurs="0" maxOccurs="unbounded">
+    <xsd:element name="description" type="xsd:string"/>
+    <xsd:element name="fieldName" type="xsd:string"/>
+   </xsd:choice>
+  </xsd:complexType>
    <xsd:complexType name="LightningOnboardingConfig">
     <xsd:complexContent>
      <xsd:extension base="tns:Metadata">
