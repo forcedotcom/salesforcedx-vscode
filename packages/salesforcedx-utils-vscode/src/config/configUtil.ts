@@ -9,6 +9,7 @@ import { Config, ConfigAggregator, Org, OrgConfigProperties, StateAggregator } f
 import * as path from 'node:path';
 import { workspaceUtils } from '..';
 import { SF_CONFIG_DISABLE_TELEMETRY, TARGET_DEV_HUB_KEY, TARGET_ORG_KEY } from '../constants';
+import { createDirectory } from '../helpers';
 import { ConfigAggregatorProvider } from '../providers';
 import { TelemetryService } from '../services/telemetry';
 
@@ -144,7 +145,9 @@ export class ConfigUtil {
 
   public static async unsetTargetOrg(): Promise<void> {
     const workspacePath = workspaceUtils.getRootWorkspacePath();
-    const configPath = path.join(workspacePath, '.sfdx', 'sfdx-config.json');
+    const configDir = path.join(workspacePath, '.sfdx');
+    await createDirectory(configDir);
+    const configPath = path.join(configDir, 'sfdx-config.json');
     const config = await Config.create({ filePath: configPath });
     config.unset(TARGET_ORG_KEY);
     await config.write();
@@ -162,7 +165,9 @@ export class ConfigUtil {
   }
 
   private static async setUsernameOrAlias(usernameOrAlias: string, workspacePath: string) {
-    const configPath = path.join(workspacePath, '.sfdx', 'sfdx-config.json');
+    const configDir = path.join(workspacePath, '.sfdx');
+    await createDirectory(configDir);
+    const configPath = path.join(configDir, 'sfdx-config.json');
     const config = await Config.create({ filePath: configPath });
     config.set(TARGET_ORG_KEY, usernameOrAlias);
     await config.write();
