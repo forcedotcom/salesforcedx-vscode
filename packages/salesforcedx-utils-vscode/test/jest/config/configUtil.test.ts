@@ -53,7 +53,7 @@ describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', ()
     await ConfigUtil.setTargetOrgOrAlias(username);
     expect(workspacePathStub).toHaveBeenCalledTimes(2); // Once for config creation, once for updateConfigAndStateAggregators
     expect(chdirStub).not.toHaveBeenCalled();
-    expect(configStub).toHaveBeenCalledWith({ filePath: expect.stringContaining(`.sfdx${path.sep}sfdx-config.json`) });
+    expect(configStub).toHaveBeenCalledWith({ isGlobal: false, rootFolder: `test${path.sep}workspace${path.sep}` });
   });
 
   it('should be able to set username or alias to an empty string', async () => {
@@ -117,6 +117,6 @@ describe('testing unsetTargetOrg', () => {
     await ConfigUtil.unsetTargetOrg();
     expect(workspacePathStub).toHaveBeenCalledTimes(2); // Once for config creation, once for updateConfigAndStateAggregators
     expect(chdirStub).not.toHaveBeenCalled();
-    expect(configStub).toHaveBeenCalledWith({ filePath: expect.stringContaining(`.sfdx${path.sep}sfdx-config.json`) });
+    expect(configStub).toHaveBeenCalledWith({ isGlobal: false, rootFolder: `test${path.sep}workspace${path.sep}` });
   });
 });

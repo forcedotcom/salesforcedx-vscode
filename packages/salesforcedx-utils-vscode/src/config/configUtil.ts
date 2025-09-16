@@ -147,8 +147,7 @@ export class ConfigUtil {
     const workspacePath = workspaceUtils.getRootWorkspacePath();
     const configDir = path.join(workspacePath, '.sfdx');
     await createDirectory(configDir);
-    const configPath = path.join(configDir, 'sfdx-config.json');
-    const config = await Config.create({ filePath: configPath });
+    const config = await Config.create({ isGlobal: false, rootFolder: workspacePath });
     config.unset(TARGET_ORG_KEY);
     await config.write();
     await this.updateConfigAndStateAggregators();
@@ -167,8 +166,7 @@ export class ConfigUtil {
   private static async setUsernameOrAlias(usernameOrAlias: string, workspacePath: string) {
     const configDir = path.join(workspacePath, '.sfdx');
     await createDirectory(configDir);
-    const configPath = path.join(configDir, 'sfdx-config.json');
-    const config = await Config.create({ filePath: configPath });
+    const config = await Config.create({ isGlobal: false, rootFolder: workspacePath });
     config.set(TARGET_ORG_KEY, usernameOrAlias);
     await config.write();
     await this.updateConfigAndStateAggregators();
