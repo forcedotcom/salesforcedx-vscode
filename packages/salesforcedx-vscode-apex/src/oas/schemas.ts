@@ -108,13 +108,13 @@ export type PromptGenerationStrategyBid = {
   result: PromptGenerationResult;
 };
 
-export interface OpenAPIDoc {
+export type OpenAPIDoc = {
   openapi: string;
   servers?: { url: string }[];
   info: { title: string; version: string; description: string };
   paths: Record<string, any>;
   components?: { schemas?: Record<string, any> };
-}
+};
 
 export type HttpRequestMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
