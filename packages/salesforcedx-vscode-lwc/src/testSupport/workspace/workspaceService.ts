@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
  * Provide capabilities for VS Code regarding LWC workspace types defined in lightning-lsp-common
  */
 class WorkspaceService {
-  private currentWorkspaceType: lspCommon.WorkspaceType = lspCommon.WorkspaceType.UNKNOWN;
+  private currentWorkspaceType: lspCommon.WorkspaceType = 'UNKNOWN';
 
   /**
    * Setup current workspace type
@@ -34,18 +34,18 @@ class WorkspaceService {
   }
 
   public isSFDXWorkspace(workspaceType: lspCommon.WorkspaceType) {
-    return workspaceType === lspCommon.WorkspaceType.SFDX;
+    return workspaceType === 'SFDX';
   }
 
   public isCoreWorkspace(workspaceType: lspCommon.WorkspaceType) {
-    return workspaceType === lspCommon.WorkspaceType.CORE_ALL || workspaceType === lspCommon.WorkspaceType.CORE_PARTIAL;
+    return workspaceType === 'CORE_ALL' || workspaceType === 'CORE_PARTIAL';
   }
 
   /**
    * @returns {String} workspace type name for telemetry
    */
   public getCurrentWorkspaceTypeForTelemetry(): string {
-    return lspCommon.WorkspaceType[this.getCurrentWorkspaceType()];
+    return this.getCurrentWorkspaceType();
   }
 }
 export const workspaceService = new WorkspaceService();
