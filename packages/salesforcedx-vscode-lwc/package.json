@@ -24,9 +24,10 @@
     "Programming Languages"
   ],
   "dependencies": {
+    "@salesforce/aura-language-server": "4.12.11",
     "@salesforce/core": "^8.19.1",
-    "@salesforce/lightning-lsp-common": "4.12.7",
-    "@salesforce/lwc-language-server": "4.12.7",
+    "@salesforce/lightning-lsp-common": "4.12.11",
+    "@salesforce/lwc-language-server": "4.12.11",
     "@salesforce/salesforcedx-utils": "64.16.0",
     "@salesforce/salesforcedx-utils-vscode": "64.16.0",
     "applicationinsights": "1.0.7",
@@ -83,8 +84,8 @@
         "server.js"
       ],
       "dependencies": {
-        "@salesforce/lightning-lsp-common": "4.12.7",
-        "@salesforce/lwc-language-server": "4.12.7",
+        "@salesforce/lightning-lsp-common": "4.12.11",
+        "@salesforce/lwc-language-server": "4.12.11",
         "applicationinsights": "1.0.7",
         "jest-editor-support": "31.1.2"
       },

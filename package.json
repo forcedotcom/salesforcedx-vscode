@@ -11,6 +11,10 @@
   "dependencies": {
     "@actions/core": "^1.11.0",
     "@actions/github": "^6.0.0",
+    "@lwc/errors": "8.21.6",
+    "@salesforce/aura-language-server": "4.12.11",
+    "@salesforce/lightning-lsp-common": "4.12.11",
+    "@salesforce/lwc-language-server": "4.12.11",
     "@salesforce/vscode-service-provider": "1.5.0",
     "node": "^22.19.0",
     "npm": "^10",

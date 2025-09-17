@@ -76,7 +76,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
 
-  if (workspaceType === lspCommon.WorkspaceType.SFDX) {
+  if (workspaceType === 'SFDX') {
     // We no longer want to manage the eslint.nodePath. Remove any previous configuration of the nodepath
     // which points at our LWC extension node_modules path
     const config: WorkspaceConfiguration = workspace.getConfiguration('');
