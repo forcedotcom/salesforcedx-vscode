@@ -65,13 +65,6 @@ export class MetadataDocumentationService {
   }
 
   /**
-   * Get all available metadata types
-   */
-  public getAllMetadataTypes(): string[] {
-    return Array.from(this.documentationMap.keys()).sort();
-  }
-
-  /**
    * Load metadata documentation from the official Salesforce Developer Guide
    * This references the authoritative documentation at:
    * https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_types_list.htm
