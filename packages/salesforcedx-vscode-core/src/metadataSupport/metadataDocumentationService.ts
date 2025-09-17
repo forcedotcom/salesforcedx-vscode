@@ -11,13 +11,7 @@ export type MetadataFieldInfo = {
   required?: boolean;
 };
 
-export type MetadataFieldDocumentation = {
-  name: string;
-  type: string;
-  description: string;
-  required?: boolean;
-  validValues?: string[];
-};
+export type MetadataFieldDocumentation = MetadataFieldInfo & { validValues?: string[] };
 
 export type MetadataTypeDocumentation = {
   name: string;
