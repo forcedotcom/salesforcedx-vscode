@@ -111,8 +111,27 @@ test.describe('Org Browser - CustomTab retrieval (headless)', () => {
     });
 
     await test.step('download all customTabs from the type-level retrieve icon', async () => {
+      const originalTabTexts = await page.locator('.monaco-workbench .tabs-container .tab').allTextContents();
+
       await orgBrowserPage.clickRetrieveButton(customTabType);
-      await orgBrowserPage.waitForRetrieveProgressNotificationToAppear(60_000);
+
+      const overwrite = page
+        .locator('.monaco-workbench .notification-list-item')
+        .filter({ hasText: /Overwrite\s+local\s+files\s+for/i })
+        .first();
+      await expect(overwrite).toBeVisible();
+      await expect(overwrite).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i);
+
+      await overwrite.getByRole('button', { name: /^Yes$/ }).click();
+
+      const retrieving = page
+        .locator('.monaco-workbench .notification-list-item')
+        .filter({ hasText: /Retrieving\s+CustomTab/i })
+        .first();
+      await expect(retrieving).toBeVisible({ timeout: 60_000 });
+
+      // we didn't open any additional files on a "retrieve all"
+      expect(await page.locator('.monaco-workbench .tabs-container .tab').allTextContents()).toEqual(originalTabTexts);
     });
   });
 });

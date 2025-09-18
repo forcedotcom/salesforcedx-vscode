@@ -97,7 +97,14 @@ export class OrgBrowserPage {
 
   /** the progress bar at the top of the orgBrowser.  Use this to ensure that some action completed */
   public async noProgressActivity(): Promise<void> {
+    await Promise.race([this.ProgressActivity(), this.page.waitForTimeout(500)]);
     await expect(this.page.locator('#workbench\.parts\.sidebar > div.content ').getByRole('progressbar')).toBeHidden({
+      timeout: 15_000
+    });
+  }
+
+  public async ProgressActivity(): Promise<void> {
+    await expect(this.page.locator('#workbench\.parts\.sidebar > div.content ').getByRole('progressbar')).toBeVisible({
       timeout: 15_000
     });
   }
@@ -107,6 +114,7 @@ export class OrgBrowserPage {
     // Click to expand the folder
     await folderItem.click({ timeout: 5000 });
     await this.noProgressActivity();
+
     console.log('✅ Successfully clicked folder item');
   }
 
@@ -132,36 +140,11 @@ export class OrgBrowserPage {
       console.log(`✅ "${typeName}" already visible`);
       return metadataTypeLocator.first();
     }
+    const secondType = this.page.locator('[role="treeitem"][aria-level="1"]').nth(1);
 
-    /** what's with all this crazy scrolling?  The element don't exist in the DOM unless they're visible on the page.
-     * VSCod is doing weird stuff to create and destroy them and you can text search only after clicking one, but the click causes the expansion (mdapi-list)
-     * which can change the state of what's on the screen.  So we use the algo
-     * 1. find a visible element
-     * 2. hover then scroll to top
-     * 3. click the top element (which might open but probably won't)
-     * 4. type the name of what you're really looking for
-     * */
-    console.log(`"${typeName}" not visible, using type-to-search navigation...`);
-
-    let lastVisible5th: Locator | undefined;
-    let visible5th: Locator | undefined;
-    while (
-      (await visible5th?.textContent()) !== (await lastVisible5th?.textContent()) ||
-      lastVisible5th === undefined ||
-      visible5th === undefined
-    ) {
-      lastVisible5th = visible5th;
-      visible5th = this.page.locator('[role="treeitem"][aria-level="1"]').nth(5);
-      await visible5th.hover();
-      await this.page.mouse.wheel(0, -10_000);
-      // I know, I know, but playwright says "NOTE Wheel events may cause scrolling if they are not handled, and this method does not wait for the scrolling to finish before returning."
-      await this.page.waitForTimeout(50);
-    }
-
-    const firstElement = this.page.locator('[role="treeitem"][aria-level="1"]').first();
-
-    await firstElement.click();
+    await secondType.click();
     console.log('✅ clicked on the tree to focus it');
+    await this.noProgressActivity(); // me might have kick off a md-list by clicking on whatever was there in the list
     await this.page.keyboard.type(typeName, { delay: typingSpeed });
 
     console.log(`✅ Typed "${typeName}" to search`);
@@ -304,20 +287,17 @@ export class OrgBrowserPage {
     console.log('Attempting to click retrieve button');
 
     // First hover over the row to make action buttons visible
-    await item.hover();
-    console.log('✅ Hovered over row to reveal action buttons');
+    await item.hover({ timeout: 500 });
 
     // Find the retrieve button within this specific row
     const retrieveButton = item.locator('.action-label[aria-label="Retrieve Metadata"]').first();
 
     await expect(retrieveButton, 'Retrieve button should be visible').toBeVisible({ timeout: 3000 });
     // Log which row we're clicking
-    const rowText = (await item.textContent()) ?? '';
-    console.log(`Clicking retrieve button in row: ${rowText.trim().slice(0, 200)}`);
+    console.log(`Clicking retrieve button in row: ${((await item.textContent()) ?? '').trim().slice(0, 200)}`);
 
     // Click the retrieve button
-    await retrieveButton.click({ force: true });
-    console.log('✅ Successfully clicked retrieve button');
+    await retrieveButton.click({ force: true, timeout: 500 });
     return true;
   }
 

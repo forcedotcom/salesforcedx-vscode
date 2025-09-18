@@ -39,7 +39,7 @@ test.describe('Org Browser high-level validation', () => {
     }
   });
 
-  test('a few types from describe and a basic metadata list (custom tab) ', async ({ page }) => {
+  test('a few types from describe', async ({ page }) => {
     const orgBrowserPage = new OrgBrowserPage(page);
     await orgBrowserPage.openOrgBrowser();
     await test.step('validate CustomObject', async () => {
@@ -55,13 +55,6 @@ test.describe('Org Browser high-level validation', () => {
 
     await test.step('CustomTab UI (not expanded)', async () => {
       await expect(tabType).toHaveScreenshot('customtab-found.png');
-    });
-
-    await test.step('CustomTab expanded with child UI', async () => {
-      await orgBrowserPage.expandFolder(tabType);
-      const tabItem = await orgBrowserPage.getMetadataItem('CustomTab', 'Broker__c');
-      // screenshot includes the non-filled circle
-      await expect(tabItem).toHaveScreenshot('customtab-broker__c.png');
     });
   });
 });
