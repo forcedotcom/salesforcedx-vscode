@@ -4,21 +4,21 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
+import { WorkspaceType } from '@salesforce/lightning-lsp-common';
 import * as vscode from 'vscode';
 
 /**
  * Provide capabilities for VS Code regarding LWC workspace types defined in lightning-lsp-common
  */
 class WorkspaceService {
-  private currentWorkspaceType: lspCommon.WorkspaceType = 'UNKNOWN';
+  private currentWorkspaceType: WorkspaceType = 'UNKNOWN';
 
   /**
    * Setup current workspace type
    * @param extensionContext extension context
    * @param workspaceType
    */
-  public register(extensionContext: vscode.ExtensionContext, workspaceType: lspCommon.WorkspaceType) {
+  public register(extensionContext: vscode.ExtensionContext, workspaceType: WorkspaceType) {
     this.setCurrentWorkspaceType(workspaceType);
 
     const isInternalDev = this.isCoreWorkspace(workspaceType);
@@ -29,15 +29,15 @@ class WorkspaceService {
     return this.currentWorkspaceType;
   }
 
-  public setCurrentWorkspaceType(workspaceType: lspCommon.WorkspaceType) {
+  public setCurrentWorkspaceType(workspaceType: WorkspaceType) {
     this.currentWorkspaceType = workspaceType;
   }
 
-  public isSFDXWorkspace(workspaceType: lspCommon.WorkspaceType) {
+  public isSFDXWorkspace(workspaceType: WorkspaceType) {
     return workspaceType === 'SFDX';
   }
 
-  public isCoreWorkspace(workspaceType: lspCommon.WorkspaceType) {
+  public isCoreWorkspace(workspaceType: WorkspaceType) {
     return workspaceType === 'CORE_ALL' || workspaceType === 'CORE_PARTIAL';
   }
 
