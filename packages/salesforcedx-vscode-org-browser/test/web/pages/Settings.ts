@@ -22,10 +22,8 @@ export const openSettingsUI = async (page: Page): Promise<void> => {
   await page.locator('.monaco-workbench').click({ timeout: 5000 });
   await page.waitForTimeout(2000);
 
-  console.log('Pressing F1');
   await page.keyboard.press('F1');
   await page.locator('.quick-input-widget').waitFor({ state: 'visible', timeout: 3000 });
-  console.log('Waiting for 1 second');
 
   await page.keyboard.type('Preferences: Open Settings UI', { delay: 10 });
   await page.keyboard.press('Enter');
