@@ -42,7 +42,7 @@
     "jsonpath-plus": "10.3.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0",
-    "yaml": "2.6.0"
+    "yaml": "2.8.1"
   },
   "devDependencies": {
     "@salesforce/core": "^8.18.4",
