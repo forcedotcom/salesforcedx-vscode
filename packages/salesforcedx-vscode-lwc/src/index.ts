@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
+import { shared } from '@salesforce/lightning-lsp-common';
 import { ActivationTracker, SFDX_LWC_EXTENSION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { commands, ConfigurationTarget, Disposable, ExtensionContext, workspace, WorkspaceConfiguration } from 'vscode';
@@ -17,6 +17,8 @@ import { DevServerService } from './service/devServerService';
 import { telemetryService } from './telemetry';
 import { activateLwcTestSupport, shouldActivateLwcTestSupport } from './testSupport';
 import { WorkspaceUtils } from './util/workspaceUtils';
+
+const { detectWorkspaceType, isLWC } = shared;
 
 export const activate = async (extensionContext: ExtensionContext) => {
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
@@ -45,10 +47,10 @@ export const activate = async (extensionContext: ExtensionContext) => {
   });
 
   // If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = lspCommon.detectWorkspaceType(workspaceUris);
+  const workspaceType = detectWorkspaceType(workspaceUris);
 
   // Check if we have a valid project structure
-  if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
+  if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
     log('LWC LSP - autodetect did not find a valid project structure, exiting....');
     log(`WorkspaceType detected: ${workspaceType}`);

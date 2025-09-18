@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
+import { WorkspaceType } from '@salesforce/lightning-lsp-common';
 import { ExtensionContext } from 'vscode';
 import { registerLwcTestCodeLensProvider } from './codeLens/lwcTestCodeLensProvider';
 import { registerCommands } from './commands';
@@ -19,10 +19,10 @@ import { workspaceService } from './workspace';
  * Activate LWC Test support for supported workspace types
  * @param workspaceType workspace type
  */
-export const shouldActivateLwcTestSupport = (workspaceType: lspCommon.WorkspaceType) =>
+export const shouldActivateLwcTestSupport = (workspaceType: WorkspaceType) =>
   workspaceService.isSFDXWorkspace(workspaceType) || workspaceService.isCoreWorkspace(workspaceType);
 
-export const activateLwcTestSupport = (extensionContext: ExtensionContext, workspaceType: lspCommon.WorkspaceType) => {
+export const activateLwcTestSupport = (extensionContext: ExtensionContext, workspaceType: WorkspaceType) => {
   workspaceService.register(extensionContext, workspaceType);
   registerCommands(extensionContext);
   registerLwcTestCodeLensProvider(extensionContext);
