@@ -6,6 +6,7 @@
  */
 import { Page, Locator } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
+import { typingSpeed } from '../utils/headless-helpers';
 
 /**
  * Page Object Model for the Org Browser extension in VS Code web
@@ -16,9 +17,6 @@ export class OrgBrowserPage {
   public readonly page: Page;
   public readonly activityBarItem: Locator;
   public readonly sidebar: Locator;
-
-  // Tree elements
-  public readonly treeItems: Locator;
 
   // Notification elements
   public readonly errorNotifications: Locator;
@@ -31,9 +29,6 @@ export class OrgBrowserPage {
     this.sidebar = page.locator(
       '.sidebar, #workbench\\.parts\\.sidebar, [role="complementary"], .part.sidebar, .monaco-sidebar'
     );
-
-    // Tree elements
-    this.treeItems = page.locator('[role="treeitem"], .monaco-list-row, .monaco-tree-row');
 
     // Notification elements - use broader selectors to catch all possible notifications
     this.errorNotifications = page.locator(
@@ -52,7 +47,7 @@ export class OrgBrowserPage {
   /**
    * Wait for the project file system to be loaded in Explorer
    */
-  private async waitForProject(): Promise<void> {
+  public async waitForProject(): Promise<void> {
     // Wait for Explorer view
 
     try {
@@ -92,6 +87,7 @@ export class OrgBrowserPage {
 
     // Ensure we have actual metadata types loaded (not just empty tree structure)
     await this.page.locator('[role="treeitem"][aria-level="1"]').first().waitFor({ timeout: 15000 });
+    await this.takeScreenshot('orgBrowserPage.openOrgBrowser.metadataTypesLoaded.png', true);
     console.log('✅ Metadata types loaded');
   }
 
@@ -130,7 +126,10 @@ export class OrgBrowserPage {
    * @returns The locator for the found element, or null if not found
    */
   public async findMetadataType(typeName: string): Promise<Locator> {
-    console.log(`🔍 Looking for "${typeName}" metadata type using type-to-search...`);
+    if (process.env.DEBUG_MODE) {
+      await this.page.pause();
+    }
+    console.log(`🔍 Looking for "${typeName}" metadata type`);
 
     // Create a precise locator that matches exact tree items at aria-level 1
     const metadataTypeLocator = this.page.locator(
@@ -138,23 +137,42 @@ export class OrgBrowserPage {
     );
 
     // Check if already visible
-    if (await metadataTypeLocator.first().isVisible({ timeout: 1000 })) {
+    if (await metadataTypeLocator.first().isVisible()) {
       console.log(`✅ "${typeName}" already visible`);
       return metadataTypeLocator.first();
     }
 
+    /** what's with all this crazy scrolling?  The element don't exist in the DOM unless they're visible on the page.
+     * VSCod is doing weird stuff to create and destroy them and you can text search only after clicking one, but the click causes the expansion (mdapi-list)
+     * which can change the state of what's on the screen.  So we use the algo
+     * 1. find a visible element
+     * 2. hover then scroll to top
+     * 3. click the top element (which might open but probably won't)
+     * 4. type the name of what you're really looking for
+     * */
     console.log(`"${typeName}" not visible, using type-to-search navigation...`);
 
-    // Fallback: Use VS Code's type-to-search feature
-    console.log('Using type-to-search navigation...');
+    let lastVisible5th: Locator | undefined;
+    let visible5th: Locator | undefined;
+    while (
+      (await visible5th?.textContent()) !== (await lastVisible5th?.textContent()) ||
+      lastVisible5th === undefined ||
+      visible5th === undefined
+    ) {
+      lastVisible5th = visible5th;
+      visible5th = this.page.locator('[role="treeitem"][aria-level="1"]').nth(5);
+      await visible5th.hover();
+      await this.page.mouse.wheel(0, -10_000);
+      // I know, I know, but playwright says "NOTE Wheel events may cause scrolling if they are not handled, and this method does not wait for the scrolling to finish before returning."
+      await this.page.waitForTimeout(50);
+    }
 
-    const treeContainer = this.page.locator('.monaco-list').first();
+    const firstElement = this.page.locator('[role="treeitem"][aria-level="1"]').first();
 
-    // Click on the tree to focus it
-    await treeContainer.click();
-    console.log('✅ Focused tree container');
+    await firstElement.click();
+    console.log('✅ clicked on the tree to focus it');
+    await this.page.keyboard.type(typeName, { delay: typingSpeed });
 
-    await this.page.keyboard.type(typeName, { delay: 1 });
     console.log(`✅ Typed "${typeName}" to search`);
 
     // Wait a moment for the navigation to complete
@@ -165,9 +183,9 @@ export class OrgBrowserPage {
       const foundText = await metadataTypeLocator.first().textContent();
       const foundLabel = await metadataTypeLocator.first().getAttribute('aria-label');
       console.log(`✅ "${typeName}" found via type-to-search: text="${foundText}", aria-label="${foundLabel}"`);
+      await this.takeScreenshot(`orgBrowserPage.findMetadataType.${typeName}.png`, true);
       return metadataTypeLocator.first();
     }
-
     throw new Error(`❌ "${typeName}" not found even with type-to-search`);
   }
 
@@ -273,7 +291,7 @@ export class OrgBrowserPage {
       return metadataItem.first();
     }
 
-    await this.page.keyboard.type(itemName, { delay: 1 });
+    await this.page.keyboard.type(itemName, { delay: typingSpeed });
     console.log(`✅ Typed "${itemName}" to search`);
 
     if (await metadataItem.first().isVisible({ timeout: 2000 })) {
@@ -452,7 +470,7 @@ export class OrgBrowserPage {
 
       // Type the first few characters of the folder name
       const searchTerm = folderName.startsWith('unfiled') ? 'unf' : folderName.substring(0, 3);
-      await this.page.keyboard.type(searchTerm, { delay: 100 });
+      await this.page.keyboard.type(searchTerm, { delay: 5 });
       console.log(`✅ Typed "${searchTerm}" to search for folder`);
 
       // Wait a moment for the navigation to complete

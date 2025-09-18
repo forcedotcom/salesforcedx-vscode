@@ -1,5 +1,5 @@
 ---
-description: playwright tests and helpers
+globs: *.spec.ts,**/test/web/**
 alwaysApply: false
 ---
 
@@ -12,8 +12,12 @@ Never use `waitForTimeout`. Always wait for something specific on the page:
 
 Prefer `expect` assertions that will fail with clear messages instead of logging failures to the console.
 
-Use `ControlOrMeta` so tests work across OSes.
+Use f1 to access commands, not meta-shift-P. Use `Control` for all (copy, paste, etc) commands. Do not use ControlOrMeta
+
+Use @https://playwright.dev/docs/api/class-locator#locator-inner-html on a known-good locator and use the result to get more accurate locators for stuff inside it.
 
 Fail early, avoid creating fallbacks.
 
 Use emojis infrequently.
+
+Read the playwright docs

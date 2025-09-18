@@ -150,10 +150,10 @@ const fileSystemSetup = (
 
     // Replace the existing workspace with ours
     vscode.workspace.updateWorkspaceFolders(0, 0, {
-      name: 'Code Builder',
+      name: 'Code Builder 12:14',
       uri: vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}`)
     });
 
     yield* startWatch();
-    yield* Effect.forkDaemon(projectFiles(fsProvider));
+    yield* projectFiles(fsProvider);
   }).pipe(Effect.withSpan('fileSystemSetup'));

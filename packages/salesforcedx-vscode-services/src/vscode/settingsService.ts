@@ -7,12 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-
-const CODE_BUILDER_WEB_SECTION = 'salesforcedx-vscode-code-builder-web';
-export const SALESFORCE_DX_SECTION = 'salesforcedx-vscode-salesforcedx';
-const INSTANCE_URL_KEY = 'instanceUrl';
-const ACCESS_TOKEN_KEY = 'accessToken';
-const API_VERSION_KEY = 'apiVersion';
+import { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSION_KEY } from '../constants';
 
 const FALLBACK_API_VERSION = '64.0';
 
