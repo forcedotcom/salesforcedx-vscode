@@ -55,11 +55,7 @@ test.describe('Org Browser Web Extension - Foldered Report', () => {
       console.log('Successfully clicked retrieve button for foldered report');
 
       // 8. Wait for progress notification to appear
-      const reportProgressAppeared = await orgBrowserPage.waitForProgressNotificationToAppear(30000);
-
-      if (!reportProgressAppeared) {
-        throw new Error('Progress notification for foldered Report did not appear within timeout');
-      }
+      await orgBrowserPage.waitForRetrieveProgressNotificationToAppear(30000);
 
       console.log('✅ Progress notification appeared for foldered Report retrieval');
 

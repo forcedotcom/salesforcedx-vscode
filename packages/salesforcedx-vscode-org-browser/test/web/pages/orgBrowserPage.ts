@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { typingSpeed } from '../utils/headless-helpers';
 
@@ -80,43 +80,34 @@ export class OrgBrowserPage {
    */
   public async openOrgBrowser(): Promise<void> {
     await this.waitForProject();
-    await this.activityBarItem.waitFor({ timeout: 15000 });
+    await expect(this.activityBarItem, 'Activity bar item for Org Browser should be visible').toBeVisible({
+      timeout: 15000
+    });
     await this.activityBarItem.click();
-    await this.sidebar.waitFor({ timeout: 10000 });
+    await expect(this.sidebar, 'Sidebar for Org Browser should be visible').toBeVisible({ timeout: 10000 });
     console.log('✅ Org Browser opened');
 
-    // Ensure we have actual metadata types loaded (not just empty tree structure)
-    await this.page.locator('[role="treeitem"][aria-level="1"]').first().waitFor({ timeout: 15000 });
+    await this.noProgressActivity();
+
+    // Assert at least 5 top-level items are present
+    await expect(this.page.locator('[role="treeitem"][aria-level="1"]').nth(4)).toBeVisible({ timeout: 15000 });
     await this.takeScreenshot('orgBrowserPage.openOrgBrowser.metadataTypesLoaded.png', true);
     console.log('✅ Metadata types loaded');
   }
 
+  /** the progress bar at the top of the orgBrowser.  Use this to ensure that some action completed */
+  public async noProgressActivity(): Promise<void> {
+    await expect(this.page.locator('#workbench\.parts\.sidebar > div.content ').getByRole('progressbar')).toBeHidden({
+      timeout: 15_000
+    });
+  }
+
   public async expandFolder(folderItem: Locator): Promise<void> {
     console.log('🔍 Attempting to expand folder...');
-
     // Click to expand the folder
     await folderItem.click({ timeout: 5000 });
+    await this.noProgressActivity();
     console.log('✅ Successfully clicked folder item');
-
-    try {
-      await this.page
-        .waitForSelector('.monaco-list-row[aria-busy="true"]', {
-          state: 'visible',
-          timeout: 5000
-        })
-        .then(() =>
-          this.page.waitForSelector('.monaco-list-row[aria-busy="true"]', {
-            state: 'hidden',
-            timeout: 5000
-          })
-        )
-        .catch(() => {
-          console.log('No visible folder expansion indicators detected');
-        });
-    } catch {
-      console.log('Could not detect folder expansion, continuing anyway');
-      await this.page.waitForTimeout(1000);
-    }
   }
 
   /**
@@ -266,9 +257,7 @@ export class OrgBrowserPage {
    */
   public async takeScreenshot(fileName: string, fullPage = false): Promise<void> {
     const filePath = await saveScreenshot(this.page, fileName, fullPage);
-    if (filePath) {
-      console.log(`✅ Screenshot saved to ${filePath}`);
-    } else {
+    if (!filePath) {
       console.log('❌ Failed to save screenshot');
     }
   }
@@ -321,27 +310,15 @@ export class OrgBrowserPage {
     // Find the retrieve button within this specific row
     const retrieveButton = item.locator('.action-label[aria-label="Retrieve Metadata"]').first();
 
-    // Wait for the button to become visible after hover
-    try {
-      await retrieveButton.waitFor({ state: 'visible', timeout: 3000 });
-    } catch {
-      console.log('❌ Retrieve button not visible after hover');
-      return false;
-    }
-
+    await expect(retrieveButton, 'Retrieve button should be visible').toBeVisible({ timeout: 3000 });
     // Log which row we're clicking
     const rowText = (await item.textContent()) ?? '';
     console.log(`Clicking retrieve button in row: ${rowText.trim().slice(0, 200)}`);
 
-    try {
-      // Click the retrieve button
-      await retrieveButton.click({ force: true });
-      console.log('✅ Successfully clicked retrieve button');
-      return true;
-    } catch (error) {
-      console.log('❌ Failed to click retrieve button:', error);
-      return false;
-    }
+    // Click the retrieve button
+    await retrieveButton.click({ force: true });
+    console.log('✅ Successfully clicked retrieve button');
+    return true;
   }
 
   /**
@@ -379,14 +356,13 @@ export class OrgBrowserPage {
    * @param timeout Maximum time to wait in milliseconds
    * @returns True if notification appeared, false if timeout
    */
-  public async waitForProgressNotificationToAppear(timeout: number): Promise<boolean> {
-    try {
-      // More idiomatic: wait for a selector with specific text content
-      await this.page.waitForSelector('text=Retrieving', { timeout });
-      return true;
-    } catch {
-      return false;
-    }
+  public async waitForRetrieveProgressNotificationToAppear(timeout: number): Promise<Locator> {
+    const retrieving = this.page
+      .locator('.monaco-workbench .notification-list-item')
+      .filter({ hasText: /Retrieving\s+/i })
+      .first();
+    await expect(retrieving, 'Retrieving progress notification should be visible').toBeVisible({ timeout });
+    return retrieving;
   }
 
   /**
@@ -405,6 +381,7 @@ export class OrgBrowserPage {
     }
   }
 
+  // TODO: pass in a file name you expect.  Or have a new method that just waits for that element to be visible
   /**
    * Wait for any file to open in the editor
    * @param timeout Maximum time to wait in milliseconds
@@ -413,18 +390,18 @@ export class OrgBrowserPage {
   public async waitForFileToOpenInEditor(timeout = 10000): Promise<boolean> {
     try {
       await this.page.waitForFunction(
-        () => {
-          const editorTabs = Array.from(document.querySelectorAll('.monaco-workbench .tabs-container .tab'));
-          // Look for any tab that's not the welcome/walkthrough tab
-          for (const tab of editorTabs) {
-            const tabText = tab.textContent ?? '';
-            // Skip welcome/walkthrough tabs
-            if (!tabText.includes('Welcome') && !tabText.includes('Walkthrough') && !tabText.includes('Get Started')) {
-              return true;
-            }
-          }
-          return false;
-        },
+        () =>
+          Array.from(document.querySelectorAll('.monaco-workbench .tabs-container .tab'))
+            .map(tab => tab.textContent ?? '')
+            .filter(tab => tab !== '')
+            .filter(
+              // Look for any tab that's not the welcome/walkthrough tab
+              tabText =>
+                !tabText.includes('Welcome') &&
+                !tabText.includes('Walkthrough') &&
+                !tabText.includes('Get Started') &&
+                !tabText.includes('Settings')
+            ).length > 0,
         { timeout }
       );
       return true;

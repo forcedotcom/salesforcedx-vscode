@@ -10,7 +10,7 @@ Never use `waitForTimeout`. Always wait for something specific on the page:
 - Use `page.waitForLoadState()` for page state changes
 - Use `page.waitForResponse()` for network requests
 
-Prefer `expect` assertions that will fail with clear messages instead of logging failures to the console.
+Prefer `expect` assertions that will fail with clear messages instead of logging failures to the console. Expects should have a message property to produce good errors. import `expect` from playwright
 
 Use f1 to access commands, not meta-shift-P. Use `Control` for all (copy, paste, etc) commands. Do not use ControlOrMeta
 

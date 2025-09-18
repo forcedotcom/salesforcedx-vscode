@@ -62,11 +62,7 @@ test.describe('Org Browser Web Extension - CustomObject', () => {
       const currentErrorNotifs = await orgBrowserPage.getErrorNotifications();
       console.log('Current error notifications after click:', currentErrorNotifs);
 
-      const progressAppeared = await orgBrowserPage.waitForProgressNotificationToAppear(30000);
-
-      if (!progressAppeared) {
-        throw new Error('Progress notification did not appear within timeout - retrieval may not have started');
-      }
+      await orgBrowserPage.waitForRetrieveProgressNotificationToAppear(30000);
 
       console.log('✅ Progress notification appeared - retrieval started');
 
