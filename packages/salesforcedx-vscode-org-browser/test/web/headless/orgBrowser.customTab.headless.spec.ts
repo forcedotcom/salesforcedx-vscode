@@ -44,20 +44,20 @@ test.describe('Org Browser - CustomTab retrieval (headless)', () => {
 
     await test.step('open Org Browser', async () => {
       await orgBrowserPage.openOrgBrowser();
-      // Guard: ensure enough top-level items exist before type-to-search (findMetadataType hovers nth(5))
-      await page.locator('[role="treeitem"][aria-level="1"]').nth(5).waitFor({ timeout: 15000 });
     });
 
     const customTabType = await test.step('find CustomTab type', async () => {
       const locator = await orgBrowserPage.findMetadataType('CustomTab');
-      await expect(locator).toHaveScreenshot('customtab-found.png');
+      await locator.hover({ timeout: 500 });
+      await expect(locator).toMatchAriaSnapshot({ name: 'customtab-hover' });
       return locator;
     });
 
     const brokerItem = await test.step('expand CustomTab and locate Broker__c', async () => {
       await orgBrowserPage.expandFolder(customTabType);
       const item = await orgBrowserPage.getMetadataItem('CustomTab', 'Broker__c');
-      await expect(item).toHaveScreenshot('customtab-broker__c.png');
+      await item.hover({ timeout: 500 });
+      await expect(item).toMatchAriaSnapshot({ name: 'customtab-broker__c' });
       return item;
     });
 
@@ -82,13 +82,13 @@ test.describe('Org Browser - CustomTab retrieval (headless)', () => {
       await expect(anyEditorTab).toBeVisible();
       const brokerTab = page.getByRole('tab', { name: /Broker__c/i }).first();
       await expect(brokerTab).toBeVisible();
-      await expect(brokerTab).toHaveScreenshot('customtab-broker__c-editor.png');
+      await expect(brokerTab).toMatchAriaSnapshot({ name: 'customtab-broker__c-editor' });
     });
 
     await test.step('visual assertion: Broker__c shows filled circle', async () => {
       // move mouse away to avoid hover visuals
-      await page.mouse.move(0, 0);
-      await expect(brokerItem).toHaveScreenshot('customtab-broker__c-filled.png');
+      await expect(brokerItem.locator('div.custom-view-tree-node-item-icon')).toContainClass('codicon-pass-filled');
+      await expect(brokerItem).toMatchAriaSnapshot({ name: 'customtab-broker__c-filled' });
     });
 
     await test.step('override confirmation for a single file', async () => {

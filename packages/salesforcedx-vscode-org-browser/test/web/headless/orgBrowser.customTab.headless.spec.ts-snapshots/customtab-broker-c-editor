@@ -1,0 +1,3 @@
+- tab "Broker__c.tab-meta.xml, preview" [selected]:
+  - toolbar "Tab actions":
+    - button "Close (Ctrl+F4)"

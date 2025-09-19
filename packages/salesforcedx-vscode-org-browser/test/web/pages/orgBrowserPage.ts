@@ -114,6 +114,7 @@ export class OrgBrowserPage {
     // Click to expand the folder
     await folderItem.click({ timeout: 5000 });
     await this.noProgressActivity();
+    await this.page.mouse.wheel(0, this.page.viewportSize()?.height ?? 1080 * 0.75);
 
     console.log('✅ Successfully clicked folder item');
   }

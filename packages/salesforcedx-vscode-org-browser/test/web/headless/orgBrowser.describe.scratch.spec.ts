@@ -54,7 +54,9 @@ test.describe('Org Browser high-level validation', () => {
     const tabType = await orgBrowserPage.findMetadataType('CustomTab');
 
     await test.step('CustomTab UI (not expanded)', async () => {
-      await expect(tabType).toHaveScreenshot('customtab-found.png');
+      await tabType.hover({ timeout: 500 });
+
+      await expect(tabType).toMatchAriaSnapshot({ name: 'customtab-found' });
     });
   });
 });
