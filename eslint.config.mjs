@@ -20,9 +20,11 @@ import eslintPluginUnicorn from 'eslint-plugin-unicorn';
 import eslintPluginWorkspaces from 'eslint-plugin-workspaces';
 
 import noDuplicateI18nValues from './eslint-local-rules/no-duplicate-i18n-values.js';
+import preferConfigAggregator from './eslint-local-rules/prefer-config-aggregator.js';
 
 const localRules = {
-  'no-duplicate-i18n-values': noDuplicateI18nValues
+  'no-duplicate-i18n-values': noDuplicateI18nValues,
+  'prefer-config-aggregator': preferConfigAggregator
 };
 
 export default [
@@ -68,6 +70,7 @@ export default [
     },
     rules: {
       'local/no-duplicate-i18n-values': 'error',
+      'local/prefer-config-aggregator': 'error',
       'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
       'unicorn/consistent-function-scoping': 'error',

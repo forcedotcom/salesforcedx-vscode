@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Config, Org, StateAggregator } from '@salesforce/core';
+import * as path from 'node:path';
 import { ConfigUtil, TARGET_ORG_KEY, workspaceUtils } from '../../../src';
 import { ConfigAggregatorProvider } from './../../../src/providers/configAggregatorProvider';
 
 describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', () => {
-  const fakeOriginalDirectory = 'test/directory';
-  const fakeWorkspace = 'test/workspace/';
+  const fakeOriginalDirectory = `test${path.sep}directory`;
+  const fakeWorkspace = `test${path.sep}workspace`;
 
   let workspacePathStub: jest.SpyInstance;
   let configStub: jest.SpyInstance;
@@ -47,13 +48,12 @@ describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', ()
     expect(writeMock).toHaveBeenCalled();
   });
 
-  it('should change the current working directory to the original working directory', async () => {
+  it('should use filePath parameter instead of changing directory', async () => {
     const username = 'vscodeO';
     await ConfigUtil.setTargetOrgOrAlias(username);
-    expect(workspacePathStub).toHaveBeenCalledTimes(2);
-    expect(chdirStub).toHaveBeenCalledTimes(2);
-    expect(chdirStub).toHaveBeenNthCalledWith(1, fakeWorkspace);
-    expect(chdirStub).toHaveBeenNthCalledWith(2, fakeOriginalDirectory);
+    expect(workspacePathStub).toHaveBeenCalledTimes(2); // Once for config creation, once for updateConfigAndStateAggregators
+    expect(chdirStub).not.toHaveBeenCalled();
+    expect(configStub).toHaveBeenCalledWith({ isGlobal: false, rootFolder: `test${path.sep}workspace` });
   });
 
   it('should be able to set username or alias to an empty string', async () => {
@@ -76,8 +76,8 @@ describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', ()
 });
 
 describe('testing unsetTargetOrg', () => {
-  const fakeOriginalDirectory = 'test/directory';
-  const fakeWorkspace = 'test/workspace/';
+  const fakeOriginalDirectory = `test${path.sep}directory`;
+  const fakeWorkspace = `test${path.sep}workspace`;
 
   let workspacePathStub: jest.SpyInstance;
   let configStub: jest.SpyInstance;
@@ -113,11 +113,10 @@ describe('testing unsetTargetOrg', () => {
     expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
   });
 
-  it('should change the current working directory to the original working directory', async () => {
+  it('should use filePath parameter instead of changing directory', async () => {
     await ConfigUtil.unsetTargetOrg();
-    expect(workspacePathStub).toHaveBeenCalledTimes(2);
-    expect(chdirStub).toHaveBeenCalledTimes(2);
-    expect(chdirStub).toHaveBeenNthCalledWith(1, fakeWorkspace);
-    expect(chdirStub).toHaveBeenNthCalledWith(2, fakeOriginalDirectory);
+    expect(workspacePathStub).toHaveBeenCalledTimes(2); // Once for config creation, once for updateConfigAndStateAggregators
+    expect(chdirStub).not.toHaveBeenCalled();
+    expect(configStub).toHaveBeenCalledWith({ isGlobal: false, rootFolder: `test${path.sep}workspace` });
   });
 });
