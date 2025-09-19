@@ -14,6 +14,7 @@ import { promisify } from 'node:util';
 const DREAMHOUSE_REPO = 'https://github.com/trailheadapps/dreamhouse-lwc';
 const execAsync = promisify(exec);
 
+const env = { ...process.env, NO_COLOR: '1' };
 // TODO: allow any repo from github
 export const create = async (): Promise<
   Required<Pick<AuthFields, 'instanceUrl' | 'accessToken' | 'instanceApiVersion'>> & {
@@ -22,15 +23,17 @@ export const create = async (): Promise<
     createdScratch?: boolean;
   }
 > => {
-  // Fast path for local iteration: use provided envs and skip org creation/deploy
-  const envToken = process.env.E2E_ORG_ACCESS_TOKEN;
-  const envInstance = process.env.E2E_ORG_INSTANCE_URL;
-  const envApi = process.env.E2E_ORG_API_VERSION;
-  if (envToken && envInstance) {
+  // Fast path for local iteration: use provided org and skip org creation/deploy
+  // requires that you already did the deploy, permset, etc on the org.
+  if (process.env.DREAMHOUSE_SCRATCH_ORG_USERNAME) {
+    const displayResponse = JSON.parse(
+      (await execAsync(`sf org display -o ${process.env.DREAMHOUSE_SCRATCH_ORG_USERNAME} --json`, { env })).stdout
+    ).result as { accessToken: string; instanceUrl: string; apiVersion: string }; // TODO: can we get these from the org plugin?
+
     return {
-      accessToken: envToken,
-      instanceUrl: envInstance,
-      instanceApiVersion: envApi ?? '64.0'
+      accessToken: displayResponse.accessToken,
+      instanceUrl: displayResponse.instanceUrl,
+      instanceApiVersion: displayResponse.apiVersion ?? '64.0'
     } satisfies AuthFields & Required<Pick<AuthFields, 'instanceUrl' | 'accessToken' | 'instanceApiVersion'>>;
   }
 
@@ -42,7 +45,7 @@ export const create = async (): Promise<
 
   const { stdout: createStdout } = await execAsync(
     'sf org create scratch -d -f config/project-scratch-def.json -a dreamhouse --json',
-    { cwd: repoDir, env: { ...process.env, NO_COLOR: '1' } }
+    { cwd: repoDir, env }
   );
   const createdScratch = true;
 

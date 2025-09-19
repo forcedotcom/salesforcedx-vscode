@@ -97,7 +97,7 @@ export class OrgBrowserPage {
 
   /** the progress bar at the top of the orgBrowser.  Use this to ensure that some action completed */
   public async noProgressActivity(): Promise<void> {
-    await Promise.race([this.ProgressActivity(), this.page.waitForTimeout(500)]);
+    await Promise.race([this.ProgressActivity(), this.page.waitForTimeout(500)]); // give it a half second to start before waiting for it to stop
     await expect(this.page.locator('#workbench\.parts\.sidebar > div.content ').getByRole('progressbar')).toBeHidden({
       timeout: 15_000
     });
@@ -288,7 +288,7 @@ export class OrgBrowserPage {
     console.log('Attempting to click retrieve button');
 
     // First hover over the row to make action buttons visible
-    await item.hover({ timeout: 500 });
+    await item.hover();
 
     // Find the retrieve button within this specific row
     const retrieveButton = item.locator('.action-label[aria-label="Retrieve Metadata"]').first();
@@ -298,7 +298,7 @@ export class OrgBrowserPage {
     console.log(`Clicking retrieve button in row: ${((await item.textContent()) ?? '').trim().slice(0, 200)}`);
 
     // Click the retrieve button
-    await retrieveButton.click({ force: true, timeout: 500 });
+    await retrieveButton.click({ force: true });
     return true;
   }
 
