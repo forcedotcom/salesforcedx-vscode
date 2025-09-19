@@ -90,6 +90,8 @@ import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { decorators } from './decorators';
+import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
+import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
@@ -521,6 +523,21 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   // Register file watcher for push or deploy on save
   registerPushOrDeployOnSave();
   await decorators.showOrg();
+
+  // Initialize metadata XML support
+  const metadataXmlSupport = MetadataXmlSupport.getInstance();
+  await metadataXmlSupport.initializeMetadataSupport(extensionContext);
+
+  // Initialize metadata hover provider
+  const metadataHoverProvider = new MetadataHoverProvider();
+  await metadataHoverProvider.initialize();
+
+  // Register hover provider for XML files
+  const hoverProviderDisposable = vscode.languages.registerHoverProvider(
+    { scheme: 'file', language: 'xml' },
+    metadataHoverProvider
+  );
+  extensionContext.subscriptions.push(hoverProviderDisposable);
 
   await setUpOrgExpirationWatcher(newOrgList);
 };
