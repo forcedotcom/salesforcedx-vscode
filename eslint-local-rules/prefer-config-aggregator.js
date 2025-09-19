@@ -183,6 +183,28 @@ module.exports = {
             return;
           }
 
+          // Check if this is in a function that uses workspace.getConfiguration
+          let functionNode = node.parent;
+          while (
+            functionNode &&
+            functionNode.type !== 'FunctionDeclaration' &&
+            functionNode.type !== 'FunctionExpression' &&
+            functionNode.type !== 'ArrowFunctionExpression' &&
+            functionNode.type !== 'MethodDefinition'
+          ) {
+            functionNode = functionNode.parent;
+          }
+
+          if (functionNode) {
+            const sourceCode = context.getSourceCode();
+            const functionText = sourceCode.getText(functionNode);
+
+            // If the function contains workspace.getConfiguration, skip the warning
+            if (functionText.includes('workspace.getConfiguration')) {
+              return;
+            }
+          }
+
           // Skip if this is clearly a VSCode configuration based on the key being accessed
           const parent = node.parent;
           if (parent && parent.type === 'CallExpression') {
