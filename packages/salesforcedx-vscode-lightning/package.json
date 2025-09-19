@@ -24,8 +24,8 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/aura-language-server": "4.12.11",
-    "@salesforce/lightning-lsp-common": "4.12.11",
+    "@salesforce/aura-language-server": "4.12.12",
+    "@salesforce/lightning-lsp-common": "4.12.12",
     "@salesforce/salesforcedx-utils-vscode": "64.14.0",
     "applicationinsights": "1.0.7",
     "vscode-html-languageservice": "^5.5.1",
@@ -89,8 +89,8 @@
       ],
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/aura-language-server": "4.12.11",
-        "@salesforce/lightning-lsp-common": "4.12.11"
+        "@salesforce/aura-language-server": "4.12.12",
+        "@salesforce/lightning-lsp-common": "4.12.12"
       },
       "devDependencies": {}
     }

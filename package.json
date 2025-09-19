@@ -12,14 +12,15 @@
     "@actions/core": "^1.11.0",
     "@actions/github": "^6.0.0",
     "@lwc/errors": "8.21.6",
-    "@salesforce/aura-language-server": "4.12.11",
-    "@salesforce/lightning-lsp-common": "4.12.11",
-    "@salesforce/lwc-language-server": "4.12.11",
+    "@salesforce/aura-language-server": "4.12.12",
+    "@salesforce/lightning-lsp-common": "4.12.12",
+    "@salesforce/lwc-language-server": "4.12.12",
     "@salesforce/vscode-service-provider": "1.5.0",
     "node": "^22.19.0",
     "npm": "^10",
     "semver": "^7.5.4",
-    "ts-node": "10.9.2"
+    "ts-node": "10.9.2",
+    "vscode-languageserver": "9.0.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
@@ -30,7 +31,7 @@
     "@salesforce/dev-config": "^4.3.1",
     "@salesforce/salesforcedx-vscode-test-tools": "*",
     "@stylistic/eslint-plugin-ts": "2.13.0",
-    "@tony.ganchev/eslint-plugin-header": "3.1.2",
+    "@tony.ganchev/eslint-plugin-header": "3.1.3",
     "@tsconfig/node22": "22.0.2",
     "@types/chai": "^4.3.17",
     "@types/cross-spawn": "6.0.6",
