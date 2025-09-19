@@ -75,8 +75,72 @@ module.exports = {
           const parent = node.parent;
 
           // If the Config.create() result is used in a variable declaration
-          // and later used for .get() calls, it's likely for reading
+          // Skip if it's likely for writing (check if followed by .set, .write, .unset)
           if (parent.type === 'VariableDeclarator') {
+            // Find the containing function by traversing up
+            let functionNode = node.parent;
+            while (
+              functionNode &&
+              functionNode.type !== 'FunctionDeclaration' &&
+              functionNode.type !== 'FunctionExpression' &&
+              functionNode.type !== 'ArrowFunctionExpression' &&
+              functionNode.type !== 'MethodDefinition'
+            ) {
+              functionNode = functionNode.parent;
+            }
+
+            if (functionNode) {
+              const sourceCode = context.getSourceCode();
+              const functionText = sourceCode.getText(functionNode);
+              const variableName = parent.id?.name;
+
+              // If the function contains writing operations on this variable, skip the warning
+              if (
+                variableName &&
+                (functionText.includes(`${variableName}.set(`) ||
+                  functionText.includes(`${variableName}.write(`) ||
+                  functionText.includes(`${variableName}.unset(`))
+              ) {
+                return;
+              }
+            }
+
+            context.report({
+              node,
+              messageId: 'configCreateForReading'
+            });
+          }
+
+          // Handle await Config.create() in variable declarations
+          if (parent.type === 'AwaitExpression' && parent.parent.type === 'VariableDeclarator') {
+            // Find the containing function by traversing up
+            let functionNode = node.parent;
+            while (
+              functionNode &&
+              functionNode.type !== 'FunctionDeclaration' &&
+              functionNode.type !== 'FunctionExpression' &&
+              functionNode.type !== 'ArrowFunctionExpression' &&
+              functionNode.type !== 'MethodDefinition'
+            ) {
+              functionNode = functionNode.parent;
+            }
+
+            if (functionNode) {
+              const sourceCode = context.getSourceCode();
+              const functionText = sourceCode.getText(functionNode);
+              const variableName = parent.parent.id?.name;
+
+              // If the function contains writing operations on this variable, skip the warning
+              if (
+                variableName &&
+                (functionText.includes(`${variableName}.set(`) ||
+                  functionText.includes(`${variableName}.write(`) ||
+                  functionText.includes(`${variableName}.unset(`))
+              ) {
+                return;
+              }
+            }
+
             context.report({
               node,
               messageId: 'configCreateForReading'
@@ -109,12 +173,12 @@ module.exports = {
             return;
           }
 
-          // Skip if the variable name suggests it's from VSCode configuration
+          // Skip if the variable name suggests it's from VSCode configuration or project configuration
           if (
             variableName.toLowerCase().includes('vscode') ||
             variableName.toLowerCase().includes('workspace') ||
             variableName.toLowerCase().includes('core') ||
-            variableName === 'config'
+            variableName.toLowerCase().includes('project')
           ) {
             return;
           }
@@ -131,8 +195,7 @@ module.exports = {
                 (configKey.includes('telemetry') ||
                   configKey.includes('show-cli-success-msg') ||
                   configKey.includes('advanced') ||
-                  configKey.includes('salesforcedx-vscode') ||
-                  configKey.includes('.')) // Most VSCode settings have dots
+                  configKey.includes('salesforcedx-vscode'))
               ) {
                 return;
               }
