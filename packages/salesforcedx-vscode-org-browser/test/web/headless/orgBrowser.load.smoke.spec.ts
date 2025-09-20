@@ -14,7 +14,7 @@ import {
 } from '../utils/headless-helpers';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import { create } from '../utils/dreamhouseScratchOrgSetup';
-import { upsertScratchOrgAuthFieldsToSettings } from '../pages/Settings';
+import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 
 test.describe('Org Browser headless smoke', () => {
   test.beforeEach(async ({ browser, page }) => {
@@ -32,9 +32,7 @@ test.describe('Org Browser headless smoke', () => {
 
     // Use the shared Page Object
     const orgBrowserPage = new OrgBrowserPage(page);
-    if (process.env.DEBUG_MODE) {
-      await page.pause();
-    }
+
     await orgBrowserPage.waitForProject();
     await orgBrowserPage.openOrgBrowser();
 
@@ -44,10 +42,5 @@ test.describe('Org Browser headless smoke', () => {
 
     expect(criticalConsole, `Console errors: ${criticalConsole.map(e => e.text).join(' | ')}`).toHaveLength(0);
     expect(criticalNetwork, `Network errors: ${criticalNetwork.map(e => e.description).join(' | ')}`).toHaveLength(0);
-
-    if (process.env.DEBUG_MODE) {
-      // Keep the browser open for manual poking around in debug mode
-      await page.pause();
-    }
   });
 });

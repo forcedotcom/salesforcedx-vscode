@@ -18,9 +18,6 @@ export class OrgBrowserPage {
   public readonly activityBarItem: Locator;
   public readonly sidebar: Locator;
 
-  // Notification elements
-  public readonly errorNotifications: Locator;
-
   constructor(page: Page) {
     this.page = page;
 
@@ -28,19 +25,6 @@ export class OrgBrowserPage {
     this.activityBarItem = page.locator('.activitybar a[aria-label*="Org Browser"]');
     this.sidebar = page.locator(
       '.sidebar, #workbench\\.parts\\.sidebar, [role="complementary"], .part.sidebar, .monaco-sidebar'
-    );
-
-    // Notification elements - use broader selectors to catch all possible notifications
-    this.errorNotifications = page.locator(
-      [
-        // Standard notification selectors
-        '.notifications-container .notification-list-item.error',
-        '.notifications-container .notification-list-item-message[class*="error"]',
-        // Additional selectors for better coverage
-        '.monaco-workbench .notifications-toasts .notification-toast-container .notification-list-item',
-        '.monaco-workbench .notifications-center .notification-list-item',
-        '.notification-list-item-message'
-      ].join(',')
     );
   }
 
@@ -91,7 +75,7 @@ export class OrgBrowserPage {
 
     // Assert at least 5 top-level items are present
     await expect(this.page.locator('[role="treeitem"][aria-level="1"]').nth(4)).toBeVisible({ timeout: 15000 });
-    await this.takeScreenshot('orgBrowserPage.openOrgBrowser.metadataTypesLoaded.png', true);
+    await saveScreenshot(this.page, 'orgBrowserPage.openOrgBrowser.metadataTypesLoaded.png', true);
     console.log('✅ Metadata types loaded');
   }
 
@@ -126,9 +110,6 @@ export class OrgBrowserPage {
    * @returns The locator for the found element, or null if not found
    */
   public async findMetadataType(typeName: string): Promise<Locator> {
-    if (process.env.DEBUG_MODE) {
-      await this.page.pause();
-    }
     console.log(`🔍 Looking for "${typeName}" metadata type`);
 
     // Create a precise locator that matches exact tree items at aria-level 1
@@ -158,92 +139,10 @@ export class OrgBrowserPage {
       const foundText = await metadataTypeLocator.first().textContent();
       const foundLabel = await metadataTypeLocator.first().getAttribute('aria-label');
       console.log(`✅ "${typeName}" found via type-to-search: text="${foundText}", aria-label="${foundLabel}"`);
-      await this.takeScreenshot(`orgBrowserPage.findMetadataType.${typeName}.png`, true);
+      await saveScreenshot(this.page, `orgBrowserPage.findMetadataType.${typeName}.png`, true);
       return metadataTypeLocator.first();
     }
     throw new Error(`❌ "${typeName}" not found even with type-to-search`);
-  }
-
-  /**
-   * Check for error notifications in VS Code
-   */
-  public async getErrorNotifications(): Promise<string[]> {
-    const errorCount = await this.errorNotifications.count();
-    const errorTexts: string[] = [];
-
-    if (errorCount > 0) {
-      console.log(`Found ${errorCount} error notification(s):`);
-
-      for (let i = 0; i < errorCount; i++) {
-        const notification = this.errorNotifications.nth(i);
-
-        // Try to get text content
-        const errorText = await notification.textContent();
-        if (errorText) {
-          errorTexts.push(errorText);
-          console.log(`  Notification ${i + 1}: "${errorText}"`);
-        }
-
-        // Also try to get aria-label which might contain the error message
-        const ariaLabel = await notification.getAttribute('aria-label');
-        if (ariaLabel && !errorTexts.includes(ariaLabel)) {
-          errorTexts.push(ariaLabel);
-          console.log(`  Notification ${i + 1} aria-label: "${ariaLabel}"`);
-        }
-      }
-    } else {
-      console.log('No error notifications found with standard selectors');
-
-      // Try to find notifications using JavaScript evaluation for more coverage
-      const jsErrorTexts = await this.page.evaluate(() => {
-        const errors: string[] = [];
-
-        // Try various selectors that might contain error messages
-        const selectors = [
-          '.monaco-workbench .notification-list-item',
-          '.monaco-workbench .notification-list-item-message',
-          '.monaco-workbench .notifications-list-container .monaco-list-row',
-          '.notification-toast .notification-list-item',
-          '[role="alert"]'
-        ];
-
-        for (const selector of selectors) {
-          const elements = document.querySelectorAll(selector);
-          elements.forEach(element => {
-            if (element.textContent) {
-              errors.push(element.textContent);
-            }
-          });
-        }
-
-        return errors;
-      });
-
-      // Add any errors found via JavaScript
-      for (const text of jsErrorTexts) {
-        if (!errorTexts.includes(text)) {
-          errorTexts.push(text);
-        }
-      }
-
-      if (jsErrorTexts.length > 0) {
-        console.log(`Found ${jsErrorTexts.length} notifications via JavaScript evaluation`);
-      }
-    }
-
-    return errorTexts;
-  }
-
-  /**
-   * Take a screenshot of the current page state
-   * @param fileName Name of the screenshot file (will be saved in test-results directory)
-   * @param fullPage Whether to take a full page screenshot
-   */
-  public async takeScreenshot(fileName: string, fullPage = false): Promise<void> {
-    const filePath = await saveScreenshot(this.page, fileName, fullPage);
-    if (!filePath) {
-      console.log('❌ Failed to save screenshot');
-    }
   }
 
   /**
@@ -300,66 +199,6 @@ export class OrgBrowserPage {
     // Click the retrieve button
     await retrieveButton.click({ force: true });
     return true;
-  }
-
-  /**
-   * Check for progress notifications in VS Code
-   * @returns Array of progress notification texts
-   */
-  public async getProgressNotifications(): Promise<string[]> {
-    const progressSelectors = [
-      '.monaco-workbench .notifications-toasts .notification-toast-container .notification-list-item',
-      '.monaco-workbench .notifications-center .notification-list-item',
-      '.notification-list-item:not(.error)'
-    ];
-
-    const progressNotifications = this.page.locator(progressSelectors.join(','));
-    const count = await progressNotifications.count();
-
-    if (count === 0) {
-      return [];
-    }
-
-    const texts: string[] = [];
-    for (let i = 0; i < count; i++) {
-      const notification = progressNotifications.nth(i);
-      const text = await notification.textContent();
-      if (text) {
-        texts.push(text.trim());
-      }
-    }
-
-    return texts;
-  }
-
-  /**
-   * Wait for progress notification to appear
-   * @param timeout Maximum time to wait in milliseconds
-   * @returns True if notification appeared, false if timeout
-   */
-  public async waitForRetrieveProgressNotificationToAppear(timeout: number): Promise<Locator> {
-    const retrieving = this.page
-      .locator('.monaco-workbench .notification-list-item')
-      .filter({ hasText: /Retrieving\s+/i })
-      .first();
-    await expect(retrieving, 'Retrieving progress notification should be visible').toBeVisible({ timeout });
-    return retrieving;
-  }
-
-  /**
-   * Wait for progress notification to disappear (indicating completion)
-   * @param timeout Maximum time to wait in milliseconds
-   * @returns True if notification disappeared, false if timeout
-   */
-  public async waitForProgressNotificationToDisappear(timeout = 30000): Promise<boolean> {
-    try {
-      // More idiomatic: wait for the notification element to be hidden
-      const notification = this.page.locator('.notification-list-item:not(.error)');
-      await notification.waitFor({ state: 'hidden', timeout });
-      return true;
-    } catch {
-      return false;
-    }
   }
 
   // TODO: pass in a file name you expect.  Or have a new method that just waits for that element to be visible

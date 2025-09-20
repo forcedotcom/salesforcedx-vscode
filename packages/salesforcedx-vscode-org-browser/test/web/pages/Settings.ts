@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Page, expect } from '@playwright/test';
+import { Locator, Page, expect } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import {
   ACCESS_TOKEN_KEY,
@@ -15,27 +15,23 @@ import {
 import { waitForVSCodeWorkbench } from '../utils/headless-helpers';
 import { OrgBrowserPage } from './orgBrowserPage';
 import type { AuthFields } from '@salesforce/core';
+import { executeCommandWithCommandPalette } from './commands';
+
+const settingsLocator = (page: Page): Locator =>
+  page.locator(
+    [
+      '#workbench\\.parts\\.editor .settings-header .search-container .monaco-editor',
+      '[aria-label="Settings"] .settings-header .search-container .monaco-editor'
+    ].join(',')
+  );
 
 /** Open the Command Palette and execute Preferences: Open Settings (UI) */
 export const openSettingsUI = async (page: Page): Promise<void> => {
   await page.waitForSelector('.monaco-workbench', { timeout: 60000 });
   await page.locator('.monaco-workbench').click({ timeout: 5000 });
   await page.waitForTimeout(2000);
-
-  await page.keyboard.press('F1');
-  await page.locator('.quick-input-widget').waitFor({ state: 'visible', timeout: 3000 });
-
-  await page.keyboard.type('Preferences: Open Settings UI', { delay: 10 });
-  await page.keyboard.press('Enter');
-  await page
-    .locator(
-      [
-        '#workbench\\.parts\\.editor .settings-header .search-container .monaco-editor',
-        '[aria-label="Settings"] .settings-header .search-container .monaco-editor'
-      ].join(',')
-    )
-    .first()
-    .waitFor({ timeout: 3000 });
+  await executeCommandWithCommandPalette(page, 'Preferences: Open Settings UI');
+  await settingsLocator(page).first().waitFor({ timeout: 3000 });
 };
 
 export const upsertScratchOrgAuthFieldsToSettings = async (
@@ -52,20 +48,14 @@ export const upsertScratchOrgAuthFieldsToSettings = async (
   });
 };
 
-/** Upsert settings using Settings (UI) search and fill of each id */
+/** Upsert settings using Settings (UI) search and fill of each id.
+ * Assumes that you've already opened the Settings (UI) via openSettingsUI.
+ */
 export const upsertSettings = async (page: Page, settings: Record<string, string>): Promise<void> => {
   await openSettingsUI(page);
   const debugAria = process.env.E2E_ARIA_DEBUG === '1';
 
-  // Single winning strategy: Monaco search input
-  const searchMonaco = page
-    .locator(
-      [
-        '#workbench\\.parts\\.editor .settings-header .search-container .monaco-editor',
-        '[aria-label="Settings"] .settings-header .search-container .monaco-editor'
-      ].join(',')
-    )
-    .first();
+  const searchMonaco = settingsLocator(page).first();
 
   const performSearch = async (query: string): Promise<void> => {
     await searchMonaco.click();
@@ -77,7 +67,6 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
 
   for (const [id, value] of Object.entries(settings)) {
     // Debug visibility: take screenshot and aria snapshot before each search
-    await saveScreenshot(page, `settings.beforeSearch.${id}.png`, false);
     if (debugAria) {
       try {
         const aria = await page.locator('body').ariaSnapshot();
@@ -151,9 +140,5 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
 
     await page.keyboard.press('Control+KeyA');
     await page.keyboard.press('Backspace');
-
-    if (process.env.DEBUG_MODE) {
-      await page.pause();
-    }
   }
 };

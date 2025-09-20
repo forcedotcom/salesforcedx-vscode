@@ -9,8 +9,9 @@ import * as fs from 'node:fs/promises';
 import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
-import { upsertScratchOrgAuthFieldsToSettings } from '../pages/Settings';
+import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { create } from '../utils/dreamhouseScratchOrgSetup';
+import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
 const execAsync = promisify(exec);
 
@@ -18,16 +19,11 @@ test.describe('Org Browser - CustomObject retrieval (headless)', () => {
   test.setTimeout(10 * 60 * 1000);
 
   let tmpRoot: string | undefined;
-  let createdScratch = false;
+  const createdScratch = false;
 
   test.beforeEach(async ({ page }) => {
     const createResult = await create();
-    const { accessToken, instanceUrl, instanceApiVersion } = createResult;
-    const authFields = { accessToken, instanceUrl, instanceApiVersion };
-    tmpRoot = createResult.tmpRoot;
-    createdScratch = createResult.createdScratch === true;
-
-    await upsertScratchOrgAuthFieldsToSettings(page, authFields);
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
   });
 
   test.afterAll(async () => {
@@ -67,7 +63,7 @@ test.describe('Org Browser - CustomObject retrieval (headless)', () => {
     });
 
     await test.step('wait for retrieval progress to appear', async () => {
-      await orgBrowserPage.waitForRetrieveProgressNotificationToAppear(60_000);
+      await waitForRetrieveProgressNotificationToAppear(page, 60_000);
     });
 
     await test.step('wait for editor file to open (completion signal)', async () => {

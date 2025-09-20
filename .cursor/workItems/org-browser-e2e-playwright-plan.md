@@ -114,7 +114,7 @@ webServer: {
 
 2. New Playwright config for headless CI:
 
-- Add `playwright.headless.config.ts` alongside `playwright.web.config.ts` with:
+- Add `playwright.config.ts` alongside `playwright.config.ts` with:
   - `use.launchOptions.headless = true`, remove `devtools`/CDP flags.
   - `workers: process.env.CI ? 1 : undefined`, `retries: process.env.CI ? 2 : 0`.
   - `reporter`: include `junit` in CI.
@@ -137,7 +137,7 @@ webServer: {
 5. Scripts and workspace wiring:
 
 - In `packages/salesforcedx-vscode-org-browser/package.json`, add scripts:
-  - `test:web:headless`: `npm run bundle:extension && playwright test --config=playwright.headless.config.ts`.
+  - `test:web:headless`: `npm run bundle:extension && playwright test --config=playwright.config.ts`.
   - `test:web:headless:ci`: same with `CI=1` and persistent artifacts.
 - At repo root, mirror apex-language-support pattern if needed: `npm run test -w salesforcedx-vscode-org-browser -- test:web:headless`.
 
@@ -154,7 +154,6 @@ webServer: {
 - `npm run test:web:headless -w salesforcedx-vscode-org-browser` runs locally headless and passes smoke tests.
 - Same command passes in CI with retries=2, workers=1, and produces JUnit + HTML reports.
 - Existing CDP tests (`test:web`) remain functional and unchanged.
-- Visual debug mode supported: tests can run headed with inspector for step-through (e.g., `PWDEBUG=1` or `DEBUG_MODE=1` with `--headed`).
   - When DEBUG_MODE is set: disable Playwright timeouts, force single worker, open Chromium DevTools.
 
 ### Guiding Principle

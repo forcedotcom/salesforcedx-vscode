@@ -5,39 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { test, expect } from '@playwright/test';
-import * as fs from 'node:fs/promises';
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
-import { upsertScratchOrgAuthFieldsToSettings } from '../pages/Settings';
+import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { create } from '../utils/dreamhouseScratchOrgSetup';
-
-const execAsync = promisify(exec);
+import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
 /** Headless-like test for foldered Report retrieval */
 test.describe('Org Browser - Foldered Report retrieval (headless)', () => {
   test.setTimeout(10 * 60 * 1000);
 
-  let tmpRoot: string | undefined;
-  let createdScratch = false;
-
   test.beforeEach(async ({ page }) => {
     const createResult = await create();
-    const { accessToken, instanceUrl, instanceApiVersion } = createResult;
-    const authFields = { accessToken, instanceUrl, instanceApiVersion };
-    tmpRoot = createResult.tmpRoot;
-    createdScratch = createResult.createdScratch === true;
-
-    await upsertScratchOrgAuthFieldsToSettings(page, authFields);
-  });
-
-  test.afterAll(async () => {
-    if (createdScratch) {
-      await execAsync('sf org delete scratch -o dreamhouse --no-prompt').catch(() => undefined);
-    }
-    if (tmpRoot) {
-      await fs.rm(tmpRoot, { recursive: true, force: true }).catch(() => undefined);
-    }
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
   });
 
   test('foldered report headless: retrieve flow_orchestration_log from unfiled$public', async ({ page }) => {
@@ -88,7 +67,7 @@ test.describe('Org Browser - Foldered Report retrieval (headless)', () => {
     });
 
     await test.step('wait for retrieval progress to appear', async () => {
-      await orgBrowserPage.waitForRetrieveProgressNotificationToAppear(60_000);
+      await waitForRetrieveProgressNotificationToAppear(page, 60_000);
     });
 
     await test.step('wait for editor file to open (completion signal)', async () => {

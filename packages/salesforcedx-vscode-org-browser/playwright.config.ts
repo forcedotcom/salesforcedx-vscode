@@ -9,10 +9,9 @@ import { defineConfig, devices } from '@playwright/test';
 /** Headless Playwright configuration for CI/local runs (no CDP/devtools). */
 export default defineConfig({
   testDir: './test/web/headless',
-  fullyParallel: !process.env.DEBUG_MODE,
+  fullyParallel: !process.env.CI,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  ...(process.env.CI || process.env.DEBUG_MODE ? { workers: 1 } : {}),
+  ...(process.env.CI ? { workers: 1 } : {}),
   reporter: process.env.CI
     ? [['html', { open: 'never' }], ['line'], ['junit', { outputFile: 'test-results/junit.xml' }]]
     : [['html', { open: 'never' }], ['list']],
@@ -25,8 +24,6 @@ export default defineConfig({
     actionTimeout: 15000,
     navigationTimeout: 30000,
     launchOptions: {
-      headless: process.env.DEBUG_MODE ? false : true,
-      devtools: !!process.env.DEBUG_MODE,
       args: [
         '--disable-web-security',
         '--disable-features=VizDisplayCompositor',
@@ -38,7 +35,8 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] }
+      use: { ...devices['Desktop Chrome'] },
+      retries: 2
     }
   ],
   webServer: {
