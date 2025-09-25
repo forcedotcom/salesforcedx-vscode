@@ -25,8 +25,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "^8.19.1",
-    "@salesforce/lightning-lsp-common": "4.12.7",
-    "@salesforce/lwc-language-server": "4.12.7",
+    "@salesforce/lightning-lsp-common": "4.12.13",
+    "@salesforce/lwc-language-server": "4.12.13",
     "@salesforce/salesforcedx-utils": "64.15.0",
     "@salesforce/salesforcedx-utils-vscode": "64.15.0",
     "applicationinsights": "1.0.7",
