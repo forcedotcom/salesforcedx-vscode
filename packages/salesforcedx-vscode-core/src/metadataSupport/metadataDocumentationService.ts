@@ -87,8 +87,7 @@ export class MetadataDocumentationService {
       const xsdPath = path.join(__dirname, '..', '..', '..', 'resources', 'salesforce_metadata_api_clean.xsd');
 
       if (!fs.existsSync(xsdPath)) {
-        console.warn('XSD file not found, falling back to hardcoded documentation');
-        this.loadFallbackDocumentation();
+        console.warn('XSD file not found - no metadata documentation will be available');
         return;
       }
 
@@ -106,8 +105,7 @@ export class MetadataDocumentationService {
       const schema = parsedXsd['xsd:schema'];
 
       if (!schema?.['xsd:complexType']) {
-        console.warn('Invalid XSD structure, falling back to hardcoded documentation');
-        this.loadFallbackDocumentation();
+        console.warn('Invalid XSD structure - no metadata documentation will be available');
         return;
       }
 
@@ -152,8 +150,7 @@ export class MetadataDocumentationService {
         });
       }
     } catch (error) {
-      console.error('Error loading XSD documentation:', error);
-      this.loadFallbackDocumentation();
+      console.error('Error loading XSD documentation - no metadata documentation will be available:', error);
     }
   }
 
@@ -201,34 +198,6 @@ export class MetadataDocumentationService {
     }
 
     return fields;
-  }
-
-  /**
-   * Load fallback documentation when XSD parsing fails
-   * Uses hardcoded metadata types from the Salesforce Metadata API Developer Guide
-   * Source: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_types_list.htm
-   */
-  private loadFallbackDocumentation(): void {
-    const metadataTypes = this.getOfficialMetadataTypes();
-
-    for (const [typeName, typeInfo] of Object.entries(metadataTypes)) {
-      this.documentationMap.set(typeName, {
-        name: typeName,
-        description: typeInfo.description ?? '',
-        fields: typeInfo.fields,
-        developerGuideUrls: this.getDeveloperGuideUrls(typeName)
-      });
-    }
-  }
-
-  /**
-   * Get fallback metadata types when XSD parsing fails
-   * Returns empty object to encourage fixing XSD parsing issues rather than relying on hardcoded descriptions
-   */
-  private getOfficialMetadataTypes(): Record<string, Partial<MetadataTypeDocumentation>> {
-    // Return empty object - all documentation should come from XSD file
-    // If this fallback is used, it indicates an issue with XSD parsing that should be investigated
-    return {};
   }
 
   /** Generate developer guide URL for a metadata type with fallback patterns */
