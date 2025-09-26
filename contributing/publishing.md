@@ -78,6 +78,10 @@ find ~/Downloads/v64.8.0 -type f -name "*.vsix" -exec code --install-extension {
 
 After completing your release testing following our internal template, approve the publish job "Publish in Microsoft Marketplace" and "Publish in Open VSX Registry" to allow the extensions to be uploaded and complete the release process.
 
+## Troubleshooting
+
+- 401 errors on publish?  You probably need to update the VSCE PAT.  https://salesforce.quip.com/E8GWA5TuI8jp
+  
 ## Post-Publishing the .vsix
 
 1. Update the Salesforce Extension Pack to the version you just published. Either go to the Extensions tab, select Salesforce Extension pack, and update... or go to https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode, download the version you published, and install. The publish may take a few minutes to register in the marketplace.

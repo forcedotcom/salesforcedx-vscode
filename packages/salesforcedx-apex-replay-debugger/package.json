@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-apex-replay-debugger",
   "displayName": "Apex Replay Debug Adapter",
   "description": "Implements the VS Code Debug Protocol for the Apex Replay Debugger",
-  "version": "64.13.1",
+  "version": "64.15.0",
   "publisher": "salesforce",
   "preview": true,
   "license": "BSD-3-Clause",
@@ -14,7 +14,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils": "64.13.1",
+    "@salesforce/salesforcedx-utils": "64.15.0",
     "@vscode/debugadapter": "1.68.0",
     "@vscode/debugprotocol": "1.68.0",
     "vscode-uri": "^3.1.0"
@@ -29,7 +29,6 @@
     "ts-jest": "^29.4.1"
   },
   "scripts": {
-    "bundle:debugger": "esbuild ./src/adapter/apexReplayDebug.ts --bundle --outfile=dist/apexreplaydebug.js --format=cjs --platform=node --minify",
     "compile": "tsc -p ./",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
