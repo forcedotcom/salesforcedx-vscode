@@ -4,6 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { XMLParser } from 'fast-xml-parser';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+
 export type MetadataFieldInfo = {
   name: string;
   type: string;
@@ -54,24 +58,157 @@ export class MetadataDocumentationService {
    * Get documentation for a specific field within a metadata type
    */
   public getFieldDocumentation(metadataType: string, fieldName: string): Promise<MetadataFieldDocumentation | null> {
-    // Get field documentation from our hardcoded field definitions
+    // First, try to get field documentation from XSD-extracted metadata
+    const typeDoc = this.documentationMap.get(metadataType);
+    if (typeDoc?.fields) {
+      const field = typeDoc.fields.find(f => f.name === fieldName);
+      if (field) {
+        return Promise.resolve(field as MetadataFieldDocumentation);
+      }
+    }
+
+    // Fall back to hardcoded field definitions
     const fieldDoc = this.getFieldDefinitions(metadataType, fieldName);
     if (fieldDoc) {
       return Promise.resolve(fieldDoc);
     }
 
-    // If no hardcoded definition, try to extract from XSD patterns
+    // If no definition found, try to extract from XSD patterns
     return Promise.resolve(this.extractFieldFromXSDPatterns(metadataType, fieldName));
   }
 
   /**
-   * Load metadata documentation from the official Salesforce Developer Guide
-   * This references the authoritative documentation at:
-   * https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_types_list.htm
+   * Load metadata documentation from the Salesforce metadata XSD file
+   * This reads descriptions directly from the official XSD schema
    */
-  private loadMetadataDocumentation(): void {
-    // Load comprehensive metadata type documentation from the official Salesforce Developer Guide
-    // This is the authoritative source of truth for all metadata types
+  private async loadMetadataDocumentation(): Promise<void> {
+    try {
+      // Path resolution: from out/src/metadataSupport/ to resources/
+      const xsdPath = path.join(__dirname, '..', '..', '..', 'resources', 'salesforce_metadata_api_clean.xsd');
+
+      if (!fs.existsSync(xsdPath)) {
+        console.warn('XSD file not found, falling back to hardcoded documentation');
+        this.loadFallbackDocumentation();
+        return;
+      }
+
+      const xsdContent = fs.readFileSync(xsdPath, 'utf-8');
+      const parser = new XMLParser({
+        ignoreAttributes: false,
+        attributeNamePrefix: '@_',
+        textNodeName: '#text',
+        parseAttributeValue: false,
+        parseTagValue: false,
+        trimValues: true
+      });
+
+      const parsedXsd = parser.parse(xsdContent);
+      const schema = parsedXsd['xsd:schema'];
+
+      if (!schema?.['xsd:complexType']) {
+        console.warn('Invalid XSD structure, falling back to hardcoded documentation');
+        this.loadFallbackDocumentation();
+        return;
+      }
+
+      const complexTypes = Array.isArray(schema['xsd:complexType'])
+        ? schema['xsd:complexType']
+        : [schema['xsd:complexType']];
+
+      for (const complexType of complexTypes) {
+        if (!complexType['@_name']) continue;
+
+        const typeName = complexType['@_name'];
+        const annotation = complexType['xsd:annotation'];
+
+        let description = '';
+        let developerGuideUrl = '';
+
+        if (annotation) {
+          const documentation = annotation['xsd:documentation'];
+          const appinfo = annotation['xsd:appinfo'];
+
+          if (documentation) {
+            description = typeof documentation === 'string' ? documentation : documentation['#text'] || '';
+          }
+
+          if (appinfo) {
+            const appinfoText = typeof appinfo === 'string' ? appinfo : appinfo['#text'] || '';
+            const urlMatch = appinfoText.match(/Documentation:\s*(https?:\/\/[^\s]+)/);
+            if (urlMatch) {
+              developerGuideUrl = urlMatch[1];
+            }
+          }
+        }
+
+        // Extract field information from the complex type
+        const fields = this.extractFieldsFromComplexType(complexType);
+
+        this.documentationMap.set(typeName, {
+          name: typeName,
+          description: description.trim(),
+          fields,
+          developerGuideUrls: developerGuideUrl ? [developerGuideUrl] : this.getDeveloperGuideUrls(typeName)
+        });
+      }
+    } catch (error) {
+      console.error('Error loading XSD documentation:', error);
+      this.loadFallbackDocumentation();
+    }
+  }
+
+  /**
+   * Extract field information from XSD complex type definition
+   */
+  private extractFieldsFromComplexType(complexType: any): MetadataFieldInfo[] {
+    const fields: MetadataFieldInfo[] = [];
+
+    try {
+      // Navigate through the XSD structure to find elements
+      const extension = complexType['xsd:complexContent']?.['xsd:extension'];
+      const sequence = extension?.['xsd:sequence'] || complexType['xsd:sequence'];
+
+      if (!sequence?.['xsd:element']) {
+        return fields;
+      }
+
+      const elements = Array.isArray(sequence['xsd:element']) ? sequence['xsd:element'] : [sequence['xsd:element']];
+
+      for (const element of elements) {
+        if (!element['@_name']) continue;
+
+        const fieldName = element['@_name'];
+        const fieldType = element['@_type'] || 'string';
+        const minOccurs = element['@_minOccurs'];
+        const required = minOccurs !== '0';
+
+        let description = '';
+        const annotation = element['xsd:annotation'];
+        if (annotation?.['xsd:documentation']) {
+          const doc = annotation['xsd:documentation'];
+          description = typeof doc === 'string' ? doc : doc['#text'] || '';
+        }
+
+        fields.push({
+          name: fieldName,
+          type: fieldType.replace('xsd:', '').replace('tns:', ''),
+          description: description.trim(),
+          required
+        });
+      }
+    } catch (error) {
+      console.warn('Error extracting fields from complex type:', error);
+    }
+
+    return fields;
+  }
+
+  /**
+   * Load fallback documentation when XSD parsing fails
+   * Uses hardcoded metadata types from the Salesforce Metadata API Developer Guide
+   * Source: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_types_list.htm
+   */
+  private loadFallbackDocumentation(): void {
     const metadataTypes = this.getOfficialMetadataTypes();
 
     for (const [typeName, typeInfo] of Object.entries(metadataTypes)) {
@@ -95,8 +232,7 @@ export class MetadataDocumentationService {
           'Represents an audience definition. Audiences are used to define groups of users or contacts based on specific criteria for targeting in marketing campaigns, personalization, or content delivery.'
       },
       ApexClass: {
-        description:
-          'Represents an Apex class. An Apex class is a template or blueprint from which Apex objects are created. Classes consist of other classes, user-defined methods, variables, exception types, and static initialization code.'
+        description: 'ELEPHANT'
       },
       ApexTrigger: {
         description:
