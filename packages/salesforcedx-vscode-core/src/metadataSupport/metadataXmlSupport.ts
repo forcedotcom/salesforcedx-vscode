@@ -50,6 +50,10 @@ export class MetadataXmlSupport {
       extensionApi.addXMLCatalogs(inputCatalogs);
       extensionApi.addXMLFileAssociations(inputFileAssociations);
 
+      // Disable RedHat XML hover to prevent duplication with our custom hover provider
+      const config = vscode.workspace.getConfiguration('xml');
+      await config.update('preferences.showSchemaDocumentationType', 'none', vscode.ConfigurationTarget.Workspace);
+
       channelService.appendLine(nls.localize('metadata_xml_redhat_extension_setup_success'));
     } catch (error) {
       channelService.appendLine(nls.localize('metadata_xml_fail_redhat_extension'));
@@ -80,7 +84,7 @@ export class MetadataXmlSupport {
       const catalogs = this.getLocalFilePath(['metadata-catalog.xml'], extensionContext);
       const fileAssociations = [
         {
-          systemId: this.getLocalFilePath(['metadata-types.xsd'], extensionContext)[0],
+          systemId: this.getLocalFilePath(['salesforce_metadata_api_clean.xsd'], extensionContext)[0],
           pattern: '**/*-meta.xml'
         }
       ];
