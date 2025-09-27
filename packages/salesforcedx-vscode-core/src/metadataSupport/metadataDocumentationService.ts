@@ -146,7 +146,7 @@ export class MetadataDocumentationService {
           name: typeName,
           description: description.trim(),
           fields,
-          developerGuideUrls: developerGuideUrl ? [developerGuideUrl] : this.getDeveloperGuideUrls(typeName)
+          developerGuideUrls: developerGuideUrl ? [developerGuideUrl] : []
         });
       }
     } catch (error) {
@@ -198,47 +198,6 @@ export class MetadataDocumentationService {
     }
 
     return fields;
-  }
-
-  /** Generate developer guide URL for a metadata type with fallback patterns */
-  private getDeveloperGuideUrls(metadataType: string): string[] {
-    // Known specific URLs that don't follow standard patterns
-    const knownUrls: Record<string, string> = {
-      ApexClass: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_classes.htm',
-      ApexTrigger: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_triggers.htm',
-      ApexComponent: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_component.htm',
-      ApexPage: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_pages.htm',
-      CustomObject: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm',
-      CustomField: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customfield.htm',
-      CustomFieldTranslation:
-        'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customobjecttranslation.htm',
-      CustomSite: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sites.htm',
-      CustomTab: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_tab.htm',
-      DocumentFolder: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_document.htm',
-      EmailFolder: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailtemplate.htm',
-      Flow: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm',
-      MatchingRules: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_matchingrule.htm',
-      ReportFolder: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm'
-    };
-
-    // Return known URL if available
-    if (knownUrls[metadataType]) {
-      return [knownUrls[metadataType]];
-    }
-
-    // Try multiple URL patterns for unknown metadata types
-    const baseUrl = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta';
-    const typeNameLower = metadataType.toLowerCase();
-
-    // Generate potential URLs to try (in order of preference)
-    const potentialUrls = [
-      `${baseUrl}/meta_${typeNameLower}.htm`,
-      `${baseUrl}/meta_${typeNameLower}s.htm`, // plural form
-      `${baseUrl}/meta_${typeNameLower}es.htm`, // plural form with es suffix
-      `${baseUrl}/meta_${metadataType.replace(/([A-Z])/g, '_$1').toLowerCase()}.htm` // snake_case
-    ];
-
-    return potentialUrls;
   }
 
   /**
