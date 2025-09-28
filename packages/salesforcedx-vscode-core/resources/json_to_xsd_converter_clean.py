@@ -110,9 +110,9 @@ def create_clean_xsd_from_json(json_file_path, output_file_path):
     # Add base Metadata type
     xsd_lines.extend([
         ' <xsd:complexType name="Metadata">',
-        '  <xsd:sequence>',
+        '  <xsd:choice>',
         '   <xsd:element name="fullName" minOccurs="0" type="xsd:string"/>',
-        '  </xsd:sequence>',
+        '  </xsd:choice>',
         ' </xsd:complexType>'
     ])
 
@@ -145,7 +145,7 @@ def create_clean_xsd_from_json(json_file_path, output_file_path):
         if fields:
             xsd_lines.append('  <xsd:complexContent>')
             xsd_lines.append('   <xsd:extension base="tns:Metadata">')
-            xsd_lines.append('    <xsd:sequence>')
+            xsd_lines.append('    <xsd:choice>')
 
             # Add fields
             for field in fields:
@@ -173,7 +173,7 @@ def create_clean_xsd_from_json(json_file_path, output_file_path):
                     xsd_lines.append('     </xsd:element>')
 
             xsd_lines.extend([
-                '    </xsd:sequence>',
+                '    </xsd:choice>',
                 '   </xsd:extension>',
                 '  </xsd:complexContent>'
             ])
@@ -182,7 +182,7 @@ def create_clean_xsd_from_json(json_file_path, output_file_path):
             xsd_lines.extend([
                 '  <xsd:complexContent>',
                 '   <xsd:extension base="tns:Metadata">',
-                '    <xsd:sequence/>',
+                '    <xsd:choice/>',
                 '   </xsd:extension>',
                 '  </xsd:complexContent>'
             ])
