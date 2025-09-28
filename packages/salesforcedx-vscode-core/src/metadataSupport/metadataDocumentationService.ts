@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { fileOrFolderExists, readFile } from '@salesforce/salesforcedx-utils-vscode';
 import { XMLParser } from 'fast-xml-parser';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 export type MetadataFieldInfo = {
@@ -62,15 +62,29 @@ export class MetadataDocumentationService {
     const typeDoc = this.documentationMap.get(metadataType);
     if (typeDoc?.fields) {
       const field = typeDoc.fields.find(f => f.name === fieldName);
-      if (field) {
-        return Promise.resolve(field as MetadataFieldDocumentation);
+      if (field?.description.trim()) {
+        // Only use XSD field if it has meaningful documentation
+        return Promise.resolve(field);
       }
     }
 
-    // Fall back to hardcoded field definitions
+    // Fall back to hardcoded field definitions only for common fields or when XSD data is insufficient
     const fieldDoc = this.getFieldDefinitions(metadataType, fieldName);
     if (fieldDoc) {
       return Promise.resolve(fieldDoc);
+    }
+
+    // If we have XSD field data but no description, use it with pattern-based description
+    if (typeDoc?.fields) {
+      const field = typeDoc.fields.find(f => f.name === fieldName);
+      if (field) {
+        const patternDoc = this.extractFieldFromXSDPatterns(metadataType, fieldName);
+        return Promise.resolve({
+          ...field,
+          description:
+            patternDoc?.description ?? field.description ?? `The ${fieldName} field for ${metadataType} metadata.`
+        });
+      }
     }
 
     // If no definition found, try to extract from XSD patterns
@@ -86,12 +100,12 @@ export class MetadataDocumentationService {
       // Path resolution: from out/src/metadataSupport/ to resources/
       const xsdPath = path.join(__dirname, '..', '..', '..', 'resources', 'salesforce_metadata_api_clean.xsd');
 
-      if (!fs.existsSync(xsdPath)) {
+      if (!(await fileOrFolderExists(xsdPath))) {
         console.warn('XSD file not found - no metadata documentation will be available');
         return;
       }
 
-      const xsdContent = fs.readFileSync(xsdPath, 'utf-8');
+      const xsdContent = await readFile(xsdPath);
       const parser = new XMLParser({
         ignoreAttributes: false,
         attributeNamePrefix: '@_',
@@ -127,11 +141,11 @@ export class MetadataDocumentationService {
           const appinfo = annotation['xsd:appinfo'];
 
           if (documentation) {
-            description = typeof documentation === 'string' ? documentation : documentation['#text'] || '';
+            description = typeof documentation === 'string' ? documentation : (documentation['#text'] ?? '');
           }
 
           if (appinfo) {
-            const appinfoText = typeof appinfo === 'string' ? appinfo : appinfo['#text'] || '';
+            const appinfoText = typeof appinfo === 'string' ? appinfo : (appinfo['#text'] ?? '');
             const urlMatch = appinfoText.match(/Documentation:\s*(https?:\/\/[^\s]+)/);
             if (urlMatch) {
               developerGuideUrl = urlMatch[1];
@@ -163,19 +177,32 @@ export class MetadataDocumentationService {
     try {
       // Navigate through the XSD structure to find elements
       const extension = complexType['xsd:complexContent']?.['xsd:extension'];
-      const sequence = extension?.['xsd:sequence'] || complexType['xsd:sequence'];
 
-      if (!sequence?.['xsd:element']) {
+      // Look for elements in both sequence and choice structures
+      const sequence = extension?.['xsd:sequence'] ?? complexType['xsd:sequence'];
+      const choice = extension?.['xsd:choice'] ?? complexType['xsd:choice'];
+
+      // Get elements from either sequence or choice
+      let elementsContainer = null;
+      if (sequence?.['xsd:element']) {
+        elementsContainer = sequence;
+      } else if (choice?.['xsd:element']) {
+        elementsContainer = choice;
+      }
+
+      if (!elementsContainer?.['xsd:element']) {
         return fields;
       }
 
-      const elements = Array.isArray(sequence['xsd:element']) ? sequence['xsd:element'] : [sequence['xsd:element']];
+      const elements = Array.isArray(elementsContainer['xsd:element'])
+        ? elementsContainer['xsd:element']
+        : [elementsContainer['xsd:element']];
 
       for (const element of elements) {
         if (!element['@_name']) continue;
 
         const fieldName = element['@_name'];
-        const fieldType = element['@_type'] || 'string';
+        const fieldType = element['@_type'] ?? 'string';
         const minOccurs = element['@_minOccurs'];
         const required = minOccurs !== '0';
 
@@ -183,7 +210,7 @@ export class MetadataDocumentationService {
         const annotation = element['xsd:annotation'];
         if (annotation?.['xsd:documentation']) {
           const doc = annotation['xsd:documentation'];
-          description = typeof doc === 'string' ? doc : doc['#text'] || '';
+          description = typeof doc === 'string' ? doc : (doc['#text'] ?? '');
         }
 
         fields.push({
