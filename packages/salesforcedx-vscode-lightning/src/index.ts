@@ -5,14 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { shared } from '@salesforce/lightning-lsp-common';
+import { detectWorkspaceType, isLWC } from '@salesforce/lightning-lsp-common';
 import { code2ProtocolConverter, TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { ExtensionContext, ProgressLocation, Uri, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import { nls } from './messages';
-
-const { detectWorkspaceType, isLWC } = shared;
 
 const protocol2CodeConverter = (value: string): Uri => Uri.parse(value);
 

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { shared } from '@salesforce/lightning-lsp-common';
+import { detectWorkspaceType, isLWC } from '@salesforce/lightning-lsp-common';
 import { ActivationTracker, SFDX_LWC_EXTENSION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { commands, ConfigurationTarget, Disposable, ExtensionContext, workspace, WorkspaceConfiguration } from 'vscode';
@@ -17,8 +17,6 @@ import { DevServerService } from './service/devServerService';
 import { telemetryService } from './telemetry';
 import { activateLwcTestSupport, shouldActivateLwcTestSupport } from './testSupport';
 import { WorkspaceUtils } from './util/workspaceUtils';
-
-const { detectWorkspaceType, isLWC } = shared;
 
 export const activate = async (extensionContext: ExtensionContext) => {
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
