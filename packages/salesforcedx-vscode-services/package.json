@@ -88,7 +88,7 @@
         "salesforcedx-vscode-code-builder-web.apiVersion": {
           "type": "string",
           "default": "64.0",
-          "description": "Salesforce api version"
+          "description": "Salesforce api version (example: 65.0)"
         },
         "salesforcedx-vscode-salesforcedx.enableLocalTraces": {
           "type": "boolean",
