@@ -44,7 +44,7 @@ jobs:
       - name: create scratch org
         shell: bash
         run: |
-          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --sfdx-url-stdin --set-default-dev-hub
+          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json
           sf project deploy start
           sf org assign permset -n dreamhouse
