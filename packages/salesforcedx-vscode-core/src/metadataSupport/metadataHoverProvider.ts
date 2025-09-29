@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'node:path';
+// import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { MetadataDocumentationService } from './metadataDocumentationService';
 
@@ -122,37 +122,38 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
   private isMetadataFile(document: vscode.TextDocument): boolean {
     // Since we're now registered for all XML files, check if this is a Salesforce metadata file
     // by looking for the Salesforce metadata namespace or common metadata file patterns
-    const fileName = path.basename(document.fileName);
+    // const fileName = path.basename(document.fileName);
     const documentText = document.getText();
 
     // Check for Salesforce metadata namespace
     if (documentText.includes('http://soap.sforce.com/2006/04/metadata')) {
       return true;
     }
+    return false;
 
-    // Check for common Salesforce metadata file naming patterns
-    return (
-      fileName.endsWith('-meta.xml') ||
-      fileName.includes('.object') ||
-      fileName.includes('.flow') ||
-      fileName.includes('.layout') ||
-      fileName.includes('.profile') ||
-      fileName.includes('.permissionset') ||
-      fileName.includes('.profilePasswordPolicy') ||
-      fileName.includes('.app') ||
-      fileName.includes('.tab') ||
-      fileName.includes('.trigger') ||
-      fileName.includes('.cls') ||
-      fileName.includes('.component') ||
-      fileName.includes('.page') ||
-      fileName.includes('.email') ||
-      fileName.includes('.report') ||
-      fileName.includes('.dashboard') ||
-      fileName.includes('.resource') ||
-      fileName.includes('.workflow') ||
-      fileName.includes('.validationRule') ||
-      fileName.includes('.customField')
-    );
+    // // Check for common Salesforce metadata file naming patterns
+    // return (
+    //   fileName.endsWith('-meta.xml') ||
+    //   fileName.includes('.object') ||
+    //   fileName.includes('.flow') ||
+    //   fileName.includes('.layout') ||
+    //   fileName.includes('.profile') ||
+    //   fileName.includes('.permissionset') ||
+    //   fileName.includes('.profilePasswordPolicy') ||
+    //   fileName.includes('.app') ||
+    //   fileName.includes('.tab') ||
+    //   fileName.includes('.trigger') ||
+    //   fileName.includes('.cls') ||
+    //   fileName.includes('.component') ||
+    //   fileName.includes('.page') ||
+    //   fileName.includes('.email') ||
+    //   fileName.includes('.report') ||
+    //   fileName.includes('.dashboard') ||
+    //   fileName.includes('.resource') ||
+    //   fileName.includes('.workflow') ||
+    //   fileName.includes('.validationRule') ||
+    //   fileName.includes('.customField')
+    // );
   }
 
   /**

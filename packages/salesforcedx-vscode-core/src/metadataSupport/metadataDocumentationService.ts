@@ -244,16 +244,9 @@ export class MetadataDocumentationService {
         type: 'string',
         description: 'A description of the metadata component. This field is optional and provides additional context.',
         required: false
-      },
-      masterLabel: {
-        name: 'masterLabel',
-        type: 'string',
-        description: 'The display label for the metadata component. This is what users see in the Salesforce UI.',
-        required: false
       }
     };
 
-    // Fall back to common fields
     if (commonFields[fieldName]) {
       return commonFields[fieldName];
     }
@@ -274,7 +267,7 @@ export class MetadataDocumentationService {
       },
       is: {
         type: 'boolean',
-        description: `Indicates whether this component ${fieldName.replace('is', '').toLowerCase()}.`
+        description: `Indicates whether this component is ${fieldName.replace('is', '').toLowerCase()}.`
       },
       allow: {
         type: 'boolean',
