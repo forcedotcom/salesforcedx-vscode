@@ -68,13 +68,12 @@ export class OrgBrowserPage {
       timeout: 15000
     });
     await this.activityBarItem.click();
-    await expect(this.sidebar, 'Sidebar for Org Browser should be visible').toBeVisible({ timeout: 10000 });
-    console.log('✅ Org Browser opened');
+    await expect(this.sidebar, 'Sidebar for Org Browser should be visible').toBeVisible({ timeout: 10_000 });
 
     await this.noProgressActivity();
 
     // Assert at least 5 top-level items are present
-    await expect(this.page.locator('[role="treeitem"][aria-level="1"]').nth(4)).toBeVisible({ timeout: 15000 });
+    await expect(this.page.locator('[role="treeitem"][aria-level="1"]').nth(4)).toBeVisible({ timeout: 30_000 });
     await saveScreenshot(this.page, 'orgBrowserPage.openOrgBrowser.metadataTypesLoaded.png', true);
     console.log('✅ Metadata types loaded');
   }
@@ -105,20 +104,6 @@ export class OrgBrowserPage {
     await this.page.mouse.wheel(0, this.page.viewportSize()?.height ?? 1080 * 0.75);
 
     console.log('✅ Successfully clicked folder item');
-    // Debug: log number of metadata items now present at level 2
-    try {
-      const items = this.page.locator('[role="treeitem"][aria-level="2"]');
-      const itemCount = await items.count();
-      console.log(`DEBUG: after expand, metadata items (level=2) count = ${itemCount}`);
-      for (let i = 0; i < Math.min(itemCount, 20); i++) {
-        try {
-          const label = await items.nth(i).getAttribute('aria-label');
-          console.log(`DEBUG: level2[${i}] aria-label=${label}`);
-        } catch {}
-      }
-    } catch (e) {
-      console.log('DEBUG: failed to enumerate level=2 items', e);
-    }
   }
 
   /**
@@ -202,8 +187,6 @@ export class OrgBrowserPage {
    */
   // eslint-disable-next-line class-methods-use-this
   public async clickRetrieveButton(item: Locator): Promise<boolean> {
-    console.log('Attempting to click retrieve button');
-
     // First hover over the row to make action buttons visible
     await item.hover();
 

@@ -59,12 +59,10 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
 
   const performSearch = async (query: string): Promise<void> => {
     // Reset search by selecting all and clearing
-    // sometimes the first click gets blurred, so do it again
     await searchMonaco.click();
-    await searchMonaco.click();
-    await searchMonaco.click();
-    await searchMonaco.click();
-    await searchMonaco.click();
+    // seems to be necessary to avoid clearing the setting instead of the search box.
+    // TODO: figure out what to actually wait for (ex: can I tell if it's focused?)
+    await page.waitForTimeout(100);
     // TODO: this works in headless tests with playwright on local mac, and ControlOrMeta+A doesn't work!
     await page.keyboard.press('Control+KeyA');
     await page.keyboard.press('Backspace');
