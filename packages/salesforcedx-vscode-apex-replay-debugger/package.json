@@ -34,7 +34,7 @@
   "devDependencies": {
     "@salesforce/core": "^8.18.4",
     "@types/async-lock": "1.4.2",
-    "esbuild": "0.25.0",
+    "esbuild": "0.25.10",
     "salesforcedx-vscode-apex": "64.16.0",
     "salesforcedx-vscode-core": "64.16.0"
   },
