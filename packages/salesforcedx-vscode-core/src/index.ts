@@ -399,24 +399,9 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     const internalCommands = registerInternalDevCommands();
     extensionContext.subscriptions.push(internalCommands);
 
-    // Api
-    const internalApi: any = {
-      channelService,
-      isCLIInstalled,
-      notificationService,
-      OrgAuthInfo,
-      ProgressNotification,
-      SfCommandlet,
-      SfCommandletExecutor,
-      salesforceCoreSettings,
-      SfWorkspaceChecker,
-      telemetryService
-    };
-
     telemetryService.sendExtensionActivationEvent(activationStartTime);
     MetricsReporter.extensionPackStatus();
     console.log('SF CLI Extension Activated (internal dev mode)');
-    return internalApi;
   }
 
   // Context
