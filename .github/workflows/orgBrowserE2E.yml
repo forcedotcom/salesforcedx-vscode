@@ -35,7 +35,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers and OS deps
-        run: npx playwright install --with-deps
+        run: npx playwright install chromium --with-deps
 
       - name: Clone dreamhouse
         shell: bash
