@@ -11,7 +11,6 @@ import {
   SFDX_CORE_CONFIGURATION_NAME,
   SfWorkspaceChecker,
   TelemetryService,
-  TimingUtils,
   TraceFlags,
   WorkspaceContextUtil,
   ensureCurrentWorkingDirIsProjectPath,
@@ -366,7 +365,6 @@ const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promi
 };
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
-  const activationStartTime = TimingUtils.getCurrentTime();
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
   const rootWorkspacePath = getRootWorkspacePath();
   // Switch to the project directory so that the main @salesforce
@@ -398,10 +396,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     // Internal Dev commands
     const internalCommands = registerInternalDevCommands();
     extensionContext.subscriptions.push(internalCommands);
-
-    telemetryService.sendExtensionActivationEvent(activationStartTime);
-    MetricsReporter.extensionPackStatus();
-    console.log('SF CLI Extension Activated (internal dev mode)');
   }
 
   // Context
