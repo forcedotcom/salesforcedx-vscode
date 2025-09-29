@@ -55,7 +55,7 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
         # compile the entire project to
         run: |
-          npm run bundle:extension -w salesforcedx-vscode-services
+          npm run vscode:bundle
           npm run test:web:headless:ci -w salesforcedx-vscode-org-browser -- --reporter=html
 
       - name: Upload Playwright HTML report
