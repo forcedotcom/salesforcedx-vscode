@@ -82,13 +82,17 @@ export class OrgBrowserPage {
   /** the progress bar at the top of the orgBrowser.  Use this to ensure that some action completed */
   public async noProgressActivity(): Promise<void> {
     await Promise.race([this.ProgressActivity(), this.page.waitForTimeout(500)]); // give it a half second to start before waiting for it to stop
-    await expect(this.page.locator('#workbench\.parts\.sidebar > div.content ').getByRole('progressbar')).toBeHidden({
+    await expect(
+      this.page.locator('#workbench\.parts\.sidebar > div.content ').getByRole('progressbar', { includeHidden: true })
+    ).toBeHidden({
       timeout: 15_000
     });
   }
 
   public async ProgressActivity(): Promise<void> {
-    await expect(this.page.locator('#workbench\.parts\.sidebar > div.content ').getByRole('progressbar')).toBeVisible({
+    await expect(
+      this.page.locator('#workbench\.parts\.sidebar > div.content ').getByRole('progressbar', { includeHidden: true })
+    ).toBeVisible({
       timeout: 15_000
     });
   }
@@ -101,6 +105,20 @@ export class OrgBrowserPage {
     await this.page.mouse.wheel(0, this.page.viewportSize()?.height ?? 1080 * 0.75);
 
     console.log('✅ Successfully clicked folder item');
+    // Debug: log number of metadata items now present at level 2
+    try {
+      const items = this.page.locator('[role="treeitem"][aria-level="2"]');
+      const itemCount = await items.count();
+      console.log(`DEBUG: after expand, metadata items (level=2) count = ${itemCount}`);
+      for (let i = 0; i < Math.min(itemCount, 20); i++) {
+        try {
+          const label = await items.nth(i).getAttribute('aria-label');
+          console.log(`DEBUG: level2[${i}] aria-label=${label}`);
+        } catch {}
+      }
+    } catch (e) {
+      console.log('DEBUG: failed to enumerate level=2 items', e);
+    }
   }
 
   /**

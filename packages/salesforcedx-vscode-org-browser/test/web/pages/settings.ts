@@ -58,6 +58,12 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
   const searchMonaco = settingsLocator(page).first();
 
   const performSearch = async (query: string): Promise<void> => {
+    // Reset search by selecting all and clearing
+    // sometimes the first click gets blurred, so do it again
+    await searchMonaco.click();
+    await searchMonaco.click();
+    await searchMonaco.click();
+    await searchMonaco.click();
     await searchMonaco.click();
     // TODO: this works in headless tests with playwright on local mac, and ControlOrMeta+A doesn't work!
     await page.keyboard.press('Control+KeyA');
@@ -77,36 +83,17 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
     // First try an exact search by full id (section.key)
     await performSearch(id);
 
-    // Prefer deterministic search result id for the exact setting id
+    // Deterministic locator: target the element that actually contains the `data-id` attribute
     const searchResultId = `searchResultModel_${id.replace(/\./g, '_')}`;
-    const rowById = page.locator(`.setting-item[data-id="${searchResultId}"]`).first();
-    await Promise.any([
-      rowById.waitFor({ state: 'attached', timeout: 5000 }),
-      page
-        .getByText(/Setting Found/i)
-        .first()
-        .waitFor({ timeout: 5000 })
-    ]).catch(() => undefined);
+    const rowById = page.locator(`[data-id="${searchResultId}"]`).first();
 
-    let row = rowById;
-    const present = (await rowById.count()) > 0;
-    if (!present) {
-      // Fallback to label text if the deterministic id isn't present
-      const keyOnly = id.split('.').pop() ?? id;
-      const labelRegex = /instanceUrl$/i.test(id)
-        ? /instance\s*url/i
-        : /accessToken$/i.test(id)
-          ? /access\s*token/i
-          : /apiVersion$/i.test(id)
-            ? /api\s*version/i
-            : new RegExp(keyOnly.replace(/[-_.]/g, '\\s*'), 'i');
-      row = page
-        .locator('.setting-item')
-        .filter({ has: page.locator('.setting-item-title') })
-        .filter({ hasText: labelRegex })
-        .first();
-      await row.waitFor({ state: 'attached', timeout: 15000 });
+    if (debugAria) {
+      console.log(`[upsertSettings] using deterministic locator for ${id}: data-id="${searchResultId}"`);
     }
+
+    // Fail fast if the deterministic row isn't found — do not fall back to label-based heuristics
+    await rowById.waitFor({ state: 'attached', timeout: 15000 });
+    const row = rowById;
 
     await row.waitFor({ state: 'visible', timeout: 30000 });
     if (debugAria) {
@@ -131,14 +118,5 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
         console.log(`[ARIA after ${id}]\n${ariaAfter}`);
       } catch {}
     }
-
-    // Reset search by selecting all and clearing
-    // sometimes the first click gets blurred, so do it again
-    await searchMonaco.click({ timeout: 5000 });
-    await searchMonaco.click({ timeout: 5000 });
-    await searchMonaco.click({ timeout: 5000 });
-
-    await page.keyboard.press('Control+KeyA');
-    await page.keyboard.press('Backspace');
   }
 };

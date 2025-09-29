@@ -42,6 +42,7 @@ jobs:
         run: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
 
       - name: create scratch org and set up dreamhouse
+        # the tests expect a scratch org with dreahmouse at a certain alias but don't use the directory directly
         shell: bash
         run: |
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
@@ -55,7 +56,7 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
         # compile the entire project to
         run: |
-          npm run vscode:bundle
+          npx lerna run bundle:extension -w salesforcedx-vscode-services
           npm run test:web:headless:ci -w salesforcedx-vscode-org-browser -- --reporter=html
 
       - name: Upload Playwright HTML report
