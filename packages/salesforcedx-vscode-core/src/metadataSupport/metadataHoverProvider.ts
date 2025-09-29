@@ -159,7 +159,7 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
    * Extract metadata type or field from the current line and cursor position
    */
   private extractMetadataType(lineText: string, word: string, cursorPosition: number): string | null {
-    // Look for XML element patterns
+    // Look for XML element patterns - original logic for compatibility
     const xmlElementRegex = /<(\/?)([\w:]+)(\s|>|\/)/g;
     let match;
 
@@ -167,6 +167,27 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
       const [fullMatch, , elementName] = match;
       const matchStart = match.index;
       const matchEnd = match.index + fullMatch.length;
+
+      // Check if cursor is within this element
+      if (cursorPosition >= matchStart && cursorPosition <= matchEnd) {
+        // Remove namespace prefix if present
+        const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
+
+        // Check if this looks like a metadata type (starts with capital letter)
+        if (/^[A-Z]/.test(cleanElementName)) {
+          return cleanElementName;
+        }
+      }
+    }
+
+    // Additional check for multi-line elements (when closing > is on next line)
+    const multiLineElementRegex = /<(\/?)([\w:]+)$/g;
+    let multiLineMatch;
+
+    while ((multiLineMatch = multiLineElementRegex.exec(lineText)) !== null) {
+      const [fullMatch, , elementName] = multiLineMatch;
+      const matchStart = multiLineMatch.index;
+      const matchEnd = multiLineMatch.index + fullMatch.length;
 
       // Check if cursor is within this element
       if (cursorPosition >= matchStart && cursorPosition <= matchEnd) {
@@ -202,7 +223,7 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
       return null;
     }
 
-    // Look for XML element patterns for fields (lowercase or camelCase)
+    // Look for XML element patterns for fields (lowercase or camelCase) - original logic
     const xmlElementRegex = /<(\/?)([\w:]+)(\s|>|\/)/g;
     let match;
 
@@ -210,6 +231,31 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
       const [fullMatch, , elementName] = match;
       const matchStart = match.index;
       const matchEnd = match.index + fullMatch.length;
+
+      // Check if cursor is within this element
+      if (position.character >= matchStart && position.character <= matchEnd) {
+        // Remove namespace prefix if present
+        const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
+
+        // Check if this looks like a field (not a metadata type)
+        if (!/^[A-Z]/.test(cleanElementName) && cleanElementName.length > 1) {
+          // Find the parent metadata type by scanning upward
+          const parentType = this.findParentMetadataType(document, position.line);
+          if (parentType) {
+            return { metadataType: parentType, fieldName: cleanElementName };
+          }
+        }
+      }
+    }
+
+    // Additional check for multi-line field elements (when closing > is on next line)
+    const multiLineElementRegex = /<(\/?)([\w:]+)$/g;
+    let multiLineMatch;
+
+    while ((multiLineMatch = multiLineElementRegex.exec(line.text)) !== null) {
+      const [fullMatch, , elementName] = multiLineMatch;
+      const matchStart = multiLineMatch.index;
+      const matchEnd = multiLineMatch.index + fullMatch.length;
 
       // Check if cursor is within this element
       if (position.character >= matchStart && position.character <= matchEnd) {
@@ -241,6 +287,20 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
 
       while ((match = xmlElementRegex.exec(line)) !== null) {
         const elementName = match[1];
+        const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
+
+        // Check if this looks like a metadata type (starts with capital letter)
+        if (/^[A-Z]/.test(cleanElementName)) {
+          return cleanElementName;
+        }
+      }
+
+      // Also check for multi-line elements (when closing > is on next line)
+      const multiLineElementRegex = /<([\w:]+)$/g;
+      let multiLineMatch;
+
+      while ((multiLineMatch = multiLineElementRegex.exec(line)) !== null) {
+        const elementName = multiLineMatch[1];
         const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
 
         // Check if this looks like a metadata type (starts with capital letter)

@@ -675,6 +675,7 @@ describe('MetadataHoverProvider', () => {
     beforeEach(() => {
       // Mock the documentation service
       const mockDocumentationService = {
+        getDocumentation: jest.fn(),
         getFieldDocumentation: jest.fn()
       };
       (hoverProvider as any).documentationService = mockDocumentationService;
@@ -807,6 +808,52 @@ describe('MetadataHoverProvider', () => {
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'CustomObject',
         'enableSharing'
+      );
+    });
+
+    it('should handle multi-line XML elements where closing > is on next line', async () => {
+      const content = `<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject
+    xmlns="http://soap.sforce.com/2006/04/metadata">
+    <enableActivities
+        type="boolean">true</enableActivities>
+</CustomObject>`;
+
+      const document = createMockDocument('TestObject__c.object-meta.xml', content);
+
+      // Mock return values
+      const mockTypeDoc = {
+        name: 'CustomObject',
+        description: 'Represents a custom object in Salesforce',
+        fields: []
+      };
+
+      const mockFieldDoc = {
+        name: 'enableActivities',
+        type: 'boolean',
+        description: 'Indicates whether activities are enabled for this object',
+        required: false
+      };
+
+      (hoverProvider as any).documentationService.getDocumentation.mockReturnValue(mockTypeDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+
+      // Test hovering over "CustomObject" on line 1 (multi-line opening tag)
+      const position1 = { line: 1, character: 5 } as vscode.Position;
+      const result1 = await hoverProvider.provideHover(document, position1, {} as any);
+
+      expect(result1).not.toBeNull();
+      expect(result1?.contents).toBeDefined();
+      expect((hoverProvider as any).documentationService.getDocumentation).toHaveBeenCalledWith('CustomObject');
+
+      // Test hovering over "enableActivities" on line 3 (multi-line field element)
+      const position2 = { line: 3, character: 10 } as vscode.Position;
+      const result2 = await hoverProvider.provideHover(document, position2, {} as any);
+
+      expect(result2).not.toBeNull();
+      expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
+        'CustomObject',
+        'enableActivities'
       );
     });
   });
