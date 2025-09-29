@@ -400,17 +400,22 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     extensionContext.subscriptions.push(internalCommands);
 
     // Api
-    const internalApi: any = {
+    const internalApi: SalesforceVSCodeCoreApi = {
       channelService,
+      getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
+      getUserId: OrgAuthInfo.getUserId,
       isCLIInstalled,
       notificationService,
       OrgAuthInfo,
       ProgressNotification,
+      SelectFileName,
+      SelectOutputDir,
       SfCommandlet,
       SfCommandletExecutor,
       salesforceCoreSettings,
       SfWorkspaceChecker,
       WorkspaceContext,
+      taskViewService,
       telemetryService,
       services: {
         RegistryAccess,
