@@ -37,8 +37,6 @@ jobs:
       - name: Install Playwright browsers and OS deps
         run: npx playwright install --with-deps
 
-      - name: install vscode
-        run: npx @vscode/test-electron download --version "$VSCODE_VERSION"
       - name: Clone dreamhouse
         shell: bash
         run: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
