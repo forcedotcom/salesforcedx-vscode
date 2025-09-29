@@ -37,11 +37,13 @@ jobs:
       - name: Install Playwright browsers and OS deps
         run: npx playwright install --with-deps
 
+      - name: install vscode
+        run: npx @vscode/test-electron download --version "$VSCODE_VERSION"
       - name: Clone dreamhouse
         shell: bash
         run: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
 
-      - name: create scratch org
+      - name: create scratch org and set up dreamhouse
         shell: bash
         run: |
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
@@ -53,7 +55,9 @@ jobs:
       - name: Run Org Browser headless tests (headless config)
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+        # compile the entire project to
         run: |
+          npm run bundle:extension -w salesforcedx-vscode-services
           npm run test:web:headless:ci -w salesforcedx-vscode-org-browser -- --reporter=html
 
       - name: Upload Playwright HTML report
