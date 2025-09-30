@@ -250,7 +250,7 @@
         },
         {
           "command": "sf.lightning.lwc.test.runAllTests",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened || sf:internal_dev"
         },
         {
           "command": "sf.lightning.lwc.test.view.collapseAll",
