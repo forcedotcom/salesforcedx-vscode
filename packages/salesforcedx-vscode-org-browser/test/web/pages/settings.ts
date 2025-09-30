@@ -26,7 +26,7 @@ const settingsLocator = (page: Page): Locator =>
   );
 
 /** Open the Command Palette and execute Preferences: Open Settings (UI) */
-export const openSettingsUI = async (page: Page): Promise<void> => {
+const openSettingsUI = async (page: Page): Promise<void> => {
   await page.waitForSelector('.monaco-workbench', { timeout: 60000 });
   await page.locator('.monaco-workbench').click({ timeout: 5000 });
   await page.waitForTimeout(2000);

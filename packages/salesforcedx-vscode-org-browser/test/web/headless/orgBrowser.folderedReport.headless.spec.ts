@@ -45,8 +45,11 @@ test.describe('Org Browser - Foldered Report retrieval (headless)', () => {
     });
 
     const reportItem = await test.step('locate first report item in folder', async () => {
-      const level3 = page.locator('[role="treeitem"][aria-level="3"]').first();
-      await expect(level3).toBeVisible({ timeout: 15000 });
+      const level3 = await orgBrowserPage.getMetadataItem(
+        'unfiled$public',
+        'unfiled$public/flow_screen_prebuilt_report',
+        3
+      );
       const txt = (await level3.textContent())?.trim() ?? '';
       reportName = txt.split('/').pop();
       await level3.hover({ timeout: 500 });
