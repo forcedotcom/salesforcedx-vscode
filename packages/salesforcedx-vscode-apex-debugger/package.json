@@ -31,7 +31,7 @@
     "@vscode/debugprotocol": "1.68.0"
   },
   "devDependencies": {
-    "esbuild": "0.25.0",
+    "esbuild": "0.25.10",
     "salesforcedx-vscode-apex": "64.16.0"
   },
   "extensionDependencies": [
