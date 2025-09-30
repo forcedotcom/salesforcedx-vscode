@@ -6,10 +6,8 @@
  */
 
 import { Config, ConfigAggregator, Org, OrgConfigProperties, StateAggregator } from '@salesforce/core';
-import * as path from 'node:path';
 import { workspaceUtils } from '..';
 import { SF_CONFIG_DISABLE_TELEMETRY, TARGET_DEV_HUB_KEY, TARGET_ORG_KEY } from '../constants';
-import { createDirectory } from '../helpers';
 import { ConfigAggregatorProvider } from '../providers';
 import { TelemetryService } from '../services/telemetry';
 
@@ -86,8 +84,8 @@ export class ConfigUtil {
   }
 
   public static async getGlobalTargetDevHubOrAlias(): Promise<string | undefined> {
-    const globalConfigAggregator = await ConfigAggregator.create();
-    const globalTargetDevHub = globalConfigAggregator.getPropertyValue(TARGET_DEV_HUB_KEY);
+    const globalConfig = await Config.create({ isGlobal: true });
+    const globalTargetDevHub = globalConfig.get(TARGET_DEV_HUB_KEY);
 
     return globalTargetDevHub ? String(globalTargetDevHub) : undefined;
   }
@@ -144,29 +142,39 @@ export class ConfigUtil {
   }
 
   public static async unsetTargetOrg(): Promise<void> {
+    const originalDirectory = process.cwd();
+    // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
     const workspacePath = workspaceUtils.getRootWorkspacePath();
-    const configDir = path.join(workspacePath, '.sfdx');
-    await createDirectory(configDir);
-    const config = await Config.create({ isGlobal: false, rootFolder: workspacePath });
-    config.unset(TARGET_ORG_KEY);
-    await config.write();
-    await this.updateConfigAndStateAggregators();
+    try {
+      process.chdir(workspacePath);
+      const config = await Config.create(Config.getDefaultOptions());
+      config.unset(TARGET_ORG_KEY);
+      await config.write();
+      await this.updateConfigAndStateAggregators();
+    } finally {
+      process.chdir(originalDirectory);
+    }
   }
 
   public static async setTargetOrgOrAlias(usernameOrAlias: string): Promise<void> {
+    const originalDirectory = process.cwd();
+    // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
     const workspacePath = workspaceUtils.getRootWorkspacePath();
-    // checks if the usernameOrAlias is non-empty and active.
-    if (usernameOrAlias) {
-      // throws an error if the org associated with the usernameOrAlias is expired.
-      await Org.create({ aliasOrUsername: usernameOrAlias });
+    try {
+      // checks if the usernameOrAlias is non-empty and active.
+      if (usernameOrAlias) {
+        // throws an error if the org associated with the usernameOrAlias is expired.
+        await Org.create({ aliasOrUsername: usernameOrAlias });
+      }
+      process.chdir(workspacePath);
+      await this.setUsernameOrAlias(usernameOrAlias);
+    } finally {
+      process.chdir(originalDirectory);
     }
-    await this.setUsernameOrAlias(usernameOrAlias, workspacePath);
   }
 
-  private static async setUsernameOrAlias(usernameOrAlias: string, workspacePath: string) {
-    const configDir = path.join(workspacePath, '.sfdx');
-    await createDirectory(configDir);
-    const config = await Config.create({ isGlobal: false, rootFolder: workspacePath });
+  private static async setUsernameOrAlias(usernameOrAlias: string) {
+    const config = await Config.create(Config.getDefaultOptions());
     config.set(TARGET_ORG_KEY, usernameOrAlias);
     await config.write();
     await this.updateConfigAndStateAggregators();

@@ -134,8 +134,7 @@ export default class GenerationInteractionLogger {
   public async writeLogs(): Promise<void> {
     if (this.okToLog()) {
       // create a file path based on current date time
-      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '';
-      const logPath = join(workspaceRoot, 'llm-logs');
+      const logPath = join(process.cwd(), 'llm-logs');
       const dateTime = new Date().toISOString().replace(/:/g, '-'); // colon is illegal for filename in Windows
       const fileName = `oas-gen-logs-${dateTime}.json`;
       const filePath = join(logPath, fileName);
