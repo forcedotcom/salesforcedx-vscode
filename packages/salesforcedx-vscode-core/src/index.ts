@@ -236,7 +236,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const treeDataProvider = vscode.window.registerTreeDataProvider('sf.tasks.view', taskViewService);
   extensionContext.subscriptions.push(treeDataProvider);
 
-  // Set internal dev context
+  // Context
+  const salesforceProjectOpened = (await isSalesforceProjectOpened()).result;
+  void vscode.commands.executeCommand('setContext', 'sf:project_opened', salesforceProjectOpened);
+
   const internalDev = salesforceCoreSettings.getInternalDev();
 
   void vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
@@ -278,9 +281,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     return api;
   }
 
-  // Context
-  const salesforceProjectOpened = (await isSalesforceProjectOpened()).result;
-
   // TODO: move this and the replay debugger commands to the apex extension
 
   void vscode.commands.executeCommand(
@@ -288,8 +288,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     'sf:replay_debugger_extension',
     vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex-replay-debugger') !== undefined
   );
-
-  void vscode.commands.executeCommand('setContext', 'sf:project_opened', salesforceProjectOpened);
 
   // Set initial context
   await checkPackageDirectoriesEditorView();
