@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-// import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { VALID_METADATA_TYPES } from '../constants';
 import { MetadataDocumentationService } from './metadataDocumentationService';
 
 /**
@@ -121,39 +121,30 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
    */
   private isMetadataFile(document: vscode.TextDocument): boolean {
     // Since we're now registered for all XML files, check if this is a Salesforce metadata file
-    // by looking for the Salesforce metadata namespace or common metadata file patterns
-    // const fileName = path.basename(document.fileName);
+    // by looking for the Salesforce metadata namespace or valid metadata types
     const documentText = document.getText();
 
     // Check for Salesforce metadata namespace
     if (documentText.includes('http://soap.sforce.com/2006/04/metadata')) {
       return true;
     }
-    return false;
 
-    // // Check for common Salesforce metadata file naming patterns
-    // return (
-    //   fileName.endsWith('-meta.xml') ||
-    //   fileName.includes('.object') ||
-    //   fileName.includes('.flow') ||
-    //   fileName.includes('.layout') ||
-    //   fileName.includes('.profile') ||
-    //   fileName.includes('.permissionset') ||
-    //   fileName.includes('.profilePasswordPolicy') ||
-    //   fileName.includes('.app') ||
-    //   fileName.includes('.tab') ||
-    //   fileName.includes('.trigger') ||
-    //   fileName.includes('.cls') ||
-    //   fileName.includes('.component') ||
-    //   fileName.includes('.page') ||
-    //   fileName.includes('.email') ||
-    //   fileName.includes('.report') ||
-    //   fileName.includes('.dashboard') ||
-    //   fileName.includes('.resource') ||
-    //   fileName.includes('.workflow') ||
-    //   fileName.includes('.validationRule') ||
-    //   fileName.includes('.customField')
-    // );
+    // Check for valid Salesforce metadata types
+    const xmlElementRegex = /<(\/?)([\w:]+)(\s|>|\/)/g;
+    let match;
+
+    while ((match = xmlElementRegex.exec(documentText)) !== null) {
+      const elementName = match[2];
+      // Remove namespace prefix if present
+      const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
+
+      // Check if this is a valid Salesforce metadata type
+      if (VALID_METADATA_TYPES.has(cleanElementName)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   /**
@@ -174,8 +165,8 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
         // Remove namespace prefix if present
         const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
 
-        // Check if this looks like a metadata type (starts with capital letter)
-        if (/^[A-Z]/.test(cleanElementName)) {
+        // Check if this is a valid Salesforce metadata type
+        if (VALID_METADATA_TYPES.has(cleanElementName)) {
           return cleanElementName;
         }
       }
@@ -195,15 +186,15 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
         // Remove namespace prefix if present
         const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
 
-        // Check if this looks like a metadata type (starts with capital letter)
-        if (/^[A-Z]/.test(cleanElementName)) {
+        // Check if this is a valid Salesforce metadata type
+        if (VALID_METADATA_TYPES.has(cleanElementName)) {
           return cleanElementName;
         }
       }
     }
 
-    // Also check if the word itself is a metadata type
-    if (/^[A-Z]/.test(word) && word.length > 2) {
+    // Also check if the word itself is a valid metadata type
+    if (VALID_METADATA_TYPES.has(word)) {
       return word;
     }
 
@@ -290,8 +281,8 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
         const elementName = match[1];
         const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
 
-        // Check if this looks like a metadata type (starts with capital letter)
-        if (/^[A-Z]/.test(cleanElementName)) {
+        // Check if this is a valid Salesforce metadata type
+        if (VALID_METADATA_TYPES.has(cleanElementName)) {
           return cleanElementName;
         }
       }
@@ -304,8 +295,8 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
         const elementName = multiLineMatch[1];
         const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
 
-        // Check if this looks like a metadata type (starts with capital letter)
-        if (/^[A-Z]/.test(cleanElementName)) {
+        // Check if this is a valid Salesforce metadata type
+        if (VALID_METADATA_TYPES.has(cleanElementName)) {
           return cleanElementName;
         }
       }
