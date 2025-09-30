@@ -8,6 +8,7 @@ import { Page, Locator, expect } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { typingSpeed } from '../utils/headless-helpers';
 import * as Effect from 'effect/Effect';
+import * as Schedule from 'effect/Schedule';
 
 /**
  * Page Object Model for the Org Browser extension in VS Code web
@@ -86,7 +87,8 @@ export class OrgBrowserPage {
   }
 
   public async expandFolder(folderItem: Locator): Promise<void> {
-    console.log(`🔍 Attempting to expand folder ${await folderItem.textContent()}`);
+    const folderName = await folderItem.textContent();
+    console.log(`🔍 Attempting to expand folder ${folderName}`);
 
     // Start waiting for the response, then click to trigger it.
     await Promise.all([
@@ -102,7 +104,7 @@ export class OrgBrowserPage {
       ).toHaveClass(/codicon-tree-item-expanded/, { timeout: 6_000 })
     ]);
 
-    console.log('✅ Successfully clicked folder item and received metadata response');
+    console.log(`✅ Successfully clicked ${folderName} and received metadata response`);
   }
 
   public async awaitMdapiResponse(): Promise<void> {
@@ -131,22 +133,19 @@ export class OrgBrowserPage {
       console.log(`✅ "${typeName}" already visible`);
       return metadataTypeLocator.first();
     }
-    const secondType = this.page.locator('[role="treeitem"][aria-level="1"]').nth(1);
 
-    await Promise.all([this.awaitMdapiResponse(), secondType.click()]);
+    await Promise.all([
+      this.awaitMdapiResponse(),
+      this.page.locator('[role="treeitem"][aria-level="1"]').nth(1).click()
+    ]);
+
     console.log('✅ clicked on the tree to focus it');
     await this.page.keyboard.type(typeName, { delay: typingSpeed });
 
     console.log(`✅ Typed "${typeName}" to search`);
 
-    // Wait a moment for the navigation to complete
-    await this.page.waitForTimeout(500);
-
     // Check if the target element is now visible
-    if (await metadataTypeLocator.first().isVisible({ timeout: 2000 })) {
-      const foundText = await metadataTypeLocator.first().textContent();
-      const foundLabel = await metadataTypeLocator.first().getAttribute('aria-label');
-      console.log(`✅ "${typeName}" found via type-to-search: text="${foundText}", aria-label="${foundLabel}"`);
+    if (await metadataTypeLocator.first().isVisible({ timeout: 3000 })) {
       await saveScreenshot(this.page, `orgBrowserPage.findMetadataType.${typeName}.png`, true);
       return metadataTypeLocator.first();
     }
@@ -169,21 +168,23 @@ export class OrgBrowserPage {
       return metadataItem.first();
     }
 
-    const retryableFind = (page: Page): Effect.Effect<void> =>
+    const retryableFind = (page: Page): Effect.Effect<void, Error> =>
       Effect.gen(function* () {
         yield* Effect.promise(() => page.keyboard.type(itemName, { delay: typingSpeed }));
-        yield* Effect.promise(() =>
-          expect(metadataItem.first(), `❌ Metadata item "${itemName}" not found under "${metadataType}"`).toBeVisible({
-            timeout: 500
-          })
-        );
+        yield* Effect.tryPromise({
+          try: () =>
+            expect(metadataItem.first()).toBeVisible({
+              timeout: 500
+            }),
+          catch: () => new Error(`❌ Metadata item "${itemName}" not found under "${metadataType}"`)
+        });
+        const foundText = yield* Effect.promise(() => metadataItem.first().textContent());
+        const foundLabel = yield* Effect.promise(() => metadataItem.first().getAttribute('aria-label'));
+        console.log(`✅ "${itemName}" found via type-to-search: text="${foundText}", aria-label="${foundLabel}"`);
       });
 
-    await Effect.runPromise(Effect.retry(retryableFind(this.page), { times: 20 }));
+    await Effect.runPromise(Effect.retry(retryableFind(this.page), Schedule.fixed('500 millis')));
 
-    const foundText = await metadataItem.first().textContent();
-    const foundLabel = await metadataItem.first().getAttribute('aria-label');
-    console.log(`✅ "${itemName}" found via type-to-search: text="${foundText}", aria-label="${foundLabel}"`);
     return metadataItem.first();
   }
 
