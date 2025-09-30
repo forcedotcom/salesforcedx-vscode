@@ -43,7 +43,7 @@
     "check-peer-dependencies": "4.3.0",
     "cz-conventional-changelog": "3.3.0",
     "depcheck": "1.4.7",
-    "esbuild": "0.25.0",
+    "esbuild": "0.25.10",
     "esbuild-plugin-copy": "2.1.1",
     "eslint": "^9.35.0",
     "eslint-config-prettier": "10.1.5",
