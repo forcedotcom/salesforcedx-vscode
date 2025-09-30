@@ -67,43 +67,50 @@ export class OrgBrowserPage {
     await expect(this.activityBarItem, 'Activity bar item for Org Browser should be visible').toBeVisible({
       timeout: 15000
     });
-    await this.activityBarItem.click();
+    // Wait for the backend metadata types request to complete (SOAP metadata list)
+    const typesResp = this.page.waitForResponse(
+      resp => /\/services\/Soap\/m\/\d+\.0/.test(resp.url()) && resp.status() === 200,
+      { timeout: 30_000 }
+    );
+
+    // Trigger navigation to Org Browser and wait for the types response
+    await Promise.all([typesResp, this.activityBarItem.click()]);
+
     await expect(this.sidebar, 'Sidebar for Org Browser should be visible').toBeVisible({ timeout: 10_000 });
 
-    await this.noProgressActivity();
-
-    // Assert at least 5 top-level items are present
+    // Now assert at least 5 top-level items are present
     await expect(this.page.locator('[role="treeitem"][aria-level="1"]').nth(4)).toBeVisible({ timeout: 30_000 });
     await saveScreenshot(this.page, 'orgBrowserPage.openOrgBrowser.metadataTypesLoaded.png', true);
     console.log('✅ Metadata types loaded');
   }
 
-  /** the progress bar at the top of the orgBrowser.  Use this to ensure that some action completed */
-  public async noProgressActivity(): Promise<void> {
-    await Promise.race([this.ProgressActivity(), this.page.waitForTimeout(500)]); // give it a half second to start before waiting for it to stop
-    await expect(
-      this.page.locator('#workbench\.parts\.sidebar > div.content ').getByRole('progressbar', { includeHidden: true })
-    ).toBeHidden({
-      timeout: 15_000
-    });
-  }
-
-  public async ProgressActivity(): Promise<void> {
-    await expect(
-      this.page.locator('#workbench\.parts\.sidebar > div.content ').getByRole('progressbar', { includeHidden: true })
-    ).toBeVisible({
-      timeout: 15_000
-    });
-  }
-
   public async expandFolder(folderItem: Locator): Promise<void> {
     console.log('🔍 Attempting to expand folder...');
-    // Click to expand the folder
-    await folderItem.click({ timeout: 5000 });
-    await this.noProgressActivity();
-    await this.page.mouse.wheel(0, this.page.viewportSize()?.height ?? 1080 * 0.75);
 
-    console.log('✅ Successfully clicked folder item');
+    // Start waiting for the response, then click to trigger it.
+    await Promise.all([
+      this.awaitMdapiResponse(),
+      folderItem.click({ timeout: 5000 }),
+      expect(
+        folderItem.locator('.monaco-tl-twistie'),
+        'Folder twistie should show expanded state after metadata response'
+      ).toHaveClass(/codicon-tree-item-loading/, { timeout: 6_000 }),
+      expect(
+        folderItem.locator('.monaco-tl-twistie'),
+        'Folder twistie should show expanded state after metadata response'
+      ).toHaveClass(/codicon-tree-item-expanded/, { timeout: 6_000 })
+    ]);
+
+    console.log('✅ Successfully clicked folder item and received metadata response');
+  }
+
+  public async awaitMdapiResponse(): Promise<void> {
+    await this.page.waitForResponse(
+      response => {
+        return /\/services\/Soap\/m\/\d+\.0/.test(response.url()) && response.status() === 200;
+      },
+      { timeout: 30_000 }
+    );
   }
 
   /**
@@ -127,9 +134,8 @@ export class OrgBrowserPage {
     }
     const secondType = this.page.locator('[role="treeitem"][aria-level="1"]').nth(1);
 
-    await secondType.click();
+    await Promise.all([this.awaitMdapiResponse(), secondType.click()]);
     console.log('✅ clicked on the tree to focus it');
-    await this.noProgressActivity(); // me might have kick off a md-list by clicking on whatever was there in the list
     await this.page.keyboard.type(typeName, { delay: typingSpeed });
 
     console.log(`✅ Typed "${typeName}" to search`);
@@ -158,7 +164,7 @@ export class OrgBrowserPage {
     console.log(`Looking for metadata item "${itemName}" under "${metadataType}"`);
 
     // All metadata items are at aria-level >= 2 (metadata types are level 1)
-    const metadataItem = this.page.getByRole('treeitem', { level, name: itemName });
+    const metadataItem = this.page.getByRole('treeitem', { level, name: itemName, exact: true });
 
     // Check if already visible
     if (await metadataItem.first().isVisible({ timeout: 1000 })) {
@@ -169,14 +175,14 @@ export class OrgBrowserPage {
     await this.page.keyboard.type(itemName, { delay: typingSpeed });
     console.log(`✅ Typed "${itemName}" to search`);
 
-    if (await metadataItem.first().isVisible({ timeout: 20_000 })) {
-      const foundText = await metadataItem.first().textContent();
-      const foundLabel = await metadataItem.first().getAttribute('aria-label');
-      console.log(`✅ "${itemName}" found via type-to-search: text="${foundText}", aria-label="${foundLabel}"`);
-      return metadataItem.first();
-    }
+    expect(metadataItem.first(), `❌ Metadata item "${itemName}" not found under "${metadataType}"`).toBeVisible({
+      timeout: 20_000
+    });
 
-    throw new Error(`❌ Metadata item "${itemName}" not found under "${metadataType}"`);
+    const foundText = await metadataItem.first().textContent();
+    const foundLabel = await metadataItem.first().getAttribute('aria-label');
+    console.log(`✅ "${itemName}" found via type-to-search: text="${foundText}", aria-label="${foundLabel}"`);
+    return metadataItem.first();
   }
 
   /**
