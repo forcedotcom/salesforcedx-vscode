@@ -81,30 +81,27 @@ export class OrgBrowserPage {
     await expect(this.sidebar, 'Sidebar for Org Browser should be visible').toBeVisible({ timeout: 10_000 });
 
     // Now assert at least 5 top-level items are present
-    await expect(this.page.locator('[role="treeitem"][aria-level="1"]').nth(4)).toBeVisible({ timeout: 30_000 });
+    await expect(
+      this.page.locator('[role="treeitem"][aria-level="1"]').nth(4),
+      'Sidebar should have at least 5 metadata types'
+    ).toBeVisible({ timeout: 30_000 });
     await saveScreenshot(this.page, 'orgBrowserPage.openOrgBrowser.metadataTypesLoaded.png', true);
-    console.log('✅ Metadata types loaded');
   }
 
   public async expandFolder(folderItem: Locator): Promise<void> {
-    const folderName = await folderItem.textContent();
-    console.log(`🔍 Attempting to expand folder ${folderName}`);
-
     // Start waiting for the response, then click to trigger it.
     await Promise.all([
       this.awaitMdapiResponse(),
       folderItem.click({ timeout: 5000 }),
-      expect(folderItem.locator('.monaco-tl-twistie'), 'Folder twistie should show loading state').toHaveClass(
-        /codicon-tree-item-loading/,
+      expect(folderItem.locator('.monaco-tl-twistie'), 'Folder twistie should show loading state').toContainClass(
+        'codicon-tree-item-loading',
         { timeout: 6_000 }
       ),
       expect(
         folderItem.locator('.monaco-tl-twistie'),
         'Folder twistie should show expanded state after metadata response'
-      ).toHaveClass(/codicon-tree-item-expanded/, { timeout: 6_000 })
+      ).toContainClass('codicon-tree-item-expanded', { timeout: 6_000 })
     ]);
-
-    console.log(`✅ Successfully clicked ${folderName} and received metadata response`);
   }
 
   public async awaitMdapiResponse(): Promise<void> {
@@ -121,8 +118,6 @@ export class OrgBrowserPage {
    * @returns The locator for the found element, or null if not found
    */
   public async findMetadataType(typeName: string): Promise<Locator> {
-    console.log(`🔍 Looking for "${typeName}" metadata type`);
-
     // Create a precise locator that matches exact tree items at aria-level 1
     const metadataTypeLocator = this.page.locator(
       `[role="treeitem"][aria-level="1"][aria-label="${typeName} "], [role="treeitem"][aria-level="1"][aria-label^="${typeName},"]`
@@ -130,7 +125,6 @@ export class OrgBrowserPage {
 
     // Check if already visible
     if (await metadataTypeLocator.first().isVisible()) {
-      console.log(`✅ "${typeName}" already visible`);
       return metadataTypeLocator.first();
     }
 
@@ -139,10 +133,7 @@ export class OrgBrowserPage {
       this.page.locator('[role="treeitem"][aria-level="1"]').nth(1).click()
     ]);
 
-    console.log('✅ clicked on the tree to focus it');
     await this.page.keyboard.type(typeName, { delay: typingSpeed });
-
-    console.log(`✅ Typed "${typeName}" to search`);
 
     // Check if the target element is now visible
     if (await metadataTypeLocator.first().isVisible({ timeout: 3000 })) {
@@ -164,7 +155,6 @@ export class OrgBrowserPage {
 
     // Check if already visible
     if (await metadataItem.first().isVisible({ timeout: 1000 })) {
-      console.log(`✅ "${itemName}" already visible without scrolling`);
       return metadataItem.first();
     }
 
@@ -178,9 +168,6 @@ export class OrgBrowserPage {
             }),
           catch: () => new Error(`❌ Metadata item "${itemName}" not found under "${metadataType}"`)
         });
-        const foundText = yield* Effect.promise(() => metadataItem.first().textContent());
-        const foundLabel = yield* Effect.promise(() => metadataItem.first().getAttribute('aria-label'));
-        console.log(`✅ "${itemName}" found via type-to-search: text="${foundText}", aria-label="${foundLabel}"`);
       });
 
     await Effect.runPromise(Effect.retry(retryableFind(this.page), Schedule.fixed('500 millis')));
@@ -203,9 +190,6 @@ export class OrgBrowserPage {
     const retrieveButton = item.locator('.action-label[aria-label="Retrieve Metadata"]').first();
 
     await expect(retrieveButton, 'Retrieve button should be visible').toBeVisible({ timeout: 3000 });
-    // Log which row we're clicking
-    console.log(`Clicking retrieve button in row: ${((await item.textContent()) ?? '').trim().slice(0, 200)}`);
-
     // Click the retrieve button
     await retrieveButton.click({ force: true });
     return true;
@@ -237,60 +221,6 @@ export class OrgBrowserPage {
       return true;
     } catch {
       return false;
-    }
-  }
-
-  /**
-   * Find a folder within a foldered metadata type
-   * @param metadataType The parent metadata type (e.g., 'Report', 'Dashboard')
-   * @param folderName The folder name (e.g., 'unfiled$Public')
-   * @returns The locator for the found folder, or null if not found
-   */
-  public async findFolder(metadataType: string, folderName: string): Promise<Locator | null> {
-    console.log(`🔍 Looking for folder "${folderName}" under "${metadataType}"...`);
-
-    // Create a precise locator that matches folder items at aria-level 2
-    const folderLocator = this.page.locator(`[role="treeitem"][aria-level="2"][aria-label*="${folderName}"]`);
-
-    // Check if already visible (most common case)
-    if (await folderLocator.first().isVisible({ timeout: 1000 })) {
-      console.log(`✅ Folder "${folderName}" already visible`);
-      return folderLocator.first();
-    }
-
-    console.log(`Folder "${folderName}" not visible, using type-to-search...`);
-
-    try {
-      // Primary: Try scrollIntoViewIfNeeded for elements that exist in DOM
-      await folderLocator.first().scrollIntoViewIfNeeded();
-      console.log(`✅ Folder "${folderName}" found via scrollIntoViewIfNeeded`);
-      return folderLocator.first();
-    } catch {
-      // Fallback: Use type-to-search for folders
-      console.log('Using type-to-search for folder...');
-
-      const treeContainer = this.page.locator('.monaco-list').first();
-
-      // Click on the tree to focus it
-      await treeContainer.click();
-      console.log('✅ Focused tree container for folder search');
-
-      // Type the first few characters of the folder name
-      const searchTerm = folderName.startsWith('unfiled') ? 'unf' : folderName.substring(0, 3);
-      await this.page.keyboard.type(searchTerm, { delay: 5 });
-      console.log(`✅ Typed "${searchTerm}" to search for folder`);
-
-      // Wait a moment for the navigation to complete
-      await this.page.waitForTimeout(500);
-
-      // Check if the target folder is now visible
-      if (await folderLocator.first().isVisible({ timeout: 2000 })) {
-        console.log(`✅ Folder "${folderName}" found via type-to-search`);
-        return folderLocator.first();
-      }
-
-      console.log(`❌ Folder "${folderName}" not found even with type-to-search`);
-      return null;
     }
   }
 }
