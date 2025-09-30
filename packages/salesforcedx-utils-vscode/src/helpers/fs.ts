@@ -155,18 +155,10 @@ export const safeDelete = async (
 };
 
 /**
- * Ensures the current working directory is set to the project path.
- * This is a legacy workaround for CLI library deficiencies that is now mostly unnecessary
- * since ConfigAggregator supports projectPath parameter.
- * In web/browser environments, process.chdir is not available, so this function becomes a no-op.
+ * Ensures the current working directory is set to the project path
  * @param rootWorkspacePath The path to the root workspace
  */
 export const ensureCurrentWorkingDirIsProjectPath = async (rootWorkspacePath: string): Promise<void> => {
-  // Skip in web environments where process.chdir is not available
-  if (vscode.env.uiKind === vscode.UIKind.Web || !process.chdir) {
-    return;
-  }
-
   if (rootWorkspacePath && process.cwd() !== rootWorkspacePath) {
     try {
       const uri = URI.file(rootWorkspacePath);
