@@ -7,6 +7,7 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { typingSpeed } from '../utils/headless-helpers';
+import * as Effect from 'effect/Effect';
 
 /**
  * Page Object Model for the Org Browser extension in VS Code web
@@ -85,16 +86,16 @@ export class OrgBrowserPage {
   }
 
   public async expandFolder(folderItem: Locator): Promise<void> {
-    console.log('🔍 Attempting to expand folder...');
+    console.log(`🔍 Attempting to expand folder ${await folderItem.textContent()}`);
 
     // Start waiting for the response, then click to trigger it.
     await Promise.all([
       this.awaitMdapiResponse(),
       folderItem.click({ timeout: 5000 }),
-      expect(
-        folderItem.locator('.monaco-tl-twistie'),
-        'Folder twistie should show expanded state after metadata response'
-      ).toHaveClass(/codicon-tree-item-loading/, { timeout: 6_000 }),
+      expect(folderItem.locator('.monaco-tl-twistie'), 'Folder twistie should show loading state').toHaveClass(
+        /codicon-tree-item-loading/,
+        { timeout: 6_000 }
+      ),
       expect(
         folderItem.locator('.monaco-tl-twistie'),
         'Folder twistie should show expanded state after metadata response'
@@ -106,9 +107,7 @@ export class OrgBrowserPage {
 
   public async awaitMdapiResponse(): Promise<void> {
     await this.page.waitForResponse(
-      response => {
-        return /\/services\/Soap\/m\/\d+\.0/.test(response.url()) && response.status() === 200;
-      },
+      response => /\/services\/Soap\/m\/\d+\.0/.test(response.url()) && response.status() === 200,
       { timeout: 30_000 }
     );
   }
@@ -161,23 +160,26 @@ export class OrgBrowserPage {
    * @returns The locator for the metadata item
    */
   public async getMetadataItem(metadataType: string, itemName: string, level = 2): Promise<Locator> {
-    console.log(`Looking for metadata item "${itemName}" under "${metadataType}"`);
-
     // All metadata items are at aria-level >= 2 (metadata types are level 1)
     const metadataItem = this.page.getByRole('treeitem', { level, name: itemName, exact: true });
 
     // Check if already visible
     if (await metadataItem.first().isVisible({ timeout: 1000 })) {
-      console.log(`✅ "${itemName}" already visible`);
+      console.log(`✅ "${itemName}" already visible without scrolling`);
       return metadataItem.first();
     }
 
-    await this.page.keyboard.type(itemName, { delay: typingSpeed });
-    console.log(`✅ Typed "${itemName}" to search`);
+    const retryableFind = (page: Page): Effect.Effect<void> =>
+      Effect.gen(function* () {
+        yield* Effect.promise(() => page.keyboard.type(itemName, { delay: typingSpeed }));
+        yield* Effect.promise(() =>
+          expect(metadataItem.first(), `❌ Metadata item "${itemName}" not found under "${metadataType}"`).toBeVisible({
+            timeout: 500
+          })
+        );
+      });
 
-    expect(metadataItem.first(), `❌ Metadata item "${itemName}" not found under "${metadataType}"`).toBeVisible({
-      timeout: 20_000
-    });
+    await Effect.runPromise(Effect.retry(retryableFind(this.page), { times: 20 }));
 
     const foundText = await metadataItem.first().textContent();
     const foundLabel = await metadataItem.first().getAttribute('aria-label');
