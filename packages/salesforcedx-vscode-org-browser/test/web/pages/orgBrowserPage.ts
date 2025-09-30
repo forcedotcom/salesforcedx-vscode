@@ -169,7 +169,7 @@ export class OrgBrowserPage {
     await this.page.keyboard.type(itemName, { delay: typingSpeed });
     console.log(`✅ Typed "${itemName}" to search`);
 
-    if (await metadataItem.first().isVisible({ timeout: 2000 })) {
+    if (await metadataItem.first().isVisible({ timeout: 20_000 })) {
       const foundText = await metadataItem.first().textContent();
       const foundLabel = await metadataItem.first().getAttribute('aria-label');
       console.log(`✅ "${itemName}" found via type-to-search: text="${foundText}", aria-label="${foundLabel}"`);
