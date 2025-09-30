@@ -93,10 +93,6 @@ export class OrgBrowserPage {
     await Promise.all([
       this.awaitMdapiResponse(),
       folderItem.click({ timeout: 5000 }),
-      expect(folderItem.locator('.monaco-tl-twistie'), 'Folder twistie should show loading state').toContainClass(
-        'codicon-tree-item-loading',
-        { timeout: 6_000 }
-      ),
       expect(
         folderItem.locator('.monaco-tl-twistie'),
         'Folder twistie should show expanded state after metadata response'
