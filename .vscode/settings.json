@@ -34,5 +34,6 @@
   "prettier.useTabs": false,
   "prettier.printWidth": 120,
   "prettier.arrowParens": "avoid",
-  "editor.rulers": [120]
+  "editor.rulers": [120],
+  "salesforcedx-vscode-core.internal-development": false
 }

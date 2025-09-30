@@ -63,6 +63,7 @@
   "retrieve_display_text": "Retrieve This Source from Org",
   "retrieve_in_manifest_text": "SFDX: Retrieve Source in Manifest from Org",
   "retrieve_test_code_coverage_text": "Specifies whether code coverage results are calculated and retrieved when you run Apex tests.",
+  "internal_development_text": "Specifies whether to enable internal development features.",
   "retrieve_this_source_text": "SFDX: Retrieve This Source from Org",
   "running_tasks_title_text": "Running Tasks",
   "setting_clear_output_tab_description": "When a new command is run, clear the output content from the previous command.",
