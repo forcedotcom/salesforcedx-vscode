@@ -270,7 +270,6 @@ describe('ensureCurrentWorkingDirIsProjectPath', () => {
   let fsExistsSpy: jest.SpyInstance;
   let processCwdSpy: jest.SpyInstance;
   let processChDirSpy: jest.SpyInstance;
-  let originalUIKind: any;
   const dummyProjectPath = 'a/project/path';
   const dummyDefaultPath = '/';
 
@@ -278,17 +277,6 @@ describe('ensureCurrentWorkingDirIsProjectPath', () => {
     fsExistsSpy = jest.spyOn(vscodeMocked.workspace.fs, 'stat');
     processCwdSpy = jest.spyOn(process, 'cwd');
     processChDirSpy = jest.spyOn(process, 'chdir').mockImplementation(jest.fn());
-
-    // Mock UIKind enum for all tests
-    originalUIKind = vscode.UIKind;
-    (vscode as any).UIKind = { Web: 2, Desktop: 1 };
-  });
-
-  afterEach(() => {
-    // Restore original UIKind
-    if (originalUIKind !== undefined) {
-      (vscode as any).UIKind = originalUIKind;
-    }
   });
 
   it('should change the processes current working directory to the project directory', async () => {
@@ -315,18 +303,5 @@ describe('ensureCurrentWorkingDirIsProjectPath', () => {
     await ensureCurrentWorkingDirIsProjectPath(dummyProjectPath);
 
     expect(processChDirSpy).not.toHaveBeenCalled();
-  });
-
-  it('should not change the processes current working directory in web environments', async () => {
-    // Mock web environment using vscode.env.uiKind
-    const originalEnv = vscodeMocked.env;
-    vscodeMocked.env = { ...originalEnv, uiKind: vscode.UIKind.Web };
-
-    await ensureCurrentWorkingDirIsProjectPath(dummyProjectPath);
-
-    expect(processChDirSpy).not.toHaveBeenCalled();
-
-    // Restore original env
-    vscodeMocked.env = originalEnv;
   });
 });

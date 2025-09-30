@@ -49,7 +49,7 @@
     "@salesforce/salesforcedx-utils": "64.16.0",
     "@salesforce/ts-types": "2.0.12",
     "@types/papaparse": "^5.2.3",
-    "esbuild": "0.25.0",
+    "esbuild": "0.25.10",
     "salesforcedx-vscode-core": "64.16.0"
   },
   "extensionDependencies": [
