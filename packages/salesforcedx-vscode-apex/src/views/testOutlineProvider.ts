@@ -10,8 +10,10 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { APEX_GROUP_RANGE, APEX_TESTS, FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
+import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { getApexTests, languageClientManager } from '../languageUtils';
 import { nls } from '../messages';
+import { rewriteClassArgument } from '../namespaceLensRewriter';
 import { iconHelpers } from './icons';
 import { ApexTestMethod } from './lspConverter';
 
@@ -28,7 +30,7 @@ const NO_TESTS_DESCRIPTION = nls.localize('test_view_no_tests_description');
 
 const TEST_RUN_ID_FILE = 'test-run-id.txt';
 const TEST_RESULT_JSON_FILE = 'test-result.json';
-const BASE_ID = 'sf.test.view';
+export const TEST_OUTLINE_PROVIDER_BASE_ID = 'sf.test.view';
 
 export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode> {
   private onDidChangeTestData: vscode.EventEmitter<TestNode | undefined> = new vscode.EventEmitter<
@@ -47,14 +49,6 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
     this.apexTestInfo = apexTestInfo;
     this.createTestIndex();
     this.getAllApexTests();
-  }
-
-  public getHead(): TestNode {
-    return this.rootNode ?? this.getAllApexTests();
-  }
-
-  public getId(): string {
-    return BASE_ID;
   }
 
   public getChildren(element: TestNode): TestNode[] {
@@ -106,22 +100,33 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
   }
 
   public async refresh(): Promise<void> {
+    const vscodeCoreExtension = await getVscodeCoreExtension();
+
+    const [nsFromOrg, nsFromProject] = await Promise.all([
+      vscodeCoreExtension.exports.OrgAuthInfo.getAuthFields().then(fields => fields.namespacePrefix ?? undefined),
+      vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance().then(
+        cfg => cfg.getContents().namespace
+      )
+    ]);
     this.rootNode = null; // Reset tests
     this.apexTestMap.clear();
     this.testStrings.clear();
-    this.apexTestInfo = await getApexTests();
+    this.apexTestInfo = (await getApexTests())?.map(testMethod => ({
+      ...testMethod,
+      //
+      definingType: rewriteClassArgument(nsFromOrg)(nsFromProject)(testMethod.definingType)
+    }));
     this.createTestIndex();
     this.getAllApexTests();
     this.onDidChangeTestData.fire(undefined);
   }
 
   public async collapseAll(): Promise<void> {
-    return vscode.commands.executeCommand(`workbench.actions.treeView.${this.getId()}.collapseAll`);
+    return vscode.commands.executeCommand(`workbench.actions.treeView.${TEST_OUTLINE_PROVIDER_BASE_ID}.collapseAll`);
   }
 
   public async onResultFileCreate(apexTestPath: string, testResultFile: string) {
-    const testRunIdFile = path.join(apexTestPath, TEST_RUN_ID_FILE);
-    const testRunId = await readFile(testRunIdFile);
+    const testRunId = await readFile(path.join(apexTestPath, TEST_RUN_ID_FILE));
     const testResultFilePath = path.join(
       apexTestPath,
       testRunId ? `test-result-${testRunId}.json` : TEST_RESULT_JSON_FILE
@@ -223,7 +228,7 @@ export abstract class TestNode extends vscode.TreeItem {
     this.description = label;
     this.name = label;
     this.command = {
-      command: `${BASE_ID}.showError`,
+      command: `${TEST_OUTLINE_PROVIDER_BASE_ID}.showError`,
       title: nls.localize('test_view_show_error_title'),
       arguments: [this]
     };

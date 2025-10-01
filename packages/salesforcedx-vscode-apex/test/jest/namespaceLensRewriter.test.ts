@@ -6,7 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import { rewriteNamespaceLens } from '../../src/namespaceLensRewriter';
+import { rewriteClassArgument, rewriteNamespaceLens } from '../../src/namespaceLensRewriter';
 
 describe('rewriteNamespaceLens Unit Tests', () => {
   const createMockCodeLens = (title: string, args?: string[]): vscode.CodeLens => ({
@@ -259,5 +259,33 @@ describe('rewriteNamespaceLens Unit Tests', () => {
       expect(singleResult.command?.arguments).toEqual(['TestClass.testMethod']);
       expect(allResult.command?.arguments).toEqual(['TestClass']);
     });
+  });
+});
+
+describe('rewriteClassArgument Unit Tests', () => {
+  const noOrgNamespaceRewriter = rewriteClassArgument()('MyNamespace');
+  it('should rewrite namespace.class to class', () => {
+    const result = noOrgNamespaceRewriter('MyNamespace.MyClass');
+    expect(result).toEqual('MyClass');
+  });
+
+  it('should not rewrite class if namespace is not in project', () => {
+    const result = rewriteClassArgument()()('MyNamespace.MyClass');
+    expect(result).toEqual('MyNamespace.MyClass');
+  });
+
+  it('should not rewrite class if namespace is not in org', () => {
+    const result = noOrgNamespaceRewriter('MyClass');
+    expect(result).toEqual('MyClass');
+  });
+
+  it('should not rewrite other namespaces', () => {
+    const result = noOrgNamespaceRewriter('OtherNamespace.MyClass');
+    expect(result).toEqual('OtherNamespace.MyClass');
+  });
+
+  it('should not rewrite if the project and org have the same namespace', () => {
+    const result = rewriteClassArgument('MyNamespace')('MyNamespace')('MyNamespace.MyClass');
+    expect(result).toEqual('MyNamespace.MyClass');
   });
 });
