@@ -39,23 +39,16 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
   public onDidChangeTreeData = this.onDidChangeTestData.event;
 
   private apexTestMap: Map<string, TestNode> = new Map<string, TestNode>();
-  private rootNode: TestNode | null;
+  private rootNode: TestNode | null = null;
   public testStrings: Set<string> = new Set<string>();
-  private apexTestInfo: ApexTestMethod[] | null;
+  private apexTestInfo: ApexTestMethod[] | null = null;
   private testIndex: Map<string, string> = new Map<string, string>();
-
-  constructor(apexTestInfo: ApexTestMethod[] | null) {
-    this.rootNode = null;
-    this.apexTestInfo = apexTestInfo;
-    this.createTestIndex();
-    this.getAllApexTests();
-  }
 
   public getChildren(element: TestNode): TestNode[] {
     if (element) {
       return element.children;
     } else {
-      if (this.rootNode && this.rootNode.children.length > 0) {
+      if (this.rootNode?.children.length) {
         return this.rootNode.children;
       } else {
         let message = NO_TESTS_MESSAGE;
@@ -69,11 +62,9 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
           message = LOADING_MESSAGE;
           description = '';
         }
-        const emptyArray = new Array<ApexTestNode>();
         const testToDisplay = new ApexTestNode(message, null);
         testToDisplay.description = description;
-        emptyArray.push(testToDisplay);
-        return emptyArray;
+        return [testToDisplay];
       }
     }
   }
@@ -341,7 +332,7 @@ let testOutlineProviderInst: ApexTestOutlineProvider;
 
 export const getTestOutlineProvider = () => {
   if (!testOutlineProviderInst) {
-    testOutlineProviderInst = new ApexTestOutlineProvider(null);
+    testOutlineProviderInst = new ApexTestOutlineProvider();
   }
   return testOutlineProviderInst;
 };
