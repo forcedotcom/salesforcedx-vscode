@@ -100,17 +100,18 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
   }
 
   public async refresh(): Promise<void> {
+    this.rootNode = null; // Reset tests
+    this.apexTestMap.clear();
+    this.testStrings.clear();
+    // we'll need some namespace information to get the correct namespace on the classes.
     const vscodeCoreExtension = await getVscodeCoreExtension();
-
     const [nsFromOrg, nsFromProject] = await Promise.all([
       vscodeCoreExtension.exports.OrgAuthInfo.getAuthFields().then(fields => fields.namespacePrefix ?? undefined),
       vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance().then(
         cfg => cfg.getContents().namespace
       )
     ]);
-    this.rootNode = null; // Reset tests
-    this.apexTestMap.clear();
-    this.testStrings.clear();
+
     this.apexTestInfo = (await getApexTests())?.map(testMethod => ({
       ...testMethod,
       //

@@ -61,21 +61,6 @@ export const showErrorMessage = async (test: TestNode): Promise<void> => {
   }
 };
 
-const updateSelection = async (index: vscode.Range | number): Promise<void> => {
-  const editor = vscode.window.activeTextEditor;
-  if (editor) {
-    if (index instanceof vscode.Range) {
-      editor.selection = new vscode.Selection(index.start, index.end);
-      editor.revealRange(index); // Show selection
-    } else {
-      const line = editor.document.lineAt(index);
-      const startPos = new vscode.Position(line.lineNumber, line.firstNonWhitespaceCharacterIndex);
-      editor.selection = new vscode.Selection(startPos, line.range.end);
-      editor.revealRange(line.range); // Show selection
-    }
-  }
-};
-
 export const runApexTests = async (tests: string[], testRunType: TestRunType) => {
   const languageClientStatus = languageClientManager.getStatus();
   if (!languageClientStatus.isReady()) {
@@ -106,5 +91,20 @@ const getTempFolder = async (): Promise<string> => {
     return apexDir;
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
+  }
+};
+
+const updateSelection = async (index: vscode.Range | number): Promise<void> => {
+  const editor = vscode.window.activeTextEditor;
+  if (editor) {
+    if (index instanceof vscode.Range) {
+      editor.selection = new vscode.Selection(index.start, index.end);
+      editor.revealRange(index); // Show selection
+    } else {
+      const line = editor.document.lineAt(index);
+      const startPos = new vscode.Position(line.lineNumber, line.firstNonWhitespaceCharacterIndex);
+      editor.selection = new vscode.Selection(startPos, line.range.end);
+      editor.revealRange(line.range); // Show selection
+    }
   }
 };
