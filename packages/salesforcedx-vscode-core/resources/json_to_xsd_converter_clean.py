@@ -157,7 +157,7 @@ def create_clean_xsd_from_json(json_file_path, output_file_path):
                     clean_field_name = clean_xsd_name(field_name)
                     xsd_type = map_field_type_to_xsd(field_type)
 
-                    xsd_lines.append(f'     <xsd:element name="{clean_field_name}" minOccurs="0" type="{xsd_type}">')
+                    xsd_lines.append(f'     <xsd:element name="{clean_field_name}" minOccurs="0" maxOccurs="unbounded" type="{xsd_type}">')
 
                     # Add field-level documentation
                     if description or field_type:
