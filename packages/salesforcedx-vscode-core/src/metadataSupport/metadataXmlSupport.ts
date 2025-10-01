@@ -42,15 +42,10 @@ export class MetadataXmlSupport {
    */
   private async setupRedhatXml(
     inputCatalogs: Parameters<XMLExtensionApi['addXMLCatalogs']>[0],
-    inputFileAssociations: Parameters<XMLExtensionApi['addXMLFileAssociations']>[0]
+    inputFileAssociations: Parameters<XMLExtensionApi['addXMLFileAssociations']>[0],
+    redHatExtension: vscode.Extension<XMLExtensionApi>
   ): Promise<void> {
-    const redHatExtension = vscode.extensions.getExtension<XMLExtensionApi>('redhat.vscode-xml');
     try {
-      if (!redHatExtension) {
-        channelService.appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
-        return;
-      }
-
       if (!redHatExtension.isActive) {
         await redHatExtension.activate();
       }
@@ -73,7 +68,7 @@ export class MetadataXmlSupport {
    * Initialize metadata XML support by configuring RedHat XML extension
    */
   public async initializeMetadataSupport(extensionContext: vscode.ExtensionContext): Promise<void> {
-    const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
+    const redHatExtension = vscode.extensions.getExtension<XMLExtensionApi>('redhat.vscode-xml');
 
     if (!redHatExtension) {
       channelService.appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
@@ -100,7 +95,7 @@ export class MetadataXmlSupport {
         }
       ];
 
-      await this.setupRedhatXml(catalogs, fileAssociations);
+      await this.setupRedhatXml(catalogs, fileAssociations, redHatExtension);
     } else if (minor === 15) {
       channelService.appendLine(nls.localize('metadata_xml_redhat_extension_regression'));
     } else {
