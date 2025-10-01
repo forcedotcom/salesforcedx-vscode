@@ -9,6 +9,195 @@ import { VALID_METADATA_TYPES } from '../constants';
 import { MetadataDocumentationService } from './metadataDocumentationService';
 
 /**
+ * Check if the document is likely a Salesforce metadata file
+ */
+export const isMetadataFile = (document: vscode.TextDocument): boolean => {
+  // Since we're now registered for all XML files, check if this is a Salesforce metadata file
+  // by looking for the Salesforce metadata namespace or valid metadata types
+  const documentText = document.getText();
+
+  // Check for Salesforce metadata namespace
+  if (documentText.includes('http://soap.sforce.com/2006/04/metadata')) {
+    return true;
+  }
+
+  // Check for valid Salesforce metadata types
+  const xmlElementRegex = /<(\/?)([\w:]+)(\s|>|\/)/g;
+  let match;
+
+  while ((match = xmlElementRegex.exec(documentText)) !== null) {
+    const elementName = match[2];
+    // Remove namespace prefix if present
+    const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
+
+    // Check if this is a valid Salesforce metadata type
+    if (VALID_METADATA_TYPES.has(cleanElementName)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+/**
+ * Extract metadata type or field from the current line and cursor position
+ */
+export const extractMetadataType = (lineText: string, word: string, cursorPosition: number): string | null => {
+  // Look for XML element patterns - original logic for compatibility
+  const xmlElementRegex = /<(\/?)([\w:]+)(\s|>|\/)/g;
+  let match;
+
+  while ((match = xmlElementRegex.exec(lineText)) !== null) {
+    const [fullMatch, , elementName] = match;
+    const matchStart = match.index;
+    const matchEnd = match.index + fullMatch.length;
+
+    // Check if cursor is within this element
+    if (cursorPosition >= matchStart && cursorPosition <= matchEnd) {
+      // Remove namespace prefix if present
+      const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
+
+      // Check if this is a valid Salesforce metadata type
+      if (VALID_METADATA_TYPES.has(cleanElementName)) {
+        return cleanElementName;
+      }
+    }
+  }
+
+  // Additional check for multi-line elements (when closing > is on next line)
+  const multiLineElementRegex = /<(\/?)([\w:]+)$/g;
+  let multiLineMatch;
+
+  while ((multiLineMatch = multiLineElementRegex.exec(lineText)) !== null) {
+    const [fullMatch, , elementName] = multiLineMatch;
+    const matchStart = multiLineMatch.index;
+    const matchEnd = multiLineMatch.index + fullMatch.length;
+
+    // Check if cursor is within this element
+    if (cursorPosition >= matchStart && cursorPosition <= matchEnd) {
+      // Remove namespace prefix if present
+      const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
+
+      // Check if this is a valid Salesforce metadata type
+      if (VALID_METADATA_TYPES.has(cleanElementName)) {
+        return cleanElementName;
+      }
+    }
+  }
+
+  // Also check if the word itself is a valid metadata type
+  if (VALID_METADATA_TYPES.has(word)) {
+    return word;
+  }
+
+  return null;
+};
+
+/**
+ * Find the parent metadata type by scanning upward from current line
+ */
+export const findParentMetadataType = (document: vscode.TextDocument, startLine: number): string | null => {
+  for (let i = startLine; i >= 0; i--) {
+    const line = document.lineAt(i).text;
+    const xmlElementRegex = /<([\w:]+)(\s|>)/g;
+    let match;
+
+    while ((match = xmlElementRegex.exec(line)) !== null) {
+      const elementName = match[1];
+      const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
+
+      // Check if this is a valid Salesforce metadata type
+      if (VALID_METADATA_TYPES.has(cleanElementName)) {
+        return cleanElementName;
+      }
+    }
+
+    // Also check for multi-line elements (when closing > is on next line)
+    const multiLineElementRegex = /<([\w:]+)$/g;
+    let multiLineMatch;
+
+    while ((multiLineMatch = multiLineElementRegex.exec(line)) !== null) {
+      const elementName = multiLineMatch[1];
+      const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
+
+      // Check if this is a valid Salesforce metadata type
+      if (VALID_METADATA_TYPES.has(cleanElementName)) {
+        return cleanElementName;
+      }
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Extract field information for internal tags within metadata
+ */
+export const extractFieldInfo = (
+  document: vscode.TextDocument,
+  position: vscode.Position
+): { metadataType: string; fieldName: string } | null => {
+  const line = document.lineAt(position.line);
+  const wordRange = document.getWordRangeAtPosition(position);
+
+  if (!wordRange) {
+    return null;
+  }
+
+  // Look for XML element patterns for fields (lowercase or camelCase) - original logic
+  const xmlElementRegex = /<(\/?)([\w:]+)(\s|>|\/)/g;
+  let match;
+
+  while ((match = xmlElementRegex.exec(line.text)) !== null) {
+    const [fullMatch, , elementName] = match;
+    const matchStart = match.index;
+    const matchEnd = match.index + fullMatch.length;
+
+    // Check if cursor is within this element
+    if (position.character >= matchStart && position.character <= matchEnd) {
+      // Remove namespace prefix if present
+      const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
+
+      // Check if this looks like a field (not a metadata type)
+      if (!/^[A-Z]/.test(cleanElementName) && cleanElementName.length > 1) {
+        // Find the parent metadata type by scanning upward
+        const parentType = findParentMetadataType(document, position.line);
+        if (parentType) {
+          return { metadataType: parentType, fieldName: cleanElementName };
+        }
+      }
+    }
+  }
+
+  // Additional check for multi-line field elements (when closing > is on next line)
+  const multiLineElementRegex = /<(\/?)([\w:]+)$/g;
+  let multiLineMatch;
+
+  while ((multiLineMatch = multiLineElementRegex.exec(line.text)) !== null) {
+    const [fullMatch, , elementName] = multiLineMatch;
+    const matchStart = multiLineMatch.index;
+    const matchEnd = multiLineMatch.index + fullMatch.length;
+
+    // Check if cursor is within this element
+    if (position.character >= matchStart && position.character <= matchEnd) {
+      // Remove namespace prefix if present
+      const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
+
+      // Check if this looks like a field (not a metadata type)
+      if (!/^[A-Z]/.test(cleanElementName) && cleanElementName.length > 1) {
+        // Find the parent metadata type by scanning upward
+        const parentType = findParentMetadataType(document, position.line);
+        if (parentType) {
+          return { metadataType: parentType, fieldName: cleanElementName };
+        }
+      }
+    }
+  }
+
+  return null;
+};
+
+/**
  * Provides hover documentation for Salesforce metadata types in XML files
  */
 export class MetadataHoverProvider implements vscode.HoverProvider {
@@ -35,7 +224,7 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
     _token: vscode.CancellationToken
   ): Promise<vscode.Hover | null> {
     // Only provide hover for XML files that are likely metadata files
-    if (!this.isMetadataFile(document)) {
+    if (!isMetadataFile(document)) {
       return null;
     }
 
@@ -49,7 +238,7 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
     const lineText = line.text;
 
     // First, try to get metadata type documentation
-    const metadataType = this.extractMetadataType(lineText, word, position.character);
+    const metadataType = extractMetadataType(lineText, word, position.character);
     if (metadataType) {
       const documentation = this.documentationService.getDocumentation(metadataType);
       if (documentation) {
@@ -83,7 +272,7 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
     }
 
     // If not a metadata type, try to get field documentation
-    const fieldInfo = this.extractFieldInfo(document, position);
+    const fieldInfo = extractFieldInfo(document, position);
     if (fieldInfo) {
       const fieldDocumentation = await this.documentationService.getFieldDocumentation(
         fieldInfo.metadataType,
@@ -111,195 +300,6 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
         }
 
         return new vscode.Hover(markdownContent, wordRange);
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Check if the document is likely a Salesforce metadata file
-   */
-  private isMetadataFile(document: vscode.TextDocument): boolean {
-    // Since we're now registered for all XML files, check if this is a Salesforce metadata file
-    // by looking for the Salesforce metadata namespace or valid metadata types
-    const documentText = document.getText();
-
-    // Check for Salesforce metadata namespace
-    if (documentText.includes('http://soap.sforce.com/2006/04/metadata')) {
-      return true;
-    }
-
-    // Check for valid Salesforce metadata types
-    const xmlElementRegex = /<(\/?)([\w:]+)(\s|>|\/)/g;
-    let match;
-
-    while ((match = xmlElementRegex.exec(documentText)) !== null) {
-      const elementName = match[2];
-      // Remove namespace prefix if present
-      const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
-
-      // Check if this is a valid Salesforce metadata type
-      if (VALID_METADATA_TYPES.has(cleanElementName)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * Extract metadata type or field from the current line and cursor position
-   */
-  private extractMetadataType(lineText: string, word: string, cursorPosition: number): string | null {
-    // Look for XML element patterns - original logic for compatibility
-    const xmlElementRegex = /<(\/?)([\w:]+)(\s|>|\/)/g;
-    let match;
-
-    while ((match = xmlElementRegex.exec(lineText)) !== null) {
-      const [fullMatch, , elementName] = match;
-      const matchStart = match.index;
-      const matchEnd = match.index + fullMatch.length;
-
-      // Check if cursor is within this element
-      if (cursorPosition >= matchStart && cursorPosition <= matchEnd) {
-        // Remove namespace prefix if present
-        const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
-
-        // Check if this is a valid Salesforce metadata type
-        if (VALID_METADATA_TYPES.has(cleanElementName)) {
-          return cleanElementName;
-        }
-      }
-    }
-
-    // Additional check for multi-line elements (when closing > is on next line)
-    const multiLineElementRegex = /<(\/?)([\w:]+)$/g;
-    let multiLineMatch;
-
-    while ((multiLineMatch = multiLineElementRegex.exec(lineText)) !== null) {
-      const [fullMatch, , elementName] = multiLineMatch;
-      const matchStart = multiLineMatch.index;
-      const matchEnd = multiLineMatch.index + fullMatch.length;
-
-      // Check if cursor is within this element
-      if (cursorPosition >= matchStart && cursorPosition <= matchEnd) {
-        // Remove namespace prefix if present
-        const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
-
-        // Check if this is a valid Salesforce metadata type
-        if (VALID_METADATA_TYPES.has(cleanElementName)) {
-          return cleanElementName;
-        }
-      }
-    }
-
-    // Also check if the word itself is a valid metadata type
-    if (VALID_METADATA_TYPES.has(word)) {
-      return word;
-    }
-
-    return null;
-  }
-
-  /**
-   * Extract field information for internal tags within metadata
-   */
-  private extractFieldInfo(
-    document: vscode.TextDocument,
-    position: vscode.Position
-  ): { metadataType: string; fieldName: string } | null {
-    const line = document.lineAt(position.line);
-    const wordRange = document.getWordRangeAtPosition(position);
-
-    if (!wordRange) {
-      return null;
-    }
-
-    // Look for XML element patterns for fields (lowercase or camelCase) - original logic
-    const xmlElementRegex = /<(\/?)([\w:]+)(\s|>|\/)/g;
-    let match;
-
-    while ((match = xmlElementRegex.exec(line.text)) !== null) {
-      const [fullMatch, , elementName] = match;
-      const matchStart = match.index;
-      const matchEnd = match.index + fullMatch.length;
-
-      // Check if cursor is within this element
-      if (position.character >= matchStart && position.character <= matchEnd) {
-        // Remove namespace prefix if present
-        const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
-
-        // Check if this looks like a field (not a metadata type)
-        if (!/^[A-Z]/.test(cleanElementName) && cleanElementName.length > 1) {
-          // Find the parent metadata type by scanning upward
-          const parentType = this.findParentMetadataType(document, position.line);
-          if (parentType) {
-            return { metadataType: parentType, fieldName: cleanElementName };
-          }
-        }
-      }
-    }
-
-    // Additional check for multi-line field elements (when closing > is on next line)
-    const multiLineElementRegex = /<(\/?)([\w:]+)$/g;
-    let multiLineMatch;
-
-    while ((multiLineMatch = multiLineElementRegex.exec(line.text)) !== null) {
-      const [fullMatch, , elementName] = multiLineMatch;
-      const matchStart = multiLineMatch.index;
-      const matchEnd = multiLineMatch.index + fullMatch.length;
-
-      // Check if cursor is within this element
-      if (position.character >= matchStart && position.character <= matchEnd) {
-        // Remove namespace prefix if present
-        const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
-
-        // Check if this looks like a field (not a metadata type)
-        if (!/^[A-Z]/.test(cleanElementName) && cleanElementName.length > 1) {
-          // Find the parent metadata type by scanning upward
-          const parentType = this.findParentMetadataType(document, position.line);
-          if (parentType) {
-            return { metadataType: parentType, fieldName: cleanElementName };
-          }
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Find the parent metadata type by scanning upward from current line
-   */
-  private findParentMetadataType(document: vscode.TextDocument, startLine: number): string | null {
-    for (let i = startLine; i >= 0; i--) {
-      const line = document.lineAt(i).text;
-      const xmlElementRegex = /<([\w:]+)(\s|>)/g;
-      let match;
-
-      while ((match = xmlElementRegex.exec(line)) !== null) {
-        const elementName = match[1];
-        const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
-
-        // Check if this is a valid Salesforce metadata type
-        if (VALID_METADATA_TYPES.has(cleanElementName)) {
-          return cleanElementName;
-        }
-      }
-
-      // Also check for multi-line elements (when closing > is on next line)
-      const multiLineElementRegex = /<([\w:]+)$/g;
-      let multiLineMatch;
-
-      while ((multiLineMatch = multiLineElementRegex.exec(line)) !== null) {
-        const elementName = multiLineMatch[1];
-        const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
-
-        // Check if this is a valid Salesforce metadata type
-        if (VALID_METADATA_TYPES.has(cleanElementName)) {
-          return cleanElementName;
-        }
       }
     }
 
