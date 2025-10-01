@@ -97,8 +97,19 @@ export class MetadataDocumentationService {
    */
   private async loadMetadataDocumentation(): Promise<void> {
     try {
-      // Path resolution: from out/src/metadataSupport/ to resources/
-      const xsdPath = path.join(__dirname, '..', '..', '..', 'resources', 'salesforce_metadata_api_clean.xsd');
+      // Path resolution: works for both development (out/) and production (dist/) builds
+      // Find the extension root by looking for package.json
+      let extensionRoot = __dirname;
+      while (extensionRoot !== path.dirname(extensionRoot)) {
+        const packageJsonPath = path.join(extensionRoot, 'package.json');
+        if (await fileOrFolderExists(packageJsonPath)) {
+          break;
+        }
+        extensionRoot = path.dirname(extensionRoot);
+      }
+
+      const xsdPath = path.join(extensionRoot, 'resources', 'salesforce_metadata_api_clean.xsd');
+      console.log(`Loading XSD file from: ${xsdPath}`);
 
       if (!(await fileOrFolderExists(xsdPath))) {
         console.warn('XSD file not found - no metadata documentation will be available');
