@@ -69,22 +69,18 @@ export class OrgBrowserPage {
     await expect(this.activityBarItem, 'Activity bar item for Org Browser should be visible').toBeVisible({
       timeout: 15000
     });
-    // Wait for the backend metadata types request to complete (SOAP metadata list)
-    const typesResp = this.page.waitForResponse(
-      resp => /\/services\/Soap\/m\/\d+\.0/.test(resp.url()) && resp.status() === 200,
-      { timeout: 30_000 }
-    );
-
     // Trigger navigation to Org Browser and wait for the types response
-    await Promise.all([typesResp, this.activityBarItem.click()]);
+    await Promise.all([
+      this.awaitMdapiResponse(),
+      this.activityBarItem.click(),
+      expect(this.sidebar, 'Sidebar for Org Browser should be visible').toBeVisible({ timeout: 10_000 }),
+      //  assert at least 5 top-level items are present
+      expect(
+        this.sidebar.getByRole('treeitem', { level: 1 }).nth(4),
+        'Sidebar should have at least 5 metadata types'
+      ).toBeVisible({ timeout: 30_000 })
+    ]);
 
-    await expect(this.sidebar, 'Sidebar for Org Browser should be visible').toBeVisible({ timeout: 10_000 });
-
-    // Now assert at least 5 top-level items are present
-    await expect(
-      this.page.locator('[role="treeitem"][aria-level="1"]').nth(4),
-      'Sidebar should have at least 5 metadata types'
-    ).toBeVisible({ timeout: 30_000 });
     await saveScreenshot(this.page, 'orgBrowserPage.openOrgBrowser.metadataTypesLoaded.png', true);
   }
 
@@ -115,9 +111,7 @@ export class OrgBrowserPage {
    */
   public async findMetadataType(typeName: string): Promise<Locator> {
     // Create a precise locator that matches exact tree items at aria-level 1
-    const metadataTypeLocator = this.page.locator(
-      `[role="treeitem"][aria-level="1"][aria-label="${typeName} "], [role="treeitem"][aria-level="1"][aria-label^="${typeName},"]`
-    );
+    const metadataTypeLocator = this.sidebar.getByRole('treeitem', { level: 1 }).filter({ hasText: typeName });
 
     // Check if already visible
     if (await metadataTypeLocator.first().isVisible()) {
@@ -126,9 +120,16 @@ export class OrgBrowserPage {
 
     await Promise.all([
       this.awaitMdapiResponse(),
-      this.page.locator('[role="treeitem"][aria-level="1"]').nth(1).click()
+      this.sidebar
+        .getByRole('treeitem', {
+          level: 1,
+          includeHidden: true
+        })
+        .nth(1)
+        .click()
     ]);
 
+    await this.page.waitForTimeout(700);
     await this.page.keyboard.type(typeName, { delay: typingSpeed });
 
     // Check if the target element is now visible
@@ -147,7 +148,7 @@ export class OrgBrowserPage {
    */
   public async getMetadataItem(metadataType: string, itemName: string, level = 2): Promise<Locator> {
     // All metadata items are at aria-level >= 2 (metadata types are level 1)
-    const metadataItem = this.page.getByRole('treeitem', { level, name: itemName, exact: true });
+    const metadataItem = this.sidebar.getByRole('treeitem', { level, name: itemName, exact: true });
 
     // Check if already visible
     if (await metadataItem.first().isVisible({ timeout: 1000 })) {

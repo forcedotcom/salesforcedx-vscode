@@ -107,6 +107,7 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
     await roleTextbox.click({ timeout: 5000 });
     await roleTextbox.fill(value);
     await expect(roleTextbox).toHaveValue(value, { timeout: 10000 });
+    await roleTextbox.blur();
 
     // Capture after state
     await saveScreenshot(page, `settings.afterSet.${id}.png`, false);
