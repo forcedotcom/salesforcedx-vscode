@@ -23,10 +23,12 @@ beforeEach(async function () {
 before(async () => {
   // Disable internal development mode for all tests
   // This ensures consistent behavior across all test environments
+  console.log('🔧 [GLOBAL HOOKS] Attempting to disable internal-development setting...');
   try {
-    await disableBooleanSetting('salesforcedx-vscode-core.internal-development');
+    const result = await disableBooleanSetting('salesforcedx-vscode-core.internal-development');
+    console.log('✅ [GLOBAL HOOKS] Successfully disabled internal-development setting. Result:', result);
   } catch (error) {
     // Ignore errors if the setting doesn't exist or can't be set
-    console.log('Could not disable internal-development setting:', error);
+    console.log('❌ [GLOBAL HOOKS] Could not disable internal-development setting:', error);
   }
 });

@@ -238,6 +238,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   // Set internal dev context
   const internalDev = salesforceCoreSettings.getInternalDev();
+  console.log('🔍 [CORE EXTENSION] Internal development setting value:', internalDev);
+  console.log(
+    '🔍 [CORE EXTENSION] Configuration inspect:',
+    salesforceCoreSettings.getConfiguration().inspect('internal-development')
+  );
 
   void vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
 

@@ -87,7 +87,16 @@ export class SalesforceCoreSettings {
   }
 
   public getInternalDev(): boolean {
-    return this.getConfigValue(INTERNAL_DEVELOPMENT_FLAG, false);
+    const value = this.getConfigValue(INTERNAL_DEVELOPMENT_FLAG, false);
+    console.log(
+      '🔍 [SETTINGS] getInternalDev() called - key:',
+      INTERNAL_DEVELOPMENT_FLAG,
+      'value:',
+      value,
+      'default:',
+      false
+    );
+    return value;
   }
 
   public getConflictDetectionEnabled(): boolean {
