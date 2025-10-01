@@ -106,8 +106,8 @@ const getChildrenOfTreeItem = (
 
       return Effect.die(new Error(`Invalid node kind: ${element.kind}`));
     }),
-    Effect.provide(AllServicesLayer),
-    Effect.withSpan('getChildrenOfTreeItem')
+    Effect.withSpan('getChildrenOfTreeItem', { attributes: { element: element?.xmlName, refresh } }),
+    Effect.provide(AllServicesLayer)
   );
 
 const listMetadataToComponent =
@@ -122,7 +122,13 @@ const listMetadataToComponent =
         componentName: c.fullName,
         label: c.fullName
       });
-      yield* Queue.offer(backgroundFilePresenceCheckQueue, { treeItem, c, treeProvider, parent: element });
+      yield* Queue.offer(backgroundFilePresenceCheckQueue, {
+        treeItem,
+        c,
+        treeProvider,
+        parent: element,
+        originalSpan: yield* Effect.currentSpan
+      });
       return treeItem;
     }).pipe(
       Effect.withSpan('listMetadataToComponent', {
@@ -154,7 +160,13 @@ const listMetadataToFolderItem =
         componentName: c.fullName,
         label: c.fullName
       });
-      yield* Queue.offer(backgroundFilePresenceCheckQueue, { treeItem, c, treeProvider, parent: element });
+      yield* Queue.offer(backgroundFilePresenceCheckQueue, {
+        treeItem,
+        c,
+        treeProvider,
+        parent: element,
+        originalSpan: yield* Effect.currentSpan
+      });
       return treeItem;
     }).pipe(
       Effect.withSpan('listMetadataToFolderItem', {

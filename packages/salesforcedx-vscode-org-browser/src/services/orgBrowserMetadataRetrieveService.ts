@@ -76,7 +76,8 @@ const retrieve = (
   );
 
 const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> =>
-  Option.fromNullable(result.getFileResponses()?.[0]?.filePath);
+  // for unknown reasons, the filePath is sometimes prefixed with a backslash
+  Option.fromNullable(result.getFileResponses()?.[0]?.filePath?.replace(/^\\/, '\/'));
 
 const openFileInEditor = (filePath: string): Effect.Effect<void, Error> =>
   Effect.tryPromise({

@@ -1,0 +1,25 @@
+---
+globs: *.spec.ts,**/test/web/**
+alwaysApply: false
+---
+
+Never use `waitForTimeout`. Always wait for something specific on the page:
+
+- Use `page.waitForSelector()` to wait for elements to appear
+- Use `expect(locator).toBeVisible()` to wait for visibility
+- Use `page.waitForLoadState()` for page state changes
+- Use `page.waitForResponse()` for network requests
+
+Prefer `aria` (getByRole) over css selectors
+
+Prefer `expect` assertions that will fail with clear messages instead of logging failures to the console. Expects should have a message property to produce good errors. import `expect` from playwright
+
+Use f1 to access commands, not meta-shift-P. Use `Control` for all (copy, paste, etc) commands. Do not use ControlOrMeta
+
+Use @https://playwright.dev/docs/api/class-locator#locator-inner-html on a known-good locator and use the result to get more accurate locators for stuff inside it.
+
+Fail early, avoid creating fallbacks.
+
+Use emojis infrequently.
+
+Read the playwright docs

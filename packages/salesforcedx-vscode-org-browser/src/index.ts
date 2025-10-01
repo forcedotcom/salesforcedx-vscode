@@ -8,7 +8,7 @@
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { retrieveOrgBrowserTreeItemCommand } from './commands/retrieveMetadata';
-import { TREE_VIEW_ID } from './constants';
+import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
@@ -24,33 +24,30 @@ export const deactivate = async (): Promise<void> =>
 export const activateEffect = (
   context: vscode.ExtensionContext
 ): Effect.Effect<void, Error, ExtensionProviderService> =>
-  Effect.provide(
-    Effect.gen(function* () {
-      const svc = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ChannelService;
-      yield* svc.appendToChannel('Salesforce Org Browser extension activating');
+  Effect.gen(function* () {
+    const svc = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ChannelService;
+    yield* svc.appendToChannel('Salesforce Org Browser extension activating');
 
-      const treeProvider = new MetadataTypeTreeProvider();
-      // Register the tree provider
-      vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider);
+    const treeProvider = new MetadataTypeTreeProvider();
+    // Register the tree provider
+    vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider);
 
-      // Register commands
-      context.subscriptions.push(
-        vscode.commands.registerCommand(`${TREE_VIEW_ID}.refreshType`, async (node: OrgBrowserTreeItem) => {
-          await treeProvider.refreshType(node);
-        }),
-        vscode.commands.registerCommand(`${TREE_VIEW_ID}.collapseAll`, () => {
-          vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_ID}.collapseAll`);
-        }),
-        vscode.commands.registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, async (node: OrgBrowserTreeItem) => {
-          await retrieveOrgBrowserTreeItemCommand(node, treeProvider);
-        })
-      );
+    // Register commands
+    context.subscriptions.push(
+      vscode.commands.registerCommand(`${TREE_VIEW_ID}.refreshType`, async (node: OrgBrowserTreeItem) => {
+        await treeProvider.refreshType(node);
+      }),
+      vscode.commands.registerCommand(`${TREE_VIEW_ID}.collapseAll`, () => {
+        vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_ID}.collapseAll`);
+      }),
+      vscode.commands.registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, async (node: OrgBrowserTreeItem) => {
+        await retrieveOrgBrowserTreeItemCommand(node, treeProvider);
+      })
+    );
 
-      // Append completion message
-      yield* svc.appendToChannel('Salesforce Org Browser activation complete.');
-    }).pipe(Effect.withSpan('activation:salesforcedx-vscode-org-browser')),
-    AllServicesLayer
-  );
+    // Append completion message
+    yield* svc.appendToChannel('Salesforce Org Browser activation complete.');
+  }).pipe(Effect.withSpan(`activation:${EXTENSION_NAME}`), Effect.provide(AllServicesLayer));
 
 export const deactivateEffect = ExtensionProviderService.pipe(
   Effect.flatMap(svcProvider => svcProvider.getServicesApi),

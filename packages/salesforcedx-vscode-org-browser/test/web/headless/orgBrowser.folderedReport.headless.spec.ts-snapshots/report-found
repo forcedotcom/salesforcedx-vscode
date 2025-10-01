@@ -1,0 +1,4 @@
+- treeitem "Report" [level=1]:
+  - text:  Report
+  - toolbar:
+    - button "Refresh Type"

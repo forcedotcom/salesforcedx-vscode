@@ -18,7 +18,7 @@ type OrgBrowserTreeItemKind =
   /** a custom object (so that its fields can be displayed and retrieved*/
   | 'customObject';
 
-export type OrgBrowserTreeItemInputs = {
+type OrgBrowserTreeItemInputs = {
   kind: OrgBrowserTreeItemKind;
   /** Metadata Type that you could use to retrieve the node */
   xmlName: string;
@@ -34,9 +34,6 @@ export type OrgBrowserTreeItemInputs = {
 // Types that have folders
 const FOLDER_TYPES = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report']);
 export const isFolderType = (xmlName: string): boolean => FOLDER_TYPES.has(xmlName);
-
-export const calculateType = (xmlName: string): OrgBrowserTreeItemKind =>
-  xmlName === 'CustomObject' ? 'customObject' : isFolderType(xmlName) ? 'folder' : 'type';
 
 export class OrgBrowserTreeItem extends vscode.TreeItem {
   public readonly kind: OrgBrowserTreeItemKind;

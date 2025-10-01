@@ -43,7 +43,7 @@ const retrieveEffect = (
     if (!(yield* confirmOverwrite(localComponents, target))) return;
 
     // Run the retrieve operation
-    const result = yield* (yield* OrgBrowserRetrieveService).retrieve([target], true);
+    const result = yield* (yield* OrgBrowserRetrieveService).retrieve([target], target.fullName !== '*');
 
     // Handle post-retrieve UI updates
     yield* Effect.promise(async () => {

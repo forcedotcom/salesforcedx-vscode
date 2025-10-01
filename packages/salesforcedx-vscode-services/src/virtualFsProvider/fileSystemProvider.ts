@@ -24,11 +24,11 @@ export class FsProvider implements vscode.FileSystemProvider {
   public readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = emitter.event;
 
   public exists(uri: vscode.Uri): boolean {
-    return fs.existsSync(uri.fsPath);
+    return fs.existsSync(uri.path);
   }
 
   public stat(uri: vscode.Uri): vscode.FileStat {
-    const stats = fs.statSync(uri.fsPath);
+    const stats = fs.statSync(uri.path);
     return {
       type: stats.isDirectory() ? vscode.FileType.Directory : vscode.FileType.File,
       ctime: stats.ctimeMs,
@@ -39,21 +39,21 @@ export class FsProvider implements vscode.FileSystemProvider {
 
   public readDirectory(uri: vscode.Uri): [string, vscode.FileType][] {
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    return (fs.readdirSync(uri.fsPath, { withFileTypes: true }) as Dirent[]).map(dirent => [
+    return (fs.readdirSync(uri.path, { withFileTypes: true }) as Dirent[]).map(dirent => [
       dirent.name,
       dirent.isDirectory() ? vscode.FileType.Directory : vscode.FileType.File
     ]);
   }
 
   public async createDirectory(uri: vscode.Uri): Promise<void> {
-    await fs.promises.mkdir(uri.fsPath, { recursive: true });
+    await fs.promises.mkdir(uri.path, { recursive: true });
     emitter.fire([{ type: vscode.FileChangeType.Created, uri }]);
   }
 
   public readFile(uri: vscode.Uri): Uint8Array {
     // memfs types are loose around readFileSync
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    return new Uint8Array(fs.readFileSync(uri.fsPath) as Buffer);
+    return new Uint8Array(fs.readFileSync(uri.path) as Buffer);
   }
 
   public async writeFile(
@@ -73,7 +73,7 @@ export class FsProvider implements vscode.FileSystemProvider {
       // Write file to filesystem
       Effect.flatMap(() =>
         Effect.tryPromise({
-          try: () => fs.promises.writeFile(uri.fsPath, Buffer.from(content)),
+          try: () => fs.promises.writeFile(uri.path, Buffer.from(content)),
           catch: e => new Error(`Failed to write file: ${String(e)}`)
         })
       )
@@ -85,7 +85,7 @@ export class FsProvider implements vscode.FileSystemProvider {
   }
 
   public async delete(uri: vscode.Uri, options: { recursive: boolean }): Promise<void> {
-    await fs.promises.rm(uri.fsPath, { recursive: options.recursive, force: true });
+    await fs.promises.rm(uri.path, { recursive: options.recursive, force: true });
     emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
   }
 
@@ -93,7 +93,7 @@ export class FsProvider implements vscode.FileSystemProvider {
     if (!options.overwrite && this.exists(newUri)) {
       throw vscode.FileSystemError.FileExists(newUri);
     }
-    await fs.promises.rename(oldUri.fsPath, newUri.fsPath);
+    await fs.promises.rename(oldUri.path, newUri.path);
 
     emitter.fire([
       { type: vscode.FileChangeType.Deleted, uri: oldUri },

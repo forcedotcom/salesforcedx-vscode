@@ -33,9 +33,9 @@ export const createCustomFieldNode =
         treeItem,
         c: fieldMetadata,
         treeProvider,
-        parent: element
+        parent: element,
+        originalSpan: yield* Effect.currentSpan
       });
-
       return treeItem;
     }).pipe(
       Effect.withSpan('createCustomFieldNode', {
