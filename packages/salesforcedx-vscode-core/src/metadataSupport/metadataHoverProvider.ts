@@ -274,7 +274,7 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
     // If not a metadata type, try to get field documentation
     const fieldInfo = extractFieldInfo(document, position);
     if (fieldInfo) {
-      const fieldDocumentation = await this.documentationService.getFieldDocumentation(
+      const fieldDocumentation = this.documentationService.getFieldDocumentation(
         fieldInfo.metadataType,
         fieldInfo.fieldName
       );

@@ -502,7 +502,7 @@ describe('MetadataHoverProvider', () => {
       const document = createMockDocument('TestObject__c.object-meta.xml', content);
       const position = { line: 2, character: 8 } as vscode.Position; // Position inside '<unknownField>' tag
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(null);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue(null);
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
