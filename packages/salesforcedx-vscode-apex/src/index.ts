@@ -45,8 +45,8 @@ import {
 import { nls } from './messages';
 import { checkIfESRIsDecomposed } from './oasUtils';
 import { getTelemetryService, setTelemetryService } from './telemetry/telemetry';
-import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
-import { ApexTestRunner, TestRunType } from './views/testRunner';
+import { TEST_OUTLINE_PROVIDER_BASE_ID, getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
+import { runAllApexTests, runApexTests, showErrorMessage, TestRunType } from './views/testRunner';
 
 const metadataOrchestrator = new MetadataOrchestrator();
 
@@ -163,41 +163,37 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
       }
     )
   );
+
 const registerTestView = (): vscode.Disposable => {
   const testOutlineProvider = getTestOutlineProvider();
-  // Create TestRunner
-  const testRunner = new ApexTestRunner(testOutlineProvider);
-
-  // Test View
-
   return vscode.Disposable.from(
-    vscode.window.registerTreeDataProvider(testOutlineProvider.getId(), testOutlineProvider),
+    vscode.window.registerTreeDataProvider(TEST_OUTLINE_PROVIDER_BASE_ID, testOutlineProvider),
     // Run Test Button on Test View command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.run`, () => testRunner.runAllApexTests()),
+    vscode.commands.registerCommand(`${TEST_OUTLINE_PROVIDER_BASE_ID}.run`, () => runAllApexTests(testOutlineProvider)),
     // Show Error Message command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.showError`, (test: TestNode) =>
-      testRunner.showErrorMessage(test)
+    vscode.commands.registerCommand(`${TEST_OUTLINE_PROVIDER_BASE_ID}.showError`, (test: TestNode) =>
+      showErrorMessage(test)
     ),
     // Show Definition command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.goToDefinition`, (test: TestNode) =>
-      testRunner.showErrorMessage(test)
+    vscode.commands.registerCommand(`${TEST_OUTLINE_PROVIDER_BASE_ID}.goToDefinition`, (test: TestNode) =>
+      showErrorMessage(test)
     ),
     // Run Class Tests command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.runClassTests`, (test: TestNode) =>
-      testRunner.runApexTests([test.name], TestRunType.Class)
+    vscode.commands.registerCommand(`${TEST_OUTLINE_PROVIDER_BASE_ID}.runClassTests`, (test: TestNode) =>
+      runApexTests([test.name], TestRunType.Class)
     ),
     // Run Single Test command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.runSingleTest`, (test: TestNode) =>
-      testRunner.runApexTests([test.name], TestRunType.Method)
+    vscode.commands.registerCommand(`${TEST_OUTLINE_PROVIDER_BASE_ID}.runSingleTest`, (test: TestNode) =>
+      runApexTests([test.name], TestRunType.Method)
     ),
     // Refresh Test View command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.refresh`, () => {
+    vscode.commands.registerCommand(`${TEST_OUTLINE_PROVIDER_BASE_ID}.refresh`, () => {
       if (languageClientManager.getStatus().isReady()) {
         return testOutlineProvider.refresh();
       }
     }),
     // Collapse All Apex Tests command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.collapseAll`, () =>
+    vscode.commands.registerCommand(`${TEST_OUTLINE_PROVIDER_BASE_ID}.collapseAll`, () =>
       testOutlineProvider.collapseAll()
     )
   );

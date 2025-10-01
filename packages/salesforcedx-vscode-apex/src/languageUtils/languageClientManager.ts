@@ -16,7 +16,7 @@ import * as languageServer from '../languageServer';
 import { nls } from '../messages';
 import { retrieveEnableSyncInitJobs } from '../settings';
 import { getTelemetryService } from '../telemetry/telemetry';
-import { ApexLSPConverter, ApexTestMethod, LSPApexTestMethod } from '../views/lspConverter';
+import { toApexTestMethod, ApexTestMethod, LSPApexTestMethod } from '../views/lspConverter';
 import { getTestOutlineProvider } from '../views/testOutlineProvider';
 
 export enum ClientStatus {
@@ -118,7 +118,7 @@ export class LanguageClientManager {
   public async getApexTests(): Promise<ApexTestMethod[]> {
     return this.clientInstance
       ? (await this.clientInstance.sendRequest<LSPApexTestMethod[]>('test/getTestMethods')).map(requestInfo =>
-          ApexLSPConverter.toApexTestMethod(requestInfo)
+          toApexTestMethod(requestInfo)
         )
       : [];
   }

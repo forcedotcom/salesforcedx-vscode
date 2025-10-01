@@ -108,8 +108,7 @@ export const messages = {
   java_version_check_command_failed: 'Running java command %s failed with error: %s',
   launch_apex_replay_debugger_unsupported_file:
     'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
-  launch_apex_replay_debugger_with_selected_file:
-    'Launch Apex Replay Debugger with Selected File',
+  launch_apex_replay_debugger_with_selected_file: 'Launch Apex Replay Debugger with Selected File',
   merge: 'Manually merge with existing ESR',
   method_not_found_in_doc_symbols: 'Method %s is not found in the document symbols',
   mixed_frameworks_not_allowed:
@@ -159,7 +158,6 @@ export const messages = {
   test_view_no_tests_message: 'No Apex Tests Found',
   test_view_show_error_title: 'Show Error',
   unable_to_locate_document: 'You can run this command only on a source file.',
-  unable_to_locate_editor: 'You can run this command only on a source file.',
   unknown: 'Unknown',
   unknown_error: 'Unknown error',
   unknown_bid_rule: 'Unknown bid rule "%s"',

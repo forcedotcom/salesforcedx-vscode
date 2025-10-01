@@ -4,7 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { extractJson, fixupError, stripAnsiInJson } from '../../../src/helpers/utils';
+import { extractJson, fixupError, stripAnsi } from '../../../src/helpers/utils';
+
+const stripAnsiInJson = (str: string, hasJson: boolean): string => (str && hasJson ? stripAnsi(str) : str);
 
 describe('utils tests', () => {
   describe('extractJson unit tests', () => {

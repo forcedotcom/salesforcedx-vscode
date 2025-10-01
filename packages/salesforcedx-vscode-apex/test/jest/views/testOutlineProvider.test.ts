@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { iconHelpers } from '../../../src/views/icons/iconHelpers';
 
-import { getTestOutlineProvider } from '../../../src/views/testOutlineProvider';
+import { getTestOutlineProvider, TEST_OUTLINE_PROVIDER_BASE_ID } from '../../../src/views/testOutlineProvider';
 
 describe('testOutlineProvider Unit Tests.', () => {
   const vscodeMocked = jest.mocked(vscode);
@@ -22,11 +22,6 @@ describe('testOutlineProvider Unit Tests.', () => {
     commandMock = jest.spyOn(vscodeMocked.commands, 'executeCommand');
   });
 
-  it('sets test outline provider id', () => {
-    const provider = getTestOutlineProvider();
-    expect(provider.getId()).toBe('sf.test.view');
-  });
-
   it('calls collapse all apex tests', () => {
     const provider = getTestOutlineProvider();
 
@@ -34,6 +29,8 @@ describe('testOutlineProvider Unit Tests.', () => {
 
     expect(commandMock).toHaveBeenCalledTimes(1);
     expect(commandMock.mock.calls[0].length).toBe(1);
-    expect(commandMock.mock.calls[0][0]).toBe(`workbench.actions.treeView.${provider.getId()}.collapseAll`);
+    expect(commandMock.mock.calls[0][0]).toBe(
+      `workbench.actions.treeView.${TEST_OUTLINE_PROVIDER_BASE_ID}.collapseAll`
+    );
   });
 });

@@ -128,21 +128,10 @@ const flushFilePath = (filePath: string): string => {
   return nativePath;
 };
 
-const flushFilePaths = (filePaths: string[]): string[] => {
-  for (let i = 0; i < filePaths.length; i++) {
-    filePaths[i] = flushFilePath(filePaths[i]);
-  }
-
-  return filePaths;
-};
-
 export const fileUtils = {
-  flushFilePaths,
   flushFilePath,
   extractJson
 };
-
-export const stripAnsiInJson = (str: string, hasJson: boolean): string => (str && hasJson ? stripAnsi(str) : str);
 
 export const stripAnsi = (str: string): string => (str ? str.replaceAll(ansiRegex(), '') : str);
 

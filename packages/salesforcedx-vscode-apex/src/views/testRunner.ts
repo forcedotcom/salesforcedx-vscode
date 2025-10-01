@@ -11,7 +11,6 @@ import {
   SfWorkspaceChecker,
   getTestResultsFolder
 } from '@salesforce/salesforcedx-utils-vscode';
-import * as events from 'node:events';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { ApexLibraryTestRunExecutor } from '../commands';
@@ -27,96 +26,85 @@ export enum TestRunType {
   Method
 }
 
-export class ApexTestRunner {
-  private testOutline: ApexTestOutlineProvider;
-  private eventsEmitter: events.EventEmitter;
-  constructor(testOutline: ApexTestOutlineProvider, eventsEmitter?: events.EventEmitter) {
-    this.testOutline = testOutline;
-    this.eventsEmitter = eventsEmitter ?? new events.EventEmitter();
-    this.eventsEmitter.on('sf:update_selection', this.updateSelection);
-  }
+export const runAllApexTests = async (testOutline: ApexTestOutlineProvider): Promise<void> => {
+  const tests = Array.from(testOutline.testStrings.values());
+  await runApexTests(tests, TestRunType.All);
+};
 
-  public showErrorMessage(test: TestNode) {
-    let testNode = test;
-    let position: vscode.Range | number = test.location!.range;
-    if (testNode instanceof ApexTestGroupNode) {
-      if (test.contextValue === 'apexTestGroup_Fail') {
-        const failedTest = test.children.find(testCase => testCase.contextValue === 'apexTest_Fail');
-        if (failedTest) {
-          testNode = failedTest;
-        }
-      }
-    }
-    if (testNode instanceof ApexTestNode) {
-      const errorMessage = testNode.errorMessage;
-      if (errorMessage && errorMessage !== '') {
-        const stackTrace = testNode.stackTrace;
-        position = parseInt(stackTrace.substring(stackTrace.indexOf('line') + 4, stackTrace.indexOf(',')), 10) - 1; // Remove one because vscode location is zero based
-        channelService.appendLine('-----------------------------------------');
-        channelService.appendLine(stackTrace);
-        channelService.appendLine(errorMessage);
-        channelService.appendLine('-----------------------------------------');
-        channelService.showChannelOutput();
-      }
-    }
-
-    if (testNode.location) {
-      vscode.window.showTextDocument(testNode.location.uri).then(() => {
-        this.eventsEmitter.emit('sf:update_selection', position);
-      });
-    }
-  }
-
-  public updateSelection(index: vscode.Range | number) {
-    const editor = vscode.window.activeTextEditor;
-    if (editor) {
-      if (index instanceof vscode.Range) {
-        editor.selection = new vscode.Selection(index.start, index.end);
-        editor.revealRange(index); // Show selection
-      } else {
-        const line = editor.document.lineAt(index);
-        const startPos = new vscode.Position(line.lineNumber, line.firstNonWhitespaceCharacterIndex);
-        editor.selection = new vscode.Selection(startPos, line.range.end);
-        editor.revealRange(line.range); // Show selection
+export const showErrorMessage = async (test: TestNode): Promise<void> => {
+  let testNode = test;
+  let position: vscode.Range | number = test.location!.range;
+  if (testNode instanceof ApexTestGroupNode) {
+    if (test.contextValue === 'apexTestGroup_Fail') {
+      const failedTest = test.children.find(testCase => testCase.contextValue === 'apexTest_Fail');
+      if (failedTest) {
+        testNode = failedTest;
       }
     }
   }
+  if (testNode instanceof ApexTestNode) {
+    const errorMessage = testNode.errorMessage;
+    if (errorMessage && errorMessage !== '') {
+      const stackTrace = testNode.stackTrace;
+      position = parseInt(stackTrace.substring(stackTrace.indexOf('line') + 4, stackTrace.indexOf(',')), 10) - 1; // Remove one because vscode location is zero based
+      channelService.appendLine('-----------------------------------------');
+      channelService.appendLine(stackTrace);
+      channelService.appendLine(errorMessage);
+      channelService.appendLine('-----------------------------------------');
+      channelService.showChannelOutput();
+    }
+  }
 
-  public async getTempFolder(): Promise<string> {
-    if (vscode.workspace?.workspaceFolders) {
-      const apexDir = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
-      return apexDir;
+  if (testNode.location) {
+    await vscode.window.showTextDocument(testNode.location.uri);
+    await updateSelection(position);
+  }
+};
+
+const updateSelection = async (index: vscode.Range | number): Promise<void> => {
+  const editor = vscode.window.activeTextEditor;
+  if (editor) {
+    if (index instanceof vscode.Range) {
+      editor.selection = new vscode.Selection(index.start, index.end);
+      editor.revealRange(index); // Show selection
     } else {
-      throw new Error(nls.localize('cannot_determine_workspace'));
+      const line = editor.document.lineAt(index);
+      const startPos = new vscode.Position(line.lineNumber, line.firstNonWhitespaceCharacterIndex);
+      editor.selection = new vscode.Selection(startPos, line.range.end);
+      editor.revealRange(line.range); // Show selection
+    }
+  }
+};
+
+export const runApexTests = async (tests: string[], testRunType: TestRunType) => {
+  const languageClientStatus = languageClientManager.getStatus();
+  if (!languageClientStatus.isReady()) {
+    if (languageClientStatus.failedToInitialize()) {
+      vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());
+      return [];
     }
   }
 
-  public async runAllApexTests(): Promise<void> {
-    const tests = Array.from(this.testOutline.testStrings.values());
-    await this.runApexTests(tests, TestRunType.All);
+  const tmpFolder = await getTempFolder();
+  const getCodeCoverage = settings.retrieveTestCodeCoverage();
+  if (testRunType === TestRunType.Class) {
+    await apexTestRunCacheService.setCachedClassTestParam(tests[0]);
+  } else if (testRunType === TestRunType.Method) {
+    await apexTestRunCacheService.setCachedMethodTestParam(tests[0]);
   }
+  const commandlet = new SfCommandlet(
+    new SfWorkspaceChecker(),
+    new EmptyParametersGatherer(),
+    new ApexLibraryTestRunExecutor(tests, tmpFolder, getCodeCoverage)
+  );
+  await commandlet.run();
+};
 
-  public async runApexTests(tests: string[], testRunType: TestRunType) {
-    const languageClientStatus = languageClientManager.getStatus();
-    if (!languageClientStatus.isReady()) {
-      if (languageClientStatus.failedToInitialize()) {
-        vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());
-        return [];
-      }
-    }
-
-    const tmpFolder = await this.getTempFolder();
-    const getCodeCoverage = settings.retrieveTestCodeCoverage();
-    if (testRunType === TestRunType.Class) {
-      await apexTestRunCacheService.setCachedClassTestParam(tests[0]);
-    } else if (testRunType === TestRunType.Method) {
-      await apexTestRunCacheService.setCachedMethodTestParam(tests[0]);
-    }
-    const commandlet = new SfCommandlet(
-      new SfWorkspaceChecker(),
-      new EmptyParametersGatherer(),
-      new ApexLibraryTestRunExecutor(tests, tmpFolder, getCodeCoverage)
-    );
-    await commandlet.run();
+const getTempFolder = async (): Promise<string> => {
+  if (vscode.workspace?.workspaceFolders) {
+    const apexDir = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
+    return apexDir;
+  } else {
+    throw new Error(nls.localize('cannot_determine_workspace'));
   }
-}
+};
