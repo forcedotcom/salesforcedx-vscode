@@ -351,13 +351,14 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   registerPushOrDeployOnSave();
   await decorators.showOrg();
 
-  // Initialize metadata XML support
+  // Initialize metadata XML support and hover provider in parallel
   const metadataXmlSupport = MetadataXmlSupport.getInstance();
-  await metadataXmlSupport.initializeMetadataSupport(extensionContext);
-
-  // Initialize metadata hover provider
   const metadataHoverProvider = new MetadataHoverProvider();
-  await metadataHoverProvider.initialize();
+
+  await Promise.all([
+    metadataXmlSupport.initializeMetadataSupport(extensionContext),
+    metadataHoverProvider.initialize()
+  ]);
 
   // Register hover provider for XML files
   const hoverProviderDisposable = vscode.languages.registerHoverProvider(
