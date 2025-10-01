@@ -12,6 +12,11 @@ import { nls } from '../messages';
 
 const EXTENSION_NAME = 'salesforce.salesforcedx-vscode-lwc';
 
+type XMLExtensionApi = {
+  addXMLCatalogs: (catalogs: string[]) => void;
+  addXMLFileAssociations: (fileAssociations: { systemId: string; pattern: string }[]) => void;
+};
+
 export class MetaSupport {
   private static instance: MetaSupport;
 
@@ -30,13 +35,7 @@ export class MetaSupport {
    */
   private getLocalFilePath(targetFileNames: [string]) {
     const thisExtPath = vscode.extensions.getExtension(EXTENSION_NAME)!.extensionPath;
-    const listOfPaths: string[] = [];
-
-    targetFileNames.forEach(targetFileName => {
-      listOfPaths.push(path.join(thisExtPath, 'resources', 'static', targetFileName));
-    });
-
-    return listOfPaths;
+    return targetFileNames.map(targetFileName => path.join(thisExtPath, 'resources', 'static', targetFileName));
   }
 
   /**
@@ -47,13 +46,15 @@ export class MetaSupport {
    */
   private async setupRedhatXml(
     inputCatalogs: string[],
-    inputFileAssociations: { systemId: string; pattern: string }[]
+    inputFileAssociations: { systemId: string; pattern: string }[],
+    redHatExtension: vscode.Extension<XMLExtensionApi>
   ) {
-    const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
     try {
-      const extensionApi = await redHatExtension!.activate();
-      extensionApi.addXMLCatalogs(inputCatalogs);
-      extensionApi.addXMLFileAssociations(inputFileAssociations);
+      if (!redHatExtension.isActive) {
+        await redHatExtension.activate();
+      }
+      redHatExtension.exports.addXMLCatalogs(inputCatalogs);
+      redHatExtension.exports.addXMLFileAssociations(inputFileAssociations);
     } catch (error) {
       channelService.appendLine(nls.localize('lightning_lwc_fail_redhat_extension'));
       const errorMsg = error.message ?? error;
@@ -65,32 +66,35 @@ export class MetaSupport {
    * This function checks the enviornment and passes relevant settings
    * to set up RedHat XML
    */
-  public async getMetaSupport() {
+  public async getMetaSupport(): Promise<void> {
     // redHatExtension API reference: https://github.com/redhat-developer/vscode-xml/pull/292
-    const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
+    const redHatExtension = vscode.extensions.getExtension<XMLExtensionApi>('redhat.vscode-xml');
     if (redHatExtension === undefined) {
-      channelService.appendLine(nls.localize('lightning_lwc_no_redhat_extension_found'));
-    } else if (redHatExtension) {
-      const pluginVersionNumber = redHatExtension.packageJSON['version'];
+      return channelService.appendLine(nls.localize('lightning_lwc_no_redhat_extension_found'));
+    }
+    const pluginVersionNumber = redHatExtension.packageJSON['version'];
 
-      // checks if the installed plugin version is exactly 0.14.0 or 0.16+,
-      // 0.15.0 has a regression and 0.13.0 or earlier versions are not supported
-      const major = parseInt(pluginVersionNumber.split('.')[0], 10);
-      const minor = parseInt(pluginVersionNumber.split('.')[1], 10);
-      if (major >= 1 || minor === 14 || minor >= 16) {
-        const catalogs = this.getLocalFilePath(['js-meta-home.xml']);
-        const fileAssociations = [
-          {
-            systemId: this.getLocalFilePath(['js-meta.xsd'])[0],
-            pattern: '**/*js-meta.xml'
-          }
-        ];
-        await this.setupRedhatXml(catalogs, fileAssociations);
-      } else if (minor === 15) {
-        channelService.appendLine(nls.localize('lightning_lwc_redhat_extension_regression'));
-      } else {
-        channelService.appendLine(nls.localize('lightning_lwc_deprecated_redhat_extension'));
-      }
+    if (typeof pluginVersionNumber !== 'string') {
+      channelService.appendLine(nls.localize('lightning_lwc_no_redhat_extension_found'));
+      return;
+    }
+    // checks if the installed plugin version is exactly 0.14.0 or 0.16+,
+    // 0.15.0 has a regression and 0.13.0 or earlier versions are not supported
+    const [major, minor] = pluginVersionNumber.split('.').map(i => parseInt(i, 10));
+
+    if (major >= 1 || minor === 14 || minor >= 16) {
+      const catalogs = this.getLocalFilePath(['js-meta-home.xml']);
+      const fileAssociations = [
+        {
+          systemId: this.getLocalFilePath(['js-meta.xsd'])[0],
+          pattern: '**/*js-meta.xml'
+        }
+      ];
+      await this.setupRedhatXml(catalogs, fileAssociations, redHatExtension);
+    } else if (minor === 15) {
+      channelService.appendLine(nls.localize('lightning_lwc_redhat_extension_regression'));
+    } else {
+      channelService.appendLine(nls.localize('lightning_lwc_deprecated_redhat_extension'));
     }
   }
 }

@@ -8,13 +8,13 @@ import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from '../schemas';
 
-export interface ProcessorInputOutput {
+export type ProcessorInputOutput = {
   openAPIDoc: OpenAPIV3.Document;
   errors: vscode.Diagnostic[];
   readonly eligibilityResult?: ApexClassOASEligibleResponse;
   context?: ApexClassOASGatherContextResponse;
-}
+};
 
-export interface ProcessorStep {
+export type ProcessorStep = {
   process(input: ProcessorInputOutput): Promise<ProcessorInputOutput>;
-}
+};

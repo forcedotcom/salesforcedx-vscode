@@ -52,12 +52,12 @@ class LanguageClientStatus {
   }
 }
 
-export interface ProcessDetail {
+export type ProcessDetail = {
   pid: number;
   ppid: number;
   command: string;
   orphaned: boolean;
-}
+};
 
 interface RestartQuickPickItem extends vscode.QuickPickItem {
   type: 'restart' | 'reset';
