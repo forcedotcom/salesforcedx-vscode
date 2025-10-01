@@ -57,21 +57,21 @@ export class MetadataDocumentationService {
   /**
    * Get documentation for a specific field within a metadata type
    */
-  public getFieldDocumentation(metadataType: string, fieldName: string): Promise<MetadataFieldDocumentation | null> {
+  public getFieldDocumentation(metadataType: string, fieldName: string): MetadataFieldDocumentation | null {
     // First, try to get field documentation from XSD-extracted metadata
     const typeDoc = this.documentationMap.get(metadataType);
     if (typeDoc?.fields) {
       const field = typeDoc.fields.find(f => f.name === fieldName);
       if (field?.description.trim()) {
         // Only use XSD field if it has meaningful documentation
-        return Promise.resolve(field);
+        return field;
       }
     }
 
     // Fall back to hardcoded field definitions only for common fields or when XSD data is insufficient
     const fieldDoc = this.getFieldDefinitions(metadataType, fieldName);
     if (fieldDoc) {
-      return Promise.resolve(fieldDoc);
+      return fieldDoc;
     }
 
     // If we have XSD field data but no description, use it with pattern-based description
@@ -79,16 +79,16 @@ export class MetadataDocumentationService {
       const field = typeDoc.fields.find(f => f.name === fieldName);
       if (field) {
         const patternDoc = this.extractFieldFromXSDPatterns(metadataType, fieldName);
-        return Promise.resolve({
+        return {
           ...field,
           description:
             patternDoc?.description ?? field.description ?? `The ${fieldName} field for ${metadataType} metadata.`
-        });
+        };
       }
     }
 
     // If no definition found, try to extract from XSD patterns
-    return Promise.resolve(this.extractFieldFromXSDPatterns(metadataType, fieldName));
+    return this.extractFieldFromXSDPatterns(metadataType, fieldName);
   }
 
   /**

@@ -6,7 +6,13 @@
  */
 
 import * as vscode from 'vscode';
-import { MetadataHoverProvider } from '../../../src/metadataSupport/metadataHoverProvider';
+import {
+  MetadataHoverProvider,
+  isMetadataFile,
+  extractMetadataType,
+  extractFieldInfo,
+  findParentMetadataType
+} from '../../../src/metadataSupport/metadataHoverProvider';
 
 // Mock MarkdownString after import
 (vscode.MarkdownString as jest.Mock) = jest.fn().mockImplementation(() => ({
@@ -100,11 +106,9 @@ describe('MetadataHoverProvider', () => {
       const metadataDoc = createMockDocument('test-meta.xml', '<ApexClass>');
       const regularDoc = createMockDocument('test.txt', 'some text');
 
-      // Use reflection to access private method for testing
-      const isMetadataFile = (hoverProvider as any).isMetadataFile;
-
-      expect(isMetadataFile.call(hoverProvider, metadataDoc)).toBe(true);
-      expect(isMetadataFile.call(hoverProvider, regularDoc)).toBe(false);
+      // Test the exported function directly
+      expect(isMetadataFile(metadataDoc)).toBe(true);
+      expect(isMetadataFile(regularDoc)).toBe(false);
     });
 
     it('should identify XML files with metadata namespace', () => {
@@ -113,37 +117,25 @@ describe('MetadataHoverProvider', () => {
         '<?xml version="1.0"?><root xmlns="http://soap.sforce.com/2006/04/metadata">'
       );
 
-      const isMetadataFile = (hoverProvider as any).isMetadataFile;
-      expect(isMetadataFile.call(hoverProvider, xmlDoc)).toBe(true);
+      expect(isMetadataFile(xmlDoc)).toBe(true);
     });
   });
 
   describe('extractMetadataType', () => {
     it('should extract metadata type from XML element', () => {
-      const extractMetadataType = (hoverProvider as any).extractMetadataType;
-
-      const result = extractMetadataType.call(
-        hoverProvider,
-        '<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">',
-        'ApexClass',
-        5
-      );
+      const result = extractMetadataType('<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">', 'ApexClass', 5);
 
       expect(result).toBe('ApexClass');
     });
 
     it('should handle namespaced elements', () => {
-      const extractMetadataType = (hoverProvider as any).extractMetadataType;
-
-      const result = extractMetadataType.call(hoverProvider, '<tns:CustomObject>', 'CustomObject', 10);
+      const result = extractMetadataType('<tns:CustomObject>', 'CustomObject', 10);
 
       expect(result).toBe('CustomObject');
     });
 
     it('should return null for non-metadata elements', () => {
-      const extractMetadataType = (hoverProvider as any).extractMetadataType;
-
-      const result = extractMetadataType.call(hoverProvider, '<div>', 'div', 2);
+      const result = extractMetadataType('<div>', 'div', 2);
 
       expect(result).toBeNull();
     });
@@ -184,8 +176,7 @@ describe('MetadataHoverProvider', () => {
       const document = createMockDocument('TestObject__c.object-meta.xml', content);
       const position = { line: 3, character: 10 } as vscode.Position; // Within '<enableActivities>' tag
 
-      const extractFieldInfo = (hoverProvider as any).extractFieldInfo;
-      const result = extractFieldInfo.call(hoverProvider, document, position);
+      const result = extractFieldInfo(document, position);
 
       expect(result).toEqual({
         metadataType: 'CustomObject',
@@ -204,8 +195,7 @@ describe('MetadataHoverProvider', () => {
       const document = createMockDocument('TestClass.cls-meta.xml', content);
       const position = { line: 3, character: 8 } as vscode.Position; // Position inside '<description>' tag
 
-      const extractFieldInfo = (hoverProvider as any).extractFieldInfo;
-      const result = extractFieldInfo.call(hoverProvider, document, position);
+      const result = extractFieldInfo(document, position);
 
       expect(result).toEqual({
         metadataType: 'ApexClass',
@@ -223,8 +213,7 @@ describe('MetadataHoverProvider', () => {
       const document = createMockDocument('TestFlow.flow-meta.xml', content);
       const position = { line: 2, character: 15 } as vscode.Position; // Position inside '<tns:status>' tag
 
-      const extractFieldInfo = (hoverProvider as any).extractFieldInfo;
-      const result = extractFieldInfo.call(hoverProvider, document, position);
+      const result = extractFieldInfo(document, position);
 
       expect(result).toEqual({
         metadataType: 'Flow',
@@ -241,8 +230,7 @@ describe('MetadataHoverProvider', () => {
       const document = createMockDocument('TestObject__c.object-meta.xml', content);
       const position = { line: 1, character: 5 } as vscode.Position; // Position on 'CustomObject'
 
-      const extractFieldInfo = (hoverProvider as any).extractFieldInfo;
-      const result = extractFieldInfo.call(hoverProvider, document, position);
+      const result = extractFieldInfo(document, position);
 
       expect(result).toBeNull();
     });
@@ -261,8 +249,7 @@ describe('MetadataHoverProvider', () => {
       const document = createMockDocument('TestPrompt.prompt-meta.xml', content);
       const position = { line: 4, character: 15 } as vscode.Position; // Position inside '<displayType>' tag
 
-      const extractFieldInfo = (hoverProvider as any).extractFieldInfo;
-      const result = extractFieldInfo.call(hoverProvider, document, position);
+      const result = extractFieldInfo(document, position);
 
       expect(result).toEqual({
         metadataType: 'Prompt',
@@ -281,8 +268,7 @@ describe('MetadataHoverProvider', () => {
 
       const document = createMockDocument('TestObject__c.object-meta.xml', content);
 
-      const findParentMetadataType = (hoverProvider as any).findParentMetadataType;
-      const result = findParentMetadataType.call(hoverProvider, document, 3);
+      const result = findParentMetadataType(document, 3);
 
       expect(result).toBe('CustomObject');
     });
@@ -298,8 +284,7 @@ describe('MetadataHoverProvider', () => {
 
       const document = createMockDocument('TestClass.cls-meta.xml', content);
 
-      const findParentMetadataType = (hoverProvider as any).findParentMetadataType;
-      const result = findParentMetadataType.call(hoverProvider, document, 5);
+      const result = findParentMetadataType(document, 5);
 
       expect(result).toBe('ApexClass');
     });
@@ -312,8 +297,7 @@ describe('MetadataHoverProvider', () => {
 
       const document = createMockDocument('TestFlow.flow-meta.xml', content);
 
-      const findParentMetadataType = (hoverProvider as any).findParentMetadataType;
-      const result = findParentMetadataType.call(hoverProvider, document, 2);
+      const result = findParentMetadataType(document, 2);
 
       expect(result).toBe('Flow');
     });
@@ -326,8 +310,7 @@ describe('MetadataHoverProvider', () => {
 
       const document = createMockDocument('test.xml', content);
 
-      const findParentMetadataType = (hoverProvider as any).findParentMetadataType;
-      const result = findParentMetadataType.call(hoverProvider, document, 2);
+      const result = findParentMetadataType(document, 2);
 
       expect(result).toBeNull();
     });
@@ -519,7 +502,7 @@ describe('MetadataHoverProvider', () => {
       const document = createMockDocument('TestObject__c.object-meta.xml', content);
       const position = { line: 2, character: 8 } as vscode.Position; // Position inside '<unknownField>' tag
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(null);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue(null);
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
