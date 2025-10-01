@@ -27,6 +27,7 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
 
   /**
    * Provide hover information for metadata types and their internal fields
+   * Note that the custom implementation is intentional to workaround the RedHat XML extension's ugly formatting
    */
   public async provideHover(
     document: vscode.TextDocument,
