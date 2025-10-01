@@ -145,7 +145,7 @@ def create_clean_xsd_from_json(json_file_path, output_file_path):
         if fields:
             xsd_lines.append('  <xsd:complexContent>')
             xsd_lines.append('   <xsd:extension base="tns:Metadata">')
-            xsd_lines.append('    <xsd:choice>')
+            xsd_lines.append('    <xsd:choice maxOccurs="unbounded">')
 
             # Add fields
             for field in fields:

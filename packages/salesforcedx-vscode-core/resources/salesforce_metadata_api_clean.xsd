@@ -3,7 +3,7 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2025-10-01T03:57:45.000Z
+Generated on: 2025-10-01T04:31:38.000Z
 Total metadata types: 558
 -->
 <xsd:schema
@@ -23,7 +23,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="developerName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Represents the name of the application. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.Only users with View DeveloperName OR View Setup and Configuration permission can view, group, sort, and filter this field.</xsd:documentation>
@@ -59,7 +59,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="aiApplicationDeveloperName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Represents the AIApplication to which AIApplicationConfig belongs. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores. Available in API version 51.0 and later.</xsd:documentation>
@@ -113,7 +113,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableAIReplyRecommendations" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>If true (default), Einstein Reply Recommendations is enabled. If false, it is disabled.</xsd:documentation>
@@ -165,7 +165,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableAccountInsights" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Einstein Account Insights is enabled (true) or not (false). The default value is false.</xsd:documentation>
@@ -183,7 +183,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableAccountLogos" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether your sales reps can see available company logos (true) or not (false). The logos are for US-based companies only. The default value is false.enableAutomatedAccountFields must be true to use this setting.</xsd:documentation>
@@ -235,7 +235,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="accessLevel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Type of access granted by the share rule. Valid values are: Read Edit</xsd:documentation>
@@ -289,7 +289,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableAccountDiscovery" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>When true, sets up Einstein Account Management dashboards and installs the related CRM Analytics and Customer Insights apps. The dashboards give users access to account health analytics including metrics on open pipeline, risk, and engagement scores. Einstein Account Management is part of Revenue Intelligence, which is available for an additional cost.Available in API version 57.0 and later.</xsd:documentation>
@@ -388,7 +388,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="actionLinkTemplates" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Action link templates that are associated with the action link group template.</xsd:documentation>
@@ -508,7 +508,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="actionName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The possible values are the same as the actions you can override: accept clone delete edit list new tab view</xsd:documentation>
@@ -556,7 +556,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="actionPlanTemplateItem" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The instance of an item on an action plan template version.</xsd:documentation>
@@ -658,7 +658,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableDefaultQuickActionsOn" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether default quick actions are created in the org (true, the default setting) or not (false).</xsd:documentation>
@@ -727,7 +727,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="allowUsersToRelateMultipleContactsToTasksAndEvents" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>This field indicates whether Shared Activities is enabled. When the value is true, allows users to relate multiple contacts to a task or event. Beginning with API v36.0, this field is read-only in all versions of the API. You can’t change the value of this field. Even though this field was updateable before Spring &apos;16, changing this field’s value wasn&apos;t supported and could have resulted in an incorrect integration. If you have code in older API versions that changes the value of this field, ensure that you update that code to prevent any errors.</xsd:documentation>
@@ -956,7 +956,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="agentforceForDevelopersOptOut" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Agentforce for Developers is enabled: true or false. If true, Agentforce for Developers isn&apos;t enabled in your org, which means that you&apos;ve opted out of using it. If false, Agentforce for Developers is enabled. The default value is false.</xsd:documentation>
@@ -1007,7 +1007,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="always_Gen_Previews" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Analytics asset previews are generated (true) or not (false). Available in API version 47.0 and later.</xsd:documentation>
@@ -1689,7 +1689,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="animationFrequency" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The frequency with which an animation is displayed when a user selects the designated picklist values in a path. Valid values are: always often sometimes rarely A value of always triggers an animation every time. The values often, sometimes, and rarely trigger an animation progressively less frequently.</xsd:documentation>
@@ -1755,7 +1755,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="apiVersion" minOccurs="0" maxOccurs="unbounded" type="xsd:double">
       <xsd:annotation>
        <xsd:documentation>The API version for this class. Every class has an API version specified at creation.</xsd:documentation>
@@ -1815,7 +1815,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="apiVersion" minOccurs="0" maxOccurs="unbounded" type="xsd:double">
       <xsd:annotation>
        <xsd:documentation>The API version for this Visualforce component. Every component has an API version specified at creation. This field is available in API version 16.0 and later.</xsd:documentation>
@@ -1863,7 +1863,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="email" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The external email address to which the notification is sent. Mutually exclusive with the user field.</xsd:documentation>
@@ -1887,7 +1887,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="apiVersion" minOccurs="0" maxOccurs="unbounded" type="xsd:double">
       <xsd:annotation>
        <xsd:documentation>Required. The API version for this page. Every page has an API version specified at creation. This field is available in API version 15.0 and later. If you set this field to a number lower than 15.0, it’s changed to 15.0.</xsd:documentation>
@@ -1941,7 +1941,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="DefaultQueueableDelay" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
       <xsd:annotation>
        <xsd:documentation>Indicates the admin-controlled minimum delay (in seconds) that applies to all enqueued jobs that were scheduled without a delay parameter. The minimum delay is one second and the maximum is 600 seconds. The default behavior, when the setting is omitted, is no delay in scheduling enqueued jobs.</xsd:documentation>
@@ -2055,7 +2055,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="testClassName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A list of Apex test classes, specified by name, to include in this test suite.</xsd:documentation>
@@ -2073,7 +2073,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="apiVersion" minOccurs="0" maxOccurs="unbounded" type="xsd:double">
       <xsd:annotation>
        <xsd:documentation>Required. The API version for this trigger. Every trigger has an API version specified at creation.</xsd:documentation>
@@ -2115,7 +2115,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableAppAnalyticsOptOut" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the collection of AppExchange App Analytics package usage data from this org is disabled (true) or not (false). Available in API version 60.0 and later. Default is false.</xsd:documentation>
@@ -2139,7 +2139,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="doesHideAllAppsInAppLauncher" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>If set to false (default), all standard and custom apps show up on the App Launcher. If set to true, the admin must select which standard and custom apps to display on the App Launcher.</xsd:documentation>
@@ -2168,7 +2168,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="appMenuItems" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A list of menu items in the app menu.</xsd:documentation>
@@ -2209,7 +2209,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The label for the appointment assignment policy.</xsd:documentation>
@@ -2245,7 +2245,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="appointmentAssignmentPolicy" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The name of the appointment assignment policy. This field is available in API version 53.0 and later.</xsd:documentation>
@@ -2347,7 +2347,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Required. Whether the approval process is active.</xsd:documentation>
@@ -2623,7 +2623,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="articleTypeChannel_Display" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Represents the article-type templates used to display an article in the various channels. See “Article Type Templates” in the Salesforce online help.</xsd:documentation>
@@ -2707,7 +2707,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="defaultValue" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>If specified, represents the default value of the field. This field was deprecated in API version 48.0.</xsd:documentation>
@@ -2815,7 +2815,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="layoutSections" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The main sections of the layout containing the article fields. The order here determines the layout order.</xsd:documentation>
@@ -2891,7 +2891,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="assignmentRule" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Represents the definitions of the named assignment rules.</xsd:documentation>
@@ -2992,7 +2992,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="audienceName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The name of the audience.</xsd:documentation>
@@ -3190,7 +3190,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="apiVersion" minOccurs="0" maxOccurs="unbounded" type="xsd:double">
       <xsd:annotation>
        <xsd:documentation>The API version for this definition bundle. When you create an Aura bundle, you can specify the API version to save it with. Available in API version 35.0 and later.</xsd:documentation>
@@ -3232,7 +3232,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="appleTeam" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required when using Apple as a third-party authentication provider. A 10-character team ID, obtained from an Apple developer account. Available in API version 48.0 and later.</xsd:documentation>
@@ -3436,7 +3436,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="autoresponseRule" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Represents the definitions of the named auto-response rules.</xsd:documentation>
@@ -3514,7 +3514,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableAddContactAutomatically" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether new contacts are automatically added from external email accounts (such as Microsoft and Google) to Salesforce (true) or not (false). The default value is false. enableAddContactWithSuggestion must be true to use this setting. When this feature is enabled, users do not see new contacts as suggestions. The contacts are added automatically.</xsd:documentation>
@@ -3561,7 +3561,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="aggregates" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Collection of aggregate nodes in a data processing engine.</xsd:documentation>
@@ -4599,7 +4599,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="batchSize" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
       <xsd:annotation>
        <xsd:documentation>Required. Number of records that each Batch Management job can process. Flow type Batch Management jobs can process up to 2000 records and Loyalty Program Process type Batch Management jobs can process up to 250 records.</xsd:documentation>
@@ -4791,7 +4791,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="benefitActionParameters" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The collection of flow input parameters to be used in a benefit action.</xsd:documentation>
@@ -4905,7 +4905,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="blockedByApiWhitelisting" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Set to true to apply the Permitted Users policy, Admin approved users are pre-authorized to all connected apps in the org. This policy limits access to only users with the associated profile or permission set assigned to the app. Set to false to allow access to the connected app. False is the default value.</xsd:documentation>
@@ -4941,7 +4941,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="botMlDomain" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Represents the Einstein intent set that groups intents, entities, and variables associated with a bot. All Einstein Bot versions under the same bot now share an intent set. Available in API version 44.0 and later.</xsd:documentation>
@@ -5120,7 +5120,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableBots" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Einstein Bots is enabled (true) or not (false).</xsd:documentation>
@@ -5171,7 +5171,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="brandingSetProperty" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>An array containing the name and value of each branding property, such as TextColor:#333.</xsd:documentation>
@@ -5219,7 +5219,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="briefcaseRules" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A list of rules that specify which records are included in the briefcase.</xsd:documentation>
@@ -5351,7 +5351,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="businessHours" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Represents the application of business hours to entitlements, entitlement templates, campaigns, and cases.</xsd:documentation>
@@ -5584,7 +5584,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="businessProcessDefinitions" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A list that defines stages in a customer lifecycle map.</xsd:documentation>
@@ -5679,7 +5679,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="cmsConnectAsset" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Represents CSS or JavaScript defined for the connection. 0–10 for CSS 0–10 for JavaScript</xsd:documentation>
@@ -5923,7 +5923,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="isActive" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the media provider can upload voice recordings (true) or not (false). Default value is false.</xsd:documentation>
@@ -5953,7 +5953,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="isActive" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the model is active. Active models can generate campaign influence records. Deactivating a model deletes its campaign influence records. Custom models are always active and this field is ignored. This field is available beginning with API version 40.0.</xsd:documentation>
@@ -5995,7 +5995,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="aiAttributionTimeframe" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
       <xsd:annotation>
        <xsd:documentation>Indicates the number of months between the opportunity creation date and an engagement activity, during which Einstein scans for influential campaigns. The value must be a multiple of three, up to 24. Available in API version 49.0 and later.This field supports Einstein Attribution.</xsd:documentation>
@@ -6089,7 +6089,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="isActive" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether this configuration is active (true) or not (false).</xsd:documentation>
@@ -6148,7 +6148,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="caseAssignNotificationTemplate" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Specifies the email template used for case assignment notifications. The format must be folderName/emailTemplateName.</xsd:documentation>
@@ -6718,7 +6718,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="index" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
       <xsd:annotation>
        <xsd:documentation>Required. The order in which the custom Case Subject is generated, meaning if the social network is 0 and the social message is 1, then the subject generates as Twitter | Tweet.</xsd:documentation>
@@ -6748,7 +6748,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="caSigned" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Required. Indicates whether this certificate is signed by the issuer (true) or not (false).</xsd:documentation>
@@ -6790,7 +6790,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="doesExcludeFieldLabels" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether field labels are excluded from the field contents in the communication channels where this layout applies (true) or not (false). The default is false, meaning field labels are inserted. Available when Lightning Knowledge is enabled in API version 48.0 and later.</xsd:documentation>
@@ -6855,7 +6855,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="emailFollowersOnBestAnswer" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether users are notified when a best answer is selected for a question that they’re following (true) or not (false).</xsd:documentation>
@@ -6961,7 +6961,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="allowChatterGroupArchiving" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether manual and automatic group archiving are allowed on all Chatter groups (true) or aren’t allowed (false).In Setup, allowChatterGroupArchiving equates to the Chatter setting Allow Group Archiving.</xsd:documentation>
@@ -7080,7 +7080,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="cleanRules" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. A list of data integration rules</xsd:documentation>
@@ -7248,7 +7248,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableCodeBuilder" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Code Builder is enabled (true) or not (false). When enabled, you can install and use the generally available (GA) Code Builder package in the org.</xsd:documentation>
@@ -7288,7 +7288,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="applyLoginPageTypeToEmbeddedLogin" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>When true, applies the Experience Cloud site login page type (default, Login Discovery, Experience Builder, or Visualforce) to all Embedded Login implementations. When false, applies the username and password login page type to all Embedded Login implementations.For orgs created before the Salesforce Summer ‘20 release, the default setting is false. For new orgs, the default setting is true. Available in API version 49.0 and later.</xsd:documentation>
@@ -7432,7 +7432,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the zone is active (true) or not (false).</xsd:documentation>
@@ -7558,7 +7558,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="baseTemplate" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Denotes that this CommunityTemplateDefinition was created in API version 41.0 or later. The only valid value is c. This field is available in API 41.0 and later.</xsd:documentation>
@@ -7678,7 +7678,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="bundlesInfo" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>If specified, at least one preview image and one highlight are required. Up to 3 preview images and 4 highlights are supported. Available in API version 44.0 and later</xsd:documentation>
@@ -7828,7 +7828,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="fields" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The fields assigned to the compact layout. Their order represents the prioritization given to them when defining the compact layout.</xsd:documentation>
@@ -7852,7 +7852,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableCustomFiscalYear" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>If a custom fiscal period is set up, this field is used to determine whether the custom fiscal period is used for forecasts. If true, the custom fiscal period is used. If false (default), standard periods are used. Available in API version 47.0 and later.</xsd:documentation>
@@ -7870,7 +7870,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="attributes" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A custom attribute of the connected app.</xsd:documentation>
@@ -8428,7 +8428,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableAdminApprovedAppsOnly" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>If false (default), any connected app can call the Salesforce API. If true, only apps that have been approved or installed by the admin can call the Salesforce API. To access this field, you must contact Salesforce Customer Support to enable API Access Control.</xsd:documentation>
@@ -8469,7 +8469,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="format" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Describes the format of the asset file. Valid values are: Original—A single asset file version. ZippedVersions—Contains multiple versions of the asset file.</xsd:documentation>
@@ -8595,7 +8595,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableChatterFileLink" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>When true, allows users to share files via links. When set to false, users can’t use file sharing. Default is true.</xsd:documentation>
@@ -8755,7 +8755,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="autoCalculateEndDate" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the end date of a contract is automatically calculated (true) or not (false).</xsd:documentation>
@@ -8791,7 +8791,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="contractTypeConfigs" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A list of configurations for the Contract Type.</xsd:documentation>
@@ -8882,7 +8882,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="urlPattern" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A URL pattern for the origin. The origin URL pattern must include the HTTPS protocol and a domain name, and can include a port. The wildcard character (*) is supported and must be in front of a second-level domain name. For example, https://*.example.com adds all subdomains of example.com to the allowlist.Google Chrome™ and Mozilla® Firefox® browser extensions are also allowed as resources in API version 53 and later. Chrome extensions must use the prefix chrome-extension:// and 32 characters without digits or capital letters, for example chrome-extension://abdkkegmcbiomijcbdaodaflgehfffed. Firefox extensions must use the prefix moz-extension:// and an 8-4-4-4-12 format of small alphanumeric characters, for example moz-extension://1234ab56-78c9-1df2-3efg-4567891hi1j2.The origin URL pattern can be an IP address. But an IP address and a domain that resolve to the same address aren’t the same origin, and you must add them to the CORS allowlist as separate entries.</xsd:documentation>
@@ -8922,7 +8922,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableCurrencyEffectiveDates" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether effective dated currency is enabled (true) or not (false). This field has a default value of false. To enable this preference, must be set to true</xsd:documentation>
@@ -8964,7 +8964,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A description of the custom metadata type. This field can contain a maximum of 1,000 characters.</xsd:documentation>
@@ -9018,7 +9018,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableCustomAddressField" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the Address Field Type is available for custom fields (true) or not (false). The default value is false.Custom Address Fields can’t be disabled. When enableCustomAddressField is set to true, you can’t change the value to false.Before you set this field to true, review Custom Address Fields Requirements and Limitations in Salesforce Help.</xsd:documentation>
@@ -9036,7 +9036,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="actionOverrides" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>This field is available for Lightning Experience in API version 38.0 and later.</xsd:documentation>
@@ -9587,7 +9587,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="buttonIconUrl" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The address of a page that hosts an icon for the button.</xsd:documentation>
@@ -9659,7 +9659,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="criteria" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The criterion that defines which feed items are shown when the filter is applied. The feed filter displays all feed items that satisfy the criteria.</xsd:documentation>
@@ -9713,7 +9713,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="businessOwnerGroup" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Indicates the group associated with this field. The business owner group understands the importance of the field’s data to your company, and can be responsible for determining the minimum security classification. This field is available in API version 45.0 and later.</xsd:documentation>
@@ -10181,7 +10181,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="displayType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The view type of the product attribute custom fields. Values are: ColorSwatch Dropdown Pill</xsd:documentation>
@@ -10217,7 +10217,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="customHelpMenuItems" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Items included in the custom section. Specify up to 15 items.</xsd:documentation>
@@ -10259,7 +10259,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="allowNullValues" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether null values are allowed in the index (true) or not (false). The default value is false.</xsd:documentation>
@@ -10294,7 +10294,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A description of the custom metadata record. This field can contain a maximum of 1,000 characters.</xsd:documentation>
@@ -10342,7 +10342,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="customNotifTypeName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Specifies a notification type name. Maximum number of characters: 80.</xsd:documentation>
@@ -10390,7 +10390,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="actionOverrides" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A list of action overrides on the object.This field is available in API version 18.0 and later.</xsd:documentation>
@@ -10797,7 +10797,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="availability" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Indicates whether the link is only available online (online, or if it is also available offline (offline).</xsd:documentation>
@@ -10941,7 +10941,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="connectedApp" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The name of the connected app that’s associated with this permission. Limit: 80 characters.</xsd:documentation>
@@ -11006,7 +11006,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="actionOverrides" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A list of the action overrides that are assigned to the tab. Only one override is allowed per for a given tab.This field is available in API version 37.0 and later.</xsd:documentation>
@@ -11120,7 +11120,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="color" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The color assigned to the picklist value when it’s used in charts on reports and dashboards. The color is in hexadecimal format; for example, #FF6600. If a color isn’t specified, it’s assigned dynamically upon chart generation.</xsd:documentation>
@@ -11255,7 +11255,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Required. The status of the category group. Indicates whether this category group is active, (true), or not active (false).</xsd:documentation>
@@ -11349,7 +11349,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="fileNameWildcard" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Optional. File or Wildcard (*) to be used when finding files.</xsd:documentation>
@@ -11385,7 +11385,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableAccountExportButtonOff" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Account Export to Excel is enabled for Prospector (true) or not (false). Default value is false.</xsd:documentation>
@@ -11527,7 +11527,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The UI name for the Data Source.</xsd:documentation>
@@ -11562,7 +11562,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="datatype" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Indicates the data type of the field: text, number, or date.</xsd:documentation>
@@ -11694,7 +11694,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="accelerationEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Acceleration of data stream processing. Available in API version 63.0 and later. Possible values are: Yes No</xsd:documentation>
@@ -11836,7 +11836,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="areHeadersIncludedInFile" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>If true, headers are included in the file if this is a single file stream.</xsd:documentation>
@@ -12012,7 +12012,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="decisionTableName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The name of the associated decision table.</xsd:documentation>
@@ -12066,7 +12066,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="customObjects" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The custom objects associated with the group. Delegated administrators can customize nearly every aspect of each of those custom objects, including creating a custom tab. However, they can’t create or modify relationships on the objects or set organization-wide sharing defaults. Delegated administrators must have access to custom objects to access the merge fields on those objects from formulas.</xsd:documentation>
@@ -12126,7 +12126,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="doesSkipAsyncApexValidation" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether deployments from this org skip asynchronous Apex validations (true) or not (false). The default value is true.Set this field to false when an Apex class in the package you’re deploying is used by an Apex batch job that could run during the deployment. The deployment of a package containing an Apex class that is used by a running batch job fails without validation.</xsd:documentation>
@@ -12144,7 +12144,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableDevOpsCenterGA" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether DevOps Center is enabled: true or false. When enabled, you can install and use the generally available (GA) DevOps Center package in the org. Available in API version 56.0 and later.</xsd:documentation>
@@ -12236,7 +12236,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="algorithmType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Algorithm that Einstein Discovery used to create the model associated with this story.</xsd:documentation>
@@ -12572,7 +12572,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the prediction definition is active (True) or not (False).</xsd:documentation>
@@ -13034,7 +13034,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="application" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The CRM Analytics app the story is associated with.</xsd:documentation>
@@ -13130,7 +13130,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="content" minOccurs="0" maxOccurs="unbounded" type="xsd:base64Binary">
       <xsd:annotation>
        <xsd:documentation>Content of the document. Base 64-encoded binary data. Prior to making an API call, client applications must encode the binary attachment data as base64. Upon receiving a response, client applications must decode the base64 data to binary. This conversion is usually handled for you by a SOAP client. This field is inherited from the MetadataWithContent component.</xsd:documentation>
@@ -13206,7 +13206,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="dciCustomSharing" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the custom sharing rule for document checklist items is enabled for your org (true) or not (false). The default value is false.</xsd:documentation>
@@ -13230,7 +13230,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="documentTemplateLibraryName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The name of the library that stores the document templates to which this setting applies.</xsd:documentation>
@@ -13301,7 +13301,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="actionOnInsert" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Determines what the duplicate rule does when users or the DuplicateRule API try to insert a record that is a duplicate. Valid values are: Allow For users, if operationsOnInsert is set to alert, the UI displays the value of alertText in a dialog. The dialog prompts users to continue or cancel. If the user chooses to continue, the insertion proceeds. If the user chooses to cancel, the record isn’t inserted.The DuplicateRule API returns an error code and a message. To complete the insertion, the code must set the allowSave field in DuplicateRuleHeader to true and reissue the request.If operationsOnInsertisn’t set to alert, the UI inserts the record without issuing an alert. The API inserts the record and doesn’t return an error code. Block For users, the UI displays an error message and prevents them from inserting the new record. The DuplicateRule API returns an error and doesn’t insert the record.</xsd:documentation>
@@ -13468,7 +13468,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="addRcCompToFlexiPages" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the Recommended Connections component is automatically added (true) to standard contact, lead, and person account Lightning record pages or not (false).Default value is false. Available in API version 53.0 and later.</xsd:documentation>
@@ -13622,7 +13622,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="maps" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A list of EclairMap objects. Each EclairMap object specifies the bounding box (if any) and the map name that appears in the user interface.</xsd:documentation>
@@ -13688,7 +13688,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="einsteinAgentRecommendations" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Einstein classification apps are enabled in your org. The default value is false.</xsd:documentation>
@@ -13718,7 +13718,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableEinsteinGptGlobalLangSupport" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether to turn on global languages with prompt templates. The default value is false.</xsd:documentation>
@@ -13742,7 +13742,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableComplianceBcc" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether a copy of each outbound email message is sent to an email address you specify (true) or not (false). This field has a default value of false. To use this feature, you must specify an email address in Compliance BCC Email in Setup.</xsd:documentation>
@@ -13868,7 +13868,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="doesEmailLogAsEmailMessageInOutlook" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the Outlook integration logs emails to the Email Message object (true) or as tasks (false). The default value is true. This field can only be used if the enableOutlookIntegration field is set to true.</xsd:documentation>
@@ -13976,7 +13976,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="apexClass" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The name of the Apex class that the email service uses to process inbound messages.</xsd:documentation>
@@ -14108,7 +14108,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="apiVersion" minOccurs="0" maxOccurs="unbounded" type="xsd:double">
       <xsd:annotation>
        <xsd:documentation>The API version if it&apos;s a Visualforce email template. Every Visualforce email template has an API version specified at creation. This field is available in API version 16.0 and later.</xsd:documentation>
@@ -14216,7 +14216,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableTemplateEnhancedFolderPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Folders and Enhanced Sharing for Email Templates is enabled (true) or not (false). This feature allows users to create and manage folders for email templates.Default value is false.</xsd:documentation>
@@ -14234,7 +14234,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="contrastInvertedColor" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Accent branding color used in the embedded component, displayed as a hexadecimal value. Changes made to this field in the API aren’t reflected in the embedded component.</xsd:documentation>
@@ -14318,7 +14318,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="areGuestUsersAllowed" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Specifies whether a user must be logged in to access an embedded component. Available in API version 45.0 and later.</xsd:documentation>
@@ -14660,7 +14660,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="appointmentBookingFlowName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Name of the appointment booking flow for this embedded Appointment Management (beta) deployment.</xsd:documentation>
@@ -14738,7 +14738,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the embedded flow is enabled (true) or not (false). Defaults to false.</xsd:documentation>
@@ -14756,7 +14756,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="avatarImg" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Avatar image for this embedded chat deployment.</xsd:documentation>
@@ -14918,7 +14918,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="branding" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The developer name of the associated BrandingSet.</xsd:documentation>
@@ -15110,7 +15110,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="emailEncoding" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The default encoding setting is Unicode: UTF-8.</xsd:documentation>
@@ -15191,7 +15191,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="canEncryptTransactionalDatabase" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether users can encrypt the transactional database (true) or can’t (false). The default value is false. If set to true, transactional database encryption is enabled and a transactional database tenant secret is generated. Available in API version 63.0 and later.</xsd:documentation>
@@ -15239,7 +15239,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableEnhancedNotes" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether enhanced notes are enabled (true) or not (false). With enhanced notes, users can relate a note to multiple records, access version history, and enjoy enhanced format options. Users must have the Use New Notes permission to use enhanced notes.Default value is true.</xsd:documentation>
@@ -15263,7 +15263,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the entitlement process is active (true) or not (false).</xsd:documentation>
@@ -15443,7 +15443,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="assetLookupLimitedToActiveEntitlementsOnAccount" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether entitlements-related lookup filters on cases return only the assets related to the active entitlements on the case’s account (true) or not (false).</xsd:documentation>
@@ -15544,7 +15544,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="escalationRule" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Represents one escalation rule and specifies whether it’s active or not. Escalation rules are processed in the order they appear in the EscalationRules container.</xsd:documentation>
@@ -15670,7 +15670,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="eventParameters" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>An array of parameters to deliver in addition to the published event’s data.</xsd:documentation>
@@ -15729,7 +15729,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="bypassMeteringBlock" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Determines the behavior of metering service protection for Transaction Security policies. When true, metering occurs but doesn&apos;t block the user operation that triggered the policy. When false and a policy can&apos;t be handled within three seconds, metering occurs and the user&apos;s action is blocked. Default value is false.</xsd:documentation>
@@ -15819,7 +15819,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>If the subscription isn’t active, it never receives any events.</xsd:documentation>
@@ -15867,7 +15867,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="experienceResources" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The list of resources in this ExperienceBundle. Each resource represents an artifact of a site such as brandingSets, config, routes, themes, variations, and views.</xsd:documentation>
@@ -15933,7 +15933,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableExperienceBundleMetadata" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the ExperienceBundle metadata type is enabled for Aura sites. Default is false. LWR sites use ExperienceBundle by default.</xsd:documentation>
@@ -16028,7 +16028,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="applicationSourceType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The target application for the configuration. Valid values are: REPLY_RECOMMENDATION— Einstein Reply Recommendations ARTICLE_RECOMMENDATION— Einstein Article Recommendations UTTERANCE_RECOMMENDATION— Einstein Bot utterances FAQ— Einstein Bot frequently asked questions</xsd:documentation>
@@ -16087,7 +16087,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableClientSecretInRestApiAccess" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether OAuth consumer secrets can be accessed through the credentials REST API (true) or not (false). This field is available in API version 62.0 and later.</xsd:documentation>
@@ -16139,7 +16139,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="dataConnectionStatus" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Indicates whether you’re connected to a data source. Valid values are: Connected Disconnected Failed</xsd:documentation>
@@ -16187,7 +16187,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="authProvider" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The authentication provider represented by the AuthProvider component.</xsd:documentation>
@@ -16418,7 +16418,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The external service description defined when the service is created.</xsd:documentation>
@@ -16577,7 +16577,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="externalClientApplication" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The name of the associated external client app.</xsd:documentation>
@@ -16607,7 +16607,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="externalClientApplication" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The name of the associated external client app.</xsd:documentation>
@@ -16637,7 +16637,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="externalClientApplication" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The name of the associated external client app.</xsd:documentation>
@@ -16701,7 +16701,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="externalClientApplication" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The name of the associated external client app.</xsd:documentation>
@@ -16731,7 +16731,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="androidPushConfig" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Represents the push notification configuration of an Android mobile app.</xsd:documentation>
@@ -16844,7 +16844,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="dataFlowDirection" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>After a package containing the components is installed, indicates whether the feature parameter’s value is editable in your License Management Org (LMO) and read-only in your customer’s org or the other way around.</xsd:documentation>
@@ -16880,7 +16880,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="dataFlowDirection" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>After a package containing the components is installed, indicates whether the feature parameter’s value is editable in your License Management Org (LMO) and read-only in your customer’s org or the other way around.</xsd:documentation>
@@ -16916,7 +16916,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="dataFlowDirection" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>After a package containing the components is installed, indicates whether the feature parameter’s value is editable in your License Management Org (LMO) and read-only in your customer’s org or the other way around.</xsd:documentation>
@@ -16963,7 +16963,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the rule is active (true) or not (false). The default value is false.</xsd:documentation>
@@ -17035,7 +17035,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="mappingType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The type of object mapping. Valid values are: WorkPlans_WorkPlanTemplate_WorkPlan — Maps a WorkPlanTemplate to a WorkPlan WorkPlans_WorkStepTemplate_WorkStep — Maps a WorkStepTemplate to a WorkStep WorkPlans_WorkPlanTemplateEntry_WorkStep — Maps a WorkPlanTemplateEntry to a WorkStep</xsd:documentation>
@@ -17100,7 +17100,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="definitionCreationType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Describes whether this object was added by the user or as part of a standard taxonomy.Values are: ADG Activation_Audience Bridge Calculated_Insight Chunk Curated Custom Derived Directory_Table External Ml_Prediction Segment_Membership Semantic Standard System Transform Vector_Embedding</xsd:documentation>
@@ -17160,7 +17160,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="dispositions" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Represents the metadata used to manage filetype behavior. This field is available in API version 39.0 and later.</xsd:documentation>
@@ -17202,7 +17202,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableContentHubAllowed" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Files Connect is enabled (true) or not (false).</xsd:documentation>
@@ -17232,7 +17232,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The optional description text of the Lightning page.</xsd:documentation>
@@ -17640,7 +17640,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="actionCalls" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>An array of nodes that defines calls to action. This field is available in API version 31.0 and later.</xsd:documentation>
@@ -20669,7 +20669,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The description of this flow category.</xsd:documentation>
@@ -20705,7 +20705,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="activeVersionNumber" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
       <xsd:annotation>
        <xsd:documentation>The version number of the active flow.</xsd:documentation>
@@ -20741,7 +20741,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="canDebugFlowAsAnotherUser" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether a flow can be debugged as another user (true) or not (false). Corresponds to the Let admins debug flows as other users field on the Process Automation Settings page in Setup. Available in API version 50.0 and later.</xsd:documentation>
@@ -20908,7 +20908,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="accessType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The type of access for this folder. Valid values are: Shared. This folder is accessible only by the specified set of users. Public. This folder is accessible by all users, including portal users. PublicInternal. This folder is accessible by all users, excluding portal users. This setting is available for report and dashboard folders in organizations with a partner portal or Customer Portal enabled. Hidden. This folder is hidden from all users.</xsd:documentation>
@@ -20944,7 +20944,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="accessLevel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Specifies the combination of actions that can be taken on the folder. Valid values are: View. User can run a report or refresh a dashboard, but can’t edit them. All users have at least Viewer access to report and dashboard folders that have been shared with them. (Some users can have administrative permissions that give them greater access.) EditAllContents. Users can view and modify the reports or dashboards in the folder, and move them to and from any other folders that they have equivalent access to. Manage. Users can do everything Viewers and Editors can do, plus control other users’ access to a folder.</xsd:documentation>
@@ -20996,7 +20996,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="forecastingTypeDeveloperName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Developer name of the forecast type that these object list settings apply to.</xsd:documentation>
@@ -21038,7 +21038,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="displayCurrency" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Removed. The currency for displaying forecasts; either the organization&apos;s corporate currency or each forecast owner&apos;s personal currency setting. The selected currency is the default used in forecasts and selected in setup. The selection must be one of the currencies enabled for use in the organization, and only one selection is allowed. The default is CORPORATE. The valid values are: CORPORATE PERSONAL Available in API version 28.0 to 46.0. In API version 47.0 and later, use defaultToPersonalCurrency.</xsd:documentation>
@@ -21194,7 +21194,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="categoryField" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Name of the forecast category that is associated with the forecast type. Possible values are: Opportunity.ForecastCategoryName</xsd:documentation>
@@ -21254,7 +21254,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Required. If true, the forecast type is active. If false, the forecast type isn’t active. The default value is false.</xsd:documentation>
@@ -21350,7 +21350,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="forecastingSourceDefinition" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. ID of the forecasting source definition.</xsd:documentation>
@@ -21420,7 +21420,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Represents the description of the Salesforce Function.</xsd:documentation>
@@ -21549,7 +21549,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>It’s useful to state the global picklist’s purpose, and which objects it’s intended for. Limit: 255 characters.</xsd:documentation>
@@ -21585,7 +21585,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="color" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The color assigned to the picklist value when it’s used in charts on reports and dashboards. The color is in hexadecimal format; for example, #FF6600. If a color is not specified, it’s assigned dynamically upon chart generation.</xsd:documentation>
@@ -21687,7 +21687,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="customValue" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Requires at least one value. The list of values, or “global value set,” that’s defined for a global picklist. The global value set is inherited by any custom picklist field that uses that value set. Each value is of type customValue. A global value set can have up to 1,000 total values, including inactive values.</xsd:documentation>
@@ -21734,7 +21734,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableGmailButtons" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the Gmail Buttons setting is enabled (true) or not (false).</xsd:documentation>
@@ -21788,7 +21788,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The description for the group. Available in API version 62.0 and later.</xsd:documentation>
@@ -21824,7 +21824,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableACAutoSendEmail" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether a cadence step of type Automated Send can be created (true) or not (false). Allowing Salesforce to automatically send an email to a prospect can make your sales team more efficient, because reps don’t have to send the email themselves. Default value is true. Available in API version 48.0 and later.</xsd:documentation>
@@ -21938,7 +21938,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="archiveAfterMonths" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
       <xsd:annotation>
        <xsd:documentation>Required. The number of months that you want to keep field history data in Salesforce before archiving. You can set a minimum of 1 month and a maximum of 18 months. If you don&apos;t set a number, the default is 18 months. (That is, Salesforce maintains data for 18 months before archiving.)</xsd:documentation>
@@ -21974,7 +21974,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="body" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The text body inside the HTML page component.</xsd:documentation>
@@ -22039,7 +22039,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="fullName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:appinfo>Type: string</xsd:appinfo>
@@ -22079,7 +22079,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableIdeaThemes" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Idea Themes is enabled (true) or not (false).</xsd:documentation>
@@ -22171,7 +22171,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="iframeWhiteListUrls" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The list of external domains that you allow to frame your Visualforce pages or surveys.</xsd:documentation>
@@ -22201,7 +22201,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="expirationDate" minOccurs="0" maxOccurs="unbounded" type="xsd:date">
       <xsd:annotation>
        <xsd:documentation>Required. The date on which the certificate expires.</xsd:documentation>
@@ -22237,7 +22237,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="connectionType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Specifies the cloud provider of the connection. AwsPrivateLink DataCloudPrivateConnection (Reserved for internal use)</xsd:documentation>
@@ -22302,7 +22302,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="fields" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The definition of the fields in the index.</xsd:documentation>
@@ -22338,7 +22338,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="allowMultipleProducersToWorkOnSamePolicy" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether multiple producers can be assigned to the same insurance policy. The default is false. This field is available in editions where Financial Services Cloud is enabled.</xsd:documentation>
@@ -22865,7 +22865,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="activateRSS" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Required. Determines the state of Remote Site Settings (RSS) and Content Security Policy (CSP) at the time of installing the package and must be set to either of these values. true Keep the isActive state of any RSS or CSP in the package. false Override the isActive state of any RSS or CSP in the package and set it to false. The default value is false. Available in API version 43.0 and later.</xsd:documentation>
@@ -22967,7 +22967,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="isPartialSaveAllowed" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether partial save is enabled for most invocable actions that are invoked via REST API and executed in bulk. When the value is true, Salesforce tries three times to execute invocable actions that run successfully and rolls back only the invocable actions that fail to execute. This functionality is called partial save. If the field is set to false, if one invocable action fails, Salesforce rolls back other invocable actions in the same transaction and the entire transaction fails.Corresponds to the Enable Partial Save for Invocable Actions critical update.</xsd:documentation>
@@ -22985,7 +22985,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="Description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A description of the keyword list.</xsd:documentation>
@@ -23021,7 +23021,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="answers" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Represents the metadata used to manage settings for Salesforce Knowledge and Answers.</xsd:documentation>
@@ -23315,7 +23315,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableCanadaIcuFormat" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the ICU format is enabled for the en_CA locale (true) or not (false). This field has a default value of true for orgs created in API version 47.0 and later. Orgs created prior to API version 47.0 have a default of false.</xsd:documentation>
@@ -23387,7 +23387,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="customButtons" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The custom buttons for this layout. Each button is a reference to a WebLink on the same object. For example, a ButtonLink refers to a Weblink on the same standard or custom object named ButtonLink.</xsd:documentation>
@@ -24221,7 +24221,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="doesEnableLeadConvertDefaultSubjectBlankTaskCreation" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Configures whether tasks without a subject are created during lead conversion. If true, tasks are created when the default subject field has no value. If false, only tasks with a subject are created.</xsd:documentation>
@@ -24309,7 +24309,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="available" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Required. Indicates whether this letterhead can be used (true) or not (false), for example, in an email template.</xsd:documentation>
@@ -24387,7 +24387,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="category" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The primary industry that the Lightning Bolt Solution is aimed at. Valid values are: Communications Education FinancialServices GeneralBusiness Government HealthcareLifeSciences HighTech Manufacturing Media Nonprofits ProfessionalServices RealEstate Retail TravelTransportationHospitality</xsd:documentation>
@@ -24483,7 +24483,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="apiVersion" minOccurs="0" maxOccurs="unbounded" type="xsd:double">
       <xsd:annotation>
        <xsd:documentation>A double value that binds the component to a Salesforce API version.</xsd:documentation>
@@ -24543,7 +24543,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="activeThemeName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>If specified, indicates the API name of the custom that’s currently active in the org. If the field isn’t specified, then the org uses one of the built-in themes that Salesforce provides. Custom themes are available in API version 48.0 and later.</xsd:documentation>
@@ -24795,7 +24795,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="defaultBrandingSet" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The ID of the BrandingSet properties associated with this LightningExperienceTheme.</xsd:documentation>
@@ -24837,7 +24837,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The description of the Lightning Message Channel.</xsd:documentation>
@@ -24885,7 +24885,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="collaborationGroup" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The ID of the Chatter Group where the user feedback is posted.</xsd:documentation>
@@ -24972,7 +24972,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableChatFindOrCreateEnable" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the findOrCreate method of the Chat API is enabled for agents (true) or not (false). Available in API version 53.0 and later.</xsd:documentation>
@@ -25008,7 +25008,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="autoGreeting" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Specifies the greeting that displays when a customer begins a chat with an agent.</xsd:documentation>
@@ -25218,7 +25218,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="animation" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The type of animation for a chat invitation. Valid values are: Slide Fade Appear Custom</xsd:documentation>
@@ -25446,7 +25446,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="brandingImage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Specifies the branding image for the deployment.</xsd:documentation>
@@ -25524,7 +25524,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="actionType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The action to take on the text when the sensitive data rule is triggered. Possbile values are: Remove Replace</xsd:documentation>
@@ -25572,7 +25572,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableCheckCEUserPerm" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Gives access to ConversationEntry objects only to users with the Access Conversation Entries user permission enabled (true) or to all users (false) in an org.For orgs created before API version 50.0, the default value is false.For orgs created on or after API version 50.0, the default value is true.</xsd:documentation>
@@ -25607,7 +25607,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="developerName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Represents the name of the data definition. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.Only users with View DeveloperName OR View Setup and Configuration permission can view, group, sort, and filter this field.</xsd:documentation>
@@ -25787,7 +25787,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="aiApplicationDeveloperName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Represents the developer name of the parent AI application. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.</xsd:documentation>
@@ -25876,7 +25876,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableAdvancedSearch" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether users can search all macro text fields (true) or not (false).</xsd:documentation>
@@ -25900,7 +25900,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableExtendedMailMerge" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the Salesforce Classic product, Extended Mail Merge, is enabled (true) or not (false). Use Extended Mail Merge to generate Microsoft Word documents — such as form letters or address labels — from Salesforce records using Word document templates. Default value is false.</xsd:documentation>
@@ -25924,7 +25924,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Describes the custom content type defined in this ManagedContentType declaration.</xsd:documentation>
@@ -26008,7 +26008,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="defaultReplay" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The position in the stream where the subscription starts when the client initiates the subscription for the first time or if the client doesn’t commit a Replay ID. Possible values are: LATEST—(Default) The subscription starts from the latest events received. This option skips sending events that were published when the client was disconnected. EARLIEST—The subscription starts from the earliest events stored in the event bus. This option sends new events and any other events less than 72 hours old. You can reprocess all stored events and catch up on missed events. Use this option sparingly. Subscribing with the EARLIEST option when a large number of event messages are stored can slow performance and exhaust the event delivery allocation.</xsd:documentation>
@@ -26056,7 +26056,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="name" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The topic name.</xsd:documentation>
@@ -26131,7 +26131,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="booleanFilter" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Specifies filter logic conditions.</xsd:documentation>
@@ -26224,7 +26224,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="sorted" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Whether the picklist’s value set is displayed in alphabetical order in the user interface.</xsd:documentation>
@@ -26271,7 +26271,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="content" minOccurs="0" maxOccurs="unbounded" type="xsd:base64Binary">
       <xsd:annotation>
        <xsd:documentation>Base 64-encoded binary data. Before making an API call, client applications must encode the binary attachment data as base64. Upon receiving a response, client applications must decode the base64 data to binary. This conversion is handled for you by a SOAP client.</xsd:documentation>
@@ -26306,7 +26306,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The description of the milestone.</xsd:documentation>
@@ -26330,7 +26330,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="builderExpression" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Reserved for internal use.</xsd:documentation>
@@ -26378,7 +26378,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="connector" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Data Cloud connector name that allows you to connect the data source to Data Cloud.</xsd:documentation>
@@ -26492,7 +26492,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Einstein Intent Set description.</xsd:documentation>
@@ -26647,7 +26647,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="applicationBinaryFile" minOccurs="0" maxOccurs="unbounded" type="xsd:base64Binary">
       <xsd:annotation>
        <xsd:documentation>Base 64-encoded binary data file for the mobile app.</xsd:documentation>
@@ -26764,7 +26764,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="action" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Indicates the moderation action that you want to take. The valid values are: Block Review Replace Flag FreezeAndNotify (Reserved for future use.)</xsd:documentation>
@@ -26871,7 +26871,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="apexHandler" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The Apex handler class that contains the Discovery authentication logic.</xsd:documentation>
@@ -26901,7 +26901,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="areLegacyRedirectsMaintained" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Salesforce checks this field when this org is upgraded to Summer ’25. If areLegacyRedirectsMaintained is false, Salesforce disables enableLegacyRedirections during the upgrade. If true, no change is made to enableLegacyRedirections during the upgrade. The default is false.This field has no impact after this org is on Summer ’25.Available in API version 63.0 and later.</xsd:documentation>
@@ -27081,7 +27081,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableInformalName" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Reserved for internal use. Available in API version 48.0 and later.</xsd:documentation>
@@ -27122,7 +27122,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Required. Indicates whether the lookup filter is active.</xsd:documentation>
@@ -27233,7 +27233,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="notificationTypeSettings" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>An array of delivery settings for an org’s notification types.</xsd:documentation>
@@ -27310,7 +27310,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="assignedTo" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Represents the name of the connected app to which the custom scope is assigned. Available in API version 49.0 and later.If the connected app is part of a package, include the package’s namespace prefix with the connected app’s name. Use the following format: __. Use two underscores (_) between the namespace prefix and connected app’s name.</xsd:documentation>
@@ -27391,7 +27391,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="creationType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Describes whether this object was added by the user or as part of a standard taxonomy. Valid values are: ADG Activation_Audience Bridge Calculated_Insight CG_Audience (Available in API version 62.0 and later) Chunk Curated Custom Derived Directory_Table External Ml_Prediction Segment_Membership Semantic Standard System Transform Vector_Embedding</xsd:documentation>
@@ -27487,7 +27487,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="applicationType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The type of application using the OCR sample document. Possible values are: EinsteinDocumentReader Industries</xsd:documentation>
@@ -27661,7 +27661,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the OCR template is active (true) or not (false).</xsd:documentation>
@@ -27865,7 +27865,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableOmniAutoLoginPrompt" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether to display a login confirmation upon loading a console with Omni-Channel. The default value is false. When true, the console displays a prompt before logging into Omni-Channel when an agent opens another Omni-Channel console in a different tab or window or refreshes the current tab. The agent is logged out of Omni-Channel on other consoles and any ongoing conversations are ended. Available in API version 47.0 and later.</xsd:documentation>
@@ -27912,7 +27912,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="configName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Not used.</xsd:documentation>
@@ -28002,7 +28002,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The name of the setting.</xsd:documentation>
@@ -28059,7 +28059,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableOpportunityInsights" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Einstein Opportunity Insights is enabled (true) or not (false). The default value is false.</xsd:documentation>
@@ -28077,7 +28077,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableOpportunityScoring" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Einstein Opportunity Scoring is enabled (true) or not (false). The default value is false.</xsd:documentation>
@@ -28095,7 +28095,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="autoActivateNewReminders" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Automatically uses scheduled updates for new opportunities.</xsd:documentation>
@@ -28250,7 +28250,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableEnhancedCommerceOrders" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether enhanced commerce orders are enabled for the org (true) or not (false). This preference is available only in orgs with the Salesforce Order Management license. Default value is false. Available in API versions 48.0 and later.</xsd:documentation>
@@ -28310,7 +28310,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="preferences" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The preferences associated with the org settings. In the following list of preferences, click hyperlinked preference names to go to the topic for the Settings type that contains that preference. If there is no link, the preference hasn’t been moved to another Settings type. AnalyticsSharingEnable (available in API version 40.0 and later) ApexApprovalLockUnlock AsyncSaveEnabled (available in API versions 40.0 to 46.0) ChatterEnabled CompileOnDeploy (available in API version 43.0 and later) ConsentManagementEnabled (available in API version 45.0 and later) EnhancedEmailEnabled EventLogWaveIntegEnabled LoginForensicsEnabled NetworksEnabled (available in API version 40.0 and later) NotesReservedPref01 OfflineDraftsEnabled PathAssistantsEnabled S1DesktopEnabled After it is enabled, S1DesktopEnabled can’t be disabled in any version of the API. S1EncryptedStoragePref2 S1OfflinePref ScratchOrgManagementPref (available in API version 41.0 and later) SendThroughGmailPref SocialProfilesEnable Translation (available in API version 40.0 and later) VoiceEnabledThe VoiceEnabled preference isn’t being moved to another metadata type. If you want to use it in a scratch org in API version 48.0 and later, you can enable it as a scratch org feature.</xsd:documentation>
@@ -28340,7 +28340,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableCustomerSuccessPortal" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Customer Portal is enabled (true) or not (false).</xsd:documentation>
@@ -28370,7 +28370,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="connectionType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Specifies the cloud provider of the connection. AwsPrivateLink DataCloudPrivateConnection (Reserved for internal use)</xsd:documentation>
@@ -28452,7 +28452,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableCampaignInsight" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Einstein Campaign Insights is enabled (true) or not (false). Einstein Campaign Insights helps you understand what factors drive campaign performance.The default value is false.</xsd:documentation>
@@ -28476,7 +28476,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="cdpEnablementStatus" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The status of the enablement in Data Cloud for the account engagement business unit.</xsd:documentation>
@@ -28554,7 +28554,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableAutoSelectIndividualOnMerge" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the most recently modified data privacy record for the Individual is retained when merging lead, contact, and person accounts (true) or users must manually determine which data privacy record to retain during the merge process (false). This field has a default value of false.</xsd:documentation>
@@ -28584,7 +28584,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the path is active (true) or not (false).</xsd:documentation>
@@ -28650,7 +28650,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="canOverrideAutoPathCollapseWithUserPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Keeps a user&apos;s path expanded to show guidance and key fields on all their records. A user&apos;s path stays expanded until the user collapses it. To use this preference, Path must be enabled. Default value is false for all editions. When set to false, the user’s path is collapsed when the page loads. Available in API version 47.0 and later.</xsd:documentation>
@@ -28680,7 +28680,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="apexAdapter" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The Apex adapter class name for your payment gateway. This field is unique within your organization.</xsd:documentation>
@@ -28727,7 +28727,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="agentName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The name of the employee agent.</xsd:documentation>
@@ -28786,7 +28786,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="customPermissions" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>An array of licensed custom permissions included in the permission set license definition.</xsd:documentation>
@@ -28845,7 +28845,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="controllingField" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The of the controlling field if controllingField is a dependent picklist. A dependent picklist works in conjunction with a controlling picklist or checkbox to filter the available options. The value chosen in the controlling field affects the values available in the dependent field. This field is available in API version 14.0 and later.</xsd:documentation>
@@ -28881,7 +28881,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="isPicklistApiNameEditDisabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>While true, users, including admins with Customize Application permission, can’t change the API name of a picklist field. Formulas reference a picklist’s API name so that the formula continues to work even if the displayed name value changes. Prevent changes to the API name to protect the references to fields in formulas or during integrations, such as during a data import. The default is false.</xsd:documentation>
@@ -28910,7 +28910,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Describes the cache partition.</xsd:documentation>
@@ -28976,7 +28976,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="canEncryptManagedPackageFields" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether users can enable encryption on custom fields in installed managed packages (true) or not (false).</xsd:documentation>
@@ -29024,7 +29024,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="channelMembers" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Removed. A list of event names of entities, including standard and custom objects, selected for Change Data Capture notifications.This field is removed in API version 47.0 and later and is available only in API versions 45.0 and 46.0. In API version 47.0 and later, the channel members are each defined in a PlatformEventChannelMember component.</xsd:documentation>
@@ -29066,7 +29066,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enrichedFields" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>One or more fields selected for Change Data Capture Enrichment. A non-empty enriched field is added to an update or delete change event even when not changed. For more information, see Enrich Change Events with Extra Fields When Subscribed with CometD in the Change Data Capture Developer Guide. Available in API version 51.0 and later.</xsd:documentation>
@@ -29119,7 +29119,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="batchSize" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
       <xsd:annotation>
        <xsd:documentation>A custom batch size, from 1 through 2,000, for the platform event Apex trigger. The batch size corresponds to the maximum number of event messages that can be sent to a trigger in one execution. The default batch size is 2,000 for platform event triggers. We don&apos;t recommend setting the batch size to 1 to process one event at a time. Small batch sizes can slow down the processing of event messages.</xsd:documentation>
@@ -29195,7 +29195,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="default" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Required. Specifies whether this is the default post template for the given object.When set to true, this post template is used by approval processes that are associated with the same object and don’t specify a post template.When an object has no default post template, each of its approval processes uses the system default post template, unless the approval process specifies its own post template.</xsd:documentation>
@@ -29231,7 +29231,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enablePredictionBuilder" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Einstein Prediction Builder is enabled (true) or not (false).</xsd:documentation>
@@ -29255,7 +29255,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The label for the decline reason.</xsd:documentation>
@@ -29273,7 +29273,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="assignments" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Specifies how presence configurations are assigned to Omni-Channel users. Presence configurations can be assigned to sets of users or to sets of profiles.</xsd:documentation>
@@ -29381,7 +29381,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableConsentAuditTrail" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Reserved for future use.</xsd:documentation>
@@ -29428,7 +29428,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A meaningful explanation of the attribute set.</xsd:documentation>
@@ -29476,7 +29476,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableCascadeActivateToRelatedPrices" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>When changing active flag on a product record, automatically updates active flag on related prices.</xsd:documentation>
@@ -29512,7 +29512,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="agentAccesses" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Indicates which agents are visible to users assigned to this profile. Available in API version 63.0 and later.</xsd:documentation>
@@ -30000,7 +30000,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="actionName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The name of the action. The only valid values are Tab and View.If pageOrSobjectType is standard-home, this field must be Tab. The Tab action is supported only when ProfileActionOverride is being specified as part of a Profile in API version 39.0 to 44.0.In API version 45.0 and later, this action is supported only when ProfileActionOverride is being specified as part of a CustomApplication, pageOrSobjectType is standard-home, and this field is Tab.If pageOrSobjectType is record-home, this field must be View. The View action is supported only when ProfileActionOverride is being specified as part of a CustomApplication.</xsd:documentation>
@@ -30048,7 +30048,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="forgotPasswordRedirect" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>If true, reset password links in forgot password emails don’t immediately expire the first time they’re clicked. Instead, the links stay active until a user confirms the password reset request on an interstitial page. The default value is false.This field is available in API version 43.0 and later.</xsd:documentation>
@@ -30137,7 +30137,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="profile" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Name of the user profile.</xsd:documentation>
@@ -30200,7 +30200,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="doesSendEmailToMembers" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether emails are sent to queue members (true) or not (false) when a new record is added to the queue.</xsd:documentation>
@@ -30314,7 +30314,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="capacityPercentage" minOccurs="0" maxOccurs="unbounded" type="xsd:double">
       <xsd:annotation>
        <xsd:documentation>The percentage of an agent’s capacity for work items that’s consumed by a specific type of work item from this service channel. For example, you might give phone calls a capacity percentage of 100. If an agent receives a phone call, the agent won’t receive new work items until the call ends, because at that point the agent’s capacity will have reached 100%.</xsd:documentation>
@@ -30410,7 +30410,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="canvas" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>If the custom action invokes a Canvas app, the app name. Returns the fully qualified name of the Canvas app in the format __, if the quick action type is Canvas; otherwise, returns null. This field is available in API version 29.0 and later.</xsd:documentation>
@@ -30613,7 +30613,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableQuote" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>When set to true, users can access Quotes.</xsd:documentation>
@@ -30637,7 +30637,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="realTimeEvents" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Represents the list of Real-Time Event entities that you want to enable or disable.</xsd:documentation>
@@ -30667,7 +30667,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="actionContext" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>An array of action contexts used by the strategy.</xsd:documentation>
@@ -31033,7 +31033,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="channelConfigurations" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Specifies configuration settings for different channels in an Actions &amp; Recommendations deployment.</xsd:documentation>
@@ -31248,7 +31248,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="picklist" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The name of the picklist.</xsd:documentation>
@@ -31272,7 +31272,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="url" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The trusted URL.These formats are accepted: example.com, *.example.com, and https://example.com. The host section of the URL can include an asterisk (*) as a wildcard. Otherwise, the URL cannot be malformed. Examples of malformed URLs that fail a syntax check are malformed^url.example.com, and https://{subdomain}.example.com.To add a URL based on parameters, build the URL before you add it to this Metadata Type.</xsd:documentation>
@@ -31290,7 +31290,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="application" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The internal name of the Analytics app.</xsd:documentation>
@@ -31393,7 +31393,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="autogenerated" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates that the report type was automatically generated when historical trending was enabled for an entity.Available in API version 29 and later.</xsd:documentation>
@@ -31513,7 +31513,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the rule is active (true) or not (false). The default value is false.</xsd:documentation>
@@ -31573,7 +31573,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="fullName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The unique identifier for API access. Corresponds to Role Name in the user interface.</xsd:documentation>
@@ -31597,7 +31597,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="caseAccessLevel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Specifies whether a user can access other users’ cases that are associated with accounts the user owns. Valid values are: Read Edit None This field is not visible if your organization’s sharing model for cases is Public Read/Write.If no value is set for this field, this field value uses the default access level that is specified in the Manage Territory page in Setup.</xsd:documentation>
@@ -31651,7 +31651,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="featureName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The feature that the SalesWorkQueueSettings record is configuring. The allowed value is ThirdPartyScore.</xsd:documentation>
@@ -31681,7 +31681,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="attributeNameIdFormat" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>For SAML 2.0, only and when identityLocation is set to Attribute. Possible values include unspecified, emailAddress, or persistent. All legal values can be found in the “Name Identifier Format Identifiers” section of the Assertions and Protocols SAML 2.0 specification.</xsd:documentation>
@@ -31843,7 +31843,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="disableSandboxExpirationEmails" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether to disable sandbox expiration email notifications for the source (production) org: true or false. When disabled in the source (production) org, users no longer receive email notifications for impending deletions of sandboxes that have been inactive for 180 days or longer.</xsd:documentation>
@@ -31883,7 +31883,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableAdvancedCMTSecurity" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether custom metadata type values are available only to Apex, flow, and formula operations (true) or exposed in other contexts such as through the Enterprise WSDL or SOAP API (false). This field has a default value of false.</xsd:documentation>
@@ -31919,7 +31919,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="content" minOccurs="0" maxOccurs="unbounded" type="xsd:base64Binary">
       <xsd:annotation>
        <xsd:documentation>Content of the s-control.</xsd:documentation>
@@ -32018,7 +32018,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="documentContentSearchEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether a full-text document search is performed.</xsd:documentation>
@@ -32180,7 +32180,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="canUsersGrantLoginAccess" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>If true, users can grant login access to Support. If false, only an admin can grant login access. Users can’t grant login access to managed packages that are licensed to your entire Salesforce org. Only admins with the Manage Users permission enabled on their profiles can grant access to these publishers. Also, some managed packages don’t have login access. If a package isn’t listed on the Login Access Policies page, login access isn’t available for that package.</xsd:documentation>
@@ -32336,7 +32336,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="appSourceType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The target application for the configuration. Valid values are: REPLY_RECOMMENDATION—Einstein Reply Recommendations ARTICLE_RECOMMENDATION—Einstein Article Recommendations UTTERANCE_RECOMMENDATION—Einstein Bot utterances FAQ—Einstein Bot frequently asked questions</xsd:documentation>
@@ -32360,7 +32360,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="fieldMappingType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The field type. Valid values are: CASE_DESC CASE_SUBJ ARTICLE_TITLE ARTICLE_CONTENT ARTICLE_SUMMARY</xsd:documentation>
@@ -32378,7 +32378,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="acwExtensionDuration" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
       <xsd:annotation>
        <xsd:documentation>The maximum length of time, measured in seconds, an agent can spend on After Conversation Work (ACW) each time they extend the timer. You must set this field if hasAcwExtensionEnabled is set to true. Specify a value from 10 through 3600. Available only for service channels of type Messaging or Voice.</xsd:documentation>
@@ -32438,7 +32438,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableSCVExternalTelephony" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether to allow a third-party telephony service to work with Service Cloud Voice with Partner Telephony.</xsd:documentation>
@@ -32468,7 +32468,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="channels" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Represents the status that’s associated with a specific service channel.</xsd:documentation>
@@ -32509,7 +32509,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableServiceSetupAssistant" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the Service Setup Assistant is enabled (true) or not (false).</xsd:documentation>
@@ -32593,7 +32593,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="accessMappings" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A list of access mappings on a sharing set.</xsd:documentation>
@@ -32653,7 +32653,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="deferGroupMembership" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether group membership calculations are suspended (true) or not (false). This field has a default value of false. This field is available in API version 49.0 and later. The defer sharing calculation feature isn&apos;t enabled by default. To enable it for your Salesforce org, contact Salesforce Customer Support. When you change the value of this field from true to false, group membership is automatically recalculated. Sharing rules are also automatically recalculated, unless the deferSharingRules field is set to true prior to modifying deferGroupMembership. Depending on your org, these recalculations can take a significant amount of time to complete. If the deferGroupMembership field is set to true, you can’t change the value of deferSharingRules. Sharing rule calculations are suspended regardless of the value of deferSharingRules.</xsd:documentation>
@@ -32783,7 +32783,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Specifies the description of the skill. This field is available in API version 38.0 and later.</xsd:documentation>
@@ -32825,7 +32825,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="caseSubjectOption" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Specifies an option from which inbound social content is formatted to appear in case records’ Case Subject field. Valid values are: SocialPostSource SocialPostContent BuildCustom</xsd:documentation>
@@ -32885,7 +32885,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="isFacebookSocialProfilesDisabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Prevents users from accessing Facebook in social CRM (true) or not (false). enableSocialProfiles must be true to enable Facebook social profiles.</xsd:documentation>
@@ -32927,7 +32927,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableSourceTrackingSandboxes" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether to enable source tracking automatically when Developer or Developer Pro sandboxes are created or refreshed (true) or not (false). The default value is false.If you set enableSourceTrackingSandboxes back to false after it was enabled, a sandbox that is tracking source changes continues to do so until it is refreshed. You don&apos;t need to have the Developer Hub (DevHub) enabled in the same org to enable source tracking. This field applies to production orgs only; in other orgs, this field is ignored.</xsd:documentation>
@@ -32945,7 +32945,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="groupingStringEnum" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Groups picklist and enumerated values. For example, for the picklist values of the Status field on the Service Appointment object, Done and Finished can both have a grouping string of Completed. Available in API version 41.0 and later.</xsd:documentation>
@@ -32986,7 +32986,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="cacheControl" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Indicates whether the static resource is marked with a public caching tag so that a third-party delivery client can cache the content. This field is available in API version 14.0. The valid values are: Private Public</xsd:documentation>
@@ -33039,7 +33039,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableBillingDocGen" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether document generation is enabled in the org (true) or not (false). The default value is false.</xsd:documentation>
@@ -33093,7 +33093,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableGenerativeAISurveys" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether AI-Generated Surveys is enabled for your org (true) or not (false). The default value is false. Available in API version 62.0 and later.</xsd:documentation>
@@ -33184,7 +33184,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="isProtected" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether this component is protected (true) or not (false). Protected components cannot be linked to or referenced by components created in the installing organization.</xsd:documentation>
@@ -33220,7 +33220,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="accountAccessLevel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Specifies whether users in this territory can access accounts that are assigned to this territory and are otherwise inaccessible. Valid values are: Read Edit All If your organization’s sharing model for accounts is Public Read/Write, valid values are only Edit and All.If no value is set for this field, this field value uses the default access level that is specified in the Manage Territory page in Setup.This field is available in API version 31.0 and later.</xsd:documentation>
@@ -33250,7 +33250,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="accountAccessLevel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Specifies whether users in this territory can access accounts that are assigned to this territory and are otherwise inaccessible. Valid values are: Read Edit All If your organization’s sharing model for accounts is Public Read/Write, valid values are only Edit and All. If no value is set for this field, this field value uses the default access level that is specified in Territory2Settings as permitted by the organization’s sharing settings.</xsd:documentation>
@@ -33358,7 +33358,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="customFields" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Custom fields defined on the Territory2Model object and used by this model. Their metadata is captured separately.</xsd:documentation>
@@ -33388,7 +33388,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Required. Indicates whether the rule is active (true) or inactive (false). Via the API, active rules run automatically when object records are created and edited. The exception is when the value of the IsExcludedFromRealign field on an object record is true, which prevents record assignment rules from evaluating that record.</xsd:documentation>
@@ -33448,7 +33448,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="defaultAccountAccessLevel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Sets the default level of access that users have to account records in territories: view and edit accounts assigned to territories or view, edit, transfer, and delete accounts assigned to territories.</xsd:documentation>
@@ -33526,7 +33526,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A description of the territory type.</xsd:documentation>
@@ -33556,7 +33556,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Required. Indicates whether the time sheet template is active (true) or not (false).</xsd:documentation>
@@ -33633,7 +33633,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableTopics" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Required. When true, indicates whether users can assign topics or remove topic assignments. When false, users can’t assign or remove topics.Upon org creation, this value is true for the following objects: Account Asset Campaign Case Contact Content Document Contract Event Lead Opportunity Order Solution Task For all remaining standard objects and custom objects, the default is false.</xsd:documentation>
@@ -33657,7 +33657,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableConfettiEffect" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether animated confetti plays on the screen after a user reaches certain milestones, such as completing an Enablement program in the Guidance Center. The default value of this field is false.</xsd:documentation>
@@ -33687,7 +33687,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Required. If true, the policy is enabled and actively monitors its event.</xsd:documentation>
@@ -33825,7 +33825,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The explainability message field description.</xsd:documentation>
@@ -33861,7 +33861,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableSampleDataDeleted" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether sample data may be deleted on trial orgs (true) or not (false). The default value is false.</xsd:documentation>
@@ -33923,7 +33923,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="developerName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required: The name of the certificate with an underscore between words.Only users with View DeveloperName OR View Setup and Configuration permission can view, group, sort, and filter this field.</xsd:documentation>
@@ -33965,7 +33965,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="creationAgeInSeconds" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
       <xsd:annotation>
        <xsd:documentation>If specified, includes only users that were created within a specific time frame.</xsd:documentation>
@@ -34007,7 +34007,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="canUseAdoptionApps" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether an org can access Lightning Experience transition tools (true) or not (false). Examples of these tools are Salesforce Optimizer, Lightning Experience Transition Assistant, and the Lightning Experience Readiness Report. The default is false. This field applies only to orgs with the External Application Settings page in Setup. Otherwise, this field has no effect. Available in API version 62.0 and later.</xsd:documentation>
@@ -34181,7 +34181,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="dynamicMruActionsOff" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether users can create custom actions for their Recently Viewed lists (true) or not (false). The default is true. Available in API version 52.0 and later. Applies to Lightning Experience only.</xsd:documentation>
@@ -34299,7 +34299,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="approvalRequired" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Indicates whether approvals are required for provisioning users for the associated connected app. If the value is null, no approval is required.</xsd:documentation>
@@ -34377,7 +34377,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="active" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
@@ -34431,7 +34431,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableCallDisposition" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether call disposition is enabled (true) or not (false). With call disposition, also called Call Result, sales reps can track whether a call was connected and how it went.Default value is false. To use this feature, enable Dialer in Lightning Experience.</xsd:documentation>
@@ -34503,7 +34503,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="collectionType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The collection type.</xsd:documentation>
@@ -34557,7 +34557,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="assetIcon" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The icon that represents the Analytics application.</xsd:documentation>
@@ -34611,7 +34611,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="application" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The internal name of the application.</xsd:documentation>
@@ -34647,7 +34647,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="application" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The internal name of the application.</xsd:documentation>
@@ -34689,7 +34689,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="application" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The name of the Analytics application the dataflow is connected to. This field is available in API version 48.0 and later.</xsd:documentation>
@@ -34725,7 +34725,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="application" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The internal name of the application.</xsd:documentation>
@@ -34767,7 +34767,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="application" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The internal name of the application.</xsd:documentation>
@@ -34821,7 +34821,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="application" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The internal name of the application.</xsd:documentation>
@@ -34875,7 +34875,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="assetIcon" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The icon to use by default for new Analytics apps based on this template. Valid values are 1.png through 20.png.</xsd:documentation>
@@ -34911,7 +34911,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="application" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The name of the Analytics application the XMD is associated with. Available in API version 43.0 and later.</xsd:documentation>
@@ -34989,7 +34989,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="availability" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:appinfo>Type: WebLinkAvailability</xsd:appinfo>
@@ -35131,7 +35131,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="autoFacetingEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether auto faceting is enabled (true) or not (false). If enabled (True), the most relevant search facets are automatically returned, in addition to the configured search facets, in the product search results. If disabled (False), only the configured search facets are returned. The default is False. See Add Product Search Filters (Facets) for more information. This field is available in API version 50.0 or later.</xsd:documentation>
@@ -35341,7 +35341,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="enableCoachingManagerGroupAccess" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether Coaching Manager Group Access is available to users (true)or not (false). Default value is true. Deprecated.</xsd:documentation>
@@ -35431,7 +35431,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="workSkillRoutingAttributes" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A set of mappings between work-item field values and skills. Create one attribute mapping set for each object.</xsd:documentation>
@@ -35449,7 +35449,7 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
      <xsd:element name="alerts" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>An array of all alerts for the object associated with the workflow.</xsd:documentation>
