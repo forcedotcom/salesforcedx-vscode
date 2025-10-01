@@ -342,32 +342,29 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   const newOrgList = new OrgList();
   extensionContext.subscriptions.push(registerOrgPickerCommands(newOrgList));
 
-  await setupOrgBrowser(extensionContext);
-  await setupConflictView(extensionContext);
-
   PersistentStorageService.initialize(extensionContext);
 
   // Register file watcher for push or deploy on save
   registerPushOrDeployOnSave();
-  await decorators.showOrg();
 
-  // Initialize metadata XML support and hover provider in parallel
-  const metadataXmlSupport = MetadataXmlSupport.getInstance();
+  // Initialize metadata hover provider
   const metadataHoverProvider = new MetadataHoverProvider();
 
   await Promise.all([
-    metadataXmlSupport.initializeMetadataSupport(extensionContext),
-    metadataHoverProvider.initialize()
+    decorators.showOrg(),
+    setupOrgBrowser(extensionContext),
+    setupConflictView(extensionContext),
+    // Initialize metadata XML support
+    MetadataXmlSupport.getInstance().initializeMetadataSupport(extensionContext),
+    // Initialize metadata hover provider
+    metadataHoverProvider.initialize(),
+    setUpOrgExpirationWatcher(newOrgList)
   ]);
 
   // Register hover provider for XML files
-  const hoverProviderDisposable = vscode.languages.registerHoverProvider(
-    { scheme: 'file', language: 'xml' },
-    metadataHoverProvider
+  extensionContext.subscriptions.push(
+    vscode.languages.registerHoverProvider({ scheme: 'file', language: 'xml' }, metadataHoverProvider)
   );
-  extensionContext.subscriptions.push(hoverProviderDisposable);
-
-  await setUpOrgExpirationWatcher(newOrgList);
 };
 
 export const deactivate = async (): Promise<void> => {

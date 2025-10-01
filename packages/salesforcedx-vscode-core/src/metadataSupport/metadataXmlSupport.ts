@@ -9,6 +9,11 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 
+type XMLExtensionApi = {
+  addXMLCatalogs: (catalogs: string[]) => void;
+  addXMLFileAssociations: (fileAssociations: { systemId: string; pattern: string }[]) => void;
+};
+
 /**
  * Provides XML schema support for Salesforce metadata files using RedHat XML extension
  */
@@ -36,19 +41,16 @@ export class MetadataXmlSupport {
    * @param inputFileAssociations - list of file associations
    */
   private async setupRedhatXml(
-    inputCatalogs: string[],
-    inputFileAssociations: { systemId: string; pattern: string }[]
+    inputCatalogs: Parameters<XMLExtensionApi['addXMLCatalogs']>[0],
+    inputFileAssociations: Parameters<XMLExtensionApi['addXMLFileAssociations']>[0],
+    redHatExtension: vscode.Extension<XMLExtensionApi>
   ): Promise<void> {
-    const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
     try {
-      if (!redHatExtension) {
-        channelService.appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
-        return;
+      if (!redHatExtension.isActive) {
+        await redHatExtension.activate();
       }
-
-      const extensionApi = await redHatExtension.activate();
-      extensionApi.addXMLCatalogs(inputCatalogs);
-      extensionApi.addXMLFileAssociations(inputFileAssociations);
+      redHatExtension.exports.addXMLCatalogs(inputCatalogs);
+      redHatExtension.exports.addXMLFileAssociations(inputFileAssociations);
 
       // Disable RedHat XML hover to prevent duplication with our custom hover provider
       const config = vscode.workspace.getConfiguration('xml');
@@ -66,7 +68,7 @@ export class MetadataXmlSupport {
    * Initialize metadata XML support by configuring RedHat XML extension
    */
   public async initializeMetadataSupport(extensionContext: vscode.ExtensionContext): Promise<void> {
-    const redHatExtension = vscode.extensions.getExtension('redhat.vscode-xml');
+    const redHatExtension = vscode.extensions.getExtension<XMLExtensionApi>('redhat.vscode-xml');
 
     if (!redHatExtension) {
       channelService.appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
@@ -75,10 +77,14 @@ export class MetadataXmlSupport {
 
     const pluginVersionNumber = redHatExtension.packageJSON['version'];
 
+    if (typeof pluginVersionNumber !== 'string') {
+      channelService.appendLine(nls.localize('metadata_xml_no_redhat_extension_found'));
+      return;
+    }
+
     // Check if the installed plugin version is compatible
     // 0.14.0 or 0.16+ are supported, 0.15.0 has a regression
-    const major = parseInt(pluginVersionNumber.split('.')[0], 10);
-    const minor = parseInt(pluginVersionNumber.split('.')[1], 10);
+    const [major, minor] = pluginVersionNumber.split('.').map(i => parseInt(i, 10));
 
     if (major >= 1 || minor === 14 || minor >= 16) {
       const catalogs = this.getLocalFilePath(['metadata-catalog.xml'], extensionContext);
@@ -89,7 +95,7 @@ export class MetadataXmlSupport {
         }
       ];
 
-      await this.setupRedhatXml(catalogs, fileAssociations);
+      await this.setupRedhatXml(catalogs, fileAssociations, redHatExtension);
     } else if (minor === 15) {
       channelService.appendLine(nls.localize('metadata_xml_redhat_extension_regression'));
     } else {
