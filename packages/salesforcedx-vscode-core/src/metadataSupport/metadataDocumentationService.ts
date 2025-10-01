@@ -8,16 +8,16 @@ import { fileOrFolderExists, readFile } from '@salesforce/salesforcedx-utils-vsc
 import { XMLParser } from 'fast-xml-parser';
 import * as path from 'node:path';
 
-export type MetadataFieldInfo = {
+type MetadataFieldInfo = {
   name: string;
   type: string;
   description: string;
   required?: boolean;
 };
 
-export type MetadataFieldDocumentation = MetadataFieldInfo & { validValues?: string[] };
+type MetadataFieldDocumentation = MetadataFieldInfo & { validValues?: string[] };
 
-export type MetadataTypeDocumentation = {
+type MetadataTypeDocumentation = {
   name: string;
   description: string;
   fields?: MetadataFieldInfo[];
