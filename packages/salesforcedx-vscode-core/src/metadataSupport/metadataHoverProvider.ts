@@ -246,16 +246,6 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
         markdownContent.appendCodeblock(metadataType, 'xml');
         markdownContent.appendMarkdown(documentation.description);
 
-        if (documentation.fields && documentation.fields.length > 0) {
-          markdownContent.appendMarkdown('\n\n**Key Fields:**\n');
-          documentation.fields.slice(0, 5).forEach(field => {
-            markdownContent.appendMarkdown(`- \`${field.name}\`: ${field.description}\n`);
-          });
-          if (documentation.fields.length > 5) {
-            markdownContent.appendMarkdown(`- *... and ${documentation.fields.length - 5} more fields*\n`);
-          }
-        }
-
         if (documentation.developerGuideUrls && documentation.developerGuideUrls.length > 0) {
           if (documentation.developerGuideUrls.length === 1) {
             markdownContent.appendMarkdown(`\n\n[📖 View in Developer Guide](${documentation.developerGuideUrls[0]})`);
