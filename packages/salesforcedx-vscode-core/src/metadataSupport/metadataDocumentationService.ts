@@ -69,7 +69,7 @@ export class MetadataDocumentationService {
     }
 
     // Fall back to hardcoded field definitions only for common fields or when XSD data is insufficient
-    const fieldDoc = this.getFieldDefinitions(metadataType, fieldName);
+    const fieldDoc = this.getFieldDefinitionsForCommonFields(fieldName);
     if (fieldDoc) {
       return fieldDoc;
     }
@@ -241,7 +241,7 @@ export class MetadataDocumentationService {
   /**
    * Get hardcoded field definitions for common metadata fields
    */
-  private getFieldDefinitions(metadataType: string, fieldName: string): MetadataFieldDocumentation | null {
+  private getFieldDefinitionsForCommonFields(fieldName: string): MetadataFieldDocumentation | null {
     const commonFields: Record<string, MetadataFieldDocumentation> = {
       // Common fields across all metadata types
       fullName: {
