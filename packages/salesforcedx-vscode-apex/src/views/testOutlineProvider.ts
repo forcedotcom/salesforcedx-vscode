@@ -10,10 +10,9 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { APEX_GROUP_RANGE, APEX_TESTS } from '../constants';
-import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { getApexTests, languageClientManager } from '../languageUtils';
 import { nls } from '../messages';
-import { rewriteClassArgument } from '../namespaceLensRewriter';
+import { getNamespaceInfo, rewriteClassArgument } from '../namespaceLensRewriter';
 import { iconHelpers } from './icons';
 import { ApexTestMethod } from './lspConverter';
 
@@ -83,18 +82,10 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
   public async refresh(): Promise<void> {
     this.rootNode = undefined; // Reset tests
     this.apexTestMap.clear();
-    // we'll need some namespace information to get the correct namespace on the classes.
-    const vscodeCoreExtension = await getVscodeCoreExtension();
-    const [nsFromOrg, nsFromProject] = await Promise.all([
-      vscodeCoreExtension.exports.OrgAuthInfo.getAuthFields().then(fields => fields.namespacePrefix ?? undefined),
-      vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance().then(
-        cfg => cfg.getContents().namespace
-      )
-    ]);
+    const { nsFromOrg, nsFromProject } = await getNamespaceInfo();
 
     this.apexTestInfo = (await getApexTests())?.map(testMethod => ({
       ...testMethod,
-      //
       definingType: rewriteClassArgument(nsFromOrg)(nsFromProject)(testMethod.definingType)
     }));
     this.getAllApexTests();

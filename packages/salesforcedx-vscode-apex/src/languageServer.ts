@@ -18,10 +18,9 @@ import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { LSP_ERR, UBER_JAR_NAME } from './constants';
-import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { soqlMiddleware } from './embeddedSoql';
 import { nls } from './messages';
-import { rewriteNamespaceLens } from './namespaceLensRewriter';
+import { getNamespaceInfo, rewriteNamespaceLens } from './namespaceLensRewriter';
 import * as requirements from './requirements';
 import {
   retrieveEnableApexLSErrorToTelemetry,
@@ -204,12 +203,6 @@ const provideCodeLenses = async (
   token: vscode.CancellationToken,
   next: ProvideCodeLensesSignature
 ) => {
-  const vscodeCoreExtension = await getVscodeCoreExtension();
-  const [nsFromOrg, nsFromProject, lenses] = await Promise.all([
-    // convert null to undefined
-    vscodeCoreExtension.exports.OrgAuthInfo.getAuthFields().then(fields => fields.namespacePrefix ?? undefined),
-    vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance().then(cfg => cfg.getContents().namespace),
-    next(document, token)
-  ]);
+  const [{ nsFromOrg, nsFromProject }, lenses] = await Promise.all([getNamespaceInfo(), next(document, token)]);
   return lenses?.map(rewriteNamespaceLens(nsFromOrg)(nsFromProject));
 };

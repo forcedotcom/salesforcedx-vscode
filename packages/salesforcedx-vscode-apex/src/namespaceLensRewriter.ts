@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
+import { getVscodeCoreExtension } from './coreExtensionUtils';
 
 const singleTest = ['Run Test', 'Debug Test'];
 const allTests = ['Run All Tests', 'Debug All Tests'];
@@ -54,3 +55,20 @@ export const rewriteClassArgument =
     // the ! assertion is safe because we know it has at least one dot
     return arg.startsWith(`${namespaceFromProject}.`) && arg.split('.').length === 2 ? arg.split('.').at(-1)! : arg;
   };
+
+/** will return undefined if there is no org or project */
+export const getNamespaceInfo = async (): Promise<{
+  nsFromOrg: string | undefined;
+  nsFromProject: string | undefined;
+}> => {
+  const vscodeCoreExtension = await getVscodeCoreExtension();
+  const [nsFromOrg, nsFromProject] = await Promise.all([
+    vscodeCoreExtension.exports.OrgAuthInfo.getAuthFields()
+      .then(fields => fields.namespacePrefix ?? undefined)
+      .catch(() => undefined),
+    vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance()
+      .then(cfg => cfg.getContents().namespace)
+      .catch(() => undefined)
+  ]);
+  return { nsFromOrg, nsFromProject };
+};
