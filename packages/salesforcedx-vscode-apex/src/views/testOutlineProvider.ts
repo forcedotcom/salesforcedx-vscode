@@ -256,7 +256,7 @@ export class ApexTestGroupNode extends TestNode {
 export class ApexTestNode extends TestNode {
   public errorMessage: string = '';
   public stackTrace: string = '';
-  public readonly outcome: TestOutcome = 'Skip';
+  public readonly outcome: TestOutcome = 'Not Run';
 
   constructor(label: string, location: vscode.Location | null) {
     super(label, vscode.TreeItemCollapsibleState.None, location);
