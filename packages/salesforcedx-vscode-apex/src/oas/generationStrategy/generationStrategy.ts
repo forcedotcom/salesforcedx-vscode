@@ -73,7 +73,7 @@ export abstract class GenerationStrategy {
   }
 
   protected includesOASSchema(): boolean {
-    this.includeOASSchema = vscode.workspace.getConfiguration().get(APEX_OAS_INCLUDE_GUIDED_JSON, true);
+    this.includeOASSchema = vscode.workspace.getConfiguration().get(APEX_OAS_INCLUDE_GUIDED_JSON, false);
     return this.includeOASSchema;
   }
 

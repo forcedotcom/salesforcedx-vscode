@@ -43,7 +43,7 @@ describe('O11yReporter', () => {
       get: jest.fn().mockReturnValue('testTelemetryTag')
     } as any);
 
-    o11yReporter = new O11yReporter(fakeExtensionId, fakeExtensionVersion, fakeEndpoint, fakeUserId);
+    o11yReporter = new O11yReporter(fakeExtensionId, fakeExtensionVersion, fakeEndpoint, fakeUserId, 'test-webUser');
   });
 
   afterEach(() => {
@@ -140,7 +140,13 @@ describe('O11yReporter', () => {
         get: jest.fn().mockReturnValue(undefined)
       } as any);
 
-      const reporterWithoutTag = new O11yReporter(fakeExtensionId, fakeExtensionVersion, fakeEndpoint, fakeUserId);
+      const reporterWithoutTag = new O11yReporter(
+        fakeExtensionId,
+        fakeExtensionVersion,
+        fakeEndpoint,
+        fakeUserId,
+        'test-webUser'
+      );
       sendMock.mockClear();
 
       reporterWithoutTag.sendTelemetryEvent('eventWithoutTag');

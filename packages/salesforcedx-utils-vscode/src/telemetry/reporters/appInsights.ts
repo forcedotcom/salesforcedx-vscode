@@ -28,6 +28,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     private extensionVersion: string,
     key: string,
     private readonly userId: string,
+    private readonly webUserId: string,
     enableUniqueMetrics?: boolean
   ) {
     super(() => this.toDispose.forEach(d => d?.dispose()));
@@ -119,7 +120,9 @@ export class AppInsights extends Disposable implements TelemetryReporter {
 
   private aggregateLoggingProperties() {
     const commonProperties = this.getCommonProperties();
-    return isInternalHost() ? { ...commonProperties, ...this.getInternalProperties() } : commonProperties;
+    return isInternalHost()
+      ? { ...commonProperties, ...this.getInternalProperties(), webUserId: this.webUserId }
+      : { ...commonProperties, webUserId: this.webUserId };
   }
 
   public sendTelemetryEvent(
@@ -129,7 +132,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
   ): void {
     if (this.userOptIn && eventName && this.appInsightsClient) {
       const baseProps = getBaseProps();
-      const finalProps = this.applyTelemetryTag({ ...baseProps, ...properties });
+      const finalProps = this.applyTelemetryTag({ ...baseProps, ...properties, webUserId: this.webUserId });
 
       this.appInsightsClient.trackEvent({
         name: `${this.extensionId}/${eventName}`,
@@ -150,7 +153,8 @@ export class AppInsights extends Disposable implements TelemetryReporter {
       error.stack = 'DEPRECATED';
       const baseProps = getBaseProps();
 
-      const finalProps = this.applyTelemetryTag(baseProps);
+      const finalProps = this.applyTelemetryTag({ ...baseProps, webUserId: this.webUserId });
+
       this.appInsightsClient.trackException({
         exception: error,
         properties: finalProps,

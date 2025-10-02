@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 'use strict';
 
-import { TextDocument } from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 
 export type LanguageModelCache<T> = {
   get(document: TextDocument): T;

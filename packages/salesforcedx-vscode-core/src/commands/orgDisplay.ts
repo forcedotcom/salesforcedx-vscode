@@ -91,6 +91,7 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
       { property: 'Instance Url', value: orgInfo.instanceUrl },
       { property: 'Org Id', value: orgInfo.id },
       { property: 'Username', value: orgInfo.username },
+      ...(orgInfo.namespace ? [{ property: 'Namespace', value: orgInfo.namespace }] : []),
       ...(isScratchOrg
         ? [
             { property: 'Dev Hub Id', value: orgInfo.devHubId },
