@@ -8,7 +8,7 @@ import { AzureMonitorTraceExporter } from '@azure/monitor-opentelemetry-exporter
 import { NodeSdk } from '@effect/opentelemetry';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-base';
-import { Global } from '@salesforce/core';
+import { Global } from '@salesforce/core/global';
 import { join } from 'node:path';
 import { DEFAULT_AI_CONNECTION_STRING, isTelemetryExtensionConfigurationEnabled } from './appInsights';
 import { getLocalTracesEnabled } from './localTracing';
