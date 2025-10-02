@@ -90,6 +90,8 @@ import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { decorators } from './decorators';
+import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
+import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { OrgList } from './orgPicker';
@@ -340,16 +342,29 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   const newOrgList = new OrgList();
   extensionContext.subscriptions.push(registerOrgPickerCommands(newOrgList));
 
-  await setupOrgBrowser(extensionContext);
-  await setupConflictView(extensionContext);
-
   PersistentStorageService.initialize(extensionContext);
 
   // Register file watcher for push or deploy on save
   registerPushOrDeployOnSave();
-  await decorators.showOrg();
 
-  await setUpOrgExpirationWatcher(newOrgList);
+  // Initialize metadata hover provider
+  const metadataHoverProvider = new MetadataHoverProvider();
+
+  await Promise.all([
+    decorators.showOrg(),
+    setupOrgBrowser(extensionContext),
+    setupConflictView(extensionContext),
+    // Initialize metadata XML support
+    MetadataXmlSupport.getInstance().initializeMetadataSupport(extensionContext),
+    // Initialize metadata hover provider
+    metadataHoverProvider.initialize(),
+    setUpOrgExpirationWatcher(newOrgList)
+  ]);
+
+  // Register hover provider for XML files
+  extensionContext.subscriptions.push(
+    vscode.languages.registerHoverProvider({ scheme: 'file', language: 'xml' }, metadataHoverProvider)
+  );
 };
 
 export const deactivate = async (): Promise<void> => {

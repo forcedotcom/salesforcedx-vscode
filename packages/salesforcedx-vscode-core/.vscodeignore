@@ -2,7 +2,7 @@
 .vscode-test/**
 **/*.map
 
-# ignore unused rxjs code 
+# ignore unused rxjs code
 node_modules/rxjs/src/**
 node_modules/rxjs/bundles/**
 node_modules/rxjs/_esm5/**
@@ -27,3 +27,5 @@ node_modules/sfdx-faye/spec/**
 
 # ignore unused dayjs code
 node_modules/dayjs/esm/**
+
+metadata_types_map.json
