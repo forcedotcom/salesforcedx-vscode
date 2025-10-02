@@ -26,10 +26,8 @@ export enum TestRunType {
   Method
 }
 
-export const runAllApexTests = async (testOutline: ApexTestOutlineProvider): Promise<void> => {
-  const tests = Array.from(testOutline.testStrings.values());
-  await runApexTests(tests, TestRunType.All);
-};
+export const runAllApexTests = async (testOutline: ApexTestOutlineProvider): Promise<void> =>
+  runApexTests(Array.from(testOutline.getTestStrings()), TestRunType.All);
 
 export const showErrorMessage = async (test: TestNode): Promise<void> => {
   let testNode = test;
@@ -61,12 +59,12 @@ export const showErrorMessage = async (test: TestNode): Promise<void> => {
   }
 };
 
-export const runApexTests = async (tests: string[], testRunType: TestRunType) => {
+export const runApexTests = async (tests: string[], testRunType: TestRunType): Promise<void> => {
   const languageClientStatus = languageClientManager.getStatus();
   if (!languageClientStatus.isReady()) {
     if (languageClientStatus.failedToInitialize()) {
       vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());
-      return [];
+      return;
     }
   }
 

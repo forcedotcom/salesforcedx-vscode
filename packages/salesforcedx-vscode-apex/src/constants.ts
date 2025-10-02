@@ -19,10 +19,6 @@ const APEX_EXTENSION_NAME = 'salesforcedx-vscode-apex';
 export const VSCODE_APEX_EXTENSION_NAME = `salesforce.${APEX_EXTENSION_NAME}`;
 export const LSP_ERR = 'apexLSPError';
 
-export const PASS_RESULT = 'Pass';
-export const FAIL_RESULT = 'Fail';
-export const SKIP_RESULT = 'Skip';
-
 export const APEX_TESTS = 'ApexTests';
 export const API = {
   doneIndexing: 'indexer/done'
