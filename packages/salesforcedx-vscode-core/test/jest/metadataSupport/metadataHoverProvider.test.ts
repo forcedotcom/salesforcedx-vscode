@@ -180,7 +180,8 @@ describe('MetadataHoverProvider', () => {
 
       expect(result).toEqual({
         metadataType: 'CustomObject',
-        fieldName: 'enableActivities'
+        fieldName: 'enableActivities',
+        intermediateLayers: []
       });
     });
 
@@ -199,7 +200,8 @@ describe('MetadataHoverProvider', () => {
 
       expect(result).toEqual({
         metadataType: 'ApexClass',
-        fieldName: 'description'
+        fieldName: 'description',
+        intermediateLayers: []
       });
     });
 
@@ -217,7 +219,8 @@ describe('MetadataHoverProvider', () => {
 
       expect(result).toEqual({
         metadataType: 'Flow',
-        fieldName: 'status'
+        fieldName: 'status',
+        intermediateLayers: []
       });
     });
 
@@ -253,7 +256,8 @@ describe('MetadataHoverProvider', () => {
 
       expect(result).toEqual({
         metadataType: 'Prompt',
-        fieldName: 'displayType'
+        fieldName: 'displayType',
+        intermediateLayers: []
       });
     });
   });
