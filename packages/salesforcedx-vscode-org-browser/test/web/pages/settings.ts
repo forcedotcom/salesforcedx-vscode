@@ -51,7 +51,7 @@ export const upsertScratchOrgAuthFieldsToSettings = async (
 /** Upsert settings using Settings (UI) search and fill of each id.
  * Assumes that you've already opened the Settings (UI) via openSettingsUI.
  */
-export const upsertSettings = async (page: Page, settings: Record<string, string>): Promise<void> => {
+const upsertSettings = async (page: Page, settings: Record<string, string>): Promise<void> => {
   await openSettingsUI(page);
   const debugAria = process.env.E2E_ARIA_DEBUG === '1';
 

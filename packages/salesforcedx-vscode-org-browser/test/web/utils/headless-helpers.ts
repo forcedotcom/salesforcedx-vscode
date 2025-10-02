@@ -7,8 +7,8 @@
 
 import type { Page } from '@playwright/test';
 
-export type ConsoleError = { text: string; url?: string };
-export type NetworkError = { status: number; url: string; description: string };
+type ConsoleError = { text: string; url?: string };
+type NetworkError = { status: number; url: string; description: string };
 
 const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   // VS Code Web expected missing resources

@@ -21,7 +21,7 @@ type SerializedDirectory = vscode.FileStat & {
   entries: Record<string, SerializedEntry>;
 };
 
-export type SerializedEntry = SerializedFile | SerializedDirectory;
+type SerializedEntry = SerializedFile | SerializedDirectory;
 
 export const isSerializedDirectoryWithPath = (entry: SerializedEntryWithPath): entry is SerializedDirectoryWithPath =>
   entry.type === vscode.FileType.Directory;
