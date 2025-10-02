@@ -1,0 +1,74 @@
+name: OrgBrowser E2E (Playwright)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'packages/salesforcedx-vscode-org-browser/**'
+      - 'packages/salesforcedx-vscode-services/**'
+      - '.github/workflows/orgBrowserE2E.yml'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Salesforce CLI
+        run: |
+          npm i -g @salesforce/cli
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers and OS deps
+        run: npx playwright install chromium --with-deps
+
+      - name: Clone dreamhouse
+        shell: bash
+        run: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
+
+      - name: create scratch org and set up dreamhouse
+        # the tests expect a scratch org with dreahmouse at a certain alias but don't use the directory directly
+        shell: bash
+        run: |
+          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json
+          sf project deploy start
+          sf org assign permset -n dreamhouse
+        working-directory: dreamhouse-lwc
+
+      - name: Run Org Browser headless tests (headless config)
+        env:
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+        # compile the entire project to
+        run: |
+          npx lerna run bundle:extension --scope salesforcedx-vscode-services --scope salesforcedx-vscode-org-browser --stream
+          npm run test:web:headless:ci -w salesforcedx-vscode-org-browser -- --reporter=html
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: packages/salesforcedx-vscode-org-browser/playwright-report
+          if-no-files-found: ignore
+
+      - name: Cleanup scratch org
+        if: always()
+        continue-on-error: true
+        run: |
+          sf org delete scratch -o "$DREAMHOUSE_ORG_ALIAS" --no-prompt || true

@@ -71,7 +71,6 @@ test/web/
 ├── orgBrowser.spec.ts       # Main extension functionality tests
 ├── shared/
 │   └── cdpUtils.ts         # Shared CDP utilities
-└── playwright.web.config.ts # Playwright configuration
 ```
 
 #### Test Environment Details

@@ -43,13 +43,24 @@ const createConfigFiles = (fsp: fsProvider): void => {
 /** Creates the project directory structure and files */
 const createProjectStructure = (fsp: fsProvider): Effect.Effect<void, Error, never> =>
   Effect.gen(function* () {
+    yield* Effect.annotateCurrentSpan({ sampleProjectPath });
+    const dirsToCreate = getDirsToCreate();
+    yield* Effect.annotateCurrentSpan({ dirsToCreate });
     // Create all directories
     yield* Effect.tryPromise({
       try: () =>
         Promise.all(
-          getDirsToCreate()
+          dirsToCreate
             .map(dir => vscode.Uri.parse(dir))
+            .map(uri => {
+              console.log('uri', uri);
+              return uri;
+            })
             .filter(uri => !fsp.exists(uri))
+            .map(uri => {
+              console.log('nonexistent uri', uri);
+              return uri;
+            })
             .map(uri => fsp.createDirectory(uri))
         ),
       catch: (error: unknown) => new Error(`Failed to create project directories: ${String(error)}`)
@@ -86,9 +97,11 @@ const createVSCodeFiles = (fsp: fsProvider): void => {
 export const projectFiles = (fsp: fsProvider): Effect.Effect<void, Error, SettingsService> =>
   Effect.gen(function* () {
     // Check if project already exists, if not create it
-    console.log('projectFiles', fsp.readDirectory(vscode.Uri.parse(`${sampleProjectPath}`)));
     const projectExists = fsp.exists(vscode.Uri.parse(`${sampleProjectPath}/sfdx-project.json`));
-    yield* Effect.annotateCurrentSpan({ projectExists });
+    yield* Effect.annotateCurrentSpan({
+      projectExists,
+      projectFiles: fsp.readDirectory(vscode.Uri.parse(`${sampleProjectPath}`))
+    });
 
     if (!projectExists) {
       yield* createProjectStructure(fsp);

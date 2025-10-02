@@ -155,5 +155,5 @@ const fileSystemSetup = (
     });
 
     yield* startWatch();
-    yield* Effect.forkDaemon(projectFiles(fsProvider));
+    yield* projectFiles(fsProvider);
   }).pipe(Effect.withSpan('fileSystemSetup'));

@@ -8,7 +8,7 @@
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { retrieveOrgBrowserTreeItemCommand } from './commands/retrieveMetadata';
-import { TREE_VIEW_ID } from './constants';
+import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
@@ -47,7 +47,7 @@ export const activateEffect = (
 
     // Append completion message
     yield* svc.appendToChannel('Salesforce Org Browser activation complete.');
-  }).pipe(Effect.withSpan('activation:salesforcedx-vscode-org-browser'), Effect.provide(AllServicesLayer));
+  }).pipe(Effect.withSpan(`activation:${EXTENSION_NAME}`), Effect.provide(AllServicesLayer));
 
 export const deactivateEffect = ExtensionProviderService.pipe(
   Effect.flatMap(svcProvider => svcProvider.getServicesApi),
