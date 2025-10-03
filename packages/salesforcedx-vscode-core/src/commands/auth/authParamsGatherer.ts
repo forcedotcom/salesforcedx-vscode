@@ -28,39 +28,31 @@ export type AccessTokenParams = {
   accessToken: string;
 };
 
-const inputInstanceUrl = async (): Promise<string | undefined> => {
-  const instanceUrlInputOptions = {
+const inputInstanceUrl = async (): Promise<string | undefined> =>
+  vscode.window.showInputBox({
     prompt: nls.localize('parameter_gatherer_enter_instance_url'),
     placeHolder: INSTANCE_URL_PLACEHOLDER,
-    validateInput: AuthParamsGatherer.validateUrl,
+    validateInput: validateUrl,
     ignoreFocusOut: true
-  };
-  const instanceUrl = await vscode.window.showInputBox(instanceUrlInputOptions);
-  return instanceUrl;
-};
+  });
 
-const inputAlias = async (): Promise<string | undefined> => {
-  const aliasInputOptions: vscode.InputBoxOptions = {
+const inputAlias = async (): Promise<string | undefined> =>
+  vscode.window.showInputBox({
     prompt: nls.localize('parameter_gatherer_enter_alias_name'),
     placeHolder: DEFAULT_ALIAS,
     ignoreFocusOut: true
-  };
-  const alias = await vscode.window.showInputBox(aliasInputOptions);
-  return alias;
-};
+  });
 
-const inputAccessToken = async (): Promise<string | undefined> => {
-  const accessToken = await vscode.window.showInputBox({
+const inputAccessToken = async (): Promise<string | undefined> =>
+  vscode.window.showInputBox({
     value: '',
     prompt: nls.localize('parameter_gatherer_enter_session_id'),
     placeHolder: nls.localize('parameter_gatherer_enter_session_id_placeholder'),
     password: true,
     ignoreFocusOut: true,
     validateInput: text =>
-      text && text.length > 0 ? null : nls.localize('parameter_gatherer_enter_session_id_diagnostic_message')
+      text && text?.length > 0 ? null : nls.localize('parameter_gatherer_enter_session_id_diagnostic_message')
   });
-  return accessToken;
-};
 
 class OrgTypeItem implements vscode.QuickPickItem {
   public label: string;
@@ -71,7 +63,16 @@ class OrgTypeItem implements vscode.QuickPickItem {
   }
 }
 
+const validateUrl = (url: string): string | null => {
+  const expr = /https?:\/\/(.*)/;
+  if (expr.test(url)) {
+    return null;
+  }
+  return nls.localize('auth_invalid_url');
+};
 export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
+  constructor(public instanceUrl: string | undefined) {}
+
   public readonly orgTypes = {
     project: new OrgTypeItem('auth_project_label', 'auth_project_detail'),
     production: new OrgTypeItem('auth_prod_label', 'auth_prod_detail'),
@@ -79,20 +80,8 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
     custom: new OrgTypeItem('auth_custom_label', 'auth_custom_detail')
   };
 
-  public static readonly validateUrl = (url: string) => {
-    const expr = /https?:\/\/(.*)/;
-    if (expr.test(url)) {
-      return null;
-    }
-    return nls.localize('auth_invalid_url');
-  };
-
-  public async getProjectLoginUrl(): Promise<string | undefined> {
-    return await SalesforceProjectConfig.getValue('sfdcLoginUrl');
-  }
-
   public async getQuickPickItems(): Promise<vscode.QuickPickItem[]> {
-    const projectUrl = await this.getProjectLoginUrl();
+    const projectUrl = await getProjectLoginUrl();
     const items: vscode.QuickPickItem[] = [this.orgTypes.production, this.orgTypes.sandbox, this.orgTypes.custom];
     if (projectUrl) {
       const { project } = this.orgTypes;
@@ -103,28 +92,30 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   }
 
   public async gather(): Promise<CancelResponse | ContinueResponse<AuthParams>> {
-    const quickPickItems = await this.getQuickPickItems();
-    const selection = await vscode.window.showQuickPick(quickPickItems);
-    if (!selection) {
-      return { type: 'CANCEL' };
-    }
-
-    const orgType = selection.label;
-    let loginUrl: string | undefined;
-    if (orgType === this.orgTypes.custom.label) {
-      const customUrlInputOptions = {
-        prompt: nls.localize('parameter_gatherer_enter_custom_url'),
-        placeHolder: PRODUCTION_URL,
-        validateInput: AuthParamsGatherer.validateUrl
-      };
-      loginUrl = await vscode.window.showInputBox(customUrlInputOptions);
-      if (loginUrl === undefined) {
+    // allow passing in the instance url programmatically instead of via quick pick
+    if (!this.instanceUrl) {
+      const quickPickItems = await this.getQuickPickItems();
+      const selection = await vscode.window.showQuickPick(quickPickItems);
+      if (!selection) {
         return { type: 'CANCEL' };
       }
-    } else if (orgType === this.orgTypes.project.label) {
-      loginUrl = await this.getProjectLoginUrl();
-    } else {
-      loginUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
+
+      const orgType = selection.label;
+      if (orgType === this.orgTypes.custom.label) {
+        const customUrlInputOptions = {
+          prompt: nls.localize('parameter_gatherer_enter_custom_url'),
+          placeHolder: PRODUCTION_URL,
+          validateInput: validateUrl
+        };
+        this.instanceUrl = await vscode.window.showInputBox(customUrlInputOptions);
+        if (this.instanceUrl === undefined) {
+          return { type: 'CANCEL' };
+        }
+      } else if (orgType === this.orgTypes.project.label) {
+        this.instanceUrl = await getProjectLoginUrl();
+      } else {
+        this.instanceUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
+      }
     }
 
     const aliasInputOptions: vscode.InputBoxOptions = {
@@ -140,7 +131,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
       type: 'CONTINUE',
       data: {
         alias: alias ?? DEFAULT_ALIAS,
-        loginUrl: loginUrl ?? PRODUCTION_URL
+        loginUrl: this.instanceUrl ?? PRODUCTION_URL
       }
     };
   }
@@ -185,13 +176,8 @@ export class ScratchOrgLogoutParamsGatherer implements ParametersGatherer<string
     const logoutResponse = nls.localize('org_logout_scratch_logout');
 
     const confirm = await vscode.window.showInformationMessage(prompt, { modal: true }, logoutResponse);
-    if (confirm !== logoutResponse) {
-      return { type: 'CANCEL' };
-    }
-
-    return {
-      type: 'CONTINUE',
-      data: this.username
-    };
+    return confirm === logoutResponse ? { type: 'CONTINUE', data: this.username } : { type: 'CANCEL' };
   }
 }
+
+const getProjectLoginUrl = async (): Promise<string | undefined> => SalesforceProjectConfig.getValue('sfdcLoginUrl');

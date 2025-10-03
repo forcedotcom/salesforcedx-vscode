@@ -96,8 +96,19 @@ export class WorkspaceContextUtil {
         }
       } catch {
         this.sessionConnections.delete(this._username);
+        // we only want to display one message per username, even though many consumers are requesting connections.
         if (!this.knownBadConnections.has(this._username)) {
-          vscode.window.showErrorMessage('Unable to refresh your access token.  Please login again.', { modal: true });
+          const selection = await vscode.window.showErrorMessage(
+            nls.localize('error_access_token_expired'),
+            {
+              modal: true,
+              detail: nls.localize('error_access_token_expired_detail')
+            },
+            nls.localize('error_access_token_expired_login_button')
+          );
+          if (selection === 'Login') {
+            await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
+          }
         }
         this.knownBadConnections.add(this._username);
 
