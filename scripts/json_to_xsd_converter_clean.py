@@ -48,7 +48,7 @@ def map_field_type_to_xsd(field_type):
     elif 'picklist' in field_type or 'enumeration' in field_type:
         return 'xsd:string'  # Picklists are string values
     elif 'multipicklist' in field_type:
-        return 'xsd:string'  # Multi-picklists are string values
+        return 'xsd:anyType'  # Multi-picklists are anyType
     elif 'email' in field_type:
         return 'xsd:string'
     elif 'url' in field_type:
@@ -56,9 +56,9 @@ def map_field_type_to_xsd(field_type):
     elif 'phone' in field_type:
         return 'xsd:string'
     elif field_type.endswith('[]'):
-        return 'xsd:string'  # Arrays - simplified as string
+        return 'xsd:anyType'  # Arrays - treated as anyType
     else:
-        return 'xsd:string'  # Default to string for unknown types
+        return 'xsd:anyType'  # Default to anyType for unknown types
 
 
 def escape_xml(text):
@@ -173,6 +173,7 @@ def create_clean_xsd_from_json(json_file_path, output_file_path):
                     xsd_lines.append('     </xsd:element>')
 
             xsd_lines.extend([
+                '     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>',
                 '    </xsd:choice>',
                 '   </xsd:extension>',
                 '  </xsd:complexContent>'
