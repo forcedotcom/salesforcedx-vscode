@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ targetNamespace="urn:metadata.tooling.soap.sforce.com"
+ xmlns:tns="urn:metadata.tooling.soap.sforce.com"
+ xmlns:metadata="http://soap.sforce.com/2006/04/metadata"
+ elementFormDefault="qualified">
+
+ <xsd:import namespace="http://soap.sforce.com/2006/04/metadata" 
+             schemaLocation="./salesforce_metadata_api_clean.xsd"/>
+
+ <xsd:element name="ApexClass" type="metadata:ApexClass"/>
+
+</xsd:schema>
