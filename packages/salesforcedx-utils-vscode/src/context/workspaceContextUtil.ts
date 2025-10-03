@@ -18,8 +18,9 @@ export type OrgUserInfo = {
 };
 
 export type OrgShape = 'Scratch' | 'Sandbox' | 'Production' | 'Undefined';
-
+type ConnectionDetails = { connection: Connection; lastTokenValidationTimestamp?: number };
 export const WORKSPACE_CONTEXT_ORG_ID_ERROR = 'workspace_context_org_id_error';
+
 /**
  * Manages the context of a workspace during a session with an open SFDX Project.
  */
@@ -27,7 +28,7 @@ export class WorkspaceContextUtil {
   protected static instance?: WorkspaceContextUtil;
 
   protected cliConfigWatcher: vscode.FileSystemWatcher;
-  protected sessionConnections: Map<string, Connection>;
+  protected sessionConnections: Map<string, ConnectionDetails>;
   protected onOrgChangeEmitter: vscode.EventEmitter<OrgUserInfo>;
   protected _username?: string;
   protected _alias?: string;
@@ -35,10 +36,11 @@ export class WorkspaceContextUtil {
   protected _orgShape?: OrgShape;
   protected _devHubId?: string;
 
+  private knownBadConnections: Set<string> = new Set();
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
-    this.sessionConnections = new Map<string, Connection>();
+    this.sessionConnections = new Map<string, ConnectionDetails>();
     this.onOrgChangeEmitter = new vscode.EventEmitter<OrgUserInfo>();
     this.onOrgChange = this.onOrgChangeEmitter.event;
 
@@ -66,15 +68,43 @@ export class WorkspaceContextUtil {
       throw new Error(nls.localize('error_no_target_org'));
     }
 
-    let connection = this.sessionConnections.get(this._username);
-    if (!connection) {
-      connection = await Connection.create({
+    if (!this.sessionConnections.has(this._username)) {
+      const connection = await Connection.create({
         authInfo: await AuthInfo.create({ username: this._username })
       });
-      this.sessionConnections.set(this._username, connection);
+      this.sessionConnections.set(this._username, { connection });
     }
 
-    return connection;
+    // it was either present or we just created it.
+    const connectionDetails = this.sessionConnections.get(this._username)!;
+
+    // if we won't be able to refresh the connection because it's access-token only
+    // validate that it still works and provide a good error message if it's not
+    if (connectionDetails.connection.getAuthInfo().isAccessTokenFlow()) {
+      try {
+        if (
+          connectionDetails.lastTokenValidationTimestamp === undefined ||
+          Date.now() - connectionDetails.lastTokenValidationTimestamp > 1000 * 60 * 5 // 5 minutes
+        ) {
+          await connectionDetails.connection.identity();
+          this.knownBadConnections.delete(this._username);
+          this.sessionConnections.set(this._username, {
+            connection: connectionDetails.connection,
+            lastTokenValidationTimestamp: Date.now()
+          });
+          return connectionDetails.connection;
+        }
+      } catch {
+        this.sessionConnections.delete(this._username);
+        if (!this.knownBadConnections.has(this._username)) {
+          vscode.window.showErrorMessage('Unable to refresh your access token.  Please login again.', { modal: true });
+        }
+        this.knownBadConnections.add(this._username);
+
+        throw new Error('Unable to refresh your access token.  Please login again.');
+      }
+    }
+    return connectionDetails.connection;
   }
 
   protected async handleCliConfigChange() {
