@@ -9,7 +9,6 @@ import { CancelResponse, ContinueResponse, ParametersGatherer } from '@salesforc
 import * as vscode from 'vscode';
 
 import { nls } from '../../messages';
-import { MessageKey } from '../../messages/i18n';
 import { SalesforceProjectConfig } from '../../salesforceProject';
 
 export const DEFAULT_ALIAS = 'vscodeOrg';
@@ -54,15 +53,6 @@ const inputAccessToken = async (): Promise<string | undefined> =>
       text && text?.length > 0 ? null : nls.localize('parameter_gatherer_enter_session_id_diagnostic_message')
   });
 
-class OrgTypeItem implements vscode.QuickPickItem {
-  public label: string;
-  public detail: string;
-  constructor(localizeLabel: MessageKey, localizeDetail: MessageKey) {
-    this.label = nls.localize(localizeLabel);
-    this.detail = nls.localize(localizeDetail);
-  }
-}
-
 const validateUrl = (url: string): string | null => {
   const expr = /https?:\/\/(.*)/;
   if (expr.test(url)) {
@@ -70,38 +60,46 @@ const validateUrl = (url: string): string | null => {
   }
   return nls.localize('auth_invalid_url');
 };
+
+const buildOrgTypes = (projectUrl: string | undefined): Record<string, vscode.QuickPickItem> =>
+  Object.fromEntries(
+    Object.entries({
+      production: { label: 'auth_prod_label', detail: 'auth_prod_detail' },
+      sandbox: { label: 'auth_sandbox_label', detail: 'auth_sandbox_detail' },
+      custom: { label: 'auth_custom_label', detail: 'auth_custom_detail' }
+    } as const)
+      .map(([key, value]): [string, vscode.QuickPickItem] => [
+        key,
+        { label: nls.localize(value.label), detail: nls.localize(value.detail) }
+      ])
+      .concat(
+        projectUrl
+          ? [
+              'project',
+              {
+                label: nls.localize('auth_project_label'),
+                detail: `${nls.localize('auth_project_detail')} (${projectUrl})`
+              } as const
+            ]
+          : []
+      )
+  );
+
 export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
   constructor(public instanceUrl: string | undefined) {}
 
-  public readonly orgTypes = {
-    project: new OrgTypeItem('auth_project_label', 'auth_project_detail'),
-    production: new OrgTypeItem('auth_prod_label', 'auth_prod_detail'),
-    sandbox: new OrgTypeItem('auth_sandbox_label', 'auth_sandbox_detail'),
-    custom: new OrgTypeItem('auth_custom_label', 'auth_custom_detail')
-  };
-
-  public async getQuickPickItems(): Promise<vscode.QuickPickItem[]> {
-    const projectUrl = await getProjectLoginUrl();
-    const items: vscode.QuickPickItem[] = [this.orgTypes.production, this.orgTypes.sandbox, this.orgTypes.custom];
-    if (projectUrl) {
-      const { project } = this.orgTypes;
-      project.detail = `${nls.localize('auth_project_detail')} (${projectUrl})`;
-      items.unshift(project);
-    }
-    return items;
-  }
-
   public async gather(): Promise<CancelResponse | ContinueResponse<AuthParams>> {
+    const skipAlias = this.instanceUrl !== undefined;
     // allow passing in the instance url programmatically instead of via quick pick
     if (!this.instanceUrl) {
-      const quickPickItems = await this.getQuickPickItems();
-      const selection = await vscode.window.showQuickPick(quickPickItems);
+      const orgTypes = buildOrgTypes(await getProjectLoginUrl());
+      const selection = await vscode.window.showQuickPick(Object.values(orgTypes));
       if (!selection) {
         return { type: 'CANCEL' };
       }
 
       const orgType = selection.label;
-      if (orgType === this.orgTypes.custom.label) {
+      if (orgType === orgTypes.custom.label) {
         const customUrlInputOptions = {
           prompt: nls.localize('parameter_gatherer_enter_custom_url'),
           placeHolder: PRODUCTION_URL,
@@ -111,18 +109,19 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
         if (this.instanceUrl === undefined) {
           return { type: 'CANCEL' };
         }
-      } else if (orgType === this.orgTypes.project.label) {
+      } else if (orgType === orgTypes.project.label) {
         this.instanceUrl = await getProjectLoginUrl();
       } else {
         this.instanceUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
       }
     }
 
-    const aliasInputOptions: vscode.InputBoxOptions = {
-      prompt: nls.localize('parameter_gatherer_enter_alias_name'),
-      placeHolder: DEFAULT_ALIAS
-    };
-    const alias = await vscode.window.showInputBox(aliasInputOptions);
+    const alias = skipAlias
+      ? `reauth-${DEFAULT_ALIAS}`
+      : await vscode.window.showInputBox({
+          prompt: nls.localize('parameter_gatherer_enter_alias_name'),
+          placeHolder: DEFAULT_ALIAS
+        });
     // Hitting enter with no alias will default the alias to 'vscodeOrg'
     if (alias === undefined) {
       return { type: 'CANCEL' };
