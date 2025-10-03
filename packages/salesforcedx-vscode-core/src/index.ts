@@ -11,9 +11,8 @@ import {
   SFDX_CORE_CONFIGURATION_NAME,
   SfWorkspaceChecker,
   TelemetryService,
+  handleTraceFlagCleanup,
   TimingUtils,
-  TraceFlags,
-  WorkspaceContextUtil,
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath,
   isSalesforceProjectOpened
@@ -324,8 +323,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   // Handle trace flag cleanup after setting target org
   try {
-    const connection = await WorkspaceContextUtil.getInstance().getConnection();
-    await new TraceFlags(connection).handleTraceFlagCleanup(extensionContext);
+    await handleTraceFlagCleanup(extensionContext);
   } catch (error) {
     console.log('Trace flag cleanup not completed during activation of CLI Integration extension', error);
   }
