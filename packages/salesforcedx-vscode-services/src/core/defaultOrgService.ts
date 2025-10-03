@@ -54,7 +54,7 @@ export const watchConfigFiles = (): Effect.Effect<void, Error> =>
         Effect.sync(() => {
           globalConfigWatcher.dispose();
           projectConfigWatcher.dispose();
-        }).pipe(Effect.withSpan('disposing of file watchers'))
+        }).pipe(Effect.withSpan('disposing of file watchers'), Effect.provide(SdkLayer))
       );
 
       // keep these file watcher running until the parent scope closes

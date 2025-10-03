@@ -14,7 +14,6 @@ import { AllServicesLayer, ExtensionProviderService } from './services/extension
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
-// the vscode APIs delegate quickly to Effects
 export const activate = async (context: vscode.ExtensionContext): Promise<void> =>
   Effect.runPromise(Effect.provide(activateEffect(context), AllServicesLayer));
 
@@ -47,9 +46,16 @@ export const activateEffect = (
       })
     );
 
-    yield* api.services.TargetOrgRef.changes.pipe(
-      Stream.runForEach(org => svc.appendToChannel(`Target org changed to ${org.username}`)),
-      Effect.tap(() => Effect.promise(() => treeProvider.refreshType()))
+    yield* Effect.forkDaemon(
+      api.services.TargetOrgRef.changes.pipe(
+        Stream.runForEach(org =>
+          Effect.all([
+            svc.appendToChannel(`Target org changed to ${JSON.stringify(org)}`),
+            // if the org is blanked, we'll refresh the tree to get it set again from a fresh config/connection
+            org.orgId ? Effect.void : Effect.promise(() => treeProvider.refreshType())
+          ])
+        )
+      )
     );
 
     // Append completion message

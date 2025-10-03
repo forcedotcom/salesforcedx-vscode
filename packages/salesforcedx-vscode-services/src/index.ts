@@ -62,9 +62,8 @@ const activationEffect = (
       yield* fileSystemSetup(context);
     }
 
-    const extensionScope = yield* getExtensionScope();
-    // watch the config files for changes, which clears org ref and other caches
-    yield* Effect.forkIn(watchConfigFiles(), extensionScope);
+    // watch the config files for changes, which various serices use to invalidate caches
+    yield* Effect.forkIn(watchConfigFiles(), yield* getExtensionScope());
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**
