@@ -27,11 +27,16 @@ import { projectFiles } from './virtualFsProvider/projectInit';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { FsService } from './vscode/fsService';
 import { SettingsService } from './vscode/settingsService';
+import { WebSocketClient } from './vscode/websocketClient';
 import { WorkspaceService } from './vscode/workspaceService';
 
 // Persistent scope for the extension lifecycle
 // eslint-disable-next-line functional/no-let
 let extensionScope: Scope.CloseableScope | undefined;
+
+// Extension-level WebSocket client instance
+// eslint-disable-next-line functional/no-let
+let wsClient: WebSocketClient | null = null;
 
 export type SalesforceVSCodeServicesApi = {
   services: {
@@ -72,13 +77,24 @@ const createActivationEffect = (
  */
 export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
   if (Global.isWeb) {
-    // set the theme as early as possible.  TODO: manage this from CBW instead of in an extension
-    const config = vscode.workspace.getConfiguration();
-    await config.update('workbench.colorTheme', 'Monokai', vscode.ConfigurationTarget.Global);
     if (process.env.ESBUILD_PLATFORM === 'web') {
       const { getWebAppInsightsReporter } = await import('./observability/applicationInsightsWebExporter.js');
       context.subscriptions.push(getWebAppInsightsReporter());
     }
+
+    // Initialize and connect WebSocket client for file synchronization
+    wsClient = new WebSocketClient();
+    wsClient.connect();
+
+    // Register disposal
+    context.subscriptions.push({
+      dispose: () => {
+        wsClient?.disconnect();
+        wsClient = null;
+      }
+    });
+
+    console.log('[Extension] WebSocket client initialized');
   }
   // Create persistent scope for the extension
   extensionScope = await Effect.runPromise(Scope.make());
@@ -123,6 +139,11 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 
 /** Deactivates the Salesforce Services extension */
 export const deactivate = async (): Promise<void> => {
+  if (wsClient) {
+    wsClient.disconnect();
+    wsClient = null;
+  }
+
   if (extensionScope) {
     await Effect.runPromise(Scope.close(extensionScope, Exit.void));
     extensionScope = undefined;

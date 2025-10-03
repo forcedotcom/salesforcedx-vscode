@@ -135,6 +135,13 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
         Effect.withSpan('loadFile', { attributes: { path } }),
         Effect.provide(SdkLayer)
       );
+
+    const getAllEntries = (): Effect.Effect<SerializedEntryWithPath[], Error> =>
+      withStore('readonly', store => store.getAll()).pipe(
+        Effect.withSpan('getAllEntries'),
+        Effect.provide(SdkLayer)
+      );
+
     return {
       /** Load state from IndexedDB into memfs */
       loadState,
@@ -143,10 +150,12 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
       /** Delete a file from IndexedDB */
       deleteFile,
       /** Load a specific file from IndexedDB */
-      loadFile
+      loadFile,
+      /** Get all entries from IndexedDB */
+      getAllEntries
     } as const;
   })
-}) {}
+}) { }
 
 // Noop implementation for non-web environments
 const IndexedDBStorageServicesNoop: Layer.Layer<IndexedDBStorageService, never> = Layer.succeed(
@@ -155,7 +164,8 @@ const IndexedDBStorageServicesNoop: Layer.Layer<IndexedDBStorageService, never> 
     loadState: () => Effect.succeed(undefined),
     saveFile: () => Effect.succeed(undefined),
     deleteFile: () => Effect.succeed(undefined),
-    loadFile: () => Effect.succeed(undefined)
+    loadFile: () => Effect.succeed(undefined),
+    getAllEntries: () => Effect.succeed([])
   })
 );
 
@@ -179,8 +189,8 @@ const buildFileEntry = (path: string): SerializedEntryWithPath => {
     ...(stats.isDirectory()
       ? { entries: {}, type: vscode.FileType.Directory }
       : {
-          data: fs.readFileSync(path).toString('base64'),
-          type: vscode.FileType.File
-        })
+        data: fs.readFileSync(path).toString('base64'),
+        type: vscode.FileType.File
+      })
   };
 };
