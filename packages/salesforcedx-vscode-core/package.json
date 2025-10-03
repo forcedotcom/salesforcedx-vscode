@@ -32,7 +32,7 @@
     "@salesforce/schemas": "1.10.3",
     "@salesforce/source-deploy-retrieve": "^12.21.6",
     "@salesforce/source-tracking": "^7.4.9",
-    "@salesforce/templates": "^65.1.0",
+    "@salesforce/templates": "^64.2.1",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "applicationinsights": "1.0.7",
