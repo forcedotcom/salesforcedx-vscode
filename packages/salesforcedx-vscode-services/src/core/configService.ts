@@ -11,9 +11,11 @@ import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
+import * as Stream from 'effect/Stream';
 import { SdkLayer } from '../observability/spans';
 import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';
+import { defaultOrgRef } from './defaultOrgService';
 
 const createConfigAggregator = (projectPath: string): Effect.Effect<ConfigAggregator, Error, never> =>
   Effect.tryPromise({
@@ -25,10 +27,13 @@ const createConfigAggregator = (projectPath: string): Effect.Effect<ConfigAggreg
 const globalConfigCache = Effect.runSync(
   Cache.make({
     capacity: 50, // Maximum number of cached ConfigAggregators
-    timeToLive: Duration.minutes(Global.isWeb ? 30 : 1), // Do not cache much desktop
+    timeToLive: Duration.minutes(30),
     lookup: createConfigAggregator // Lookup function that creates ConfigAggregator for a given projectPath
   })
 );
+
+// when the org changes, invalidate the cache
+Effect.runSync(Effect.forkDaemon(defaultOrgRef.changes.pipe(Stream.runForEach(() => globalConfigCache.invalidateAll))));
 
 export class ConfigService extends Effect.Service<ConfigService>()('ConfigService', {
   succeed: {

@@ -9,11 +9,13 @@ import { AuthInfo, Connection, Global } from '@salesforce/core';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { SdkLayer } from '../observability/spans';
 import { SettingsService } from '../vscode/settingsService';
 import { ConfigService } from './configService';
-import { DefaultOrgInfo, defaultOrgRef } from './defaultOrgService';
+import { DefaultOrgInfoSchema, defaultOrgRef } from './defaultOrgService';
 
 type WebConnectionKey = {
   instanceUrl: string;
@@ -69,6 +71,9 @@ const cache = Effect.runSync(
   })
 );
 
+// when the org changes, invalidate the cache
+Effect.runSync(Effect.forkDaemon(defaultOrgRef.changes.pipe(Stream.runForEach(() => cache.invalidateAll))));
+
 export class ConnectionService extends Effect.Service<ConnectionService>()('ConnectionService', {
   effect: Effect.gen(function* () {
     return {
@@ -101,7 +106,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
           );
         }
       }).pipe(
-        Effect.tap(conn => updateDefaultOrgRef(conn)),
+        Effect.tap(conn => maybeUpdateDefaultOrgRef(conn)),
         Effect.provide(SdkLayer),
         Effect.withSpan('getConnection')
       )
@@ -111,15 +116,15 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 }) {}
 
 //** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
-const updateDefaultOrgRef = (conn: Connection): Effect.Effect<DefaultOrgInfo, Error> =>
+const maybeUpdateDefaultOrgRef = (conn: Connection): Effect.Effect<typeof DefaultOrgInfoSchema.Type, Error> =>
   Effect.gen(function* () {
     const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
-    const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
-    const devHubOrgId = yield* yield* Effect.cached(getDevHubId(devHubUsername));
 
-    const updated = Object.fromEntries(
+    const devHubOrgId = yield* yield* Effect.cached(getDevHubId(devHubUsername));
+    const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
+
+    const updates = Object.fromEntries(
       Object.entries({
-        ...existingOrgInfo,
         orgId,
         devHubUsername,
         tracksSource,
@@ -128,9 +133,24 @@ const updateDefaultOrgRef = (conn: Connection): Effect.Effect<DefaultOrgInfo, Er
         devHubOrgId
       }).filter(([, v]) => v !== undefined)
     );
-    yield* Effect.all([Effect.annotateCurrentSpan(updated), SubscriptionRef.set(defaultOrgRef, updated)], {
-      concurrency: 'unbounded'
-    });
+
+    const updated = Object.fromEntries(
+      Object.entries({
+        ...existingOrgInfo,
+        ...updates
+      })
+    );
+    // Check if objects have the same content (deep equality using schema)
+    if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
+      yield* Effect.annotateCurrentSpan({ changed: false });
+      return updated;
+    }
+    yield* Effect.all(
+      [Effect.annotateCurrentSpan({ updated, changed: true }), SubscriptionRef.set(defaultOrgRef, updated)],
+      {
+        concurrency: 'unbounded'
+      }
+    );
     return updated;
   }).pipe(Effect.withSpan('updateDefaultOrgRef'));
 

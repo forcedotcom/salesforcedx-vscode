@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { retrieveOrgBrowserTreeItemCommand } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
@@ -25,7 +26,8 @@ export const activateEffect = (
   context: vscode.ExtensionContext
 ): Effect.Effect<void, Error, ExtensionProviderService> =>
   Effect.gen(function* () {
-    const svc = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ChannelService;
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const svc = yield* api.services.ChannelService;
     yield* svc.appendToChannel('Salesforce Org Browser extension activating');
 
     const treeProvider = new MetadataTypeTreeProvider();
@@ -43,6 +45,11 @@ export const activateEffect = (
       vscode.commands.registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, async (node: OrgBrowserTreeItem) => {
         await retrieveOrgBrowserTreeItemCommand(node, treeProvider);
       })
+    );
+
+    yield* api.services.TargetOrgRef.changes.pipe(
+      Stream.runForEach(org => svc.appendToChannel(`Target org changed to ${org.username}`)),
+      Effect.tap(() => Effect.promise(() => treeProvider.refreshType()))
     );
 
     // Append completion message
