@@ -89,6 +89,11 @@
           "type": "boolean",
           "default": false,
           "description": "Enable local OpenTelemetry traces for debugging and performance monitoring.  Start the trace viewer using docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm"
+        },
+         "codey.sessionId": {
+          "type": "string",
+          "default": "default-session",
+          "description": "Codey Server session ID for WebSocket file synchronization. Set automatically by Code Builder Web from URL parameters."
         }
       }
     },

@@ -11,7 +11,6 @@ import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
-import { sampleProjectName } from './constants';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
@@ -83,8 +82,21 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     }
 
     // Initialize and connect WebSocket client for file synchronization
-    wsClient = new WebSocketClient();
+    wsClient = new WebSocketClient(context);
     wsClient.connect();
+
+    // Watch for session ID configuration changes and reconnect if needed
+    // This handles cases where the extension activates before the config is set
+    context.subscriptions.push(
+      vscode.workspace.onDidChangeConfiguration((e) => {
+        if (e.affectsConfiguration('codey.sessionId')) {
+          console.log('[Extension] Session ID configuration changed, reconnecting WebSocket...');
+          wsClient?.disconnect();
+          wsClient = new WebSocketClient(context);
+          wsClient.connect();
+        }
+      })
+    );
 
     // Register disposal
     context.subscriptions.push({
@@ -172,7 +184,7 @@ const fileSystemSetup = (
     // Replace the existing workspace with ours
     vscode.workspace.updateWorkspaceFolders(0, 0, {
       name: 'Code Builder',
-      uri: vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}`)
+      uri: vscode.Uri.parse(`${fsPrefix}:/MyProject`)
     });
 
     yield* startWatch();

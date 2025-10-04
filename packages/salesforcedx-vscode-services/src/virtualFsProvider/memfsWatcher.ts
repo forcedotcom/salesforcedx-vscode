@@ -12,7 +12,6 @@ import * as Stream from 'effect/Stream';
 // eslint-disable-next-line no-restricted-imports
 import type { FileChangeInfo } from 'node:fs/promises';
 import * as vscode from 'vscode';
-import { sampleProjectName } from '../constants';
 import { SdkLayer } from '../observability/spans';
 import { ChannelService } from '../vscode/channelService';
 import { fsPrefix } from './constants';
@@ -25,9 +24,9 @@ export const startWatch = (): Effect.Effect<void, Error, ChannelService | Indexe
   Effect.gen(function* () {
     const channelService = yield* ChannelService;
 
-    yield* channelService.appendToChannel(`Starting file watcher for /${sampleProjectName}`);
+    yield* channelService.appendToChannel('Starting file watcher for /MyProject');
 
-    const projectPath = `/${sampleProjectName}`;
+    const projectPath = '/MyProject';
     // Ensure the directory exists before watching
     fs.mkdirSync(projectPath, { recursive: true });
 
@@ -60,8 +59,8 @@ const updateIDB = (event: FileChangeInfo<string>): Effect.Effect<void, Error, In
     if (!event.filename) {
       return;
     }
-    const fullPath = `/${sampleProjectName}/${event.filename}`;
-    const uri = vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}/${event.filename}`);
+    const fullPath = `/MyProject/${event.filename}`;
+    const uri = vscode.Uri.parse(`${fsPrefix}:/MyProject/${event.filename}`);
 
     const storage = yield* IndexedDBStorageService;
     if (event.eventType === 'rename') {

@@ -5,12 +5,37 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as vscode from 'vscode';
 import { SerializedEntryWithPath } from '../virtualFsProvider/fsTypes';
 import { getSnapshot, applyFileOperations } from './fileSystemService';
 
 // Configuration - read from VS Code settings or environment
-const CODEY_SERVER_WS_URL = 'ws://localhost:3002/ws/filesystem';
-const SESSION_ID = 'default-session'; // TODO: Get from VS Code workspace state
+const CODEY_SERVER_WS_URL = 'ws://localhost:3001/ws/filesystem';
+
+/**
+ * Get session ID from VS Code workspace configuration
+ * The session ID is set by Code Builder Web from the URL query parameter
+ * and passed to extensions via configurationDefaults
+ */
+function getSessionId(): string {
+    try {
+        // Read from VS Code workspace configuration
+        // Code Builder Web sets this from ?sessionId=xxx URL parameter
+        const config = vscode.workspace.getConfiguration('codey');
+        const sessionId = config.get<string>('sessionId');
+
+        if (sessionId) {
+            console.log('[WebSocketClient] Using session ID from VS Code config:', sessionId);
+            return sessionId;
+        }
+    } catch (e) {
+        console.warn('[WebSocketClient] Could not read session ID from config:', e);
+    }
+
+    // Fallback to default for POC
+    console.log('[WebSocketClient] No session ID in config, using default');
+    return 'default-session';
+}
 
 type ServerToExtensionMessage =
     | { type: 'snapshot_request'; requestId: string }
@@ -38,6 +63,11 @@ export class WebSocketClient {
     private maxReconnectAttempts = 5;
     private reconnectDelay = 1000; // ms
     private isConnected = false;
+    private sessionId: string;
+
+    constructor(_context: vscode.ExtensionContext) {
+        this.sessionId = getSessionId();
+    }
 
     /**
      * Connect to codey-server WebSocket endpoint
@@ -46,11 +76,15 @@ export class WebSocketClient {
     public connect(): void {
         // eslint-disable-next-line functional/no-try-statements
         try {
-            console.log('[WebSocketClient] Connecting to:', CODEY_SERVER_WS_URL);
+            console.log('[WebSocketClient] ========== CONNECTING TO WEBSOCKET ==========');
+            console.log('[WebSocketClient] URL:', CODEY_SERVER_WS_URL);
+            console.log('[WebSocketClient] Session ID:', this.sessionId);
 
             // WebSocket constructor is available in browser/worker contexts
             // It doesn't use addEventListener, just callback properties
             this.ws = new WebSocket(CODEY_SERVER_WS_URL);
+
+            console.log('[WebSocketClient] WebSocket instance created, readyState:', this.ws.readyState);
 
             // Set up callbacks (NOT addEventListener - this is the key difference!)
             this.ws.onopen = (): void => this.handleOpen();
@@ -68,15 +102,20 @@ export class WebSocketClient {
      * Handle WebSocket connection opened
      */
     private handleOpen(): void {
-        console.log('[WebSocketClient] Connected to codey-server');
+        console.log('[WebSocketClient] ========== WEBSOCKET CONNECTED ==========');
+        console.log('[WebSocketClient] Connection established to codey-server');
+        console.log('[WebSocketClient] ReadyState:', this.ws?.readyState);
         this.isConnected = true;
         this.reconnectAttempts = 0;
 
-        // Register with server
+        // Register with server using the session ID
+        console.log('[WebSocketClient] ========== REGISTERING WITH SESSION ID ==========');
+        console.log('[WebSocketClient] Session ID:', this.sessionId);
         this.send({
             type: 'register',
-            sessionId: SESSION_ID
+            sessionId: this.sessionId
         });
+        console.log('[WebSocketClient] Registration message sent');
     }
 
     /**
@@ -85,20 +124,27 @@ export class WebSocketClient {
     private async handleMessage(event: MessageEvent): Promise<void> {
         // eslint-disable-next-line functional/no-try-statements
         try {
+            console.log('[WebSocketClient] ========== MESSAGE RECEIVED ==========');
+            console.log('[WebSocketClient] Raw data:', event.data);
             const message: ServerToExtensionMessage = JSON.parse(event.data);
-            console.log('[WebSocketClient] Received message:', message.type);
+            console.log('[WebSocketClient] Parsed message type:', message.type);
+            console.log('[WebSocketClient] Full message:', JSON.stringify(message, null, 2));
 
             switch (message.type) {
                 case 'snapshot_request':
+                    console.log('[WebSocketClient] Handling snapshot_request...');
                     await this.handleSnapshotRequest(message.requestId);
                     break;
 
                 case 'apply_operations':
+                    console.log('[WebSocketClient] ========== APPLY OPERATIONS RECEIVED ==========');
+                    console.log('[WebSocketClient] Operations count:', message.operations.length);
+                    console.log('[WebSocketClient] Operations:', JSON.stringify(message.operations, null, 2));
                     await this.handleApplyOperations(message.requestId, message.operations);
                     break;
 
                 default:
-                    console.warn('[WebSocketClient] Unknown message type');
+                    console.warn('[WebSocketClient] Unknown message type:', (message as { type: string }).type);
             }
         } catch (error) {
             console.error('[WebSocketClient] Error handling message:', error);
@@ -132,8 +178,20 @@ export class WebSocketClient {
     private async handleApplyOperations(requestId: string, operations: FileOperation[]): Promise<void> {
         // eslint-disable-next-line functional/no-try-statements
         try {
-            console.log('[WebSocketClient] Applying', operations.length, 'file operations...');
+            console.log('[WebSocketClient] ========== APPLYING FILE OPERATIONS ==========');
+            console.log('[WebSocketClient] Request ID:', requestId);
+            console.log('[WebSocketClient] Operations count:', operations.length);
+            operations.forEach((op, idx) => {
+                console.log(`[WebSocketClient] Operation ${idx + 1}:`, {
+                    type: op.type,
+                    path: op.path,
+                    contentLength: op.content?.length || 0
+                });
+            });
+
+            console.log('[WebSocketClient] Calling applyFileOperations...');
             await applyFileOperations(operations);
+            console.log('[WebSocketClient] applyFileOperations completed successfully');
 
             this.send({
                 type: 'operations_complete',
@@ -141,9 +199,10 @@ export class WebSocketClient {
                 success: true
             });
 
-            console.log('[WebSocketClient] Operations applied successfully');
+            console.log('[WebSocketClient] ========== OPERATIONS APPLIED SUCCESSFULLY ==========');
         } catch (error) {
-            console.error('[WebSocketClient] Error applying operations:', error);
+            console.error('[WebSocketClient] ========== ERROR APPLYING OPERATIONS ==========');
+            console.error('[WebSocketClient] Error details:', error);
 
             this.send({
                 type: 'operations_complete',
@@ -158,8 +217,10 @@ export class WebSocketClient {
      * Handle WebSocket error
      */
     // eslint-disable-next-line class-methods-use-this
-    private handleError(_error: Event): void {
-        // Error is logged by WebSocket itself
+    private handleError(error: Event): void {
+        console.error('[WebSocketClient] ========== WEBSOCKET ERROR ==========');
+        console.error('[WebSocketClient] Error event:', error);
+        console.error('[WebSocketClient] Error type:', error.type);
     }
 
     /**
@@ -195,12 +256,20 @@ export class WebSocketClient {
      * Send message to server
      */
     private send(message: ExtensionToServerMessage): void {
+        console.log('[WebSocketClient] ========== SENDING MESSAGE ==========');
+        console.log('[WebSocketClient] Message type:', message.type);
+        console.log('[WebSocketClient] WebSocket state:', this.ws?.readyState);
+
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
             console.error('[WebSocketClient] Cannot send message - WebSocket not connected');
+            console.error('[WebSocketClient] Current readyState:', this.ws?.readyState);
             return;
         }
 
-        this.ws.send(JSON.stringify(message));
+        const payload = JSON.stringify(message);
+        console.log('[WebSocketClient] Sending payload:', payload);
+        this.ws.send(payload);
+        console.log('[WebSocketClient] Message sent successfully');
     }
 
     /**

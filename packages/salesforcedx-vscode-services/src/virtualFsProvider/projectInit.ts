@@ -8,14 +8,13 @@ import * as Effect from 'effect/Effect';
 import { Buffer } from 'node:buffer';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
-import { sampleProjectName } from '../constants';
 import { SdkLayer } from '../observability/spans';
 import { SettingsService } from '../vscode/settingsService';
 import { fsPrefix } from './constants';
 import { fsProvider } from './fsTypes';
 import { TEMPLATES, metadataDirs } from './templates/templates';
 
-const sampleProjectPath = `${fsPrefix}:/${sampleProjectName}`;
+const sampleProjectPath = `${fsPrefix}:/MyProject`;
 const home = os.homedir();
 
 const getDirsToCreate = (): string[] => [
