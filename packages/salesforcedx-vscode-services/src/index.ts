@@ -5,19 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Global } from '@salesforce/core';
+import { Global } from '@salesforce/core/global';
 import * as Effect from 'effect/Effect';
-import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { sampleProjectName } from './constants';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
+import { defaultOrgRef, watchConfigFiles } from './core/defaultOrgService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
+import { closeExtensionScope, getExtensionScope } from './extensionScope';
 import { SdkLayer } from './observability/spans';
 import { fsPrefix } from './virtualFsProvider/constants';
 import { FsProvider } from './virtualFsProvider/fileSystemProvider';
@@ -28,10 +29,6 @@ import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { FsService } from './vscode/fsService';
 import { SettingsService } from './vscode/settingsService';
 import { WorkspaceService } from './vscode/workspaceService';
-
-// Persistent scope for the extension lifecycle
-// eslint-disable-next-line functional/no-let
-let extensionScope: Scope.CloseableScope | undefined;
 
 export type SalesforceVSCodeServicesApi = {
   services: {
@@ -47,11 +44,12 @@ export type SalesforceVSCodeServicesApi = {
     MetadataRetrieveService: typeof MetadataRetrieveService;
     SettingsService: typeof SettingsService;
     SdkLayer: typeof SdkLayer;
+    TargetOrgRef: typeof defaultOrgRef;
   };
 };
 
-/** Creates the activation effect for the services extension */
-const createActivationEffect = (
+/** Effect that runs when the extension is activated */
+const activationEffect = (
   context: vscode.ExtensionContext
 ): Effect.Effect<void, Error, WorkspaceService | SettingsService | IndexedDBStorageService | ChannelService> =>
   Effect.gen(function* () {
@@ -63,6 +61,9 @@ const createActivationEffect = (
       // Set up the file system for web extensions
       yield* fileSystemSetup(context);
     }
+
+    // watch the config files for changes, which various serices use to invalidate caches
+    yield* Effect.forkIn(watchConfigFiles(), yield* getExtensionScope());
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**
@@ -80,9 +81,8 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       context.subscriptions.push(getWebAppInsightsReporter());
     }
   }
-  // Create persistent scope for the extension
-  extensionScope = await Effect.runPromise(Scope.make());
 
+  const extensionScope = Effect.runSync(getExtensionScope());
   const channelServiceLayer = ChannelServiceLayer('Salesforce Services');
 
   const requirements = Layer.mergeAll(
@@ -94,7 +94,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   );
   await Effect.runPromise(
     Effect.provide(
-      createActivationEffect(context).pipe(
+      activationEffect(context).pipe(
         Effect.withSpan('activation:salesforcedx-vscode-services', { attributes: { isWeb: Global.isWeb } })
       ),
       requirements
@@ -116,19 +116,27 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       MetadataRegistryService,
       MetadataRetrieveService,
       SettingsService,
-      SdkLayer
+      SdkLayer,
+      TargetOrgRef: defaultOrgRef
     }
   };
 };
 
 /** Deactivates the Salesforce Services extension */
 export const deactivate = async (): Promise<void> => {
-  if (extensionScope) {
-    await Effect.runPromise(Scope.close(extensionScope, Exit.void));
-    extensionScope = undefined;
-  }
+  await Effect.runPromise(deactivateEffect);
   console.log('Salesforce Services extension is now deactivated!');
 };
+
+const deactivateEffect = Effect.gen(function* () {
+  yield* closeExtensionScope();
+  yield* ChannelService.pipe(
+    Effect.flatMap(svc => svc.appendToChannel('Salesforce Services extension is now deactivated!'))
+  );
+}).pipe(
+  Effect.withSpan('deactivation:salesforcedx-vscode-services'),
+  Effect.provide(Layer.mergeAll(ChannelServiceLayer('Salesforce Services'), SdkLayer))
+);
 
 /** Sets up the virtual file system for the extension */
 const fileSystemSetup = (

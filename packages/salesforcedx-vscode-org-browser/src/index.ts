@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { retrieveOrgBrowserTreeItemCommand } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
@@ -13,7 +14,6 @@ import { AllServicesLayer, ExtensionProviderService } from './services/extension
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
-// the vscode APIs delegate quickly to Effects
 export const activate = async (context: vscode.ExtensionContext): Promise<void> =>
   Effect.runPromise(Effect.provide(activateEffect(context), AllServicesLayer));
 
@@ -25,7 +25,8 @@ export const activateEffect = (
   context: vscode.ExtensionContext
 ): Effect.Effect<void, Error, ExtensionProviderService> =>
   Effect.gen(function* () {
-    const svc = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ChannelService;
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const svc = yield* api.services.ChannelService;
     yield* svc.appendToChannel('Salesforce Org Browser extension activating');
 
     const treeProvider = new MetadataTypeTreeProvider();
@@ -45,6 +46,18 @@ export const activateEffect = (
       })
     );
 
+    yield* Effect.forkDaemon(
+      api.services.TargetOrgRef.changes.pipe(
+        Stream.runForEach(org =>
+          Effect.all([
+            svc.appendToChannel(`Target org changed to ${JSON.stringify(org)}`),
+            // if the org is blanked, we'll refresh the tree to get it set again from a fresh config/connection
+            org.orgId ? Effect.void : Effect.promise(() => treeProvider.refreshType())
+          ])
+        )
+      )
+    );
+
     // Append completion message
     yield* svc.appendToChannel('Salesforce Org Browser activation complete.');
   }).pipe(Effect.withSpan(`activation:${EXTENSION_NAME}`), Effect.provide(AllServicesLayer));
@@ -53,5 +66,6 @@ export const deactivateEffect = ExtensionProviderService.pipe(
   Effect.flatMap(svcProvider => svcProvider.getServicesApi),
   Effect.flatMap(api => api.services.ChannelService),
   Effect.flatMap(svc => svc.appendToChannel('Salesforce Org Browser extension is now deactivated!')),
+  Effect.withSpan(`deactivation:${EXTENSION_NAME}`),
   Effect.provide(AllServicesLayer)
 );

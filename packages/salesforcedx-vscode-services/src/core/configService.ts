@@ -5,15 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Global } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
+import { Global } from '@salesforce/core/global';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
+import * as Stream from 'effect/Stream';
 import { SdkLayer } from '../observability/spans';
 import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';
+import { defaultOrgRef } from './defaultOrgService';
 
 const createConfigAggregator = (projectPath: string): Effect.Effect<ConfigAggregator, Error, never> =>
   Effect.tryPromise({
@@ -24,11 +26,14 @@ const createConfigAggregator = (projectPath: string): Effect.Effect<ConfigAggreg
 // Global cache - created once at module level, not scoped to any consumer
 const globalConfigCache = Effect.runSync(
   Cache.make({
-    capacity: 50, // Maximum number of cached ConfigAggregators
-    timeToLive: Duration.minutes(Global.isWeb ? 30 : 1), // Do not cache much desktop
+    capacity: 5, // Maximum number of cached ConfigAggregators
+    timeToLive: Duration.minutes(30),
     lookup: createConfigAggregator // Lookup function that creates ConfigAggregator for a given projectPath
   })
 );
+
+// when the org changes, invalidate the cache
+Effect.runSync(Effect.forkDaemon(defaultOrgRef.changes.pipe(Stream.runForEach(() => globalConfigCache.invalidateAll))));
 
 export class ConfigService extends Effect.Service<ConfigService>()('ConfigService', {
   succeed: {
