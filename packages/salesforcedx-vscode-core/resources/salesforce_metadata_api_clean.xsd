@@ -3,7 +3,7 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2025-10-03T03:49:11.000Z
+Generated on: 2025-10-06T02:20:16.000Z
 Total metadata types: 558
 -->
 <xsd:schema
@@ -146,7 +146,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -157,7 +159,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -218,7 +222,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -229,7 +235,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -362,7 +370,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -373,7 +383,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -384,7 +396,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -705,7 +719,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -716,7 +732,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -727,7 +745,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -913,7 +933,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -924,7 +946,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -935,7 +959,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -946,7 +972,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -957,7 +985,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -987,7 +1017,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -998,7 +1030,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -1009,7 +1043,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -1681,7 +1717,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -1692,7 +1730,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -2076,7 +2116,7 @@ Total metadata types: 558
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
     <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="testClassName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="testClassName" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>A list of Apex test classes, specified by name, to include in this test suite.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -2181,7 +2221,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -2223,7 +2265,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -2507,7 +2551,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: ProcessSubmitterType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="field" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="field" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>An array of fields that are displayed on the page for the approver to approve or reject the record.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -2573,7 +2617,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: ApprovalAction</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="action" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="action" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>An array of workflow actions to execute.</xsd:documentation>
        <xsd:appinfo>Type: WorkflowActionReference[]</xsd:appinfo>
@@ -2900,7 +2944,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -2911,7 +2957,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -2989,7 +3037,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="team" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="team" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The name of the case team. It can occur 0 or more times.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -3013,7 +3061,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -3587,7 +3637,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -3743,7 +3795,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: []</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="groupBy" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="groupBy" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. Collections of fields used to group data in an aggregate node.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -3887,7 +3939,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: []</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="sources" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="sources" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Sources of an extension node.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -4379,7 +4431,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: []</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="partitionBy" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="partitionBy" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>A group of fields that’s used to partition the source data into partition groups.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -4469,7 +4521,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="sources" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="sources" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Names of the source nodes.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -5049,7 +5101,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="mlIntents" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
+     <xsd:element name="mlIntents" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>List of intents associated with this local intent set.</xsd:documentation>
        <xsd:appinfo>Type: MlIntent[]</xsd:appinfo>
@@ -5151,7 +5203,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -5181,7 +5235,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -5192,7 +5248,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -5203,7 +5261,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -5619,7 +5679,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -5715,7 +5777,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -5949,7 +6013,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -5960,7 +6026,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -6118,7 +6186,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -6129,7 +6199,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -6189,7 +6261,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -6858,7 +6932,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="enabledChannels" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="enabledChannels" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The communication channels where this layout applies. In API version 32.0 to 46.0, the only valid value is Email. When Lightning Knowledge is enabled in API version 47.0 and later, Chat, Messaging, and Social are added valid values.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -6900,7 +6974,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -6996,7 +7072,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -7007,7 +7085,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -7127,7 +7207,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -7326,7 +7408,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -7337,7 +7421,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -8015,7 +8101,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: ConnectedAppOauthPolicy</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="permissionSetName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="permissionSetName" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Specifies the permissions required to perform different functions with the connected app. Available in API version 46.0 and later.You can assign multiple permission sets to the connected app, but you must enter each permission set name on a separate line. You can’t enter the same permission set name more than one time for each connected app.You can also change a permission set by replacing the current permission set with a new permission set. Make sure that each permission set name assigned to the connected app is unique.You can delete individual permission sets or remove all permission sets from a connected app by entering an empty permissionSetName string on deployment of the connected app: ().To use this field, the isAdminApproved field on the ConnectedAppOauthConfig subtype must be set to true.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -8033,7 +8119,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="profileName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="profileName" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Specifies the profile (base-level user permissions) required to perform different functions with the connected app. Available in API version 46.0 and later.You can assign multiple profiles to the connected app, but you must enter each profile name on a separate line. You can’t enter the same profile name more than one time for each connected app. You can also change profiles by replacing the current profiles with new profiles. Make sure that each profile name assigned to the connected app is unique.You can also delete individual profiles or remove all profiles from a connected app by entering an empty profileName string on deployment of the connected app: ().To use this field, the isAdminApproved field on the ConnectedAppOauthConfig subtype must be set to true.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -8303,7 +8389,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="scopes" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="scopes" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The permissions given by the user running the connected app. When deploying metadata, valid values are: Basic—Allows access to your identity URL service (the same behavior as deploying Address, Email, Phone, and Profile). Api—Allows access to the logged-in user&apos;s account over the APIs. Web—Allows use of the access_token on the web. This usage also includes visualforce, allowing access to Visualforce pages. Full—Allows access to all data accessible by the logged-in user. Chatter—Allows access to only the Connect REST API resources. CustomApplications—Provides access to custom applications, such as those using Visualforce. RefreshToken—Allows a refresh token to be returned if you’re eligible to receive one (the same behavior as deploying OfflineAccess). OpenID—Allows access to the logged-in user&apos;s unique identifier for OpenID Connect apps. Profile—Allows access to the logged-in user&apos;s profile (the same behavior as deploying Basic). Email—Allows access to the logged-in user&apos;s email address (the same behavior as deploying Basic). Address—Allows access to the logged-in user&apos;s street address (the same behavior as deploying Basic). Phone—Allows access to the logged-in user&apos;s phone number value (the same behavior as deploying Basic). OfflineAccess—Allows the app to interact with the user&apos;s data while the user is offline and get a refresh token (the same behavior as deploying RefreshToken). CustomPermissions—Allows access to the custom permissions in an organization associated with the connected app and shows whether the current user has each permission enabled. Wave—Allows access to the Analytics REST API resources. Available in API version 35.0 and later. Eclair—Allows access to the Analytics REST API Charts Geodata resource. Available in API version 35.0 and later. Pardot—Allows access to Pardot API services on behalf of the user. The full extent of accessible services is managed by the Pardot account. Available in API version 49.0 and later. Lightning—Allows hybrid apps to directly obtain Lightning child sessions through the OAuth 2.0 hybrid app token flow and hybrid app refresh token flow. Available in API version 51.0 and later. Content—Allows hybrid apps to directly obtain content child sessions through the OAuth 2.0 hybrid app token flow and hybrid app refresh token flow. Available in API version 51.0 and later. CDPIngest—Allows access to Data Cloud ingest API services. Customers use these API services to upload and maintain external datasets in the Data Cloud. Available in API version 52.0 and later. Chatbot—Allows access to Einstein Bot API services. Available in API version 54.0 and later. ForgotPassword—Allows access to Headless Forgot Password API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 57.0 and later. UserRegistration—Allows access to Headless Registration API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 58.0 and later. PwdlessLogin—Allows access to Headless Passwordless Login API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 59.0 and later. When retrieving metadata, valid values are: Api—Allows access to the logged-in user’s account over the APIs. Basic—Allows access to the user’s identity URL service, and includes Address, Email, Phone, and Profile. Chatter—Allows access to only the Connect REST API resources. CustomApplications—Allows access to custom applications, such as those using Visualforce. Full—Allows access to all data accessible by the logged-in user. OpenID—Allows access to the logged-in user&apos;s unique identifier for OpenID Connect apps. RefreshToken—Allows a refresh token to be returned if you’re eligible to receive one and is synonymous with allowing OfflineAccess. Wave—Allows access to the Analytics REST API resources. Available in API version 35.0 and later. Web—Allows usage of the access_token on the web. This usage also includes visualforce, allowing access to Visualforce pages. ForgotPassword—Allows access to Headless Forgot Password API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 57.0 and later. UserRegistration—Allows access to Headless Registration API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 58.0 and later. PwdlessLogin—Allows access to Headless Passwordless Login API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 59.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: ConnectedAppOauthAccessScope (enumeration of type string)[]</xsd:appinfo>
@@ -8526,7 +8612,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -8803,7 +8891,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -8814,7 +8904,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -8899,7 +8991,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -8910,7 +9004,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -8921,7 +9017,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -8932,7 +9030,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -8943,7 +9043,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -8973,7 +9075,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -8984,7 +9088,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -9209,13 +9315,13 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="subscriberTabs" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="subscriberTabs" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Represents the list of tabs appended by a subscriber to a Lightning app installed from a managed package. Records in a subscriber tab always open as primary tabs.This field is available in API version 41.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="tabs" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="tabs" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The list of tabs included in this application. In API version 12.0, the fullName for built-in tabs like Home, Account, and Reports, is the name of the tab (Home, for example). In API version 13.0 and later, built-in tabs are prefixed with standard-. For example, to reference the Account tab you would use standard-Account.In API version 42.0, this field was renamed from tab to tabs.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -9308,7 +9414,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="components" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="components" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The name of a custom console component assigned to a Salesforce console app. In API version 42.0, this field was renamed from customApplicationComponent to components.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -9634,7 +9740,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: TabLimitConfig</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="whiteListedDomains" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="whiteListedDomains" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Any external domains that users can access from within a Salesforce console app. For example, www.yourdomain.com.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -10366,7 +10472,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -10872,7 +10980,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11083,7 +11193,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11312,7 +11424,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11323,7 +11437,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11334,7 +11450,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11400,7 +11518,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="object" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="object" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>A list of the object names that can be associated with the data category group. Valid values are: KnowledgeArticleVersion—to associate articles. See &quot;Modify Default Category Group Assignments for Articles&quot; in the Salesforce online help for more information on data category groups association to articles. Question—to associate questions. You can associate the Question object with at most one category group. If you deploy a category group that already exists in an organization, any object association that is not defined in the XML file is permanently removed from your organization. Ensure that your XML file specifies all the records associated with your category group in the organization. For more information see Usage.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -11418,7 +11536,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11429,7 +11549,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11532,7 +11654,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11543,7 +11667,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11554,7 +11680,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11565,7 +11693,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11576,7 +11706,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11587,7 +11719,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11598,7 +11732,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11609,7 +11745,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11645,7 +11783,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11910,7 +12050,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -11921,7 +12063,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -12065,7 +12209,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -12076,7 +12222,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -12087,7 +12235,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -12098,7 +12248,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -12165,13 +12317,13 @@ Total metadata types: 558
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
     <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="customObjects" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="customObjects" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The custom objects associated with the group. Delegated administrators can customize nearly every aspect of each of those custom objects, including creating a custom tab. However, they can’t create or modify relationships on the objects or set organization-wide sharing defaults. Delegated administrators must have access to custom objects to access the merge fields on those objects from formulas.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="groups" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="groups" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The groups with users assigned by delegated administrators.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -12189,25 +12341,25 @@ Total metadata types: 558
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="permissionSetGroups" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="permissionSetGroups" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The permission set groups that can be assigned to users in specified roles and all subordinate roles by delegated administrators.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="permissionSets" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="permissionSets" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The permission sets that can be assigned to users in specified roles and all subordinate roles by delegated administrators.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="profiles" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="profiles" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The profiles that can be assigned to users by delegated administrators.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="roles" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="roles" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The roles and subordinates for which delegated administrators of the group can create and edit users.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -12293,7 +12445,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -12304,7 +12458,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -12315,7 +12471,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -12326,7 +12484,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -12470,7 +12630,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: DiscoveryModelFieldType</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="values" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="values" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>A list of field values.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -12482,13 +12642,13 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="sourceFieldNames" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="sourceFieldNames" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>A list of the source field names.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="targetFieldNames" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="targetFieldNames" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>A list of the target field names.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -13289,7 +13449,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -13300,7 +13462,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -13397,7 +13561,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -13457,13 +13623,13 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="operationsOnInsert" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="operationsOnInsert" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. Controls the action to take when actionOnInsert is set to Allow and the duplicate rule is triggered. Either one or both of these values can be set in the array: alert If set, the action specified in actionOnInsert occurs; otherwise, the insert proceeds. report If set, the insert operation is added to the report of duplicates.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="operationsOnUpdate" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="operationsOnUpdate" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. Controls the action to take when actionOnUpdate is set to Allow and the duplicate rule is triggered. Either one or both of these values can be set in the array: alert If set, the action specified in actionOnUpdate occurs; otherwise, the update proceeds. report If set, the update operation is added to the report of duplicates.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -13565,7 +13731,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -13709,7 +13877,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -13720,7 +13890,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -14230,7 +14402,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: double</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="attachedDocuments" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="attachedDocuments" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>A list of references to documents in your organization. These documents are included as attachments in the email template. Each document is referenced by its path, for example MyFolder/MyDocument.txt.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -14473,7 +14645,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: EmbeddedServiceDeploymentType</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="embeddedServiceAppointmentSettings" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
+     <xsd:element name="embeddedServiceAppointmentSettings" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The settings of the Embedded Service deployment whose deploymentFeature is FieldService. Available in API version 46.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: EmbeddedServiceAppointmentSettings[]</xsd:appinfo>
@@ -15282,7 +15454,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -15293,7 +15467,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -15304,7 +15480,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -15522,7 +15700,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: int</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="successActions" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="successActions" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The actions triggered when the milestone is completed.</xsd:documentation>
        <xsd:appinfo>Type: WorkflowActionReference[]</xsd:appinfo>
@@ -15540,7 +15718,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="actions" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="actions" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The actions to take when the time trigger is reached, if, at that time, the milestone isn’t completed.</xsd:documentation>
        <xsd:appinfo>Type: WorkflowActionReference[]</xsd:appinfo>
@@ -15661,7 +15839,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -15848,7 +16028,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16085,7 +16267,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16096,7 +16280,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16107,7 +16293,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16118,7 +16306,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16129,7 +16319,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16140,7 +16332,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16151,7 +16345,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16211,7 +16407,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16253,7 +16451,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16264,7 +16464,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16523,7 +16725,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16534,7 +16738,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16545,7 +16751,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16683,7 +16891,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16694,7 +16904,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16705,7 +16917,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16821,7 +17035,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16832,7 +17048,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -16977,7 +17195,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -17099,7 +17319,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -17117,7 +17339,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="classification" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="classification" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. The data classification compliance categorization or field set that is targeted by the rule. The rule applies to fields that are marked with this categorization or included in this field set. If you enabled Enhanced Personal Information Management before Spring ‘22 (API version 54.0), you can use Salesforce&apos;s default compliance categorization values or values that you add yourself. If you enabled Enhanced Personal Information Management after Spring ‘22 (API version 54.0), use the PersonalInfo_EPIM field set or a field set that you add yourself.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -17238,7 +17460,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -18040,7 +18264,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: FlowSubflow[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="textTemplates" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="textTemplates" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>An array of text templates.</xsd:documentation>
        <xsd:appinfo>Type: FlowTextTemplate[]</xsd:appinfo>
@@ -19114,7 +19338,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: FlowElementReferenceOrValue</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="queriedFields" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="queriedFields" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>An array that specifies which fields from the selected record are saved to the specified record variable.</xsd:documentation>
        <xsd:appinfo>Type: strings[]</xsd:appinfo>
@@ -19354,7 +19578,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="queriedFields" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="queriedFields" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>An array that specifies which fields from the selected record are saved to the specified record variable.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -19666,7 +19890,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: FlowElementReferenceOrValue</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="choiceReferences" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="choiceReferences" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>An array of references to FlowChoices or FlowDynamicChoiceSets. The resulting choice options appear in the order specified in this array, where the element at index 0 provides the top-most choice option. Supported for these types of screen components. RadioButtons DropdownBox MultiSelectCheckboxes MultiSelectPicklist Multi-select checkboxes and multi-select picklist fields are available in API version 26.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -21054,7 +21278,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -21133,7 +21359,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -21144,7 +21372,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -21562,7 +21792,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -21573,7 +21805,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -21615,7 +21849,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -21626,7 +21862,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -21637,7 +21875,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -21648,7 +21888,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -21659,7 +21901,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -21670,7 +21914,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -21681,7 +21927,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -21692,7 +21940,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -21703,7 +21953,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -21721,7 +21973,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="globalPicklistValues" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="globalPicklistValues" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Requires at least one value. The list of values, or “picklist value set,” that’s defined for a global picklist. The picklist value set is inherited by any custom picklist field that’s based on that global picklist. Each value is of type GlobalPicklistValue. A global picklist can have up to 1,000 total values, including inactive values.</xsd:documentation>
        <xsd:appinfo>Type: GlobalPicklistValue[]</xsd:appinfo>
@@ -21788,7 +22040,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="controllingFieldValues" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="controllingFieldValues" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>A list of values in the controlling field that are linked to this picklist value. The controlling field can be a checkbox or a picklist. This field is available in API version 14.0 and later. The values in the list depend on the field type: Checkbox: checked or unchecked. Picklist: The fullname of the picklist value in the controlling field.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -21891,7 +22143,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -22164,7 +22418,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: int</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="links" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="links" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>If the pageComponentType is links, then zero or more names of custom page links can be specified. ObjectWebLink CustomPageWebLink</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -22218,13 +22472,13 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="narrowComponents" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="narrowComponents" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The list of elements in the narrow column on the left side of the home page.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="wideComponents" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="wideComponents" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The list of elements in the wide column on the right side of the home page.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -22242,7 +22496,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -22302,7 +22558,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -22313,7 +22571,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -22324,7 +22584,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -22335,7 +22597,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -22469,7 +22733,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -23034,7 +23300,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -23082,7 +23350,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -23093,7 +23363,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -23104,7 +23376,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -23115,7 +23389,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -23126,7 +23402,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -23137,7 +23415,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -23397,7 +23677,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="site" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="site" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Specifies the site used for Salesforce Knowledge and Sites.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -23573,7 +23853,7 @@ Total metadata types: 558
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
     <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="customButtons" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="customButtons" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The custom buttons for this layout. Each button is a reference to a WebLink on the same object. For example, a ButtonLink refers to a Weblink on the same standard or custom object named ButtonLink.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -23591,7 +23871,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="excludeButtons" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="excludeButtons" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>List of standard buttons to exclude from this layout. For example, Delete excludes the Delete button from this layout.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -23621,7 +23901,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: MiniLayout</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="multilineLayoutFields" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="multilineLayoutFields" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Fields for the special multiline layout fields that appear in OpportunityProduct layouts. These fields are otherwise similar to miniLayoutFields.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -23651,7 +23931,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: RelatedListItem[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="relatedObjects" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="relatedObjects" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The list of related objects that appears in the mini view of the console. In database terms, these objects are foreign key fields on the object for the layout. For more information, see Choose Related Objects for the Agent Console’s Mini View in Salesforce Help.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -23975,7 +24255,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: FeedItemType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="fields" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="fields" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The fields for the mini-layout, listed in the order they appear in the UI. Fields that appear here must appear in the main layout.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -24287,25 +24567,25 @@ Total metadata types: 558
        <xsd:appinfo>Type: LayoutItem</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="customButtons" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="customButtons" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>A list of custom buttons that are used on the related list.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="excludeButtons" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="excludeButtons" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>A list of buttons that are excluded from the related list.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="fields" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="fields" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>A list of fields that are displayed in the related list.Retrieval of standard fields on related lists uses aliases instead of field or API names. For example, the Fax, Mobile, and Home Phone fields are retrieved as Phone2, Phone3, and Phone4, respectively.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="quickActions" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="quickActions" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>A list of quick actions that are used on the related list.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -24474,7 +24754,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -24485,7 +24767,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -25133,7 +25417,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -25144,7 +25430,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -25155,7 +25443,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -25372,7 +25662,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: AgentConfigSkills</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="button" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="button" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Specifies the chat buttons that agents can transfer chats to.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -25384,7 +25674,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="skill" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="skill" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Specifies the skill groups that agents can transfer chats to.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -25796,7 +26086,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -25820,13 +26112,13 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="excludedFields" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="excludedFields" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Fields that are excluded from the model.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="includedFields" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="includedFields" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Fields that are included in the model.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -26067,7 +26359,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -26305,7 +26599,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -26316,7 +26612,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -26327,7 +26625,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -26399,7 +26699,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -26410,7 +26712,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -26421,7 +26725,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -26445,7 +26751,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: CustomValue</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="controllingFieldValue" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="controllingFieldValue" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Applies only to dependent custom picklists. A list of values in the controlling or parent picklist (that the custom picklist values depend on). You can add field dependency values via Metadata API but not remove them.</xsd:documentation>
        <xsd:appinfo>Type: stringstring[]</xsd:appinfo>
@@ -26469,7 +26775,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -26505,7 +26813,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -26718,7 +27028,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="mlIntents" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
+     <xsd:element name="mlIntents" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>List of intents under this Einstein Intent Set.</xsd:documentation>
        <xsd:appinfo>Type: MlIntent[]</xsd:appinfo>
@@ -26748,13 +27058,13 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="mlIntentUtterances" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
+     <xsd:element name="mlIntentUtterances" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>List of customer inputs for this intent.</xsd:documentation>
        <xsd:appinfo>Type: MlIntentUtterance[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="relatedMlIntents" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
+     <xsd:element name="relatedMlIntents" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>List of intents within an Einstein Intent Set used to expand customer inputs for this intent. Only intents within local Einstein Intent Sets have related intents.</xsd:documentation>
        <xsd:appinfo>Type: MlRelatedIntent[]</xsd:appinfo>
@@ -26850,7 +27160,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -26946,7 +27258,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -26957,7 +27271,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -26968,7 +27284,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -27076,7 +27394,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -27330,7 +27650,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -27420,7 +27742,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -27431,7 +27755,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -27442,7 +27768,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -27520,7 +27848,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -27580,7 +27910,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -27591,7 +27923,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -27602,7 +27936,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -28127,7 +28463,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -28254,7 +28592,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -28265,7 +28605,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -28276,7 +28618,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -28470,7 +28814,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -28665,7 +29011,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -28676,7 +29024,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -28957,7 +29307,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -29017,7 +29369,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -29077,7 +29431,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -29144,7 +29500,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -29357,7 +29715,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -29423,7 +29783,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -29434,7 +29796,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -29458,7 +29822,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="fields" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="fields" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Required. An array of up to four fields to include in approval request posts.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -29672,7 +30036,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -30030,7 +30396,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="dataCategories" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="dataCategories" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Array of one or more data category names.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -30386,7 +30752,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -30428,7 +30796,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -30439,7 +30809,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -30450,7 +30822,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -31505,7 +31879,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -31609,7 +31985,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -31620,7 +31998,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -31631,7 +32011,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -31642,7 +32024,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -31653,7 +32037,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -32139,7 +32525,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -32150,7 +32538,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -32265,7 +32655,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -32276,7 +32668,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -32287,7 +32681,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -32785,7 +33181,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -32815,7 +33213,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -32826,7 +33226,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -32837,7 +33239,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -32848,7 +33252,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -32859,7 +33265,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -32870,7 +33278,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -32900,7 +33310,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="profiles" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="profiles" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The profiles of users that are granted access to the target objects. Profiles must be associated with a license that can use sharing sets. See Special Access Rules for more information.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -33051,7 +33461,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -33062,7 +33474,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -33270,7 +33684,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -33324,7 +33740,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -33427,7 +33845,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -33438,7 +33858,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -33449,7 +33871,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -33460,7 +33884,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -33471,7 +33897,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -33928,7 +34356,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -34190,7 +34620,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -34201,7 +34633,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -34212,7 +34646,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -34223,7 +34659,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -34592,7 +35030,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -34603,7 +35043,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -34737,7 +35179,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -35263,7 +35707,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="dates" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+     <xsd:element name="dates" minOccurs="0" maxOccurs="unbounded" type="xsd:date">
       <xsd:annotation>
        <xsd:documentation>List of dates, with formatting information.</xsd:documentation>
        <xsd:appinfo>Type: WaveXmdDate</xsd:appinfo>
@@ -35449,7 +35893,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
@@ -35842,7 +36288,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: WorkflowActionType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="ccEmails" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="ccEmails" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Additional email addresses. This field is similar to the CC field in email clients.For the email to be sent successfully, set a value for ccEmails or recipients. You can set values for both fields. The value of ccEmails can include up to 5 different email addresses.</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -35866,7 +36312,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="recipients" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="recipients" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The recipients for the email.For the email to be sent successfully, set a value for ccEmails or recipients. You can set values for both fields.</xsd:documentation>
        <xsd:appinfo>Type: WorkflowEmailRecipient[]</xsd:appinfo>
@@ -36082,7 +36528,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="fields" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="fields" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>The named references to the fields to be sent.I&apos;m not sure what this is?Get bill to tell you what names--api name? whichever, it should be noted here because there are so gosh golly many names in our system!</xsd:documentation>
        <xsd:appinfo>Type: string[]</xsd:appinfo>
@@ -36124,7 +36570,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="actions" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="actions" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>An array of references for the actions that happen when this rule fires.</xsd:documentation>
        <xsd:appinfo>Type: WorkflowActionReference[]</xsd:appinfo>
@@ -36250,7 +36696,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="actions" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="actions" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>An array of references for the actions that happen when this trigger fires.</xsd:documentation>
        <xsd:appinfo>Type: WorkflowActionReference[]</xsd:appinfo>
@@ -36286,7 +36732,9 @@ Total metadata types: 558
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="tns:Metadata">
-    <xsd:choice/>
+    <xsd:choice>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>

@@ -183,7 +183,9 @@ def create_clean_xsd_from_json(json_file_path, output_file_path):
             xsd_lines.extend([
                 '  <xsd:complexContent>',
                 '   <xsd:extension base="tns:Metadata">',
-                '    <xsd:choice/>',
+                '    <xsd:choice>',
+                '     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>',
+                '    </xsd:choice>',
                 '   </xsd:extension>',
                 '  </xsd:complexContent>'
             ])
