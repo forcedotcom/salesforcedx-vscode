@@ -28,7 +28,8 @@ export {
   TraceFlags,
   showTraceFlagExpiration,
   disposeTraceFlagExpiration,
-  getTraceFlagExpirationKey
+  getTraceFlagExpirationKey,
+  handleTraceFlagCleanup
 } from './traceFlags';
 export {
   difference,
