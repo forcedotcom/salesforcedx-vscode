@@ -89,6 +89,12 @@ describe('WorkspaceContextUtil', () => {
 
     sendExceptionMock = jest.spyOn(TelemetryService.prototype, 'sendException').mockReturnValue(undefined);
 
+    // Mock getConnection for initialize to return a connection with isAccessTokenFlow returning false
+    getConnectionMock.mockResolvedValueOnce({
+      getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
+      getAuthInfoFields: () => ({ orgId: dummyOrgId })
+    } as any);
+
     await workspaceContextUtil.initialize(context);
     workspaceContextUtil._username = testUser;
   });
@@ -225,11 +231,17 @@ describe('WorkspaceContextUtil', () => {
 
   describe('getConnection', () => {
     const mockAuthInfo = { test: 'test' };
-    const mockConnection = { authInfo: mockAuthInfo };
+    const mockConnection = {
+      authInfo: mockAuthInfo,
+      getAuthInfo: () => ({ isAccessTokenFlow: () => false })
+    };
 
     beforeEach(() => {
       jest.spyOn(AuthInfo, 'create');
-      jest.spyOn(Connection, 'create');
+      jest.spyOn(Connection, 'create').mockResolvedValue(mockConnection as any);
+      // Reset the getConnection mock for these tests
+      getConnectionMock.mockRestore();
+      getConnectionMock = jest.spyOn(workspaceContextUtil, 'getConnection');
     });
 
     it('should return connection for the default org', async () => {
@@ -249,7 +261,7 @@ describe('WorkspaceContextUtil', () => {
       await workspaceContextUtil.getConnection();
       await workspaceContextUtil.getConnection();
 
-      expect(connectionMock.create).toHaveBeenCalledTimes(2);
+      expect(connectionMock.create).toHaveBeenCalledTimes(1);
     });
 
     it('should not throw error if there is a username set', async () => {
