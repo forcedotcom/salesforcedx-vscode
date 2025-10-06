@@ -261,10 +261,12 @@ export const extractFieldInfo = (
         // Find the parent metadata type and all intermediate layers by scanning upward
         const parentInfo = findParentMetadataTypeWithLayers(document, position.line);
         if (parentInfo) {
+          // Filter out the current field name from intermediate layers to avoid duplication
+          const filteredIntermediateLayers = parentInfo.intermediateLayers.filter(layer => layer !== cleanElementName);
           return {
             metadataType: parentInfo.metadataType,
             fieldName: cleanElementName,
-            intermediateLayers: parentInfo.intermediateLayers
+            intermediateLayers: filteredIntermediateLayers
           };
         }
       }
@@ -290,10 +292,12 @@ export const extractFieldInfo = (
         // Find the parent metadata type and all intermediate layers by scanning upward
         const parentInfo = findParentMetadataTypeWithLayers(document, position.line);
         if (parentInfo) {
+          // Filter out the current field name from intermediate layers to avoid duplication
+          const filteredIntermediateLayers = parentInfo.intermediateLayers.filter(layer => layer !== cleanElementName);
           return {
             metadataType: parentInfo.metadataType,
             fieldName: cleanElementName,
-            intermediateLayers: parentInfo.intermediateLayers
+            intermediateLayers: filteredIntermediateLayers
           };
         }
       }

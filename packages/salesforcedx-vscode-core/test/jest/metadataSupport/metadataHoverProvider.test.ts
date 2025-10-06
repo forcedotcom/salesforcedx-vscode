@@ -260,6 +260,30 @@ describe('MetadataHoverProvider', () => {
         intermediateLayers: ['promptVersions']
       });
     });
+
+    it('should handle opening tag on a different line than closing tag', () => {
+      const content = `<?xml version="1.0" encoding="UTF-8"?>
+<ApexComponent xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>53.0</apiVersion>
+    <label>RP_GettingStarted</label>
+    <packageVersions>
+        <majorNumber>3</majorNumber>
+        <minorNumber>11</minorNumber>
+        <namespace>npe01</namespace>
+    </packageVersions>
+</ApexComponent>`;
+
+      const document = createMockDocument('TestComponent.component-meta.xml', content);
+      const position = { line: 4, character: 10 } as vscode.Position; // Position inside '<packageVersions>' tag
+
+      const result = extractFieldInfo(document, position);
+
+      expect(result).toEqual({
+        metadataType: 'ApexComponent',
+        fieldName: 'packageVersions',
+        intermediateLayers: []
+      });
+    });
   });
 
   describe('findParentMetadataType', () => {
