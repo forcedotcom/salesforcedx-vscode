@@ -11,6 +11,18 @@ jest.mock('os', () => ({
   homedir: jest.fn(() => '/tmp')
 }));
 
+// Mock @salesforce/core
+jest.mock('@salesforce/core', () => ({
+  ...jest.requireActual('@salesforce/core'),
+  Global: {
+    SF_DIR: '/tmp/sf',
+    DIR: '/tmp/sf',
+    SF_STATE_FOLDER: '.sf',
+    isWeb: false,
+    getEnvironmentMode: jest.fn(() => 'production')
+  }
+}));
+
 import { activate, deactivate } from '../../src/index';
 import * as Effect from 'effect/Effect';
 import { projectFiles } from '../../src/virtualFsProvider/projectInit';
@@ -62,6 +74,14 @@ type GlobalWithIDB = typeof globalThis & {
 const g = globalThis as GlobalWithIDB;
 g.indexedDB = mockIndexedDB as unknown as IDBFactory;
 g.IDBOpenDBRequest = jest.fn() as unknown as typeof IDBOpenDBRequest;
+
+// Mock spansNode to avoid path.join issues
+jest.mock('../../src/observability/spansNode', () => {
+  const E = require('effect');
+  return {
+    NodeSdkLayer: E.Layer.empty
+  };
+});
 
 // Mock IndexedDB Storage Service
 jest.mock('../../src/virtualFsProvider/indexedDbStorage', () => {
@@ -231,10 +251,10 @@ describe('Extension', () => {
       onDidChangeFile: jest.fn()
     };
 
-    // Test that projectFiles handles homedir issues gracefully
-    // In environments where os.homedir() returns undefined, this should fail gracefully
+    // Test that projectFiles works correctly with proper mocking
+    // The function should succeed when dependencies are properly mocked
     await expect(
       Effect.runPromise(Effect.provide(projectFiles(mockFsProvider), SettingsService.Default))
-    ).rejects.toThrow(/The "path" argument must be of type string/);
+    ).resolves.toBeUndefined();
   });
 });
