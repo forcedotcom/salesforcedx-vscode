@@ -11,9 +11,8 @@ import {
   SFDX_CORE_CONFIGURATION_NAME,
   SfWorkspaceChecker,
   TelemetryService,
+  handleTraceFlagCleanup,
   TimingUtils,
-  TraceFlags,
-  WorkspaceContextUtil,
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath,
   isSalesforceProjectOpened
@@ -167,7 +166,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap),
     vscode.commands.registerCommand('sf.config.set', configSet),
     vscode.commands.registerCommand('sf.org.list.clean', orgList),
-    vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb),
     vscode.commands.registerCommand('sf.org.login.web.dev.hub', orgLoginWebDevHub),
     vscode.commands.registerCommand('sf.org.logout.all', orgLogoutAll),
     vscode.commands.registerCommand('sf.org.logout.default', orgLogoutDefault),
@@ -217,6 +215,9 @@ const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promi
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
   const activationStartTime = TimingUtils.getCurrentTime();
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
+  // we need this command very early in activation process to handle auth issues from access token only orgs.
+  extensionContext.subscriptions.push(vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb));
+
   const rootWorkspacePath = getRootWorkspacePath();
   // Switch to the project directory so that the main @salesforce
   // node libraries work correctly.  @salesforce/core,
@@ -324,8 +325,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   // Handle trace flag cleanup after setting target org
   try {
-    const connection = await WorkspaceContextUtil.getInstance().getConnection();
-    await new TraceFlags(connection).handleTraceFlagCleanup(extensionContext);
+    await handleTraceFlagCleanup(extensionContext);
   } catch (error) {
     console.log('Trace flag cleanup not completed during activation of CLI Integration extension', error);
   }
