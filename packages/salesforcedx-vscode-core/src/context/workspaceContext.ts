@@ -9,10 +9,10 @@ import { Connection } from '@salesforce/core';
 import {
   OrgUserInfo,
   WorkspaceContextUtil,
-  TraceFlags,
   disposeTraceFlagExpiration,
   UserService,
-  refreshAllExtensionReporters
+  refreshAllExtensionReporters,
+  handleTraceFlagCleanup
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { decorators } from '../decorators';
@@ -84,9 +84,7 @@ export class WorkspaceContext {
     }
 
     try {
-      const connection = await WorkspaceContextUtil.getInstance().getConnection();
-      const traceFlags = new TraceFlags(connection);
-      await traceFlags.handleTraceFlagCleanup(this.extensionContext);
+      await handleTraceFlagCleanup(this.extensionContext);
     } catch (error) {
       ('');
       // If the action performed results in no default org set, we need to remove the trace flag expiration

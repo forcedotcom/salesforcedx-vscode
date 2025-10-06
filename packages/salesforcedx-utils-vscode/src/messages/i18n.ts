@@ -31,6 +31,11 @@ export const messages = {
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
 
+  error_access_token_expired: 'Access token expired or invalid',
+  error_access_token_expired_detail:
+    'Please reauthenticate using the login button or the `SFDX Authorize an Org` command.',
+  error_access_token_expired_login_button: 'Login',
+
   channel_name: 'Salesforce CLI',
   channel_starting_message: 'Starting ',
   channel_end_with_exit_code: 'ended with exit code %s',
