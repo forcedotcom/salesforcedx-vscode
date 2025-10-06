@@ -1,13 +1,8 @@
-# 64.16.1 - October 3, 2025
-
-## Added
-
-#### salesforcedx-vscode-core
-
-- Added hover documentation and autocompletion support for metadata XML files for RedHat XML extension. ([PR #6576](https://github.com/forcedotcom/salesforcedx-vscode/pull/6576))
+# 64.17.0 - October 8, 2025
 
 ## Fixed
 
-#### salesforcedx-vscode-core, salesforcedx-vscode-lightning
+#### salesforcedx-vscode-apex
 
-- We made changes under the hood. ([PR #6569](https://github.com/forcedotcom/salesforcedx-vscode/pull/6569), [PR #6566](https://github.com/forcedotcom/salesforcedx-vscode/pull/6566))
+- Update jorje jar for 258 ([PR #6559](https://github.com/forcedotcom/salesforcedx-vscode/pull/6559))
+
