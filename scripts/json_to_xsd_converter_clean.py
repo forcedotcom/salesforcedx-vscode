@@ -28,7 +28,9 @@ def map_field_type_to_xsd(field_type):
     field_type = field_type.lower().strip()
 
     # Basic types
-    if 'string' in field_type or 'text' in field_type:
+    if field_type.endswith('[]'):
+        return 'xsd:anyType'  # Arrays - treated as anyType
+    elif 'string' in field_type or 'text' in field_type:
         return 'xsd:string'
     elif 'boolean' in field_type:
         return 'xsd:boolean'
@@ -55,8 +57,6 @@ def map_field_type_to_xsd(field_type):
         return 'xsd:anyURI'
     elif 'phone' in field_type:
         return 'xsd:string'
-    elif field_type.endswith('[]'):
-        return 'xsd:anyType'  # Arrays - treated as anyType
     else:
         return 'xsd:anyType'  # Default to anyType for unknown types
 

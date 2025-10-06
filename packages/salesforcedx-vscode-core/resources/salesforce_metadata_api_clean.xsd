@@ -17980,7 +17980,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: FlowRecordRollback[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="recordUpdates" minOccurs="0" maxOccurs="unbounded" type="xsd:date">
+     <xsd:element name="recordUpdates" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>An array of nodes for updating records in the database.</xsd:documentation>
        <xsd:appinfo>Type: FlowRecordUpdate[]</xsd:appinfo>
@@ -21277,7 +21277,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="forecastingDateType" minOccurs="0" maxOccurs="unbounded" type="xsd:date">
+     <xsd:element name="forecastingDateType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. The date type that forecast amounts are based on. Valid values are: OpportunityCloseDate (default) ProductDate ScheduleDate OLIMeasureCloseDateOnly ProductDateOnly ScheduleDateOnly OpportunityCustomDate (Available in API version 57.0 and later) OLIMeasureOppCustomDateOnly (Available in API version 57.0 and later) Available in API version 42.0 and later. In API version 42.0 only, date types are read only and available only via API.</xsd:documentation>
        <xsd:appinfo>Type: ForecastingDateType</xsd:appinfo>
@@ -35263,7 +35263,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="dates" minOccurs="0" maxOccurs="unbounded" type="xsd:date">
+     <xsd:element name="dates" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>List of dates, with formatting information.</xsd:documentation>
        <xsd:appinfo>Type: WaveXmdDate</xsd:appinfo>
@@ -35788,7 +35788,7 @@ Total metadata types: 558
        <xsd:appinfo>Type: WorkflowAlert[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="fieldUpdates" minOccurs="0" maxOccurs="unbounded" type="xsd:date">
+     <xsd:element name="fieldUpdates" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>An array of all field updates for the object associated with the workflow.</xsd:documentation>
        <xsd:appinfo>Type: WorkflowFieldUpdate[]</xsd:appinfo>
