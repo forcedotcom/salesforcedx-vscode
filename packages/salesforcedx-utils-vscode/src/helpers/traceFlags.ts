@@ -179,45 +179,45 @@ export class TraceFlags {
     }
     return false;
   }
-
-  public async handleTraceFlagCleanup(extensionContext: vscode.ExtensionContext): Promise<void> {
-    // Change the status bar message to reflect the trace flag expiration date for the new target org
-
-    // If there is a non-expired TraceFlag with DeveloperName 'ReplayDebuggerLevels' for the current user, update the status bar message
-    const newTraceFlags = new TraceFlags(await WorkspaceContextUtil.getInstance().getConnection()); // Get the new connection after switching
-    const newUserId = await newTraceFlags.getUserIdOrThrow();
-    const myTraceFlag = await newTraceFlags.getTraceFlagForUser(newUserId);
-
-    const userSpecificKey = getTraceFlagExpirationKey(newUserId);
-
-    if (!myTraceFlag) {
-      extensionContext.workspaceState.update(userSpecificKey, undefined);
-      disposeTraceFlagExpiration();
-      return;
-    }
-
-    const currentTime = new Date();
-    if (myTraceFlag.ExpirationDate && new Date(myTraceFlag.ExpirationDate) > currentTime) {
-      extensionContext.workspaceState.update(userSpecificKey, myTraceFlag.ExpirationDate);
-    } else {
-      extensionContext.workspaceState.update(userSpecificKey, undefined);
-    }
-
-    // Delete expired TraceFlags for the current user
-    const expiredTraceFlagExists = await newTraceFlags.deleteExpiredTraceFlags(newUserId);
-    if (expiredTraceFlagExists) {
-      extensionContext.workspaceState.update(userSpecificKey, undefined);
-    }
-
-    // Apex Replay Debugger Expiration Status Bar Entry
-    const expirationDate = extensionContext.workspaceState.get<string>(userSpecificKey);
-    if (expirationDate) {
-      showTraceFlagExpiration(new Date(expirationDate));
-    } else {
-      disposeTraceFlagExpiration();
-    }
-  }
 }
+
+export const handleTraceFlagCleanup = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
+  // Change the status bar message to reflect the trace flag expiration date for the new target org
+
+  // If there is a non-expired TraceFlag with DeveloperName 'ReplayDebuggerLevels' for the current user, update the status bar message
+  const newTraceFlags = new TraceFlags(await WorkspaceContextUtil.getInstance().getConnection()); // Get the new connection after switching
+  const newUserId = await newTraceFlags.getUserIdOrThrow();
+  const myTraceFlag = await newTraceFlags.getTraceFlagForUser(newUserId);
+
+  const userSpecificKey = getTraceFlagExpirationKey(newUserId);
+
+  if (!myTraceFlag) {
+    extensionContext.workspaceState.update(userSpecificKey, undefined);
+    disposeTraceFlagExpiration();
+    return;
+  }
+
+  const currentTime = new Date();
+  if (myTraceFlag.ExpirationDate && new Date(myTraceFlag.ExpirationDate) > currentTime) {
+    extensionContext.workspaceState.update(userSpecificKey, myTraceFlag.ExpirationDate);
+  } else {
+    extensionContext.workspaceState.update(userSpecificKey, undefined);
+  }
+
+  // Delete expired TraceFlags for the current user
+  const expiredTraceFlagExists = await newTraceFlags.deleteExpiredTraceFlags(newUserId);
+  if (expiredTraceFlagExists) {
+    extensionContext.workspaceState.update(userSpecificKey, undefined);
+  }
+
+  // Apex Replay Debugger Expiration Status Bar Entry
+  const expirationDate = extensionContext.workspaceState.get<string>(userSpecificKey);
+  if (expirationDate) {
+    showTraceFlagExpiration(new Date(expirationDate));
+  } else {
+    disposeTraceFlagExpiration();
+  }
+};
 
 let statusBarItem: StatusBarItem | undefined;
 
