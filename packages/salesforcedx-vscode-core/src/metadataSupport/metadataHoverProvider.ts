@@ -137,7 +137,6 @@ export const findParentMetadataTypeWithLayers = (
   document: vscode.TextDocument,
   startLine: number
 ): { metadataType: string; intermediateLayers: string[] } | null => {
-  const intermediateLayers: string[] = [];
   const elementStack: string[] = [];
   let inOpenTag = false;
   let currentTagName = '';
@@ -153,22 +152,35 @@ export const findParentMetadataTypeWithLayers = (
         inOpenTag = false;
         if (currentTagName) {
           const cleanElementName = currentTagName.includes(':') ? currentTagName.split(':')[1] : currentTagName;
-          elementStack.push(cleanElementName);
+          // Check if it's not a self-closing tag
+          if (!line.trim().startsWith('/>')) {
+            elementStack.push(cleanElementName);
+          }
           currentTagName = '';
         }
       }
       continue;
     }
 
+    // Find self-closing tags and exclude them from the stack
+    const selfClosingTagRegex = /<([\w:]+)(?:\s[^>]*)?\/>/g;
+    const selfClosingTags = new Set<number>();
+    let match;
+    while ((match = selfClosingTagRegex.exec(line)) !== null) {
+      selfClosingTags.add(match.index);
+    }
+
     // Find opening tags (both complete and incomplete)
     const openingTagRegex = /<([\w:]+)(?:\s[^>]*)?>/g;
     const incompleteOpeningTagRegex = /<([\w:]+)(?:\s[^>]*)?$/;
 
-    let match;
     while ((match = openingTagRegex.exec(line)) !== null) {
-      const elementName = match[1];
-      const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
-      elementStack.push(cleanElementName);
+      // Skip if this is a self-closing tag
+      if (!selfClosingTags.has(match.index)) {
+        const elementName = match[1];
+        const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
+        elementStack.push(cleanElementName);
+      }
     }
 
     // Check for incomplete opening tags (multi-line)
@@ -191,54 +203,29 @@ export const findParentMetadataTypeWithLayers = (
     }
   }
 
-  // Now find the metadata type and collect only the direct parent containers
-  // We want to find the path from the current element to the root metadata type
-  for (let i = elementStack.length - 1; i >= 0; i--) {
+  // Now find the metadata type and collect intermediate layers
+  // The elementStack now contains all currently open elements from root to the current position
+  const intermediateLayers: string[] = [];
+
+  for (let i = 0; i < elementStack.length; i++) {
     const elementName = elementStack[i];
 
     // Check if this is a valid Salesforce metadata type
     if (VALID_METADATA_TYPES.has(elementName)) {
-      return { metadataType: elementName, intermediateLayers: intermediateLayers.reverse() };
-    }
-
-    // Only add significant container elements that are direct parents
-    // This helps avoid the extremely long paths by being more selective
-    if (elementName.length > 1 && !/^[A-Z]/.test(elementName) && isSignificantContainer(elementName)) {
-      // Only add if it's not already in the layers (avoid duplicates)
-      if (!intermediateLayers.includes(elementName)) {
-        intermediateLayers.push(elementName);
+      // Found the metadata type - collect all remaining elements as intermediate layers
+      // Include all elements between the metadata type and the current position
+      for (let j = i + 1; j < elementStack.length; j++) {
+        const layerName = elementStack[j];
+        // Only add non-uppercase elements (fields/containers, not metadata types)
+        if (layerName.length > 1 && !/^[A-Z]/.test(layerName)) {
+          intermediateLayers.push(layerName);
+        }
       }
+      return { metadataType: elementName, intermediateLayers };
     }
   }
 
   return null;
-};
-
-/**
- * Check if an element is a significant container that should be included in the path
- */
-const isSignificantContainer = (elementName: string): boolean => {
-  // Only include major container elements that are direct parents of fields
-  // This helps avoid the extremely long paths by being very selective
-  const significantContainers = new Set([
-    'decisions',
-    'actionCalls',
-    'recordCreates',
-    'recordLookups',
-    'recordUpdates',
-    'screens',
-    'formulas',
-    'processMetadataValues',
-    'inputParameters',
-    'inputAssignments',
-    'filters',
-    'rules',
-    'conditions',
-    'fields',
-    'value'
-  ]);
-
-  return significantContainers.has(elementName);
 };
 
 /**

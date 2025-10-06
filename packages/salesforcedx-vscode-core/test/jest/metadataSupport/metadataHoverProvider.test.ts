@@ -257,7 +257,7 @@ describe('MetadataHoverProvider', () => {
       expect(result).toEqual({
         metadataType: 'Prompt',
         fieldName: 'displayType',
-        intermediateLayers: []
+        intermediateLayers: ['promptVersions']
       });
     });
   });
