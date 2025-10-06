@@ -12,10 +12,13 @@ import {
   ComponentSet
 } from '@salesforce/source-deploy-retrieve';
 
+import * as Brand from 'effect/Brand';
+import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
 import * as vscode from 'vscode';
 import { SdkLayer } from '../observability/spans';
-import { ChannelService } from '../vscode/channelService';
+import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
@@ -53,66 +56,71 @@ const buildComponentSet = (
 const retrieve = (
   members: MetadataMember[]
 ): Effect.Effect<
-  RetrieveResult,
-  unknown,
-  | ConnectionService
-  | ProjectService
-  | WorkspaceService
-  | ConfigService
-  | ChannelService
-  | SettingsService
-  | MetadataRegistryService
+  RetrieveResult | SuccessfulCancelResult,
+  Error,
+  ConnectionService | ProjectService | WorkspaceService | ConfigService | SettingsService | MetadataRegistryService
 > =>
-  Effect.all(
-    [
-      Effect.flatMap(ConnectionService, service => service.getConnection),
-      Effect.flatMap(ProjectService, service => service.getSfProject),
-      Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo),
-      Effect.succeed(ChannelService),
-      Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess())
-    ],
-    { concurrency: 'unbounded' }
-  ).pipe(
-    Effect.flatMap(([connection, project, workspaceDescription, channelService, registryAccess]) =>
-      Effect.flatMap(buildComponentSet(members), componentSet =>
-        workspaceDescription.isEmpty
-          ? Effect.fail(new Error('No workspace path found'))
-          : Effect.flatMap(channelService, _channel =>
-              Effect.tryPromise({
-                try: async () => {
-                  const retrieveOperation = new MetadataApiRetrieve({
-                    usernameOrConnection: connection,
-                    components: componentSet,
-                    output: project.getDefaultPackage().fullPath,
-                    format: 'source',
-                    merge: true,
-                    registry: registryAccess
-                  });
+  Effect.gen(function* () {
+    const [connection, project, workspaceDescription, registryAccess] = yield* Effect.all(
+      [
+        Effect.flatMap(ConnectionService, service => service.getConnection),
+        Effect.flatMap(ProjectService, service => service.getSfProject),
+        Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo),
+        Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess())
+      ],
+      { concurrency: 'unbounded' }
+    );
 
-                  const result = await vscode.window.withProgress(
-                    {
-                      location: vscode.ProgressLocation.Notification,
-                      title: `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`,
-                      cancellable: false
-                    },
-                    async () => {
-                      await retrieveOperation.start();
-                      return await retrieveOperation.pollStatus();
-                    }
-                  );
-                  return result;
-                },
-                catch: e => {
-                  console.error(e);
-                  return new Error('Failed to retrieve metadata', { cause: e });
-                }
-              })
-            ).pipe(Effect.withSpan('retrieve (API call)'))
-      )
-    ),
-    Effect.withSpan('retrieve', { attributes: { members } }),
-    Effect.provide(SdkLayer)
-  );
+    if (workspaceDescription.isEmpty) {
+      return yield* Effect.fail(new Error('No workspace path found'));
+    }
+
+    const componentSet = yield* buildComponentSet(members);
+
+    const retrieveFiber = yield* Effect.fork(
+      Effect.tryPromise({
+        try: async () => {
+          const retrieveOperation = new MetadataApiRetrieve({
+            usernameOrConnection: connection,
+            components: componentSet,
+            output: project.getDefaultPackage().fullPath,
+            format: 'source',
+            merge: true,
+            registry: registryAccess
+          });
+
+          const retrieveResult = await vscode.window.withProgress(
+            {
+              location: vscode.ProgressLocation.Notification,
+              title: `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`,
+              cancellable: true
+            },
+            async (_, token) => {
+              token.onCancellationRequested(async () => {
+                await retrieveOperation.cancel();
+                await Effect.runPromise(Fiber.interrupt(retrieveFiber));
+              });
+              await retrieveOperation.start();
+              return await retrieveOperation.pollStatus();
+            }
+          );
+          return retrieveResult;
+        },
+        catch: e => {
+          console.error(e);
+          return new Error('Failed to retrieve metadata', { cause: e });
+        }
+      })
+    ).pipe(Effect.withSpan('retrieve (API call)'));
+
+    return yield* Effect.matchCauseEffect(Fiber.join(retrieveFiber), {
+      onFailure: cause =>
+        Cause.isInterruptedOnly(cause)
+          ? Effect.succeed(Brand.nominal<SuccessfulCancelResult>()('User canceled'))
+          : Effect.failCause(cause),
+      onSuccess: result => Effect.succeed(result)
+    });
+  }).pipe(Effect.withSpan('retrieve', { attributes: { members } }), Effect.provide(SdkLayer));
 
 export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()('MetadataRetrieveService', {
   succeed: {

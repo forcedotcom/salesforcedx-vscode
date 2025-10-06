@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import * as Brand from 'effect/Brand';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
+import type { SuccessfulCancelResult } from 'salesforcedx-vscode-services/src/vscode/cancellation';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { AllServicesLayer, ExtensionProviderService } from './extensionProvider';
@@ -23,7 +25,7 @@ export type OrgBrowserRetrieveService = {
   readonly retrieve: (
     members: MetadataMember[],
     openInEditor?: boolean
-  ) => Effect.Effect<RetrieveResult, Error, ExtensionProviderService>;
+  ) => Effect.Effect<RetrieveResult | SuccessfulCancelResult, Error, ExtensionProviderService>;
 };
 
 export const OrgBrowserRetrieveService = Context.GenericTag<OrgBrowserRetrieveService>('OrgBrowserRetrieveService');
@@ -31,7 +33,7 @@ export const OrgBrowserRetrieveService = Context.GenericTag<OrgBrowserRetrieveSe
 const retrieve = (
   members: MetadataMember[],
   openInEditor = false
-): Effect.Effect<RetrieveResult, Error, ExtensionProviderService> =>
+): Effect.Effect<RetrieveResult | SuccessfulCancelResult, Error, ExtensionProviderService> =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const [retrieveService, channel] = yield* Effect.all(
@@ -40,7 +42,9 @@ const retrieve = (
     );
 
     const result = yield* retrieveService.retrieve(members);
-
+    if (typeof result === 'string') {
+      return Brand.nominal<SuccessfulCancelResult>()('User canceled');
+    }
     const fileResponses = result.getFileResponses();
     const fileCount = fileResponses?.length ?? 0;
     yield* channel.appendToChannel(`Retrieve completed. ${fileCount} files retrieved successfully.`);
