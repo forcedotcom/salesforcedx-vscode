@@ -53,12 +53,9 @@ const activationEffect = (
   context: vscode.ExtensionContext
 ): Effect.Effect<void, Error, WorkspaceService | SettingsService | IndexedDBStorageService | ChannelService> =>
   Effect.gen(function* () {
-    // Output activation message using ChannelService
-    const svc = yield* ChannelService;
-    yield* svc.appendToChannel('Salesforce Services extension is activating!');
+    yield* (yield* ChannelService).appendToChannel('Salesforce Services extension is activating!');
 
     if (Global.isWeb) {
-      // Set up the file system for web extensions
       yield* fileSystemSetup(context);
     }
 
@@ -88,6 +85,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   const requirements = Layer.mergeAll(
     WorkspaceService.Default,
     SettingsService.Default,
+    // TODO: only needed for web, let's find a way to avoid including it in the non-web layer
     IndexedDBStorageServiceShared,
     SdkLayer,
     channelServiceLayer
@@ -146,8 +144,7 @@ const fileSystemSetup = (
     const fsProvider = new FsProvider();
 
     // Load state from IndexedDB first
-    const storage = yield* IndexedDBStorageService;
-    yield* storage.loadState();
+    yield* (yield* IndexedDBStorageService).loadState();
 
     // Register the file system provider
     context.subscriptions.push(
