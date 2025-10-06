@@ -175,6 +175,7 @@ def create_clean_xsd_from_json(json_file_path, output_file_path):
             xsd_lines.extend([
                 '     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>',
                 '    </xsd:choice>',
+                '    <xsd:attribute name="fqn" type="xsd:string"/>',
                 '   </xsd:extension>',
                 '  </xsd:complexContent>'
             ])
@@ -186,6 +187,7 @@ def create_clean_xsd_from_json(json_file_path, output_file_path):
                 '    <xsd:choice>',
                 '     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>',
                 '    </xsd:choice>',
+                '    <xsd:attribute name="fqn" type="xsd:string"/>',
                 '   </xsd:extension>',
                 '  </xsd:complexContent>'
             ])
