@@ -85,7 +85,6 @@ const openFileInEditor = (filePath: string): Effect.Effect<void, Error> =>
         catch: e => new Error(`Failed to show document at ${filePath}: ${String(e)}`)
       })
     ),
-    Effect.map((): void => undefined),
     Effect.withSpan('openFileInEditor', { attributes: { filePath } })
   );
 
