@@ -124,9 +124,19 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 
 /** Deactivates the Salesforce Services extension */
 export const deactivate = async (): Promise<void> => {
-  await Effect.runPromise(closeExtensionScope());
+  await Effect.runPromise(deactivateEffect);
   console.log('Salesforce Services extension is now deactivated!');
 };
+
+const deactivateEffect = Effect.gen(function* () {
+  yield* closeExtensionScope();
+  yield* ChannelService.pipe(
+    Effect.flatMap(svc => svc.appendToChannel('Salesforce Services extension is now deactivated!'))
+  );
+}).pipe(
+  Effect.withSpan('deactivation:salesforcedx-vscode-services'),
+  Effect.provide(Layer.mergeAll(ChannelServiceLayer('Salesforce Services'), SdkLayer))
+);
 
 /** Sets up the virtual file system for the extension */
 const fileSystemSetup = (

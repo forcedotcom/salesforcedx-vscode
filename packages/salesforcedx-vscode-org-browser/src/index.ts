@@ -66,5 +66,6 @@ export const deactivateEffect = ExtensionProviderService.pipe(
   Effect.flatMap(svcProvider => svcProvider.getServicesApi),
   Effect.flatMap(api => api.services.ChannelService),
   Effect.flatMap(svc => svc.appendToChannel('Salesforce Org Browser extension is now deactivated!')),
+  Effect.withSpan(`deactivation:${EXTENSION_NAME}`),
   Effect.provide(AllServicesLayer)
 );

@@ -26,7 +26,7 @@ const createConfigAggregator = (projectPath: string): Effect.Effect<ConfigAggreg
 // Global cache - created once at module level, not scoped to any consumer
 const globalConfigCache = Effect.runSync(
   Cache.make({
-    capacity: 50, // Maximum number of cached ConfigAggregators
+    capacity: 5, // Maximum number of cached ConfigAggregators
     timeToLive: Duration.minutes(30),
     lookup: createConfigAggregator // Lookup function that creates ConfigAggregator for a given projectPath
   })

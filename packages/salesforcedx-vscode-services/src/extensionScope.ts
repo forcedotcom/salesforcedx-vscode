@@ -8,6 +8,7 @@
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Scope from 'effect/Scope';
+import { SdkLayer } from './observability/spans';
 
 // eslint-disable-next-line functional/no-let
 let extensionScope: Scope.CloseableScope | undefined;
@@ -19,9 +20,9 @@ export const getExtensionScope = (): Effect.Effect<Scope.CloseableScope, Error, 
   });
 
 export const closeExtensionScope = (): Effect.Effect<void, Error, never> =>
-  Effect.sync(() => {
+  Effect.gen(function* () {
     if (extensionScope) {
-      Scope.close(extensionScope, Exit.void);
+      yield* Scope.close(extensionScope, Exit.void);
       extensionScope = undefined;
     }
-  });
+  }).pipe(Effect.withSpan('closeExtensionScope'), Effect.provide(SdkLayer));
