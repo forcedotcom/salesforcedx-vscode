@@ -306,23 +306,23 @@
         },
         {
           "command": "sf.org.login.web.dev.hub",
-          "when": "sf:project_opened && !isWeb"
+          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.org.login.access.token",
-          "when": "sf:project_opened && !isWeb"
+          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.org.login.web",
-          "when": "sf:project_opened && !isWeb"
+          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.org.logout.all",
-          "when": "sf:project_opened && !isWeb"
+          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.org.logout.default",
-          "when": "sf:project_opened && sf:has_target_org && !isWeb"
+          "when": "sf:project_opened && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.open.documentation",
@@ -330,11 +330,11 @@
         },
         {
           "command": "sf.org.create",
-          "when": "sf:project_opened && !isWeb"
+          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.org.open",
-          "when": "sf:project_opened && sf:has_target_org && !isWeb"
+          "when": "sf:project_opened && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.project.retrieve.start",
@@ -398,15 +398,15 @@
         },
         {
           "command": "sf.alias.list",
-          "when": "sf:project_opened && !isWeb"
+          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.org.display.default",
-          "when": "sf:project_opened && sf:has_target_org && !isWeb"
+          "when": "sf:project_opened && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.org.display.username",
-          "when": "sf:project_opened && sf:has_target_org && !isWeb"
+          "when": "sf:project_opened && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.data.query.input",
@@ -418,11 +418,11 @@
         },
         {
           "command": "sf.project.generate",
-          "when": "!sf:internal_dev && !isWeb"
+          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.project.generate.with.manifest",
-          "when": "!sf:internal_dev && !isWeb"
+          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.project.generate.manifest",
@@ -438,15 +438,15 @@
         },
         {
           "command": "sf.start.apex.debug.logging",
-          "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_target_org && !isWeb"
+          "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.stop.apex.debug.logging",
-          "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_target_org && !isWeb"
+          "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.debug.isv.bootstrap",
-          "when": "!sf:internal_dev && !isWeb"
+          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.retrieve.component",
@@ -486,15 +486,15 @@
         },
         {
           "command": "sf.org.delete.default",
-          "when": "sf:project_opened && sf:has_target_org && !isWeb"
+          "when": "sf:project_opened && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.org.delete.username",
-          "when": "sf:project_opened && !isWeb"
+          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.org.list.clean",
-          "when": "sf:project_opened && !isWeb"
+          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.delete.source.current.file",
