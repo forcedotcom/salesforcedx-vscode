@@ -158,8 +158,10 @@ export const findParentMetadataTypeWithLayers = (
           }
           currentTagName = '';
         }
+        // Continue processing the rest of the line for closing tags
+      } else {
+        continue;
       }
-      continue;
     }
 
     // Find self-closing tags and exclude them from the stack

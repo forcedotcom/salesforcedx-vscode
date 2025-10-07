@@ -11,7 +11,8 @@ import {
   isMetadataFile,
   extractMetadataType,
   extractFieldInfo,
-  findParentMetadataType
+  findParentMetadataType,
+  findParentMetadataTypeWithLayers
 } from '../../../src/metadataSupport/metadataHoverProvider';
 
 // Mock MarkdownString after import
@@ -282,6 +283,32 @@ describe('MetadataHoverProvider', () => {
         metadataType: 'ApexComponent',
         fieldName: 'packageVersions',
         intermediateLayers: []
+      });
+    });
+  });
+
+  describe('findParentMetadataTypeWithLayers', () => {
+    it('should handle multiline XML elements where closing bracket is on next line', () => {
+      const content = `<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <decisions>
+        <rules>
+            <conditions>
+                <leftValueReference
+                >get_main_content_document</leftValueReference>
+                <operator>IsNull</operator>
+            </conditions>
+        </rules>
+    </decisions>
+</Flow>`;
+
+      const document = createMockDocument('TestFlow.flow-meta.xml', content);
+
+      const result = findParentMetadataTypeWithLayers(document, 7);
+
+      expect(result).toEqual({
+        metadataType: 'Flow',
+        intermediateLayers: ['decisions', 'rules', 'conditions']
       });
     });
   });
