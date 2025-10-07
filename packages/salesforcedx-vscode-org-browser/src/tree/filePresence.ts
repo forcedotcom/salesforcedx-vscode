@@ -37,7 +37,10 @@ const backgroundFilePresenceCheck = (req: BackgroundFilePresenceCheckRequest): E
       req.treeProvider.fireChangeEvent(req.treeItem);
     }
   }).pipe(
-    Effect.catchAll(() => Effect.succeed(undefined)), // Ignore errors in background job
+    Effect.catchAll(error => {
+      console.error(`File presence check failed for ${req.c.type}${req.c.fullName}`, error);
+      return Effect.succeed(undefined); // Ignore errors in background job
+    }),
     Effect.withSpan('backgroundFilePresenceCheck', {
       attributes: { xmlName: req.parent.xmlName, componentName: req.c.fullName },
       parent: req.originalSpan

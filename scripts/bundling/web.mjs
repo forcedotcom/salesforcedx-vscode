@@ -9,7 +9,7 @@ const emptyPolyfillsPath = join(__dirname, 'empty-polyfills.js');
 const processGlobalPath = join(__dirname, 'process-global.js');
 const processPolyfillPath = join(__dirname, 'process-polyfill.js');
 const bufferGlobalPath = join(__dirname, 'buffer-global.js');
-const fsPolyfillPath = join(__dirname, 'fs-polyfill.mjs');
+const fsPolyfillPath = join(__dirname, 'fs-polyfill.js');
 const urlPolyfillPath = join(__dirname, 'url-polyfill.js');
 
 // Plugin to transform jszip's nodestream check to always return true
