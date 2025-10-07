@@ -75,11 +75,13 @@ const buildOrgTypes = (projectUrl: string | undefined): Record<string, vscode.Qu
       .concat(
         projectUrl
           ? [
-              'project',
-              {
-                label: nls.localize('auth_project_label'),
-                detail: `${nls.localize('auth_project_detail')} (${projectUrl})`
-              } as const
+              [
+                'project',
+                {
+                  label: nls.localize('auth_project_label'),
+                  detail: `${nls.localize('auth_project_detail')} (${projectUrl})`
+                } as const
+              ]
             ]
           : []
       )
@@ -99,7 +101,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
       }
 
       const orgType = selection.label;
-      if (orgType === orgTypes.custom.label) {
+      if (orgType === orgTypes.custom?.label) {
         const customUrlInputOptions = {
           prompt: nls.localize('parameter_gatherer_enter_custom_url'),
           placeHolder: PRODUCTION_URL,
@@ -109,7 +111,7 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
         if (this.instanceUrl === undefined) {
           return { type: 'CANCEL' };
         }
-      } else if (orgType === orgTypes.project.label) {
+      } else if (orgType === orgTypes.project?.label) {
         this.instanceUrl = await getProjectLoginUrl();
       } else {
         this.instanceUrl = orgType === 'Sandbox' ? SANDBOX_URL : PRODUCTION_URL;
