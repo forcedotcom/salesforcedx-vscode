@@ -1,0 +1,119 @@
+{
+  "name": "@salesforce/salesforcedx-lwc-language-server",
+  "displayName": "LWC Language Server",
+  "version": "64.16.1",
+  "description": "Language server for Lightning Web Components.",
+  "publisher": "salesforce",
+  "main": "out/src/indexer.js",
+  "typings": "out/src/indexer.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./out/src/indexer.js",
+      "require": "./out/src/indexer.js",
+      "types": "./out/src/indexer.d.ts"
+    },
+    "./server": {
+      "import": "./out/src/lwc-server.js",
+      "require": "./out/src/lwc-server.js",
+      "types": "./out/src/lwc-server.d.ts"
+    },
+    "./context": {
+      "import": "./out/src/context/lwc-context.js",
+      "require": "./out/src/context/lwc-context.js",
+      "types": "./out/src/context/lwc-context.d.ts"
+    },
+    "./component-indexer": {
+      "import": "./out/src/component-indexer.js",
+      "require": "./out/src/component-indexer.js",
+      "types": "./out/src/component-indexer.d.ts"
+    },
+    "./javascript": {
+      "import": "./out/src/javascript/compiler.js",
+      "require": "./out/src/javascript/compiler.js",
+      "types": "./out/src/javascript/compiler.d.ts"
+    },
+    "./decorators": {
+      "import": "./out/src/decorators/lwc-decorators.js",
+      "require": "./out/src/decorators/lwc-decorators.js",
+      "types": "./out/src/decorators/lwc-decorators.d.ts"
+    },
+    "./template": {
+      "import": "./out/src/template/linter.js",
+      "require": "./out/src/template/linter.js",
+      "types": "./out/src/template/linter.d.ts"
+    },
+    "./typing": {
+      "import": "./out/src/typing.js",
+      "require": "./out/src/typing.js",
+      "types": "./out/src/typing.d.ts"
+    },
+    "./tag": {
+      "import": "./out/src/tag.js",
+      "require": "./out/src/tag.js",
+      "types": "./out/src/tag.d.ts"
+    },
+    "./typing-indexer": {
+      "import": "./out/src/typing-indexer.js",
+      "require": "./out/src/typing-indexer.js",
+      "types": "./out/src/typing-indexer.d.ts"
+    },
+    "./base-indexer": {
+      "import": "./out/src/base-indexer.js",
+      "require": "./out/src/base-indexer.js",
+      "types": "./out/src/base-indexer.d.ts"
+    }
+  },
+  "license": "BSD-3-Clause",
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "bin": {
+    "lwc-language-server": "./bin/lwc-language-server.js"
+  },
+  "scripts": {
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf src/resources/sfdx/typings/copied",
+    "compile": "tsc -p . && node scripts/convert.js && node scripts/build.js",
+    "watch": "tsc -watch -p .",
+    "test": "jest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix"
+  },
+  "dependencies": {
+    "@lwc/compiler": "8.16.0",
+    "@lwc/engine-dom": "8.16.0",
+    "@lwc/errors": "8.16.0",
+    "@lwc/metadata": "12.2.0",
+    "@lwc/template-compiler": "8.16.0",
+    "@salesforce/apex": "0.0.21",
+    "@salesforce/label": "0.0.21",
+    "@salesforce/salesforcedx-lightning-lsp-common": "64.16.1",
+    "@salesforce/resourceurl": "0.0.21",
+    "@salesforce/schema": "0.0.21",
+    "camelcase": "^6.0.0",
+    "change-case": "^4.1.1",
+    "comment-parser": "^0.7.6",
+    "fast-glob": "^3.3.3",
+    "normalize-path": "^3.0.0",
+    "vscode-html-languageservice": "^5.5.1",
+    "vscode-languageserver": "^5.2.1",
+    "vscode-uri": "^2.1.2",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@lwc/old-compiler": "npm:@lwc/compiler@0.34.8",
+    "@types/babel-types": "^7.0.8",
+    "@types/glob": "^7.2.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.0.0",
+    "@types/normalize-path": "^3.0.2",
+    "@types/xml2js": "^0.4.14",
+    "babel-types": "^6.26.0",
+    "glob": "^11.0.3",
+    "jest": "^29.7.0",
+    "jest-extended": "^0.11.5",
+    "prettier": "^2.0.5",
+    "ts-jest": "^29.2.6",
+    "typescript": "5.0.4"
+  }
+}

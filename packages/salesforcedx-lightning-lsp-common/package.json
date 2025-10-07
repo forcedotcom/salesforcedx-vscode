@@ -1,0 +1,90 @@
+{
+  "name": "@salesforce/salesforcedx-lightning-lsp-common",
+  "displayName": "Lightning LSP Common",
+  "version": "64.16.1",
+  "description": "Common components for lwc-language-server and aura-language-server.",
+  "publisher": "salesforce",
+  "main": "out/src/index.js",
+  "typings": "out/src/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./out/src/index.js",
+      "require": "./out/src/index.js",
+      "types": "./out/src/index.d.ts"
+    },
+    "./utils": {
+      "import": "./out/src/utils.js",
+      "require": "./out/src/utils.js",
+      "types": "./out/src/utils.d.ts"
+    },
+    "./base-context": {
+      "import": "./out/src/base-context.js",
+      "require": "./out/src/base-context.js",
+      "types": "./out/src/base-context.d.ts"
+    },
+    "./decorators": {
+      "import": "./out/src/decorators/index.js",
+      "require": "./out/src/decorators/index.js",
+      "types": "./out/src/decorators/index.d.ts"
+    },
+    "./logger": {
+      "import": "./out/src/logger.js",
+      "require": "./out/src/logger.js",
+      "types": "./out/src/logger.d.ts"
+    },
+    "./namespace-utils": {
+      "import": "./out/src/namespace-utils.js",
+      "require": "./out/src/namespace-utils.js",
+      "types": "./out/src/namespace-utils.d.ts"
+    },
+    "./indexer/attributeInfo": {
+      "import": "./out/src/indexer/attributeInfo.js",
+      "require": "./out/src/indexer/attributeInfo.js",
+      "types": "./out/src/indexer/attributeInfo.d.ts"
+    },
+    "./indexer/tagInfo": {
+      "import": "./out/src/indexer/tagInfo.js",
+      "require": "./out/src/indexer/tagInfo.js",
+      "types": "./out/src/indexer/tagInfo.d.ts"
+    }
+  },
+  "license": "BSD-3-Clause",
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "scripts": {
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf src/resources/sfdx/typings/copied",
+    "compile": "tsc -p . && node scripts/build.js",
+    "watch": "tsc -watch -p .",
+    "test": "jest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix"
+  },
+  "dependencies": {
+    "deep-equal": "^1.0.1",
+    "ejs": "^3.1.10",
+    "jsonc-parser": "^2.2.1",
+    "vscode-languageserver": "^5.2.1",
+    "vscode-uri": "^2.1.2"
+  },
+  "devDependencies": {
+    "@lwc/engine-dom": "8.16.0",
+    "@salesforce/apex": "0.0.21",
+    "@types/deep-equal": "^1.0.1",
+    "@types/ejs": "^3.1.5",
+    "@types/jest": "^29.5.14",
+    "@types/mock-fs": "^4.13.4",
+    "@types/tmp": "^0.1.0",
+    "find-node-modules": "^1.0.4",
+    "glob": "^11.0.3",
+    "jest": "^29.7.0",
+    "jest-extended": "^0.11.5",
+    "lwc": "2.37.3",
+    "mock-fs": "^5.5.0",
+    "prettier": "^2.0.5",
+    "tmp": "^0.0.33",
+    "ts-jest": "^29.2.6",
+    "typescript": "5.0.4"
+  }
+}

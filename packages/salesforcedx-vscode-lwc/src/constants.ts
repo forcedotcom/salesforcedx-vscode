@@ -6,7 +6,6 @@
  */
 import { SFDX_LWC_EXTENSION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 
-export const ESLINT_NODEPATH_CONFIG = 'eslint.nodePath';
 export const VSCODE_LWC_EXTENSION_NAME = `salesforce.${SFDX_LWC_EXTENSION_NAME}`;
 
 export const log = (message: string) => {

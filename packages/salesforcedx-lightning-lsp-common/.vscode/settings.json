@@ -1,0 +1,20 @@
+{
+    "files.exclude": {
+      "**/.git": true,
+      "**/.svn": true,
+      "**/.hg": true,
+      "**/CVS": true,
+      "**/.DS_Store": true
+    },
+    "search.exclude": {
+      "**/lib": true,
+      "**/node_modules": true,
+      "**/bin": true
+    },
+    "eslint.packageManager": "yarn",
+    "npm.packageManager": "yarn",
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "eslint.format.enable": true
+  }
+  

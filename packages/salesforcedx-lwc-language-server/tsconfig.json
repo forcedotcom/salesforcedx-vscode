@@ -1,0 +1,43 @@
+{
+    "compilerOptions": {
+        "target": "es2022",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "sourceMap": true,
+        "declarationMap": true,
+        "lib": [
+            "es2022"
+        ],
+        "outDir": "./out",
+        "composite": true,
+
+        "strictNullChecks": true,
+        "noImplicitAny": true,
+        "noUnusedParameters": false,
+        "noUnusedLocals": false,
+
+        "pretty": true,
+        "declaration": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "types": ["node", "jest"]
+    },
+
+    "include": [
+        "src/**/*.ts",
+        "typings/*.d.ts",
+        // "jest/*.js"
+    ],
+
+    "exclude": [
+        "node_modules",
+        "src/resources/**/*",
+        "**/__tests__/fixtures/*.js"
+    ],
+
+    "references": [
+        {
+            "path": "../salesforcedx-lightning-lsp-common"
+        }
+    ]
+}

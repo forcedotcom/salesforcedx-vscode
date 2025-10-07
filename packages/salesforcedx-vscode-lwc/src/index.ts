@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { ActivationTracker, SFDX_LWC_EXTENSION_NAME } from '@salesforce/salesforcedx-utils-vscode';
+import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
+import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
-import { commands, ConfigurationTarget, Disposable, ExtensionContext, workspace, WorkspaceConfiguration } from 'vscode';
+import { commands, Disposable, ExtensionContext, workspace } from 'vscode';
 import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
-import { ESLINT_NODEPATH_CONFIG, log } from './constants';
+import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
 import { DevServerService } from './service/devServerService';
@@ -75,21 +75,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
-
-  if (workspaceType === lspCommon.WorkspaceType.SFDX) {
-    // We no longer want to manage the eslint.nodePath. Remove any previous configuration of the nodepath
-    // which points at our LWC extension node_modules path
-    const config: WorkspaceConfiguration = workspace.getConfiguration('');
-    const currentNodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
-    if (currentNodePath?.includes(SFDX_LWC_EXTENSION_NAME)) {
-      try {
-        log('Removing eslint.nodePath setting as the LWC Extension no longer manages this value');
-        await config.update(ESLINT_NODEPATH_CONFIG, undefined, ConfigurationTarget.Workspace);
-      } catch (e) {
-        telemetryService.sendException('lwc_eslint_nodepath_couldnt_be_set', e.message);
-      }
-    }
-  }
 
   // Activate Test support
   if (shouldActivateLwcTestSupport(workspaceType)) {

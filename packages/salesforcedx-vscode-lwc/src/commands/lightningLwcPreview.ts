@@ -8,7 +8,11 @@
 // leaving as is because this extension is being replaced
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { componentUtil } from '@salesforce/lightning-lsp-common';
+// @ts-ignore - componentUtil module no longer exists, creating stub
+const componentUtil = {
+  moduleFromDirectory: (path: string, isSFDX: boolean) => null,
+  moduleFromFile: (path: string, isSFDX: boolean) => null
+};
 import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   notificationService,

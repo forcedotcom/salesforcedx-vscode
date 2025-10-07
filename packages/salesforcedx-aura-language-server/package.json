@@ -1,0 +1,87 @@
+{
+  "name": "@salesforce/salesforcedx-aura-language-server",
+  "displayName": "Aura Language Server",
+  "version": "64.16.1",
+  "description": "Language server for Aura components.",
+  "publisher": "salesforce",
+  "main": "out/src/index.js",
+  "typings": "out/src/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./out/src/index.js",
+      "require": "./out/src/index.js",
+      "types": "./out/src/index.d.ts"
+    },
+    "./server": {
+      "import": "./out/src/aura-server.js",
+      "require": "./out/src/aura-server.js",
+      "types": "./out/src/aura-server.d.ts"
+    },
+    "./context": {
+      "import": "./out/src/context/aura-context.js",
+      "require": "./out/src/context/aura-context.js",
+      "types": "./out/src/context/aura-context.d.ts"
+    },
+    "./indexer": {
+      "import": "./out/src/aura-indexer/indexer.js",
+      "require": "./out/src/aura-indexer/indexer.js",
+      "types": "./out/src/aura-indexer/indexer.d.ts"
+    },
+    "./utils": {
+      "import": "./out/src/aura-utils.js",
+      "require": "./out/src/aura-utils.js",
+      "types": "./out/src/aura-utils.d.ts"
+    },
+    "./component-util": {
+      "import": "./out/src/util/component-util.js",
+      "require": "./out/src/util/component-util.js",
+      "types": "./out/src/util/component-util.d.ts"
+    },
+    "./tern-server": {
+      "import": "./out/src/tern-server/tern-server.js",
+      "require": "./out/src/tern-server/tern-server.js",
+      "types": "./out/src/tern-server/tern-server.d.ts"
+    }
+  },
+  "license": "BSD-3-Clause",
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "bin": {
+    "aura-language-server": "bin/aura-language-server.js"
+  },
+  "scripts": {
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage",
+    "compile": "tsc -p . && node scripts/build.js",
+    "watch": "tsc -watch -p .",
+    "test": "jest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix"
+  },
+  "dependencies": {
+    "@salesforce/salesforcedx-lightning-lsp-common": "64.16.1",
+    "acorn-loose": "^6.0.0",
+    "acorn-walk": "^6.0.0",
+    "line-column": "^1.0.2",
+    "vscode-html-languageservice": "^5.0.0",
+    "vscode-languageserver": "^5.2.1",
+    "vscode-languageserver-types": "3.17.5",
+    "vscode-uri": "1.0.6"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.2.0",
+    "@types/jest": "^29.5.14",
+    "@types/mock-fs": "^4.13.4",
+    "@types/node": "^20.0.0",
+    "@types/shelljs": "^0.8.15",
+    "eslint": "^8.57.0",
+    "glob": "^11.0.3",
+    "jest": "^29.7.0",
+    "jest-extended": "^0.11.5",
+    "mock-fs": "^5.5.0",
+    "prettier": "^2.0.5",
+    "ts-jest": "^29.2.6",
+    "typescript": "5.0.4"
+  }
+}

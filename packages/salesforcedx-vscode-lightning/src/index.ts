@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
+import { detectWorkspaceType, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { code2ProtocolConverter, TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { ExtensionContext, ProgressLocation, Uri, window, workspace } from 'vscode';
@@ -42,10 +42,10 @@ export const activate = async (extensionContext: ExtensionContext) => {
   });
 
   // 3) If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = lspCommon.detectWorkspaceType(workspaceUris);
+  const workspaceType = detectWorkspaceType(workspaceUris);
 
   // Check if we have a valid project structure
-  if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
+  if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
     console.log('Aura LSP - autodetect did not find a valid project structure, exiting....');
     console.log(`WorkspaceType detected: ${workspaceType}`);

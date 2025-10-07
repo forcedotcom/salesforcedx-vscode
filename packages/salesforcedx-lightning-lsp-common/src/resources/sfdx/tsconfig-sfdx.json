@@ -1,0 +1,10 @@
+{
+    "extends": "<%= project_root %>/.sfdx/tsconfig.sfdx.json",
+    "include": [
+        "**/*.ts",
+        "<%= project_root %>/.sfdx/typings/lwc/**/*.d.ts"
+    ],
+    "exclude": [
+        "**/__tests__/**"
+    ]
+}

@@ -7,6 +7,12 @@
   "exclude": ["node_modules", ".vscode-test", "out"],
   "references": [
     {
+      "path": "../salesforcedx-aura-language-server"
+    },
+    {
+      "path": "../salesforcedx-lightning-lsp-common"
+    },
+    {
       "path": "../salesforcedx-utils-vscode"
     }
   ]

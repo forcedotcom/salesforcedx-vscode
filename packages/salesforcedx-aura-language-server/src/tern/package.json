@@ -1,0 +1,40 @@
+{
+  "name": "tern",
+  "license": "MIT",
+  "version": "0.23.0",
+  "author": "Marijn Haverbeke <marijnh@gmail.com>",
+  "description": "A JavaScript code analyzer for deep, cross-editor language support",
+  "main": "lib/tern.js",
+  "bin": "./bin/tern",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ternjs/tern.git"
+  },
+  "scripts": {
+    "test": "node ./bin/test"
+  },
+  "dependencies": {
+    "acorn": "^6.0.0",
+    "acorn-walk": "^6.0.0",
+    "acorn-loose": "^6.0.0",
+    "enhanced-resolve": "^2.2.2",
+    "minimatch": "^3.0.3",
+    "resolve-from": "2.0.0"
+  },
+  "devDependencies": {
+    "codemirror": "git://github.com/codemirror/CodeMirror.git",
+    "glob": "^11.0.3"
+  },
+  "blint": {
+    "allowedGlobals": [
+      "tern",
+      "acorn",
+      "define",
+      "clearTimeout",
+      "setTimeout",
+      "__dirname",
+      "global",
+      "process"
+    ]
+  }
+}
