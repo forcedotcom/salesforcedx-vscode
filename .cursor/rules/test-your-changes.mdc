@@ -12,7 +12,10 @@ After ANY code change, run these in order from repo root. Avoid responding while
 4. `npx knip` - check for dead code related to your changes
    - **Fix ALL unused exports** - if knip shows unused exports, remove them immediately unless they're used for tests
    - Don't leave any exports that are only used within the same file
-5. if working in vscode-services or org-browser extensions, run the org-browser's headless tests. If there are failures, be sure to look at the screenshots produced.
+5. if working in vscode-services or org-browser extensions, run the org-browser's headless tests
+   - Run with `--retries 0` to get quicker feedback
+   - If there are failures, be sure to look at the screenshots produced
+   - unzip traces.zip for more screenshots and json results
 
 Rules:
 
@@ -20,4 +23,4 @@ Rules:
 - Bundle changes need: `npx lerna run bundle:extension`.
 - Be aware of nx caching; you may need `--skip-nx-cache` to really change the bundles. You can look in the bundle to see (and also turn off `minify` if that helps debug)
 - Port 3001 for tests (not 3000 - Docker/Grafana uses that)
-- All commands run from salesforcedx-vscode root; use `-w` to specify runs for a single package.
+- All commands run from salesforcedx-vscode root; use `-w` to specify runs for a single package. Never `cd` into a package.
