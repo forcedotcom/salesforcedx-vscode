@@ -31,7 +31,7 @@ const buildComponentSetFromSource = (
   sourcePaths: string[]
 ): Effect.Effect<ComponentSet, Error, MetadataRegistryService | WorkspaceService> =>
   Effect.gen(function* () {
-    console.log('buildComponentSetFromSource', members, sourcePaths);
+    yield* Effect.annotateCurrentSpan({ members, sourcePaths });
     const include = members.length > 0 ? yield* buildComponentSet(members) : undefined;
     const registryAccess = yield* (yield* MetadataRegistryService).getRegistryAccess();
     const cs = yield* Effect.try({

@@ -51,7 +51,7 @@ const backgroundDaemon = Effect.gen(function* () {
   // eslint-disable-next-line functional/no-loop-statements
   while (true) {
     const item = yield* Queue.take(backgroundFilePresenceCheckQueue);
-    console.log('backgroundDaemon', item);
+    yield* Effect.annotateCurrentSpan({ item });
     // fork runs them in the background pretty quickly.  Slower alternative is to run the effect for each queue item
     yield* Effect.fork(backgroundFilePresenceCheck(item));
   }
