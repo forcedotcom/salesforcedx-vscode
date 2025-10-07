@@ -108,7 +108,7 @@ export class MetadataDocumentationService {
         extensionRoot = path.dirname(extensionRoot);
       }
 
-      const xsdPath = path.join(extensionRoot, 'resources', 'salesforce_metadata_api_clean.xsd');
+      const xsdPath = path.join(extensionRoot, 'resources', 'salesforce_metadata_api_common.xsd');
       console.log(`Loading XSD file from: ${xsdPath}`);
 
       if (!(await fileOrFolderExists(xsdPath))) {
