@@ -294,6 +294,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   void vscode.commands.executeCommand('setContext', 'sf:project_opened', salesforceProjectOpened);
 
+  // Set Code Builder context
+  const codeBuilderEnabled = process.env.CODE_BUILDER === 'true';
+  void vscode.commands.executeCommand('setContext', 'sf:code_builder_enabled', codeBuilderEnabled);
+
   // Set initial context
   await checkPackageDirectoriesEditorView();
 
