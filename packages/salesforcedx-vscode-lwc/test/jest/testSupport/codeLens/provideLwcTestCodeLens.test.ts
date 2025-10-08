@@ -24,7 +24,7 @@ describe('provideLwcTestCodeLens', () => {
     mockToken = {} as CancellationToken;
   });
 
-  it('should provide code lens for it blocks', () => {
+  it('should provide code lens for both describe blocks and it blocks', () => {
     const testContent = `
 describe('Test Suite', () => {
   it('should do something', () => {
@@ -37,25 +37,6 @@ describe('Test Suite', () => {
     const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
 
     expect(codeLenses).toHaveLength(4); // Run and Debug for both describe and it blocks
-    // Just verify that code lenses are created - the command details depend on nls which may not work in test
-    expect(codeLenses.length).toBeGreaterThan(0);
-  });
-
-  it('should provide code lens for describe blocks', () => {
-    const testContent = `
-describe('Test Suite', () => {
-  it('should do something', () => {
-    expect(true).toBe(true);
-  });
-});
-`;
-    (mockDocument.getText as jest.Mock).mockReturnValue(testContent);
-
-    const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
-
-    expect(codeLenses).toHaveLength(4); // Run and Debug for both describe and it blocks
-    // Just verify that code lenses are created - the command details depend on nls which may not work in test
-    expect(codeLenses.length).toBeGreaterThan(0);
   });
 
   it('should provide code lens for nested describe blocks', () => {
@@ -100,7 +81,13 @@ describe('Outer Suite', () => {
     const mockJestRunnerExtension = {
       isActive: true
     };
-    jest.spyOn(extensions, 'getExtension').mockReturnValue(mockJestRunnerExtension as any);
+    const getExtensionSpy = jest.spyOn(extensions, 'getExtension');
+    getExtensionSpy.mockImplementation((extensionId: string) => {
+      if (extensionId === 'firsttris.vscode-jest-runner') {
+        return mockJestRunnerExtension as any;
+      }
+      return undefined; // Other extensions are not present
+    });
 
     const testContent = `
 describe('Test Suite', () => {
@@ -114,6 +101,7 @@ describe('Test Suite', () => {
     const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
 
     expect(codeLenses).toHaveLength(0);
+    expect(getExtensionSpy).toHaveBeenCalledWith('firsttris.vscode-jest-runner');
 
     // Restore the original function
     jest.restoreAllMocks();
@@ -121,7 +109,13 @@ describe('Test Suite', () => {
 
   it('should return code lenses when Jest Runner extension is not present', () => {
     // Mock the Jest Runner extension as not present
-    jest.spyOn(extensions, 'getExtension').mockReturnValue(undefined);
+    const getExtensionSpy = jest.spyOn(extensions, 'getExtension');
+    getExtensionSpy.mockImplementation((extensionId: string) => {
+      if (extensionId === 'firsttris.vscode-jest-runner') {
+        return undefined; // Jest Runner extension is not present
+      }
+      return undefined; // Other extensions are also not present
+    });
 
     const testContent = `
 describe('Test Suite', () => {
@@ -135,6 +129,7 @@ describe('Test Suite', () => {
     const codeLenses = provideLwcTestCodeLens(mockDocument, mockToken);
 
     expect(codeLenses).toHaveLength(4); // Run and Debug for both describe and it blocks
+    expect(getExtensionSpy).toHaveBeenCalledWith('firsttris.vscode-jest-runner');
 
     // Restore the original function
     jest.restoreAllMocks();
