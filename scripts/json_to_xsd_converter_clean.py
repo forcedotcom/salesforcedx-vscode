@@ -28,7 +28,9 @@ def map_field_type_to_xsd(field_type):
     field_type = field_type.lower().strip()
 
     # Basic types
-    if 'string' in field_type or 'text' in field_type:
+    if field_type.endswith('[]'):
+        return 'xsd:anyType'  # Arrays - treated as anyType
+    elif 'string' in field_type or 'text' in field_type:
         return 'xsd:string'
     elif 'boolean' in field_type:
         return 'xsd:boolean'
@@ -48,17 +50,15 @@ def map_field_type_to_xsd(field_type):
     elif 'picklist' in field_type or 'enumeration' in field_type:
         return 'xsd:string'  # Picklists are string values
     elif 'multipicklist' in field_type:
-        return 'xsd:string'  # Multi-picklists are string values
+        return 'xsd:anyType'  # Multi-picklists are anyType
     elif 'email' in field_type:
         return 'xsd:string'
     elif 'url' in field_type:
         return 'xsd:anyURI'
     elif 'phone' in field_type:
         return 'xsd:string'
-    elif field_type.endswith('[]'):
-        return 'xsd:string'  # Arrays - simplified as string
     else:
-        return 'xsd:string'  # Default to string for unknown types
+        return 'xsd:anyType'  # Default to anyType for unknown types
 
 
 def escape_xml(text):
@@ -173,7 +173,9 @@ def create_clean_xsd_from_json(json_file_path, output_file_path):
                     xsd_lines.append('     </xsd:element>')
 
             xsd_lines.extend([
+                '     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>',
                 '    </xsd:choice>',
+                '    <xsd:attribute name="fqn" type="xsd:string"/>',
                 '   </xsd:extension>',
                 '  </xsd:complexContent>'
             ])
@@ -182,7 +184,10 @@ def create_clean_xsd_from_json(json_file_path, output_file_path):
             xsd_lines.extend([
                 '  <xsd:complexContent>',
                 '   <xsd:extension base="tns:Metadata">',
-                '    <xsd:choice/>',
+                '    <xsd:choice>',
+                '     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>',
+                '    </xsd:choice>',
+                '    <xsd:attribute name="fqn" type="xsd:string"/>',
                 '   </xsd:extension>',
                 '  </xsd:complexContent>'
             ])
