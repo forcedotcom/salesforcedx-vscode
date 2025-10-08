@@ -5,13 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { parse, ItBlock, DescribeBlock } from 'jest-editor-support';
-import { CancellationToken, CodeLens, Command, Position, Range, TextDocument } from 'vscode';
+import { CancellationToken, CodeLens, Command, Position, Range, TextDocument, extensions } from 'vscode';
 import { nls } from '../../messages';
 import { TestExecutionInfo, TestInfoKind, TestType } from '../types';
 
 /**
+ * Check if the Jest Runner extension is present and active
+ */
+const isJestRunnerExtensionPresent = (): boolean => {
+  const jestRunnerExtension = extensions.getExtension('firsttris.vscode-jest-runner');
+  return jestRunnerExtension?.isActive ?? false;
+};
+
+/**
  * Provide "Run Test" and "Debug Test" Code Lens for LWC tests (both it and describe blocks).
  * We can move this implementation to lightning language server in the future.
+ * Code lenses are hidden when Jest Runner extension is present to avoid duplicate code lenses.
  *
  * @param document text document
  * @param token cancellation token
@@ -56,6 +65,11 @@ const createCodeLensesForTestBlock = (testBlock: ItBlock | DescribeBlock, docume
 };
 
 export const provideLwcTestCodeLens = (document: TextDocument, _token: CancellationToken): CodeLens[] => {
+  // Hide code lenses if Jest Runner extension is present to avoid duplicate code lenses
+  if (isJestRunnerExtensionPresent()) {
+    return [];
+  }
+
   const fsPath = document.uri.fsPath;
   const parseResults = parse(fsPath, document.getText());
   const { itBlocks, describeBlocks } = parseResults;
