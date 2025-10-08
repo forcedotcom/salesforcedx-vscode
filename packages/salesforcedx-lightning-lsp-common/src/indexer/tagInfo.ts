@@ -42,7 +42,7 @@ export const createTagInfo = (
     lwc,
     attributes,
     location,
-    documentation: documentation || '',
+    documentation: documentation ?? '',
     name,
     namespace,
     properties,

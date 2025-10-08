@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import mockFs from 'mock-fs';
-import * as fs from 'node:fs';
 import { join, resolve } from 'node:path';
 import * as tmp from 'tmp';
+import * as vscode from 'vscode';
 import { TextDocument, FileEvent, FileChangeType } from 'vscode-languageserver';
 import * as utils from '../utils';
 import { WorkspaceContext } from './workspaceContext';

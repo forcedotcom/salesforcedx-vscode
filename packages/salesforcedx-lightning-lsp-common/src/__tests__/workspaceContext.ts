@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs';
 import * as path from 'node:path';
+import * as vscode from 'vscode';
 import { BaseWorkspaceContext } from '../baseContext';
 import { findNamespaceRoots } from '../namespaceUtils';
 
@@ -27,25 +27,35 @@ export class WorkspaceContext extends BaseWorkspaceContext {
                     const utilsPath = path.join(root, 'utils', 'meta');
                     const registeredEmptyPath = path.join(root, 'registered-empty-folder', 'meta');
 
-                    if (fs.existsSync(path.join(forceAppPath, 'lwc'))) {
+                    if (
+                        await vscode.workspace.fs.stat(vscode.Uri.file(path.join(forceAppPath, 'lwc'))).then((stat) => stat.type === vscode.FileType.Directory)
+                    ) {
                         roots.lwc.push(path.join(forceAppPath, 'lwc'));
                     }
-                    if (fs.existsSync(path.join(utilsPath, 'lwc'))) {
+                    if (await vscode.workspace.fs.stat(vscode.Uri.file(path.join(utilsPath, 'lwc'))).then((stat) => stat.type === vscode.FileType.Directory)) {
                         roots.lwc.push(path.join(utilsPath, 'lwc'));
                     }
-                    if (fs.existsSync(path.join(registeredEmptyPath, 'lwc'))) {
+                    if (
+                        await vscode.workspace.fs
+                            .stat(vscode.Uri.file(path.join(registeredEmptyPath, 'lwc')))
+                            .then((stat) => stat.type === vscode.FileType.Directory)
+                    ) {
                         roots.lwc.push(path.join(registeredEmptyPath, 'lwc'));
                     }
-                    if (fs.existsSync(path.join(forceAppPath, 'aura'))) {
+                    if (
+                        await vscode.workspace.fs.stat(vscode.Uri.file(path.join(forceAppPath, 'aura'))).then((stat) => stat.type === vscode.FileType.Directory)
+                    ) {
                         roots.aura.push(path.join(forceAppPath, 'aura'));
                     }
                 }
                 return roots;
             case 'CORE_ALL':
                 // optimization: search only inside project/modules/
-                for (const project of await fs.promises.readdir(this.workspaceRoots[0])) {
+                for (const project of await vscode.workspace.fs
+                    .readDirectory(vscode.Uri.file(this.workspaceRoots[0]))
+                    .then((entries) => entries.map(([name]) => name))) {
                     const modulesDir = path.join(this.workspaceRoots[0], project, 'modules');
-                    if (fs.existsSync(modulesDir)) {
+                    if (await vscode.workspace.fs.stat(vscode.Uri.file(modulesDir)).then((stat) => stat.type === vscode.FileType.Directory)) {
                         const subroots = await findNamespaceRoots(modulesDir, 2);
                         roots.lwc.push(...subroots.lwc);
                     }
@@ -55,7 +65,7 @@ export class WorkspaceContext extends BaseWorkspaceContext {
                 // optimization: search only inside modules/
                 for (const ws of this.workspaceRoots) {
                     const modulesDir = path.join(ws, 'modules');
-                    if (fs.existsSync(modulesDir)) {
+                    if (await vscode.workspace.fs.stat(vscode.Uri.file(modulesDir)).then((stat) => stat.type === vscode.FileType.Directory)) {
                         const subroots = await findNamespaceRoots(path.join(ws, 'modules'), 2);
                         roots.lwc.push(...subroots.lwc);
                     }

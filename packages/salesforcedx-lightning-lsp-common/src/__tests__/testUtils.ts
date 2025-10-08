@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as fs from 'node:fs';
 import { extname, join, resolve } from 'node:path';
+import * as vscode from 'vscode';
 import { TextDocument } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 
@@ -33,8 +33,8 @@ const languageId = (path: string): string => {
     throw new Error(`todo: ${path}`);
 };
 
-export const readAsTextDocument = (path: string): TextDocument => {
+export const readAsTextDocument = async (path: string): Promise<TextDocument> => {
     const uri = URI.file(resolve(path)).toString();
-    const content = fs.readFileSync(path, 'utf-8');
+    const content = Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.file(path))).toString('utf-8');
     return TextDocument.create(uri, languageId(path), 0, content);
 };

@@ -18,7 +18,7 @@ interface SfdxPackageDirectoryConfig {
     path: string;
 }
 
-interface SfdxProjectConfig {
+export interface SfdxProjectConfig {
     packageDirectories: SfdxPackageDirectoryConfig[];
     sfdxPackageDirsPattern: string;
 }
@@ -389,7 +389,7 @@ export abstract class BaseWorkspaceContext {
     }
 
     private async writeTypings(): Promise<void> {
-        let typingsDir: string;
+        let typingsDir: string | undefined;
 
         switch (this.type) {
             case 'SFDX':
