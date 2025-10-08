@@ -2,9 +2,9 @@
 
 ## Development
 
-### Testing Web Extension
+### Testing
 
-This extension includes comprehensive Playwright tests for web extension functionality with both automated and manual testing approaches.
+This extension includes comprehensive Playwright tests for both web and desktop (Electron) environments with shared test logic.
 
 #### Quick Test Commands
 
@@ -17,12 +17,32 @@ npm install
 # Compile the extension
 npm run compile -w salesforcedx-vscode-org-browser
 
-# Start VS Code web test server with an example of running a single test
-npm run test:web -w salesforcedx-vscode-org-browser -- --grep "should verify org browser"
+# Run web tests (headless)
+npm run test:web:headless -w salesforcedx-vscode-org-browser
 
-# Start VS Code web manually for development/debugging.  LLMs can't use this, ever
-npm run run:web -w salesforcedx-vscode-org-browser
+# Run desktop tests (Electron UI always visible)
+npm run test:desktop -w salesforcedx-vscode-org-browser
+
+# Run all e2e tests (web + desktop)
+npm run test:e2e -w salesforcedx-vscode-org-browser
+
+# Run web tests with headed browser for debugging
+npm run test:web -w salesforcedx-vscode-org-browser
 ```
+
+#### Environment Setup
+
+Tests use the `DREAMHOUSE_ORG_ALIAS` environment variable to locate a pre-configured Salesforce org:
+
+```bash
+# Set the org alias (defaults to orgBrowserDreamhouseTestOrg)
+export DREAMHOUSE_ORG_ALIAS=myTestOrg
+
+# Verify org exists and is authenticated
+sf org display -o myTestOrg
+```
+
+In CI, the org is created automatically. For local development, reuse an existing org to avoid creating a new scratch org for each test run.
 
 #### Manual Testing for Debugging
 
@@ -64,14 +84,34 @@ npm run run:web
 3. Verifies Explorer loads → switches to Org Browser → checks for errors
 4. Captures and reports console errors, especially EventEmitter issues
 
-#### File Structure
+#### Test Structure
 
 ```text
-test/web/
-├── orgBrowser.spec.ts       # Main extension functionality tests
-├── shared/
-│   └── cdpUtils.ts         # Shared CDP utilities
+test/playwright/
+├── specs/                     # Test specs (shared between web & desktop)
+│   ├── orgBrowser.customObject.headless.spec.ts
+│   ├── orgBrowser.customTab.headless.spec.ts
+│   ├── orgBrowser.folderedReport.headless.spec.ts
+│   └── orgBrowser.load.smoke.spec.ts
+├── fixtures/                  # Platform-specific test fixtures
+│   ├── webFixtures.ts        # Web test setup
+│   ├── desktopFixtures.ts    # Desktop/Electron test setup
+│   └── desktopWorkspace.ts   # Workspace creation for desktop
+├── pages/                     # Page objects (shared)
+├── utils/                     # Test utilities (shared)
+└── web/                       # Web-only infrastructure
+    └── headlessServer.ts     # VS Code web server
+
+playwright.config.ts           # Web test configuration
+playwright.config.desktop.ts   # Desktop test configuration
 ```
+
+**Key Design:**
+
+- Same test files run on both web and desktop platforms
+- Platform-specific setup via Playwright fixtures
+- Desktop uses worker-scoped VS Code download (cached)
+- Each test gets fresh Electron instance with isolated workspace
 
 #### Test Environment Details
 

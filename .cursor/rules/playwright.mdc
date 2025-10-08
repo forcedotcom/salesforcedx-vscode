@@ -8,7 +8,8 @@ Never use `waitForTimeout`. Always wait for something specific on the page:
 - Use `page.waitForSelector()` to wait for elements to appear
 - Use `expect(locator).toBeVisible()` to wait for visibility
 - Use `page.waitForLoadState()` for page state changes
-- Use `page.waitForResponse()` for network requests
+
+Do not use `page.waitForResponse()` for network requests because it doesn't work in desktop/electron.
 
 Prefer `aria` (getByRole) over css selectors
 
