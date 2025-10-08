@@ -6,7 +6,7 @@
  */
 import { LLMServiceInterface, ServiceProvider, ServiceType } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
-import { APEX_OAS_INCLUDE_GUIDED_JSON, APEX_OAS_OUTPUT_TOKEN_LIMIT } from '../../constants';
+import { APEX_OAS_OUTPUT_TOKEN_LIMIT } from '../../constants';
 import {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
@@ -73,7 +73,9 @@ export abstract class GenerationStrategy {
   }
 
   protected includesOASSchema(): boolean {
-    this.includeOASSchema = vscode.workspace.getConfiguration().get(APEX_OAS_INCLUDE_GUIDED_JSON, false);
+    // TODO: Remove this once we have a proper way to include the OAS schema
+    // this.includeOASSchema = vscode.workspace.getConfiguration().get(APEX_OAS_INCLUDE_GUIDED_JSON, false);
+    this.includeOASSchema = false;
     return this.includeOASSchema;
   }
 
