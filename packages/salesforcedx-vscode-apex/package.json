@@ -493,7 +493,7 @@
         },
         "salesforcedx-vscode-apex.oas_generation_include_schema": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "%apex_oas_generation_schema%"
         },
         "salesforcedx-vscode-apex.oas_generation_output_token_limit": {
