@@ -10,7 +10,7 @@ import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { create } from '../utils/dreamhouseScratchOrgSetup';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
-test.describe('Org Browser - CustomTab retrieval (headless)', () => {
+test.describe('Org Browser - CustomTab retrieval', () => {
   test.setTimeout(10 * 60 * 1000);
 
   test.beforeEach(async ({ page }) => {

@@ -11,7 +11,7 @@ import { create } from '../utils/dreamhouseScratchOrgSetup';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
 /** Headless-like test for foldered Report retrieval */
-test.describe('Org Browser - Foldered Report retrieval (headless)', () => {
+test.describe('Org Browser - Foldered Report retrieval ', () => {
   test.setTimeout(10 * 60 * 1000);
 
   test.beforeEach(async ({ page }) => {

@@ -5,34 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { test, expect } from '@playwright/test';
-import * as fs from 'node:fs/promises';
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { create } from '../utils/dreamhouseScratchOrgSetup';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
-const execAsync = promisify(exec);
-
-test.describe('Org Browser - CustomObject retrieval (headless)', () => {
+test.describe('Org Browser - CustomObject retrieval', () => {
   test.setTimeout(10 * 60 * 1000);
-
-  let tmpRoot: string | undefined;
-  const createdScratch = false;
 
   test.beforeEach(async ({ page }) => {
     const createResult = await create();
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-  });
-
-  test.afterAll(async () => {
-    if (createdScratch) {
-      await execAsync('sf org delete scratch -o dreamhouse --no-prompt').catch(() => undefined);
-    }
-    if (tmpRoot) {
-      await fs.rm(tmpRoot, { recursive: true, force: true }).catch(() => undefined);
-    }
   });
 
   test('customobject headless: retrieve Broker__c', async ({ page }) => {
