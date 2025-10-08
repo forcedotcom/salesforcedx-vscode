@@ -4,14 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { test, expect } from '@playwright/test';
+import { test } from '../fixtures';
+import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { create } from '../utils/dreamhouseScratchOrgSetup';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
 test.describe('Org Browser - CustomObject retrieval', () => {
-  test.setTimeout(10 * 60 * 1000);
+  test.setTimeout(2 * 60 * 1000);
 
   test.beforeEach(async ({ page }) => {
     const createResult = await create();
@@ -27,7 +28,7 @@ test.describe('Org Browser - CustomObject retrieval', () => {
 
     const customObjectType = await test.step('find CustomObject type', async () => {
       const locator = await orgBrowserPage.findMetadataType('CustomObject');
-      await locator.hover({ timeout: 500 });
+      await locator.hover();
       await expect(locator).toMatchAriaSnapshot({ name: 'customobject-found' });
       return locator;
     });
@@ -35,7 +36,7 @@ test.describe('Org Browser - CustomObject retrieval', () => {
     const brokerItem = await test.step('expand CustomObject and locate Broker__c', async () => {
       await orgBrowserPage.expandFolder(customObjectType);
       const item = await orgBrowserPage.getMetadataItem('CustomObject', 'Broker__c');
-      await item.hover({ timeout: 500 });
+      await item.hover();
       await expect(item).toMatchAriaSnapshot({ name: 'customobject-broker__c' });
       return item;
     });

@@ -6,9 +6,10 @@
  */
 import { Page, Locator, expect } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
-import { typingSpeed } from '../utils/headless-helpers';
+import { typingSpeed } from '../utils/helpers';
 import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
+import { isDesktop } from '../fixtures';
 
 /**
  * Page Object Model for the Org Browser extension in VS Code web
@@ -69,6 +70,7 @@ export class OrgBrowserPage {
     await expect(this.activityBarItem, 'Activity bar item for Org Browser should be visible').toBeVisible({
       timeout: 15000
     });
+
     // Trigger navigation to Org Browser and wait for the types response
     await Promise.all([
       this.awaitMdapiResponse(),
@@ -89,18 +91,25 @@ export class OrgBrowserPage {
     await Promise.all([
       this.awaitMdapiResponse(),
       folderItem.click({ timeout: 5000 }),
-      expect(
-        folderItem.locator('.monaco-tl-twistie'),
-        'Folder twistie should show expanded state after metadata response'
-      ).toContainClass('codicon-tree-item-expanded', { timeout: 6_000 })
+      // we need it to go from loading to expanded state
+      expect(folderItem.locator('.monaco-tl-twistie'), 'Went to loading state')
+        .toContainClass('codicon-tree-item-loading', { timeout: 6_000 })
+        .then(() =>
+          expect(
+            folderItem.locator('.monaco-tl-twistie'),
+            'Folder twistie should show expanded state after metadata response'
+          ).toContainClass('codicon-tree-item-expanded', { timeout: 6_000 })
+        )
     ]);
   }
 
   public async awaitMdapiResponse(): Promise<void> {
-    await this.page.waitForResponse(
-      response => /\/services\/Soap\/m\/\d+\.0/.test(response.url()) && response.status() === 200,
-      { timeout: 30_000 }
-    );
+    if (!isDesktop) {
+      await this.page.waitForResponse(
+        response => /\/services\/Soap\/m\/\d+\.0/.test(response.url()) && response.status() === 200,
+        { timeout: 30_000 }
+      );
+    }
   }
 
   /**
@@ -155,8 +164,17 @@ export class OrgBrowserPage {
       return metadataItem.first();
     }
 
-    const retryableFind = (page: Page): Effect.Effect<void, Error> =>
+    const retryableFind = (page: Page, sidebar: Locator): Effect.Effect<void, Error> =>
       Effect.gen(function* () {
+        // Ensure tree has focus by clicking the parent metadata type's content area (not the twistie)
+        // Click on the text/icon area to avoid toggling expansion state
+        yield* Effect.promise(() =>
+          sidebar
+            .getByRole('treeitem', { level: level - 1, name: metadataType, exact: true })
+            .locator('.monaco-icon-label-container')
+            .click()
+        );
+        yield* Effect.promise(() => page.waitForTimeout(50));
         yield* Effect.promise(() => page.keyboard.type(itemName, { delay: typingSpeed }));
         yield* Effect.tryPromise({
           try: () =>
@@ -167,7 +185,8 @@ export class OrgBrowserPage {
         });
       });
 
-    await Effect.runPromise(Effect.retry(retryableFind(this.page), Schedule.fixed('500 millis')));
+    // Limit retries to prevent infinite loops (10 retries = ~5 seconds)
+    await Effect.runPromise(Effect.retry(retryableFind(this.page, this.sidebar), Schedule.recurs(30)));
 
     return metadataItem.first();
   }

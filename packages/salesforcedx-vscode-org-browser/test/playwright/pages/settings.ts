@@ -12,10 +12,11 @@ import {
   CODE_BUILDER_WEB_SECTION,
   INSTANCE_URL_KEY
 } from 'salesforcedx-vscode-services/src/constants';
-import { waitForVSCodeWorkbench } from '../utils/headless-helpers';
+import { waitForVSCodeWorkbench } from '../utils/helpers';
 import { OrgBrowserPage } from './orgBrowserPage';
 import type { AuthFields } from '@salesforce/core';
 import { executeCommandWithCommandPalette } from './commands';
+import { isDesktop } from '../fixtures';
 
 const settingsLocator = (page: Page): Locator =>
   page.locator(
@@ -34,11 +35,22 @@ const openSettingsUI = async (page: Page): Promise<void> => {
   await settingsLocator(page).first().waitFor({ timeout: 3000 });
 };
 
+/** used for web, where auth fields need to be set to simulate what we'll receive from Core iframe.
+ * Is a noop on desktop
+ * */
 export const upsertScratchOrgAuthFieldsToSettings = async (
   page: Page,
   authFields: Required<Pick<AuthFields, 'instanceUrl' | 'accessToken' | 'instanceApiVersion'>>
 ): Promise<void> => {
-  await waitForVSCodeWorkbench(page);
+  // Desktop uses real CLI auth files, so just wait for workbench (no navigation, no settings)
+  if (isDesktop) {
+    // Page is already loaded by Electron fixture, just wait for project
+    await new OrgBrowserPage(page).waitForProject();
+    return;
+  }
+
+  // Web: navigate and manually set auth fields in settings
+  await waitForVSCodeWorkbench(page, true);
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.waitForProject();
   await upsertSettings(page, {

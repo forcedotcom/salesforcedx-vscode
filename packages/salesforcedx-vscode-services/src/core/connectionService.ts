@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Global } from '@salesforce/core';
+import { AuthInfo, Connection, Global, StateAggregator } from '@salesforce/core';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -91,6 +91,16 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
           return yield* ConfigService.pipe(
             Effect.flatMap(cfgSvc => cfgSvc.getConfigAggregator),
             Effect.map(agg => agg.getPropertyValue<string>('target-org')),
+            Effect.filterOrFail(
+              targetOrg => targetOrg != null,
+              () => new Error('No target-org configured')
+            ),
+            Effect.flatMap(usernameOrAlias =>
+              Effect.tryPromise({
+                try: async () => (await StateAggregator.getInstance()).aliases.resolveUsername(usernameOrAlias),
+                catch: error => new Error('Failed to resolve username', { cause: error })
+              })
+            ),
             Effect.flatMap(username =>
               Effect.tryPromise({
                 try: () => AuthInfo.create({ username }),

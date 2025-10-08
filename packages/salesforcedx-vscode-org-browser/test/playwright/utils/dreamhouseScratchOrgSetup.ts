@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable no-restricted-imports, @typescript-eslint/consistent-type-assertions */
+// This is Node.js test infrastructure, not extension code
 import type { AuthFields } from '@salesforce/core';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
@@ -12,7 +14,7 @@ import { exec } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const DREAMHOUSE_REPO = 'https://github.com/trailheadapps/dreamhouse-lwc';
-const DREAMHOUSE_ORG_ALIAS = 'orgBrowserDreamhouseTestOrg';
+export const DREAMHOUSE_ORG_ALIAS = 'orgBrowserDreamhouseTestOrg';
 
 const execAsync = promisify(exec);
 

@@ -1,0 +1,4 @@
+- tab "Broker__c.tab-meta.xml" [selected]:
+  - text:  Broker__c.tab-meta.xml
+  - toolbar "Tab actions":
+    - button "Close (⌘W)":

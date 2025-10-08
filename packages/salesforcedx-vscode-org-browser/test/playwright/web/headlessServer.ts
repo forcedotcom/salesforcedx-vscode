@@ -11,8 +11,8 @@ import { open } from '@vscode/test-web';
 
 const startHeadlessServer = async (): Promise<void> => {
   try {
-    // __dirname at runtime is '<pkg>/out/test/web' → go up three levels to '<pkg>'
-    const extensionDevelopmentPath = path.resolve(__dirname, '..', '..', '..');
+    // __dirname at runtime is '<pkg>/out/test/playwright/web' → go up four levels to '<pkg>'
+    const extensionDevelopmentPath = path.resolve(__dirname, '..', '..', '..', '..');
     const servicesExtensionPath = path.resolve(extensionDevelopmentPath, '..', 'salesforcedx-vscode-services');
 
     console.log('🌐 Starting VS Code Web (headless) for Org Browser tests...');

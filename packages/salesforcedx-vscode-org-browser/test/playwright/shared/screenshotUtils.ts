@@ -4,6 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable no-restricted-imports */
+// This is Node.js test infrastructure, not extension code
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Page } from '@playwright/test';

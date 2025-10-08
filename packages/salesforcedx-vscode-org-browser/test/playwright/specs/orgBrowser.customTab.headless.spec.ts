@@ -4,7 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { test, expect } from '@playwright/test';
+import { test } from '../fixtures';
+import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { create } from '../utils/dreamhouseScratchOrgSetup';
@@ -27,7 +28,7 @@ test.describe('Org Browser - CustomTab retrieval', () => {
 
     const customTabType = await test.step('find CustomTab type', async () => {
       const locator = await orgBrowserPage.findMetadataType('CustomTab');
-      await locator.hover({ timeout: 500 });
+      await locator.hover();
       await expect(locator).toMatchAriaSnapshot({ name: 'customtab-hover' });
       return locator;
     });
@@ -35,7 +36,7 @@ test.describe('Org Browser - CustomTab retrieval', () => {
     const brokerItem = await test.step('expand CustomTab and locate Broker__c', async () => {
       await orgBrowserPage.expandFolder(customTabType);
       const item = await orgBrowserPage.getMetadataItem('CustomTab', 'Broker__c');
-      await item.hover({ timeout: 500 });
+      await item.hover();
       await expect(item).toMatchAriaSnapshot({ name: 'customtab-broker__c' });
       return item;
     });
@@ -65,7 +66,6 @@ test.describe('Org Browser - CustomTab retrieval', () => {
     });
 
     await test.step('visual assertion: Broker__c shows filled circle', async () => {
-      // move mouse away to avoid hover visuals
       await expect(brokerItem.locator('div.custom-view-tree-node-item-icon')).toContainClass('codicon-pass-filled');
       await expect(brokerItem).toMatchAriaSnapshot({ name: 'customtab-broker__c-filled' });
     });
