@@ -2,13 +2,10 @@
 
 ## Fixed
 
-#### salesforcedx-vscode-apex
-
-- Update jorje jar for 258 ([PR #6559](https://github.com/forcedotcom/salesforcedx-vscode/pull/6559))
-
 #### salesforcedx-vscode-core
 
-- [W-19669685]  bug fixes in metadata XML hover documentation ([PR #6588](https://github.com/forcedotcom/salesforcedx-vscode/pull/6588))
+- We fixed some minor bugs in the hover documentation of metadata XML files. ([PR #6588](https://github.com/forcedotcom/salesforcedx-vscode/pull/6588))
 
-- Prompt reauth for non-refreshable access tokens W-19787780 ([PR #6583](https://github.com/forcedotcom/salesforcedx-vscode/pull/6583))
+- We added a prompt that pops up to ask the user to reauthenticate to the org when the CodeBuilder window sits idle for too long and the access token becomes expired. ([PR #6583](https://github.com/forcedotcom/salesforcedx-vscode/pull/6583))
 
+- We re-enabled the auth related commands in CodeBuilder by adding a check for the environment variable `CODE_BUILDER`. ([PR #6586](https://github.com/forcedotcom/salesforcedx-vscode/pull/6586))
