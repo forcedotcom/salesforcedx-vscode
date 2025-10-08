@@ -76,10 +76,7 @@ var fs_1 = require('./fs/fs');
 
 ### Applied Changes
 
-Reverted to barrel imports in:
-
-1. `packages/salesforcedx-vscode-services/src/index.ts`
-2. `packages/salesforcedx-vscode-services/src/virtualFsProvider/indexedDbStorage.ts`
+Reverted to barrel import in **only** `packages/salesforcedx-vscode-services/src/index.ts`:
 
 ```typescript
 // Changed from:
@@ -88,6 +85,17 @@ import { Global } from '@salesforce/core/global';
 // Back to:
 import { Global } from '@salesforce/core';
 ```
+
+**Critical discovery:** The change to `indexedDbStorage.ts` was NOT needed! Only the entry point import matters.
+
+**Why this works:**
+
+- `index.ts` is the extension entry point, loaded first when the extension activates
+- Using the barrel import here establishes the correct module load order
+- The barrel loads `global.js` → which loads `fs.js` → fully initializes before circular access
+- Once `fs.js` is fully initialized via the barrel, subsequent imports from ANY path work fine
+- `indexedDbStorage.ts` can safely use `import { Global } from '@salesforce/core/global'`
+- Other files can use subpath imports because the critical first load happened through the barrel
 
 ### Test Results
 
@@ -117,7 +125,7 @@ import { Global } from '@salesforce/core';
 
 While using the barrel import fixes the immediate issue, the circular dependency still exists. Future considerations:
 
-1. **Avoid direct subpath imports of `Global`**: Always use `import { Global } from '@salesforce/core'`
+1. **Ensure entry point uses barrel import**: The extension entry point (`index.ts`) MUST use `import { Global } from '@salesforce/core'` to establish correct load order. Other files can use subpath imports once the barrel has loaded the modules.
 
 2. **Upstream fix in @salesforce/core**: Could lazy-load `node:fs` to break the circular dependency:
 
