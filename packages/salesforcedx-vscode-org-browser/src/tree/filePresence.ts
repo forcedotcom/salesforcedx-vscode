@@ -38,7 +38,7 @@ const backgroundFilePresenceCheck = (req: BackgroundFilePresenceCheckRequest): E
     }
   }).pipe(
     Effect.catchAll(error => {
-      console.error(`File presence check failed for ${req.c.type}${req.c.fullName}`, error);
+      console.error(`File presence check failed for ${req.c.type}:${req.c.fullName}`, error);
       return Effect.succeed(undefined); // Ignore errors in background job
     }),
     Effect.withSpan('backgroundFilePresenceCheck', {

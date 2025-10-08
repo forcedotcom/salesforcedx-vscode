@@ -7,5 +7,3 @@ const fsPolyfill = require('@salesforce/core/fs');
 module.exports = fsPolyfill.fs;
 module.exports.fs = fsPolyfill.fs;
 module.exports.getVirtualFs = fsPolyfill.getVirtualFs;
-module.exports.setFs = fsPolyfill.setFs;
-module.exports.resetFs = fsPolyfill.resetFs;
