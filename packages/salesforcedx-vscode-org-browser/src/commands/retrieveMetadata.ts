@@ -6,7 +6,10 @@
  */
 import type { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider';
 import type { ComponentSet, MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
+import type { SuccessfulCancelResult } from 'salesforcedx-vscode-services/src/vscode/cancellation';
 import * as vscode from 'vscode';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
@@ -16,19 +19,24 @@ export const retrieveOrgBrowserTreeItemCommand = async (
   node: OrgBrowserTreeItem,
   treeProvider: MetadataTypeTreeProvider
 ): Promise<void> => {
-  await Effect.runPromise(retrieveEffect(node, treeProvider));
+  const result = await Effect.runPromise(retrieveEffect(node, treeProvider));
+  if (typeof result === 'string') {
+    vscode.window.showInformationMessage('Retrieve canceled');
+  }
 };
 
 const retrieveEffect = (
   node: OrgBrowserTreeItem,
   treeProvider: MetadataTypeTreeProvider
-): Effect.Effect<RetrieveResult | void, never, never> =>
+  // void since we catch all the errors and show the vscode error message
+): Effect.Effect<RetrieveResult | SuccessfulCancelResult | void, never, never> =>
   Effect.gen(function* () {
     const target = getRetrieveTarget(node);
-    if (!target) {
+    if (target._tag === 'None') {
       return;
     }
-    yield* Effect.annotateCurrentSpan({ target: target.fullName });
+
+    yield* Effect.annotateCurrentSpan({ target: target.value.fullName });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const [projectService, retrieveService] = yield* Effect.all([
       api.services.ProjectService,
@@ -37,23 +45,25 @@ const retrieveEffect = (
 
     const dirs = (yield* projectService.getSfProject).getPackageDirectories().map(directory => directory.fullPath);
 
-    console.log('dirs', dirs);
-    const localComponents = yield* retrieveService.buildComponentSetFromSource([target], dirs);
+    const localComponents = yield* retrieveService.buildComponentSetFromSource([target.value], dirs);
 
-    if (!(yield* confirmOverwrite(localComponents, target))) return;
+    if (!(yield* confirmOverwrite(localComponents, target.value))) {
+      return Brand.nominal<SuccessfulCancelResult>()('User canceled');
+    }
 
     // Run the retrieve operation
-    const result = yield* (yield* OrgBrowserRetrieveService).retrieve([target], target.fullName !== '*');
+    const result = yield* (yield* OrgBrowserRetrieveService).retrieve([target.value], target.value.fullName !== '*');
 
-    // Handle post-retrieve UI updates
-    yield* Effect.promise(async () => {
-      if (node.kind === 'component') {
-        node.iconPath = getIconPath(true);
-        treeProvider.fireChangeEvent(node);
-      } else {
-        await treeProvider.refreshType(node);
-      }
-    });
+    if (typeof result !== 'string')
+      // Handle post-retrieve UI updates
+      yield* Effect.promise(async () => {
+        if (node.kind === 'component') {
+          node.iconPath = getIconPath(true);
+          treeProvider.fireChangeEvent(node);
+        } else {
+          await treeProvider.refreshType(node);
+        }
+      });
 
     return result;
   }).pipe(
@@ -66,19 +76,20 @@ const retrieveEffect = (
     )
   );
 
-const getRetrieveTarget = (node: OrgBrowserTreeItem): MetadataMember | undefined => {
+const getRetrieveTarget = (node: OrgBrowserTreeItem): Option.Option<MetadataMember> => {
   if (node.kind === 'folderType') {
     // folderType nodes don't have retrieve functionality
-    return undefined;
+    return Option.none();
   }
   if (node.kind === 'type') {
     // called retrieve on the entire type
-    return { type: node.xmlName, fullName: '*' };
+    return Option.some({ type: node.xmlName, fullName: '*' });
   }
 
   if ((node.kind === 'component' || node.kind === 'customObject') && node.componentName !== undefined) {
-    return { type: node.xmlName, fullName: node.componentName };
+    return Option.some({ type: node.xmlName, fullName: node.componentName });
   }
+  return Option.none();
 };
 
 const confirmOverwrite = (localComponents: ComponentSet, target: MetadataMember): Effect.Effect<boolean> =>

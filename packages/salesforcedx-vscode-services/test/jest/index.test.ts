@@ -77,6 +77,7 @@ g.IDBOpenDBRequest = jest.fn() as unknown as typeof IDBOpenDBRequest;
 
 // Mock spansNode to avoid path.join issues
 jest.mock('../../src/observability/spansNode', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const E = require('effect');
   return {
     NodeSdkLayer: E.Layer.empty

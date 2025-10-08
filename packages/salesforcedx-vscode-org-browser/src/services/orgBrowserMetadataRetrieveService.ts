@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import * as Brand from 'effect/Brand';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
+import type { SuccessfulCancelResult } from 'salesforcedx-vscode-services/src/vscode/cancellation';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { AllServicesLayer, ExtensionProviderService } from './extensionProvider';
@@ -23,7 +25,7 @@ export type OrgBrowserRetrieveService = {
   readonly retrieve: (
     members: MetadataMember[],
     openInEditor?: boolean
-  ) => Effect.Effect<RetrieveResult, Error, ExtensionProviderService>;
+  ) => Effect.Effect<RetrieveResult | SuccessfulCancelResult, Error, ExtensionProviderService>;
 };
 
 export const OrgBrowserRetrieveService = Context.GenericTag<OrgBrowserRetrieveService>('OrgBrowserRetrieveService');
@@ -31,48 +33,39 @@ export const OrgBrowserRetrieveService = Context.GenericTag<OrgBrowserRetrieveSe
 const retrieve = (
   members: MetadataMember[],
   openInEditor = false
-): Effect.Effect<RetrieveResult, Error, ExtensionProviderService> =>
-  ExtensionProviderService.pipe(
-    Effect.flatMap(svc => svc.getServicesApi),
-    Effect.flatMap(api =>
-      Effect.provide(
-        Effect.flatMap(api.services.MetadataRetrieveService, svc => svc.retrieve(members)).pipe(
-          Effect.tap(result => {
-            const fileResponses = result.getFileResponses();
-            const fileCount = fileResponses?.length ?? 0;
-            return Effect.flatMap(api.services.ChannelService, channel =>
-              channel
-                .appendToChannel(`Retrieve completed. ${fileCount} files retrieved successfully.`)
-                .pipe(
-                  Effect.tap(() =>
-                    fileCount > 0
-                      ? channel.appendToChannel(
-                          `Retrieved files: ${fileResponses!.map(f => `  - ${f.filePath}`).join('\n')}`
-                        )
-                      : Effect.fail(new Error('No files retrieved'))
-                  )
-                )
-            );
-          })
-        ),
-        AllServicesLayer
-      ).pipe(
-        Effect.mapError(e => new Error(`Retrieve failed: ${String(e)}`)),
-        Effect.tap(result =>
-          openInEditor
-            ? Effect.sync(() => findFirstSuccessfulFile(result)).pipe(
-                Effect.flatMap(fileOption =>
-                  Option.match(fileOption, {
-                    onNone: () => Effect.succeed(undefined),
-                    onSome: filePath => openFileInEditor(filePath)
-                  })
-                ),
-                Effect.catchAll(e => Effect.sync(() => console.log(`Could not open file: ${String(e)}`)))
-              )
-            : Effect.succeed(undefined)
-        )
-      )
-    )
+): Effect.Effect<RetrieveResult | SuccessfulCancelResult, Error, ExtensionProviderService> =>
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const [retrieveService, channel] = yield* Effect.all(
+      [api.services.MetadataRetrieveService, api.services.ChannelService],
+      { concurrency: 'unbounded' }
+    );
+
+    const result = yield* retrieveService.retrieve(members);
+    if (typeof result === 'string') {
+      return Brand.nominal<SuccessfulCancelResult>()('User canceled');
+    }
+    const fileResponses = result.getFileResponses();
+    const fileCount = fileResponses?.length ?? 0;
+    yield* channel.appendToChannel(`Retrieve completed. ${fileCount} files retrieved successfully.`);
+    if (fileCount > 0) {
+      yield* channel.appendToChannel(`Retrieved files: ${fileResponses!.map(f => `  - ${f.filePath}`).join('\n')}`);
+    } else {
+      return yield* Effect.fail(new Error('No files retrieved'));
+    }
+
+    if (openInEditor) {
+      yield* Option.match(findFirstSuccessfulFile(result), {
+        onNone: () => Effect.succeed(undefined),
+        onSome: filePath =>
+          openFileInEditor(filePath).pipe(Effect.catchAll(e => Effect.log(`Could not open file: ${String(e)}`)))
+      });
+    }
+
+    return result;
+  }).pipe(
+    Effect.provide(AllServicesLayer),
+    Effect.mapError(e => new Error(`Retrieve failed: ${String(e)}`))
   );
 
 const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> =>
@@ -96,7 +89,6 @@ const openFileInEditor = (filePath: string): Effect.Effect<void, Error> =>
         catch: e => new Error(`Failed to show document at ${filePath}: ${String(e)}`)
       })
     ),
-    Effect.map((): void => undefined),
     Effect.withSpan('openFileInEditor', { attributes: { filePath } })
   );
 
