@@ -6,12 +6,13 @@
  */
 
 import { fs } from '@salesforce/core/fs';
-import * as vscode from 'vscode';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { Buffer } from 'node:buffer';
 import { dirname } from 'node:path';
+import * as vscode from 'vscode';
 import { SdkLayer } from '../observability/spans';
+import { fsPrefix } from '../virtualFsProvider/constants';
 import { SerializedEntryWithPath } from '../virtualFsProvider/fsTypes';
 import { IndexedDBStorageService, IndexedDBStorageServiceShared } from '../virtualFsProvider/indexedDbStorage';
 
@@ -61,6 +62,33 @@ export const getSnapshot = async (): Promise<SerializedEntryWithPath[]> => {
 };
 
 /**
+ * Open modified files in VS Code tabs (newly created or updated)
+ */
+const openModifiedFiles = async (filePaths: string[]): Promise<void> => {
+    console.log('[FileSystemService] Opening', filePaths.length, 'modified file(s) in tabs');
+
+    // eslint-disable-next-line functional/no-loop-statements
+    for (const filePath of filePaths) {
+        // eslint-disable-next-line functional/no-try-statements
+        try {
+            // Remove the /MyProject/ prefix from filePath since the workspace is already rooted at memfs:/MyProject
+            const relativePath = filePath.startsWith('/MyProject/') ? filePath.substring('/MyProject/'.length) : filePath;
+
+            // Create URI for the virtual file system
+            const uri = vscode.Uri.parse(`${fsPrefix}:/MyProject/${relativePath}`);
+
+            // Open or show the document with focus
+            const document = await vscode.workspace.openTextDocument(uri);
+            await vscode.window.showTextDocument(document, { preview: false, preserveFocus: false });
+
+            console.log('[FileSystemService] Opened/focused file:', document.fileName);
+        } catch (error) {
+            console.error('[FileSystemService] Error opening file:', filePath, error);
+        }
+    }
+};
+
+/**
  * Apply file operations to memfs and IndexedDB
  */
 export const applyFileOperations = async (operations: FileOperation[]): Promise<void> => {
@@ -69,10 +97,13 @@ export const applyFileOperations = async (operations: FileOperation[]): Promise<
         console.log(`[FileSystemService] Operation ${i}:`, { type: op.type, path: op.path, hasContent: !!op.content });
     });
 
+    // Track files to open in tabs (newly created or updated)
+    const filesToOpen: string[] = [];
+
     const program = Effect.gen(function* () {
         const storage = yield* IndexedDBStorageService;
 
-        // POC: Only handle 'create' operations for now
+        // Handle 'create', 'update', and 'delete' operations
         // eslint-disable-next-line functional/no-loop-statements
         for (const op of operations) {
             console.log('[FileSystemService] Processing operation:', op.type, 'for path:', op.path);
@@ -91,6 +122,9 @@ export const applyFileOperations = async (operations: FileOperation[]): Promise<
 
                 console.log('[FileSystemService] Created file in memfs:', op.path);
 
+                // Track newly created file for opening in tab
+                filesToOpen.push(op.path);
+
                 // Save to IndexedDB
                 yield* storage.saveFile(op.path);
 
@@ -100,6 +134,9 @@ export const applyFileOperations = async (operations: FileOperation[]): Promise<
                 console.log('[FileSystemService] Updating file in memfs:', op.path);
                 fs.writeFileSync(op.path, Buffer.from(op.content, 'utf8'));
                 console.log('[FileSystemService] Updated file in memfs:', op.path);
+
+                // Track updated file for opening in tab
+                filesToOpen.push(op.path);
 
                 // Save to IndexedDB
                 yield* storage.saveFile(op.path);
@@ -138,6 +175,11 @@ export const applyFileOperations = async (operations: FileOperation[]): Promise<
             Effect.provide(program, requirements).pipe(Effect.scoped)
         );
         console.log('[FileSystemService] Applied', operations.length, 'operations successfully');
+
+        // Open modified files in VS Code tabs
+        if (filesToOpen.length > 0) {
+            await openModifiedFiles(filesToOpen);
+        }
     } catch (error) {
         console.error('[FileSystemService] Error applying operations:', error);
         // eslint-disable-next-line functional/no-throw-statements
