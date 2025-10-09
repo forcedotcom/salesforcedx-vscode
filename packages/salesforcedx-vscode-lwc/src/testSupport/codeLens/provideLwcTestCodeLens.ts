@@ -28,7 +28,11 @@ const isJestRunnerExtensionPresent = (): boolean => {
 /**
  * Create code lenses for a test block (it or describe)
  */
-const createCodeLensesForTestBlock = (testBlock: ItBlock | DescribeBlock, document: TextDocument): CodeLens[] => {
+const createCodeLensesForTestBlock = (
+  testBlock: ItBlock | DescribeBlock,
+  document: TextDocument,
+  isDescribeBlock: boolean
+): CodeLens[] => {
   const { name, nameRange } = testBlock;
   // VS Code position is zero-based
   const range = new Range(
@@ -43,7 +47,10 @@ const createCodeLensesForTestBlock = (testBlock: ItBlock | DescribeBlock, docume
     testName: name
   };
 
-  const runTestTitle = nls.localize('run_test_title');
+  // Use different titles for describe blocks vs it blocks
+  const runTestTitle = isDescribeBlock
+    ? nls.localize('run_all_tests_title') || 'Run All Tests'
+    : nls.localize('run_test_title') || 'Run Test';
   const runTestCaseCommand: Command = {
     command: 'sf.lightning.lwc.test.case.run',
     title: runTestTitle,
@@ -52,7 +59,9 @@ const createCodeLensesForTestBlock = (testBlock: ItBlock | DescribeBlock, docume
   };
   const runTestCaseCodeLens = new CodeLens(range, runTestCaseCommand);
 
-  const debugTestTitle = nls.localize('debug_test_title');
+  const debugTestTitle = isDescribeBlock
+    ? nls.localize('debug_all_tests_title') || 'Debug All Tests'
+    : nls.localize('debug_test_title') || 'Debug Test';
   const debugTestCaseCommand: Command = {
     command: 'sf.lightning.lwc.test.case.debug',
     title: debugTestTitle,
@@ -74,9 +83,9 @@ export const provideLwcTestCodeLens = (document: TextDocument, _token: Cancellat
   const parseResults = parse(fsPath, document.getText());
   const { itBlocks, describeBlocks } = parseResults;
 
-  const itBlockCodeLenses = itBlocks.flatMap(itBlock => createCodeLensesForTestBlock(itBlock, document));
+  const itBlockCodeLenses = itBlocks.flatMap(itBlock => createCodeLensesForTestBlock(itBlock, document, false));
   const describeBlockCodeLenses = describeBlocks.flatMap(describeBlock =>
-    createCodeLensesForTestBlock(describeBlock, document)
+    createCodeLensesForTestBlock(describeBlock, document, true)
   );
 
   return [...itBlockCodeLenses, ...describeBlockCodeLenses];
