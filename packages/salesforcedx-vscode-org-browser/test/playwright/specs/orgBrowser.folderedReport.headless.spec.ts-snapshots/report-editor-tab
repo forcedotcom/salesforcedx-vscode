@@ -1,3 +1,3 @@
-- tab "flow_screen_prebuilt_report.report-meta.xml, preview" [selected]:
+- tab "flow_screen_prebuilt_report.report-meta.xml" [selected]:
   - toolbar "Tab actions":
-    - button "Close (Ctrl+F4)"
+    - button "Close (⌘W)"
