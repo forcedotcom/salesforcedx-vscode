@@ -6,4 +6,5 @@
  */
 import * as Brand from 'effect/Brand';
 
+/** a branded string type to indicate successful cancellation */
 export type SuccessfulCancelResult = string & Brand.Brand<'SuccessfulCancelResult'>;

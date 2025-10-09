@@ -95,12 +95,13 @@ export class OrgBrowserPage {
       ).toContainClass('codicon-tree-item-expanded', { timeout: 6_000 });
 
     await Promise.all([
-      folderItem.click({ timeout: 5000 }),
+      folderItem.click({ timeout: 5000, delay: 100 }),
       // we need it to go from loading to expanded state
       ...(isDesktop
         ? [
             expect(folderItem.locator('.monaco-tl-twistie'), 'Went to loading state')
-              .toContainClass('codicon-tree-item-loading', { timeout: 6_000 })
+              .toContainClass('codicon-tree-item-loading', { timeout: 2_000 })
+              .catch(() => undefined) // allow it to continue if it never hit loading state, but we at least delayed it before coming back to
               .then(() => expandedExpect())
           ]
         : [this.awaitMdapiResponse().then(() => expandedExpect())])

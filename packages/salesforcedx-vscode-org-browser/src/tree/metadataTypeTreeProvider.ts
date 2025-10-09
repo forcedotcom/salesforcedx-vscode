@@ -104,7 +104,7 @@ const getChildrenOfTreeItem = (
         );
       }
 
-      return Effect.die(new Error(`Invalid node kind: ${element.kind}`));
+      return Effect.die(new Error(`Unsupported node kind: ${element.kind}`));
     }),
     Effect.withSpan('getChildrenOfTreeItem', { attributes: { element: element?.xmlName, refresh } }),
     Effect.provide(AllServicesLayer)
