@@ -44,8 +44,8 @@ test/playwright/
 
 **Updated:**
 
-- `playwright.config.ts` - Updated testDir to `./test/playwright/specs`, webServer command path
-- `tsconfig.json` - Added playwright.config.desktop.ts to includes
+- `playwright.config.web.ts` - Updated testDir to `./test/playwright/specs`, webServer command path
+- `tsconfig.json` - Added playwright configs to includes
 
 ### 4. NPM Scripts ✅
 
@@ -215,7 +215,7 @@ Update `.github/workflows/orgBrowserE2E.yml` to add desktop matrix:
 - test/playwright/pages/settings.ts - Added platform-specific auth setup (skip settings for desktop)
 - test/playwright/utils/helpers.ts - Added platform-specific navigation in `waitForVSCodeWorkbench`
 - test/playwright/web/headlessServer.ts - Fixed path calculation for new structure
-- playwright.config.ts - Updated testDir and webServer paths
+- playwright.config.web.ts - Renamed from playwright.config.ts, updated testDir and webServer paths
 - playwright.config.desktop.ts - Set `workers: 1` and `fullyParallel: false` for sequential execution
 - package.json - Added 4 new scripts (test:desktop, test:desktop:debug, test:desktop:ci, updated test:e2e)
 - README.md - Updated testing documentation with desktop instructions

@@ -102,7 +102,7 @@ test/playwright/
 └── web/                       # Web-only infrastructure
     └── headlessServer.ts     # VS Code web server
 
-playwright.config.ts           # Web test configuration
+playwright.config.web.ts       # Web test configuration
 playwright.config.desktop.ts   # Desktop test configuration
 ```
 

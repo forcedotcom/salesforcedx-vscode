@@ -88,19 +88,26 @@ export class OrgBrowserPage {
 
   public async expandFolder(folderItem: Locator): Promise<void> {
     // Start waiting for the response, then click to trigger it.
+    const expandedExpect = (): Promise<void> =>
+      expect(
+        folderItem.locator('.monaco-tl-twistie'),
+        'Folder twistie should show expanded state after metadata response'
+      ).toContainClass('codicon-tree-item-expanded', { timeout: 6_000 });
+
     await Promise.all([
-      this.awaitMdapiResponse(),
       folderItem.click({ timeout: 5000 }),
       // we need it to go from loading to expanded state
-      expect(folderItem.locator('.monaco-tl-twistie'), 'Went to loading state')
-        .toContainClass('codicon-tree-item-loading', { timeout: 6_000 })
-        .then(() =>
-          expect(
-            folderItem.locator('.monaco-tl-twistie'),
-            'Folder twistie should show expanded state after metadata response'
-          ).toContainClass('codicon-tree-item-expanded', { timeout: 6_000 })
-        )
+      ...(isDesktop
+        ? [
+            expect(folderItem.locator('.monaco-tl-twistie'), 'Went to loading state')
+              .toContainClass('codicon-tree-item-loading', { timeout: 6_000 })
+              .then(() => expandedExpect())
+          ]
+        : [this.awaitMdapiResponse().then(() => expandedExpect())])
     ]);
+    // there's an ugly scenario where the expand happens but none of the children are on the screen so you can't search them properly.
+    await this.page.mouse.wheel(0, 50);
+    await this.page.waitForTimeout(50);
   }
 
   public async awaitMdapiResponse(): Promise<void> {
@@ -166,15 +173,13 @@ export class OrgBrowserPage {
 
     const retryableFind = (page: Page, sidebar: Locator): Effect.Effect<void, Error> =>
       Effect.gen(function* () {
-        // Ensure tree has focus by clicking the parent metadata type's content area (not the twistie)
-        // Click on the text/icon area to avoid toggling expansion state
         yield* Effect.promise(() =>
           sidebar
             .getByRole('treeitem', { level: level - 1, name: metadataType, exact: true })
             .locator('.monaco-icon-label-container')
             .click()
         );
-        yield* Effect.promise(() => page.waitForTimeout(50));
+        yield* Effect.promise(() => page.waitForTimeout(1000));
         yield* Effect.promise(() => page.keyboard.type(itemName, { delay: typingSpeed }));
         yield* Effect.tryPromise({
           try: () =>
@@ -185,7 +190,7 @@ export class OrgBrowserPage {
         });
       });
 
-    // Limit retries to prevent infinite loops (10 retries = ~5 seconds)
+    // Limit retries to prevent infinite loops (30 retries = ~15 seconds)
     await Effect.runPromise(Effect.retry(retryableFind(this.page, this.sidebar), Schedule.recurs(30)));
 
     return metadataItem.first();

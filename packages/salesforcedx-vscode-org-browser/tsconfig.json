@@ -12,7 +12,7 @@
     ]
   },
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
-  "include": ["src/**/*.ts", "test/**/*.ts", "playwright.config.ts", "playwright.config.desktop.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "playwright.config.web.ts", "playwright.config.desktop.ts"],
   "references": [
     {
       "path": "../salesforcedx-vscode-services"
