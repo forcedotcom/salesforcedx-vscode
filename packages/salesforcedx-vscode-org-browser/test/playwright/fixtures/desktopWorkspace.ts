@@ -16,23 +16,25 @@ import { DREAMHOUSE_ORG_ALIAS } from '../utils/dreamhouseScratchOrgSetup';
 export const createTestWorkspace = async (): Promise<string> => {
   const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-orgbrowser-test-'));
 
-  // Create sfdx-project.json
-  await fs.writeFile(
-    path.join(workspaceDir, 'sfdx-project.json'),
-    JSON.stringify(
-      {
-        packageDirectories: [{ path: 'force-app', default: true }],
-        namespace: '',
-        sfdcLoginUrl: 'https://login.salesforce.com',
-        sourceApiVersion: '64.0'
-      },
-      null,
-      2
-    )
-  );
-
-  // Create .sfdx directory for config
-  await fs.mkdir(path.join(workspaceDir, Global.SF_STATE_FOLDER), { recursive: true });
+  await Promise.all([
+    // Create sfdx-project.json
+    fs.writeFile(
+      path.join(workspaceDir, 'sfdx-project.json'),
+      JSON.stringify(
+        {
+          packageDirectories: [{ path: 'force-app', default: true }],
+          namespace: '',
+          sfdcLoginUrl: 'https://login.salesforce.com',
+          sourceApiVersion: '64.0'
+        },
+        null,
+        2
+      )
+    ),
+    fs.mkdir(path.join(workspaceDir, 'force-app', 'main', 'default'), { recursive: true }),
+    // Create .sfdx directory for config
+    fs.mkdir(path.join(workspaceDir, Global.SF_STATE_FOLDER), { recursive: true })
+  ]);
 
   // Set target org so extension knows which org to use
   // Modern SF CLI uses 'target-org', older sfdx used 'defaultusername'
@@ -46,8 +48,6 @@ export const createTestWorkspace = async (): Promise<string> => {
       2
     )
   );
-
-  await fs.mkdir(path.join(workspaceDir, 'force-app', 'main', 'default'), { recursive: true });
 
   return workspaceDir;
 };
