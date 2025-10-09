@@ -1,0 +1,4 @@
+- treeitem "CustomObject" [level=1]:
+  - toolbar:
+    - button "Refresh Type"
+    - button "Retrieve Metadata"

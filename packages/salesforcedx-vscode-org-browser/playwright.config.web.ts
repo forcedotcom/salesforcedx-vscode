@@ -36,7 +36,8 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      retries: 2
+      retries: 2,
+      snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/chromium/{arg}{ext}'
     }
   ],
   webServer: {

@@ -9,9 +9,9 @@ import { defineConfig } from '@playwright/test';
 /** Desktop Playwright configuration for Electron-based VS Code tests */
 export default defineConfig({
   testDir: './test/playwright/specs',
-  fullyParallel: false, // Desktop tests run serially for reliability
+  fullyParallel: !process.env.CI,
   forbidOnly: !!process.env.CI,
-  workers: 1, // Multiple Electron instances interfere with each other
+  ...(process.env.CI ? { workers: 1 } : {}), // Parallel locally (isolated user-data-dir), sequential in CI for stability
   reporter: process.env.CI
     ? [['html', { open: 'never' }], ['line'], ['junit', { outputFile: 'test-results/junit-desktop.xml' }]]
     : [['html', { open: 'never' }], ['list']],
@@ -25,8 +25,8 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop-electron',
-      retries: process.env.CI ? 2 : 0 // No retries locally for faster feedback
+      retries: process.env.CI ? 2 : 0, // No retries locally for faster feedback,
+      snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/desktop-electron/{arg}{ext}'
     }
   ]
-  // No webServer for desktop
 });

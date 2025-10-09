@@ -10,6 +10,7 @@ import { test as base, _electron as electron, type ElectronApplication, type Pag
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
 import { createTestWorkspace } from './desktopWorkspace';
 import * as path from 'node:path';
+import * as fs from 'node:fs/promises';
 
 /** Worker-scoped fixtures (shared across tests in same worker) */
 type WorkerFixtures = {
@@ -35,6 +36,9 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
   // Launch fresh Electron instance per test
   electronApp: async ({ vscodeExecutable }, use): Promise<void> => {
     const workspaceDir = await createTestWorkspace();
+    // Use subdirectory of workspace for user data (keeps everything isolated and together)
+    const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
+    await fs.mkdir(userDataDir, { recursive: true });
 
     // __dirname at runtime is '<pkg>/test/playwright/fixtures' → go up three levels to '<pkg>'
     const packageRoot = path.resolve(__dirname, '..', '..', '..');
@@ -49,6 +53,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     const electronApp = await electron.launch({
       executablePath: vscodeExecutable,
       args: [
+        // Unique user data directory for parallel test isolation
+        `--user-data-dir=${userDataDir}`,
         // Load both extensions (org-browser depends on services)
         `--extensionDevelopmentPath=${extensionPath}`,
         `--extensionDevelopmentPath=${servicesPath}`,
@@ -58,7 +64,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
         workspaceDir
       ],
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+
       env: { ...process.env } as Record<string, string>,
       timeout: 60_000 // Give VS Code more time to launch
     });
