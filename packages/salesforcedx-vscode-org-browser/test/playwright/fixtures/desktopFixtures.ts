@@ -11,6 +11,7 @@ import { downloadAndUnzipVSCode } from '@vscode/test-electron';
 import { createTestWorkspace } from './desktopWorkspace';
 import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
+import { filterErrors } from '../utils/helpers';
 
 /** Worker-scoped fixtures (shared across tests in same worker) */
 type WorkerFixtures = {
@@ -46,10 +47,6 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     const extensionPath = packageRoot;
     const servicesPath = path.resolve(packageRoot, '..', 'salesforcedx-vscode-services');
 
-    console.log('[desktopFixtures] extensionPath:', extensionPath);
-    console.log('[desktopFixtures] servicesPath:', servicesPath);
-    console.log('[desktopFixtures] workspaceDir:', workspaceDir);
-
     const electronApp = await electron.launch({
       executablePath: vscodeExecutable,
       args: [
@@ -73,13 +70,9 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       await use(electronApp);
     } finally {
       // Ensure cleanup happens even if test fails
-      console.log('[desktopFixtures] Closing Electron app...');
       try {
         await electronApp.close();
-        console.log('[desktopFixtures] Electron app closed successfully');
-      } catch (error) {
-        console.error('[desktopFixtures] Error closing Electron app:', error);
-      }
+      } catch {}
     }
   },
 
@@ -89,16 +82,14 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
     // Capture console logs (especially errors) for debugging
     page.on('console', msg => {
-      const type = msg.type();
-      if (!['error', 'warning'].includes(type)) {
+      if (msg.type() !== 'error' || filterErrors([{ text: msg.text(), url: msg.location()?.url || '' }]).length === 0) {
         return;
       }
-      const text = msg.text();
-      console.log(`[Electron Console ${type}] ${text}`);
+      console.log(`[Electron Console Error] ${msg.text()}`);
       // Also log the location if available
-      const location = msg.location();
-      if (location?.url) {
-        console.log(`  at ${location.url}:${location.lineNumber}`);
+      const { url, lineNumber } = msg.location() ?? {};
+      if (url) {
+        console.log(`  at ${url}:${lineNumber}`);
       }
     });
 

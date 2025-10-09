@@ -31,7 +31,9 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'idbtransaction',
   'indexeddb database',
   // VS Code user data caching in web environment
-  'vscode-userdata:/user/caches/cachedconfigurations'
+  'vscode-userdata:/user/caches/cachedconfigurations',
+  // vscode liveshare ext
+  'vsliveshare'
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
