@@ -264,7 +264,7 @@ describe('Run LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  it.skip('Run All Tests via Code Lens action', async () => {
+  it('Run All Tests via Code Lens action', async () => {
     // Skipping as this feature is currently not working
     logTestStart(testSetup, 'Run All Tests via Code Lens action');
     const workbench = getWorkbench();
