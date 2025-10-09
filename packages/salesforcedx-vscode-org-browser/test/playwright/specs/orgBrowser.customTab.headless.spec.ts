@@ -51,8 +51,7 @@ test.describe('Org Browser - CustomTab retrieval', () => {
     });
 
     await test.step('wait for editor file to open (completion signal)', async () => {
-      const fileOpened = await orgBrowserPage.waitForFileToOpenInEditor(120_000);
-      expect(fileOpened).toBe(true);
+      await orgBrowserPage.waitForFileToOpenInEditor(120_000);
     });
 
     await test.step('verify editor is visible and capture final state', async () => {

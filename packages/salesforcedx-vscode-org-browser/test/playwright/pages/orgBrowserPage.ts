@@ -109,6 +109,7 @@ export class OrgBrowserPage {
     // there's an ugly scenario where the expand happens but none of the children are on the screen so you can't search them properly.
     await this.page.mouse.wheel(0, 50);
     await this.page.waitForTimeout(50);
+    await saveScreenshot(this.page, `expandFolder.${await folderItem.textContent()}.png`, true);
   }
 
   public async awaitMdapiResponse(): Promise<void> {
@@ -193,7 +194,7 @@ export class OrgBrowserPage {
 
     // Limit retries to prevent infinite loops (30 retries = ~15 seconds)
     await Effect.runPromise(Effect.retry(retryableFind(this.page, this.sidebar), Schedule.recurs(30)));
-
+    await saveScreenshot(this.page, `getMetadataItem.${metadataType}.${itemName}.png`, true);
     return metadataItem.first();
   }
 
@@ -203,7 +204,7 @@ export class OrgBrowserPage {
    * @param item The locator for the tree item
    * @returns True if the button was clicked successfully, false otherwise
    */
-  // eslint-disable-next-line class-methods-use-this
+
   public async clickRetrieveButton(item: Locator): Promise<boolean> {
     // First hover over the row to make action buttons visible
     await item.hover();
@@ -212,6 +213,7 @@ export class OrgBrowserPage {
     const retrieveButton = item.locator('.action-label[aria-label="Retrieve Metadata"]').first();
 
     await expect(retrieveButton, 'Retrieve button should be visible').toBeVisible({ timeout: 3000 });
+    await saveScreenshot(this.page, 'clickRetrieveButton.png', true);
     // Click the retrieve button
     await retrieveButton.click({ force: true });
     return true;
@@ -221,28 +223,24 @@ export class OrgBrowserPage {
   /**
    * Wait for any file to open in the editor
    * @param timeout Maximum time to wait in milliseconds
-   * @returns True if any file opened, false if timeout
+   * throws if no file opens
    */
-  public async waitForFileToOpenInEditor(timeout = 10000): Promise<boolean> {
-    try {
-      await this.page.waitForFunction(
-        () =>
-          Array.from(document.querySelectorAll('.monaco-workbench .tabs-container .tab'))
-            .map(tab => tab.textContent ?? '')
-            .filter(tab => tab !== '')
-            .filter(
-              // Look for any tab that's not the welcome/walkthrough tab
-              tabText =>
-                !tabText.includes('Welcome') &&
-                !tabText.includes('Walkthrough') &&
-                !tabText.includes('Get Started') &&
-                !tabText.includes('Settings')
-            ).length > 0,
-        { timeout }
-      );
-      return true;
-    } catch {
-      return false;
-    }
+  public async waitForFileToOpenInEditor(timeout = 10000): Promise<void> {
+    await this.page.waitForFunction(
+      () =>
+        Array.from(document.querySelectorAll('.monaco-workbench .tabs-container .tab'))
+          .map(tab => tab.textContent ?? '')
+          .filter(tab => tab !== '')
+          .filter(
+            // Look for any tab that's not the welcome/walkthrough tab
+            tabText =>
+              !tabText.includes('Welcome') &&
+              !tabText.includes('Walkthrough') &&
+              !tabText.includes('Get Started') &&
+              !tabText.includes('Settings')
+          ).length > 0,
+      { timeout }
+    );
+    await saveScreenshot(this.page, 'waitForFileToOpenInEditor.png', true);
   }
 }

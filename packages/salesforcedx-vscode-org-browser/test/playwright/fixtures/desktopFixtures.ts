@@ -40,6 +40,9 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     // Use subdirectory of workspace for user data (keeps everything isolated and together)
     const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
     await fs.mkdir(userDataDir, { recursive: true });
+    // Isolate extensions directory as well (to avoid parallel install conflicts)
+    const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
+    await fs.mkdir(extensionsDir, { recursive: true });
 
     // __dirname at runtime is '<pkg>/test/playwright/fixtures' → go up three levels to '<pkg>'
     const packageRoot = path.resolve(__dirname, '..', '..', '..');
@@ -52,6 +55,8 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       args: [
         // Unique user data directory for parallel test isolation
         `--user-data-dir=${userDataDir}`,
+        // Unique extensions directory to avoid parallel install conflicts
+        `--extensions-dir=${extensionsDir}`,
         // Load both extensions (org-browser depends on services)
         `--extensionDevelopmentPath=${extensionPath}`,
         `--extensionDevelopmentPath=${servicesPath}`,
@@ -63,11 +68,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       ],
 
       env: { ...process.env } as Record<string, string>,
-      timeout: 60_000,
-      recordVideo: {
-        dir: path.join(packageRoot, 'playwright-report', 'electron-videos')
-      },
-      tracesDir: path.join(packageRoot, 'playwright-report', 'electron-traces')
+      timeout: 60_000
     });
 
     try {

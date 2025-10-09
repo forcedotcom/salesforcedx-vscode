@@ -16,9 +16,8 @@ export default defineConfig({
     ? [['html', { open: 'never' }], ['line'], ['junit', { outputFile: 'test-results/junit-desktop.xml' }]]
     : [['html', { open: 'never' }], ['list']],
   use: {
-    trace: process.env.CI ? 'retain-on-failure' : 'on-first-retry',
-    screenshot: process.env.CI ? 'on' : 'only-on-failure',
-    video: process.env.CI ? 'on' : 'retain-on-failure',
+    trace: 'on',
+    screenshot: 'on',
     actionTimeout: 15000,
     viewport: { width: 1920, height: 1080 }
   },

@@ -75,8 +75,7 @@ test.describe('Org Browser - Foldered Report retrieval ', () => {
     });
 
     await test.step('wait for editor file to open (completion signal)', async () => {
-      const fileOpened = await orgBrowserPage.waitForFileToOpenInEditor(120_000);
-      expect(fileOpened).toBe(true);
+      await orgBrowserPage.waitForFileToOpenInEditor(120_000);
     });
 
     await test.step('verify editor shows the report tab and capture', async () => {
