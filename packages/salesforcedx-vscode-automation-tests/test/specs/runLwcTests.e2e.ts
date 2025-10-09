@@ -271,7 +271,7 @@ describe('Run LWC Tests', () => {
     const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
 
     // Click the "Run" code lens at the top of the class
-    const runAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Run');
+    const runAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Run All Tests');
     expect(runAllTestsOption).to.not.be.undefined;
     await runAllTestsOption!.click();
 

@@ -207,7 +207,7 @@ describe('Debug LWC Tests', () => {
     await retryOperation(
       async () => {
         log('Debug All Tests: Finding code lens');
-        const debugAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Debug');
+        const debugAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Debug All Tests');
         expect(debugAllTestsOption).to.not.be.undefined;
         log('Debug All Tests: Code lens found, waiting before click');
         await pause(Duration.seconds(2));
