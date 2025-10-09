@@ -90,30 +90,15 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     // Capture console logs (especially errors) for debugging
     page.on('console', msg => {
       const type = msg.type();
-      if (type === 'error' || type === 'warning') {
-        const text = msg.text();
-        console.log(`[Electron Console ${type}] ${text}`);
-        // Also log the location if available
-        const location = msg.location();
-        if (location?.url) {
-          console.log(`  at ${location.url}:${location.lineNumber}`);
-        }
-        // For AuthInfo errors, try to get more details from args
-        if (text.includes('AuthInfo')) {
-          const args = msg.args();
-          args.forEach(arg => {
-            arg
-              .jsonValue()
-              .then((val: unknown) => {
-                if (val && typeof val === 'object') {
-                  console.log('[AuthInfo error details]', JSON.stringify(val, null, 2));
-                }
-              })
-              .catch(() => {
-                /* ignore */
-              });
-          });
-        }
+      if (!['error', 'warning'].includes(type)) {
+        return;
+      }
+      const text = msg.text();
+      console.log(`[Electron Console ${type}] ${text}`);
+      // Also log the location if available
+      const location = msg.location();
+      if (location?.url) {
+        console.log(`  at ${location.url}:${location.lineNumber}`);
       }
     });
 
