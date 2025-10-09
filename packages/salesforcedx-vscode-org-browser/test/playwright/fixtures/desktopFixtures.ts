@@ -50,6 +50,10 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     const extensionPath = packageRoot;
     const servicesPath = path.resolve(packageRoot, '..', 'salesforcedx-vscode-services');
 
+    // Video directory for this test
+    const videosDir = path.join(packageRoot, 'test-results', 'videos');
+    await fs.mkdir(videosDir, { recursive: true });
+
     const electronApp = await electron.launch({
       executablePath: vscodeExecutable,
       args: [
@@ -68,7 +72,12 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       ],
 
       env: { ...process.env } as Record<string, string>,
-      timeout: 60_000
+      timeout: 60_000,
+      // Try the documented recordVideo option (https://playwright.dev/docs/api/class-electron#electron-launch-option-record-video)
+      recordVideo: {
+        dir: videosDir,
+        size: { width: 1920, height: 1080 }
+      }
     });
 
     try {
