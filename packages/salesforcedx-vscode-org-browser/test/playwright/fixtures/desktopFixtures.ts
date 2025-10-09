@@ -63,7 +63,11 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       ],
 
       env: { ...process.env } as Record<string, string>,
-      timeout: 60_000 // Give VS Code more time to launch
+      timeout: 60_000,
+      recordVideo: {
+        dir: path.join(packageRoot, 'playwright-report', 'electron-videos')
+      },
+      tracesDir: path.join(packageRoot, 'playwright-report', 'electron-traces')
     });
 
     try {

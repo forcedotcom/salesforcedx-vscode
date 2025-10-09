@@ -17,23 +17,17 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'sourcemap',
   'webPackagePaths.js',
   'workbench.web.main.nls.js',
-  // VS Code lifecycle noise
-  'Long running operations during shutdown',
-  // Marketplace/network optional features
-  'marketplace.visualstudio.com',
-  // Extensions not supported in web
-  "Activating extension 'vscode.typescript-language-features' failed",
-  // Generic non-fatal code expectation messages
-  'CodeExpectedError',
-  // Generic failed to load resources (paired with specific url filtering below)
-  'Failed to load resource',
   // IndexedDB shutdown noise in web
   'idbtransaction',
   'indexeddb database',
-  // VS Code user data caching in web environment
-  'vscode-userdata:/user/caches/cachedconfigurations',
-  // vscode liveshare ext
-  'vsliveshare'
+  'Long running operations during shutdown', // VS Code lifecycle noise
+  'marketplace.visualstudio.com', // Marketplace/network optional features
+  "Activating extension 'vscode.typescript-language-features' failed", // Extensions not supported in web
+  'CodeExpectedError', // Generic non-fatal code expectation messages
+  'Failed to load resource', // Generic failed to load resources (paired with specific url filtering below)
+  'vscode-userdata:/user/caches/cachedconfigurations', // VS Code user data caching in web environment
+  'vsliveshare', // vscode liveshare ext
+  'punycode' // known jsforce and transitive dep deprecation by node
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
