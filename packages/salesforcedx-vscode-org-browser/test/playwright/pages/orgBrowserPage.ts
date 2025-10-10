@@ -181,12 +181,14 @@ export class OrgBrowserPage {
 
     const retryableFind = (page: Page, sidebar: Locator): Effect.Effect<void, Error> =>
       Effect.gen(function* () {
-        yield* Effect.promise(() =>
-          sidebar
-            .getByRole('treeitem', { level: level - 1, name: metadataType, exact: true })
-            .locator('.monaco-icon-label-container')
-            .click()
-        );
+        yield* Effect.promise(async () => {
+          const mdTypeNode = sidebar.getByRole('treeitem', { level: level - 1, name: metadataType, exact: true });
+          if (!(await mdTypeNode.evaluate(el => el.classList.contains('codicon-tree-item-expanded')))) {
+            await expect(mdTypeNode).not.toContainClass('codicon-tree-item-loading');
+            // click to expand if not already
+            await mdTypeNode.click();
+          }
+        });
         yield* Effect.promise(() => page.waitForTimeout(1000));
         yield* Effect.promise(() => page.keyboard.type(itemName, { delay: typingSpeed }));
         yield* Effect.tryPromise({
