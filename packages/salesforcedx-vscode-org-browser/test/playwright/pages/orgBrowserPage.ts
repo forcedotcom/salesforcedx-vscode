@@ -87,27 +87,33 @@ export class OrgBrowserPage {
   }
 
   public async expandFolder(folderItem: Locator): Promise<void> {
+    const twistie = folderItem.locator('.monaco-tl-twistie');
     // Start waiting for the response, then click to trigger it.
     const expandedExpect = (): Promise<void> =>
-      expect(
-        folderItem.locator('.monaco-tl-twistie'),
-        'Folder twistie should show expanded state after metadata response'
-      ).toContainClass('codicon-tree-item-expanded', { timeout: 6_000 });
+      expect(twistie, 'Folder twistie should show expanded state after metadata response').toContainClass(
+        'codicon-tree-item-expanded',
+        { timeout: 6_000 }
+      );
 
     await Promise.all([
       folderItem.click({ timeout: 5000, delay: 100 }),
       // we need it to go from loading to expanded state
       ...(isDesktop
         ? [
-            expect(folderItem.locator('.monaco-tl-twistie'), 'Went to loading state')
+            expect(twistie, 'Went to loading state')
               .toContainClass('codicon-tree-item-loading', { timeout: 2_000 })
               .catch(() => undefined) // allow it to continue if it never hit loading state, but we at least delayed it before coming back to
               .then(() => expandedExpect())
           ]
         : [this.awaitMdapiResponse().then(() => expandedExpect())])
     ]);
+    if (!(await twistie.evaluate(el => el.classList.contains('codicon-tree-item-expanded')))) {
+      await folderItem.click();
+    }
+
     // there's an ugly scenario where the expand happens but none of the children are on the screen so you can't search them properly.
     await this.page.mouse.wheel(0, 50);
+
     await this.page.waitForTimeout(50);
     await saveScreenshot(this.page, `expandFolder.${await folderItem.textContent()}.png`, true);
   }
