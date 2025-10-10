@@ -1,7 +1,8 @@
 name: Commit Workflow
 on:
   push:
-    branches-ignore: [main, develop]
+    # temporarily run only playwright on this branch
+    branches-ignore: [main, develop, sm/e2e-on-desktop]
 
 jobs:
   build-and-test:
