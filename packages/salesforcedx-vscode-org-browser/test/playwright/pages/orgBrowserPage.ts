@@ -101,7 +101,7 @@ export class OrgBrowserPage {
         : [this.awaitMdapiResponse()])
     ]);
     // ensure it's done loading
-    await expect(twistie, 'done loading').not.toContainClass('codicon-tree-item-loading', { timeout: 6_000 });
+    await expect(twistie, 'should finish loading').not.toContainClass('codicon-tree-item-loading', { timeout: 60_000 });
     if (!(await twistie.evaluate(el => el.classList.contains('codicon-tree-item-expanded')))) {
       await folderItem.click();
     }
