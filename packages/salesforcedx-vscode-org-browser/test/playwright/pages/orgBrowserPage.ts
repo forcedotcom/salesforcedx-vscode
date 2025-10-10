@@ -111,9 +111,6 @@ export class OrgBrowserPage {
       { timeout: 6_000 }
     );
 
-    // there's an ugly scenario where the expand happens but none of the children are on the screen so you can't search them properly.
-    await this.page.mouse.wheel(0, 50);
-
     await this.page.waitForTimeout(50);
     await saveScreenshot(this.page, `expandFolder.${await folderItem.textContent()}.png`, true);
   }

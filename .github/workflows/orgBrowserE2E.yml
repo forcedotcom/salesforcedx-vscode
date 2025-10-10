@@ -131,6 +131,14 @@ jobs:
           path: packages/salesforcedx-vscode-org-browser/playwright-report
           if-no-files-found: ignore
 
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-desktop
+          path: packages/salesforcedx-vscode-org-browser/test-results
+          if-no-files-found: ignore
+
       - name: Cleanup scratch org
         if: always()
         continue-on-error: true
