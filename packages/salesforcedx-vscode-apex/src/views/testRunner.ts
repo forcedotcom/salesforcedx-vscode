@@ -30,30 +30,32 @@ export const runAllApexTests = async (testOutline: ApexTestOutlineProvider): Pro
   runApexTests(Array.from(testOutline.getTestStrings()), TestRunType.All);
 
 export const showErrorMessage = async (test: TestNode): Promise<void> => {
-  let testNode = test;
-  let position: vscode.Range | number = test.location!.range;
-  if (testNode instanceof ApexTestGroupNode) {
-    if (test.contextValue === 'apexTestGroup_Fail') {
-      const failedTest = test.children.find(testCase => testCase.contextValue === 'apexTest_Fail');
-      if (failedTest) {
-        testNode = failedTest;
-      }
-    }
-  }
-  if (testNode instanceof ApexTestNode) {
-    const errorMessage = testNode.errorMessage;
-    if (errorMessage && errorMessage !== '') {
-      const stackTrace = testNode.stackTrace;
-      position = parseInt(stackTrace.substring(stackTrace.indexOf('line') + 4, stackTrace.indexOf(',')), 10) - 1; // Remove one because vscode location is zero based
-      channelService.appendLine('-----------------------------------------');
-      channelService.appendLine(stackTrace);
-      channelService.appendLine(errorMessage);
-      channelService.appendLine('-----------------------------------------');
-      channelService.showChannelOutput();
-    }
+  // if it's a failing group, use the first failing test.  Otherwise, use the failing test itself
+  const testNode =
+    test instanceof ApexTestGroupNode && test.contextValue === 'apexTestGroup_Fail'
+      ? (test.children.find(testCase => testCase.contextValue === 'apexTest_Fail') ?? test)
+      : test;
+
+  if (testNode instanceof ApexTestNode && testNode.errorInfo) {
+    const stackTrace = testNode.errorInfo.stackTrace ?? '';
+    channelService.appendLine('-----------------------------------------');
+    channelService.appendLine(stackTrace);
+    channelService.appendLine(testNode.errorInfo.message ?? '');
+    channelService.appendLine('-----------------------------------------');
+    channelService.showChannelOutput();
   }
 
   if (testNode.location) {
+    const position =
+      testNode instanceof ApexTestNode && testNode.errorInfo
+        ? parseInt(
+            testNode.errorInfo.stackTrace?.substring(
+              testNode.errorInfo.stackTrace?.indexOf('line') + 4,
+              testNode.errorInfo.stackTrace?.indexOf(',') ?? 0
+            ) ?? '',
+            10
+          ) - 1
+        : testNode.location.range;
     await vscode.window.showTextDocument(testNode.location.uri);
     await updateSelection(position);
   }

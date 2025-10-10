@@ -145,38 +145,39 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
     const testResultOutput = await readFile(testResultFilePath);
     const testResultContent = JSON.parse(testResultOutput) as TestResult;
 
-    this.updateTestsFromLibrary(testResultContent);
+    updateTestsFromLibrary(this.apexTestMap)(testResultContent);
     this.onDidChangeTestData.fire(undefined);
   }
+}
 
-  private updateTestsFromLibrary(testResult: TestResult) {
-    const groups = new Set<ApexTestGroupNode>();
-    for (const test of testResult.tests) {
-      const { name, namespacePrefix } = test.apexClass;
-      const apexGroupName = namespacePrefix ? `${namespacePrefix}.${name}` : name;
+const getGroupName = (test: TestResult['tests'][number]) =>
+  test.apexClass.namespacePrefix ? `${test.apexClass.namespacePrefix}.${test.apexClass.name}` : test.apexClass.name;
 
-      const apexGroupNode = this.apexTestMap.get(apexGroupName);
+const getTestFullName = (test: TestResult['tests'][number]) =>
+  test.apexClass.namespacePrefix
+    ? `${test.apexClass.namespacePrefix}.${test.apexClass.name}.${test.methodName}`
+    : `${test.apexClass.name}.${test.methodName}`;
 
-      if (apexGroupNode instanceof ApexTestGroupNode) {
-        groups.add(apexGroupNode);
-      }
-
-      const testFullName = namespacePrefix
-        ? `${namespacePrefix}.${name}.${test.methodName}`
-        : `${name}.${test.methodName}`;
-      const apexTestNode = this.apexTestMap.get(testFullName);
-      if (apexTestNode instanceof ApexTestNode) {
-        apexTestNode.updateOutcome(getOutcomeFromApexTestResultOutcome(test.outcome));
-        if (apexTestNode.outcome === 'Fail') {
-          apexTestNode.errorMessage = test.message ?? '';
-          apexTestNode.stackTrace = test.stackTrace ?? '';
-          apexTestNode.description = `${apexTestNode.stackTrace}\n${apexTestNode.errorMessage}`;
-        }
+// side effect: mutates items in apexTestMap
+const updateTestsFromLibrary = (apexTestMap: Map<string, TestNode>) => (testResult: TestResult) => {
+  // first, update the individual tests
+  testResult.tests.map(test => {
+    const apexTestNode = apexTestMap.get(getTestFullName(test));
+    if (apexTestNode instanceof ApexTestNode) {
+      const outcome = getOutcomeFromApexTestResultOutcome(test.outcome);
+      apexTestNode.updateOutcome(outcome);
+      if (outcome === 'Fail') {
+        apexTestNode.errorInfo = { message: test.message ?? undefined, stackTrace: test.stackTrace ?? undefined };
+        apexTestNode.description = `${apexTestNode.errorInfo.stackTrace ?? ''}\n${apexTestNode.errorInfo.message ?? ''}`;
       }
     }
-    Array.from(groups).map(g => g.updatePassFailLabel());
-  }
-}
+  });
+  // then, update the parent groups (test classes) using the child outcomes
+  Array.from(new Set(testResult.tests.map(getGroupName))) // dedupe group names
+    .map(g => apexTestMap.get(g))
+    .filter(g => g instanceof ApexTestGroupNode)
+    .map(g => g.updatePassFailLabel());
+};
 
 export abstract class TestNode extends vscode.TreeItem {
   public children = new Array<TestNode>();
@@ -208,10 +209,6 @@ export abstract class TestNode extends vscode.TreeItem {
 }
 
 export class ApexTestGroupNode extends TestNode {
-  public passing: number = 0;
-  public failing: number = 0;
-  public skipping: number = 0;
-
   constructor(label: string, location: vscode.Location | null) {
     super(label, vscode.TreeItemCollapsibleState.Expanded, location);
   }
@@ -219,19 +216,9 @@ export class ApexTestGroupNode extends TestNode {
   public contextValue = 'apexTestGroup';
 
   public updatePassFailLabel() {
-    this.passing = 0;
-    this.failing = 0;
-    this.skipping = 0;
-    this.children.forEach(child => {
-      if (child instanceof ApexTestNode) {
-        this.passing += child.outcome === 'Pass' ? 1 : 0;
-        this.failing += child.outcome === 'Fail' ? 1 : 0;
-        this.skipping += child.outcome === 'Skip' ? 1 : 0;
-      }
-    });
-
-    if (this.passing + this.failing + this.skipping === this.children.length) {
-      this.updateOutcome(this.failing !== 0 ? 'Fail' : 'Pass');
+    const childTests = this.children.filter(child => child instanceof ApexTestNode);
+    if (childTests.every(child => child.outcome !== 'Not Run')) {
+      this.updateOutcome(childTests.some(child => child.outcome === 'Fail') ? 'Fail' : 'Pass');
     }
   }
 
@@ -245,9 +232,8 @@ export class ApexTestGroupNode extends TestNode {
 }
 
 export class ApexTestNode extends TestNode {
-  public errorMessage: string = '';
-  public stackTrace: string = '';
-  public readonly outcome: TestOutcome = 'Not Run';
+  public errorInfo?: { message?: string; stackTrace?: string };
+  public outcome: TestOutcome = 'Not Run';
 
   constructor(label: string, location: vscode.Location | null) {
     super(label, vscode.TreeItemCollapsibleState.None, location);
@@ -255,8 +241,9 @@ export class ApexTestNode extends TestNode {
 
   public updateOutcome(outcome: TestOutcome) {
     super.updateOutcome(outcome);
+    this.outcome = outcome;
     if (outcome === 'Pass') {
-      this.errorMessage = '';
+      this.errorInfo = undefined;
     }
   }
 
