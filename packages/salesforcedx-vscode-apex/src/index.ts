@@ -127,8 +127,9 @@ export const activate = async (context: vscode.ExtensionContext) => {
   };
 };
 
-const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =>
-  vscode.Disposable.from(
+const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable => {
+  const coverageToggle = new CodeCoverage(new StatusBarToggle());
+  return vscode.Disposable.from(
     vscode.commands.registerCommand('sf.anon.apex.debug.delegate', anonApexDebug),
     vscode.commands.registerCommand('sf.apex.debug.document', anonApexDebug),
     vscode.commands.registerCommand('sf.anon.apex.execute.document', anonApexExecute),
@@ -144,9 +145,7 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
     vscode.commands.registerCommand('sf.apex.test.method.run', apexTestMethodRunCodeAction),
     vscode.commands.registerCommand('sf.apex.test.method.run.delegate', apexTestMethodRunCodeActionDelegate),
     vscode.commands.registerCommand('sf.apex.test.run', apexTestRun),
-    vscode.commands.registerCommand('sf.apex.toggle.colorizer', () =>
-      new CodeCoverage(new StatusBarToggle()).toggleCoverage()
-    ),
+    vscode.commands.registerCommand('sf.apex.toggle.colorizer', () => coverageToggle.toggleCoverage()),
     vscode.commands.registerCommand('sf.apex.test.suite.create', apexTestSuiteCreate),
     vscode.commands.registerCommand('sf.apex.test.suite.run', apexTestSuiteRun),
     vscode.commands.registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd),
@@ -163,7 +162,7 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
       }
     )
   );
-
+};
 const registerTestView = (): vscode.Disposable => {
   const testOutlineProvider = getTestOutlineProvider();
   return vscode.Disposable.from(
