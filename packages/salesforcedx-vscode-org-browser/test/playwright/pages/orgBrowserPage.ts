@@ -86,9 +86,9 @@ export class OrgBrowserPage {
     await saveScreenshot(this.page, 'orgBrowserPage.openOrgBrowser.metadataTypesLoaded.png', true);
   }
 
-  public async expandFolder(folderItem: Locator): Promise<void> {
+  public async expandFolder(folderName: string): Promise<void> {
+    const folderItem = this.page.getByRole('treeitem', { name: folderName, exact: true });
     const twistie = folderItem.locator('.monaco-tl-twistie');
-
     await Promise.all([
       folderItem.click({ timeout: 5000, delay: 100 }),
       // we need it to go from loading to expanded state
@@ -102,9 +102,10 @@ export class OrgBrowserPage {
     ]);
     // ensure it's done loading
     await expect(twistie, 'should finish loading').not.toContainClass('codicon-tree-item-loading', { timeout: 60_000 });
-    if (!(await twistie.evaluate(el => el.classList.contains('codicon-tree-item-expanded')))) {
+    if (await twistie.evaluate(el => el.classList.contains('collapsed'))) {
       await folderItem.click();
     }
+    await expect(twistie, 'should finish loading').not.toContainClass('codicon-tree-item-loading', { timeout: 60_000 });
 
     await expect(twistie, 'Folder twistie should show expanded state after metadata response').toContainClass(
       'codicon-tree-item-expanded',
@@ -113,9 +114,28 @@ export class OrgBrowserPage {
 
     // there's an ugly scenario where the expand happens but none of the children are on the screen so you can't search them properly.
     await this.page.mouse.wheel(0, 50);
-
     await this.page.waitForTimeout(50);
-    await saveScreenshot(this.page, `expandFolder.${await folderItem.textContent()}.png`, true);
+
+    // locators get messed up because of the scroll
+    const folderItemAgain = this.page.getByRole('treeitem', { name: folderName, exact: true });
+    const twistieAgain = folderItemAgain.locator('.monaco-tl-twistie');
+
+    // tapping to refocus;  But that also closes it.  So we need to tap twice to reopen and ensure it's open
+    await Promise.all([
+      folderItemAgain.click(),
+      expect(twistieAgain, 'should be collapsed after scrolling').toContainClass('collapsed')
+    ]);
+
+    await expect(twistieAgain, 'should not be loading after collapse loading').not.toContainClass(
+      'codicon-tree-item-loading'
+    );
+
+    await Promise.all([
+      folderItemAgain.click(),
+      expect(twistieAgain, 'should not be collapssed').not.toContainClass('collapsed')
+    ]);
+
+    await saveScreenshot(this.page, `expandFolder.${await folderItemAgain.textContent()}.png`, true);
   }
 
   public async awaitMdapiResponse(): Promise<void> {
@@ -179,16 +199,8 @@ export class OrgBrowserPage {
       return metadataItem.first();
     }
 
-    const retryableFind = (page: Page, sidebar: Locator): Effect.Effect<void, Error> =>
+    const retryableFind = (page: Page): Effect.Effect<void, Error> =>
       Effect.gen(function* () {
-        yield* Effect.promise(async () => {
-          const mdTypeNode = sidebar.getByRole('treeitem', { level: level - 1, name: metadataType, exact: true });
-          if (!(await mdTypeNode.evaluate(el => el.classList.contains('codicon-tree-item-expanded')))) {
-            await expect(mdTypeNode).not.toContainClass('codicon-tree-item-loading');
-            // click to expand if not already
-            await mdTypeNode.click();
-          }
-        });
         yield* Effect.promise(() => page.waitForTimeout(1000));
         yield* Effect.promise(() => page.keyboard.type(itemName, { delay: typingSpeed }));
         yield* Effect.tryPromise({
@@ -201,7 +213,7 @@ export class OrgBrowserPage {
       });
 
     // Limit retries to prevent infinite loops (30 retries = ~15 seconds)
-    await Effect.runPromise(Effect.retry(retryableFind(this.page, this.sidebar), Schedule.recurs(30)));
+    await Effect.runPromise(Effect.retry(retryableFind(this.page), Schedule.recurs(30)));
     await saveScreenshot(this.page, `getMetadataItem.${metadataType}.${itemName}.png`, true);
     return metadataItem.first();
   }
