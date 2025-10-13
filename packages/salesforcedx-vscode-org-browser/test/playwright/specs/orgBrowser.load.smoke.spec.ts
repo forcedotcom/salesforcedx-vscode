@@ -4,24 +4,23 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { test, expect } from '@playwright/test';
+import { test } from '../fixtures';
+import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   filterErrors,
   filterNetworkErrors,
   waitForVSCodeWorkbench
-} from '../utils/headless-helpers';
+} from '../utils/helpers';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import { create } from '../utils/dreamhouseScratchOrgSetup';
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 
 test.describe('Org Browser headless smoke', () => {
-  test.beforeEach(async ({ browser, page }) => {
+  test.beforeEach(async ({ page }) => {
     const createResult = await create();
-    const { accessToken, instanceUrl, instanceApiVersion } = createResult;
-    const authFields = { accessToken, instanceUrl, instanceApiVersion };
-    await upsertScratchOrgAuthFieldsToSettings(page, authFields);
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
   });
 
   test('loads VS Code web and opens Org Browser activity', async ({ page }) => {

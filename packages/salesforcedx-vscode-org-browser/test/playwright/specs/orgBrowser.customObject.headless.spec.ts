@@ -4,35 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { test, expect } from '@playwright/test';
-import * as fs from 'node:fs/promises';
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
+import { test } from '../fixtures';
+import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { create } from '../utils/dreamhouseScratchOrgSetup';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
-const execAsync = promisify(exec);
-
-test.describe('Org Browser - CustomObject retrieval (headless)', () => {
-  test.setTimeout(10 * 60 * 1000);
-
-  let tmpRoot: string | undefined;
-  const createdScratch = false;
+test.describe('Org Browser - CustomObject retrieval', () => {
+  test.setTimeout(2 * 60 * 1000);
 
   test.beforeEach(async ({ page }) => {
     const createResult = await create();
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-  });
-
-  test.afterAll(async () => {
-    if (createdScratch) {
-      await execAsync('sf org delete scratch -o dreamhouse --no-prompt').catch(() => undefined);
-    }
-    if (tmpRoot) {
-      await fs.rm(tmpRoot, { recursive: true, force: true }).catch(() => undefined);
-    }
   });
 
   test('customobject headless: retrieve Broker__c', async ({ page }) => {
@@ -42,17 +26,16 @@ test.describe('Org Browser - CustomObject retrieval (headless)', () => {
       await orgBrowserPage.openOrgBrowser();
     });
 
-    const customObjectType = await test.step('find CustomObject type', async () => {
+    await test.step('find CustomObject type', async () => {
       const locator = await orgBrowserPage.findMetadataType('CustomObject');
-      await locator.hover({ timeout: 500 });
+      await locator.hover();
       await expect(locator).toMatchAriaSnapshot({ name: 'customobject-found' });
-      return locator;
     });
 
     const brokerItem = await test.step('expand CustomObject and locate Broker__c', async () => {
-      await orgBrowserPage.expandFolder(customObjectType);
+      await orgBrowserPage.expandFolder('CustomObject');
       const item = await orgBrowserPage.getMetadataItem('CustomObject', 'Broker__c');
-      await item.hover({ timeout: 500 });
+      await item.hover();
       await expect(item).toMatchAriaSnapshot({ name: 'customobject-broker__c' });
       return item;
     });
@@ -67,8 +50,7 @@ test.describe('Org Browser - CustomObject retrieval (headless)', () => {
     });
 
     await test.step('wait for editor file to open (completion signal)', async () => {
-      const fileOpened = await orgBrowserPage.waitForFileToOpenInEditor(120_000);
-      expect(fileOpened).toBe(true);
+      await orgBrowserPage.waitForFileToOpenInEditor(120_000);
     });
 
     await test.step('override confirmation for Broker__c', async () => {

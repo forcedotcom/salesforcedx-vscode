@@ -6,6 +6,7 @@
  */
 
 import type { Page } from '@playwright/test';
+import { isDesktop } from '../fixtures';
 
 type ConsoleError = { text: string; url?: string };
 type NetworkError = { status: number; url: string; description: string };
@@ -16,21 +17,17 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'sourcemap',
   'webPackagePaths.js',
   'workbench.web.main.nls.js',
-  // VS Code lifecycle noise
-  'Long running operations during shutdown',
-  // Marketplace/network optional features
-  'marketplace.visualstudio.com',
-  // Extensions not supported in web
-  "Activating extension 'vscode.typescript-language-features' failed",
-  // Generic non-fatal code expectation messages
-  'CodeExpectedError',
-  // Generic failed to load resources (paired with specific url filtering below)
-  'Failed to load resource',
   // IndexedDB shutdown noise in web
   'idbtransaction',
   'indexeddb database',
-  // VS Code user data caching in web environment
-  'vscode-userdata:/user/caches/cachedconfigurations'
+  'Long running operations during shutdown', // VS Code lifecycle noise
+  'marketplace.visualstudio.com', // Marketplace/network optional features
+  "Activating extension 'vscode.typescript-language-features' failed", // Extensions not supported in web
+  'CodeExpectedError', // Generic non-fatal code expectation messages
+  'Failed to load resource', // Generic failed to load resources (paired with specific url filtering below)
+  'vscode-userdata:/user/caches/cachedconfigurations', // VS Code user data caching in web environment
+  'vsliveshare', // vscode liveshare ext
+  'punycode' // known jsforce and transitive dep deprecation by node
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
@@ -78,8 +75,18 @@ export const filterNetworkErrors = (errors: NetworkError[]): NetworkError[] =>
     return !NON_CRITICAL_NETWORK_PATTERNS.some(p => u.includes(p.toLowerCase()) || d.includes(p.toLowerCase()));
   });
 
-export const waitForVSCodeWorkbench = async (page: Page): Promise<void> => {
-  await page.goto('/', { waitUntil: 'domcontentloaded' });
+/** Wait for VS Code workbench to load. For web, navigates to /. For desktop, just waits. */
+export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promise<void> => {
+  // Desktop: page is already loaded by Electron, no navigation possible
+  if (isDesktop) {
+    await page.waitForSelector('.monaco-workbench', { timeout: 60000 });
+    return;
+  }
+
+  // Web: navigate if requested, then wait
+  if (navigate) {
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+  }
   await page.waitForSelector('.monaco-workbench', { timeout: 60000 });
 };
 

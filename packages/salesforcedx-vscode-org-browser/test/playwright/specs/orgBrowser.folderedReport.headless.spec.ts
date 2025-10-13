@@ -4,14 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { test, expect } from '@playwright/test';
+import { test } from '../fixtures';
+import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { create } from '../utils/dreamhouseScratchOrgSetup';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
 /** Headless-like test for foldered Report retrieval */
-test.describe('Org Browser - Foldered Report retrieval (headless)', () => {
+test.describe('Org Browser - Foldered Report retrieval ', () => {
   test.setTimeout(10 * 60 * 1000);
 
   test.beforeEach(async ({ page }) => {
@@ -21,30 +22,32 @@ test.describe('Org Browser - Foldered Report retrieval (headless)', () => {
 
   test('foldered report headless: retrieve flow_orchestration_log from unfiled$public', async ({ page }) => {
     const orgBrowserPage = new OrgBrowserPage(page);
+    const reportType = 'Report';
     let reportName: string | undefined;
 
     await test.step('open Org Browser', async () => {
       await orgBrowserPage.openOrgBrowser();
     });
 
-    const reportType = await test.step('find Report type', async () => {
-      const locator = await orgBrowserPage.findMetadataType('Report');
-      await locator.hover({ timeout: 500 });
+    await test.step('find Report type, download not available', async () => {
+      const locator = await orgBrowserPage.findMetadataType(reportType);
+      await locator.hover();
       await expect(locator).toMatchAriaSnapshot({ name: 'report-found' });
-      return locator;
+      await expect(locator.locator('.action-label[aria-label="Retrieve Metadata"]')).toBeHidden();
     });
 
     const folderName = 'unfiled$public';
 
-    const reportFolder = await test.step('expand Report and locate unfiled$public folder', async () => {
+    await test.step('expand Report and locate unfiled$public folder, download not available', async () => {
+      await orgBrowserPage.findMetadataType(reportType);
       await orgBrowserPage.expandFolder(reportType);
       const folder = await orgBrowserPage.getMetadataItem('Report', folderName, 2);
       await expect(folder).toBeVisible();
-      await orgBrowserPage.expandFolder(folder);
-      return folder;
+      await expect(folder.locator('.action-label[aria-label="Retrieve Metadata"]')).toBeHidden();
+      await orgBrowserPage.expandFolder(folderName);
     });
 
-    const reportItem = await test.step('locate first report item in folder', async () => {
+    await test.step('locate first report item in folder', async () => {
       const level3 = await orgBrowserPage.getMetadataItem(
         'unfiled$public',
         'unfiled$public/flow_screen_prebuilt_report',
@@ -57,14 +60,12 @@ test.describe('Org Browser - Foldered Report retrieval (headless)', () => {
       return level3;
     });
 
-    await test.step('verify retrieve is not available at type/folder levels', async () => {
-      await reportType.hover();
-      await expect(reportType.locator('.action-label[aria-label="Retrieve Metadata"]')).toBeHidden();
-      await reportFolder.hover();
-      await expect(reportFolder.locator('.action-label[aria-label="Retrieve Metadata"]')).toBeHidden();
-    });
-
     await test.step('trigger retrieval on a single report', async () => {
+      const reportItem = await orgBrowserPage.getMetadataItem(
+        'unfiled$public',
+        'unfiled$public/flow_screen_prebuilt_report',
+        3
+      );
       const clicked = await orgBrowserPage.clickRetrieveButton(reportItem);
       expect(clicked).toBe(true);
     });
@@ -74,8 +75,7 @@ test.describe('Org Browser - Foldered Report retrieval (headless)', () => {
     });
 
     await test.step('wait for editor file to open (completion signal)', async () => {
-      const fileOpened = await orgBrowserPage.waitForFileToOpenInEditor(120_000);
-      expect(fileOpened).toBe(true);
+      await orgBrowserPage.waitForFileToOpenInEditor(120_000);
     });
 
     await test.step('verify editor shows the report tab and capture', async () => {
@@ -88,6 +88,11 @@ test.describe('Org Browser - Foldered Report retrieval (headless)', () => {
     });
 
     await test.step('override confirmation for a single report', async () => {
+      const reportItem = await orgBrowserPage.getMetadataItem(
+        'unfiled$public',
+        'unfiled$public/flow_screen_prebuilt_report',
+        3
+      );
       await orgBrowserPage.clickRetrieveButton(reportItem);
 
       const overwrite = page

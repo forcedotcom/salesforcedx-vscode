@@ -6,9 +6,9 @@
  */
 import { defineConfig, devices } from '@playwright/test';
 
-/** Headless Playwright configuration for CI/local runs (no CDP/devtools). */
+/** Web Playwright configuration for CI/local runs */
 export default defineConfig({
-  testDir: './test/web/headless',
+  testDir: './test/playwright/specs',
   fullyParallel: !process.env.CI,
   forbidOnly: !!process.env.CI,
   ...(process.env.CI ? { workers: 1 } : {}),
@@ -36,11 +36,12 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      retries: 2
+      retries: 2,
+      snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/chromium/{arg}{ext}'
     }
   ],
   webServer: {
-    command: 'node out/test/web/headless-server.js',
+    command: 'node out/test/playwright/web/headlessServer.js',
     url: 'http://localhost:3001',
     timeout: 120 * 1000,
     reuseExistingServer: !process.env.CI

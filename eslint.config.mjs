@@ -384,6 +384,7 @@ export default [
       'packages/salesforcedx**/test/jest/**/*',
       'packages/salesforcedx**/test/unit/**/*',
       'packages/salesforcedx**/test/web/**/*',
+      'packages/salesforcedx**/test/playwright/**/*',
       'packages/salesforcedx-vscode-automation-tests/**/*'
     ],
     plugins: {
