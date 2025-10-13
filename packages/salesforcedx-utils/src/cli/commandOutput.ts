@@ -14,7 +14,7 @@ export class CommandOutput {
   private stderrBuffer = '';
 
   public async getCmdResult(execution: CommandExecution): Promise<string> {
-    const hasJsonEnabled = execution.command?.args?.some(arg => arg === JSON_FLAG);
+    const hasJsonEnabled = execution.command?.args?.includes(JSON_FLAG);
     execution.stdoutSubject.subscribe(realData => {
       this.stdoutBuffer += realData.toString();
     });
