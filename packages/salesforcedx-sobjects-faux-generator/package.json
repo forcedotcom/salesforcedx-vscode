@@ -14,7 +14,7 @@
     "@salesforce/salesforcedx-utils-vscode": "64.17.1"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.18.4",
+    "@salesforce/core": "^8.23.2",
     "@types/jest": "^29.5.5",
     "jest": "^29.7.0",
     "jest-junit": "14.0.1",
