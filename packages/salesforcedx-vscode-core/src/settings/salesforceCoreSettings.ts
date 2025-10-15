@@ -21,7 +21,7 @@ import {
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED,
   ALL_EXCEPTION_CATCHER_ENABLED,
-  USE_NEW_ORG_BROWSER
+  USE_LEGACY_ORG_BROWSER
 } from '../constants';
 /**
  * A centralized location for interacting with sfdx-core settings.
@@ -107,8 +107,8 @@ export class SalesforceCoreSettings {
     return this.getConfigValue(ENV_SF_LOG_LEVEL, process.env.SF_LOG_LEVEL ?? 'fatal');
   }
 
-  public getUseNewOrgBrowser(): boolean {
-    return this.getConfigValue(USE_NEW_ORG_BROWSER, true);
+  public getUseLegacyOrgBrowser(): boolean {
+    return this.getConfigValue(USE_LEGACY_ORG_BROWSER, false);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

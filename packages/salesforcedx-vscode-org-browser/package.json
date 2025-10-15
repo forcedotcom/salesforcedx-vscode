@@ -85,7 +85,7 @@
         {
           "id": "sfdxOrgBrowser",
           "name": "Salesforce Org Browser",
-          "when": "config.salesforcedx-vscode-core.useNewOrgBrowser"
+          "when": "!config.salesforcedx-vscode-core.useLegacyOrgBrowser"
         }
       ]
     },

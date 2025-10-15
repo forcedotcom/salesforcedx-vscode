@@ -191,8 +191,8 @@ const registerOrgPickerCommands = (orgListParam: OrgList): vscode.Disposable => 
 };
 
 const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
-  const useNewOrgBrowser = salesforceCoreSettings.getUseNewOrgBrowser();
-  if (useNewOrgBrowser) {
+  const useLegacyOrgBrowser = salesforceCoreSettings.getUseLegacyOrgBrowser();
+  if (!useLegacyOrgBrowser) {
     return;
   }
   await orgBrowser.init(extensionContext);

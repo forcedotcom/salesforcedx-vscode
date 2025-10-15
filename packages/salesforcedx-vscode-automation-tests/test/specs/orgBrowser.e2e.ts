@@ -56,7 +56,7 @@ describe('Org Browser (Legacy)', () => {
     await tryToHideCopilot();
 
     // Set the org browser setting to use legacy implementation
-    await setSettingValue('salesforcedx-vscode-core.useNewOrgBrowser', false, true);
+    await setSettingValue('salesforcedx-vscode-core.useLegacyOrgBrowser', true, true);
 
     // Reload window to apply the setting
     await reloadWindow(Duration.seconds(10));
