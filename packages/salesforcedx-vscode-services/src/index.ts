@@ -18,6 +18,7 @@ import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
+import { SourceTrackingService } from './core/sourceTrackingService';
 import { closeExtensionScope, getExtensionScope } from './extensionScope';
 import { SdkLayer } from './observability/spans';
 import { fsPrefix } from './virtualFsProvider/constants';
@@ -42,6 +43,7 @@ export type SalesforceVSCodeServicesApi = {
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
+    SourceTrackingService: typeof SourceTrackingService;
     SettingsService: typeof SettingsService;
     SdkLayer: typeof SdkLayer;
     TargetOrgRef: typeof defaultOrgRef;
@@ -113,6 +115,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       MetadataDescribeService,
       MetadataRegistryService,
       MetadataRetrieveService,
+      SourceTrackingService,
       SettingsService,
       SdkLayer,
       TargetOrgRef: defaultOrgRef

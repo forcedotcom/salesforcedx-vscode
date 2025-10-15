@@ -21,7 +21,7 @@ const createConfigAggregator = (projectPath: string): Effect.Effect<ConfigAggreg
   Effect.tryPromise({
     try: () => ConfigAggregator.create({ projectPath }),
     catch: (error: unknown) => new Error(`Failed to get ConfigAggregator at ${projectPath}: ${String(error)}`)
-  }).pipe(Effect.withSpan('createConfigAggregator', { attributes: { projectPath } }));
+  }).pipe(Effect.withSpan('createConfigAggregator (cache miss)', { attributes: { projectPath } }));
 
 // Global cache - created once at module level, not scoped to any consumer
 const globalConfigCache = Effect.runSync(
