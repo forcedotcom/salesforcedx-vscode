@@ -117,8 +117,8 @@ const retrieve = (
           console.error(e);
           return new Error('Failed to retrieve metadata', { cause: e });
         }
-      })
-    ).pipe(Effect.withSpan('retrieve (API call)'));
+      }).pipe(Effect.withSpan('retrieve (API call)'))
+    );
 
     const retrieveOutcome = yield* Effect.matchCauseEffect(Fiber.join(retrieveFiber), {
       onFailure: cause =>
@@ -129,7 +129,9 @@ const retrieve = (
     });
 
     if (typeof retrieveOutcome !== 'string') {
-      yield* Effect.flatMap(SourceTrackingService, svc => svc.updateTrackingFromRetrieve(retrieveOutcome));
+      yield* Effect.flatMap(SourceTrackingService, svc => svc.updateTrackingFromRetrieve(retrieveOutcome)).pipe(
+        Effect.withSpan('MetadataRetrieveService.updateTrackingFromRetrieve')
+      );
     }
 
     return retrieveOutcome;
