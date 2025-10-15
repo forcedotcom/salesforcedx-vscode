@@ -122,7 +122,7 @@
         {
           "id": "metadata",
           "name": "Metadata",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && config.salesforcedx-vscode-core.useLegacyOrgBrowser"
         }
       ],
       "conflicts": [
@@ -957,6 +957,11 @@
           "type": "string",
           "default": null,
           "description": "%telemetry_tag_description%"
+        },
+        "salesforcedx-vscode-core.useLegacyOrgBrowser": {
+          "type": "boolean",
+          "default": false,
+          "description": "%use_legacy_org_browser_description%"
         }
       }
     },

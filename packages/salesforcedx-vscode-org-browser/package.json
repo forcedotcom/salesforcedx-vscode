@@ -84,7 +84,8 @@
       "metadata": [
         {
           "id": "sfdxOrgBrowser",
-          "name": "Salesforce Org Browser"
+          "name": "Salesforce Org Browser",
+          "when": "!config.salesforcedx-vscode-core.useLegacyOrgBrowser"
         }
       ]
     },

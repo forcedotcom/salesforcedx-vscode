@@ -14,8 +14,17 @@ import { AllServicesLayer, ExtensionProviderService } from './services/extension
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 
-export const activate = async (context: vscode.ExtensionContext): Promise<void> =>
-  Effect.runPromise(Effect.provide(activateEffect(context), AllServicesLayer));
+export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
+  const coreConfig = vscode.workspace.getConfiguration('salesforcedx-vscode-core');
+  const useLegacyOrgBrowser = coreConfig.get<boolean>('useLegacyOrgBrowser', false);
+
+  if (useLegacyOrgBrowser) {
+    console.log('Salesforce Org Browser extension disabled via setting (legacy org browser enabled)');
+    return;
+  }
+
+  return Effect.runPromise(Effect.provide(activateEffect(context), AllServicesLayer));
+};
 
 export const deactivate = async (): Promise<void> =>
   Effect.runPromise(Effect.provide(deactivateEffect, AllServicesLayer));

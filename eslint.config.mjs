@@ -42,7 +42,8 @@ export default [
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'scripts/vsce-bundled-extension.ts',
       'scripts/reportInstalls.ts',
-      '**/.vscode-test-web/**'
+      '**/.vscode-test-web/**',
+      '**/.vscode-test/**'
     ]
   },
   {
