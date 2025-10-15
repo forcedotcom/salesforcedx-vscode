@@ -1,0 +1,6 @@
+{
+  "name": "salesforcedx-vscode-apex-oas",
+  "version": "64.17.2",
+  "description": "Provides OpenAPI Specification generation for Apex REST and AuraEnabled classes",
+  "dependencies": []
+}

@@ -6,6 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
+import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from './oas/schemas';
 import {
   extensionUris,
   getJsonCandidate,
@@ -27,7 +28,6 @@ import { getVscodeCoreExtension } from './coreExtensionUtils';
 import OasProcessor from './oas/documentProcessorPipeline';
 import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 import GenerationInteractionLogger from './oas/generationInteractionLogger';
-import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from './oas/schemas';
 import { retrieveAAClassRestAnnotations, retrieveAAMethodRestAnnotations } from './settings';
 
 const DOT_SFDX = '.sfdx';

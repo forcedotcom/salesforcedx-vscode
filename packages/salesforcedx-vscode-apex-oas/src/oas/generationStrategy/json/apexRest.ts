@@ -9,7 +9,7 @@ import { DocumentSymbol } from 'vscode';
 import { nls } from '../../../messages';
 import { cleanupGeneratedDoc, hasValidRestAnnotations, parseOASDocFromJson } from '../../../oasUtils';
 import { retrieveAAClassRestAnnotations } from '../../../settings';
-import { getTelemetryService } from '../../../telemetry/telemetry';
+import { getTelemetryService } from '../../../telemetry';
 import GenerationInteractionLogger from '../../generationInteractionLogger';
 import {
   ApexClassOASEligibleResponse,
