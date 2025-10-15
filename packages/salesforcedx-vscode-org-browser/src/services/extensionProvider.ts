@@ -58,6 +58,7 @@ export const AllServicesLayer = Layer.unwrapEffect(
       api.services.SdkLayer,
       api.services.SettingsService.Default,
       api.services.WorkspaceService.Default,
+      api.services.SourceTrackingService.Default,
       api.services.ChannelServiceLayer('Salesforce Org Browser'),
       OrgBrowserRetrieveServiceLive
     );

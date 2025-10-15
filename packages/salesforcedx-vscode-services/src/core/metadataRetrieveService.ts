@@ -25,6 +25,7 @@ import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
+import { SourceTrackingService } from './sourceTrackingService';
 
 const buildComponentSetFromSource = (
   members: MetadataMember[],
@@ -58,7 +59,13 @@ const retrieve = (
 ): Effect.Effect<
   RetrieveResult | SuccessfulCancelResult,
   Error,
-  ConnectionService | ProjectService | WorkspaceService | ConfigService | SettingsService | MetadataRegistryService
+  | ConnectionService
+  | ProjectService
+  | WorkspaceService
+  | ConfigService
+  | SettingsService
+  | MetadataRegistryService
+  | SourceTrackingService
 > =>
   Effect.gen(function* () {
     const [connection, project, workspaceDescription, registryAccess] = yield* Effect.all(
@@ -113,13 +120,19 @@ const retrieve = (
       })
     ).pipe(Effect.withSpan('retrieve (API call)'));
 
-    return yield* Effect.matchCauseEffect(Fiber.join(retrieveFiber), {
+    const retrieveOutcome = yield* Effect.matchCauseEffect(Fiber.join(retrieveFiber), {
       onFailure: cause =>
         Cause.isInterruptedOnly(cause)
           ? Effect.succeed(Brand.nominal<SuccessfulCancelResult>()('User canceled'))
           : Effect.failCause(cause),
-      onSuccess: result => Effect.succeed(result)
+      onSuccess: outcome => Effect.succeed(outcome)
     });
+
+    if (typeof retrieveOutcome !== 'string') {
+      yield* Effect.flatMap(SourceTrackingService, svc => svc.updateTrackingFromRetrieve(retrieveOutcome));
+    }
+
+    return retrieveOutcome;
   }).pipe(Effect.withSpan('retrieve', { attributes: { members } }), Effect.provide(SdkLayer));
 
 export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()('MetadataRetrieveService', {
