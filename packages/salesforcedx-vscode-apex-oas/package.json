@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "icon": "images/VSCodeApexOAS.svg",
+  "icon": "images/VSCodeApexOAS.png",
   "galleryBanner": {
     "color": "#ECECEC",
     "theme": "light"
