@@ -30,7 +30,6 @@ const normalize = (start: string, p: string): string => {
 };
 
 const uriToFile = (uri: string): string => URI.parse(uri).fsPath;
-import * as vscode from 'vscode';
 
 // Mock VSCode API for workspace detection
 jest.mock('vscode', () => ({
@@ -66,7 +65,7 @@ jest.mock('vscode', () => ({
         },
     },
     Uri: {
-        file: (path: string) => ({ fsPath: path }),
+        file: (pth: string) => ({ fsPath: pth }),
     },
 }));
 
