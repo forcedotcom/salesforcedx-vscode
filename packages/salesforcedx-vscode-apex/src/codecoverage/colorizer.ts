@@ -10,7 +10,7 @@ import { SFDX_FOLDER, projectPaths, fileOrFolderExists, readFile } from '@salesf
 import { join, extname, basename } from 'node:path';
 import { Range, TextDocument, TextEditor, window, workspace } from 'vscode';
 import { channelService } from '../channels';
-import { IS_CLS_OR_TRIGGER, IS_TEST_REG_EXP } from '../constants';
+import { IS_TEST_REG_EXP } from '../constants';
 import { nls } from '../messages';
 import { coveredLinesDecorationType, uncoveredLinesDecorationType } from './decorations';
 import { StatusBarToggle } from './statusBarToggle';
@@ -63,7 +63,7 @@ const getCoverageData = async (): Promise<CoverageItem[] | CodeCoverageResult[]>
   return testResult.codecoverage ?? testResult.coverage.coverage;
 };
 
-const isApexMetadata = (filePath: string): boolean => IS_CLS_OR_TRIGGER.test(filePath);
+const isApexMetadata = (filePath: string): boolean => filePath.endsWith('.cls') || filePath.endsWith('.trigger');
 
 const getApexMemberName = (filePath: string): string =>
   isApexMetadata(filePath) ? basename(filePath, extname(filePath)) : '';

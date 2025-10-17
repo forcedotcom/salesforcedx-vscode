@@ -29,31 +29,23 @@ export type ApexTestMethod = {
   location: vscode.Location;
 };
 
-export class ApexLSPConverter {
-  public static toApexTestMethod(requestInfo: LSPApexTestMethod): ApexTestMethod {
-    const testLocation = ApexLSPConverter.toLocation(requestInfo.location);
-    return {
-      methodName: requestInfo.methodName,
-      definingType: requestInfo.definingType,
-      location: testLocation
-    };
-  }
+export const toApexTestMethod = (requestInfo: LSPApexTestMethod): ApexTestMethod => ({
+  ...requestInfo,
+  location: toLocation(requestInfo.location)
+});
 
-  public static toUri(lspUri: string): URI {
-    const uriString = lspUri;
-    const uriPath = URI.parse(uriString).path;
-    return URI.file(uriPath);
-  }
+const toUri = (lspUri: string): URI => {
+  const uriPath = URI.parse(lspUri).path;
+  return URI.file(uriPath);
+};
 
-  public static toLocation(lspLocation: LSPLocation): vscode.Location {
-    const actualUri = ApexLSPConverter.toUri(lspLocation.uri);
-    const actualStart = ApexLSPConverter.toPosition(lspLocation.range.start);
-    const actualEnd = ApexLSPConverter.toPosition(lspLocation.range.end);
-    const actualRange = new vscode.Range(actualStart, actualEnd);
-    return new vscode.Location(actualUri, actualRange);
-  }
+const toPosition = (lspPosition: LSPPosition): vscode.Position =>
+  new vscode.Position(lspPosition.line, lspPosition.character);
 
-  public static toPosition(lspPosition: LSPPosition): vscode.Position {
-    return new vscode.Position(lspPosition.line, lspPosition.character);
-  }
-}
+const toLocation = (lspLocation: LSPLocation): vscode.Location => {
+  const actualUri = toUri(lspLocation.uri);
+  const actualStart = toPosition(lspLocation.range.start);
+  const actualEnd = toPosition(lspLocation.range.end);
+  const actualRange = new vscode.Range(actualStart, actualEnd);
+  return new vscode.Location(actualUri, actualRange);
+};

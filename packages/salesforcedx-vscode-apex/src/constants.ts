@@ -19,10 +19,6 @@ const APEX_EXTENSION_NAME = 'salesforcedx-vscode-apex';
 export const VSCODE_APEX_EXTENSION_NAME = `salesforce.${APEX_EXTENSION_NAME}`;
 export const LSP_ERR = 'apexLSPError';
 
-export const PASS_RESULT = 'Pass';
-export const FAIL_RESULT = 'Fail';
-export const SKIP_RESULT = 'Skip';
-
 export const APEX_TESTS = 'ApexTests';
 export const API = {
   doneIndexing: 'indexer/done'
@@ -30,7 +26,6 @@ export const API = {
 export const UBER_JAR_NAME = 'apex-jorje-lsp.jar';
 export const APEX_LSP_ORPHAN = 'apexLSPOrphan';
 export const IS_TEST_REG_EXP = /@isTest/i;
-export const IS_CLS_OR_TRIGGER = /(\.cls|\.trigger)$/;
 export const APEX_CLASS_EXT = '.cls';
 export const APEX_TESTSUITE_EXT = '.testSuite-meta.xml';
 export const SF_LOG_LEVEL_SETTING = 'salesforcedx-vscode-core.SF_LOG_LEVEL';
