@@ -46,7 +46,8 @@ const extensionsToTrack = [
   'salesforcedx-vscode-lwc',
   'salesforcedx-vscode-visualforce',
   'salesforcedx-vscode',
-  'salesforcedx-vscode-expanded'
+  'salesforcedx-vscode-expanded',
+  'salesforce-metadata-visualizer'
 ];
 const eventName = 'installStats';
 const marketPlaces = { MICROSOFT: 'MS', OPENVSX: 'OPENVSX' } as const;

@@ -90,6 +90,14 @@ if (vsixFiles.length > 0) {
     logger('code-analyzer was not installed, continuing...');
   }
 
+  // Uninstall metadata visualizer
+  try {
+    logger('\n');
+    execSync(`${IDE} --uninstall-extension salesforce.salesforce-metadata-visualizer`, { stdio: 'inherit' });
+  } catch (error) {
+    logger('Metadata visualizer was not installed, continuing...');
+  }
+
   // Uninstall all existing Salesforce extensions
   EXTENSION_IDS.forEach(extensionId => {
     try {
