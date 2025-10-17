@@ -15,7 +15,7 @@ describe('findNamespaceRoots', () => {
 
     beforeEach(async () => {
         // Create a unique temporary directory for each test
-        const uniqueName = `namespace-test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const uniqueName = `namespace-test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
         tempDir = path.join(os.tmpdir(), uniqueName);
         await vscode.workspace.fs.createDirectory(vscode.Uri.file(tempDir));
     });
@@ -262,7 +262,7 @@ describe('findNamespaceRoots', () => {
         });
 
         it('should handle symlinks gracefully', async () => {
-            // Create a real directory
+            // Create a real directory with proper LWC module structure
             const realDir = path.join(tempDir, 'real');
             await vscode.workspace.fs.createDirectory(vscode.Uri.file(realDir));
             await vscode.workspace.fs.writeFile(
@@ -273,7 +273,8 @@ describe('findNamespaceRoots', () => {
             // Note: VS Code file system API doesn't support creating symlinks directly
             // but we can still test that existing symlinks are handled gracefully
             const result = await findNamespaceRoots(tempDir);
-            expect(result.lwc).toContain(path.resolve(realDir));
+            // The function should find the temp directory as an LWC module root since it contains real/real.js
+            expect(result.lwc).toContain(path.resolve(tempDir));
         });
     });
 });

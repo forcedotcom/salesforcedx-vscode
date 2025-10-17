@@ -49,7 +49,7 @@ const lintTypos = (document: TextDocument): Diagnostic[] => {
     return errors;
 };
 
-export default function lintLwcMarkup(document: TextDocument): Diagnostic[] {
+const lintLwcMarkup = (document: TextDocument): Diagnostic[] => {
     const source = document.getText();
     const file = URI.file(document.uri).fsPath;
     const filePath = path.parse(file);
@@ -57,7 +57,7 @@ export default function lintLwcMarkup(document: TextDocument): Diagnostic[] {
     const { warnings } = templateCompiler(source, fileName, {});
 
     let warningsLwc: Diagnostic[] = warnings.map((warning) => {
-        const { start = 0, length = 0 } = warning.location || { start: 0, length: 0 };
+        const { start = 0, length = 0 } = warning.location ?? { start: 0, length: 0 };
 
         return {
             range: toRange(document, start, length),
@@ -70,4 +70,6 @@ export default function lintLwcMarkup(document: TextDocument): Diagnostic[] {
     const warningsTypos: Diagnostic[] = lintTypos(document);
     warningsLwc = warningsLwc.concat(warningsTypos);
     return warningsLwc;
-}
+};
+
+export default lintLwcMarkup;

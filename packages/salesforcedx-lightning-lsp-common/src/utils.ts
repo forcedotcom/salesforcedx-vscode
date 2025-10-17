@@ -9,29 +9,25 @@ import equal from 'deep-equal';
 import * as jsonc from 'jsonc-parser';
 import { basename, extname, join, parse, relative, resolve, dirname } from 'node:path';
 import * as vscode from 'vscode';
-import { TextDocument, FileEvent, FileChangeType } from 'vscode-languageserver';
+import { FileEvent, FileChangeType } from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { BaseWorkspaceContext } from './baseContext';
 
 const RESOURCES_DIR = 'resources';
 
+export interface SfdxTsConfig {
+    compilerOptions?: {
+        paths?: TsConfigPaths;
+    };
+}
+
+export interface TsConfigPaths {
+    [key: string]: string[];
+}
+
 // Type guard for Record<string, unknown>
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
-
-const fileContainsLine = async (file: string, expectLine: string): Promise<boolean> => {
-    const trimmed = expectLine.trim();
-    try {
-        const content = await vscode.workspace.fs.readFile(vscode.Uri.file(file)).then((data) => data.toString());
-        for (const line of content.split('\n')) {
-            if (line.trim() === trimmed) {
-                return true;
-            }
-        }
-    } catch {
-        // File doesn't exist or can't be read
-    }
-    return false;
-};
 
 export const toResolvedPath = (uri: string): string => resolve(URI.parse(uri).fsPath);
 
@@ -143,21 +139,6 @@ export const getSfdxResource = (resourceName: string): string => join(__dirname,
 
 export const getCoreResource = (resourceName: string): string => join(__dirname, RESOURCES_DIR, 'core', resourceName);
 
-export const appendLineIfMissing = async (file: string, line: string): Promise<void> => {
-    const fileUri = vscode.Uri.file(file);
-    try {
-        await vscode.workspace.fs.stat(fileUri);
-        // File exists, check if line is missing
-        if (!(await fileContainsLine(file, line))) {
-            const content = await vscode.workspace.fs.readFile(fileUri).then((data) => data.toString());
-            await vscode.workspace.fs.writeFile(fileUri, Buffer.from(`${content}\n${line}\n`));
-        }
-    } catch {
-        // File doesn't exist, create it with the line
-        await vscode.workspace.fs.writeFile(fileUri, Buffer.from(`${line}\n`));
-    }
-};
-
 /**
  * Deep merges the 'from' object into the 'to' object
  * (assumes simple JSON config objects)
@@ -217,9 +198,9 @@ export const memoize = <T>(fn: () => T): (() => T) => {
     };
 };
 
-export const readJsonSync = async (file: string): Promise<Record<string, unknown>> => {
+export const readJsonSync = async (file: string): Promise<SfdxTsConfig> => {
     try {
-        const content = await vscode.workspace.fs.readFile(vscode.Uri.file(file)).then((data) => data.toString());
+        const content = await vscode.workspace.fs.readFile(vscode.Uri.file(file)).then((data) => Buffer.from(data).toString('utf8'));
         // jsonc.parse will return an object without comments.
         // Comments will be lost if this object is written back to file.
         // Individual properties should be updated directly via VS Code API to preserve comments.
@@ -231,6 +212,6 @@ export const readJsonSync = async (file: string): Promise<Record<string, unknown
     }
 };
 
-export const writeJsonSync = async (file: string, json: Record<string, unknown>): Promise<void> => {
+export const writeJsonSync = async (file: string, json: SfdxTsConfig): Promise<void> => {
     await vscode.workspace.fs.writeFile(vscode.Uri.file(file), Buffer.from(JSON.stringify(json, null, 4)));
 };

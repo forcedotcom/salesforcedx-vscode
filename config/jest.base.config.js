@@ -8,7 +8,7 @@ module.exports = {
   coverageReporters: ['lcov', 'text', 'json'],
   resetMocks: true,
   moduleNameMapper: {
-    '^vscode$': '<rootDir>/../../scripts/setup-jest.ts'
+    '^vscode$': '<rootDir>/../../config/__mocks__/vscode.js'
   }
   // This collectCoverageFrom will show coverage for all files in a projects, but slows down calculating coverage results.
   // Can be a good tool for measuring coverage of the project as a whole locally, but shouldn't be committed at this time.

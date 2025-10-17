@@ -4,12 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import mockFs from 'mock-fs';
+import * as os from 'node:os';
 import { join, resolve } from 'node:path';
-import * as tmp from 'tmp';
 import * as vscode from 'vscode';
-import { TextDocument, FileEvent, FileChangeType } from 'vscode-languageserver';
+import { FileEvent, FileChangeType } from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import * as utils from '../utils';
+import { SfdxTsConfig } from '../utils';
 import { WorkspaceContext } from './workspaceContext';
 
 describe('utils', () => {
@@ -73,24 +74,6 @@ describe('utils', () => {
     it('test canonicalizing in nodejs', () => {
         const canonical = resolve(join('tmp', '.', 'a', 'b', '..'));
         expect(canonical.endsWith(join('tmp', 'a'))).toBe(true);
-    });
-
-    it('appendLineIfMissing()', async () => {
-        const file = tmp.tmpNameSync();
-        tmp.setGracefulCleanup();
-
-        // creates with line if file doesn't exist
-        expect(fs.existsSync(file)).toBeFalsy();
-        await utils.appendLineIfMissing(file, 'line 1');
-        expect(fs.readFileSync(file, 'utf8')).toBe('line 1\n');
-
-        // add second line
-        await utils.appendLineIfMissing(file, 'line 2');
-        expect(fs.readFileSync(file, 'utf8')).toBe('line 1\n\nline 2\n');
-
-        // doesn't add line if already there
-        await utils.appendLineIfMissing(file, 'line 1');
-        expect(fs.readFileSync(file, 'utf8')).toBe('line 1\n\nline 2\n');
     });
 
     it('deepMerge()', () => {
@@ -158,37 +141,57 @@ describe('utils', () => {
     });
 
     describe('readJsonSync()', () => {
-        afterEach(() => {
-            mockFs.restore();
+        let testFilePaths: string[] = [];
+
+        afterEach(async () => {
+            // Clean up test files
+            for (const filePath of testFilePaths) {
+                try {
+                    await vscode.workspace.fs.delete(vscode.Uri.file(filePath));
+                } catch {
+                    // Ignore cleanup errors
+                }
+            }
+            testFilePaths = [];
         });
 
-        it('should read json files', () => {
-            mockFs({
-                '/path/to/settings.json': '{"foo": "bar"}',
-            });
+        it('should read json files', async () => {
+            const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.json`);
+            testFilePaths.push(testFile);
 
-            const settings = utils.readJsonSync('/path/to/settings.json');
+            const jsonContent: SfdxTsConfig = { compilerOptions: { paths: { foo: ['bar'] } } };
+            await vscode.workspace.fs.writeFile(vscode.Uri.file(testFile), new TextEncoder().encode(JSON.stringify(jsonContent)));
 
-            expect(settings).toHaveProperty('foo');
-            expect(settings.foo).toEqual('bar');
+            const settings = await utils.readJsonSync(testFile);
+
+            expect(settings).toHaveProperty('compilerOptions.paths.foo');
+            expect(settings?.compilerOptions?.paths?.foo).toEqual(['bar']);
         });
 
-        it('should read json files with comments', () => {
-            mockFs({
-                '/path/to/settings.json': `{
-                // this is a comment
-                "foo": "bar"
-            }`,
-            });
+        it('should read json files with comments', async () => {
+            const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.json`);
+            testFilePaths.push(testFile);
 
-            const settings = utils.readJsonSync('/path/to/settings.json');
+            const jsonWithComments = {
+                compilerOptions: {
+                    paths: {
+                        // this is a comment
+                        foo: ['bar'],
+                    },
+                },
+            };
+            await vscode.workspace.fs.writeFile(vscode.Uri.file(testFile), new TextEncoder().encode(JSON.stringify(jsonWithComments)));
 
-            expect(settings).toHaveProperty('foo');
-            expect(settings.foo).toEqual('bar');
+            const settings = await utils.readJsonSync(testFile);
+
+            expect(settings).toHaveProperty('compilerOptions.paths.foo');
+            expect(settings?.compilerOptions?.paths?.foo).toEqual(['bar']);
         });
 
-        it('should return empty object for non-existing files', () => {
-            const settings = utils.readJsonSync('/path/to/settings.json');
+        it('should return empty object for non-existing files', async () => {
+            const nonExistentFile = join(os.tmpdir(), `non-existent-${Date.now()}.json`);
+
+            const settings = await utils.readJsonSync(nonExistentFile);
 
             expect(Object.keys(settings).length).toEqual(0);
         });

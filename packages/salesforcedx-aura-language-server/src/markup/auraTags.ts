@@ -1,6 +1,12 @@
-import AuraIndexer from '../aura-indexer/indexer';
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { TagInfo, getHover } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { IAttributeData, IHTMLDataProvider, IValueData } from 'vscode-html-languageservice';
+import AuraIndexer from '../aura-indexer/indexer';
 
 let indexer: AuraIndexer;
 
@@ -11,7 +17,7 @@ const getAuraTags = (): Map<string, TagInfo> => {
     return new Map();
 };
 
-const getAuraByTag = (tag: string): TagInfo => {
+const getAuraByTag = (tag: string): TagInfo | undefined => {
     if (indexer) {
         return indexer.getAuraByTag(tag);
     }
@@ -25,7 +31,7 @@ export const setIndexer = (idx: AuraIndexer): void => {
 const getTagsData = (): { name: string; description?: string; attributes: IAttributeData[] }[] =>
     Array.from(getAuraTags()).map(([tag, tagInfo]) => ({
         name: tag,
-        description: getHover(tagInfo),
+        description: getHover(tagInfo) ?? undefined,
         attributes: tagInfo.attributes.map((attr) => ({
             name: attr.name,
             description: attr.name,

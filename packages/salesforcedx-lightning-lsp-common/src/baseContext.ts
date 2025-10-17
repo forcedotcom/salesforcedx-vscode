@@ -8,7 +8,7 @@
 import ejs from 'ejs';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { TextDocument } from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import { WorkspaceType, detectWorkspaceType, getSfdxProjectFile } from './shared';
 import * as utils from './utils';
 
@@ -38,7 +38,8 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 
 const readSfdxProjectConfig = async (root: string): Promise<SfdxProjectConfig> => {
     try {
-        const config: unknown = JSON.parse(await vscode.workspace.fs.readFile(vscode.Uri.file(getSfdxProjectFile(root))).then((data) => data.toString()));
+        const configText = await vscode.workspace.fs.readFile(vscode.Uri.file(getSfdxProjectFile(root))).then((data) => Buffer.from(data).toString('utf8'));
+        const config: unknown = JSON.parse(configText);
         if (!isRecord(config)) {
             throw new Error('Invalid config format');
         }
@@ -64,7 +65,7 @@ export const updateForceIgnoreFile = async (forceignorePath: string, addTsConfig
     let forceignoreContent = '';
     try {
         const data = await vscode.workspace.fs.readFile(vscode.Uri.file(forceignorePath));
-        forceignoreContent = data.toString();
+        forceignoreContent = Buffer.from(data).toString('utf8');
     } catch {
         // File doesn't exist, start with empty content
     }
@@ -108,14 +109,23 @@ export const getModulesDirs = async (
 
                 // Check for LWC components in new structure
                 const newLwcDir = path.join(newPkgDir, 'lwc');
-                if ((await vscode.workspace.fs.stat(vscode.Uri.file(newLwcDir))).type === vscode.FileType.Directory) {
-                    // Add the LWC directory itself, not individual components
-                    modulesDirs.push(newLwcDir);
-                } else {
-                    // Check for LWC components in old structure
-                    const oldLwcDir = path.join(oldPkgDir, 'lwc');
-                    if ((await vscode.workspace.fs.stat(vscode.Uri.file(oldLwcDir))).type === vscode.FileType.Directory) {
+                try {
+                    if ((await vscode.workspace.fs.stat(vscode.Uri.file(newLwcDir))).type === vscode.FileType.Directory) {
                         // Add the LWC directory itself, not individual components
+                        modulesDirs.push(newLwcDir);
+                    }
+                } catch {
+                    // New structure doesn't exist, check for LWC components in old structure
+                    const oldLwcDir = path.join(oldPkgDir, 'lwc');
+                    let pathExists = false;
+                    try {
+                        if ((await vscode.workspace.fs.stat(vscode.Uri.file(oldLwcDir))).type === vscode.FileType.Directory) {
+                            pathExists = true;
+                        }
+                    } catch {
+                        // path doesn't exist, skip
+                    }
+                    if (pathExists) {
                         modulesDirs.push(oldLwcDir);
                     }
                 }
@@ -126,11 +136,18 @@ export const getModulesDirs = async (
             break;
         case 'CORE_ALL':
             // For CORE_ALL, return the modules directories for each project
-            for (const project of await vscode.workspace.fs
-                .readDirectory(vscode.Uri.file(workspaceRoots[0]))
-                .then((entries) => entries.map(([name]) => name))) {
-                const modulesDir = path.join(workspaceRoots[0], project, 'modules');
-                if ((await vscode.workspace.fs.stat(vscode.Uri.file(modulesDir))).type === vscode.FileType.Directory) {
+            const projects = await vscode.workspace.fs.readDirectory(vscode.Uri.file(workspaceRoots[0])).then((entries) => entries.map(([name]) => name));
+            for (const project of projects) {
+                const modulesDir = path.resolve(workspaceRoots[0], project, 'modules');
+                let pathExists = false;
+                try {
+                    if ((await vscode.workspace.fs.stat(vscode.Uri.file(modulesDir))).type === vscode.FileType.Directory) {
+                        pathExists = true;
+                    }
+                } catch {
+                    // path doesn't exist, skip
+                }
+                if (pathExists) {
                     modulesDirs.push(modulesDir);
                 }
             }
@@ -139,7 +156,15 @@ export const getModulesDirs = async (
             // For CORE_PARTIAL, return the modules directory for each workspace root
             for (const ws of workspaceRoots) {
                 const modulesDir = path.join(ws, 'modules');
-                if ((await vscode.workspace.fs.stat(vscode.Uri.file(modulesDir))).type === vscode.FileType.Directory) {
+                let pathExists = false;
+                try {
+                    if ((await vscode.workspace.fs.stat(vscode.Uri.file(modulesDir))).type === vscode.FileType.Directory) {
+                        pathExists = true;
+                    }
+                } catch {
+                    // path doesn't exist, skip
+                }
+                if (pathExists) {
                     modulesDirs.push(modulesDir);
                 }
             }
@@ -158,7 +183,7 @@ export const getModulesDirs = async (
  * Holds information and utility methods for a workspace
  */
 export abstract class BaseWorkspaceContext {
-    public type: WorkspaceType = 'UNKNOWN';
+    public type: WorkspaceType;
     public workspaceRoots: string[];
 
     protected findNamespaceRootsUsingTypeCache: () => Promise<{ lwc: string[]; aura: string[] }>;
@@ -287,24 +312,35 @@ export abstract class BaseWorkspaceContext {
 
             // Skip if tsconfig.json already exists
             const tsconfigPath = path.join(modulesDir, 'tsconfig.json');
-            if ((await vscode.workspace.fs.stat(vscode.Uri.file(tsconfigPath))).type === vscode.FileType.File) {
-                continue;
+            try {
+                if ((await vscode.workspace.fs.stat(vscode.Uri.file(tsconfigPath))).type === vscode.FileType.File) {
+                    continue;
+                }
+            } catch {
+                // tsconfig.json doesn't exist, continue with jsconfig creation
             }
 
             try {
                 let jsconfigContent: string;
 
                 // If jsconfig already exists, read and update it
-                if ((await vscode.workspace.fs.stat(vscode.Uri.file(jsconfigPath))).type === vscode.FileType.File) {
+                let jsconfigExists = false;
+                try {
+                    jsconfigExists = (await vscode.workspace.fs.stat(vscode.Uri.file(jsconfigPath))).type === vscode.FileType.File;
+                } catch {
+                    // jsconfig.json doesn't exist
+                }
+
+                if (jsconfigExists) {
                     const existingConfig: unknown = JSON.parse(
-                        await vscode.workspace.fs.readFile(vscode.Uri.file(jsconfigPath)).then((data) => data.toString()),
+                        await vscode.workspace.fs.readFile(vscode.Uri.file(jsconfigPath)).then((data) => Buffer.from(data).toString('utf8')),
                     );
                     if (!isRecord(existingConfig)) {
                         throw new Error('Invalid existing config format');
                     }
                     const jsconfigTemplate = await vscode.workspace.fs
                         .readFile(vscode.Uri.file(utils.getSfdxResource('jsconfig-sfdx.json')))
-                        .then((data) => data.toString());
+                        .then((data) => Buffer.from(data).toString('utf8'));
                     const templateConfig: unknown = JSON.parse(jsconfigTemplate);
                     if (!isRecord(templateConfig)) {
                         throw new Error('Invalid template config format');
@@ -341,7 +377,7 @@ export abstract class BaseWorkspaceContext {
                     // Create new jsconfig from template
                     const jsconfigTemplate = await vscode.workspace.fs
                         .readFile(vscode.Uri.file(utils.getSfdxResource('jsconfig-sfdx.json')))
-                        .then((data) => data.toString());
+                        .then((data) => Buffer.from(data).toString('utf8'));
                     const relativeWorkspaceRoot = utils.relativePath(path.dirname(jsconfigPath), this.workspaceRoots[0]);
                     jsconfigContent = processTemplate(jsconfigTemplate, { project_root: relativeWorkspaceRoot });
                 }
@@ -366,15 +402,19 @@ export abstract class BaseWorkspaceContext {
 
             // Skip if tsconfig.json already exists
             const tsconfigPath = path.join(modulesDir, 'tsconfig.json');
-            if ((await vscode.workspace.fs.stat(vscode.Uri.file(tsconfigPath))).type === vscode.FileType.File) {
-                // Remove tsconfig.json if it exists (as per test expectation)
-                await vscode.workspace.fs.delete(vscode.Uri.file(tsconfigPath));
+            try {
+                if ((await vscode.workspace.fs.stat(vscode.Uri.file(tsconfigPath))).type === vscode.FileType.File) {
+                    // Remove tsconfig.json if it exists (as per test expectation)
+                    await vscode.workspace.fs.delete(vscode.Uri.file(tsconfigPath));
+                }
+            } catch {
+                // tsconfig.json doesn't exist, continue with jsconfig creation
             }
 
             try {
                 const jsconfigTemplate = await vscode.workspace.fs
                     .readFile(vscode.Uri.file(utils.getCoreResource('jsconfig-core.json')))
-                    .then((data) => data.toString());
+                    .then((data) => Buffer.from(data).toString('utf8'));
                 // For core workspaces, the typings are in the core directory, not the project directory
                 // Calculate relative path from modules directory to the core directory
                 const coreDir = this.type === 'CORE_ALL' ? this.workspaceRoots[0] : path.dirname(this.workspaceRoots[0]);
@@ -459,7 +499,7 @@ export abstract class BaseWorkspaceContext {
             // Load core settings template
             const coreSettingsTemplate = await vscode.workspace.fs
                 .readFile(vscode.Uri.file(utils.getCoreResource('settings-core.json')))
-                .then((data) => data.toString());
+                .then((data) => Buffer.from(data).toString('utf8'));
 
             // Merge template settings with provided settings
             Object.assign(settings, JSON.parse(coreSettingsTemplate));

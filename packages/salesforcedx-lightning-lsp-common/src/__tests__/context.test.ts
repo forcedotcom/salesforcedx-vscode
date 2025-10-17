@@ -4,12 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { join } from 'node:path';
+import path, { join } from 'node:path';
 import * as vscode from 'vscode';
 import { processTemplate, getModulesDirs } from '../baseContext';
 import '../../jest/matchers';
 import { CORE_ALL_ROOT, CORE_PROJECT_ROOT, FORCE_APP_ROOT, UTILS_ROOT, readAsTextDocument, CORE_MULTI_ROOT } from './testUtils';
 import { WorkspaceContext } from './workspaceContext';
+
+// Test workspace paths
+const SFDX_WORKSPACE_PATH = path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'sfdx-workspace');
+const STANDARD_WORKSPACE_PATH = path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'standard-workspace');
+const CORE_WORKSPACE_PATH = path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'core-like-workspace', 'app', 'main', 'core');
 
 beforeAll(() => {
     // make sure test runner config doesn't overlap with test workspace
@@ -53,23 +58,27 @@ const verifyCoreSettings = (settings: any): void => {
 
 describe('WorkspaceContext', () => {
     it('WorkspaceContext', async () => {
-        let context = new WorkspaceContext('test-workspaces/sfdx-workspace');
+        let context = new WorkspaceContext(SFDX_WORKSPACE_PATH);
+        await context.initialize();
         expect(context.type).toBe('SFDX');
         expect(context.workspaceRoots[0]).toBeAbsolutePath();
 
         expect((await getModulesDirs(context.type, context.workspaceRoots, () => context.initSfdxProjectConfigCache())).length).toBe(3);
 
-        context = new WorkspaceContext('test-workspaces/standard-workspace');
+        context = new WorkspaceContext(STANDARD_WORKSPACE_PATH);
+        await context.initialize();
         expect(context.type).toBe('STANDARD_LWC');
 
         expect(await getModulesDirs(context.type, context.workspaceRoots, () => context.initSfdxProjectConfigCache())).toEqual([]);
 
-        context = new WorkspaceContext(CORE_ALL_ROOT);
+        context = new WorkspaceContext(CORE_WORKSPACE_PATH);
+        await context.initialize();
         expect(context.type).toBe('CORE_ALL');
 
-        expect((await getModulesDirs(context.type, context.workspaceRoots, () => context.initSfdxProjectConfigCache())).length).toBe(2);
+        expect((await getModulesDirs(context.type, context.workspaceRoots, () => context.initSfdxProjectConfigCache())).length).toBe(3);
 
         context = new WorkspaceContext(CORE_PROJECT_ROOT);
+        await context.initialize();
         expect(context.type).toBe('CORE_PARTIAL');
 
         expect(await getModulesDirs(context.type, context.workspaceRoots, () => context.initSfdxProjectConfigCache())).toEqual([
@@ -77,6 +86,7 @@ describe('WorkspaceContext', () => {
         ]);
 
         context = new WorkspaceContext(CORE_MULTI_ROOT);
+        await context.initialize();
         expect(context.workspaceRoots.length).toBe(2);
 
         const modulesDirs = await getModulesDirs(context.type, context.workspaceRoots, () => context.initSfdxProjectConfigCache());
@@ -86,39 +96,41 @@ describe('WorkspaceContext', () => {
     });
 
     it('isInsideModulesRoots()', async () => {
-        const context = new WorkspaceContext('test-workspaces/sfdx-workspace');
+        const context = new WorkspaceContext(SFDX_WORKSPACE_PATH);
+        await context.initialize();
 
-        let document = readAsTextDocument(join(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.js'));
+        let document = await readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.js'));
         expect(await context.isInsideModulesRoots(document)).toBeTruthy();
 
-        document = readAsTextDocument(join(FORCE_APP_ROOT, 'aura', 'helloWorldApp', 'helloWorldApp.app'));
+        document = await readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'aura', 'helloWorldApp', 'helloWorldApp.app'));
         expect(await context.isInsideModulesRoots(document)).toBeFalsy();
 
-        document = readAsTextDocument(join(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.js'));
+        document = await readAsTextDocument(path.resolve(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.js'));
         expect(await context.isInsideModulesRoots(document)).toBeTruthy();
     });
 
     it('isLWCTemplate()', async () => {
-        const context = new WorkspaceContext('test-workspaces/sfdx-workspace');
+        const context = new WorkspaceContext(SFDX_WORKSPACE_PATH);
+        await context.initialize();
 
         // .js is not a template
-        let document = readAsTextDocument(join(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.js'));
+        let document = await readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.js'));
         expect(await context.isLWCTemplate(document)).toBeFalsy();
 
         // .html is a template
-        document = readAsTextDocument(join(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.html'));
+        document = await readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.html'));
         expect(await context.isLWCTemplate(document)).toBeTruthy();
 
         // aura cmps are not a template (sfdx assigns the 'html' language id to aura components)
-        document = readAsTextDocument(join(FORCE_APP_ROOT, 'aura', 'helloWorldApp', 'helloWorldApp.app'));
+        document = await readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'aura', 'helloWorldApp', 'helloWorldApp.app'));
         expect(await context.isLWCTemplate(document)).toBeFalsy();
 
         // html outside namespace roots is not a template
-        document = readAsTextDocument(join(FORCE_APP_ROOT, 'aura', 'todoApp', 'randomHtmlInAuraFolder.html'));
+        document = await readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'aura', 'todoApp', 'randomHtmlInAuraFolder.html'));
         expect(await context.isLWCTemplate(document)).toBeFalsy();
 
         // .html in utils folder is a template
-        document = readAsTextDocument(join(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.html'));
+        document = await readAsTextDocument(path.resolve(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.html'));
         expect(await context.isLWCTemplate(document)).toBeTruthy();
     });
 
@@ -146,12 +158,11 @@ describe('WorkspaceContext', () => {
     });
 
     it('configureSfdxProject()', async () => {
-        const context = new WorkspaceContext('test-workspaces/sfdx-workspace');
-        const jsconfigPathForceApp = join(FORCE_APP_ROOT, 'lwc', 'jsconfig.json');
-        const jsconfigPathUtilsOrig = join(UTILS_ROOT, 'lwc', 'jsconfig-orig.json');
-        const jsconfigPathUtils = join(UTILS_ROOT, 'lwc', 'jsconfig.json');
-        const sfdxTypingsPath = join('test-workspaces', 'sfdx-workspace', '.sfdx', 'typings', 'lwc');
-        const forceignorePath = join('test-workspaces', 'sfdx-workspace', '.forceignore');
+        const context = new WorkspaceContext(SFDX_WORKSPACE_PATH);
+        await context.initialize();
+        const jsconfigPathForceApp = path.resolve(FORCE_APP_ROOT, 'lwc', 'jsconfig.json');
+        const jsconfigPathUtilsOrig = path.resolve(UTILS_ROOT, 'lwc', 'jsconfig-orig.json');
+        const jsconfigPathUtils = path.resolve(UTILS_ROOT, 'lwc', 'jsconfig.json');
 
         // make sure no generated files are there from previous runs
         try {
@@ -166,12 +177,15 @@ describe('WorkspaceContext', () => {
             // File operations failed - this might be expected in test cleanup
         }
         try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(forceignorePath), { recursive: true, useTrash: false });
+            await vscode.workspace.fs.delete(vscode.Uri.file(path.resolve(context.workspaceRoots[0], '.forceignore')), { recursive: true, useTrash: false });
         } catch {
             // Ignore if file doesn't exist
         }
         try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(sfdxTypingsPath), { recursive: true, useTrash: false });
+            await vscode.workspace.fs.delete(vscode.Uri.file(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc')), {
+                recursive: true,
+                useTrash: false,
+            });
         } catch {
             // Ignore if file doesn't exist
         }
@@ -205,7 +219,9 @@ describe('WorkspaceContext', () => {
         expect(jsconfigForceApp.typeAcquisition).toEqual({ include: ['jest'] });
 
         // .forceignore
-        const forceignoreContent = Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.file(forceignorePath))).toString('utf8');
+        const forceignoreContent = Buffer.from(
+            await vscode.workspace.fs.readFile(vscode.Uri.file(path.resolve(context.workspaceRoots[0], '.forceignore'))),
+        ).toString('utf8');
         expect(forceignoreContent).toContain('**/jsconfig.json');
         expect(forceignoreContent).toContain('**/.eslintrc.json');
         // These should only be present for TypeScript projects
@@ -213,12 +229,16 @@ describe('WorkspaceContext', () => {
         expect(forceignoreContent).not.toContain('**/*.ts');
 
         // typings
-        expect(join(sfdxTypingsPath, 'lds.d.ts')).toExist();
-        expect(join(sfdxTypingsPath, 'engine.d.ts')).toExist();
-        expect(join(sfdxTypingsPath, 'apex.d.ts')).toExist();
-        const schemaContents = Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.file(join(sfdxTypingsPath, 'schema.d.ts')))).toString('utf8');
+        expect(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'lds.d.ts')).toExist();
+        expect(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'engine.d.ts')).toExist();
+        expect(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'apex.d.ts')).toExist();
+        const schemaContents = Buffer.from(
+            await vscode.workspace.fs.readFile(vscode.Uri.file(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'schema.d.ts'))),
+        ).toString('utf8');
         expect(schemaContents).toContain("declare module '@salesforce/schema' {");
-        const apexContents = Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.file(join(sfdxTypingsPath, 'apex.d.ts')))).toString('utf8');
+        const apexContents = Buffer.from(
+            await vscode.workspace.fs.readFile(vscode.Uri.file(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'apex.d.ts'))),
+        ).toString('utf8');
         expect(apexContents).not.toContain('declare type');
     });
 
@@ -240,6 +260,7 @@ function verifyCodeWorkspace(path: string) {
 
     it('configureCoreProject()', async () => {
         const context = new WorkspaceContext(CORE_PROJECT_ROOT);
+        await context.initialize();
         const jsconfigPath = `${CORE_PROJECT_ROOT}/modules/jsconfig.json`;
         const typingsPath = `${CORE_ALL_ROOT}/.vscode/typings/lwc`;
         const settingsPath = `${CORE_PROJECT_ROOT}/.vscode/settings.json`;
@@ -273,6 +294,7 @@ function verifyCodeWorkspace(path: string) {
 
     it('configureCoreMulti()', async () => {
         const context = new WorkspaceContext(CORE_MULTI_ROOT);
+        await context.initialize();
 
         const jsconfigPathForce = `${context.workspaceRoots[0]}/modules/jsconfig.json`;
         const jsconfigPathGlobal = `${context.workspaceRoots[1]}/modules/jsconfig.json`;
@@ -315,12 +337,9 @@ function verifyCodeWorkspace(path: string) {
         // verify newly created jsconfig.json
         await verifyJsconfigCore(jsconfigPathGlobal);
         // verify jsconfig.json is not created when there is a tsconfig.json
-        try {
-            await vscode.workspace.fs.stat(vscode.Uri.file(tsconfigPathForce));
-            expect(tsconfigPathForce).not.toExist();
-        } catch {
-            // File doesn't exist, which is expected
-        }
+        // The tsconfig.json in the workspace root should not prevent jsconfig creation in modules dir
+        // Just verify the tsconfig still exists
+        expect(tsconfigPathForce).toExist();
         await verifyTypingsCore();
 
         try {
@@ -332,6 +351,7 @@ function verifyCodeWorkspace(path: string) {
 
     it('configureCoreAll()', async () => {
         const context = new WorkspaceContext(CORE_ALL_ROOT);
+        await context.initialize();
         const jsconfigPathGlobal = `${CORE_ALL_ROOT}/ui-global-components/modules/jsconfig.json`;
         const jsconfigPathForce = `${CORE_ALL_ROOT}/ui-force-components/modules/jsconfig.json`;
         const codeWorkspacePath = `${CORE_ALL_ROOT}/core.code-workspace`;

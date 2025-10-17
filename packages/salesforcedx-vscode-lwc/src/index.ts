@@ -45,7 +45,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   });
 
   // If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = lspCommon.detectWorkspaceType(workspaceUris);
+  const workspaceType = await lspCommon.detectWorkspaceType(workspaceUris);
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {

@@ -20,12 +20,13 @@ export {
     getBasename,
     getSfdxResource,
     getCoreResource,
-    appendLineIfMissing,
     deepMerge,
     elapsedMillis,
     memoize,
     readJsonSync,
     writeJsonSync,
+    SfdxTsConfig,
+    TsConfigPaths,
 } from './utils';
 
 // Re-export from base-context

@@ -26,7 +26,7 @@
     "include": [
         "src/**/*.ts",
         "typings/*.d.ts",
-        // "jest/*.js"
+        "jest/*.ts"
     ],
 
     "exclude": [

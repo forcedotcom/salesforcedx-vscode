@@ -58,7 +58,7 @@ export const detectWorkspaceHelper = async (root: string): Promise<WorkspaceType
         const packageJsonUri = vscode.Uri.file(packageJson);
         await vscode.workspace.fs.stat(packageJsonUri);
 
-        const packageInfo = JSON.parse(await vscode.workspace.fs.readFile(packageJsonUri).then((data) => data.toString()));
+        const packageInfo = JSON.parse(await vscode.workspace.fs.readFile(packageJsonUri).then((data) => Buffer.from(data).toString('utf8')));
         const dependencies = Object.keys(packageInfo.dependencies ?? {});
         const devDependencies = Object.keys(packageInfo.devDependencies ?? {});
         const allDependencies = [...dependencies, ...devDependencies];
@@ -87,12 +87,10 @@ export const detectWorkspaceHelper = async (root: string): Promise<WorkspaceType
         }
 
         return 'STANDARD';
-    } catch (e) {
+    } catch {
         // Log error and fallback to setting workspace type to Unknown
-        console.error(`Error encountered while trying to detect workspace type ${e}`);
     }
 
-    console.error('unknown workspace type:', root);
     return 'UNKNOWN';
 };
 
@@ -107,7 +105,6 @@ export const detectWorkspaceType = async (workspaceRoots: string[]): Promise<Wor
     for (const root of workspaceRoots) {
         const type = await detectWorkspaceHelper(root);
         if (type !== 'CORE_PARTIAL') {
-            console.error('unknown workspace type');
             return 'UNKNOWN';
         }
     }

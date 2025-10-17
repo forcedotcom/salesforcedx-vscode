@@ -1,14 +1,20 @@
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 import { Indexer, TagInfo, createTagInfo, createAttributeInfo, elapsedMillis } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { componentFromFile, componentFromDirectory } from '../util/component-util';
-import { Location } from 'vscode-languageserver';
-import * as auraUtils from '../aura-utils';
-import * as fs from 'fs';
 import LineColumnFinder from 'line-column';
-import URI from 'vscode-uri';
-import EventsEmitter from 'events';
-import { parse } from '../aura-utils';
+import EventsEmitter from 'node:events';
+import * as vscode from 'vscode';
 import { Node } from 'vscode-html-languageservice';
-import { AuraWorkspaceContext } from '../context/aura-context';
+import { Location } from 'vscode-languageserver';
+import URI from 'vscode-uri';
+import * as auraUtils from '../auraUtils';
+import { parse } from '../auraUtils';
+import { AuraWorkspaceContext } from '../context/auraContext';
+import { componentFromFile, componentFromDirectory } from '../util/componentUtil';
 
 export default class AuraIndexer implements Indexer {
     public readonly eventEmitter = new EventsEmitter();
@@ -49,7 +55,7 @@ export default class AuraIndexer implements Indexer {
         return [...this.AURA_NAMESPACES];
     }
 
-    public getAuraByTag(tag: string): TagInfo {
+    public getAuraByTag(tag: string): TagInfo | undefined {
         return this.getAuraTags().get(tag);
     }
 
@@ -59,13 +65,18 @@ export default class AuraIndexer implements Indexer {
     }
 
     public async indexFile(file: string, sfdxProject: boolean): Promise<TagInfo | undefined> {
-        if (!fs.existsSync(file)) {
+        let uri: vscode.Uri;
+        try {
+            uri = vscode.Uri.file(file);
+            await vscode.workspace.fs.stat(uri);
+        } catch {
             this.clearTagsforFile(file, sfdxProject);
             return;
         }
-        const markup = await fs.promises.readFile(file, 'utf-8');
+        const content = await vscode.workspace.fs.readFile(uri);
+        const markup = new TextDecoder().decode(content);
         const result = parse(markup);
-        const tags = [];
+        const tags: Node[] = [];
         for (const root of result.roots) {
             tags.push(...this.searchAura(root));
         }
@@ -81,18 +92,17 @@ export default class AuraIndexer implements Indexer {
         }
 
         const attributeInfos = tags
-            .filter((tag) => tag.tag.startsWith('aura:attribute'))
+            .filter((tag) => tag.tag?.startsWith('aura:attribute'))
             .filter(
                 (node) =>
-                    (node.parent && (node.parent.tag === 'aura:application' || node.parent.tag === 'aura:component')) ||
-                    node.parent.tag === 'aura:event' ||
-                    node.parent.tag === 'aura:interface',
+                    (node.parent && (node.parent.tag === 'aura:application' || node.parent.tag === 'aura:component')) ??
+                    (node?.parent?.tag === 'aura:event' || node?.parent?.tag === 'aura:interface'),
             )
             .map((node) => {
-                const attributes = node.attributes || {};
-                const documentation = this.trimQuotes(attributes.description);
-                const jsName = this.trimQuotes(attributes.name);
-                const type = this.trimQuotes(attributes.type);
+                const attributes = node.attributes ?? {};
+                const documentation = this.trimQuotes(attributes.description ?? '');
+                const jsName = this.trimQuotes(attributes.name ?? '');
+                const type = this.trimQuotes(attributes.type ?? '');
                 const startColumn = new LineColumnFinder(markup).fromIndex(node.start);
                 const endColumn = new LineColumnFinder(markup).fromIndex(node.end - 1);
 
@@ -118,7 +128,7 @@ export default class AuraIndexer implements Indexer {
     }
 
     private async indexCustomComponents(): Promise<void> {
-        const startTime = process.hrtime();
+        const startTime = globalThis.performance.now();
         const markupfiles = await this.context.findAllAuraMarkup();
 
         for (const file of markupfiles) {
@@ -133,7 +143,7 @@ export default class AuraIndexer implements Indexer {
 
     private clearTagsforFile(file: string, sfdxProject: boolean): void {
         const name = componentFromFile(file, sfdxProject);
-        this.deleteCustomTag(name);
+        this.deleteCustomTag(name ?? '');
     }
 
     private deleteCustomTag(tag: string): void {
@@ -142,8 +152,8 @@ export default class AuraIndexer implements Indexer {
 
         this.eventEmitter.emit('delete', tag);
     }
-    private setAuraNamespaceTag(namespace: string): void {
-        if (!this.AURA_NAMESPACES.has(namespace)) {
+    private setAuraNamespaceTag(namespace: string | undefined): void {
+        if (namespace && !this.AURA_NAMESPACES.has(namespace)) {
             this.AURA_NAMESPACES.add(namespace);
             this.eventEmitter.emit('set-namespace', namespace);
         }
@@ -151,18 +161,20 @@ export default class AuraIndexer implements Indexer {
 
     private setCustomEventTag(info: TagInfo): void {
         this.setAuraNamespaceTag(info.namespace);
-        this.AURA_EVENTS.set(info.name, info);
+        this.AURA_EVENTS.set(info.name ?? '', info);
         this.eventEmitter.emit('set', info);
     }
 
     private setCustomTag(info: TagInfo): void {
         this.setAuraNamespaceTag(info.namespace);
-        this.AURA_TAGS.set(info.name, info);
+        this.AURA_TAGS.set(info.name ?? '', info);
         this.eventEmitter.emit('set', info);
     }
 
     private async loadSystemTags(): Promise<void> {
-        const data = await fs.promises.readFile(auraUtils.getAuraSystemResourcePath(), 'utf-8');
+        const uri = vscode.Uri.file(auraUtils.getAuraSystemResourcePath());
+        const content = await vscode.workspace.fs.readFile(uri);
+        const data = new TextDecoder().decode(content);
         const auraSystem = JSON.parse(data);
         for (const tag in auraSystem) {
             if (auraSystem.hasOwnProperty(tag) && typeof tag === 'string') {
@@ -184,7 +196,9 @@ export default class AuraIndexer implements Indexer {
     }
 
     private async loadStandardComponents(): Promise<void> {
-        const data = await fs.promises.readFile(auraUtils.getAuraStandardResourcePath(), 'utf-8');
+        const uri = vscode.Uri.file(auraUtils.getAuraStandardResourcePath());
+        const content = await vscode.workspace.fs.readFile(uri);
+        const data = new TextDecoder().decode(content);
         const auraStandard = JSON.parse(data);
         for (const tag in auraStandard) {
             if (auraStandard.hasOwnProperty(tag) && typeof tag === 'string') {
@@ -213,8 +227,8 @@ export default class AuraIndexer implements Indexer {
     }
 
     private searchAura(node: Node): Node[] {
-        const results = [];
-        if (node.tag && node.tag.indexOf(':') !== -1) {
+        const results: Node[] = [];
+        if (node.tag?.includes(':')) {
             results.push(node);
         }
         for (const child of node.children) {
@@ -230,12 +244,12 @@ export default class AuraIndexer implements Indexer {
         return str.replace(/"([^"]+(?="))"/g, '$1');
     }
 
-    private getTagInfo(file: string, sfdxProject: boolean, contents: string, node: Node): TagInfo {
+    private getTagInfo(file: string, sfdxProject: boolean, contents: string, node: Node): TagInfo | undefined {
         if (!node) {
-            return;
+            return undefined;
         }
-        const attributes = node.attributes || {};
-        const documentation = this.trimQuotes(attributes.description);
+        const attributes = node.attributes ?? {};
+        const documentation = this.trimQuotes(attributes.description ?? '');
 
         const startColumn = new LineColumnFinder(contents).fromIndex(node.start);
         const endColumn = new LineColumnFinder(contents).fromIndex(node.end - 1);
@@ -253,7 +267,7 @@ export default class AuraIndexer implements Indexer {
                 },
             },
         };
-        const name = componentFromFile(file, sfdxProject);
+        const name = componentFromFile(file, sfdxProject) ?? undefined;
         const info = createTagInfo(file, 'CUSTOM', false, [], location, documentation, name, 'c');
         return info;
     }

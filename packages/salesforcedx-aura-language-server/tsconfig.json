@@ -33,6 +33,11 @@
     "exclude": [
         "node_modules",
         "src/resources/**/*",
+        "src/tern/**/*.js",
+        "src/tern/test/**/*",
+        "src/tern/doc/**/*",
+        "src/tern/emacs/**/*",
+        "src/tern/bin/**/*",
         "**/__tests__/fixtures/*.js"
     ],
 

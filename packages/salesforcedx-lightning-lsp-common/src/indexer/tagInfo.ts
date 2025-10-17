@@ -12,7 +12,7 @@ export type TagType = 'STANDARD' | 'SYSTEM' | 'CUSTOM';
 
 // Type definition for TagInfo data structure
 export type TagInfo = {
-    file: string;
+    file: string | null;
     type: TagType;
     lwc: boolean;
     attributes: AttributeInfo[];
@@ -26,7 +26,7 @@ export type TagInfo = {
 
 // Factory function to create TagInfo objects
 export const createTagInfo = (
-    file: string,
+    file: string | null,
     type: TagType,
     lwc: boolean,
     attributes: AttributeInfo[],

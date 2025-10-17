@@ -9,8 +9,8 @@ import { Location } from 'vscode-languageserver';
 export type AttributeInfo = {
     name: string;
     documentation: string;
-    memberType: MemberType;
-    decorator: DecoratorType;
+    memberType: MemberType | undefined;
+    decorator: DecoratorType | undefined;
     type: string;
     location?: Location;
     detail?: string;
@@ -24,8 +24,8 @@ export type DecoratorType = 'API' | 'TRACK';
 export const createAttributeInfo = (
     name: string,
     documentation: string,
-    memberType: MemberType,
-    decorator: DecoratorType,
+    memberType: MemberType | undefined,
+    decorator: DecoratorType | undefined,
     type: string,
     location?: Location,
     detail?: string,

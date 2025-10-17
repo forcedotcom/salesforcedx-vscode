@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { IConnection } from 'vscode-languageserver';
+import { Connection } from 'vscode-languageserver';
 
 /**
  * Intercepts global console logging methods and redirects them to the LSP connection.
@@ -13,14 +13,14 @@ import { IConnection } from 'vscode-languageserver';
  *
  * @param connection - The LSP connection to redirect console output to
  */
-export const interceptConsoleLogger = (connection: IConnection): void => {
+export const interceptConsoleLogger = (connection: Connection): void => {
     const console: any = global.console;
     if (!console) {
         return;
     }
     const intercept = (method: string): void => {
         const original = console[method];
-        console[method] = function (...args: any): void {
+        console[method] = (...args: any): void => {
             if (connection) {
                 const remote: any = connection.console;
                 remote[method].apply(connection.console, args);

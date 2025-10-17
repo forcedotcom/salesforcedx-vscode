@@ -6,14 +6,13 @@
  */
 import { collectBundleMetadata, BundleConfig, ScriptFile } from '@lwc/metadata';
 import { ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
-import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { TextDocument } from 'vscode-languageserver';
+import * as vscode from 'vscode';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DIAGNOSTIC_SOURCE, MAX_32BIT_INTEGER } from '../../constants';
 import { Metadata } from '../../decorators';
 import { compileDocument, compileSource, getMethods, getProperties, getClassMembers } from '../compiler';
-import { mapLwcMetadataToInternal } from '../type-mapping';
-
+import { mapLwcMetadataToInternal } from '../typeMapping';
 
 const getDecoratorsTargets = (metadata: Metadata, elementType: string, targetType: string): ClassMember[] => {
     const props: ClassMember[] = [];
@@ -78,8 +77,9 @@ it('can get metadata from a simple component', async () => {
 it('displays an error for a component with syntax error', async () => {
     const result = await compileSource(codeSyntaxError, 'foo.js');
     expect(result.metadata).toBeUndefined();
+    expect(result.diagnostics).toBeDefined();
     expect(result.diagnostics).toHaveLength(1);
-    const [diagnostic] = result.diagnostics;
+    const [diagnostic] = result.diagnostics!;
     expect(diagnostic.message).toMatch('Unexpected token (4:17)');
 });
 
@@ -100,9 +100,10 @@ it('returns metadata for a script with one component class, even when not export
 it('displays an error for a component with other errors', async () => {
     const result = await compileSource(codeError, 'foo.js');
     expect(result.metadata).toBeUndefined();
+    expect(result.diagnostics).toBeDefined();
     expect(result.diagnostics).toHaveLength(1);
 
-    const [diagnostic] = result.diagnostics;
+    const [diagnostic] = result.diagnostics!;
     expect(diagnostic.message).toMatch('Boolean public property must default to false.');
     expect(diagnostic.range).toEqual({
         start: {
@@ -118,28 +119,30 @@ it('displays an error for a component with other errors', async () => {
 
 it('compileDocument returns list of javascript syntax errors', async () => {
     const document = TextDocument.create('file:///example.js', 'javascript', 0, codeSyntaxError);
-    const { diagnostics } = await compileDocument(document);
+    const { diagnostics } = compileDocument(document);
 
-    expect(diagnostics).toHaveLength(1);
-    expect(diagnostics[0].message).toMatch('Unexpected token (4:17)');
-    expect(diagnostics[0].range).toMatchObject({
+    expect(diagnostics).toBeDefined();
+    expect(diagnostics!).toHaveLength(1);
+    expect(diagnostics![0].message).toMatch('Unexpected token (4:17)');
+    expect(diagnostics![0].range).toMatchObject({
         start: { character: 17 },
         end: { character: MAX_32BIT_INTEGER },
     });
-    expect(diagnostics[0].source).toBe(DIAGNOSTIC_SOURCE);
+    expect(diagnostics![0].source).toBe(DIAGNOSTIC_SOURCE);
 });
 
 it('compileDocument returns list of javascript regular errors', async () => {
     const document = TextDocument.create('file:///example.js', 'javascript', 0, codeError);
     const { diagnostics } = await compileDocument(document);
 
-    expect(diagnostics).toHaveLength(1);
-    expect(diagnostics[0].message).toMatch('Boolean public property must default to false.');
-    expect(diagnostics[0].range).toMatchObject({
+    expect(diagnostics).toBeDefined();
+    expect(diagnostics!).toHaveLength(1);
+    expect(diagnostics![0].message).toMatch('Boolean public property must default to false.');
+    expect(diagnostics![0].range).toMatchObject({
         start: { character: 4 },
         end: { character: MAX_32BIT_INTEGER },
     });
-    expect(diagnostics[0].source).toBe(DIAGNOSTIC_SOURCE);
+    expect(diagnostics![0].source).toBe(DIAGNOSTIC_SOURCE);
 });
 
 it('linter returns empty diagnostics on correct file', async () => {
@@ -150,13 +153,14 @@ it('linter returns empty diagnostics on correct file', async () => {
     }
 `;
 
-    const { diagnostics } = await compileSource(content);
+    const { diagnostics } = compileSource(content);
     expect(diagnostics).toEqual([]);
 });
 
 it('mapLwcMetadataToInternal returns expected javascript metadata', async () => {
-    const filepath = path.join('src', 'javascript', '__tests__', 'fixtures', 'metadata.js');
-    const content = fs.readFileSync(filepath, 'utf8');
+    const filepath = vscode.Uri.file(path.join(__dirname, 'fixtures', 'metadata.js'));
+    const fileBuffer = await vscode.workspace.fs.readFile(filepath);
+    const content = Buffer.from(fileBuffer).toString('utf8');
 
     const options: BundleConfig = {
         type: 'internal',
@@ -173,6 +177,7 @@ it('mapLwcMetadataToInternal returns expected javascript metadata', async () => 
     };
 
     const modernMetadata = collectBundleMetadata(options);
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const metadata = mapLwcMetadataToInternal(modernMetadata.files[0] as ScriptFile);
     const properties = getProperties(metadata);
 
@@ -256,7 +261,7 @@ it('use compileDocument()', async () => {
     `;
 
     const document = TextDocument.create('file:///foo.js', 'javascript', 0, content);
-    const { metadata } = await compileDocument(document);
-    const publicProperties = getPublicReactiveProperties(metadata);
+    const { metadata } = compileDocument(document);
+    const publicProperties = getPublicReactiveProperties(metadata!);
     expect(publicProperties).toMatchObject([{ name: 'index' }]);
 });

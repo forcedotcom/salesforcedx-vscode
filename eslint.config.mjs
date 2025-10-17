@@ -35,10 +35,12 @@ export default [
       '**/jest.config.js',
       '**/jest.integration.config.js',
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
+      'packages/salesforcedx-aura-language-server/src/tern/**',
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'scripts/vsce-bundled-extension.ts',
-      'scripts/reportInstalls.ts'
+      'scripts/reportInstalls.ts',
+      'packages/salesforcedx-lwc-language-server/src/javascript/__tests__/fixtures/**'
     ]
   },
   {

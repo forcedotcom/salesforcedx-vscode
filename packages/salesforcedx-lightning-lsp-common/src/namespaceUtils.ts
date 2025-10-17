@@ -56,7 +56,7 @@ const traverse = async (candidate: string, depth: number, roots: { lwc: string[]
         roots.lwc.push(path.resolve(candidate));
     } else {
         for (const subdir of dirs) {
-            await traverse(subdir, depth, roots);
+            await traverse(subdir, depth - 1, roots);
         }
     }
 };

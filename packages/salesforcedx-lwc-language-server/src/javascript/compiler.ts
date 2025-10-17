@@ -7,14 +7,14 @@
 import { transformSync } from '@lwc/compiler';
 import { BundleConfig, ScriptFile, collectBundleMetadata } from '@lwc/metadata';
 import { AttributeInfo, createAttributeInfo, ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { SourceLocation } from 'babel-types';
+import type { SourceLocation } from 'babel-types';
 import commentParser from 'comment-parser';
 import * as path from 'node:path';
 import { Diagnostic, DiagnosticSeverity, Location, Position, Range, TextDocument } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { DIAGNOSTIC_SOURCE, MAX_32BIT_INTEGER } from '../constants';
 import { Metadata } from '../decorators';
-import { mapLwcMetadataToInternal } from './type-mapping';
+import { mapLwcMetadataToInternal } from './typeMapping';
 
 interface CompilerResult {
     diagnostics?: Diagnostic[]; // NOTE: vscode Diagnostic, not lwc Diagnostic
@@ -39,17 +39,19 @@ export const getProperties = (metadata: Metadata): ClassMember[] => getClassMemb
 
 export const getMethods = (metadata: Metadata): ClassMember[] => getClassMembers(metadata, 'method');
 
-const sanitizeComment = (comment: string): string => {
-    const parsed = commentParser(`/*${  comment  }*/`);
+const sanitizeComment = (comment: string): string | null => {
+    const parsed = commentParser(`/*${comment}*/`);
     return parsed && parsed.length > 0 ? parsed[0].source : null;
 };
 
 const patchComments = (metadata: Metadata): void => {
     if (metadata.doc) {
-        metadata.doc = sanitizeComment(metadata.doc);
-        for (const classMember of metadata.classMembers) {
-            if (classMember.doc) {
-                classMember.doc = sanitizeComment(classMember.doc);
+        metadata.doc = sanitizeComment(metadata.doc) ?? undefined;
+        if (metadata.classMembers) {
+            for (const classMember of metadata.classMembers) {
+                if (classMember.doc) {
+                    classMember.doc = sanitizeComment(classMember.doc) ?? undefined;
+                }
             }
         }
     }
@@ -75,12 +77,15 @@ const extractMessageFromBabelError = (message: string): string => {
 // TODO: proper type for 'err' (i.e. SyntaxError)
 const toDiagnostic = (err: any): Diagnostic => {
     // TODO: 'err' doesn't have end loc, squiggling until the end of the line until babel 7 is released
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const message = err.message;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     let location = err.location;
-    if (!location) {
-        location = extractLocationFromBabelError(message);
-    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    location ??= extractLocationFromBabelError(message);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const startLine: number = location.line - 1;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     const startCharacter: number = location.column;
     // https://github.com/forcedotcom/salesforcedx-vscode/issues/2074
     // Limit the end character to max 32 bit integer so that it doesn't overflow other language servers
@@ -89,6 +94,7 @@ const toDiagnostic = (err: any): Diagnostic => {
         range,
         severity: DiagnosticSeverity.Error,
         source: DIAGNOSTIC_SOURCE,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         message: extractMessageFromBabelError(message),
     };
 };
@@ -128,6 +134,11 @@ export const compileSource = (source: string, fileName = 'foo.js'): CompilerResu
         };
     }
 
+    if (modernMetadata.files.length === 0) {
+        return { diagnostics: [] };
+    }
+
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const metadata = mapLwcMetadataToInternal(modernMetadata.files[0] as ScriptFile);
     patchComments(metadata);
 
@@ -153,18 +164,24 @@ export const extractAttributes = (metadata: Metadata, uri: string): { privateAtt
     const privateAttributes: AttributeInfo[] = [];
     for (const x of getProperties(metadata)) {
         if (x.decorator === 'api') {
-            const location = Location.create(uri, toVSCodeRange(x.loc));
+            if (x.loc) {
+                const location = Location.create(uri, toVSCodeRange(x.loc));
 
-            const name = x.name.replace(/([A-Z])/g, (match: string) => `-${match.toLowerCase()}`);
-            const memberType = x.type === 'property' ? 'PROPERTY' : 'METHOD';
-            publicAttributes.push(createAttributeInfo(name, x.doc, memberType, 'API', undefined, location, 'LWC custom attribute'));
+                const name = x.name.replace(/([A-Z])/g, (match: string) => `-${match.toLowerCase()}`);
+                const memberType = x.type === 'property' ? 'PROPERTY' : 'METHOD';
+                publicAttributes.push(createAttributeInfo(name, x.doc ?? '', memberType, 'API', '', location, 'LWC custom attribute'));
+            }
         } else {
-            const location = Location.create(uri, toVSCodeRange(x.loc));
+            if (x.loc) {
+                const location = Location.create(uri, toVSCodeRange(x.loc));
 
-            const name = x.name.replace(/([A-Z])/g, (match: string) => `-${match.toLowerCase()}`);
-            const memberType = x.type === 'property' ? 'PROPERTY' : 'METHOD';
-            const decorator = x.decorator === 'track' ? 'TRACK' : undefined;
-            privateAttributes.push(createAttributeInfo(name, x.doc, memberType, decorator, undefined, location, 'LWC custom attribute'));
+                const name = x.name.replace(/([A-Z])/g, (match: string) => `-${match.toLowerCase()}`);
+                const memberType = x.type === 'property' ? 'PROPERTY' : 'METHOD';
+                const decorator: 'TRACK' | undefined = x.decorator === 'track' ? 'TRACK' : undefined;
+                if (decorator) {
+                    privateAttributes.push(createAttributeInfo(name, x.doc ?? '', memberType, decorator, '', location, 'LWC custom attribute'));
+                }
+            }
         }
     }
     return {

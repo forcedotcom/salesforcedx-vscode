@@ -47,7 +47,7 @@ const ALLOWED_TYPES: string[] = ['asset', 'resource', 'messageChannel', 'customL
 // Factory function to create Typing objects
 export const createTyping = (attributes: { type: string; name: string }): Typing => {
     if (!ALLOWED_TYPES.includes(attributes.type)) {
-        const errorMessage: string = `Cannot create a Typing with "${  attributes.type  }" type. Must be one of [${  ALLOWED_TYPES.toString()  }]`;
+        const errorMessage: string = `Cannot create a Typing with "${attributes.type}" type. Must be one of [${ALLOWED_TYPES.toString()}]`;
         throw new Error(errorMessage);
     }
 
@@ -61,17 +61,21 @@ export const createTyping = (attributes: { type: string; name: string }): Typing
 // Utility function to create Typing from meta filename
 export const fromMeta = (metaFilename: string): Typing => {
     const parsedPath = path.parse(metaFilename);
-    const { name, type } = metaRegex.exec(parsedPath.name).groups;
+    const { name, type } = metaRegex.exec(parsedPath.name)?.groups ?? { name: '', type: '' };
     return createTyping({ name, type });
 };
 
 // Utility function to generate declarations from custom labels
 export const declarationsFromCustomLabels = async (xmlDocument: string | Buffer): Promise<string> => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const doc = await new xml2js.Parser().parseStringPromise(xmlDocument);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (doc.CustomLabels === undefined || doc.CustomLabels.labels === undefined) {
         return '';
     }
-    const declarations = doc.CustomLabels.labels.map((label: { [key: string]: string[] }) => declaration('customLabel', label.fullName[0]));
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+    const declarations: string[] = doc.CustomLabels.labels.map((label: { [key: string]: string[] }) => declaration('customLabel', label.fullName[0]));
 
     return declarations.join('\n');
 };

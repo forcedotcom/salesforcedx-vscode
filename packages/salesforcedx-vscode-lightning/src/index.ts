@@ -42,7 +42,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   });
 
   // 3) If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = detectWorkspaceType(workspaceUris);
+  const workspaceType = await detectWorkspaceType(workspaceUris);
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
