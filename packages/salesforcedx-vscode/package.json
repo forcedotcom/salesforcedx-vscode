@@ -39,6 +39,7 @@
     "salesforce.salesforcedx-vscode-soql",
     "salesforce.salesforce-vscode-slds",
     "salesforce.sfdx-code-analyzer-vscode",
-    "salesforce.apex-language-server-extension"
+    "salesforce.apex-language-server-extension",
+    "salesforce.salesforce-metadata-visualizer"
   ]
 }
