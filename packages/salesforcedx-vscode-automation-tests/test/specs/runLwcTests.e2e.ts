@@ -264,14 +264,14 @@ describe('Run LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  it.skip('Run All Tests via Code Lens action', async () => {
+  it('Run All Tests via Code Lens action', async () => {
     // Skipping as this feature is currently not working
     logTestStart(testSetup, 'Run All Tests via Code Lens action');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
 
     // Click the "Run" code lens at the top of the class
-    const runAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Run');
+    const runAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Run All Tests');
     expect(runAllTestsOption).to.not.be.undefined;
     await runAllTestsOption!.click();
 
