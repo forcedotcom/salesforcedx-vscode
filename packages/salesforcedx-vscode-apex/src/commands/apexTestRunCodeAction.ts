@@ -40,14 +40,20 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   private readonly tests: string[];
   private readonly outputDir: string;
   private readonly codeCoverage: boolean;
-
+  private readonly concise: boolean;
   public static diagnostics = vscode.languages.createDiagnosticCollection('apex-errors');
 
-  constructor(tests: string[], outputDir: string, codeCoverage = settings.retrieveTestCodeCoverage()) {
+  constructor(
+    tests: string[],
+    outputDir: string,
+    codeCoverage = settings.retrieveTestCodeCoverage(),
+    concise = settings.retrieveTestRunConcise()
+  ) {
     super(nls.localize('apex_test_run_text'), 'apex_test_run_code_action_library', OUTPUT_CHANNEL);
     this.tests = tests;
     this.outputDir = outputDir;
     this.codeCoverage = codeCoverage;
+    this.concise = concise;
   }
 
   public async run(
@@ -89,7 +95,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
       { resultFormats: [ResultFormat.json], dirPath: this.outputDir },
       this.codeCoverage
     );
-    const humanOutput = new HumanReporter().format(result, this.codeCoverage);
+    const humanOutput = new HumanReporter().format(result, this.codeCoverage, this.concise);
     channelService.appendLine(humanOutput);
 
     await this.handleDiagnostics(result);

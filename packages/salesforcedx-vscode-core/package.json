@@ -957,6 +957,11 @@
           "type": "string",
           "default": null,
           "description": "%telemetry_tag_description%"
+        },
+        "salesforcedx-vscode-core.test-run-concise": {
+          "type": "boolean",
+          "default": false,
+          "description": "%apex_test_run_concise%"
         }
       }
     },
