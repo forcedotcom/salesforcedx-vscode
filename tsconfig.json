@@ -60,6 +60,15 @@
     },
     {
       "path": "packages/salesforcedx-vscode-automation-tests"
+    },
+    {
+      "path": "packages/salesforcedx-aura-language-server"
+    },
+    {
+      "path": "packages/salesforcedx-lightning-lsp-common"
+    },
+    {
+      "path": "packages/salesforcedx-lwc-language-server"
     }
   ]
 }

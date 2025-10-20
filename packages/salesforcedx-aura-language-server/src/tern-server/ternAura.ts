@@ -277,7 +277,7 @@ const connectModule = async (file: any, out: any): Promise<void> => {
         try {
             const text = await readFile(controller);
             const sfile = server.findFile(controller);
-            if (!sfile || sfile.text !== text) {
+            if (sfile?.text !== text) {
                 server.addFile(controller, text);
             }
         } catch {}
@@ -285,7 +285,7 @@ const connectModule = async (file: any, out: any): Promise<void> => {
         try {
             const text = await readFile(renderer);
             const sfile = server.findFile(renderer);
-            if (!sfile || sfile.text !== text) {
+            if (sfile?.text !== text) {
                 server.addFile(renderer, text);
             }
         } catch {}

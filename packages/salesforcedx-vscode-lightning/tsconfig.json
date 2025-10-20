@@ -11,6 +11,12 @@
   ],
   "references": [
     {
+      "path": "../salesforcedx-aura-language-server"
+    },
+    {
+      "path": "../salesforcedx-lightning-lsp-common"
+    },
+    {
       "path": "../salesforcedx-utils-vscode"
     }
   ]

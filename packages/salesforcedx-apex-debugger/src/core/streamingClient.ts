@@ -152,7 +152,7 @@ export class StreamingClient {
       incoming: (message: any, callback: (message: any) => void) => {
         if (message.channel === '/meta/handshake') {
           if (message.successful === true) {
-            if (message.ext && message.ext['replay'] === true) {
+            if (message.ext?.ext['replay'] === true) {
               this.isReplaySupported = true;
             }
             this.shouldDisconnect = false;

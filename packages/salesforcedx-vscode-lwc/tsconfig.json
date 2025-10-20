@@ -16,6 +16,12 @@
   ],
   "references": [
     {
+      "path": "../salesforcedx-lightning-lsp-common"
+    },
+    {
+      "path": "../salesforcedx-lwc-language-server"
+    },
+    {
       "path": "../salesforcedx-utils"
     },
     {

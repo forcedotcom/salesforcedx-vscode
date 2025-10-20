@@ -31,6 +31,7 @@ export default [
       '**/out/**',
       '**/dist/**',
       '**/packages/**/coverage',
+      '**/test-workspaces/**',
       '**/*.d.ts',
       '**/jest.config.js',
       '**/jest.integration.config.js',
