@@ -30,15 +30,12 @@
     "@salesforce/apex-tmlanguage": "1.8.1",
     "@salesforce/salesforcedx-utils": "65.0.0",
     "@salesforce/salesforcedx-utils-vscode": "65.0.0",
-    "async-lock": "1.4.1",
-    "expand-home-dir": "0.0.3",
     "find-java-home": "1.2.2",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/core": "^8.18.4",
-    "@types/async-lock": "1.4.2",
     "esbuild": "0.25.10",
     "salesforcedx-vscode-core": "65.0.0"
   },
