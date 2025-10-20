@@ -379,7 +379,7 @@ export const buildQueryOptions = (maxFetch?: number) => {
  * Displays query results in table format
  */
 export const displayTableResults = (queryResult: QueryResult): void => {
-  if (queryResult.records?.length === 0) {
+  if (!queryResult.records?.length) {
     channelService.appendLine(nls.localize('data_query_no_records'));
     return;
   }
@@ -392,7 +392,7 @@ export const displayTableResults = (queryResult: QueryResult): void => {
  * Converts query result to CSV string
  */
 export const convertQueryResultToCSV = (queryResult: QueryResult): string => {
-  if (queryResult.records?.length === 0) {
+  if (!queryResult.records?.length) {
     return nls.localize('data_query_no_records');
   }
 
