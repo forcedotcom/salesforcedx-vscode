@@ -17,10 +17,11 @@ export const defaultExtensionConfigs: ExtensionConfig[] = [
     extensionId: 'salesforcedx-vscode-apex',
     shouldVerifyActivation: true,
     shouldInstall: 'always'
-  },
-  {
-    extensionId: 'salesforcedx-vscode-apex-oas',
-    shouldVerifyActivation: false,
-    shouldInstall: 'always'
   }
 ];
+
+export const oasExtensionConfig: ExtensionConfig = {
+  extensionId: 'salesforcedx-vscode-apex-oas',
+  shouldVerifyActivation: false,
+  shouldInstall: 'always'
+};
