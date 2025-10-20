@@ -54,7 +54,7 @@ import {
   ExtensionsViewItem,
   DefaultTreeItem
 } from 'vscode-extension-tester';
-import { defaultExtensionConfigs, oasExtensionConfig } from '../testData/constants';
+import { defaultExtensionConfigs, oasExtensionConfig, einsteinGptExtensionConfig } from '../testData/constants';
 import {
   getIdealCaseManagerOASDoc,
   getSfdxProjectJson,
@@ -75,7 +75,7 @@ describe('Create OpenAPI v3 Specifications', () => {
     },
     isOrgRequired: true,
     testSuiteSuffixName: 'CreateOASDoc',
-    extensionConfigs: [...defaultExtensionConfigs, oasExtensionConfig]
+    extensionConfigs: [...defaultExtensionConfigs, oasExtensionConfig, einsteinGptExtensionConfig]
   };
 
   before('Set up the testing environment', async () => {

@@ -25,3 +25,9 @@ export const oasExtensionConfig: ExtensionConfig = {
   shouldVerifyActivation: false,
   shouldInstall: 'always'
 };
+
+export const einsteinGptExtensionConfig: ExtensionConfig = {
+  extensionId: 'salesforcedx-einstein-gpt',
+  shouldVerifyActivation: false,
+  shouldInstall: 'always'
+};
