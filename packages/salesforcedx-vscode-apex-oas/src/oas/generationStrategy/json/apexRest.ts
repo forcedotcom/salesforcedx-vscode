@@ -173,17 +173,22 @@ export class ApexRestStrategy extends GenerationStrategy {
   }
 
   private async executeWithRetry(fn: () => Promise<string>, retryLimit: number): Promise<string> {
-    const telemetryService = getTelemetryService();
     let attempts = 0;
     while (attempts < retryLimit) {
       await this.incrementResolutionAttempts();
-      const result = await fn();
-      // Attempt to parse the result to ensure it's valid JSON
       try {
-        JSON.parse(result);
+        const response = await fn();
+        // Extract result if response is an object with result property, otherwise use as-is
+        const result =
+          typeof response === 'object' && response !== null && 'result' in response
+            ? // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+              (response as { result: string }).result
+            : response;
+        // Return the result; cleanup and validation will happen in prevalidateLLMResponse
         return result;
       } catch (error) {
         attempts++;
+        const telemetryService = getTelemetryService();
         telemetryService.sendException(
           'OasLlmResultFailedParse',
           `attempt: ${attempts} of ${retryLimit}: ${error instanceof Error ? error.message : String(error)}`
