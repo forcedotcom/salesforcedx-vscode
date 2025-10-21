@@ -17,7 +17,7 @@ jest.mock('@vscode/debugadapter', () => ({
 import { StackFrame } from '@vscode/debugadapter';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
-import { breakpointUtil } from '../../../src/breakpoints';
+import { breakpointUtil } from '../../../src/breakpoints/breakpointUtil';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -50,7 +50,6 @@ describe('LogContext', () => {
   let shouldTraceLogFileStub: jest.Mock;
   let printToDebugConsoleSpy: jest.SpyInstance;
   let revertStateAfterHeapDumpSpy: jest.SpyInstance;
-  let getTyperefMappingSpy: jest.SpyInstance;
   const launchRequestArgs: LaunchRequestArguments = {
     logFileContents: 'test log content',
     logFilePath: '/path/foo.log',
@@ -76,7 +75,6 @@ describe('LogContext', () => {
     shouldTraceLogFileStub.mockRestore();
     printToDebugConsoleSpy.mockRestore();
     revertStateAfterHeapDumpSpy.mockRestore();
-    if (getTyperefMappingSpy) getTyperefMappingSpy.mockRestore();
     jest.restoreAllMocks();
   });
 
@@ -379,17 +377,12 @@ describe('LogContext', () => {
   });
 
   describe('Signature-to-URI', () => {
-    const typerefMapping: Map<string, string> = new Map();
-    typerefMapping.set('namespace/Foo$Bar', '/path/foo.cls');
-    typerefMapping.set('namespace/Foo', '/path/foo.cls');
-    typerefMapping.set('__sfdc_trigger/namespace/MyTrigger', '/path/MyTrigger.trigger');
-
     beforeEach(() => {
-      getTyperefMappingSpy = jest.spyOn(breakpointUtil, 'getTyperefMapping').mockReturnValue(typerefMapping);
-    });
-
-    afterEach(() => {
-      if (getTyperefMappingSpy) getTyperefMappingSpy.mockRestore();
+      breakpointUtil.typerefMapping = new Map([
+        ['namespace/Foo$Bar', '/path/foo.cls'],
+        ['namespace/Foo', '/path/foo.cls'],
+        ['__sfdc_trigger/namespace/MyTrigger', '/path/MyTrigger.trigger']
+      ]);
     });
 
     it('Should return debug log fs path for execute anonymous signature', () => {

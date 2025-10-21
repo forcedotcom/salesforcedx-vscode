@@ -42,5 +42,5 @@ export type MetricGeneral = {
   qty?: number;
 };
 
-export { breakpointUtil } from './breakpoints';
+export { breakpointUtil } from './breakpoints/breakpointUtil';
 export { ActionScriptEnum, OrgInfoError } from './commands';

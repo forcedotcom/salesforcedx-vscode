@@ -21,7 +21,7 @@ import {
 } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { EOL } from 'node:os';
-import { breakpointUtil } from '../breakpoints';
+import { breakpointUtil, returnLinesForLoggingFromBreakpointArgs } from '../breakpoints/breakpointUtil';
 import { SEND_METRIC_GENERAL_EVENT, SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../constants';
 import { HeapDumpService } from '../core/heapDumpService';
 import { LogContext } from '../core/logContext';
@@ -385,7 +385,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
         TRACE_CATEGORY_BREAKPOINTS,
         `setBreakPointsRequest: path=${
           args.source.path
-        } uri=${uri} lines=${breakpointUtil.returnLinesForLoggingFromBreakpointArgs(args.breakpoints)}`
+        } uri=${uri} lines=${returnLinesForLoggingFromBreakpointArgs(args.breakpoints)}`
       );
       this.breakpoints.set(uri, []);
       for (const bp of args.breakpoints) {

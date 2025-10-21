@@ -9,29 +9,8 @@ import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { DebugProtocol } from '@vscode/debugprotocol';
 
 export class BreakpointUtil {
-  private static instance: BreakpointUtil;
-  private lineNumberMapping: Map<string, number[]> = new Map();
-  private typerefMapping: Map<string, string> = new Map();
-
-  public setValidLines(lineNumberMapping: Map<string, number[]>, typerefMapping: Map<string, string>): void {
-    this.lineNumberMapping = lineNumberMapping;
-    this.typerefMapping = typerefMapping;
-  }
-
-  public static getInstance(): BreakpointUtil {
-    if (!BreakpointUtil.instance) {
-      BreakpointUtil.instance = new BreakpointUtil();
-    }
-    return BreakpointUtil.instance;
-  }
-
-  public getLineNumberMapping(): Map<string, number[]> {
-    return this.lineNumberMapping;
-  }
-
-  public getTyperefMapping(): Map<string, string> {
-    return this.typerefMapping;
-  }
+  public lineNumberMapping: Map<string, number[]> = new Map();
+  public typerefMapping: Map<string, string> = new Map();
 
   public canSetLineBreakpoint(uri: string, line: number): boolean {
     return this.lineNumberMapping.has(uri) && this.lineNumberMapping.get(uri)!.includes(line);
@@ -52,10 +31,6 @@ export class BreakpointUtil {
     }
   }
 
-  public returnLinesForLoggingFromBreakpointArgs(bpArr: DebugProtocol.SourceBreakpoint[]): string {
-    return bpArr.map(bp => bp.line).join(',');
-  }
-
   public getTopLevelTyperefForUri(uriInput: string): string {
     let returnValue = '';
     this.typerefMapping.forEach((value, key) => {
@@ -68,3 +43,8 @@ export class BreakpointUtil {
     return returnValue;
   }
 }
+
+export const breakpointUtil = new BreakpointUtil();
+
+export const returnLinesForLoggingFromBreakpointArgs = (bpArr: DebugProtocol.SourceBreakpoint[]): string =>
+  bpArr.map(bp => bp.line).join(',');

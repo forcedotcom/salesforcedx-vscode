@@ -11,7 +11,7 @@ import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
 import { ApexReplayDebug } from '../adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../adapter/types';
 import { ApexVariableContainer } from '../adapter/variableContainer';
-import { breakpointUtil } from '../breakpoints';
+import { breakpointUtil } from '../breakpoints/breakpointUtil';
 import {
   ApexExecutionOverlayResultCommand,
   ApexExecutionOverlayResultCommandFailure,
@@ -365,16 +365,10 @@ export class LogContext {
     const processedSignature = signature.endsWith(')')
       ? signature.substring(0, signature.substring(0, signature.indexOf('(')).lastIndexOf('.'))
       : signature;
-    const typerefMapping = breakpointUtil.getTyperefMapping();
+    const typerefMapping = breakpointUtil.typerefMapping;
     let uri = '';
     typerefMapping.forEach((value, key) => {
-      let processedKey = '';
-      if (key.startsWith(SFDC_TRIGGER)) {
-        processedKey = key;
-      } else {
-        processedKey = key.replace('/', '.').replace('$', '.');
-      }
-
+      const processedKey = key.startsWith(SFDC_TRIGGER) ? key : key.replace('/', '.').replace('$', '.');
       if (processedKey === processedSignature) {
         uri = value;
       }
