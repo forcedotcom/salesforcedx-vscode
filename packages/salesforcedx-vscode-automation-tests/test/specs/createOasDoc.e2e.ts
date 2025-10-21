@@ -98,42 +98,24 @@ describe('Create OpenAPI v3 Specifications', () => {
     await reloadWindow();
 
     // Install A4D extension from marketplace - REQUIRED for OAS extension to activate
-    log('Checking if Agentforce for Developers is installed...');
+    log('Checking if A4V is installed...');
     const extensionsView = await (await new ActivityBar().getViewControl('Extensions'))?.openView();
     await pause(Duration.seconds(5));
 
     // First check if already installed
-    const installedSection = await extensionsView?.getContent().getSection('Installed');
-    let a4dExtension = await (installedSection as ExtensionsViewSection)?.findItem('Agentforce for Developers');
-
-    if (!a4dExtension) {
-      log('A4D not found in Installed, searching Marketplace...');
-      // Not installed, search marketplace
-      // Type in search box to find it
-      const searchBox = await extensionsView?.getContent().findElement(By.css('input[placeholder*="Search"]'));
-      await searchBox?.sendKeys('salesforce.salesforcedx-einstein-gpt');
-      await pause(Duration.seconds(3));
-
-      // Look for it in search results
-      const marketplaceSection = await extensionsView?.getContent().getSection('Search Results in Marketplace');
-      a4dExtension = await (marketplaceSection as ExtensionsViewSection)?.findItem('Agentforce for Developers');
-
-      if (!a4dExtension) {
-        throw new Error('Could not find Agentforce for Developers extension in marketplace');
-      }
-
-      log('Installing A4D extension...');
-      await a4dExtension.install();
-      await pause(Duration.seconds(10));
-      log('A4D installation complete');
-    } else {
-      log('A4D already installed');
+    const extensionsList = await extensionsView?.getContent().getSection('Installed');
+    if (!(extensionsList instanceof ExtensionsViewSection)) {
+      throw new Error(`Expected ExtensionsViewSection but got ${typeof extensionsList}`);
     }
-
+    log('Installing A4V extension...');
+    const a4vExtension = await extensionsList?.findItem('Agentforce Vibes');
+    await a4vExtension?.install();
+    await pause(Duration.seconds(10));
+    log('A4V installation complete');
     await executeQuickPick('View: Close Editor');
 
-    // Reload window to ensure A4D activates BEFORE OAS extension tries to activate
-    log('Reloading window to activate A4D...');
+    // Reload window to ensure A4V activates BEFORE OAS extension tries to activate
+    log('Reloading window to activate A4V...');
     await reloadWindow(Duration.seconds(5));
 
     // Create the Apex class which the decomposed OAS doc will be generated from
