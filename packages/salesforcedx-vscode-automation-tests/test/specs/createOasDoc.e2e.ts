@@ -54,7 +54,7 @@ import {
   ExtensionsViewItem,
   DefaultTreeItem
 } from 'vscode-extension-tester';
-import { defaultExtensionConfigs, oasExtensionConfig, einsteinGptExtensionConfig } from '../testData/constants';
+import { defaultExtensionConfigs, oasExtensionConfig } from '../testData/constants';
 import {
   getIdealCaseManagerOASDoc,
   getSfdxProjectJson,
@@ -75,7 +75,7 @@ describe('Create OpenAPI v3 Specifications', () => {
     },
     isOrgRequired: true,
     testSuiteSuffixName: 'CreateOASDoc',
-    extensionConfigs: [...defaultExtensionConfigs, oasExtensionConfig, einsteinGptExtensionConfig]
+    extensionConfigs: [...defaultExtensionConfigs, oasExtensionConfig]
   };
 
   before('Set up the testing environment', async () => {
@@ -97,16 +97,44 @@ describe('Create OpenAPI v3 Specifications', () => {
     await executeQuickPick('View: Close Editor');
     await reloadWindow();
 
-    // Install A4D extension
+    // Install A4D extension from marketplace - REQUIRED for OAS extension to activate
+    log('Checking if Agentforce for Developers is installed...');
     const extensionsView = await (await new ActivityBar().getViewControl('Extensions'))?.openView();
     await pause(Duration.seconds(5));
-    const extensionsList = await extensionsView?.getContent().getSection('Installed');
-    if (!(extensionsList instanceof ExtensionsViewSection)) {
-      throw new Error(`Expected ExtensionsViewSection but got different section type: ${typeof extensionsList}`);
+
+    // First check if already installed
+    const installedSection = await extensionsView?.getContent().getSection('Installed');
+    let a4dExtension = await (installedSection as ExtensionsViewSection)?.findItem('Agentforce for Developers');
+
+    if (!a4dExtension) {
+      log('A4D not found in Installed, searching Marketplace...');
+      // Not installed, search marketplace
+      // Type in search box to find it
+      const searchBox = await extensionsView?.getContent().findElement(By.css('input[placeholder*="Search"]'));
+      await searchBox?.sendKeys('salesforce.salesforcedx-einstein-gpt');
+      await pause(Duration.seconds(3));
+
+      // Look for it in search results
+      const marketplaceSection = await extensionsView?.getContent().getSection('Search Results in Marketplace');
+      a4dExtension = await (marketplaceSection as ExtensionsViewSection)?.findItem('Agentforce for Developers');
+
+      if (!a4dExtension) {
+        throw new Error('Could not find Agentforce for Developers extension in marketplace');
+      }
+
+      log('Installing A4D extension...');
+      await a4dExtension.install();
+      await pause(Duration.seconds(10));
+      log('A4D installation complete');
+    } else {
+      log('A4D already installed');
     }
-    const a4dExtension = await extensionsList?.findItem('Agentforce for Developers');
-    await a4dExtension?.install();
+
     await executeQuickPick('View: Close Editor');
+
+    // Reload window to ensure A4D activates BEFORE OAS extension tries to activate
+    log('Reloading window to activate A4D...');
+    await reloadWindow(Duration.seconds(5));
 
     // Create the Apex class which the decomposed OAS doc will be generated from
     await retryOperation(
