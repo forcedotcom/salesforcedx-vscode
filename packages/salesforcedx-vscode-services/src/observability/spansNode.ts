@@ -11,7 +11,7 @@ import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-base';
 import { Global } from '@salesforce/core/global';
 import { join } from 'node:path';
 import { DEFAULT_AI_CONNECTION_STRING, isTelemetryExtensionConfigurationEnabled } from './appInsights';
-import { getLocalTracesEnabled } from './localTracing';
+import { getConsoleTracesEnabled, getLocalTracesEnabled } from './localTracing';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 
 export const NodeSdkLayer = NodeSdk.layer(() => ({
@@ -22,7 +22,7 @@ export const NodeSdkLayer = NodeSdk.layer(() => ({
     attributes: {}
   },
   spanProcessor: [
-    new SpanTransformProcessor(new ConsoleSpanExporter()),
+    ...(getConsoleTracesEnabled() ? [new SpanTransformProcessor(new ConsoleSpanExporter())] : []),
     ...(isTelemetryExtensionConfigurationEnabled()
       ? [
           new SpanTransformProcessor(

@@ -9,7 +9,6 @@ import { Global } from '@salesforce/core/global';
 import * as Effect from 'effect/Effect';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
-import { SdkLayer } from '../observability/spans';
 
 type WorkspaceInfo = {
   /** includes the file:// or other schemeprefix */
@@ -38,8 +37,7 @@ const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
       workspaceName: vscode.workspace.name
     })
   ),
-  Effect.withSpan('getWorkspaceInfoTask ( cache miss )'),
-  Effect.provide(SdkLayer)
+  Effect.withSpan('getWorkspaceInfoTask ( cache miss )')
 );
 
 // Global cached workspace info - created once at module level

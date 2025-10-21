@@ -12,7 +12,6 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as Stream from 'effect/Stream';
-import { SdkLayer } from '../observability/spans';
 import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { defaultOrgRef } from './defaultOrgService';
@@ -51,8 +50,7 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       // stateless when org can change: always reload only on desktop
       Effect.flatMap(agg => (Global.isWeb ? Effect.succeed(agg) : Effect.promise(() => agg.reload()))),
       Effect.tap(agg => Effect.annotateCurrentSpan({ ...agg.getConfig() })),
-      Effect.withSpan('getConfigAggregator'),
-      Effect.provide(SdkLayer)
+      Effect.withSpan('getConfigAggregator')
     )
   } as const,
   dependencies: [WorkspaceService.Default]

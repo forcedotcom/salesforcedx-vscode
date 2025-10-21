@@ -12,7 +12,6 @@ import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { SdkLayer } from '../observability/spans';
 import { SettingsService } from '../vscode/settingsService';
 import { ConfigService } from './configService';
 import { DefaultOrgInfoSchema, defaultOrgRef } from './defaultOrgService';
@@ -59,8 +58,7 @@ const createWebConnection = (key: string): Effect.Effect<Connection, Error> => {
     Effect.flatMap(authInfo => createConnection(authInfo, apiVersion)),
     Effect.withSpan('createWebConnection (cache miss)', {
       attributes: { apiVersion }
-    }),
-    Effect.provide(SdkLayer)
+    })
   );
 };
 
@@ -120,7 +118,6 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
         }
       }).pipe(
         Effect.tap(conn => maybeUpdateDefaultOrgRef(conn)),
-        Effect.provide(SdkLayer),
         Effect.withSpan('getConnection')
       )
     } as const;

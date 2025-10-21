@@ -15,7 +15,6 @@ import { AnySpan } from 'effect/Tracer';
 import type { FileChangeInfo } from 'node:fs/promises';
 import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
-import { SdkLayer } from '../observability/spans';
 import { ChannelService } from '../vscode/channelService';
 import { fsPrefix } from './constants';
 import { IndexedDBStorageService } from './indexedDbStorage';
@@ -102,6 +101,5 @@ export const startWatch = (): Effect.Effect<void, Error, ChannelService | Indexe
     Effect.tapError((error: Error) =>
       Effect.flatMap(ChannelService, channel => channel.appendToChannel(`Error starting watcher: ${error.message}`))
     ),
-    Effect.withSpan('startWatch'),
-    Effect.provide(SdkLayer)
+    Effect.withSpan('startWatch')
   );

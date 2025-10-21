@@ -17,7 +17,6 @@ import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as vscode from 'vscode';
-import { SdkLayer } from '../observability/spans';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -135,7 +134,7 @@ const retrieve = (
     }
 
     return retrieveOutcome;
-  }).pipe(Effect.withSpan('retrieve', { attributes: { members } }), Effect.provide(SdkLayer));
+  }).pipe(Effect.withSpan('retrieve', { attributes: { members } }));
 
 export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()('MetadataRetrieveService', {
   succeed: {
