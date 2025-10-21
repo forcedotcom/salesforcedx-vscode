@@ -13,7 +13,7 @@ export class BreakpointUtil {
   public typerefMapping: Map<string, string> = new Map();
 
   public canSetLineBreakpoint(uri: string, line: number): boolean {
-    return this.lineNumberMapping.has(uri) && this.lineNumberMapping.get(uri)!.includes(line);
+    return this.lineNumberMapping.get(uri)?.includes(line) ?? false;
   }
 
   public createMappingsFromLineBreakpointInfo(lineBpInfo: LineBreakpointInfo[]): void {
@@ -22,25 +22,14 @@ export class BreakpointUtil {
     this.typerefMapping.clear();
 
     // set the mapping from the source line info
-    for (const info of lineBpInfo) {
-      if (!this.lineNumberMapping.has(info.uri)) {
-        this.lineNumberMapping.set(info.uri, []);
-      }
-      this.lineNumberMapping.set(info.uri, this.lineNumberMapping.get(info.uri)!.concat(info.lines));
+    lineBpInfo.map(info => {
+      this.lineNumberMapping.set(info.uri, (this.lineNumberMapping.get(info.uri) ?? []).concat(info.lines));
       this.typerefMapping.set(info.typeref, info.uri);
-    }
+    });
   }
 
-  public getTopLevelTyperefForUri(uriInput: string): string {
-    let returnValue = '';
-    this.typerefMapping.forEach((value, key) => {
-      if (value === uriInput) {
-        if (!key.includes('$')) {
-          returnValue = key;
-        }
-      }
-    });
-    return returnValue;
+  public getTopLevelTyperefForUri(uriInput: string): string | undefined {
+    return Array.from(this.typerefMapping.entries()).find(([k, v]) => v === uriInput && !k.includes('$'))?.[0];
   }
 }
 

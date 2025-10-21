@@ -76,5 +76,6 @@ describe('Breakpoint utilities', () => {
     expect(util.getTopLevelTyperefForUri('file:///triggerWithNamespace.trigger')).toBe(
       '__sfdc_trigger/Namespace/YourTriggerName'
     );
+    expect(util.getTopLevelTyperefForUri('file:///unknown.cls')).toBeUndefined();
   });
 });

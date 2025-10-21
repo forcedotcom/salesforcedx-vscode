@@ -203,14 +203,14 @@ describe('LogContext', () => {
     expect(context.hasHeapDump()).toBe(true);
     const apexHeapDumps = context.getHeapDumps();
     expect(apexHeapDumps.length).toBe(2);
-    expect(apexHeapDumps[0].getHeapDumpId()).toBe('<HeapDumpId1>');
-    expect(apexHeapDumps[1].getHeapDumpId()).toBe('<HeapDumpId2>');
-    expect(apexHeapDumps[0].getClassName()).toBe('<ClassName1>');
-    expect(apexHeapDumps[1].getClassName()).toBe('<ClassName2>');
-    expect(apexHeapDumps[0].getNamespace()).toBe('<Namespace1>');
-    expect(apexHeapDumps[1].getNamespace()).toBe('<Namespace2>');
-    expect(apexHeapDumps[0].getLine()).toBe(11);
-    expect(apexHeapDumps[1].getLine()).toBe(22);
+    expect(apexHeapDumps[0].heapDumpId).toBe('<HeapDumpId1>');
+    expect(apexHeapDumps[1].heapDumpId).toBe('<HeapDumpId2>');
+    expect(apexHeapDumps[0].className).toBe('<ClassName1>');
+    expect(apexHeapDumps[1].className).toBe('<ClassName2>');
+    expect(apexHeapDumps[0].namespace).toBe('<Namespace1>');
+    expect(apexHeapDumps[1].namespace).toBe('<Namespace2>');
+    expect(apexHeapDumps[0].line).toBe(11);
+    expect(apexHeapDumps[1].line).toBe(22);
   });
 
   it('Should not find heapdump with incorrect line', () => {

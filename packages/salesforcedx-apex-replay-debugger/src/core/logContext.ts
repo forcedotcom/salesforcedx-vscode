@@ -126,11 +126,7 @@ export class LogContext {
   }
 
   public getHeapDumpForThisLocation(frameName: string, lineNumber: number): ApexHeapDump | undefined {
-    for (const heapdump of this.apexHeapDumps) {
-      if (frameName.includes(heapdump.getClassName()) && lineNumber === heapdump.getLine()) {
-        return heapdump;
-      }
-    }
+    return this.apexHeapDumps.find(heapdump => frameName.includes(heapdump.className) && lineNumber === heapdump.line);
   }
 
   public hasHeapDumpForTopFrame(): string | undefined {
@@ -142,7 +138,7 @@ export class LogContext {
         topFrame.name.includes(this.lastSeenHeapDumpClass) &&
         topFrame.line === this.lastSeenHeapDumpLine
       ) {
-        return heapDump.getHeapDumpId();
+        return heapDump.heapDumpId;
       }
     }
   }
@@ -209,24 +205,24 @@ export class LogContext {
 
   public scanLogForHeapDumpLines(): boolean {
     const heapDumpRegex = RegExp(/\|HEAP_DUMP\|/);
-    this.logLines.forEach((line, index) => {
-      if (heapDumpRegex.test(line)) {
-        const splitLine = line.split('|');
+    this.apexHeapDumps = this.logLines
+      .filter(line => heapDumpRegex.test(line))
+      .map(line => line.split('|'))
+      .filter((splitLine, index) => {
         if (splitLine.length >= 7) {
-          const heapDump = new ApexHeapDump(
-            splitLine[3] /* heapDumpId */,
-            splitLine[4] /* className */,
-            splitLine[5] /* namespace */,
-            Number(splitLine[6]) /* line */
-          );
-          this.apexHeapDumps.push(heapDump);
+          return true;
         } else {
-          // With the way log lines are, this would only happen
-          // if the user manually edited the log file.
-          this.session.printToDebugConsole(nls.localize('malformed_log_line', index + 1, line));
+          this.session.printToDebugConsole(nls.localize('malformed_log_line', index + 1, splitLine.join('|')));
+          return false;
         }
-      }
-    });
+      })
+      .map(splitLine => ({
+        heapDumpId: splitLine[3],
+        className: splitLine[4],
+        namespace: splitLine[5],
+        line: Number(splitLine[6])
+      }));
+
     return this.apexHeapDumps.length > 0;
   }
 
@@ -240,7 +236,7 @@ export class LogContext {
 
       for (const heapDump of this.apexHeapDumps) {
         this.session.printToDebugConsole(nls.localize('fetching_heap_dump', heapDump.toString()));
-        const overlayActionCommand = new ApexExecutionOverlayResultCommand(heapDump.getHeapDumpId());
+        const overlayActionCommand = new ApexExecutionOverlayResultCommand(heapDump.heapDumpId);
         let errorString;
         let returnString;
         await requestService.execute(overlayActionCommand, RestHttpMethodEnum.Get).then(
@@ -253,7 +249,7 @@ export class LogContext {
         );
         if (returnString) {
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          heapDump.setOverlaySuccessResult(JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess);
+          heapDump.overlaySuccessResult = JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess;
         } else if (errorString) {
           try {
             success = false;
