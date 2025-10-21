@@ -11,7 +11,10 @@
  */
 export const errorToString = (error: unknown): string => {
   if (error instanceof Error) {
-    return error.message ?? error.toString();
+    if (error.message) {
+      return error.message;
+    }
+    return error.toString();
   }
   if (typeof error === 'string') {
     return error;
