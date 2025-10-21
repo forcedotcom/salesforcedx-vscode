@@ -25,8 +25,7 @@ import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleSta
 import { URI } from 'vscode-uri';
 import {
   ApexExecutionOverlayActionCommand,
-  ApexExecutionOverlayFailureResult,
-  ApexExecutionOverlaySuccessResult
+  ApexExecutionOverlayFailureResult
 } from '../commands/apexExecutionOverlayActionCommand';
 import {
   BatchDeleteExistingOverlayActionCommand,
@@ -168,7 +167,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
   }
 
   public returnCheckpointNodeIfAlreadyExists(breakpointIdInput: string): CheckpointNode | undefined {
-    return this.checkpoints.find(cp => cp.getBreakpointId() === breakpointIdInput);
+    return this.checkpoints.find(cp => cp.breakpointId === breakpointIdInput);
   }
 
   public deleteCheckpointNodeIfExists(breakpointIdInput: string): void {
@@ -198,8 +197,6 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
     // The return string will be the overlay Id and will end up being
     // used if the node is deleted
     if (returnString) {
-      const result = JSON.parse(returnString) as ApexExecutionOverlaySuccessResult;
-      theNode.setActionCommandResultId(result.id);
       return true;
     }
     // Fun fact: the result is an array of 1 item OR the result message can be just a string. In the
@@ -458,22 +455,23 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
 
 export const checkpointService = CheckpointService.getInstance();
 
-abstract class BaseNode extends TreeItem {
-  public abstract getChildren(): BaseNode[];
+class BaseNode extends TreeItem {
+  public getChildren(): BaseNode[] {
+    return [];
+  }
 }
 
+const createChildNodes = (action: ApexExecutionOverlayAction): [BaseNode, BaseNode, BaseNode] => [
+  new BaseNode(EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE + action.ActionScriptType),
+  new BaseNode(EDITABLE_FIELD_LABEL_ACTION_SCRIPT + action.ActionScript),
+  new BaseNode(EDITABLE_FIELD_LABEL_ITERATIONS + action.Iteration)
+];
 export class CheckpointNode extends BaseNode {
-  private readonly children: (
-    | CheckpointInfoActionScriptNode
-    | CheckpointInfoActionScriptTypeNode
-    | CheckpointInfoIterationNode
-  )[] = [];
-  private readonly breakpointId: string;
+  public readonly breakpointId: string;
+  private children: BaseNode[] = [];
   private readonly checkpointOverlayAction: ApexExecutionOverlayAction;
   private uri: string;
   private enabled: boolean;
-  private actionObjectId: string | undefined;
-
   constructor(
     breakpointIdInput: string,
     enabledInput: boolean,
@@ -486,22 +484,11 @@ export class CheckpointNode extends BaseNode {
     this.breakpointId = breakpointIdInput;
     this.enabled = enabledInput;
     this.checkpointOverlayAction = checkpointOverlayActionInput;
-    this.actionObjectId = undefined;
-
-    // Create the items that the user is going to be able to control (Type, Script, Iteration)
-    this.children.push(
-      new CheckpointInfoActionScriptTypeNode(this.checkpointOverlayAction),
-      new CheckpointInfoActionScriptNode(this.checkpointOverlayAction),
-      new CheckpointInfoIterationNode(this.checkpointOverlayAction)
-    );
+    this.children = createChildNodes(checkpointOverlayActionInput);
   }
 
   public createJSonStringForOverlayAction(): string {
     return JSON.stringify(this.checkpointOverlayAction);
-  }
-
-  public getBreakpointId(): string {
-    return this.breakpointId;
   }
 
   public isCheckpointEnabled(): boolean {
@@ -510,10 +497,6 @@ export class CheckpointNode extends BaseNode {
 
   public getCheckpointLineNumber(): number {
     return this.checkpointOverlayAction.Line;
-  }
-
-  public getCheckpointTypeRef(): string | undefined {
-    return this.checkpointOverlayAction.ExecutableEntityName;
   }
 
   public setCheckpointTypeRef(typeRef: string | undefined): void {
@@ -532,117 +515,17 @@ export class CheckpointNode extends BaseNode {
     this.uri = uriInput;
     this.checkpointOverlayAction.Line = checkpointOverlayActionInput.Line;
     this.checkpointOverlayAction.IsDumpingHeap = checkpointOverlayActionInput.IsDumpingHeap;
-    // Instead of just refreshing the node's overlay action, these functions
-    // need to be called because some of the information is in their label
-    // which needs to get updated
-    this.updateActionScript(checkpointOverlayActionInput.ActionScript);
-    this.updateActionScriptType(checkpointOverlayActionInput.ActionScriptType);
-    this.updateIterations(checkpointOverlayActionInput.Iteration);
+    this.children = createChildNodes(checkpointOverlayActionInput);
     this.label = `${sourceFileInput}:${checkpointOverlayActionInput.Line}`;
     CheckpointService.getInstance().fireTreeChangedEvent();
-  }
-
-  private updateActionScript(actionScriptInput: string): void {
-    for (const cpInfoNode of this.getChildren()) {
-      if (cpInfoNode instanceof CheckpointInfoActionScriptNode) {
-        return cpInfoNode.updateActionScript(actionScriptInput);
-      }
-    }
-  }
-
-  private updateActionScriptType(actionScriptTypeInput: ActionScriptEnum): void {
-    for (const cpInfoNode of this.getChildren()) {
-      if (cpInfoNode instanceof CheckpointInfoActionScriptTypeNode) {
-        return cpInfoNode.updateActionScriptType(actionScriptTypeInput);
-      }
-    }
-  }
-
-  private updateIterations(iterationInput: number): void {
-    for (const cpInfoNode of this.getChildren()) {
-      if (cpInfoNode instanceof CheckpointInfoIterationNode) {
-        return cpInfoNode.updateIterations(iterationInput);
-      }
-    }
-  }
-
-  public getIteration(): number {
-    return this.checkpointOverlayAction.Iteration;
-  }
-
-  public getActionScript(): string {
-    return this.checkpointOverlayAction.ActionScript;
-  }
-
-  public getActionScriptType(): ActionScriptEnum {
-    return this.checkpointOverlayAction.ActionScriptType;
   }
 
   public getCheckpointUri(): string {
     return this.uri;
   }
 
-  public getChildren(): (
-    | CheckpointInfoActionScriptNode
-    | CheckpointInfoActionScriptTypeNode
-    | CheckpointInfoIterationNode
-  )[] {
+  public getChildren(): BaseNode[] {
     return this.children;
-  }
-
-  public getActionCommandResultId(): string | undefined {
-    return this.actionObjectId;
-  }
-
-  public setActionCommandResultId(actionObjectId: string | undefined) {
-    this.actionObjectId = actionObjectId;
-  }
-}
-
-// Remove the tags when the nodes using the checkpointOverlayAction become editable.
-class CheckpointInfoActionScriptNode extends BaseNode {
-  private checkpointOverlayAction: ApexExecutionOverlayAction;
-  constructor(cpOverlayActionInput: ApexExecutionOverlayAction) {
-    super(EDITABLE_FIELD_LABEL_ACTION_SCRIPT + cpOverlayActionInput.ActionScript);
-    this.checkpointOverlayAction = cpOverlayActionInput;
-  }
-  public updateActionScript(actionScriptInput: string) {
-    this.checkpointOverlayAction.ActionScript = actionScriptInput;
-    this.label = EDITABLE_FIELD_LABEL_ACTION_SCRIPT + actionScriptInput;
-  }
-  public getChildren(): BaseNode[] {
-    return [];
-  }
-}
-
-class CheckpointInfoActionScriptTypeNode extends BaseNode {
-  private checkpointOverlayAction: ApexExecutionOverlayAction;
-  constructor(cpOverlayActionInput: ApexExecutionOverlayAction) {
-    super(EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE + cpOverlayActionInput.ActionScriptType);
-    this.checkpointOverlayAction = cpOverlayActionInput;
-  }
-  public updateActionScriptType(actionScriptTypeInput: ActionScriptEnum) {
-    this.checkpointOverlayAction.ActionScriptType = actionScriptTypeInput;
-    this.label = EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE + actionScriptTypeInput;
-  }
-  public getChildren(): BaseNode[] {
-    return [];
-  }
-}
-
-class CheckpointInfoIterationNode extends BaseNode {
-  private checkpointOverlayAction: ApexExecutionOverlayAction;
-  constructor(cpOverlayActionInput: ApexExecutionOverlayAction) {
-    super(EDITABLE_FIELD_LABEL_ITERATIONS + cpOverlayActionInput.Iteration);
-    this.checkpointOverlayAction = cpOverlayActionInput;
-  }
-
-  public updateIterations(iterationInput: number) {
-    this.checkpointOverlayAction.Iteration = iterationInput;
-    this.label = EDITABLE_FIELD_LABEL_ITERATIONS + iterationInput;
-  }
-  public getChildren(): BaseNode[] {
-    return [];
   }
 }
 
