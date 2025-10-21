@@ -9,7 +9,7 @@ import { build } from 'esbuild';
 
 await build({
   ...nodeConfig,
-  external: ['vscode'],
+  external: ['vscode', 'applicationinsights', 'jsonpath', 'jsonc-parser'],
   keepNames: false,
   entryPoints: ['./src/index.ts'],
   outdir: 'dist'
