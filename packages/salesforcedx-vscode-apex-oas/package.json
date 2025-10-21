@@ -84,10 +84,6 @@
       "devDependencies": {}
     }
   },
-  "activationEvents": [
-    "onCommand:sf.create.apex.action.class",
-    "onCommand:sf.validate.oas.document"
-  ],
   "main": "./out/src",
   "contributes": {
     "menus": {

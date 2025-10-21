@@ -63,7 +63,6 @@ import {
 } from '../testData/oasDocs';
 import { caseManagerClassText, simpleAccountResourceClassText } from '../testData/sampleClassData';
 import { getFolderPath } from '../utils/buildFilePathHelper';
-import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Create OpenAPI v3 Specifications', () => {
@@ -82,9 +81,6 @@ describe('Create OpenAPI v3 Specifications', () => {
     log('\nCreateOASDoc - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
-
-    // Hide chat copilot
-    await tryToHideCopilot();
 
     // Set SF_LOG_LEVEL to 'debug' to get the logs in the 'llm_logs' folder when the OAS doc is generated
     await setSettingValue('salesforcedx-vscode-core.SF_LOG_LEVEL', 'debug', true);
