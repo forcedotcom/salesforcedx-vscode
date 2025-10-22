@@ -227,7 +227,7 @@ describe('Create OpenAPI v3 Specifications', () => {
 
     it('Composed mode - Check for warnings and errors in the Problems Tab', async () => {
       logTestStart(testSetup, 'Check for warnings and errors in the Problems Tab');
-      await countProblemsInProblemsTab(0);
+      await countProblemsInProblemsTab(2);
     });
 
     it('Composed mode - Fix the OAS doc to get rid of the problems in the Problems Tab', async () => {
@@ -247,7 +247,7 @@ describe('Create OpenAPI v3 Specifications', () => {
         /Validated OpenAPI Document CaseManager.externalServiceRegistration-meta.xml successfully/
       );
 
-      const problems = await countProblemsInProblemsTab(2);
+      const problems = await countProblemsInProblemsTab(0);
       expect(await problems[0].getLabel()).to.equal('CaseManager.externalServiceRegistration-meta.xml');
       expect(await problems[1].getLabel()).to.equal('operations.responses.content should be application/json');
     });
