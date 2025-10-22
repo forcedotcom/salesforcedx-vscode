@@ -660,7 +660,7 @@ describe('Create OpenAPI v3 Specifications', () => {
     });
   });
 
-  describe.skip('Disable A4D extension and ensure the commands to generate and validate OAS docs are not present', () => {
+  describe('Disable A4D extension and ensure the commands to generate and validate OAS docs are not present', () => {
     it('Disable A4D extension', async () => {
       logTestStart(testSetup, 'Disable A4D extension');
 
@@ -678,14 +678,14 @@ describe('Create OpenAPI v3 Specifications', () => {
 
       // In the extension details view, click the Disable button
       const disableButton = await a4dExtension.findElement(
-        By.xpath("//a[contains(@class, 'action-label') and contains(@class, 'extension-action') and text()='Disable']")
+        By.xpath("//a[contains(@class, 'extension-action') and @aria-label='Disable this extension']")
       );
       await disableButton?.click();
       await pause(Duration.seconds(5));
 
       // Click the Restart Extensions button
       const restartExtensionsButton = await a4dExtension.findElement(
-        By.xpath("//a[contains(@class, 'action-label') and contains(@class, 'reload') and text()='Restart Extensions']")
+        By.xpath("//a[contains(@class, 'reload') and contains(@aria-label, 'restart extensions')]")
       );
       await restartExtensionsButton?.click();
       await pause(Duration.seconds(5));
