@@ -10,11 +10,9 @@ import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { getActiveSalesforceApexExtension } from '../utils/extensionApis';
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider {
-  private salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>(
-    'salesforce.salesforcedx-vscode-apex'
-  );
   public static getConfig(logFile?: string, stopOnEntry: boolean = true): vscode.DebugConfiguration {
     return {
       name: nls.localize('config_name_text'),
@@ -58,13 +56,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     if (vscode.workspace?.workspaceFolders?.[0]) {
       config.projectPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
     }
-    if (!this.salesforceApexExtension?.isActive) {
-      await this.salesforceApexExtension?.activate();
-    }
-    if (this.salesforceApexExtension?.exports) {
-      await this.isLanguageClientReady();
-      config.lineBreakpointInfo = await this.salesforceApexExtension.exports.getLineBreakpointInfo();
-    }
+    const salesforceApexExtension = await getActiveSalesforceApexExtension();
+    await this.isLanguageClientReady(salesforceApexExtension);
+    config.lineBreakpointInfo = await salesforceApexExtension.getLineBreakpointInfo();
 
     // Handle log file reading for web compatibility
     if (config.logFile && config.logFile !== '${command:AskForLogFileName}') {
@@ -101,16 +95,12 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     return config;
   }
 
-  private async isLanguageClientReady(): Promise<void> {
-    if (!this.salesforceApexExtension?.exports) {
-      throw new Error('Apex extension not available');
-    }
-
+  private async isLanguageClientReady(salesforceApexExtension: ApexVSCodeApi): Promise<void> {
     let expired = false;
     let i = 0;
-    while (!this.salesforceApexExtension.exports.languageClientManager.getStatus().isReady() && !expired) {
-      if (this.salesforceApexExtension.exports.languageClientManager.getStatus().failedToInitialize()) {
-        throw Error(this.salesforceApexExtension.exports.languageClientManager.getStatus().getStatusMessage());
+    while (!salesforceApexExtension.languageClientManager.getStatus().isReady() && !expired) {
+      if (salesforceApexExtension.languageClientManager.getStatus().failedToInitialize()) {
+        throw Error(salesforceApexExtension.languageClientManager.getStatus().getStatusMessage());
       }
 
       await new Promise(resolve => setTimeout(resolve, 100));
