@@ -47,7 +47,8 @@
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
-    "salesforce.salesforcedx-vscode-core"
+    "salesforce.salesforcedx-vscode-core",
+    "salesforce.salesforcedx-einstein-gpt"
   ],
   "scripts": {
     "bundle:extension": "node ./esbuild.config.mjs",
