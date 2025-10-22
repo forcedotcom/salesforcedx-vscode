@@ -639,7 +639,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       if (!(extensionsList instanceof ExtensionsViewSection)) {
         throw new Error(`Expected ExtensionsViewSection but got different section type: ${typeof extensionsList}`);
       }
-      const a4dExtension = await extensionsList?.findItem('Agentforce for Developers');
+      const a4dExtension = await extensionsList?.findItem('Agentforce Vibes');
       if (!(a4dExtension instanceof ExtensionsViewItem)) {
         throw new Error(`Expected ExtensionsViewItem but got different item type: ${typeof a4dExtension}`);
       }
