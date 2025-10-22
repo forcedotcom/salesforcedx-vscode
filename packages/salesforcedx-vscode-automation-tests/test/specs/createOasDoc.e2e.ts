@@ -217,12 +217,12 @@ describe('Create OpenAPI v3 Specifications', () => {
       );
     });
 
-    it('Check for warnings and errors in the Problems Tab', async () => {
+    it('Composed mode - Check for warnings and errors in the Problems Tab', async () => {
       logTestStart(testSetup, 'Check for warnings and errors in the Problems Tab');
       await countProblemsInProblemsTab(0);
     });
 
-    it('Fix the OAS doc to get rid of the problems in the Problems Tab', async () => {
+    it('Composed mode - Fix the OAS doc to get rid of the problems in the Problems Tab', async () => {
       // NOTE: The "fix" is actually replacing the OAS doc with the ideal solution
       logTestStart(testSetup, 'Fix the OAS doc to get rid of the problems in the Problems Tab');
 
@@ -232,7 +232,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       await overrideTextInFile(textEditor, xmlText);
     });
 
-    it('Revalidate the OAS doc', async () => {
+    it('Composed mode - Revalidate the OAS doc', async () => {
       logTestStart(testSetup, 'Revalidate the OAS doc');
       await executeQuickPick('SFDX: Validate OpenAPI Document (Beta)');
       await verifyNotificationWithRetry(
@@ -244,7 +244,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       expect(await problems[1].getLabel()).to.equal('operations.responses.content should be application/json');
     });
 
-    it('Deploy the composed ESR to the org', async () => {
+    it('Composed mode - Deploy the composed ESR to the org', async () => {
       logTestStart(testSetup, 'Deploy the composed ESR to the org');
       const workbench = getWorkbench();
       // Clear the Output view first.
@@ -369,12 +369,12 @@ describe('Create OpenAPI v3 Specifications', () => {
       );
     });
 
-    it('Check for warnings and errors in the Problems Tab', async () => {
+    it('Decomposed mode - Check for warnings and errors in the Problems Tab', async () => {
       logTestStart(testSetup, 'Check for warnings and errors in the Problems Tab');
       await countProblemsInProblemsTab(0);
     });
 
-    it('Fix the OAS doc to get rid of the problems in the Problems Tab', async () => {
+    it('Decomposed mode - Fix the OAS doc to get rid of the problems in the Problems Tab', async () => {
       // NOTE: The "fix" is actually replacing the OAS doc with the ideal solution from the EMU repo
       logTestStart(testSetup, 'Fix the OAS doc to get rid of the problems in the Problems Tab');
 
@@ -388,7 +388,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       await overrideTextInFile(textEditor, xmlText);
     });
 
-    it('Revalidate the OAS doc', async () => {
+    it('Decomposed mode - Revalidate the OAS doc', async () => {
       logTestStart(testSetup, 'Revalidate the OAS doc');
       const workbench = getWorkbench();
       const textEditor = await getTextEditor(workbench, 'SimpleAccountResource.yaml');
@@ -405,7 +405,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       await countProblemsInProblemsTab(0);
     });
 
-    it('Deploy the decomposed ESR to the org', async () => {
+    it('Decomposed mode - Deploy the decomposed ESR to the org', async () => {
       logTestStart(testSetup, 'Deploy the decomposed ESR to the org');
       const workbench = getWorkbench();
       // Clear the Output view first.
