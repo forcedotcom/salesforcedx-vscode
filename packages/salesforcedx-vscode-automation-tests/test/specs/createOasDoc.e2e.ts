@@ -247,7 +247,7 @@ describe('Create OpenAPI v3 Specifications', () => {
         /Validated OpenAPI Document CaseManager.externalServiceRegistration-meta.xml successfully/
       );
 
-      const problems = await countProblemsInProblemsTab(0);
+      const problems = await countProblemsInProblemsTab(2);
       expect(await problems[0].getLabel()).to.equal('CaseManager.externalServiceRegistration-meta.xml');
       expect(await problems[1].getLabel()).to.equal('operations.responses.content should be application/json');
     });
