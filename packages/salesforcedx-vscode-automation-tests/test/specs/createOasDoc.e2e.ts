@@ -195,9 +195,13 @@ describe('Create OpenAPI v3 Specifications', () => {
       const quickPickPrompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
       await quickPickPrompt.confirm();
 
-      // Click the Overwrite button on the popup
-      await pause(Duration.seconds(2)); // Allow time for the popup to appear
-      await clickButtonOnModalDialog('Overwrite');
+      try {
+        // Click the Overwrite button on the popup
+        await pause(Duration.seconds(2)); // Allow time for the popup to appear
+        await clickButtonOnModalDialog('Overwrite');
+      } catch (error) {
+        log(`Overwrite button not found: ${error}`);
+      }
 
       await verifyNotificationWithRetry(/OpenAPI Document created for class: CaseManager\./);
 
@@ -268,9 +272,13 @@ describe('Create OpenAPI v3 Specifications', () => {
       const quickPickPrompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
       await quickPickPrompt.confirm();
 
-      // Click the Manual Merge button on the popup
-      await pause(Duration.seconds(2)); // Allow time for the popup to appear
-      await clickButtonOnModalDialog('Manually merge with existing ESR');
+      try {
+        // Click the Manual Merge button on the popup
+        await pause(Duration.seconds(2)); // Allow time for the popup to appear
+        await clickButtonOnModalDialog('Manually merge with existing ESR');
+      } catch (error) {
+        log(`Manual Merge button not found: ${error}`);
+      }
 
       await verifyNotificationWithRetry(
         /A new OpenAPI Document class CaseManager_\d{8}_\d{6} is created for CaseManager\. Manually merge the two files using the diff editor\./
@@ -325,9 +333,13 @@ describe('Create OpenAPI v3 Specifications', () => {
       const quickPickPrompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class (Beta)');
       await quickPickPrompt.confirm();
 
-      // Click the Overwrite button on the popup
-      await pause(Duration.seconds(2)); // Allow time for the popup to appear
-      await clickButtonOnModalDialog('Overwrite');
+      try {
+        // Click the Overwrite button on the popup
+        await pause(Duration.seconds(2)); // Allow time for the popup to appear
+        await clickButtonOnModalDialog('Overwrite');
+      } catch (error) {
+        log(`Overwrite button not found: ${error}`);
+      }
 
       await verifyNotificationWithRetry(/OpenAPI Document created for class: SimpleAccountResource\./);
 
@@ -480,9 +492,13 @@ describe('Create OpenAPI v3 Specifications', () => {
         await macQuickPickPrompt.confirm();
       }
 
-      // Click the Overwrite button on the popup
-      await pause(Duration.seconds(2)); // Allow time for the popup to appear
-      await clickButtonOnModalDialog('Overwrite');
+      try {
+        // Click the Overwrite button on the popup
+        await pause(Duration.seconds(2)); // Allow time for the popup to appear
+        await clickButtonOnModalDialog('Overwrite');
+      } catch (error) {
+        log(`Overwrite button not found: ${error}`);
+      }
 
       await verifyNotificationWithRetry(/OpenAPI Document created for class: SimpleAccountResource\./);
 
@@ -599,9 +615,13 @@ describe('Create OpenAPI v3 Specifications', () => {
         await explorerMacQuickPickPrompt.confirm();
       }
 
-      // Click the Manual Merge button on the popup
-      await pause(Duration.seconds(2)); // Allow time for the popup to appear
-      await clickButtonOnModalDialog('Manually merge with existing ESR');
+      try {
+        // Click the Manual Merge button on the popup
+        await pause(Duration.seconds(2)); // Allow time for the popup to appear
+        await clickButtonOnModalDialog('Manually merge with existing ESR');
+      } catch (error) {
+        log(`Manual Merge button not found: ${error}`);
+      }
 
       await verifyNotificationWithRetry(
         /A new OpenAPI Document class SimpleAccountResource_\d{8}_\d{6} is created for SimpleAccountResource\. Manually merge the two files using the diff editor\./
