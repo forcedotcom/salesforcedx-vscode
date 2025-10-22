@@ -28,7 +28,8 @@ export {
   TraceFlags,
   showTraceFlagExpiration,
   disposeTraceFlagExpiration,
-  getTraceFlagExpirationKey
+  getTraceFlagExpirationKey,
+  handleTraceFlagCleanup
 } from './traceFlags';
 export {
   difference,
@@ -41,5 +42,5 @@ export {
   isNullOrUndefined
 } from './utils';
 export { isAlphaNumSpaceString, isAlphaNumString, isInteger, isIntegerInRange, isRecordIdFormat } from './validations';
-export { errorToString, isError, isErrorString, getErrorMessage, getErrorStack } from './errorUtils';
+export { errorToString } from './errorUtils';
 export { getSharedTelemetryUserId, hashUserIdentifier, refreshAllExtensionReporters } from './telemetryUtils';

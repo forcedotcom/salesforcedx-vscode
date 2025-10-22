@@ -48,9 +48,7 @@ export class HeapDumpService {
   }
 
   public replaceFrameVariablesWithHeapDump(frame: StackFrame): void {
-    const heapdumpResult = this.logContext
-      .getHeapDumpForThisLocation(frame.name, frame.line)
-      ?.getOverlaySuccessResult();
+    const heapdumpResult = this.logContext.getHeapDumpForThisLocation(frame.name, frame.line)?.overlaySuccessResult;
     if (heapdumpResult) {
       const frameInfo = this.logContext.getFrameHandler().get(frame.id);
 
@@ -78,7 +76,7 @@ export class HeapDumpService {
       // Create the high level references
       for (const outerExtent of heapdumpResult.HeapDump.extents) {
         // Ignore primitiveTypes (includes strings)
-        if (!this.isPrimitiveType(outerExtent.typeName)) {
+        if (!isPrimitiveType(outerExtent.typeName)) {
           for (const innerExtent of outerExtent.extent) {
             const ref = innerExtent.address;
             const refContainer = new ApexVariableContainer('', '', outerExtent.typeName, ref);
@@ -228,14 +226,9 @@ export class HeapDumpService {
     }
   }
 
-  public isAddress(value: any): boolean {
-    return typeof value === 'string' && value.startsWith(ADDRESS_PREFIX);
-  }
-
   public isTriggerExtent(outerExtent: HeapDumpExtents) {
     if (
-      (outerExtent.typeName.toLowerCase() === LC_APEX_PRIMITIVE_BOOLEAN ||
-        this.isCollectionType(outerExtent.typeName)) &&
+      (outerExtent.typeName.toLowerCase() === LC_APEX_PRIMITIVE_BOOLEAN || isCollectionType(outerExtent.typeName)) &&
       outerExtent.count > 0 &&
       outerExtent.extent[0].symbols !== null &&
       outerExtent.extent[0].symbols.length > 0 &&
@@ -254,7 +247,7 @@ export class HeapDumpService {
     // If this isn't a primitive type then it needs to have its variableRef
     // set so it can be expanded in the variables window. Note this check
     // is kind of superfluous but it's better to be safe than sorry
-    if (!this.isPrimitiveType(tmpContainer.type)) {
+    if (!isPrimitiveType(tmpContainer.type)) {
       if (createVarRef) {
         tmpContainer.variablesRef = this.logContext.getVariableHandler().create(tmpContainer);
       } else {
@@ -295,7 +288,7 @@ export class HeapDumpService {
       const isListOrSet =
         varContainer.type.toLowerCase().startsWith('list<') || varContainer.type.toLowerCase().startsWith('set<');
       // The live debugger, for collections, doesn't include their type in variable name/value
-      const containerType = this.isCollectionType(varContainer.type) ? '' : `${varContainer.type}:`;
+      const containerType = isCollectionType(varContainer.type) ? '' : `${varContainer.type}:`;
       returnString = isListOrSet ? '(' : `${containerType}{`;
       let first = true;
       // Loop through each of the container's variables to get the name/value combinations, calling to create
@@ -323,34 +316,6 @@ export class HeapDumpService {
     return returnString;
   }
 
-  private isPrimitiveType(typeName: string): boolean {
-    const lcTypeName = typeName.toLocaleLowerCase();
-    if (
-      lcTypeName === LC_APEX_PRIMITIVE_BLOB ||
-      lcTypeName === LC_APEX_PRIMITIVE_BOOLEAN ||
-      lcTypeName === LC_APEX_PRIMITIVE_DATE ||
-      lcTypeName === LC_APEX_PRIMITIVE_DATETIME ||
-      lcTypeName === LC_APEX_PRIMITIVE_DECIMAL ||
-      lcTypeName === LC_APEX_PRIMITIVE_DOUBLE ||
-      lcTypeName === LC_APEX_PRIMITIVE_ID ||
-      lcTypeName === LC_APEX_PRIMITIVE_INTEGER ||
-      lcTypeName === LC_APEX_PRIMITIVE_LONG ||
-      lcTypeName === LC_APEX_PRIMITIVE_STRING ||
-      lcTypeName === LC_APEX_PRIMITIVE_TIME
-    ) {
-      return true;
-    }
-    return false;
-  }
-
-  private isCollectionType(typeName: string): boolean {
-    return (
-      typeName.toLocaleLowerCase().startsWith('map<') ||
-      typeName.toLocaleLowerCase().startsWith('list<') ||
-      typeName.toLocaleLowerCase().startsWith('set<')
-    );
-  }
-
   // Update the leaf reference which means do not follow any reference chain. Just update
   // what is immediately on the reference.
   // refContainer: ApexVariableContainer - the container to the reference being updated
@@ -370,15 +335,15 @@ export class HeapDumpService {
     const valueCollectionType = collectionType ?? '';
     let hasInnerRefs = false;
     // If the typename is a collection
-    if (this.isCollectionType(refContainer.type)) {
+    if (isCollectionType(refContainer.type)) {
       // the collection is a map
       if (extentValue.value.entry) {
         let entryNumber = 0;
         // get the map's key type and ensure key variables have their type set correctly
-        const mapKeyType = this.getKeyTypeForMap(refContainer.type, collectionType ?? '');
+        const mapKeyType = getKeyTypeForMap(refContainer.type, collectionType ?? '');
         for (const extentValueEntry of extentValue.value.entry) {
-          let keyIsRef = this.isAddress(extentValueEntry.keyDisplayValue);
-          let valueIsRef = this.isAddress(extentValueEntry.value.value);
+          let keyIsRef = isAddress(extentValueEntry.keyDisplayValue);
+          let valueIsRef = isAddress(extentValueEntry.value.value);
           const keyValueName = `${KEY_VALUE_PAIR_KEY}${entryNumber.toString()}_${KEY_VALUE_PAIR_VALUE}${entryNumber.toString()}`;
           const keyValueContainer = new ApexVariableContainer(keyValueName, '', KEY_VALUE_PAIR);
           // create the key variable, ensure the key's type is set
@@ -426,7 +391,7 @@ export class HeapDumpService {
         const values = extentValue.value.value;
         for (let i = 0; i < values.length; i++) {
           // If the value is an address that means that this is a reference
-          if (this.isAddress(values[i].value)) {
+          if (isAddress(values[i].value)) {
             let valString = values[i].value;
             const valRef = this.logContext.getRefsMap().get(values[i].value);
             if (valRef && valRef.type.toLowerCase() === LC_APEX_PRIMITIVE_STRING) {
@@ -456,7 +421,7 @@ export class HeapDumpService {
       // The values, on the other hand, could be references
     } else {
       for (const extentValueEntry of extentValue.value.entry) {
-        const valueIsRef = this.isAddress(extentValueEntry.value.value);
+        const valueIsRef = isAddress(extentValueEntry.value.value);
         if (valueIsRef) {
           let valString = extentValueEntry.value.value;
           const valRef = this.logContext.getRefsMap().get(extentValueEntry.value.value);
@@ -642,16 +607,38 @@ export class HeapDumpService {
       }
     }
   }
-
-  // The typename can contain a bunch of nested types. If this is a collection of
-  // collections then the collectionType won't be null.
-  // typeName: the full typeName of the Map
-  // collectionType: the typeName of the Map's value. This is necessary to in order to ensure
-  //                 that when the type name is split that it's split correctly since, due to
-  //                 potential nesting just splitting on the comma isn't good enough.
-  private getKeyTypeForMap(typeName: string, collectionType: string): string {
-    const lastIndexOfValue = `,${collectionType}`;
-    const keyTypeName = typeName.substring(typeName.indexOf('<') + 1, typeName.lastIndexOf(lastIndexOfValue));
-    return keyTypeName;
-  }
 }
+
+// The typename can contain a bunch of nested types. If this is a collection of
+// collections then the collectionType won't be null.
+// typeName: the full typeName of the Map
+// collectionType: the typeName of the Map's value. This is necessary to in order to ensure
+//                 that when the type name is split that it's split correctly since, due to
+//                 potential nesting just splitting on the comma isn't good enough.
+const getKeyTypeForMap = (typeName: string, collectionType: string): string => {
+  const lastIndexOfValue = `,${collectionType}`;
+  const keyTypeName = typeName.substring(typeName.indexOf('<') + 1, typeName.lastIndexOf(lastIndexOfValue));
+  return keyTypeName;
+};
+
+const isCollectionType = (typeName: string): boolean =>
+  typeName.toLocaleLowerCase().startsWith('map<') ||
+  typeName.toLocaleLowerCase().startsWith('list<') ||
+  typeName.toLocaleLowerCase().startsWith('set<');
+
+const isAddress = (value: unknown): boolean => value?.toString().startsWith(ADDRESS_PREFIX) ?? false;
+
+const isPrimitiveType = (typeName: string): boolean =>
+  [
+    LC_APEX_PRIMITIVE_BLOB,
+    LC_APEX_PRIMITIVE_BOOLEAN,
+    LC_APEX_PRIMITIVE_DATE,
+    LC_APEX_PRIMITIVE_DATETIME,
+    LC_APEX_PRIMITIVE_DECIMAL,
+    LC_APEX_PRIMITIVE_DOUBLE,
+    LC_APEX_PRIMITIVE_ID,
+    LC_APEX_PRIMITIVE_INTEGER,
+    LC_APEX_PRIMITIVE_LONG,
+    LC_APEX_PRIMITIVE_STRING,
+    LC_APEX_PRIMITIVE_TIME
+  ].includes(typeName.toLocaleLowerCase());

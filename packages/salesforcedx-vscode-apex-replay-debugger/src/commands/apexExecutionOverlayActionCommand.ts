@@ -14,13 +14,6 @@ export type ApexExecutionOverlayFailureResult = {
   fields: string[];
 };
 
-export type ApexExecutionOverlaySuccessResult = {
-  id: string;
-  success: boolean;
-  errors: string[];
-  warnings: string[];
-};
-
 export class ApexExecutionOverlayActionCommand extends BaseCommand {
   private readonly commandName = 'ApexExecutionOverlayAction';
   private readonly requestString: string | undefined;

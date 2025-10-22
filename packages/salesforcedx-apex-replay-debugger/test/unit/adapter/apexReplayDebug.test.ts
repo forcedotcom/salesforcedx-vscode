@@ -27,7 +27,7 @@ import {
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
-import { BreakpointUtil, breakpointUtil } from '../../../src/breakpoints';
+import { BreakpointUtil, breakpointUtil } from '../../../src/breakpoints/breakpointUtil';
 import { SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../../../src/constants';
 import { LogContext, LogContextUtil } from '../../../src/core';
 import { HeapDumpService } from '../../../src/core/heapDumpService';
@@ -1013,7 +1013,7 @@ describe('Replay debugger adapter - unit', () => {
         expect(actualResponse.success).toBe(true);
         expect(actualResponse).toEqual(initializedResponse);
         // Verify that the line number mapping is the expected line number mapping
-        expect(breakpointUtil.getLineNumberMapping()).toEqual(expectedLineNumberMapping);
+        expect(breakpointUtil.lineNumberMapping).toEqual(expectedLineNumberMapping);
         expect(adapter.getProjectPath()).toBe(projectPathArg);
       });
     });

@@ -6,37 +6,13 @@
  */
 import { ApexExecutionOverlayResultCommandSuccess } from '../commands';
 
-export class ApexHeapDump {
-  private readonly heapDumpId: string;
-  private readonly className: string;
-  private readonly namespace: string;
-  private readonly line: number;
-  private overlaySuccessResut: ApexExecutionOverlayResultCommandSuccess | undefined;
-  constructor(heapDumpId: string, className: string, namespace: string, line: number) {
-    this.heapDumpId = heapDumpId;
-    this.className = className;
-    this.namespace = namespace;
-    this.line = line;
-  }
-  public getHeapDumpId(): string {
-    return this.heapDumpId;
-  }
-  public getClassName(): string {
-    return this.className;
-  }
-  public getNamespace(): string {
-    return this.namespace;
-  }
-  public getLine(): number {
-    return this.line;
-  }
-  public getOverlaySuccessResult(): ApexExecutionOverlayResultCommandSuccess | undefined {
-    return this.overlaySuccessResut;
-  }
-  public setOverlaySuccessResult(overlaySuccessResult: ApexExecutionOverlayResultCommandSuccess): void {
-    this.overlaySuccessResut = overlaySuccessResult;
-  }
+export type ApexHeapDump = {
+  className: string;
+  namespace: string;
+  line: number;
+  heapDumpId: string;
+  overlaySuccessResult?: ApexExecutionOverlayResultCommandSuccess;
+};
 
-  public toString = (): string =>
-    `HeapDumpId: ${this.heapDumpId}, ClassName: ${this.className}, Namespace: ${this.namespace}, Line: ${this.line}`;
-}
+export const stringifyHeapDump = (heapDump: ApexHeapDump): string =>
+  `HeapDumpId: ${heapDump.heapDumpId}, ClassName: ${heapDump.className}, Namespace: ${heapDump.namespace}, Line: ${heapDump.line}`;

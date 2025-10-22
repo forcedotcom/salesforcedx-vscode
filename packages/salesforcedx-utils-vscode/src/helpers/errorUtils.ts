@@ -11,7 +11,10 @@
  */
 export const errorToString = (error: unknown): string => {
   if (error instanceof Error) {
-    return error.message || error.toString();
+    if (error.message) {
+      return error.message;
+    }
+    return error.toString();
   }
   if (typeof error === 'string') {
     return error;
@@ -20,34 +23,4 @@ export const errorToString = (error: unknown): string => {
     return error.toString();
   }
   return String(error);
-};
-
-/**
- * Type guard to check if a value is an Error instance
- */
-export const isError = (value: unknown): value is Error => value instanceof Error;
-
-/**
- * Type guard to check if a value is a string
- */
-export const isErrorString = (value: unknown): value is string => typeof value === 'string';
-
-/**
- * Safely extracts error message, preferring Error.message over toString()
- */
-export const getErrorMessage = (error: unknown): string => {
-  if (error instanceof Error) {
-    return error.message || error.toString();
-  }
-  return errorToString(error);
-};
-
-/**
- * Safely extracts error stack trace if available
- */
-export const getErrorStack = (error: unknown): string | undefined => {
-  if (error instanceof Error && error.stack) {
-    return error.stack;
-  }
-  return undefined;
 };

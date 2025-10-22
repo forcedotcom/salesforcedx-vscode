@@ -8,7 +8,7 @@
 export * from './commands';
 export { CompositeParametersGatherer, EmptyParametersGatherer } from './commands/parameterGatherers';
 export { EmptyPostChecker } from './commands/postconditionCheckers';
-export { EmptyPreChecker, SfWorkspaceChecker, isSalesforceProjectOpened } from './commands/preconditionCheckers';
+export { SfWorkspaceChecker, isSalesforceProjectOpened } from './commands/preconditionCheckers';
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { SfCommandlet } from './commands/sfCommandlet';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
@@ -27,7 +27,7 @@ export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspace
 export { TelemetryService, TelemetryBuilder } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
 export * from './helpers';
-export { TraceFlags } from './helpers/traceFlags';
+export { TraceFlags, handleTraceFlagCleanup } from './helpers/traceFlags';
 export { TimingUtils } from './helpers/timingUtils';
 export { AppInsights } from './telemetry/reporters/appInsights';
 export { hasRootWorkspace, getRootWorkspace, getRootWorkspacePath, workspaceUtils } from './workspaces';

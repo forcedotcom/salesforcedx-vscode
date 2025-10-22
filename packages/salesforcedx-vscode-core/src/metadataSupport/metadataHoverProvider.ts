@@ -131,12 +131,112 @@ export const findParentMetadataType = (document: vscode.TextDocument, startLine:
 };
 
 /**
+ * Find the parent metadata type and all intermediate layers by scanning upward from current line
+ */
+export const findParentMetadataTypeWithLayers = (
+  document: vscode.TextDocument,
+  startLine: number
+): { metadataType: string; intermediateLayers: string[] } | null => {
+  const elementStack: string[] = [];
+  let inOpenTag = false;
+  let currentTagName = '';
+
+  // Build a proper XML element stack by parsing the document up to the current line
+  for (let i = 0; i <= startLine; i++) {
+    const line = document.lineAt(i).text;
+
+    // Handle multi-line opening tags
+    if (inOpenTag) {
+      // Check if this line closes the opening tag
+      if (line.includes('>')) {
+        inOpenTag = false;
+        if (currentTagName) {
+          const cleanElementName = currentTagName.includes(':') ? currentTagName.split(':')[1] : currentTagName;
+          // Check if it's not a self-closing tag
+          if (!line.trim().startsWith('/>')) {
+            elementStack.push(cleanElementName);
+          }
+          currentTagName = '';
+        }
+        // Continue processing the rest of the line for closing tags
+      } else {
+        continue;
+      }
+    }
+
+    // Find self-closing tags and exclude them from the stack
+    const selfClosingTagRegex = /<([\w:]+)(?:\s[^>]*)?\/>/g;
+    const selfClosingTags = new Set<number>();
+    let match;
+    while ((match = selfClosingTagRegex.exec(line)) !== null) {
+      selfClosingTags.add(match.index);
+    }
+
+    // Find opening tags (both complete and incomplete)
+    const openingTagRegex = /<([\w:]+)(?:\s[^>]*)?>/g;
+    const incompleteOpeningTagRegex = /<([\w:]+)(?:\s[^>]*)?$/;
+
+    while ((match = openingTagRegex.exec(line)) !== null) {
+      // Skip if this is a self-closing tag
+      if (!selfClosingTags.has(match.index)) {
+        const elementName = match[1];
+        const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
+        elementStack.push(cleanElementName);
+      }
+    }
+
+    // Check for incomplete opening tags (multi-line)
+    const incompleteMatch = incompleteOpeningTagRegex.exec(line);
+    if (incompleteMatch) {
+      currentTagName = incompleteMatch[1];
+      inOpenTag = true;
+    }
+
+    // Find closing tags
+    const closingTagRegex = /<\/([\w:]+)>/g;
+    while ((match = closingTagRegex.exec(line)) !== null) {
+      const elementName = match[1];
+      const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
+      // Remove the matching opening tag from the stack
+      const index = elementStack.lastIndexOf(cleanElementName);
+      if (index !== -1) {
+        elementStack.splice(index, 1);
+      }
+    }
+  }
+
+  // Now find the metadata type and collect intermediate layers
+  // The elementStack now contains all currently open elements from root to the current position
+  const intermediateLayers: string[] = [];
+
+  for (let i = 0; i < elementStack.length; i++) {
+    const elementName = elementStack[i];
+
+    // Check if this is a valid Salesforce metadata type
+    if (VALID_METADATA_TYPES.has(elementName)) {
+      // Found the metadata type - collect all remaining elements as intermediate layers
+      // Include all elements between the metadata type and the current position
+      for (let j = i + 1; j < elementStack.length; j++) {
+        const layerName = elementStack[j];
+        // Only add non-uppercase elements (fields/containers, not metadata types)
+        if (layerName.length > 1 && !/^[A-Z]/.test(layerName)) {
+          intermediateLayers.push(layerName);
+        }
+      }
+      return { metadataType: elementName, intermediateLayers };
+    }
+  }
+
+  return null;
+};
+
+/**
  * Extract field information for internal tags within metadata
  */
 export const extractFieldInfo = (
   document: vscode.TextDocument,
   position: vscode.Position
-): { metadataType: string; fieldName: string } | null => {
+): { metadataType: string; fieldName: string; intermediateLayers: string[] } | null => {
   const line = document.lineAt(position.line);
   const wordRange = document.getWordRangeAtPosition(position);
 
@@ -160,10 +260,16 @@ export const extractFieldInfo = (
 
       // Check if this looks like a field (not a metadata type)
       if (!/^[A-Z]/.test(cleanElementName) && cleanElementName.length > 1) {
-        // Find the parent metadata type by scanning upward
-        const parentType = findParentMetadataType(document, position.line);
-        if (parentType) {
-          return { metadataType: parentType, fieldName: cleanElementName };
+        // Find the parent metadata type and all intermediate layers by scanning upward
+        const parentInfo = findParentMetadataTypeWithLayers(document, position.line);
+        if (parentInfo) {
+          // Filter out the current field name from intermediate layers to avoid duplication
+          const filteredIntermediateLayers = parentInfo.intermediateLayers.filter(layer => layer !== cleanElementName);
+          return {
+            metadataType: parentInfo.metadataType,
+            fieldName: cleanElementName,
+            intermediateLayers: filteredIntermediateLayers
+          };
         }
       }
     }
@@ -185,10 +291,16 @@ export const extractFieldInfo = (
 
       // Check if this looks like a field (not a metadata type)
       if (!/^[A-Z]/.test(cleanElementName) && cleanElementName.length > 1) {
-        // Find the parent metadata type by scanning upward
-        const parentType = findParentMetadataType(document, position.line);
-        if (parentType) {
-          return { metadataType: parentType, fieldName: cleanElementName };
+        // Find the parent metadata type and all intermediate layers by scanning upward
+        const parentInfo = findParentMetadataTypeWithLayers(document, position.line);
+        if (parentInfo) {
+          // Filter out the current field name from intermediate layers to avoid duplication
+          const filteredIntermediateLayers = parentInfo.intermediateLayers.filter(layer => layer !== cleanElementName);
+          return {
+            metadataType: parentInfo.metadataType,
+            fieldName: cleanElementName,
+            intermediateLayers: filteredIntermediateLayers
+          };
         }
       }
     }
@@ -271,7 +383,9 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
 
       if (fieldDocumentation) {
         const markdownContent = new vscode.MarkdownString();
-        markdownContent.appendCodeblock(`${fieldInfo.metadataType}.${fieldInfo.fieldName}`, 'xml');
+        // Build the full path including all intermediate layers
+        const fullPath = [fieldInfo.metadataType, ...fieldInfo.intermediateLayers, fieldInfo.fieldName].join('.');
+        markdownContent.appendCodeblock(fullPath, 'xml');
         markdownContent.appendMarkdown(fieldDocumentation.description);
 
         if (fieldDocumentation.type) {
