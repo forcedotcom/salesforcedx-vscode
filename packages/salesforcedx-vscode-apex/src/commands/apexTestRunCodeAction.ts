@@ -171,7 +171,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   }
 }
 
-export const apexTestRunCodeAction = async (tests: string[]) => {
+const apexTestRunCodeAction = async (tests: string[]) => {
   const outputDir = await getTempFolder();
   const testRunExecutor = new ApexLibraryTestRunExecutor(tests, outputDir);
   const commandlet = new SfCommandlet(new SfWorkspaceChecker(), new EmptyParametersGatherer(), testRunExecutor);
