@@ -306,7 +306,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       const sfdxProjectJson = getSfdxProjectJson();
       await overrideTextInFile(textEditor, sfdxProjectJson);
       await executeQuickPick('View: Close All Editors');
-      await reloadWindow();
+      await reloadWindow(Duration.seconds(10));
     });
 
     it('Generate OAS doc from a valid Apex class using command palette - Decomposed mode, initial generation', async () => {
