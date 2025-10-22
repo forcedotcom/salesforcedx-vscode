@@ -34,9 +34,3 @@ export class SfWorkspaceChecker implements PreconditionChecker {
     return true;
   }
 }
-
-export class EmptyPreChecker implements PreconditionChecker {
-  public check(): boolean {
-    return true;
-  }
-}

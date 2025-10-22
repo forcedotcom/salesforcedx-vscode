@@ -491,11 +491,6 @@
           "default": "LEAST_CALLS",
           "description": "%apex_oas_generation_strategy%"
         },
-        "salesforcedx-vscode-apex.oas_generation_include_schema": {
-          "type": "boolean",
-          "default": false,
-          "description": "%apex_oas_generation_schema%"
-        },
         "salesforcedx-vscode-apex.oas_generation_output_token_limit": {
           "type": "number",
           "default": 750,

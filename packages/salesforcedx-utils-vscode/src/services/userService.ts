@@ -60,7 +60,7 @@ export class UserService {
 }
 
 /** Type for providing shared telemetry user ID from Core extension */
-export type SharedTelemetryProvider = {
+type SharedTelemetryProvider = {
   getSharedTelemetryUserId(): Promise<string | undefined>;
 };
 

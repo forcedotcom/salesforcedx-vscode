@@ -8,7 +8,7 @@
 export * from './commands';
 export { CompositeParametersGatherer, EmptyParametersGatherer } from './commands/parameterGatherers';
 export { EmptyPostChecker } from './commands/postconditionCheckers';
-export { EmptyPreChecker, SfWorkspaceChecker, isSalesforceProjectOpened } from './commands/preconditionCheckers';
+export { SfWorkspaceChecker, isSalesforceProjectOpened } from './commands/preconditionCheckers';
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { SfCommandlet } from './commands/sfCommandlet';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
