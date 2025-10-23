@@ -269,7 +269,7 @@ describe('Run LWC Tests', () => {
     logTestStart(testSetup, 'Run All Tests via Code Lens action');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
-    await pause(Duration.seconds(5));
+    await reloadWindow(Duration.seconds(5));
 
     // Click the "Run" code lens at the top of the class
     console.log('### A');
