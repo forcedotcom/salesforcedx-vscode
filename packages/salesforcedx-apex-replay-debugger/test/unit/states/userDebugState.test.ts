@@ -20,7 +20,7 @@ import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { EXEC_ANON_SIGNATURE } from '../../../src/constants';
 import { LogContext } from '../../../src/core/logContext';
-import { UserDebugState } from '../../../src/states';
+import { UserDebugState } from '../../../src/states/userDebugState';
 
 describe('User debug event', () => {
   let warnToDebugConsoleStub: jest.SpyInstance;

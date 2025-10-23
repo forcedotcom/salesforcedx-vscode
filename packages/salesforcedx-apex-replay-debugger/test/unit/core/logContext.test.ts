@@ -40,14 +40,12 @@ import {
 } from '../../../src/constants';
 import { LogContext } from '../../../src/core/logContext';
 import { readLogFileFromContents } from '../../../src/core/logContextUtil';
-import {
-  FrameEntryState,
-  FrameExitState,
-  LogEntryState,
-  NoOpState,
-  StatementExecuteState,
-  UserDebugState
-} from '../../../src/states';
+import { FrameEntryState } from '../../../src/states/frameEntryState';
+import { FrameExitState } from '../../../src/states/frameExitState';
+import { LogEntryState } from '../../../src/states/logEntryState';
+import { NoOpState } from '../../../src/states/noOpState';
+import { StatementExecuteState } from '../../../src/states/statementExecuteState';
+import { UserDebugState } from '../../../src/states/userDebugState';
 
 describe('LogContext', () => {
   let context: LogContext;
@@ -142,7 +140,7 @@ describe('LogContext', () => {
   it('Should handle undefined log event', () => {
     jest
       .spyOn(LogContext.prototype, 'parseLogEvent')
-      .mockReturnValue(undefined as unknown as import('../../../src/states').DebugLogState);
+      .mockReturnValue(undefined as unknown as import('../../../src/states/debugLogState').DebugLogState);
     context.updateFrames();
     expect(context.getLogLinePosition()).toBe(3);
   });

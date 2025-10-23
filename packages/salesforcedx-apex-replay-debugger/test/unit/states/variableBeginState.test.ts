@@ -21,7 +21,8 @@ import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { ApexVariable } from '../../../src/adapter/apexVariable';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { LogContext } from '../../../src/core/logContext';
-import { FrameEntryState, VariableBeginState } from '../../../src/states';
+import { FrameEntryState } from '../../../src/states/frameEntryState';
+import { VariableBeginState } from '../../../src/states/variableBeginState';
 
 describe('Variable begin scope event', () => {
   let getUriFromSignatureStub: jest.SpyInstance;

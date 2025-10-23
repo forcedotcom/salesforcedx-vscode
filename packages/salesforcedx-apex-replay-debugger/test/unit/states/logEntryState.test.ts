@@ -23,7 +23,7 @@ import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { LogContext } from '../../../src/core/logContext';
 import { readLogFileFromContents } from '../../../src/core/logContextUtil';
-import { LogEntryState } from '../../../src/states';
+import { LogEntryState } from '../../../src/states/logEntryState';
 
 describe('LogEntry event', () => {
   beforeEach(() => {

@@ -66,12 +66,12 @@ export class VariableAssignmentState implements DebugLogState {
             const topLevel = new ApexVariableContainer(varName, '', '');
             refContainer.variables.set(varName, topLevel);
             topLevel.variablesRef = logContext.getVariableHandler().create(topLevel);
-            this.parseJSONAndPopulate(value, topLevel, logContext);
+            parseJSONAndPopulate(value, topLevel, logContext);
           } else {
             // if it's not nested then we check if the value is a reference
             if (refMap.has(value)) {
               const pulledRef = refMap.get(value)!;
-              const tmpContainer = this.copyReferenceContainer(pulledRef, varName, logContext);
+              const tmpContainer = copyReferenceContainer(pulledRef, varName, logContext);
               refContainer.variables.set(varName, tmpContainer);
               // if not a reference, update the variable value, creating a container if needed
             } else if (refContainer.variables.has(varName)) {
@@ -83,7 +83,7 @@ export class VariableAssignmentState implements DebugLogState {
           }
           // if not nested then the refcontainer is the top level
         } else if (value.indexOf('{') === 0) {
-          this.parseJSONAndPopulate(value, refContainer, logContext);
+          parseJSONAndPopulate(value, refContainer, logContext);
         } else {
           refContainer.variables.set(varName, new ApexVariableContainer(varName, value, ''));
         }
@@ -91,7 +91,7 @@ export class VariableAssignmentState implements DebugLogState {
         // update toplevel container if it's not this and not a collection
         // or if the this variable has not been assigned a reference yet
         if (
-          (container && this.isNotCollection(container) && container.name !== 'this') ||
+          (container && isNotCollection(container) && container.name !== 'this') ||
           (container && container.name === 'this' && !container.ref)
         ) {
           container.ref = ref;
@@ -116,43 +116,41 @@ export class VariableAssignmentState implements DebugLogState {
     }
     return false;
   }
-
-  private isNotCollection(container: ApexVariableContainer): boolean {
-    return (
-      !container.type.startsWith('Map<') && !container.type.startsWith('List<') && !container.type.startsWith('Set<')
-    );
-  }
-
-  private parseJSONAndPopulate(value: string, container: ApexVariableContainer, logContext: LogContext) {
-    try {
-      const modifiedValue = surroundBlobsWithQuotes(value);
-      const obj = JSON.parse(modifiedValue);
-      Object.keys(obj).forEach(key => {
-        const refContainer = logContext.getRefsMap().get(String(obj[key]))!;
-        if (refContainer) {
-          const tmpContainer = this.copyReferenceContainer(refContainer, key, logContext);
-          container.variables.set(key, tmpContainer);
-        } else {
-          let varValue = obj[key];
-          if (typeof varValue === 'string') {
-            varValue = `'${varValue}'`;
-            varValue = removeQuotesFromBlob(varValue);
-          } else {
-            varValue = `${varValue}`;
-          }
-          container.variables.set(key, new ApexVariableContainer(key, varValue, ''));
-        }
-      });
-    } catch {
-      container.value = value;
-      container.variablesRef = 0;
-      container.variables.clear();
-    }
-  }
-  private copyReferenceContainer(refContainer: ApexVariableContainer, varName: string, logContext: LogContext) {
-    const tmpContainer = new ApexVariableContainer(varName, refContainer.value, refContainer.type, refContainer.ref);
-    tmpContainer.variables = refContainer.variables;
-    tmpContainer.variablesRef = logContext.getVariableHandler().create(tmpContainer);
-    return tmpContainer;
-  }
 }
+
+const isNotCollection = (container: ApexVariableContainer): boolean =>
+  !container.type.startsWith('Map<') && !container.type.startsWith('List<') && !container.type.startsWith('Set<');
+
+const parseJSONAndPopulate = (value: string, container: ApexVariableContainer, logContext: LogContext) => {
+  try {
+    const modifiedValue = surroundBlobsWithQuotes(value);
+    const obj = JSON.parse(modifiedValue);
+    Object.keys(obj).forEach(key => {
+      const refContainer = logContext.getRefsMap().get(String(obj[key]))!;
+      if (refContainer) {
+        const tmpContainer = copyReferenceContainer(refContainer, key, logContext);
+        container.variables.set(key, tmpContainer);
+      } else {
+        let varValue = obj[key];
+        if (typeof varValue === 'string') {
+          varValue = `'${varValue}'`;
+          varValue = removeQuotesFromBlob(varValue);
+        } else {
+          varValue = `${varValue}`;
+        }
+        container.variables.set(key, new ApexVariableContainer(key, varValue, ''));
+      }
+    });
+  } catch {
+    container.value = value;
+    container.variablesRef = 0;
+    container.variables.clear();
+  }
+};
+
+const copyReferenceContainer = (refContainer: ApexVariableContainer, varName: string, logContext: LogContext) => {
+  const tmpContainer = new ApexVariableContainer(varName, refContainer.value, refContainer.type, refContainer.ref);
+  tmpContainer.variables = refContainer.variables;
+  tmpContainer.variablesRef = logContext.getVariableHandler().create(tmpContainer);
+  return tmpContainer;
+};

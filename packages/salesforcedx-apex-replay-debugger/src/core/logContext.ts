@@ -31,18 +31,16 @@ import {
   SFDC_TRIGGER
 } from '../constants';
 import { nls } from '../messages';
-import {
-  DebugLogState,
-  FrameEntryState,
-  FrameExitState,
-  LogEntryState,
-  NoOpState,
-  StatementExecuteState,
-  UserDebugState,
-  VariableAssignmentState,
-  VariableBeginState
-} from '../states';
+import { DebugLogState } from '../states/debugLogState';
+import { FrameEntryState } from '../states/frameEntryState';
+import { FrameExitState } from '../states/frameExitState';
 import { isExtraneousVFGetterOrSetterLogLine } from '../states/frameStateUtil';
+import { LogEntryState } from '../states/logEntryState';
+import { NoOpState } from '../states/noOpState';
+import { StatementExecuteState } from '../states/statementExecuteState';
+import { UserDebugState } from '../states/userDebugState';
+import { VariableAssignmentState } from '../states/variableAssignmentState';
+import { VariableBeginState } from '../states/variableBeginState';
 import { ApexExecutionOverlayResult } from '../types/apexExecutionOverlayResultCommand';
 import { Handles } from './handles';
 import { ApexHeapDump, stringifyHeapDump } from './heapDump';

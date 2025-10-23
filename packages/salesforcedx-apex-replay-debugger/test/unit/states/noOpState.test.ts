@@ -17,7 +17,7 @@ jest.mock('@vscode/debugadapter', () => ({
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { LogContext } from '../../../src/core/logContext';
-import { NoOpState } from '../../../src/states';
+import { NoOpState } from '../../../src/states/noOpState';
 
 describe('NoOp event', () => {
   it('Should handle event', () => {
