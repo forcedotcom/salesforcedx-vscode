@@ -7,10 +7,10 @@
 import { ApexExecutionOverlayResult } from '../types/apexExecutionOverlayResultCommand';
 
 export type ApexHeapDump = {
-  className: string;
-  namespace: string;
-  line: number;
-  heapDumpId: string;
+  readonly className: string;
+  readonly namespace: string;
+  readonly line: number;
+  readonly heapDumpId: string;
   overlaySuccessResult?: ApexExecutionOverlayResult;
 };
 

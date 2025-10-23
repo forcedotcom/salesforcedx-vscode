@@ -6,6 +6,7 @@
  */
 
 import { ConfigAggregator, Org } from '@salesforce/core';
+import { CLIENT_ID } from '@salesforce/salesforcedx-utils';
 import { StackFrame } from '@vscode/debugadapter';
 import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
 import { ApexReplayDebug } from '../adapter/apexReplayDebug';
@@ -224,18 +225,16 @@ export class LogContext {
         nls.localize('fetching_heap_dump', this.apexHeapDumps.map(h => stringifyHeapDump(h)).join(', '))
       );
 
-      // jsforce tooling types don't have types for any of the "overlay" stuff
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      const results = (await conn.tooling
-        .sobject('ApexExecutionOverlayResult')
-        .retrieve(this.apexHeapDumps.map(h => h.heapDumpId))) as unknown as ApexExecutionOverlayResult[];
-
-      results.map(r => {
-        const match = this.apexHeapDumps.find(h => h.heapDumpId === r.Id);
-        if (match) {
-          match.overlaySuccessResult = r;
-        }
-      });
+      await Promise.all(
+        this.apexHeapDumps.map(async h => {
+          const result = await conn.tooling
+            .sobject('ApexExecutionOverlayResult')
+            .retrieve(h.heapDumpId, { headers: { 'Sforce-Call-Options': `client=${CLIENT_ID}` } });
+          // jsforce tooling types don't have types for any of the "overlay" stuff
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          h.overlaySuccessResult = result as unknown as ApexExecutionOverlayResult;
+        })
+      );
       return true;
     } catch (error) {
       if (error instanceof Error && error.message) {
