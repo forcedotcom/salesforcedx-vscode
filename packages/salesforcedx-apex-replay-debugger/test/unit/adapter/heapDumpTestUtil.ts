@@ -6,7 +6,7 @@
  */
 
 import { ApexExecutionOverlayResultCommandSuccess } from '../../../src/commands/apexExecutionOverlayResultCommand';
-import { ApexHeapDump } from '../../../src/core';
+import { ApexHeapDump } from '../../../src/core/heapDump';
 
 /** Helper to cast partial heapdump data to the full type for testing */
 const createOverlaySuccessResult = (data: any): ApexExecutionOverlayResultCommandSuccess =>
