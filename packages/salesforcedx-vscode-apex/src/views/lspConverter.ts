@@ -34,10 +34,7 @@ export const toApexTestMethod = (requestInfo: LSPApexTestMethod): ApexTestMethod
   location: toLocation(requestInfo.location)
 });
 
-const toUri = (lspUri: string): URI => {
-  const uriPath = URI.parse(lspUri).path;
-  return URI.file(uriPath);
-};
+const toUri = (lspUri: string): URI => URI.file(URI.parse(lspUri).path);
 
 const toPosition = (lspPosition: LSPPosition): vscode.Position =>
   new vscode.Position(lspPosition.line, lspPosition.character);

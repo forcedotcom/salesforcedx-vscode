@@ -6,13 +6,18 @@
  */
 
 import { type Connection } from '@salesforce/core';
+import { CLIENT_ID } from '@salesforce/salesforcedx-utils';
 import { ApexExecutionOverlayAction } from '../breakpoints/checkpointService';
 import { getActiveSalesforceCoreExtension } from '../utils/extensionApis';
 
 const queryCheckpoints = async (conn: Connection): Promise<ReturnType<typeof conn.tooling.query>['records']> => {
   const userId = await getUserIdFromConnection(conn);
-  return (await conn.tooling.query(`SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId = '${userId}'`)).records;
+  return (
+    await conn.tooling.query(`SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId = '${userId}'`, { headers })
+  ).records;
 };
+
+const headers = { 'Sforce-Call-Options': `client=${CLIENT_ID}` };
 
 /** query the org for checkpoints for the user associated with the connection, then delete them  */
 export const clearCheckpoints = async (conn: Connection): Promise<void> => {
@@ -20,7 +25,7 @@ export const clearCheckpoints = async (conn: Connection): Promise<void> => {
     (await queryCheckpoints(conn))
       .map(checkpoint => checkpoint.Id)
       .filter(id => id !== undefined)
-      .map(id => conn.tooling.sobject('ApexExecutionOverlayAction').delete(id))
+      .map(id => conn.tooling.sobject('ApexExecutionOverlayAction').delete(id, { headers }))
   );
 };
 
@@ -39,7 +44,7 @@ export const createCheckpointsInOrg =
       typeof projectNamespace === 'string' && orgNamespace === undefined
         ? checkpoints.map(namespaceCorrector(projectNamespace))
         : checkpoints;
-    await Promise.all(corrected.map(c => conn.tooling.sobject('ApexExecutionOverlayAction').create(c)));
+    await Promise.all(corrected.map(c => conn.tooling.sobject('ApexExecutionOverlayAction').create(c, { headers })));
   };
 
 const namespaceCorrector =
@@ -60,6 +65,6 @@ const getUserIdFromConnection = async (conn: Connection): Promise<string> => {
   if (username && userIdCache.has(username)) {
     return userIdCache.get(username)!;
   }
-  const userId = conn.getAuthInfoFields().userId ?? (await conn.identity()).user_id;
+  const userId = conn.getAuthInfoFields().userId ?? (await conn.identity({ headers })).user_id;
   return userId;
 };

@@ -461,8 +461,6 @@ export const sfToggleCheckpoint = async () => {
     writeToDebuggerMessageWindow(nls.localize('checkpoint_upload_in_progress'), true, VSCodeWindowTypeEnum.Warning);
     return;
   }
-  const bpAdd: vscode.Breakpoint[] = [];
-  const bpRemove: vscode.Breakpoint[] = [];
   const uri = checkpointUtils.fetchActiveEditorUri();
   const lineNumber = checkpointUtils.fetchActiveSelectionLineNumber();
 
@@ -476,24 +474,19 @@ export const sfToggleCheckpoint = async () => {
     if (bp) {
       // If the breakpoint is a checkpoint then remove it and return
       if (bp.condition?.toLowerCase().includes(CHECKPOINT)) {
-        bpRemove.push(bp);
-        return await vscode.debug.removeBreakpoints(bpRemove);
-      } else {
-        // The only thing from the old breakpoint that is applicable to keep is the hitCondition
-        // which maps to iterations. Squirrel away hitCondition, remove the breakpoint and let
-        // processing go into the code to create a new breakpoint with the checkpoint condition
-        hitCondition = bp.hitCondition;
-        bpRemove.push(bp);
-        await vscode.debug.removeBreakpoints(bpRemove);
+        return vscode.debug.removeBreakpoints([bp]);
       }
+      // The only thing from the old breakpoint that is applicable to keep is the hitCondition
+      // which maps to iterations. Squirrel away hitCondition, remove the breakpoint and let
+      // processing go into the code to create a new breakpoint with the checkpoint condition
+      hitCondition = bp.hitCondition;
+      vscode.debug.removeBreakpoints([bp]);
     }
 
     // Create a new checkpoint/breakpoint from scratch.
     const range = new vscode.Range(lineNumber, 0, lineNumber, 0);
     const location = new vscode.Location(uri, range);
-    const newBreakpoint = new vscode.SourceBreakpoint(location, true, CHECKPOINT, hitCondition);
-    bpAdd.push(newBreakpoint);
-    await vscode.debug.addBreakpoints(bpAdd);
+    vscode.debug.addBreakpoints([new vscode.SourceBreakpoint(location, true, CHECKPOINT, hitCondition)]);
   }
 };
 
