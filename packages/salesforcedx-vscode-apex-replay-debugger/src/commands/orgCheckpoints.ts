@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { Connection } from '@salesforce/core';
+import { type Connection } from '@salesforce/core';
 import { ApexExecutionOverlayAction } from '../breakpoints/checkpointService';
+import { getActiveSalesforceCoreExtension } from '../utils/extensionApis';
 
 const queryCheckpoints = async (conn: Connection): Promise<ReturnType<typeof conn.tooling.query>['records']> => {
   const userId = await getUserIdFromConnection(conn);
@@ -24,7 +25,29 @@ export const clearCheckpoints = async (conn: Connection): Promise<void> => {
 export const createCheckpointsInOrg =
   (conn: Connection) =>
   async (checkpoints: ApexExecutionOverlayAction[]): Promise<void> => {
-    await conn.tooling.sobject('ApexExecutionOverlayAction').create(checkpoints);
+    // jorje LS will put the namespace on the classes (stored in ExecutableEntityName like 'ns/classname') but the org might have been created with --no-namespace
+    // if the project has NS, but org does not, we need to rewrite the ExecutableEntityName to remove only that namespace
+    // this will need to be modified when checkopint stuff stops using jorje
+    const orgNamespace = conn.getAuthInfoFields().namespacePrefix;
+    const projectNamespace = (
+      await (await getActiveSalesforceCoreExtension()).services.SalesforceProjectConfig.getInstance()
+    ).get('namespace');
+
+    const needsCorrection = typeof projectNamespace === 'string' && orgNamespace === undefined;
+
+    await conn.tooling
+      .sobject('ApexExecutionOverlayAction')
+      .create(needsCorrection ? checkpoints.map(namespaceCorrector(projectNamespace)) : checkpoints);
+  };
+
+const namespaceCorrector =
+  (projectNamespace: string) =>
+  (cp: ApexExecutionOverlayAction): ApexExecutionOverlayAction => {
+    if (cp.ExecutableEntityName?.startsWith(`${projectNamespace}/`)) {
+      cp.ExecutableEntityName = cp.ExecutableEntityName.replace(`${projectNamespace}/`, '');
+      return cp;
+    }
+    return cp;
   };
 
 // cache userId by username

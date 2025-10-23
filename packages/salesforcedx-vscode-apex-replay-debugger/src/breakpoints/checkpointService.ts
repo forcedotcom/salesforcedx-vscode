@@ -234,7 +234,8 @@ export const createCheckpoints = async (): Promise<boolean> => {
                 .filter(cpNode => cpNode.isCheckpointEnabled())
                 .map(cpNode => cpNode.checkpointOverlayAction)
             );
-          } catch {
+          } catch (e) {
+            console.log(e);
             updateError = true;
             return false;
           }
