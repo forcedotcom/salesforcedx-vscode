@@ -67,7 +67,7 @@ const debugTest = async (testClass: string, testName?: string): Promise<boolean>
     const logFileRetrieve = await retrieveLogFile(connection, testResult.logFileId);
 
     if (logFileRetrieve.success && logFileRetrieve.filePath) {
-      await launchFromLogFile(logFileRetrieve.filePath, false);
+      await launchFromLogFile(logFileRetrieve.filePath, true);
       return true;
     }
   } else if (testResult.message) {
