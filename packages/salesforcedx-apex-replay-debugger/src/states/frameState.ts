@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { FrameStateUtil } from './frameStateUtil';
+import { computeFrameName } from './frameStateUtil';
 
 export abstract class FrameState {
   protected readonly _signature: string;
@@ -12,6 +12,6 @@ export abstract class FrameState {
 
   constructor(fields: string[]) {
     this._signature = fields.at(-1)!;
-    this._frameName = FrameStateUtil.computeFrameName(fields);
+    this._frameName = computeFrameName(fields);
   }
 }

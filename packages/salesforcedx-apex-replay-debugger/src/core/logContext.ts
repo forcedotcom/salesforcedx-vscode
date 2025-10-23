@@ -41,7 +41,6 @@ import {
   DebugLogState,
   FrameEntryState,
   FrameExitState,
-  FrameStateUtil,
   LogEntryState,
   NoOpState,
   StatementExecuteState,
@@ -49,12 +48,12 @@ import {
   VariableAssignmentState,
   VariableBeginState
 } from '../states';
+import { isExtraneousVFGetterOrSetterLogLine } from '../states/frameStateUtil';
 import { Handles } from './handles';
 import { ApexHeapDump } from './heapDump';
-import { LogContextUtil } from './logContextUtil';
+import { readLogFileFromContents, stripBrackets, getFileSizeFromContents } from './logContextUtil';
 
 export class LogContext {
-  private readonly util = new LogContextUtil();
   private readonly session: ApexReplayDebug;
   private readonly launchArgs: LaunchRequestArguments;
   private readonly logLines: string[] = [];
@@ -79,12 +78,8 @@ export class LogContext {
   constructor(launchArgs: LaunchRequestArguments, session: ApexReplayDebug) {
     this.launchArgs = launchArgs;
     this.session = session;
-    this.logLines = this.util.readLogFileFromContents(launchArgs.logFileContents);
-    this.logSize = this.util.getFileSizeFromContents(launchArgs.logFileContents);
-  }
-
-  public getUtil(): LogContextUtil {
-    return this.util;
+    this.logLines = readLogFileFromContents(launchArgs.logFileContents);
+    this.logSize = getFileSizeFromContents(launchArgs.logFileContents);
   }
 
   public getLaunchArgs(): LaunchRequestArguments {
@@ -149,11 +144,7 @@ export class LogContext {
   }
 
   public isRunningApexTrigger(): boolean {
-    const topFrame = this.getTopFrame();
-    if (topFrame?.source?.name?.toLowerCase().endsWith('.trigger')) {
-      return true;
-    }
-    return false;
+    return this.getTopFrame()?.source?.name?.toLowerCase().endsWith('.trigger') ?? false;
   }
 
   public copyStateForHeapDump(): void {
@@ -413,11 +404,7 @@ export class LogContext {
         case EVENT_METHOD_ENTRY:
           return new FrameEntryState(fields);
         case EVENT_VF_APEX_CALL_START:
-          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!)) {
-            return new NoOpState();
-          } else {
-            return new FrameEntryState(fields);
-          }
+          return isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!) ? new NoOpState() : new FrameEntryState(fields);
         case EVENT_CODE_UNIT_FINISHED:
         case EVENT_CONSTRUCTOR_EXIT:
         case EVENT_METHOD_EXIT:
@@ -427,20 +414,16 @@ export class LogContext {
         case EVENT_VARIABLE_ASSIGNMENT:
           return new VariableAssignmentState(fields);
         case EVENT_VF_APEX_CALL_END:
-          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!)) {
-            return new NoOpState();
-          } else {
-            return new FrameExitState(fields);
-          }
+          return isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!) ? new NoOpState() : new FrameExitState(fields);
         case EVENT_STATEMENT_EXECUTE:
           if (logLine.match(/.*\|.*\|\[\d{1,}\]/)) {
-            fields[2] = this.util.stripBrackets(fields[2]);
+            fields[2] = stripBrackets(fields[2]);
             return new StatementExecuteState(fields);
           }
           break;
         case EVENT_USER_DEBUG:
           if (logLine.match(/.*\|.*\|\[\d{1,}\]\|.*\|.*/)) {
-            fields[2] = this.util.stripBrackets(fields[2]);
+            fields[2] = stripBrackets(fields[2]);
             return new UserDebugState(fields);
           }
           break;

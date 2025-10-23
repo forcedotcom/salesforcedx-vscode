@@ -7,6 +7,7 @@
 
 import { ApexVariableContainer } from '../adapter/variableContainer';
 import { LogContext } from '../core/logContext';
+import { surroundBlobsWithQuotes, removeQuotesFromBlob } from '../core/logContextUtil';
 import { DebugLogState } from './debugLogState';
 
 export class VariableAssignmentState implements DebugLogState {
@@ -124,7 +125,7 @@ export class VariableAssignmentState implements DebugLogState {
 
   private parseJSONAndPopulate(value: string, container: ApexVariableContainer, logContext: LogContext) {
     try {
-      const modifiedValue = logContext.getUtil().surroundBlobsWithQuotes(value);
+      const modifiedValue = surroundBlobsWithQuotes(value);
       const obj = JSON.parse(modifiedValue);
       Object.keys(obj).forEach(key => {
         const refContainer = logContext.getRefsMap().get(String(obj[key]))!;
@@ -135,7 +136,7 @@ export class VariableAssignmentState implements DebugLogState {
           let varValue = obj[key];
           if (typeof varValue === 'string') {
             varValue = `'${varValue}'`;
-            varValue = logContext.getUtil().removeQuotesFromBlob(varValue);
+            varValue = removeQuotesFromBlob(varValue);
           } else {
             varValue = `${varValue}`;
           }

@@ -15,6 +15,11 @@ jest.mock('@vscode/debugadapter', () => ({
   }
 }));
 
+jest.mock('../../../src/core', () => ({
+  ...jest.requireActual('../../../src/core'),
+  readLogFileFromContents: jest.fn()
+}));
+
 import {
   Event,
   InitializedEvent,
@@ -29,7 +34,7 @@ import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { BreakpointUtil, breakpointUtil } from '../../../src/breakpoints/breakpointUtil';
 import { SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../../../src/constants';
-import { LogContext, LogContextUtil } from '../../../src/core';
+import { LogContext, readLogFileFromContents } from '../../../src/core';
 import { HeapDumpService } from '../../../src/core/heapDumpService';
 import { nls } from '../../../src/messages';
 
@@ -87,7 +92,6 @@ describe('Replay debugger adapter - unit', () => {
     let args: LaunchRequestArguments;
     let hasLogLinesStub: jest.SpyInstance;
     let meetsLogLevelRequirementsStub: jest.SpyInstance;
-    let readLogFileStub: jest.SpyInstance;
     let getLogSizeStub: jest.SpyInstance;
     let printToDebugConsoleStub: jest.SpyInstance;
     let errorToDebugConsoleStub: jest.SpyInstance;
@@ -101,6 +105,7 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     beforeEach(() => {
+      (readLogFileFromContents as jest.Mock).mockReturnValue(['line1', 'line2']);
       adapter = new MockApexReplayDebug();
       response = adapter.getDefaultResponse();
       args = {
@@ -128,9 +133,6 @@ describe('Replay debugger adapter - unit', () => {
         // Call the original implementation for non-output events
         return jest.requireActual('@vscode/debugadapter').DebugSession.prototype.sendEvent.call(adapter, event);
       });
-      readLogFileStub = jest
-        .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
-        .mockReturnValue(['line1', 'line2']);
       getLogSizeStub = jest.spyOn(LogContext.prototype, 'getLogSize').mockReturnValue(123);
     });
 
@@ -139,7 +141,6 @@ describe('Replay debugger adapter - unit', () => {
       sendEventSpy.mockRestore();
       hasLogLinesStub.mockRestore();
       meetsLogLevelRequirementsStub.mockRestore();
-      readLogFileStub.mockRestore();
       getLogSizeStub.mockRestore();
       printToDebugConsoleStub.mockRestore();
       errorToDebugConsoleStub.mockRestore();
@@ -325,6 +326,7 @@ describe('Replay debugger adapter - unit', () => {
     };
 
     beforeEach(() => {
+      (readLogFileFromContents as jest.Mock).mockReturnValue(['line1', 'line2']);
       adapter = new MockApexReplayDebug();
       adapter.setLogFile(launchRequestArgs);
       // Create a targeted sendEvent spy that filters out output events
@@ -425,7 +427,6 @@ describe('Replay debugger adapter - unit', () => {
   describe('Threads', () => {
     let sendResponseSpy: jest.SpyInstance;
     let response: DebugProtocol.ThreadsResponse;
-    let readLogFileStub: jest.SpyInstance;
     const launchRequestArgs: LaunchRequestArguments = {
       logFileContents: 'test log content',
       logFilePath,
@@ -435,20 +436,17 @@ describe('Replay debugger adapter - unit', () => {
     };
 
     beforeEach(() => {
+      (readLogFileFromContents as jest.Mock).mockReturnValue(['line1', 'line2']);
       adapter = new MockApexReplayDebug();
       response = Object.assign(adapter.getDefaultResponse(), {
         body: { threads: [] }
       });
       sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
-      readLogFileStub = jest
-        .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
-        .mockReturnValue(['line1', 'line2']);
       adapter.setLogFile(launchRequestArgs);
     });
 
     afterEach(() => {
       sendResponseSpy.mockRestore();
-      readLogFileStub.mockRestore();
     });
 
     it('Should always return one thread', () => {
@@ -467,7 +465,6 @@ describe('Replay debugger adapter - unit', () => {
     let sendResponseSpy: jest.SpyInstance;
     let response: DebugProtocol.StackTraceResponse;
     let args: DebugProtocol.StackTraceArguments;
-    let readLogFileStub: jest.SpyInstance;
     let getFramesStub: jest.SpyInstance;
     const launchRequestArgs: LaunchRequestArguments = {
       logFileContents: 'test log content',
@@ -494,6 +491,7 @@ describe('Replay debugger adapter - unit', () => {
     ];
 
     beforeEach(() => {
+      (readLogFileFromContents as jest.Mock).mockReturnValue(['line1', 'line2']);
       adapter = new MockApexReplayDebug();
       response = Object.assign(adapter.getDefaultResponse(), {
         body: { stackFrames: [] }
@@ -502,16 +500,12 @@ describe('Replay debugger adapter - unit', () => {
         threadId: ApexReplayDebug.THREAD_ID
       };
       sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
-      readLogFileStub = jest
-        .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
-        .mockReturnValue(['line1', 'line2']);
       adapter.setLogFile(launchRequestArgs);
       getFramesStub = jest.spyOn(LogContext.prototype, 'getFrames').mockReturnValue(sampleStackFrames);
     });
 
     afterEach(() => {
       sendResponseSpy.mockRestore();
-      readLogFileStub.mockRestore();
       getFramesStub.mockRestore();
     });
 
@@ -542,6 +536,7 @@ describe('Replay debugger adapter - unit', () => {
     };
 
     beforeEach(() => {
+      (readLogFileFromContents as jest.Mock).mockReturnValue(['line1', 'line2']);
       adapter = new MockApexReplayDebug();
       adapter.setLogFile(launchRequestArgs);
       response = Object.assign(adapter.getDefaultResponse(), {
@@ -658,8 +653,18 @@ describe('Replay debugger adapter - unit', () => {
     let hasLogLinesStub: jest.SpyInstance;
     let updateFramesStub: jest.SpyInstance;
     let getNumOfFramesStub: jest.SpyInstance;
+    const launchRequestArgs: LaunchRequestArguments = {
+      logFileContents: 'test log content',
+      logFilePath,
+      logFileName,
+      trace: true,
+      projectPath
+    };
 
     beforeEach(() => {
+      (readLogFileFromContents as jest.Mock).mockReturnValue(['line1', 'line2']);
+      adapter = new MockApexReplayDebug();
+      adapter.setLogFile(launchRequestArgs);
       sendResponseSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendResponse');
       // Create a targeted sendEvent spy that filters out output events
       sendEventSpy = jest.spyOn(ApexReplayDebug.prototype, 'sendEvent').mockImplementation(event => {
@@ -927,6 +932,7 @@ describe('Replay debugger adapter - unit', () => {
       } as DebugProtocol.InitializeResponse;
 
       beforeEach(() => {
+        (readLogFileFromContents as jest.Mock).mockReturnValue(['line1', 'line2']);
         adapter = new MockApexReplayDebug();
         hasLogLinesStub = jest.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
         meetsLogLevelRequirementsStub = jest

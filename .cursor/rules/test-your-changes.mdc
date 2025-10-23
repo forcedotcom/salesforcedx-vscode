@@ -3,6 +3,9 @@ description:
 globs:
 alwaysApply: true
 ---
-when you changes a file, you should run relevant compile, linters then unit tests so that you cna propose valid changes.
 
-don't change both /src and /test unless it's to refactor imports or rename.  "real changes" should be one or the other.
+when you change a file, run relevant compile, linters then unit tests so that you propose only valid changes.
+
+don't change both /src and /test unless it's to refactor imports or rename. "real changes" should be one or the other.
+
+do not say a test/compile/lint failure was "pre-existing" without running the same operation on a previous version of the code before the current un-pushed commits began.

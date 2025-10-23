@@ -32,6 +32,7 @@ import {
   LC_APEX_PRIMITIVE_TIME
 } from '../constants';
 import { LogContext } from './logContext';
+import { substringUpToLastPeriod, substringFromLastPeriod } from './logContextUtil';
 
 export class HeapDumpService {
   private logContext: LogContext;
@@ -92,7 +93,7 @@ export class HeapDumpService {
       for (const outerExtent of heapdumpResult.HeapDump.extents) {
         for (const innerExtent of outerExtent.extent) {
           const symbolName = innerExtent.symbols && innerExtent.symbols.length > 0 ? innerExtent.symbols[0] : undefined;
-          const className = symbolName ? this.logContext.getUtil().substringUpToLastPeriod(symbolName) : undefined;
+          const className = symbolName ? substringUpToLastPeriod(symbolName) : undefined;
           if (symbolName && frameInfo?.locals.has(symbolName)) {
             const localVar = frameInfo.locals.get(symbolName)!;
 
@@ -125,7 +126,7 @@ export class HeapDumpService {
             }
           } else if (symbolName && className && this.logContext.getStaticVariablesClassMap().has(className)) {
             const statics = this.logContext.getStaticVariablesClassMap().get(className);
-            const staticVarName = this.logContext.getUtil().substringFromLastPeriod(symbolName);
+            const staticVarName = substringFromLastPeriod(symbolName);
             if (statics?.has(staticVarName)) {
               const staticVar = statics.get(staticVarName)!;
               staticVar.type = outerExtent.typeName;

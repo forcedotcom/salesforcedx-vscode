@@ -5,39 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export class LogContextUtil {
-  public getFileSizeFromContents(contents: string): number {
-    return contents.length;
+/** Parses log file contents into an array of trimmed lines */
+export const readLogFileFromContents = (contents: string): string[] => {
+  if (!contents || contents.trim() === '') {
+    return [];
   }
+  return contents
+    .trim()
+    .split(/\r?\n/)
+    .map(line => line.trim());
+};
 
-  public readLogFileFromContents(contents: string): string[] {
-    if (!contents || contents.trim() === '') {
-      return [];
-    }
-    return contents
-      .trim()
-      .split(/\r?\n/)
-      .map(line => line.trim());
-  }
-
-  public stripBrackets(value: string): string {
-    return value.replace('[', '').replace(']', '');
-  }
-
-  public substringUpToLastPeriod(value: string): string {
-    return value.substring(0, value.lastIndexOf('.'));
-  }
-
-  public substringFromLastPeriod(value: string): string {
-    const valueSplit = value.split('.');
-    return valueSplit.length > 1 ? valueSplit.at(-1)! : value;
-  }
-
-  public surroundBlobsWithQuotes(value: string): string {
-    return value.replace(/(BLOB\(\d+ bytes\))/g, '"$1"');
-  }
-
-  public removeQuotesFromBlob(value: string): string {
-    return value.replace(/'(BLOB\(\d+ bytes\))'/g, '$1');
-  }
-}
+export const stripBrackets = (value: string): string => value.replace('[', '').replace(']', '');
+export const substringUpToLastPeriod = (value: string): string => value.substring(0, value.lastIndexOf('.'));
+export const substringFromLastPeriod = (value: string): string => value.split('.').at(-1) ?? value;
+export const surroundBlobsWithQuotes = (value: string): string => value.replace(/(BLOB\(\d+ bytes\))/g, '"$1"');
+export const removeQuotesFromBlob = (value: string): string => value.replace(/'(BLOB\(\d+ bytes\))'/g, '$1');
+export const getFileSizeFromContents = (contents: string): number => contents.length;
