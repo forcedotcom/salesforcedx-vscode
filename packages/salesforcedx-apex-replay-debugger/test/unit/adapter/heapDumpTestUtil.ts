@@ -5,12 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ApexExecutionOverlayResultCommandSuccess } from '../../../src/commands/apexExecutionOverlayResultCommand';
 import { ApexHeapDump } from '../../../src/core/heapDump';
+import { ApexExecutionOverlayResult } from '../../../src/types/apexExecutionOverlayResultCommand';
 
 /** Helper to cast partial heapdump data to the full type for testing */
-const createOverlaySuccessResult = (data: any): ApexExecutionOverlayResultCommandSuccess =>
-  data as ApexExecutionOverlayResultCommandSuccess;
+const createOverlaySuccessResult = (data: any): ApexExecutionOverlayResult => data as ApexExecutionOverlayResult;
 
 // Rather than duplicate a large heapdump in multiple places just have a common function return it. The
 // heap dump for triggers is ends up bring pretty large but there are only 3 Account records in here.

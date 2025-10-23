@@ -5,19 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgDisplay, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
+import { ConfigAggregator, Org } from '@salesforce/core';
 import { StackFrame } from '@vscode/debugadapter';
 import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
 import { ApexReplayDebug } from '../adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../adapter/types';
 import { ApexVariableContainer } from '../adapter/variableContainer';
 import { breakpointUtil } from '../breakpoints/breakpointUtil';
-import {
-  ApexExecutionOverlayResultCommand,
-  ApexExecutionOverlayResultCommandFailure,
-  ApexExecutionOverlayResultCommandSuccess,
-  OrgInfoError
-} from '../commands';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -49,8 +43,9 @@ import {
   VariableBeginState
 } from '../states';
 import { isExtraneousVFGetterOrSetterLogLine } from '../states/frameStateUtil';
+import { ApexExecutionOverlayResult } from '../types/apexExecutionOverlayResultCommand';
 import { Handles } from './handles';
-import { ApexHeapDump } from './heapDump';
+import { ApexHeapDump, stringifyHeapDump } from './heapDump';
 import { readLogFileFromContents, stripBrackets, getFileSizeFromContents } from './logContextUtil';
 
 export class LogContext {
@@ -218,69 +213,38 @@ export class LogContext {
   }
 
   public async fetchOverlayResultsForApexHeapDumps(): Promise<boolean> {
-    let success = true;
     try {
-      const orgInfo = await new OrgDisplay().getOrgInfo(this.launchArgs.projectPath);
-      const requestService = new RequestService();
-      requestService.instanceUrl = orgInfo.instanceUrl;
-      requestService.accessToken = orgInfo.accessToken;
-
-      for (const heapDump of this.apexHeapDumps) {
-        this.session.printToDebugConsole(nls.localize('fetching_heap_dump', heapDump.toString()));
-        const overlayActionCommand = new ApexExecutionOverlayResultCommand(heapDump.heapDumpId);
-        let errorString;
-        let returnString;
-        await requestService.execute(overlayActionCommand, RestHttpMethodEnum.Get).then(
-          value => {
-            returnString = value;
-          },
-          reason => {
-            errorString = reason;
-          }
-        );
-        if (returnString) {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          heapDump.overlaySuccessResult = JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess;
-        } else if (errorString) {
-          try {
-            success = false;
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-            const error = JSON.parse(errorString) as ApexExecutionOverlayResultCommandFailure[];
-            const errorMessage = nls.localize(
-              'heap_dump_error',
-              error[0].message,
-              error[0].errorCode,
-              heapDump.toString()
-            );
-            this.session.errorToDebugConsole(errorMessage);
-          } catch (error) {
-            const errorMessage = `${error}. ${errorString}. ${heapDump.toString()}`;
-            this.session.errorToDebugConsole(errorMessage);
-          }
-        }
+      // we can't use the core/services extensions via `getExtension` because debug adapters are not extensions
+      const configAggregator = await ConfigAggregator.create({ projectPath: this.launchArgs.projectPath });
+      const aliasOrUsername = configAggregator.getPropertyValue<string>('target-org');
+      if (!aliasOrUsername) {
+        throw new Error(nls.localize('unable_to_retrieve_org_info'));
       }
+      const conn = (await Org.create({ aliasOrUsername })).getConnection();
+
+      this.session.printToDebugConsole(
+        nls.localize('fetching_heap_dump', this.apexHeapDumps.map(h => stringifyHeapDump(h)).join(', '))
+      );
+
+      // jsforce tooling types don't have types for any of the "overlay" stuff
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      const results = (await conn.tooling
+        .sobject('ApexExecutionOverlayResult')
+        .retrieve(this.apexHeapDumps.map(h => h.heapDumpId))) as unknown as ApexExecutionOverlayResult[];
+
+      results.map(r => {
+        const match = this.apexHeapDumps.find(h => h.heapDumpId === r.Id);
+        if (match) {
+          match.overlaySuccessResult = r;
+        }
+      });
+      return true;
     } catch (error) {
-      success = false;
-      let errorMessage: string;
-
-      // Check if error is already an Error object with a message
-      if (error instanceof Error) {
-        errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${error.message}`;
-      } else {
-        // Try to parse as JSON (for backwards compatibility)
-        try {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          const result = JSON.parse(error as string) as OrgInfoError;
-          errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
-        } catch {
-          // If JSON parsing fails, treat as string
-          errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${String(error)}`;
-        }
+      if (error instanceof Error && error.message) {
+        this.session.errorToDebugConsole(error.message);
       }
-
-      this.session.errorToDebugConsole(errorMessage);
+      return false;
     }
-    return success;
   }
 
   public getLogFileName(): string {

@@ -159,11 +159,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
       this.trace = args.trace.split(',').map(category => category.trim());
       this.traceAll = this.trace.includes(TRACE_ALL);
     }
-    if (this.trace?.indexOf(TRACE_CATEGORY_PROTOCOL) >= 0) {
-      logger.setup(Logger.LogLevel.Verbose, false);
-    } else {
-      logger.setup(Logger.LogLevel.Stop, false);
-    }
+    logger.setup(this.trace.includes(TRACE_CATEGORY_PROTOCOL) ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
   }
 
   public configurationDoneRequest(

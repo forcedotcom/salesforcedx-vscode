@@ -8,7 +8,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import {
-  ActionScriptEnum,
   breakpointUtil,
   CHECKPOINT,
   CHECKPOINTS_LOCK_STRING,
@@ -35,7 +34,7 @@ const EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE = 'Type: ';
 // These are the action script types for the ApexExecutionOverlayAction.
 export type ApexExecutionOverlayAction = {
   ActionScript: string;
-  ActionScriptType: ActionScriptEnum;
+  ActionScriptType: 'None' | 'SOQL' | 'Apex';
   ExecutableEntityName: string | undefined;
   IsDumpingHeap: boolean;
   Iteration: number;
@@ -400,9 +399,9 @@ const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreakpoint):
       // based upon whether or not the string starts with SELECT
       {
         ActionScript: breakpoint.logMessage,
-        ActionScriptType: breakpoint.logMessage.startsWith('SELECT') ? ActionScriptEnum.SOQL : ActionScriptEnum.Apex
+        ActionScriptType: breakpoint.logMessage.startsWith('SELECT') ? 'SOQL' : 'Apex'
       }
-    : { ActionScript: '', ActionScriptType: ActionScriptEnum.None }),
+    : { ActionScript: '', ActionScriptType: 'None' }),
   ExecutableEntityName: undefined,
   IsDumpingHeap: true,
   // if the hit condition is a number then use it
