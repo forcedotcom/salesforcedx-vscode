@@ -7,13 +7,14 @@
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
 
 export const getActiveSalesforceCoreExtension = async (): Promise<SalesforceVSCodeCoreApi> => {
   const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
     'salesforce.salesforcedx-vscode-core'
   );
   if (!salesforceCoreExtension) {
-    throw new Error('Salesforce Core Extension not found');
+    throw new Error(nls.localize('unable_to_load_vscode_core_extension'));
   }
   if (!salesforceCoreExtension?.isActive) {
     await salesforceCoreExtension?.activate();
@@ -24,7 +25,7 @@ export const getActiveSalesforceCoreExtension = async (): Promise<SalesforceVSCo
 export const getActiveSalesforceApexExtension = async (): Promise<ApexVSCodeApi> => {
   const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
   if (!salesforceApexExtension) {
-    throw new Error('Salesforce Apex Extension not found');
+    throw new Error(nls.localize('unable_to_load_vscode_apex_extension'));
   }
   if (!salesforceApexExtension?.isActive) {
     await salesforceApexExtension?.activate();

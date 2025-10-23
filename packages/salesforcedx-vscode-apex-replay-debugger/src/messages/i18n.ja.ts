@@ -44,8 +44,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
   cannot_determine_workspace: 'ワークスペースのフォルダを特定できませんでした。',
   cannot_delete_existing_checkpoint: '既存のチェックポイントを削除できません。',
-  unable_to_parse_checkpoint_query_result: 'チェックポイントのクエリ結果をパースできませんでした。',
-  unable_to_retrieve_active_user_for_sf_project: 'SFDX プロジェクトの有効なユーザを取得できませんでした。',
   unable_to_query_for_existing_checkpoints: '既存のチェックポイントをクエリできませんでした。',
   unable_to_load_vscode_core_extension: 'salesforce.salesforcedx-vscode-core の拡張機能を読み込めませんでした。',
   no_line_breakpoint_information_for_current_project:

@@ -41,10 +41,9 @@ export const messages = {
   // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
   cannot_delete_existing_checkpoint: 'Cannot delete existing checkpoint',
-  unable_to_parse_checkpoint_query_result: 'Unable to parse checkpoint query result',
-  unable_to_retrieve_active_user_for_sf_project: 'Unable to retrieve active user for SFDX Project',
   unable_to_query_for_existing_checkpoints: 'Unable to query for existing checkpoints',
   unable_to_load_vscode_core_extension: 'unable to load salesforce.salesforcedx-vscode-core extension',
+  unable_to_load_vscode_apex_extension: 'unable to load salesforce.salesforcedx-vscode-apex extension',
   no_line_breakpoint_information_for_current_project: 'There is no line breakpoint information for the current project',
   line_breakpoint_information_success: 'Retrieved line breakpoint info from language server',
   language_client_not_ready: 'Unable to retrieve breakpoint info from language server, language server is not ready',
