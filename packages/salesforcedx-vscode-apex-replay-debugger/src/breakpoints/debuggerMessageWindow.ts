@@ -7,30 +7,25 @@
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 
-export enum VSCodeWindowTypeEnum {
-  Error = 1,
-  Informational = 2,
-  Warning = 3
-}
-
+type VsCodeWindowType = 'error' | 'informational' | 'warning';
 export const writeToDebuggerMessageWindow = (
   output: string,
   showVSCodeWindow?: boolean,
-  vsCodeWindowType?: VSCodeWindowTypeEnum
+  vsCodeWindowType?: VsCodeWindowType
 ) => {
   channelService.appendLine(output);
   channelService.showChannelOutput();
   if (showVSCodeWindow && vsCodeWindowType) {
     switch (vsCodeWindowType) {
-      case VSCodeWindowTypeEnum.Error: {
+      case 'error': {
         vscode.window.showErrorMessage(output);
         break;
       }
-      case VSCodeWindowTypeEnum.Informational: {
+      case 'informational': {
         vscode.window.showInformationMessage(output);
         break;
       }
-      case VSCodeWindowTypeEnum.Warning: {
+      case 'warning': {
         vscode.window.showWarningMessage(output);
         break;
       }

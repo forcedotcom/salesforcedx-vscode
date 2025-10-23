@@ -20,7 +20,7 @@ import { URI } from 'vscode-uri';
 import { clearCheckpoints, createCheckpointsInOrg } from '../commands/orgCheckpoints';
 import { nls } from '../messages';
 import { getActiveSalesforceCoreExtension } from '../utils/extensionApis';
-import { writeToDebuggerMessageWindow, VSCodeWindowTypeEnum } from './debuggerMessageWindow';
+import { writeToDebuggerMessageWindow } from './debuggerMessageWindow';
 import { retrieveLineBreakpointInfo } from './retrieve';
 
 // below dependencies must be required for bundling to work properly
@@ -71,7 +71,7 @@ class CheckpointService implements TreeDataProvider<BaseNode> {
     const numEnabledCheckpoints = getEnabledCheckpointCount(this);
     if (numEnabledCheckpoints > MAX_ALLOWED_CHECKPOINTS) {
       const errorMessage = nls.localize('up_to_five_checkpoints', numEnabledCheckpoints);
-      writeToDebuggerMessageWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+      writeToDebuggerMessageWindow(errorMessage, true, 'error');
     }
     return true;
   }
@@ -80,7 +80,7 @@ class CheckpointService implements TreeDataProvider<BaseNode> {
     const numEnabledCheckpoints = getEnabledCheckpointCount(this);
     if (numEnabledCheckpoints === 0) {
       const errorMessage = nls.localize('no_enabled_checkpoints');
-      writeToDebuggerMessageWindow(errorMessage, true, VSCodeWindowTypeEnum.Warning);
+      writeToDebuggerMessageWindow(errorMessage, true, 'warning');
     }
     return true;
   }
@@ -220,7 +220,7 @@ export const createCheckpoints = async (): Promise<boolean> => {
             writeToDebuggerMessageWindow(
               `Error deleting checkpoints from the org: ${JSON.stringify(e)}`,
               true,
-              VSCodeWindowTypeEnum.Error
+              'error'
             );
             return false;
           }
@@ -239,7 +239,7 @@ export const createCheckpoints = async (): Promise<boolean> => {
                 .map(cpNode => cpNode.checkpointOverlayAction)
             );
           } catch (e) {
-            writeToDebuggerMessageWindow(JSON.stringify(e), true, VSCodeWindowTypeEnum.Error);
+            writeToDebuggerMessageWindow(JSON.stringify(e), true, 'error');
             updateError = true;
             return false;
           }
@@ -259,7 +259,7 @@ export const createCheckpoints = async (): Promise<boolean> => {
     let errorMsg = '';
     if (updateError) {
       errorMsg = nls.localize('checkpoint_upload_error_wrap_up_message', nls.localize('sf_update_checkpoints_in_org'));
-      writeToDebuggerMessageWindow(errorMsg, true, VSCodeWindowTypeEnum.Error);
+      writeToDebuggerMessageWindow(errorMsg, true, 'error');
     }
     // Send checkpoint event using shared telemetry service
     TelemetryService.getInstance().sendEventData('apexReplayDebugger.checkpoint', {
@@ -430,7 +430,7 @@ const canSetLineBreakpointForCheckpoint = (cpNode: CheckpointNode): boolean => {
   const canSet = breakpointUtil.canSetLineBreakpoint(checkpointUri, checkpointLine);
   if (!canSet) {
     const errorMessage = nls.localize('checkpoints_can_only_be_on_valid_apex_source', checkpointUri, checkpointLine);
-    writeToDebuggerMessageWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+    writeToDebuggerMessageWindow(errorMessage, true, 'error');
   }
   return canSet;
 };
@@ -458,7 +458,7 @@ let creatingCheckpoints = false;
 //    checkpoints for user input SOQL or Apex.
 export const sfToggleCheckpoint = async () => {
   if (creatingCheckpoints) {
-    writeToDebuggerMessageWindow(nls.localize('checkpoint_upload_in_progress'), true, VSCodeWindowTypeEnum.Warning);
+    writeToDebuggerMessageWindow(nls.localize('checkpoint_upload_in_progress'), true, 'warning');
     return;
   }
   const uri = checkpointUtils.fetchActiveEditorUri();
