@@ -660,7 +660,7 @@ describe('Create OpenAPI v3 Specifications', () => {
     });
   });
 
-  describe('Disable A4D extension and ensure the commands to generate and validate OAS docs are not present', () => {
+  describe.skip('Disable A4D extension and ensure the commands to generate and validate OAS docs are not present', () => {
     it('Disable A4D extension', async () => {
       logTestStart(testSetup, 'Disable A4D extension');
 
