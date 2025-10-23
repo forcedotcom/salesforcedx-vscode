@@ -19,7 +19,6 @@ import { MessageKey } from './i18n';
  */
 export const messages: Partial<Record<MessageKey, string>> = {
   config_name_text: 'Apex Replay Debugger を起動',
-  session_language_server_error_text: 'Apex 言語サーバは有効なブレークポイントに関する情報を提供できませんでした。',
   up_to_five_checkpoints:
     '最大 5 つのうち、%d つのチェックポイントを設定しています。5 つ以下になるようチェックポイントを削除または無効化してください。',
   no_enabled_checkpoints: 'チェックポイントが 1 つも設定されていません。チェックポイントを設定し、再実行してください。',
