@@ -16,10 +16,12 @@ const queryCheckpoints = async (conn: Connection): Promise<ReturnType<typeof con
 
 /** query the org for checkpoints for the user associated with the connection, then delete them  */
 export const clearCheckpoints = async (conn: Connection): Promise<void> => {
-  const checkpointsIds = (await queryCheckpoints(conn)).map(checkpoint => checkpoint.Id).filter(id => id !== undefined);
-  if (checkpointsIds.length > 0) {
-    await conn.tooling.sobject('ApexExecutionOverlayAction').delete(checkpointsIds);
-  }
+  await Promise.all(
+    (await queryCheckpoints(conn))
+      .map(checkpoint => checkpoint.Id)
+      .filter(id => id !== undefined)
+      .map(id => conn.tooling.sobject('ApexExecutionOverlayAction').delete(id))
+  );
 };
 
 export const createCheckpointsInOrg =
@@ -33,11 +35,11 @@ export const createCheckpointsInOrg =
       await (await getActiveSalesforceCoreExtension()).services.SalesforceProjectConfig.getInstance()
     ).get('namespace');
 
-    const needsCorrection = typeof projectNamespace === 'string' && orgNamespace === undefined;
-
-    await conn.tooling
-      .sobject('ApexExecutionOverlayAction')
-      .create(needsCorrection ? checkpoints.map(namespaceCorrector(projectNamespace)) : checkpoints);
+    const corrected =
+      typeof projectNamespace === 'string' && orgNamespace === undefined
+        ? checkpoints.map(namespaceCorrector(projectNamespace))
+        : checkpoints;
+    await Promise.all(corrected.map(c => conn.tooling.sobject('ApexExecutionOverlayAction').create(c)));
   };
 
 const namespaceCorrector =

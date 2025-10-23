@@ -216,8 +216,12 @@ export const createCheckpoints = async (): Promise<boolean> => {
           // remove any existing checkpoints on the server
           try {
             await clearCheckpoints(conn);
-          } catch {
-            updateError = true;
+          } catch (e) {
+            writeToDebuggerMessageWindow(
+              `Error deleting checkpoints from the org: ${JSON.stringify(e)}`,
+              true,
+              VSCodeWindowTypeEnum.Error
+            );
             return false;
           }
 
@@ -235,7 +239,7 @@ export const createCheckpoints = async (): Promise<boolean> => {
                 .map(cpNode => cpNode.checkpointOverlayAction)
             );
           } catch (e) {
-            console.log(e);
+            writeToDebuggerMessageWindow(JSON.stringify(e), true, VSCodeWindowTypeEnum.Error);
             updateError = true;
             return false;
           }
