@@ -26,11 +26,11 @@ export enum RestHttpMethodEnum {
 }
 
 export class RequestService {
-  private _instanceUrl!: string;
-  private _accessToken!: string;
-  private _proxyUrl!: string;
-  private _proxyStrictSSL = false;
-  private _proxyAuthorization!: string;
+  public instanceUrl!: string;
+  public accessToken!: string;
+  public proxyUrl!: string;
+  public proxyStrictSSL = false;
+  public proxyAuthorization!: string;
   private _connectionTimeoutMs: number = DEFAULT_CONNECTION_TIMEOUT_MS;
 
   public getEnvVars(): NodeJS.ProcessEnv {
@@ -51,46 +51,6 @@ export class RequestService {
     return envVars;
   }
 
-  public get instanceUrl(): string {
-    return this._instanceUrl;
-  }
-
-  public set instanceUrl(instanceUrl: string) {
-    this._instanceUrl = instanceUrl;
-  }
-
-  public get accessToken(): string {
-    return this._accessToken;
-  }
-
-  public set accessToken(accessToken: string) {
-    this._accessToken = accessToken;
-  }
-
-  public get proxyUrl(): string {
-    return this._proxyUrl;
-  }
-
-  public set proxyUrl(proxyUrl: string) {
-    this._proxyUrl = proxyUrl;
-  }
-
-  public get proxyStrictSSL(): boolean {
-    return this._proxyStrictSSL;
-  }
-
-  public set proxyStrictSSL(proxyStrictSSL: boolean) {
-    this._proxyStrictSSL = proxyStrictSSL;
-  }
-
-  public get proxyAuthorization(): string {
-    return this._proxyAuthorization;
-  }
-
-  public set proxyAuthorization(proxyAuthorization: string) {
-    this._proxyAuthorization = proxyAuthorization;
-  }
-
   public get connectionTimeoutMs(): number {
     return this._connectionTimeoutMs || DEFAULT_CONNECTION_TIMEOUT_MS;
   }
@@ -105,7 +65,7 @@ export class RequestService {
     restHttpMethodEnum: RestHttpMethodEnum = RestHttpMethodEnum.Post
   ): Promise<string> {
     if (this.proxyUrl) {
-      configure(this._proxyUrl, this._proxyStrictSSL);
+      configure(this.proxyUrl, this.proxyStrictSSL);
     }
     const urlElements = [this.instanceUrl, command.getCommandUrl()];
     const queryString = command.getQueryString();
