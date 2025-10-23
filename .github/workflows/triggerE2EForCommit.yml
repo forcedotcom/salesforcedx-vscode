@@ -215,3 +215,4 @@ jobs:
       testToRun: 'createOasDoc.e2e.js'
       vscodeVersion: ${{ inputs.vscodeVersion }}
       runId: ${{ inputs.runId }}
+      os: '["ubuntu-latest"]'
