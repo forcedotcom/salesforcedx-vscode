@@ -6,6 +6,7 @@
  */
 import {
   Duration,
+  openFile,
   pause,
   ProjectShapeOption,
   TestReqConfig
@@ -269,6 +270,8 @@ describe('Run LWC Tests', () => {
     logTestStart(testSetup, 'Run All Tests via Code Lens action');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
+    await executeQuickPick('View: Close All Editors');
+    await openFile(path.join(lwcFolderPath, 'lwc1.test.js'));
     await pause(Duration.seconds(5));
 
     // Click the "Run" code lens at the top of the class
