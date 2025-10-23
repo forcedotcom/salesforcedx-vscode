@@ -19,7 +19,7 @@ import { strict as assert } from 'node:assert';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { ApexVariableContainer } from '../../../src/adapter/variableContainer';
-import { LogContext } from '../../../src/core';
+import { LogContext } from '../../../src/core/logContext';
 import { FrameEntryState, VariableAssignmentState, VariableBeginState } from '../../../src/states';
 
 describe('Variable assignment event', () => {

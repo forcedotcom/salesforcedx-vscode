@@ -34,8 +34,8 @@ import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { BreakpointUtil, breakpointUtil } from '../../../src/breakpoints/breakpointUtil';
 import { SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../../../src/constants';
-import { LogContext } from '../../../src/core';
 import { HeapDumpService } from '../../../src/core/heapDumpService';
+import { LogContext } from '../../../src/core/logContext';
 import { readLogFileFromContents } from '../../../src/core/logContextUtil';
 import { nls } from '../../../src/messages';
 

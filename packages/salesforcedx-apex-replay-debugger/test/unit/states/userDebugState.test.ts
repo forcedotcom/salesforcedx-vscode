@@ -19,7 +19,7 @@ import { EOL } from 'node:os';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { EXEC_ANON_SIGNATURE } from '../../../src/constants';
-import { LogContext } from '../../../src/core';
+import { LogContext } from '../../../src/core/logContext';
 import { UserDebugState } from '../../../src/states';
 
 describe('User debug event', () => {

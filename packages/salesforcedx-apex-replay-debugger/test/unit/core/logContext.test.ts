@@ -38,7 +38,7 @@ import {
   EVENT_VF_APEX_CALL_START,
   EXEC_ANON_SIGNATURE
 } from '../../../src/constants';
-import { LogContext } from '../../../src/core';
+import { LogContext } from '../../../src/core/logContext';
 import { readLogFileFromContents } from '../../../src/core/logContextUtil';
 import {
   FrameEntryState,

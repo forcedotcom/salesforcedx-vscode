@@ -21,10 +21,10 @@ import { ApexDebugStackFrameInfo } from '../../../src/adapter/apexDebugStackFram
 import { ApexVariable } from '../../../src/adapter/apexVariable';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { ApexVariableContainer } from '../../../src/adapter/variableContainer';
-import { LogContext } from '../../../src/core';
 import { Handles } from '../../../src/core/handles';
 import { ApexHeapDump } from '../../../src/core/heapDump';
 import { HeapDumpService } from '../../../src/core/heapDumpService';
+import { LogContext } from '../../../src/core/logContext';
 import { MockApexReplayDebug } from './apexReplayDebug.test';
 import {
   createHeapDumpResultForTriggers,

@@ -21,7 +21,7 @@ jest.mock('../../../src/core/logContextUtil', () => ({
 
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
-import { LogContext } from '../../../src/core';
+import { LogContext } from '../../../src/core/logContext';
 import { readLogFileFromContents } from '../../../src/core/logContextUtil';
 import { LogEntryState } from '../../../src/states';
 
