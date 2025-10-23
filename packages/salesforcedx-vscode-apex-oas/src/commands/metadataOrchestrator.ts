@@ -8,7 +8,7 @@ import { LLMServiceInterface, ServiceProvider, ServiceType } from '@salesforce/v
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { languageClientManager } from '../languageUtils';
+import { getApexLanguageClient } from '../apexExtensionUtils';
 import { nls } from '../messages';
 import GenerationInteractionLogger from '../oas/generationInteractionLogger';
 import {
@@ -19,7 +19,7 @@ import {
   ApexOASEligiblePayload,
   ApexOASResource
 } from '../oas/schemas';
-import { getTelemetryService } from '../telemetry/telemetry';
+import { getTelemetryService } from '../telemetry';
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -65,7 +65,8 @@ export class MetadataOrchestrator {
   ): Promise<ApexClassOASEligibleResponses | undefined> => {
     gil.addApexClassOASEligibleRequest(requests.payload);
     const telemetryService = getTelemetryService();
-    const languageClient = languageClientManager.getClientInstance();
+    const languageClientManager = await getApexLanguageClient();
+    const languageClient = languageClientManager?.getClientInstance();
     if (languageClient) {
       const classNumbers = requests.payload.length.toString();
       const requestTarget = buildRequestTarget(requests);
@@ -89,7 +90,8 @@ export class MetadataOrchestrator {
   public gatherContext = async (sourceUri: URI | URI[]): Promise<ApexClassOASGatherContextResponse | undefined> => {
     const telemetryService = getTelemetryService();
     let response: ApexClassOASGatherContextResponse | undefined;
-    const languageClient = languageClientManager.getClientInstance();
+    const languageClientManager = await getApexLanguageClient();
+    const languageClient = languageClientManager?.getClientInstance();
     if (languageClient) {
       try {
         response = await languageClient?.gatherOpenAPIContext(
@@ -113,7 +115,7 @@ export class MetadataOrchestrator {
     isMethodSelected: boolean = false
   ): Promise<ApexClassOASEligibleResponses | undefined> => {
     const telemetryService = getTelemetryService();
-    const requests = [];
+    const requests: ApexClassOASEligibleRequest[] = [];
     if (Array.isArray(sourceUri)) {
       await gil.addSourceUnderStudy(sourceUri);
       for (const uri of sourceUri) {
@@ -164,7 +166,7 @@ export class MetadataOrchestrator {
     ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
 }
 
-export const buildRequestTarget = (requestPayload: ApexOASEligiblePayload): ApexOASResource => {
+const buildRequestTarget = (requestPayload: ApexOASEligiblePayload): ApexOASResource => {
   const payload = requestPayload.payload;
   if (payload.length > 1) return ApexOASResource.multiClass;
   else {
