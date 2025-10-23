@@ -272,7 +272,9 @@ describe('Run LWC Tests', () => {
     await pause(Duration.seconds(5));
 
     // Click the "Run" code lens at the top of the class
+    console.log('### A');
     const runAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Run All Tests');
+    console.log('### B');
     expect(runAllTestsOption).to.not.be.undefined;
     await runAllTestsOption!.click();
 
