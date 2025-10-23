@@ -42,8 +42,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   checkpoint_upload_error_wrap_up_message:
     'チェックポイントにはエラーがあります。出力されるエラーを修正し、%s を再度実行してください。',
   // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
-  cannot_determine_workspace: 'ワークスペースのフォルダを特定できませんでした。',
-  cannot_delete_existing_checkpoint: '既存のチェックポイントを削除できません。',
   unable_to_query_for_existing_checkpoints: '既存のチェックポイントをクエリできませんでした。',
   unable_to_load_vscode_core_extension: 'salesforce.salesforcedx-vscode-core の拡張機能を読み込めませんでした。',
   no_line_breakpoint_information_for_current_project:

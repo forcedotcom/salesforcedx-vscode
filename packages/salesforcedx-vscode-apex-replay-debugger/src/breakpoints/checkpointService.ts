@@ -169,6 +169,7 @@ export const createCheckpoints = async (): Promise<boolean> => {
           const conn = await coreExtension.services.WorkspaceContext.getInstance().getConnection();
 
           if (!conn) {
+            writeToDebuggerMessageWindow(nls.localize('error_no_target_org'), true, 'error');
             updateError = true;
             return false;
           }
@@ -218,7 +219,7 @@ export const createCheckpoints = async (): Promise<boolean> => {
             await clearCheckpoints(conn);
           } catch (e) {
             writeToDebuggerMessageWindow(
-              `Error deleting checkpoints from the org: ${JSON.stringify(e)}`,
+              `${nls.localize('unable_to_query_for_existing_checkpoints')}: ${JSON.stringify(e)}`,
               true,
               'error'
             );
@@ -239,7 +240,11 @@ export const createCheckpoints = async (): Promise<boolean> => {
                 .map(cpNode => cpNode.checkpointOverlayAction)
             );
           } catch (e) {
-            writeToDebuggerMessageWindow(JSON.stringify(e), true, 'error');
+            writeToDebuggerMessageWindow(
+              `${nls.localize('unable_to_create_checkpoints_in_org')}: ${JSON.stringify(e)}.  Try this \n${nls.localize('local_source_is_out_of_sync_with_the_server')}`,
+              true,
+              'error'
+            );
             updateError = true;
             return false;
           }
