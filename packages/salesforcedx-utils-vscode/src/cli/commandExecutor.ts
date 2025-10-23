@@ -4,12 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Command, GlobalCliEnvironment, CancellationToken, CommandExecution } from '@salesforce/salesforcedx-utils';
+import { Command, GlobalCliEnvironment, CancellationToken } from '@salesforce/salesforcedx-utils';
 import { ChildProcess, SpawnOptions } from 'node:child_process';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
+import { CommandExecution } from '../types';
 
 // Below two dependencies are not structured correctly for import unless require is used.
 /* eslint-disable @typescript-eslint/no-var-requires */

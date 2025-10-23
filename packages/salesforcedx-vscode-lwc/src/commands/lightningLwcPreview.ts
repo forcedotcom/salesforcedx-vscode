@@ -9,10 +9,11 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import { componentUtil } from '@salesforce/lightning-lsp-common';
-import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   notificationService,
   CliCommandExecutor,
+  CommandOutput,
   EmptyParametersGatherer,
   isSFContainerMode,
   SfCommandlet,

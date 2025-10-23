@@ -45,10 +45,9 @@ export const getConnectionStatusFromError = (err: any, username?: string): strin
   if (lowerMsg.includes('maintenance')) return 'Down (Maintenance)';
   if (lowerMsg.includes('<html>') || lowerMsg.includes('<!doctype html>')) return 'Bad Response';
   if (
-    lowerMsg.includes('expired access/refresh token') ||
-    lowerMsg.includes('invalid_session_id') ||
-    lowerMsg.includes('bad_oauth_token') ||
-    lowerMsg.includes('refreshtokenautherror')
+    ['expired access/refresh token', 'invalid_session_id', 'bad_oauth_token', 'refreshtokenautherror'].some(token =>
+      lowerMsg.includes(token)
+    )
   ) {
     return 'Unable to refresh session: expired access/refresh token';
   }
@@ -61,12 +60,8 @@ export const getConnectionStatusFromError = (err: any, username?: string): strin
 
 /** Check if org should be removed based on error */
 export const shouldRemoveOrg = (err: any): boolean => {
-  const message = err instanceof Error ? err.message : String(err);
-  const lowerMsg = message.toLowerCase();
-  return (
-    lowerMsg.includes('invalid_login') ||
-    lowerMsg.includes('no such org') ||
-    lowerMsg.includes('namedorgnotfound') ||
-    lowerMsg.includes('noauthinfofound')
+  const lowerMsg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+  return ['invalid_login', 'no such org', 'namedorgnotfound', 'noauthinfofound'].some(token =>
+    lowerMsg.includes(token)
   );
 };

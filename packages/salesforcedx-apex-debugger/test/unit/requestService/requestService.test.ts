@@ -6,15 +6,18 @@
  */
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
-  ENV_HTTPS_PROXY,
-  ENV_HTTP_PROXY,
   ENV_SF_TARGET_ORG,
   ENV_SF_ORG_INSTANCE_URL
 } from '@salesforce/salesforcedx-utils';
 import * as requestLight from 'request-light';
 import { XHROptions, XHRResponse } from 'request-light';
 import { BaseCommand } from '../../../src/requestService/baseCommand';
-import { RequestService, RestHttpMethodEnum } from '../../../src/requestService/requestService';
+import {
+  ENV_HTTP_PROXY,
+  ENV_HTTPS_PROXY,
+  RequestService,
+  RestHttpMethodEnum
+} from '../../../src/requestService/requestService';
 
 jest.mock('request-light');
 

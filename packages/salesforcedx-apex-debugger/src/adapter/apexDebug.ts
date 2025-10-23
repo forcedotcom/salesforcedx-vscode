@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -10,7 +10,6 @@ import {
   OrgDisplay,
   SF_CONFIG_ISV_DEBUGGER_SID,
   SF_CONFIG_ISV_DEBUGGER_URL,
-  extractJsonObject,
   LineBreakpointInfo
 } from '@salesforce/salesforcedx-utils';
 import {
@@ -74,6 +73,7 @@ import {
   StreamingClientInfoBuilder,
   StreamingService
 } from '../core';
+import { extractJsonObject } from '../helpers/extractJsonObject';
 import { VscodeDebuggerMessage, VscodeDebuggerMessageType, WorkspaceSettings } from '../index';
 import { nls } from '../messages';
 import { RequestService } from '../requestService/requestService';

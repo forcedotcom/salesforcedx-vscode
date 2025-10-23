@@ -15,6 +15,9 @@
     "vscode-languageserver-types": "^3.4.0",
     "vscode-uri": "^3.1.0"
   },
+  "devDependencies": {
+    "vscode-languageserver-textdocument": "^1.0.12"
+  },
   "scripts": {
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "compile": "tsc -p ./ && npm run copy:files",

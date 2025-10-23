@@ -9,3 +9,8 @@ when you change a file, run relevant compile, linters then unit tests so that yo
 don't change both /src and /test unless it's to refactor imports or rename. "real changes" should be one or the other.
 
 do not say a test/compile/lint failure was "pre-existing" without running the same operation on a previous version of the code before the current un-pushed commits began.
+
+Things to check before you say you're done
+
+- use `npx knip` to detect dead code
+- use `npx jscpd` to detect duplicating code

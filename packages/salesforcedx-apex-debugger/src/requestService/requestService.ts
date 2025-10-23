@@ -8,13 +8,14 @@
 import {
   CLIENT_ID,
   DEFAULT_CONNECTION_TIMEOUT_MS,
-  ENV_HTTPS_PROXY,
-  ENV_HTTP_PROXY,
   ENV_SF_TARGET_ORG,
   ENV_SF_ORG_INSTANCE_URL
 } from '@salesforce/salesforcedx-utils';
 import { configure, xhr, XHROptions, XHRResponse } from 'request-light';
-import { BaseCommand } from './baseCommand';
+import { BaseCommand } from '../requestService/baseCommand';
+
+export const ENV_HTTP_PROXY = 'HTTP_PROXY';
+export const ENV_HTTPS_PROXY = 'HTTPS_PROXY';
 
 // Right now have POST and GET (out of Query, GET, POST, PATCH, DELETE),
 // add any new ones needed as they are encountered. Note: when adding those

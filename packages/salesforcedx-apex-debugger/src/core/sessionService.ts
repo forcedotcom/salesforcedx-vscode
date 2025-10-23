@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CliCommandExecutor, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { CliCommandExecutor } from '../cli/cliCommandExecutor';
+import { CommandOutput } from '../cli/commandOutput';
+import { SfCommandBuilder } from '../cli/sfCommandBuilder';
 import { RequestService } from '../requestService/requestService';
 
 export class SessionService {

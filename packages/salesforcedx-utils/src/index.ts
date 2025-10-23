@@ -8,5 +8,5 @@
 export * from './types';
 export * from './i18n';
 export * from './constants';
-export * from './helpers';
 export * from './cli';
+export { shouldRemoveOrg, getConnectionStatusFromError, stripAnsiInJson } from './helpers/utils';

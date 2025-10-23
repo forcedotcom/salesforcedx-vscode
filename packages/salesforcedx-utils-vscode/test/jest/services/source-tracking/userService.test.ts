@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CommandOutput } from '@salesforce/salesforcedx-utils';
 import { ExtensionContext } from 'vscode';
 import {
   CliCommandExecution,
@@ -32,11 +31,23 @@ describe('UserService', () => {
   describe('executeCliTelemetry', () => {
     let cliCommandExecution: CliCommandExecution;
     let executionSpy: jest.SpyInstance;
-    let getCmdResultSpy: jest.SpyInstance;
     let getRootWorkspacePathSpy: jest.SpyInstance;
 
     beforeEach(() => {
+      const stdoutSubject = {
+        subscribe: (callback: any) => callback(Buffer.from(JSON.stringify(fakeCliTelemetryData)))
+      };
+      const stderrSubject = {
+        subscribe: (callback: any) => callback(Buffer.from(''))
+      };
+      const processExitSubject = {
+        subscribe: (callback: any) => callback(0)
+      };
+
       cliCommandExecution = {
+        stdoutSubject,
+        stderrSubject,
+        processExitSubject,
         processExitCode: Promise.resolve(0),
         processError: Promise.resolve(undefined),
         processStdout: Promise.resolve(''),
@@ -44,26 +55,19 @@ describe('UserService', () => {
       } as unknown as CliCommandExecution;
       getRootWorkspacePathSpy = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue('abc');
       executionSpy = jest.spyOn(CliCommandExecutor.prototype, 'execute').mockReturnValue(cliCommandExecution);
-      getCmdResultSpy = jest
-        .spyOn(CommandOutput.prototype, 'getCmdResult')
-        .mockResolvedValue(JSON.stringify(fakeCliTelemetryData));
     });
 
     it('should return command output of sf telemetry', async () => {
       const fakePath = '/fine/total';
-      const fakeExecution = 'FindCliIdValue';
 
       getRootWorkspacePathSpy.mockReturnValueOnce(fakePath);
-      executionSpy.mockReturnValueOnce(fakeExecution);
-      getCmdResultSpy.mockResolvedValueOnce(fakeCliTelemetryData);
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result = await (UserService as any).executeCliTelemetry();
 
       expect(getRootWorkspacePathSpy).toHaveBeenCalled();
       expect(executionSpy).toHaveBeenCalled();
-      expect(getCmdResultSpy).toHaveBeenCalled();
-      expect(result).toBe(fakeCliTelemetryData);
+      expect(result).toBe(JSON.stringify(fakeCliTelemetryData));
     });
   });
 
