@@ -7,13 +7,7 @@
 // This is only done in tests because we are mocking things
 
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import {
-  DEFAULT_CONNECTION_TIMEOUT_MS,
-  OrgDisplay,
-  OrgInfo,
-  RequestService,
-  LineBreakpointInfo
-} from '@salesforce/salesforcedx-utils';
+import { DEFAULT_CONNECTION_TIMEOUT_MS, OrgDisplay, OrgInfo, LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { OutputEvent, Source, StackFrame, StoppedEvent, ThreadEvent } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import * as AsyncLock from 'async-lock';
@@ -55,6 +49,7 @@ import {
 } from '../../../src/core';
 import { VscodeDebuggerMessage, VscodeDebuggerMessageType, WorkspaceSettings } from '../../../src/index';
 import { nls } from '../../../src/messages';
+import { RequestService } from '../../../src/requestService/requestService';
 import { ApexDebugForTest } from './apexDebugForTest';
 import { DummyContainer, newStringValue } from './apexDebugVariablesHandling.test';
 

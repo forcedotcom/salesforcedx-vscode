@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { configure, xhr, XHROptions, XHRResponse } from 'request-light';
 import {
   CLIENT_ID,
   DEFAULT_CONNECTION_TIMEOUT_MS,
@@ -13,15 +12,15 @@ import {
   ENV_HTTP_PROXY,
   ENV_SF_TARGET_ORG,
   ENV_SF_ORG_INSTANCE_URL
-} from '../constants';
+} from '@salesforce/salesforcedx-utils';
+import { configure, xhr, XHROptions, XHRResponse } from 'request-light';
 import { BaseCommand } from './baseCommand';
 
-// Right now have POST and DELETE (out of Query, GET, POST, PATCH, DELETE),
+// Right now have POST and GET (out of Query, GET, POST, PATCH, DELETE),
 // add any new ones needed as they are encountered. Note: when adding those
 // it'll be the responsibility of whomever added them to verify or change
 // anything in the arguments for the call to deal with them.
 export enum RestHttpMethodEnum {
-  Delete = 'DELETE',
   Get = 'GET',
   Post = 'POST'
 }

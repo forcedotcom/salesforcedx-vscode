@@ -9,5 +9,4 @@ export * from './types';
 export * from './i18n';
 export * from './constants';
 export * from './helpers';
-export * from './requestService';
 export * from './cli';

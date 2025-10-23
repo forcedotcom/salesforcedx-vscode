@@ -4,16 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as requestLight from 'request-light';
-import { XHROptions, XHRResponse } from 'request-light';
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   ENV_HTTPS_PROXY,
   ENV_HTTP_PROXY,
   ENV_SF_TARGET_ORG,
   ENV_SF_ORG_INSTANCE_URL
-} from '../../../src/constants';
-import { BaseCommand, RequestService, RestHttpMethodEnum } from '../../../src/requestService';
+} from '@salesforce/salesforcedx-utils';
+import * as requestLight from 'request-light';
+import { XHROptions, XHRResponse } from 'request-light';
+import { BaseCommand } from '../../../src/requestService/baseCommand';
+import { RequestService, RestHttpMethodEnum } from '../../../src/requestService/requestService';
 
 jest.mock('request-light');
 
