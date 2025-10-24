@@ -12,7 +12,6 @@ import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { SdkLayer } from '../observability/spans';
 import { SettingsService } from '../vscode/settingsService';
 import { ConfigService } from './configService';
 import { DefaultOrgInfoSchema, defaultOrgRef } from './defaultOrgService';
@@ -24,6 +23,7 @@ type WebConnectionKey = {
 
 type WebConnectionKeyAndApiVersion = WebConnectionKey & { apiVersion: string };
 
+/** side effect: save the auth info in the background */
 const createAuthInfo = (instanceUrl: string, accessToken: string): Effect.Effect<AuthInfo, Error> =>
   Effect.tryPromise({
     try: () =>
@@ -33,15 +33,24 @@ const createAuthInfo = (instanceUrl: string, accessToken: string): Effect.Effect
     catch: error => new Error('Failed to create AuthInfo', { cause: error })
   }).pipe(
     Effect.tap(authInfo => Effect.annotateCurrentSpan(authInfo.getFields())),
+    Effect.tap(authInfo =>
+      // to keep things snappy, save happens in the background
+      Effect.fork(
+        Effect.tryPromise({
+          try: () => authInfo.save(),
+          catch: error => new Error('Failed to save AuthInfo', { cause: error })
+        }).pipe(Effect.withSpan('saveAuthInfo'))
+      )
+    ),
     Effect.withSpan('createAuthInfo')
   );
 
-const createConnection = (authInfo: AuthInfo, apiVersion: string): Effect.Effect<Connection, Error> =>
+const createConnection = (authInfo: AuthInfo, apiVersion?: string): Effect.Effect<Connection, Error> =>
   Effect.tryPromise({
     // calling the org to get the API version really slows things down, so we want it in config
-    try: () => Connection.create({ authInfo, connectionOptions: { version: apiVersion } }),
+    try: () => Connection.create({ authInfo, ...(apiVersion ? { connectionOptions: { version: apiVersion } } : {}) }),
     catch: error => new Error('Failed to create Connection', { cause: error })
-  }).pipe(Effect.withSpan('createConnection', { attributes: { apiVersion } }));
+  }).pipe(Effect.withSpan('createConnection', { attributes: { apiVersion: apiVersion ?? 'default' } }));
 
 const createWebConnection = (key: string): Effect.Effect<Connection, Error> => {
   const { instanceUrl, accessToken, apiVersion } = fromKey(key);
@@ -49,8 +58,7 @@ const createWebConnection = (key: string): Effect.Effect<Connection, Error> => {
     Effect.flatMap(authInfo => createConnection(authInfo, apiVersion)),
     Effect.withSpan('createWebConnection (cache miss)', {
       attributes: { apiVersion }
-    }),
-    Effect.provide(SdkLayer)
+    })
   );
 };
 
@@ -63,11 +71,17 @@ const fromKey = (key: string): WebConnectionKeyAndApiVersion => {
   return { instanceUrl, accessToken, apiVersion };
 };
 
+const createDesktopConnection = (username: string): Effect.Effect<Connection, Error> =>
+  Effect.gen(function* () {
+    const authInfo = yield* createAuthInfoFromUsername(username);
+    return yield* createConnection(authInfo);
+  }).pipe(Effect.withSpan('createDesktopConnection (cache miss)', { attributes: { username } }));
+
 const cache = Effect.runSync(
   Cache.make({
     capacity: 100,
     timeToLive: Duration.infinity,
-    lookup: createWebConnection
+    lookup: Global.isWeb ? createWebConnection : createDesktopConnection
   })
 );
 
@@ -88,36 +102,22 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 
           return yield* cache.get(toKey(instanceUrl, accessToken, apiVersion));
         } else {
-          return yield* ConfigService.pipe(
+          const usernameOrAlias = yield* ConfigService.pipe(
             Effect.flatMap(cfgSvc => cfgSvc.getConfigAggregator),
             Effect.map(agg => agg.getPropertyValue<string>('target-org')),
             Effect.filterOrFail(
               targetOrg => targetOrg != null,
               () => new Error('No target-org configured')
-            ),
-            Effect.flatMap(usernameOrAlias =>
-              Effect.tryPromise({
-                try: async () => (await StateAggregator.getInstance()).aliases.resolveUsername(usernameOrAlias),
-                catch: error => new Error('Failed to resolve username', { cause: error })
-              })
-            ),
-            Effect.flatMap(username =>
-              Effect.tryPromise({
-                try: () => AuthInfo.create({ username }),
-                catch: error => new Error('Failed to create AuthInfo', { cause: error })
-              })
-            ),
-            Effect.flatMap(authInfo =>
-              Effect.tryPromise({
-                try: () => Connection.create({ authInfo }),
-                catch: error => new Error('Failed to create Connection', { cause: error })
-              })
             )
           );
+          const username = yield* Effect.tryPromise({
+            try: async () => (await StateAggregator.getInstance()).aliases.resolveUsername(usernameOrAlias),
+            catch: error => new Error('Failed to resolve username', { cause: error })
+          });
+          return yield* cache.get(username);
         }
       }).pipe(
         Effect.tap(conn => maybeUpdateDefaultOrgRef(conn)),
-        Effect.provide(SdkLayer),
         Effect.withSpan('getConnection')
       )
     } as const;
@@ -162,12 +162,16 @@ const maybeUpdateDefaultOrgRef = (conn: Connection): Effect.Effect<typeof Defaul
       }
     );
     return updated;
-  }).pipe(Effect.withSpan('updateDefaultOrgRef'));
+  }).pipe(Effect.withSpan('maybeUpdateDefaultOrgRef'));
 
 /** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */
 const getDevHubId = (scratchOrgUsername?: string): Effect.Effect<string | undefined, Error> =>
   scratchOrgUsername
-    ? Effect.promise(() => AuthInfo.create({ username: scratchOrgUsername })).pipe(
-        Effect.map(authInfo => authInfo.getFields().orgId)
-      )
+    ? createAuthInfoFromUsername(scratchOrgUsername).pipe(Effect.map(authInfo => authInfo.getFields().orgId))
     : Effect.succeed(undefined);
+
+const createAuthInfoFromUsername = (username: string): Effect.Effect<AuthInfo, Error> =>
+  Effect.tryPromise({
+    try: () => AuthInfo.create({ username }),
+    catch: error => new Error('Failed to create AuthInfo', { cause: error })
+  }).pipe(Effect.withSpan('createAuthInfoFromUsername', { attributes: { username } }));

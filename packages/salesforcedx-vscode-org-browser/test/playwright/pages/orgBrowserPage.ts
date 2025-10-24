@@ -86,28 +86,56 @@ export class OrgBrowserPage {
     await saveScreenshot(this.page, 'orgBrowserPage.openOrgBrowser.metadataTypesLoaded.png', true);
   }
 
-  public async expandFolder(folderItem: Locator): Promise<void> {
-    // Start waiting for the response, then click to trigger it.
-    const expandedExpect = (): Promise<void> =>
-      expect(
-        folderItem.locator('.monaco-tl-twistie'),
-        'Folder twistie should show expanded state after metadata response'
-      ).toContainClass('codicon-tree-item-expanded', { timeout: 6_000 });
-
+  public async expandFolder(folderName: string): Promise<void> {
+    const folderItem = this.page.getByRole('treeitem', { name: folderName, exact: true });
+    const twistie = folderItem.locator('.monaco-tl-twistie');
     await Promise.all([
-      folderItem.click({ timeout: 5000 }),
+      folderItem.click({ timeout: 5000, delay: 100 }),
       // we need it to go from loading to expanded state
       ...(isDesktop
         ? [
-            expect(folderItem.locator('.monaco-tl-twistie'), 'Went to loading state')
-              .toContainClass('codicon-tree-item-loading', { timeout: 6_000 })
-              .then(() => expandedExpect())
+            expect(twistie, 'Went to loading state')
+              .toContainClass('codicon-tree-item-loading', { timeout: 2_000 })
+              .catch(() => undefined) // allow it to continue if it never hit loading state, but we at least delayed it before coming back to
           ]
-        : [this.awaitMdapiResponse().then(() => expandedExpect())])
+        : [this.awaitMdapiResponse()])
     ]);
+    // ensure it's done loading
+    await expect(twistie, 'should finish loading').not.toContainClass('codicon-tree-item-loading', { timeout: 60_000 });
+    if (await twistie.evaluate(el => el.classList.contains('collapsed'))) {
+      await folderItem.click();
+    }
+    await expect(twistie, 'should finish loading').not.toContainClass('codicon-tree-item-loading', { timeout: 60_000 });
+
+    await expect(twistie, 'Folder twistie should show expanded state after metadata response').toContainClass(
+      'codicon-tree-item-expanded',
+      { timeout: 6_000 }
+    );
+
     // there's an ugly scenario where the expand happens but none of the children are on the screen so you can't search them properly.
     await this.page.mouse.wheel(0, 50);
     await this.page.waitForTimeout(50);
+
+    // locators get messed up because of the scroll
+    const folderItemAgain = this.page.getByRole('treeitem', { name: folderName, exact: true });
+    const twistieAgain = folderItemAgain.locator('.monaco-tl-twistie');
+
+    // tapping to refocus;  But that also closes it.  So we need to tap twice to reopen and ensure it's open
+    await Promise.all([
+      folderItemAgain.click(),
+      expect(twistieAgain, 'should be collapsed after scrolling').toContainClass('collapsed')
+    ]);
+
+    await expect(twistieAgain, 'should not be loading after collapse loading').not.toContainClass(
+      'codicon-tree-item-loading'
+    );
+
+    await Promise.all([
+      folderItemAgain.click(),
+      expect(twistieAgain, 'should not be collapssed').not.toContainClass('collapsed')
+    ]);
+
+    await saveScreenshot(this.page, `expandFolder.${await folderItemAgain.textContent()}.png`, true);
   }
 
   public async awaitMdapiResponse(): Promise<void> {
@@ -171,14 +199,8 @@ export class OrgBrowserPage {
       return metadataItem.first();
     }
 
-    const retryableFind = (page: Page, sidebar: Locator): Effect.Effect<void, Error> =>
+    const retryableFind = (page: Page): Effect.Effect<void, Error> =>
       Effect.gen(function* () {
-        yield* Effect.promise(() =>
-          sidebar
-            .getByRole('treeitem', { level: level - 1, name: metadataType, exact: true })
-            .locator('.monaco-icon-label-container')
-            .click()
-        );
         yield* Effect.promise(() => page.waitForTimeout(1000));
         yield* Effect.promise(() => page.keyboard.type(itemName, { delay: typingSpeed }));
         yield* Effect.tryPromise({
@@ -191,8 +213,8 @@ export class OrgBrowserPage {
       });
 
     // Limit retries to prevent infinite loops (30 retries = ~15 seconds)
-    await Effect.runPromise(Effect.retry(retryableFind(this.page, this.sidebar), Schedule.recurs(30)));
-
+    await Effect.runPromise(Effect.retry(retryableFind(this.page), Schedule.recurs(30)));
+    await saveScreenshot(this.page, `getMetadataItem.${metadataType}.${itemName}.png`, true);
     return metadataItem.first();
   }
 
@@ -202,7 +224,7 @@ export class OrgBrowserPage {
    * @param item The locator for the tree item
    * @returns True if the button was clicked successfully, false otherwise
    */
-  // eslint-disable-next-line class-methods-use-this
+
   public async clickRetrieveButton(item: Locator): Promise<boolean> {
     // First hover over the row to make action buttons visible
     await item.hover();
@@ -211,6 +233,7 @@ export class OrgBrowserPage {
     const retrieveButton = item.locator('.action-label[aria-label="Retrieve Metadata"]').first();
 
     await expect(retrieveButton, 'Retrieve button should be visible').toBeVisible({ timeout: 3000 });
+    await saveScreenshot(this.page, 'clickRetrieveButton.png', true);
     // Click the retrieve button
     await retrieveButton.click({ force: true });
     return true;
@@ -220,28 +243,24 @@ export class OrgBrowserPage {
   /**
    * Wait for any file to open in the editor
    * @param timeout Maximum time to wait in milliseconds
-   * @returns True if any file opened, false if timeout
+   * throws if no file opens
    */
-  public async waitForFileToOpenInEditor(timeout = 10000): Promise<boolean> {
-    try {
-      await this.page.waitForFunction(
-        () =>
-          Array.from(document.querySelectorAll('.monaco-workbench .tabs-container .tab'))
-            .map(tab => tab.textContent ?? '')
-            .filter(tab => tab !== '')
-            .filter(
-              // Look for any tab that's not the welcome/walkthrough tab
-              tabText =>
-                !tabText.includes('Welcome') &&
-                !tabText.includes('Walkthrough') &&
-                !tabText.includes('Get Started') &&
-                !tabText.includes('Settings')
-            ).length > 0,
-        { timeout }
-      );
-      return true;
-    } catch {
-      return false;
-    }
+  public async waitForFileToOpenInEditor(timeout = 10000): Promise<void> {
+    await this.page.waitForFunction(
+      () =>
+        Array.from(document.querySelectorAll('.monaco-workbench .tabs-container .tab'))
+          .map(tab => tab.textContent ?? '')
+          .filter(tab => tab !== '')
+          .filter(
+            // Look for any tab that's not the welcome/walkthrough tab
+            tabText =>
+              !tabText.includes('Welcome') &&
+              !tabText.includes('Walkthrough') &&
+              !tabText.includes('Get Started') &&
+              !tabText.includes('Settings')
+          ).length > 0,
+      { timeout }
+    );
+    await saveScreenshot(this.page, 'waitForFileToOpenInEditor.png', true);
   }
 }

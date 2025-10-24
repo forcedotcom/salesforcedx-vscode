@@ -18,7 +18,6 @@ import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { TelemetryReporter } from '@vscode/extension-telemetry';
 import { workspace } from 'vscode';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
-
 // TODO: should this be in Effect?
 // Lazy initialization to avoid bundling issues
 const _webAppInsightsReporter: { instance: TelemetryReporter | undefined } = { instance: undefined };
@@ -48,6 +47,7 @@ const convertAttributes = (attributes: Record<string, unknown>): Record<string, 
   );
 
 const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vscode-core.telemetry-tag');
+
 /**
  * Custom OpenTelemetry span exporter that sends telemetry to Application Insights
  * using the web SDK since @azure/monitor-opentelemetry-exporter doesn't work in browsers.
@@ -58,45 +58,6 @@ const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vsc
 export class ApplicationInsightsWebExporter implements SpanExporter {
   // eslint-disable-next-line class-methods-use-this
   public export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
-    const exportSpan = (span: ReadableSpan): void => {
-      const duration = span.duration ? span.duration[0] * 1000 + span.duration[1] / 1000000 : 0;
-      const success = !span.status || span.status.code !== SpanStatusCode.ERROR;
-
-      // Create distributed trace context from OpenTelemetry span context
-      const telemetryTrace = {
-        traceID: span.spanContext().traceId,
-        spanID: span.spanContext().spanId,
-        parentID: span.parentSpanContext?.spanId
-      };
-
-      const props = {
-        ...convertAttributes(span.resource.attributes),
-        ...convertAttributes(span.attributes),
-        ...telemetryTrace,
-        spanKind: getSpanKindName(span.kind),
-        telemetryTag,
-        startTime: String(span.startTime[0] * 1000 + span.startTime[1] / 1000000),
-        endTime: String(span.endTime[0] * 1000 + span.endTime[1] / 1000000)
-      };
-      const measurements = {
-        duration
-      };
-
-      // eslint-disable-next-line functional/no-try-statements
-      try {
-        const reporter = getWebAppInsightsReporter();
-        if (success) {
-          // Use dangerous method to bypass telemetry level checks for development
-          reporter.sendDangerousTelemetryEvent(span.name, props, measurements);
-        } else {
-          // Use dangerous method to bypass telemetry level checks for development
-          reporter.sendDangerousTelemetryErrorEvent(span.name, props, measurements);
-        }
-      } catch (error) {
-        console.error('❌ Failed to send dangerous telemetry:', error);
-      }
-    };
-
     const result = ((): ExportResult => {
       // eslint-disable-next-line functional/no-try-statements
       try {
@@ -122,3 +83,42 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
 
 // span filters
 const isTopLevelSpan = (span: ReadableSpan): boolean => span.parentSpanContext === undefined;
+
+const exportSpan = (span: ReadableSpan): void => {
+  const success = !span.status || span.status.code !== SpanStatusCode.ERROR;
+
+  // Create distributed trace context from OpenTelemetry span context
+  const telemetryTrace = {
+    traceID: span.spanContext().traceId,
+    spanID: span.spanContext().spanId,
+    parentID: span.parentSpanContext?.spanId
+  };
+
+  const props = {
+    ...convertAttributes(span.resource.attributes),
+    ...convertAttributes(span.attributes),
+    ...telemetryTrace,
+    spanKind: getSpanKindName(span.kind),
+    telemetryTag,
+    startTime: String(span.startTime[0] * 1000 + span.startTime[1] / 1000000),
+    endTime: String(span.endTime[0] * 1000 + span.endTime[1] / 1000000)
+  };
+
+  const measurements = {
+    duration: span.duration ? span.duration[0] * 1000 + span.duration[1] / 1000000 : 0
+  };
+
+  // eslint-disable-next-line functional/no-try-statements
+  try {
+    const reporter = getWebAppInsightsReporter();
+    if (success) {
+      // Use dangerous method to bypass telemetry level checks for development
+      reporter.sendDangerousTelemetryEvent(span.name, props, measurements);
+    } else {
+      // Use dangerous method to bypass telemetry level checks for development
+      reporter.sendDangerousTelemetryErrorEvent(span.name, props, measurements);
+    }
+  } catch (error) {
+    console.error('❌ Failed to send dangerous telemetry:', error);
+  }
+};

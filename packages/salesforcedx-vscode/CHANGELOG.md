@@ -1,13 +1,11 @@
-# 64.16.1 - October 3, 2025
-
-## Added
-
-#### salesforcedx-vscode-core
-
-- Added hover documentation and autocompletion support for metadata XML files for RedHat XML extension. ([PR #6576](https://github.com/forcedotcom/salesforcedx-vscode/pull/6576))
+# 64.17.2 - October 8, 2025
 
 ## Fixed
 
-#### salesforcedx-vscode-core, salesforcedx-vscode-lightning
+#### salesforcedx-vscode-core
 
-- We made changes under the hood. ([PR #6569](https://github.com/forcedotcom/salesforcedx-vscode/pull/6569), [PR #6566](https://github.com/forcedotcom/salesforcedx-vscode/pull/6566))
+- We fixed some minor bugs in the hover documentation of metadata XML files. ([PR #6588](https://github.com/forcedotcom/salesforcedx-vscode/pull/6588))
+
+- We added a prompt that pops up to ask the user to reauthenticate to the org when the Code Builder window sits idle for too long and the access token becomes expired. ([PR #6583](https://github.com/forcedotcom/salesforcedx-vscode/pull/6583))
+
+- We re-enabled the auth related commands in Code Builder by adding a check for the environment variable `CODE_BUILDER`. ([PR #6586](https://github.com/forcedotcom/salesforcedx-vscode/pull/6586))

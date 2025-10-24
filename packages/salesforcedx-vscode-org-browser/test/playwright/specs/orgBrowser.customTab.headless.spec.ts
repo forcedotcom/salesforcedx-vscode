@@ -26,15 +26,14 @@ test.describe('Org Browser - CustomTab retrieval', () => {
       await orgBrowserPage.openOrgBrowser();
     });
 
-    const customTabType = await test.step('find CustomTab type', async () => {
+    await test.step('find CustomTab type', async () => {
       const locator = await orgBrowserPage.findMetadataType('CustomTab');
       await locator.hover();
       await expect(locator).toMatchAriaSnapshot({ name: 'customtab-hover' });
-      return locator;
     });
 
     const brokerItem = await test.step('expand CustomTab and locate Broker__c', async () => {
-      await orgBrowserPage.expandFolder(customTabType);
+      await orgBrowserPage.expandFolder('CustomTab');
       const item = await orgBrowserPage.getMetadataItem('CustomTab', 'Broker__c');
       await item.hover();
       await expect(item).toMatchAriaSnapshot({ name: 'customtab-broker__c' });
@@ -51,8 +50,7 @@ test.describe('Org Browser - CustomTab retrieval', () => {
     });
 
     await test.step('wait for editor file to open (completion signal)', async () => {
-      const fileOpened = await orgBrowserPage.waitForFileToOpenInEditor(120_000);
-      expect(fileOpened).toBe(true);
+      await orgBrowserPage.waitForFileToOpenInEditor(120_000);
     });
 
     await test.step('verify editor is visible and capture final state', async () => {
@@ -91,8 +89,8 @@ test.describe('Org Browser - CustomTab retrieval', () => {
 
     await test.step('download all customTabs from the type-level retrieve icon', async () => {
       const originalTabTexts = await page.locator('.monaco-workbench .tabs-container .tab').allTextContents();
-
-      await orgBrowserPage.clickRetrieveButton(customTabType);
+      const typeLocator = await orgBrowserPage.findMetadataType('CustomTab');
+      await orgBrowserPage.clickRetrieveButton(typeLocator);
 
       const overwrite = page
         .locator('.monaco-workbench .notification-list-item')

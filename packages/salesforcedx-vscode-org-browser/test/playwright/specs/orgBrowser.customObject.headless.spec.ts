@@ -26,15 +26,14 @@ test.describe('Org Browser - CustomObject retrieval', () => {
       await orgBrowserPage.openOrgBrowser();
     });
 
-    const customObjectType = await test.step('find CustomObject type', async () => {
+    await test.step('find CustomObject type', async () => {
       const locator = await orgBrowserPage.findMetadataType('CustomObject');
       await locator.hover();
       await expect(locator).toMatchAriaSnapshot({ name: 'customobject-found' });
-      return locator;
     });
 
     const brokerItem = await test.step('expand CustomObject and locate Broker__c', async () => {
-      await orgBrowserPage.expandFolder(customObjectType);
+      await orgBrowserPage.expandFolder('CustomObject');
       const item = await orgBrowserPage.getMetadataItem('CustomObject', 'Broker__c');
       await item.hover();
       await expect(item).toMatchAriaSnapshot({ name: 'customobject-broker__c' });
@@ -51,8 +50,7 @@ test.describe('Org Browser - CustomObject retrieval', () => {
     });
 
     await test.step('wait for editor file to open (completion signal)', async () => {
-      const fileOpened = await orgBrowserPage.waitForFileToOpenInEditor(120_000);
-      expect(fileOpened).toBe(true);
+      await orgBrowserPage.waitForFileToOpenInEditor(120_000);
     });
 
     await test.step('override confirmation for Broker__c', async () => {

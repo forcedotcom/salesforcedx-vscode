@@ -24,7 +24,7 @@
     "Other"
   ],
   "dependencies": {
-    "effect": "^3.16.12",
+    "effect": "^3.18.4",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
@@ -84,7 +84,8 @@
       "metadata": [
         {
           "id": "sfdxOrgBrowser",
-          "name": "Salesforce Org Browser"
+          "name": "Salesforce Org Browser",
+          "when": "!config.salesforcedx-vscode-core.useLegacyOrgBrowser"
         }
       ]
     },

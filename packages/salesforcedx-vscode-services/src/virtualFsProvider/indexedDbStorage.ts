@@ -11,7 +11,6 @@ import * as Layer from 'effect/Layer';
 import { Buffer } from 'node:buffer';
 import { dirname } from 'node:path';
 import * as vscode from 'vscode';
-import { SdkLayer } from '../observability/spans';
 import {
   isSerializedDirectoryWithPath,
   isSerializedFileWithPath,
@@ -103,22 +102,17 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
           entries.filter(isSerializedFileWithPath).forEach(writeFileWithOrWithoutDir);
         }),
         Effect.tap(entries => Effect.annotateCurrentSpan({ entries })),
-        Effect.withSpan('loadState'),
-        Effect.provide(SdkLayer)
+        Effect.withSpan('loadState')
       );
 
     const saveFile = (path: string): Effect.Effect<void, Error> =>
       // Provide the key explicitly since the store uses out-of-line keys
       withStore('readwrite', store => store.put(buildFileEntry(path), path)).pipe(
-        Effect.withSpan('saveFile', { attributes: { path } }),
-        Effect.provide(SdkLayer)
+        Effect.withSpan('saveFile', { attributes: { path } })
       );
 
     const deleteFile = (path: string): Effect.Effect<void, Error> =>
-      withStore('readwrite', store => store.delete(path)).pipe(
-        Effect.withSpan('deleteFile', { attributes: { path } }),
-        Effect.provide(SdkLayer)
-      );
+      withStore('readwrite', store => store.delete(path)).pipe(Effect.withSpan('deleteFile', { attributes: { path } }));
 
     const loadFile = (path: string): Effect.Effect<void, Error> =>
       withStore<SerializedEntryWithPath | undefined>('readonly', store => store.get(path)).pipe(
@@ -132,8 +126,7 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
             fs.mkdirSync(entry.path, { recursive: true });
           }
         }),
-        Effect.withSpan('loadFile', { attributes: { path } }),
-        Effect.provide(SdkLayer)
+        Effect.withSpan('loadFile', { attributes: { path } })
       );
     return {
       /** Load state from IndexedDB into memfs */

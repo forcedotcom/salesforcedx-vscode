@@ -11,6 +11,7 @@ import { downloadAndUnzipVSCode } from '@vscode/test-electron';
 import { createTestWorkspace } from './desktopWorkspace';
 import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
+import { filterErrors } from '../utils/helpers';
 
 /** Worker-scoped fixtures (shared across tests in same worker) */
 type WorkerFixtures = {
@@ -39,6 +40,9 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     // Use subdirectory of workspace for user data (keeps everything isolated and together)
     const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
     await fs.mkdir(userDataDir, { recursive: true });
+    // Isolate extensions directory as well (to avoid parallel install conflicts)
+    const extensionsDir = path.join(workspaceDir, '.vscode-test-extensions');
+    await fs.mkdir(extensionsDir, { recursive: true });
 
     // __dirname at runtime is '<pkg>/test/playwright/fixtures' → go up three levels to '<pkg>'
     const packageRoot = path.resolve(__dirname, '..', '..', '..');
@@ -46,15 +50,17 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
     const extensionPath = packageRoot;
     const servicesPath = path.resolve(packageRoot, '..', 'salesforcedx-vscode-services');
 
-    console.log('[desktopFixtures] extensionPath:', extensionPath);
-    console.log('[desktopFixtures] servicesPath:', servicesPath);
-    console.log('[desktopFixtures] workspaceDir:', workspaceDir);
+    // Video directory for this test
+    const videosDir = path.join(packageRoot, 'test-results', 'videos');
+    await fs.mkdir(videosDir, { recursive: true });
 
     const electronApp = await electron.launch({
       executablePath: vscodeExecutable,
       args: [
         // Unique user data directory for parallel test isolation
         `--user-data-dir=${userDataDir}`,
+        // Unique extensions directory to avoid parallel install conflicts
+        `--extensions-dir=${extensionsDir}`,
         // Load both extensions (org-browser depends on services)
         `--extensionDevelopmentPath=${extensionPath}`,
         `--extensionDevelopmentPath=${servicesPath}`,
@@ -66,20 +72,21 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       ],
 
       env: { ...process.env } as Record<string, string>,
-      timeout: 60_000 // Give VS Code more time to launch
+      timeout: 60_000,
+      // Try the documented recordVideo option (https://playwright.dev/docs/api/class-electron#electron-launch-option-record-video)
+      recordVideo: {
+        dir: videosDir,
+        size: { width: 1920, height: 1080 }
+      }
     });
 
     try {
       await use(electronApp);
     } finally {
       // Ensure cleanup happens even if test fails
-      console.log('[desktopFixtures] Closing Electron app...');
       try {
         await electronApp.close();
-        console.log('[desktopFixtures] Electron app closed successfully');
-      } catch (error) {
-        console.error('[desktopFixtures] Error closing Electron app:', error);
-      }
+      } catch {}
     }
   },
 
@@ -89,16 +96,14 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
 
     // Capture console logs (especially errors) for debugging
     page.on('console', msg => {
-      const type = msg.type();
-      if (!['error', 'warning'].includes(type)) {
+      if (msg.type() !== 'error' || filterErrors([{ text: msg.text(), url: msg.location()?.url || '' }]).length === 0) {
         return;
       }
-      const text = msg.text();
-      console.log(`[Electron Console ${type}] ${text}`);
+      console.log(`[Electron Console Error] ${msg.text()}`);
       // Also log the location if available
-      const location = msg.location();
-      if (location?.url) {
-        console.log(`  at ${location.url}:${location.lineNumber}`);
+      const { url, lineNumber } = msg.location() ?? {};
+      if (url) {
+        console.log(`  at ${url}:${lineNumber}`);
       }
     });
 
