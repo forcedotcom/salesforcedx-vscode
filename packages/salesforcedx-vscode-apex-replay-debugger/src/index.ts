@@ -66,7 +66,7 @@ const registerCommands = async (): Promise<vscode.Disposable> => {
   const launchFromLogFilePathCmd = vscode.commands.registerCommand(
     'sf.launch.replay.debugger.logfile.path',
     async logFilePath => {
-      if (logFilePath) {
+      if (logFilePath && typeof logFilePath === 'string') {
         await launchFromLogFile(logFilePath, true);
       }
     }
