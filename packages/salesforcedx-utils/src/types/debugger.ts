@@ -7,6 +7,7 @@
 
 export type LineBreakpointInfo = {
   uri: string;
+  /** could be 'Classname' or 'Namespace/Classname */
   typeref: string;
   lines: number[];
 };

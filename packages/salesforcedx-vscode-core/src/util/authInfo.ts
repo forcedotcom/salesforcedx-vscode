@@ -27,11 +27,11 @@ export class OrgAuthInfo {
     try {
       const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();
       if (!targetOrgOrAlias) {
-        displayMessage(nls.localize('error_no_target_org'), enableWarning, VSCodeWindowTypeEnum.Informational);
+        displayMessage(nls.localize('error_no_target_org'), enableWarning, 'informational');
         return undefined;
       } else {
         if (await ConfigUtil.isGlobalTargetOrg()) {
-          displayMessage(nls.localize('warning_using_global_username'), enableWarning, VSCodeWindowTypeEnum.Warning);
+          displayMessage(nls.localize('warning_using_global_username'), enableWarning, 'warning');
         }
       }
 
@@ -60,7 +60,7 @@ export class OrgAuthInfo {
         const selection = await displayMessage(
           nls.localize('error_no_target_dev_hub'),
           enableWarning,
-          VSCodeWindowTypeEnum.Informational,
+          'informational',
           [showButtonText]
         );
         if (selection && selection === showButtonText) {
@@ -154,26 +154,19 @@ export class OrgAuthInfo {
 
   public static async getUserId(): Promise<string | undefined> {
     const connection = await WorkspaceContext.getInstance().getConnection();
-    const userId = connection.getAuthInfoFields().userId ?? (await connection.identity()).user_id;
-    return userId;
+    return connection.getAuthInfoFields().userId ?? (await connection.identity()).user_id;
   }
 
   public static async getAuthFields(): Promise<AuthFields> {
-    const connection = await WorkspaceContext.getInstance().getConnection();
-    return connection.getAuthInfoFields();
+    return (await WorkspaceContext.getInstance().getConnection()).getAuthInfoFields();
   }
 }
-
-enum VSCodeWindowTypeEnum {
-  Error = 1,
-  Informational = 2,
-  Warning = 3
-}
+type VsCodeWindowType = 'error' | 'informational' | 'warning';
 
 const displayMessage = (
   output: string,
   enableWarning?: boolean,
-  vsCodeWindowType?: VSCodeWindowTypeEnum,
+  vsCodeWindowType?: VsCodeWindowType,
   items?: string[]
 ): Thenable<string | undefined> | undefined => {
   if (enableWarning !== undefined && !enableWarning) {
@@ -184,13 +177,13 @@ const displayMessage = (
   channelService.showChannelOutput();
   if (vsCodeWindowType) {
     switch (vsCodeWindowType) {
-      case VSCodeWindowTypeEnum.Error: {
+      case 'error': {
         return notificationService.showErrorMessage(output, ...buttons);
       }
-      case VSCodeWindowTypeEnum.Informational: {
+      case 'informational': {
         return notificationService.showInformationMessage(output, ...buttons);
       }
-      case VSCodeWindowTypeEnum.Warning: {
+      case 'warning': {
         return notificationService.showWarningMessage(output, ...buttons);
       }
     }

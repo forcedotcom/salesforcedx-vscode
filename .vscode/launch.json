@@ -36,7 +36,11 @@
       ],
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
+      "outFiles": [
+        "${workspaceFolder}/packages/*/out/src/**/*.js",
+        "${workspaceFolder}/packages/*/out/**/*.js",
+        "${workspaceFolder}/packages/*/dist/**/*.js"
+      ],
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
         "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
@@ -47,6 +51,7 @@
         "webpack:///salesforcedx-vscode-soql/./*": "${workspaceFolder}/packages/salesforcedx-vscode-soql/*",
         "webpack:///salesforcedx-vscode-soql/../salesforcedx-utils-vscode/*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
+        "webpack:///salesforcedx-vscode-apex-replay-debugger/./*": "${workspaceFolder}/packages/salesforcedx-vscode-apex-replay-debugger/src/*",
         "webpack:///*": "*"
       },
       "preLaunchTask": "Compile"
@@ -69,7 +74,11 @@
       "stopOnEntry": false,
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
+      "outFiles": [
+        "${workspaceFolder}/packages/*/out/src/**/*.js",
+        "${workspaceFolder}/packages/*/out/**/*.js",
+        "${workspaceFolder}/packages/*/dist/**/*.js"
+      ],
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
         "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
@@ -80,6 +89,7 @@
         "webpack:///salesforcedx-vscode-soql/./*": "${workspaceFolder}/packages/salesforcedx-vscode-soql/*",
         "webpack:///salesforcedx-vscode-soql/../salesforcedx-utils-vscode/*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
+        "webpack:///salesforcedx-vscode-apex-replay-debugger/./*": "${workspaceFolder}/packages/salesforcedx-vscode-apex-replay-debugger/src/*",
         "webpack:///*": "*"
       }
     },

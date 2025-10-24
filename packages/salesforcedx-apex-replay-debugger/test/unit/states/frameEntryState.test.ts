@@ -19,8 +19,8 @@ import { URI } from 'vscode-uri';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { ApexVariableContainer } from '../../../src/adapter/variableContainer';
-import { LogContext } from '../../../src/core';
-import { FrameEntryState } from '../../../src/states';
+import { LogContext } from '../../../src/core/logContext';
+import { FrameEntryState } from '../../../src/states/frameEntryState';
 
 describe('Frame entry event', () => {
   let getUriFromSignatureStub: jest.SpyInstance;

@@ -7,6 +7,7 @@
 
 import { ApexVariableContainer } from '../adapter/variableContainer';
 import { LogContext } from '../core/logContext';
+import { substringUpToLastPeriod, substringFromLastPeriod } from '../core/logContextUtil';
 import { DebugLogState } from './debugLogState';
 
 export class VariableBeginState implements DebugLogState {
@@ -21,14 +22,14 @@ export class VariableBeginState implements DebugLogState {
       const frameInfo = logContext.getFrameHandler().get(currFrame.id);
       const name = this.fields[3];
       const type = this.fields[4];
-      const className = logContext.getUtil().substringUpToLastPeriod(name);
+      const className = substringUpToLastPeriod(name);
       if (className && !logContext.getStaticVariablesClassMap().has(className)) {
         logContext.getStaticVariablesClassMap().set(className, new Map<string, ApexVariableContainer>());
       }
       const statics = logContext.getStaticVariablesClassMap().get(className)!;
       if (this.fields[6] === 'true') {
         // will need to use the last index in case of something like OuterClass.InnerClass.method()
-        const varName = logContext.getUtil().substringFromLastPeriod(name);
+        const varName = substringFromLastPeriod(name);
         statics.set(varName, new ApexVariableContainer(varName, 'null', type));
       } else {
         // had to add this check because triggers will have variable assignments show up twice and break this

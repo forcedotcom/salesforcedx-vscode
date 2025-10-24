@@ -16,12 +16,9 @@ export class LibraryPathsGatherer implements ParametersGatherer<string[]> {
   }
 
   public async gather(): Promise<ContinueResponse<string[]>> {
-    const sourcePaths = this.uris.map(uri => uri.fsPath);
-    const flushedSourcePaths = fileUtils.flushFilePaths(sourcePaths);
-
     return {
       type: 'CONTINUE',
-      data: flushedSourcePaths
+      data: this.uris.map(uri => uri.fsPath).map(fileUtils.flushFilePath)
     };
   }
 }

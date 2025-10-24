@@ -21,24 +21,18 @@ import { getTestOutlineProvider } from '../views/testOutlineProvider';
 import { anonApexDebug } from './anonApexExecute';
 
 export const launchApexReplayDebuggerWithCurrentFile = async () => {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) {
-    void notificationService.showErrorMessage(nls.localize('unable_to_locate_editor'));
-    return;
-  }
-
-  const sourceUri = editor.document.uri;
+  const sourceUri = vscode.window.activeTextEditor?.document.uri;
   if (!sourceUri) {
     void notificationService.showErrorMessage(nls.localize('unable_to_locate_document'));
     return;
   }
 
-  if (isLogFile(sourceUri)) {
+  if (fileExtensionsMatch(sourceUri, 'log')) {
     await launchReplayDebuggerLogFile(sourceUri);
     return;
   }
 
-  if (isAnonymousApexFile(sourceUri)) {
+  if (fileExtensionsMatch(sourceUri, 'apex')) {
     await launchAnonymousApexReplayDebugger();
     return;
   }
@@ -51,10 +45,6 @@ export const launchApexReplayDebuggerWithCurrentFile = async () => {
 
   void notificationService.showErrorMessage(nls.localize('launch_apex_replay_debugger_unsupported_file'));
 };
-
-const isLogFile = (sourceUri: URI): boolean => fileExtensionsMatch(sourceUri, 'log');
-
-const isAnonymousApexFile = (sourceUri: URI): boolean => fileExtensionsMatch(sourceUri, 'apex');
 
 const launchReplayDebuggerLogFile = async (sourceUri: URI) => {
   await vscode.commands.executeCommand('sf.launch.replay.debugger.logfile', {

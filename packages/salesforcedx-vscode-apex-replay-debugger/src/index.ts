@@ -17,47 +17,25 @@ import {
   LIVESHARE_DEBUGGER_TYPE,
   SEND_METRIC_GENERAL_EVENT,
   SEND_METRIC_ERROR_EVENT,
-  SEND_METRIC_LAUNCH_EVENT,
-  breakpointUtil
+  SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { ActivationTracker, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
-import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { getDialogStartingPath } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import {
-  CheckpointService,
   checkpointService,
   processBreakpointChangedForCheckpoints,
+  createCheckpoints,
   sfToggleCheckpoint
 } from './breakpoints/checkpointService';
-import { channelService } from './channels';
 import { launchFromLogFile } from './commands/launchFromLogFile';
 import { setupAndDebugTests } from './commands/quickLaunch';
-import { nls } from './messages';
+import { getActiveSalesforceCoreExtension } from './utils/extensionApis';
 
 let extContext: vscode.ExtensionContext;
-
-export enum VSCodeWindowTypeEnum {
-  Error = 1,
-  Informational = 2,
-  Warning = 3
-}
-
-const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
-  'salesforce.salesforcedx-vscode-core'
-);
-if (!salesforceCoreExtension) {
-  throw new Error('Salesforce Core Extension not initialized');
-}
-
-const salesforceApexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
-if (!salesforceApexExtension) {
-  throw new Error('Salesforce Apex Extension not initialized');
-}
 
 const registerCommands = async (): Promise<vscode.Disposable> => {
   const dialogStartingPathUri = await getDialogStartingPath(extContext);
@@ -88,7 +66,7 @@ const registerCommands = async (): Promise<vscode.Disposable> => {
   const launchFromLogFilePathCmd = vscode.commands.registerCommand(
     'sf.launch.replay.debugger.logfile.path',
     async logFilePath => {
-      if (logFilePath) {
+      if (logFilePath && typeof logFilePath === 'string') {
         await launchFromLogFile(logFilePath, true);
       }
     }
@@ -102,19 +80,13 @@ const registerCommands = async (): Promise<vscode.Disposable> => {
     }
   );
 
-  const sfCreateCheckpointsCmd = vscode.commands.registerCommand(
-    'sf.create.checkpoints',
-    CheckpointService.sfCreateCheckpoints
-  );
-  const sfToggleCheckpointCmd = vscode.commands.registerCommand('sf.toggle.checkpoint', sfToggleCheckpoint);
-
   return vscode.Disposable.from(
     promptForLogCmd,
     launchFromLogFileCmd,
     launchFromLogFilePathCmd,
     launchFromLastLogFileCmd,
-    sfCreateCheckpointsCmd,
-    sfToggleCheckpointCmd
+    vscode.commands.registerCommand('sf.create.checkpoints', createCheckpoints),
+    vscode.commands.registerCommand('sf.toggle.checkpoint', sfToggleCheckpoint)
   );
 };
 
@@ -123,13 +95,10 @@ export const updateLastOpened = (extensionContext: vscode.ExtensionContext, logP
   extensionContext.workspaceState.update(LAST_OPENED_LOG_FOLDER_KEY, path.dirname(logPath));
 };
 
-export const getDebuggerType = async (session: vscode.DebugSession): Promise<string> => {
-  let type = session.type;
-  if (type === LIVESHARE_DEBUGGER_TYPE) {
-    type = await session.customRequest(LIVESHARE_DEBUG_TYPE_REQUEST);
-  }
-  return type;
-};
+export const getDebuggerType = async (session: vscode.DebugSession): Promise<string> =>
+  session.type === LIVESHARE_DEBUGGER_TYPE
+    ? ((await session.customRequest(LIVESHARE_DEBUG_TYPE_REQUEST)) as string)
+    : session.type;
 
 const registerDebugHandlers = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(async event => {
@@ -176,16 +145,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   const checkpointsView = vscode.window.registerTreeDataProvider('sf.view.checkpoint', checkpointService);
   const breakpointsSub = vscode.debug.onDidChangeBreakpoints(processBreakpointChangedForCheckpoints);
 
-  // Activate Salesforce Core and Apex Extensions
-  if (!salesforceCoreExtension.isActive) {
-    await salesforceCoreExtension.activate();
-  }
-  if (!salesforceApexExtension.isActive) {
-    await salesforceApexExtension.activate();
-  }
+  const salesforceCoreExtension = await getActiveSalesforceCoreExtension();
 
   // Workspace Context
-  await salesforceCoreExtension.exports.services.WorkspaceContext.getInstance().initialize(extensionContext);
+  await salesforceCoreExtension.services.WorkspaceContext.getInstance().initialize(extensionContext);
 
   // Debug Tests command
   const debugTests = vscode.commands.registerCommand('sf.test.view.debugTests', async (test: { name: string }) => {
@@ -213,74 +176,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext) => {
   await telemetryService.initializeService(extensionContext);
   const activationTracker = new ActivationTracker(extensionContext, telemetryService);
   await activationTracker.markActivationStop();
-};
-
-export const retrieveLineBreakpointInfo = async (): Promise<boolean> => {
-  if (!salesforceApexExtension.isActive) {
-    await salesforceApexExtension.activate();
-  }
-  if (salesforceApexExtension) {
-    let expired = false;
-    let i = 0;
-    while (!salesforceApexExtension.exports.languageClientManager.getStatus().isReady() && !expired) {
-      if (salesforceApexExtension.exports.languageClientManager.getStatus().failedToInitialize()) {
-        throw Error(salesforceApexExtension.exports.languageClientManager.getStatus().getStatusMessage());
-      }
-
-      await imposeSlightDelay(100);
-      if (i >= 30) {
-        expired = true;
-      }
-      i++;
-    }
-    if (expired) {
-      const errorMessage = nls.localize('language_client_not_ready');
-      writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-      return false;
-    } else {
-      const lineBpInfo = await salesforceApexExtension.exports.getLineBreakpointInfo();
-      if (lineBpInfo?.length) {
-        console.log(nls.localize('line_breakpoint_information_success'));
-        breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo);
-        return true;
-      } else {
-        const errorMessage = nls.localize('no_line_breakpoint_information_for_current_project');
-        writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-        return true;
-      }
-    }
-  } else {
-    const errorMessage = nls.localize('session_language_server_error_text');
-    writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-    return false;
-  }
-};
-
-const imposeSlightDelay = (ms = 0) => new Promise(r => setTimeout(r, ms));
-
-export const writeToDebuggerOutputWindow = (
-  output: string,
-  showVSCodeWindow?: boolean,
-  vsCodeWindowType?: VSCodeWindowTypeEnum
-) => {
-  channelService.appendLine(output);
-  channelService.showChannelOutput();
-  if (showVSCodeWindow && vsCodeWindowType) {
-    switch (vsCodeWindowType) {
-      case VSCodeWindowTypeEnum.Error: {
-        vscode.window.showErrorMessage(output);
-        break;
-      }
-      case VSCodeWindowTypeEnum.Informational: {
-        vscode.window.showInformationMessage(output);
-        break;
-      }
-      case VSCodeWindowTypeEnum.Warning: {
-        vscode.window.showWarningMessage(output);
-        break;
-      }
-    }
-  }
 };
 
 export const deactivate = () => {

@@ -11,7 +11,6 @@ export const CHECKPOINTS_LOCK_STRING = 'checkpoints_lock';
 export const DEBUGGER_LAUNCH_TYPE = 'launch';
 export const DEBUGGER_TYPE = 'apex-replay';
 export const LIVESHARE_DEBUGGER_TYPE = 'vslsShare';
-export const FIELD_INTEGRITY_EXCEPTION = 'FIELD_INTEGRITY_EXCEPTION';
 export const SEND_METRIC_GENERAL_EVENT = 'sendMetricGeneral';
 export const SEND_METRIC_ERROR_EVENT = 'sendMetricError';
 export const LAST_OPENED_LOG_FOLDER_KEY = 'LAST_OPENED_LOG_FOLDER_KEY';

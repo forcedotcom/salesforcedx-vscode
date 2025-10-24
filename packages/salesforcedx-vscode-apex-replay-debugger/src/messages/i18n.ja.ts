@@ -19,7 +19,6 @@ import { MessageKey } from './i18n';
  */
 export const messages: Partial<Record<MessageKey, string>> = {
   config_name_text: 'Apex Replay Debugger を起動',
-  session_language_server_error_text: 'Apex 言語サーバは有効なブレークポイントに関する情報を提供できませんでした。',
   up_to_five_checkpoints:
     '最大 5 つのうち、%d つのチェックポイントを設定しています。5 つ以下になるようチェックポイントを削除または無効化してください。',
   no_enabled_checkpoints: 'チェックポイントが 1 つも設定されていません。チェックポイントを設定し、再実行してください。',
@@ -42,10 +41,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   checkpoint_upload_error_wrap_up_message:
     'チェックポイントにはエラーがあります。出力されるエラーを修正し、%s を再度実行してください。',
   // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
-  cannot_determine_workspace: 'ワークスペースのフォルダを特定できませんでした。',
-  cannot_delete_existing_checkpoint: '既存のチェックポイントを削除できません。',
-  unable_to_parse_checkpoint_query_result: 'チェックポイントのクエリ結果をパースできませんでした。',
-  unable_to_retrieve_active_user_for_sf_project: 'SFDX プロジェクトの有効なユーザを取得できませんでした。',
   unable_to_query_for_existing_checkpoints: '既存のチェックポイントをクエリできませんでした。',
   unable_to_load_vscode_core_extension: 'salesforce.salesforcedx-vscode-core の拡張機能を読み込めませんでした。',
   no_line_breakpoint_information_for_current_project:
