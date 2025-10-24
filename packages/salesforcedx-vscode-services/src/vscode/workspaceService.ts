@@ -21,11 +21,15 @@ type WorkspaceInfo = {
 
 const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
   const folders = vscode.workspace.workspaceFolders;
+  const isVirtualFs = folders?.[0]?.uri.scheme !== 'file';
+  const originalFsPath = folders?.[0]?.uri.fsPath ?? '';
   return {
     path: getPathWithSchema(folders?.[0]?.uri ?? vscode.Uri.parse('')),
     isEmpty: folders?.length === 0,
-    isVirtualFs: folders?.[0]?.uri.scheme !== 'file',
-    fsPath: folders?.[0]?.uri.fsPath ?? ''
+    isVirtualFs,
+    // in e2e tests, but not on local runs, the path had windows-style \\ separators
+    // TODO: why??
+    fsPath: isVirtualFs ? originalFsPath.replaceAll('\\', '/') : originalFsPath
   };
 }).pipe(
   Effect.tap(info => Effect.annotateCurrentSpan(info)),
