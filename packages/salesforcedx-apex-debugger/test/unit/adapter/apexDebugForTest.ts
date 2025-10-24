@@ -6,7 +6,6 @@
  */
 // This is only done in tests because we are mocking things
 
-import { RequestService } from '@salesforce/salesforcedx-utils';
 import { Source } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import {
@@ -17,6 +16,7 @@ import {
 } from '../../../src/adapter/apexDebug';
 import { Reference } from '../../../src/commands';
 import { BreakpointService, SessionService, StreamingService } from '../../../src/core';
+import { RequestService } from '../../../src/requestService/requestService';
 
 export class ApexDebugForTest extends ApexDebug {
   private receivedResponses: DebugProtocol.Response[] = [];

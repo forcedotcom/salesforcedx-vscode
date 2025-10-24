@@ -6,17 +6,18 @@
  */
 
 export {
-  SFDX_PROJECT_FILE,
+  CLIENT_ID,
+  DEFAULT_CONNECTION_TIMEOUT_MS,
   ENV_SF_TARGET_ORG,
   ENV_SF_ORG_INSTANCE_URL,
   SF_CONFIG_ISV_DEBUGGER_SID,
-  SF_CONFIG_ISV_DEBUGGER_URL,
-  TARGET_ORG_KEY,
-  DEFAULT_CONNECTION_TIMEOUT_MS,
-  CLIENT_ID,
-  SFDX_FOLDER
-} from './constants';
+  SF_CONFIG_ISV_DEBUGGER_URL
+} from '@salesforce/salesforcedx-utils';
 import { Event } from 'vscode';
+
+export const TARGET_ORG_KEY = 'target-org';
+export const SFDX_PROJECT_FILE = 'sfdx-project.json';
+export const SFDX_FOLDER = '.sfdx';
 
 // Precondition checking
 ////////////////////////
@@ -96,6 +97,7 @@ export type LocalComponent = DirFileNameSelection & {
 };
 
 export { MessageArgs } from '@salesforce/salesforcedx-utils';
+export { CommandExecution } from './commandExecution';
 
 // Re-export telemetry types from vscode-service-provider
 export {

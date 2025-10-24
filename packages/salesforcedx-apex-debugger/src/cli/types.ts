@@ -5,5 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { BaseCommand } from './baseCommand';
-export { RequestService, RestHttpMethodEnum } from './requestService';
+/** Interface for command builder to provide command details */
+export type CommandBuilderLike = {
+  readonly command: string;
+  description?: string;
+  args: string[];
+  logName?: string;
+};

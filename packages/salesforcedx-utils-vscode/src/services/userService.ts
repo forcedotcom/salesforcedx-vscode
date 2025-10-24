@@ -5,12 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import { ExtensionContext } from 'vscode';
-import { CliCommandExecutor, workspaceUtils } from '..';
+import { CliCommandExecutor } from '../cli/commandExecutor';
+import { CommandOutput } from '../cli/commandOutput';
 import { TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID, UNAUTHENTICATED_USER } from '../constants';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { getSharedTelemetryUserId, hashUserIdentifier } from '../helpers/telemetryUtils';
+import { workspaceUtils } from '../workspaces';
 
 export class UserService {
   private static getRandomUserId = (): string => {

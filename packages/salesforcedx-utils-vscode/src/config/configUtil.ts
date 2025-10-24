@@ -115,22 +115,6 @@ export class ConfigUtil {
   }
 
   /**
-   * Get the username of the target dev hub for the project.
-   *
-   * @returns The username for the configured target dev hub
-   * Org if it exists.
-   */
-  public static async getDevHubUsername(): Promise<string | undefined> {
-    const targetDevHubOrAlias = await ConfigUtil.getTargetDevHubOrAlias();
-    if (!targetDevHubOrAlias) {
-      return;
-    }
-
-    const username = await this.getUsernameFor(targetDevHubOrAlias);
-    return username ? String(username) : undefined;
-  }
-
-  /**
    * Get the username of the currently auth'd user for the project
    * given a username or alias.
    *

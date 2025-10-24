@@ -5,9 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as sfUtils from '@salesforce/salesforcedx-utils';
+import { CliCommandExecutor } from '../../../src/cli/cliCommandExecutor';
+import { CommandOutput } from '../../../src/cli/commandOutput';
+import { SfCommandBuilder } from '../../../src/cli/sfCommandBuilder';
 import { BreakpointService } from '../../../src/core';
 import { DEBUGGER_BREAKPOINT_ID_PREFIX } from '../../../src/core/breakpointService';
+
+jest.mock('../../../src/cli/cliCommandExecutor');
+jest.mock('../../../src/cli/commandOutput');
+jest.mock('../../../src/cli/sfCommandBuilder');
 
 describe('breakpointService Unit Tests.', () => {
   const bpId = `${DEBUGGER_BREAKPOINT_ID_PREFIX}defabreakpoint`;
@@ -25,33 +31,21 @@ describe('breakpointService Unit Tests.', () => {
     } as any;
 
     executeMock = jest.fn().mockReturnValue(undefined);
-    jest.spyOn(sfUtils, 'CliCommandExecutor').mockImplementation(
-      () =>
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        ({
-          execute: executeMock
-        }) as any
-    );
+    (CliCommandExecutor as unknown as jest.Mock).mockImplementation(() => ({
+      execute: executeMock
+    }));
 
-    jest.spyOn(sfUtils, 'SfCommandBuilder').mockImplementation(
-      () =>
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        ({
-          withArg: jest.fn().mockReturnThis(),
-          withFlag: jest.fn().mockReturnThis(),
-          withJson: jest.fn().mockReturnThis(),
-          build: jest.fn()
-        }) as any
-    );
+    (SfCommandBuilder as unknown as jest.Mock).mockImplementation(() => ({
+      withArg: jest.fn().mockReturnThis(),
+      withFlag: jest.fn().mockReturnThis(),
+      withJson: jest.fn().mockReturnThis(),
+      build: jest.fn()
+    }));
 
     getCmdResultMock = jest.fn();
-    jest.spyOn(sfUtils, 'CommandOutput').mockImplementation(
-      () =>
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        ({
-          getCmdResult: getCmdResultMock
-        }) as any
-    );
+    (CommandOutput as unknown as jest.Mock).mockImplementation(() => ({
+      getCmdResult: getCmdResultMock
+    }));
 
     breakpointService = new BreakpointService(fakeRequestService as any);
   });

@@ -5,16 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { stripAnsiInJson } from '../helpers';
 import { CommandExecution } from '../types';
-import { JSON_FLAG } from './commandBuilder';
+
+/** Strip ANSI codes from JSON output */
+const stripAnsiInJson = (output: string, hasJsonEnabled: boolean): string => {
+  if (!hasJsonEnabled) {
+    return output;
+  }
+
+  return output.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, '');
+};
 
 export class CommandOutput {
   private stdoutBuffer = '';
   private stderrBuffer = '';
 
   public async getCmdResult(execution: CommandExecution): Promise<string> {
-    const hasJsonEnabled = execution.command?.args?.some(arg => arg === JSON_FLAG);
+    const hasJsonEnabled = execution.command?.args?.some((arg: string) => arg === '--json');
     execution.stdoutSubject.subscribe(realData => {
       this.stdoutBuffer += realData.toString();
     });

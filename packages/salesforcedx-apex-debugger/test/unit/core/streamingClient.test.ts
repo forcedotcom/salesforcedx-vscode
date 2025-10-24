@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { RequestService } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
 import { Client as FayeClient } from 'faye';
 import * as sinon from 'sinon';
 import { StreamingClient, StreamingClientInfoBuilder } from '../../../src/core';
+import { RequestService } from '../../../src/requestService/requestService';
 
 describe('Debugger streaming client', () => {
   describe('Helpers', () => {

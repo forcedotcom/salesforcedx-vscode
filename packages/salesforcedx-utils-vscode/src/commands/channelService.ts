@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { CommandExecution } from '@salesforce/salesforcedx-utils';
+import type { CommandExecution } from '../types';
 import { OutputChannel, window } from 'vscode';
 import { stripAnsi } from '../helpers/utils';
 import { nls } from '../messages';

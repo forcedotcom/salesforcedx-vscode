@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -8,10 +8,8 @@
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import {
   OrgDisplay,
-  RequestService,
   SF_CONFIG_ISV_DEBUGGER_SID,
   SF_CONFIG_ISV_DEBUGGER_URL,
-  extractJsonObject,
   LineBreakpointInfo
 } from '@salesforce/salesforcedx-utils';
 import {
@@ -75,8 +73,10 @@ import {
   StreamingClientInfoBuilder,
   StreamingService
 } from '../core';
+import { extractJsonObject } from '../helpers/extractJsonObject';
 import { VscodeDebuggerMessage, VscodeDebuggerMessageType, WorkspaceSettings } from '../index';
 import { nls } from '../messages';
+import { RequestService } from '../requestService/requestService';
 
 // Below import has to be required for bundling
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -140,9 +140,10 @@ export class ApexVariable extends Variable {
 
   constructor(value: Value, kind: ApexVariableKind, variableReference?: number, numOfChildren?: number) {
     // For collection types, pass numOfChildren as indexedVariables to parent constructor
-    const indexedVariables = kind === ApexVariableKind.Collection && numOfChildren !== undefined && numOfChildren > 0
-      ? numOfChildren
-      : undefined;
+    const indexedVariables =
+      kind === ApexVariableKind.Collection && numOfChildren !== undefined && numOfChildren > 0
+        ? numOfChildren
+        : undefined;
 
     super(value.name, ApexVariable.valueAsString(value), variableReference, indexedVariables);
     this.declaredTypeRef = value.declaredTypeRef;

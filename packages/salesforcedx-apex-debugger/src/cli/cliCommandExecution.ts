@@ -8,17 +8,31 @@ import { ChildProcess } from 'node:child_process';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
-import { CancellationToken, CommandExecution } from '../types';
 import { Command } from './command';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const treeKill = require('tree-kill');
 
-export const NO_PID_ERROR = 'No process associated with sfdx command.';
-export const NO_STDOUT_ERROR = 'No stdout found for childProcess';
-export const NO_STDERR_ERROR = 'No stderr found for childProcess';
-export const CANCELLATION_INTERVAL = 1000;
-export const KILL_CODE = 'SIGKILL';
+const NO_PID_ERROR = 'No process associated with sfdx command.';
+const NO_STDOUT_ERROR = 'No stdout found for childProcess';
+const NO_STDERR_ERROR = 'No stderr found for childProcess';
+const CANCELLATION_INTERVAL = 1000;
+const KILL_CODE = 'SIGKILL';
+
+/** Represents a cancellation token */
+export type CancellationToken = {
+  isCancellationRequested: boolean;
+};
+
+/** Represents a command execution */
+export type CommandExecution = {
+  readonly command: Command;
+  readonly cancellationToken?: CancellationToken;
+  readonly processExitSubject: Observable<number | undefined>;
+  readonly processErrorSubject: Observable<Error | undefined>;
+  readonly stdoutSubject: Observable<Buffer | string>;
+  readonly stderrSubject: Observable<Buffer | string>;
+};
 
 export class CliCommandExecution implements CommandExecution {
   public readonly command: Command;

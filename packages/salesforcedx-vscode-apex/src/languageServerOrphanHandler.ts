@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Column, Row, Table } from '@salesforce/salesforcedx-utils-vscode';
+import { Column, Row, createTable } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from './channels';
 import { APEX_LSP_ORPHAN } from './constants';
@@ -103,8 +103,7 @@ const showOrphansInChannel = (orphanedProcesses: ProcessDetail[]) => {
       processInfo.command.length <= 70 ? processInfo.command : (processInfo.command.match(/.{1,70}/g)?.join('\n') ?? '')
   }));
 
-  const table: Table = new Table();
-  const tableString = table.createTable(rows, columns);
+  const tableString = createTable(rows, columns);
 
   channelService.showChannelOutput();
   channelService.appendLine(ADVICE);

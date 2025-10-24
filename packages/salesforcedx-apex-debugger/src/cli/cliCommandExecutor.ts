@@ -9,23 +9,18 @@ import * as cross_spawn from 'cross-spawn';
 import { SpawnOptions } from 'node:child_process';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
-import { TELEMETRY_HEADER } from '../constants';
-import { CancellationToken, Command } from '../types';
-import { CliCommandExecution } from './cliCommandExecution';
-import { GlobalCliEnvironment } from './globalCliEnvironment';
+import { CancellationToken, CliCommandExecution } from './cliCommandExecution';
+import { Command } from './command';
+
+const TELEMETRY_HEADER = 'sfdx-vscode';
 
 export class CliCommandExecutor {
-  protected static patchEnv(options: SpawnOptions, baseEnvironment: Map<string, string>): SpawnOptions {
+  protected static patchEnv(options: SpawnOptions): SpawnOptions {
     // start with current process environment
     const env = Object.create(null);
 
     // inherit current process environment
     Object.assign(env, process.env);
-
-    // now push anything from global environment
-    baseEnvironment.forEach((value, key) => {
-      env[key] = value;
-    });
 
     if (env) {
       env.SFDX_TOOL = TELEMETRY_HEADER;
@@ -43,11 +38,9 @@ export class CliCommandExecutor {
   private readonly command: Command;
   private readonly options: SpawnOptions;
 
-  constructor(command: Command, options: SpawnOptions, inheritGlobalEnvironmentVariables = true) {
+  constructor(command: Command, options: SpawnOptions) {
     this.command = command;
-    this.options = inheritGlobalEnvironmentVariables
-      ? CliCommandExecutor.patchEnv(options, GlobalCliEnvironment.environmentVariables)
-      : options;
+    this.options = CliCommandExecutor.patchEnv(options);
   }
 
   public execute(cancellationToken?: CancellationToken): CliCommandExecution {

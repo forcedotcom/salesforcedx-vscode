@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { RequestService } from '@salesforce/salesforcedx-utils';
+import { RequestService } from '../requestService/requestService';
 import { ApexDebuggerEventType, StreamingClient, StreamingClientInfo } from './streamingClient';
 
 export class StreamingService {
