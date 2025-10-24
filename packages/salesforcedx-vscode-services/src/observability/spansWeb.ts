@@ -9,7 +9,7 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-web';
 import { isTelemetryExtensionConfigurationEnabled } from './appInsights';
 import { ApplicationInsightsWebExporter } from './applicationInsightsWebExporter';
-import { getLocalTracesEnabled } from './localTracing';
+import { getConsoleTracesEnabled, getLocalTracesEnabled } from './localTracing';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 
 export const WebSdkLayer = WebSdk.layer(() => ({
@@ -23,7 +23,7 @@ export const WebSdkLayer = WebSdk.layer(() => ({
     }
   },
   spanProcessor: [
-    new SpanTransformProcessor(new ConsoleSpanExporter()),
+    ...(getConsoleTracesEnabled() ? [new SpanTransformProcessor(new ConsoleSpanExporter())] : []),
     ...(isTelemetryExtensionConfigurationEnabled()
       ? [new SpanTransformProcessor(new ApplicationInsightsWebExporter())]
       : []),

@@ -12,7 +12,6 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as Stream from 'effect/Stream';
-import { SdkLayer } from '../observability/spans';
 import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { defaultOrgRef } from './defaultOrgService';
@@ -21,7 +20,7 @@ const createConfigAggregator = (projectPath: string): Effect.Effect<ConfigAggreg
   Effect.tryPromise({
     try: () => ConfigAggregator.create({ projectPath }),
     catch: (error: unknown) => new Error(`Failed to get ConfigAggregator at ${projectPath}: ${String(error)}`)
-  }).pipe(Effect.withSpan('createConfigAggregator', { attributes: { projectPath } }));
+  }).pipe(Effect.withSpan('createConfigAggregator (cache miss)', { attributes: { projectPath } }));
 
 // Global cache - created once at module level, not scoped to any consumer
 const globalConfigCache = Effect.runSync(
@@ -51,8 +50,7 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       // stateless when org can change: always reload only on desktop
       Effect.flatMap(agg => (Global.isWeb ? Effect.succeed(agg) : Effect.promise(() => agg.reload()))),
       Effect.tap(agg => Effect.annotateCurrentSpan({ ...agg.getConfig() })),
-      Effect.withSpan('getConfigAggregator'),
-      Effect.provide(SdkLayer)
+      Effect.withSpan('getConfigAggregator')
     )
   } as const,
   dependencies: [WorkspaceService.Default]

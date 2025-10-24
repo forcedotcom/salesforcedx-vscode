@@ -9,7 +9,6 @@ import { Global } from '@salesforce/core/global';
 import * as Effect from 'effect/Effect';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
-import { SdkLayer } from '../observability/spans';
 
 type WorkspaceInfo = {
   /** includes the file:// or other schemeprefix */
@@ -22,11 +21,17 @@ type WorkspaceInfo = {
 
 const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
   const folders = vscode.workspace.workspaceFolders;
+  const isVirtualFs = folders?.[0]?.uri.scheme !== 'file';
+  const originalFsPath = folders?.[0]?.uri.fsPath ?? '';
   return {
     path: getPathWithSchema(folders?.[0]?.uri ?? vscode.Uri.parse('')),
     isEmpty: folders?.length === 0,
-    isVirtualFs: folders?.[0]?.uri.scheme !== 'file',
-    fsPath: folders?.[0]?.uri.fsPath ?? ''
+    isVirtualFs,
+    // in e2e tests, but not on local runs, the path had windows-style \\ separators
+    // vscode-uri implementation: https://github.com/microsoft/vscode-uri/blob/65786c7aef8aa1d142fedfde76073cc3549736d2/src/platform.ts#L19C18-L19C37
+    // finds the string "windows" in the useragent in the runner.  I haven't found a way to set that to not have the word Windows in it
+    // this could cause problems in other places, too.
+    fsPath: isVirtualFs ? originalFsPath.replaceAll('\\', '/') : originalFsPath
   };
 }).pipe(
   Effect.tap(info => Effect.annotateCurrentSpan(info)),
@@ -38,8 +43,7 @@ const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
       workspaceName: vscode.workspace.name
     })
   ),
-  Effect.withSpan('getWorkspaceInfoTask ( cache miss )'),
-  Effect.provide(SdkLayer)
+  Effect.withSpan('getWorkspaceInfoTask ( cache miss )')
 );
 
 // Global cached workspace info - created once at module level

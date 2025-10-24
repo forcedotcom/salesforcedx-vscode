@@ -10,14 +10,13 @@ import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
-import { SdkLayer } from '../observability/spans';
 import { WorkspaceService } from '../vscode/workspaceService';
 
 const resolveSfProject = (fsPath: string): Effect.Effect<SfProject, Error, never> =>
   Effect.tryPromise({
     try: () => SfProject.resolve(fsPath),
     catch: error => new Error('Project Resolution Error', { cause: error })
-  }).pipe(Effect.withSpan('resolveSfProject', { attributes: { fsPath } }), Effect.provide(SdkLayer));
+  }).pipe(Effect.withSpan('resolveSfProject', { attributes: { fsPath } }));
 
 // Global cache - created once at module level, not scoped to any consumer
 const globalSfProjectCache = Effect.runSync(
@@ -51,8 +50,7 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
           ? Effect.fail(new Error('No workspace open'))
           : globalSfProjectCache.get(workspaceDescription.fsPath)
       ),
-      Effect.withSpan('getSfProject'),
-      Effect.provide(SdkLayer)
+      Effect.withSpan('getSfProject')
     )
   } as const,
   dependencies: [WorkspaceService.Default]

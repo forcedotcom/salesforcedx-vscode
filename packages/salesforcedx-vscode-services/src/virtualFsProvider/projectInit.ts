@@ -9,7 +9,6 @@ import { Buffer } from 'node:buffer';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
-import { SdkLayer } from '../observability/spans';
 import { SettingsService } from '../vscode/settingsService';
 import { fsPrefix } from './constants';
 import { fsProvider } from './fsTypes';
@@ -46,21 +45,13 @@ const createProjectStructure = (fsp: fsProvider): Effect.Effect<void, Error, nev
     yield* Effect.annotateCurrentSpan({ sampleProjectPath });
     const dirsToCreate = getDirsToCreate();
     yield* Effect.annotateCurrentSpan({ dirsToCreate });
-    // Create all directories
+
     yield* Effect.tryPromise({
       try: () =>
         Promise.all(
           dirsToCreate
             .map(dir => vscode.Uri.parse(dir))
-            .map(uri => {
-              console.log('uri', uri);
-              return uri;
-            })
             .filter(uri => !fsp.exists(uri))
-            .map(uri => {
-              console.log('nonexistent uri', uri);
-              return uri;
-            })
             .map(uri => fsp.createDirectory(uri))
         ),
       catch: (error: unknown) => new Error(`Failed to create project directories: ${String(error)}`)
@@ -106,6 +97,4 @@ export const projectFiles = (fsp: fsProvider): Effect.Effect<void, Error, Settin
     if (!projectExists) {
       yield* createProjectStructure(fsp);
     }
-  })
-    .pipe(Effect.withSpan('projectFiles'))
-    .pipe(Effect.provide(SdkLayer));
+  }).pipe(Effect.withSpan('projectFiles'));
