@@ -67,7 +67,7 @@ const debugTest = async (testClass: string, testName?: string): Promise<boolean>
     const logFileRetrieve = await retrieveLogFile(connection, testResult.logFileId);
 
     if (logFileRetrieve.success && logFileRetrieve.filePath) {
-      await launchFromLogFile(logFileRetrieve.filePath, true);
+      await launchFromLogFile(logFileRetrieve.filePath, false);
       return true;
     }
   } else if (testResult.message) {
@@ -111,7 +111,7 @@ const runTests = async (connection: Connection, testClass: string, testMethod?: 
 
     return { logFileId: tests[0].apexLogId, success: true };
   } catch (e) {
-    return { message: e.message, success: false };
+    return { message: e instanceof Error ? e.message : 'Unknown error (has no message)', success: false };
   }
 };
 
