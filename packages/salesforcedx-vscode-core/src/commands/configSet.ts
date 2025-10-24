@@ -11,7 +11,7 @@ import {
   LibraryCommandletExecutor,
   Row,
   SfWorkspaceChecker,
-  Table
+  createTable
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import {
@@ -61,8 +61,7 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
 
   private formatOutput(input: Row): string {
     const title = nls.localize(CONFIG_SET_NAME);
-    const table = new Table();
-    const outputTable = table.createTable(
+    const outputTable = createTable(
       [input],
       [
         { key: 'name', label: nls.localize(TABLE_NAME_COL) },

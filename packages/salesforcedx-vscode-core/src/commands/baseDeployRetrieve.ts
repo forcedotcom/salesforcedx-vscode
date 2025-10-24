@@ -9,7 +9,7 @@ import {
   LibraryCommandletExecutor,
   getRelativeProjectPath,
   Row,
-  Table,
+  createTable,
   notificationService
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, MetadataApiDeploy, MetadataApiRetrieve } from '@salesforce/source-deploy-retrieve';
@@ -195,7 +195,6 @@ const createOutputTable = (
   relativePackageDirs: string[],
   config: OutputTableConfig
 ): string => {
-  const table = new Table();
   const successes: Row[] = [];
   const failures: Row[] = [];
 
@@ -213,7 +212,7 @@ const createOutputTable = (
 
   // Create success table if there are successful operations
   if (successes.length > 0) {
-    output += table.createTable(successes, config.successColumns, config.successTitle);
+    output += createTable(successes, config.successColumns, config.successTitle);
   }
 
   // Create failure table if there are failed operations
@@ -221,7 +220,7 @@ const createOutputTable = (
     if (successes.length > 0) {
       output += '\n';
     }
-    output += table.createTable(failures, config.failureColumns, config.failureTitle);
+    output += createTable(failures, config.failureColumns, config.failureTitle);
   }
 
   // Handle case where there are no results - show empty table with title for deploy/push operations
@@ -231,7 +230,7 @@ const createOutputTable = (
       output = `${config.noResultsMessage}\n`;
     } else {
       // For deploy/push operations, show empty table with title (like old CLI behavior)
-      output = table.createTable([], config.successColumns, config.successTitle);
+      output = createTable([], config.successColumns, config.successTitle);
       output += `\n${nls.localize('table_no_results_found')}\n`;
     }
   }
