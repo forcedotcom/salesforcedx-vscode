@@ -9,7 +9,7 @@ import { fs } from '@salesforce/core/fs';
 import * as Effect from 'effect/Effect';
 import * as Queue from 'effect/Queue';
 import * as Stream from 'effect/Stream';
-
+import * as Schedule from 'effect/Schedule';
 import { AnySpan } from 'effect/Tracer';
 // eslint-disable-next-line no-restricted-imports
 import type { FileChangeInfo } from 'node:fs/promises';
@@ -34,6 +34,8 @@ const updateIDB =
       if (!event.filename) {
         return;
       }
+      yield* Effect.annotateCurrentSpan({ event });
+
       const fullPath = `/${sampleProjectName}/${event.filename}`;
       const uri = vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}/${event.filename}`);
 
@@ -54,13 +56,10 @@ const updateIDB =
 /** consumer for the file event queue */
 const fileEventProcessor = Effect.gen(function* () {
   const updater = updateIDB(yield* IndexedDBStorageService);
-  // eslint-disable-next-line functional/no-loop-statements
-  while (true) {
-    yield* Effect.sleep(10); // queue can grow unbounded but we'll sleep to help keep indexDB writes as low priority background task
-    const item = yield* Queue.take(fileEventQueue);
-    yield* Effect.annotateCurrentSpan({ item });
-    yield* updater(item);
-  }
+  yield* Stream.fromQueue(fileEventQueue, { maxChunkSize: 1 }).pipe(
+    Stream.schedule(Schedule.fixed(10)), // a very low priority queue
+    Stream.runForEach(updater)
+  );
 }).pipe(Effect.provide(IndexedDBStorageService.Default));
 
 /** start a background daemon to keep the file event queue running */

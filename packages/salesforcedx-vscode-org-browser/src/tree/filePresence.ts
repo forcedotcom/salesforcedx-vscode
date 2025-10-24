@@ -13,6 +13,7 @@ import type { AnySpan } from 'effect/Tracer';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { getIconPath, OrgBrowserTreeItem } from './orgBrowserNode';
 import { MetadataListResultItem } from './types';
+import { Stream } from 'effect';
 
 /** the request that the queue will process */
 type BackgroundFilePresenceCheckRequest = {
@@ -51,12 +52,9 @@ const backgroundDaemon = Effect.gen(function* () {
   console.log('backgroundDaemon started');
   console.log('queue size', yield* backgroundFilePresenceCheckQueue.size);
 
-  // eslint-disable-next-line functional/no-loop-statements
-  while (true) {
-    const item = yield* Queue.take(backgroundFilePresenceCheckQueue);
-    // fork runs them in the background pretty quickly.  Slower alternative is to run the effect for each queue item
-    yield* backgroundFilePresenceCheck(item);
-  }
+  yield* Stream.fromQueue(backgroundFilePresenceCheckQueue, { maxChunkSize: 1 }).pipe(
+    Stream.runForEach(backgroundFilePresenceCheck)
+  );
 });
 
 Effect.runSync(Effect.forkDaemon(backgroundDaemon));
@@ -67,10 +65,10 @@ const getFilePaths = (member: MetadataMember): Effect.Effect<string[], Error, ne
     Effect.flatMap(svcProvider => svcProvider.getServicesApi),
     Effect.flatMap(api =>
       Effect.gen(function* () {
-        const [projectService, retrieveService] = yield* Effect.all([
-          api.services.ProjectService,
-          api.services.MetadataRetrieveService
-        ]);
+        const [projectService, retrieveService] = yield* Effect.all(
+          [api.services.ProjectService, api.services.MetadataRetrieveService],
+          { concurrency: 'unbounded' }
+        );
         const dirs = (yield* projectService.getSfProject).getPackageDirectories().map(directory => directory.fullPath);
         yield* Effect.annotateCurrentSpan({ packageDirectories: dirs });
         const componentSet = yield* retrieveService.buildComponentSetFromSource([member], dirs);
