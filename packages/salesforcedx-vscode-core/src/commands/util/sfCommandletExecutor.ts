@@ -6,8 +6,8 @@
  */
 
 import { Command } from '@salesforce/salesforcedx-utils';
-import { CommandExecution } from '@salesforce/salesforcedx-utils-vscode';
 import {
+  CommandExecution,
   CliCommandExecutor,
   ContinueResponse,
   workspaceUtils,
