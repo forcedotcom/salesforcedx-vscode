@@ -48,16 +48,13 @@ const backgroundFilePresenceCheck = (req: BackgroundFilePresenceCheckRequest): E
     })
   );
 
-const backgroundDaemon = Effect.gen(function* () {
-  console.log('backgroundDaemon started');
-  console.log('queue size', yield* backgroundFilePresenceCheckQueue.size);
-
-  yield* Stream.fromQueue(backgroundFilePresenceCheckQueue, { maxChunkSize: 1 }).pipe(
-    Stream.runForEach(backgroundFilePresenceCheck)
-  );
-});
-
-Effect.runSync(Effect.forkDaemon(backgroundDaemon));
+Effect.runSync(
+  Effect.forkDaemon(
+    Stream.fromQueue(backgroundFilePresenceCheckQueue, { maxChunkSize: 1 }).pipe(
+      Stream.runForEach(backgroundFilePresenceCheck)
+    )
+  )
+);
 
 // since we can't file search on the web, we'll use ComponentSet to find local file paths for the component
 const getFilePaths = (member: MetadataMember): Effect.Effect<string[], Error, never> =>
