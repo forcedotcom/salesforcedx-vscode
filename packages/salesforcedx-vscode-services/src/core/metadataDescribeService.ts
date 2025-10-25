@@ -37,7 +37,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
             Effect.tap(result =>
               Effect.flatMap(ChannelService, channel =>
                 channel.appendToChannel(`Metadata describe call completed. Found ${result.length} metadata types.`)
-              ).pipe(Effect.catchAll(() => Effect.succeed(void 0)))
+              )
             )
           )
         ),

@@ -960,7 +960,7 @@
         },
         "salesforcedx-vscode-core.useLegacyOrgBrowser": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "%use_legacy_org_browser_description%"
         }
       }
