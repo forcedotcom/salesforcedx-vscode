@@ -12,7 +12,6 @@ import type { WorkspaceService } from '../vscode/workspaceService';
 import * as Effect from 'effect/Effect';
 import * as S from 'effect/Schema';
 import type { DescribeSObjectResult } from 'jsforce';
-import { SdkLayer } from '../observability/spans';
 import { ChannelService } from '../vscode/channelService';
 import { ConnectionService } from './connectionService';
 import { FilePropertiesSchema, type FileProperties } from './schemas/fileProperties';
@@ -42,8 +41,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
             )
           )
         ),
-        Effect.withSpan('cacheableDescribe'),
-        Effect.provide(SdkLayer)
+        Effect.withSpan('cacheableDescribe')
       );
 
     const cachedDescribe = yield* Effect.cachedFunction(cacheableDescribe);
@@ -53,7 +51,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     ): Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext> =>
       forceRefresh ? cacheableDescribe(`fresh-${Date.now()}`) : cachedDescribe('cached');
 
-    // TODO: write the result in a common place that other services can use.  Probably do the same with ndapi describe and list
+    // TODO: write the result in a common place that other services can use.  Probably do the same with mdapi describe and list
     const describeCustomObject = (objectName: string): Effect.Effect<DescribeSObjectResult, Error, DescribeContext> =>
       Effect.flatMap(ConnectionService, svc => svc.getConnection).pipe(
         Effect.flatMap(conn =>
@@ -63,8 +61,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
           })
         ),
         Effect.tap(result => Effect.log(result.fields.map(f => f.name).join(', '))),
-        Effect.withSpan('describeCustomObject', { attributes: { objectName } }),
-        Effect.provide(SdkLayer)
+        Effect.withSpan('describeCustomObject', { attributes: { objectName } })
       );
 
     const listMetadata = (
@@ -85,8 +82,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
             Effect.mapError(e => new Error(`Failed to decode FileProperties: ${String(e)}`))
           )
         ),
-        Effect.withSpan('listMetadata', { attributes: { metadataType: type, folder } }),
-        Effect.provide(SdkLayer)
+        Effect.withSpan('listMetadata', { attributes: { metadataType: type, folder } })
       );
     return {
       /**

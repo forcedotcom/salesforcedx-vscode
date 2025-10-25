@@ -17,7 +17,6 @@ import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as vscode from 'vscode';
-import { SdkLayer } from '../observability/spans';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -25,6 +24,7 @@ import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
+import { SourceTrackingService } from './sourceTrackingService';
 
 const buildComponentSetFromSource = (
   members: MetadataMember[],
@@ -58,7 +58,13 @@ const retrieve = (
 ): Effect.Effect<
   RetrieveResult | SuccessfulCancelResult,
   Error,
-  ConnectionService | ProjectService | WorkspaceService | ConfigService | SettingsService | MetadataRegistryService
+  | ConnectionService
+  | ProjectService
+  | WorkspaceService
+  | ConfigService
+  | SettingsService
+  | MetadataRegistryService
+  | SourceTrackingService
 > =>
   Effect.gen(function* () {
     const [connection, project, workspaceDescription, registryAccess] = yield* Effect.all(
@@ -110,17 +116,25 @@ const retrieve = (
           console.error(e);
           return new Error('Failed to retrieve metadata', { cause: e });
         }
-      })
-    ).pipe(Effect.withSpan('retrieve (API call)'));
+      }).pipe(Effect.withSpan('retrieve (API call)'))
+    );
 
-    return yield* Effect.matchCauseEffect(Fiber.join(retrieveFiber), {
+    const retrieveOutcome = yield* Effect.matchCauseEffect(Fiber.join(retrieveFiber), {
       onFailure: cause =>
         Cause.isInterruptedOnly(cause)
           ? Effect.succeed(Brand.nominal<SuccessfulCancelResult>()('User canceled'))
           : Effect.failCause(cause),
-      onSuccess: result => Effect.succeed(result)
+      onSuccess: outcome => Effect.succeed(outcome)
     });
-  }).pipe(Effect.withSpan('retrieve', { attributes: { members } }), Effect.provide(SdkLayer));
+
+    if (typeof retrieveOutcome !== 'string') {
+      yield* Effect.flatMap(SourceTrackingService, svc => svc.updateTrackingFromRetrieve(retrieveOutcome)).pipe(
+        Effect.withSpan('MetadataRetrieveService.updateTrackingFromRetrieve')
+      );
+    }
+
+    return retrieveOutcome;
+  }).pipe(Effect.withSpan('retrieve', { attributes: { members } }));
 
 export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()('MetadataRetrieveService', {
   succeed: {

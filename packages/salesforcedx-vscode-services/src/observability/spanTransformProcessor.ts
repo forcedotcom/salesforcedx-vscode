@@ -18,7 +18,7 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
     getAdditionalAttributes()
       .concat(Effect.runSync(memoized('everySpanIsTheSame'))) // it seems to want a key
       .filter(isNotUndefined)
-      .map(([key, value]) => span.setAttribute(key, value));
+      .map(([k, v]) => span.setAttribute(k, v));
     super.onStart(span, parentContext);
   }
 }

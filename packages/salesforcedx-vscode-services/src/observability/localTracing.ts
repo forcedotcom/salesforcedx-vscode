@@ -7,14 +7,26 @@
 import * as vscode from 'vscode';
 import { SALESFORCE_DX_SECTION } from '../constants';
 
-/** Get local traces enabled setting */
-export const getLocalTracesEnabled = (): boolean => {
-  // eslint-disable-next-line functional/no-try-statements
-  try {
-    const config = vscode.workspace.getConfiguration(SALESFORCE_DX_SECTION);
-    return config.get('enableLocalTraces') ?? false;
-  } catch {
-    // Return false during tests or when VS Code API is not available
-    return false;
-  }
-};
+/**
+ * Get local traces enabled setting.  Sends traces to a locally running docker container.
+ * See setting description for how to use
+ */
+export const getLocalTracesEnabled = (): boolean =>
+  getOptionalBooleanConfiguration(SALESFORCE_DX_SECTION)('enableLocalTraces');
+
+/** export spans/traces to console (browser or nodejs) */
+export const getConsoleTracesEnabled = (): boolean =>
+  getOptionalBooleanConfiguration(SALESFORCE_DX_SECTION)('enableConsoleTraces');
+
+export const getOptionalBooleanConfiguration =
+  (section: string) =>
+  (configName: string): boolean => {
+    // eslint-disable-next-line functional/no-try-statements
+    try {
+      const config = vscode.workspace.getConfiguration(section);
+      return config.get(configName) ?? false;
+    } catch {
+      // Return false during tests or when VS Code API is not available
+      return false;
+    }
+  };
