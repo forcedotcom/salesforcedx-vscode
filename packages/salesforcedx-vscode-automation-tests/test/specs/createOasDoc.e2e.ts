@@ -93,7 +93,7 @@ describe('Create OpenAPI v3 Specifications', () => {
     await executeQuickPick('View: Close Editor');
     await reloadWindow();
 
-    // Install A4D extension from marketplace - REQUIRED for OAS extension to activate
+    // Install A4V extension from marketplace - REQUIRED for OAS extension to activate
     log('Checking if A4V is installed...');
     const extensionsView = await (await new ActivityBar().getViewControl('Extensions'))?.openView();
     await pause(Duration.seconds(5));
@@ -660,9 +660,9 @@ describe('Create OpenAPI v3 Specifications', () => {
     });
   });
 
-  describe.skip('Disable A4D extension and ensure the commands to generate and validate OAS docs are not present', () => {
-    it('Disable A4D extension', async () => {
-      logTestStart(testSetup, 'Disable A4D extension');
+  describe.skip('Disable A4V extension and ensure the commands to generate and validate OAS docs are not present', () => {
+    it('Disable A4V extension', async () => {
+      logTestStart(testSetup, 'Disable A4V extension');
 
       const extensionsView = await (await new ActivityBar().getViewControl('Extensions'))?.openView();
       await pause(Duration.seconds(5));
@@ -670,29 +670,29 @@ describe('Create OpenAPI v3 Specifications', () => {
       if (!(extensionsList instanceof ExtensionsViewSection)) {
         throw new Error(`Expected ExtensionsViewSection but got different section type: ${typeof extensionsList}`);
       }
-      const a4dExtension = await extensionsList?.findItem('Agentforce Vibes');
-      if (!(a4dExtension instanceof ExtensionsViewItem)) {
-        throw new Error(`Expected ExtensionsViewItem but got different item type: ${typeof a4dExtension}`);
+      const a4vExtension = await extensionsList?.findItem('Agentforce Vibes');
+      if (!(a4vExtension instanceof ExtensionsViewItem)) {
+        throw new Error(`Expected ExtensionsViewItem but got different item type: ${typeof a4vExtension}`);
       }
-      await a4dExtension.click();
+      await a4vExtension.click();
 
       // In the extension details view, click the Disable button
-      const disableButton = await a4dExtension.findElement(
+      const disableButton = await a4vExtension.findElement(
         By.xpath("//a[contains(@class, 'extension-action') and @aria-label='Disable this extension']")
       );
       await disableButton?.click();
       await pause(Duration.seconds(5));
 
       // Click the Restart Extensions button
-      const restartExtensionsButton = await a4dExtension.findElement(
+      const restartExtensionsButton = await a4vExtension.findElement(
         By.xpath("//a[contains(@class, 'reload') and contains(@aria-label, 'restart extensions')]")
       );
       await restartExtensionsButton?.click();
       await pause(Duration.seconds(5));
 
-      // Verify the A4D extension is disabled
-      expect(await a4dExtension.isInstalled()).to.equal(true);
-      expect(await a4dExtension.isEnabled()).to.equal(false);
+      // Verify the A4V extension is disabled
+      expect(await a4vExtension.isInstalled()).to.equal(true);
+      expect(await a4vExtension.isEnabled()).to.equal(false);
     });
 
     it('Ensure the commands to generate and validate OAS docs are not present', async () => {
