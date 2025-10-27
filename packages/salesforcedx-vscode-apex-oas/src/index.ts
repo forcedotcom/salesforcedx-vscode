@@ -19,6 +19,13 @@ const metadataOrchestrator = new MetadataOrchestrator();
 export const apexActionController = new ApexActionController(metadataOrchestrator);
 
 export const activate = async (context: vscode.ExtensionContext) => {
+  // Check if Einstein GPT extension (A4V) is installed and active
+  const einsteinGptExtension = vscode.extensions.getExtension('salesforce.salesforcedx-einstein-gpt');
+  if (!einsteinGptExtension) {
+    console.log('Einstein GPT extension not found. OAS extension will not activate.');
+    return {};
+  }
+
   const vscodeCoreExtension = await getVscodeCoreExtension();
   const workspaceContext = vscodeCoreExtension.exports.WorkspaceContext.getInstance();
 
@@ -47,9 +54,11 @@ export const activate = async (context: vscode.ExtensionContext) => {
   const muleDxApiExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
   await vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', !muleDxApiExtension?.isActive);
 
-  // Commands
-  const commands = registerCommands();
-  context.subscriptions.push(commands);
+  // Only register commands if Einstein GPT extension is active
+  if (einsteinGptExtension.isActive) {
+    const commands = registerCommands();
+    context.subscriptions.push(commands);
+  }
 
   void activationTracker.markActivationStop();
 
