@@ -8,6 +8,7 @@
 import { AuthRemover, AuthInfo, ConfigAggregator, Org } from '@salesforce/core';
 import { shouldRemoveOrg, getConnectionStatusFromError } from '@salesforce/salesforcedx-utils';
 import { ConfigUtil, notificationService, Table } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import {
   determineConnectedStatusForNonScratchOrg,
@@ -49,6 +50,9 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   ContinueResponse: jest.fn(),
   LibraryCommandletExecutor: jest.fn(),
   Table: jest.fn(),
+  // Add these to align with command imports
+  PromptConfirmGatherer: jest.fn(),
+  SfCommandlet: jest.fn(),
   ConfigUtil: {
     getConfigValue: jest.fn(),
     getUsernameFor: jest.fn(),
@@ -74,13 +78,22 @@ jest.mock('../../../src/messages', () => ({
     localize: jest.fn()
   }
 }));
-jest.mock('../../../src/commands/util', () => ({
-  PromptConfirmGatherer: jest.fn(),
-  SfCommandlet: jest.fn()
-}));
+// No local util module to mock; command imports come from utils-vscode above
 
 describe('orgList command', () => {
   beforeEach(() => {
+    // Provide a fake core API so OrgList constructor usage doesn't crash in tests
+    jest.spyOn(vscode.extensions as any, 'getExtension').mockReturnValue({
+      exports: {
+        WorkspaceContext: {
+          getInstance: () => ({
+            username: undefined,
+            alias: undefined,
+            onOrgChange: jest.fn()
+          })
+        }
+      }
+    } as any);
     // Mock nls.localize
     (nls.localize as jest.Mock).mockImplementation((key: string, ...args: string[]) => `${key}_${args.join('_')}`);
 

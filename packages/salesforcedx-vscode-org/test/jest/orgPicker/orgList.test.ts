@@ -68,6 +68,18 @@ describe('OrgList tests', () => {
     };
     (vscode.workspace.createFileSystemWatcher as jest.Mock).mockReturnValue(mockWatcher);
     (vscode.window.createStatusBarItem as jest.Mock).mockReturnValue(mockStatusBarItem);
+    // Ensure core API is available for OrgList constructor usage
+    jest.spyOn(vscode.extensions as any, 'getExtension').mockReturnValue({
+      exports: {
+        WorkspaceContext: {
+          getInstance: () => ({
+            username: undefined,
+            alias: undefined,
+            onOrgChange: jest.fn()
+          })
+        }
+      }
+    } as any);
     orgList = new OrgList();
     getAuthFieldsForMock = jest.spyOn(orgUtil, 'getAuthFieldsFor');
     getUsernameForMock = jest.spyOn(ConfigUtil, 'getUsernameFor');

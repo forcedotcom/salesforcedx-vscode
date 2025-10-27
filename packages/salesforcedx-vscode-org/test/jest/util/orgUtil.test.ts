@@ -42,6 +42,18 @@ describe('orgUtil tests', () => {
       show: jest.fn(),
       dispose: jest.fn()
     });
+    // Ensure core API is available for OrgList constructor usage
+    jest.spyOn(vscode.extensions as any, 'getExtension').mockReturnValue({
+      exports: {
+        WorkspaceContext: {
+          getInstance: () => ({
+            username: undefined,
+            alias: undefined,
+            onOrgChange: jest.fn()
+          })
+        }
+      }
+    } as any);
     showWarningMessageSpy = jest.spyOn(notificationService, 'showWarningMessage').mockImplementation(jest.fn());
     appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
     showChannelOutputSpy = jest.spyOn(channelService, 'showChannelOutput');
