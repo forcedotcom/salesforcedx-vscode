@@ -1,3 +1,2 @@
-# 65.0.0 - October 18, 2025
+# 65.2.0 - October 29, 2025
 
-- This release includes the Salesforce v258 major release core alignment and standard post-Dreamforce maintenance updates. No functional or user-facing changes.
