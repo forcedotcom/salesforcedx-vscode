@@ -118,13 +118,20 @@ const searchAuraResourcesPath = async (dir: string, fileSystemProvider: FileSyst
     console.log(`aura-language-server: searching for resources/aura in ${dir}`);
     try {
         const resourcesPath = path.join(dir, 'resources', 'aura');
+        console.log(`aura-language-server: checking path ${resourcesPath}`);
         const fileStat = fileSystemProvider.getFileStat(resourcesPath);
+        console.log(`aura-language-server: fileStat for ${resourcesPath}:`, fileStat);
+
+        // Debug: Log all available paths in fileSystemProvider
+        console.log('aura-language-server: Checking if resources directory exists in fileSystemProvider');
+
         if (!fileStat) {
             throw new Error('No resources/aura directory found');
         }
         console.log('found resources/aura in', dir);
         return resourcesPath;
-    } catch {
+    } catch (error) {
+        console.log(`aura-language-server: Error checking ${dir}:`, error);
         // Directory doesn't exist, continue searching
     }
     if (path.dirname(dir) === dir) {

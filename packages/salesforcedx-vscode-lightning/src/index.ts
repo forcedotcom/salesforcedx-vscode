@@ -245,10 +245,14 @@ const shouldSkipDirectory = (dirName: string): boolean => {
  */
 const populateResourcesDirectory = async (provider: FileSystemDataProvider): Promise<void> => {
   try {
-    // Get the extension path
-    const extensionPath = path.join(__dirname, '..', '..', 'dist');
+    // Get the extension path - in bundled extension, __dirname points to the dist directory
+    const extensionPath = __dirname;
     const resourcesDir = path.join(extensionPath, 'resources');
     const auraResourcesDir = path.join(resourcesDir, 'aura');
+
+    log(`populateResourcesDirectory: extensionPath=${extensionPath}`);
+    log(`populateResourcesDirectory: resourcesDir=${resourcesDir}`);
+    log(`populateResourcesDirectory: auraResourcesDir=${auraResourcesDir}`);
 
     // Check if the resources directory exists
     const resourcesUri = Uri.file(resourcesDir);
@@ -257,6 +261,9 @@ const populateResourcesDirectory = async (provider: FileSystemDataProvider): Pro
     try {
       const resourcesStat = await workspace.fs.stat(resourcesUri);
       const auraResourcesStat = await workspace.fs.stat(auraResourcesUri);
+
+      log(`populateResourcesDirectory: resourcesStat=${JSON.stringify(resourcesStat)}`);
+      log(`populateResourcesDirectory: auraResourcesStat=${JSON.stringify(auraResourcesStat)}`);
 
       if (resourcesStat.type === FileType.Directory && auraResourcesStat.type === FileType.Directory) {
         log('Adding resources directory to fileSystemProvider');
