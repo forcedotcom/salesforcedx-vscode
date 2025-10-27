@@ -65,10 +65,6 @@ jobs:
       - name: Compile parent services package
         run: npm run compile -w packages/salesforcedx-vscode-services
 
-      - name: Build and prepare types package
-        run: npm run prepublishOnly
-        working-directory: packages/salesforcedx-vscode-services-types
-
       - name: Publish to npm
         run: npm publish
         working-directory: packages/salesforcedx-vscode-services-types

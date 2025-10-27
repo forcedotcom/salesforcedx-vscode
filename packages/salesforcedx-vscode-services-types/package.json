@@ -27,9 +27,7 @@
   "scripts": {
     "generate-entry": "ts-node scripts/generateEntry.ts",
     "sync-deps": "ts-node scripts/syncDeps.ts",
-    "precompile": "npm run generate-entry",
     "compile": "tsc -p ./",
-    "prepublishOnly": "npm run sync-deps && npm run compile",
     "clean": "shx rm -rf src out node_modules *.tgz"
   },
   "dependencies": {

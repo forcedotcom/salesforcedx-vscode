@@ -47,7 +47,8 @@ This runs:
 ### Publishing
 
 ```bash
-npm run prepublishOnly
+# from the top-level of the repo, not the project
+npm run compile
 ```
 
 Before publishing, this automatically:
