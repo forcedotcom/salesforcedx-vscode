@@ -82,15 +82,13 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   }
 
   const extensionScope = Effect.runSync(getExtensionScope());
-  const channelServiceLayer = ChannelServiceLayer('Salesforce Services');
 
   const requirements = Layer.mergeAll(
     WorkspaceService.Default,
     SettingsService.Default,
-    // TODO: only needed for web, let's find a way to avoid including it in the non-web layer
     IndexedDBStorageServiceShared,
     SdkLayer,
-    channelServiceLayer
+    ChannelService.Default
   );
   await Effect.runPromise(
     Effect.provide(
@@ -136,7 +134,7 @@ const deactivateEffect = Effect.gen(function* () {
   );
 }).pipe(
   Effect.withSpan('deactivation:salesforcedx-vscode-services'),
-  Effect.provide(Layer.mergeAll(ChannelServiceLayer('Salesforce Services'), SdkLayer))
+  Effect.provide(Layer.mergeAll(ChannelService.Default, SdkLayer))
 );
 
 /** Sets up the virtual file system for the extension */

@@ -7,7 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import { workspace } from 'vscode';
-import { ChannelServiceLayer, ChannelService } from '../vscode/channelService';
+import { ChannelService } from '../vscode/channelService';
 
 /** instrumention key / connection string for test-otel-effect */
 export const DEFAULT_AI_CONNECTION_STRING =
@@ -28,7 +28,7 @@ export const isTelemetryExtensionConfigurationEnabled = (): boolean => {
       yield* channelService.appendToChannel(
         `telemetry.enabled: ${workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('telemetry.enabled', false)}`
       );
-    }).pipe(Effect.provide(ChannelServiceLayer('Salesforce Services')))
+    }).pipe(Effect.provide(ChannelService.Default))
   );
   return enabled;
 };

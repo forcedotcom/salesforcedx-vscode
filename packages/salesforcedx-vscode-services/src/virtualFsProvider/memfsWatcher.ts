@@ -8,8 +8,8 @@
 import { fs } from '@salesforce/core/fs';
 import * as Effect from 'effect/Effect';
 import * as Queue from 'effect/Queue';
-import * as Stream from 'effect/Stream';
 import * as Schedule from 'effect/Schedule';
+import * as Stream from 'effect/Stream';
 import { AnySpan } from 'effect/Tracer';
 // eslint-disable-next-line no-restricted-imports
 import type { FileChangeInfo } from 'node:fs/promises';
