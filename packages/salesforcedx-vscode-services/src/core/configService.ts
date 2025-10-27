@@ -6,7 +6,6 @@
  */
 
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import { Global } from '@salesforce/core/global';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -48,7 +47,9 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       Effect.tap(projectPath => Effect.annotateCurrentSpan({ projectPath })),
       Effect.flatMap(projectPath => globalConfigCache.get(projectPath)),
       // stateless when org can change: always reload only on desktop
-      Effect.flatMap(agg => (Global.isWeb ? Effect.succeed(agg) : Effect.promise(() => agg.reload()))),
+      Effect.flatMap(agg =>
+        process.env.ESBUILD_PLATFORM === 'web' ? Effect.succeed(agg) : Effect.promise(() => agg.reload())
+      ),
       Effect.tap(agg => Effect.annotateCurrentSpan({ ...agg.getConfig() })),
       Effect.withSpan('getConfigAggregator')
     )

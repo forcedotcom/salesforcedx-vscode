@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { fs } from '@salesforce/core/fs';
-import { Global } from '@salesforce/core/global';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { Buffer } from 'node:buffer';
@@ -153,9 +152,10 @@ const IndexedDBStorageServicesNoop: Layer.Layer<IndexedDBStorageService, never> 
 );
 
 // Expose a single, memoized layer instance to ensure one shared IndexedDB connection only if web.  Otherwise, use a dummy layer.
-export const IndexedDBStorageServiceShared = Global.isWeb
-  ? Layer.unwrapEffect(Layer.memoize(IndexedDBStorageService.Default))
-  : IndexedDBStorageServicesNoop;
+export const IndexedDBStorageServiceShared =
+  process.env.ESBUILD_PLATFORM === 'web'
+    ? Layer.unwrapEffect(Layer.memoize(IndexedDBStorageService.Default))
+    : IndexedDBStorageServicesNoop;
 
 const writeFileWithOrWithoutDir = (entry: SerializedFileWithPath): void => {
   fs.mkdirSync(dirname(entry.path), { recursive: true });

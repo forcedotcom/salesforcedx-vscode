@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Global } from '@salesforce/core/global';
 import * as Effect from 'effect/Effect';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
@@ -38,7 +37,6 @@ const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
   Effect.tap(() =>
     Effect.annotateCurrentSpan({
       folders: vscode.workspace.workspaceFolders,
-      isWeb: Global.isWeb,
       home: os.homedir(),
       workspaceName: vscode.workspace.name
     })

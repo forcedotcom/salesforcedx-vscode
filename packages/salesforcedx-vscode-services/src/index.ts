@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Global } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
@@ -57,7 +56,7 @@ const activationEffect = (
   Effect.gen(function* () {
     yield* (yield* ChannelService).appendToChannel('Salesforce Services extension is activating!');
 
-    if (Global.isWeb) {
+    if (process.env.ESBUILD_PLATFORM === 'web') {
       yield* fileSystemSetup(context);
     }
 
@@ -71,7 +70,7 @@ const activationEffect = (
  * Consumers should get both from the API, not via direct imports.
  */
 export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
-  if (Global.isWeb) {
+  if (process.env.ESBUILD_PLATFORM === 'web') {
     // set the theme as early as possible.  TODO: manage this from CBW instead of in an extension
     const config = vscode.workspace.getConfiguration();
     await config.update('workbench.colorTheme', 'Monokai', vscode.ConfigurationTarget.Global);
@@ -93,7 +92,9 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   await Effect.runPromise(
     Effect.provide(
       activationEffect(context).pipe(
-        Effect.withSpan('activation:salesforcedx-vscode-services', { attributes: { isWeb: Global.isWeb } })
+        Effect.withSpan('activation:salesforcedx-vscode-services', {
+          attributes: { isWeb: process.env.ESBUILD_PLATFORM === 'web' }
+        })
       ),
       requirements
     ).pipe(Scope.extend(extensionScope))

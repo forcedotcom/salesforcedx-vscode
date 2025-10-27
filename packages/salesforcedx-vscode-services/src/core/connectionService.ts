@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Global, StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -81,7 +81,7 @@ const cache = Effect.runSync(
   Cache.make({
     capacity: 100,
     timeToLive: Duration.infinity,
-    lookup: Global.isWeb ? createWebConnection : createDesktopConnection
+    lookup: process.env.ESBUILD_PLATFORM === 'web' ? createWebConnection : createDesktopConnection
   })
 );
 
@@ -93,7 +93,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     return {
       /** Get a Connection to the target org */
       getConnection: Effect.gen(function* () {
-        if (Global.isWeb) {
+        if (process.env.ESBUILD_PLATFORM === 'web') {
           // Web environment - get connection from settings
           const settingsService = yield* SettingsService;
           const instanceUrl = yield* settingsService.getInstanceUrl;
