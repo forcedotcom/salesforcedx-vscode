@@ -4,14 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as path from 'node:path';
+import { sfdxFileSystemProvider, SFDX_WORKSPACE_ROOT } from '@salesforce/salesforcedx-lightning-lsp-common/src/__tests__/testUtils';
 import ComponentIndexer from '../componentIndexer';
 import { DataProviderAttributes, LWCDataProvider } from '../lwcDataProvider';
 import { TagAttrs, createTag, getTagName } from '../tag';
 
-const workspaceRoot: string = path.resolve('../../test-workspaces/sfdx-workspace');
+const workspaceRoot: string = SFDX_WORKSPACE_ROOT;
 const componentIndexer: ComponentIndexer = new ComponentIndexer({
     workspaceRoot,
+    fileSystemProvider: sfdxFileSystemProvider,
 });
 const attributes: DataProviderAttributes = {
     indexer: componentIndexer,
@@ -20,7 +21,6 @@ const provider = new LWCDataProvider(attributes);
 
 beforeEach(async () => {
     await componentIndexer.init();
-    await provider.init();
 });
 
 describe('provideValues()', () => {
@@ -48,6 +48,7 @@ describe('provideValues()', () => {
 
         const componentIndexr = new ComponentIndexer({
             workspaceRoot,
+            fileSystemProvider: sfdxFileSystemProvider,
         });
         componentIndexr.tags.set(getTagName(tag), tag);
 

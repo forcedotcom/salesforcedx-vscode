@@ -4,6 +4,9 @@
   "version": "64.16.1",
   "description": "Common components for lwc-language-server and aura-language-server.",
   "publisher": "salesforce",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
   "main": "out/src/index.js",
   "typings": "out/src/index.d.ts",
   "sideEffects": false,
@@ -49,9 +52,17 @@
       "types": "./out/src/indexer/tagInfo.d.ts"
     },
     "./src/__tests__/testUtils": {
-      "import": "./src/__tests__/testUtils.ts",
-      "require": "./src/__tests__/testUtils.ts",
-      "types": "./src/__tests__/testUtils.ts"
+      "import": "./out/src/__tests__/testUtils.js",
+      "require": "./out/src/__tests__/testUtils.js",
+      "types": "./out/src/__tests__/testUtils.d.ts"
+    },
+    "./src/resources/sfdx/tsconfig-sfdx.base.json": {
+      "import": "./src/resources/sfdx/tsconfig-sfdx.base.json",
+      "require": "./src/resources/sfdx/tsconfig-sfdx.base.json"
+    },
+    "./src/resources/sfdx/tsconfig-sfdx.json": {
+      "import": "./src/resources/sfdx/tsconfig-sfdx.json",
+      "require": "./src/resources/sfdx/tsconfig-sfdx.json"
     }
   },
   "license": "BSD-3-Clause",
@@ -70,6 +81,7 @@
     "deep-equal": "^1.0.1",
     "ejs": "^3.1.10",
     "jsonc-parser": "^2.2.1",
+    "@types/vscode": "^1.90.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12",
     "vscode-uri": "^2.1.2"

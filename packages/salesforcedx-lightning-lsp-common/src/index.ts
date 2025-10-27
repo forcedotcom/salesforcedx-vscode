@@ -54,3 +54,7 @@ export { findNamespaceRoots } from './namespaceUtils';
 
 // Re-export from decorators
 export { ClassMember, Location, Position, ClassMemberPropertyValue, DecoratorTargetType, DecoratorTargetProperty, DecoratorTargetMethod } from './decorators';
+
+// Re-export from file system providers
+export { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
+export * from './types/fileSystemTypes';

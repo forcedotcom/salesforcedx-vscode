@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { sfdxFileSystemProvider, SFDX_WORKSPACE_ROOT } from '@salesforce/salesforcedx-lightning-lsp-common/src/__tests__/testUtils';
 import { join } from 'node:path';
 import {
     Tag,
@@ -27,7 +28,7 @@ import {
 } from '../tag';
 
 describe('Tag', () => {
-    const filepath = join(__dirname, '..', 'javascript', '__tests__', 'fixtures', 'metadata.js');
+    const filepath = join(SFDX_WORKSPACE_ROOT, 'javascript', '__tests__', 'fixtures', 'metadata.js');
 
     describe('.new', () => {
         it('returns a new Tag', async () => {
@@ -40,7 +41,7 @@ describe('Tag', () => {
 
     describe('.fromFile', () => {
         it('creates a tag from a lwc .js file', async () => {
-            const tag: Tag | null = await createTagFromFile(filepath);
+            const tag: Tag | null = await createTagFromFile(filepath, sfdxFileSystemProvider);
 
             expect(tag?.file).toEqual(filepath);
             expect(tag?.metadata.decorators);
@@ -53,7 +54,7 @@ describe('Tag', () => {
         let tag: Tag | null;
 
         beforeEach(async () => {
-            tag = await createTagFromFile(filepath);
+            tag = await createTagFromFile(filepath, sfdxFileSystemProvider);
         });
 
         describe('#classMembers', () => {
@@ -216,10 +217,10 @@ describe('Tag', () => {
          * isn't being compiled correctly. This test should be updated after upgrading.
          */
 
-        const fileWithErrors = join(__dirname, '..', 'javascript', '__tests__', 'fixtures', 'navmetadata.js');
+        const fileWithErrors = join(SFDX_WORKSPACE_ROOT, 'javascript', '__tests__', 'fixtures', 'navmetadata.js');
 
         it('does not throw an error when finding a class member location without class members', async () => {
-            const tag: Tag | null = await createTagFromFile(fileWithErrors);
+            const tag: Tag | null = await createTagFromFile(fileWithErrors, sfdxFileSystemProvider);
             expect(tag).not.toBeNull();
             expect(() => getClassMemberLocation(tag!, 'account')).not.toThrow();
         });

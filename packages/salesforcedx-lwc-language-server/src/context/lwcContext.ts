@@ -11,33 +11,46 @@ import {
     processTemplate,
     getModulesDirs,
     memoize,
-    getSfdxResource,
     relativePath,
     updateForceIgnoreFile,
+    IFileSystemProvider,
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import baseTsConfigJson from '@salesforce/salesforcedx-lightning-lsp-common/src/resources/sfdx/tsconfig-sfdx.base.json';
+import tsConfigTemplateJson from '@salesforce/salesforcedx-lightning-lsp-common/src/resources/sfdx/tsconfig-sfdx.json';
 import * as path from 'node:path';
-import * as vscode from 'vscode';
-import { TextDocument } from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 
-const updateConfigFile = async (filePath: string, content: string): Promise<void> => {
-    const dir = path.dirname(filePath);
-    await vscode.workspace.fs.createDirectory(vscode.Uri.file(dir));
-    await vscode.workspace.fs.writeFile(vscode.Uri.file(filePath), Buffer.from(content, 'utf8'));
+const updateConfigFile = async (filePath: string, content: string, fileSystemProvider: IFileSystemProvider): Promise<void> => {
+    const uri = `${filePath}`;
+
+    // Create the file stat first
+    fileSystemProvider.updateFileStat(uri, {
+        type: 'file',
+        exists: true,
+        ctime: Date.now(),
+        mtime: Date.now(),
+        size: content.length,
+    });
+
+    // Store the file content
+    fileSystemProvider.updateFileContent(uri, content);
 };
 
-const fileExists = async (filePath: string): Promise<boolean> => {
-    try {
-        await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
-        return true;
-    } catch {
-        return false;
-    }
+const fileExists = async (filePath: string, fileSystemProvider: IFileSystemProvider): Promise<boolean> => {
+    const uri = `${filePath}`;
+    return fileSystemProvider.fileExists(uri);
 };
 
 /**
  * Holds information and utility methods for a LWC workspace
  */
 export class LWCWorkspaceContext extends BaseWorkspaceContext {
+    public readonly fileSystemProvider: IFileSystemProvider;
+
+    constructor(workspaceRoots: string[], fileSystemProvider: IFileSystemProvider) {
+        super(workspaceRoots, fileSystemProvider);
+        this.fileSystemProvider = fileSystemProvider;
+    }
     /**
      * @returns string list of all lwc and aura namespace roots
      */
@@ -54,28 +67,37 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
                     const utilsPath = path.join(root, 'utils', 'meta');
                     const registeredEmptyPath = path.join(root, 'registered-empty-folder', 'meta');
 
-                    if (await fileExists(path.join(forceAppPath, 'lwc'))) {
-                        roots.lwc.push(path.join(forceAppPath, 'lwc'));
+                    const lwcPath = path.join(forceAppPath, 'lwc');
+                    const auraPath = path.join(forceAppPath, 'aura');
+                    const utilsLwcPath = path.join(utilsPath, 'lwc');
+                    const registeredLwcPath = path.join(registeredEmptyPath, 'lwc');
+
+                    if (await fileExists(lwcPath, this.fileSystemProvider)) {
+                        roots.lwc.push(lwcPath);
                     }
-                    if (await fileExists(path.join(utilsPath, 'lwc'))) {
-                        roots.lwc.push(path.join(utilsPath, 'lwc'));
+                    if (await fileExists(utilsLwcPath, this.fileSystemProvider)) {
+                        roots.lwc.push(utilsLwcPath);
                     }
-                    if (await fileExists(path.join(registeredEmptyPath, 'lwc'))) {
-                        roots.lwc.push(path.join(registeredEmptyPath, 'lwc'));
+                    if (await fileExists(registeredLwcPath, this.fileSystemProvider)) {
+                        roots.lwc.push(registeredLwcPath);
                     }
-                    if (await fileExists(path.join(forceAppPath, 'aura'))) {
-                        roots.aura.push(path.join(forceAppPath, 'aura'));
+                    if (await fileExists(auraPath, this.fileSystemProvider)) {
+                        roots.aura.push(auraPath);
                     }
                 }
                 return roots;
             case 'CORE_ALL':
                 // optimization: search only inside project/modules/
-                const projectDirs = await vscode.workspace.fs.readDirectory(vscode.Uri.file(this.workspaceRoots[0]));
-                for (const [project] of projectDirs) {
-                    const modulesDir = path.join(this.workspaceRoots[0], project, 'modules');
-                    if (await fileExists(modulesDir)) {
-                        const subroots = await findNamespaceRoots(modulesDir, 2);
-                        roots.lwc.push(...subroots.lwc);
+                const projectDirs = this.fileSystemProvider.getDirectoryListing(`file://${this.workspaceRoots[0]}`);
+                if (projectDirs) {
+                    for (const entry of projectDirs) {
+                        const project = entry.name;
+                        const modulesDir = path.join(this.workspaceRoots[0], project, 'modules');
+                        if (await fileExists(modulesDir, this.fileSystemProvider)) {
+                            const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
+                            roots.lwc.push(...subroots.lwc);
+                            roots.aura.push(...subroots.aura);
+                        }
                     }
                 }
                 return roots;
@@ -83,8 +105,8 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
                 // optimization: search only inside modules/
                 for (const ws of this.workspaceRoots) {
                     const modulesDir = path.join(ws, 'modules');
-                    if (await fileExists(modulesDir)) {
-                        const subroots = await findNamespaceRoots(path.join(ws, 'modules'), 2);
+                    if (await fileExists(modulesDir, this.fileSystemProvider)) {
+                        const subroots = await findNamespaceRoots(path.join(ws, 'modules'), this.fileSystemProvider, 2);
                         roots.lwc.push(...subroots.lwc);
                     }
                 }
@@ -97,7 +119,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
                 if (this.type === 'MONOREPO') {
                     depth += 2;
                 }
-                const unknownroots = await findNamespaceRoots(this.workspaceRoots[0], depth);
+                const unknownroots = await findNamespaceRoots(this.workspaceRoots[0], this.fileSystemProvider, depth);
                 roots.lwc.push(...unknownroots.lwc);
                 roots.aura.push(...unknownroots.aura);
                 return roots;
@@ -136,34 +158,26 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
                 const baseTsConfigPath = path.join(this.workspaceRoots[0], '.sfdx', 'tsconfig.sfdx.json');
 
                 try {
-                    const baseTsConfigBuffer = await vscode.workspace.fs.readFile(vscode.Uri.file(getSfdxResource('tsconfig-sfdx.base.json')));
-                    const baseTsConfig = Buffer.from(baseTsConfigBuffer).toString('utf8');
-                    await updateConfigFile(baseTsConfigPath, baseTsConfig);
+                    const baseTsConfig = JSON.stringify(baseTsConfigJson, null, 4);
+                    await updateConfigFile(baseTsConfigPath, baseTsConfig, this.fileSystemProvider);
                 } catch (error) {
                     console.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);
                     throw error;
                 }
 
                 // Write to the tsconfig.json in each module subdirectory
-                let tsConfigTemplate: string;
-                try {
-                    const tsConfigTemplateBuffer = await vscode.workspace.fs.readFile(vscode.Uri.file(getSfdxResource('tsconfig-sfdx.json')));
-                    tsConfigTemplate = Buffer.from(tsConfigTemplateBuffer).toString('utf8');
-                } catch (error) {
-                    console.error('writeTsconfigJson: Error reading tsconfig template:', error);
-                    throw error;
-                }
+                const tsConfigTemplate = JSON.stringify(tsConfigTemplateJson, null, 4);
 
                 const forceignore = path.join(this.workspaceRoots[0], '.forceignore');
                 // TODO: We should only be looking through modules that have TS files
-                const modulesDirs = await getModulesDirs(this.type, this.workspaceRoots, this.initSfdxProjectConfigCache.bind(this));
+                const modulesDirs = await getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, this.initSfdxProjectConfigCache.bind(this));
 
                 for (const modulesDir of modulesDirs) {
                     const tsConfigPath = path.join(modulesDir, 'tsconfig.json');
                     const relativeWorkspaceRoot = relativePath(path.dirname(tsConfigPath), this.workspaceRoots[0]);
                     const tsConfigContent = processTemplate(tsConfigTemplate, { project_root: relativeWorkspaceRoot });
-                    await updateConfigFile(tsConfigPath, tsConfigContent);
-                    await updateForceIgnoreFile(forceignore, true);
+                    await updateConfigFile(tsConfigPath, tsConfigContent, this.fileSystemProvider);
+                    await updateForceIgnoreFile(forceignore, true, this.fileSystemProvider);
                 }
                 break;
             default:

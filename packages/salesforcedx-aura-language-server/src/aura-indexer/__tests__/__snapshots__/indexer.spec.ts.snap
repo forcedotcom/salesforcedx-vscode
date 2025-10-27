@@ -1,15 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`indexer parsing content aura indexer 1`] = `
-[
-  "force-app/main/default/aura/helloWorldApp/helloWorldApp.app",
-  "force-app/main/default/aura/indexApp/indexApp.app",
-  "force-app/main/default/aura/lightningExamplesApp/lightningExamplesApp.app",
-  "force-app/main/default/aura/todoApp/todoApp.app",
-  "force-app/main/default/aura/wireLdsApp/wireLdsApp.app",
-  "force-app/main/default/aura/wireLdsCmp/wireLdsCmp.cmp",
-]
-`;
+exports[`indexer parsing content aura indexer 1`] = `[]`;
 
 exports[`indexer parsing content aura indexer 2`] = `
 Map {
@@ -933,150 +924,6 @@ Map {
     "namespace": "aura",
     "properties": undefined,
     "type": "STANDARD",
-  },
-  "c:helloWorldApp" => {
-    "attributes": [],
-    "documentation": "",
-    "file": "force-app/main/default/aura/helloWorldApp/helloWorldApp.app",
-    "location": {
-      "range": {
-        "end": {
-          "character": 19,
-          "line": 5,
-        },
-        "start": {
-          "character": 1,
-          "line": 1,
-        },
-      },
-      "uri": "force-app/main/default/aura/helloWorldApp/helloWorldApp.app",
-    },
-    "lwc": false,
-    "methods": undefined,
-    "name": "c:helloWorldApp",
-    "namespace": "c",
-    "properties": undefined,
-    "type": "CUSTOM",
-  },
-  "c:indexApp" => {
-    "attributes": [],
-    "documentation": "",
-    "file": "force-app/main/default/aura/indexApp/indexApp.app",
-    "location": {
-      "range": {
-        "end": {
-          "character": 19,
-          "line": 3,
-        },
-        "start": {
-          "character": 1,
-          "line": 1,
-        },
-      },
-      "uri": "force-app/main/default/aura/indexApp/indexApp.app",
-    },
-    "lwc": false,
-    "methods": undefined,
-    "name": "c:indexApp",
-    "namespace": "c",
-    "properties": undefined,
-    "type": "CUSTOM",
-  },
-  "c:lightningExamplesApp" => {
-    "attributes": [],
-    "documentation": "",
-    "file": "force-app/main/default/aura/lightningExamplesApp/lightningExamplesApp.app",
-    "location": {
-      "range": {
-        "end": {
-          "character": 19,
-          "line": 13,
-        },
-        "start": {
-          "character": 1,
-          "line": 1,
-        },
-      },
-      "uri": "force-app/main/default/aura/lightningExamplesApp/lightningExamplesApp.app",
-    },
-    "lwc": false,
-    "methods": undefined,
-    "name": "c:lightningExamplesApp",
-    "namespace": "c",
-    "properties": undefined,
-    "type": "CUSTOM",
-  },
-  "c:todoApp" => {
-    "attributes": [],
-    "documentation": "",
-    "file": "force-app/main/default/aura/todoApp/todoApp.app",
-    "location": {
-      "range": {
-        "end": {
-          "character": 19,
-          "line": 6,
-        },
-        "start": {
-          "character": 1,
-          "line": 1,
-        },
-      },
-      "uri": "force-app/main/default/aura/todoApp/todoApp.app",
-    },
-    "lwc": false,
-    "methods": undefined,
-    "name": "c:todoApp",
-    "namespace": "c",
-    "properties": undefined,
-    "type": "CUSTOM",
-  },
-  "c:wireLdsApp" => {
-    "attributes": [],
-    "documentation": "",
-    "file": "force-app/main/default/aura/wireLdsApp/wireLdsApp.app",
-    "location": {
-      "range": {
-        "end": {
-          "character": 19,
-          "line": 3,
-        },
-        "start": {
-          "character": 1,
-          "line": 1,
-        },
-      },
-      "uri": "force-app/main/default/aura/wireLdsApp/wireLdsApp.app",
-    },
-    "lwc": false,
-    "methods": undefined,
-    "name": "c:wireLdsApp",
-    "namespace": "c",
-    "properties": undefined,
-    "type": "CUSTOM",
-  },
-  "c:wireLdsCmp" => {
-    "attributes": [],
-    "documentation": "",
-    "file": "force-app/main/default/aura/wireLdsCmp/wireLdsCmp.cmp",
-    "location": {
-      "range": {
-        "end": {
-          "character": 17,
-          "line": 3,
-        },
-        "start": {
-          "character": 1,
-          "line": 1,
-        },
-      },
-      "uri": "force-app/main/default/aura/wireLdsCmp/wireLdsCmp.cmp",
-    },
-    "lwc": false,
-    "methods": undefined,
-    "name": "c:wireLdsCmp",
-    "namespace": "c",
-    "properties": undefined,
-    "type": "CUSTOM",
   },
   "clients:availableForMailAppAppPage" => {
     "attributes": [],
@@ -15384,7 +15231,6 @@ Map {
 exports[`indexer parsing content aura indexer 3`] = `
 [
   "aura",
-  "c",
   "clients",
   "flexipage",
   "force",

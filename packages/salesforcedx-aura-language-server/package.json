@@ -4,6 +4,9 @@
   "version": "64.16.1",
   "description": "Language server for Aura components.",
   "publisher": "salesforce",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
   "main": "out/src/index.js",
   "typings": "out/src/index.d.ts",
   "sideEffects": false,
@@ -17,6 +20,11 @@
       "import": "./out/src/aura-server.js",
       "require": "./out/src/aura-server.js",
       "types": "./out/src/aura-server.d.ts"
+    },
+    "./src/auraServer": {
+      "import": "./out/src/auraServer.js",
+      "require": "./out/src/auraServer.js",
+      "types": "./out/src/auraServer.d.ts"
     },
     "./context": {
       "import": "./out/src/context/aura-context.js",
@@ -33,10 +41,10 @@
       "require": "./out/src/aura-utils.js",
       "types": "./out/src/aura-utils.d.ts"
     },
-    "./component-util": {
-      "import": "./out/src/util/component-util.js",
-      "require": "./out/src/util/component-util.js",
-      "types": "./out/src/util/component-util.d.ts"
+    "./utils/componentUtil": {
+      "import": "./out/src/util/componentUtil.js",
+      "require": "./out/src/util/componentUtil.js",
+      "types": "./out/src/util/componentUtil.d.ts"
     },
     "./tern-server": {
       "import": "./out/src/tern-server/tern-server.js",
@@ -64,6 +72,7 @@
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",
     "line-column": "^1.0.2",
+    "@types/vscode": "^1.90.0",
     "vscode-html-languageservice": "^5.0.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12",

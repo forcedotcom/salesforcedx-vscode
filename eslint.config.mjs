@@ -379,6 +379,7 @@ export default [
     files: [
       'packages/salesforcedx**/test/jest/**/*',
       'packages/salesforcedx**/test/unit/**/*',
+      'packages/salesforcedx**/src/__tests__/**/*',
       'packages/salesforcedx-vscode-automation-tests/**/*'
     ],
     plugins: {

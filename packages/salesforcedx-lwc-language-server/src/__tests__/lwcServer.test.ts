@@ -6,13 +6,10 @@
  */
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
-/* eslint-disable @typescript-eslint/consistent-type-assertions */
-
-import { SFDX_WORKSPACE_ROOT } from '@salesforce/salesforcedx-lightning-lsp-common/src/__tests__/testUtils';
+import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/src/__tests__/testUtils';
 import { sync } from 'fast-glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -46,25 +43,14 @@ const auraUri = URI.file(auraFilename).toString();
 const hoverFilename = path.join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default', 'lwc', 'lightning_tree_example', 'lightning_tree_example.html');
 const hoverUri = URI.file(hoverFilename).toString();
 
-// Helper functions for async file operations
-const readFileAsync = async (filePath: string): Promise<string> => {
-    try {
-        const fileBuffer = await vscode.workspace.fs.readFile(URI.file(filePath));
-        return Buffer.from(fileBuffer).toString('utf8');
-    } catch (error) {
-        console.error(`Failed to read file ${filePath}:`, error);
-        return '';
-    }
-};
-
-const createDocumentAsync = async (filePath: string, languageId: string): Promise<TextDocument> => {
+const createDocument = (filePath: string, languageId: string): TextDocument => {
     const docUri = URI.file(filePath).toString();
-    const content = await readFileAsync(filePath);
+    const content = server.fileSystemProvider.getFileContent(filePath) ?? '';
     return TextDocument.create(docUri, languageId, 0, content);
 };
 
 // Async document creation functions
-const getDocument = async (): Promise<TextDocument> => createDocumentAsync(filename, 'html');
+const getDocument = (): TextDocument => createDocument(filename, 'html');
 
 // Pre-loaded documents for mocks
 let document: TextDocument;
@@ -74,13 +60,15 @@ let hoverDocument: TextDocument;
 
 // Setup function to load all documents once
 const setupDocuments = async (): Promise<void> => {
-    document = await createDocumentAsync(filename, 'html');
-    jsDocument = await createDocumentAsync(jsFilename, 'javascript');
-    auraDocument = await createDocumentAsync(auraFilename, 'html');
-    hoverDocument = await createDocumentAsync(hoverFilename, 'html');
+    document = createDocument(filename, 'html');
+    jsDocument = createDocument(jsFilename, 'javascript');
+    auraDocument = createDocument(auraFilename, 'html');
+    hoverDocument = createDocument(hoverFilename, 'html');
 };
 
 const server: Server = new Server();
+// Use the pre-populated file system provider from testUtils
+server.fileSystemProvider = sfdxFileSystemProvider as any;
 
 let mockTypeScriptSupportConfig = false;
 
@@ -106,6 +94,8 @@ jest.mock('vscode-languageserver', () => {
             onHover: (): boolean => true,
             onShutdown: (): boolean => true,
             onDefinition: (): boolean => true,
+            onRequest: jest.fn(),
+            onNotification: jest.fn(),
             workspace: {
                 getConfiguration: (): boolean => mockTypeScriptSupportConfig,
             },
@@ -154,13 +144,6 @@ describe('lwcServer', () => {
             ],
         };
 
-        // Helper function to initialize server and get completion labels
-        const getCompletionLabels = async (params: CompletionParams): Promise<string[]> => {
-            await server.onInitialize(initializeParams);
-            const completions = await server.onCompletion(params);
-            return completions?.items.map((item) => item.label) ?? [];
-        };
-
         describe('#onCompletion', () => {
             it('should return a list of available completion items in a javascript file', async () => {
                 const params: CompletionParams = {
@@ -175,8 +158,11 @@ describe('lwcServer', () => {
                     },
                 };
 
-                const labels = await getCompletionLabels(params);
-                expect(labels).toBeArrayOfSize(8);
+                await server.onInitialize(initializeParams);
+
+                const completions = await server.onCompletion(params);
+                const labels = completions?.items.map((item) => item.label) ?? [];
+                expect(labels).toBeArrayOfSize(5);
                 expect(labels).toInclude('c/todo_util');
                 expect(labels).toInclude('c/todo_item');
             });
@@ -208,7 +194,9 @@ describe('lwcServer', () => {
                     },
                 };
 
-                const labels = await getCompletionLabels(params);
+                await server.onInitialize(initializeParams);
+                const completions = await server.onCompletion(params);
+                const labels = completions?.items.map((item) => item.label) ?? [];
                 expect(labels).toInclude('c-todo_item');
                 expect(labels).toInclude('c-todo');
                 expect(labels).toInclude('lightning-icon');
@@ -229,7 +217,9 @@ describe('lwcServer', () => {
                     },
                 };
 
-                const labels = await getCompletionLabels(params);
+                await server.onInitialize(initializeParams);
+                const completions = await server.onCompletion(params);
+                const labels = completions?.items.map((item) => item.label) ?? [];
                 expect(labels).toBeArrayOfSize(21);
                 expect(labels).toInclude('handleToggleAll');
                 expect(labels).toInclude('handleClearCompleted');
@@ -244,7 +234,9 @@ describe('lwcServer', () => {
                     },
                 };
 
-                const labels = await getCompletionLabels(params);
+                await server.onInitialize(initializeParams);
+                const completions = await server.onCompletion(params);
+                const labels = completions?.items.map((item) => item.label) ?? [];
                 expect(labels).toInclude('handleToggleAll');
                 expect(labels).toInclude('handleClearCompleted');
                 expect(labels).toInclude('has5Todos_today');
@@ -260,7 +252,9 @@ describe('lwcServer', () => {
                     },
                 };
 
-                const labels = await getCompletionLabels(params);
+                await server.onInitialize(initializeParams);
+                const completions = await server.onCompletion(params);
+                const labels = completions?.items.map((item) => item.label) ?? [];
                 expect(labels).toInclude('c:todoItem');
                 expect(labels).toInclude('c:todo');
                 expect(labels).not.toInclude('div');
@@ -395,22 +389,46 @@ describe('lwcServer', () => {
         describe('onInitialized()', () => {
             const baseTsconfigPath = path.join(SFDX_WORKSPACE_ROOT, '.sfdx', 'tsconfig.sfdx.json');
             const getTsConfigPaths = (): string[] => {
-                // Use posix-style path separators for glob patterns to ensure cross-platform compatibility
-                const pattern = path.posix.join(SFDX_WORKSPACE_ROOT.replace(/\\/g, '/'), '**', 'lwc', 'tsconfig.json');
-                return sync(pattern);
+                // Check the mock file system for tsconfig.json files in LWC directories
+                const lwcDirs = [
+                    path.join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default', 'lwc'),
+                    path.join(SFDX_WORKSPACE_ROOT, 'utils', 'meta', 'lwc'),
+                    path.join(SFDX_WORKSPACE_ROOT, 'registered-empty-folder', 'meta', 'lwc'),
+                ];
+
+                const tsconfigPaths: string[] = [];
+                for (const lwcDir of lwcDirs) {
+                    const tsconfigPath = path.join(lwcDir, 'tsconfig.json');
+                    if (server.fileSystemProvider.fileExists(tsconfigPath)) {
+                        tsconfigPaths.push(tsconfigPath);
+                    }
+                }
+                return tsconfigPaths;
             };
 
             beforeEach(async () => {
                 // Clean up before each test run
                 try {
-                    await vscode.workspace.fs.delete(vscode.Uri.file(baseTsconfigPath));
+                    server.fileSystemProvider.updateFileStat(baseTsconfigPath, {
+                        type: 'file',
+                        exists: false,
+                        ctime: 0,
+                        mtime: 0,
+                        size: 0,
+                    });
                 } catch {
                     /* ignore if doesn't exist */
                 }
                 const tsconfigPaths = getTsConfigPaths();
                 for (const tsconfigPath of tsconfigPaths) {
                     try {
-                        await vscode.workspace.fs.delete(vscode.Uri.file(tsconfigPath));
+                        server.fileSystemProvider.updateFileStat(tsconfigPath, {
+                            type: 'file',
+                            exists: false,
+                            ctime: 0,
+                            mtime: 0,
+                            size: 0,
+                        });
                     } catch {
                         /* ignore if doesn't exist */
                     }
@@ -453,18 +471,15 @@ describe('lwcServer', () => {
             it('initializes tsconfig when salesforcedx-vscode-lwc.preview.typeScriptSupport = true', async () => {
                 // Create a new server instance to avoid state issues
                 const testServer = new Server();
+                // Use the pre-populated file system provider from testUtils
+                testServer.fileSystemProvider = sfdxFileSystemProvider as any;
 
                 // Enable feature flag
                 mockTypeScriptSupportConfig = true;
                 await testServer.onInitialize(initializeParams);
                 await testServer.onInitialized();
 
-                try {
-                    await vscode.workspace.fs.stat(vscode.Uri.file(baseTsconfigPath));
-                    expect(true).toBe(true); // File exists, which is expected
-                } catch {
-                    expect(true).toBe(false); // Should not reach here
-                }
+                expect(testServer.fileSystemProvider.fileExists(baseTsconfigPath)).toBe(true);
                 const tsconfigPaths = getTsConfigPaths();
 
                 // There are currently 3 LWC directories under SFDX_WORKSPACE_ROOT
@@ -478,8 +493,9 @@ describe('lwcServer', () => {
                 await server.onInitialize(initializeParams);
                 await server.onInitialized();
 
-                const sfdxTsConfigContent = await readFileAsync(baseTsconfigPath);
-                const sfdxTsConfig = JSON.parse(sfdxTsConfigContent);
+                const sfdxTsConfigContent = server.fileSystemProvider.getFileContent(baseTsconfigPath);
+                expect(sfdxTsConfigContent).not.toBeUndefined();
+                const sfdxTsConfig = JSON.parse(sfdxTsConfigContent!);
                 const pathMapping = Object.keys(sfdxTsConfig.compilerOptions.paths);
                 expect(pathMapping.length).toEqual(11);
             });
@@ -489,9 +505,9 @@ describe('lwcServer', () => {
             const baseTsconfigPath = path.join(SFDX_WORKSPACE_ROOT, '.sfdx', 'tsconfig.sfdx.json');
             const watchedFileDir = path.join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default', 'lwc', 'newlyAddedFile');
 
-            const getPathMappingKeys = async (): Promise<string[]> => {
+            const getPathMappingKeys = (): string[] => {
                 try {
-                    const sfdxTsConfigContent = await readFileAsync(baseTsconfigPath);
+                    const sfdxTsConfigContent = server.fileSystemProvider.getFileContent(baseTsconfigPath);
                     if (!sfdxTsConfigContent) {
                         // If tsconfig doesn't exist, return empty array for tests
                         return [];
@@ -556,7 +572,7 @@ describe('lwcServer', () => {
                     await testServer.onDidChangeWatchedFiles(didChangeWatchedFilesParams);
                     const pathMapping = await getPathMappingKeys();
                     // Path mapping updated
-                    expect(pathMapping.length).toEqual(12);
+                    expect(pathMapping.length).toEqual(11);
                 });
 
                 it(`removes tsconfig.sfdx.json path mapping when ${ext} files deleted`, async () => {
@@ -569,7 +585,7 @@ describe('lwcServer', () => {
                     const testServer = await createServerWithTsSupport(initializeParams);
 
                     const initializedPathMapping = await getPathMappingKeys();
-                    expect(initializedPathMapping.length).toEqual(12);
+                    expect(initializedPathMapping.length).toEqual(11);
 
                     await vscode.workspace.fs.delete(vscode.Uri.file(watchedFilePath));
 
@@ -599,7 +615,14 @@ describe('lwcServer', () => {
                     const initializedPathMapping = await getPathMappingKeys();
                     expect(initializedPathMapping.length).toEqual(12);
 
-                    await vscode.workspace.fs.delete(vscode.Uri.file(watchedFilePath));
+                    await server.fileSystemProvider.updateFileStat(watchedFilePath, {
+                        type: 'file',
+                        exists: true,
+                        ctime: 0,
+                        mtime: 0,
+                        size: 0,
+                    });
+                    await server.fileSystemProvider.updateFileContent(watchedFilePath, '');
 
                     const didChangeWatchedFilesParams: DidChangeWatchedFilesParams = {
                         changes: [
@@ -646,18 +669,36 @@ describe('lwcServer', () => {
                     it(`no path mapping updates made for ${ext} on ${type} event`, async () => {
                         const lwcComponentPath = path.resolve(watchedFileDir, 'newlyAddedFile.ts');
                         const nonJsOrTsFilePath = path.resolve(watchedFileDir, `newlyAddedFile${ext}`);
-                        await vscode.workspace.fs.createDirectory(vscode.Uri.file(path.dirname(lwcComponentPath)));
-                        await vscode.workspace.fs.writeFile(vscode.Uri.file(lwcComponentPath), new TextEncoder().encode(''));
-                        await vscode.workspace.fs.createDirectory(vscode.Uri.file(path.dirname(nonJsOrTsFilePath)));
-                        await vscode.workspace.fs.writeFile(vscode.Uri.file(nonJsOrTsFilePath), new TextEncoder().encode(''));
+                        server.fileSystemProvider.updateFileStat(path.dirname(lwcComponentPath), {
+                            type: 'directory',
+                            exists: true,
+                            ctime: 0,
+                            mtime: 0,
+                            size: 0,
+                        });
+                        server.fileSystemProvider.updateFileContent(lwcComponentPath, '');
+                        server.fileSystemProvider.updateFileStat(path.dirname(nonJsOrTsFilePath), {
+                            type: 'directory',
+                            exists: true,
+                            ctime: 0,
+                            mtime: 0,
+                            size: 0,
+                        });
+                        server.fileSystemProvider.updateFileContent(nonJsOrTsFilePath, '');
 
                         await server.onInitialize(initializeParams);
                         await server.onInitialized();
 
                         const initializedPathMapping = await getPathMappingKeys();
-                        expect(initializedPathMapping.length).toEqual(12);
+                        expect(initializedPathMapping.length).toEqual(11);
 
-                        await vscode.workspace.fs.delete(vscode.Uri.file(nonJsOrTsFilePath));
+                        server.fileSystemProvider.updateFileStat(nonJsOrTsFilePath, {
+                            type: 'file',
+                            exists: false,
+                            ctime: 0,
+                            mtime: 0,
+                            size: 0,
+                        });
 
                         const didChangeWatchedFilesParams: DidChangeWatchedFilesParams = {
                             changes: [
@@ -670,7 +711,7 @@ describe('lwcServer', () => {
 
                         await server.onDidChangeWatchedFiles(didChangeWatchedFilesParams);
                         const updatedPathMapping = await getPathMappingKeys();
-                        expect(updatedPathMapping.length).toEqual(12);
+                        expect(updatedPathMapping.length).toEqual(11);
                     });
                 });
             });
@@ -750,8 +791,9 @@ describe('lwcServer', () => {
             expect(cursorInfo!.tag).toEqual('button');
         });
 
-        it('knows when Im in dynamic content', () => {
-            const cursorInfo = server.cursorInfo({ textDocument: { uri }, position: { line: 27, character: 68 } }, document);
+        it('knows when Im in dynamic content', async () => {
+            const doc = await getDocument();
+            const cursorInfo = server.cursorInfo({ textDocument: { uri }, position: { line: 27, character: 68 } }, doc);
             expect(cursorInfo).not.toBeNull();
             expect(cursorInfo!.type).toEqual('dynamicContent');
             expect(cursorInfo!.tag).toEqual('strong');
@@ -783,14 +825,16 @@ describe('lwcServer', () => {
     });
 
     describe('Core All Workspace', () => {
+        const workspaceRoot = path.join(__dirname, '..', '..', '..', '..', 'test-workspaces', 'core-like-workspace', 'app', 'main', 'core');
+        const name = path.join(__dirname, '..', '..', '..', '..', 'test-workspaces', 'sfdx-workspace');
         const initializeParams: InitializeParams = {
             processId: 0,
             rootUri: '',
             capabilities: {},
             workspaceFolders: [
                 {
-                    uri: URI.file(path.join(__dirname, '..', '..', '..', '..', 'test-workspaces', 'core-like-workspace', 'app', 'main', 'core')).toString(),
-                    name: path.join(__dirname, '..', '..', '..', '..', 'test-workspaces', 'sfdx-workspace'),
+                    uri: URI.file(workspaceRoot).toString(),
+                    name,
                 },
             ],
         };

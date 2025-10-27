@@ -12,6 +12,10 @@ import {
     toResolvedPath,
     getBasename,
     AttributeInfo,
+    FileSystemDataProvider,
+    FileSystemRequests,
+    FileSystemNotifications,
+    FileStat,
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { basename, dirname, parse } from 'node:path';
 import {
@@ -91,8 +95,11 @@ export default class Server {
     public languageService: LanguageService;
     public auraDataProvider: AuraDataProvider;
     public lwcDataProvider: LWCDataProvider;
+    public fileSystemProvider: FileSystemDataProvider;
 
     constructor() {
+        this.fileSystemProvider = new FileSystemDataProvider();
+
         this.connection.onInitialize(this.onInitialize.bind(this));
         this.connection.onInitialized(this.onInitialized.bind(this));
         this.connection.onCompletion(this.onCompletion.bind(this));
@@ -103,6 +110,9 @@ export default class Server {
         this.connection.onInitialized(this.onInitialized.bind(this));
         this.connection.onDidChangeWatchedFiles(this.onDidChangeWatchedFiles.bind(this));
 
+        // Register file system notification handlers
+        this.connection.onNotification(FileSystemNotifications.FILE_CONTENT_CHANGED, this.onFileContentChanged.bind(this));
+
         this.documents.listen(this.connection);
         this.documents.onDidChangeContent(this.onDidChangeContent.bind(this));
         this.documents.onDidSave(this.onDidSave.bind(this));
@@ -111,11 +121,60 @@ export default class Server {
     public async onInitialize(params: InitializeParams): Promise<InitializeResult> {
         this.workspaceFolders = params.workspaceFolders ?? [];
         this.workspaceRoots = this.workspaceFolders.map((folder) => URI.parse(folder.uri).fsPath);
-        this.context = new LWCWorkspaceContext(this.workspaceRoots);
-        this.componentIndexer = new ComponentIndexer({ workspaceRoot: this.workspaceRoots[0] });
+
+        // Use provided fileSystemProvider from initializationOptions if available
+        if (params.initializationOptions?.fileSystemProvider) {
+            // Reconstruct the FileSystemDataProvider from serialized data
+            const serializedProvider = params.initializationOptions.fileSystemProvider;
+            if (typeof serializedProvider !== 'object' || serializedProvider === null) {
+                throw new Error('Invalid fileSystemProvider in initializationOptions');
+            }
+            this.fileSystemProvider = new FileSystemDataProvider();
+
+            // Restore the data from the serialized object
+            if (serializedProvider.fileContents && typeof serializedProvider.fileContents === 'object') {
+                for (const [uri, content] of Object.entries(serializedProvider.fileContents)) {
+                    if (typeof content === 'string') {
+                        this.fileSystemProvider.updateFileContent(uri, content);
+                    }
+                }
+            }
+
+            if (serializedProvider.directoryListings && typeof serializedProvider.directoryListings === 'object') {
+                for (const [uri, entries] of Object.entries(serializedProvider.directoryListings)) {
+                    if (Array.isArray(entries)) {
+                        this.fileSystemProvider.updateDirectoryListing(uri, entries);
+                    }
+                }
+            }
+
+            if (serializedProvider.fileStats && typeof serializedProvider.fileStats === 'object') {
+                for (const [uri, stat] of Object.entries(serializedProvider.fileStats)) {
+                    if (typeof stat === 'object' && stat !== null) {
+                        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                        this.fileSystemProvider.updateFileStat(uri, stat as FileStat);
+                    }
+                }
+            }
+
+            if (serializedProvider.workspaceConfig && typeof serializedProvider.workspaceConfig === 'object') {
+                this.fileSystemProvider.updateWorkspaceConfig(serializedProvider.workspaceConfig);
+            }
+        }
+
+        // Register file system request handlers that depend on fileSystemProvider after reconstruction
+        this.connection.onRequest(FileSystemRequests.GET_FILE_CONTENT, this.onGetFileContent.bind(this));
+        this.connection.onRequest(FileSystemRequests.GET_DIRECTORY_LISTING, this.onGetDirectoryListing.bind(this));
+        this.connection.onRequest(FileSystemRequests.GET_FILE_STAT, this.onGetFileStat.bind(this));
+        this.connection.onRequest(FileSystemRequests.CREATE_TYPING_FILES, this.onCreateTypingFiles.bind(this));
+        this.connection.onRequest(FileSystemRequests.DELETE_TYPING_FILES, this.onDeleteTypingFiles.bind(this));
+        this.connection.onRequest(FileSystemRequests.UPDATE_COMPONENT_INDEX, this.onUpdateComponentIndex.bind(this));
+
+        this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
+        this.componentIndexer = new ComponentIndexer({ workspaceRoot: this.workspaceRoots[0], fileSystemProvider: this.fileSystemProvider });
         this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
         this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-        this.typingIndexer = await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] });
+        this.typingIndexer = await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemProvider);
         this.languageService = getLanguageService({
             customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
             useDefaultDataProvider: false,
@@ -124,7 +183,6 @@ export default class Server {
         await this.context.initialize();
         await this.context.configureProject();
         await this.componentIndexer.init();
-        await this.lwcDataProvider.init();
 
         return this.capabilities;
     }
@@ -512,5 +570,52 @@ export default class Server {
     public listen(): void {
         interceptConsoleLogger(this.connection);
         this.connection.listen();
+    }
+
+    // File system request handlers
+    private async onGetFileContent(params: { uri: string }): Promise<{ content: string; exists: boolean }> {
+        const content = this.fileSystemProvider.getFileContent(params.uri);
+        return {
+            content: content ?? '',
+            exists: content !== undefined,
+        };
+    }
+
+    private async onGetDirectoryListing(params: { uri: string }): Promise<{ entries: any[]; exists: boolean }> {
+        const entries = this.fileSystemProvider.getDirectoryListing(params.uri);
+        return {
+            entries: entries ?? [],
+            exists: entries !== undefined,
+        };
+    }
+
+    private async onGetFileStat(params: { uri: string }): Promise<{ stat: any }> {
+        const stat = this.fileSystemProvider.getFileStat(params.uri);
+        return { stat: stat ?? { exists: false } };
+    }
+
+    private async onCreateTypingFiles(params: { files: { uri: string; content: string }[] }): Promise<void> {
+        // Handle typing file creation requests from client
+        for (const file of params.files) {
+            this.fileSystemProvider.updateFileContent(file.uri, file.content);
+        }
+    }
+
+    private async onDeleteTypingFiles(_params: { files: string[] }): Promise<void> {
+        // Handle typing file deletion requests from client
+        // Note: Actual deletion will be handled by the client
+        // This is just for server-side tracking
+    }
+
+    private async onUpdateComponentIndex(params: { components: { uri: string; content: string; mtime: number; type: string }[] }): Promise<void> {
+        // Handle component index updates from client
+        for (const component of params.components) {
+            this.fileSystemProvider.updateFileContent(component.uri, component.content);
+        }
+    }
+
+    // File system notification handlers
+    private onFileContentChanged(params: { uri: string; content: string }): void {
+        this.fileSystemProvider.updateFileContent(params.uri, params.content);
     }
 }

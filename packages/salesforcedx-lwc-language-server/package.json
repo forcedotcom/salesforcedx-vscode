@@ -4,6 +4,9 @@
   "version": "64.16.1",
   "description": "Language server for Lightning Web Components.",
   "publisher": "salesforce",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
   "main": "out/src/indexer.js",
   "typings": "out/src/indexer.d.ts",
   "sideEffects": false,
@@ -17,6 +20,11 @@
       "import": "./out/src/lwc-server.js",
       "require": "./out/src/lwc-server.js",
       "types": "./out/src/lwc-server.d.ts"
+    },
+    "./src/lwcServer": {
+      "import": "./out/src/lwcServer.js",
+      "require": "./out/src/lwcServer.js",
+      "types": "./out/src/lwcServer.d.ts"
     },
     "./context": {
       "import": "./out/src/context/lwc-context.js",
@@ -96,6 +104,7 @@
     "comment-parser": "^0.7.6",
     "fast-glob": "^3.3.3",
     "normalize-path": "^3.0.0",
+    "@types/vscode": "^1.90.0",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12",

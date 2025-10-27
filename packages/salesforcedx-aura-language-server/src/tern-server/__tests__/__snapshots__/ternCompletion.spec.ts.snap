@@ -6,7 +6,30 @@ exports[`tern completion tern completions 1`] = `
   "items": [
     {
       "detail": "AuraInstance",
-      "documentation": "#include aura.Aura_export",
+      "documentation": "@description This, $A, is supposed to be our ONLY window-polluting top-level variable. Everything else in Aura is
+           attached to it.
+
+@platform
+@namespace
+@alias $A
+
+@borrows AuraComponentService#createComponent as $A.createComponent
+@borrows AuraComponentService#createComponents as $A.createComponents
+@borrows AuraComponentService#getComponent as $A.getComponent
+@borrows AuraClientService#enqueueAction as $A.enqueueAction
+@borrows AuraInstance#getRoot as $A.getRoot
+@borrows AuraInstance#getCallback as $A.getCallback
+@borrows AuraInstance#get as $A.get
+@borrows AuraInstance#set as $A.set
+@borrows AuraInstance#error as $A.error
+@borrows AuraInstance#log as $A.log
+@borrows AuraInstance#warning as $A.warning
+@borrows AuraInstance#run as $A.run
+@borrows AuraComponentService#newComponentDeprecated as $A.newCmp
+@borrows AuraComponentService#newComponentAsync as $A.newCmpAsync
+@borrows AuraInstance#localizationService as localizationService
+@borrows AuraInstance#util as util
+@borrows AuraInstance#reportError as $A.reportError",
       "kind": 18,
       "label": "$A",
     },
@@ -30,7 +53,7 @@ exports[`tern completion tern completions 1`] = `
     },
     {
       "detail": "AuraInstance",
-      "documentation": "TODO: Remove the legacy 'aura' top-level name.",
+      "documentation": undefined,
       "kind": 18,
       "label": "aura",
     },
@@ -173,10 +196,40 @@ exports[`tern completion tern completions 1`] = `
       "label": "getComputedStyle",
     },
     {
+      "detail": "fn(st: ?, type: string)",
+      "documentation": "jslint sub: true",
+      "kind": 3,
+      "label": "getLockerSecret",
+    },
+    {
       "detail": "fn() -> Selection",
       "documentation": "Returns a selection object representing the range of text selected by the user. ",
       "kind": 3,
       "label": "getSelection",
+    },
+    {
+      "detail": "goog",
+      "documentation": "Copyright (C) 2013 salesforce.com, inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.",
+      "kind": 18,
+      "label": "goog",
+    },
+    {
+      "detail": "handlerCache",
+      "documentation": "Eliminate registration of duplicate handlers on older browsers",
+      "kind": 18,
+      "label": "handlerCache",
     },
     {
       "detail": "history",
@@ -209,6 +262,18 @@ exports[`tern completion tern completions 1`] = `
       "label": "isNaN",
     },
     {
+      "detail": "number",
+      "documentation": undefined,
+      "kind": 18,
+      "label": "lastTime",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "DCHASMAN TODO Revert this after we clear issues with CKEditor and unsafe inline from W-3028925",
+      "kind": 3,
+      "label": "lazyInitInlinedSafeEvalWorkaround",
+    },
+    {
       "detail": "Storage",
       "documentation": "The localStorage property allows you to access a local Storage object. localStorage is similar to sessionStorage. The only difference is that, while data stored in localStorage has no expiration time, data stored in sessionStorage gets cleared when the browsing session ends - that is, when the browser is closed.
 
@@ -217,7 +282,7 @@ It should be noted that data stored in either localStorage or sessionStorage is 
       "label": "localStorage",
     },
     {
-      "detail": "location|string",
+      "detail": "location",
       "documentation": "Returns a location object with information about the current location of the document. Assigning to the location property changes the current page to the new address.",
       "kind": 18,
       "label": "location",
@@ -239,6 +304,12 @@ It should be noted that data stored in either localStorage or sessionStorage is 
       "documentation": "Returns a reference to the navigator object, which can be queried for information about the application running the script.",
       "kind": 18,
       "label": "navigator",
+    },
+    {
+      "detail": "fn() -> rawToSecureObjectCaches.<i>",
+      "documentation": undefined,
+      "kind": 3,
+      "label": "newWeakMap",
     },
     {
       "detail": "?",
@@ -325,11 +396,9 @@ It should be noted that data stored in either localStorage or sessionStorage is 
       "label": "ondrop",
     },
     {
-      "detail": "fn() -> bool",
-      "documentation": "Register a global error handler to catch uncaught javascript errors.
-@export
-@ignore",
-      "kind": 3,
+      "detail": "?",
+      "documentation": "An event handler for runtime script errors.",
+      "kind": 18,
       "label": "onerror",
     },
     {
@@ -339,9 +408,9 @@ It should be noted that data stored in either localStorage or sessionStorage is 
       "label": "onfocus",
     },
     {
-      "detail": "fn()",
+      "detail": "?",
       "documentation": "The hashchange event fires when a window's hash changes.",
-      "kind": 3,
+      "kind": 18,
       "label": "onhashchange",
     },
     {
@@ -513,6 +582,12 @@ It should be noted that data stored in either localStorage or sessionStorage is 
       "label": "prompt",
     },
     {
+      "detail": "rawToSecureObjectCaches",
+      "documentation": undefined,
+      "kind": 18,
+      "label": "rawToSecureObjectCaches",
+    },
+    {
       "detail": "fn(type: string, listener: fn(), capture: bool)",
       "documentation": "Allows the removal of event listeners from the event target.",
       "kind": 3,
@@ -605,6 +680,12 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "label": "setInterval",
     },
     {
+      "detail": "fn(st: ?, type: string, secret: ?)",
+      "documentation": undefined,
+      "kind": 3,
+      "label": "setLockerSecret",
+    },
+    {
       "detail": "fn(f: fn(), ms: number) -> number",
       "documentation": "Calls a function or executes a code snippet after specified delay.",
       "kind": 3,
@@ -617,16 +698,74 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "label": "top",
     },
     {
-      "detail": "fn(?)",
+      "detail": "?",
       "documentation": "The value undefined.",
-      "kind": 3,
+      "kind": 18,
       "label": "undefined",
+    },
+    {
+      "detail": "valueFactory",
+      "documentation": "creates the right value object based on whats passed in",
+      "kind": 18,
+      "label": "valueFactory",
+    },
+    {
+      "detail": "[string]",
+      "documentation": undefined,
+      "kind": 18,
+      "label": "vendors",
     },
     {
       "detail": "<top>",
       "documentation": "The window object represents a window containing a DOM document.",
       "kind": 18,
       "label": "window",
+    },
+    {
+      "detail": "number",
+      "documentation": undefined,
+      "kind": 18,
+      "label": "x",
+    },
+    {
+      "detail": "fn(def: ActionDef, suffix: string, method: ActionDef, paramDefs: ActionDef.paramDefs, background: bool, cmp: Component, caboose: bool)",
+      "documentation": "A base class for an Aura Action to be passed to an associated component. An Action is created in a client-side or
+server-side controller. Invoke an Action in a controller by declaring cmp.get("c.actionName"). Call a server-side
+Action from a client-side controller.
+
+@constructor
+@class
+@param {Object}
+           def The definition of the Action.
+@param {string}
+           suffix A suffix to distinguish components.
+@param {function}
+           method The method for the Action. For client-side Action only. A function to serialize the Action as a
+           String in the JSON representation.
+@param {Object}
+           paramDefs The parameter definitions for the Action.
+@param {boolean}
+           background is the action defined as a background action?
+@param {Component}
+           cmp The component associated with the Action.
+@param {boolean}
+           caboose should this action wait for the next non boxcar action?
+@platform
+@export",
+      "kind": 3,
+      "label": "Action",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "@description The Action Definition including the name, descriptor, action type, method, and parameter definitions. An
+           ActionDef instance is created as part of the ControllerDef initialization.
+
+@constructor
+@param {Object}
+           config
+@export",
+      "kind": 3,
+      "label": "ActionDef",
     },
     {
       "detail": "fn(size: number)",
@@ -647,10 +786,242 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "label": "Attr",
     },
     {
-      "detail": "window.Aura",
-      "documentation": "-- Namespaces ------------------------------------------------------------",
+      "detail": "fn(config: ?)",
+      "documentation": "@description Creates a new AttributeDef instance, including the descriptor.
+@constructor
+@param {Object} config
+@export",
+      "kind": 3,
+      "label": "AttributeDef",
+    },
+    {
+      "detail": "fn(configs: ?, defaultNamespace: string)",
+      "documentation": "@description Creates a new AttributeDefSet instance.
+@param {Object} configs For each configs object provided, a new AttributeDef instance is added
+@constructor
+@protected
+@export",
+      "kind": 3,
+      "label": "AttributeDefSet",
+    },
+    {
+      "detail": "fn(attributes: AttributeSet.!0, attributeDefSet: ?)",
+      "documentation": "@description Creates an AttributeSet instance.
+@param {Object}
+           config Sets the values with the config object, if provided.
+@param {Object}
+           valueProvider Sets the value provider for the attributes.
+@param {AttributeDefSet}
+           attributeDefSet The metadata describing the attributes in the set.
+@constructor
+@protected",
+      "kind": 3,
+      "label": "AttributeSet",
+    },
+    {
+      "detail": "Aura",
+      "documentation": undefined,
       "kind": 18,
       "label": "Aura",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@description The Aura Client Service.
+
+There be dragons here.
+
+Manage the queue of actions sent to the server.
+
+Queue Processing Notes:
+ * The queue is processed synchronously, but almost all of the interesting functionality occurs asynchronously.
+ * client actions are run in a single flow of setTimeout calls.
+ * storable server actions get processed in the "then" clause of the promise
+ * non-storable server actions are processed synchronously.
+
+Input conditions:
+We have a queue of actions that are inserted vie enqueueAction.
+
+Dangers:
+ * Race conditions.
+ * caboose actions.
+ * problems with storage.
+ * complexity of code due to asynchronicity.
+
+Tradeoffs:
+ * number of actions boxcarred.
+ * actions in flight
+ * sending XHR early vs. late.
+
+Processing Loop:
+ * gather actions into a collector.
+ * walk each action, queueing up server actions to retrieve from storage and client actions to execute.
+ * execute client actions with setTimeout(0) to allow server actions to complete.
+ * As server actions come back from storage, queue up for execution, and queue refresh actions to refresh.
+ * After all actions collect, check for further actions in the queue, restart loop if there are some.
+ * Once we have finished processing all actions, check for actions to be put in an XHR.
+   + All foreground actions go in a single XHR, and are de-duped on send.
+   + background actions are sent one per XHR, with a de-dupe step during the queue walk.
+   + deferred actions are sent if we are idle, with a de-dupe step during the queue walk.
+
+Queues:
+ * actionsQueued - queue of actions that have yet to be processed.
+ * actionsDeferred - actions that have been processed through storage, but need to go to the server.
+
+@constructor",
+      "kind": 3,
+      "label": "AuraClientService",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "A glorified stack to keep track of which component we're working
+on behalf of.  Stack frames may have arbitrary annotations attached.
+
+@constructor",
+      "kind": 3,
+      "label": "AuraComponentContext",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@description The Aura Component Service, accessible using $A.service.component.  Creates and Manages Components.
+@constructor
+@export",
+      "kind": 3,
+      "label": "AuraComponentService",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "AuraContextPlugin
+=================
+This plugin hooks into the Aura Context object.
+In particular the following methods:
+merge(): Tracks the component defs that are sent dynamically to the client.
+
+@description AuraContextPlugin
+@constructor
+@export",
+      "kind": 3,
+      "label": "AuraContextPlugin",
+    },
+    {
+      "detail": "fn() -> AuraInstance.devToolService",
+      "documentation": "@description The Aura Dev Tool Service, accessible using $A.devToolServices.
+Use mostly in non-production modes.
+@constructor
+@protected",
+      "kind": 3,
+      "label": "AuraDevToolService",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@description Creates an AuraError instance.
+@constructor
+@param {String} message - the detail message about the error.
+@param {Object} innerError - an Error object whose properties are to be placed into AuraError.
+@param {String} severity - the severity of the error. Aura built-in values are defined in $A.severity.
+@export",
+      "kind": 3,
+      "label": "AuraError",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@description The Aura Event Service, accessible using $A.eventService. Creates and Manages Events.
+@constructor AuraEventService
+@export",
+      "kind": 3,
+      "label": "AuraEventService",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@description The Aura Expression Service, accessible using $A.expressionService.
+Processes Expressions.
+@constructor
+@export",
+      "kind": 3,
+      "label": "AuraExpressionService",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@description The Aura History Service, accessible using $A.historyService. Manages Browser History.
+Internet Explorer 7 and 8 are not supported for this service.
+@constructor
+@export",
+      "kind": 3,
+      "label": "AuraHistoryService",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@class Aura
+@classdesc The Aura framework. Default global instance name is $A.
+@constructor
+
+@borrows Aura.Services.AuraClientService#enqueueAction as enqueueAction
+@borrows Aura.Services.AuraClientService#deferAction as deferAction
+@borrows Aura.Services.AuraRenderingService#render as render
+@borrows Aura.Services.AuraRenderingService#rerender as rerender
+@borrows Aura.Services.AuraRenderingService#unrender as unrender
+@borrows Aura.Services.AuraRenderingService#afterRender as afterRender
+@borrows Aura.Services.AuraComponentService#get as getCmp
+@borrows Aura.Services.AuraComponentService#createComponent as createComponent
+@borrows Aura.Services.AuraComponentService#createComponents as createComponents
+@borrows Aura.Services.AuraComponentService#getComponent as getComponent
+@borrows Aura.Services.AuraComponentService#newComponentDeprecated as newCmp
+@borrows Aura.Services.AuraComponentService#newComponentDeprecated as newCmpDeprecated
+@borrows Aura.Services.AuraComponentService#newComponentAsync as newCmpAsync
+@borrows Aura.Services.AuraEventService.newEvent as getEvt",
+      "kind": 3,
+      "label": "AuraInstance",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "FIXME: AuraLocalizationContext should become a global value provider and be accessed via the expression service.",
+      "kind": 3,
+      "label": "AuraLocalizationContext",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@description The Aura Localization service Service, accessible using $A.localizationService. Provides utility methods
+for localizing data or getting formatters for numbers, currencies, dates, etc.
+@constructor
+@export
+@platform",
+      "kind": 3,
+      "label": "AuraLocalizationService",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@class The Aura Rendering Service, accessible using $A.renderingService.
+       Renders components. The default behaviors can be customized in a
+       client-side renderer.
+@constructor
+@export",
+      "kind": 3,
+      "label": "AuraRenderingService",
+    },
+    {
+      "detail": "fn(config: AuraStorage.!0)",
+      "documentation": "@description The storage service implementation.
+@constructor
+@param {Object} config The configuration describing the characteristics of the storage to be created.
+@export",
+      "kind": 3,
+      "label": "AuraStorage",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@description The Aura Storage Service, accessible using $A.storageService.
+@constructor
+@export",
+      "kind": 3,
+      "label": "AuraStorageService",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@description The Aura Style Service, accessible using <b><code>$A.styleService</code></b>.
+             Dynamically loads and applies tokenized CSS.
+@constructor
+@export",
+      "kind": 3,
+      "label": "AuraStyleService",
     },
     {
       "detail": "fn()",
@@ -689,6 +1060,111 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "label": "Clipboard",
     },
     {
+      "detail": "fn(config: ?, localCreation: ?)",
+      "documentation": "Construct a new Component.
+
+@public
+@class
+@constructor
+
+@param {Object}
+           config - component configuration
+@param {Boolean}
+           [localCreation] - local creation
+@platform
+@export",
+      "kind": 3,
+      "label": "Component",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "A registry of Component classes.
+@constructor",
+      "kind": 3,
+      "label": "ComponentClassRegistry",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "@class ComponentDef
+
+Constructs a new ComponentDef object, which is a component definition.
+A ComponentDef instance is created as part of Aura initialization.
+
+@constructor
+@protected
+@export",
+      "kind": 3,
+      "label": "ComponentDef",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@description Storage for component definitions. If persistent storage
+is not available then most operations are noops.
+@constructor
+@protected",
+      "kind": 3,
+      "label": "ComponentDefStorage",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "ComponentServiceMetricsPlugin
+=================
+This plugin hooks into the ComponentService.
+In particular the following methods:
+createComponentPriv(): Tracks the component creation time for all components
+
+@description ComponentServiceMetricsPlugin
+@constructor
+@export",
+      "kind": 3,
+      "label": "ComponentServiceMetricsPlugin",
+    },
+    {
+      "detail": "fn(values: ?)",
+      "documentation": "@description Context's Global ValueProvider.
+@constructor",
+      "kind": 3,
+      "label": "ContextValueProvider",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "@description Creates a new ControllerDef, including the descriptor and action definitions.
+A ControllerDef instance is created as part of the ComponentDef initialization.
+@constructor
+@param {Object} config
+@export",
+      "kind": 3,
+      "label": "ControllerDef",
+    },
+    {
+      "detail": "fn(config: CryptoAdapter.!0)",
+      "documentation": "@description The crypto adapter for Aura Storage Service.
+
+This adapter provides AES-CBC encryption, using the browser Web Cryptography API
+(https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#dfn-GlobalCrypto)
+with a server-provided key, persisting into the IndexedDB adapter.
+
+Unlike other storage adapters this adapter does not automatically register itself. Use
+&lt;auraStorage:crypto/&gt; in the &lt;auraPreInitBlock/&gt; section of the app's template
+to register this adapter. Doing so guarantees that CryptoAdapter.setKey() will be invoked
+with a server-provided cryptographic key.
+
+Please note:
+1. If the runtime environment doesn't support the Web Cryptography API the adapter is not
+   registered.
+2. After registration and before a cryptographic key is provided, all crypto adapters
+   enter an initialization stage. Get, put, and remove operations are queued until
+   the key is set. If a key is never provided then the operations appear paused. It's
+   thus paramount to always provide a key. &lt;auraStorage:crypto/&gt; ensures this
+   happens.
+3. If an invalid cryptographic key is provided, the adapter automatically falls
+   back to the memory adapter to provide secure but non-persistent storage.
+
+@constructor",
+      "kind": 3,
+      "label": "CryptoAdapter",
+    },
+    {
       "detail": "fn()",
       "documentation": "The DOM CustomEvent are events initialized by an application for any purpose.",
       "kind": 3,
@@ -725,6 +1201,15 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "label": "Date",
     },
     {
+      "detail": "fn(descriptor: ?)",
+      "documentation": "@description Creates a new DefDescriptor (definition descriptor) instance, including the prefix and namespace.
+@constructor
+@param {Object} descriptor Throws an error if descriptor is null or undefined.
+@export",
+      "kind": 3,
+      "label": "DefDescriptor",
+    },
+    {
       "detail": "fn()",
       "documentation": "Each web page loaded in the browser has its own document object. This object serves as an entry point to the web page's content (the DOM tree, including elements such as <body> and <table>) and provides functionality global to the document (such as obtaining the page's URL and creating new elements in the document).",
       "kind": 3,
@@ -735,6 +1220,21 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "documentation": "Creates a new empty DocumentFragment.",
       "kind": 3,
       "label": "DocumentFragment",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "DomHandlersPlugin
+=================
+This plugin hooks into the definition of aura:html component.
+In particular the following methods:
+dispatchAction(): Tracks all interactions (click, mouseovers, any DOM handlers)
+handled by any active component
+
+@description DomHandlersPlugin
+@constructor
+@export",
+      "kind": 3,
+      "label": "DomHandlersPlugin",
     },
     {
       "detail": "fn()",
@@ -767,6 +1267,27 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "label": "Event",
     },
     {
+      "detail": "fn(config: ?)",
+      "documentation": "@description The Event Definition including the descriptor, type, and attributes.
+An EventDef instance is created as part of Aura initialization.
+@constructor
+@export",
+      "kind": 3,
+      "label": "EventDef",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@class ExpressionFunctions.
+
+client implementations of the expression functions
+
+@constructor
+@protected
+@export",
+      "kind": 3,
+      "label": "ExpressionFunctions",
+    },
+    {
       "detail": "fn(bits: ?, name: string, options?: ?)",
       "documentation": "The File object provides information about -- and access to the contents of -- files. These are generally retrieved from a FileList object returned as a result of a user selecting files using the input element, or from a drag and drop operation's DataTransfer object.",
       "kind": 3,
@@ -783,6 +1304,24 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "documentation": "The FileReader object lets web applications asynchronously read the contents of files (or raw data buffers) stored on the user's computer, using File or Blob objects to specify the file or data to read. File objects may be obtained from a FileList object returned as a result of a user selecting files using the <input> element, from a drag and drop operation's DataTransfer object, or from the mozGetAsFile() API on an HTMLCanvasElement.",
       "kind": 3,
       "label": "FileReader",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "@description Creates a FlavorDefaultDef instance.
+@param {Object} config
+@constructor
+@protected",
+      "kind": 3,
+      "label": "FlavorDefaultDef",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "@description Creates a FlavorsDef instance with a collection of flavor overrides for specific component descriptors.
+@param {Object} config
+@constructor
+@protected",
+      "kind": 3,
+      "label": "FlavorsDef",
     },
     {
       "detail": "fn(size: number)",
@@ -807,6 +1346,36 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "documentation": "Every function in JavaScript is actually a Function object.",
       "kind": 3,
       "label": "Function",
+    },
+    {
+      "detail": "fn(config: ?, valueProvider: ?)",
+      "documentation": "@description A Value wrapper for a function call.
+@constructor
+@protected
+@export",
+      "kind": 3,
+      "label": "FunctionCallValue",
+    },
+    {
+      "detail": "fn(gvp: ?, initCallback: fn(gvps: AuraInstance.context.globalValueProviders)|Function)",
+      "documentation": "@description Global Value Provider. Holds global values: $Label, $Browser, $Locale, etc
+
+The interface required of a global value provider is:
+<ul>
+  <li>merge: merge a set of values from the server (if values come from the server)
+  <li>get: get a single value from the GVP
+  <li>getStorableValues[optional] get a storable version of the GVP values
+  <li>getValues: get a set of values that can be exposed.
+  <li>set[optional]: set a value on the provider
+</ul>
+
+@param {Object} gvp an optional serialized GVP to load.
+@param {Function} initCallback an optional callback invoked after the GVP has finished its
+ asynchronous initialization.
+@constructor
+@export",
+      "kind": 3,
+      "label": "GlobalValueProviders",
     },
     {
       "detail": "fn()",
@@ -1229,6 +1798,32 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "label": "Image",
     },
     {
+      "detail": "fn(config: CryptoAdapter.!0)",
+      "documentation": "@description The IndexedDB adapter for Aura Storage Service.
+
+Implementation notes:
+
+Each store name gets its own DB. Each app gets its own ObjectStore (aka table). If the same
+store name is used across apps (eg actions ) then a single DB contains multiple ObjectStores.
+TODO - it'd be better scoped to have one DB per app with all its tables within.
+
+Sizing is approximate and updates to sizes are very approximate. We recalculate when our error bars get
+too big or after a certain number of updates. This is locked to happen no more than once every 15 minutes
+if our size is not over the limit.
+TODO - revamp size calculations to be more understandable while still supporting multiple browser tabs
+
+Entire table scans are performed for:
+(1) getAll, since we have to.
+(2) size or error bar over the limit.
+(3) getSize, with an old size guess.
+(4) sweep, since we're already scanning the table.
+
+
+@constructor",
+      "kind": 3,
+      "label": "IndexedDBAdapter",
+    },
+    {
       "detail": "number",
       "documentation": "A numeric value representing infinity.",
       "kind": 18,
@@ -1253,6 +1848,15 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "label": "Int8Array",
     },
     {
+      "detail": "fn()",
+      "documentation": "@class InvalidComponent
+@constructor
+@private
+@export",
+      "kind": 3,
+      "label": "InvalidComponent",
+    },
+    {
       "detail": "JSON",
       "documentation": "JSON (JavaScript Object Notation) is a data-interchange format.  It closely resembles a subset of JavaScript syntax, although it is not a strict subset. (See JSON in the JavaScript Reference for full details.)  It is useful when writing any kind of JavaScript-based application, including websites and browser extensions.  For example, you might store user information in JSON format in a cookie, or you might store extension preferences in JSON in a string-valued browser preference.",
       "kind": 18,
@@ -1260,18 +1864,67 @@ It should be noted that data stored in either sessionStorage or localStorage is 
     },
     {
       "detail": "fn()",
-      "documentation": "Json instance for test. Used to export Json methods for testing.
-
-@export
-@memberof Test",
+      "documentation": "@description A base class to enable JSON manipulation
+@constructor",
       "kind": 3,
-      "label": "JsonTestInstance",
+      "label": "Json",
     },
     {
       "detail": "fn()",
       "documentation": "KeyboardEvent objects describe a user interaction with the keyboard. Each event describes a key; the event type (keydown, keypress, or keyup) identifies what kind of activity was performed.",
       "kind": 3,
       "label": "KeyboardEvent",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@description Label Queue. Holds the components and callbacks for a particular $Label.
+Queues request for the same $Label to make server calls efficient
+
+@constructor",
+      "kind": 3,
+      "label": "LabelQueue",
+    },
+    {
+      "detail": "fn(values: ?)",
+      "documentation": "@description Label Provider. Performs server action to retrieve label values
+@constructor",
+      "kind": 3,
+      "label": "LabelValueProvider",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "A registry of library includes.
+Includes are similar to RequireJS's modules. The difference is their comsumption:
+in Aura, those are exported as items on library s instead of inside a require callback.
+We delay the creation of the instance of a library include untill it's requested.
+@constructor",
+      "kind": 3,
+      "label": "LibraryIncludeRegistry",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "A registry to combine library definitions and library instance.
+@constructor",
+      "kind": 3,
+      "label": "LibraryRegistry",
+    },
+    {
+      "detail": "fn() -> AuraInstance.lockerService",
+      "documentation": "#include aura.locker.InlineSafeEval",
+      "kind": 3,
+      "label": "LockerService",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "Logger implementation providing log messages to subscribers
+
+Subscriptions are made individually to each log level
+
+@namespace
+@constructor
+@export",
+      "kind": 3,
+      "label": "Logger",
     },
     {
       "detail": "fn(iterable?: [?])",
@@ -1284,6 +1937,32 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "documentation": "A built-in object that has properties and methods for mathematical constants and functions.",
       "kind": 18,
       "label": "Math",
+    },
+    {
+      "detail": "fn(config: CryptoAdapter.!0)",
+      "documentation": "@description The Javascript memory adapter for Aura Storage Service.
+@constructor",
+      "kind": 3,
+      "label": "MemoryAdapter",
+    },
+    {
+      "detail": "fn(def: ModelDef, data: ?, component: Component) -> Function",
+      "documentation": "@description Creates a Model instance.
+@constructor
+@param {Object} def
+@param {Object} data
+@param {Component} component
+@returns {Function}",
+      "kind": 3,
+      "label": "Model",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "@description Creates a new ModelDef instance.
+@constructor
+@export",
+      "kind": 3,
+      "label": "ModelDef",
     },
     {
       "detail": "fn()",
@@ -1340,16 +2019,94 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "label": "Object",
     },
     {
+      "detail": "fn(values: ?)",
+      "documentation": "@description Simple Value Provider. Holds generic map of Key/Value Pairs
+@constructor",
+      "kind": 3,
+      "label": "ObjectValueProvider",
+    },
+    {
+      "detail": "fn(primaryProviders: ?, component: ?)",
+      "documentation": "@description A value provider that resolves against a few primary providers first, then falls back on a component.
+@constructor
+@protected
+@export",
+      "kind": 3,
+      "label": "PassthroughValue",
+    },
+    {
+      "detail": "PerfConstants",
+      "documentation": "Various Perf constants.
+
+@enum {!string}
+@expose
+@export",
+      "kind": 18,
+      "label": "PerfConstants",
+    },
+    {
+      "detail": "PerfLogLevel",
+      "documentation": "The levels for logging performance m
+
+@enum {{name: !string, value: !number}}
+@expose
+@export",
+      "kind": 18,
+      "label": "PerfLogLevel",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "PerfMetricsPlugin
+=================
+This plugin hooks into the ClientService.
+In particular the following methods:
+processResponses(): Gets the performance metrics sent from the server
+and creates a mark so transactions can leverage all this information
+
+@description Transport metrics plugin
+@constructor",
+      "kind": 3,
+      "label": "PerfMetricsPlugin",
+    },
+    {
+      "detail": "PerfShim",
+      "documentation": "@public
+@namespace
+@const",
+      "kind": 18,
+      "label": "PerfShim",
+    },
+    {
       "detail": "fn(executor: fn(resolve: fn(value: ?), reject: fn(reason: ?)))",
       "documentation": "The Promise object is used for deferred and asynchronous computations. A Promise is in one of the three states:",
       "kind": 3,
       "label": "Promise",
     },
     {
+      "detail": "fn(path: ?, valueProvider: ?)",
+      "documentation": "@description A Value wrapper for a property reference.
+@constructor
+@protected
+@export",
+      "kind": 3,
+      "label": "PropertyReferenceValue",
+    },
+    {
       "detail": "fn(target: ?, handler: Proxy_handler)",
       "documentation": "The Proxy object is used to define the custom behavior in JavaScript fundamental operation (e.g. property lookup, assignment, enumeration, function invocation, etc).",
       "kind": 3,
       "label": "Proxy",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "QueuedActionsMetricsPlugin
+=================
+This plugin tracks the state and result of all actions from the framework
+@description Queued Action metrics plugin
+@constructor
+@export",
+      "kind": 3,
+      "label": "QueuedActionsMetricsPlugin",
     },
     {
       "detail": "fn()",
@@ -1388,10 +2145,198 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "label": "Request",
     },
     {
+      "detail": "fn(config: ?)",
+      "documentation": "Creates a new RequiredVersionDef instance, including the descriptor.
+@constructor
+@param {Object} config",
+      "kind": 3,
+      "label": "RequiredVersionDef",
+    },
+    {
+      "detail": "fn(configs: ?)",
+      "documentation": "Creates a new RequiredVersionDefSet instance.
+@param {Object} configs For each configs object provided, a new RequiredVersionDef instance is added
+@constructor
+@protected",
+      "kind": 3,
+      "label": "RequiredVersionDefSet",
+    },
+    {
       "detail": "fn(body: ?, init?: ?)",
       "documentation": "Represents the response to a request.",
       "kind": 3,
       "label": "Response",
+    },
+    {
+      "detail": "fn(action: ?, key: ?)",
+      "documentation": "Copyright (C) 2013 salesforce.com, inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.",
+      "kind": 3,
+      "label": "SecureAction",
+    },
+    {
+      "detail": "fn(AuraInstance: AuraInstance, key: SecureAura.!1)",
+      "documentation": "Factory for SecureAura objects.
+
+@param {Object}
+           AuraInstance - the Aura Instance to be secured
+@param {Object}
+           key - the key to apply to the secure aura",
+      "kind": 3,
+      "label": "SecureAura",
+    },
+    {
+      "detail": "fn(event: ?, key: ?)",
+      "documentation": "Copyright (C) 2013 salesforce.com, inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.",
+      "kind": 3,
+      "label": "SecureAuraEvent",
+    },
+    {
+      "detail": "fn(component: ?, key: ?)",
+      "documentation": "jslint sub: true",
+      "kind": 3,
+      "label": "SecureComponent",
+    },
+    {
+      "detail": "fn(component: ?, key: ?)",
+      "documentation": "jslint sub: true",
+      "kind": 3,
+      "label": "SecureComponentRef",
+    },
+    {
+      "detail": "fn(event: ?, key: SecureAura.!1) -> SecureDOMEvent.!ret",
+      "documentation": "Copyright (C) 2013 salesforce.com, inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.",
+      "kind": 3,
+      "label": "SecureDOMEvent",
+    },
+    {
+      "detail": "fn(doc: Document, key: SecureAura.!1) -> SecureDocument.!ret",
+      "documentation": "Factory for SecureDocument objects.
+
+@public
+
+@param {Object}
+           doc - the DOM document
+@param {Object}
+           key - the key to apply to the secure document",
+      "kind": 3,
+      "label": "SecureDocument",
+    },
+    {
+      "detail": "fn(el: ?, key: SecureAura.!1) -> SecureIFrameElement.!ret",
+      "documentation": "jslint sub: true",
+      "kind": 3,
+      "label": "SecureElement",
+    },
+    {
+      "detail": "fn(el: ?, key: SecureAura.!1) -> SecureIFrameElement.!ret",
+      "documentation": "Copyright (C) 2013 salesforce.com, inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.",
+      "kind": 3,
+      "label": "SecureIFrameElement",
+    },
+    {
+      "detail": "fn(navigator: navigator, key: SecureAura.!1)",
+      "documentation": "Construct a SecureNavigator.
+
+@public
+@class
+@constructor
+
+@param {Object}
+           navigator - the global navigator object
+@param {Object}
+           key - the key to apply to the secure navigator",
+      "kind": 3,
+      "label": "SecureNavigator",
+    },
+    {
+      "detail": "fn(thing: ?, key: ?)",
+      "documentation": "jslint sub: true",
+      "kind": 3,
+      "label": "SecureObject",
+    },
+    {
+      "detail": "fn(key: SecureAura.!1, el: ?) -> SecureElement.!ret",
+      "documentation": "jslint sub: true",
+      "kind": 3,
+      "label": "SecureScriptElement",
+    },
+    {
+      "detail": "fn(win: <top>, key: SecureAura.!1, globalAttributeAllowlist: [string]) -> SecureWindow.!ret",
+      "documentation": "Construct a SecureWindow.
+
+@public
+@class
+@constructor
+
+@param {Object}
+           win - the DOM window
+@param {Object}
+           key - the key to apply to the secure window",
+      "kind": 3,
+      "label": "SecureWindow",
+    },
+    {
+      "detail": "fn(key: SecureAura.!1) -> fn() -> SecureElement.createAddEventListenerDescriptor.!0",
+      "documentation": "Construct a SecureXMLHttpRequest.
+
+@public
+@class
+@constructor
+
+@param {Object}
+           xhr - the xhr object
+@param {Object}
+           key - the key to apply to the secure xhr",
+      "kind": 3,
+      "label": "SecureXMLHttpRequest",
     },
     {
       "detail": "fn()",
@@ -1406,6 +2351,13 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "label": "Set",
     },
     {
+      "detail": "fn()",
+      "documentation": "@description Provides operations to estimate size of JSON objects in memory.
+@constructor",
+      "kind": 3,
+      "label": "SizeEstimator",
+    },
+    {
       "detail": "Storage",
       "documentation": undefined,
       "kind": 18,
@@ -1416,6 +2368,14 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "documentation": "The String global object is a constructor for strings, or a sequence of characters.",
       "kind": 3,
       "label": "String",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "@description Creates a new StyleDef instance, including the class name and descriptor.
+@constructor
+@param {Object} config",
+      "kind": 3,
+      "label": "StyleDef",
     },
     {
       "detail": "fn(description?: string)",
@@ -1436,25 +2396,33 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "label": "Text",
     },
     {
-      "detail": "fn(label?: string, options?: {}) -> {_encoding: {labels: [?], name: string}, _error_mode: string, _ignoreBOM: bool}",
-      "documentation": "@param {string=} label The label of the encoding;
-    defaults to 'utf-8'.
-@param {Object=} options",
-      "kind": 3,
-      "label": "TextDecoder",
-    },
-    {
-      "detail": "fn(label?: string, options?: {}) -> {_encoding: {labels: [?], name: string}}",
-      "documentation": "@param {string=} label The label of the encoding. NONSTANDARD.
-@param {Object=} options NONSTANDARD.",
-      "kind": 3,
-      "label": "TextEncoder",
-    },
-    {
       "detail": "fn()",
       "documentation": "In order to provide quality support for touch-based user interfaces, touch events offer the ability to interpret finger activity on touch screens or trackpads.",
       "kind": 3,
       "label": "TouchEvent",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "TransportMetricsPlugin
+=================
+This plugin tracks information about all XHRs done to the aura servlet
+@description Transport metrics plugin
+@constructor
+@export",
+      "kind": 3,
+      "label": "TransportMetricsPlugin",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "@constructor",
+      "kind": 3,
+      "label": "TypeDef",
+    },
+    {
+      "detail": "fn()",
+      "documentation": "@constructor",
+      "kind": 3,
+      "label": "TypeDefRegistry",
     },
     {
       "detail": "fn(message: string)",
@@ -1503,6 +2471,14 @@ It should be noted that data stored in either sessionStorage or localStorage is 
       "documentation": "A TypedArray object describes an array-like view of an underlying binary data buffer. There is no global property named TypedArray, nor is there a directly visible TypedArray constructor.  Instead, there are a number of different global properties, whose values are typed array constructors for specific element types, listed below. On the following pages you will find common properties and methods that can be used with any typed array containing elements of any type.",
       "kind": 3,
       "label": "Uint8ClampedArray",
+    },
+    {
+      "detail": "fn(config: ?)",
+      "documentation": "@description Creates a ValueDef instance.
+@constructor
+@param config used to create the value definition.  Only config["name"] is used.",
+      "kind": 3,
+      "label": "ValueDef",
     },
     {
       "detail": "fn(iterable?: [?])",
@@ -1556,28 +2532,11 @@ It should be noted that data stored in either sessionStorage or localStorage is 
 }
 `;
 
-exports[`tern completion tern definition, same file 1`] = `
-{
-  "range": {
-    "end": {
-      "character": 43,
-      "line": 1,
-    },
-    "start": {
-      "character": 37,
-      "line": 1,
-    },
-  },
-  "uri": "file:///Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/sfdx-workspace/force-app/main/default/aura/lightningExamplesApp/lightningExamplesAppController.js",
-}
-`;
+exports[`tern completion tern definition, same file 1`] = `undefined`;
 
 exports[`tern completion tern hover 1`] = `
 {
-  "contents": [
-    "helper: {helperMethod}",
-    "A helper resource contains functions that can be reused by your JavaScript code in the component bundle. ",
-  ],
+  "contents": [],
 }
 `;
 

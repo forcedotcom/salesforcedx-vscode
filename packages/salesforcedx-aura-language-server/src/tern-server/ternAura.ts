@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as walk from 'acorn-walk';
-import * as vscode from 'vscode';
 import * as infer from '../tern/lib/infer';
 import * as tern from '../tern/lib/tern';
 import defs from './aura_types.json';
@@ -64,9 +64,9 @@ const readFile = async (filename: string): Promise<string> => {
     }
 
     try {
-        const uri = vscode.Uri.file(normalized);
-        const content = await vscode.workspace.fs.readFile(uri);
-        return new TextDecoder().decode(content);
+        const fileSystem = new FileSystemDataProvider();
+        const content = fileSystem.getFileContent(`file://${normalized}`);
+        return content ?? '';
     } catch {
         // Handle file not found or other errors
         return '';

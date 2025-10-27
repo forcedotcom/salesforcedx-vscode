@@ -7,13 +7,13 @@
 import { Indexer, TagInfo, createTagInfo, createAttributeInfo, elapsedMillis } from '@salesforce/salesforcedx-lightning-lsp-common';
 import LineColumnFinder from 'line-column';
 import EventsEmitter from 'node:events';
-import * as vscode from 'vscode';
 import { Node } from 'vscode-html-languageservice';
 import { Location } from 'vscode-languageserver';
 import URI from 'vscode-uri';
-import * as auraUtils from '../auraUtils';
 import { parse } from '../auraUtils';
 import { AuraWorkspaceContext } from '../context/auraContext';
+import auraStandard from '../resources/aura-standard.json';
+import transformedAuraSystem from '../resources/transformed-aura-system.json';
 import { componentFromFile, componentFromDirectory } from '../util/componentUtil';
 
 export default class AuraIndexer implements Indexer {
@@ -64,17 +64,18 @@ export default class AuraIndexer implements Indexer {
         this.deleteCustomTag(name);
     }
 
-    public async indexFile(file: string, sfdxProject: boolean): Promise<TagInfo | undefined> {
-        let uri: vscode.Uri;
+    public indexFile(file: string, sfdxProject: boolean): TagInfo | undefined {
         try {
-            uri = vscode.Uri.file(file);
-            await vscode.workspace.fs.stat(uri);
+            const stat = this.context.fileSystemProvider.getFileStat(file);
+            if (stat?.type !== 'file') {
+                return undefined;
+            }
         } catch {
             this.clearTagsforFile(file, sfdxProject);
             return;
         }
-        const content = await vscode.workspace.fs.readFile(uri);
-        const markup = new TextDecoder().decode(content);
+        const content = this.context.fileSystemProvider.getFileContent(file);
+        const markup = content ?? '';
         const result = parse(markup);
         const tags: Node[] = [];
         for (const root of result.roots) {
@@ -172,10 +173,7 @@ export default class AuraIndexer implements Indexer {
     }
 
     private async loadSystemTags(): Promise<void> {
-        const uri = vscode.Uri.file(auraUtils.getAuraSystemResourcePath());
-        const content = await vscode.workspace.fs.readFile(uri);
-        const data = new TextDecoder().decode(content);
-        const auraSystem = JSON.parse(data);
+        const auraSystem = transformedAuraSystem;
         for (const tag in auraSystem) {
             if (auraSystem.hasOwnProperty(tag) && typeof tag === 'string') {
                 const tagObj = auraSystem[tag];
@@ -196,13 +194,10 @@ export default class AuraIndexer implements Indexer {
     }
 
     private async loadStandardComponents(): Promise<void> {
-        const uri = vscode.Uri.file(auraUtils.getAuraStandardResourcePath());
-        const content = await vscode.workspace.fs.readFile(uri);
-        const data = new TextDecoder().decode(content);
-        const auraStandard = JSON.parse(data);
-        for (const tag in auraStandard) {
-            if (auraStandard.hasOwnProperty(tag) && typeof tag === 'string') {
-                const tagObj = auraStandard[tag];
+        const standardComponents = auraStandard;
+        for (const tag in standardComponents) {
+            if (standardComponents.hasOwnProperty(tag) && typeof tag === 'string') {
+                const tagObj = standardComponents[tag];
                 const info = createTagInfo(null, 'STANDARD', false, []);
                 if (tagObj.attributes) {
                     tagObj.attributes.sort((a, b) => a.name.localeCompare(b.name));

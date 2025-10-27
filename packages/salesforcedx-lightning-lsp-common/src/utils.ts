@@ -8,11 +8,11 @@
 import equal from 'deep-equal';
 import * as jsonc from 'jsonc-parser';
 import { basename, extname, join, parse, relative, resolve, dirname } from 'node:path';
-import * as vscode from 'vscode';
 import { FileEvent, FileChangeType } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { BaseWorkspaceContext } from './baseContext';
+import { IFileSystemProvider } from './providers/fileSystemDataProvider';
 
 const RESOURCES_DIR = 'resources';
 
@@ -198,9 +198,12 @@ export const memoize = <T>(fn: () => T): (() => T) => {
     };
 };
 
-export const readJsonSync = async (file: string): Promise<SfdxTsConfig> => {
+export const readJsonSync = async (file: string, fileSystemProvider: IFileSystemProvider): Promise<SfdxTsConfig> => {
     try {
-        const content = await vscode.workspace.fs.readFile(vscode.Uri.file(file)).then((data) => Buffer.from(data).toString('utf8'));
+        const content = fileSystemProvider.getFileContent(`${file}`);
+        if (!content) {
+            return {};
+        }
         // jsonc.parse will return an object without comments.
         // Comments will be lost if this object is written back to file.
         // Individual properties should be updated directly via VS Code API to preserve comments.
@@ -212,6 +215,7 @@ export const readJsonSync = async (file: string): Promise<SfdxTsConfig> => {
     }
 };
 
-export const writeJsonSync = async (file: string, json: SfdxTsConfig): Promise<void> => {
-    await vscode.workspace.fs.writeFile(vscode.Uri.file(file), Buffer.from(JSON.stringify(json, null, 4)));
+export const writeJsonSync = async (file: string, json: SfdxTsConfig, fileSystemProvider: IFileSystemProvider): Promise<void> => {
+    const content = JSON.stringify(json, null, 4);
+    fileSystemProvider.updateFileContent(`${file}`, content);
 };

@@ -6,20 +6,22 @@
  */
 
 import * as path from 'node:path';
-import * as vscode from 'vscode';
+import { IFileSystemProvider } from './providers/fileSystemDataProvider';
 
 /**
  * Check if a directory contains module roots
  */
-const isModuleRoot = async (subdirs: string[]): Promise<boolean> => {
+const isModuleRoot = async (subdirs: string[], fileSystemProvider: IFileSystemProvider): Promise<boolean> => {
     for (const subdir of subdirs) {
         // Is a root if any subdir matches a name/name.js with name.js being a module
         const basename = path.basename(subdir);
         const modulePath = path.join(subdir, `${basename}.js`);
         try {
-            await vscode.workspace.fs.stat(vscode.Uri.file(modulePath));
-            // TODO: check contents for: from 'lwc'?
-            return true;
+            const stat = fileSystemProvider.getFileStat(modulePath);
+            if (stat?.type === 'file') {
+                // TODO: check contents for: from 'lwc'?
+                return true;
+            }
         } catch {
             // File doesn't exist
         }
@@ -30,7 +32,7 @@ const isModuleRoot = async (subdirs: string[]): Promise<boolean> => {
 /**
  * Recursively traverse directories to find namespace roots
  */
-const traverse = async (candidate: string, depth: number, roots: { lwc: string[]; aura: string[] }): Promise<void> => {
+const traverse = async (candidate: string, depth: number, roots: { lwc: string[]; aura: string[] }, fileSystemProvider: IFileSystemProvider): Promise<void> => {
     if (depth - 1 < 0) {
         return;
     }
@@ -42,21 +44,23 @@ const traverse = async (candidate: string, depth: number, roots: { lwc: string[]
     }
 
     // module_root/name/name.js
-    const entries = await vscode.workspace.fs.readDirectory(vscode.Uri.file(candidate));
+    const entries = fileSystemProvider.getDirectoryListing(candidate);
     const dirs = [];
-    for (const [name, type] of entries) {
-        if (type === vscode.FileType.Directory) {
-            dirs.push(path.join(candidate, name));
+    if (entries) {
+        for (const entry of entries) {
+            if (entry.type === 'directory') {
+                dirs.push(path.join(candidate, entry.name));
+            }
         }
     }
 
     // Is a root if we have a folder called lwc
-    const isDirLWC = (await isModuleRoot(dirs)) || (!path.parse(candidate).ext && path.parse(candidate).name === 'lwc');
+    const isDirLWC = (await isModuleRoot(dirs, fileSystemProvider)) || (!path.parse(candidate).ext && path.parse(candidate).name === 'lwc');
     if (isDirLWC) {
         roots.lwc.push(path.resolve(candidate));
     } else {
         for (const subdir of dirs) {
-            await traverse(subdir, depth - 1, roots);
+            await traverse(subdir, depth - 1, roots, fileSystemProvider);
         }
     }
 };
@@ -64,15 +68,17 @@ const traverse = async (candidate: string, depth: number, roots: { lwc: string[]
 /**
  * Helper function to find namespace roots within a directory
  */
-export const findNamespaceRoots = async (root: string, maxDepth = 5): Promise<{ lwc: string[]; aura: string[] }> => {
+export const findNamespaceRoots = async (root: string, fileSystemProvider: IFileSystemProvider, maxDepth = 5): Promise<{ lwc: string[]; aura: string[] }> => {
     const roots: { lwc: string[]; aura: string[] } = {
         lwc: [],
         aura: [],
     };
 
     try {
-        await vscode.workspace.fs.stat(vscode.Uri.file(root));
-        await traverse(root, maxDepth, roots);
+        const stat = fileSystemProvider.getFileStat(root);
+        if (stat?.type === 'directory') {
+            await traverse(root, maxDepth, roots, fileSystemProvider);
+        }
     } catch {
         // Directory doesn't exist
     }

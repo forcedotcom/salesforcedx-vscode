@@ -53,12 +53,12 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
                     projects.map(async (project) => {
                         const modulesDir = path.join(this.workspaceRoots[0], project, 'modules');
                         if (await this.pathExists(modulesDir)) {
-                            const subroots = await findNamespaceRoots(modulesDir, 2);
+                            const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
                             roots.lwc.push(...subroots.lwc);
                         }
                         const auraDir = path.join(this.workspaceRoots[0], project, 'components');
                         if (await this.pathExists(auraDir)) {
-                            const subroots = await findNamespaceRoots(auraDir, 2);
+                            const subroots = await findNamespaceRoots(auraDir, this.fileSystemProvider, 2);
                             roots.aura.push(...subroots.lwc);
                         }
                     }),
@@ -69,12 +69,12 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
                 for (const ws of this.workspaceRoots) {
                     const modulesDir = path.join(ws, 'modules');
                     if (await this.pathExists(modulesDir)) {
-                        const subroots = await findNamespaceRoots(path.join(ws, 'modules'), 2);
+                        const subroots = await findNamespaceRoots(path.join(ws, 'modules'), this.fileSystemProvider, 2);
                         roots.lwc.push(...subroots.lwc);
                     }
                     const auraDir = path.join(ws, 'components');
                     if (await this.pathExists(auraDir)) {
-                        const subroots = await findNamespaceRoots(path.join(ws, 'components'), 2);
+                        const subroots = await findNamespaceRoots(path.join(ws, 'components'), this.fileSystemProvider, 2);
                         roots.aura.push(...subroots.lwc);
                     }
                 }
@@ -87,7 +87,7 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
                 if (this.type === 'MONOREPO') {
                     depth += 2;
                 }
-                const unknownroots = await findNamespaceRoots(this.workspaceRoots[0], depth);
+                const unknownroots = await findNamespaceRoots(this.workspaceRoots[0], this.fileSystemProvider, depth);
                 roots.lwc.push(...unknownroots.lwc);
                 roots.aura.push(...unknownroots.aura);
                 return roots;

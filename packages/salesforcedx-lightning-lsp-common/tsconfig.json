@@ -20,11 +20,13 @@
         "declaration": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
+        "resolveJsonModule": true,
         "types": ["node", "jest"]
     },
 
     "include": [
         "src/**/*.ts",
+        "src/**/*.json",
         "typings/*.d.ts",
         "jest/*.js",
         "jest/*.ts"
@@ -33,7 +35,6 @@
     "exclude": [
         "out",
         "node_modules",
-        "src/resources/**/*",
         "**/__tests__/fixtures/*.js"
     ]
 }

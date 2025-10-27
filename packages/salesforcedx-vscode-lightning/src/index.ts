@@ -5,14 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { detectWorkspaceType, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { code2ProtocolConverter, TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { detectWorkspaceType, FileSystemDataProvider, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { log } from 'node:console';
 import * as path from 'node:path';
-import { ExtensionContext, ProgressLocation, Uri, window, workspace } from 'vscode';
+import { ExtensionContext, Uri, workspace, FileType } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import { nls } from './messages';
-
-const protocol2CodeConverter = (value: string): Uri => Uri.parse(value);
 
 const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
@@ -41,8 +40,11 @@ export const activate = async (extensionContext: ExtensionContext) => {
     workspaceUris.push(folder.uri.fsPath);
   });
 
+  // Create a FileSystemDataProvider with workspace files for the language server
+  const serverFileSystemProvider = await createSmartFileSystemProvider(workspaceUris);
+
   // 3) If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = await detectWorkspaceType(workspaceUris);
+  const workspaceType = await detectWorkspaceType(workspaceUris, serverFileSystemProvider);
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
@@ -61,8 +63,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
   await TelemetryService.getInstance().initializeService(extensionContext);
 
   // Start the Aura Language Server
-
-  // Setup the language server
   const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
 
@@ -73,7 +73,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
-
   const serverOptions: ServerOptions = {
     run: { module: serverModule, transport: TransportKind.ipc },
     debug: {
@@ -85,7 +84,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // Setup our fileSystemWatchers
   const clientOptions: LanguageClientOptions = {
-    outputChannelName: nls.localize('channel_name'),
     documentSelector: [
       {
         language: 'html',
@@ -98,6 +96,9 @@ export const activate = async (extensionContext: ExtensionContext) => {
       { language: 'javascript', scheme: 'file' },
       { language: 'javascript', scheme: 'untitled' }
     ],
+    initializationOptions: {
+      fileSystemProvider: serverFileSystemProvider
+    },
     synchronize: {
       fileEvents: [
         workspace.createFileSystemWatcher('**/*.resource'),
@@ -113,19 +114,12 @@ export const activate = async (extensionContext: ExtensionContext) => {
         workspace.createFileSystemWatcher('**/lwc/*/*.js'),
         workspace.createFileSystemWatcher('**/modules/*/*/*.js')
       ]
-    },
-    uriConverters: {
-      code2Protocol: code2ProtocolConverter,
-      protocol2Code: protocol2CodeConverter
     }
   };
 
   // Create the language client and start the client.
   const client = new LanguageClient('auraLanguageServer', nls.localize('client_name'), serverOptions, clientOptions);
 
-  // Set up notifications
-  client.onNotification('salesforce/indexingStarted', startIndexing);
-  client.onNotification('salesforce/indexingEnded', endIndexing);
   // Start the language server
   await client.start();
 
@@ -137,30 +131,135 @@ export const activate = async (extensionContext: ExtensionContext) => {
   TelemetryService.getInstance().sendExtensionActivationEvent(extensionStartTime);
 };
 
-let indexingResolve: any;
-
-const startIndexing = (): void => {
-  const indexingPromise: Promise<void> = new Promise(resolve => {
-    indexingResolve = resolve;
-  });
-  void reportIndexing(indexingPromise);
-};
-
-const endIndexing = (): void => {
-  indexingResolve(undefined);
-};
-const reportIndexing = async (indexingPromise: Promise<void>) => {
-  void window.withProgress(
-    {
-      location: ProgressLocation.Window,
-      title: nls.localize('index_components_text'),
-      cancellable: true
-    },
-    () => indexingPromise
-  );
-};
-
 export const deactivate = () => {
   console.log('Aura Components Extension Deactivated');
   TelemetryService.getInstance().sendExtensionDeactivationEvent();
+};
+
+/**
+ * Creates a FileSystemDataProvider that reads all workspace files and directories
+ * @param workspaceUris Array of workspace folder paths
+ * @returns FileSystemDataProvider with workspace files and directories
+ */
+const createSmartFileSystemProvider = async (workspaceUris: string[]): Promise<FileSystemDataProvider> => {
+  const fileSystemProvider = new FileSystemDataProvider();
+
+  for (const workspaceUri of workspaceUris) {
+    try {
+      await populateEssentialFiles(fileSystemProvider, workspaceUri);
+    } catch (error) {
+      log(`Error populating workspace files for workspace ${workspaceUri}: ${error}`);
+    }
+  }
+
+  return fileSystemProvider;
+};
+
+/**
+ * Populates the entire workspace files and directories
+ * @param provider FileSystemDataProvider to populate
+ * @param workspacePath Path to the workspace directory
+ */
+const populateEssentialFiles = async (provider: FileSystemDataProvider, workspacePath: string): Promise<void> => {
+  await populateWorkspaceRecursively(provider, workspacePath);
+};
+
+/**
+ * Recursively populates all files and directories in the workspace
+ * @param provider FileSystemDataProvider to populate
+ * @param dirPath Path to the directory to populate
+ */
+const populateWorkspaceRecursively = async (provider: FileSystemDataProvider, dirPath: string): Promise<void> => {
+  try {
+    const dirUri = Uri.file(dirPath);
+    const entries = await workspace.fs.readDirectory(dirUri);
+
+    // Update directory listing
+    const directoryEntries = entries.map(([name, type]): { name: string; type: 'file' | 'directory'; uri: string } => ({
+      name,
+      type: type === FileType.File ? 'file' : 'directory',
+      uri: path.join(dirPath, name)
+    }));
+    provider.updateDirectoryListing(dirPath, directoryEntries);
+
+    // Update directory stat
+    provider.updateFileStat(dirPath, {
+      type: 'directory',
+      exists: true,
+      ctime: Date.now(),
+      mtime: Date.now(),
+      size: 0 // Directories don't have a meaningful size
+    });
+
+    // Process each entry
+    for (const [name, type] of entries) {
+      const entryPath = path.join(dirPath, name);
+
+      if (type === FileType.File) {
+        await tryReadFile(provider, entryPath);
+      } else if (type === FileType.Directory) {
+        // Skip common directories that don't need to be populated
+        if (shouldSkipDirectory(name)) {
+          continue;
+        }
+        await populateWorkspaceRecursively(provider, entryPath);
+      }
+    }
+  } catch (error: any) {
+    // Directory doesn't exist or can't be read
+    if (!error.message?.includes('ENOENT')) {
+      log(`Unexpected error reading directory ${dirPath}: ${error}`);
+    }
+  }
+};
+
+/**
+ * Determines if a directory should be skipped during workspace population
+ * @param dirName Name of the directory
+ * @returns true if directory should be skipped
+ */
+const shouldSkipDirectory = (dirName: string): boolean => {
+  const skipDirs = [
+    'node_modules',
+    '.git',
+    '.vscode',
+    '.sfdx',
+    'coverage',
+    'dist',
+    'out',
+    'lib',
+    '.nyc_output',
+    'temp',
+    'tmp',
+    '.DS_Store'
+  ];
+  return skipDirs.includes(dirName) || dirName.startsWith('.');
+};
+
+/**
+ * Attempts to read a file and add it to the provider if it exists
+ * @param provider FileSystemDataProvider to update
+ * @param filePath Path to the file to read
+ */
+const tryReadFile = async (provider: FileSystemDataProvider, filePath: string): Promise<void> => {
+  try {
+    const fileUri = Uri.file(filePath);
+    const fileContent = await workspace.fs.readFile(fileUri);
+    const content = Buffer.from(fileContent).toString('utf8');
+
+    provider.updateFileContent(filePath, content);
+    provider.updateFileStat(filePath, {
+      type: 'file',
+      exists: true,
+      ctime: Date.now(),
+      mtime: Date.now(),
+      size: content.length
+    });
+  } catch (error: any) {
+    // File doesn't exist or can't be read - this is expected for most files
+    // Only log if it's an unexpected error
+    if (!error.message?.includes('ENOENT')) {
+      log(`Unexpected error reading file ${filePath}: ${error}`);
+    }
+  }
 };

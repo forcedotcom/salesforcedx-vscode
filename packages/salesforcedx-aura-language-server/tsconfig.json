@@ -26,13 +26,14 @@
     "include": [
         "src/**/*.ts",
         "src/**/*.json",
+        "src/**/*.js",
+        "resources/**/*.js",
         "typings/*.d.ts",
         "jest/*.js"
     ],
 
     "exclude": [
         "node_modules",
-        "src/resources/**/*",
         "src/tern/**/*.js",
         "src/tern/test/**/*",
         "src/tern/doc/**/*",

@@ -6,11 +6,10 @@
  */
 import * as os from 'node:os';
 import { join, resolve } from 'node:path';
-import * as vscode from 'vscode';
 import { FileEvent, FileChangeType } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { FileSystemDataProvider } from '../providers/fileSystemDataProvider';
 import * as utils from '../utils';
-import { SfdxTsConfig } from '../utils';
 import { WorkspaceContext } from './workspaceContext';
 
 describe('utils', () => {
@@ -27,7 +26,7 @@ describe('utils', () => {
             type: FileChangeType.Deleted,
             uri: 'file:///Users/user/test/dir/file.html',
         };
-        const ctxt = new WorkspaceContext('');
+        const ctxt = new WorkspaceContext('', new FileSystemDataProvider());
         ctxt.type = 'SFDX';
         // Mock the isFileInsideModulesRoots method to return true for the test directory
         ctxt.isFileInsideModulesRoots = jest.fn().mockResolvedValue(true);
@@ -53,7 +52,7 @@ describe('utils', () => {
             type: FileChangeType.Deleted,
             uri: 'file:///Users/user/test/dir/lwc',
         };
-        const ctxt = new WorkspaceContext('');
+        const ctxt = new WorkspaceContext('', new FileSystemDataProvider());
         ctxt.type = 'SFDX';
         expect(utils.isLWCRootDirectoryCreated(ctxt, [noLwcFolderCreated, noLwcFolderDeleted])).toBeFalsy();
         expect(utils.isLWCRootDirectoryCreated(ctxt, [noLwcFolderCreated])).toBeFalsy();
@@ -141,36 +140,28 @@ describe('utils', () => {
     });
 
     describe('readJsonSync()', () => {
-        let testFilePaths: string[] = [];
+        let fileSystemProvider: FileSystemDataProvider;
+
+        beforeEach(() => {
+            fileSystemProvider = new FileSystemDataProvider();
+        });
 
         afterEach(async () => {
-            // Clean up test files
-            for (const filePath of testFilePaths) {
-                try {
-                    await vscode.workspace.fs.delete(vscode.Uri.file(filePath));
-                } catch {
-                    // Ignore cleanup errors
-                }
-            }
-            testFilePaths = [];
+            fileSystemProvider.clear();
         });
 
         it('should read json files', async () => {
-            const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.json`);
-            testFilePaths.push(testFile);
-
-            const jsonContent: SfdxTsConfig = { compilerOptions: { paths: { foo: ['bar'] } } };
-            await vscode.workspace.fs.writeFile(vscode.Uri.file(testFile), new TextEncoder().encode(JSON.stringify(jsonContent)));
-
-            const settings = await utils.readJsonSync(testFile);
+            const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}.json`);
+            fileSystemProvider.updateFileContent(`${testFile}`, JSON.stringify({ compilerOptions: { paths: { foo: ['bar'] } } }));
+            const settings = await utils.readJsonSync(testFile, fileSystemProvider);
 
             expect(settings).toHaveProperty('compilerOptions.paths.foo');
             expect(settings?.compilerOptions?.paths?.foo).toEqual(['bar']);
         });
 
         it('should read json files with comments', async () => {
-            const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.json`);
-            testFilePaths.push(testFile);
+            const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}.json`);
+            fileSystemProvider.updateFileContent(`${testFile}`, JSON.stringify({ compilerOptions: { paths: { foo: ['bar'] } } }));
 
             const jsonWithComments = {
                 compilerOptions: {
@@ -180,9 +171,9 @@ describe('utils', () => {
                     },
                 },
             };
-            await vscode.workspace.fs.writeFile(vscode.Uri.file(testFile), new TextEncoder().encode(JSON.stringify(jsonWithComments)));
+            fileSystemProvider.updateFileContent(`${testFile}`, JSON.stringify(jsonWithComments));
 
-            const settings = await utils.readJsonSync(testFile);
+            const settings = await utils.readJsonSync(testFile, fileSystemProvider);
 
             expect(settings).toHaveProperty('compilerOptions.paths.foo');
             expect(settings?.compilerOptions?.paths?.foo).toEqual(['bar']);
@@ -191,7 +182,7 @@ describe('utils', () => {
         it('should return empty object for non-existing files', async () => {
             const nonExistentFile = join(os.tmpdir(), `non-existent-${Date.now()}.json`);
 
-            const settings = await utils.readJsonSync(nonExistentFile);
+            const settings = await utils.readJsonSync(nonExistentFile, fileSystemProvider);
 
             expect(Object.keys(settings).length).toEqual(0);
         });

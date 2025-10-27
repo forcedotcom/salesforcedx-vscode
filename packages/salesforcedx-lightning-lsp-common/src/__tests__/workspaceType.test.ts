@@ -6,6 +6,7 @@
  */
 // eslint-disable-next-line import/no-extraneous-dependencies
 import mockFs from 'mock-fs';
+import { FileSystemDataProvider } from '../providers/fileSystemDataProvider';
 import { detectWorkspaceType } from '../shared';
 
 describe('detectWorkspaceType', () => {
@@ -31,8 +32,16 @@ describe('detectWorkspaceType', () => {
                 'sfdx-project.json': '{}',
             },
         });
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspacedir/sfdx-project.json', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
 
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
 
         expect(workspaceType).toEqual('SFDX');
     });
@@ -43,8 +52,16 @@ describe('detectWorkspaceType', () => {
                 'lwc.config.json': '',
             },
         });
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspacedir/lwc.config.json', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
 
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
 
         expect(workspaceType).toEqual('STANDARD_LWC');
     });
@@ -55,8 +72,16 @@ describe('detectWorkspaceType', () => {
                 'workspace-user.xml': '<workspace></workspace>',
             },
         });
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspacedir/workspace-user.xml', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
 
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
 
         expect(workspaceType).toEqual('CORE_ALL');
     });
@@ -66,9 +91,15 @@ describe('detectWorkspaceType', () => {
             workspacedir: {},
             'workspace-user.xml': '<workspace></workspace>',
         });
-
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
-
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspace-user.xml', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
         expect(workspaceType).toEqual('CORE_PARTIAL');
     });
 
@@ -83,7 +114,24 @@ describe('detectWorkspaceType', () => {
             },
         });
 
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspacedir/package.json', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
+        fileSystemProvider.updateFileContent(
+            'workspacedir/package.json',
+            JSON.stringify({
+                dependencies: {
+                    '@lwc/engine-dom': 1,
+                },
+            }),
+        );
+
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
 
         expect(workspaceType).toEqual('STANDARD_LWC');
     });
@@ -99,7 +147,24 @@ describe('detectWorkspaceType', () => {
             },
         });
 
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspacedir/package.json', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
+        fileSystemProvider.updateFileContent(
+            'workspacedir/package.json',
+            JSON.stringify({
+                dependencies: {
+                    '@lwc/compiler': 1,
+                },
+            }),
+        );
+
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
 
         expect(workspaceType).toEqual('STANDARD_LWC');
     });
@@ -115,7 +180,24 @@ describe('detectWorkspaceType', () => {
             },
         });
 
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspacedir/package.json', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
+        fileSystemProvider.updateFileContent(
+            'workspacedir/package.json',
+            JSON.stringify({
+                devDependencies: {
+                    '@lwc/compiler': 1,
+                },
+            }),
+        );
+
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
 
         expect(workspaceType).toEqual('STANDARD_LWC');
     });
@@ -129,8 +211,23 @@ describe('detectWorkspaceType', () => {
                 }),
             },
         });
-
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspacedir/package.json', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
+        fileSystemProvider.updateFileContent(
+            'workspacedir/package.json',
+            JSON.stringify({
+                dependencies: {
+                    '@lwc/engine-dom': 1,
+                },
+            }),
+        );
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
 
         expect(workspaceType).toEqual('STANDARD_LWC');
     });
@@ -145,8 +242,23 @@ describe('detectWorkspaceType', () => {
                 }),
             },
         });
-
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspacedir/package.json', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
+        fileSystemProvider.updateFileContent(
+            'workspacedir/package.json',
+            JSON.stringify({
+                devDependencies: {
+                    '@lwc/engine-dom': 1,
+                },
+            }),
+        );
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
         expect(workspaceType).toEqual('STANDARD_LWC');
     });
 
@@ -161,7 +273,23 @@ describe('detectWorkspaceType', () => {
             },
         });
 
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspacedir/package.json', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
+        fileSystemProvider.updateFileContent(
+            'workspacedir/package.json',
+            JSON.stringify({
+                dependencies: {
+                    lwc: 1,
+                },
+            }),
+        );
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
 
         expect(workspaceType).toEqual('STANDARD_LWC');
     });
@@ -177,7 +305,23 @@ describe('detectWorkspaceType', () => {
             },
         });
 
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspacedir/package.json', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
+        fileSystemProvider.updateFileContent(
+            'workspacedir/package.json',
+            JSON.stringify({
+                devDependencies: {
+                    lwc: 1,
+                },
+            }),
+        );
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
         expect(workspaceType).toEqual('STANDARD_LWC');
     });
 
@@ -192,8 +336,25 @@ describe('detectWorkspaceType', () => {
                 }),
             },
         });
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspacedir/package.json', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
+        fileSystemProvider.updateFileContent(
+            'workspacedir/package.json',
+            JSON.stringify({
+                lwc: {
+                    mapNamespaceFromPath: true,
+                    modules: ['src/main/modules'],
+                },
+            }),
+        );
 
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
         expect(workspaceType).toEqual('STANDARD_LWC');
     });
 
@@ -206,7 +367,22 @@ describe('detectWorkspaceType', () => {
             },
         });
 
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspacedir/package.json', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
+        fileSystemProvider.updateFileContent(
+            'workspacedir/package.json',
+            JSON.stringify({
+                workspaces: [],
+            }),
+        );
+
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
 
         expect(workspaceType).toEqual('MONOREPO');
     });
@@ -219,7 +395,25 @@ describe('detectWorkspaceType', () => {
             },
         });
 
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspacedir/package.json', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
+        fileSystemProvider.updateFileStat('workspacedir/lerna.json', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
+        fileSystemProvider.updateFileContent('workspacedir/package.json', '{}');
+        fileSystemProvider.updateFileContent('workspacedir/lerna.json', '{}');
+
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
 
         expect(workspaceType).toEqual('MONOREPO');
     });
@@ -231,7 +425,17 @@ describe('detectWorkspaceType', () => {
             },
         });
 
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspacedir/package.json', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
+        fileSystemProvider.updateFileContent('workspacedir/package.json', '{}');
+
+        const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
 
         expect(workspaceType).toEqual('STANDARD');
     });
@@ -243,7 +447,7 @@ describe('detectWorkspaceType', () => {
             },
         });
 
-        const workspaceType = await detectWorkspaceType(['workspacedir']);
+        const workspaceType = await detectWorkspaceType(['workspacedir'], new FileSystemDataProvider());
 
         expect(workspaceType).toEqual('UNKNOWN');
     });
@@ -265,7 +469,16 @@ describe('detectWorkspaceType with mutliroot', () => {
             'workspace-user.xml': '<workspace></workspace>',
         });
 
-        const workspaceType = await detectWorkspaceType(['workspacedir', 'workspacedir2']);
+        const fileSystemProvider = new FileSystemDataProvider();
+        fileSystemProvider.updateFileStat('workspace-user.xml', {
+            type: 'file',
+            exists: true,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
+
+        const workspaceType = await detectWorkspaceType(['workspacedir', 'workspacedir2'], fileSystemProvider);
 
         expect(workspaceType).toEqual('CORE_PARTIAL');
     });
@@ -288,7 +501,7 @@ describe('detectWorkspaceType with mutliroot', () => {
             },
         });
 
-        const workspaceType = await detectWorkspaceType(['sfdx_workspace', 'core_all_workspace', 'standard_lwc_workspace']);
+        const workspaceType = await detectWorkspaceType(['sfdx_workspace', 'core_all_workspace', 'standard_lwc_workspace'], new FileSystemDataProvider());
 
         expect(workspaceType).toEqual('UNKNOWN');
     });
@@ -315,7 +528,10 @@ describe('detectWorkspaceType with mutliroot', () => {
             'workspace-user.xml': '<workspace></workspace>',
         });
 
-        const workspaceType = await detectWorkspaceType(['sfdx_workspace', 'core_all_workspace', 'standard_lwc_workspace', 'core_partial_workspace']);
+        const workspaceType = await detectWorkspaceType(
+            ['sfdx_workspace', 'core_all_workspace', 'standard_lwc_workspace', 'core_partial_workspace'],
+            new FileSystemDataProvider(),
+        );
 
         expect(workspaceType).toEqual('UNKNOWN');
     });

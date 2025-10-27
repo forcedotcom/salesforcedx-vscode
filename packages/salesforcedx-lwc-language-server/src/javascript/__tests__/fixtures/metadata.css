@@ -1,4 +1,8 @@
-.metadata {
-    background: black;
-    color: white;
+.metadata-component {
+    background-color: #f0f0f0;
+}
+
+h1 {
+    color: #333;
+    font-size: 1.5rem;
 }

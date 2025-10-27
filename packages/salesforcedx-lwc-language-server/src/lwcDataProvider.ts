@@ -4,11 +4,25 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { join } from 'node:path';
-import * as vscode from 'vscode';
 import { IAttributeData, ITagData, IValueData, IHTMLDataProvider } from 'vscode-html-languageservice';
 import ComponentIndexer from './componentIndexer';
+import transformedLwcStandard from './resources/transformed-lwc-standard.json';
 import { getLwcName, getTagDescription, getPublicAttributes, getClassMembers, getTagName } from './tag';
+
+// Transform null descriptions to undefined for compatibility
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+const transformAttribute = (attr: any) => ({
+    ...attr,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+    description: attr.description ?? undefined,
+});
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
+const transformTag = (tag: any) => ({
+    ...tag,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+    attributes: tag.attributes?.map(transformAttribute),
+});
 
 export type DataProviderAttributes = {
     indexer: ComponentIndexer;
@@ -17,44 +31,13 @@ export type DataProviderAttributes = {
 export class LWCDataProvider implements IHTMLDataProvider {
     public activated = false;
     private indexer: ComponentIndexer;
-    private _standardTags: ITagData[] = [];
-    private _globalAttributes: IAttributeData[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    private _standardTags: ITagData[] = transformedLwcStandard.tags.map(transformTag);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    private _globalAttributes: IAttributeData[] = transformedLwcStandard.globalAttributes.map(transformAttribute);
 
     constructor(attributes: DataProviderAttributes) {
         this.indexer = attributes.indexer;
-    }
-
-    public async init(): Promise<void> {
-        const possiblePaths = [
-            join(__dirname, '../resources/transformed-lwc-standard.json'), // lib/resources/
-            join(__dirname, 'resources/transformed-lwc-standard.json'), // src/resources/
-            join(__dirname, '../../resources/transformed-lwc-standard.json'), // fallback
-            join(__dirname, '../../../resources/transformed-lwc-standard.json'), // compiled version
-        ];
-
-        let standardData: string | undefined;
-        for (const filePath of possiblePaths) {
-            try {
-                const fileBuffer = await vscode.workspace.fs.readFile(vscode.Uri.file(filePath));
-                standardData = Buffer.from(fileBuffer).toString('utf-8');
-                if (standardData.length > 0) {
-                    break;
-                }
-            } catch {
-                // File doesn't exist, continue to next path
-            }
-        }
-
-        if (!standardData) {
-            throw new Error(`Could not find transformed-lwc-standard.json in any of the expected locations: ${possiblePaths.join(', ')}`);
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const standardJson = JSON.parse(standardData);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-        this._standardTags = standardJson.tags;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-        this._globalAttributes = standardJson.globalAttributes;
     }
 
     public getId(): string {

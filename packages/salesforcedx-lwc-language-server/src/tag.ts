@@ -4,13 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ClassMember, AttributeInfo } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { ClassMember, AttributeInfo, IFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
 import camelcase from 'camelcase';
 import { paramCase } from 'change-case';
 import * as glob from 'fast-glob';
 
 import * as path from 'node:path';
-import * as vscode from 'vscode';
 import { Location, Position, Range } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { Metadata } from './decorators';
@@ -63,7 +62,7 @@ const methodDoc = (method: ClassMember): string => {
 };
 
 // Utility function to create Tag
-export const createTag = async (attributes: TagAttrs): Promise<Tag> => {
+export const createTag = async (attributes: TagAttrs, fileSystemProvider?: IFileSystemProvider): Promise<Tag> => {
     const file = attributes.file!;
     const metadata = attributes.metadata!;
 
@@ -75,10 +74,14 @@ export const createTag = async (attributes: TagAttrs): Promise<Tag> => {
 
     if (attributes.updatedAt) {
         updatedAt = new Date(attributes.updatedAt);
-    } else if (file) {
+    } else if (file && fileSystemProvider) {
         try {
-            const stat = await vscode.workspace.fs.stat(vscode.Uri.file(file));
-            updatedAt = new Date(stat.mtime);
+            const stat = fileSystemProvider.getFileStat(`file://${file}`);
+            if (stat) {
+                updatedAt = new Date(stat.mtime);
+            } else {
+                updatedAt = new Date();
+            }
         } catch {
             // If file doesn't exist or can't be read, use current date
             updatedAt = new Date();
@@ -191,7 +194,6 @@ export const getAttribute = (tag: Tag, name: string): AttributeInfo | null => fi
 export const getClassMemberLocation = (tag: Tag, name: string): Location | null => {
     const classMember = findClassMember(tag, name);
     if (!classMember?.loc) {
-        console.log(`Attribute "${name}" not found`);
         return null;
     }
     return Location.create(getTagUri(tag), toVSCodeRange(classMember.loc));
@@ -225,23 +227,31 @@ export const getMethodDocs = (tag: Tag): string | null => {
 };
 
 // Utility function to update tag metadata
-export const updateTagMetadata = async (tag: Tag, meta: any): Promise<void> => {
+export const updateTagMetadata = async (tag: Tag, meta: any, fileSystemProvider?: IFileSystemProvider): Promise<void> => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     tag.metadata = meta;
     tag._allAttributes = null;
     tag._methods = null;
     tag._properties = null;
-    try {
-        const stat = await vscode.workspace.fs.stat(vscode.Uri.file(tag.file));
-        tag.updatedAt = new Date(stat.mtime);
-    } catch {
-        // If file doesn't exist or can't be read, use current date
+    if (fileSystemProvider) {
+        try {
+            const stat = fileSystemProvider.getFileStat(`file://${tag.file}`);
+            if (stat) {
+                tag.updatedAt = new Date(stat.mtime);
+            } else {
+                tag.updatedAt = new Date();
+            }
+        } catch {
+            // If file doesn't exist or can't be read, use current date
+            tag.updatedAt = new Date();
+        }
+    } else {
         tag.updatedAt = new Date();
     }
 };
 
 // Standalone function to create tag from file (replaces static fromFile method)
-export const createTagFromFile = async (file: string, updatedAt?: Date): Promise<Tag | null> => {
+export const createTagFromFile = async (file: string, fileSystemProvider: IFileSystemProvider, updatedAt?: Date): Promise<Tag | null> => {
     if (file === '' || file.length === 0) {
         return null;
     }
@@ -249,8 +259,11 @@ export const createTagFromFile = async (file: string, updatedAt?: Date): Promise
     const fileName = filePath.base;
 
     try {
-        const fileBuffer = await vscode.workspace.fs.readFile(vscode.Uri.file(file));
-        const data = Buffer.from(fileBuffer).toString('utf8');
+        const content = fileSystemProvider.getFileContent(`${file}`);
+        if (!content) {
+            return null;
+        }
+        const data = content;
 
         if (!(data.includes('from "lwc"') || data.includes("from 'lwc'"))) {
             return null;

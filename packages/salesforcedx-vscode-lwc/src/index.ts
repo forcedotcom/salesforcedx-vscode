@@ -6,9 +6,10 @@
  */
 
 import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
+import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
-import { commands, Disposable, ExtensionContext, workspace } from 'vscode';
+import { commands, Disposable, ExtensionContext, workspace, Uri } from 'vscode';
 import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
 import { log } from './constants';
 import { createLanguageClient } from './languageClient';
@@ -44,8 +45,10 @@ export const activate = async (extensionContext: ExtensionContext) => {
     workspaceUris.push(folder.uri.fsPath);
   });
 
+  const fileSystemProvider = await createSmartFileSystemProvider(workspaceUris);
+
   // If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = await lspCommon.detectWorkspaceType(workspaceUris);
+  const workspaceType = await lspCommon.detectWorkspaceType(workspaceUris, fileSystemProvider);
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
@@ -64,14 +67,20 @@ export const activate = async (extensionContext: ExtensionContext) => {
   log('Lightning Web Components Extension Activated');
   log(`WorkspaceType detected: ${workspaceType}`);
 
+  // Create a FileSystemDataProvider with workspace files for the language server
+  const serverFileSystemProvider = await createSmartFileSystemProvider(workspaceUris);
+
   // Start the LWC Language Server
   const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
-  const client = createLanguageClient(serverModule);
+  const client = createLanguageClient(serverModule, serverFileSystemProvider);
 
   // Start the client and add it to subscriptions
   await client.start();
   extensionContext.subscriptions.push(client);
+
+  // The language server will use its FileSystemDataProvider to read files when needed
+  // No need to populate the server's fileSystemProvider via custom LSP methods
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
@@ -108,3 +117,69 @@ const registerCommands = (_extensionContext: ExtensionContext): Disposable =>
     commands.registerCommand('sf.lightning.lwc.open', lightningLwcOpen),
     commands.registerCommand('sf.lightning.lwc.preview', lightningLwcPreview)
   );
+
+/**
+ * Creates a smart FileSystemDataProvider that only reads files needed for workspace detection
+ * @param workspaceUris Array of workspace folder paths
+ * @returns FileSystemDataProvider with only essential files
+ */
+const createSmartFileSystemProvider = async (workspaceUris: string[]): Promise<FileSystemDataProvider> => {
+  const fileSystemProvider = new FileSystemDataProvider();
+
+  for (const workspaceUri of workspaceUris) {
+    try {
+      await populateEssentialFiles(fileSystemProvider, workspaceUri);
+    } catch (error) {
+      log(`Error populating essential files for workspace ${workspaceUri}: ${error}`);
+    }
+  }
+
+  return fileSystemProvider;
+};
+
+/**
+ * Populates only the essential files needed for workspace detection
+ * @param provider FileSystemDataProvider to populate
+ * @param workspacePath Path to the workspace directory
+ */
+const populateEssentialFiles = async (provider: FileSystemDataProvider, workspacePath: string): Promise<void> => {
+  const essentialFiles = ['sfdx-project.json', 'workspace-user.xml', 'lwc.config.json', 'package.json', 'lerna.json'];
+
+  // Check files in current directory
+  for (const fileName of essentialFiles) {
+    const filePath = path.join(workspacePath, fileName);
+    await tryReadFile(provider, filePath);
+  }
+
+  // Check parent directory for workspace-user.xml (CORE_PARTIAL detection)
+  const parentWorkspaceUserPath = path.join(workspacePath, '..', 'workspace-user.xml');
+  await tryReadFile(provider, parentWorkspaceUserPath);
+};
+
+/**
+ * Attempts to read a file and add it to the provider if it exists
+ * @param provider FileSystemDataProvider to update
+ * @param filePath Path to the file to read
+ */
+const tryReadFile = async (provider: FileSystemDataProvider, filePath: string): Promise<void> => {
+  try {
+    const fileUri = Uri.file(filePath);
+    const fileContent = await workspace.fs.readFile(fileUri);
+    const content = Buffer.from(fileContent).toString('utf8');
+
+    provider.updateFileContent(filePath, content);
+    provider.updateFileStat(filePath, {
+      type: 'file',
+      exists: true,
+      ctime: Date.now(),
+      mtime: Date.now(),
+      size: content.length
+    });
+  } catch (error) {
+    // File doesn't exist or can't be read - this is expected for most files
+    // Only log if it's an unexpected error
+    if (!error.message?.includes('ENOENT')) {
+      log(`Unexpected error reading file ${filePath}: ${error}`);
+    }
+  }
+};

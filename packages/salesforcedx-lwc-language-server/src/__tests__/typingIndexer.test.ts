@@ -4,70 +4,25 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { SFDX_WORKSPACE_ROOT } from '@salesforce/salesforcedx-lightning-lsp-common/src/__tests__/testUtils';
+import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/src/__tests__/testUtils';
 import * as path from 'node:path';
-import * as vscode from 'vscode';
 import TypingIndexer, { pathBasename } from '../typingIndexer';
-
-// Helper functions for async file operations
-const checkFileExists = async (filePath: string): Promise<boolean> => {
-    try {
-        await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
-        return true;
-    } catch {
-        return false;
-    }
-};
-
-const removeDirectoryIfExists = async (dirPath: string): Promise<void> => {
-    try {
-        await vscode.workspace.fs.delete(vscode.Uri.file(dirPath), { recursive: true });
-    } catch {
-        // Ignore if directory doesn't exist
-    }
-};
-
-const createDirectory = async (dirPath: string): Promise<void> => {
-    await vscode.workspace.fs.createDirectory(vscode.Uri.file(dirPath));
-};
-
-const writeFile = async (filePath: string, content: string): Promise<void> => {
-    await vscode.workspace.fs.writeFile(vscode.Uri.file(filePath), new TextEncoder().encode(content));
-};
-
-const readFile = async (filePath: string): Promise<string> => {
-    const fileBuffer = await vscode.workspace.fs.readFile(vscode.Uri.file(filePath));
-    return Buffer.from(fileBuffer).toString('utf8');
-};
 
 let typingIndexer: TypingIndexer;
 
-// Mock vscode.workspace.fs.readFile to return proper content for sfdx-project.json
-const originalReadFile = vscode.workspace.fs.readFile;
-jest.spyOn(vscode.workspace.fs, 'readFile').mockImplementation(async (uri) => {
-    if (uri?.path?.includes('sfdx-project.json')) {
-        const mockContent = JSON.stringify({
-            packageDirectories: [{ path: 'force-app', default: true }, { path: 'utils' }, { path: 'registered-empty-folder' }],
-            namespace: '',
-            sfdcLoginUrl: 'https://mobile1.t.salesforce.com',
-            signupTargetLoginUrl: 'https://mobile1.t.salesforce.com',
-            sourceApiVersion: '42.0',
-        });
-        return new TextEncoder().encode(mockContent);
-    }
-    // For other files, call the original function
-    return originalReadFile(uri);
-});
-
 describe('TypingIndexer', () => {
     beforeAll(async () => {
-        typingIndexer = await TypingIndexer.create({
-            workspaceRoot: SFDX_WORKSPACE_ROOT,
-        });
+        typingIndexer = await TypingIndexer.create(
+            {
+                workspaceRoot: SFDX_WORKSPACE_ROOT,
+            },
+            sfdxFileSystemProvider,
+        );
     });
 
     afterEach(async () => {
-        await removeDirectoryIfExists(typingIndexer.typingsBaseDir);
+        // Clear the file system provider data for the typings directory
+        sfdxFileSystemProvider.updateFileContent(`${typingIndexer.typingsBaseDir}`, '');
     });
 
     describe('new', () => {
@@ -85,7 +40,7 @@ describe('TypingIndexer', () => {
 
             for (const filename of filepaths) {
                 const filepath = path.join(typingIndexer.typingsBaseDir, filename);
-                const exists = await checkFileExists(filepath);
+                const exists = sfdxFileSystemProvider.fileExists(`${filepath}`);
                 expect(exists).toBeTrue();
             }
         });
@@ -96,28 +51,27 @@ describe('TypingIndexer', () => {
             const typing: string = path.join(typingIndexer.typingsBaseDir, 'logo.resource.d.ts');
             const staleTyping: string = path.join(typingIndexer.typingsBaseDir, 'extra.resource.d.ts');
 
-            await createDirectory(typingIndexer.typingsBaseDir);
-            await writeFile(typing, 'foobar');
-            await writeFile(staleTyping, 'foobar');
+            sfdxFileSystemProvider.updateDirectoryListing(`${typingIndexer.typingsBaseDir}`, []);
+            sfdxFileSystemProvider.updateFileContent(`${typing}`, 'foobar');
+            sfdxFileSystemProvider.updateFileContent(`${staleTyping}`, 'foobar');
 
             await typingIndexer.deleteStaleMetaTypings();
 
-            expect(await checkFileExists(typing)).toBeTrue();
-            expect(await checkFileExists(staleTyping)).toBeFalse();
+            expect(sfdxFileSystemProvider.fileExists(`${typing}`)).toBeTrue();
+            expect(sfdxFileSystemProvider.fileExists(`${staleTyping}`)).toBeFalse();
         });
     });
 
     describe('#saveCustomLabelTypings', () => {
         afterEach(async () => {
-            await removeDirectoryIfExists(typingIndexer.typingsBaseDir);
-            jest.restoreAllMocks();
+            sfdxFileSystemProvider.updateFileContent(`${typingIndexer.typingsBaseDir}`, '');
         });
 
         it('saves the custom labels xml file to 1 typings file', async () => {
             await typingIndexer.saveCustomLabelTypings();
             const customLabelPath: string = path.join(typingIndexer.workspaceRoot, '.sfdx', 'typings', 'lwc', 'customlabels.d.ts');
-            expect(await checkFileExists(customLabelPath)).toBeTrue();
-            const content = await readFile(customLabelPath);
+            expect(sfdxFileSystemProvider.fileExists(`${customLabelPath}`)).toBeTrue();
+            const content = sfdxFileSystemProvider.getFileContent(`${customLabelPath}`);
             expect(content).toInclude('declare module');
         });
 
@@ -126,9 +80,9 @@ describe('TypingIndexer', () => {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             jest.spyOn(require('../typingIndexer'), 'getCustomLabelFiles').mockReturnValue([]);
 
-            const fileWriter = jest.spyOn(vscode.workspace.fs, 'writeFile');
+            const updateFileContentSpy = jest.spyOn(sfdxFileSystemProvider, 'updateFileContent');
             await typingIndexer.saveCustomLabelTypings();
-            expect(fileWriter).not.toHaveBeenCalled();
+            expect(updateFileContentSpy).not.toHaveBeenCalled();
         });
     });
 
@@ -136,15 +90,14 @@ describe('TypingIndexer', () => {
         test('it returns all the paths of meta files', () => {
             const metaFilePaths: string[] = typingIndexer.metaFiles.sort();
             const expectedMetaFilePaths: string[] = [
-                '../../test-workspaces/sfdx-workspace/force-app/main/default/contentassets/logo.asset-meta.xml',
-                '../../test-workspaces/sfdx-workspace/force-app/main/default/messageChannels/Channel1.messageChannel-meta.xml',
-                '../../test-workspaces/sfdx-workspace/force-app/main/default/messageChannels/Channel2.messageChannel-meta.xml',
-                '../../test-workspaces/sfdx-workspace/force-app/main/default/staticresources/bike_assets.resource-meta.xml',
-                '../../test-workspaces/sfdx-workspace/force-app/main/default/staticresources/todocss.resource-meta.xml',
-                '../../test-workspaces/sfdx-workspace/utils/meta/staticresources/todoutil.resource-meta.xml',
-            ]
-                .map((filename) => path.resolve(filename))
-                .sort();
+                path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/contentassets/logo.asset-meta.xml'),
+                path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/messageChannels/Channel1.messageChannel-meta.xml'),
+                path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/messageChannels/Channel2.messageChannel-meta.xml'),
+                path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/staticresources/bike_assets.resource-meta.xml'),
+                path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/staticresources/logo.resource-meta.xml'),
+                path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/staticresources/todocss.resource-meta.xml'),
+                path.join(SFDX_WORKSPACE_ROOT, 'utils/meta/staticresources/todoutil.resource-meta.xml'),
+            ].sort();
 
             expect(metaFilePaths).toEqual(expectedMetaFilePaths);
         });
@@ -152,9 +105,9 @@ describe('TypingIndexer', () => {
 
     describe('#metaTypings', () => {
         test("it returns all the paths for meta files' typings", async () => {
-            await createDirectory(path.join(typingIndexer.typingsBaseDir, 'staticresources'));
-            await createDirectory(path.join(typingIndexer.typingsBaseDir, 'messageChannels'));
-            await createDirectory(path.join(typingIndexer.typingsBaseDir, 'contentassets'));
+            sfdxFileSystemProvider.updateDirectoryListing(`${path.join(typingIndexer.typingsBaseDir, 'staticresources')}`, []);
+            sfdxFileSystemProvider.updateDirectoryListing(`${path.join(typingIndexer.typingsBaseDir, 'messageChannels')}`, []);
+            sfdxFileSystemProvider.updateDirectoryListing(`${path.join(typingIndexer.typingsBaseDir, 'contentassets')}`, []);
 
             const expectedMetaFileTypingPaths: string[] = [
                 '.sfdx/typings/lwc/logo.asset.d.ts',
@@ -164,7 +117,7 @@ describe('TypingIndexer', () => {
             ].map((item) => path.resolve(`${typingIndexer.workspaceRoot}/${item}`));
 
             for (const filePath of expectedMetaFileTypingPaths) {
-                await writeFile(filePath, 'foobar');
+                sfdxFileSystemProvider.updateFileContent(`${filePath}`, 'foobar');
             }
 
             const metaFilePaths: string[] = typingIndexer.metaTypings;

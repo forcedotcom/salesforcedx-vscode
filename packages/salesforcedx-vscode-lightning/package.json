@@ -57,14 +57,8 @@
   ],
   "main": "./out/src",
   "serverPath": [
-    "..",
-    "..",
-    "node_modules",
-    "@salesforce",
-    "salesforcedx-aura-language-server",
-    "out",
-    "src",
-    "server.js"
+    "dist",
+    "auraLanguageServer.js"
   ],
   "packaging": {
     "assets": [

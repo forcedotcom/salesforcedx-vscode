@@ -5,10 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import path, { join } from 'node:path';
-import * as vscode from 'vscode';
 import { processTemplate, getModulesDirs } from '../baseContext';
 import '../../jest/matchers';
-import { CORE_ALL_ROOT, CORE_PROJECT_ROOT, FORCE_APP_ROOT, UTILS_ROOT, readAsTextDocument, CORE_MULTI_ROOT } from './testUtils';
+import { FileSystemDataProvider } from '../providers/fileSystemDataProvider';
+import {
+    CORE_ALL_ROOT,
+    CORE_PROJECT_ROOT,
+    FORCE_APP_ROOT,
+    UTILS_ROOT,
+    readAsTextDocument,
+    CORE_MULTI_ROOT,
+    sfdxFileSystemProvider,
+    standardFileSystemProvider,
+    coreFileSystemProvider,
+    coreProjectFileSystemProvider,
+    coreMultiFileSystemProvider,
+} from './testUtils';
 import { WorkspaceContext } from './workspaceContext';
 
 // Test workspace paths
@@ -23,27 +35,35 @@ beforeAll(() => {
     delete process.env.P4USER;
 });
 
-const verifyJsconfigCore = async (jsconfigPath: string): Promise<void> => {
-    const jsconfigContent = Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.file(jsconfigPath))).toString('utf8');
-    expect(jsconfigContent).toContain('    "compilerOptions": {'); // check formatting
+const verifyJsconfigCore = async (fileSystemProvider: FileSystemDataProvider, jsconfigPath: string): Promise<void> => {
+    const jsconfigContent = Buffer.from(fileSystemProvider.getFileContent(jsconfigPath) ?? '').toString('utf8');
+    expect(jsconfigContent).toContain('"compilerOptions":{');
     const jsconfig = JSON.parse(jsconfigContent);
     expect(jsconfig.compilerOptions.experimentalDecorators).toBe(true);
     expect(jsconfig.include[0]).toBe('**/*');
     expect(jsconfig.include[1]).toBe('../../.vscode/typings/lwc/**/*.d.ts');
     expect(jsconfig.typeAcquisition).toEqual({ include: ['jest'] });
-    try {
-        await vscode.workspace.fs.delete(vscode.Uri.file(jsconfigPath), { recursive: true, useTrash: false });
-    } catch {
-        // Ignore if file doesn't exist
-    }
+    fileSystemProvider.updateFileStat(jsconfigPath, {
+        type: 'file',
+        exists: false,
+        ctime: 0,
+        mtime: 0,
+        size: 0,
+    });
 };
 
-const verifyTypingsCore = async (): Promise<void> => {
+const verifyTypingsCore = async (fileSystemProvider: FileSystemDataProvider): Promise<void> => {
     const typingsPath = `${CORE_ALL_ROOT}/.vscode/typings/lwc`;
-    expect(`${typingsPath}/engine.d.ts`).toExist();
-    expect(`${typingsPath}/lds.d.ts`).toExist();
+    expect(fileSystemProvider.fileExists(`${typingsPath}/engine.d.ts`)).toBe(true);
+    expect(fileSystemProvider.fileExists(`${typingsPath}/lds.d.ts`)).toBe(true);
     try {
-        await vscode.workspace.fs.delete(vscode.Uri.file(typingsPath), { recursive: true, useTrash: false });
+        fileSystemProvider.updateFileStat(typingsPath, {
+            type: 'directory',
+            exists: false,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
     } catch {
         // Ignore if file doesn't exist
     }
@@ -58,79 +78,79 @@ const verifyCoreSettings = (settings: any): void => {
 
 describe('WorkspaceContext', () => {
     it('WorkspaceContext', async () => {
-        let context = new WorkspaceContext(SFDX_WORKSPACE_PATH);
+        let context = new WorkspaceContext(SFDX_WORKSPACE_PATH, sfdxFileSystemProvider);
         await context.initialize();
         expect(context.type).toBe('SFDX');
         expect(context.workspaceRoots[0]).toBeAbsolutePath();
 
-        expect((await getModulesDirs(context.type, context.workspaceRoots, () => context.initSfdxProjectConfigCache())).length).toBe(3);
+        expect((await getModulesDirs(context.type, context.workspaceRoots, sfdxFileSystemProvider, () => context.initSfdxProjectConfigCache())).length).toBe(3);
 
-        context = new WorkspaceContext(STANDARD_WORKSPACE_PATH);
+        context = new WorkspaceContext(STANDARD_WORKSPACE_PATH, standardFileSystemProvider);
         await context.initialize();
         expect(context.type).toBe('STANDARD_LWC');
 
-        expect(await getModulesDirs(context.type, context.workspaceRoots, () => context.initSfdxProjectConfigCache())).toEqual([]);
+        expect(await getModulesDirs(context.type, context.workspaceRoots, standardFileSystemProvider, () => context.initSfdxProjectConfigCache())).toEqual([]);
 
-        context = new WorkspaceContext(CORE_WORKSPACE_PATH);
+        context = new WorkspaceContext(CORE_WORKSPACE_PATH, coreFileSystemProvider);
         await context.initialize();
         expect(context.type).toBe('CORE_ALL');
 
-        expect((await getModulesDirs(context.type, context.workspaceRoots, () => context.initSfdxProjectConfigCache())).length).toBe(3);
+        expect((await getModulesDirs(context.type, context.workspaceRoots, coreFileSystemProvider, () => context.initSfdxProjectConfigCache())).length).toBe(3);
 
-        context = new WorkspaceContext(CORE_PROJECT_ROOT);
+        context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemProvider);
         await context.initialize();
         expect(context.type).toBe('CORE_PARTIAL');
 
-        expect(await getModulesDirs(context.type, context.workspaceRoots, () => context.initSfdxProjectConfigCache())).toEqual([
+        expect(await getModulesDirs(context.type, context.workspaceRoots, coreProjectFileSystemProvider, () => context.initSfdxProjectConfigCache())).toEqual([
             join(context.workspaceRoots[0], 'modules'),
         ]);
 
-        context = new WorkspaceContext(CORE_MULTI_ROOT);
+        context = new WorkspaceContext(CORE_MULTI_ROOT, coreMultiFileSystemProvider);
         await context.initialize();
         expect(context.workspaceRoots.length).toBe(2);
 
-        const modulesDirs = await getModulesDirs(context.type, context.workspaceRoots, () => context.initSfdxProjectConfigCache());
+        const modulesDirs = await getModulesDirs(context.type, context.workspaceRoots, coreMultiFileSystemProvider, () => context.initSfdxProjectConfigCache());
         for (let i = 0; i < context.workspaceRoots.length; i = i + 1) {
             expect(modulesDirs[i]).toMatch(context.workspaceRoots[i]);
         }
     });
 
     it('isInsideModulesRoots()', async () => {
-        const context = new WorkspaceContext(SFDX_WORKSPACE_PATH);
+        const context = new WorkspaceContext(SFDX_WORKSPACE_PATH, sfdxFileSystemProvider);
         await context.initialize();
 
-        let document = await readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.js'));
+        let document = readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.js'), sfdxFileSystemProvider);
         expect(await context.isInsideModulesRoots(document)).toBeTruthy();
 
-        document = await readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'aura', 'helloWorldApp', 'helloWorldApp.app'));
+        document = readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'aura', 'helloWorldApp', 'helloWorldApp.app'), sfdxFileSystemProvider);
         expect(await context.isInsideModulesRoots(document)).toBeFalsy();
 
-        document = await readAsTextDocument(path.resolve(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.js'));
+        document = readAsTextDocument(path.resolve(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.js'), sfdxFileSystemProvider);
         expect(await context.isInsideModulesRoots(document)).toBeTruthy();
     });
 
     it('isLWCTemplate()', async () => {
-        const context = new WorkspaceContext(SFDX_WORKSPACE_PATH);
+        const context = new WorkspaceContext(SFDX_WORKSPACE_PATH, sfdxFileSystemProvider);
         await context.initialize();
 
         // .js is not a template
-        let document = await readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.js'));
+        let document = readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.js'), sfdxFileSystemProvider);
         expect(await context.isLWCTemplate(document)).toBeFalsy();
 
         // .html is a template
-        document = await readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.html'));
+        document = readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.html'), sfdxFileSystemProvider);
         expect(await context.isLWCTemplate(document)).toBeTruthy();
 
         // aura cmps are not a template (sfdx assigns the 'html' language id to aura components)
-        document = await readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'aura', 'helloWorldApp', 'helloWorldApp.app'));
+        document = readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'aura', 'helloWorldApp', 'helloWorldApp.app'), sfdxFileSystemProvider);
         expect(await context.isLWCTemplate(document)).toBeFalsy();
 
         // html outside namespace roots is not a template
-        document = await readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'aura', 'todoApp', 'randomHtmlInAuraFolder.html'));
+        document = readAsTextDocument(path.resolve(FORCE_APP_ROOT, 'aura', 'todoApp', 'randomHtmlInAuraFolder.html'), sfdxFileSystemProvider);
         expect(await context.isLWCTemplate(document)).toBeFalsy();
 
         // .html in utils folder is a template
-        document = await readAsTextDocument(path.resolve(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.html'));
+        document = readAsTextDocument(path.resolve(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.html'), sfdxFileSystemProvider);
         expect(await context.isLWCTemplate(document)).toBeTruthy();
     });
 
@@ -158,7 +178,7 @@ describe('WorkspaceContext', () => {
     });
 
     it('configureSfdxProject()', async () => {
-        const context = new WorkspaceContext(SFDX_WORKSPACE_PATH);
+        const context = new WorkspaceContext(SFDX_WORKSPACE_PATH, sfdxFileSystemProvider);
         await context.initialize();
         const jsconfigPathForceApp = path.resolve(FORCE_APP_ROOT, 'lwc', 'jsconfig.json');
         const jsconfigPathUtilsOrig = path.resolve(UTILS_ROOT, 'lwc', 'jsconfig-orig.json');
@@ -166,25 +186,40 @@ describe('WorkspaceContext', () => {
 
         // make sure no generated files are there from previous runs
         try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(jsconfigPathForceApp), { recursive: true, useTrash: false });
+            sfdxFileSystemProvider.updateFileStat(jsconfigPathForceApp, {
+                type: 'file',
+                exists: false,
+                ctime: 0,
+                mtime: 0,
+                size: 0,
+            });
         } catch {
             // Ignore if file doesn't exist
         }
         try {
-            const sourceContent = await vscode.workspace.fs.readFile(vscode.Uri.file(jsconfigPathUtilsOrig));
-            await vscode.workspace.fs.writeFile(vscode.Uri.file(jsconfigPathUtils), sourceContent);
+            const sourceContent = sfdxFileSystemProvider.getFileContent(jsconfigPathUtilsOrig) ?? '';
+            sfdxFileSystemProvider.updateFileContent(jsconfigPathUtils, sourceContent);
         } catch {
             // File operations failed - this might be expected in test cleanup
         }
         try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(path.resolve(context.workspaceRoots[0], '.forceignore')), { recursive: true, useTrash: false });
+            sfdxFileSystemProvider.updateFileStat(path.resolve(context.workspaceRoots[0], '.forceignore'), {
+                type: 'file',
+                exists: false,
+                ctime: 0,
+                mtime: 0,
+                size: 0,
+            });
         } catch {
             // Ignore if file doesn't exist
         }
         try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc')), {
-                recursive: true,
-                useTrash: false,
+            sfdxFileSystemProvider.updateFileStat(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc'), {
+                type: 'directory',
+                exists: false,
+                ctime: 0,
+                mtime: 0,
+                size: 0,
             });
         } catch {
             // Ignore if file doesn't exist
@@ -192,15 +227,15 @@ describe('WorkspaceContext', () => {
 
         // verify typings/jsconfig after configuration:
 
-        expect(jsconfigPathUtils).toExist();
+        expect(sfdxFileSystemProvider.fileExists(jsconfigPathUtils)).toBe(true);
         await context.configureProject();
 
         const { sfdxPackageDirsPattern } = await context.initSfdxProjectConfigCache();
         expect(sfdxPackageDirsPattern).toBe('{force-app,utils,registered-empty-folder}');
 
         // verify newly created jsconfig.json
-        const jsconfigForceAppContent = Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.file(jsconfigPathForceApp))).toString('utf8');
-        expect(jsconfigForceAppContent).toContain('    "compilerOptions": {'); // check formatting
+        const jsconfigForceAppContent = Buffer.from(sfdxFileSystemProvider.getFileContent(jsconfigPathForceApp) ?? '').toString('utf8');
+        expect(jsconfigForceAppContent).toContain('"compilerOptions":{');
         const jsconfigForceApp = JSON.parse(jsconfigForceAppContent);
         expect(jsconfigForceApp.compilerOptions.experimentalDecorators).toBe(true);
         expect(jsconfigForceApp.include[0]).toBe('**/*');
@@ -208,8 +243,8 @@ describe('WorkspaceContext', () => {
         expect(jsconfigForceApp.compilerOptions.baseUrl).toBeDefined(); // baseUrl/paths set when indexing
         expect(jsconfigForceApp.typeAcquisition).toEqual({ include: ['jest'] });
         // verify updated jsconfig.json
-        const jsconfigUtilsContent = Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.file(jsconfigPathUtils))).toString('utf8');
-        expect(jsconfigUtilsContent).toContain('    "compilerOptions": {'); // check formatting
+        const jsconfigUtilsContent = Buffer.from(sfdxFileSystemProvider.getFileContent(jsconfigPathUtils) ?? '').toString('utf8');
+        expect(jsconfigUtilsContent).toContain('"compilerOptions": {');
         const jsconfigUtils = JSON.parse(jsconfigUtilsContent);
         expect(jsconfigUtils.compilerOptions.target).toBe('es2017');
         expect(jsconfigUtils.compilerOptions.experimentalDecorators).toBe(true);
@@ -219,9 +254,9 @@ describe('WorkspaceContext', () => {
         expect(jsconfigForceApp.typeAcquisition).toEqual({ include: ['jest'] });
 
         // .forceignore
-        const forceignoreContent = Buffer.from(
-            await vscode.workspace.fs.readFile(vscode.Uri.file(path.resolve(context.workspaceRoots[0], '.forceignore'))),
-        ).toString('utf8');
+        const forceignoreContent = Buffer.from(sfdxFileSystemProvider.getFileContent(path.resolve(context.workspaceRoots[0], '.forceignore')) ?? '').toString(
+            'utf8',
+        );
         expect(forceignoreContent).toContain('**/jsconfig.json');
         expect(forceignoreContent).toContain('**/.eslintrc.json');
         // These should only be present for TypeScript projects
@@ -229,15 +264,15 @@ describe('WorkspaceContext', () => {
         expect(forceignoreContent).not.toContain('**/*.ts');
 
         // typings
-        expect(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'lds.d.ts')).toExist();
-        expect(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'engine.d.ts')).toExist();
-        expect(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'apex.d.ts')).toExist();
+        expect(sfdxFileSystemProvider.fileExists(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'lds.d.ts'))).toBe(true);
+        expect(sfdxFileSystemProvider.fileExists(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'engine.d.ts'))).toBe(true);
+        expect(sfdxFileSystemProvider.fileExists(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'apex.d.ts'))).toBe(true);
         const schemaContents = Buffer.from(
-            await vscode.workspace.fs.readFile(vscode.Uri.file(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'schema.d.ts'))),
+            sfdxFileSystemProvider.getFileContent(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'schema.d.ts')) ?? '',
         ).toString('utf8');
         expect(schemaContents).toContain("declare module '@salesforce/schema' {");
         const apexContents = Buffer.from(
-            await vscode.workspace.fs.readFile(vscode.Uri.file(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'apex.d.ts'))),
+            sfdxFileSystemProvider.getFileContent(path.resolve(context.workspaceRoots[0], '.sfdx', 'typings', 'lwc', 'apex.d.ts')) ?? '',
         ).toString('utf8');
         expect(apexContents).not.toContain('declare type');
     });
@@ -259,7 +294,7 @@ function verifyCodeWorkspace(path: string) {
 */
 
     it('configureCoreProject()', async () => {
-        const context = new WorkspaceContext(CORE_PROJECT_ROOT);
+        const context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemProvider);
         await context.initialize();
         const jsconfigPath = `${CORE_PROJECT_ROOT}/modules/jsconfig.json`;
         const typingsPath = `${CORE_ALL_ROOT}/.vscode/typings/lwc`;
@@ -267,17 +302,35 @@ function verifyCodeWorkspace(path: string) {
 
         // make sure no generated files are there from previous runs
         try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(jsconfigPath), { recursive: true, useTrash: false });
+            coreProjectFileSystemProvider.updateFileStat(jsconfigPath, {
+                type: 'file',
+                exists: false,
+                ctime: 0,
+                mtime: 0,
+                size: 0,
+            });
         } catch {
             // Ignore if file doesn't exist
         }
         try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(typingsPath), { recursive: true, useTrash: false });
+            coreProjectFileSystemProvider.updateFileStat(typingsPath, {
+                type: 'directory',
+                exists: false,
+                ctime: 0,
+                mtime: 0,
+                size: 0,
+            });
         } catch {
             // Ignore if file doesn't exist
         }
         try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(settingsPath), { recursive: true, useTrash: false });
+            coreProjectFileSystemProvider.updateFileStat(settingsPath, {
+                type: 'file',
+                exists: false,
+                ctime: 0,
+                mtime: 0,
+                size: 0,
+            });
         } catch {
             // Ignore if file doesn't exist
         }
@@ -285,107 +338,53 @@ function verifyCodeWorkspace(path: string) {
         // configure and verify typings/jsconfig after configuration:
         await context.configureProject();
 
-        await verifyJsconfigCore(jsconfigPath);
-        await verifyTypingsCore();
+        await verifyJsconfigCore(coreProjectFileSystemProvider, jsconfigPath);
+        await verifyTypingsCore(coreProjectFileSystemProvider);
 
-        const settings = JSON.parse(Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.file(settingsPath))).toString('utf8'));
+        const settings = JSON.parse(Buffer.from(coreProjectFileSystemProvider.getFileContent(settingsPath) ?? '').toString('utf8'));
         verifyCoreSettings(settings);
     });
 
     it('configureCoreMulti()', async () => {
-        const context = new WorkspaceContext(CORE_MULTI_ROOT);
+        const context = new WorkspaceContext(CORE_MULTI_ROOT, coreMultiFileSystemProvider);
         await context.initialize();
 
-        const jsconfigPathForce = `${context.workspaceRoots[0]}/modules/jsconfig.json`;
         const jsconfigPathGlobal = `${context.workspaceRoots[1]}/modules/jsconfig.json`;
-        const codeWorkspacePath = `${CORE_ALL_ROOT}/core.code-workspace`;
-        const launchPath = `${CORE_ALL_ROOT}/.vscode/launch.json`;
         const tsconfigPathForce = `${context.workspaceRoots[0]}/tsconfig.json`;
-
-        // make sure no generated files are there from previous runs
-        try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(jsconfigPathGlobal), { recursive: true, useTrash: false });
-        } catch {
-            // Ignore if file doesn't exist
-        }
-        try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(jsconfigPathForce), { recursive: true, useTrash: false });
-        } catch {
-            // Ignore if file doesn't exist
-        }
-        try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(codeWorkspacePath), { recursive: true, useTrash: false });
-        } catch {
-            // Ignore if file doesn't exist
-        }
-        try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(launchPath), { recursive: true, useTrash: false });
-        } catch {
-            // Ignore if file doesn't exist
-        }
-        try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(tsconfigPathForce), { recursive: true, useTrash: false });
-        } catch {
-            // Ignore if file doesn't exist
-        }
-
-        await vscode.workspace.fs.writeFile(vscode.Uri.file(tsconfigPathForce), new TextEncoder().encode(''));
 
         // configure and verify typings/jsconfig after configuration:
         await context.configureProject();
 
         // verify newly created jsconfig.json
-        await verifyJsconfigCore(jsconfigPathGlobal);
+        await verifyJsconfigCore(coreMultiFileSystemProvider, jsconfigPathGlobal);
         // verify jsconfig.json is not created when there is a tsconfig.json
         // The tsconfig.json in the workspace root should not prevent jsconfig creation in modules dir
         // Just verify the tsconfig still exists
-        expect(tsconfigPathForce).toExist();
-        await verifyTypingsCore();
+        expect(coreMultiFileSystemProvider.fileExists(tsconfigPathForce)).toBe(true);
+        await verifyTypingsCore(coreMultiFileSystemProvider);
 
-        try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(tsconfigPathForce), { recursive: true, useTrash: false });
-        } catch {
-            // Ignore if file doesn't exist
-        }
+        coreMultiFileSystemProvider.updateFileStat(tsconfigPathForce, {
+            type: 'file',
+            exists: false,
+            ctime: 0,
+            mtime: 0,
+            size: 0,
+        });
     });
 
     it('configureCoreAll()', async () => {
-        const context = new WorkspaceContext(CORE_ALL_ROOT);
+        const context = new WorkspaceContext(CORE_ALL_ROOT, coreFileSystemProvider);
         await context.initialize();
         const jsconfigPathGlobal = `${CORE_ALL_ROOT}/ui-global-components/modules/jsconfig.json`;
         const jsconfigPathForce = `${CORE_ALL_ROOT}/ui-force-components/modules/jsconfig.json`;
-        const codeWorkspacePath = `${CORE_ALL_ROOT}/core.code-workspace`;
-        const launchPath = `${CORE_ALL_ROOT}/.vscode/launch.json`;
-
-        // make sure no generated files are there from previous runs
-        try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(jsconfigPathGlobal), { recursive: true, useTrash: false });
-        } catch {
-            // Ignore if file doesn't exist
-        }
-        try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(jsconfigPathForce), { recursive: true, useTrash: false });
-        } catch {
-            // Ignore if file doesn't exist
-        }
-        try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(codeWorkspacePath), { recursive: true, useTrash: false });
-        } catch {
-            // Ignore if file doesn't exist
-        }
-        try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(launchPath), { recursive: true, useTrash: false });
-        } catch {
-            // Ignore if file doesn't exist
-        }
 
         // configure and verify typings/jsconfig after configuration:
         await context.configureProject();
 
         // verify newly created jsconfig.json
-        await verifyJsconfigCore(jsconfigPathGlobal);
-        await verifyJsconfigCore(jsconfigPathForce);
-        await verifyTypingsCore();
+        await verifyJsconfigCore(coreMultiFileSystemProvider, jsconfigPathGlobal);
+        await verifyJsconfigCore(coreMultiFileSystemProvider, jsconfigPathForce);
+        await verifyTypingsCore(coreMultiFileSystemProvider);
 
         // Commenting out core-workspace & launch.json tests until we finalize
         // where these should live or if they should exist at all

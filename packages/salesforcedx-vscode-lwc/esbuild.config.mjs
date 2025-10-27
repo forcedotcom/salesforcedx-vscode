@@ -14,10 +14,30 @@ await build({
     'vscode',
     'applicationinsights',
     '@salesforce/lightning-lsp-common',
-    '@salesforce/lwc-language-server',
     '@babel/preset-typescript/package.json',
-    'jest-editor-support'
+    'jest-editor-support',
+    '@babel/core'
   ],
   entryPoints: ['./src/index.ts'],
   outdir: 'dist'
+});
+
+// Bundle the external LWC language server package
+await build({
+  ...nodeConfig,
+  loader: { '.node': 'file' },
+  external: [
+    'vscode',
+    'applicationinsights',
+    '@salesforce/lightning-lsp-common',
+    '@babel/preset-typescript/package.json',
+    'jest-editor-support',
+    '@babel/core',
+    'jsonc-parser'
+  ],
+  entryPoints: ['../salesforcedx-lwc-language-server/out/src/lwcServer.js'],
+  outfile: './dist/lwcServer.js',
+  bundle: true,
+  platform: 'node',
+  target: 'node18'
 });

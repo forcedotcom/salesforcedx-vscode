@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { memoize } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common/src/providers/fileSystemDataProvider';
 import LineColumnFinder from 'line-column';
 import path from 'node:path';
 import * as util from 'node:util';
-import * as vscode from 'vscode';
 import {
     TextDocumentPositionParams,
     CompletionList,
@@ -79,21 +79,18 @@ const auraInstanceLastSort = (a: string, b: string): number =>
     a.endsWith('AuraInstance.js') === b.endsWith('AuraInstance.js') ? 0 : a.endsWith('AuraInstance.js') ? 1 : -1;
 
 /** Recursively get all .js files from a directory using VS Code APIs */
-const getJsFilesRecursively = async (dirPath: string): Promise<string[]> => {
+const getJsFilesRecursively = async (dirPath: string, fileSystemProvider: FileSystemDataProvider): Promise<string[]> => {
     const files: string[] = [];
 
     const processDirectory = async (currentPath: string): Promise<void> => {
         try {
-            const uri = vscode.Uri.file(currentPath);
-            const entries = await vscode.workspace.fs.readDirectory(uri);
+            const entries = fileSystemProvider.getDirectoryListing(currentPath);
 
-            for (const [name, type] of entries) {
-                const fullPath = path.join(currentPath, name);
-
-                if (type === vscode.FileType.Directory) {
-                    await processDirectory(fullPath);
-                } else if (type === vscode.FileType.File && name.endsWith('.js')) {
-                    files.push(fullPath);
+            for (const entry of entries ?? []) {
+                if (entry.type === 'directory') {
+                    await processDirectory(path.join(currentPath, entry.name));
+                } else if (entry.type === 'file' && entry.name.endsWith('.js')) {
+                    files.push(path.join(currentPath, entry.name));
                 }
             }
         } catch (error) {
@@ -118,12 +115,14 @@ const loadPlugins = async (): Promise<{ aura: true; modules: true; doc_comment: 
 };
 
 /** recursively search upward from the starting directory. Handling the is it a monorepo vs. packaged vs. bundled code */
-const searchAuraResourcesPath = async (dir: string): Promise<string> => {
+const searchAuraResourcesPath = async (dir: string, fileSystemProvider: FileSystemDataProvider): Promise<string> => {
     console.log(`aura-language-server: searching for resources/aura in ${dir}`);
     try {
         const resourcesPath = path.join(dir, 'resources', 'aura');
-        const uri = vscode.Uri.file(resourcesPath);
-        await vscode.workspace.fs.stat(uri);
+        const fileStat = fileSystemProvider.getFileStat(resourcesPath);
+        if (!fileStat) {
+            throw new Error('No resources/aura directory found');
+        }
         console.log('found resources/aura in', dir);
         return resourcesPath;
     } catch {
@@ -132,10 +131,10 @@ const searchAuraResourcesPath = async (dir: string): Promise<string> => {
     if (path.dirname(dir) === dir) {
         throw new Error('No resources/aura directory found');
     }
-    return searchAuraResourcesPath(path.dirname(dir));
+    return searchAuraResourcesPath(path.dirname(dir), fileSystemProvider);
 };
 
-const ternInit = async (): Promise<void> => {
+const ternInit = async (fileSystemProvider: FileSystemDataProvider): Promise<void> => {
     await asyncTernRequest({
         query: {
             type: 'ideInit',
@@ -143,29 +142,32 @@ const ternInit = async (): Promise<void> => {
             // shouldFilter: true,
         },
     });
-    const resources = await searchAuraResourcesPath(__dirname);
-    const files = await getJsFilesRecursively(resources);
+    const resources = await searchAuraResourcesPath(__dirname, fileSystemProvider);
+    const files = await getJsFilesRecursively(resources, fileSystemProvider);
 
     // special handling for hacking one snowflake file that needs to go last
     files.sort(auraInstanceLastSort);
 
     for (const file of files) {
-        const uri = vscode.Uri.file(file);
-        const content = await vscode.workspace.fs.readFile(uri);
-        const textContent = new TextDecoder().decode(content);
+        const content = fileSystemProvider.getFileContent(file);
+        if (!content) {
+            throw new Error('File not found');
+        }
 
         const contents = file.endsWith('AuraInstance.js')
             ? // and the snowflake needs to be modified
-              textContent.concat("\nwindow['$A'] = new AuraInstance();\n")
-            : textContent;
+              content.concat("\nwindow['$A'] = new AuraInstance();\n")
+            : content;
 
         ternServer.addFile(file, contents);
     }
 };
 
-const init = memoize(ternInit);
+const init = (fileSystemProvider: FileSystemDataProvider) => memoize(() => ternInit(fileSystemProvider));
 
-export const startServer = async (rootPath: string, wsroot: string): Promise<tern.Server> => {
+export { init };
+
+export const startServer = async (rootPath: string, wsroot: string, fileSystemProvider: FileSystemDataProvider): Promise<tern.Server> => {
     const defs = [browser, ecmascript];
     const plugins = await loadPlugins();
     const config: tern.ConstructorOptions = {
@@ -173,13 +175,11 @@ export const startServer = async (rootPath: string, wsroot: string): Promise<ter
         defs,
         plugins,
         projectDir: rootPath,
-        async getFile(filename: string, callback: (error: Error | undefined, content?: string) => void): Promise<void> {
+        getFile: (filename: string, callback: (error: Error | undefined, content?: string) => void): void => {
             // note: this isn't invoked
             try {
-                const uri = vscode.Uri.file(path.resolve(rootPath, filename));
-                const content = await vscode.workspace.fs.readFile(uri);
-                const textContent = new TextDecoder().decode(content);
-                callback(undefined, textContent);
+                const content = fileSystemProvider.getFileContent(path.resolve(rootPath, filename));
+                callback(undefined, content);
             } catch (error) {
                 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
                 callback(error as Error);
@@ -192,7 +192,8 @@ export const startServer = async (rootPath: string, wsroot: string): Promise<ter
     asyncTernRequest = util.promisify(ternServer.request.bind(ternServer));
     asyncFlush = util.promisify(ternServer.flush.bind(ternServer));
 
-    void init(); // Explicitly marking as ignored async operation
+    // Don't initialize tern here - wait until fileSystemProvider is reconstructed
+    // await init(fileSystemProvider)();
 
     return ternServer;
 };
@@ -246,9 +247,9 @@ export const delFile = (close: TextDocumentChangeEvent<TextDocument>): void => {
     ternServer.delFile(uriToFile(document.uri));
 };
 
-export const onCompletion = async (completionParams: CompletionParams): Promise<CompletionList> => {
+export const onCompletion = async (completionParams: CompletionParams, fileSystemProvider: FileSystemDataProvider): Promise<CompletionList> => {
     try {
-        await init();
+        await init(fileSystemProvider);
         await asyncFlush();
 
         const { completions } = await ternRequest(completionParams, 'completions', {
@@ -291,9 +292,9 @@ export const onCompletion = async (completionParams: CompletionParams): Promise<
     }
 };
 
-export const onHover = async (textDocumentPosition: TextDocumentPositionParams): Promise<Hover> => {
+export const onHover = async (textDocumentPosition: TextDocumentPositionParams, fileSystemProvider: FileSystemDataProvider): Promise<Hover> => {
     try {
-        await init();
+        await init(fileSystemProvider);
         await asyncFlush();
         const info = await ternRequest(textDocumentPosition, 'type');
 
@@ -315,14 +316,18 @@ export const onHover = async (textDocumentPosition: TextDocumentPositionParams):
     }
 };
 
-export const onTypeDefinition = async (textDocumentPosition: TextDocumentPositionParams): Promise<Definition | undefined> => {
+export const onTypeDefinition = async (
+    textDocumentPosition: TextDocumentPositionParams,
+    fileSystemProvider: FileSystemDataProvider,
+): Promise<Definition | undefined> => {
     const info = await ternRequest(textDocumentPosition, 'type');
     if (info?.origin) {
         try {
-            const uri = vscode.Uri.file(info.origin);
-            const content = await vscode.workspace.fs.readFile(uri);
-            const contents = new TextDecoder().decode(content);
-            const endCol = new LineColumnFinder(contents, { origin: 0 }).fromIndex(contents.length - 1);
+            const content = fileSystemProvider.getFileContent(info.origin);
+            if (!content) {
+                throw new Error('File not found');
+            }
+            const endCol = new LineColumnFinder(content, { origin: 0 }).fromIndex(content.length - 1);
             return {
                 uri: fileToUri(info.origin),
                 range: {
@@ -344,9 +349,12 @@ export const onTypeDefinition = async (textDocumentPosition: TextDocumentPositio
     return undefined;
 };
 
-export const onDefinition = async (textDocumentPosition: TextDocumentPositionParams): Promise<Location | undefined> => {
+export const onDefinition = async (
+    textDocumentPosition: TextDocumentPositionParams,
+    fileSystemProvider: FileSystemDataProvider,
+): Promise<Location | undefined> => {
     try {
-        await init();
+        await init(fileSystemProvider);
         await asyncFlush();
         const { file, start, end } = await ternRequest(textDocumentPosition, 'definition', { preferFunction: false, doc: false });
         if (file) {
@@ -359,7 +367,7 @@ export const onDefinition = async (textDocumentPosition: TextDocumentPositionPar
                 textDocumentPosition.position.character >= start?.ch &&
                 textDocumentPosition.position.character <= end?.ch
             ) {
-                const typeDef = await onTypeDefinition(textDocumentPosition);
+                const typeDef = await onTypeDefinition(textDocumentPosition, fileSystemProvider);
                 if (typeDef && 'uri' in typeDef && 'range' in typeDef) {
                     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
                     return typeDef as Location;
@@ -386,8 +394,8 @@ export const onDefinition = async (textDocumentPosition: TextDocumentPositionPar
     return undefined;
 };
 
-export const onReferences = async (reference: ReferenceParams): Promise<Location[] | undefined> => {
-    await init();
+export const onReferences = async (reference: ReferenceParams, fileSystemProvider: FileSystemDataProvider): Promise<Location[] | undefined> => {
+    await init(fileSystemProvider);
     await asyncFlush();
     const { refs } = await ternRequest(reference, 'refs');
     if (refs && refs.length > 0) {
@@ -396,13 +404,16 @@ export const onReferences = async (reference: ReferenceParams): Promise<Location
     return undefined;
 };
 
-export const onSignatureHelp = async (signatureParams: TextDocumentPositionParams): Promise<SignatureHelp | undefined> => {
+export const onSignatureHelp = async (
+    signatureParams: TextDocumentPositionParams,
+    fileSystemProvider: FileSystemDataProvider,
+): Promise<SignatureHelp | undefined> => {
     const {
         position,
         textDocument: { uri },
     } = signatureParams;
     try {
-        await init();
+        await init(fileSystemProvider);
         await asyncFlush();
         const files = ternServer.files;
         const fileName = ternServer.normalizeFilename(uriToFile(uri));

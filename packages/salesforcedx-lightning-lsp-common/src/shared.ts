@@ -6,7 +6,7 @@
  */
 
 import * as path from 'node:path';
-import * as vscode from 'vscode';
+import { IFileSystemProvider } from './providers/fileSystemDataProvider';
 
 const SFDX_PROJECT = 'sfdx-project.json';
 
@@ -20,45 +20,53 @@ export const getSfdxProjectFile = (root: string): string => path.join(root, SFDX
  * @param root
  * @returns WorkspaceType for singular root
  */
-export const detectWorkspaceHelper = async (root: string): Promise<WorkspaceType> => {
+export const detectWorkspaceHelper = async (root: string, fileSystemProvider: IFileSystemProvider): Promise<WorkspaceType> => {
     try {
-        const sfdxProjectUri = vscode.Uri.file(getSfdxProjectFile(root));
-        await vscode.workspace.fs.stat(sfdxProjectUri);
-        return 'SFDX';
+        const sfdxProjectFile = getSfdxProjectFile(root);
+        const fileStat = fileSystemProvider.getFileStat(`${sfdxProjectFile}`);
+        if (fileStat?.type === 'file') {
+            return 'SFDX';
+        }
     } catch {
         // File doesn't exist, continue
     }
 
     try {
-        const workspaceUserUri = vscode.Uri.file(path.join(root, 'workspace-user.xml'));
-        await vscode.workspace.fs.stat(workspaceUserUri);
-        return 'CORE_ALL';
+        const fileStat = fileSystemProvider.getFileStat(`${path.join(root, 'workspace-user.xml')}`);
+        if (fileStat?.type === 'file') {
+            return 'CORE_ALL';
+        }
     } catch {
         // File doesn't exist, continue
     }
 
     try {
-        const parentWorkspaceUserUri = vscode.Uri.file(path.join(root, '..', 'workspace-user.xml'));
-        await vscode.workspace.fs.stat(parentWorkspaceUserUri);
-        return 'CORE_PARTIAL';
+        const parentWorkspaceUserUri = path.join(root, '..', 'workspace-user.xml');
+        const fileStat = fileSystemProvider.getFileStat(`${parentWorkspaceUserUri}`);
+        if (fileStat?.type === 'file') {
+            return 'CORE_PARTIAL';
+        }
     } catch {
         // File doesn't exist, continue
     }
 
     try {
-        const lwcConfigUri = vscode.Uri.file(path.join(root, 'lwc.config.json'));
-        await vscode.workspace.fs.stat(lwcConfigUri);
-        return 'STANDARD_LWC';
+        const lwcConfigUri = path.join(root, 'lwc.config.json');
+        const fileStat = fileSystemProvider.getFileStat(`${lwcConfigUri}`);
+        if (fileStat?.type === 'file') {
+            return 'STANDARD_LWC';
+        }
     } catch {
         // File doesn't exist, continue
     }
 
     const packageJson = path.join(root, 'package.json');
     try {
-        const packageJsonUri = vscode.Uri.file(packageJson);
-        await vscode.workspace.fs.stat(packageJsonUri);
-
-        const packageInfo = JSON.parse(await vscode.workspace.fs.readFile(packageJsonUri).then((data) => Buffer.from(data).toString('utf8')));
+        const packageInfoContent = fileSystemProvider.getFileContent(`${packageJson}`);
+        if (!packageInfoContent) {
+            throw new Error('Package info not found');
+        }
+        const packageInfo = JSON.parse(packageInfoContent);
         const dependencies = Object.keys(packageInfo.dependencies ?? {});
         const devDependencies = Object.keys(packageInfo.devDependencies ?? {});
         const allDependencies = [...dependencies, ...devDependencies];
@@ -79,9 +87,11 @@ export const detectWorkspaceHelper = async (root: string): Promise<WorkspaceType
         }
 
         try {
-            const lernaJsonUri = vscode.Uri.file(path.join(root, 'lerna.json'));
-            await vscode.workspace.fs.stat(lernaJsonUri);
-            return 'MONOREPO';
+            const lernaJsonUri = path.join(root, 'lerna.json');
+            const fileStat = fileSystemProvider.getFileStat(`${lernaJsonUri}`);
+            if (fileStat?.type === 'file') {
+                return 'MONOREPO';
+            }
         } catch {
             // File doesn't exist, continue
         }
@@ -98,12 +108,12 @@ export const detectWorkspaceHelper = async (root: string): Promise<WorkspaceType
  * @param workspaceRoots
  * @returns WorkspaceType, actively not supporting workspaces of mixed type
  */
-export const detectWorkspaceType = async (workspaceRoots: string[]): Promise<WorkspaceType> => {
+export const detectWorkspaceType = async (workspaceRoots: string[], fileSystemProvider: IFileSystemProvider): Promise<WorkspaceType> => {
     if (workspaceRoots.length === 1) {
-        return await detectWorkspaceHelper(workspaceRoots[0]);
+        return await detectWorkspaceHelper(workspaceRoots[0], fileSystemProvider);
     }
     for (const root of workspaceRoots) {
-        const type = await detectWorkspaceHelper(root);
+        const type = await detectWorkspaceHelper(root, fileSystemProvider);
         if (type !== 'CORE_PARTIAL') {
             return 'UNKNOWN';
         }

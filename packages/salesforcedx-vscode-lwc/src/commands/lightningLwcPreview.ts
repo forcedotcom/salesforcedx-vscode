@@ -8,7 +8,7 @@
 // leaving as is because this extension is being replaced
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { nameFromDirectory, nameFromFile } from '@salesforce/salesforcedx-aura-language-server/component-util';
+import { nameFromDirectory, nameFromFile } from '@salesforce/salesforcedx-aura-language-server/utils/componentUtil';
 import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   notificationService,
@@ -113,7 +113,7 @@ const sfMobilePreviewCommand = 'force:lightning:lwc:preview';
 const androidSuccessString = 'Launching... Opening Browser';
 const componentNameConverter = (namespace: string, tag: string): string => `${namespace}:${tag}`;
 
-const componentFromFile = (file: string, sfdxProject: boolean): string =>
+const componentFromFile = (file: string, sfdxProject: boolean): string | null =>
   nameFromFile(file, sfdxProject, componentNameConverter);
 
 const componentFromDirectory = (file: string, sfdxProject: boolean): string =>
