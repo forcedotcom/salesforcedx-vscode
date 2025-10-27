@@ -23,6 +23,9 @@
   "categories": [
     "Programming Languages"
   ],
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json"
+  ],
   "dependencies": {
     "@salesforce/salesforcedx-utils-vscode": "65.2.0",
     "@salesforce/vscode-service-provider": "^1.5.0",
@@ -110,11 +113,11 @@
       "commandPalette": [
         {
           "command": "sf.create.apex.action.class",
-          "when": "sf:project_opened && sf:has_target_org && resource =~ /.\\.(cls)?$/ && resourcePath =~ /classes/ && salesforcedx-einstein-gpt.isEnabled"
+          "when": "sf:project_opened && sf:has_target_org && salesforcedx-einstein-gpt.isEnabled"
         },
         {
           "command": "sf.validate.oas.document",
-          "when": "sf:project_opened && sf:has_target_org && (resource =~ /.\\.externalServiceRegistration-meta\\.(xml)?$/ || resource =~ /.\\.(yaml)?$/) && salesforcedx-einstein-gpt.isEnabled && sf:muleDxApiInactive"
+          "when": "sf:project_opened && sf:has_target_org && salesforcedx-einstein-gpt.isEnabled && sf:muleDxApiInactive"
         }
       ]
     },
