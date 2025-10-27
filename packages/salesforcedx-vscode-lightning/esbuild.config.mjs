@@ -6,6 +6,8 @@
  */
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { build } from 'esbuild';
+import { copyFileSync, mkdirSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
 
 await build({
   ...nodeConfig,
@@ -48,3 +50,20 @@ await build({
     }
   ]
 });
+
+// Copy the resources directory from the aura language server to the dist folder
+const resourcesSource = '../salesforcedx-aura-language-server/src/resources';
+const resourcesDest = './dist/resources';
+
+if (existsSync(resourcesSource)) {
+  // Create the resources directory in dist
+  mkdirSync(resourcesDest, { recursive: true });
+
+  // Copy the entire resources directory
+  const { execSync } = await import('child_process');
+  execSync(`cp -r ${resourcesSource}/* ${resourcesDest}/`, { stdio: 'inherit' });
+
+  console.log('Copied resources directory to dist/');
+} else {
+  console.warn('Resources directory not found:', resourcesSource);
+}

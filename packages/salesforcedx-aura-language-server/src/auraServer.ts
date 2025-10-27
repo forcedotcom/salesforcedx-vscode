@@ -194,12 +194,6 @@ export default class Server {
 
             this.context = new AuraWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
 
-            // Initialize tern server now that fileSystemProvider is properly reconstructed
-            console.log('AuraServer onInitialize: Initializing tern server');
-            const { init } = await import('./tern-server/ternServer');
-            await init(this.fileSystemProvider)();
-            console.log('AuraServer onInitialize: Tern server initialized successfully');
-
             try {
                 if (this.context.type === 'CORE_PARTIAL') {
                     await startServer(path.join(this.workspaceRoots[0], '..'), path.join(this.workspaceRoots[0], '..'), this.fileSystemProvider);
@@ -210,6 +204,12 @@ export default class Server {
                 console.error('Error in startServer:', error);
                 throw error;
             }
+
+            // Initialize tern server now that startServer has been called and asyncTernRequest is available
+            console.log('AuraServer onInitialize: Initializing tern server');
+            const { init } = await import('./tern-server/ternServer');
+            await init(this.fileSystemProvider);
+            console.log('AuraServer onInitialize: Tern server initialized successfully');
 
             try {
                 await this.context.configureProject();

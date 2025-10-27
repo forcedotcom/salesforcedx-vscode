@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { memoize } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common/src/providers/fileSystemDataProvider';
 import LineColumnFinder from 'line-column';
 import path from 'node:path';
@@ -163,7 +162,7 @@ const ternInit = async (fileSystemProvider: FileSystemDataProvider): Promise<voi
     }
 };
 
-const init = (fileSystemProvider: FileSystemDataProvider) => memoize(() => ternInit(fileSystemProvider));
+const init = (fileSystemProvider: FileSystemDataProvider) => ternInit(fileSystemProvider);
 
 export { init };
 
