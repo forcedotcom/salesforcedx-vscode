@@ -120,11 +120,29 @@ npm pack --dry-run
 
 ## CI/CD Integration
 
-### Required Steps
+### Automated Publishing
 
-1. **On parent package changes**: Run types package compilation as part of CI
-2. **Before release**: Run `npm run prepublishOnly` in types package
-3. **Publishing**: Use `npm publish` (prepublishOnly hook ensures everything is synced)
+The package is automatically published to npm when a GitHub release is created via the `.github/workflows/publishNpmTypes.yml` workflow.
+
+**Workflow Steps:**
+
+1. **Version Validation**: Compares release tag (e.g., `v64.4.0`) with `package.json` version
+2. **Pre-publish**: Runs `prepublishOnly` script which:
+   - Syncs dependencies and version from parent package
+   - Generates source entry point
+   - Compiles all TypeScript declarations
+3. **Publish**: Publishes package to npm with public access
+
+**Requirements:**
+
+- `NPM_TOKEN` secret must be configured in repository settings
+- Release tag must match the version in parent `salesforcedx-vscode-services/package.json`
+- Package version will be auto-synced from parent during publish
+
+**Triggering:**
+
+- Automatic: When a GitHub release is published (not pre-release)
+- Manual: Via workflow_dispatch button in GitHub Actions UI
 
 ### Validation Script
 
@@ -159,31 +177,6 @@ npm pack
 
 **Problem**: Package includes unnecessary files
 **Solution**: Check `.npmignore` only allows `out/**/*.d.ts` files and required metadata
-
-## File Structure
-
-```text
-salesforcedx-vscode-services-types/
-├── package.json              # Package metadata, synced version/deps
-├── tsconfig.json            # TypeScript config for declaration-only compile
-├── .gitignore               # Excludes src/ and out/ (both generated)
-├── .npmignore               # Includes only out/**/*.d.ts and metadata
-├── README.md                # User-facing documentation
-├── DEVELOPMENT.md           # This file
-├── LICENSE.txt              # BSD-3-Clause license
-├── scripts/
-│   ├── generateEntry.ts     # Generates src/index.ts from parent
-│   └── syncDeps.ts          # Syncs dependencies/version from parent
-├── src/                     # Generated (not in git)
-│   └── index.ts             # Re-exports SalesforceVSCodeServicesApi
-└── out/                     # Generated (not in git)
-    ├── salesforcedx-vscode-services-types/
-    │   └── src/
-    │       └── index.d.ts   # Entry point (referenced by package.json)
-    └── salesforcedx-vscode-services/
-        └── src/             # All type definitions from parent
-            └── **/*.d.ts
-```
 
 ## Common Commands
 
