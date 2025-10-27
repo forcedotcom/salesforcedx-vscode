@@ -8,12 +8,11 @@ import type { MetadataTypeTreeProvider } from './metadataTypeTreeProvider';
 import type { MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Queue from 'effect/Queue';
-
+import * as Stream from 'effect/Stream';
 import type { AnySpan } from 'effect/Tracer';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { getIconPath, OrgBrowserTreeItem } from './orgBrowserNode';
 import { MetadataListResultItem } from './types';
-import { Stream } from 'effect';
 
 /** the request that the queue will process */
 type BackgroundFilePresenceCheckRequest = {
