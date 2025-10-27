@@ -16,6 +16,7 @@ type WorkflowRun = {
 const EXTENSION_IDS = [
   'salesforce.salesforcedx-vscode-apex-debugger',
   'salesforce.salesforcedx-vscode-apex-replay-debugger',
+  'salesforce.salesforcedx-vscode-apex-oas',
   'salesforce.salesforcedx-vscode-lightning',
   'salesforce.salesforcedx-vscode-visualforce',
   'salesforce.salesforcedx-vscode-lwc',

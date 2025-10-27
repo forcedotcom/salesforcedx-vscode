@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { OASGenerationCommandMeasure, OASGenerationCommandProperties } from '../oas/schemas';
 import { notificationService, TimingUtils, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -17,9 +18,8 @@ import {
   PromptGenerationOrchestrator as GenerationOrchestrator,
   BID_RULES
 } from '../oas/promptGenerationOrchestrator';
-import { OASGenerationCommandMeasure, OASGenerationCommandProperties } from '../oas/schemas';
 import { checkIfESRIsDecomposed, processOasDocument, summarizeDiagnostics, hasMixedFrameworks } from '../oasUtils';
-import { getTelemetryService } from '../telemetry/telemetry';
+import { getTelemetryService } from '../telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 
 export class ApexActionController {
@@ -206,7 +206,7 @@ export class ApexActionController {
   private getBidRule(): BidRule {
     const currentBidRule = vscode.workspace
       .getConfiguration()
-      .get('salesforcedx-vscode-apex.oas_generation_strategy', BID_RULES.LEAST_CALLS);
+      .get('salesforcedx-vscode-apex-oas.generation_strategy', BID_RULES.LEAST_CALLS);
 
     return this.isBidRule(currentBidRule) ? currentBidRule : BID_RULES.LEAST_CALLS;
   }

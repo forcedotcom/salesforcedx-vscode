@@ -664,6 +664,30 @@ describe('cleanupGeneratedDoc', () => {
     const doc = 'invalid json';
     expect(() => cleanupGeneratedDoc(doc)).toThrow('The document is not a valid JSON object.');
   });
+
+  it('should strip markdown code fences with json language identifier', () => {
+    const doc = '```json\n{"key": "value"}\n```';
+    expect(cleanupGeneratedDoc(doc)).toBe('{"key": "value"}');
+  });
+
+  it('should strip markdown code fences without language identifier', () => {
+    const doc = '```\n{"key": "value"}\n```';
+    expect(cleanupGeneratedDoc(doc)).toBe('{"key": "value"}');
+  });
+
+  it('should strip markdown code fences with extra whitespace', () => {
+    const doc = '```json\n\n{"key": "value"}\n\n```';
+    expect(cleanupGeneratedDoc(doc)).toBe('{"key": "value"}');
+  });
+
+  it('should handle markdown wrapped multi-line JSON', () => {
+    const doc = '```json\n{\n  "openapi": "3.0.0",\n  "info": {\n    "title": "Test"\n  }\n}\n```';
+    const result = cleanupGeneratedDoc(doc);
+    expect(JSON.parse(result)).toEqual({
+      openapi: '3.0.0',
+      info: { title: 'Test' }
+    });
+  });
 });
 
 describe('parseOASDocFromJson', () => {

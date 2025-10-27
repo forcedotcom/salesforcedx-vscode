@@ -6,6 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
+import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from './oas/schemas';
 import {
   extensionUris,
   getJsonCandidate,
@@ -27,7 +28,6 @@ import { getVscodeCoreExtension } from './coreExtensionUtils';
 import OasProcessor from './oas/documentProcessorPipeline';
 import { ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 import GenerationInteractionLogger from './oas/generationInteractionLogger';
-import { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from './oas/schemas';
 import { retrieveAAClassRestAnnotations, retrieveAAMethodRestAnnotations } from './settings';
 
 const DOT_SFDX = '.sfdx';
@@ -135,14 +135,29 @@ export const checkIfESRIsDecomposed = async (): Promise<boolean> => {
 };
 
 /**
+ * Strips markdown code fences from a string if present.
+ * @param {string} doc - The document that may contain markdown code fences.
+ * @returns {string} - The document without markdown code fences.
+ */
+const stripMarkdownCodeFences = (doc: string): string => {
+  // Remove markdown code fences like ```json ... ``` or ``` ... ```
+  const markdownPattern = /^```(?:json)?\s*\n?([\s\S]*?)\n?```\s*$/;
+  const match = doc.match(markdownPattern);
+  return match ? match[1].trim() : doc;
+};
+
+/**
  * Cleans up a generated document by extracting the JSON string.
  * @param {string} doc - The document to clean up.
  * @returns {string} - The cleaned-up JSON string.
  * @throws Will throw an error if the document is not a valid JSON object.
  */
 export const cleanupGeneratedDoc = (doc: string): string => {
-  if (identifyJsonTypeInString(doc) === 'object') {
-    const jsonCandidate = getJsonCandidate(doc);
+  // First, strip markdown code fences if present
+  const strippedDoc = stripMarkdownCodeFences(doc);
+
+  if (identifyJsonTypeInString(strippedDoc) === 'object') {
+    const jsonCandidate = getJsonCandidate(strippedDoc);
     if (jsonCandidate) {
       return jsonCandidate;
     }
