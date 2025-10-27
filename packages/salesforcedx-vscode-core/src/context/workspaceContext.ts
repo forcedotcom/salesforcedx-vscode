@@ -86,7 +86,6 @@ export class WorkspaceContext {
     try {
       await handleTraceFlagCleanup(this.extensionContext);
     } catch (error) {
-      ('');
       // If the action performed results in no default org set, we need to remove the trace flag expiration
       disposeTraceFlagExpiration();
       console.log('Failed to perform trace flag cleanup after org change:', error);
