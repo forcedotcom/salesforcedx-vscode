@@ -16,7 +16,7 @@ import {
   isValidRegistrationProviderType,
   processOasDocumentFromYaml
 } from '../oasUtils';
-import { getTelemetryService } from '../telemetry/telemetry';
+import { getTelemetryService } from '../telemetry';
 
 // This class runs the validation and correction logic on Oas Documents
 class OasDocumentChecker {

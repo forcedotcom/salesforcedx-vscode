@@ -30,6 +30,7 @@
   ],
   "extensionPack": [
     "salesforce.salesforcedx-vscode-apex",
+    "salesforce.salesforcedx-vscode-apex-oas",
     "salesforce.salesforcedx-vscode-apex-replay-debugger",
     "salesforce.salesforcedx-einstein-gpt",
     "salesforce.salesforcedx-vscode-core",
