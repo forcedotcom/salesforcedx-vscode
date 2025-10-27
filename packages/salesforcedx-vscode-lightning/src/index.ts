@@ -152,6 +152,9 @@ const createSmartFileSystemProvider = async (workspaceUris: string[]): Promise<F
     }
   }
 
+  // Add resources directory from the bundled extension
+  await populateResourcesDirectory(fileSystemProvider);
+
   return fileSystemProvider;
 };
 
@@ -234,6 +237,77 @@ const shouldSkipDirectory = (dirName: string): boolean => {
     '.DS_Store'
   ];
   return skipDirs.includes(dirName) || dirName.startsWith('.');
+};
+
+/**
+ * Populates the resources directory from the bundled extension
+ * @param provider FileSystemDataProvider to populate
+ */
+const populateResourcesDirectory = async (provider: FileSystemDataProvider): Promise<void> => {
+  try {
+    // Get the extension path
+    const extensionPath = path.join(__dirname, '..', '..', 'dist');
+    const resourcesDir = path.join(extensionPath, 'resources');
+    const auraResourcesDir = path.join(resourcesDir, 'aura');
+
+    // Check if the resources directory exists
+    const resourcesUri = Uri.file(resourcesDir);
+    const auraResourcesUri = Uri.file(auraResourcesDir);
+
+    try {
+      const resourcesStat = await workspace.fs.stat(resourcesUri);
+      const auraResourcesStat = await workspace.fs.stat(auraResourcesUri);
+
+      if (resourcesStat.type === FileType.Directory && auraResourcesStat.type === FileType.Directory) {
+        log('Adding resources directory to fileSystemProvider');
+
+        // Add directory listings
+        provider.updateDirectoryListing(resourcesDir, [{ name: 'aura', type: 'directory', uri: auraResourcesDir }]);
+
+        // Read the aura directory contents
+        const auraEntries = await workspace.fs.readDirectory(auraResourcesUri);
+        const auraDirectoryEntries = auraEntries.map(
+          ([name, type]): { name: string; type: 'file' | 'directory'; uri: string } => ({
+            name,
+            type: type === FileType.File ? 'file' : 'directory',
+            uri: path.join(auraResourcesDir, name)
+          })
+        );
+        provider.updateDirectoryListing(auraResourcesDir, auraDirectoryEntries);
+
+        // Add file stats
+        provider.updateFileStat(resourcesDir, {
+          type: 'directory',
+          exists: true,
+          ctime: Date.now(),
+          mtime: Date.now(),
+          size: 0
+        });
+
+        provider.updateFileStat(auraResourcesDir, {
+          type: 'directory',
+          exists: true,
+          ctime: Date.now(),
+          mtime: Date.now(),
+          size: 0
+        });
+
+        // Add file contents for all files in the aura directory
+        for (const [name, type] of auraEntries) {
+          if (type === FileType.File) {
+            const filePath = path.join(auraResourcesDir, name);
+            await tryReadFile(provider, filePath);
+          }
+        }
+
+        log('Successfully added resources directory to fileSystemProvider');
+      }
+    } catch (error) {
+      log(`Resources directory not found at ${resourcesDir}: ${error}`);
+    }
+  } catch (error) {
+    log(`Error populating resources directory: ${error}`);
+  }
 };
 
 /**
