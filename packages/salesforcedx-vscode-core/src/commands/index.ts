@@ -5,10 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export { aliasList } from './aliasList';
-export { orgLoginAccessToken } from './auth/orgLoginAccessToken';
-export { orgLoginWeb } from './auth/orgLoginWeb';
-export { orgLoginWebDevHub } from './auth/orgLoginWebDevHub';
-export { orgLogoutAll, orgLogoutDefault } from './auth/orgLogout';
 export { configList } from './configList';
 export { configSet } from './configSet';
 export { dataQuery } from './dataQuery';
@@ -25,11 +21,6 @@ export { retrieveManifest } from './retrieveManifest';
 export { retrieveComponent } from './retrieveMetadata';
 export { retrieveSourcePaths } from './retrieveSourcePath';
 export { openDocumentation } from './openDocumentation';
-export { orgCreate } from './orgCreate';
-export { orgDelete } from './orgDelete';
-export { orgDisplay } from './orgDisplay';
-export { orgList } from './orgList';
-export { orgOpen } from './orgOpen';
 export { projectDeployStart } from './projectDeployStart';
 export { projectGenerateWithManifest, sfProjectGenerate } from './projectGenerate';
 export { projectRetrieveStart } from './projectRetrieveStart';

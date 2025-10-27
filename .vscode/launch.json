@@ -30,6 +30,7 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-lwc",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-lightning",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-replay-debugger",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-debugger"
@@ -62,6 +63,7 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-lwc",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-lightning",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-replay-debugger",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-debugger"

@@ -12,11 +12,10 @@ import {
   disposeTraceFlagExpiration,
   UserService,
   refreshAllExtensionReporters,
-  handleTraceFlagCleanup
+  handleTraceFlagCleanup,
+  OrgAuthInfo
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { decorators } from '../decorators';
-import { OrgAuthInfo } from '../util/authInfo';
 import { workspaceContextUtils } from '.';
 
 /**
@@ -58,8 +57,7 @@ export class WorkspaceContext {
       // error reported by setupWorkspaceOrgType
       console.error(e)
     );
-
-    await decorators.showOrg();
+    // Note: decorators.showOrg() has been moved to the salesforcedx-vscode-org extension
   }
 
   protected async handleOrgShapeChange(orgInfo: OrgUserInfo) {

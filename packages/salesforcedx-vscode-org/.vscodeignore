@@ -1,0 +1,17 @@
+**/.vscode-test/**
+**/node_modules/**
+**/out/test/**
+**/test/**
+**/src/**
+**/.DS_Store
+**/.git
+**/.gitignore
+**/.github
+**/tsconfig.json
+**/.eslintignore
+**/.eslintrc.json
+**/jest.config.js
+**/*.ts.map
+coverage/
+.nyc_output/
+**/*.vsix

@@ -40,7 +40,6 @@ export const ENABLE_SOBJECT_REFRESH_ON_STARTUP = 'enable-sobject-refresh-on-star
 export const ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE = 'experimental.enableSourceTrackingForDeployAndRetrieve';
 export const ENV_NODE_EXTRA_CA_CERTS = 'NODE_EXTRA_CA_CERTS';
 export const ENV_SF_LOG_LEVEL = 'SF_LOG_LEVEL';
-export const ORG_LOGIN_WEB = 'org:login:web';
 
 export const APEX_FILE_NAME_EXTENSION = '.apex';
 export const SOQL_FILE_NAME_EXTENSION = '.soql';
@@ -50,7 +49,6 @@ export const LWC_PATH = '/force-app/main/default/lwc/';
 export const FUNCTIONS_PATH = '/functions/';
 
 // Commands
-export const ORG_OPEN_COMMAND = 'sf.org.open';
 export const PROJECT_RETRIEVE_START_LOG_NAME = 'project_retrieve_start_default_scratch_org';
 export const PROJECT_DEPLOY_START_LOG_NAME = 'project_deploy_start_default_scratch_org';
 

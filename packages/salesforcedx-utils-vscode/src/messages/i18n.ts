@@ -56,7 +56,8 @@ export const messages = {
   full_name: 'FULL NAME',
   type: 'TYPE',
   project_path: 'PROJECT PATH',
-  ignored: 'IGNORED'
+  ignored: 'IGNORED',
+  parameter_gatherer_enter_username_name: 'Enter target username'
 } as const;
 
 export type MessageKey = keyof typeof messages;

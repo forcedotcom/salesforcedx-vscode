@@ -15,7 +15,8 @@ import {
   TimingUtils,
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath,
-  isSalesforceProjectOpened
+  isSalesforceProjectOpened,
+  OrgAuthInfo
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as os from 'node:os';
@@ -47,16 +48,6 @@ import {
   lightningGenerateInterface,
   lightningGenerateLwc,
   openDocumentation,
-  orgCreate,
-  orgDelete,
-  orgDisplay,
-  orgList,
-  orgLoginAccessToken,
-  orgLoginWeb,
-  orgLoginWebDevHub,
-  orgLogoutAll,
-  orgLogoutDefault,
-  orgOpen,
   packageInstall,
   projectDeployStart,
   projectGenerateManifest,
@@ -85,39 +76,31 @@ import { SelectFileName, SelectOutputDir, SfCommandlet, SfCommandletExecutor } f
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, ORG_OPEN_COMMAND } from './constants';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
-import { decorators } from './decorators';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
-import { OrgList } from './orgPicker';
 import { SalesforceProjectConfig } from './salesforceProject';
 import { getCoreLoggerService, registerGetTelemetryServiceCommand } from './services';
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { MetricsReporter } from './telemetry/metricsReporter';
-import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel, setUpOrgExpirationWatcher } from './util';
-import { OrgAuthInfo } from './util/authInfo';
+import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel } from './util';
+import { OrgAuthInfoExtensions } from './util/orgAuthInfoExtensions';
 
 /** Customer-facing commands */
 const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable =>
   vscode.Disposable.from(
     vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
     vscode.commands.registerCommand('sf.folder.diff', sourceFolderDiff),
-    vscode.commands.registerCommand('sf.org.login.access.token', orgLoginAccessToken),
     vscode.commands.registerCommand('sf.data.query.input', dataQuery),
     vscode.commands.registerCommand('sf.data.query.selection', dataQuery),
     vscode.commands.registerCommand('sf.diff', sourceDiff),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
-    vscode.commands.registerCommand('sf.org.create', orgCreate),
-    vscode.commands.registerCommand('sf.org.delete.default', orgDelete),
-    vscode.commands.registerCommand('sf.org.delete.username', orgDelete, {
-      flag: '--target-org'
-    }),
     vscode.commands.registerCommand('sf.internal.refreshsobjects', refreshSObjects),
     vscode.commands.registerCommand('sf.delete.source', deleteSource),
     vscode.commands.registerCommand('sf.delete.source.current.file', deleteSource),
@@ -153,10 +136,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.debugger.stop', debuggerStop),
     vscode.commands.registerCommand('sf.config.list', configList),
     vscode.commands.registerCommand('sf.alias.list', aliasList),
-    vscode.commands.registerCommand('sf.org.display.default', orgDisplay),
-    vscode.commands.registerCommand('sf.org.display.username', orgDisplay, {
-      flag: '--target-org'
-    }),
     vscode.commands.registerCommand('sf.project.generate', sfProjectGenerate),
     vscode.commands.registerCommand('sf.package.install', packageInstall),
     vscode.commands.registerCommand('sf.project.generate.with.manifest', projectGenerateWithManifest),
@@ -165,11 +144,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.stop.apex.debug.logging', () => turnOffLogging(extensionContext)),
     vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap),
     vscode.commands.registerCommand('sf.config.set', configSet),
-    vscode.commands.registerCommand('sf.org.list.clean', orgList),
-    vscode.commands.registerCommand('sf.org.login.web.dev.hub', orgLoginWebDevHub),
-    vscode.commands.registerCommand('sf.org.logout.all', orgLogoutAll),
-    vscode.commands.registerCommand('sf.org.logout.default', orgLogoutDefault),
-    vscode.commands.registerCommand(ORG_OPEN_COMMAND, orgOpen),
     vscode.commands.registerCommand('sf.vscode.core.logger.get.instance', getCoreLoggerService),
     registerGetTelemetryServiceCommand()
   );
@@ -184,11 +158,6 @@ const registerInternalDevCommands = (): vscode.Disposable =>
     vscode.commands.registerCommand('sf.internal.lightning.generate.event', internalLightningGenerateEvent),
     vscode.commands.registerCommand('sf.internal.lightning.generate.interface', internalLightningGenerateInterface)
   );
-
-const registerOrgPickerCommands = (orgListParam: OrgList): vscode.Disposable => {
-  const setDefaultOrgCmd = vscode.commands.registerCommand('sf.set.default.org', () => orgListParam.setDefaultOrg());
-  return vscode.Disposable.from(setDefaultOrgCmd);
-};
 
 const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   await orgBrowser.init(extensionContext);
@@ -215,8 +184,6 @@ const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promi
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
   const activationStartTime = TimingUtils.getCurrentTime();
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
-  // we need this command very early in activation process to handle auth issues from access token only orgs.
-  extensionContext.subscriptions.push(vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb));
 
   const rootWorkspacePath = getRootWorkspacePath();
   // Switch to the project directory so that the main @salesforce
@@ -247,7 +214,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const api: SalesforceVSCodeCoreApi = {
     channelService,
     getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
-    getUserId: OrgAuthInfo.getUserId,
+    getUserId: OrgAuthInfoExtensions.getUserId,
+    getAuthFields: OrgAuthInfoExtensions.getAuthFields,
     isCLIInstalled,
     notificationService,
     OrgAuthInfo,
@@ -261,6 +229,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     WorkspaceContext,
     taskViewService,
     telemetryService,
+    workspaceContextUtils,
     services: {
       RegistryAccess,
       ChannelService,
@@ -342,10 +311,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   await WorkspaceContext.getInstance().initialize(extensionContext);
 
-  // Register org picker commands
-  const newOrgList = new OrgList();
-  extensionContext.subscriptions.push(registerOrgPickerCommands(newOrgList));
-
   PersistentStorageService.initialize(extensionContext);
 
   // Register file watcher for push or deploy on save
@@ -355,14 +320,12 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   const metadataHoverProvider = new MetadataHoverProvider();
 
   await Promise.all([
-    decorators.showOrg(),
     setupOrgBrowser(extensionContext),
     setupConflictView(extensionContext),
     // Initialize metadata XML support
     MetadataXmlSupport.getInstance().initializeMetadataSupport(extensionContext),
     // Initialize metadata hover provider
-    metadataHoverProvider.initialize(),
-    setUpOrgExpirationWatcher(newOrgList)
+    metadataHoverProvider.initialize()
   ]);
 
   // Register hover provider for XML files
@@ -423,7 +386,8 @@ const handleTheUnhandled = (): void => {
 export type SalesforceVSCodeCoreApi = {
   channelService: typeof channelService;
   getTargetOrgOrAlias: typeof workspaceContextUtils.getTargetOrgOrAlias;
-  getUserId: typeof OrgAuthInfo.getUserId;
+  getUserId: typeof OrgAuthInfoExtensions.getUserId;
+  getAuthFields: typeof OrgAuthInfoExtensions.getAuthFields;
   isCLIInstalled: typeof isCLIInstalled;
   notificationService: typeof notificationService;
   OrgAuthInfo: typeof OrgAuthInfo;
@@ -437,6 +401,7 @@ export type SalesforceVSCodeCoreApi = {
   WorkspaceContext: typeof WorkspaceContext;
   taskViewService: typeof taskViewService;
   telemetryService: typeof telemetryService;
+  workspaceContextUtils: typeof workspaceContextUtils;
   services: {
     RegistryAccess: typeof RegistryAccess;
     ChannelService: typeof ChannelService;
