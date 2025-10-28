@@ -10,7 +10,7 @@ import { build } from 'esbuild';
 await build({
   ...nodeConfig,
   entryPoints: ['./src/index.ts'],
-  outfile: 'dist/index.js',
+  outfile: './dist/index.js',
   external: ['vscode', 'applicationinsights'],
   minify: true
 });
