@@ -72,20 +72,7 @@ export class ChannelService {
   }
 
   public showCommandWithTimestamp(commandName: string) {
-    this.channel.appendLine(`${this.getExecutionTime()} ${commandName}`);
-  }
-
-  private getExecutionTime() {
-    const d = new Date();
-    const hr = this.ensureDoubleDigits(d.getHours());
-    const mins = this.ensureDoubleDigits(d.getMinutes());
-    const sec = this.ensureDoubleDigits(d.getSeconds());
-    const milli = d.getMilliseconds();
-    return `${hr}:${mins}:${sec}.${milli}`;
-  }
-
-  private ensureDoubleDigits(num: number) {
-    return num < 10 ? `0${num.toString()}` : num.toString();
+    this.channel.appendLine(`${getExecutionTime()} ${commandName}`);
   }
 
   public showChannelOutput() {
@@ -100,3 +87,14 @@ export class ChannelService {
     this.channel.clear();
   }
 }
+
+const getExecutionTime = () => {
+  const d = new Date();
+  const hr = ensureDoubleDigits(d.getHours());
+  const mins = ensureDoubleDigits(d.getMinutes());
+  const sec = ensureDoubleDigits(d.getSeconds());
+  const milli = d.getMilliseconds();
+  return `${hr}:${mins}:${sec}.${milli}`;
+};
+
+const ensureDoubleDigits = (num: number): string => (num < 10 ? `0${num.toString()}` : num.toString());

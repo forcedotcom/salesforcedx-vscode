@@ -93,13 +93,11 @@ const asyncDebugConfig = async (config: vscode.DebugConfiguration): Promise<vsco
 
   return config;
 };
+
 // Helper function to extract filename from path (web-compatible)
-const getBasename = (filePath: string): string => {
+const getBasename = (filePath: string): string =>
   // Handle both forward and backward slashes
-  const normalizedPath = filePath.replace(/\\/g, '/');
-  const parts = normalizedPath.split('/');
-  return parts.at(-1) ?? filePath;
-};
+  filePath.replace(/\\/g, '/').split('/').at(-1) ?? filePath;
 
 const isLanguageClientReady = async (salesforceApexExtension: ApexVSCodeApi): Promise<void> => {
   let expired = false;
