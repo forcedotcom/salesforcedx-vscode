@@ -27,17 +27,14 @@ export const getWebAppInsightsReporter = (): TelemetryReporter => {
 };
 
 const getSpanKindName = (kind: SpanKind): string =>
-  kind === SpanKind.INTERNAL
-    ? 'INTERNAL'
-    : kind === SpanKind.SERVER
-      ? 'SERVER'
-      : kind === SpanKind.CLIENT
-        ? 'CLIENT'
-        : kind === SpanKind.PRODUCER
-          ? 'PRODUCER'
-          : kind === SpanKind.CONSUMER
-            ? 'CONSUMER'
-            : 'UNKNOWN';
+  Match.value(kind).pipe(
+    Match.when(SpanKind.INTERNAL, () => 'INTERNAL'),
+    Match.when(SpanKind.SERVER, () => 'SERVER'),
+    Match.when(SpanKind.CLIENT, () => 'CLIENT'),
+    Match.when(SpanKind.PRODUCER, () => 'PRODUCER'),
+    Match.when(SpanKind.CONSUMER, () => 'CONSUMER'),
+    Match.orElse(() => 'UNKNOWN')
+  );
 
 const convertAttributes = (attributes: Record<string, unknown>): Record<string, string> =>
   Object.fromEntries(
