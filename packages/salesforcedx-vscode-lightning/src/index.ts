@@ -19,6 +19,7 @@ const getActivationMode = (): string => {
 };
 
 export const activate = async (extensionContext: ExtensionContext) => {
+  console.log('Aura Components Extension: Starting activation');
   const extensionStartTime = TimingUtils.getCurrentTime();
   console.log(`Activation Mode: ${getActivationMode()}`);
   // Run our auto detection routine before we activate
@@ -41,7 +42,21 @@ export const activate = async (extensionContext: ExtensionContext) => {
   });
 
   // Create a FileSystemDataProvider with workspace files for the language server
+  console.log('About to call createSmartFileSystemProvider with workspaceUris:', workspaceUris);
   const serverFileSystemProvider = await createSmartFileSystemProvider(workspaceUris);
+  console.log('createSmartFileSystemProvider completed, serverFileSystemProvider created');
+
+  // Debug: Check what's actually in the fileSystemProvider
+  console.log('Debug: Checking fileSystemProvider contents...');
+  const testPath =
+    '/Users/madhur.shrivastava/salesforcedx-vscode/packages/salesforcedx-vscode-lightning/dist/resources/aura';
+  const testFileStat = serverFileSystemProvider.getFileStat(testPath);
+  console.log(`Debug: fileStat for ${testPath}:`, testFileStat);
+
+  const testDirListing = serverFileSystemProvider.getDirectoryListing(
+    '/Users/madhur.shrivastava/salesforcedx-vscode/packages/salesforcedx-vscode-lightning/dist/resources'
+  );
+  console.log('Debug: directoryListing for resources:', testDirListing);
 
   // 3) If activationMode is autodetect or always, check workspaceType before startup
   const workspaceType = await detectWorkspaceType(workspaceUris, serverFileSystemProvider);
@@ -295,8 +310,8 @@ const populateDirectoryRecursively = async (
 const populateResourcesDirectory = async (provider: FileSystemDataProvider): Promise<void> => {
   log('populateResourcesDirectory: Starting function');
   try {
-    // Get the extension path - in bundled extension, __dirname points to the dist directory
-    const extensionPath = __dirname;
+    // Get the extension path - in bundled extension, __dirname points to out/src, we need to go up to package root then to dist
+    const extensionPath = path.join(__dirname, '..', '..', 'dist');
     const resourcesDir = path.join(extensionPath, 'resources');
     const auraResourcesDir = path.join(resourcesDir, 'aura');
 
