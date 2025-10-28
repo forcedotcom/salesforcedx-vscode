@@ -13,18 +13,16 @@ import {
     memoize,
     relativePath,
     updateForceIgnoreFile,
-    IFileSystemProvider,
+    FileSystemDataProvider,
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import baseTsConfigJson from '@salesforce/salesforcedx-lightning-lsp-common/src/resources/sfdx/tsconfig-sfdx.base.json';
 import tsConfigTemplateJson from '@salesforce/salesforcedx-lightning-lsp-common/src/resources/sfdx/tsconfig-sfdx.json';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-const updateConfigFile = async (filePath: string, content: string, fileSystemProvider: IFileSystemProvider): Promise<void> => {
-    const uri = `${filePath}`;
-
+const updateConfigFile = (filePath: string, content: string, fileSystemProvider: FileSystemDataProvider): void => {
     // Create the file stat first
-    fileSystemProvider.updateFileStat(uri, {
+    fileSystemProvider.updateFileStat(filePath, {
         type: 'file',
         exists: true,
         ctime: Date.now(),
@@ -33,24 +31,13 @@ const updateConfigFile = async (filePath: string, content: string, fileSystemPro
     });
 
     // Store the file content
-    fileSystemProvider.updateFileContent(uri, content);
-};
-
-const fileExists = async (filePath: string, fileSystemProvider: IFileSystemProvider): Promise<boolean> => {
-    const uri = `${filePath}`;
-    return fileSystemProvider.fileExists(uri);
+    fileSystemProvider.updateFileContent(filePath, content);
 };
 
 /**
  * Holds information and utility methods for a LWC workspace
  */
 export class LWCWorkspaceContext extends BaseWorkspaceContext {
-    public readonly fileSystemProvider: IFileSystemProvider;
-
-    constructor(workspaceRoots: string[], fileSystemProvider: IFileSystemProvider) {
-        super(workspaceRoots, fileSystemProvider);
-        this.fileSystemProvider = fileSystemProvider;
-    }
     /**
      * @returns string list of all lwc and aura namespace roots
      */
@@ -72,28 +59,28 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
                     const utilsLwcPath = path.join(utilsPath, 'lwc');
                     const registeredLwcPath = path.join(registeredEmptyPath, 'lwc');
 
-                    if (await fileExists(lwcPath, this.fileSystemProvider)) {
+                    if (this.fileSystemProvider.fileExists(lwcPath)) {
                         roots.lwc.push(lwcPath);
                     }
-                    if (await fileExists(utilsLwcPath, this.fileSystemProvider)) {
+                    if (this.fileSystemProvider.fileExists(utilsLwcPath)) {
                         roots.lwc.push(utilsLwcPath);
                     }
-                    if (await fileExists(registeredLwcPath, this.fileSystemProvider)) {
+                    if (this.fileSystemProvider.fileExists(registeredLwcPath)) {
                         roots.lwc.push(registeredLwcPath);
                     }
-                    if (await fileExists(auraPath, this.fileSystemProvider)) {
+                    if (this.fileSystemProvider.fileExists(auraPath)) {
                         roots.aura.push(auraPath);
                     }
                 }
                 return roots;
             case 'CORE_ALL':
                 // optimization: search only inside project/modules/
-                const projectDirs = this.fileSystemProvider.getDirectoryListing(`file://${this.workspaceRoots[0]}`);
+                const projectDirs = this.fileSystemProvider.getDirectoryListing(this.workspaceRoots[0]);
                 if (projectDirs) {
                     for (const entry of projectDirs) {
                         const project = entry.name;
                         const modulesDir = path.join(this.workspaceRoots[0], project, 'modules');
-                        if (await fileExists(modulesDir, this.fileSystemProvider)) {
+                        if (this.fileSystemProvider.fileExists(modulesDir)) {
                             const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
                             roots.lwc.push(...subroots.lwc);
                             roots.aura.push(...subroots.aura);
@@ -105,7 +92,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
                 // optimization: search only inside modules/
                 for (const ws of this.workspaceRoots) {
                     const modulesDir = path.join(ws, 'modules');
-                    if (await fileExists(modulesDir, this.fileSystemProvider)) {
+                    if (this.fileSystemProvider.fileExists(modulesDir)) {
                         const subroots = await findNamespaceRoots(path.join(ws, 'modules'), this.fileSystemProvider, 2);
                         roots.lwc.push(...subroots.lwc);
                     }
@@ -151,7 +138,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
     /**
      * Writes TypeScript configuration files for the project
      */
-    protected async writeTsconfigJson(): Promise<void> {
+    protected writeTsconfigJson(): void {
         switch (this.type) {
             case 'SFDX':
                 // Write tsconfig.sfdx.json first
@@ -159,7 +146,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
 
                 try {
                     const baseTsConfig = JSON.stringify(baseTsConfigJson, null, 4);
-                    await updateConfigFile(baseTsConfigPath, baseTsConfig, this.fileSystemProvider);
+                    updateConfigFile(baseTsConfigPath, baseTsConfig, this.fileSystemProvider);
                 } catch (error) {
                     console.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);
                     throw error;
@@ -170,14 +157,14 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
 
                 const forceignore = path.join(this.workspaceRoots[0], '.forceignore');
                 // TODO: We should only be looking through modules that have TS files
-                const modulesDirs = await getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, this.initSfdxProjectConfigCache.bind(this));
+                const modulesDirs = getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, () => this.initSfdxProjectConfigCache());
 
                 for (const modulesDir of modulesDirs) {
                     const tsConfigPath = path.join(modulesDir, 'tsconfig.json');
                     const relativeWorkspaceRoot = relativePath(path.dirname(tsConfigPath), this.workspaceRoots[0]);
                     const tsConfigContent = processTemplate(tsConfigTemplate, { project_root: relativeWorkspaceRoot });
-                    await updateConfigFile(tsConfigPath, tsConfigContent, this.fileSystemProvider);
-                    await updateForceIgnoreFile(forceignore, true, this.fileSystemProvider);
+                    updateConfigFile(tsConfigPath, tsConfigContent, this.fileSystemProvider);
+                    updateForceIgnoreFile(forceignore, true, this.fileSystemProvider);
                 }
                 break;
             default:

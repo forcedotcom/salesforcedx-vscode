@@ -8,7 +8,7 @@
 import ejs from 'ejs';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { IFileSystemProvider } from './providers/fileSystemDataProvider';
+import { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
 import jsconfigCoreTemplate from './resources/core/jsconfig-core.json';
 import settingsCoreTemplate from './resources/core/settings-core.json';
 import jsconfigSfdxTemplate from './resources/sfdx/jsconfig-sfdx.json';
@@ -39,7 +39,7 @@ const isSfdxPackageDirectoryConfig = (value: unknown): value is SfdxPackageDirec
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
-const readSfdxProjectConfig = async (root: string, fileSystemProvider: IFileSystemProvider): Promise<SfdxProjectConfig> => {
+const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProvider): SfdxProjectConfig => {
     try {
         const configText = fileSystemProvider.getFileContent(getSfdxProjectFile(root));
         if (!configText) {
@@ -102,16 +102,16 @@ export const updateForceIgnoreFile = (forceignorePath: string, addTsConfig: bool
 // exported for testing
 export const processTemplate = (template: string, data: Record<string, unknown>): string => ejs.render(template, data);
 
-export const getModulesDirs = async (
+export const getModulesDirs = (
     workspaceType: WorkspaceType,
     workspaceRoots: string[],
     fileSystemProvider: IFileSystemProvider,
-    getSfdxProjectConfig: () => Promise<SfdxProjectConfig>,
-): Promise<string[]> => {
+    getSfdxProjectConfig: () => SfdxProjectConfig,
+): string[] => {
     const modulesDirs: string[] = [];
     switch (workspaceType) {
         case 'SFDX':
-            const { packageDirectories } = await getSfdxProjectConfig();
+            const { packageDirectories } = getSfdxProjectConfig();
             for (const pkg of packageDirectories) {
                 // Check both new SFDX structure (main/default) and old structure (meta)
                 const newPkgDir = path.join(workspaceRoots[0], pkg.path, 'main', 'default');
@@ -138,8 +138,8 @@ export const getModulesDirs = async (
             break;
         case 'CORE_ALL':
             // For CORE_ALL, return the modules directories for each project
-            const projects = await fileSystemProvider.getDirectoryListing(workspaceRoots[0]);
-            for (const project of projects ?? []) {
+            const projects = fileSystemProvider.getDirectoryListing(workspaceRoots[0]) ?? [];
+            for (const project of projects) {
                 const modulesDir = path.resolve(workspaceRoots[0], project.name, 'modules');
                 let pathExists = false;
                 try {
@@ -191,17 +191,17 @@ export abstract class BaseWorkspaceContext {
     public workspaceRoots: string[];
 
     protected findNamespaceRootsUsingTypeCache: () => Promise<{ lwc: string[]; aura: string[] }>;
-    public initSfdxProjectConfigCache: () => Promise<SfdxProjectConfig>;
-    public fileSystemProvider: IFileSystemProvider;
+    public initSfdxProjectConfigCache: () => SfdxProjectConfig;
+    public fileSystemProvider: FileSystemDataProvider;
     /**
      * @param workspaceRoots
      * @return BaseWorkspaceContext representing the workspace with workspaceRoots
      */
-    constructor(workspaceRoots: string[] | string, fileSystemProvider: IFileSystemProvider) {
+    constructor(workspaceRoots: string[] | string, fileSystemProvider: FileSystemDataProvider) {
         this.workspaceRoots = typeof workspaceRoots === 'string' ? [path.resolve(workspaceRoots)] : workspaceRoots;
 
-        this.findNamespaceRootsUsingTypeCache = utils.memoize(this.findNamespaceRootsUsingType.bind(this));
-        this.initSfdxProjectConfigCache = utils.memoize(this.initSfdxProject.bind(this));
+        this.findNamespaceRootsUsingTypeCache = utils.memoize(() => this.findNamespaceRootsUsingType());
+        this.initSfdxProjectConfigCache = utils.memoize(() => this.initSfdxProject());
         this.fileSystemProvider = fileSystemProvider;
     }
 
@@ -216,7 +216,10 @@ export abstract class BaseWorkspaceContext {
     }
 
     public async isAuraMarkup(document: TextDocument): Promise<boolean> {
-        return document.languageId === 'html' && AURA_EXTENSIONS.includes(utils.getExtension(document)) && (await this.isInsideAuraRoots(document));
+        const extension = utils.getExtension(document);
+        const isAuraExtension = AURA_EXTENSIONS.includes(extension);
+        const languageIdMatches = document.languageId === 'html' || (isAuraExtension && !document.languageId);
+        return languageIdMatches && isAuraExtension && (await this.isInsideAuraRoots(document));
     }
 
     public async isLWCTemplate(document: TextDocument): Promise<boolean> {
@@ -227,7 +230,8 @@ export abstract class BaseWorkspaceContext {
         const file = utils.toResolvedPath(document.uri);
         for (const ws of this.workspaceRoots) {
             if (utils.pathStartsWith(file, ws)) {
-                return this.isFileInsideAuraRoots(file);
+                const isInsideAuraRoots = await this.isFileInsideAuraRoots(file);
+                return isInsideAuraRoots;
             }
         }
         return false;
@@ -254,7 +258,7 @@ export abstract class BaseWorkspaceContext {
     }
 
     public async isFileInsideAuraRoots(file: string): Promise<boolean> {
-        const namespaceRoots = await this.findNamespaceRootsUsingTypeCache();
+        const namespaceRoots = await this.findNamespaceRootsUsingType();
         for (const root of namespaceRoots.aura) {
             if (utils.pathStartsWith(file, root)) {
                 return true;
@@ -310,7 +314,7 @@ export abstract class BaseWorkspaceContext {
     }
 
     private async writeSfdxJsconfig(): Promise<void> {
-        const modulesDirs = await getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, this.initSfdxProjectConfigCache.bind(this));
+        const modulesDirs = getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, () => this.initSfdxProjectConfigCache());
 
         for (const modulesDir of modulesDirs) {
             const jsconfigPath = path.join(modulesDir, 'jsconfig.json');
@@ -401,21 +405,17 @@ export abstract class BaseWorkspaceContext {
     }
 
     private async writeCoreJsconfig(): Promise<void> {
-        const modulesDirs = await getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, this.initSfdxProjectConfigCache.bind(this));
+        const modulesDirs = getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, () => this.initSfdxProjectConfigCache());
 
         for (const modulesDir of modulesDirs) {
             const jsconfigPath = path.join(modulesDir, 'jsconfig.json');
 
             // Skip if tsconfig.json already exists
             const tsconfigPath = path.join(modulesDir, 'tsconfig.json');
-            try {
-                const fileStat = this.fileSystemProvider.getFileStat(tsconfigPath);
-                if (fileStat?.type === 'file' && fileStat?.exists === true) {
-                    // Remove tsconfig.json if it exists (as per test expectation)
-                    this.fileSystemProvider.updateDirectoryListing(tsconfigPath, []);
-                }
-            } catch {
-                // tsconfig.json doesn't exist, continue with jsconfig creation
+            const fileStat = this.fileSystemProvider.getFileStat(tsconfigPath);
+            if (fileStat?.type === 'file' && fileStat?.exists === true) {
+                // Remove tsconfig.json if it exists (as per test expectation)
+                this.fileSystemProvider.updateDirectoryListing(tsconfigPath, []);
             }
 
             try {
@@ -428,7 +428,7 @@ export abstract class BaseWorkspaceContext {
                     throw new Error('Template config not found');
                 }
                 const jsconfigContent = processTemplate(jsconfigTemplate, { project_root: relativeCoreRoot });
-                await updateConfigFile(jsconfigPath, jsconfigContent, this.fileSystemProvider);
+                updateConfigFile(jsconfigPath, jsconfigContent, this.fileSystemProvider);
             } catch (error) {
                 console.error('writeCoreJsconfig: Error reading/writing jsconfig:', error);
                 throw error;
@@ -495,7 +495,7 @@ export abstract class BaseWorkspaceContext {
         return workspace;
     }
 
-    private async updateCoreSettings(settings: Record<string, unknown>): Promise<void> {
+    private updateCoreSettings(settings: Record<string, unknown>): void {
         // Get eslint path once to avoid multiple warnings
 
         try {
@@ -534,7 +534,7 @@ export abstract class BaseWorkspaceContext {
         };
     }
 
-    private async initSfdxProject(): Promise<SfdxProjectConfig> {
+    private initSfdxProject(): SfdxProjectConfig {
         return readSfdxProjectConfig(this.workspaceRoots[0], this.fileSystemProvider);
     }
 }

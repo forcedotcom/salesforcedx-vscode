@@ -14,7 +14,7 @@ const protocol2CodeConverter = (value: string) => Uri.parse(value);
 
 export const createLanguageClient = (
   serverPath: string,
-  fileSystemProvider?: FileSystemDataProvider
+  fileSystemProvider: FileSystemDataProvider
 ): LanguageClient => {
   // Setup the language server
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6030'] };
@@ -36,7 +36,7 @@ export const createLanguageClient = (
       { language: 'typescript', scheme: 'file' }
     ],
     initializationOptions: {
-      fileSystemProvider
+      fileSystemProvider: fileSystemProvider.serialize()
     },
     synchronize: {
       fileEvents: [

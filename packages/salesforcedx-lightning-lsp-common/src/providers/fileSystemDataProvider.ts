@@ -168,4 +168,21 @@ export class FileSystemDataProvider implements IFileSystemProvider {
         if (!content) return undefined;
         return Buffer.from(content, 'utf8');
     }
+
+    /**
+     * Serialize the provider data for transmission to the language server
+     */
+    public serialize(): {
+        fileContents: Record<string, string>;
+        directoryListings: Record<string, DirectoryEntry[]>;
+        fileStats: Record<string, FileStat>;
+        workspaceConfig: WorkspaceConfig | null;
+    } {
+        return {
+            fileContents: Object.fromEntries(this.fileContents),
+            directoryListings: Object.fromEntries(this.directoryListings),
+            fileStats: Object.fromEntries(this.fileStats),
+            workspaceConfig: this.workspaceConfig,
+        };
+    }
 }
