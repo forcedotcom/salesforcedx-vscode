@@ -51,8 +51,8 @@ await build({
   ]
 });
 
-// Copy the resources directory from the aura language server to the dist folder
-const resourcesSource = '../salesforcedx-aura-language-server/src/resources';
+// Copy the resources directory from the local src to the dist folder
+const resourcesSource = './src/resources';
 const resourcesDest = './dist/resources';
 
 if (existsSync(resourcesSource)) {

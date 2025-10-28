@@ -142,29 +142,27 @@ export const deactivate = () => {
  * @returns FileSystemDataProvider with workspace files and directories
  */
 const createSmartFileSystemProvider = async (workspaceUris: string[]): Promise<FileSystemDataProvider> => {
+  console.log('createSmartFileSystemProvider: Starting function');
   const fileSystemProvider = new FileSystemDataProvider();
 
   for (const workspaceUri of workspaceUris) {
     try {
-      await populateEssentialFiles(fileSystemProvider, workspaceUri);
+      await populateWorkspaceRecursively(fileSystemProvider, workspaceUri);
     } catch (error) {
       log(`Error populating workspace files for workspace ${workspaceUri}: ${error}`);
     }
   }
 
   // Add resources directory from the bundled extension
-  await populateResourcesDirectory(fileSystemProvider);
+  log('createSmartFileSystemProvider: About to call populateResourcesDirectory');
+  try {
+    await populateResourcesDirectory(fileSystemProvider);
+    log('createSmartFileSystemProvider: populateResourcesDirectory completed successfully');
+  } catch (error) {
+    log(`createSmartFileSystemProvider: Error in populateResourcesDirectory: ${error}`);
+  }
 
   return fileSystemProvider;
-};
-
-/**
- * Populates the entire workspace files and directories
- * @param provider FileSystemDataProvider to populate
- * @param workspacePath Path to the workspace directory
- */
-const populateEssentialFiles = async (provider: FileSystemDataProvider, workspacePath: string): Promise<void> => {
-  await populateWorkspaceRecursively(provider, workspacePath);
 };
 
 /**
@@ -240,10 +238,62 @@ const shouldSkipDirectory = (dirName: string): boolean => {
 };
 
 /**
+ * Recursively populates a directory and all its subdirectories
+ * @param provider FileSystemDataProvider to populate
+ * @param dirPath Path to the directory to populate
+ * @param entries Directory entries to process
+ */
+const populateDirectoryRecursively = async (
+  provider: FileSystemDataProvider,
+  dirPath: string,
+  entries: [string, FileType][]
+): Promise<void> => {
+  for (const [name, type] of entries) {
+    const fullPath = path.join(dirPath, name);
+
+    if (type === FileType.File) {
+      // Add file content and stat
+      await tryReadFile(provider, fullPath);
+    } else if (type === FileType.Directory) {
+      // Recursively process subdirectory
+      try {
+        const subDirUri = Uri.file(fullPath);
+        const subEntries = await workspace.fs.readDirectory(subDirUri);
+
+        // Add directory listing for subdirectory
+        const subDirectoryEntries = subEntries.map(
+          ([subName, subType]): { name: string; type: 'file' | 'directory'; uri: string } => ({
+            name: subName,
+            type: subType === FileType.File ? 'file' : 'directory',
+            uri: path.join(fullPath, subName)
+          })
+        );
+        provider.updateDirectoryListing(fullPath, subDirectoryEntries);
+
+        // Add file stat for subdirectory
+        provider.updateFileStat(fullPath, {
+          type: 'directory',
+          exists: true,
+          ctime: Date.now(),
+          mtime: Date.now(),
+          size: 0
+        });
+
+        // Recursively process subdirectory
+        await populateDirectoryRecursively(provider, fullPath, subEntries);
+      } catch (error) {
+        log(`Error processing subdirectory ${fullPath}: ${error}`);
+      }
+    }
+  }
+};
+
+/**
  * Populates the resources directory from the bundled extension
  * @param provider FileSystemDataProvider to populate
  */
 const populateResourcesDirectory = async (provider: FileSystemDataProvider): Promise<void> => {
+  log('populateResourcesDirectory: Starting function');
   try {
     // Get the extension path - in bundled extension, __dirname points to the dist directory
     const extensionPath = __dirname;
@@ -270,9 +320,14 @@ const populateResourcesDirectory = async (provider: FileSystemDataProvider): Pro
 
         // Add directory listings
         provider.updateDirectoryListing(resourcesDir, [{ name: 'aura', type: 'directory', uri: auraResourcesDir }]);
+        console.log(`populateResourcesDirectory: Added directory listing for ${resourcesDir} with aura subdirectory`);
 
         // Read the aura directory contents
         const auraEntries = await workspace.fs.readDirectory(auraResourcesUri);
+        console.log(
+          `populateResourcesDirectory: Found ${auraEntries.length} entries in aura directory:`,
+          auraEntries.map(([name]) => name)
+        );
         const auraDirectoryEntries = auraEntries.map(
           ([name, type]): { name: string; type: 'file' | 'directory'; uri: string } => ({
             name,
@@ -299,13 +354,8 @@ const populateResourcesDirectory = async (provider: FileSystemDataProvider): Pro
           size: 0
         });
 
-        // Add file contents for all files in the aura directory
-        for (const [name, type] of auraEntries) {
-          if (type === FileType.File) {
-            const filePath = path.join(auraResourcesDir, name);
-            await tryReadFile(provider, filePath);
-          }
-        }
+        // Add file contents for all files in the aura directory (recursively)
+        await populateDirectoryRecursively(provider, auraResourcesDir, auraEntries);
 
         log('Successfully added resources directory to fileSystemProvider');
       }
