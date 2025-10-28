@@ -43,6 +43,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@effect/platform": "0.92.1",
     "@types/node": "^20.0.0",
     "browserify-zlib": "^0.2.0",
     "esbuild": "0.25.0",
@@ -58,7 +59,7 @@
     "vscode:package": "npm run bundle:extension && vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && ts-node ../salesforcedx-vscode-services-types/scripts/generateEntry.ts && ts-node ../salesforcedx-vscode-services-types/scripts/syncDeps.ts",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
