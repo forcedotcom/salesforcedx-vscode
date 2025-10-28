@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-automation-tests",
-  "version": "65.1.0",
+  "version": "65.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
     "reinstall": "git checkout -- package-lock.json && git clean -xfd && npm install"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-vscode-test-tools": "1.1.7",
+    "@salesforce/salesforcedx-vscode-test-tools": "1.1.8",
     "@types/chai": "^4.3.17",
     "@types/mocha": "^10.0.9",
     "@typescript-eslint/eslint-plugin": "^8.42.0",

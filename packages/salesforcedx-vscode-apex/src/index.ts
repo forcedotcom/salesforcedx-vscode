@@ -25,12 +25,8 @@ import {
   apexTestSuiteAdd,
   apexTestSuiteCreate,
   apexTestSuiteRun,
-  createApexActionFromClass,
-  validateOpenApiDocument,
-  launchApexReplayDebuggerWithCurrentFile,
-  ApexActionController
+  launchApexReplayDebuggerWithCurrentFile
 } from './commands';
-import { MetadataOrchestrator } from './commands/metadataOrchestrator';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
 import {
@@ -43,15 +39,9 @@ import {
   createLanguageClient
 } from './languageUtils';
 import { nls } from './messages';
-import { checkIfESRIsDecomposed } from './oasUtils';
 import { getTelemetryService, setTelemetryService } from './telemetry/telemetry';
 import { TEST_OUTLINE_PROVIDER_BASE_ID, getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
 import { runAllApexTests, runApexTests, showErrorMessage, TestRunType } from './views/testRunner';
-
-const metadataOrchestrator = new MetadataOrchestrator();
-
-// Apex Action Controller
-export const apexActionController = new ApexActionController(metadataOrchestrator);
 
 export const activate = async (context: vscode.ExtensionContext) => {
   const vscodeCoreExtension = await getVscodeCoreExtension();
@@ -99,16 +89,6 @@ export const activate = async (context: vscode.ExtensionContext) => {
   // Javadoc support
   configureApexLanguage();
 
-  // Initialize the apexActionController
-  await apexActionController.initialize(context);
-
-  // Initialize if ESR xml is decomposed
-  void vscode.commands.executeCommand('setContext', 'sf:is_esr_decomposed', await checkIfESRIsDecomposed());
-
-  // Set context based on mulesoft extension
-  const muleDxApiExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
-  await vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', !muleDxApiExtension?.isActive);
-
   // Commands
   context.subscriptions.push(registerCommands(context), registerTestView());
 
@@ -128,7 +108,21 @@ export const activate = async (context: vscode.ExtensionContext) => {
 };
 
 const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable => {
-  const coverageToggle = new CodeCoverage(new StatusBarToggle());
+  // Colorize code coverage
+  const statusBarToggle = new StatusBarToggle();
+  const colorizer = new CodeCoverage(statusBarToggle);
+  const apexToggleColorizerCmd = vscode.commands.registerCommand('sf.apex.toggle.colorizer', () =>
+    colorizer.toggleCoverage()
+  );
+
+  // Customer-facing commands
+  const restartApexLanguageServerCmd = vscode.commands.registerCommand(
+    'sf.apex.languageServer.restart',
+    async (source?: 'commandPalette' | 'statusBar') => {
+      await restartLanguageServerAndClient(context, source ?? 'commandPalette');
+    }
+  );
+
   return vscode.Disposable.from(
     vscode.commands.registerCommand('sf.anon.apex.debug.delegate', anonApexDebug),
     vscode.commands.registerCommand('sf.apex.debug.document', anonApexDebug),
@@ -145,22 +139,15 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
     vscode.commands.registerCommand('sf.apex.test.method.run', apexTestMethodRunCodeAction),
     vscode.commands.registerCommand('sf.apex.test.method.run.delegate', apexTestMethodRunCodeActionDelegate),
     vscode.commands.registerCommand('sf.apex.test.run', apexTestRun),
-    vscode.commands.registerCommand('sf.apex.toggle.colorizer', () => coverageToggle.toggleCoverage()),
+    apexToggleColorizerCmd,
     vscode.commands.registerCommand('sf.apex.test.suite.create', apexTestSuiteCreate),
     vscode.commands.registerCommand('sf.apex.test.suite.run', apexTestSuiteRun),
     vscode.commands.registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd),
-    vscode.commands.registerCommand('sf.create.apex.action.class', createApexActionFromClass),
-    vscode.commands.registerCommand('sf.validate.oas.document', validateOpenApiDocument),
     vscode.commands.registerCommand(
       'sf.launch.apex.replay.debugger.with.current.file',
       launchApexReplayDebuggerWithCurrentFile
     ),
-    vscode.commands.registerCommand(
-      'sf.apex.languageServer.restart',
-      async (source?: 'commandPalette' | 'statusBar') => {
-        await restartLanguageServerAndClient(context, source ?? 'commandPalette');
-      }
-    )
+    restartApexLanguageServerCmd
   );
 };
 const registerTestView = (): vscode.Disposable => {
