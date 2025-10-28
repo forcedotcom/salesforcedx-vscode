@@ -11,7 +11,7 @@
  * We want to send spans that have no parent span as CustomEvents, and capture their properties from the span.
  * Additionally, we want to send any failed spans as Exceptions (the parent span may not finish if a child span fails)
  */
-
+import * as Match from 'effect/Match';
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
