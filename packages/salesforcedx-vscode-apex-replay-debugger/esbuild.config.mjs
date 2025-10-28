@@ -11,6 +11,8 @@ await build({
   ...nodeConfig,
   external: ['vscode'],
   entryPoints: ['./src/index.ts'],
+  sourcemap: true,
+  minify: false,
   outdir: 'dist'
 });
 
@@ -19,5 +21,7 @@ await build({
   external: ['vscode'],
   entryPoints: ['../salesforcedx-apex-replay-debugger/out/src/adapter/apexReplayDebug.js'],
   // do this as file to keep it from adding relative paths
+  sourcemap: true,
+  minify: false,
   outfile: 'dist/apexReplayDebug.js'
 });

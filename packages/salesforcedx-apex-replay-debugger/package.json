@@ -17,7 +17,8 @@
     "@salesforce/salesforcedx-utils": "65.2.0",
     "@vscode/debugadapter": "1.68.0",
     "@vscode/debugprotocol": "1.68.0",
-    "vscode-uri": "^3.1.0"
+    "vscode-uri": "^3.1.0",
+    "@salesforce/core": "^8.23.3"
   },
   "devDependencies": {
     "@salesforce/vscode-service-provider": "^1.5.0",

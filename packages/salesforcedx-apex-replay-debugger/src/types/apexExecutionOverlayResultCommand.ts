@@ -5,15 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { BaseCommand } from '@salesforce/salesforcedx-utils';
-import { SOBJECTS_URL } from '../constants';
-
-export type ApexExecutionOverlayResultCommandFailure = {
-  message: string;
-  errorCode: string;
-};
-
-export type ApexExecutionOverlayResultCommandSuccess = {
+export type ApexExecutionOverlayResult = {
   attributes: Attributes;
   Id: string;
   IsDeleted: boolean;
@@ -139,21 +131,3 @@ type Attributes = {
   type: string;
   url: string;
 };
-
-export class ApexExecutionOverlayResultCommand extends BaseCommand {
-  private readonly commandName = 'ApexExecutionOverlayResult';
-  private readonly heapdumpKey: string;
-
-  constructor(heapdumpKey: string) {
-    super(undefined);
-    this.heapdumpKey = heapdumpKey;
-  }
-
-  public getCommandUrl(): string {
-    return [SOBJECTS_URL, this.commandName, this.heapdumpKey].join('/');
-  }
-
-  public getRequest(): string | undefined {
-    return undefined;
-  }
-}

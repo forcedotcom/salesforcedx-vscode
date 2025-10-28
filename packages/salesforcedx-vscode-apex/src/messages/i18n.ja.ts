@@ -158,7 +158,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   test_view_no_tests_message: 'Apex テストが見つかりませんでした',
   test_view_show_error_title: 'エラーを表示',
   unable_to_locate_document: 'ソースファイルに対してのみこのコマンドを実行できます。',
-  unable_to_locate_editor: 'ソースファイルに対してのみこのコマンドを実行できます。',
   unknown: '不明',
   unknown_error: '不明なエラー',
   validate_eligibility: '適格性を検証中です。',

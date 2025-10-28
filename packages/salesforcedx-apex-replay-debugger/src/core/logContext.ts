@@ -5,19 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgDisplay, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
+import { ConfigAggregator, Org } from '@salesforce/core';
+import { CLIENT_ID } from '@salesforce/salesforcedx-utils';
 import { StackFrame } from '@vscode/debugadapter';
 import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
 import { ApexReplayDebug } from '../adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../adapter/types';
 import { ApexVariableContainer } from '../adapter/variableContainer';
-import { breakpointUtil } from '../breakpoints';
-import {
-  ApexExecutionOverlayResultCommand,
-  ApexExecutionOverlayResultCommandFailure,
-  ApexExecutionOverlayResultCommandSuccess,
-  OrgInfoError
-} from '../commands';
+import { breakpointUtil } from '../breakpoints/breakpointUtil';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -37,24 +32,22 @@ import {
   SFDC_TRIGGER
 } from '../constants';
 import { nls } from '../messages';
-import {
-  DebugLogState,
-  FrameEntryState,
-  FrameExitState,
-  FrameStateUtil,
-  LogEntryState,
-  NoOpState,
-  StatementExecuteState,
-  UserDebugState,
-  VariableAssignmentState,
-  VariableBeginState
-} from '../states';
+import { DebugLogState } from '../states/debugLogState';
+import { FrameEntryState } from '../states/frameEntryState';
+import { FrameExitState } from '../states/frameExitState';
+import { isExtraneousVFGetterOrSetterLogLine } from '../states/frameStateUtil';
+import { LogEntryState } from '../states/logEntryState';
+import { NoOpState } from '../states/noOpState';
+import { StatementExecuteState } from '../states/statementExecuteState';
+import { UserDebugState } from '../states/userDebugState';
+import { VariableAssignmentState } from '../states/variableAssignmentState';
+import { VariableBeginState } from '../states/variableBeginState';
+import { ApexExecutionOverlayResult } from '../types/apexExecutionOverlayResultCommand';
 import { Handles } from './handles';
-import { ApexHeapDump } from './heapDump';
-import { LogContextUtil } from './logContextUtil';
+import { ApexHeapDump, stringifyHeapDump } from './heapDump';
+import { readLogFileFromContents, stripBrackets, getFileSizeFromContents } from './logContextUtil';
 
 export class LogContext {
-  private readonly util = new LogContextUtil();
   private readonly session: ApexReplayDebug;
   private readonly launchArgs: LaunchRequestArguments;
   private readonly logLines: string[] = [];
@@ -79,12 +72,8 @@ export class LogContext {
   constructor(launchArgs: LaunchRequestArguments, session: ApexReplayDebug) {
     this.launchArgs = launchArgs;
     this.session = session;
-    this.logLines = this.util.readLogFileFromContents(launchArgs.logFileContents);
-    this.logSize = this.util.getFileSizeFromContents(launchArgs.logFileContents);
-  }
-
-  public getUtil(): LogContextUtil {
-    return this.util;
+    this.logLines = readLogFileFromContents(launchArgs.logFileContents);
+    this.logSize = getFileSizeFromContents(launchArgs.logFileContents);
   }
 
   public getLaunchArgs(): LaunchRequestArguments {
@@ -126,11 +115,7 @@ export class LogContext {
   }
 
   public getHeapDumpForThisLocation(frameName: string, lineNumber: number): ApexHeapDump | undefined {
-    for (const heapdump of this.apexHeapDumps) {
-      if (frameName.includes(heapdump.getClassName()) && lineNumber === heapdump.getLine()) {
-        return heapdump;
-      }
-    }
+    return this.apexHeapDumps.find(heapdump => frameName.includes(heapdump.className) && lineNumber === heapdump.line);
   }
 
   public hasHeapDumpForTopFrame(): string | undefined {
@@ -142,7 +127,7 @@ export class LogContext {
         topFrame.name.includes(this.lastSeenHeapDumpClass) &&
         topFrame.line === this.lastSeenHeapDumpLine
       ) {
-        return heapDump.getHeapDumpId();
+        return heapDump.heapDumpId;
       }
     }
   }
@@ -153,11 +138,7 @@ export class LogContext {
   }
 
   public isRunningApexTrigger(): boolean {
-    const topFrame = this.getTopFrame();
-    if (topFrame?.source?.name?.toLowerCase().endsWith('.trigger')) {
-      return true;
-    }
-    return false;
+    return this.getTopFrame()?.source?.name?.toLowerCase().endsWith('.trigger') ?? false;
   }
 
   public copyStateForHeapDump(): void {
@@ -209,91 +190,58 @@ export class LogContext {
 
   public scanLogForHeapDumpLines(): boolean {
     const heapDumpRegex = RegExp(/\|HEAP_DUMP\|/);
-    this.logLines.forEach((line, index) => {
-      if (heapDumpRegex.test(line)) {
-        const splitLine = line.split('|');
+    this.apexHeapDumps = this.logLines
+      .filter(line => heapDumpRegex.test(line))
+      .map(line => line.split('|'))
+      .filter((splitLine, index) => {
         if (splitLine.length >= 7) {
-          const heapDump = new ApexHeapDump(
-            splitLine[3] /* heapDumpId */,
-            splitLine[4] /* className */,
-            splitLine[5] /* namespace */,
-            Number(splitLine[6]) /* line */
-          );
-          this.apexHeapDumps.push(heapDump);
+          return true;
         } else {
-          // With the way log lines are, this would only happen
-          // if the user manually edited the log file.
-          this.session.printToDebugConsole(nls.localize('malformed_log_line', index + 1, line));
+          this.session.printToDebugConsole(nls.localize('malformed_log_line', index + 1, splitLine.join('|')));
+          return false;
         }
-      }
-    });
+      })
+      .map(splitLine => ({
+        heapDumpId: splitLine[3],
+        className: splitLine[4],
+        namespace: splitLine[5],
+        line: Number(splitLine[6])
+      }));
+
     return this.apexHeapDumps.length > 0;
   }
 
   public async fetchOverlayResultsForApexHeapDumps(): Promise<boolean> {
-    let success = true;
     try {
-      const orgInfo = await new OrgDisplay().getOrgInfo(this.launchArgs.projectPath);
-      const requestService = new RequestService();
-      requestService.instanceUrl = orgInfo.instanceUrl;
-      requestService.accessToken = orgInfo.accessToken;
-
-      for (const heapDump of this.apexHeapDumps) {
-        this.session.printToDebugConsole(nls.localize('fetching_heap_dump', heapDump.toString()));
-        const overlayActionCommand = new ApexExecutionOverlayResultCommand(heapDump.getHeapDumpId());
-        let errorString;
-        let returnString;
-        await requestService.execute(overlayActionCommand, RestHttpMethodEnum.Get).then(
-          value => {
-            returnString = value;
-          },
-          reason => {
-            errorString = reason;
-          }
-        );
-        if (returnString) {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          heapDump.setOverlaySuccessResult(JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess);
-        } else if (errorString) {
-          try {
-            success = false;
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-            const error = JSON.parse(errorString) as ApexExecutionOverlayResultCommandFailure[];
-            const errorMessage = nls.localize(
-              'heap_dump_error',
-              error[0].message,
-              error[0].errorCode,
-              heapDump.toString()
-            );
-            this.session.errorToDebugConsole(errorMessage);
-          } catch (error) {
-            const errorMessage = `${error}. ${errorString}. ${heapDump.toString()}`;
-            this.session.errorToDebugConsole(errorMessage);
-          }
-        }
+      // we can't use the core/services extensions via `getExtension` because debug adapters are not extensions
+      const configAggregator = await ConfigAggregator.create({ projectPath: this.launchArgs.projectPath });
+      const aliasOrUsername = configAggregator.getPropertyValue<string>('target-org');
+      if (!aliasOrUsername) {
+        throw new Error(nls.localize('unable_to_retrieve_org_info'));
       }
+      const conn = (await Org.create({ aliasOrUsername })).getConnection();
+
+      this.session.printToDebugConsole(
+        nls.localize('fetching_heap_dump', this.apexHeapDumps.map(h => stringifyHeapDump(h)).join(', '))
+      );
+
+      await Promise.all(
+        this.apexHeapDumps.map(async h => {
+          const result = await conn.tooling
+            .sobject('ApexExecutionOverlayResult')
+            .retrieve(h.heapDumpId, { headers: { 'Sforce-Call-Options': `client=${CLIENT_ID}` } });
+          // jsforce tooling types don't have types for any of the "overlay" stuff
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+          h.overlaySuccessResult = result as unknown as ApexExecutionOverlayResult;
+        })
+      );
+      return true;
     } catch (error) {
-      success = false;
-      let errorMessage: string;
-
-      // Check if error is already an Error object with a message
-      if (error instanceof Error) {
-        errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${error.message}`;
-      } else {
-        // Try to parse as JSON (for backwards compatibility)
-        try {
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          const result = JSON.parse(error as string) as OrgInfoError;
-          errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
-        } catch {
-          // If JSON parsing fails, treat as string
-          errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${String(error)}`;
-        }
+      if (error instanceof Error && error.message) {
+        this.session.errorToDebugConsole(error.message);
       }
-
-      this.session.errorToDebugConsole(errorMessage);
+      return false;
     }
-    return success;
   }
 
   public getLogFileName(): string {
@@ -365,16 +313,10 @@ export class LogContext {
     const processedSignature = signature.endsWith(')')
       ? signature.substring(0, signature.substring(0, signature.indexOf('(')).lastIndexOf('.'))
       : signature;
-    const typerefMapping = breakpointUtil.getTyperefMapping();
+    const typerefMapping = breakpointUtil.typerefMapping;
     let uri = '';
     typerefMapping.forEach((value, key) => {
-      let processedKey = '';
-      if (key.startsWith(SFDC_TRIGGER)) {
-        processedKey = key;
-      } else {
-        processedKey = key.replace('/', '.').replace('$', '.');
-      }
-
+      const processedKey = key.startsWith(SFDC_TRIGGER) ? key : key.replace('/', '.').replace('$', '.');
       if (processedKey === processedSignature) {
         uri = value;
       }
@@ -423,11 +365,7 @@ export class LogContext {
         case EVENT_METHOD_ENTRY:
           return new FrameEntryState(fields);
         case EVENT_VF_APEX_CALL_START:
-          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!)) {
-            return new NoOpState();
-          } else {
-            return new FrameEntryState(fields);
-          }
+          return isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!) ? new NoOpState() : new FrameEntryState(fields);
         case EVENT_CODE_UNIT_FINISHED:
         case EVENT_CONSTRUCTOR_EXIT:
         case EVENT_METHOD_EXIT:
@@ -437,20 +375,16 @@ export class LogContext {
         case EVENT_VARIABLE_ASSIGNMENT:
           return new VariableAssignmentState(fields);
         case EVENT_VF_APEX_CALL_END:
-          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!)) {
-            return new NoOpState();
-          } else {
-            return new FrameExitState(fields);
-          }
+          return isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!) ? new NoOpState() : new FrameExitState(fields);
         case EVENT_STATEMENT_EXECUTE:
           if (logLine.match(/.*\|.*\|\[\d{1,}\]/)) {
-            fields[2] = this.util.stripBrackets(fields[2]);
+            fields[2] = stripBrackets(fields[2]);
             return new StatementExecuteState(fields);
           }
           break;
         case EVENT_USER_DEBUG:
           if (logLine.match(/.*\|.*\|\[\d{1,}\]\|.*\|.*/)) {
-            fields[2] = this.util.stripBrackets(fields[2]);
+            fields[2] = stripBrackets(fields[2]);
             return new UserDebugState(fields);
           }
           break;

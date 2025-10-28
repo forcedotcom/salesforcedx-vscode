@@ -11,7 +11,6 @@ export {
   DEBUGGER_LAUNCH_TYPE,
   DEBUGGER_TYPE,
   LIVESHARE_DEBUGGER_TYPE,
-  FIELD_INTEGRITY_EXCEPTION,
   SEND_METRIC_GENERAL_EVENT,
   SEND_METRIC_ERROR_EVENT,
   LAST_OPENED_LOG_FOLDER_KEY,
@@ -42,5 +41,4 @@ export type MetricGeneral = {
   qty?: number;
 };
 
-export { breakpointUtil } from './breakpoints';
-export { ActionScriptEnum, OrgInfoError } from './commands';
+export { breakpointUtil } from './breakpoints/breakpointUtil';

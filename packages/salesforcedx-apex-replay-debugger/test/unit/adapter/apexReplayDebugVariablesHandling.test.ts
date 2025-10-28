@@ -21,10 +21,10 @@ import { ApexDebugStackFrameInfo } from '../../../src/adapter/apexDebugStackFram
 import { ApexVariable } from '../../../src/adapter/apexVariable';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { ApexVariableContainer } from '../../../src/adapter/variableContainer';
-import { ApexExecutionOverlayResultCommandSuccess } from '../../../src/commands/apexExecutionOverlayResultCommand';
-import { ApexHeapDump, LogContext } from '../../../src/core';
 import { Handles } from '../../../src/core/handles';
+import { ApexHeapDump } from '../../../src/core/heapDump';
 import { HeapDumpService } from '../../../src/core/heapDumpService';
+import { LogContext } from '../../../src/core/logContext';
 import { MockApexReplayDebug } from './apexReplayDebug.test';
 import {
   createHeapDumpResultForTriggers,
@@ -261,7 +261,12 @@ describe('Replay debugger adapter variable handling - unit', () => {
       });
 
       it('Should not switch variables without a successful heapdump for current location', () => {
-        const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
+        const heapdump: ApexHeapDump = {
+          heapDumpId: 'some ID',
+          className: 'Foo',
+          namespace: '',
+          line: 10
+        };
         getHeapDumpForThisLocationStub = jest
           .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
           .mockReturnValue(heapdump);
@@ -275,19 +280,19 @@ describe('Replay debugger adapter variable handling - unit', () => {
 
       it('Should not create string refs if there are not any in the heapdump', () => {
         const heapdump = createHeapDumpWithNoStringTypes();
-        heapDumpService.createStringRefsFromHeapdump(heapdump.getOverlaySuccessResult()!);
+        heapDumpService.createStringRefsFromHeapdump(heapdump.overlaySuccessResult!);
         expect(refsMap.size).toBe(0);
       });
 
       it('Should only create string refs if there are not any in the heapdump', () => {
         const heapdump = createHeapDumpWithNoStringTypes();
-        heapDumpService.createStringRefsFromHeapdump(heapdump.getOverlaySuccessResult()!);
+        heapDumpService.createStringRefsFromHeapdump(heapdump.overlaySuccessResult!);
         expect(refsMap.size).toBe(0);
       });
 
       it('Should create string refs if there are any in the heapdump', () => {
         const heapdump = createHeapDumpWithStrings();
-        heapDumpService.createStringRefsFromHeapdump(heapdump.getOverlaySuccessResult()!);
+        heapDumpService.createStringRefsFromHeapdump(heapdump.overlaySuccessResult!);
         expect(refsMap.size).toBe(2);
         let tempStringVar = refsMap.get('0x47a32f5b') as ApexVariableContainer;
         expect(tempStringVar.value).toBe(
@@ -386,33 +391,69 @@ describe('Replay debugger adapter variable handling - unit', () => {
       });
 
       it('Should update a non-reference variable', () => {
-        const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
-        heapdump.setOverlaySuccessResult({
-          HeapDump: {
-            extents: [
-              {
-                collectionType: null,
-                typeName: 'Integer',
-                definition: [
-                  {
-                    name: 'value',
-                    type: 'Double'
-                  }
-                ],
-                extent: [
-                  {
-                    address: '0xfoo',
-                    isStatic: false,
-                    symbols: ['theInt'],
-                    value: {
-                      value: 5
+        const heapdump: ApexHeapDump = {
+          heapDumpId: 'some ID',
+          className: 'Foo',
+          namespace: '',
+          line: 10,
+          overlaySuccessResult: {
+            attributes: {
+              type: 'ApexExecutionOverlayResult',
+              url: '/services/data/v50.0/sobjects/ApexExecutionOverlayResult/some ID'
+            },
+            Id: 'some ID',
+            IsDeleted: false,
+            CreatedDate: new Date(),
+            CreatedById: 'userId',
+            LastModifiedDate: new Date(),
+            LastModifiedById: 'userId',
+            SystemModstamp: new Date(),
+            UserId: 'userId',
+            RequestedById: 'userId',
+            OverlayResultLength: 100,
+            HeapDump: {
+              className: 'Foo',
+              namespace: '',
+              heapDumpDate: new Date(),
+              extents: [
+                {
+                  collectionType: null,
+                  count: 1,
+                  totalSize: 4,
+                  typeName: 'Integer',
+                  definition: [
+                    {
+                      name: 'value',
+                      type: 'Double'
                     }
-                  }
-                ]
-              }
-            ]
+                  ],
+                  extent: [
+                    {
+                      address: '0xfoo',
+                      isStatic: false,
+                      symbols: ['theInt'],
+                      value: {
+                        value: 5
+                      },
+                      size: 4
+                    }
+                  ]
+                }
+              ]
+            },
+            ApexResult: null,
+            SOQLResult: null,
+            Line: 10,
+            Iteration: 1,
+            ExpirationDate: new Date(),
+            IsDumpingHeap: true,
+            ActionScript: null,
+            ActionScriptType: 'SOQL',
+            ClassName: 'Foo',
+            Namespace: ''
           }
-        } as ApexExecutionOverlayResultCommandSuccess);
+        };
+
         getHeapDumpForThisLocationStub = jest
           .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
           .mockReturnValue(heapdump);
@@ -431,33 +472,69 @@ describe('Replay debugger adapter variable handling - unit', () => {
       });
 
       it('Should update a non-reference static variable', () => {
-        const heapdump = new ApexHeapDump('some ID', 'Foo', '', 10);
-        heapdump.setOverlaySuccessResult({
-          HeapDump: {
-            extents: [
-              {
-                collectionType: null,
-                typeName: 'Integer',
-                definition: [
-                  {
-                    name: 'value',
-                    type: 'Double'
-                  }
-                ],
-                extent: [
-                  {
-                    address: '0xfoo',
-                    isStatic: false,
-                    symbols: ['Foo.theInt'],
-                    value: {
-                      value: 5
+        const heapdump: ApexHeapDump = {
+          heapDumpId: 'some ID',
+          className: 'Foo',
+          namespace: '',
+          line: 10,
+          overlaySuccessResult: {
+            attributes: {
+              type: 'ApexExecutionOverlayResult',
+              url: '/services/data/v50.0/sobjects/ApexExecutionOverlayResult/some ID'
+            },
+            Id: 'some ID',
+            IsDeleted: false,
+            CreatedDate: new Date(),
+            CreatedById: 'userId',
+            LastModifiedDate: new Date(),
+            LastModifiedById: 'userId',
+            SystemModstamp: new Date(),
+            UserId: 'userId',
+            RequestedById: 'userId',
+            OverlayResultLength: 100,
+            HeapDump: {
+              className: 'Foo',
+              namespace: '',
+              heapDumpDate: new Date(),
+              extents: [
+                {
+                  collectionType: null,
+                  count: 1,
+                  totalSize: 4,
+                  typeName: 'Integer',
+                  definition: [
+                    {
+                      name: 'value',
+                      type: 'Double'
                     }
-                  }
-                ]
-              }
-            ]
+                  ],
+                  extent: [
+                    {
+                      address: '0xfoo',
+                      isStatic: true,
+                      symbols: ['Foo.theInt'],
+                      value: {
+                        value: 5
+                      },
+                      size: 4
+                    }
+                  ]
+                }
+              ]
+            },
+            ApexResult: null,
+            SOQLResult: null,
+            Line: 10,
+            Iteration: 1,
+            ExpirationDate: new Date(),
+            IsDumpingHeap: true,
+            ActionScript: null,
+            ActionScriptType: 'SOQL',
+            ClassName: 'Foo',
+            Namespace: ''
           }
-        } as ApexExecutionOverlayResultCommandSuccess);
+        };
+
         getHeapDumpForThisLocationStub = jest
           .spyOn(LogContext.prototype, 'getHeapDumpForThisLocation')
           .mockReturnValue(heapdump);

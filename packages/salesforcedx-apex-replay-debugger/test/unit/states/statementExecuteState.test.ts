@@ -18,8 +18,8 @@ import { StackFrame } from '@vscode/debugadapter';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
 import { EXEC_ANON_SIGNATURE } from '../../../src/constants';
-import { LogContext } from '../../../src/core';
-import { StatementExecuteState } from '../../../src/states';
+import { LogContext } from '../../../src/core/logContext';
+import { StatementExecuteState } from '../../../src/states/statementExecuteState';
 
 describe('Statement execute event', () => {
   let context: LogContext;

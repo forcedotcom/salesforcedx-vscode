@@ -9,32 +9,11 @@ import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { DebugProtocol } from '@vscode/debugprotocol';
 
 export class BreakpointUtil {
-  private static instance: BreakpointUtil;
-  private lineNumberMapping: Map<string, number[]> = new Map();
-  private typerefMapping: Map<string, string> = new Map();
-
-  public setValidLines(lineNumberMapping: Map<string, number[]>, typerefMapping: Map<string, string>): void {
-    this.lineNumberMapping = lineNumberMapping;
-    this.typerefMapping = typerefMapping;
-  }
-
-  public static getInstance(): BreakpointUtil {
-    if (!BreakpointUtil.instance) {
-      BreakpointUtil.instance = new BreakpointUtil();
-    }
-    return BreakpointUtil.instance;
-  }
-
-  public getLineNumberMapping(): Map<string, number[]> {
-    return this.lineNumberMapping;
-  }
-
-  public getTyperefMapping(): Map<string, string> {
-    return this.typerefMapping;
-  }
+  public lineNumberMapping: Map<string, number[]> = new Map();
+  public typerefMapping: Map<string, string> = new Map();
 
   public canSetLineBreakpoint(uri: string, line: number): boolean {
-    return this.lineNumberMapping.has(uri) && this.lineNumberMapping.get(uri)!.includes(line);
+    return this.lineNumberMapping.get(uri)?.includes(line) ?? false;
   }
 
   public createMappingsFromLineBreakpointInfo(lineBpInfo: LineBreakpointInfo[]): void {
@@ -43,28 +22,18 @@ export class BreakpointUtil {
     this.typerefMapping.clear();
 
     // set the mapping from the source line info
-    for (const info of lineBpInfo) {
-      if (!this.lineNumberMapping.has(info.uri)) {
-        this.lineNumberMapping.set(info.uri, []);
-      }
-      this.lineNumberMapping.set(info.uri, this.lineNumberMapping.get(info.uri)!.concat(info.lines));
+    lineBpInfo.map(info => {
+      this.lineNumberMapping.set(info.uri, (this.lineNumberMapping.get(info.uri) ?? []).concat(info.lines));
       this.typerefMapping.set(info.typeref, info.uri);
-    }
-  }
-
-  public returnLinesForLoggingFromBreakpointArgs(bpArr: DebugProtocol.SourceBreakpoint[]): string {
-    return bpArr.map(bp => bp.line).join(',');
-  }
-
-  public getTopLevelTyperefForUri(uriInput: string): string {
-    let returnValue = '';
-    this.typerefMapping.forEach((value, key) => {
-      if (value === uriInput) {
-        if (!key.includes('$')) {
-          returnValue = key;
-        }
-      }
     });
-    return returnValue;
+  }
+
+  public getTopLevelTyperefForUri(uriInput: string): string | undefined {
+    return Array.from(this.typerefMapping.entries()).find(([k, v]) => v === uriInput && !k.includes('$'))?.[0];
   }
 }
+
+export const breakpointUtil = new BreakpointUtil();
+
+export const returnLinesForLoggingFromBreakpointArgs = (bpArr: DebugProtocol.SourceBreakpoint[]): string =>
+  bpArr.map(bp => bp.line).join(',');

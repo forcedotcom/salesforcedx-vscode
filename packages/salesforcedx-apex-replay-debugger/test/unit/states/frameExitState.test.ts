@@ -17,8 +17,8 @@ jest.mock('@vscode/debugadapter', () => ({
 import { StackFrame } from '@vscode/debugadapter';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../../../src/adapter/types';
-import { LogContext } from '../../../src/core';
-import { FrameExitState } from '../../../src/states';
+import { LogContext } from '../../../src/core/logContext';
+import { FrameExitState } from '../../../src/states/frameExitState';
 
 describe('Frame exit event', () => {
   let context: LogContext;

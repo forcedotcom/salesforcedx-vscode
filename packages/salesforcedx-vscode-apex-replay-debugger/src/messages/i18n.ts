@@ -17,14 +17,13 @@
  */
 export const messages = {
   config_name_text: 'Launch Apex Replay Debugger',
-  session_language_server_error_text: 'Apex language server could not provide information about valid breakpoints.',
   up_to_five_checkpoints:
     'You have %d of the maximum 5 enabled checkpoints. Remove or disable checkpoints until 5 or fewer are active.',
   no_enabled_checkpoints: "You don't have any checkpoints enabled. Enable a checkpoint and try again.",
   checkpoints_can_only_be_on_valid_apex_source:
     'Checkpoints can be set on a valid line of Apex source. Invalid checkpoint location: URI=%s, Line=%d',
   local_source_is_out_of_sync_with_the_server:
-    "The local source is out of sync with the server. Push any changes you've made locally to your org, and pull any changes you've made in the org into your local project.",
+    "Push any changes you've made locally to your org, and pull any changes you've made in the org into your local project.",
   long_command_start: 'Starting',
   long_command_end: 'Ended',
   sf_update_checkpoints_in_org: 'SFDX: Update Checkpoints in Org',
@@ -39,12 +38,10 @@ export const messages = {
   checkpoint_upload_error_wrap_up_message:
     'Your checkpoints have errors. Fix the errors listed in the output, then run %s again.',
   // These strings are going to be re-worked to become better, Salesforce appropriate, error messages.
-  cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
-  cannot_delete_existing_checkpoint: 'Cannot delete existing checkpoint',
-  unable_to_parse_checkpoint_query_result: 'Unable to parse checkpoint query result',
-  unable_to_retrieve_active_user_for_sf_project: 'Unable to retrieve active user for SFDX Project',
   unable_to_query_for_existing_checkpoints: 'Unable to query for existing checkpoints',
   unable_to_load_vscode_core_extension: 'unable to load salesforce.salesforcedx-vscode-core extension',
+  unable_to_load_vscode_apex_extension: 'unable to load salesforce.salesforcedx-vscode-apex extension',
+  unable_to_create_checkpoints_in_org: 'Unable to create checkpoints in org',
   no_line_breakpoint_information_for_current_project: 'There is no line breakpoint information for the current project',
   line_breakpoint_information_success: 'Retrieved line breakpoint info from language server',
   language_client_not_ready: 'Unable to retrieve breakpoint info from language server, language server is not ready',
