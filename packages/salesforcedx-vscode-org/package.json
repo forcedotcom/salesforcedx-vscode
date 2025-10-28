@@ -68,7 +68,9 @@
     ],
     "packageUpdates": {
       "main": "dist/index.js",
-      "dependencies": {},
+      "dependencies": {
+        "applicationinsights": "1.0.7"
+      },
       "devDependencies": {}
     }
   },
