@@ -65,7 +65,7 @@ export abstract class GenerationStrategy {
   }
 
   public getLLMServiceInterface = async (): Promise<LLMServiceInterface> =>
-    ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex');
+    ServiceProvider.getService(ServiceType.LLMService, 'salesforcedx-vscode-apex-oas');
 
   public async incrementResolutionAttempts(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
