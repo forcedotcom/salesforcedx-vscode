@@ -7,7 +7,7 @@
 
 import { readFile, workspaceUtils, errorToString } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import type { ChangeResult } from '@salesforce/source-tracking';
+import type { ChangeResult } from '@salesforce/source-tracking' with { 'resolution-mode': 'import' };
 import * as path from 'node:path';
 
 import { channelService } from '../channels';

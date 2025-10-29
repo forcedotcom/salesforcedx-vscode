@@ -61,13 +61,24 @@ const getMockVSCode = () => {
       };
       public dispose = () => {};
     },
+    ConfigurationTarget: {
+      Global: 1,
+      Workspace: 2,
+      WorkspaceFolder: 3
+    },
     TreeItem: jest.fn(),
     commands: {
       executeCommand: jest.fn()
     },
     Disposable: jest.fn(),
     env: {
-      machineId: '12345534'
+      machineId: '12345534',
+      createTelemetryLogger: jest.fn().mockReturnValue({
+        logUsage: jest.fn(),
+        logError: jest.fn(),
+        dispose: jest.fn(),
+        onDidChangeEnableStates: jest.fn()
+      })
     },
     EventEmitter,
     ExtensionMode: { Production: 1, Development: 2, Test: 3 },
@@ -189,3 +200,15 @@ jest.mock(
   },
   { virtual: true }
 );
+
+// Mock os module to ensure homedir() always returns a valid path
+jest.mock('node:os', () => ({
+  ...jest.requireActual('node:os'),
+  homedir: jest.fn(() => '/tmp')
+}));
+
+// Also mock the legacy 'os' import
+jest.mock('os', () => ({
+  ...jest.requireActual('os'),
+  homedir: jest.fn(() => '/tmp')
+}));

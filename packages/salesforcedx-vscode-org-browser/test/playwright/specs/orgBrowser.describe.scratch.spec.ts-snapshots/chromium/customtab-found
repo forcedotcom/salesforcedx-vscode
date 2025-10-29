@@ -1,0 +1,4 @@
+- treeitem "CustomTab" [level=1]:
+  - toolbar:
+    - button "Refresh Type"
+    - button "Retrieve Metadata"

@@ -20,7 +20,8 @@ import {
   RETRIEVE_TEST_CODE_COVERAGE,
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED,
-  ALL_EXCEPTION_CATCHER_ENABLED
+  ALL_EXCEPTION_CATCHER_ENABLED,
+  USE_LEGACY_ORG_BROWSER
 } from '../constants';
 /**
  * A centralized location for interacting with sfdx-core settings.
@@ -104,6 +105,10 @@ export class SalesforceCoreSettings {
 
   public getSfLogLevel(): string {
     return this.getConfigValue(ENV_SF_LOG_LEVEL, process.env.SF_LOG_LEVEL ?? 'fatal');
+  }
+
+  public getUseLegacyOrgBrowser(): boolean {
+    return this.getConfigValue(USE_LEGACY_ORG_BROWSER, false);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

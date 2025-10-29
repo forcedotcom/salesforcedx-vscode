@@ -1,7 +1,7 @@
 const constants = require('./change-log-constants');
 const fs = require('fs');
 const { execSync } = require('child_process');
-const util = require('util');
+const util = require('node:util');
 
 // Commit Map Keys
 const PR_NUM = 'PR_NUM';

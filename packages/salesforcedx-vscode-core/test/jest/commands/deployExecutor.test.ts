@@ -81,6 +81,9 @@ describe('Deploy Executor', () => {
       salesforceCoreSettings,
       'getEnableSourceTrackingForDeployAndRetrieve'
     );
+    getWorkspaceOrgTypeMock = jest
+      .spyOn(workspaceContextUtils, 'getWorkspaceOrgType')
+      .mockResolvedValue(workspaceContextUtils.OrgType.SourceTracked);
   });
 
   it('should create Source Tracking and call ensureLocalTracking before deploying', async () => {
@@ -162,6 +165,26 @@ describe('Deploy Executor', () => {
     await (executor as any).doOperation(dummyComponentSet, {});
 
     // Assert
+    expect(getSourceTrackingSpy).not.toHaveBeenCalled();
+    expect(ensureLocalTrackingSpy).not.toHaveBeenCalled();
+    expect(deploySpy).toHaveBeenCalled();
+  });
+
+  it('should NOT create Source Tracking when org type is NonSourceTracked', async () => {
+    // Arrange
+    getEnableSourceTrackingForDeployAndRetrieveMock.mockReturnValue(true);
+    getWorkspaceOrgTypeMock.mockResolvedValue(workspaceContextUtils.OrgType.NonSourceTracked);
+    deploySpy = jest.spyOn(dummyComponentSet, 'deploy').mockResolvedValue({
+      pollStatus: jest.fn().mockResolvedValue({ response: { status: 'Succeeded' } })
+    } as any);
+    const executor = new TestDeployExecutor('testDeploy', 'deploy_with_sourcepath');
+    (executor as any).setupCancellation = jest.fn();
+
+    // Act
+    await (executor as any).doOperation(dummyComponentSet, {});
+
+    // Assert
+    expect(getWorkspaceOrgTypeMock).toHaveBeenCalled();
     expect(getSourceTrackingSpy).not.toHaveBeenCalled();
     expect(ensureLocalTrackingSpy).not.toHaveBeenCalled();
     expect(deploySpy).toHaveBeenCalled();

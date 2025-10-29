@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { promisify } from 'util';
-import { exec } from 'child_process';
+import { promisify } from 'node:util';
+import { exec } from 'node:child_process';
 import * as appInsights from 'applicationinsights';
 import { DEFAULT_AIKEY } from '../packages/salesforcedx-utils-vscode/src/constants';
 
@@ -76,10 +76,7 @@ const setupAppInsights = () => {
 
 const appInsightsClient = setupAppInsights();
 
-const reportInstallCount = (
-  extensionIdentifier: string,
-  extensionStats: TelemetryData
-) => {
+const reportInstallCount = (extensionIdentifier: string, extensionStats: TelemetryData) => {
   const name = `${extensionIdentifier}/${eventName}`;
   logger(`Reporting install count for ${extensionIdentifier}`, {
     name,
@@ -98,8 +95,7 @@ const reportVSCodeMarketplaceInstalls = async (extension: string) => {
   logger(`Reporting installs for ${extension}`);
   const command = `vsce show salesforce.${extension} --json`;
   const stats = await promisifiedExec(command);
-  const jsonStats: { statistics: { statisticName: string; value: string }[] } =
-    JSON.parse(stats.stdout);
+  const jsonStats: { statistics: { statisticName: string; value: string }[] } = JSON.parse(stats.stdout);
   const extensionStats: InstallTelemetryDataMS = {
     install: '',
     averagerating: '',
@@ -124,9 +120,7 @@ const reportVSCodeMarketplaceInstalls = async (extension: string) => {
 const reportOpenVSXInstalls = async (extension: string) => {
   const command = `ovsx get --metadata salesforce.${extension}`;
   const stats = await promisifiedExec(command);
-  const jsonStats: { downloadCount: number; reviewCount: number } = JSON.parse(
-    stats.stdout
-  );
+  const jsonStats: { downloadCount: number; reviewCount: number } = JSON.parse(stats.stdout);
   const extensionStats: InstallTelemetryData = {
     install: String(jsonStats.downloadCount),
     ratingcount: String(jsonStats.reviewCount),

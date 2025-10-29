@@ -6,7 +6,10 @@
  */
 
 import { Connection, Org, SfProject } from '@salesforce/core';
-import { SourceTracking, SourceTrackingOptions } from '@salesforce/source-tracking';
+import type {
+  SourceTrackingOptions,
+  SourceTracking
+} from '@salesforce/source-tracking' with { 'resolution-mode': 'import' };
 
 /*
  * The SourceTrackingProvider class is used to instantiate
@@ -68,6 +71,7 @@ export class SourceTrackingProvider {
   ): Promise<SourceTracking> {
     const project = await SfProject.resolve(projectPath);
     const org = await Org.create({ connection });
+    const { SourceTracking } = await import('@salesforce/source-tracking');
     const options: SourceTrackingOptions = {
       org,
       project,

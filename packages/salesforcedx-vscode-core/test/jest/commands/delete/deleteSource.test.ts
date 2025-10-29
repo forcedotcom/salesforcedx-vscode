@@ -16,7 +16,7 @@ import {
   RequestStatus,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
-import { ChangeResult, SourceTracking } from '@salesforce/source-tracking';
+import type { ChangeResult, SourceTracking } from '@salesforce/source-tracking' with { 'resolution-mode': 'import' };
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -86,7 +86,7 @@ describe('DeleteSource', () => {
   const testFilePath = path.join('workspace', 'force-app', 'main', 'default', 'classes', 'Test.cls');
   const testUri = URI.file(testFilePath);
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
 
     // Create mock instances
@@ -154,6 +154,7 @@ describe('DeleteSource', () => {
     orgCreateSpy = jest.spyOn(Org, 'create').mockResolvedValue(mockOrg);
     sfProjectResolveSpy = jest.spyOn(SfProject, 'resolve').mockResolvedValue(mockProject);
     componentSetBuilderBuildSpy = jest.spyOn(ComponentSetBuilder, 'build').mockResolvedValue(mockComponentSet);
+    const { SourceTracking } = await import('@salesforce/source-tracking');
     sourceTrackingCreateSpy = jest.spyOn(SourceTracking, 'create').mockResolvedValue(mockTracking);
 
     const mockLifecycle = {
