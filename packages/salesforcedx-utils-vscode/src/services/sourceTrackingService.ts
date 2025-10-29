@@ -7,7 +7,7 @@
 
 import type { Connection } from '@salesforce/core';
 import type { DeployResult, RetrieveResult } from '@salesforce/source-deploy-retrieve';
-import type { SourceTracking, StatusOutputRow } from '@salesforce/source-tracking';
+import type { SourceTracking, StatusOutputRow } from '@salesforce/source-tracking' with { 'resolution-mode': 'import' };
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
 import { nls } from '../messages';
 import { Table } from '../output';

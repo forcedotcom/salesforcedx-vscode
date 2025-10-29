@@ -83,8 +83,8 @@ jspm_packages/
 *.vsix
 
 # VS Code tests
-.vscode-test/
-
+.vscode-test
+.vscode-web
 # Eclipse
 .project
 
@@ -96,7 +96,7 @@ jspm_packages/
 
 # Project test data
 test-assets/
-
+.vscode-test-web
 # Node lock files (actually causes issues with the symlinking that lerna does, so ignore)
 # package-lock.json
 
@@ -118,8 +118,9 @@ tsconfig.tsbuildinfo
 
 #Extensions folder for local E2E Testing
 extensions/
-/test-results
+**/test-results
 /.codegenie
 e2e-temp/
 test-resources/
 .nx/cache
+**/playwright-report/

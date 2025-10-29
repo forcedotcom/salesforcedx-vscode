@@ -239,3 +239,64 @@ With the following environment variables present, VS Code will log telemetry eve
 > VSCODE_LOGS=path/to/local/telemetry/file
 
 > VSCODE_LOG_LEVEL=trace
+
+## Web Extension Testing
+
+Some extensions support VS Code web environments and include browser-based testing:
+
+### Org Browser Web Tests
+
+The `salesforcedx-vscode-org-browser` package includes comprehensive Playwright tests for web extension functionality:
+
+```bash
+# Navigate to the org browser package
+cd packages/salesforcedx-vscode-org-browser
+
+# Run web extension tests
+npm run test:web
+
+# Start manual browser testing
+npm run run:web
+```
+
+### Manual Web Testing Workflow
+
+For debugging and interactive testing:
+
+1. **Start the browser environment:**
+
+   ```bash
+   npm run run:web
+   ```
+
+   This opens VS Code web in Chrome with debugging enabled
+
+2. **Test extension interaction:**
+
+   - Click Explorer tab to verify file tree loads (Services extension working)
+   - Click Org Browser tab to test extension switching
+   - Monitor browser console for errors (especially EventEmitter issues)
+
+3. **Check for specific issues:**
+   - Authentication flows in browser environment
+   - EventEmitter polyfill compatibility
+   - CORS and network issues
+   - Extension dependency loading
+
+### Common Web Testing Issues
+
+**Extension bundling:** Web extensions require Node.js polyfills:
+
+- Built using esbuild with browser polyfills
+- EventEmitter polyfills for jsforce compatibility
+- Process/stream polyfills for Node.js APIs
+
+**Port conflicts:** Clean up processes:
+
+```bash
+pkill -f "vscode-test-web|chrome.*9222" || true
+```
+
+**Authentication:** Expected to fail in test environments due to CORS and isolated contexts.
+
+For detailed web testing documentation, see `packages/salesforcedx-vscode-org-browser/README.md`.

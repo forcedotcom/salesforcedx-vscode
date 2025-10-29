@@ -41,6 +41,7 @@ export const ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE = 'experimental.enableSo
 export const ENV_NODE_EXTRA_CA_CERTS = 'NODE_EXTRA_CA_CERTS';
 export const ENV_SF_LOG_LEVEL = 'SF_LOG_LEVEL';
 export const ORG_LOGIN_WEB = 'org:login:web';
+export const USE_LEGACY_ORG_BROWSER = 'useLegacyOrgBrowser';
 
 export const APEX_FILE_NAME_EXTENSION = '.apex';
 export const SOQL_FILE_NAME_EXTENSION = '.soql';
