@@ -15,11 +15,9 @@ jobs:
     uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@sm/monorepo-npm-publishes
     with:
       githubTag: ${{ github.event.release.tag_name || inputs.githubTag }}
-      tag: latest
       packageManager: npm
       nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
       packagePath: ./packages/salesforcedx-vscode-services-types
-      dryrun: true
       prerelease: false
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
