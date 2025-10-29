@@ -218,7 +218,7 @@ export const getAttributeDocs = (tag: Tag): string | null => {
 };
 
 // Utility function to get method docs
-export const getMethodDocs = (tag: Tag): string | null => {
+const getMethodDocs = (tag: Tag): string | null => {
     const apiMethods = getApiMethods(tag);
     if (apiMethods.length === 0) {
         return null;

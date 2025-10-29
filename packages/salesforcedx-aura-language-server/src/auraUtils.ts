@@ -4,17 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { join } from 'node:path';
 import { HTMLDocument, TokenType, getLanguageService } from 'vscode-html-languageservice';
 import { createScanner } from 'vscode-html-languageservice/lib/umd/parser/htmlScanner';
 import { Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Location } from 'vscode-languageserver-types';
-
-const AURA_STANDARD = 'aura-standard.json';
-const AURA_SYSTEM = 'transformed-aura-system.json';
-
-const RESOURCES_DIR = 'resources';
 
 /**
  * Regex pattern to match Aura expression syntax in HTML templates.
@@ -50,10 +44,6 @@ const RESOURCES_DIR = 'resources';
  * - '{!v.property}'
  */
 const AURA_EXPRESSION_REGEX = /['"]?\s*{[!#]\s*[!]?[vmc]\.(\w*)(\.?\w*)*\s*}\s*['"]?/;
-
-export const getAuraStandardResourcePath = (): string => join(__dirname, RESOURCES_DIR, AURA_STANDARD);
-
-export const getAuraSystemResourcePath = (): string => join(__dirname, RESOURCES_DIR, AURA_SYSTEM);
 
 // Create a parse function that works with the new API
 export const parse = (input: string): HTMLDocument => {

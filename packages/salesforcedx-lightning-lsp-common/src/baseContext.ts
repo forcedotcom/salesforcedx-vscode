@@ -21,7 +21,7 @@ interface SfdxPackageDirectoryConfig {
     path: string;
 }
 
-export interface SfdxProjectConfig {
+interface SfdxProjectConfig {
     packageDirectories: SfdxPackageDirectoryConfig[];
     sfdxPackageDirsPattern: string;
 }

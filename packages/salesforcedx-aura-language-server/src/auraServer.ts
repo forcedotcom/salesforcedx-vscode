@@ -42,7 +42,18 @@ import AuraIndexer from './aura-indexer/indexer';
 import { getAuraBindingTemplateDeclaration, getAuraBindingValue } from './auraUtils';
 import { AuraWorkspaceContext } from './context/auraContext';
 import { setIndexer, getAuraTagProvider } from './markup/auraTags';
-import { startServer, addFile, delFile, onCompletion, onHover, onDefinition, onTypeDefinition, onReferences, onSignatureHelp } from './tern-server/ternServer';
+import {
+    startServer,
+    addFile,
+    delFile,
+    onCompletion,
+    onHover,
+    onDefinition,
+    onTypeDefinition,
+    onReferences,
+    onSignatureHelp,
+    init,
+} from './tern-server/ternServer';
 
 console.log('AuraServer module: Starting import');
 
@@ -120,7 +131,6 @@ export default class Server {
             }
 
             // Initialize tern server now that startServer has been called and asyncTernRequest is available
-            const { init } = await import('./tern-server/ternServer');
             await init(this.fileSystemProvider);
 
             try {
