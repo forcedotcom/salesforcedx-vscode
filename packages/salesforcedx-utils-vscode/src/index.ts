@@ -24,7 +24,7 @@ export {
   VISUALFORCE_DEBUG_LEVEL
 } from './constants';
 export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
-export { TelemetryService, TelemetryBuilder } from './services/telemetry';
+export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
 export * from './helpers';
 export { TraceFlags, handleTraceFlagCleanup } from './helpers/traceFlags';

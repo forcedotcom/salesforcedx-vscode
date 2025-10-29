@@ -19,7 +19,8 @@ import {
   SfWorkspaceChecker,
   workspaceUtils,
   ProgressNotification,
-  TimingUtils
+  TimingUtils,
+  errorToString
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -101,12 +102,9 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
         }
       } catch (err) {
         channelService.appendLine(nls.localize('org_create_result_parsing_error'));
-        channelService.appendLine(err);
-        telemetryService.sendException(
-          'org_create_scratch',
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          `Error while parsing org create response ${err}`
-        );
+        const stringError = errorToString(err);
+        channelService.appendLine(errorToString(stringError));
+        telemetryService.sendException('org_create_scratch', `Error while parsing org create response ${stringError}`);
       }
     });
 
