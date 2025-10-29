@@ -29,19 +29,20 @@ import {
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { TelemetryService } from '../telemetry';
 
 // Get core API services at runtime
-const getCoreApi = () => {
-  const coreExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core');
+const getCoreApi = (): SalesforceVSCodeCoreApi | undefined => {
+  const coreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
   return coreExtension?.exports;
 };
 
 const getTaskViewService = () => getCoreApi()?.taskViewService;
-const getWorkspaceContext = () => getCoreApi()?.WorkspaceContext;
+const getSetupWorkspaceOrgType = () => getCoreApi()?.workspaceContextUtils.setupWorkspaceOrgType;
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
@@ -64,7 +65,7 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
       .build();
   }
 
-  public async execute(response: ContinueResponse<AliasAndFileSelection>): Promise<void> {
+  public execute(response: ContinueResponse<AliasAndFileSelection>): void {
     const startTime = TimingUtils.getCurrentTime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
@@ -88,13 +89,14 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
         const createParser = new OrgCreateResultParser(stdOut);
 
         if (createParser.createIsSuccessful()) {
-          getWorkspaceContext()?.getInstance().setWorkspaceOrgType(true);
-
           // Explicitly ensure the org change event is triggered
           // Use the alias that was provided when creating the org
           if (response.data.alias) {
             await ConfigUtil.setTargetOrgOrAlias(response.data.alias);
           }
+
+          // Set up workspace org type (source-tracked vs non-source-tracked)
+          await getSetupWorkspaceOrgType()?.(response.data.alias);
         } else {
           // remove when we drop CLI invocations
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions

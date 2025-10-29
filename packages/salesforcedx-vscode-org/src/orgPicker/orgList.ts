@@ -12,10 +12,9 @@ import { nls } from '../messages';
 import { OrgAuthInfo } from '../util';
 import { getAuthFieldsFor } from '../util/orgUtil';
 
-const getCoreApi = (): SalesforceVSCodeCoreApi => {
-  const coreExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core');
-  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  return coreExtension?.exports as SalesforceVSCodeCoreApi;
+const getCoreApi = (): SalesforceVSCodeCoreApi | undefined => {
+  const coreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
+  return coreExtension?.exports;
 };
 
 export class OrgList implements vscode.Disposable {
@@ -27,12 +26,14 @@ export class OrgList implements vscode.Disposable {
     this.statusBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
     this.statusBarItem.show();
 
-    const WorkspaceContext = getCoreApi().WorkspaceContext;
-    WorkspaceContext.getInstance().onOrgChange((orgInfo: OrgUserInfo) =>
-      this.displayTargetOrg(orgInfo.alias ?? orgInfo.username)
-    );
-    const { username, alias } = WorkspaceContext.getInstance();
-    void this.displayTargetOrg(alias ?? username);
+    const WorkspaceContext = getCoreApi()?.WorkspaceContext;
+    if (WorkspaceContext) {
+      WorkspaceContext.getInstance().onOrgChange((orgInfo: OrgUserInfo) =>
+        this.displayTargetOrg(orgInfo.alias ?? orgInfo.username)
+      );
+      const { username, alias } = WorkspaceContext.getInstance();
+      void this.displayTargetOrg(alias ?? username);
+    }
   }
 
   private displayTargetOrg(targetOrgOrAlias?: string) {

@@ -22,6 +22,7 @@ import {
   notificationService,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
@@ -29,8 +30,8 @@ import { nls } from '../messages';
 import { TelemetryService } from '../telemetry';
 
 // Get core API services at runtime
-const getCoreApi = () => {
-  const coreExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core');
+const getCoreApi = (): SalesforceVSCodeCoreApi | undefined => {
+  const coreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
   return coreExtension?.exports;
 };
 
