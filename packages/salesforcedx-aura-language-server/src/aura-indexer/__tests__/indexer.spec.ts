@@ -6,7 +6,7 @@
  */
 
 import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/src/__tests__/testUtils';
+import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import URI from 'vscode-uri';
 import { AuraWorkspaceContext } from '../../context/auraContext';

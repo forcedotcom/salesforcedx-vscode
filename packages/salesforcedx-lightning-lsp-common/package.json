@@ -51,18 +51,23 @@
       "require": "./out/src/indexer/tagInfo.js",
       "types": "./out/src/indexer/tagInfo.d.ts"
     },
-    "./src/__tests__/testUtils": {
+    "./testUtils": {
       "import": "./out/src/__tests__/testUtils.js",
       "require": "./out/src/__tests__/testUtils.js",
       "types": "./out/src/__tests__/testUtils.d.ts"
     },
-    "./src/resources/sfdx/tsconfig-sfdx.base.json": {
-      "import": "./src/resources/sfdx/tsconfig-sfdx.base.json",
-      "require": "./src/resources/sfdx/tsconfig-sfdx.base.json"
+    "./providers/fileSystemDataProvider": {
+      "import": "./out/src/providers/fileSystemDataProvider.js",
+      "require": "./out/src/providers/fileSystemDataProvider.js",
+      "types": "./out/src/providers/fileSystemDataProvider.d.ts"
     },
-    "./src/resources/sfdx/tsconfig-sfdx.json": {
-      "import": "./src/resources/sfdx/tsconfig-sfdx.json",
-      "require": "./src/resources/sfdx/tsconfig-sfdx.json"
+    "./resources/sfdx/tsconfig-sfdx.base.json": {
+      "import": "./out/src/resources/sfdx/tsconfig-sfdx.base.json",
+      "require": "./out/src/resources/sfdx/tsconfig-sfdx.base.json"
+    },
+    "./resources/sfdx/tsconfig-sfdx.json": {
+      "import": "./out/src/resources/sfdx/tsconfig-sfdx.json",
+      "require": "./out/src/resources/sfdx/tsconfig-sfdx.json"
     }
   },
   "license": "BSD-3-Clause",

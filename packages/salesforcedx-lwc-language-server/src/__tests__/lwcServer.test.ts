@@ -9,7 +9,7 @@
 
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
-import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/src/__tests__/testUtils';
+import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { sync } from 'fast-glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';

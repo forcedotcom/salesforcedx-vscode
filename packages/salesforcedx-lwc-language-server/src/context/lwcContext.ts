@@ -15,8 +15,8 @@ import {
     updateForceIgnoreFile,
     FileSystemDataProvider,
 } from '@salesforce/salesforcedx-lightning-lsp-common';
-import baseTsConfigJson from '@salesforce/salesforcedx-lightning-lsp-common/src/resources/sfdx/tsconfig-sfdx.base.json';
-import tsConfigTemplateJson from '@salesforce/salesforcedx-lightning-lsp-common/src/resources/sfdx/tsconfig-sfdx.json';
+import baseTsConfigJson from '@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.base.json';
+import tsConfigTemplateJson from '@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.json';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 

@@ -12,5 +12,9 @@ module.exports = {
     },
     moduleNameMapper: {
         '^vscode$': '<rootDir>/../../config/__mocks__/vscode.js',
+        '^@salesforce/salesforcedx-lightning-lsp-common/testUtils$': '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/__tests__/testUtils',
+        '^@salesforce/salesforcedx-lightning-lsp-common/providers/fileSystemDataProvider$':
+            '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/providers/fileSystemDataProvider',
+        '^@salesforce/salesforcedx-lightning-lsp-common$': '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/index',
     },
 };

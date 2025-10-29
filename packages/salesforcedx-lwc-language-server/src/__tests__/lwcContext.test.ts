@@ -12,7 +12,7 @@ import {
     REGISTERED_EMPTY_FOLDER_ROOT,
     SFDX_WORKSPACE_ROOT,
     sfdxFileSystemProvider,
-} from '@salesforce/salesforcedx-lightning-lsp-common/src/__tests__/testUtils';
+} from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { join, resolve } from 'node:path';
 import { LWCWorkspaceContext } from '../context/lwcContext';
 
