@@ -101,6 +101,7 @@
     "yaml": "2.6.0"
   },
   "scripts": {
+    "build": "npm run compile",
     "postinstall": "npm run check:peer-deps && npm run check:typescript-project-references",
     "bootstrap": "npm install",
     "changelog": "ts-node ./scripts/create-release-notes.ts",
