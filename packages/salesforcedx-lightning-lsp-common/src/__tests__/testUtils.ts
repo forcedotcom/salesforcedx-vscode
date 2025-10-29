@@ -10,11 +10,22 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { FileSystemDataProvider } from '../providers/fileSystemDataProvider';
 import { DirectoryEntry } from '../types/fileSystemTypes';
 
-export const SFDX_WORKSPACE_ROOT = join(__dirname, '..', '..', '..', '..', 'test-workspaces', 'sfdx-workspace');
+// Test workspace paths for common package (running from source)
+const COMMON_SFDX_WORKSPACE_ROOT = resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'sfdx-workspace');
+const COMMON_CORE_ALL_ROOT = resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'core-like-workspace', 'app', 'main', 'core');
+
+// Test workspace paths for other packages (running from compiled code)
+const PACKAGE_SFDX_WORKSPACE_ROOT = resolve(__dirname, '..', '..', '..', '..', '..', 'test-workspaces', 'sfdx-workspace');
+const PACKAGE_CORE_ALL_ROOT = resolve(__dirname, '..', '..', '..', '..', '..', 'test-workspaces', 'core-like-workspace', 'app', 'main', 'core');
+
+// Export the appropriate paths based on whether we're running from source or compiled code
+const isCommonPackage = __dirname.includes('salesforcedx-lightning-lsp-common') && !__dirname.includes('/out/');
+
+export const SFDX_WORKSPACE_ROOT = isCommonPackage ? COMMON_SFDX_WORKSPACE_ROOT : PACKAGE_SFDX_WORKSPACE_ROOT;
 export const FORCE_APP_ROOT = join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default');
 export const UTILS_ROOT = join(SFDX_WORKSPACE_ROOT, 'utils', 'meta');
 export const REGISTERED_EMPTY_FOLDER_ROOT = join(SFDX_WORKSPACE_ROOT, 'registered-empty-folder', 'meta');
-export const CORE_ALL_ROOT = join(__dirname, '..', '..', '..', '..', 'test-workspaces', 'core-like-workspace', 'app', 'main', 'core');
+export const CORE_ALL_ROOT = isCommonPackage ? COMMON_CORE_ALL_ROOT : PACKAGE_CORE_ALL_ROOT;
 export const CORE_PROJECT_ROOT = join(CORE_ALL_ROOT, 'ui-global-components');
 export const CORE_MULTI_ROOT = [join(CORE_ALL_ROOT, 'ui-force-components'), join(CORE_ALL_ROOT, 'ui-global-components')];
 
@@ -702,7 +713,9 @@ export const coreMultiFileSystemProvider = new FileSystemDataProvider();
 populateFileSystemProvider(sfdxFileSystemProvider, SFDX_WORKSPACE_ROOT, SFDX_WORKSPACE_STRUCTURE);
 populateFileSystemProvider(
     standardFileSystemProvider,
-    resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'standard-workspace'),
+    isCommonPackage
+        ? resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'standard-workspace')
+        : resolve(__dirname, '..', '..', '..', '..', '..', 'test-workspaces', 'standard-workspace'),
     STANDARD_WORKSPACE_STRUCTURE,
 );
 populateFileSystemProvider(coreFileSystemProvider, CORE_ALL_ROOT, CORE_WORKSPACE_STRUCTURE);
