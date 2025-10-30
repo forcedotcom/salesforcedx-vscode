@@ -320,6 +320,7 @@ describe('Run LWC Tests', () => {
 
     // Run SFDX: Run Current Lightning Web Component Test File
     const workbench = getWorkbench();
+    await getTextEditor(workbench, 'lwc2.test.js');
     const editorView = workbench.getEditorView();
     const runTestButtonToolbar = await editorView.getAction('SFDX: Run Current Lightning Web Component Test File');
     expect(runTestButtonToolbar).to.not.be.undefined;
