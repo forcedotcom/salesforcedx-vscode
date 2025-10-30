@@ -21,6 +21,7 @@
     "interactable",
     "intf",
     "LIVESHARE",
+    "NPMJS",
     "QUEUEABLE",
     "quickpick",
     "salesforcedx",
