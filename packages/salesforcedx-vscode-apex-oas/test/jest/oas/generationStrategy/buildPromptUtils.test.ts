@@ -25,7 +25,7 @@ describe('getMethodImplementation', () => {
     methodsDocSymbolMap.set(methodName, {
       name: methodName,
       detail: '',
-      kind: 0 as any,
+      kind: 6,
       range: {
         start: { line: 1, character: 0 },
         end: { line: 3, character: 4 }

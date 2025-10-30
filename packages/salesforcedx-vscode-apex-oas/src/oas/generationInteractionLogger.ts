@@ -7,6 +7,11 @@
 
 import { createDirectory, writeFile } from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'node:path';
+import type {
+  ApexClassOASEligibleRequest,
+  ApexClassOASEligibleResponse,
+  ApexClassOASGatherContextResponse
+} from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { SF_LOG_LEVEL_SETTING } from '../constants';
@@ -14,9 +19,9 @@ import { SF_LOG_LEVEL_SETTING } from '../constants';
 export default class GenerationInteractionLogger {
   private static instance: GenerationInteractionLogger;
 
-  private apexClassOASEligibleRequest: Record<string, unknown>[] = [];
-  private apexClassOASEligibleResponse: Record<string, unknown>[] = [];
-  private apexClassOASGatherContextResponse: Record<string, unknown> = {};
+  private apexClassOASEligibleRequest: ApexClassOASEligibleRequest[] = [];
+  private apexClassOASEligibleResponse: ApexClassOASEligibleResponse[] = [];
+  private apexClassOASGatherContextResponse: ApexClassOASGatherContextResponse | undefined;
   private prompts: string[] = [];
   private rawResponses: string[] = [];
   private cleanedResponses: string[] = [];
@@ -41,15 +46,15 @@ export default class GenerationInteractionLogger {
     return GenerationInteractionLogger.instance;
   }
 
-  public addOASEligibleRequest(request: Record<string, unknown>[] | undefined): void {
+  public addOASEligibleRequest(request: ApexClassOASEligibleRequest[]): void {
     if (request) this.apexClassOASEligibleRequest = request;
   }
 
-  public addOASEligibleResponse(response: Record<string, unknown>[] | undefined): void {
+  public addOASEligibleResponse(response: ApexClassOASEligibleResponse[] | undefined): void {
     if (response) this.apexClassOASEligibleResponse = response;
   }
 
-  public addOASGatherContextResponse(response: Record<string, unknown> | undefined): void {
+  public addOASGatherContextResponse(response: ApexClassOASGatherContextResponse | undefined): void {
     if (response) this.apexClassOASGatherContextResponse = response;
   }
 
@@ -148,7 +153,7 @@ export default class GenerationInteractionLogger {
   public clear(): void {
     this.apexClassOASEligibleRequest = [];
     this.apexClassOASEligibleResponse = [];
-    this.apexClassOASGatherContextResponse = {};
+    this.apexClassOASGatherContextResponse = undefined;
     this.prompts = [];
     this.rawResponses = [];
     this.cleanedResponses = [];
