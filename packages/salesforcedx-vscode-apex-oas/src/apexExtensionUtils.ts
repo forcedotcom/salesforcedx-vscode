@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ApexVSCodeApi, LanguageClientManager } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 
-export const getApexExtension = async (): Promise<vscode.Extension<any>> => {
-  const apexExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex');
+export const getApexExtension = async (): Promise<vscode.Extension<ApexVSCodeApi>> => {
+  const apexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
   if (!apexExtension) {
     throw new Error('Apex extension is not installed');
   }
@@ -20,7 +21,7 @@ export const getApexExtension = async (): Promise<vscode.Extension<any>> => {
   return apexExtension;
 };
 
-export const getApexLanguageClient = async (): Promise<any> => {
+export const getApexLanguageClient = async (): Promise<LanguageClientManager> => {
   const apexExtension = await getApexExtension();
-  return apexExtension.exports?.languageClientManager;
+  return apexExtension.exports.languageClientManager;
 };

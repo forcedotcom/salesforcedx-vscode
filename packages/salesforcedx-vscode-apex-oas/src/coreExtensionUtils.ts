@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 
-export const getVscodeCoreExtension = async (): Promise<vscode.Extension<any>> => {
-  const coreExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core');
+export const getVscodeCoreExtension = async (): Promise<vscode.Extension<SalesforceVSCodeCoreApi>> => {
+  const coreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
   if (!coreExtension) {
     throw new Error('Core extension is not installed');
   }

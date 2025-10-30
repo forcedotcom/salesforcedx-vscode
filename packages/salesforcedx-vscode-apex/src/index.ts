@@ -240,6 +240,27 @@ export const deactivate = async () => {
   getTelemetryService().sendExtensionDeactivationEvent();
 };
 
+export type {
+  ApexClassOASEligibleRequestForLSPProtocol,
+  ApexClassOASEligibleResponseForLSPProtocol
+} from './apexLanguageClient';
+export type { LanguageClientManager } from './languageUtils/languageClientManager';
+
+// Export OAS schema types for other extensions to consume
+export type {
+  ApexClassOASEligibleRequest,
+  ApexClassOASEligibleResponse,
+  ApexClassOASEligibleResponses,
+  ApexOASEligiblePayload,
+  ApexClassOASGatherContextResponse,
+  ApexOASSymbolEligibility,
+  ApexOASClassDetail,
+  ApexOASPropertyDetail,
+  ApexOASMethodDetail,
+  ApexOASInterface,
+  ApexAnnotationDetail
+} from './oasSchemas';
+
 export type ApexVSCodeApi = {
   getLineBreakpointInfo: typeof getLineBreakpointInfo;
   getExceptionBreakpointInfo: typeof getExceptionBreakpointInfo;

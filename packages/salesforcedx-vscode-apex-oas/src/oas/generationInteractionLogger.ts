@@ -41,15 +41,15 @@ export default class GenerationInteractionLogger {
     return GenerationInteractionLogger.instance;
   }
 
-  public addApexClassOASEligibleRequest(request: Record<string, unknown>[] | undefined): void {
+  public addOASEligibleRequest(request: Record<string, unknown>[] | undefined): void {
     if (request) this.apexClassOASEligibleRequest = request;
   }
 
-  public addApexClassOASEligibleResponse(response: Record<string, unknown>[] | undefined): void {
+  public addOASEligibleResponse(response: Record<string, unknown>[] | undefined): void {
     if (response) this.apexClassOASEligibleResponse = response;
   }
 
-  public addApexClassOASGatherContextResponse(response: Record<string, unknown> | undefined): void {
+  public addOASGatherContextResponse(response: Record<string, unknown> | undefined): void {
     if (response) this.apexClassOASGatherContextResponse = response;
   }
 
