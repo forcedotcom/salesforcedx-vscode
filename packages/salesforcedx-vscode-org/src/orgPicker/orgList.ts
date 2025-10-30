@@ -36,21 +36,22 @@ export class OrgList implements vscode.Disposable {
     }
   }
 
-  private async displayTargetOrg(targetOrgOrAlias?: string): Promise<void> {
+  private displayTargetOrg(targetOrgOrAlias?: string) {
     if (targetOrgOrAlias) {
-      try {
-        const isExpired = await this.isOrgExpired(targetOrgOrAlias);
-        if (isExpired) {
-          this.statusBarItem.text = `$(warning) ${targetOrgOrAlias}`;
-        } else {
-          this.statusBarItem.text = `$(plug) ${targetOrgOrAlias}`;
-        }
-      } catch (error: unknown) {
-        if (error instanceof Error && error.name === 'NamedOrgNotFoundError') {
-          this.statusBarItem.text = `$(error) ${nls.localize('invalid_default_org')}`;
-        }
-        console.error('Error checking org expiration: ', error);
-      }
+      return Promise.resolve(this.isOrgExpired(targetOrgOrAlias))
+        .then(isExpired => {
+          if (isExpired) {
+            this.statusBarItem.text = `$(warning) ${targetOrgOrAlias}`;
+          } else {
+            this.statusBarItem.text = `$(plug) ${targetOrgOrAlias}`;
+          }
+        })
+        .catch(error => {
+          if (error.name === 'NamedOrgNotFoundError') {
+            this.statusBarItem.text = `$(error) ${nls.localize('invalid_default_org')}`;
+          }
+          console.error('Error checking org expiration: ', error);
+        });
     } else {
       this.statusBarItem.text = nls.localize('missing_default_org');
     }
