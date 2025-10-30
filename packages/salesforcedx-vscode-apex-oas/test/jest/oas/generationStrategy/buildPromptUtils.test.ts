@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as vscode from 'vscode';
 import type { DocumentSymbol } from 'vscode-languageserver-protocol';
 import { nls } from '../../../../src/messages';
 import {
@@ -26,7 +25,7 @@ describe('getMethodImplementation', () => {
     methodsDocSymbolMap.set(methodName, {
       name: methodName,
       detail: '',
-      kind: vscode.SymbolKind.Method,
+      kind: 0 as any,
       range: {
         start: { line: 1, character: 0 },
         end: { line: 3, character: 4 }
