@@ -8,7 +8,6 @@
 import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
 import { fail } from 'node:assert';
 import * as cp from 'node:child_process';
-import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { SET_JAVA_DOC_LINK } from '../../../src/constants';
@@ -41,6 +40,25 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   LOCALE_JA: 'ja'
 }));
 
+// Mock vscode workspace
+jest.mock('vscode', () => ({
+  workspace: {
+    getConfiguration: jest.fn()
+  },
+  Position: class MockPosition {
+    constructor(
+      public line: number,
+      public character: number
+    ) {}
+  },
+  Range: class MockRange {
+    constructor(
+      public start: any,
+      public end: any
+    ) {}
+  }
+}));
+
 // Mock find-java-home module
 jest.mock('find-java-home', () =>
   jest.fn(callback => {
@@ -51,8 +69,13 @@ jest.mock('find-java-home', () =>
   })
 );
 
+// Mock os module
+jest.mock('node:os', () => ({
+  homedir: jest.fn().mockReturnValue('/mock/home/directory')
+}));
+
 const jdk = 'openjdk1.8.0.302_8.56.0.22_x64';
-const runtimePath = path.join(os.homedir(), 'java_home', 'real', 'jdk', jdk);
+const runtimePath = path.join('/mock/home/directory', 'java_home', 'real', 'jdk', jdk);
 
 describe('Java Requirements Test', () => {
   let getConfigMock: jest.Mock;
@@ -95,7 +118,7 @@ describe('Java Requirements Test', () => {
         cb('', '', 'java.version = 1.8.0');
       });
       try {
-        await checkJavaVersion(path.join(os.homedir(), 'java_home'));
+        await checkJavaVersion(path.join('/mock/home/directory', 'java_home'));
         fail('Should have thrown when the Java version is not supported');
       } catch (err) {
         expect(err).toEqual(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK));
@@ -108,7 +131,7 @@ describe('Java Requirements Test', () => {
         cb('', '', 'java.version = 11.0.0');
       });
       try {
-        const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
+        const result = await checkJavaVersion(path.join('/mock/home/directory', 'java_home'));
         expect(result).toBe(true);
       } catch (err) {
         fail(`Should not have thrown when the Java version is 11.  The error was: ${err}`);
@@ -121,7 +144,7 @@ describe('Java Requirements Test', () => {
         cb('', '', 'java.version = 17.2.3');
       });
       try {
-        const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
+        const result = await checkJavaVersion(path.join('/mock/home/directory', 'java_home'));
         expect(result).toBe(true);
       } catch (err) {
         fail(`Should not have thrown when the Java version is 17.  The error was: ${err}`);
@@ -134,7 +157,7 @@ describe('Java Requirements Test', () => {
         cb('', '', 'java.version = 21.0.0');
       });
       try {
-        const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
+        const result = await checkJavaVersion(path.join('/mock/home/directory', 'java_home'));
         expect(result).toBe(true);
       } catch (err) {
         fail(`Should not have thrown when the Java version is 21.  The error was: ${err}`);
@@ -147,7 +170,7 @@ describe('Java Requirements Test', () => {
         cb('', '', 'java.version = 23.0.0');
       });
       try {
-        const result = await checkJavaVersion(path.join(os.homedir(), 'java_home'));
+        const result = await checkJavaVersion(path.join('/mock/home/directory', 'java_home'));
         expect(result).toBe(true);
       } catch (err) {
         fail(`Should not have thrown when the Java version is 23.  The error was: ${err}`);
@@ -160,11 +183,11 @@ describe('Java Requirements Test', () => {
         cb({ message: 'its broken' }, '', '');
       });
       try {
-        await checkJavaVersion(path.join(os.homedir(), 'java_home'));
+        await checkJavaVersion(path.join('/mock/home/directory', 'java_home'));
         fail('Should have thrown when the Java version is not supported');
       } catch (err) {
         const expectedPath = path.join(
-          os.homedir(),
+          '/mock/home/directory',
           'java_home',
           'bin',
           process.platform === 'win32' ? 'java.exe' : 'java'

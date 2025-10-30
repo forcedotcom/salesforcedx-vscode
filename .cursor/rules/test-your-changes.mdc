@@ -1,8 +1,26 @@
 ---
-description:
+description: Validation steps for code changes
 globs:
 alwaysApply: true
 ---
-when you changes a file, you should run relevant compile, linters then unit tests so that you cna propose valid changes.
 
-don't change both /src and /test unless it's to refactor imports or rename.  "real changes" should be one or the other.
+After ANY code change, run these in order from repo root. Avoid responding while failures are present, iterate more.
+
+1. `npm run compile` - must pass
+2. `npm run lint` - fix any new errors
+3. `npm run test` - must pass
+4. `npx knip` - check for dead code related to your changes
+   - **Fix ALL unused exports** - if knip shows unused exports, remove them immediately unless they're used for tests
+   - Don't leave any exports that are only used within the same file
+5. `npx lerna run bundle:extension` to make sure the extensions still bundle
+6. if working in vscode-services or org-browser extensions, run the org-browser's headless tests
+   - Run with `--retries 0` to get quicker feedback
+   - If there are failures, be sure to look at the screenshots produced
+   - unzip traces.zip for more screenshots and json results
+
+Rules:
+
+- Don't change /src AND /test together (except imports/renames)
+- Be aware of nx caching; you may need `--skip-nx-cache` to really change the bundles. You can look in the bundle to see (and also turn off `minify` if that helps debug)
+- Port 3001 for tests (not 3000 - Docker/Grafana uses that)
+- All commands run from salesforcedx-vscode root; use `-w` to specify runs for a single package. Never `cd` into a package.

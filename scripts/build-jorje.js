@@ -12,11 +12,11 @@
         export SFDC_KEYPASS=PASS #where PASS is the password for the keystore
  */
 
-const process = require('process');
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
-const util = require('util');
+const process = require('node:process');
+const fs = require('node:fs');
+const path = require('node:path');
+const { execSync } = require('node:child_process');
+const util = require('node:util');
 const { checkJorjeDirectory, checkSigningAbility } = require('./validation-utils');
 const logger = require('./logger-util');
 

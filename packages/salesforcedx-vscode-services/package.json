@@ -1,0 +1,109 @@
+{
+  "name": "salesforcedx-vscode-services",
+  "displayName": "Salesforce Services",
+  "description": "a shared services extension for other extensions to use",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "icon": "images/VSCodeBundle.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "65.2.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "dependencies": {
+    "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.32",
+    "@effect/opentelemetry": "0.58.0",
+    "@opentelemetry/api": "1.9.0",
+    "@opentelemetry/core": "2.0.1",
+    "@opentelemetry/exporter-trace-otlp-http": "0.203.0",
+    "@opentelemetry/sdk-logs": "0.203.0",
+    "@opentelemetry/sdk-metrics": "2.0.1",
+    "@opentelemetry/sdk-trace-base": "2.0.1",
+    "@opentelemetry/sdk-trace-node": "2.0.1",
+    "@opentelemetry/sdk-trace-web": "2.0.1",
+    "@salesforce/core": "^8.23.3",
+    "@salesforce/source-deploy-retrieve": "^12.25.0",
+    "@salesforce/source-tracking": "^7.5.0",
+    "@vscode/extension-telemetry": "^1.0.0",
+    "effect": "^3.18.4",
+    "jsforce": "^3.10.2",
+    "vscode-uri": "^3.1.0"
+  },
+  "devDependencies": {
+    "@effect/platform": "0.92.1",
+    "@types/node": "^20.0.0",
+    "browserify-zlib": "^0.2.0",
+    "esbuild": "0.25.0",
+    "https-browserify": "^1.0.0",
+    "jsforce": "^3.9.4",
+    "nyc": "^15",
+    "querystring-es3": "^0.2.1",
+    "stream-http": "^3.2.0",
+    "timers-browserify": "^2.0.12"
+  },
+  "scripts": {
+    "bundle:extension": "node esbuild.config.mjs",
+    "vscode:package": "npm run bundle:extension && vsce package",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "compile": "tsc -p ./ && ts-node ../salesforcedx-vscode-services-types/scripts/generateEntry.ts && ts-node ../salesforcedx-vscode-services-types/scripts/syncDeps.ts",
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "test": "jest --coverage"
+  },
+  "activationEvents": [
+    "*"
+  ],
+  "main": "dist/index.js",
+  "types": "out/src/index.d.ts",
+  "browser": "./dist/web/index.js",
+  "contributes": {
+    "configuration": {
+      "title": "Salesforce Services Configuration",
+      "properties": {
+        "salesforcedx-vscode-code-builder-web.instanceUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Salesforce instance URL for web extensions.  Only valid in browser"
+        },
+        "salesforcedx-vscode-code-builder-web.accessToken": {
+          "type": "string",
+          "default": "",
+          "description": "Salesforce access token for web extensions.  Only valid in browser"
+        },
+        "salesforcedx-vscode-code-builder-web.apiVersion": {
+          "type": "string",
+          "default": "64.0",
+          "description": "Salesforce api version (example: 65.0).  Only valid in browser"
+        },
+        "salesforcedx-vscode-salesforcedx.enableLocalTraces": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable local OpenTelemetry traces for debugging and performance monitoring.  Start the trace viewer using docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm"
+        },
+        "salesforcedx-vscode-salesforcedx.enableConsoleTraces": {
+          "type": "boolean",
+          "default": false,
+          "description": "Send OpenTelemetry traces for debugging and performance monitoring to the console (browser or electron)."
+        }
+      }
+    },
+    "commands": []
+  },
+  "sideEffects": true
+}

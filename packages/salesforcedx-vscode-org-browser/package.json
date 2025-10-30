@@ -1,0 +1,144 @@
+{
+  "name": "salesforcedx-vscode-org-browser",
+  "displayName": "Salesforce Org Browser",
+  "description": "View and retrieve metadata from your Salesforce org",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "icon": "images/VSCodeBundle.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "65.2.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "dependencies": {
+    "effect": "^3.18.4",
+    "vscode-uri": "^3.1.0"
+  },
+  "devDependencies": {
+    "@salesforce/core": "^8.23.3",
+    "@salesforce/source-deploy-retrieve": "^12.25.0",
+    "salesforcedx-vscode-services": "65.2.0",
+    "@types/node": "^20.0.0",
+    "esbuild": "0.25.0",
+    "nyc": "^15",
+    "@playwright/test": "^1.54.1",
+    "@vscode/test-web": "^0.0.71"
+  },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-services"
+  ],
+  "scripts": {
+    "bundle:extension": "npm run compile && node ./esbuild.config.mjs",
+    "run:web": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --open-devtools --port 3001",
+    "test:web": "npm run bundle:extension && playwright test --config=playwright.config.web.ts --headed",
+    "test:web:headless": "npm run bundle:extension && playwright test --config=playwright.config.web.ts",
+    "test:web:debug": "npm run bundle:extension && playwright test --config=playwright.config.web.ts --debug",
+    "test:web:headless:ci": "npm run bundle:extension && CI=1 playwright test --config=playwright.config.web.ts",
+    "test:desktop": "npm run bundle:extension && VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts",
+    "test:desktop:debug": "npm run bundle:extension && VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts --debug",
+    "test:desktop:ci": "npm run bundle:extension && CI=1 VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts",
+    "test:e2e": "npm run test:web:headless && npm run test:desktop",
+    "test:setup:check": "npm run bundle:extension && npx ts-node test/web/scripts/setup-check.ts",
+    "vscode:package": "npm run bundle:extension && vsce package",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "compile": "tsc -p ./",
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "test": "jest --coverage"
+  },
+  "main": "./dist/index.js",
+  "browser": "./dist/web/index.js",
+  "contributes": {
+    "viewsWelcome": [
+      {
+        "view": "sfdxOrgBrowser",
+        "contents": "Retrieving the metadata types from your org.  This'll take a bit.\n\nThe Org Browser retrieves metadata from your Org and stores it in your project.\nClick any metadata type to see what items are available.\nYou can download individual metadata items or all items of a type."
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "metadata",
+          "title": "Salesforce Org Browser",
+          "icon": "resources/orgBrowserIcon.svg"
+        }
+      ]
+    },
+    "views": {
+      "metadata": [
+        {
+          "id": "sfdxOrgBrowser",
+          "name": "Salesforce Org Browser",
+          "when": "!config.salesforcedx-vscode-core.useLegacyOrgBrowser"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sfdxOrgBrowser.refreshType",
+        "title": "Refresh Type",
+        "category": "Org Browser",
+        "icon": {
+          "light": "resources/light/refresh.svg",
+          "dark": "resources/dark/refresh.svg"
+        }
+      },
+      {
+        "command": "sfdxOrgBrowser.retrieveMetadata",
+        "title": "Retrieve Metadata",
+        "icon": {
+          "dark": "resources/dark/retrieve.svg",
+          "light": "resources/light/retrieve.svg"
+        }
+      },
+      {
+        "command": "sfdxOrgBrowser.collapseAll",
+        "title": "Collapse All",
+        "category": "Org Browser",
+        "icon": "$(collapse-all)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "sfdxOrgBrowser.refreshType",
+          "when": "view == sfdxOrgBrowser",
+          "group": "navigation@0"
+        },
+        {
+          "command": "sfdxOrgBrowser.collapseAll",
+          "when": "view == sfdxOrgBrowser",
+          "group": "navigation@1"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "sfdxOrgBrowser.refreshType",
+          "when": "view == sfdxOrgBrowser && (viewItem == type || viewItem == customObject || viewItem == folderType || viewItem == folder)",
+          "group": "inline"
+        },
+        {
+          "command": "sfdxOrgBrowser.retrieveMetadata",
+          "when": "view == sfdxOrgBrowser && (viewItem == type || viewItem == customObject || viewItem == component)",
+          "group": "inline"
+        }
+      ]
+    }
+  }
+}

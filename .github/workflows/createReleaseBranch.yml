@@ -2,7 +2,7 @@ name: Create Release Branch
 
 on:
   repository_dispatch:
-    types: create_release_branch
+    types: [create_release_branch]
   schedule:
     - cron: '0 13 * * 1'
   workflow_dispatch:

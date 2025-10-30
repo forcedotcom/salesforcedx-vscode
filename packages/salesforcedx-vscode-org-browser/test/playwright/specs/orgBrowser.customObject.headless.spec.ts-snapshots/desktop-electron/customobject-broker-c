@@ -1,0 +1,5 @@
+- treeitem "Broker__c" [level=2]:
+  - text:   Broker__c
+  - toolbar:
+    - button "Refresh Type"
+    - button "Retrieve Metadata"
