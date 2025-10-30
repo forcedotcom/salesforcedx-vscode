@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { readFile } from '@salesforce/salesforcedx-utils-vscode';
-import { DocumentSymbol } from 'vscode';
+import type { DocumentSymbol } from 'vscode-languageserver-protocol';
 import { nls } from '../../../messages';
 import { cleanupGeneratedDoc, hasValidRestAnnotations, parseOASDocFromJson } from '../../../oasUtils';
 import { retrieveAAClassRestAnnotations } from '../../../settings';
-import { getTelemetryService } from '../../../telemetry';
+import { telemetryService } from '../../../telemetry';
 import GenerationInteractionLogger from '../../generationInteractionLogger';
 import {
   ApexClassOASEligibleResponse,
@@ -188,7 +188,6 @@ export class ApexRestStrategy extends GenerationStrategy {
         return result;
       } catch (error) {
         attempts++;
-        const telemetryService = getTelemetryService();
         telemetryService.sendException(
           'OasLlmResultFailedParse',
           `attempt: ${attempts} of ${retryLimit}: ${error instanceof Error ? error.message : String(error)}`

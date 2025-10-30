@@ -19,7 +19,7 @@ import {
   BID_RULES
 } from '../oas/promptGenerationOrchestrator';
 import { checkIfESRIsDecomposed, processOasDocument, summarizeDiagnostics, hasMixedFrameworks } from '../oasUtils';
-import { getTelemetryService } from '../telemetry';
+import { telemetryService } from '../telemetry';
 import { MetadataOrchestrator } from './metadataOrchestrator';
 
 export class ApexActionController {
@@ -49,7 +49,6 @@ export class ApexActionController {
     let context;
     let name: string = 'Should Never Be Empty';
     let overwrite = true;
-    const telemetryService = getTelemetryService();
     this.gil.clear();
     const startTime = TimingUtils.getCurrentTime();
     let props: OASGenerationCommandProperties = {
@@ -181,7 +180,7 @@ export class ApexActionController {
         await notificationService.showInformationMessage(message);
         telemetryService.sendCommandEvent(createdMessage, startTime, props, measures);
       }
-    } catch (error: any) {
+    } catch (error) {
       void this.handleError(error, `OASDocumentFor${type}CreationFailed`);
     }
     await this.gil.writeLogs();
@@ -192,8 +191,7 @@ export class ApexActionController {
    * @param error - The error to handle.
    * @param telemetryEvent - The telemetry event name.
    */
-  private handleError = async (error: any, telemetryEvent: string): Promise<void> => {
-    const telemetryService = getTelemetryService();
+  private handleError = async (error: unknown, telemetryEvent: string): Promise<void> => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     await notificationService.showErrorMessage(`${nls.localize('create_openapi_doc_failed')}: ${errorMessage}`);
     telemetryService.sendException(telemetryEvent, errorMessage);

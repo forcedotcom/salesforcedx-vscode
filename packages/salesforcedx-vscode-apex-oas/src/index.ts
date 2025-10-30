@@ -11,7 +11,7 @@ import { ApexActionController, createApexActionFromClass, validateOpenApiDocumen
 import { MetadataOrchestrator } from './commands/metadataOrchestrator';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { checkIfESRIsDecomposed } from './oasUtils';
-import { getTelemetryService, setTelemetryService } from './telemetry';
+import { telemetryService } from './telemetry';
 
 const metadataOrchestrator = new MetadataOrchestrator();
 
@@ -30,14 +30,6 @@ export const activate = async (context: vscode.ExtensionContext) => {
   const workspaceContext = vscodeCoreExtension.exports.WorkspaceContext.getInstance();
 
   // Telemetry
-  const { name } = context.extension.packageJSON;
-  const telemetryService = vscodeCoreExtension.exports.services.TelemetryService.getInstance(name);
-  await telemetryService.initializeService(context);
-  if (!telemetryService) {
-    throw new Error('Could not fetch a telemetry service instance');
-  }
-  setTelemetryService(telemetryService);
-
   const activationTracker = new ActivationTracker(context, telemetryService);
 
   // Workspace Context
@@ -79,5 +71,5 @@ const registerCommands = (): vscode.Disposable => {
 };
 
 export const deactivate = async () => {
-  getTelemetryService().sendExtensionDeactivationEvent();
+  telemetryService.sendExtensionDeactivationEvent();
 };

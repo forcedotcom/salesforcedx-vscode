@@ -19,7 +19,7 @@ import {
   ApexOASEligiblePayload,
   ApexOASResource
 } from '../oas/schemas';
-import { getTelemetryService } from '../telemetry';
+import { telemetryService } from '../telemetry';
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -36,7 +36,7 @@ export class MetadataOrchestrator {
     isMethodSelected: boolean = false
   ): Promise<ApexClassOASEligibleResponse | undefined> => {
     const isEligibleResponses = await this.validateEligibility(sourceUri, isMethodSelected);
-    gil.addApexClassOASEligibleResponse(isEligibleResponses);
+    gil.addOASEligibleResponse(isEligibleResponses);
     if (!isEligibleResponses || isEligibleResponses.length === 0) {
       throw new Error(nls.localize('validation_failed'));
     }
@@ -63,8 +63,7 @@ export class MetadataOrchestrator {
   public eligibilityDelegate = async (
     requests: ApexOASEligiblePayload
   ): Promise<ApexClassOASEligibleResponses | undefined> => {
-    gil.addApexClassOASEligibleRequest(requests.payload);
-    const telemetryService = getTelemetryService();
+    gil.addOASEligibleRequest(requests.payload);
     const languageClientManager = await getApexLanguageClient();
     const languageClient = languageClientManager?.getClientInstance();
     if (languageClient) {
@@ -88,7 +87,6 @@ export class MetadataOrchestrator {
   };
 
   public gatherContext = async (sourceUri: URI | URI[]): Promise<ApexClassOASGatherContextResponse | undefined> => {
-    const telemetryService = getTelemetryService();
     let response: ApexClassOASGatherContextResponse | undefined;
     const languageClientManager = await getApexLanguageClient();
     const languageClient = languageClientManager?.getClientInstance();
@@ -106,7 +104,7 @@ export class MetadataOrchestrator {
         throw new Error(nls.localize('cannot_gather_context'));
       }
     }
-    gil.addApexClassOASGatherContextResponse(response);
+    gil.addOASGatherContextResponse(response);
     return response;
   };
 
@@ -114,7 +112,6 @@ export class MetadataOrchestrator {
     sourceUri: URI | URI[],
     isMethodSelected: boolean = false
   ): Promise<ApexClassOASEligibleResponses | undefined> => {
-    const telemetryService = getTelemetryService();
     const requests: ApexClassOASEligibleRequest[] = [];
     if (Array.isArray(sourceUri)) {
       await gil.addSourceUnderStudy(sourceUri);

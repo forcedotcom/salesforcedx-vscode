@@ -8,7 +8,7 @@ import { JSONPath } from 'jsonpath-plus';
 import type { OpenAPIV3 } from 'openapi-types';
 import { nls } from '../../messages';
 import { cleanupGeneratedDoc, parseOASDocFromJson } from '../../oasUtils';
-import { ApexOASMethodDetail, HttpRequestMethod, httpMethodMap, OpenAPIDoc } from '../schemas';
+import { ApexOASMethodDetail, HttpRequestMethod, httpMethodMap } from '../schemas';
 
 export const formatUrlPath = (parametersInPath: string[], urlMapping: string): string => {
   let updatedPath = urlMapping.replace(/\/$|\/\*$/, '').trim() || '';
@@ -85,7 +85,7 @@ export const updateOperationIds = (oas: OpenAPIV3.Document, methodName: string) 
 };
 
 export const combineYamlByMethod = (docs: string[], className: string) => {
-  const combined: OpenAPIDoc = {
+  const combined: OpenAPIV3.Document = {
     openapi: '3.0.0',
     servers: [
       {

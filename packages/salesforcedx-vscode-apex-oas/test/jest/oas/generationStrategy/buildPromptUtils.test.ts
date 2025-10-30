@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { DocumentSymbol } from 'vscode';
+import type { DocumentSymbol } from 'vscode-languageserver-protocol';
 import { nls } from '../../../../src/messages';
 import {
   buildClassPrompt,
@@ -25,7 +25,7 @@ describe('getMethodImplementation', () => {
     methodsDocSymbolMap.set(methodName, {
       name: methodName,
       detail: '',
-      kind: 0,
+      kind: 6,
       range: {
         start: { line: 1, character: 0 },
         end: { line: 3, character: 4 }
@@ -34,7 +34,7 @@ describe('getMethodImplementation', () => {
         start: { line: 1, character: 0 },
         end: { line: 3, character: 4 }
       }
-    } as DocumentSymbol);
+    });
     const result = getMethodImplementation(methodName, doc, methodsDocSymbolMap);
     expect(result).toBe(`
 public void myMethod() {
