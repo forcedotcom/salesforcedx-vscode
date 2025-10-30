@@ -60,10 +60,11 @@ describe('Authentication', () => {
     logTestStart(testSetup, 'Running SFDX: Set a Default Org');
     // This is "SFDX: Set a Default Org", using the button in the status bar.
     // Could also run the command, "SFDX: Set a Default Org" but this exercises more UI elements.
-
+    const environmentSettings = EnvironmentSettings.getInstance();
+    const devHubAliasName = environmentSettings.devHubAliasName;
     // Click on "No default Org Set" (in the bottom bar).
     const workbench = getWorkbench();
-    const changeDefaultOrgSetItem = await getStatusBarItemWhichIncludes('No Default Org Set');
+    const changeDefaultOrgSetItem = await getStatusBarItemWhichIncludes(devHubAliasName);
     expect(changeDefaultOrgSetItem).to.not.be.undefined;
     await changeDefaultOrgSetItem.click();
     await pause(Duration.seconds(5));
@@ -97,8 +98,6 @@ describe('Authentication', () => {
     }
 
     // In the drop down menu that appears, select "vscodeOrg - user_name".
-    const environmentSettings = EnvironmentSettings.getInstance();
-    const devHubAliasName = environmentSettings.devHubAliasName;
     const devHubUserName = environmentSettings.devHubUserName;
     const inputBox = await InputBox.create();
     await inputBox.selectQuickPick(`${devHubAliasName} - ${devHubUserName}`);

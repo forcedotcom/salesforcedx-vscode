@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import { OUTPUT_CHANNEL } from './channels';
 import {
   orgCreate,
   orgDelete,
@@ -64,6 +65,9 @@ const initializeOrgPicker = (extensionContext: vscode.ExtensionContext): void =>
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   console.log('Salesforce Org Management extension activated');
+
+  // Register output channel
+  extensionContext.subscriptions.push(OUTPUT_CHANNEL);
 
   // Register all commands
   extensionContext.subscriptions.push(registerCommands());
