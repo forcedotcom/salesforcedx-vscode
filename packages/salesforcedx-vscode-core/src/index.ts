@@ -95,6 +95,7 @@ import { OrgAuthInfoExtensions } from './util/orgAuthInfoExtensions';
 /** Customer-facing commands */
 const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable =>
   vscode.Disposable.from(
+    vscode.commands.registerCommand('sf.project.generate.manifest', projectGenerateManifest),
     vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
     vscode.commands.registerCommand('sf.folder.diff', sourceFolderDiff),
     vscode.commands.registerCommand('sf.data.query.input', dataQuery),
@@ -160,6 +161,10 @@ const registerInternalDevCommands = (): vscode.Disposable =>
   );
 
 const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
+  const useLegacyOrgBrowser = salesforceCoreSettings.getUseLegacyOrgBrowser();
+  if (!useLegacyOrgBrowser) {
+    return;
+  }
   await orgBrowser.init(extensionContext);
 
   vscode.commands.registerCommand('sf.metadata.view.type.refresh', async node => {
@@ -177,8 +182,6 @@ const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promi
   vscode.commands.registerCommand('sf.retrieve.open.component', async (trigger: RetrieveMetadataTrigger) => {
     await retrieveComponent(trigger, true);
   });
-
-  vscode.commands.registerCommand('sf.project.generate.manifest', projectGenerateManifest);
 };
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {

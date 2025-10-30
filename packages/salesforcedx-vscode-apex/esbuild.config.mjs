@@ -9,7 +9,7 @@ import { build } from 'esbuild';
 
 await build({
   ...nodeConfig,
-  external: ['vscode'],
+  external: [...nodeConfig.external],
   keepNames: false, // set it false to get rid of error: __name is undefined. https://github.com/evanw/esbuild/issues/3455
   entryPoints: ['./src/index.ts'],
   outdir: 'dist'
