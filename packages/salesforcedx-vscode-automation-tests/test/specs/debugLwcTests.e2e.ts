@@ -190,7 +190,7 @@ describe('Debug LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  // TODO: This test is skipped because of W-15666391 https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00001qWb1IYAS/view
+  // TODO: This test is skipped because of a flapper after adding code lens to describe blocks
   it.skip('Debug All Tests via Code Lens action', async () => {
     logTestStart(testSetup, 'Debug All Tests via Code Lens action');
     const workbench = getWorkbench();
@@ -238,6 +238,7 @@ describe('Debug LWC Tests', () => {
     await verifyOutputPanelText(terminalText, expectedTexts);
   });
 
+  // TODO: This test is skipped because of a flapper after adding code lens to describe blocks
   it.skip('Debug Single Test via Code Lens action', async () => {
     logTestStart(testSetup, 'Debug Single Test via Code Lens action');
 

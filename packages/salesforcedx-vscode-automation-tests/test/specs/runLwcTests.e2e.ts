@@ -264,8 +264,8 @@ describe('Run LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  it.skip('Run All Tests via Code Lens action', async () => {
-    // Skipping as this feature is currently not working
+  // TODO: This test is skipped in Ubuntu because of a flapper after adding code lens to describe blocks
+  (process.platform === 'linux' ? it.skip : it)('Run All Tests via Code Lens action', async () => {
     logTestStart(testSetup, 'Run All Tests via Code Lens action');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lwc1.test.js');
@@ -290,7 +290,8 @@ describe('Run LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  it.skip('Run Single Test via Code Lens action', async () => {
+  // TODO: This test is skipped in Ubuntu because of a flapper after adding code lens to describe blocks
+  (process.platform === 'linux' ? it.skip : it)('Run Single Test via Code Lens action', async () => {
     logTestStart(testSetup, 'Run Single Test via Code Lens action');
 
     // Click the "Run Test" code lens at the top of one of the test methods
