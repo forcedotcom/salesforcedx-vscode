@@ -14,9 +14,7 @@ export type {
   ApexClassOASGatherContextResponse,
   ApexOASSymbolEligibility,
   ApexOASClassDetail,
-  ApexOASPropertyDetail,
   ApexOASMethodDetail,
-  ApexOASInterface,
   ApexAnnotationDetail
 } from 'salesforcedx-vscode-apex';
 

@@ -8,7 +8,7 @@
 import type { ApexVSCodeApi, LanguageClientManager } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 
-export const getApexExtension = async (): Promise<vscode.Extension<ApexVSCodeApi>> => {
+const getApexExtension = async (): Promise<vscode.Extension<ApexVSCodeApi>> => {
   const apexExtension = vscode.extensions.getExtension<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
   if (!apexExtension) {
     throw new Error('Apex extension is not installed');
