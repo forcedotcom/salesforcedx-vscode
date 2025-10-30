@@ -53,7 +53,7 @@ const registerOrgPickerCommands = (orgListParam: OrgList): vscode.Disposable => 
 /** Initialize org picker and org status bar */
 const initializeOrgPicker = (extensionContext: vscode.ExtensionContext): void => {
   const orgListParam = new OrgList();
-  extensionContext.subscriptions.push(registerOrgPickerCommands(orgListParam));
+  extensionContext.subscriptions.push(orgListParam, registerOrgPickerCommands(orgListParam));
 
   // Set up org expiration watcher
   void setUpOrgExpirationWatcher(orgListParam);
