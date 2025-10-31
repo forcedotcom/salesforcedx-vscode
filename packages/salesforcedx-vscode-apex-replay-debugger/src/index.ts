@@ -29,9 +29,9 @@ import { URI } from 'vscode-uri';
 import { getDialogStartingPath } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import {
-  CheckpointService,
   checkpointService,
   processBreakpointChangedForCheckpoints,
+  sfCreateCheckpoints,
   sfToggleCheckpoint
 } from './breakpoints/checkpointService';
 import { channelService } from './channels';
@@ -102,10 +102,7 @@ const registerCommands = async (): Promise<vscode.Disposable> => {
     }
   );
 
-  const sfCreateCheckpointsCmd = vscode.commands.registerCommand(
-    'sf.create.checkpoints',
-    CheckpointService.sfCreateCheckpoints
-  );
+  const sfCreateCheckpointsCmd = vscode.commands.registerCommand('sf.create.checkpoints', sfCreateCheckpoints);
   const sfToggleCheckpointCmd = vscode.commands.registerCommand('sf.toggle.checkpoint', sfToggleCheckpoint);
 
   return vscode.Disposable.from(

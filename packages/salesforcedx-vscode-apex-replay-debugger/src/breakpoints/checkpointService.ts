@@ -7,41 +7,22 @@
 // TODO: clean up the types for all of this
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
+import type { Connection } from '@salesforce/core';
 import {
   ActionScriptType,
-  OrgInfoError,
   breakpointUtil,
   CHECKPOINT,
-  CHECKPOINTS_LOCK_STRING,
   FIELD_INTEGRITY_EXCEPTION,
-  MAX_ALLOWED_CHECKPOINTS,
-  OVERLAY_ACTION_DELETE_URL
+  MAX_ALLOWED_CHECKPOINTS
 } from '@salesforce/salesforcedx-apex-replay-debugger';
-import { OrgDisplay, OrgInfo, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
 import { code2ProtocolConverter, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { URI } from 'vscode-uri';
-import {
-  ApexExecutionOverlayActionCommand,
-  ApexExecutionOverlayFailureResult,
-  ApexExecutionOverlaySuccessResult
-} from '../commands/apexExecutionOverlayActionCommand';
-import {
-  BatchDeleteExistingOverlayActionCommand,
-  BatchDeleteResponse
-} from '../commands/batchDeleteExistingOverlayActionsCommand';
-import {
-  QueryExistingOverlayActionIdsCommand,
-  QueryOverlayActionIdsSuccessResult
-} from '../commands/queryExistingOverlayActionIdsCommand';
 import { retrieveLineBreakpointInfo, VSCodeWindowTypeEnum, writeToDebuggerOutputWindow } from '../index';
 import { nls } from '../messages';
-
-// below dependencies must be required for bundling to work properly
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const AsyncLock = require('async-lock');
+import { getVscodeCoreExtension } from '../utils/coreExtensionUtils';
 
 const EDITABLE_FIELD_LABEL_ITERATIONS = 'Iterations: ';
 const EDITABLE_FIELD_LABEL_ACTION_SCRIPT = 'Script: ';
@@ -57,65 +38,118 @@ type ApexExecutionOverlayAction = {
   Line: number;
 };
 
-export class CheckpointService implements TreeDataProvider<BaseNode> {
-  private static instance: CheckpointService;
-  private checkpoints: CheckpointNode[];
-  private _onDidChangeTreeData: EventEmitter<BaseNode | undefined> = new EventEmitter<BaseNode | undefined>();
-  private myRequestService: RequestService;
-  private orgInfo!: OrgInfo;
-  private salesforceProject: string | null = null;
-
-  public readonly onDidChangeTreeData: Event<BaseNode | undefined> = this._onDidChangeTreeData.event;
-
-  constructor() {
-    this.checkpoints = [];
-    this.myRequestService = new RequestService();
+/** Gets the Connection from the core extension */
+const getConnection = async (): Promise<Connection | undefined> => {
+  try {
+    const coreExtension = await getVscodeCoreExtension();
+    const connection = await coreExtension.exports.services.WorkspaceContext.getInstance().getConnection();
+    return connection;
+  } catch (error) {
+    const errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${
+      error instanceof Error ? error.message : String(error)
+    }`;
+    writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+    return undefined;
   }
+};
 
-  public fireTreeChangedEvent() {
-    this._onDidChangeTreeData.fire(undefined);
-  }
+/** Clears existing checkpoints from the org, making VS Code the source of truth */
+const clearExistingCheckpoints = async (): Promise<boolean> => {
+  try {
+    const coreExtension = await getVscodeCoreExtension();
+    const userId = await coreExtension.exports.getUserId();
 
-  public async retrieveOrgInfo(): Promise<boolean> {
-    if (vscode.workspace.workspaceFolders?.[0]) {
-      this.salesforceProject = URI.file(vscode.workspace.workspaceFolders[0].uri.fsPath).fsPath;
-      try {
-        this.orgInfo = await new OrgDisplay().getOrgInfo(this.salesforceProject);
-      } catch (error) {
-        let errorMessage: string;
-
-        // Check if error is already an Error object with a message
-        if (error instanceof Error) {
-          errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${error.message}`;
-        } else {
-          // Try to parse as JSON (for backwards compatibility)
-          try {
-            const result = JSON.parse(error as string) as OrgInfoError;
-            errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${result.message}`;
-          } catch {
-            // If JSON parsing fails, treat as string
-            errorMessage = `${nls.localize('unable_to_retrieve_org_info')} : ${String(error)}`;
-          }
-        }
-
-        writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-        return false;
-      }
-      this.myRequestService.instanceUrl = this.orgInfo.instanceUrl;
-      this.myRequestService.accessToken = this.orgInfo.accessToken;
-      return true;
-    } else {
-      const errorMessage = nls.localize('cannot_determine_workspace');
+    if (!userId) {
+      const errorMessage = nls.localize('unable_to_retrieve_active_user_for_sf_project');
       writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
       return false;
     }
+
+    const connection = await getConnection();
+    if (!connection) {
+      return false;
+    }
+
+    // Query for existing overlay actions
+    const queryResult = await connection.tooling.query<{ Id: string }>(
+      `SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId = '${userId}'`
+    );
+
+    if (queryResult.records.length === 0) {
+      return true;
+    }
+
+    // Delete all records individually using Promise.all
+    const deleteResults = await Promise.allSettled(
+      queryResult.records.map(record => connection.tooling.sobject('ApexExecutionOverlayAction').delete(record.Id))
+    );
+
+    // Check if any deletes failed
+    const failures = deleteResults.filter(result => result.status === 'rejected');
+    if (failures.length > 0) {
+      const errorMessage = nls.localize('cannot_delete_existing_checkpoint');
+      writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    const errorMessage = `${nls.localize('unable_to_query_for_existing_checkpoints')} : ${String(error)}`;
+    writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+    return false;
+  }
+};
+
+/** Creates an Apex Execution Overlay Action for a checkpoint node */
+const executeCreateApexExecutionOverlayActionCommand = async (theNode: CheckpointNode): Promise<boolean> => {
+  const connection = await getConnection();
+  if (!connection) {
+    return false;
   }
 
-  public static getInstance(): CheckpointService {
-    if (!CheckpointService.instance) {
-      CheckpointService.instance = new CheckpointService();
+  try {
+    const overlayAction = JSON.parse(theNode.createJSonStringForOverlayAction());
+    const result = await connection.tooling.sobject('ApexExecutionOverlayAction').create(overlayAction);
+
+    // result is a SaveResult when creating a single record
+    const singleResult = Array.isArray(result) ? result[0] : result;
+
+    if (singleResult.success && singleResult.id) {
+      theNode.setActionCommandResultId(singleResult.id);
+      return true;
     }
-    return CheckpointService.instance;
+
+    const errorMessage = `Failed to create checkpoint. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
+    writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+    return false;
+  } catch (error) {
+    let errorMessage: string;
+    try {
+      const errorData = error as { body?: { message: string; errorCode: string }[] };
+      const errorArray = errorData.body ?? [];
+      if (errorArray.length > 0 && errorArray[0].errorCode === FIELD_INTEGRITY_EXCEPTION) {
+        errorMessage = nls.localize('local_source_is_out_of_sync_with_the_server');
+      } else if (errorArray.length > 0) {
+        errorMessage = `${errorArray[0].message}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
+      } else {
+        errorMessage = `${String(error)}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
+      }
+    } catch {
+      errorMessage = `${String(error)}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
+    }
+    writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
+    return false;
+  }
+};
+
+class CheckpointService implements TreeDataProvider<BaseNode> {
+  private checkpoints: CheckpointNode[] = [];
+  private _onDidChangeTreeData: EventEmitter<BaseNode | undefined> = new EventEmitter<BaseNode | undefined>();
+
+  public readonly onDidChangeTreeData: Event<BaseNode | undefined> = this._onDidChangeTreeData.event;
+
+  public fireTreeChangedEvent() {
+    this._onDidChangeTreeData.fire(undefined);
   }
 
   public getTreeItem(element: BaseNode): TreeItem {
@@ -168,7 +202,7 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
   }
 
   public returnCheckpointNodeIfAlreadyExists(breakpointIdInput: string): CheckpointNode | undefined {
-    return this.checkpoints.find(cp => cp.getBreakpointId() === breakpointIdInput);
+    return this.checkpoints.find(cp => cp.breakpointId === breakpointIdInput);
   }
 
   public deleteCheckpointNodeIfExists(breakpointIdInput: string): void {
@@ -181,282 +215,9 @@ export class CheckpointService implements TreeDataProvider<BaseNode> {
       }
     }
   }
-
-  public async executeCreateApexExecutionOverlayActionCommand(theNode: CheckpointNode): Promise<boolean> {
-    // create the overlay action
-    const overlayActionCommand = new ApexExecutionOverlayActionCommand(theNode.createJSonStringForOverlayAction());
-    let errorString;
-    let returnString;
-    await this.myRequestService.execute(overlayActionCommand).then(
-      value => {
-        returnString = value;
-      },
-      reason => {
-        errorString = reason;
-      }
-    );
-    // The return string will be the overlay Id and will end up being
-    // used if the node is deleted
-    if (returnString) {
-      const result = JSON.parse(returnString) as ApexExecutionOverlaySuccessResult;
-      theNode.setActionCommandResultId(result.id);
-      return true;
-    }
-    // Fun fact: the result is an array of 1 item OR the result message can be just a string. In the
-    // case where the json string cannot be parsed into an ApexExecutionOverlayFailureResult then it'll
-    // be treated as a string and reported to the user.
-    if (errorString) {
-      try {
-        const result = JSON.parse(errorString) as ApexExecutionOverlayFailureResult[];
-        const errorMessage =
-          result[0].errorCode === FIELD_INTEGRITY_EXCEPTION
-            ? nls.localize('local_source_is_out_of_sync_with_the_server')
-            : `${result[0].message}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
-        writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-      } catch {
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        const errorMessage = `${errorString}. URI=${theNode.getCheckpointUri()}, Line=${theNode.getCheckpointLineNumber()}`;
-        writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-      }
-    }
-    return false;
-  }
-
-  // Make VS Code the source of truth for checkpoints
-  public async clearExistingCheckpoints(): Promise<boolean> {
-    const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
-      'salesforce.salesforcedx-vscode-core'
-    );
-    if (!salesforceCoreExtension?.isActive) {
-      await salesforceCoreExtension?.activate();
-    }
-    if (salesforceCoreExtension?.exports) {
-      const userId = await salesforceCoreExtension.exports.getUserId();
-      if (userId) {
-        const queryCommand = new QueryExistingOverlayActionIdsCommand(userId);
-        let errorString;
-        let returnString;
-        await this.myRequestService.execute(queryCommand, RestHttpMethodEnum.Get).then(
-          value => {
-            returnString = value;
-          },
-          reason => {
-            errorString = reason;
-          }
-        );
-        if (returnString) {
-          const successResult = JSON.parse(returnString) as QueryOverlayActionIdsSuccessResult;
-          if (successResult) {
-            // If there are things to delete then create the batchRequest
-            if (successResult.records.length > 0) {
-              const batchRequests = {
-                batchRequests: successResult.records.map(record => ({
-                  method: RestHttpMethodEnum.Delete,
-                  url: OVERLAY_ACTION_DELETE_URL + record.Id
-                }))
-              };
-              const batchDeleteCommand = new BatchDeleteExistingOverlayActionCommand(batchRequests);
-
-              let deleteError;
-              let deleteResult;
-              await this.myRequestService.execute(batchDeleteCommand, RestHttpMethodEnum.Post).then(
-                value => {
-                  deleteResult = value;
-                },
-                reason => {
-                  deleteError = reason;
-                }
-              );
-              // Parse the result
-              if (deleteResult) {
-                const result = JSON.parse(deleteResult) as BatchDeleteResponse;
-                if (result.hasErrors) {
-                  const errorMessage = nls.localize('cannot_delete_existing_checkpoint');
-                  writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-                } else {
-                  // no errors, return true
-                  return true;
-                }
-              }
-              // At this point a deleteError really means there was an error talking to the
-              // server. Actual failures from an individual command other issues are batched
-              // up in the result.
-              if (deleteError) {
-                const errorMessage = `${nls.localize(
-                  'cannot_delete_existing_checkpoint'
-                  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                )} : ${deleteError}`;
-                writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-                return false;
-              }
-            }
-            // no records to delete, just return true
-            return true;
-          } else {
-            const errorMessage = nls.localize('unable_to_parse_checkpoint_query_result');
-            writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-            return false;
-          }
-        } else {
-          const errorMessage = `${nls.localize('unable_to_query_for_existing_checkpoints')} Error: ${errorString}`;
-          writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-          return false;
-        }
-      } else {
-        const errorMessage = nls.localize('unable_to_retrieve_active_user_for_sf_project');
-        writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-        return false;
-      }
-    } else {
-      const errorMessage = nls.localize('unable_to_load_vscode_core_extension');
-      writeToDebuggerOutputWindow(errorMessage, true, VSCodeWindowTypeEnum.Error);
-      return false;
-    }
-  }
-
-  // The order of operations here should be to
-  // 1. Get the source/line information
-  // 2. Validate the existing checkpoint information
-  //    a. validate there are only 5 active checkpoints
-  //    b. validate that the active checkpoint information is correct
-  //    c. set the typeRef on each checkpoint (requires the source/line information)
-  // 3. Remove any existing checkpoints
-  // 4. Create the new checkpoints
-  public static async sfCreateCheckpoints(): Promise<boolean> {
-    // In-spite of waiting for the lock, we still want subsequent calls to immediately return
-    // from this if checkpoints are already being created instead of stacking them up.
-    if (!creatingCheckpoints) {
-      creatingCheckpoints = true;
-    } else {
-      return false;
-    }
-    let updateError = false;
-    // The status message isn't changing, call to localize it once and use the localized string in the
-    // progress report.
-    const localizedProgressMessage = nls.localize('sf_update_checkpoints_in_org');
-    // Wrap everything in a try/finally to ensure creatingCheckpoints gets set to false
-    try {
-      // The lock is necessary here to prevent the user from deleting the underlying breakpoint
-      // attached to the checkpoint while they're being uploaded into the org.
-      await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
-        writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`);
-        await vscode.window.withProgress(
-          {
-            location: vscode.ProgressLocation.Notification,
-            title: localizedProgressMessage,
-            cancellable: false
-          },
-
-          async (progress, _token) => {
-            writeToDebuggerOutputWindow(
-              `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_org_info')}`
-            );
-            progress.report({
-              increment: 0,
-              message: localizedProgressMessage
-            });
-            const orgInfoRetrieved: boolean = await checkpointService.retrieveOrgInfo();
-            if (!orgInfoRetrieved) {
-              updateError = true;
-              return false;
-            }
-
-            writeToDebuggerOutputWindow(
-              `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_source_line_info')}`
-            );
-            progress.report({
-              increment: 20,
-              message: localizedProgressMessage
-            });
-            const sourceLineInfoRetrieved: boolean = await retrieveLineBreakpointInfo();
-            // If we didn't get the source line information that'll be reported at that time, just return
-            if (!sourceLineInfoRetrieved) {
-              updateError = true;
-              return false;
-            }
-
-            // There can be a max of five active checkpoints
-            if (!checkpointService.hasFiveOrLessActiveCheckpoints()) {
-              updateError = true;
-              return false;
-            }
-
-            writeToDebuggerOutputWindow(
-              `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_setting_typeref')}`
-            );
-            progress.report({
-              increment: 50,
-              message: localizedProgressMessage
-            });
-            // For the active checkpoints set the typeRefs using the source/line info
-            if (!setTypeRefsForEnabledCheckpoints()) {
-              updateError = true;
-              return false;
-            }
-
-            writeToDebuggerOutputWindow(
-              `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_clearing_existing_checkpoints')}`
-            );
-            progress.report({
-              increment: 50,
-              message: localizedProgressMessage
-            });
-            // remove any existing checkpoints on the server
-            const allRemoved: boolean = await checkpointService.clearExistingCheckpoints();
-            if (!allRemoved) {
-              updateError = true;
-              return false;
-            }
-
-            writeToDebuggerOutputWindow(
-              `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_uploading_checkpoints')}`
-            );
-            progress.report({
-              increment: 70,
-              message: localizedProgressMessage
-            });
-            updateError = (
-              await Promise.allSettled(
-                (checkpointService.getChildren() as CheckpointNode[])
-                  .filter(cpNode => cpNode.isCheckpointEnabled())
-                  .map(cpNode => checkpointService.executeCreateApexExecutionOverlayActionCommand(cpNode))
-              )
-            ).some(promise => promise.status === 'rejected');
-
-            progress.report({
-              increment: 100,
-              message: localizedProgressMessage
-            });
-            writeToDebuggerOutputWindow(
-              `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_processing_complete_success')}`
-            );
-          }
-        );
-      });
-    } finally {
-      writeToDebuggerOutputWindow(`${nls.localize('long_command_end')} ${localizedProgressMessage}`);
-      let errorMsg = '';
-      if (updateError) {
-        errorMsg = nls.localize(
-          'checkpoint_upload_error_wrap_up_message',
-          nls.localize('sf_update_checkpoints_in_org')
-        );
-        writeToDebuggerOutputWindow(errorMsg, true, VSCodeWindowTypeEnum.Error);
-      }
-      // Send checkpoint event using shared telemetry service
-      TelemetryService.getInstance().sendEventData('apexReplayDebugger.checkpoint', {
-        errorMessage: errorMsg
-      });
-      creatingCheckpoints = false;
-    }
-    if (updateError) {
-      return false;
-    }
-    return true;
-  }
 }
 
-export const checkpointService = CheckpointService.getInstance();
+export const checkpointService = new CheckpointService();
 
 abstract class BaseNode extends TreeItem {
   public abstract getChildren(): BaseNode[];
@@ -468,7 +229,7 @@ export class CheckpointNode extends BaseNode {
     | CheckpointInfoActionScriptTypeNode
     | CheckpointInfoIterationNode
   )[] = [];
-  private readonly breakpointId: string;
+  public readonly breakpointId: string;
   private readonly checkpointOverlayAction: ApexExecutionOverlayAction;
   private uri: string;
   private enabled: boolean;
@@ -498,10 +259,6 @@ export class CheckpointNode extends BaseNode {
 
   public createJSonStringForOverlayAction(): string {
     return JSON.stringify(this.checkpointOverlayAction);
-  }
-
-  public getBreakpointId(): string {
-    return this.breakpointId;
   }
 
   public isCheckpointEnabled(): boolean {
@@ -539,7 +296,7 @@ export class CheckpointNode extends BaseNode {
     this.updateActionScriptType(checkpointOverlayActionInput.ActionScriptType);
     this.updateIterations(checkpointOverlayActionInput.Iteration);
     this.label = `${sourceFileInput}:${checkpointOverlayActionInput.Line}`;
-    CheckpointService.getInstance().fireTreeChangedEvent();
+    checkpointService.fireTreeChangedEvent();
   }
 
   private updateActionScript(actionScriptInput: string): void {
@@ -646,60 +403,65 @@ class CheckpointInfoIterationNode extends BaseNode {
   }
 }
 
-// The AsyncLock is necessary to prevent the user from deleting the underlying breakpoints
+// The lock is necessary to prevent the user from deleting the underlying breakpoints
 // associated with the checkpoints while checkpoints are being uploaded to the server.
-const lock = new AsyncLock();
+const lock = Effect.runSync(Effect.makeSemaphore(1));
 
 // This is the function registered for vscode.debug.onDidChangeBreakpoints. This
 // particular event fires breakpoint events without an active debug session which
 // allows us to manipulate checkpoints prior to the debug session.
-export const processBreakpointChangedForCheckpoints = async (
+export const processBreakpointChangedForCheckpoints = (
   breakpointsChangedEvent: vscode.BreakpointsChangeEvent
-): Promise<void> => {
-  for (const bp of breakpointsChangedEvent.removed) {
-    if (bp.condition?.toLowerCase().includes(CHECKPOINT)) {
-      await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
-        const breakpointId = bp.id;
-        checkpointService.deleteCheckpointNodeIfExists(breakpointId);
-      });
-    }
-  }
+): void => {
+  Effect.runSync(
+    lock.withPermits(1)(
+      Effect.sync(() => {
+        breakpointsChangedEvent.removed
+          .filter(isSourceBreakpoint)
+          .filter(isCheckpoint)
+          .map(bp => checkpointService.deleteCheckpointNodeIfExists(bp.id));
+      })
+    )
+  );
 
-  for (const bp of breakpointsChangedEvent.changed) {
-    const breakpointId = bp.id;
-    if (bp.condition?.toLowerCase().includes(CHECKPOINT) && bp instanceof vscode.SourceBreakpoint) {
-      const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
-      const uri = code2ProtocolConverter(bp.location.uri);
-      const filename = uri.substring(uri.lastIndexOf('/') + 1);
-      const theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(breakpointId);
-      await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
-        // If the node exists then update it
-        if (theNode) {
-          theNode.updateCheckpoint(bp.enabled, uri, filename, checkpointOverlayAction);
-        } else {
-          // else if the node didn't exist then create it
-          checkpointService.createCheckpointNode(breakpointId, bp.enabled, uri, filename, checkpointOverlayAction);
-        }
-      });
-    } else {
-      // The breakpoint is no longer a SourceBreakpoint or is no longer a checkpoint. Call to delete it if it exists
-      await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
-        checkpointService.deleteCheckpointNodeIfExists(breakpointId);
-      });
-    }
-  }
+  Effect.runSync(
+    lock.withPermits(1)(
+      Effect.sync(() => {
+        const sourceBreakpoints = breakpointsChangedEvent.changed.filter(isSourceBreakpoint);
+        sourceBreakpoints.filter(isCheckpoint).map(bp => {
+          const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
+          const uri = code2ProtocolConverter(bp.location.uri);
+          const filename = uri.substring(uri.lastIndexOf('/') + 1);
+          const theNode = checkpointService.returnCheckpointNodeIfAlreadyExists(bp.id);
+          if (theNode) {
+            theNode.updateCheckpoint(bp.enabled, uri, filename, checkpointOverlayAction);
+          } else {
+            // else if the node didn't exist then create it
+            checkpointService.createCheckpointNode(bp.id, bp.enabled, uri, filename, checkpointOverlayAction);
+          }
+        });
+        // The breakpoint is no longer a SourceBreakpoint or is no longer a checkpoint. Call to delete it if it exists
+        sourceBreakpoints.filter(isNotCheckpoint).map(bp => checkpointService.deleteCheckpointNodeIfExists(bp.id));
+      })
+    )
+  );
 
-  for (const bp of breakpointsChangedEvent.added) {
-    if (bp.condition?.toLowerCase().includes(CHECKPOINT) && bp instanceof vscode.SourceBreakpoint) {
-      await lock.acquire(CHECKPOINTS_LOCK_STRING, async () => {
-        const breakpointId = bp.id;
-        const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
-        const uri = code2ProtocolConverter(bp.location.uri);
-        const filename = uri.substring(uri.lastIndexOf('/') + 1);
-        checkpointService.createCheckpointNode(breakpointId, bp.enabled, uri, filename, checkpointOverlayAction);
-      });
-    }
-  }
+  Effect.runSync(
+    lock.withPermits(1)(
+      Effect.sync(() => {
+        breakpointsChangedEvent.added
+          .filter(isSourceBreakpoint)
+          .filter(isCheckpoint)
+          .map(bp => {
+            const checkpointOverlayAction = parseCheckpointInfoFromBreakpoint(bp);
+
+            const uri = code2ProtocolConverter(bp.location.uri);
+            const filename = uri.substring(uri.lastIndexOf('/') + 1);
+            checkpointService.createCheckpointNode(bp.id, bp.enabled, uri, filename, checkpointOverlayAction);
+          });
+      })
+    )
+  );
 };
 
 const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreakpoint): ApexExecutionOverlayAction => {
@@ -767,6 +529,141 @@ const setTypeRefsForEnabledCheckpoints = (): boolean => {
 // 3. Remove any existing checkpoints
 // 4. Create the new checkpoints
 let creatingCheckpoints = false;
+
+/** Creates checkpoints in the org by uploading enabled checkpoint nodes */
+export const sfCreateCheckpoints = async (): Promise<boolean> => {
+  // In-spite of waiting for the lock, we still want subsequent calls to immediately return
+  // from this if checkpoints are already being created instead of stacking them up.
+  if (!creatingCheckpoints) {
+    creatingCheckpoints = true;
+  } else {
+    return false;
+  }
+  let updateError = false;
+  // The status message isn't changing, call to localize it once and use the localized string in the
+  // progress report.
+  const localizedProgressMessage = nls.localize('sf_update_checkpoints_in_org');
+  // Wrap everything in a try/finally to ensure creatingCheckpoints gets set to false
+  try {
+    // The lock is necessary here to prevent the user from deleting the underlying breakpoint
+    // attached to the checkpoint while they're being uploaded into the org.
+    Effect.runSync(
+      lock.withPermits(1)(
+        Effect.promise(async () => {
+          writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`);
+          await vscode.window.withProgress(
+            {
+              location: vscode.ProgressLocation.Notification,
+              title: localizedProgressMessage,
+              cancellable: false
+            },
+
+            async (progress, _token) => {
+              writeToDebuggerOutputWindow(
+                `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_org_info')}`
+              );
+              progress.report({
+                increment: 0,
+                message: localizedProgressMessage
+              });
+              const connection = await getConnection();
+              if (!connection) {
+                updateError = true;
+                return false;
+              }
+
+              writeToDebuggerOutputWindow(
+                `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_source_line_info')}`
+              );
+              progress.report({
+                increment: 20,
+                message: localizedProgressMessage
+              });
+              const sourceLineInfoRetrieved: boolean = await retrieveLineBreakpointInfo();
+              // If we didn't get the source line information that'll be reported at that time, just return
+              if (!sourceLineInfoRetrieved) {
+                updateError = true;
+                return false;
+              }
+
+              // There can be a max of five active checkpoints
+              if (!checkpointService.hasFiveOrLessActiveCheckpoints()) {
+                updateError = true;
+                return false;
+              }
+
+              writeToDebuggerOutputWindow(
+                `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_setting_typeref')}`
+              );
+              progress.report({
+                increment: 50,
+                message: localizedProgressMessage
+              });
+              // For the active checkpoints set the typeRefs using the source/line info
+              if (!setTypeRefsForEnabledCheckpoints()) {
+                updateError = true;
+                return false;
+              }
+
+              writeToDebuggerOutputWindow(
+                `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_clearing_existing_checkpoints')}`
+              );
+              progress.report({
+                increment: 50,
+                message: localizedProgressMessage
+              });
+              // remove any existing checkpoints on the server
+              const allRemoved: boolean = await clearExistingCheckpoints();
+              if (!allRemoved) {
+                updateError = true;
+                return false;
+              }
+
+              writeToDebuggerOutputWindow(
+                `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_uploading_checkpoints')}`
+              );
+              progress.report({
+                increment: 70,
+                message: localizedProgressMessage
+              });
+              updateError = (
+                await Promise.allSettled(
+                  (checkpointService.getChildren() as CheckpointNode[])
+                    .filter(cpNode => cpNode.isCheckpointEnabled())
+                    .map(cpNode => executeCreateApexExecutionOverlayActionCommand(cpNode))
+                )
+              ).some(promise => promise.status === 'rejected');
+
+              progress.report({
+                increment: 100,
+                message: localizedProgressMessage
+              });
+              writeToDebuggerOutputWindow(
+                `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_processing_complete_success')}`
+              );
+            }
+          );
+        })
+      )
+    );
+  } finally {
+    writeToDebuggerOutputWindow(`${nls.localize('long_command_end')} ${localizedProgressMessage}`);
+    let errorMsg = '';
+    if (updateError) {
+      errorMsg = nls.localize('checkpoint_upload_error_wrap_up_message', nls.localize('sf_update_checkpoints_in_org'));
+      writeToDebuggerOutputWindow(errorMsg, true, VSCodeWindowTypeEnum.Error);
+    }
+    // Send checkpoint event using shared telemetry service
+    TelemetryService.getInstance().sendEventData('apexReplayDebugger.checkpoint', {
+      errorMessage: errorMsg
+    });
+    creatingCheckpoints = false;
+  }
+  if (updateError) {
+    return false;
+  }
+  return true;
+};
 
 // A couple of important notes about this command's processing
 // 1. There is no way to invoke a breakpoint change through vscode.debug
@@ -841,3 +738,11 @@ const checkpointUtils = {
 
 const getEnabledCheckpointCount = (service: CheckpointService): number =>
   (service.getChildren() as CheckpointNode[]).filter(cpNode => cpNode.isCheckpointEnabled()).length;
+
+const isSourceBreakpoint = (breakpoint: vscode.Breakpoint): breakpoint is vscode.SourceBreakpoint =>
+  Boolean(breakpoint instanceof vscode.SourceBreakpoint);
+
+const isCheckpoint = (breakpoint: vscode.SourceBreakpoint): boolean =>
+  Boolean(breakpoint.condition?.toLowerCase().includes(CHECKPOINT));
+
+const isNotCheckpoint = (breakpoint: vscode.SourceBreakpoint): boolean => !isCheckpoint(breakpoint);
