@@ -39,9 +39,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
 
   status_bar_tooltip: 'クリックしてコマンドをキャンセル',
 
-  org_login_web_authorize_dev_hub_text: 'SFDX: Dev Hub 組織を認証',
-  org_login_web_authorize_org_text: 'SFDX: 組織を認証',
-
   parameter_directory_strict_not_available: '必要なメタデータフォルダ "%s" がこのワークスペースに存在しません。',
 
   parameter_gatherer_enter_file_name: 'ファイル名を入力',
@@ -57,13 +54,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   parameter_gatherer_paste_forceide_url_placeholder: '設定の forceide:// URL',
   parameter_gatherer_invalid_forceide_url:
     'forceide:// 形式の URL が無効です。登録者の組織から、設定の Apex デバッガのページに表示される forceide:// 形式の URL をコピー・ペーストしてください。',
-
-  org_create_default_scratch_org_text: 'SFDX: デフォルトのスクラッチ組織を作成...',
-  org_create_result_parsing_error: '組織を作成するレスポンスの処理中に予期せぬエラーが発生しました。',
-
-  org_open_default_scratch_org_text: 'SFDX: デフォルトの組織を開く',
-  org_open_default_scratch_org_container_error: '組織を開くレスポンスの処理中に予期せぬエラーが発生しました。',
-  org_open_container_mode_message_text: '組織 %s にユーザ %s として次の URL: %s を使用してアクセス',
 
   project_retrieve_start_default_org_text: 'SFDX: デフォルトのスクラッチ組織からソースをプル',
 
@@ -116,8 +106,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   warning_prompt_other_not_shown: '...表示されていない残り %s つのコンポーネント\n',
   config_list_text: 'SFDX: すべての設定変数を一覧表示',
   alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
-  org_display_default_text: 'SFDX: デフォルトの組織の詳細を表示',
-  org_display_username_text: 'SFDX: 組織の詳細を表示...',
   debugger_query_session_text: 'Apex デバッガセッションをクエリ',
   debugger_stop_text: 'SFDX: Apex デバッガセッションを停止',
   debugger_stop_none_found_text: 'Apex デバッガセッションが見つかりませんでした。',
@@ -158,8 +146,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   error_writing_installed_package_info: 'installed-package.json の書き込み中にエラー: %s',
   error_cleanup_temp_files: '一時ファイルのクリーンアップ中にエラー: %s',
 
-  org_logout_all_text: 'SFDX: すべての認証済み組織からログアウト',
-
   manifest_editor_title_message: 'マニフェストエディタ',
 
   REST_API_description: 'REST API でクエリを実行',
@@ -187,7 +173,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
     '保存時のプッシュまたはデプロイ実行中にエラー: デフォルトの組織が設定されていません。"SFDX: デフォルトのスクラッチ組織を作成" または "SFDX: 組織を認証" を実行して、保存したソースをプッシュまたはデプロイしてください。もしくは、保存時のプッシュまたはデプロイを無効化するため、VS Code のユーザまたはワークスペース設定で "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" を false に設定してください。',
   error_source_path_not_in_package_directory_text:
     'ソースをデプロイまたは取得中にエラー: デプロイまたは取得しようとしたファイルかディレクトリが sfdx-project.json ファイルで指定されたパッケージディレクトリにありません。この場所を "packageDirectories" の値に追加するか、異なるファイルやディレクトリをデプロイまたは取得してください。sfdx-project.json についての詳細は https://developer.salesforce.com/docs/atlas.ja-jp.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm を参照してください。',
-  org_select_text: 'デフォルトに設定する組織を選択',
   missing_default_org: 'デフォルトの組織が未設定',
   error_parsing_sfdx_project_file: 'sfdx-project.json ファイル (%s) をパースできませんでした。パースエラー: %s',
 

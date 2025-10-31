@@ -37,17 +37,7 @@ export const messages = {
 
   status_bar_text: '$(x) %s',
   status_bar_tooltip: 'Click to cancel the command',
-  status_bar_open_org_tooltip: 'Open Org',
-  status_bar_org_picker_tooltip: 'Change Default Org',
 
-  org_login_web_authorize_dev_hub_text: 'SFDX: Authorize a Dev Hub',
-  org_login_web_authorize_org_text: 'SFDX: Authorize an Org',
-  org_login_access_token_text: 'SFDX: Authorize an Org using Session ID',
-  org_login_access_token_bad_oauth_token_message:
-    'The session ID that you are trying to use is not valid. Check if it has expired, or use a valid session ID.',
-  org_login_device_code_parse_error:
-    'There was an unexpected error authorizing to your org in a container environment.',
-  org_login_device_enter_code: 'Enter %s user code in the verification URL %s',
   action_required: '=== Action Required!',
   parameter_directory_strict_not_available: 'A required metadata folder named "%s" does not exist in this workspace.',
 

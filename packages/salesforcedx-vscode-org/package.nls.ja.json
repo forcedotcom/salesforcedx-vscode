@@ -15,5 +15,5 @@
   "org_open_default_scratch_org_text": "SFDX: Open Default Org",
   "org_select_text": "Select an org to set as default",
   "status_bar_open_org_tooltip": "Open Default Org in Browser",
-  "status_bar_org_picker_tooltip": "Click to change your default org"
+  "status_bar_org_picker_tooltip": "Change your default org"
 }

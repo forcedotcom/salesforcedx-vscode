@@ -92,7 +92,7 @@ export const messages = {
   pending_org_expiration_output_channel_message:
     'Warning: The following orgs expire in the next %d days:\n\n%s\n\nIf these orgs contain critical data or settings, back them up before the org expires.',
   status_bar_open_org_tooltip: 'Open Default Org in Browser',
-  status_bar_org_picker_tooltip: 'Click to change your default org',
+  status_bar_org_picker_tooltip: 'Change Default Org',
   table_header_name: 'Name',
   table_header_value: 'Value',
   table_header_success: 'Success',
