@@ -11,7 +11,7 @@ await build({
   ...nodeConfig,
   loader: { '.node': 'file' },
   external: [
-    'vscode',
+    ...nodeConfig.external,
     'applicationinsights',
     '@salesforce/lightning-lsp-common',
     '@salesforce/lwc-language-server',

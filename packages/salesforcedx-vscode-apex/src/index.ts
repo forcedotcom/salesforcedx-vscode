@@ -25,12 +25,8 @@ import {
   apexTestSuiteAdd,
   apexTestSuiteCreate,
   apexTestSuiteRun,
-  createApexActionFromClass,
-  validateOpenApiDocument,
-  launchApexReplayDebuggerWithCurrentFile,
-  ApexActionController
+  launchApexReplayDebuggerWithCurrentFile
 } from './commands';
-import { MetadataOrchestrator } from './commands/metadataOrchestrator';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
 import {
@@ -43,15 +39,9 @@ import {
   createLanguageClient
 } from './languageUtils';
 import { nls } from './messages';
-import { checkIfESRIsDecomposed } from './oasUtils';
 import { getTelemetryService, setTelemetryService } from './telemetry/telemetry';
 import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
-
-const metadataOrchestrator = new MetadataOrchestrator();
-
-// Apex Action Controller
-export const apexActionController = new ApexActionController(metadataOrchestrator);
 
 export const activate = async (context: vscode.ExtensionContext) => {
   const vscodeCoreExtension = await getVscodeCoreExtension();
@@ -98,16 +88,6 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
   // Javadoc support
   configureApexLanguage();
-
-  // Initialize the apexActionController
-  await apexActionController.initialize(context);
-
-  // Initialize if ESR xml is decomposed
-  void vscode.commands.executeCommand('setContext', 'sf:is_esr_decomposed', await checkIfESRIsDecomposed());
-
-  // Set context based on mulesoft extension
-  const muleDxApiExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
-  await vscode.commands.executeCommand('setContext', 'sf:muleDxApiInactive', !muleDxApiExtension?.isActive);
 
   // Commands
   const commands = registerCommands(context);
@@ -178,14 +158,6 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
     'sf.anon.apex.execute.selection',
     anonApexExecute
   );
-  const createApexActionFromClassCmd = vscode.commands.registerCommand(
-    'sf.create.apex.action.class',
-    createApexActionFromClass
-  );
-  const validateOpenApiDocumentCmd = vscode.commands.registerCommand(
-    'sf.validate.oas.document',
-    validateOpenApiDocument
-  );
   const launchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
     'sf.launch.apex.replay.debugger.with.current.file',
     launchApexReplayDebuggerWithCurrentFile
@@ -217,8 +189,6 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
     apexTestSuiteCreateCmd,
     apexTestSuiteRunCmd,
     apexTestSuiteAddCmd,
-    createApexActionFromClassCmd,
-    validateOpenApiDocumentCmd,
     launchApexReplayDebuggerWithCurrentFileCmd,
     restartApexLanguageServerCmd
   );
@@ -269,6 +239,27 @@ export const deactivate = async () => {
   await languageClientManager.getClientInstance()?.stop();
   getTelemetryService().sendExtensionDeactivationEvent();
 };
+
+export type {
+  ApexClassOASEligibleRequestForLSPProtocol,
+  ApexClassOASEligibleResponseForLSPProtocol
+} from './apexLanguageClient';
+export type { LanguageClientManager } from './languageUtils/languageClientManager';
+
+// Export OAS schema types for other extensions to consume
+export type {
+  ApexClassOASEligibleRequest,
+  ApexClassOASEligibleResponse,
+  ApexClassOASEligibleResponses,
+  ApexOASEligiblePayload,
+  ApexClassOASGatherContextResponse,
+  ApexOASSymbolEligibility,
+  ApexOASClassDetail,
+  ApexOASPropertyDetail,
+  ApexOASMethodDetail,
+  ApexOASInterface,
+  ApexAnnotationDetail
+} from './oasSchemas';
 
 export type ApexVSCodeApi = {
   getLineBreakpointInfo: typeof getLineBreakpointInfo;

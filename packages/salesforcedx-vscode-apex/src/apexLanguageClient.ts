@@ -14,9 +14,9 @@ import {
   ApexClassOASEligibleResponses,
   ApexClassOASGatherContextResponse,
   ApexOASEligiblePayload
-} from './oas/schemas';
+} from './oasSchemas';
 
-type ApexClassOASEligibleRequestForLSPProtocol = Omit<ApexClassOASEligibleRequest, 'resourceUri'> & {
+export type ApexClassOASEligibleRequestForLSPProtocol = Omit<ApexClassOASEligibleRequest, 'resourceUri'> & {
   resourceUri: string;
 };
 
@@ -24,7 +24,7 @@ type ApexOASEligiblePayloadForLSPProtocol = {
   payload: ApexClassOASEligibleRequestForLSPProtocol[];
 };
 
-type ApexClassOASEligibleResponseForLSPProtocol = Omit<ApexClassOASEligibleResponse, 'resourceUri'> & {
+export type ApexClassOASEligibleResponseForLSPProtocol = Omit<ApexClassOASEligibleResponse, 'resourceUri'> & {
   resourceUri: string;
 };
 

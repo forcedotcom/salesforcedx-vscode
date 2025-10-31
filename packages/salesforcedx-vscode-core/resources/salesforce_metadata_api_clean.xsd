@@ -4,4 +4,5 @@
   targetNamespace="http://soap.sforce.com/2006/04/metadata"
   xmlns:tns="http://soap.sforce.com/2006/04/metadata"
   elementFormDefault="qualified">
-<xs:include schemaLocation="salesforce_metadata_api_common.xsd"/>
+  <xs:include schemaLocation="salesforce_metadata_api_common.xsd"/>
+</xs:schema>
