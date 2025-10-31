@@ -57,22 +57,23 @@ export class OrgAuthInfo {
           : await ConfigUtil.getTargetDevHubOrAlias();
 
       if (!targetDevHub) {
-        if (enableWarning) {
-          // Show error with option to authorize Dev Hub
-          const showButtonText = 'Authorize a Dev Hub';
-          const selection = await vscode.window.showErrorMessage(
-            'No target Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
-            showButtonText
-          );
-          if (selection && selection === showButtonText) {
-            await vscode.commands.executeCommand('sf.org.login.web.dev.hub');
-          }
+        const showButtonText = nls.localize('notification_make_default_dev');
+        const selection = await displayMessage(
+          nls.localize('error_no_target_dev_hub'),
+          enableWarning,
+          VSCodeWindowTypeEnum.Informational,
+          [showButtonText]
+        );
+        if (selection && selection === showButtonText) {
+          vscode.commands.executeCommand('sf.org.login.web.dev.hub');
         }
         return undefined;
       }
       return JSON.stringify(targetDevHub).replace(/"/g, '');
     } catch (err) {
-      console.error(err);
+      if (err instanceof Error) {
+        telemetryService.sendException('get_target_dev_hub_alias', err.message);
+      }
       return undefined;
     }
   }

@@ -52,10 +52,6 @@ export const messages = {
   parameter_gatherer_enter_session_id: 'Enter Session ID',
   parameter_gatherer_enter_session_id_placeholder: 'Session ID',
   parameter_gatherer_enter_session_id_diagnostic_message: 'Enter a valid Session ID',
-  parameter_gatherer_enter_scratch_org_def_files:
-    'Select scratch definition file. Matched files with format: "config/**/*-scratch-def.json"',
-  parameter_gatherer_enter_scratch_org_expiration_days:
-    'Enter the number of days (1–30) until scratch org expiration or use the default value (7)',
   parameter_gatherer_enter_package_id: 'Enter the ID of the package to install',
   parameter_gatherer_enter_installation_key_if_necessary:
     'Enter the installation key, if required, or leave the field blank',
@@ -67,16 +63,6 @@ export const messages = {
   parameter_gatherer_enter_function: 'Enter function details',
   parameter_gatherer_prompt_confirm_option: 'Continue',
   parameter_gatherer_prompt_cancel_option: 'Cancel',
-  parameter_gatherer_placeholder_org_list_clean: 'Confirm to continue removing deleted and expired scratch orgs',
-  parameter_gatherer_placeholder_delete_selected_org: 'Confirm to continue deleting the selected org',
-  parameter_gatherer_placeholder_delete_default_org: 'Confirm to continue deleting the default org',
-
-  org_create_default_scratch_org_text: 'SFDX: Create a Default Scratch Org...',
-  org_create_result_parsing_error: 'An unexpected error occurred while processing the org create response.',
-
-  org_open_default_scratch_org_text: 'SFDX: Open Default Org',
-  org_open_default_scratch_org_container_error: 'There was an unexpected error when processing the org open response.',
-  org_open_container_mode_message_text: 'Access org %s as user %s with the following URL: %s',
   project_retrieve_start_default_org_text: 'SFDX: Pull Source from Default Org',
   project_retrieve_start_ignore_conflicts_default_org_text: 'SFDX: Pull Source from Default Org and Ignore Conflicts',
   project_deploy_start_default_org_text: 'SFDX: Push Source to Default Org',
@@ -155,21 +141,6 @@ export const messages = {
   warning_prompt_other_not_shown: '...%d other components not shown\n',
   config_list_text: 'SFDX: List All Config Variables',
   alias_list_text: 'SFDX: List All Aliases',
-  org_delete_default_text: 'SFDX: Delete Default Org',
-  org_delete_username_text: 'SFDX: Delete Org...',
-  org_display_default_text: 'SFDX: Display Org Details for Default Org',
-  org_display_username_text: 'SFDX: Display Org Details...',
-  org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
-  org_list_clean_success_message: 'Successfully removed %d expired and deleted orgs.',
-  org_list_clean_no_orgs_message: 'No expired or deleted orgs found to remove.',
-  org_list_clean_skipping_org_with_error: 'Skipping org %s with error: %s',
-  org_list_clean_removing_expired_org: 'Removing expired org %s (expired: %s)',
-  org_list_clean_removing_invalid_org: 'Removing invalid/deleted org %s (error: %s)',
-  org_list_clean_failed_to_remove_org: 'Failed to remove org %s: %s',
-  org_list_clean_error_checking_org: 'Error checking org %s: %s',
-  org_list_clean_general_error: 'General error during org cleanup: %s',
-  org_list_no_orgs_found: 'No orgs found.',
-  org_list_display_error: 'Error displaying org list: %s',
   debugger_query_session_text: 'query for Apex Debugger session',
   debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
   debugger_stop_none_found_text: 'No Apex Debugger session found.',
@@ -230,8 +201,6 @@ export const messages = {
   error_cleanup_temp_files: 'Error cleaning up temporary files: %s',
   error_creating_launchjson: 'Error creating launch.json: %s',
 
-  org_logout_all_text: 'SFDX: Log Out from All Authorized Orgs',
-  org_logout_default_text: 'SFDX: Log Out from Default Org',
   manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',
   manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
   manifest_input_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
@@ -256,10 +225,6 @@ export const messages = {
   auth_custom_label: 'Custom',
   auth_custom_detail: 'Enter a custom login URL',
   auth_invalid_url: 'URL must begin with http:// or https://',
-  org_logout_scratch_prompt:
-    'Log out of this scratch org?\n\nBefore logging out, ensure that you or someone on your team has a username and password for %s scratch org. Otherwise you might lose all access to this scratch org.',
-  org_logout_scratch_logout: 'Logout',
-  org_logout_no_default_org: 'No default org to logout from',
   error_fetching_auth_info_text:
     'Error running push or deploy on save: We couldn\'t connect to your default org. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org", then push or deploy the source that you just saved. Or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code.',
   error_no_package_directories_found_on_setup_text:
@@ -270,8 +235,6 @@ export const messages = {
     'Error running push or deploy on save: No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org", then push or deploy the changes that you just saved. Or, to disable push or deploy on save, set "salesforcedx-vscode-core.push-or-deploy-on-save.enabled" to false in your user or workspace settings for VS Code.',
   error_source_path_not_in_package_directory_text:
     'Error deploying or retrieving source: The file or directory that you tried to deploy or retrieve isn\'t in a package directory that\'s specified in your sfdx-project.json file. Add this location to your "packageDirectories" value, or deploy or retrieve a different file or directory. For details about sfdx-project.json, see: https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm',
-  org_select_text: 'Select an org to set as default',
-  org_expired: 'Expired',
   missing_default_org: 'No Default Org Set',
   invalid_default_org: 'The org you’ve chosen as your default org isn’t valid. Please choose a different one.',
   default_org_expired:
@@ -311,15 +274,12 @@ export const messages = {
   empty_components: 'No components available',
   error_auth_token: 'Error refreshing authentication token.',
   error_no_org_found: 'No org authorization info found.',
-  error_invalid_org_alias: 'Alias can only contain underscores, spaces and alphanumeric characters',
   error_invalid_expiration_days: 'Number of days should be between 1 and 30',
   error_fetching_metadata: 'Error fetching metadata for org.',
   error_org_browser_text: 'Run "SFDX: Authorize an Org" to authorize your org again.',
   error_org_browser_init: 'Org Browser has not been initialized',
   error_workspace_context_init: 'WorkspaceContext has not been initialized',
   error_overwrite_prompt: 'Error checking workspace for existing components',
-  error_no_scratch_def:
-    'No scratch definition files found. These files must be in the "config" folder and end with "-scratch-def.json". See [Scratch Org Definition File](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_scratch_orgs_def_file.htm) for help.',
   error_source_tracking_connection_failed: 'Failed to establish connection to the org for source tracking.',
   error_source_tracking_service_failed: 'Failed to initialize source tracking service.',
   error_source_tracking_components_failed: 'Failed to retrieve components using source tracking: %s',

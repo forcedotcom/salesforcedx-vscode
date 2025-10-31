@@ -46,9 +46,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   parameter_gatherer_enter_username_name: '対象ユーザ名を入力',
   parameter_gatherer_enter_alias_name: '組織のエイリアスを入力またはデフォルトのエイリアスを使用',
   parameter_gatherer_enter_custom_url: 'カスタムのログイン URL を入力またはデフォルトの URL を使用',
-
-  parameter_gatherer_enter_scratch_org_expiration_days:
-    'スクラッチ組織の有効日数を入力 (1 から 30 まで) またはデフォルト値 (7) を使用',
   parameter_gatherer_enter_project_name: 'プロジェクト名を入力',
   parameter_gatherer_paste_forceide_url: '設定から forceide:// の URL をペースト',
   parameter_gatherer_paste_forceide_url_placeholder: '設定の forceide:// URL',
@@ -193,7 +190,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   empty_components: '利用できるコンポーネントがありません',
   error_auth_token: '認証トークン更新中にエラーが発生しました。',
   error_no_org_found: '組織の認証情報が見つかりませんでした。',
-  error_invalid_org_alias: '別名にはアンダースコアと英数字のみを使用できます。',
   error_invalid_expiration_days: '日数には 1 から 30 までの数値を指定してください。',
   error_fetching_metadata: '組織のメタデータ読み込み中にエラーが発生しました。',
   error_org_browser_text: '組織を認証するため、"SFDX: 組織を認証" を再度実行してください。',
