@@ -16,7 +16,7 @@ import {
   isValidRegistrationProviderType,
   processOasDocumentFromYaml
 } from '../oasUtils';
-import { getTelemetryService } from '../telemetry';
+import { telemetryService } from '../telemetry';
 
 // This class runs the validation and correction logic on Oas Documents
 class OasDocumentChecker {
@@ -81,7 +81,6 @@ class OasDocumentChecker {
           // Step 4: Report/Refresh problems found
           createProblemTabEntriesForOasDocument(fullPath, processedOasResult, this.isESRDecomposed);
 
-          const telemetryService = await getTelemetryService();
           // Step 5: Notify Success
           notificationService.showInformationMessage(
             nls.localize('check_openapi_doc_succeeded', path.basename(fullPath))
@@ -89,7 +88,7 @@ class OasDocumentChecker {
           telemetryService.sendEventData('OasValidationSucceeded');
         }
       );
-    } catch (error: any) {
+    } catch (error) {
       void this.handleError(error, 'OasValidationFailed');
     }
   };
@@ -99,8 +98,7 @@ class OasDocumentChecker {
    * @param error - The error to handle.
    * @param telemetryEvent - The telemetry event name.
    */
-  private handleError = async (error: any, telemetryEvent: string): Promise<void> => {
-    const telemetryService = await getTelemetryService();
+  private handleError = (error: unknown, telemetryEvent: string): void => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     notificationService.showErrorMessage(`${nls.localize('check_openapi_doc_failed')}: ${errorMessage}`);
     telemetryService.sendException(telemetryEvent, errorMessage);

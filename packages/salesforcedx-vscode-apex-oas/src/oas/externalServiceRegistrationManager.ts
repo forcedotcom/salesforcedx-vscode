@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import {
   workspaceUtils,
@@ -33,6 +32,10 @@ import GenerationInteractionLogger from './generationInteractionLogger';
 import { ApexOASInfo, ExternalServiceOperation } from './schemas';
 
 export type FullPath = [originalPath: string, newPath: string];
+
+/** Type guard to check if an object is an OpenAPI OperationObject */
+const isOperationObject = (op: unknown): op is OpenAPIV3.OperationObject =>
+  typeof op === 'object' && op !== null && 'operationId' in op;
 
 /*
  * Handles the creation and management of External Service Registration (ESR) metadata.
@@ -207,7 +210,12 @@ export class ExternalServiceRegistrationManager {
    * @param operations - The operations defined in the ESR.
    * @returns An object representing the ESR.
    */
-  public createESRObject(description: string, className: string, safeOasSpec: string, operations: any) {
+  public createESRObject(
+    description: string,
+    className: string,
+    safeOasSpec: string,
+    operations: ExternalServiceOperation[]
+  ) {
     return {
       '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
       ExternalServiceRegistration: {
@@ -246,9 +254,9 @@ export class ExternalServiceRegistrationManager {
     const operations = Object.entries(this.oasSpec?.paths ?? {}).flatMap(([, pathItem]) => {
       if (!pathItem || typeof pathItem !== 'object') return [];
       return Object.entries(pathItem).map(([, operation]) => {
-        if ((operation as OpenAPIV3.OperationObject).operationId) {
+        if (isOperationObject(operation) && operation.operationId) {
           return {
-            name: (operation as OpenAPIV3.OperationObject).operationId,
+            name: operation.operationId,
             active: true
           };
         }
