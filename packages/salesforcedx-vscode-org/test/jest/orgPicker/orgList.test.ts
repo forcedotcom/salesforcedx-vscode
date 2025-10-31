@@ -293,10 +293,7 @@ describe('OrgList tests', () => {
       isOrgExpiredMock.mockResolvedValue(true);
 
       // Call the method with a valid targetOrgOrAlias
-      (orgList as any).displayTargetOrg('expired-org');
-
-      // Wait for async promises to resolve
-      await Promise.resolve();
+      await (orgList as any).displayTargetOrg('expired-org');
 
       // Assert that the statusBarItem text is set to the warning icon with the org alias
       expect(mockStatusBarItem.text).toBe('$(warning) expired-org');
@@ -308,10 +305,7 @@ describe('OrgList tests', () => {
       isOrgExpiredMock.mockResolvedValue(false);
 
       // Call the method with a valid targetOrgOrAlias
-      (orgList as any).displayTargetOrg('active-org');
-
-      // Wait for async promises to resolve
-      await Promise.resolve();
+      await (orgList as any).displayTargetOrg('active-org');
 
       // Assert that the statusBarItem text is set to the plug icon with the org alias
       expect(mockStatusBarItem.text).toBe('$(plug) active-org');
@@ -322,21 +316,19 @@ describe('OrgList tests', () => {
       const error = new Error('No authorization information found for invalid-org');
       error.name = 'NamedOrgNotFoundError';
       consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
-      // Mock isOrgExpired to resolve to true (expired)
+      // Mock isOrgExpired to throw NamedOrgNotFoundError
       isOrgExpiredMock.mockRejectedValue(error);
 
       // Call the method with a valid targetOrgOrAlias
-      (orgList as any).displayTargetOrg('invalid-org');
+      await (orgList as any).displayTargetOrg('invalid-org');
 
-      // Wait for async promises to resolve
-      // eslint-disable-next-line jest/unbound-method
-      await new Promise(process.nextTick);
+      // Assert that the statusBarItem text shows the org name with plug icon
+      // (for newly created orgs, auth files might not be available yet)
+      expect(mockStatusBarItem.text).toBe('$(plug) invalid-org');
 
-      // Assert that the statusBarItem text is set to the error message
-      expect(mockStatusBarItem.text).toBe(`$(error) ${nls.localize('invalid_default_org')}`);
-
-      // Assert that the error is logged to the console
-      expect(consoleErrorMock).toHaveBeenCalledWith('Error checking org expiration: ', error);
+      // Assert that the error is NOT logged for NamedOrgNotFoundError
+      // (this is expected for newly created orgs)
+      expect(consoleErrorMock).not.toHaveBeenCalled();
 
       // Clean up - restore the original console.error implementation
       consoleErrorMock.mockRestore();
@@ -352,19 +344,17 @@ describe('OrgList tests', () => {
     });
 
     it('should handle errors during org expiration check', async () => {
-      // Mock isOrgExpired to throw an error
+      // Mock isOrgExpired to throw a non-NamedOrgNotFoundError
       const error = new Error('Org expiration check failed');
       consoleErrorMock = jest.spyOn(console, 'error').mockImplementation(() => {});
       isOrgExpiredMock.mockRejectedValue(error);
 
       // Call the method with a valid targetOrgOrAlias
-      (orgList as any).displayTargetOrg('error-org');
+      await (orgList as any).displayTargetOrg('error-org');
 
-      // Wait for async promises to resolve
-      await Promise.resolve();
+      // Assert that the error is logged to the console for non-NamedOrgNotFoundError
+      expect(consoleErrorMock).toHaveBeenCalledWith('Error checking org expiration: ', error);
 
-      // Assert that the error is logged to the console
-      expect(consoleErrorMock);
       // Clean up
       consoleErrorMock.mockRestore();
     });
