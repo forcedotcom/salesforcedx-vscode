@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CLIENT_ID, DEFAULT_CONNECTION_TIMEOUT_MS, RequestService } from '@salesforce/salesforcedx-utils';
 import { expect } from 'chai';
 import { XHROptions, XHRResponse } from 'request-light';
 import * as sinon from 'sinon';
 import { BaseDebuggerCommand } from '../../../src/commands/baseDebuggerCommand';
 import { DebuggerRequest } from '../../../src/commands/protocol';
+import { CLIENT_ID, DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
+import { RequestService } from '../../../src/requestService/requestService';
 
 class DummyCommand extends BaseDebuggerCommand {}
 
