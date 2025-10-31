@@ -33,7 +33,8 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-oas",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-replay-debugger",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-debugger"
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-debugger",
+        "--extensionDevelopmentPath=${workspaceFolder}/../salesforce-metadata-visualizer"
       ],
       "sourceMaps": true,
       "smartStep": true,
@@ -66,7 +67,8 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-oas",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-replay-debugger",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-debugger"
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-debugger",
+        "--extensionDevelopmentPath=${workspaceFolder}/../salesforce-metadata-visualizer"
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
