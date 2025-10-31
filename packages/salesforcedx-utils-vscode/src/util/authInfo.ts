@@ -6,7 +6,7 @@
  */
 import { AuthFields, AuthInfo, Connection, StateAggregator, Org } from '@salesforce/core';
 import * as vscode from 'vscode';
-import { ChannelService, notificationService } from '../commands';
+import { notificationService } from '../commands';
 import { ConfigSource, ConfigUtil } from '../config/configUtil';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry';
@@ -163,13 +163,10 @@ const displayMessage = (
   vsCodeWindowType?: VSCodeWindowTypeEnum,
   items?: string[]
 ): Thenable<string | undefined> | undefined => {
-  const channelService = ChannelService.getInstance('Salesforce Org Management');
   if (enableWarning !== undefined && !enableWarning) {
     return;
   }
   const buttons = items ?? [];
-  channelService.appendLine(output);
-  channelService.showChannelOutput();
   if (vsCodeWindowType) {
     switch (vsCodeWindowType) {
       case VSCodeWindowTypeEnum.Error: {
