@@ -10,7 +10,6 @@ import {
   OrgDisplay,
   SF_CONFIG_ISV_DEBUGGER_SID,
   SF_CONFIG_ISV_DEBUGGER_URL,
-  extractJsonObject,
   LineBreakpointInfo
 } from '@salesforce/salesforcedx-utils';
 import {
@@ -74,6 +73,7 @@ import {
   StreamingClientInfoBuilder,
   StreamingService
 } from '../core';
+import { extractJsonObject } from '../extractJsonObject';
 import { VscodeDebuggerMessage, VscodeDebuggerMessageType, WorkspaceSettings } from '../index';
 import { nls } from '../messages';
 import { RequestService } from '../requestService/requestService';
