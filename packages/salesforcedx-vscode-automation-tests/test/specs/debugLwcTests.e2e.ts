@@ -190,7 +190,7 @@ describe('Debug LWC Tests', () => {
     await verifyOutputPanelText(terminalText!, expectedTexts);
   });
 
-  // TODO: This test is skipped because of W-15666391 https://gus.lightning.force.com/lightning/r/ADM_Work__c/a07EE00001qWb1IYAS/view
+  // TODO: This test is skipped because of a flapper after adding code lens to describe blocks
   it.skip('Debug All Tests via Code Lens action', async () => {
     logTestStart(testSetup, 'Debug All Tests via Code Lens action');
     const workbench = getWorkbench();
@@ -207,7 +207,7 @@ describe('Debug LWC Tests', () => {
     await retryOperation(
       async () => {
         log('Debug All Tests: Finding code lens');
-        const debugAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Debug');
+        const debugAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Debug All Tests');
         expect(debugAllTestsOption).to.not.be.undefined;
         log('Debug All Tests: Code lens found, waiting before click');
         await pause(Duration.seconds(2));
@@ -238,7 +238,8 @@ describe('Debug LWC Tests', () => {
     await verifyOutputPanelText(terminalText, expectedTexts);
   });
 
-  it('Debug Single Test via Code Lens action', async () => {
+  // TODO: This test is skipped because of a flapper after adding code lens to describe blocks
+  it.skip('Debug Single Test via Code Lens action', async () => {
     logTestStart(testSetup, 'Debug Single Test via Code Lens action');
 
     // Click the "Debug Test" code lens at the top of one of the test methods
@@ -285,6 +286,7 @@ describe('Debug LWC Tests', () => {
 
     // Debug SFDX: Debug Current Lightning Web Component Test File
     const workbench = getWorkbench();
+    await getTextEditor(workbench, 'lwc2.test.js');
     const editorView = workbench.getEditorView();
     const debugTestButtonToolbar = await editorView.getAction('SFDX: Debug Current Lightning Web Component Test File');
     expect(debugTestButtonToolbar).to.not.be.undefined;

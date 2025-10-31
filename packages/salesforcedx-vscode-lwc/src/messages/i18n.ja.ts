@@ -51,6 +51,8 @@ export const messages: Partial<Record<MessageKey, string>> = {
   no_workspace_folder_found_for_test_text: 'このテストのワークスペースフォルダを特定できませんでした',
   run_test_title: 'テストを実行',
   debug_test_title: 'テストをデバッグ',
+  run_all_tests_title: 'すべてのテストを実行',
+  debug_all_tests_title: 'すべてのテストをデバッグ',
   run_test_task_name: 'テストを実行',
   watch_test_task_name: 'テストをウォッチ',
   default_task_name: 'LWC テスト',
