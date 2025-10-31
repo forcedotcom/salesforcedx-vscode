@@ -43,4 +43,4 @@ export type MetricGeneral = {
 };
 
 export { breakpointUtil } from './breakpoints';
-export { ActionScriptEnum, OrgInfoError } from './commands';
+export { ActionScriptType, OrgInfoError } from './commands';

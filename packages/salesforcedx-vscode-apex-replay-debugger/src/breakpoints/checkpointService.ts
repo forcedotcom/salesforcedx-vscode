@@ -8,7 +8,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import {
-  ActionScriptEnum,
+  ActionScriptType,
   OrgInfoError,
   breakpointUtil,
   CHECKPOINT,
@@ -50,7 +50,7 @@ const EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE = 'Type: ';
 // These are the action script types for the ApexExecutionOverlayAction.
 type ApexExecutionOverlayAction = {
   ActionScript: string;
-  ActionScriptType: ActionScriptEnum;
+  ActionScriptType: ActionScriptType;
   ExecutableEntityName: string | undefined;
   IsDumpingHeap: boolean;
   Iteration: number;
@@ -550,7 +550,7 @@ export class CheckpointNode extends BaseNode {
     }
   }
 
-  private updateActionScriptType(actionScriptTypeInput: ActionScriptEnum): void {
+  private updateActionScriptType(actionScriptTypeInput: ActionScriptType): void {
     for (const cpInfoNode of this.getChildren()) {
       if (cpInfoNode instanceof CheckpointInfoActionScriptTypeNode) {
         return cpInfoNode.updateActionScriptType(actionScriptTypeInput);
@@ -574,7 +574,7 @@ export class CheckpointNode extends BaseNode {
     return this.checkpointOverlayAction.ActionScript;
   }
 
-  public getActionScriptType(): ActionScriptEnum {
+  public getActionScriptType(): ActionScriptType {
     return this.checkpointOverlayAction.ActionScriptType;
   }
 
@@ -621,7 +621,7 @@ class CheckpointInfoActionScriptTypeNode extends BaseNode {
     super(EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE + cpOverlayActionInput.ActionScriptType);
     this.checkpointOverlayAction = cpOverlayActionInput;
   }
-  public updateActionScriptType(actionScriptTypeInput: ActionScriptEnum) {
+  public updateActionScriptType(actionScriptTypeInput: ActionScriptType) {
     this.checkpointOverlayAction.ActionScriptType = actionScriptTypeInput;
     this.label = EDITABLE_FIELD_LABEL_ACTION_SCRIPT_TYPE + actionScriptTypeInput;
   }
@@ -706,7 +706,7 @@ const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreakpoint):
   // declare the overlayAction with defaults
   const checkpointOverlayAction: ApexExecutionOverlayAction = {
     ActionScript: '',
-    ActionScriptType: ActionScriptEnum.None,
+    ActionScriptType: 'None',
     ExecutableEntityName: undefined,
     IsDumpingHeap: true,
     Iteration: 1,
@@ -727,9 +727,9 @@ const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreakpoint):
   const logMessage = (breakpoint as any).logMessage as string;
   if (logMessage && logMessage.length > 0) {
     if (logMessage.toLocaleLowerCase().startsWith('select')) {
-      checkpointOverlayAction.ActionScriptType = ActionScriptEnum.SOQL;
+      checkpointOverlayAction.ActionScriptType = 'SOQL';
     } else {
-      checkpointOverlayAction.ActionScriptType = ActionScriptEnum.Apex;
+      checkpointOverlayAction.ActionScriptType = 'Apex';
     }
     checkpointOverlayAction.ActionScript = logMessage;
   }
