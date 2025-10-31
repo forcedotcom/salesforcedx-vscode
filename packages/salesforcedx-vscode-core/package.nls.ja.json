@@ -5,7 +5,6 @@
   "apex_generate_trigger_text": "SFDX: Apex トリガを作成",
   "cancel_sf_command_text": "SFDX: アクティブなコマンドをキャンセル",
   "config_list_text": "SFDX: すべての設定変数を一覧表示",
-  "config_set_org_text": "SFDX: デフォルトの組織を設定",
   "conflict_detect_open_file": "ファイルを開く",
   "conflict_detect_resolve_view": "Org Differences",
   "conflict_detection_enabled_description": "Specifies whether to enable conflict detection for all deploy commands executed from VS Code",

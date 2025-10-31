@@ -6,7 +6,6 @@
   "apex_generate_unit_test_class_text": "SFDX: Create Apex Unit Test Class",
   "cancel_sf_command_text": "SFDX: Cancel Active Command",
   "config_list_text": "SFDX: List All Config Variables",
-  "config_set_org_text": "SFDX: Set a Default Org",
   "conflict_detect_open_file": "Open File",
   "conflict_detect_resolve_view": "Org Differences",
   "conflict_detection_enabled_description": "Specifies whether to enable conflict detection for all deploy and retrieve commands executed from VS Code",

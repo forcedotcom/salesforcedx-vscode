@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -10,20 +10,19 @@ import {
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
   Row,
+  SfCommandlet,
   SfWorkspaceChecker,
   Table
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
-import {
-  CONFIG_SET_EXECUTOR,
-  CONFIG_SET_NAME,
-  TABLE_NAME_COL,
-  TABLE_SUCCESS_COL,
-  TABLE_VAL_COL,
-  TARGET_ORG_KEY
-} from '../constants';
 import { nls } from '../messages';
-import { SfCommandlet } from './util';
+
+const CONFIG_SET_EXECUTOR = 'config_set_executor';
+const CONFIG_SET_NAME = 'config_set_name';
+const TABLE_NAME_COL = 'table_header_name';
+const TABLE_VAL_COL = 'table_header_value';
+const TABLE_SUCCESS_COL = 'table_header_success';
+const TARGET_ORG_KEY = 'target-org';
 
 class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;

@@ -8,6 +8,7 @@
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from './channels';
 import {
+  configSet,
   orgCreate,
   orgDelete,
   orgDisplay,
@@ -27,6 +28,7 @@ import { setUpOrgExpirationWatcher } from './util/orgUtil';
 /** Register all org/auth commands */
 const registerCommands = (): vscode.Disposable =>
   vscode.Disposable.from(
+    vscode.commands.registerCommand('sf.config.set', configSet),
     vscode.commands.registerCommand('sf.org.login.web', orgLoginWeb),
     vscode.commands.registerCommand('sf.org.login.access.token', orgLoginAccessToken),
     vscode.commands.registerCommand('sf.org.create', orgCreate),

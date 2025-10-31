@@ -30,7 +30,6 @@ import {
   apexGenerateTrigger,
   apexGenerateUnitTestClass,
   configList,
-  configSet,
   dataQuery,
   debuggerStop,
   deleteSource,
@@ -144,7 +143,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.start.apex.debug.logging', () => turnOnLogging(extensionContext)),
     vscode.commands.registerCommand('sf.stop.apex.debug.logging', () => turnOffLogging(extensionContext)),
     vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap),
-    vscode.commands.registerCommand('sf.config.set', configSet),
     vscode.commands.registerCommand('sf.vscode.core.logger.get.instance', getCoreLoggerService),
     registerGetTelemetryServiceCommand()
   );

@@ -6,7 +6,6 @@
  */
 export { aliasList } from './aliasList';
 export { configList } from './configList';
-export { configSet } from './configSet';
 export { dataQuery } from './dataQuery';
 export { debuggerStop } from './debuggerStop';
 export { deleteSource } from './deleteSource';
