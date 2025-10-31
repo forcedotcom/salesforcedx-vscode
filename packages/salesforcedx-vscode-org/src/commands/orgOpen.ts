@@ -27,7 +27,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { TelemetryService } from '../telemetry';
+import { telemetryService } from '../telemetry';
 
 // Get core API services at runtime
 const getCoreApi = (): SalesforceVSCodeCoreApi | undefined => {
@@ -95,7 +95,7 @@ class OrgOpenContainerExecutor extends SfCommandletExecutor<{}> {
         }
       } catch (error) {
         channelService.appendLine(nls.localize('org_open_default_scratch_org_container_error'));
-        TelemetryService.getInstance().sendException(
+        telemetryService.sendException(
           'org_open_container',
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           `There was an error when parsing the org open response ${error}`

@@ -33,7 +33,7 @@ import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { TelemetryService } from '../telemetry';
+import { telemetryService } from '../telemetry';
 
 // Get core API services at runtime
 const getCoreApi = (): SalesforceVSCodeCoreApi | undefined => {
@@ -42,7 +42,6 @@ const getCoreApi = (): SalesforceVSCodeCoreApi | undefined => {
 };
 
 const getTaskViewService = () => getCoreApi()?.taskViewService;
-const getSetupWorkspaceOrgType = () => getCoreApi()?.workspaceContextUtils.setupWorkspaceOrgType;
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
 const DEFAULT_EXPIRATION_DAYS = '7';
@@ -95,21 +94,22 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
             await ConfigUtil.setTargetOrgOrAlias(response.data.alias);
           }
 
-          // Set up workspace org type (source-tracked vs non-source-tracked)
-          await getSetupWorkspaceOrgType()?.(response.data.alias);
+          // Set workspace org type to source-tracked for newly created scratch orgs
+          // Scratch orgs are always source-tracked, so set the context to true
+          await vscode.commands.executeCommand('setContext', 'sf:target_org_has_change_tracking', true);
         } else {
           // remove when we drop CLI invocations
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
           const errorResponse = createParser.getResult() as OrgCreateErrorResult;
           if (errorResponse) {
             channelService.appendLine(errorResponse.message);
-            TelemetryService.getInstance().sendException('org_create', errorResponse.message);
+            telemetryService.sendException('org_create', errorResponse.message);
           }
         }
       } catch (err) {
         channelService.appendLine(nls.localize('org_create_result_parsing_error'));
         channelService.appendLine(err);
-        TelemetryService.getInstance().sendException(
+        telemetryService.sendException(
           'org_create_scratch',
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           `Error while parsing org create response ${err}`

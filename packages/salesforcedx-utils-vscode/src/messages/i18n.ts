@@ -57,7 +57,9 @@ export const messages = {
   type: 'TYPE',
   project_path: 'PROJECT PATH',
   ignored: 'IGNORED',
-  parameter_gatherer_enter_username_name: 'Enter target username'
+  parameter_gatherer_enter_username_name: 'Enter target username',
+  warning_using_global_username:
+    'No target org found in the local project config; using the global target org. Run "SFDX: Authorize an Org" to set the username for the local project config.'
 } as const;
 
 export type MessageKey = keyof typeof messages;

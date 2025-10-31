@@ -20,7 +20,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
-import { TelemetryService } from '../../telemetry';
+import { telemetryService } from '../../telemetry';
 import { OrgAuthInfo } from '../../util';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 // SimpleGatherer - need to inline this small utility
@@ -66,10 +66,7 @@ class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
     try {
       await removeUsername(response.data);
     } catch (e) {
-      TelemetryService.getInstance().sendException(
-        'org_logout_default',
-        `Error: name = ${e.name} message = ${e.message}`
-      );
+      telemetryService.sendException('org_logout_default', `Error: name = ${e.name} message = ${e.message}`);
       return false;
     }
     return true;
@@ -79,7 +76,7 @@ class OrgLogoutDefault extends LibraryCommandletExecutor<string> {
 export const orgLogoutDefault = async () => {
   const { username, isScratch, alias, error } = await resolveTargetOrg();
   if (error) {
-    TelemetryService.getInstance().sendException('org_logout_default', error.message);
+    telemetryService.sendException('org_logout_default', error.message);
     void notificationService.showErrorMessage('Logout failed to run');
   } else if (username) {
     // confirm logout for scratch orgs due to special considerations:

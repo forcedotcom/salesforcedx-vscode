@@ -6,7 +6,10 @@
  */
 import { AuthFields, AuthInfo, Connection, StateAggregator, Org } from '@salesforce/core';
 import * as vscode from 'vscode';
+import { ChannelService, notificationService } from '../commands';
 import { ConfigSource, ConfigUtil } from '../config/configUtil';
+import { nls } from '../messages';
+import { telemetryService } from '../telemetry';
 
 /** Utility class for working with Salesforce org authentication */
 export class OrgAuthInfo {
@@ -25,22 +28,19 @@ export class OrgAuthInfo {
     try {
       const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();
       if (!targetOrgOrAlias) {
-        if (enableWarning) {
-          // Caller should handle displaying the message
-          console.log('No target org is set');
-        }
+        displayMessage(nls.localize('error_no_target_org'), enableWarning, VSCodeWindowTypeEnum.Informational);
         return undefined;
       } else {
         if (await ConfigUtil.isGlobalTargetOrg()) {
-          if (enableWarning) {
-            console.log('Using global target org');
-          }
+          displayMessage(nls.localize('warning_using_global_username'), enableWarning, VSCodeWindowTypeEnum.Warning);
         }
       }
 
       return targetOrgOrAlias;
     } catch (err) {
-      console.error(err);
+      if (err instanceof Error) {
+        telemetryService.sendException('get_target_org_alias', err.message);
+      }
       return undefined;
     }
   }
@@ -77,13 +77,11 @@ export class OrgAuthInfo {
     }
   }
 
-  /** Get the username from a username or alias */
   public static async getUsername(usernameOrAlias: string): Promise<string> {
     const info = await StateAggregator.getInstance();
     return info.aliases.getUsername(usernameOrAlias) ?? usernameOrAlias;
   }
 
-  /** Check if an org is a scratch org */
   public static async isAScratchOrg(username: string): Promise<boolean> {
     const authInfo = await AuthInfo.create({ username });
     const org: Org = await Org.create({
@@ -98,7 +96,6 @@ export class OrgAuthInfo {
     return !!authInfoFields.devHubUsername || false;
   }
 
-  /** Check if an org is a sandbox */
   public static async isASandboxOrg(username: string): Promise<boolean> {
     const authInfo = await AuthInfo.create({ username });
     const org: Org = await Org.create({
@@ -116,7 +113,6 @@ export class OrgAuthInfo {
     return result?.IsSandbox;
   }
 
-  /** Get the Dev Hub ID from a scratch org */
   public static async getDevHubIdFromScratchOrg(username: string): Promise<string | undefined> {
     if (await this.isAScratchOrg(username)) {
       const scratchOrg: Org = await Org.create({
@@ -129,7 +125,6 @@ export class OrgAuthInfo {
     } else return undefined;
   }
 
-  /** Get a connection for a username or alias */
   public static async getConnection(usernameOrAlias?: string): Promise<Connection> {
     let _usernameOrAlias;
 
@@ -138,7 +133,7 @@ export class OrgAuthInfo {
     } else {
       const defaultName = await OrgAuthInfo.getTargetOrgOrAlias(true);
       if (!defaultName) {
-        throw new Error('No default org is set');
+        throw new Error(nls.localize('error_no_target_org'));
       }
       _usernameOrAlias = defaultName;
     }
@@ -155,3 +150,36 @@ export class OrgAuthInfo {
     return connection.getAuthInfoFields();
   }
 }
+enum VSCodeWindowTypeEnum {
+  Error = 1,
+  Informational = 2,
+  Warning = 3
+}
+
+const displayMessage = (
+  output: string,
+  enableWarning?: boolean,
+  vsCodeWindowType?: VSCodeWindowTypeEnum,
+  items?: string[]
+): Thenable<string | undefined> | undefined => {
+  const channelService = ChannelService.getInstance('Salesforce Org Management');
+  if (enableWarning !== undefined && !enableWarning) {
+    return;
+  }
+  const buttons = items ?? [];
+  channelService.appendLine(output);
+  channelService.showChannelOutput();
+  if (vsCodeWindowType) {
+    switch (vsCodeWindowType) {
+      case VSCodeWindowTypeEnum.Error: {
+        return notificationService.showErrorMessage(output, ...buttons);
+      }
+      case VSCodeWindowTypeEnum.Informational: {
+        return notificationService.showInformationMessage(output, ...buttons);
+      }
+      case VSCodeWindowTypeEnum.Warning: {
+        return notificationService.showWarningMessage(output, ...buttons);
+      }
+    }
+  }
+};
