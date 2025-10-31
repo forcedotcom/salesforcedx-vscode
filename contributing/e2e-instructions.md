@@ -1,6 +1,9 @@
 # Running E2E Tests
 
-Prerequisite: Post a Github issue to ask for a value of `sfdxAuthUrl` from a member of the IDE Experience Team. We'll email it to you privately. You'll need this for the dev hub to create scratch orgs used to run the E2E tests.
+## Prerequisites
+
+1. Authorize to a dev hub org under the alias **vscodeOrg**.
+2. In the Terminal, run `sf org display -o vscodeOrg --verbose --json > authFile.json`.
 
 ## How to Run E2E Tests Locally
 
@@ -10,7 +13,7 @@ During the development process, you'll want to do this in order to set breakpoin
 
 ### Setup:
 
-1. Add the following line to the end of your **.zshrc** file: `export SFDX_AUTH_URL=<insert value of sfdxAuthUrl here>`
+1. Add the following line to the end of your **.zshrc** file: `export SFDX_AUTH_URL=<insert value of sfdxAuthUrl from authFile.json here>`
 2. In the root [**package.json**](../package.json), scroll down to the `automation-test` script.
 3. Replace the existing test name at the end of that line with the filename of the test you want to run.
 
@@ -46,11 +49,11 @@ Our system runs E2E tests on Github Actions to cover our main test cases. E2E te
 
     d. Secret #1:
     - Name: SFDX_AUTH_URL_E2E
-    - Value: This is the `sfdxAuthUrl` that we emailed to you.
+    - Value: The **sfdxAuthUrl** from authFile.json.
 
     e. Secret #2:
     - Name: ORG_ID_E2E
-    - Value: `00DHr0000017bgfMAA`.
+    - Value: The **id** from authFile.json.
 
     f. Secret #3:
     - Name: IDEE_GH_TOKEN
