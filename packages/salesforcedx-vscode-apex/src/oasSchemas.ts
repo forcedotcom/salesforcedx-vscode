@@ -8,7 +8,7 @@
 import type { DocumentSymbol, Position } from 'vscode-languageserver-protocol';
 import { URI } from 'vscode-uri';
 
-export interface ApexOASSymbolEligibility {
+interface ApexOASSymbolEligibility {
   isEligible: boolean;
   isApexOasEligible: boolean;
   docSymbol: DocumentSymbol;

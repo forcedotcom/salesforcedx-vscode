@@ -4,13 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { OrgUserInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { OrgUserInfo, WorkspaceContextUtil, OrgAuthInfo, OrgShape } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { WorkspaceContext, workspaceContextUtils } from '../../../src/context';
-import { decorators } from '../../../src/decorators';
-import { OrgAuthInfo } from '../../../src/util/authInfo';
 
-jest.mock('../../../src/util/authInfo', () => ({
+jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
+  ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
   OrgAuthInfo: {
     getDevHubIdFromScratchOrg: jest.fn()
   }
@@ -59,7 +58,6 @@ describe('workspaceContext', () => {
     };
     let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
     let setupWorkspaceOrgTypeMock: jest.SpyInstance;
-    let decoratorsMock: jest.SpyInstance;
     let createStatusBarItemMock: jest.SpyInstance;
     const mockStatusBarItem: any = {};
 
@@ -68,7 +66,6 @@ describe('workspaceContext', () => {
         .spyOn(WorkspaceContextUtil, 'getInstance')
         .mockReturnValue(mockWorkspaceContextUtil as any);
       setupWorkspaceOrgTypeMock = jest.spyOn(workspaceContextUtils, 'setupWorkspaceOrgType').mockResolvedValue();
-      decoratorsMock = jest.spyOn(decorators, 'showOrg');
       createStatusBarItemMock = vscode.window.createStatusBarItem as jest.Mock;
     });
 
@@ -86,7 +83,7 @@ describe('workspaceContext', () => {
 
       expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
       expect(setupWorkspaceOrgTypeMock).toHaveBeenCalled();
-      expect(decoratorsMock).toHaveBeenCalled();
+      // Note: decorators.showOrg() has been moved to the salesforcedx-vscode-org extension
     });
   });
 
@@ -107,10 +104,11 @@ describe('workspaceContext', () => {
     let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
     let getOrgShapeMock: jest.SpyInstance;
     let getDevHubIdFromScratchOrgMock: jest.SpyInstance;
+
     const mockWorkspaceContextUtil = {
       onOrgChange: jest.fn(),
-      orgShape: undefined,
-      devHubId: undefined,
+      orgShape: undefined as OrgShape | undefined,
+      devHubId: undefined as string | undefined,
       username: 'mock-username',
       alias: 'mock-alias',
       orgId: 'mock-org-id',

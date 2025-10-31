@@ -28,7 +28,6 @@ import {
 import { expect } from 'chai';
 import { By, InputBox, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
-import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Authentication', () => {
@@ -45,9 +44,6 @@ describe('Authentication', () => {
 
   before('Set up the testing environment', async () => {
     testSetup = await TestSetup.setUp(testReqConfig);
-
-    // Hide copilot
-    await tryToHideCopilot();
   });
 
   it('Run SFDX: Authorize a Dev Hub', async () => {
@@ -114,7 +110,7 @@ describe('Authentication', () => {
     await verifyNotificationWithRetry(/SFDX: Set a Default Org successfully ran/, Duration.TEN_MINUTES);
 
     const expectedOutputWasFound = await attemptToFindOutputPanelText(
-      'Salesforce CLI',
+      'Salesforce Org Management',
       `target-org  ${devHubAliasName}  true`,
       5
     );

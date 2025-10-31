@@ -26,9 +26,10 @@ export const messages = {
   notification_unsuccessful_execution_text: '%s failed to run',
   notification_show_button_text: 'Show',
   notification_show_in_status_bar_button_text: 'Show Only in Status Bar',
-
+  notification_make_default_dev: 'Authorize a Dev Hub',
   error_no_target_org:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
+  error_no_target_dev_hub: 'No target Dev Hub is set. Run "SFDX: Authorize a Dev Hub" to set one.',
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
 
   error_access_token_expired: 'Access token expired or invalid',
@@ -56,7 +57,10 @@ export const messages = {
   full_name: 'FULL NAME',
   type: 'TYPE',
   project_path: 'PROJECT PATH',
-  ignored: 'IGNORED'
+  ignored: 'IGNORED',
+  parameter_gatherer_enter_username_name: 'Enter target username',
+  warning_using_global_username:
+    'No target org found in the local project config; using the global target org. Run "SFDX: Authorize an Org" to set the username for the local project config.'
 } as const;
 
 export type MessageKey = keyof typeof messages;
