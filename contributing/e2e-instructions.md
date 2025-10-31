@@ -49,11 +49,11 @@ Our system runs E2E tests on Github Actions to cover our main test cases. E2E te
 
     d. Secret #1:
     - Name: SFDX_AUTH_URL_E2E
-    - Value: The **sfdxAuthUrl** from authFile.json.
+    - Value: Copy the value of **sfdxAuthUrl** from authFile.json.
 
     e. Secret #2:
     - Name: ORG_ID_E2E
-    - Value: The **id** from authFile.json.
+    - Value: Copy the value of **id** from authFile.json.
 
     f. Secret #3:
     - Name: IDEE_GH_TOKEN
