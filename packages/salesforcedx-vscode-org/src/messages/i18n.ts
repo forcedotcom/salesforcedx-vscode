@@ -26,7 +26,6 @@ export const messages = {
   auth_sandbox_detail: 'test.salesforce.com',
   auth_sandbox_label: 'Sandbox',
   channel_name: 'Salesforce Org Management',
-  config_set_executor: 'Set Config',
   config_set_name: 'Set Config',
   config_set_org_text: 'SFDX: Set a Default Org',
   default_org_expired:

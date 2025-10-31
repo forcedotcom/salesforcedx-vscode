@@ -17,7 +17,7 @@ import {
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 
-const CONFIG_SET_EXECUTOR = 'config_set_executor';
+const CONFIG_SET_ORG_TEXT = 'config_set_org_text';
 const CONFIG_SET_NAME = 'config_set_name';
 const TABLE_NAME_COL = 'table_header_name';
 const TABLE_VAL_COL = 'table_header_value';
@@ -30,7 +30,7 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private outputTableRow: Row = {};
 
   constructor(usernameOrAlias: string) {
-    super(nls.localize(CONFIG_SET_EXECUTOR), CONFIG_SET_EXECUTOR, OUTPUT_CHANNEL);
+    super(nls.localize(CONFIG_SET_ORG_TEXT), CONFIG_SET_ORG_TEXT, OUTPUT_CHANNEL);
     this.usernameOrAlias = `${usernameOrAlias}`.split(',')[0];
   }
 
