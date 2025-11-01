@@ -111,3 +111,6 @@ export function getApexLanguageServerRestartBehavior(): string {
     .getConfiguration('salesforcedx-vscode-apex')
     .get<string>('languageServer.restartBehavior', 'prompt');
 }
+
+export const retrieveTestRunConcise = (): boolean =>
+  vscode.workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME).get<boolean>('test-run-concise', false);
