@@ -40,25 +40,22 @@ export const hashUserIdentifier = (orgId: string, userId: string): string =>
   createHash('sha256').update(`${orgId}-${userId}`).digest('hex');
 
 /**
- * Refreshes telemetry reporters for ALL extension instances when org authorization changes.
- * This ensures that all extensions (Core, Apex, etc.) use the updated hashed user ID in the webUserId field.
+ * Ensures that all extensions (Core, Apex, etc.) use the updated hashed userID and webUserId in the webUserId field.
  */
-export const refreshAllExtensionReporters = async (coreExtensionContext: ExtensionContext): Promise<void> => {
-  console.log('Refreshing telemetry reporters for all extensions...');
+export const updateUserIDOnTelemetryReporters = async (coreExtensionContext: ExtensionContext): Promise<void> => {
+  console.log('Updating userID and WebID telemetry reporters for all extensions...');
 
-  const refreshPromises: Promise<void>[] = [];
-
-  // Refresh reporters for all registered extension instances
-  for (const [extensionName, telemetryService] of TelemetryServiceProvider.instances) {
-    if (telemetryService instanceof TelemetryService && 'refreshReporters' in telemetryService) {
-      const refreshPromise = telemetryService.refreshReporters(coreExtensionContext).catch((error: unknown) => {
-        console.log(`Failed to refresh telemetry reporters for ${extensionName}:`, String(error));
-      });
-      refreshPromises.push(refreshPromise);
-    }
-  }
-
-  // Wait for all refresh operations to complete
-  await Promise.all(refreshPromises);
-  console.log('Completed refreshing telemetry reporters for all extensions');
+  await Promise.allSettled(
+    Array.from(TelemetryServiceProvider.instances.entries())
+      .filter(
+        ([, telemetryService]) => telemetryService instanceof TelemetryService && 'updateReporters' in telemetryService
+      )
+      .map(
+        async ([extname, telemetryService]) =>
+          await telemetryService.updateReporters(coreExtensionContext).catch((error: unknown) => {
+            console.log(`Failed to update telemetry reporters for ${extname}:`, String(error));
+          })
+      )
+  );
+  console.log('Completed updating userID and WebID telemetry reporters for all extensions');
 };

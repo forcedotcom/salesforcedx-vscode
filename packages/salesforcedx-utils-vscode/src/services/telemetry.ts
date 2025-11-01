@@ -20,9 +20,12 @@ import {
   SFDX_CORE_EXTENSION_NAME,
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
+import { errorToString } from '../helpers';
 import { TimingUtils } from '../helpers/timingUtils';
 import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
+import { AppInsights } from '../telemetry/reporters/appInsights';
 import { determineReporters, initializeO11yReporter } from '../telemetry/reporters/determineReporters';
+import { O11yReporter } from '../telemetry/reporters/o11yReporter';
 import { TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { isInternalHost } from '../telemetry/utils/isInternal';
 import { UserService, getWebTelemetryUserId, DefaultSharedTelemetryProvider } from './userService';
@@ -32,32 +35,6 @@ type CommandMetric = {
   commandName: string;
   executionTime?: string;
 };
-
-export class TelemetryBuilder {
-  private properties?: Properties;
-  private measurements?: Measurements;
-
-  public addProperty(key: string, value?: string): TelemetryBuilder {
-    if (value !== undefined) {
-      this.properties = { ...this.properties, [key]: value };
-    }
-    return this;
-  }
-
-  public addMeasurement(key: string, value?: number): TelemetryBuilder {
-    if (value !== undefined) {
-      this.measurements = { ...this.measurements, [key]: value };
-    }
-    return this;
-  }
-
-  public build(): TelemetryData {
-    return {
-      properties: this.properties,
-      measurements: this.measurements
-    };
-  }
-}
 
 // export only for unit test
 export class TelemetryServiceProvider {
@@ -152,7 +129,7 @@ export class TelemetryService implements TelemetryServiceInterface {
         this.setCliTelemetryEnabled(this.isTelemetryExtensionConfigurationEnabled() && cliEnabled);
       })
       .catch(error => {
-        console.log(`Error initializing telemetry service: ${error}`);
+        console.log(`Error initializing telemetry service: ${errorToString(error)}`);
       });
 
     if (this.reporters.length === 0 && (await this.isTelemetryEnabled())) {
@@ -205,8 +182,10 @@ export class TelemetryService implements TelemetryServiceInterface {
    * Refreshes telemetry reporters with the latest user ID and webUserId field when org authorization changes.
    * This ensures that telemetry events use the correct webUserId field (hashed orgId + userId)
    * while maintaining the original user ID calculation.
+   *
+   * extensionContext is used to access globalState
    */
-  public async refreshReporters(extensionContext: ExtensionContext): Promise<void> {
+  public async updateReporters(extensionContext: ExtensionContext): Promise<void> {
     if (!this.extensionContext || this.reporters.length === 0 || !(await this.isTelemetryEnabled())) {
       return;
     }
@@ -215,38 +194,12 @@ export class TelemetryService implements TelemetryServiceInterface {
     const userId = await UserService.getTelemetryUserId(extensionContext);
     const webUserId = await getWebTelemetryUserId(extensionContext, this.getSharedTelemetryProvider(extensionContext));
 
-    // Dispose existing reporters
-    for (const reporter of this.reporters) {
-      await reporter.dispose().catch(() => {});
-    }
-    this.reporters.length = 0;
-
-    // Create new reporters with updated user ID and webUserId field
-    const { name, version, o11yUploadEndpoint, enableO11y } = extensionPackageJsonSchema.parse(
-      extensionContext.extension.packageJSON
-    );
-
-    const reporterConfig: TelemetryReporterConfig = {
-      extName: name,
-      version,
-      aiKey: this.aiKey,
-      userId,
-      reporterName: this.getTelemetryReporterName(),
-      isDevMode: this.isDevMode,
-      webUserId
-    };
-
-    const isO11yEnabled = typeof enableO11y === 'boolean' ? enableO11y : enableO11y?.toLowerCase() === 'true';
-
-    if (isO11yEnabled && o11yUploadEndpoint) {
-      await initializeO11yReporter(reporterConfig.extName, o11yUploadEndpoint, userId, version, webUserId);
-    }
-
-    const reporters = determineReporters(reporterConfig);
-    this.reporters.push(...reporters);
-    this.extensionContext?.subscriptions.push(...this.reporters);
-
-    console.log(`Telemetry reporters refreshed for ${name} with user ID: ${userId} and webUserId field: ${webUserId}`);
+    this.reporters
+      .filter((r): r is AppInsights | O11yReporter => r instanceof AppInsights || r instanceof O11yReporter)
+      .map(r => {
+        r.userId = userId;
+        r.webUserId = webUserId;
+      });
   }
 
   public async isTelemetryEnabled(): Promise<boolean> {
@@ -275,14 +228,16 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   public sendActivationEventInfo(activationInfo: ActivationInfo) {
-    const telemetryBuilder = new TelemetryBuilder();
-    const telemetryData = telemetryBuilder
-      .addProperty('activateStartDate', activationInfo.activateStartDate?.toISOString())
-      .addProperty('activateEndDate', activationInfo.activateEndDate?.toISOString())
-      .addProperty('loadStartDate', activationInfo.loadStartDate?.toISOString())
-      .addMeasurement('extensionActivationTime', activationInfo.extensionActivationTime)
-      .build();
-    this.sendExtensionActivationEvent(activationInfo.startActivateHrTime, activationInfo.markEndTime, telemetryData);
+    this.sendExtensionActivationEvent(activationInfo.startActivateHrTime, activationInfo.markEndTime, {
+      properties: stripEmptyValues({
+        activateStartDate: activationInfo.activateStartDate.toISOString(),
+        activateEndDate: activationInfo.activateEndDate?.toISOString(),
+        loadStartDate: activationInfo.loadStartDate?.toISOString()
+      }),
+      measurements: {
+        extensionActivationTime: activationInfo.extensionActivationTime
+      }
+    });
   }
 
   public sendExtensionActivationEvent(
@@ -422,3 +377,8 @@ const extensionPackageJsonSchema = z.object({
   o11yUploadEndpoint: z.string().optional(),
   enableO11y: z.string().optional()
 });
+
+const stripEmptyValues = (obj: Record<string, string | undefined | null>): Record<string, string> =>
+  Object.fromEntries(Object.entries(obj).filter(isStringEntry));
+
+const isStringEntry = (entry: [string, unknown]): entry is [string, string] => typeof entry[1] === 'string';

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { errorToString, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { setTimeout } from 'node:timers';
 import * as vscode from 'vscode';
@@ -113,6 +113,10 @@ export class DeployQueue {
           }
         );
       } catch (e) {
+        if (!(e instanceof Error)) {
+          displayError(errorToString(e));
+          return;
+        }
         switch (e.name) {
           case 'NamedOrgNotFound':
             displayError(nls.localize('error_fetching_auth_info_text'));
@@ -159,6 +163,10 @@ const pathIsInPackageDirectory = async (documentPath: string): Promise<boolean> 
   try {
     return await SalesforcePackageDirectories.isInPackageDirectory(documentPath);
   } catch (error) {
+    if (!(error instanceof Error)) {
+      displayError(errorToString(error));
+      return false;
+    }
     switch (error.name) {
       case 'NoPackageDirectoriesFound':
         error.message = nls.localize('error_no_package_directories_found_on_setup_text');

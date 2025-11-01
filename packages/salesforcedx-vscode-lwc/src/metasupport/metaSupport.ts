@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { errorToString } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channel';
@@ -57,8 +58,7 @@ export class MetaSupport {
       redHatExtension.exports.addXMLFileAssociations(inputFileAssociations);
     } catch (error) {
       channelService.appendLine(nls.localize('lightning_lwc_fail_redhat_extension'));
-      const errorMsg = error.message ?? error;
-      channelService.appendLine(errorMsg);
+      channelService.appendLine(errorToString(error));
     }
   }
 

@@ -31,10 +31,10 @@ export class WorkspaceContext {
   protected constructor() {
     const workspaceContextUtil = WorkspaceContextUtil.getInstance();
     this.onOrgChange = workspaceContextUtil.onOrgChange;
-    this.onOrgChange(this.handleCliConfigChange);
-    this.onOrgChange(this.handleOrgShapeChange);
-    this.onOrgChange(this.handleTraceFlagCleanup);
-    this.onOrgChange(this.handleTelemetryUpdate);
+    this.onOrgChange(c => this.handleCliConfigChange(c));
+    this.onOrgChange(c => this.handleOrgShapeChange(c));
+    this.onOrgChange(() => this.handleTraceFlagCleanup());
+    this.onOrgChange(() => this.handleTelemetryUpdate());
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {

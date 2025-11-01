@@ -43,4 +43,8 @@ export {
 } from './utils';
 export { isAlphaNumSpaceString, isAlphaNumString, isInteger, isIntegerInRange, isRecordIdFormat } from './validations';
 export { errorToString } from './errorUtils';
-export { getSharedTelemetryUserId, hashUserIdentifier, refreshAllExtensionReporters } from './telemetryUtils';
+export {
+  getSharedTelemetryUserId,
+  hashUserIdentifier,
+  updateUserIDOnTelemetryReporters as refreshAllExtensionReporters
+} from './telemetryUtils';

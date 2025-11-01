@@ -13,3 +13,6 @@ export type TelemetryReporterConfig = {
   isDevMode: boolean;
   webUserId: string;
 };
+
+/** update existing telemetry reporters with new user ID and web user ID */
+export type TelemetryReporterWithModifiableUserProperties = Pick<TelemetryReporterConfig, 'userId' | 'webUserId'>;

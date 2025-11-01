@@ -67,7 +67,7 @@ export default class SalesforcePackageDirectories {
     try {
       return (await SalesforcePackageDirectories.getPackageDirectoryPaths())[0];
     } catch (e) {
-      if (e.name !== 'NoPackageDirectoryPathsFound' && e.name !== 'NoPackageDirectoriesFound') {
+      if (e instanceof Error && e.name !== 'NoPackageDirectoryPathsFound' && e.name !== 'NoPackageDirectoriesFound') {
         throw e;
       }
     }
