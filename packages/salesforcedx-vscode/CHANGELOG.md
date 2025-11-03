@@ -1,5 +1,7 @@
 # 65.3.0 - November 5, 2025
 
+This release streamlines OAS command management by moving all OAS functionality into a dedicated extension, impacting several packages for improved maintainability and clarity. A variety of bug fixes deliver smoother developer experiences, including improved syntax highlighting for Apex and SOQL, metadata file correction, and smarter LWC test code lenses that adapt to your setup.
+
 ## Added
 
 #### salesforcedx-vscode
@@ -43,4 +45,3 @@
 #### salesforcedx-vscode-soql
 
 - [@W-20049217@] bump tm-language for grammar improvement ([PR #6610](https://github.com/forcedotcom/salesforcedx-vscode/pull/6610))
-
