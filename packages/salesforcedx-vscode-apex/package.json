@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "100.200.300",
+  "version": "65.2.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -84,7 +84,7 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./dist/index.js",
+  "main": "./out/src/index.js",
   "types": "./out/src/index.d.ts",
   "languageServerDir": "out",
   "contributes": {

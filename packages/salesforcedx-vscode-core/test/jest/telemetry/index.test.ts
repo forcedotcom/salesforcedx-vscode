@@ -84,7 +84,7 @@ describe('Telemetry', () => {
       expect(teleSpy.mock.calls[0]).toEqual([true]);
     });
 
-    it.skip('should not show telemetry info opt-out message nor internal message', async () => {
+    it('should not show telemetry info opt-out message nor internal message', async () => {
       // create telemetry shown states
       globalStateTelemetrySpy.mockImplementation(key => handleTelemetryMsgShown(key, true, true));
       // mock out the isInternalHost call

@@ -12,11 +12,7 @@ import {
   TelemetryServiceInterface,
   ActivationInfo
 } from '@salesforce/vscode-service-provider';
-import {
-  ExtensionContext,
-  // ExtensionMode,
-  workspace
-} from 'vscode';
+import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { z } from 'zod';
 import {
   DEFAULT_AIKEY,
@@ -123,8 +119,7 @@ export class TelemetryService implements TelemetryServiceInterface {
     this.version = version;
     this.aiKey ??= aiKey ?? DEFAULT_AIKEY;
     this.isInternal = isInternalHost();
-    this.isDevMode = false;
-    // this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
+    this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
 
     this.checkCliTelemetry()
       .then(cliEnabled => {
