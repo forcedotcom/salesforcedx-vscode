@@ -12,7 +12,11 @@ import {
   TelemetryServiceInterface,
   ActivationInfo
 } from '@salesforce/vscode-service-provider';
-import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import {
+  ExtensionContext,
+  // ExtensionMode,
+  workspace
+} from 'vscode';
 import { z } from 'zod';
 import {
   DEFAULT_AIKEY,
@@ -45,11 +49,8 @@ export class TelemetryServiceProvider {
     if (!extensionName) {
       console.log(`[TelemetryServiceProvider] No extensionName provided. Defaulting to "${SFDX_CORE_EXTENSION_NAME}".`);
     }
-    let service = TelemetryServiceProvider.instances.get(name);
-    if (!service) {
-      service = new TelemetryService();
-      TelemetryServiceProvider.instances.set(name, service);
-    }
+    const service = TelemetryServiceProvider.instances.get(name) ?? new TelemetryService();
+    TelemetryServiceProvider.instances.set(name, service);
     return service;
   }
 }
@@ -122,7 +123,8 @@ export class TelemetryService implements TelemetryServiceInterface {
     this.version = version;
     this.aiKey ??= aiKey ?? DEFAULT_AIKEY;
     this.isInternal = isInternalHost();
-    this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
+    this.isDevMode = false;
+    // this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
 
     this.checkCliTelemetry()
       .then(cliEnabled => {
