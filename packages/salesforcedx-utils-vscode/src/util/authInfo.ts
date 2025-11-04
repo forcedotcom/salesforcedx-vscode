@@ -147,10 +147,11 @@ export class OrgAuthInfo {
   }
 
   /** Get auth fields for a connection */
-  public static async getAuthFields(connection: Connection): Promise<AuthFields> {
+  public static getAuthFields(connection: Connection): AuthFields {
     return connection.getAuthInfoFields();
   }
 }
+
 enum VSCodeWindowTypeEnum {
   Error = 1,
   Informational = 2,

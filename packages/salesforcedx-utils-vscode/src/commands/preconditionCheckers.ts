@@ -45,10 +45,7 @@ export class CompositePreconditionChecker implements PreconditionChecker {
 
   public async check(): Promise<boolean> {
     for (const output of this.checks) {
-      const input = await output.check();
-      if (input === false) {
-        return false;
-      }
+      if (!(await output.check())) return false;
     }
 
     return true;
