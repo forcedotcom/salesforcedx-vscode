@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-const shell = require('shelljs');
+const { cpSync } = require('node:fs');
+const { join } = require('node:path');
 
 //Copy src/resources into out/src/
-shell.cp('-R', 'src/resources', 'out/src/');
+cpSync('src/resources', join('out', 'src', 'resources'), { recursive: true });

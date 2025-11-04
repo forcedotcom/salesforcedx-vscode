@@ -234,12 +234,51 @@ const populateResourcesDirectory = async (provider: FileSystemDataProvider): Pro
   try {
     // We know exactly where the resources are - they're bundled in the extension
     // The resources are copied to dist/resources/aura during the build process
-    const extensionPath = path.join(__dirname, '..', '..', 'dist');
-    const resourcesDir = path.join(extensionPath, 'resources');
-    const auraResourcesDir = path.join(resourcesDir, 'aura');
+    // During development, they're in src/resources/aura
+    const extensionPath = path.join(__dirname, '..', '..');
+    const distResourcesDir = path.join(extensionPath, 'dist', 'resources', 'aura');
+    const srcResourcesDir = path.join(extensionPath, 'src', 'resources', 'aura');
 
-    // Add directory listings
-    provider.updateDirectoryListing(resourcesDir, [{ name: 'aura', type: 'directory', uri: auraResourcesDir }]);
+    // Try dist first (production), then src (development)
+    let auraResourcesDir: string | undefined;
+
+    // Check dist directory using VSCode's fs API
+    try {
+      const distUri = Uri.file(distResourcesDir);
+      const distStat = await workspace.fs.stat(distUri);
+      if (distStat.type === FileType.Directory) {
+        auraResourcesDir = distResourcesDir;
+      }
+    } catch {
+      // dist directory doesn't exist, try src
+    }
+
+    // Check src directory if dist wasn't found
+    if (!auraResourcesDir) {
+      try {
+        const srcUri = Uri.file(srcResourcesDir);
+        const srcStat = await workspace.fs.stat(srcUri);
+        if (srcStat.type === FileType.Directory) {
+          auraResourcesDir = srcResourcesDir;
+        }
+      } catch {
+        // src directory doesn't exist either
+      }
+    }
+
+    if (!auraResourcesDir) {
+      log('Warning: resources/aura directory not found in dist or src');
+      return;
+    }
+
+    const resourcesDir = path.dirname(auraResourcesDir);
+    const auraDirName = path.basename(auraResourcesDir);
+
+    // Recursively populate all files and directories in resources/aura
+    await populateResourcesRecursively(provider, auraResourcesDir, resourcesDir);
+
+    // Add directory listings for parent directories
+    provider.updateDirectoryListing(resourcesDir, [{ name: auraDirName, type: 'directory', uri: auraResourcesDir }]);
 
     // Add file stats for directories
     provider.updateFileStat(resourcesDir, {
@@ -249,17 +288,73 @@ const populateResourcesDirectory = async (provider: FileSystemDataProvider): Pro
       mtime: Date.now(),
       size: 0
     });
+  } catch (error) {
+    log(`Error populating resources directory: ${String(error)}`);
+    throw error;
+  }
+};
 
-    provider.updateFileStat(auraResourcesDir, {
+/**
+ * Recursively populates all files and directories in the resources/aura directory
+ * @param provider FileSystemDataProvider to populate
+ * @param dirPath Path to the directory to populate
+ * @param basePath Base path for relative URI resolution
+ */
+const populateResourcesRecursively = async (
+  provider: FileSystemDataProvider,
+  dirPath: string,
+  basePath: string
+): Promise<void> => {
+  try {
+    const dirUri = Uri.file(dirPath);
+
+    // Check if directory exists using VSCode's fs API
+    try {
+      const dirStat = await workspace.fs.stat(dirUri);
+      if (dirStat.type !== FileType.Directory) {
+        return;
+      }
+    } catch {
+      // Directory doesn't exist
+      return;
+    }
+
+    const entries = await workspace.fs.readDirectory(dirUri);
+
+    // Update directory listing
+    const directoryEntries = entries.map(
+      ([name, type]: [string, number]): DirectoryEntry => ({
+        name,
+        type: type === 1 ? 'file' : 'directory',
+        uri: path.join(dirPath, name)
+      })
+    );
+    provider.updateDirectoryListing(dirPath, directoryEntries);
+
+    // Update directory stat
+    provider.updateFileStat(dirPath, {
       type: 'directory',
       exists: true,
       ctime: Date.now(),
       mtime: Date.now(),
       size: 0
     });
-  } catch (error) {
-    log(`Error populating resources directory: ${String(error)}`);
-    throw error;
+
+    // Process each entry
+    for (const [name, type] of entries) {
+      const entryPath = path.join(dirPath, name);
+
+      if (type === FileType.File) {
+        await tryReadFile(provider, entryPath);
+      } else if (type === FileType.Directory) {
+        await populateResourcesRecursively(provider, entryPath, basePath);
+      }
+    }
+  } catch (error: any) {
+    // Directory doesn't exist or can't be read
+    if (!(error instanceof Error) || !error.message.includes('ENOENT')) {
+      log(`Unexpected error reading resources directory ${dirPath}: ${String(error)}`);
+    }
   }
 };
 

@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ClassMember, AttributeInfo, IFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
-import camelcase from 'camelcase';
-import { paramCase } from 'change-case';
+import { camelCase, paramCase } from 'change-case';
 import * as glob from 'fast-glob';
 
 import * as path from 'node:path';
@@ -104,7 +103,7 @@ export const createTag = async (attributes: TagAttrs, fileSystemProvider?: IFile
 export const getTagName = (tag: Tag): string => path.parse(tag.file).name;
 
 // Utility function to get aura name
-export const getAuraName = (tag: Tag): string => `c:${camelcase(getTagName(tag))}`;
+export const getAuraName = (tag: Tag): string => `c:${camelCase(getTagName(tag))}`;
 
 // Utility function to get LWC name
 export const getLwcName = (tag: Tag): string => {
@@ -269,7 +268,7 @@ export const createTagFromFile = async (file: string, fileSystemProvider: IFileS
             return null;
         }
 
-        const { metadata, diagnostics } = await compileSource(data, fileName);
+        const { metadata, diagnostics } = compileSource(data, fileName);
         if (diagnostics && diagnostics.length > 0) {
             return null;
         }
@@ -279,7 +278,8 @@ export const createTagFromFile = async (file: string, fileSystemProvider: IFileS
         }
 
         return await createTag({ file, metadata, updatedAt });
-    } catch {
+    } catch (e) {
+        console.error(e);
         return null;
     }
 };

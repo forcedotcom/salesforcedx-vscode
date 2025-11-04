@@ -5,46 +5,44 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 export {
-    toResolvedPath,
-    isLWCWatchedDirectory,
-    isAuraWatchedDirectory,
-    includesDeletedLwcWatchedDirectory,
-    includesDeletedAuraWatchedDirectory,
-    containsDeletedLwcWatchedDirectory,
-    isLWCRootDirectoryCreated,
-    isAuraRootDirectoryCreated,
-    unixify,
-    relativePath,
-    pathStartsWith,
-    getExtension,
-    getBasename,
-    getSfdxResource,
-    getCoreResource,
-    deepMerge,
-    elapsedMillis,
-    memoize,
-    readJsonSync,
-    writeJsonSync,
-    SfdxTsConfig,
-    TsConfigPaths,
+  toResolvedPath,
+  isLWCRootDirectoryCreated,
+  relativePath,
+  pathStartsWith,
+  getExtension,
+  getBasename,
+  getSfdxResource,
+  memoize,
+  readJsonSync,
+  writeJsonSync,
+  extractJsonFromImport,
+  SfdxTsConfig,
+  TsConfigPaths
 } from './utils';
 
 // Re-export from base-context
-export { BaseWorkspaceContext, Indexer, AURA_EXTENSIONS, processTemplate, getModulesDirs, updateForceIgnoreFile } from './baseContext';
+export {
+  BaseWorkspaceContext,
+  Indexer,
+  AURA_EXTENSIONS,
+  processTemplate,
+  getModulesDirs,
+  updateForceIgnoreFile
+} from './baseContext';
 
 // Re-export from shared
 export { WorkspaceType, isLWC, getSfdxProjectFile, detectWorkspaceHelper, detectWorkspaceType } from './shared';
 
 // Re-export from indexer
 export {
-    TagInfo,
-    createTagInfo,
-    getAttributeInfo,
-    getHover,
-    getComponentLibraryLink,
-    getAttributeMarkdown,
-    getMethodMarkdown,
-    TagType,
+  TagInfo,
+  createTagInfo,
+  getAttributeInfo,
+  getHover,
+  getComponentLibraryLink,
+  getAttributeMarkdown,
+  getMethodMarkdown,
+  TagType
 } from './indexer/tagInfo';
 export { AttributeInfo, createAttributeInfo, DecoratorType, MemberType } from './indexer/attributeInfo';
 
@@ -53,7 +51,15 @@ export { interceptConsoleLogger } from './logger';
 export { findNamespaceRoots } from './namespaceUtils';
 
 // Re-export from decorators
-export { ClassMember, Location, Position, ClassMemberPropertyValue, DecoratorTargetType, DecoratorTargetProperty, DecoratorTargetMethod } from './decorators';
+export {
+  ClassMember,
+  Location,
+  Position,
+  ClassMemberPropertyValue,
+  DecoratorTargetType,
+  DecoratorTargetProperty,
+  DecoratorTargetMethod
+} from './decorators';
 
 // Re-export from file system providers
 export { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';

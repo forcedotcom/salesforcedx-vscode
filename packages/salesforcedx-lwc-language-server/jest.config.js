@@ -21,4 +21,7 @@ module.exports = {
             '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/resources/sfdx/tsconfig-sfdx.json',
         '^@salesforce/salesforcedx-lightning-lsp-common$': '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/index',
     },
+    // Add common package's out/src to moduleDirectories so relative imports from baseContext.js resolve correctly
+    // This allows Jest to find JSON files when baseContext.js does require("./resources/...")
+    moduleDirectories: ['<rootDir>/../salesforcedx-lightning-lsp-common/out/src', 'node_modules'],
 };

@@ -9,6 +9,76 @@
 
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
+// Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
+jest.mock('../resources/transformed-lwc-standard.json', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require('node:fs');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const pathModule = require('node:path');
+    // Find package root (lwc-language-server)
+    let current = __dirname;
+    while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
+        const parent = pathModule.resolve(current, '..');
+        if (parent === current) break;
+        current = parent;
+    }
+    const filePath = pathModule.join(current, 'src', 'resources', 'transformed-lwc-standard.json');
+    const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    // JSON imports in TypeScript are treated as default exports
+    return { default: content, ...content };
+});
+
+// Mock JSON imports from baseContext.ts - these are runtime require() calls in compiled code
+// moduleNameMapper doesn't apply to runtime require() calls within loaded modules - it only works for
+// static imports Jest resolves at the top level. So we need explicit mocks for these relative requires.
+const mockJsonFromCommon = (relativePath: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require('node:fs');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const pathModule = require('node:path');
+    let current = __dirname;
+    while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
+        const parent = pathModule.resolve(current, '..');
+        if (parent === current) break;
+        current = parent;
+    }
+    const packagesDir = pathModule.resolve(current, '..');
+    const filePath = pathModule.join(packagesDir, 'salesforcedx-lightning-lsp-common', 'src', relativePath);
+    const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    return { default: content, ...content };
+};
+
+// Mock relative imports - these need to match the exact paths Jest resolves when baseContext.js
+// executes require("./resources/..."). Since baseContext.js is in out/src/, the relative path
+// resolves to out/src/resources/... which we mock using paths relative to the test file.
+jest.mock(
+    '../../../salesforcedx-lightning-lsp-common/out/src/resources/core/jsconfig-core.json',
+    () => mockJsonFromCommon('resources/core/jsconfig-core.json'),
+    {
+        virtual: true,
+    },
+);
+jest.mock(
+    '../../../salesforcedx-lightning-lsp-common/out/src/resources/core/settings-core.json',
+    () => mockJsonFromCommon('resources/core/settings-core.json'),
+    {
+        virtual: true,
+    },
+);
+jest.mock(
+    '../../../salesforcedx-lightning-lsp-common/out/src/resources/sfdx/jsconfig-sfdx.json',
+    () => mockJsonFromCommon('resources/sfdx/jsconfig-sfdx.json'),
+    {
+        virtual: true,
+    },
+);
+
+// Mock JSON imports for tsconfig files used by lwcContext.ts
+jest.mock('@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.base.json', () =>
+    mockJsonFromCommon('resources/sfdx/tsconfig-sfdx.base.json'),
+);
+jest.mock('@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.json', () => mockJsonFromCommon('resources/sfdx/tsconfig-sfdx.json'));
+
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { sync } from 'fast-glob';
 import * as path from 'node:path';

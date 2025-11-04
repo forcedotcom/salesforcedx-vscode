@@ -13,7 +13,6 @@ await build({
   external: [
     'vscode',
     'applicationinsights',
-    '@salesforce/lightning-lsp-common',
     '@babel/preset-typescript/package.json',
     'jest-editor-support',
     '@babel/core'

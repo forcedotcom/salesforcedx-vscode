@@ -122,7 +122,7 @@ export const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promis
 };
 
 // Utility function to get meta files
-export const getMetaFiles = async (indexer: TypingIndexerData): Promise<string[]> => {
+export const getMetaFiles = (indexer: TypingIndexerData): string[] => {
     // For mock file system, check for specific meta files that should exist
     const metaFiles: string[] = [];
     const possibleMetaFiles = [
@@ -166,7 +166,7 @@ export const getMetaTypings = (indexer: TypingIndexerData): string[] => {
 };
 
 // Utility function to get custom label files
-export const getCustomLabelFiles = async (indexer: TypingIndexerData): Promise<string[]> => {
+export const getCustomLabelFiles = (indexer: TypingIndexerData): string[] => {
     // For mock file system, check for the specific custom labels file
     const customLabelsPath = path.join(indexer.workspaceRoot, 'force-app/main/default/labels/CustomLabels.labels-meta.xml');
     if (indexer.fileSystemProvider.fileExists(customLabelsPath)) {
@@ -181,8 +181,8 @@ export const getCustomLabelTypings = (indexer: TypingIndexerData): string => pat
 // Legacy class for backward compatibility (deprecated)
 export default class TypingIndexer {
     public readonly workspaceRoot: string;
-    public typingsBaseDir: string;
-    public projectType: WorkspaceType;
+    public typingsBaseDir!: string;
+    public projectType!: WorkspaceType;
     public metaFiles: string[] = [];
     public fileSystemProvider: IFileSystemProvider;
 

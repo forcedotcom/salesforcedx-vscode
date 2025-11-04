@@ -328,7 +328,7 @@ describe('Create OpenAPI v3 Specifications', () => {
 
           // Get all open tabs
           const openTabs = await editorView.getOpenTabs();
-          if (openTabs?.length === 0) {
+          if (openTabs.length === 0) {
             throw new Error('No tabs are open in the editor view');
           }
 

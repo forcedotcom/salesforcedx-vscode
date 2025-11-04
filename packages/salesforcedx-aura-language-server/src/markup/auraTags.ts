@@ -10,19 +10,9 @@ import AuraIndexer from '../aura-indexer/indexer';
 
 let indexer: AuraIndexer;
 
-const getAuraTags = (): Map<string, TagInfo> => {
-    if (indexer) {
-        return indexer.getAuraTags();
-    }
-    return new Map();
-};
+const getAuraTags = (): Map<string, TagInfo> => (indexer ? indexer.getAuraTags() : new Map<string, TagInfo>());
 
-const getAuraByTag = (tag: string): TagInfo | undefined => {
-    if (indexer) {
-        return indexer.getAuraByTag(tag);
-    }
-    return undefined;
-};
+const getAuraByTag = (tag: string): TagInfo | undefined => (indexer ? indexer.getAuraByTag(tag) : undefined);
 
 export const setIndexer = (idx: AuraIndexer): void => {
     indexer = idx;

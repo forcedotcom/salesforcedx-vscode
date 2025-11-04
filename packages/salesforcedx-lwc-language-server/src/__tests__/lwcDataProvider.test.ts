@@ -4,6 +4,25 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+// Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
+jest.mock('../resources/transformed-lwc-standard.json', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require('node:fs');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const pathModule = require('node:path');
+    // Find package root (lwc-language-server)
+    let current = __dirname;
+    while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
+        const parent = pathModule.resolve(current, '..');
+        if (parent === current) break;
+        current = parent;
+    }
+    const filePath = pathModule.join(current, 'src', 'resources', 'transformed-lwc-standard.json');
+    const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    // JSON imports in TypeScript are treated as default exports
+    return { default: content, ...content };
+});
+
 import { sfdxFileSystemProvider, SFDX_WORKSPACE_ROOT } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import ComponentIndexer from '../componentIndexer';
 import { DataProviderAttributes, LWCDataProvider } from '../lwcDataProvider';

@@ -1,13 +1,27 @@
 #!/usr/bin/env node
-const shell = require('shelljs');
+const { cpSync, mkdirSync, rmSync, readdirSync } = require('node:fs');
+const { join } = require('node:path');
 
 // Copy static assets
-shell.cp('-R', 'src/tern-server/*.json', 'out/src/tern-server/');
-shell.mkdir('-p', 'out/src/resources/');
-shell.cp('-R', 'src/resources/*.json', 'out/src/resources/');
+mkdirSync('out/src/tern-server', { recursive: true });
+const ternServerFiles = readdirSync('src/tern-server').filter(file => file.endsWith('.json'));
+for (const file of ternServerFiles) {
+  cpSync(join('src/tern-server', file), join('out/src/tern-server', file));
+}
+
+mkdirSync('out/src/resources', { recursive: true });
+const resourceFiles = readdirSync('src/resources').filter(file => file.endsWith('.json'));
+for (const file of resourceFiles) {
+  cpSync(join('src/resources', file), join('out/src/resources', file));
+}
+
 // copy tern
-shell.rm('-Rf', 'out/src/tern');
-shell.mkdir('-p', 'out/src/tern/');
-shell.cp('-R', 'src/tern/lib', 'out/src/tern/lib/');
-shell.cp('-R', 'src/tern/defs', 'out/src/tern/defs/');
-shell.cp('-R', 'src/tern/plugin', 'out/src/tern/plugin/');
+try {
+  rmSync('out/src/tern', { recursive: true, force: true });
+} catch (error) {
+  // Directory doesn't exist, which is fine
+}
+mkdirSync('out/src/tern', { recursive: true });
+cpSync('src/tern/lib', join('out/src/tern', 'lib'), { recursive: true });
+cpSync('src/tern/defs', join('out/src/tern', 'defs'), { recursive: true });
+cpSync('src/tern/plugin', join('out/src/tern', 'plugin'), { recursive: true });

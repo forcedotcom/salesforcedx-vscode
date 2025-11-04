@@ -6,7 +6,7 @@
  */
 import { DiagnosticLevel } from '@lwc/errors';
 import templateCompiler from '@lwc/template-compiler';
-import path from 'node:path';
+import * as path from 'node:path';
 import { Diagnostic, DiagnosticSeverity, Range, TextDocument } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { DIAGNOSTIC_SOURCE } from '../constants';

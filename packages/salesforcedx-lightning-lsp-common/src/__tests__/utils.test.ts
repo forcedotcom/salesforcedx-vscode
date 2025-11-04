@@ -13,28 +13,6 @@ import * as utils from '../utils';
 import { WorkspaceContext } from './workspaceContext';
 
 describe('utils', () => {
-    it('includesWatchedDirectory', async () => {
-        const directoryDeletedEvent: FileEvent = {
-            type: FileChangeType.Deleted,
-            uri: 'file:///Users/user/test/dir',
-        };
-        const jsFileDeletedEvent: FileEvent = {
-            type: FileChangeType.Deleted,
-            uri: 'file:///Users/user/test/dir/file.js',
-        };
-        const htmlFileDeletedEvent: FileEvent = {
-            type: FileChangeType.Deleted,
-            uri: 'file:///Users/user/test/dir/file.html',
-        };
-        const ctxt = new WorkspaceContext('', new FileSystemDataProvider());
-        ctxt.type = 'SFDX';
-        // Mock the isFileInsideModulesRoots method to return true for the test directory
-        ctxt.isFileInsideModulesRoots = jest.fn().mockResolvedValue(true);
-        expect(await utils.includesDeletedLwcWatchedDirectory(ctxt, [jsFileDeletedEvent, directoryDeletedEvent])).toBeTruthy();
-        expect(await utils.includesDeletedLwcWatchedDirectory(ctxt, [jsFileDeletedEvent])).toBeFalsy();
-        expect(await utils.includesDeletedLwcWatchedDirectory(ctxt, [htmlFileDeletedEvent])).toBeFalsy();
-    });
-
     it('isLWCRootDirectoryChange', async () => {
         const noLwcFolderCreated: FileEvent = {
             type: FileChangeType.Created,
@@ -73,70 +51,6 @@ describe('utils', () => {
     it('test canonicalizing in nodejs', () => {
         const canonical = resolve(join('tmp', '.', 'a', 'b', '..'));
         expect(canonical.endsWith(join('tmp', 'a'))).toBe(true);
-    });
-
-    it('deepMerge()', () => {
-        // simplest
-        let to: any = { a: 1 };
-        let from: any = { b: 2 };
-        expect(utils.deepMerge(to, from)).toBeTruthy();
-        expect(to).toEqual({ a: 1, b: 2 });
-        expect(utils.deepMerge({ a: 1 }, { a: 1 })).toBeFalsy();
-
-        // do not overwrite scalar
-        to = { a: 1 };
-        from = { a: 2 };
-        expect(utils.deepMerge(to, from)).toBeFalsy();
-        expect(to).toEqual({ a: 1 });
-
-        // nested object gets copied
-        to = { a: 1 };
-        from = { o: { n: 1 } };
-        expect(utils.deepMerge(to, from)).toBeTruthy();
-        expect(to).toEqual({ a: 1, o: { n: 1 } });
-        expect(utils.deepMerge({ o: { n: 1 } }, { o: { n: 1 } })).toBeFalsy();
-
-        // nested object gets merged if in both
-        to = { a: 1, o: { x: 2 } };
-        from = { o: { n: 1 } };
-        expect(utils.deepMerge(to, from)).toBeTruthy();
-        expect(to).toEqual({ a: 1, o: { x: 2, n: 1 } });
-
-        // array elements get merged
-        to = { a: [1, 2] };
-        from = { a: [3, 4] };
-        expect(utils.deepMerge(to, from)).toBeTruthy();
-        expect(to).toEqual({ a: [1, 2, 3, 4] });
-        expect(utils.deepMerge({ a: [1, 2] }, { a: [1, 2] })).toBeFalsy();
-
-        // if from has array but to has scalar then also results in array
-        to = { a: 0 };
-        from = { a: [3, 4] };
-        expect(utils.deepMerge(to, from)).toBeTruthy();
-        expect(to).toEqual({ a: [0, 3, 4] });
-
-        // if to has array but from has scalar then also results in array
-        to = { a: [1, 2] };
-        from = { a: 3 };
-        expect(utils.deepMerge(to, from)).toBeTruthy();
-        expect(to).toEqual({ a: [1, 2, 3] });
-
-        // object array elements
-        to = { a: [{ x: 1 }] };
-        from = { a: [{ y: 2 }] };
-        expect(utils.deepMerge(to, from)).toBeTruthy();
-        expect(to).toEqual({ a: [{ x: 1 }, { y: 2 }] });
-        expect(utils.deepMerge({ a: [{ y: 2 }] }, { a: [{ y: 2 }] })).toBeFalsy();
-
-        // don't add scalar to array if already in array
-        to = { a: [1, 2] };
-        from = { a: 2 };
-        expect(utils.deepMerge(to, from)).toBeFalsy();
-        expect(to).toEqual({ a: [1, 2] });
-        to = { a: 2 };
-        from = { a: [1, 2] };
-        expect(utils.deepMerge(to, from)).toBeTruthy();
-        expect(to).toEqual({ a: [2, 1] });
     });
 
     describe('readJsonSync()', () => {

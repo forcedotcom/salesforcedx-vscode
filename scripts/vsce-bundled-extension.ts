@@ -83,6 +83,32 @@ cpSync(directoryToConstruct, `${buildLocation}/extension`, { recursive: true });
 const cwd = `${buildLocation}/extension`;
 logger(`Now in ${cwd}`);
 
+// Copy workspace packages from monorepo packages directory before npm install
+const workspaceRoot = `${extensionDirectory}/../..`;
+const monorepoPackages = `${workspaceRoot}/packages`;
+const extensionNodeModules = `${cwd}/node_modules/@salesforce`;
+
+if (existsSync(monorepoPackages)) {
+  logger('Copying workspace packages from monorepo packages directory');
+  if (!existsSync(extensionNodeModules)) {
+    mkdirSync(extensionNodeModules, { recursive: true });
+  }
+  // Copy workspace packages that might be needed
+  const workspacePackages = [
+    { name: 'salesforcedx-lightning-lsp-common', dir: 'salesforcedx-lightning-lsp-common' },
+    { name: 'salesforcedx-lwc-language-server', dir: 'salesforcedx-lwc-language-server' },
+    { name: 'salesforcedx-aura-language-server', dir: 'salesforcedx-aura-language-server' }
+  ];
+  for (const pkg of workspacePackages) {
+    const src = `${monorepoPackages}/${pkg.dir}`;
+    const dest = `${extensionNodeModules}/${pkg.name}`;
+    if (existsSync(src)) {
+      logger(`Copying ${pkg.name} from ${src} to ${dest}`);
+      cpSync(src, dest, { recursive: true, dereference: true });
+    }
+  }
+}
+
 // Run npm install
 logger('executing npm install');
 execSync('npm install', { stdio: 'inherit', cwd });

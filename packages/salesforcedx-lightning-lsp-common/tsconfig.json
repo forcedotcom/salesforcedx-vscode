@@ -1,40 +1,14 @@
 {
-    "compilerOptions": {
-        "target": "es2022",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "sourceMap": true,
-        "declarationMap": true,
-        "lib": [
-            "ES2022"
-        ],
-        "outDir": "./out",
-        "composite": true,
-        "strictNullChecks": true,
-
-        "noImplicitAny": true,
-        "noUnusedParameters": false,
-        "noUnusedLocals": false,
-
-        "pretty": true,
-        "declaration": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "resolveJsonModule": true,
-        "types": ["node", "jest"]
-    },
-
-    "include": [
-        "src/**/*.ts",
-        "src/**/*.json",
-        "typings/*.d.ts",
-        "jest/*.js",
-        "jest/*.ts"
-    ],
-
-    "exclude": [
-        "out",
-        "node_modules",
-        "**/__tests__/fixtures/*.js"
-    ]
+  "extends": "../../tsconfig.common.json",
+  "compilerOptions": {
+    "outDir": "./out",
+    "target": "ES2022",
+    "lib": ["es2022", "dom"],
+    "strictNullChecks": true,
+    "noUnusedParameters": false,
+    "pretty": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.json", "typings/*.d.ts", "jest/*.js", "jest/*.ts"],
+  "exclude": ["out", "node_modules", "**/__tests__/fixtures/*.js"]
 }

@@ -1,11 +1,15 @@
 #!/usr/bin/env node
-const shell = require('shelljs');
+const { execSync } = require('node:child_process');
+const { cpSync } = require('node:fs');
+const { join } = require('node:path');
 
 // Copy typings
-if (shell.exec('node scripts/copy_typings.js').code !== 0) {
-    shell.echo('Error:node scripts/copy_typings.js couldnt be executed');
-    shell.exit(1);
+try {
+  execSync('node scripts/copy_typings.js', { stdio: 'inherit' });
+} catch (error) {
+  console.error('Error:node scripts/copy_typings.js couldnt be executed');
+  process.exit(1);
 }
 
 //Copy src/resources into out/src/
-shell.cp('-R', 'src/resources', 'out/src/');
+cpSync('src/resources', join('out', 'src', 'resources'), { recursive: true });

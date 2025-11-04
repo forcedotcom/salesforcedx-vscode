@@ -6,12 +6,11 @@
  */
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { globSync } from 'glob';
-import path from 'node:path';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 
 // These unit tests check that specified dependencies in package.json do not use

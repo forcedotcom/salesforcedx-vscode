@@ -13,11 +13,12 @@ import {
     TsConfigPaths,
     IFileSystemProvider,
 } from '@salesforce/salesforcedx-lightning-lsp-common';
-import camelcase from 'camelcase';
-import { snakeCase } from 'change-case';
+import { snakeCase, camelCase } from 'change-case';
 import { Entry, sync } from 'fast-glob';
 import * as path from 'node:path';
-import normalize from 'normalize-path';
+/** Normalizes paths for glob patterns by converting backslashes to forward slashes and normalizing */
+const normalize = (p: string): string => path.posix.normalize(p.replace(/\\/g, '/'));
+
 import { getWorkspaceRoot, getSfdxConfig, getSfdxPackageDirsPattern } from './baseIndexer';
 import { Tag, TagAttrs, createTag, createTagFromFile, getTagName, getTagUri } from './tag';
 
@@ -132,7 +133,7 @@ export default class ComponentIndexer {
                 return this.tags.get(name) ?? this.tags.get(snakeCase(name)) ?? null;
             }
             if (delimiter === LWC_DELIMITER) {
-                return this.tags.get(name) ?? this.tags.get(camelcase(name)) ?? null;
+                return this.tags.get(name) ?? this.tags.get(camelCase(name)) ?? null;
             }
             return this.tags.get(query) ?? null;
         } catch {
@@ -166,7 +167,7 @@ export default class ComponentIndexer {
         }
     }
 
-    public async persistCustomComponents(): Promise<void> {
+    public persistCustomComponents(): void {
         const indexJsonString = JSON.stringify(this.getCustomData());
 
         // Store the component index data for the client to process
@@ -181,7 +182,7 @@ export default class ComponentIndexer {
 
         if (fileExists) {
             try {
-                const sfdxTsConfig: SfdxTsConfig = await readJsonSync(sfdxTsConfigPath, this.fileSystemProvider);
+                const sfdxTsConfig: SfdxTsConfig = readJsonSync(sfdxTsConfigPath, this.fileSystemProvider);
                 sfdxTsConfig.compilerOptions = sfdxTsConfig.compilerOptions ?? { paths: {} };
                 sfdxTsConfig.compilerOptions.paths = sfdxTsConfig.compilerOptions.paths ?? {};
                 for (const filePath of filePaths) {

@@ -4,9 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { BaseWorkspaceContext, toResolvedPath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { HTMLDocument, TokenType, getLanguageService } from 'vscode-html-languageservice';
 import { createScanner } from 'vscode-html-languageservice/lib/umd/parser/htmlScanner';
-import { Range } from 'vscode-languageserver';
+import { FileChangeType, FileEvent, Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Position, Location } from 'vscode-languageserver-types';
 
@@ -340,4 +341,34 @@ const extractPropertyNameFromExpression = (content: string, relativeOffset: numb
     }
 
     return null;
+};
+
+export const isAuraWatchedDirectory = async (context: BaseWorkspaceContext, uri: string): Promise<boolean> => {
+    const file = toResolvedPath(uri);
+    return await context.isFileInsideAuraRoots(file);
+};
+
+export const isAuraRootDirectoryCreated = (context: BaseWorkspaceContext, changes: FileEvent[]): boolean => {
+    for (const event of changes) {
+        if (event.type === FileChangeType.Created && isAuraDirectory(context, event.uri)) {
+            return true;
+        }
+    }
+    return false;
+};
+
+export const isAuraDirectory = (context: BaseWorkspaceContext, uri: string): boolean => {
+    if (context.type === 'SFDX') {
+        const file = toResolvedPath(uri);
+        return file.endsWith('aura');
+    }
+    return false;
+};
+
+/**
+ * @return string showing elapsed milliseconds from start mark
+ */
+export const elapsedMillis = (start: number): string => {
+    const elapsed = globalThis.performance.now() - start;
+    return `${elapsed.toFixed(2)} ms`;
 };
