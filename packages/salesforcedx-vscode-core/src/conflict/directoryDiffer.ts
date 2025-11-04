@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { readDirectory, isDirectory } from '@salesforce/salesforcedx-utils-vscode';
+import { readDirectory, isDirectory, errorToString } from '@salesforce/salesforcedx-utils-vscode';
 import type { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -171,10 +171,14 @@ export const diffOneFile = async (
         nls.localize('source_diff_title', targetOrgorAlias, filePart, filePart)
       );
     } catch (err) {
-      await notificationService.showErrorMessage(err.message);
-      channelService.appendLine(err.message);
+      const message = errorToString(err);
+      await notificationService.showErrorMessage(message);
+      channelService.appendLine(message);
       channelService.showChannelOutput();
-      telemetryService.sendException('source_diff_file', `Error: name = ${err.name} message = ${err.message}`);
+      telemetryService.sendException(
+        'source_diff_file',
+        `Error: name = ${err instanceof Error ? err.name : 'unknown'} message = ${message}`
+      );
     }
     return;
   }

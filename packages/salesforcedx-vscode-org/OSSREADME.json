@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-org",
-  "version": "65.3.0",
+  "version": "65.3.1",
   "description": "Salesforce Org Management Extension for VS Code",
   "dependencies": []
 }

@@ -35,7 +35,7 @@ export {
 } from './constants';
 export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
 export { OrgAuthInfo } from './util/authInfo';
-export { TelemetryService, TelemetryBuilder } from './services/telemetry';
+export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
 export * from './helpers';
 export { TraceFlags, handleTraceFlagCleanup } from './helpers/traceFlags';

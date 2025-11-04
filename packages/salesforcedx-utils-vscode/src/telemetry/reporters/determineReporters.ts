@@ -29,36 +29,26 @@ const clearO11yInitializationPromise = (extName: string) => {
 
 export const determineReporters = (config: TelemetryReporterConfig) => {
   const { extName, version, aiKey, userId, reporterName, isDevMode, webUserId } = config;
-  const reporters: TelemetryReporter[] = [];
 
   if (isDevMode) {
-    addDevModeReporter(reporters, extName);
-  } else {
-    addO11yReporter(reporters, extName);
-    addAppInsightsReporter(reporters, reporterName, version, aiKey, userId, webUserId);
-    addLogstreamReporter(reporters, extName);
+    return isLocalLogging(extName) ? [new TelemetryFile(extName)] : [];
   }
-  return reporters;
+  return [
+    ...getO11yReporter(extName),
+    ...getAppInsightsReporter(reporterName, version, aiKey, userId, webUserId),
+    ...getLogStreamReporter(extName)
+  ];
 };
 
-const addDevModeReporter = (reporters: TelemetryReporter[], extName: string) => {
-  if (isLocalLogging(extName)) {
-    // The new TelemetryFile reporter is run in Dev mode, and only
-    // requires the advanced setting to be set re: configuration.
-    reporters.push(new TelemetryFile(extName));
-  }
-};
-
-const addAppInsightsReporter = (
-  reporters: TelemetryReporter[],
+const getAppInsightsReporter = (
   reporterName: string,
   version: string,
   aiKey: string,
   userId: string,
   webUserId: string
-) => {
-  console.log('adding AppInsights reporter.');
-  reporters.push(new AppInsights(reporterName, version, aiKey, userId, webUserId, true));
+): TelemetryReporter[] => {
+  console.log(`adding AppInsights reporter for ${reporterName};${version}`);
+  return [new AppInsights(reporterName, version, aiKey, userId, webUserId, true)];
 };
 
 export const initializeO11yReporter = async (
@@ -89,13 +79,13 @@ export const initializeO11yReporter = async (
   await initPromise;
 };
 
-const addO11yReporter = (reporters: TelemetryReporter[], extName: string): void => {
+const getO11yReporter = (extName: string): TelemetryReporter[] => {
   if (o11yReporterInstances.has(extName)) {
-    reporters.push(o11yReporterInstances.get(extName)!);
     console.log('Added O11y reporter to reporters list');
-  } else {
-    console.log('O11yReporter not initialized yet, skipping addition.');
+    return [o11yReporterInstances.get(extName)!];
   }
+  console.log('O11yReporter not initialized yet, skipping addition.');
+  return [];
 };
 
 /*
@@ -104,8 +94,5 @@ const addO11yReporter = (reporters: TelemetryReporter[], extName: string): void 
  * reporter is used when.  The original log stream functionality only worked under
  * the same conditions as the AppInsights capabilities, but with additional configuration.
  */
-const addLogstreamReporter = (reporters: TelemetryReporter[], extName: string) => {
-  if (LogStreamConfig.isEnabledFor(extName)) {
-    reporters.push(new LogStream(extName, LogStreamConfig.logFilePath()));
-  }
-};
+const getLogStreamReporter = (extName: string): TelemetryReporter[] =>
+  LogStreamConfig.isEnabledFor(extName) ? [new LogStream(extName, LogStreamConfig.logFilePath())] : [];
