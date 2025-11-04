@@ -17,7 +17,10 @@ import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import eslintPluginJest from 'eslint-plugin-jest';
 import eslintPluginUnicorn from 'eslint-plugin-unicorn';
+import eslintPluginBarrelFiles from 'eslint-plugin-barrel-files';
+import functional from 'eslint-plugin-functional';
 import eslintPluginWorkspaces from 'eslint-plugin-workspaces';
+import effectPlugin from '@effect/eslint-plugin';
 
 import noDuplicateI18nValues from './eslint-local-rules/no-duplicate-i18n-values.js';
 
@@ -43,7 +46,9 @@ export default [
       'scripts/reportInstalls.ts',
       'packages/salesforcedx-lwc-language-server/src/javascript/__tests__/fixtures/**',
       'packages/salesforcedx-lightning-lsp-common/src/resources/**',
-      'packages/salesforcedx-lightning-lsp-common/src/html-language-service/**'
+      'packages/salesforcedx-lightning-lsp-common/src/html-language-service/**',
+      '**/.vscode-test-web/**',
+      '**/.vscode-test/**'
     ]
   },
   {
@@ -69,7 +74,10 @@ export default [
       '@stylistic/eslint-plugin-ts': stylistic,
       unicorn: eslintPluginUnicorn,
       local: { rules: localRules },
-      workspaces: eslintPluginWorkspaces
+      'barrel-files': eslintPluginBarrelFiles,
+      functional: functional,
+      workspaces: eslintPluginWorkspaces,
+      effect: effectPlugin
     },
     rules: {
       'local/no-duplicate-i18n-values': 'error',
@@ -384,6 +392,8 @@ export default [
       'packages/salesforcedx**/src/**/__tests__/**/*',
       'packages/salesforcedx**/src/**/*.spec.ts',
       'packages/salesforcedx**/src/**/*.test.ts',
+      'packages/salesforcedx**/test/web/**/*',
+      'packages/salesforcedx**/test/playwright/**/*',
       'packages/salesforcedx-vscode-automation-tests/**/*'
     ],
     plugins: {
@@ -440,6 +450,81 @@ export default [
     ],
     rules: {
       'header/header': 'off'
+    }
+  },
+  {
+    // Effect-specific rules for new Effect services-based packages
+    files: ['packages/salesforcedx-vscode-services/**/*.ts', 'packages/salesforcedx-vscode-org-browser/**/*.ts'],
+    rules: {
+      'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
+      'barrel-files/avoid-barrel-files': 'error',
+      'barrel-files/avoid-re-export-all': 'error',
+      'functional/no-throw-statements': 'error',
+      'functional/no-try-statements': 'error',
+      'functional/no-let': 'error',
+      'functional/no-loop-statements': 'error',
+      'functional/prefer-property-signatures': 'error',
+      '@typescript-eslint/explicit-function-return-type': 'error',
+      '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      // Effect code should always handle promises properly
+      '@typescript-eslint/no-floating-promises': 'error',
+
+      'class-methods-use-this': 'error',
+      // Effect encourages immutability
+      'prefer-const': 'error',
+      'no-param-reassign': 'error',
+
+      // Allow Effect imports and prefer non-bundled @salesforce/core
+      'import/no-extraneous-dependencies': [
+        'error',
+        {
+          devDependencies: ['**/test/**', '**/scripts/**'],
+          // Allow Effect and core Salesforce dependencies
+          optionalDependencies: false
+        }
+      ],
+
+      // Effect code tends to use functional patterns
+      'prefer-arrow/prefer-arrow-functions': [
+        'error',
+        {
+          disallowPrototype: true,
+          singleReturnOnly: false,
+          classPropertiesAllowed: false
+        }
+      ],
+      '@typescript-eslint/no-explicit-any': 'error',
+
+      // Effect uses generators extensively - allow yield*
+      '@typescript-eslint/require-await': 'off',
+
+      // Effect service patterns
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off'
+    }
+  },
+  {
+    // Relaxed rules for test files in services and org-browser packages
+    files: [
+      'packages/salesforcedx-vscode-services/test/**/*.ts',
+      'packages/salesforcedx-vscode-org-browser/test/**/*.ts',
+      'packages/salesforcedx-vscode-services/playwright*.ts',
+      'packages/salesforcedx-vscode-org-browser/playwright*.ts'
+    ],
+    rules: {
+      // Deactivate import-order for tests to allow for mock-before-import
+      'effect/no-import-from-barrel-package': ['off'],
+
+      'import/order': 'off',
+      'functional/no-throw-statements': 'off',
+      'functional/no-try-statements': 'off',
+      'functional/no-let': 'off',
+      'functional/no-loop-statements': 'off',
+      'functional/prefer-property-signatures': 'off',
+      'import/no-extraneous-dependencies': 'off'
     }
   },
   eslintConfigPrettier

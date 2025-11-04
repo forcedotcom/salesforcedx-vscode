@@ -11,7 +11,7 @@ await build({
   ...nodeConfig,
   loader: { '.node': 'file' },
   external: [
-    'vscode',
+    ...nodeConfig.external,
     'applicationinsights',
     '@babel/preset-typescript/package.json',
     'jest-editor-support',

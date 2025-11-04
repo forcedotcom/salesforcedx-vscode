@@ -28,7 +28,7 @@ import {
   RequestStatus,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
-import { ChangeResult, SourceTracking, deleteCustomLabels } from '@salesforce/source-tracking';
+import type { ChangeResult, SourceTracking } from '@salesforce/source-tracking' with { 'resolution-mode': 'import' };
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -99,6 +99,7 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
   private async preChecks(): Promise<void> {
     if (this.isSourceTracked) {
       this.project ??= await SfProject.resolve();
+      const { SourceTracking } = await import('@salesforce/source-tracking');
       this.tracking = await SourceTracking.create({
         org: this.org,
         project: this.project,
@@ -279,6 +280,7 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
 
     // Find custom labels and create deletion promise (same as CLI)
     const customLabels = components.filter(isNonDecomposedCustomLabel);
+    const { deleteCustomLabels } = await import('@salesforce/source-tracking');
     const promisesFromLabels = customLabels[0]?.xml ? [deleteCustomLabels(customLabels[0].xml, customLabels)] : [];
 
     // Follow CLI pattern: only delete if not mixed deploy/delete operations

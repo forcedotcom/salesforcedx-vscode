@@ -1,0 +1,11 @@
+{
+  "apex_oas_general_class_access_modifiers": "Apex Open API 仕様の生成に適格なクラスアクセス修飾子の一般的な適格性。",
+  "apex_oas_general_method_access_modifiers": "Apex Open API 仕様の生成に適格なメソッドアクセス修飾子の一般的な適格性。",
+  "apex_oas_general_property_access_modifiers": "Apex Open API 仕様の生成に適格なプロパティアクセス修飾子の一般的な適格性。",
+  "apex_oas_generation_strategy": "Apex Open API 仕様の生成に使用される戦略。",
+  "apex_oas_generation_schema": "生成に OpenAPI スキーマを含めます。",
+  "apex_generation_output_token_limit": "出力で生成するトークンの最大数。",
+  "configuration_title": "Salesforce Apex OAS 設定",
+  "create_openapi_doc_class": "SFDX: このクラスから OpenAPI ドキュメントを作成 (ベータ)",
+  "validate_oas_document": "SFDX: OpenAPI ドキュメントを検証 (ベータ)"
+}
