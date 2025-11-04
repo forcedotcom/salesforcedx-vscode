@@ -6,7 +6,7 @@
  */
 
 import { stripAnsiInJson } from '../helpers/utils';
-import { CommandExecution } from '../types';
+import { CommandExecution } from '../types/commandExecution';
 import { JSON_FLAG } from './commandBuilder';
 
 export class CommandOutput {

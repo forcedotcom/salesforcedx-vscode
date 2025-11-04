@@ -18,7 +18,13 @@ export { MessageArgs } from './types/localization/messageArgs';
 export { LocalizationService } from './i18n/advancedLocalization';
 
 // Constants
-export { LOCALE_JA, MISSING_LABEL_MSG, SF_COMMAND, SF_CONFIG_ISV_DEBUGGER_SID, SF_CONFIG_ISV_DEBUGGER_URL, TELEMETRY_HEADER } from './constants';
+export {
+  LOCALE_JA,
+  MISSING_LABEL_MSG,
+  SF_CONFIG_ISV_DEBUGGER_SID,
+  SF_CONFIG_ISV_DEBUGGER_URL,
+  TELEMETRY_HEADER
+} from './constants';
 
 // Helpers
 export { getConnectionStatusFromError, shouldRemoveOrg } from './helpers/utils';
