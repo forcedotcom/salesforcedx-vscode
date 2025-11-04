@@ -26,9 +26,6 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "bin": {
-    "aura-language-server": "bin/aura-language-server.js"
-  },
   "scripts": {
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage",
     "compile": "tsc -p . && node scripts/build.js",
