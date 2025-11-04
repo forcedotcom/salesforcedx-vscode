@@ -24,7 +24,8 @@
 #### salesforcedx-vscode-core
 #### salesforcedx-vscode-soql
 
-- We made some changes under the hood. ([PR #6626](https://github.com/forcedotcom/salesforcedx-vscode/pull/6626)),([PR #6610](https://github.com/forcedotcom/salesforcedx-vscode/pull/6610)), ([PR #6619](https://github.com/forcedotcom/salesforcedx-vscode/pull/6619)),([PR #6625](https://github.com/forcedotcom/salesforcedx-vscode/pull/6625)), ([PR #6606](https://github.com/forcedotcom/salesforcedx-vscode/pull/6606)).
+- We made some changes under the hood. ([PR #6619](https://github.com/forcedotcom/salesforcedx-vscode/pull/6619)),([PR #6625](https://github.com/forcedotcom/salesforcedx-vscode/pull/6625)), ([PR #6606](https://github.com/forcedotcom/salesforcedx-vscode/pull/6606))
+- We fixed bugs related to grammar issues with Apex syntax highlighting. ([PR #6610](https://github.com/forcedotcom/salesforcedx-vscode/pull/6610)),([PR #6626](https://github.com/forcedotcom/salesforcedx-vscode/pull/6626))
 
 
 
