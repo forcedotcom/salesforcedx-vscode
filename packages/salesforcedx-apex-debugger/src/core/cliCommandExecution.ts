@@ -4,12 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { CancellationToken, CommandExecution, Command } from '@salesforce/salesforcedx-utils';
 import { ChildProcess } from 'node:child_process';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
-
-import { CancellationToken, CommandExecution } from '../types';
-import { Command } from './command';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const treeKill = require('tree-kill');

@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CliCommandExecutor, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import { BreakpointService } from '../../../src/core';
-import { DEBUGGER_BREAKPOINT_ID_PREFIX } from '../../../src/core/breakpointService';
+import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { BreakpointService, DEBUGGER_BREAKPOINT_ID_PREFIX } from '../../../src/core/breakpointService';
+import { CliCommandExecutor } from '../../../src/core/cliCommandExecutor';
 
 describe('breakpointService Unit Tests.', () => {
   const bpId = `${DEBUGGER_BREAKPOINT_ID_PREFIX}defabreakpoint`;

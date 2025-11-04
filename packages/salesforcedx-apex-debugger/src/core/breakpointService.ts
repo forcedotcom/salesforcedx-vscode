@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CliCommandExecutor, CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import { ApexBreakpointLocation, LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
 import { RequestService } from '../requestService/requestService';
+import { CliCommandExecutor } from './cliCommandExecutor';
 
 export const DEBUGGER_BREAKPOINT_ID_PREFIX = '07b';
 

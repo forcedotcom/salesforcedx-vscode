@@ -4,16 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Command, CancellationToken } from '@salesforce/salesforcedx-utils';
 import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/observable/fromEvent';
+import 'rxjs/add/observable/interval';
 import * as kill from 'tree-kill';
-import { CancellationToken, CliCommandExecution, Command } from '../../../src';
 import {
   CANCELLATION_INTERVAL,
   KILL_CODE,
   NO_PID_ERROR,
   NO_STDERR_ERROR,
-  NO_STDOUT_ERROR
-} from '../../../src/cli/cliCommandExecution';
+  NO_STDOUT_ERROR,
+  CliCommandExecution
+} from '../../../src/core/cliCommandExecution';
 
 jest.mock('tree-kill');
 

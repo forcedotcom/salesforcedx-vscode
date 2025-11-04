@@ -9,10 +9,8 @@ import * as cross_spawn from 'cross-spawn';
 import { SpawnOptions } from 'node:child_process';
 import 'rxjs/add/observable/fromEvent';
 import 'rxjs/add/observable/interval';
-import { TELEMETRY_HEADER } from '../constants';
-import { CancellationToken, Command } from '../types';
+import { TELEMETRY_HEADER, CancellationToken, Command, GlobalCliEnvironment } from '@salesforce/salesforcedx-utils';
 import { CliCommandExecution } from './cliCommandExecution';
-import { GlobalCliEnvironment } from './globalCliEnvironment';
 
 export class CliCommandExecutor {
   protected static patchEnv(options: SpawnOptions, baseEnvironment: Map<string, string>): SpawnOptions {
