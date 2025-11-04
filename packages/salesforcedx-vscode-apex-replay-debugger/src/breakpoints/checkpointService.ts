@@ -8,18 +8,13 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import type { Connection } from '@salesforce/core';
-import {
-  ActionScriptType,
-  breakpointUtil,
-  CHECKPOINT,
-  FIELD_INTEGRITY_EXCEPTION,
-  MAX_ALLOWED_CHECKPOINTS
-} from '@salesforce/salesforcedx-apex-replay-debugger';
+import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { code2ProtocolConverter, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { URI } from 'vscode-uri';
+import { ActionScriptType, CHECKPOINT, FIELD_INTEGRITY_EXCEPTION, MAX_ALLOWED_CHECKPOINTS } from '../debuggerConstants';
 import { retrieveLineBreakpointInfo, VSCodeWindowTypeEnum, writeToDebuggerOutputWindow } from '../index';
 import { nls } from '../messages';
 import { getVscodeCoreExtension } from '../utils/coreExtensionUtils';
