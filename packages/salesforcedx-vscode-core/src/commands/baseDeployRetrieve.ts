@@ -53,8 +53,10 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
       await componentSetUtils.setApiVersion(components);
       await componentSetUtils.setSourceApiVersion(components);
 
-      this.telemetry.addProperty(TELEMETRY_METADATA_COUNT, JSON.stringify(createComponentCount(components)));
-
+      this.telemetry.properties = {
+        ...this.telemetry.properties,
+        [TELEMETRY_METADATA_COUNT]: JSON.stringify(createComponentCount(components))
+      };
       result = await this.doOperation(components, token);
 
       // If result is undefined, it means no components were processed (empty ComponentSet)
@@ -116,7 +118,10 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
       await componentSetUtils.setSourceApiVersion(components);
 
       // Add telemetry
-      this.telemetry.addProperty(TELEMETRY_METADATA_COUNT, JSON.stringify(createComponentCount(components)));
+      this.telemetry.properties = {
+        ...this.telemetry.properties,
+        [TELEMETRY_METADATA_COUNT]: JSON.stringify(createComponentCount(components))
+      };
 
       // Perform the operation
       result = await this.doOperation(components, token ?? new vscode.CancellationTokenSource().token);

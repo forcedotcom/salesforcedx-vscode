@@ -84,7 +84,8 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./out/src",
+  "main": "./out/src/index.js",
+  "types": "./out/src/index.d.ts",
   "languageServerDir": "out",
   "contributes": {
     "viewsContainers": {

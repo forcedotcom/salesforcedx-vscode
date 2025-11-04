@@ -18,6 +18,7 @@ import {
   TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { Subject } from 'rxjs/Subject';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { channelService } from '../channel';
 import { nls } from '../messages';
@@ -113,6 +114,12 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
           );
         }
 
+        const coreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
+          'salesforce.salesforcedx-vscode-core'
+        );
+        if (coreExtension) {
+          coreExtension.exports.telemetryService.sendCommandEvent(execution.command.logName, startTime);
+        }
         this.logMetric(execution.command.logName, startTime);
       }
     });

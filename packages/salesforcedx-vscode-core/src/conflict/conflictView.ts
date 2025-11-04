@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { errorToString } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { ExtensionContext, TreeView, window } from 'vscode';
 import { channelService } from '../channels';
@@ -104,7 +105,7 @@ export class ConflictView {
     const node = this.dataProvider.getRevealNode();
     if (node) {
       Promise.resolve(this.treeView.reveal(node, { expand: true })).catch(e => {
-        const errorMessage = e.toString();
+        const errorMessage = errorToString(e);
         channelService.appendLine(`Error during reveal: ${errorMessage}`);
         telemetryService.sendException('ConflictDetectionException', errorMessage);
       });
