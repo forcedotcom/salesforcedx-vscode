@@ -76,8 +76,8 @@ export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
 }
 
 export class EmptyParametersGatherer implements ParametersGatherer<{}> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<{}>> {
-    return { type: 'CONTINUE', data: {} };
+  public gather(): Promise<CancelResponse | ContinueResponse<{}>> {
+    return Promise.resolve({ type: 'CONTINUE', data: {} });
   }
 }
 
