@@ -47,7 +47,7 @@ const getAppInsightsReporter = (
   userId: string,
   webUserId: string
 ): TelemetryReporter[] => {
-  console.log('adding AppInsights reporter.');
+  console.log(`adding AppInsights reporter for ${reporterName};${version}`);
   return [new AppInsights(reporterName, version, aiKey, userId, webUserId, true)];
 };
 

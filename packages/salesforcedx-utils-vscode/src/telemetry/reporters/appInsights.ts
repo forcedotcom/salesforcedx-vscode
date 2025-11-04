@@ -80,6 +80,7 @@ export class AppInsights
     if (this.uniqueUserMetrics && env) {
       this.appInsightsClient.context.tags['ai.user.id'] = this.userId;
       this.appInsightsClient.context.tags['ai.session.id'] = env.sessionId;
+      this.appInsightsClient.context.tags['ai.application.ver'] = this.extensionVersion;
       this.appInsightsClient.context.tags['ai.cloud.roleInstance'] = 'DEPRECATED';
     }
 
