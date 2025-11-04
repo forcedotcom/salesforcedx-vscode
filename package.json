@@ -76,7 +76,7 @@
     "jest-junit": "14.0.1",
     "jsonwebtoken-esm": "^2.0.1",
     "junit-report-merger": "7.0.0",
-    "lerna": "8.2.3",
+    "lerna": "8.2.4",
     "markdown-link-check": "^3.9.3",
     "mocha": "^11.7.1",
     "mocha-multi-reporters": "^1.1.7",
