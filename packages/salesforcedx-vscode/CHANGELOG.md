@@ -12,8 +12,7 @@
 
 #### salesforcedx-vscode-core
 
-- We added an experimental, web- and desktop-compatible Org Browser (behind a new config flag, default false). This update also ships the new Services extension for runtime use by other extensions. ([PR #6613](https://github.com/forcedotcom/salesforcedx-vscode/pull/6613))
-
+- We made some changes under the hood.
 
 ## Fixed
 
@@ -25,7 +24,7 @@
 #### salesforcedx-vscode-core
 #### salesforcedx-vscode-soql
 
-- We made some changes under the hood. ([PR #6626](https://github.com/forcedotcom/salesforcedx-vscode/pull/6626)),([PR #6610](https://github.com/forcedotcom/salesforcedx-vscode/pull/6610)), ([PR #6619](https://github.com/forcedotcom/salesforcedx-vscode/pull/6619)),([PR #6625](https://github.com/forcedotcom/salesforcedx-vscode/pull/6625))
+- We made some changes under the hood. ([PR #6626](https://github.com/forcedotcom/salesforcedx-vscode/pull/6626)),([PR #6610](https://github.com/forcedotcom/salesforcedx-vscode/pull/6610)), ([PR #6619](https://github.com/forcedotcom/salesforcedx-vscode/pull/6619)),([PR #6625](https://github.com/forcedotcom/salesforcedx-vscode/pull/6625)), ([PR #6606](https://github.com/forcedotcom/salesforcedx-vscode/pull/6606)).
 
 
 
