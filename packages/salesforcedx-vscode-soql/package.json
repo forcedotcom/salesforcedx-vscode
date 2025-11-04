@@ -31,7 +31,7 @@
     "soql builder"
   ],
   "dependencies": {
-    "@salesforce/apex-tmlanguage": "1.8.2",
+    "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/salesforcedx-sobjects-faux-generator": "65.3.0",
     "@salesforce/salesforcedx-utils-vscode": "65.3.0",
     "@salesforce/soql-builder-ui": "1.0.0",

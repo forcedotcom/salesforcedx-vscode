@@ -27,7 +27,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-node": "^8.3.1",
-    "@salesforce/apex-tmlanguage": "1.8.2",
+    "@salesforce/apex-tmlanguage": "^1.8.3",
     "@salesforce/salesforcedx-utils": "65.3.0",
     "@salesforce/salesforcedx-utils-vscode": "65.3.0",
     "find-java-home": "1.2.2",
