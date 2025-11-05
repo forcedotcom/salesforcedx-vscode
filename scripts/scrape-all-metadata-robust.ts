@@ -250,7 +250,11 @@ async function extractMetadataFromPage(contentFrame: any, url: string, typeName:
         const hasType = headers.some(h => h.includes('type'));
         const hasDesc = headers.some(h => h.includes('description') || h.includes('detail'));
 
-        if (!hasField || !hasType || !hasDesc) continue;
+        // Accept tables with all 3 columns OR 2-column format (field name + description)
+        const isTraditionalFormat = hasField && hasType && hasDesc;
+        const isNestedFormat = headers.length === 2 && hasField && hasDesc;
+
+        if (!isTraditionalFormat && !isNestedFormat) continue;
 
         // Find column indices
         const fieldIdx = headers.findIndex(
@@ -289,11 +293,72 @@ async function extractMetadataFromPage(contentFrame: any, url: string, typeName:
         for (const row of rows) {
           const cells = Array.from(row.querySelectorAll('td, th'));
 
-          if (cells.length < 3) continue;
+          if (cells.length < 2) continue;
 
-          const fieldName = cells[fieldIdx >= 0 ? fieldIdx : 0]?.textContent?.trim() || '';
-          const fieldType = cells[typeIdx >= 0 ? typeIdx : 1]?.textContent?.trim() || '';
-          const description = cells[descIdx >= 0 ? descIdx : 2]?.textContent?.trim() || '';
+          let fieldName = '';
+          let fieldType = '';
+          let description = '';
+
+          // Try traditional 3-column format first
+          if (cells.length >= 3 && typeIdx >= 0 && descIdx >= 0) {
+            fieldName = cells[fieldIdx >= 0 ? fieldIdx : 0]?.textContent?.trim() || '';
+            fieldType = cells[typeIdx]?.textContent?.trim() || '';
+            description = cells[descIdx]?.textContent?.trim() || '';
+          } else {
+            // Try nested format (2 columns: Field Name, then nested Field Type + Description)
+            fieldName = cells[0]?.textContent?.trim() || '';
+
+            if (cells.length >= 2) {
+              const secondCell = cells[1];
+
+              // Try to find Field Type - look for first link or text after "Field Type" label
+              const typeLink = secondCell.querySelector('a[href*="meta_"]');
+              if (typeLink) {
+                fieldType = typeLink.textContent?.trim() || '';
+              } else {
+                // Look for text that looks like a type (capitalized words, array notation)
+                const allText = secondCell.textContent || '';
+                const typeMatch = allText.match(/Field Type\s*([A-Z][\w\[\]]+)/);
+                if (typeMatch) {
+                  fieldType = typeMatch[1];
+                }
+              }
+
+              // Try to find Description - look for text after "Description" label
+              const descElements = Array.from(secondCell.querySelectorAll('*'));
+              let foundDescLabel = false;
+              for (const elem of descElements) {
+                const text = elem.textContent?.trim() || '';
+                if (text.toLowerCase() === 'description') {
+                  foundDescLabel = true;
+                } else if (foundDescLabel && text && text.length > 10) {
+                  description = text;
+                  break;
+                }
+              }
+
+              // Fallback: if no structured description found, get all text after type
+              if (!description) {
+                const fullText = secondCell.textContent || '';
+                const lines = fullText
+                  .split('\n')
+                  .map(l => l.trim())
+                  .filter(l => l);
+                // Description is usually the last substantial line
+                for (let i = lines.length - 1; i >= 0; i--) {
+                  if (
+                    lines[i].length > 20 &&
+                    !lines[i].toLowerCase().includes('field type') &&
+                    !lines[i].toLowerCase().includes('description') &&
+                    lines[i] !== fieldType
+                  ) {
+                    description = lines[i];
+                    break;
+                  }
+                }
+              }
+            }
+          }
 
           if (fieldName && fieldType && description && !fieldName.toLowerCase().includes('field')) {
             tableFields.push({
