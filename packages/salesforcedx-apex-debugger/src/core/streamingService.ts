@@ -11,7 +11,7 @@ import { ApexDebuggerEventType, StreamingClient, StreamingClientInfo } from './s
 export class StreamingService {
   public static SYSTEM_EVENT_CHANNEL = '/systemTopic/ApexDebuggerSystemEvent';
   public static USER_EVENT_CHANNEL = '/systemTopic/ApexDebuggerEvent';
-  public static DEFAULT_TIMEOUT = 14400;
+  public static DEFAULT_TIMEOUT = 14_400;
   private static instance: StreamingService;
   private readonly apiVersion = '41.0';
   private systemEventClient!: StreamingClient;
