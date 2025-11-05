@@ -89,7 +89,7 @@ export const allSalesforceExtensions: ExtensionConfig[] = [
   },
   {
     extensionId: 'salesforcedx-vscode-lightning',
-    name: 'Lightning Web Components',
+    name: 'Aura Components',
     shouldInstall: 'optional',
     shouldVerifyActivation: true
   },
