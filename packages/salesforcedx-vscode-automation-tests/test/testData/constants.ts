@@ -101,7 +101,7 @@ export const allSalesforceExtensions: ExtensionConfig[] = [
   },
   {
     extensionId: 'salesforcedx-vscode-visualforce',
-    name: 'salesforcedx-vscode-visualforce',
+    name: 'Visualforce',
     shouldInstall: 'optional',
     shouldVerifyActivation: true
   }
