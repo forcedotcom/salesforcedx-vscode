@@ -9,7 +9,7 @@ import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
 import { OrgList } from '../../../src/orgPicker';
-import { OrgAuthInfo } from '../../../src/util';
+import * as util from '../../../src/util';
 import * as orgUtil from '../../../src/util/orgUtil';
 
 describe('OrgList tests', () => {
@@ -83,7 +83,7 @@ describe('OrgList tests', () => {
     orgList = new OrgList();
     getAuthFieldsForMock = jest.spyOn(orgUtil, 'getAuthFieldsFor');
     getUsernameForMock = jest.spyOn(ConfigUtil, 'getUsernameFor');
-    getDevHubUsernameMock = jest.spyOn(OrgAuthInfo, 'getDevHubUsername');
+    getDevHubUsernameMock = jest.spyOn(util, 'getDevHubUsername');
     getAllMock = jest.fn();
     fakeStateAggregator = {
       aliases: {

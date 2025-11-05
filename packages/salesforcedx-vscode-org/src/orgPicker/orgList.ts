@@ -9,7 +9,7 @@ import { CancelResponse, ConfigUtil, ContinueResponse, OrgUserInfo } from '@sale
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { OrgAuthInfo } from '../util';
+import { getDevHubUsername } from '../util';
 import { getAuthFieldsFor } from '../util/orgUtil';
 
 const getCoreApi = (): SalesforceVSCodeCoreApi | undefined => {
@@ -73,7 +73,7 @@ export class OrgList implements vscode.Disposable {
   }
 
   public async filterAuthInfo(orgAuthorizations: OrgAuthorization[], showExpired: boolean = false): Promise<string[]> {
-    const targetDevHub = await OrgAuthInfo.getDevHubUsername();
+    const targetDevHub = await getDevHubUsername();
 
     const authList = [];
     for (const orgAuth of orgAuthorizations) {

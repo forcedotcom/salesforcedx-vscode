@@ -5,7 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { OrgAuthInfo } from '@salesforce/salesforcedx-utils-vscode';
+export {
+  getDevHubUsername,
+  getTargetOrgOrAlias,
+  getTargetDevHubOrAlias,
+  getUsername,
+  isAScratchOrg,
+  isASandboxOrg,
+  getDevHubIdFromScratchOrg,
+  getConnection,
+  getAuthFields
+} from '@salesforce/salesforcedx-utils-vscode';
 export {
   disableCLITelemetry,
   isCLIInstalled,

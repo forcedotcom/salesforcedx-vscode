@@ -21,7 +21,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { OrgAuthInfo } from '../util';
+import { getTargetOrgOrAlias, getUsername } from '../util';
 
 class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }> {
   private flag: string | undefined;
@@ -41,13 +41,13 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
       let targetUsername: string;
 
       if (this.flag === '--target-org' && username) {
-        targetUsername = await OrgAuthInfo.getUsername(username);
+        targetUsername = await getUsername(username);
       } else {
-        const targetOrgOrAlias = await OrgAuthInfo.getTargetOrgOrAlias(true);
+        const targetOrgOrAlias = await getTargetOrgOrAlias(true);
         if (!targetOrgOrAlias) {
           throw new Error(nls.localize('error_no_target_org'));
         }
-        targetUsername = await OrgAuthInfo.getUsername(targetOrgOrAlias);
+        targetUsername = await getUsername(targetOrgOrAlias);
       }
 
       // Use the shared OrgDisplay class from utils

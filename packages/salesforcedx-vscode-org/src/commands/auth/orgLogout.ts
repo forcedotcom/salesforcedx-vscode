@@ -21,7 +21,7 @@ import {
 import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
-import { OrgAuthInfo } from '../../util';
+import { getTargetOrgOrAlias, getUsername, isAScratchOrg } from '../../util';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 // SimpleGatherer - need to inline this small utility
 class SimpleGatherer<T> implements ParametersGatherer<T> {
@@ -104,14 +104,14 @@ const resolveTargetOrg = async (): Promise<{
   alias?: string;
   error?: Error;
 }> => {
-  const usernameOrAlias = await OrgAuthInfo.getTargetOrgOrAlias(false);
+  const usernameOrAlias = await getTargetOrgOrAlias(false);
   if (usernameOrAlias) {
-    const username = await OrgAuthInfo.getUsername(usernameOrAlias);
+    const username = await getUsername(usernameOrAlias);
     const alias = username !== usernameOrAlias ? usernameOrAlias : undefined;
     let isScratch = false;
 
     try {
-      isScratch = await OrgAuthInfo.isAScratchOrg(username);
+      isScratch = await isAScratchOrg(username);
     } catch (err) {
       return { error: err, isScratch: false };
     }

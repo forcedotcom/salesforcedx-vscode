@@ -34,7 +34,17 @@ export {
   VISUALFORCE_DEBUG_LEVEL
 } from './constants';
 export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
-export { OrgAuthInfo } from './util/authInfo';
+export {
+  getDevHubUsername,
+  getTargetOrgOrAlias,
+  getTargetDevHubOrAlias,
+  getUsername,
+  isAScratchOrg,
+  isASandboxOrg,
+  getDevHubIdFromScratchOrg,
+  getConnection,
+  getAuthFields
+} from './util/authInfo';
 export { TelemetryService, TelemetryBuilder } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
 export * from './helpers';

@@ -6,12 +6,12 @@
  */
 
 import type { PreconditionChecker } from '../types';
-import { OrgAuthInfo } from '../util/authInfo';
+import { getTargetDevHubOrAlias } from '../util/authInfo';
 
 /** Checks if a Dev Hub is configured */
 export class DevUsernameChecker implements PreconditionChecker {
   public async check(): Promise<boolean> {
-    const targetDevHubOrAlias = await OrgAuthInfo.getTargetDevHubOrAlias(true);
+    const targetDevHubOrAlias = await getTargetDevHubOrAlias(true);
     if (!targetDevHubOrAlias) {
       return false;
     }

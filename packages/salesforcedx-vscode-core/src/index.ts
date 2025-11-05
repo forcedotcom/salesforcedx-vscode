@@ -15,8 +15,7 @@ import {
   TimingUtils,
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath,
-  isSalesforceProjectOpened,
-  OrgAuthInfo
+  isSalesforceProjectOpened
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as os from 'node:os';
@@ -219,7 +218,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     getAuthFields: OrgAuthInfoExtensions.getAuthFields,
     isCLIInstalled,
     notificationService,
-    OrgAuthInfo,
     ProgressNotification,
     SelectFileName,
     SelectOutputDir,
@@ -391,7 +389,6 @@ export type SalesforceVSCodeCoreApi = {
   getAuthFields: typeof OrgAuthInfoExtensions.getAuthFields;
   isCLIInstalled: typeof isCLIInstalled;
   notificationService: typeof notificationService;
-  OrgAuthInfo: typeof OrgAuthInfo;
   ProgressNotification: typeof ProgressNotification;
   SelectFileName: typeof SelectFileName;
   SelectOutputDir: typeof SelectOutputDir;

@@ -4,49 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { OrgUserInfo, WorkspaceContextUtil, OrgAuthInfo, OrgShape } from '@salesforce/salesforcedx-utils-vscode';
+import * as utilsVscode from '@salesforce/salesforcedx-utils-vscode';
+import { OrgUserInfo, WorkspaceContextUtil, OrgShape } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { WorkspaceContext, workspaceContextUtils } from '../../../src/context';
-
-jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
-  OrgAuthInfo: {
-    getDevHubIdFromScratchOrg: jest.fn()
-  }
-}));
-
-jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
-  ConfigUtil: {
-    getTargetOrgOrAlias: jest.fn().mockResolvedValue('test@example.com')
-  }
-}));
-
-jest.mock('vscode', () => ({
-  window: {
-    createStatusBarItem: jest.fn(),
-    createOutputChannel: jest.fn().mockReturnValue({
-      appendLine: jest.fn(),
-      show: jest.fn(),
-      dispose: jest.fn()
-    })
-  },
-  workspace: {
-    workspaceFolders: [
-      {
-        uri: { fsPath: '/mock/workspace/path' },
-        name: 'test-workspace',
-        index: 0
-      }
-    ]
-  },
-  StatusBarAlignment: {
-    Left: 1
-  },
-  Disposable: class MockDisposable {
-    public dispose() {}
-  }
-}));
 
 describe('workspaceContext', () => {
   describe('handleCliConfigChange', () => {
@@ -125,7 +86,7 @@ describe('workspaceContext', () => {
 
       getOrgShapeMock = jest.spyOn(workspaceContextUtils, 'getOrgShape').mockResolvedValue('Undefined');
 
-      getDevHubIdFromScratchOrgMock = jest.spyOn(OrgAuthInfo, 'getDevHubIdFromScratchOrg');
+      getDevHubIdFromScratchOrgMock = jest.spyOn(utilsVscode, 'getDevHubIdFromScratchOrg').mockResolvedValue(undefined);
     });
 
     it('should set orgShape and devHubId to undefined if orgShape is Undefined', async () => {

@@ -13,7 +13,7 @@ import {
   UserService,
   refreshAllExtensionReporters,
   handleTraceFlagCleanup,
-  OrgAuthInfo
+  getDevHubIdFromScratchOrg
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { workspaceContextUtils } from '.';
@@ -69,7 +69,7 @@ export class WorkspaceContext {
         WorkspaceContextUtil.getInstance().devHubId = undefined;
       }
       if (orgShape === 'Scratch') {
-        const devHubId = await OrgAuthInfo.getDevHubIdFromScratchOrg(username);
+        const devHubId = await getDevHubIdFromScratchOrg(username);
         WorkspaceContextUtil.getInstance().devHubId = devHubId;
       }
     }
