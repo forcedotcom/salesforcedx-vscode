@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "65.3.0",
+  "version": "65.3.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -31,9 +31,9 @@
     "soql builder"
   ],
   "dependencies": {
-    "@salesforce/apex-tmlanguage": "1.8.2",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "65.3.0",
-    "@salesforce/salesforcedx-utils-vscode": "65.3.0",
+    "@salesforce/apex-tmlanguage": "^1.8.3",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "65.3.1",
+    "@salesforce/salesforcedx-utils-vscode": "65.3.1",
     "@salesforce/soql-builder-ui": "1.0.0",
     "@salesforce/soql-common": "0.2.1",
     "@salesforce/soql-data-view": "0.1.0",
@@ -46,11 +46,11 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
-    "@salesforce/salesforcedx-utils": "65.3.0",
+    "@salesforce/salesforcedx-utils": "65.3.1",
     "@salesforce/ts-types": "2.0.12",
     "@types/papaparse": "^5.2.3",
     "esbuild": "0.25.10",
-    "salesforcedx-vscode-core": "65.3.0"
+    "salesforcedx-vscode-core": "65.3.1"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
@@ -62,7 +62,7 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "copy:files": "shx cp -R ../../node_modules/@salesforce/apex-tmlanguage/grammars .",
+    "copy:files": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage ./grammars/",
     "test": "jest --coverage",
     "vscode:package": "vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",

@@ -25,6 +25,7 @@ import {
   DestructiveChangesType,
   FileResponse,
   FileResponseSuccess,
+  MetadataComponent,
   RequestStatus,
   SourceComponent
 } from '@salesforce/source-deploy-retrieve';
@@ -496,10 +497,10 @@ const someContentsEndWithPath =
     // walkContent returns absolute paths while sourcepath will usually be relative
     cmp.walkContent().some(content => content.endsWith(sourcePath));
 
-const allChildrenAreNotAddressable = (comp: any): boolean => {
+const allChildrenAreNotAddressable = (comp: MetadataComponent): boolean => {
   const types = Object.values(comp.type.children?.types ?? {});
-  return types.length > 0 && types.every((child: any) => child.isAddressable === false);
+  return types.length > 0 && types.every(child => child.isAddressable === false);
 };
 
-const isNonDecomposedCustomLabel = (component: any): boolean =>
+const isNonDecomposedCustomLabel = (component: MetadataComponent): boolean =>
   component.type.name === 'CustomLabel' && !component.type.strategies?.adapter;

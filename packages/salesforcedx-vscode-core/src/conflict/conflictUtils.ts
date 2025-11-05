@@ -20,7 +20,7 @@ import { DeployRetrieveOperationType } from '../util/types';
 import { diffComponents } from './componentDiffer';
 import { DirectoryDiffResults, TimestampFileProperties } from './directoryDiffer';
 import { getConflictMessagesFor, ConflictLogName } from './messages';
-import { MetadataCacheService } from './metadataCacheService';
+import { MetadataCacheResult, MetadataCacheService } from './metadataCacheService';
 
 /**
  * Compares two files to determine if they differ in content.
@@ -143,7 +143,7 @@ const resolveConflictFilePaths = async (conflicts: ChangeResult[]): Promise<stri
  * Creates DirectoryDiffResults from cache result and project components
  */
 const createDiffResultsFromCache = async (
-  cacheResult: any,
+  cacheResult: MetadataCacheResult,
   actualFilePaths: string[]
 ): Promise<DirectoryDiffResults> => {
   const different = new Set<TimestampFileProperties>();
@@ -151,7 +151,7 @@ const createDiffResultsFromCache = async (
   // Match cache components with project components and find differences
   for (const cacheComponent of cacheResult.cache.components) {
     const projectComponent = cacheResult.project.components.find(
-      (proj: any) => proj.fullName === cacheComponent.fullName && proj.type === cacheComponent.type
+      proj => proj.fullName === cacheComponent.fullName && proj.type === cacheComponent.type
     );
 
     if (projectComponent) {
