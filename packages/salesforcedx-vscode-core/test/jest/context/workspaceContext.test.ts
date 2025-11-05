@@ -4,10 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as utilsVscode from '@salesforce/salesforcedx-utils-vscode';
-import { OrgUserInfo, WorkspaceContextUtil, OrgShape } from '@salesforce/salesforcedx-utils-vscode';
+import { OrgUserInfo, OrgShape, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { WorkspaceContext, workspaceContextUtils } from '../../../src/context';
+
+const getDevHubIdFromScratchOrgMock = jest.fn();
+jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
+  ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
+  getDevHubIdFromScratchOrg: (...args: any[]) => getDevHubIdFromScratchOrgMock(...args)
+}));
 
 describe('workspaceContext', () => {
   describe('handleCliConfigChange', () => {
@@ -64,7 +69,6 @@ describe('workspaceContext', () => {
     const mockOrgUserInfo: OrgUserInfo = { username: 'test-username' };
     let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
     let getOrgShapeMock: jest.SpyInstance;
-    let getDevHubIdFromScratchOrgMock: jest.SpyInstance;
 
     const mockWorkspaceContextUtil = {
       onOrgChange: jest.fn(),
@@ -86,7 +90,7 @@ describe('workspaceContext', () => {
 
       getOrgShapeMock = jest.spyOn(workspaceContextUtils, 'getOrgShape').mockResolvedValue('Undefined');
 
-      getDevHubIdFromScratchOrgMock = jest.spyOn(utilsVscode, 'getDevHubIdFromScratchOrg').mockResolvedValue(undefined);
+      getDevHubIdFromScratchOrgMock.mockResolvedValue(undefined);
     });
 
     it('should set orgShape and devHubId to undefined if orgShape is Undefined', async () => {
