@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ContinueResponse, LocalComponent, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import type { LocalComponent } from '../../util/types';
+import { ContinueResponse, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import type { ComponentLike } from '@salesforce/source-deploy-retrieve/lib/src/resolve/types';
 import * as path from 'node:path';

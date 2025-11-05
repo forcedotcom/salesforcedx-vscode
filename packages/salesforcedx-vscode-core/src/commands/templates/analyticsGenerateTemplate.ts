@@ -9,10 +9,10 @@ import {
   CancelResponse,
   CompositeParametersGatherer,
   ContinueResponse,
-  DirFileNameSelection,
   ParametersGatherer,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
+import type { DirFileNameSelection } from '../../util/types';
 import { AnalyticsTemplateOptions, TemplateType } from '@salesforce/templates';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';

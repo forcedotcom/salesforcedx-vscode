@@ -105,7 +105,6 @@ export {
   SFDX_FOLDER
 } from './constants';
 
-export type { DirFileNameSelection, LocalComponent } from './types';
 export type { ContinueResponse, CancelResponse, ParametersGatherer } from './commands/parameterGatherers';
 export type { PreconditionChecker } from './commands/preconditionCheckers';
 export type { PostconditionChecker } from './commands/postconditionCheckers';

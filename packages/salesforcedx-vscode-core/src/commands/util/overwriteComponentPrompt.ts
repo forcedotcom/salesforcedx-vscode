@@ -7,10 +7,10 @@
 
 import {
   fileOrFolderExists,
-  LocalComponent,
   PostconditionChecker,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import type { LocalComponent } from '../../util/types';
 import { join } from 'node:path';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';

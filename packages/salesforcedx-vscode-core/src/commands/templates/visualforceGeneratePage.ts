@@ -7,10 +7,9 @@
 
 import {
   CompositeParametersGatherer,
-  DirFileNameSelection,
-  LocalComponent,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
+import type { DirFileNameSelection, LocalComponent } from '../../util/types';
 import { TemplateType, VisualforcePageOptions } from '@salesforce/templates';
 import { nls } from '../../messages';
 import { MetadataTypeGatherer, SelectFileName, SelectOutputDir, SfCommandlet } from '../util';

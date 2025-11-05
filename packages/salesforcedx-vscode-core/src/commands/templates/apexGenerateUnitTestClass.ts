@@ -7,11 +7,11 @@
 
 import {
   CompositeParametersGatherer,
-  LocalComponent,
   ParametersGatherer,
   SfWorkspaceChecker,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import type { LocalComponent } from '../../util/types';
 import * as path from 'node:path';
 import type { URI } from 'vscode-uri';
 import { MetadataTypeGatherer, OverwriteComponentPrompt, SfCommandlet, SimpleGatherer } from '../util';

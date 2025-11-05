@@ -7,11 +7,11 @@
 import {
   CancelResponse,
   ContinueResponse,
-  LocalComponent,
   ParametersGatherer,
   SFDX_LWC_EXTENSION_NAME,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import type { LocalComponent } from '../../util/types';
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';

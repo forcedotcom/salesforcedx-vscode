@@ -7,10 +7,9 @@
 
 import {
   CompositeParametersGatherer,
-  DirFileNameSelection,
-  LocalComponent,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
+import type { DirFileNameSelection, LocalComponent } from '../../util/types';
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';

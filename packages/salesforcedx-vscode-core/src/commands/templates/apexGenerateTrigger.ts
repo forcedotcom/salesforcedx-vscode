@@ -7,10 +7,10 @@
 
 import {
   CompositeParametersGatherer,
-  LocalComponent,
   ParametersGatherer,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
+import type { LocalComponent } from '../../util/types';
 import { MetadataTypeGatherer, SelectFileName, SelectOutputDir, SfCommandlet } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { LibraryApexGenerateTriggerExecutor } from './executors/libraryApexGenerateTriggerExecutor';
