@@ -71,7 +71,7 @@ export class MetadataOutlineProvider implements vscode.TreeDataProvider<BrowserN
         let nodeType: NodeType = NodeType.MetadataComponent;
         if (TypeUtils.FOLDER_TYPES.has(element.fullName)) {
           nodeType = NodeType.Folder;
-        } else if (element.parent && element.parent.fullName === CUSTOMOBJECTS_FULLNAME) {
+        } else if (element.parent?.fullName === CUSTOMOBJECTS_FULLNAME) {
           nodeType = NodeType.MetadataField;
         }
 

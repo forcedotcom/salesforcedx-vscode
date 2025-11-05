@@ -371,37 +371,100 @@ async function discoverMetadataTypes(page: Page): Promise<Array<{ name: string; 
     const links = await contentFrame.evaluate(() => {
       const metadataLinks: Array<{ name: string; url: string }> = [];
 
-      // Helper to traverse Shadow DOMs
+      // Sections to exclude from the sidebar (we only want individual "Metadata Types" pages)
+      const excludedSections = [
+        'file-based calls',
+        'crud-based calls',
+        'utility calls',
+        'result objects',
+        'headers',
+        'metadata components and types',
+        'metadata coverage report',
+        'unsupported metadata types',
+        'special behavior in metadata api deployments'
+      ];
+
+      // Helper to traverse Shadow DOMs and find metadata type links
       function findLinks(root: Document | ShadowRoot | Element) {
-        const allLinks = Array.from(root.querySelectorAll('a[href]'));
+        // Look for navigation lists that contain the links
+        const navLists = Array.from(root.querySelectorAll('ul, ol, nav'));
 
-        for (const link of allLinks) {
-          const href = (link as HTMLAnchorElement).href || link.getAttribute('href') || '';
-          const text = link.textContent?.trim() || '';
+        for (const list of navLists) {
+          // Check if this list or its parent section has an excluded header
+          let parent: Element | null = list;
+          let isExcludedSection = false;
 
-          // Match metadata type documentation links
-          // Exclude intro, index, overview, and other non-type pages
-          const isMetadataTypePage =
-            href.includes('/api_meta/') &&
-            (href.includes('meta_') || href.match(/\/[a-z]+\.htm/)) &&
-            !href.includes('meta_types') &&
-            !href.includes('_intro') &&
-            !href.includes('_overview') &&
-            !href.includes('index.htm') &&
-            !href.includes('meta_calls') &&
-            !href.includes('result_objects') &&
-            !href.includes('sforce_api') &&
-            text.length > 0 &&
-            text.length < 100 &&
-            !text.toLowerCase().includes('intro') &&
-            !text.toLowerCase().includes('overview') &&
-            !text.toLowerCase().includes('calls') &&
-            !text.toLowerCase().includes('objects');
+          // Walk up the DOM to find section headers
+          while (parent && parent !== root) {
+            const prevSiblings: Element[] = [];
+            let sibling = parent.previousElementSibling;
 
-          if (isMetadataTypePage) {
-            const name = text.trim();
-            if (name && !metadataLinks.some(ml => ml.url === href)) {
-              metadataLinks.push({ name, url: href });
+            // Collect previous siblings (potential headers)
+            for (let i = 0; i < 5 && sibling; i++) {
+              prevSiblings.push(sibling);
+              sibling = sibling.previousElementSibling;
+            }
+
+            // Check if any preceding header matches excluded sections
+            for (const header of prevSiblings) {
+              const headerText = header.textContent?.toLowerCase().trim() || '';
+              if (excludedSections.some(excluded => headerText.includes(excluded))) {
+                isExcludedSection = true;
+                break;
+              }
+            }
+
+            if (isExcludedSection) break;
+            parent = parent.parentElement;
+          }
+
+          // Skip this list if it's in an excluded section
+          if (isExcludedSection) continue;
+
+          // Extract links from this list
+          const allLinks = Array.from(list.querySelectorAll('a[href]'));
+
+          for (const link of allLinks) {
+            const href = (link as HTMLAnchorElement).href || link.getAttribute('href') || '';
+            const text = link.textContent?.trim() || '';
+
+            // Match metadata type documentation links
+            // Exclude intro, index, overview, and other non-type pages
+            const isMetadataTypePage =
+              href.includes('/api_meta/') &&
+              (href.includes('meta_') || href.match(/\/[a-z]+\.htm/)) &&
+              !href.includes('meta_types') &&
+              !href.includes('_intro') &&
+              !href.includes('_overview') &&
+              !href.includes('index.htm') &&
+              !href.includes('meta_calls') &&
+              !href.includes('meta_deploy') &&
+              !href.includes('meta_retrieve') &&
+              !href.includes('meta_delete') &&
+              !href.includes('meta_describe') &&
+              !href.includes('meta_list') &&
+              !href.includes('meta_read') &&
+              !href.includes('meta_update') &&
+              !href.includes('meta_cancel') &&
+              !href.includes('meta_check') &&
+              !href.includes('result_objects') &&
+              !href.includes('sforce_api') &&
+              text.length > 0 &&
+              text.length < 100 &&
+              !text.toLowerCase().includes('intro') &&
+              !text.toLowerCase().includes('overview');
+
+            // Also exclude if the link text itself is an excluded section name
+            const textLower = text.toLowerCase();
+            const isExcludedText = excludedSections.some(
+              excluded => textLower === excluded || textLower.includes('call')
+            );
+
+            if (isMetadataTypePage && !isExcludedText) {
+              const name = text.trim();
+              if (name && !metadataLinks.some(ml => ml.url === href)) {
+                metadataLinks.push({ name, url: href });
+              }
             }
           }
         }

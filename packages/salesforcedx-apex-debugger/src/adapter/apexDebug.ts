@@ -1376,7 +1376,7 @@ export class ApexDebug extends LoggingDebugSession {
       logMessage += ` | ${message.sobject.Description}`;
       const regExp: RegExp = /^(.*)\[(\d+)\]\|/;
       const matches = message.sobject.Description.match(regExp);
-      if (matches && matches.length === 3) {
+      if (matches?.length === 3) {
         const possibleClassName = matches[1];
         const possibleClassLine = parseInt(matches[2], 10);
         const possibleSourcePath = this.myBreakpointService.getSourcePathFromPartialTyperef(possibleClassName);
