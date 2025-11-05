@@ -51,6 +51,12 @@ export const allSalesforceExtensions: ExtensionConfig[] = [
     shouldVerifyActivation: false
   },
   {
+    extensionId: 'salesforcedx-vscode-org',
+    name: 'Salesforce Org Management',
+    shouldInstall: 'always',
+    shouldVerifyActivation: false
+  },
+  {
     extensionId: 'salesforcedx-einstein-gpt',
     name: 'Agentforce Vibes',
     shouldInstall: 'optional',
