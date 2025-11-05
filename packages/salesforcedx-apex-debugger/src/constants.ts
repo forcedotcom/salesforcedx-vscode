@@ -19,11 +19,11 @@ export const LIVESHARE_DEBUG_TYPE_REQUEST = 'debugType';
 export const EXCEPTION_BREAKPOINT_REQUEST = 'exceptionBreakpoint';
 
 // used within this package only
-export const DEFAULT_STREAMING_TIMEOUT_MS = 14400;
-export const DEFAULT_LOCK_TIMEOUT_MS = 10000;
-export const DEFAULT_IDLE_TIMEOUT_MS = 1200000;
-export const DEFAULT_IDLE_WARN1_MS = 600000;
-export const DEFAULT_IDLE_WARN2_MS = 900000;
-export const DEFAULT_IDLE_WARN3_MS = 1080000;
+export const DEFAULT_STREAMING_TIMEOUT_MS = 14_400;
+export const DEFAULT_LOCK_TIMEOUT_MS = 10_000;
+export const DEFAULT_IDLE_TIMEOUT_MS = 1_200_000;
+export const DEFAULT_IDLE_WARN1_MS = 600_000;
+export const DEFAULT_IDLE_WARN2_MS = 900_000;
+export const DEFAULT_IDLE_WARN3_MS = 1_080_000;
 export const SALESFORCE_EXCEPTION_PREFIX = 'com/salesforce/api/exception/';
 export const TRIGGER_EXCEPTION_PREFIX = '__sfdc_trigger/';
