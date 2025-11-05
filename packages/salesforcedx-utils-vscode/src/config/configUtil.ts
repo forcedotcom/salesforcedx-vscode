@@ -8,7 +8,7 @@
 import { Config, ConfigAggregator, Org, OrgConfigProperties, StateAggregator } from '@salesforce/core';
 import { workspaceUtils } from '..';
 import { SF_CONFIG_DISABLE_TELEMETRY, TARGET_DEV_HUB_KEY, TARGET_ORG_KEY } from '../constants';
-import { ConfigAggregatorProvider } from '../providers';
+import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
 import { TelemetryService } from '../services/telemetry';
 
 export enum ConfigSource {

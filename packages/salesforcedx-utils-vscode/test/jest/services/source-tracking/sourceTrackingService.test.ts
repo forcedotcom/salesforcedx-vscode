@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'node:path';
-import { WorkspaceContextUtil } from '../../../../src';
+import { WorkspaceContextUtil } from '../../../../src/context/workspaceContextUtil';
 import { SourceTrackingProvider } from '../../../../src/providers/sourceTrackingProvider';
-import { SourceTrackingService } from '../../../../src/services';
+import { SourceTrackingService } from '../../../../src/services/sourceTrackingService';
 import { testData } from './testData';
 
 jest.mock('@salesforce/core', () => ({

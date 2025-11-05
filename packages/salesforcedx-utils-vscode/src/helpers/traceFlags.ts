@@ -9,8 +9,8 @@ import * as vscode from 'vscode';
 import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
 import { APEX_CODE_DEBUG_LEVEL, TRACE_FLAG_EXPIRATION_KEY, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
-import { optionHHmm, optionMMddYYYY } from '../date';
-import { nls } from '../messages';
+import { optionHHmm, optionMMddYYYY } from '../date/format';
+import { nls } from '../messages/messages';
 
 type DebugLevelRecord = {
   ApexCode: string;

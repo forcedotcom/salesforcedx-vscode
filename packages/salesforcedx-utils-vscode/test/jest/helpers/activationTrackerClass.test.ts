@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { ExtensionContext } from 'vscode';
 import { ActivationTracker } from '../../../src/helpers/activationTracker';
 import { getExtensionInfo } from '../../../src/helpers/activationTrackerUtils';
 import { TimingUtils } from '../../../src/helpers/timingUtils';
-import { TelemetryServiceInterface } from '../../../src/types';
 
 jest.mock('../../../src/helpers/timingUtils', () => ({
   TimingUtils: {

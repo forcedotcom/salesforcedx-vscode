@@ -18,8 +18,8 @@
  */
 
 import * as vscode from 'vscode';
-import { AppInsights } from '../../../../src';
-import * as Settings from '../../../../src/settings';
+import * as Settings from '../../../../src/settings/settingsService';
+import { AppInsights } from '../../../../src/telemetry/reporters/appInsights';
 import { determineReporters } from '../../../../src/telemetry/reporters/determineReporters';
 import { LogStream } from '../../../../src/telemetry/reporters/logStream';
 import { LogStreamConfig } from '../../../../src/telemetry/reporters/logStreamConfig';

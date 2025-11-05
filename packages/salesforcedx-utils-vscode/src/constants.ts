@@ -4,6 +4,18 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+
+export const CLIENT_ID = 'sfdx-vscode';
+export const DEFAULT_CONNECTION_TIMEOUT_MS = 20000;
+export const SFDX_PROJECT_FILE = 'sfdx-project.json';
+export const SFDX_FOLDER = '.sfdx';
+
+export const ENV_SF_TARGET_ORG = 'SF_TARGET_ORG';
+export const ENV_SF_ORG_INSTANCE_URL = 'SF_ORG_INSTANCE_URL';
+
+export const SF_CONFIG_ISV_DEBUGGER_SID = 'org-isv-debugger-sid';
+export const SF_CONFIG_ISV_DEBUGGER_URL = 'org-isv-debugger-url';
+
 export const ADVANCED = 'advanced';
 export const DEFAULT_AIKEY = 'ec3632a4-df47-47a4-98dc-8134cacbaf7e';
 export const LOCAL_TELEMETRY_FILE = 'telemetry.json';

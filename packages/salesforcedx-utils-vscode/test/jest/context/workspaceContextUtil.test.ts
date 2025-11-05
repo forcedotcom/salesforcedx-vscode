@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 import { ConfigAggregatorProvider, TelemetryService, WorkspaceContextUtil } from '../../../src';
 import { ConfigUtil } from '../../../src/config/configUtil';
 import { WORKSPACE_CONTEXT_ORG_ID_ERROR } from '../../../src/context/workspaceContextUtil';
-import { nls } from '../../../src/messages';
+import { nls } from '../../../src/messages/messages';
 
 jest.mock('@salesforce/core', () => ({
   Logger: {

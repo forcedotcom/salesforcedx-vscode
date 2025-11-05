@@ -7,10 +7,10 @@
 
 import type { TelemetryReporterWithModifiableUserProperties } from './telemetryReporterConfig';
 import { O11yService } from '@salesforce/o11y-reporter';
+import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as os from 'node:os';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
-import { TelemetryReporter } from '../../types';
 import { isInternalHost } from '../utils/isInternal';
 import { CommonProperties, InternalProperties } from './loggingProperties';
 

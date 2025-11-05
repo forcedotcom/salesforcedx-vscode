@@ -9,10 +9,10 @@ import type { Connection } from '@salesforce/core';
 import type { DeployResult, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import type { SourceTracking, StatusOutputRow } from '@salesforce/source-tracking' with { 'resolution-mode': 'import' };
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
-import { nls } from '../messages';
-import { Table } from '../output';
-import { SourceTrackingProvider } from '../providers';
-import { getRootWorkspacePath } from '../workspaces';
+import { nls } from '../messages/messages';
+import { Table } from '../output/table';
+import { SourceTrackingProvider } from '../providers/sourceTrackingProvider';
+import { getRootWorkspacePath } from '../workspaces/workspaceUtils';
 
 export type SourceTrackingType = SourceTracking;
 

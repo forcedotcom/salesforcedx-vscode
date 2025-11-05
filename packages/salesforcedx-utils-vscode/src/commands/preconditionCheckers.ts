@@ -6,11 +6,15 @@
  */
 
 import * as path from 'node:path';
+import { SFDX_PROJECT_FILE } from '../constants';
 import { fileOrFolderExists } from '../helpers/fs';
-import { nls } from '../messages';
-import { PreconditionChecker, SFDX_PROJECT_FILE } from '../types';
-import { workspaceUtils } from '../workspaces';
+import { nls } from '../messages/messages';
+import { workspaceUtils } from '../workspaces/workspaceUtils';
 import { NotificationService } from './notificationService';
+
+export type PreconditionChecker = {
+  check(): Promise<boolean> | boolean;
+};
 
 export const isSalesforceProjectOpened = async (): Promise<
   { result: true; message?: never } | { result: false; message: string }

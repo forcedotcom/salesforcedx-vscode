@@ -4,7 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CancelResponse, ContinueResponse, ParametersGatherer } from '../types';
+export type ContinueResponse<T> = {
+  type: 'CONTINUE';
+  data: T;
+};
+
+export type CancelResponse = {
+  type: 'CANCEL';
+  msg?: string;
+};
+
+export type ParametersGatherer<T> = {
+  gather(): Promise<CancelResponse | ContinueResponse<T>>;
+};
 
 export class CompositeParametersGatherer<T> implements ParametersGatherer<T> {
   private readonly gatherers: ParametersGatherer<any>[];

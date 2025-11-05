@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { extractJson } from '../helpers';
+import { extractJson } from '../helpers/utils';
 
 export type OrgCreateSuccessResult = {
   status: number;
