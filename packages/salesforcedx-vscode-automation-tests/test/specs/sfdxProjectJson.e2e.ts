@@ -7,7 +7,8 @@
 import {
   pause,
   TestReqConfig,
-  ProjectShapeOption
+  ProjectShapeOption,
+  ExtensionConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { createOrOverwriteFile } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import {
@@ -46,7 +47,7 @@ describe('Customize sfdx-project.json', () => {
   it('Verify our extensions are loaded after updating sfdx-project.json', async () => {
     expect(
       await verifyExtensionsAreRunning(
-        getExtensionsToVerifyActive(ext =>
+        getExtensionsToVerifyActive(defaultExtensionConfigs, (ext: ExtensionConfig) =>
           defaultExtensionConfigs.some(config => config.extensionId === ext.extensionId)
         )
       )

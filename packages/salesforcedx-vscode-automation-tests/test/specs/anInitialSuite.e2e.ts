@@ -19,7 +19,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction/workbench';
 import { expect } from 'chai';
 import { after } from 'vscode-extension-tester';
-import { defaultExtensionConfigs } from '../testData/constants';
+import { defaultExtensionConfigs, allSalesforceExtensions } from '../testData/constants';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 /*
@@ -55,7 +55,7 @@ describe('An Initial Suite', () => {
       await zoom('Out', 4, Duration.seconds(1));
 
       const foundSfExtensions = await findExtensionsInRunningExtensionsList(
-        getExtensionsToVerifyActive().map((ext: { extensionId: string }) => ext.extensionId)
+        getExtensionsToVerifyActive(allSalesforceExtensions).map(ext => ext.extensionId)
       );
       await zoomReset();
       if (foundSfExtensions.length > 0) {
