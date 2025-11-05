@@ -18,7 +18,7 @@ const CONFIG_DIR = path.join(__dirname, '..', '..', 'test', 'integration', 'conf
 const LOG_FOLDER = path.join(CONFIG_DIR, 'logs');
 
 describe('Replay debugger adapter - integration', () => {
-  jest.setTimeout(320000);
+  jest.setTimeout(320_000);
   let goldFileUtil: GoldFileUtil;
   let dc: DebugClient;
   let projectPath: string;
@@ -33,7 +33,7 @@ describe('Replay debugger adapter - integration', () => {
     // tests (adapter needs to be launched in debug mode separately).
     dc = new DebugClient('node', './out/src/adapter/apexReplayDebug.js', 'apex-replay');
     await dc.start();
-    dc.defaultTimeout = 10000;
+    dc.defaultTimeout = 10_000;
   });
 
   afterAll(async () => {
