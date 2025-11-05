@@ -47,7 +47,7 @@ export const allSalesforceExtensions: ExtensionConfig[] = [
   },
   {
     extensionId: 'salesforcedx-einstein-gpt',
-    name: 'Einstein for Developers (Beta)',
+    name: 'Agentforce Vibes',
     shouldInstall: 'optional',
     shouldVerifyActivation: false
   },
