@@ -24,6 +24,8 @@ Originally, extensions in this monorepo shared some utils packages (utils and ut
 
 There's also an extension called vscode-core which supplies many common features. Extensions "export" the return type of their `activate` method, which can be called by other extensions. This is probably the best way to minimize dependencies.
 
+See the example from [Telemetry.md](../Telemetry.md) for how to get the TelemetryService from the core extension. Using the same technique, you could also get a Salesforce Project, or a Connection to the target-org, etc without having to work with the sfdx-core library directly.
+
 It is also possible to call commands from another extension if they're properly registered. It's somewhat fragile because it's an implicit dependency (you could change the id of a command without the other extension knowing) and should be a last resort.
 
 If you're developing multiple extensions, a shared code package (similar to the utils packages in this repo) can work.
