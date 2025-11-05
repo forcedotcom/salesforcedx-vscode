@@ -115,7 +115,7 @@ export class OrgList implements vscode.Disposable {
 
   public async updateOrgList(): Promise<string[]> {
     const orgAuthorizations = await this.getOrgAuthorizations();
-    if (orgAuthorizations && orgAuthorizations.length === 0) {
+    if (orgAuthorizations?.length === 0) {
       return [];
     }
     const authUsernameList = await this.filterAuthInfo(orgAuthorizations);
