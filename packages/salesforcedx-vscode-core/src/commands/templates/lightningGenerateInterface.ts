@@ -5,11 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CompositeParametersGatherer,
-  SfWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode';
 import type { DirFileNameSelection, LocalComponent } from '../../util/types';
+import { CompositeParametersGatherer, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningInterfaceOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';

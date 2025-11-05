@@ -5,12 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  fileOrFolderExists,
-  PostconditionChecker,
-  workspaceUtils
-} from '@salesforce/salesforcedx-utils-vscode';
 import type { LocalComponent } from '../../util/types';
+import { fileOrFolderExists, PostconditionChecker, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'node:path';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';

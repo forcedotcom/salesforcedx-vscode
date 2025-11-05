@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { LocalComponent } from '../../util/types';
 import {
   CancelResponse,
   ContinueResponse,
@@ -11,7 +12,6 @@ import {
   SFDX_LWC_EXTENSION_NAME,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
-import type { LocalComponent } from '../../util/types';
 import { globSync } from 'glob';
 import * as path from 'node:path';
 import * as vscode from 'vscode';

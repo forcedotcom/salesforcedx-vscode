@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { DirFileNameSelection } from '../../util/types';
 import {
   CancelResponse,
   CompositeParametersGatherer,
@@ -12,7 +13,6 @@ import {
   ParametersGatherer,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import type { DirFileNameSelection } from '../../util/types';
 import { AnalyticsTemplateOptions, TemplateType } from '@salesforce/templates';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
