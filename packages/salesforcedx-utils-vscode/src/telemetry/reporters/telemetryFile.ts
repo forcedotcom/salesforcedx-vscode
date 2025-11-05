@@ -6,7 +6,8 @@
  */
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as path from 'node:path';
-import { Uri, workspace } from 'vscode';
+import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { getRootWorkspacePath } from '../..';
 import { LOCAL_TELEMETRY_FILE } from '../../constants';
 
@@ -14,11 +15,11 @@ import { LOCAL_TELEMETRY_FILE } from '../../constants';
  * Represents a telemetry file that logs telemetry events by appending to a local file.
  */
 export class TelemetryFile implements TelemetryReporter {
-  private fileUri: Uri;
+  private fileUri: URI;
   private buffer: string = '';
 
   constructor(extensionId: string) {
-    this.fileUri = Uri.file(path.join(getRootWorkspacePath(), `${extensionId}-${LOCAL_TELEMETRY_FILE}`));
+    this.fileUri = URI.file(path.join(getRootWorkspacePath(), `${extensionId}-${LOCAL_TELEMETRY_FILE}`));
     console.log(
       `Local telemetry event logging enabled for: ${extensionId}. Telemetry events will be appended to the file at: ${
         this.fileUri.fsPath
@@ -73,7 +74,7 @@ export class TelemetryFile implements TelemetryReporter {
 
   private async flushBuffer(): Promise<void> {
     try {
-      await workspace.fs.writeFile(this.fileUri, Buffer.from(this.buffer));
+      await vscode.workspace.fs.writeFile(this.fileUri, Buffer.from(this.buffer));
     } catch (error) {
       console.error('Failed to write telemetry log:', error);
     }

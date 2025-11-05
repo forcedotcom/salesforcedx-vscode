@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  TelemetryService,
+import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import type {
   ActivationInfo,
   Measurements,
   Properties,
   TelemetryData,
   TelemetryReporter,
   TelemetryServiceInterface
-} from '@salesforce/salesforcedx-utils-vscode';
+} from '@salesforce/vscode-service-provider';
 import { ExtensionContext } from 'vscode';
 
 export class MockTelemetryService extends TelemetryService implements TelemetryServiceInterface {
