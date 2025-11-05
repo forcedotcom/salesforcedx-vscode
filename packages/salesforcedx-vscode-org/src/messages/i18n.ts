@@ -5,16 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/**
- * Conventions:
- * _message: is for unformatted text that will be shown as-is to
- * the user.
- * _text: is for text that will appear in the UI, possibly with
- * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
- * be localized
- *
- * If omitted, we will assume _message.
- */
 export const messages = {
   auth_custom_detail: 'Enter a custom login URL',
   auth_custom_label: 'Custom',

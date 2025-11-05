@@ -29,8 +29,8 @@ class SimpleGatherer<T> implements ParametersGatherer<T> {
   constructor(data: T) {
     this.data = data;
   }
-  public async gather(): Promise<ContinueResponse<T>> {
-    return { type: 'CONTINUE', data: this.data };
+  public gather(): Promise<ContinueResponse<T>> {
+    return Promise.resolve({ type: 'CONTINUE', data: this.data });
   }
 }
 

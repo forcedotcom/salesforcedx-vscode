@@ -65,7 +65,7 @@ const initializeOrgPicker = (extensionContext: vscode.ExtensionContext): void =>
   void showOrg();
 };
 
-export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
+export const activate = (extensionContext: vscode.ExtensionContext): void => {
   console.log('Salesforce Org Management extension activated');
 
   // Register output channel
@@ -78,6 +78,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   initializeOrgPicker(extensionContext);
 };
 
-export const deactivate = async (): Promise<void> => {
+export const deactivate = (): void => {
   console.log('Salesforce Org Management extension deactivated');
 };
