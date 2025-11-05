@@ -4,10 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 
+import { Connection, Org } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import {
-  OrgDisplay,
   RequestService,
   SF_CONFIG_ISV_DEBUGGER_SID,
   SF_CONFIG_ISV_DEBUGGER_URL,
@@ -140,9 +141,10 @@ export class ApexVariable extends Variable {
 
   constructor(value: Value, kind: ApexVariableKind, variableReference?: number, numOfChildren?: number) {
     // For collection types, pass numOfChildren as indexedVariables to parent constructor
-    const indexedVariables = kind === ApexVariableKind.Collection && numOfChildren !== undefined && numOfChildren > 0
-      ? numOfChildren
-      : undefined;
+    const indexedVariables =
+      kind === ApexVariableKind.Collection && numOfChildren !== undefined && numOfChildren > 0
+        ? numOfChildren
+        : undefined;
 
     super(value.name, ApexVariable.valueAsString(value), variableReference, indexedVariables);
     this.declaredTypeRef = value.declaredTypeRef;
@@ -596,9 +598,19 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
       } else {
-        const orgInfo = await new OrgDisplay().getOrgInfo(args.salesforceProject);
-        this.myRequestService.instanceUrl = orgInfo.instanceUrl;
-        this.myRequestService.accessToken = orgInfo.accessToken;
+        try {
+          const conn = await this.getTargetOrgConnection();
+          if (!conn.instanceUrl || !conn.accessToken) {
+            response.message = nls.localize('could_not_get_instance_url_or_access_token_using_org');
+            this.errorToDebugConsole(nls.localize('could_not_get_instance_url_or_access_token_using_org'));
+            return this.sendResponse(response);
+          }
+          this.myRequestService.instanceUrl = conn.instanceUrl;
+          this.myRequestService.accessToken = conn.accessToken;
+        } catch (error) {
+          response.message = error instanceof Error ? error.message : String(error);
+          return this.sendResponse(response);
+        }
       }
 
       const isStreamingConnected = await this.connectStreaming(args.salesforceProject);
@@ -669,6 +681,32 @@ export class ApexDebug extends LoggingDebugSession {
       }
     }
     this.sendResponse(response);
+  }
+
+  public async getTargetOrgConnection(): Promise<Connection> {
+    const configAggregator = await ConfigAggregator.create();
+    const targetOrg = configAggregator.getPropertyValue<string>('target-org');
+    if (!targetOrg) {
+      throw new Error(nls.localize('no_target_org_found'));
+    }
+    try {
+      const org = await Org.create({ aliasOrUsername: targetOrg });
+      if (!org) {
+        throw new Error(nls.localize('could_not_create_org_using_target_org'));
+      }
+      const conn = org.getConnection();
+      if (!conn) {
+        throw new Error(nls.localize('could_not_get_connection_using_org'));
+      }
+      if (!conn.instanceUrl || !conn.accessToken) {
+        throw new Error(nls.localize('could_not_get_instance_url_or_access_token_using_org'));
+      }
+      this.myRequestService.instanceUrl = conn.instanceUrl;
+      this.myRequestService.accessToken = conn.accessToken;
+      return conn;
+    } catch (error) {
+      throw new Error(`${nls.localize('could_not_create_org_using_target_org')}: ${String(error)}`);
+    }
   }
 
   private initBreakpointSessionServices(args: LaunchRequestArguments): void {
@@ -1262,9 +1300,9 @@ export class ApexDebug extends LoggingDebugSession {
         response.message = nls.localize('unexpected_error_help_text');
         this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${error}`);
       }
-    } catch {
+    } catch (parseError) {
       response.message = response.message ?? nls.localize('unexpected_error_help_text');
-      this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${error}`);
+      this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${String(parseError)}`);
     }
   }
 
