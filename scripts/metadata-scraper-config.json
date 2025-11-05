@@ -1,0 +1,44 @@
+{
+  "metadataTypes": [
+    {
+      "name": "ApexClass",
+      "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_classes.htm"
+    },
+    {
+      "name": "ApexComponent",
+      "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_apexcomponent.htm"
+    },
+    {
+      "name": "ApexPage",
+      "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_apexpage.htm"
+    },
+    {
+      "name": "ApexTrigger",
+      "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_apextrigger.htm"
+    },
+    {
+      "name": "CustomObject",
+      "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm"
+    },
+    {
+      "name": "CustomField",
+      "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customfield.htm"
+    },
+    {
+      "name": "Layout",
+      "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_layout.htm"
+    },
+    {
+      "name": "Profile",
+      "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_profile.htm"
+    },
+    {
+      "name": "PermissionSet",
+      "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_permissionset.htm"
+    },
+    {
+      "name": "ValidationRule",
+      "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_validationrule.htm"
+    }
+  ]
+}
