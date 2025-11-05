@@ -2,6 +2,8 @@
 
 This docs folder's purpose is to onboard developers to vscode extension development in general, whether or not you contribute to this particular repo. Seems as good of a place as any.
 
+If you're contributing to this repo, be sure to the docs in `contributing`
+
 ## Documentation Index
 
 ### Core Topics
@@ -30,7 +32,7 @@ You've caught us in the middle of a giant transition, so apologies for how confu
 
 ## Where to Put Code
 
-This repo is owned by Extensions team (IDEE Experience, or Foundations). You probably don't want your code here if you're building a new extension. You **might** want your code here if you're adding a feature that closely ties to something already here (ex: Apex or LWC).
+This repo is owned by Extensions team (IDE Experience, aka IDE Foundations). You probably don't want your code here if you're building a new extension. You **might** want your code here if you're adding a feature that closely ties to something already here (ex: Apex or LWC).
 
 There are other extensions (code-analyzer, or the vibe coding extension) that live in other repos, then build/bundle/package/publish from their repo, and are included in one of our extension packs.
 
