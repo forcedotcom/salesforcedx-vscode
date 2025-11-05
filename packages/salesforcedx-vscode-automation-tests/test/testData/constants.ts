@@ -14,6 +14,11 @@ export const defaultExtensionConfigs: ExtensionConfig[] = [
     shouldInstall: 'always'
   },
   {
+    extensionId: 'salesforcedx-vscode-org',
+    shouldVerifyActivation: true,
+    shouldInstall: 'always'
+  },
+  {
     extensionId: 'salesforcedx-vscode-apex',
     shouldVerifyActivation: true,
     shouldInstall: 'always'
