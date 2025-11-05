@@ -40,7 +40,7 @@ export class OrgBrowserPage {
     try {
       await Promise.any(
         ['[aria-label*="Explorer"]', '.explorer-viewlet', '#workbench\\.parts\\.sidebar .explorer-folders-view'].map(
-          selector => this.page.waitForSelector(selector, { state: 'visible', timeout: 15000 })
+          selector => this.page.waitForSelector(selector, { state: 'visible', timeout: 15_000 })
         )
       );
     } catch {
@@ -55,7 +55,7 @@ export class OrgBrowserPage {
           'text=sfdx-project.json',
           '.monaco-list-row:has-text("sfdx-project.json")',
           '[aria-label*="sfdx-project.json"]'
-        ].map(selector => this.page.waitForSelector(selector, { state: 'visible', timeout: 15000 }))
+        ].map(selector => this.page.waitForSelector(selector, { state: 'visible', timeout: 15_000 }))
       );
     } catch {
       throw new Error('sfdx-project.json not found - Salesforce project may not be loaded');
@@ -68,7 +68,7 @@ export class OrgBrowserPage {
   public async openOrgBrowser(): Promise<void> {
     await this.waitForProject();
     await expect(this.activityBarItem, 'Activity bar item for Org Browser should be visible').toBeVisible({
-      timeout: 15000
+      timeout: 15_000
     });
 
     // Trigger navigation to Org Browser and wait for the types response
@@ -95,7 +95,7 @@ export class OrgBrowserPage {
       ...(isDesktop
         ? [
             expect(twistie, 'Went to loading state')
-              .toContainClass('codicon-tree-item-loading', { timeout: 2_000 })
+              .toContainClass('codicon-tree-item-loading', { timeout: 2000 })
               .catch(() => undefined) // allow it to continue if it never hit loading state, but we at least delayed it before coming back to
           ]
         : [this.awaitMdapiResponse()])
@@ -109,7 +109,7 @@ export class OrgBrowserPage {
 
     await expect(twistie, 'Folder twistie should show expanded state after metadata response').toContainClass(
       'codicon-tree-item-expanded',
-      { timeout: 6_000 }
+      { timeout: 6000 }
     );
 
     // there's an ugly scenario where the expand happens but none of the children are on the screen so you can't search them properly.
@@ -245,7 +245,7 @@ export class OrgBrowserPage {
    * @param timeout Maximum time to wait in milliseconds
    * throws if no file opens
    */
-  public async waitForFileToOpenInEditor(timeout = 10000): Promise<void> {
+  public async waitForFileToOpenInEditor(timeout = 10_000): Promise<void> {
     await this.page.waitForFunction(
       () =>
         Array.from(document.querySelectorAll('.monaco-workbench .tabs-container .tab'))

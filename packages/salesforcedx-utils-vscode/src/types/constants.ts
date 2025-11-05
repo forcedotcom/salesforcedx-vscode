@@ -6,7 +6,7 @@
  */
 
 export const CLIENT_ID = 'sfdx-vscode';
-export const DEFAULT_CONNECTION_TIMEOUT_MS = 20000;
+export const DEFAULT_CONNECTION_TIMEOUT_MS = 20_000;
 export const TARGET_ORG_KEY = 'target-org';
 export const SFDX_PROJECT_FILE = 'sfdx-project.json';
 export const SFDX_FOLDER = '.sfdx';

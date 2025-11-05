@@ -116,8 +116,8 @@ describe('conflictUtils', () => {
     it('should handle large content efficiently with Promise.all', async () => {
       const large1Path = path.join(path.sep, 'path', 'to', 'large1.txt');
       const large2Path = path.join(path.sep, 'path', 'to', 'large2.txt');
-      const largeContent1 = 'a'.repeat(10000);
-      const largeContent2 = 'b'.repeat(10000);
+      const largeContent1 = 'a'.repeat(10_000);
+      const largeContent2 = 'b'.repeat(10_000);
 
       workspaceFsReadFileMock
         .mockResolvedValueOnce(Buffer.from(largeContent1))

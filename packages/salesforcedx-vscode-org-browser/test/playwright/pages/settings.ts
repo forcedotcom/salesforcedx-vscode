@@ -28,7 +28,7 @@ const settingsLocator = (page: Page): Locator =>
 
 /** Open the Command Palette and execute Preferences: Open Settings (UI) */
 const openSettingsUI = async (page: Page): Promise<void> => {
-  await page.waitForSelector('.monaco-workbench', { timeout: 60000 });
+  await page.waitForSelector('.monaco-workbench', { timeout: 60_000 });
   await page.locator('.monaco-workbench').click({ timeout: 5000 });
   await page.waitForTimeout(2000);
   await executeCommandWithCommandPalette(page, 'Preferences: Open Settings UI');
@@ -102,10 +102,10 @@ const upsertSettings = async (page: Page, settings: Record<string, string>): Pro
     }
 
     // Fail fast if the deterministic row isn't found — do not fall back to label-based heuristics
-    await rowById.waitFor({ state: 'attached', timeout: 15000 });
+    await rowById.waitFor({ state: 'attached', timeout: 15_000 });
     const row = rowById;
 
-    await row.waitFor({ state: 'visible', timeout: 30000 });
+    await row.waitFor({ state: 'visible', timeout: 30_000 });
     if (debugAria) {
       try {
         const rowHtml = await row.innerHTML();
@@ -115,10 +115,10 @@ const upsertSettings = async (page: Page, settings: Record<string, string>): Pro
 
     // Always fill via the row role textbox
     const roleTextbox = row.getByRole('textbox').first();
-    await roleTextbox.waitFor({ timeout: 30000 });
+    await roleTextbox.waitFor({ timeout: 30_000 });
     await roleTextbox.click({ timeout: 5000 });
     await roleTextbox.fill(value);
-    await expect(roleTextbox).toHaveValue(value, { timeout: 10000 });
+    await expect(roleTextbox).toHaveValue(value, { timeout: 10_000 });
     await roleTextbox.blur();
 
     // Capture after state

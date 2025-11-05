@@ -86,6 +86,7 @@ export default [
       'unicorn/no-useless-length-check': 'error',
       'unicorn/no-useless-promise-resolve-reject': 'error',
       'unicorn/no-useless-spread': 'error',
+      'unicorn/numeric-separators-style': 'error',
       'unicorn/prefer-at': 'error',
       'unicorn/prefer-array-find': 'error',
       'unicorn/prefer-includes': 'error',

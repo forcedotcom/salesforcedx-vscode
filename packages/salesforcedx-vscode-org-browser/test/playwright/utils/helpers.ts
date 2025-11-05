@@ -79,7 +79,7 @@ export const filterNetworkErrors = (errors: NetworkError[]): NetworkError[] =>
 export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promise<void> => {
   // Desktop: page is already loaded by Electron, no navigation possible
   if (isDesktop) {
-    await page.waitForSelector('.monaco-workbench', { timeout: 60000 });
+    await page.waitForSelector('.monaco-workbench', { timeout: 60_000 });
     return;
   }
 
@@ -87,7 +87,7 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
   if (navigate) {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
   }
-  await page.waitForSelector('.monaco-workbench', { timeout: 60000 });
+  await page.waitForSelector('.monaco-workbench', { timeout: 60_000 });
 };
 
 export const typingSpeed = 50; // ms

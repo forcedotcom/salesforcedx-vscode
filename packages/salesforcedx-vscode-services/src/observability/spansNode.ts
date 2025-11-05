@@ -31,7 +31,7 @@ export const NodeSdkLayer = NodeSdk.layer(() => ({
               storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
             }),
             {
-              exportTimeoutMillis: 15000,
+              exportTimeoutMillis: 15_000,
               maxQueueSize: 1000
             }
           )

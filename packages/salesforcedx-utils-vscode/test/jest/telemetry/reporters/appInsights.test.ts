@@ -168,10 +168,10 @@ describe('AppInsights', () => {
           model: 'AMD EPYC 7763 64-Core Processor',
           speed: 3242,
           times: {
-            user: 100000,
+            user: 100_000,
             nice: 0,
-            sys: 100000,
-            idle: 1000000,
+            sys: 100_000,
+            idle: 1_000_000,
             irq: 0
           }
         }

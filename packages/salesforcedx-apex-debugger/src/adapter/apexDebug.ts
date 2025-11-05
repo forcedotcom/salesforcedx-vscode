@@ -514,8 +514,8 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
-            DEFAULT_IDLE_WARN1_MS / 60000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60000
+            DEFAULT_IDLE_WARN1_MS / 60_000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60_000
           )
         );
       }, DEFAULT_IDLE_WARN1_MS),
@@ -523,8 +523,8 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
-            DEFAULT_IDLE_WARN2_MS / 60000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60000
+            DEFAULT_IDLE_WARN2_MS / 60_000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60_000
           )
         );
       }, DEFAULT_IDLE_WARN2_MS),
@@ -532,13 +532,13 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
-            DEFAULT_IDLE_WARN3_MS / 60000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60000
+            DEFAULT_IDLE_WARN3_MS / 60_000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60_000
           )
         );
       }, DEFAULT_IDLE_WARN3_MS),
       setTimeout(() => {
-        this.warnToDebugConsole(nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60000));
+        this.warnToDebugConsole(nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60_000));
         this.sendEvent(new TerminatedEvent());
       }, DEFAULT_IDLE_TIMEOUT_MS)
     );

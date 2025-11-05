@@ -107,7 +107,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
       }
     });
 
-    await page.waitForSelector('.monaco-workbench', { timeout: 60000 });
+    await page.waitForSelector('.monaco-workbench', { timeout: 60_000 });
     await use(page);
   }
 });

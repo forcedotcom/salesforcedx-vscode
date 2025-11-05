@@ -86,7 +86,7 @@ export class TelemetryService implements TelemetryServiceInterface {
     } else {
       // Convert hrtime [seconds, nanoseconds] to milliseconds since epoch
       const [seconds, nanoseconds] = hrTime;
-      return seconds * 1000 + nanoseconds / 1000000;
+      return seconds * 1000 + nanoseconds / 1_000_000;
     }
   }
 
