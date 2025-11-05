@@ -6,8 +6,8 @@
  */
 
 import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
-import { CliCommandExecutor } from './cliCommandExecutor';
 import { RequestService } from '../requestService/requestService';
+import { CliCommandExecutor } from './cliCommandExecutor';
 
 export class SessionService {
   private userFilter?: string;
