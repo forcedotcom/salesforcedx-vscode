@@ -4,7 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { pause, TestReqConfig, ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import {
+  pause,
+  TestReqConfig,
+  ProjectShapeOption,
+  ExtensionConfig
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { createOrOverwriteFile } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import {
   getExtensionsToVerifyActive,
@@ -40,7 +45,13 @@ describe('Customize sfdx-project.json', () => {
   });
 
   it('Verify our extensions are loaded after updating sfdx-project.json', async () => {
-    expect(await verifyExtensionsAreRunning(getExtensionsToVerifyActive(defaultExtensionConfigs))).to.equal(true);
+    expect(
+      await verifyExtensionsAreRunning(
+        getExtensionsToVerifyActive(defaultExtensionConfigs, (ext: ExtensionConfig) =>
+          defaultExtensionConfigs.some(config => config.extensionId === ext.extensionId)
+        )
+      )
+    ).to.equal(true);
   });
 
   after('Tear down and clean up the testing environment', async () => {

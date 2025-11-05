@@ -10,7 +10,8 @@ import {
   ProjectShapeOption,
   pause,
   openFile,
-  Duration
+  Duration,
+  ExtensionConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { log } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
 import {
@@ -54,7 +55,7 @@ import {
   ExtensionsViewItem,
   DefaultTreeItem
 } from 'vscode-extension-tester';
-import { defaultExtensionConfigs, oasExtensionConfig } from '../testData/constants';
+import { defaultExtensionConfigs } from '../testData/constants';
 import {
   getIdealCaseManagerOASDoc,
   getSfdxProjectJson,
@@ -74,7 +75,14 @@ describe('Create OpenAPI v3 Specifications', () => {
     },
     isOrgRequired: true,
     testSuiteSuffixName: 'CreateOASDoc',
-    extensionConfigs: [...defaultExtensionConfigs, oasExtensionConfig]
+    extensionConfigs: [
+      ...defaultExtensionConfigs,
+      {
+        extensionId: 'salesforcedx-vscode-apex-oas',
+        shouldVerifyActivation: false,
+        shouldInstall: 'always'
+      }
+    ]
   };
 
   before('Set up the testing environment', async () => {
@@ -164,7 +172,11 @@ describe('Create OpenAPI v3 Specifications', () => {
     await openFile(path.join(classesFolderPath, 'IneligibleApexClass.cls'));
     if (process.platform === 'win32') {
       await reloadWindow();
-      await verifyExtensionsAreRunning(getExtensionsToVerifyActive(defaultExtensionConfigs));
+      await verifyExtensionsAreRunning(
+        getExtensionsToVerifyActive(defaultExtensionConfigs, (ext: ExtensionConfig) =>
+          defaultExtensionConfigs.some(config => config.extensionId === ext.extensionId)
+        )
+      );
       const workbench = getWorkbench();
       await getTextEditor(workbench, 'IneligibleApexClass.cls');
     } else {
