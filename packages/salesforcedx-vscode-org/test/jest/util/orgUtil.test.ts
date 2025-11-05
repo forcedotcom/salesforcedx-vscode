@@ -25,8 +25,8 @@ describe('orgUtil tests', () => {
   const orgName1 = 'dreamhouse-org';
   const orgName2 = 'ebikes-lwc';
   const now = new Date();
-  const threeDaysFromNow = new Date(now.getTime() + 24 * 3 * 60 * 60000);
-  const yesterday = new Date(now.getTime() - 24 * 60 * 60000);
+  const threeDaysFromNow = new Date(now.getTime() + 24 * 3 * 60 * 60_000);
+  const yesterday = new Date(now.getTime() - 24 * 60 * 60_000);
 
   beforeEach(() => {
     mockWatcher = {
