@@ -15,7 +15,8 @@ import {
   TimingUtils,
   ensureCurrentWorkingDirIsProjectPath,
   getRootWorkspacePath,
-  isSalesforceProjectOpened
+  isSalesforceProjectOpened,
+  errorToString
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as os from 'node:os';
@@ -299,7 +300,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   try {
     await handleTraceFlagCleanup(extensionContext);
   } catch (error) {
-    console.log('Trace flag cleanup not completed during activation of CLI Integration extension', error);
+    console.log(
+      'Trace flag cleanup not completed during activation of CLI Integration extension',
+      errorToString(error)
+    );
   }
 
   console.log('SF CLI Extension Activated');

@@ -13,7 +13,8 @@ import {
   UserService,
   refreshAllExtensionReporters,
   handleTraceFlagCleanup,
-  getDevHubIdFromScratchOrg
+  getDevHubIdFromScratchOrg,
+  errorToString
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { workspaceContextUtils } from '.';
@@ -88,7 +89,7 @@ export class WorkspaceContext {
     } catch (error) {
       // If the action performed results in no default org set, we need to remove the trace flag expiration
       disposeTraceFlagExpiration();
-      console.log('Failed to perform trace flag cleanup after org change:', error);
+      console.log('Failed to perform trace flag cleanup after org change:', errorToString(error));
     }
   };
 
