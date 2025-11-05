@@ -38,8 +38,8 @@ VSCode usually releases once a month. During those, they may update the version 
 Try to avoid activating your extensions at startup (activationEvents = '\*')
 Try to make your activation scope as "tight" as possible. ex:
 
-- does it only activate when a certain file pattern as open?
-- does it only activate when the user runs a command (those are automatic...you don't need **any** activation event if you extension is all commands)
+- does it only activate when a certain file pattern is open?
+- does it only activate when the user runs a command? (those are automatic...you don't need **any** activation event if your extension is all commands)
 
 ## Special Environment Considerations
 

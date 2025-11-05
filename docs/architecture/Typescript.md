@@ -35,7 +35,7 @@ You probably just need a string union type. They provides type enforcement and a
 
 your code shouldn't throw errors for developer mistakes
 
-ex: a non-exhaustive switch/case) where you throw for default case. Use types to make sure all cases are handled.
+ex: a non-exhaustive switch/case where you throw for default case. Use types to make sure all cases are handled.
 
 ex: throwing if null/undefined is passed in where the input/consumer is within our control (not user-supplied input).
 
@@ -45,7 +45,7 @@ use of `any` : you'll see this code sometimes. It's better to use unknown and tr
 
 alternatives: look at generics
 
-Acceptable exceptions: parsing json with standard JSON.parse (but still better to define a schema for that json and have a tool like Zod or Effect verify that the file content matches the schema before using it )
+Acceptable exceptions: parsing json with standard JSON.parse (but still better to define a schema for that json and have a tool like Zod or Effect verify that the file content matches the schema before using it)
 
 ### as
 

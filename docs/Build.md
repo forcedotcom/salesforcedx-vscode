@@ -2,7 +2,7 @@
 
 ## Open Source
 
-You should plan to publish your extension in a public, OSS repo. Remember `.vsix` format is basically a zip file and people can inspect your code (and un-minify it) whether its in a public repo or not, so no secrets are possible.
+You should plan to publish your extension in a public, OSS repo. Remember `.vsix` format is basically a zip file and people can inspect your code (and un-minify it) whether it's in a public repo or not, so no secrets are possible.
 
 ## Conventions
 

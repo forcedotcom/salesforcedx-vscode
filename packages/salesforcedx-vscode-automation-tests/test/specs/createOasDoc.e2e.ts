@@ -164,11 +164,7 @@ describe('Create OpenAPI v3 Specifications', () => {
     await openFile(path.join(classesFolderPath, 'IneligibleApexClass.cls'));
     if (process.platform === 'win32') {
       await reloadWindow();
-      await verifyExtensionsAreRunning(
-        getExtensionsToVerifyActive(ext =>
-          defaultExtensionConfigs.some(config => config.extensionId === ext.extensionId)
-        )
-      );
+      await verifyExtensionsAreRunning(getExtensionsToVerifyActive(defaultExtensionConfigs));
       const workbench = getWorkbench();
       await getTextEditor(workbench, 'IneligibleApexClass.cls');
     } else {

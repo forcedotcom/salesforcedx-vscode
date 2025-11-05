@@ -14,8 +14,8 @@ Why?
    1. The amount of stubbing to do command-level unit tests makes it kinda silly
    2. stubbed tests won’t catch all the real-world stuff that can go wrong with connections, orgs, and networking. If we live where customers live, we’ll be annoyed and want to handle these
 
-So have really strong types and eslint rules.
-You can add local, custom eslint rules to prevent common mistakes (AIs are good at these) so dev get squiggles instead of waiting for test run failures (shift left!)
+So we have really strong types and eslint rules.
+You can add local, custom eslint rules to prevent common mistakes (AIs are good at these) so devs get squiggles instead of waiting for test run failures (shift left!)
 
 ### unit tests
 
@@ -33,9 +33,9 @@ We compute test coverage locally but don't send it anywhere, nor is there a requ
 
 ## End to End Testing
 
-e2e is even more crucial in the extensions because much of the extensions API is "run-time only." You **could** write unit tests to to vscode notifications, but you're mocking all of that and there's no way to assert that you're doing it correctly. It's more more useful to have an e2e environment running **real** vscode and asserting it does what you expect.
+e2e is even more crucial in the extensions because much of the extensions API is "run-time only." You **could** write unit tests to check vscode notifications, but you're mocking all of that and there's no way to assert that you're doing it correctly. It's more useful to have an e2e environment running **real** vscode and asserting it does what you expect.
 
-Both our e2e testing frameworks run both locally and in github Actions
+Both our e2e testing frameworks run both locally and in Github Actions
 
 ### old: redhat framework
 
@@ -69,7 +69,7 @@ cons
 
 - haven't tried with windows yet
 - you might spend some time screwing around getting the selectors right
-- our test using this are much newer, and the code exists only within the extensions, so you'll be copy-pasting a bit if you want to reuse that. One the roadmap to make that more shared
+- our test using this are much newer, and the code exists only within the extensions, so you'll be copy-pasting a bit if you want to reuse that. On the roadmap to make that more shared
 
 I'd probably start with playwright if I were doing a new extension.
 

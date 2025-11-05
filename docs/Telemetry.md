@@ -13,7 +13,7 @@ There are 3 patterns for using telemetry within this repo
 3. Using telemetryService via the vscode-core extension <-- do that!
 
 Probably the best example of this is the apex extension
-[packages/salesforcedx-vscode-apex/src/index.ts](../../packages/salesforcedx-vscode-apex/src/index.ts)
+[packages/salesforcedx-vscode-apex/src/index.ts](../packages/salesforcedx-vscode-apex/src/index.ts)
 
 Briefly:
 
@@ -24,7 +24,7 @@ const vscodeCoreExtension = await getVscodeCoreExtension();
 const { name } = context.extension.packageJSON;
 // get the telemetryService from the core ext.  Pass in any unique identifier you like, it's just keep the instances organized.  We used the extension name from package.json
 const telemetryService = vscodeCoreExtension.exports.services.TelemetryService.getInstance(name);
-// pass the activate fn's context.  This'll have all the information about your service (version, name, etc) that telemetry instace needs to know
+// pass the activate fn's context.  This'll have all the information about your service (version, name, etc) that telemetry instance needs to know
 await telemetryService.initializeService(context);
 // optionally store this in a module for future access.  Alternatively, any other consumer could get the coreExt, then getInstance using the same key.
 setTelemetryService(telemetryService);

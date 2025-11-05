@@ -18,7 +18,7 @@ Do not use any of the `*Executor` code or try to replicate it in your repo.
 
 ## Sharing Code Between Extensions
 
-Originally, extensions in this monorepo shared some utils packages (utils and utils-vscode). These do not publish npm packages are not useful outside this monorepo. You can declare an `extensionDependencies` in your package.json to ensure other extensions you want to depend on are installed.
+Originally, extensions in this monorepo shared some utils packages (utils and utils-vscode). These do not publish npm packages and thus are not useful outside this monorepo. You can declare an `extensionDependencies` in your package.json to ensure other extensions you want to depend on are installed.
 
 ### old
 

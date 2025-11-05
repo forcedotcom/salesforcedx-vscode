@@ -55,7 +55,7 @@ describe('An Initial Suite', () => {
       await zoom('Out', 4, Duration.seconds(1));
 
       const foundSfExtensions = await findExtensionsInRunningExtensionsList(
-        getExtensionsToVerifyActive().map((ext: { extensionId: string }) => ext.extensionId)
+        getExtensionsToVerifyActive(defaultExtensionConfigs).map((ext: { extensionId: string }) => ext.extensionId)
       );
       await zoomReset();
       if (foundSfExtensions.length > 0) {

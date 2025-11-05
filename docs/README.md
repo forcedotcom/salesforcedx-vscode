@@ -2,7 +2,7 @@
 
 This docs folder's purpose is to onboard developers to vscode extension development in general, whether or not you contribute to this particular repo. Seems as good of a place as any.
 
-If you're contributing to this repo, be sure to the docs in `contributing`
+If you're contributing to this repo, be sure to read the docs in `contributing`
 
 ## Documentation Index
 
