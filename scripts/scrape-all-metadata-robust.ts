@@ -8,7 +8,7 @@
  *   npm run scrape:robust -- --visible  (runs with visible browser for debugging)
  */
 
-import { chromium, Browser, Page } from 'playwright';
+import { chromium, Page } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -178,8 +178,9 @@ async function loadPageRobustly(page: Page, url: string): Promise<{ success: boo
 
 /**
  * Extract metadata from a loaded page (or iframe)
+ * Returns an array because some pages have multiple tables representing different types
  */
-async function extractMetadataFromPage(contentFrame: any, url: string, typeName: string): Promise<MetadataType | null> {
+async function extractMetadataFromPage(contentFrame: any, url: string, typeName: string): Promise<MetadataType[]> {
   try {
     // Extract short description
     const shortDescription = await contentFrame.evaluate(() => {
@@ -209,12 +210,15 @@ async function extractMetadataFromPage(contentFrame: any, url: string, typeName:
       return '';
     });
 
-    // Extract fields
-    const fields = await contentFrame.evaluate(() => {
-      const fieldsData: Array<{
-        Description: string;
-        'Field Name': string;
-        'Field Type': string;
+    // Extract fields from ALL tables (each table is a separate metadata type)
+    const allTableFields = await contentFrame.evaluate(() => {
+      const tablesData: Array<{
+        fields: Array<{
+          Description: string;
+          'Field Name': string;
+          'Field Type': string;
+        }>;
+        tableName: string;
       }> = [];
 
       // Helper to collect all tables including those in shadow DOMs
@@ -255,8 +259,32 @@ async function extractMetadataFromPage(contentFrame: any, url: string, typeName:
         const typeIdx = headers.findIndex(h => h.includes('type'));
         const descIdx = headers.findIndex(h => h.includes('description') || h.includes('detail'));
 
-        // Extract rows
+        // Try to find a table name/caption
+        let tableName = '';
+        const caption = table.querySelector('caption');
+        if (caption) {
+          tableName = caption.textContent?.trim() || '';
+        } else {
+          // Look for heading before the table
+          let prevElement = table.previousElementSibling;
+          let attempts = 0;
+          while (prevElement && attempts < 3) {
+            if (prevElement.tagName.match(/^H[1-6]$/)) {
+              tableName = prevElement.textContent?.trim() || '';
+              break;
+            }
+            prevElement = prevElement.previousElementSibling;
+            attempts++;
+          }
+        }
+
+        // Extract rows for this table
         const rows = Array.from(table.querySelectorAll('tbody tr, tr:not(:first-child)'));
+        const tableFields: Array<{
+          Description: string;
+          'Field Name': string;
+          'Field Type': string;
+        }> = [];
 
         for (const row of rows) {
           const cells = Array.from(row.querySelectorAll('td, th'));
@@ -268,7 +296,7 @@ async function extractMetadataFromPage(contentFrame: any, url: string, typeName:
           const description = cells[descIdx >= 0 ? descIdx : 2]?.textContent?.trim() || '';
 
           if (fieldName && fieldType && description && !fieldName.toLowerCase().includes('field')) {
-            fieldsData.push({
+            tableFields.push({
               Description: description,
               'Field Name': fieldName,
               'Field Type': fieldType
@@ -276,32 +304,62 @@ async function extractMetadataFromPage(contentFrame: any, url: string, typeName:
           }
         }
 
-        if (fieldsData.length > 0) break;
+        // Only add this table if it has fields
+        if (tableFields.length > 0) {
+          tablesData.push({
+            fields: tableFields,
+            tableName: tableName
+          });
+        }
       }
 
-      return fieldsData;
+      return tablesData;
     });
 
-    return {
-      fields,
-      short_description: shortDescription,
-      url
-    };
+    // Create a separate metadata type entry for each table
+    const results: MetadataType[] = [];
+
+    if (allTableFields.length === 0) {
+      return [];
+    }
+
+    // If only one table, use the original type name
+    if (allTableFields.length === 1) {
+      results.push({
+        fields: allTableFields[0].fields,
+        short_description: shortDescription,
+        url
+      });
+    } else {
+      // Multiple tables - create separate entries with descriptive names
+      for (let i = 0; i < allTableFields.length; i++) {
+        const tableData = allTableFields[i];
+        const suffix = tableData.tableName ? ` - ${tableData.tableName}` : ` (Table ${i + 1})`;
+
+        results.push({
+          fields: tableData.fields,
+          short_description: shortDescription,
+          url: url + `#table${i + 1}`
+        });
+      }
+    }
+
+    return results;
   } catch (error) {
     console.error(`    Error extracting data: ${error}`);
-    return null;
+    return [];
   }
 }
 
 /**
- * Scrape a single metadata type
+ * Scrape a single metadata type (may return multiple if page has multiple tables)
  */
 async function scrapeMetadataType(
   page: Page,
   name: string,
   url: string,
   isVisible: boolean
-): Promise<MetadataType | null> {
+): Promise<Array<{ name: string; data: MetadataType }>> {
   console.log(`  📄 ${name}`);
   console.log(`     Loading: ${url}`);
 
@@ -309,14 +367,14 @@ async function scrapeMetadataType(
 
   if (!success || !contentFrame) {
     console.log(`     ❌ Content failed to load`);
-    return null;
+    return [];
   }
 
   console.log(`     ✓ Content loaded`);
 
-  const result = await extractMetadataFromPage(contentFrame, url, name);
+  const results = await extractMetadataFromPage(contentFrame, url, name);
 
-  if (!result || result.fields.length === 0) {
+  if (results.length === 0) {
     console.log(`     ⚠️  No fields found`);
 
     // In visible mode, pause to let user inspect
@@ -325,11 +383,32 @@ async function scrapeMetadataType(
       await page.waitForTimeout(30000);
     }
 
-    return null;
+    return [];
   }
 
-  console.log(`     ✅ Found ${result.fields.length} fields`);
-  return result;
+  // Process each table result
+  const namedResults: Array<{ name: string; data: MetadataType }> = [];
+
+  for (let i = 0; i < results.length; i++) {
+    const result = results[i];
+    const resultName = results.length > 1 ? `${name} (Table ${i + 1})` : name;
+
+    console.log(`     ✅ Found ${result.fields.length} fields${results.length > 1 ? ` in table ${i + 1}` : ''}`);
+
+    // Print all field names for verification
+    if (result.fields.length > 0) {
+      result.fields.forEach((field, index) => {
+        console.log(`        ${index + 1}. ${field['Field Name']} (${field['Field Type']})`);
+      });
+    }
+
+    namedResults.push({
+      name: resultName,
+      data: result
+    });
+  }
+
+  return namedResults;
 }
 
 /**
@@ -484,6 +563,15 @@ async function discoverMetadataTypes(page: Page): Promise<Array<{ name: string; 
 
     console.log(`   ✅ Discovered ${links.length} metadata types!\n`);
 
+    // Print all discovered metadata types for verification
+    if (links.length > 0) {
+      console.log('   📋 Discovered metadata types:');
+      links.forEach((link, index) => {
+        console.log(`      ${index + 1}. ${link.name}`);
+      });
+      console.log('');
+    }
+
     return links.length > 0 ? links : getFallbackMetadataTypes();
   } catch (error) {
     console.error(`   ❌ Discovery failed:`, error);
@@ -620,10 +708,13 @@ async function scrapeAll(outputFile?: string, isVisible: boolean = false): Promi
       console.log(`[${i + 1}/${typesToScrape.length}] ${type.name}`);
 
       try {
-        const result = await scrapeMetadataType(page, type.name, type.url, isVisible);
+        const pageResults = await scrapeMetadataType(page, type.name, type.url, isVisible);
 
-        if (result) {
-          results[type.name] = result;
+        if (pageResults.length > 0) {
+          // Add each table result as a separate entry
+          for (const { name, data } of pageResults) {
+            results[name] = data;
+          }
           successCount++;
         } else {
           failCount++;
