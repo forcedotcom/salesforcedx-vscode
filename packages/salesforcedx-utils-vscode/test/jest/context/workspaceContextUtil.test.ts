@@ -7,10 +7,11 @@
 
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
-import { ConfigAggregatorProvider, TelemetryService, WorkspaceContextUtil } from '../../../src';
 import { ConfigUtil } from '../../../src/config/configUtil';
-import { WORKSPACE_CONTEXT_ORG_ID_ERROR } from '../../../src/context/workspaceContextUtil';
+import { WorkspaceContextUtil, WORKSPACE_CONTEXT_ORG_ID_ERROR } from '../../../src/context/workspaceContextUtil';
 import { nls } from '../../../src/messages/messages';
+import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';
+import { TelemetryService } from '../../../src/services/telemetry';
 
 jest.mock('@salesforce/core', () => ({
   Logger: {

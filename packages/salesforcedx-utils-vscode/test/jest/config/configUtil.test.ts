@@ -5,8 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Config, Org, StateAggregator } from '@salesforce/core';
-import { ConfigUtil, TARGET_ORG_KEY, workspaceUtils } from '../../../src';
-import { ConfigAggregatorProvider } from './../../../src/providers/configAggregatorProvider';
+import { ConfigUtil } from '../../../src/config/configUtil';
+import { TARGET_ORG_KEY } from '../../../src/constants';
+import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';
+import { workspaceUtils } from '../../../src/workspaces/workspaceUtils';
 
 describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', () => {
   const fakeOriginalDirectory = 'test/directory';
