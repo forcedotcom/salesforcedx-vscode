@@ -180,7 +180,11 @@ async function loadPageRobustly(page: Page, url: string): Promise<{ success: boo
  * Extract metadata from a loaded page (or iframe)
  * Returns an array because some pages have multiple tables representing different types
  */
-async function extractMetadataFromPage(contentFrame: any, url: string, typeName: string): Promise<MetadataType[]> {
+async function extractMetadataFromPage(
+  contentFrame: any,
+  url: string,
+  typeName: string
+): Promise<Array<{ name: string; data: MetadataType }>> {
   try {
     // Extract short description
     const shortDescription = await contentFrame.evaluate(() => {
@@ -382,29 +386,39 @@ async function extractMetadataFromPage(contentFrame: any, url: string, typeName:
     });
 
     // Create a separate metadata type entry for each table
-    const results: MetadataType[] = [];
+    const results: Array<{ name: string; data: MetadataType }> = [];
 
     if (allTableFields.length === 0) {
       return [];
     }
 
-    // If only one table, use the original type name
+    // If only one table, use the original type name (or table name if it exists)
     if (allTableFields.length === 1) {
-      results.push({
-        fields: allTableFields[0].fields,
-        short_description: shortDescription,
-        url
-      });
-    } else {
-      // Multiple tables - create separate entries with descriptive names
-      for (let i = 0; i < allTableFields.length; i++) {
-        const tableData = allTableFields[i];
-        const suffix = tableData.tableName ? ` - ${tableData.tableName}` : ` (Table ${i + 1})`;
+      const tableData = allTableFields[0];
+      const finalName = tableData.tableName || typeName;
 
-        results.push({
+      results.push({
+        name: finalName,
+        data: {
           fields: tableData.fields,
           short_description: shortDescription,
-          url: url + `#table${i + 1}`
+          url
+        }
+      });
+    } else {
+      // Multiple tables - use actual table names (these are real metadata types)
+      for (let i = 0; i < allTableFields.length; i++) {
+        const tableData = allTableFields[i];
+        // Use the table name if found, otherwise fall back to parent name + number
+        const finalName = tableData.tableName || `${typeName} (Table ${i + 1})`;
+
+        results.push({
+          name: finalName,
+          data: {
+            fields: tableData.fields,
+            short_description: shortDescription,
+            url: url + `#${tableData.tableName || `table${i + 1}`}`
+          }
         });
       }
     }
@@ -451,29 +465,26 @@ async function scrapeMetadataType(
     return [];
   }
 
-  // Process each table result
-  const namedResults: Array<{ name: string; data: MetadataType }> = [];
-
+  // Process each table result (names are already assigned by extractMetadataFromPage)
   for (let i = 0; i < results.length; i++) {
-    const result = results[i];
-    const resultName = results.length > 1 ? `${name} (Table ${i + 1})` : name;
+    const { name: tableName, data } = results[i];
 
-    console.log(`     ✅ Found ${result.fields.length} fields${results.length > 1 ? ` in table ${i + 1}` : ''}`);
+    // Show the actual metadata type name for each table
+    if (results.length > 1) {
+      console.log(`     📊 ${tableName}`);
+    }
+
+    console.log(`     ✅ Found ${data.fields.length} fields`);
 
     // Print all field names for verification
-    if (result.fields.length > 0) {
-      result.fields.forEach((field, index) => {
+    if (data.fields.length > 0) {
+      data.fields.forEach((field, index) => {
         console.log(`        ${index + 1}. ${field['Field Name']} (${field['Field Type']})`);
       });
     }
-
-    namedResults.push({
-      name: resultName,
-      data: result
-    });
   }
 
-  return namedResults;
+  return results;
 }
 
 /**
