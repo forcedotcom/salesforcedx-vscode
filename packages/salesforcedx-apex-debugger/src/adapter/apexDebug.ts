@@ -9,10 +9,8 @@
 import { Connection, Org } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import {
-  RequestService,
   SF_CONFIG_ISV_DEBUGGER_SID,
   SF_CONFIG_ISV_DEBUGGER_URL,
-  extractJsonObject,
   LineBreakpointInfo
 } from '@salesforce/salesforcedx-utils';
 import {
@@ -76,8 +74,10 @@ import {
   StreamingClientInfoBuilder,
   StreamingService
 } from '../core';
+import { extractJsonObject } from '../extractJsonObject';
 import { VscodeDebuggerMessage, VscodeDebuggerMessageType, WorkspaceSettings } from '../index';
 import { nls } from '../messages';
+import { RequestService } from '../requestService/requestService';
 
 // Below import has to be required for bundling
 // eslint-disable-next-line @typescript-eslint/no-var-requires

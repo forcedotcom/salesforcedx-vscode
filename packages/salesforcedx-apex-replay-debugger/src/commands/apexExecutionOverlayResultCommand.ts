@@ -5,12 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { BaseCommand } from '@salesforce/salesforcedx-utils';
-import { SOBJECTS_URL } from '../constants';
-
-export type ApexExecutionOverlayResultCommandFailure = {
-  message: string;
-  errorCode: string;
+type Attributes = {
+  type: string;
+  url: string;
 };
 
 export type ApexExecutionOverlayResultCommandSuccess = {
@@ -118,42 +115,26 @@ type HeapDumpSOQLResultColumnMetadata = {
   displayName: string;
   foreignKeyName: string | null;
   insertable: boolean;
-  joinColumns: string[];
+  joinColumns: HeapDumpSOQLResultJoinColumn[];
   numberType: boolean;
   textType: boolean;
   updatable: boolean;
 };
 
-// A note about the HeapDumpSOQLResultQueryResult. The fields from a SOQL
-// query will be the fields that the user asked for. For instance if Id,
-// Name and AccountNumber were requested returns then the they'd be accessed
-// through the HeapDumpSOQLResult.queryResult['Id'|'Name'|'AccountNumber'].
-// The field name strings would be accessed through the ColumnMetadata returned
-// with the query.
+type HeapDumpSOQLResultJoinColumn = {
+  aggregate: boolean;
+  apexType: string;
+  booleanType: boolean;
+  columnName: string;
+  custom: boolean;
+  displayName: string;
+  foreignKeyName: string | null;
+  insertable: boolean;
+  numberType: boolean;
+  textType: boolean;
+  updatable: boolean;
+};
+
 type HeapDumpSOQLResultQueryResult = {
   attributes: Attributes;
-  [fields: string]: any;
 };
-
-type Attributes = {
-  type: string;
-  url: string;
-};
-
-export class ApexExecutionOverlayResultCommand extends BaseCommand {
-  private readonly commandName = 'ApexExecutionOverlayResult';
-  private readonly heapdumpKey: string;
-
-  constructor(heapdumpKey: string) {
-    super(undefined);
-    this.heapdumpKey = heapdumpKey;
-  }
-
-  public getCommandUrl(): string {
-    return [SOBJECTS_URL, this.commandName, this.heapdumpKey].join('/');
-  }
-
-  public getRequest(): string | undefined {
-    return undefined;
-  }
-}

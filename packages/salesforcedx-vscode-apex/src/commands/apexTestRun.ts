@@ -116,6 +116,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
     const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const testService = new TestService(connection);
     const codeCoverage = settings.retrieveTestCodeCoverage();
+    const concise = settings.retrieveTestRunConcise();
 
     const payload: AsyncTestConfiguration = await buildTestPayload(testService, response.data);
 
@@ -148,7 +149,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
       },
       codeCoverage
     );
-    const humanOutput = new HumanReporter().format(result, codeCoverage);
+    const humanOutput = new HumanReporter().format(result, codeCoverage, concise);
     channelService.appendLine(humanOutput);
     return true;
   }

@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { stripAnsiInJson } from '../helpers';
-import { CommandExecution } from '../types';
+import { stripAnsiInJson } from '../helpers/utils';
+import { CommandExecution } from '../types/commandExecution';
 import { JSON_FLAG } from './commandBuilder';
 
 export class CommandOutput {
@@ -14,7 +14,7 @@ export class CommandOutput {
   private stderrBuffer = '';
 
   public async getCmdResult(execution: CommandExecution): Promise<string> {
-    const hasJsonEnabled = execution.command?.args?.some(arg => arg === JSON_FLAG);
+    const hasJsonEnabled = execution.command?.args?.includes(JSON_FLAG);
     execution.stdoutSubject.subscribe(realData => {
       this.stdoutBuffer += realData.toString();
     });
