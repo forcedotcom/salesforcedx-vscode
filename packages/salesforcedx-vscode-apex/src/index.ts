@@ -253,7 +253,6 @@ export type {
   ApexClassOASEligibleResponses,
   ApexOASEligiblePayload,
   ApexClassOASGatherContextResponse,
-  ApexOASSymbolEligibility,
   ApexOASClassDetail,
   ApexOASPropertyDetail,
   ApexOASMethodDetail,

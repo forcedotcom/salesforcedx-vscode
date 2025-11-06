@@ -15,6 +15,11 @@ export const defaultExtensionConfigs: ExtensionConfig[] = [
     shouldInstall: 'always'
   },
   {
+    extensionId: 'salesforcedx-vscode-org',
+    shouldVerifyActivation: true,
+    shouldInstall: 'always'
+  },
+  {
     extensionId: 'salesforcedx-vscode-apex',
     shouldVerifyActivation: true,
     shouldInstall: 'always'
@@ -43,6 +48,12 @@ export const allSalesforceExtensions: ExtensionConfig[] = [
     extensionId: 'salesforcedx-vscode-soql',
     name: 'SOQL',
     shouldInstall: 'optional',
+    shouldVerifyActivation: false
+  },
+  {
+    extensionId: 'salesforcedx-vscode-org',
+    name: 'Salesforce Org Management',
+    shouldInstall: 'always',
     shouldVerifyActivation: false
   },
   {
