@@ -70,7 +70,7 @@ const registerCommands = async (): Promise<vscode.Disposable> => {
       canSelectMany: false,
       defaultUri: dialogStartingPathUri
     });
-    if (fileUris && fileUris.length === 1) {
+    if (fileUris?.length === 1) {
       updateLastOpened(extContext, fileUris[0].fsPath);
       return fileUris[0].fsPath;
     }

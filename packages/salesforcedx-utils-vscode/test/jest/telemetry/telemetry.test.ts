@@ -238,7 +238,7 @@ describe('Telemetry', () => {
         // Create a valid hrtime tuple representing 50ms ago
         const now = Date.now();
         const fiftyMsAgo = now - 50;
-        const hrtime: [number, number] = [Math.floor(fiftyMsAgo / 1000), (fiftyMsAgo % 1000) * 1000000];
+        const hrtime: [number, number] = [Math.floor(fiftyMsAgo / 1000), (fiftyMsAgo % 1000) * 1_000_000];
 
         expect(() => {
           instance.sendExtensionActivationEvent(hrtime);
@@ -300,7 +300,7 @@ describe('Telemetry', () => {
         // Create a valid hrtime tuple representing 50ms ago
         const now = Date.now();
         const fiftyMsAgo = now - 50;
-        const hrtime: [number, number] = [Math.floor(fiftyMsAgo / 1000), (fiftyMsAgo % 1000) * 1000000];
+        const hrtime: [number, number] = [Math.floor(fiftyMsAgo / 1000), (fiftyMsAgo % 1000) * 1_000_000];
 
         expect(() => {
           instance.sendCommandEvent('test_command', hrtime, { testProp: 'value' });
@@ -363,9 +363,9 @@ describe('Telemetry', () => {
       });
 
       it('should convert hrtime tuple correctly', () => {
-        const hrtime: [number, number] = [1000, 500000000]; // 1000 seconds + 500ms
+        const hrtime: [number, number] = [1000, 500_000_000]; // 1000 seconds + 500ms
         const result = (instance as any).hrTimeToMilliseconds(hrtime);
-        expect(result).toBe(1000500); // 1000 seconds * 1000 + 500ms
+        expect(result).toBe(1_000_500); // 1000 seconds * 1000 + 500ms
       });
 
       it('should handle undefined by defaulting to [0, 0]', () => {
