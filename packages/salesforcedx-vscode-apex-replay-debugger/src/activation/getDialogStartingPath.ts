@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LAST_OPENED_LOG_FOLDER_KEY } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { projectPaths, workspaceUtils, fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { LAST_OPENED_LOG_FOLDER_KEY } from '../debuggerConstants';
 
 export const getDialogStartingPath = async (extContext: vscode.ExtensionContext): Promise<URI | undefined> => {
   if (workspaceUtils.hasRootWorkspace()) {

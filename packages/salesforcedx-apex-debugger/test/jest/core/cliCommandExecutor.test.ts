@@ -4,13 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { type Command, GlobalCliEnvironment, TELEMETRY_HEADER } from '@salesforce/salesforcedx-utils';
 import * as cross_spawn from 'cross-spawn';
-import { CliCommandExecutor, Command, TELEMETRY_HEADER } from '../../../src';
-import { CliCommandExecution } from '../../../src/cli/cliCommandExecution';
-import { GlobalCliEnvironment } from '../../../src/cli/globalCliEnvironment';
+import { CliCommandExecution } from '../../../src/core/cliCommandExecution';
+import { CliCommandExecutor } from '../../../src/core/cliCommandExecutor';
 
 jest.mock('cross-spawn');
-jest.mock('../../../src/cli/cliCommandExecution');
+jest.mock('../../../src/core/cliCommandExecution');
 const crossSpawnMocked = jest.mocked(cross_spawn);
 const CliCommandExecutorMock = jest.mocked(CliCommandExecution);
 

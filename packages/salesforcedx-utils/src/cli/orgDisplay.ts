@@ -10,21 +10,12 @@ import { getConnectionStatusFromError } from '../helpers/utils';
 import { messages } from '../i18n/i18n';
 import { OrgInfo, OrgQueryResult, ScratchOrgQueryResult } from '../types/orgInfo';
 
-export class OrgDisplay {
-  private username?: string;
+/** Resolve username from provided username or project config */
+const resolveUsername = async (username: string | undefined, salesforceProject?: string): Promise<string> => {
+  let usernameOrAlias: string | undefined = username;
 
-  constructor(username?: string) {
-    this.username = username;
-  }
-
-  public async getUsername(salesforceProject?: string): Promise<string> {
-    let usernameOrAlias: string | undefined;
-
-    if (this.username) {
-      return this.username;
-    }
-
-    // Try to get username from project config
+  // Try to get username from project config if not provided
+  if (!usernameOrAlias) {
     try {
       const configAggregator: ConfigAggregator = await ConfigAggregator.create({
         projectPath: salesforceProject
@@ -36,20 +27,32 @@ export class OrgDisplay {
     } catch {
       // Ignore config errors
     }
+  }
 
-    if (!usernameOrAlias) {
-      throw new Error(messages.no_username_provided);
-    }
+  if (!usernameOrAlias) {
+    throw new Error(messages.no_username_provided);
+  }
 
-    // Resolve alias to actual username if needed
-    try {
-      const stateAggregator = await StateAggregator.getInstance();
-      const actualUsername = stateAggregator.aliases.getUsername(usernameOrAlias) ?? usernameOrAlias;
-      return actualUsername;
-    } catch {
-      // If we can't resolve, return what we have
-      return usernameOrAlias;
-    }
+  // Resolve alias to actual username if needed
+  try {
+    const stateAggregator = await StateAggregator.getInstance();
+    const actualUsername = stateAggregator.aliases.getUsername(usernameOrAlias) ?? usernameOrAlias;
+    return actualUsername;
+  } catch {
+    // If we can't resolve, return what we have
+    return usernameOrAlias;
+  }
+};
+
+export class OrgDisplay {
+  private username?: string;
+
+  constructor(username?: string) {
+    this.username = username;
+  }
+
+  public async getUsername(salesforceProject?: string): Promise<string> {
+    return resolveUsername(this.username, salesforceProject);
   }
 
   public async getOrgInfo(salesforceProject?: string): Promise<OrgInfo> {
@@ -131,7 +134,7 @@ const getOrgInfoFromConnection = async (
     edition: scratchOrgQuery?.Edition ?? getEdition(orgQuery),
     orgName: scratchOrgQuery?.OrgName ?? orgQuery.Name,
     ...(authFields.password ? { password: authFields.password } : {}),
-    status: scratchOrgQuery?.Status ?? (await getConnectionStatus(connection, username))
+    status: scratchOrgQuery?.Status ?? connectionStatus
   });
 };
 

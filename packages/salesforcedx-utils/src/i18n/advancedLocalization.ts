@@ -6,7 +6,8 @@
  */
 
 import { DEFAULT_LOCALE } from '../constants';
-import { AdvancedMessageBundle, Config, Locale } from '../types';
+import { AdvancedMessageBundle } from '../types/localization/advancedTypes';
+import { Config, Locale } from '../types/localization/config';
 import { Localization } from './localization';
 import { Message } from './message';
 

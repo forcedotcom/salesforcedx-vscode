@@ -7,7 +7,7 @@
 
 import { DEFAULT_LOCALE } from '../../../src/constants';
 import { LocalizationService, LocalizationConfig, MessageBundleManager } from '../../../src/i18n/advancedLocalization';
-import { AdvancedMessageBundle } from '../../../src/types';
+import { AdvancedMessageBundle } from '../../../src/types/localization/advancedTypes';
 
 describe('Advanced Localization Unit Tests', () => {
   let consoleWarnSpy: jest.SpyInstance;

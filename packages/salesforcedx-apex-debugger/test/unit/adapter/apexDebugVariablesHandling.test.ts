@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { RequestService } from '@salesforce/salesforcedx-utils';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
@@ -23,6 +22,7 @@ import {
 } from '../../../src/adapter/apexDebug';
 import { LocalValue, Reference, Value } from '../../../src/commands';
 import { BreakpointService } from '../../../src/core/breakpointService';
+import { RequestService } from '../../../src/requestService/requestService';
 import { ApexDebugForTest } from './apexDebugForTest';
 
 describe('Debugger adapter variable handling - unit', () => {
@@ -200,7 +200,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
       // expect
       expect(result1).to.be.greaterThan(0, 'numbers after names');
-      expect(result2).to.be.lessThan(0), 'names before numbers';
+      (expect(result2).to.be.lessThan(0), 'names before numbers');
     });
   });
 

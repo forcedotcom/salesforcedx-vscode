@@ -96,15 +96,3 @@ export type LocalComponent = DirFileNameSelection & {
 };
 
 export { MessageArgs } from '@salesforce/salesforcedx-utils';
-
-// Re-export telemetry types from vscode-service-provider
-export {
-  TelemetryReporter,
-  Measurements,
-  Properties,
-  TelemetryData,
-  ExtensionInfo,
-  ExtensionsInfo,
-  ActivationInfo,
-  TelemetryServiceInterface
-} from '@salesforce/vscode-service-provider';

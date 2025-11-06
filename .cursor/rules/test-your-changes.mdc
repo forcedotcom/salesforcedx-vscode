@@ -7,7 +7,7 @@ alwaysApply: true
 After ANY code change, run these in order from repo root. Avoid responding while failures are present, iterate more.
 
 1. `npm run compile` - must pass
-2. `npm run lint` - fix any new errors
+2. `npm run lint` - fix any new errors. Warnings should not increase
 3. `npm run test` - must pass
 4. `npx knip` - check for dead code related to your changes
    - **Fix ALL unused exports** - if knip shows unused exports, remove them immediately unless they're used for tests
@@ -24,3 +24,4 @@ Rules:
 - Be aware of nx caching; you may need `--skip-nx-cache` to really change the bundles. You can look in the bundle to see (and also turn off `minify` if that helps debug)
 - Port 3001 for tests (not 3000 - Docker/Grafana uses that)
 - All commands run from salesforcedx-vscode root; use `-w` to specify runs for a single package. Never `cd` into a package.
+- do not say a test/compile/lint failure was "pre-existing" without running the same operation on a previous version of the code before the current un-pushed commits began.

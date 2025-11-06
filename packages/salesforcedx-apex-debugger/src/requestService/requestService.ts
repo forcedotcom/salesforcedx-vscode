@@ -16,12 +16,11 @@ import {
 } from '../constants';
 import { BaseCommand } from './baseCommand';
 
-// Right now have POST and DELETE (out of Query, GET, POST, PATCH, DELETE),
+// Right now have GET and POST (out of Query, GET, POST, PATCH, DELETE),
 // add any new ones needed as they are encountered. Note: when adding those
 // it'll be the responsibility of whomever added them to verify or change
 // anything in the arguments for the call to deal with them.
 export enum RestHttpMethodEnum {
-  Delete = 'DELETE',
   Get = 'GET',
   Post = 'POST'
 }

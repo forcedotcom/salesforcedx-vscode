@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AdvancedMessageBundle, Config, Locale, MessageBundle } from '../../../src/types';
+import { AdvancedMessageBundle } from '../../../src/types/localization/advancedTypes';
+import { Config, Locale } from '../../../src/types/localization/config';
+import { MessageBundle } from '../../../src/types/localization/messageBundle';
 
 describe('Localization Types Unit Tests', () => {
   describe('Locale Type', () => {

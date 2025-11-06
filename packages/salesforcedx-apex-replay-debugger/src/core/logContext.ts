@@ -5,19 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgDisplay, RequestService, RestHttpMethodEnum } from '@salesforce/salesforcedx-utils';
+import { ConfigAggregator, Org } from '@salesforce/core';
 import { StackFrame } from '@vscode/debugadapter';
 import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
 import { ApexReplayDebug } from '../adapter/apexReplayDebug';
 import { LaunchRequestArguments } from '../adapter/types';
 import { ApexVariableContainer } from '../adapter/variableContainer';
 import { breakpointUtil } from '../breakpoints';
-import {
-  ApexExecutionOverlayResultCommand,
-  ApexExecutionOverlayResultCommandFailure,
-  ApexExecutionOverlayResultCommandSuccess,
-  OrgInfoError
-} from '../commands';
+import { ApexExecutionOverlayResultCommandSuccess, OrgInfoError } from '../commands';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -153,11 +148,7 @@ export class LogContext {
   }
 
   public isRunningApexTrigger(): boolean {
-    const topFrame = this.getTopFrame();
-    if (topFrame?.source?.name?.toLowerCase().endsWith('.trigger')) {
-      return true;
-    }
-    return false;
+    return this.getTopFrame()?.source?.name?.toLowerCase().endsWith('.trigger') ?? false;
   }
 
   public copyStateForHeapDump(): void {
@@ -233,42 +224,38 @@ export class LogContext {
   public async fetchOverlayResultsForApexHeapDumps(): Promise<boolean> {
     let success = true;
     try {
-      const orgInfo = await new OrgDisplay().getOrgInfo(this.launchArgs.projectPath);
-      const requestService = new RequestService();
-      requestService.instanceUrl = orgInfo.instanceUrl;
-      requestService.accessToken = orgInfo.accessToken;
+      // Get username from project path
+      const configAggregator = await ConfigAggregator.create({
+        projectPath: this.launchArgs.projectPath
+      });
+      const aliasOrUsername = configAggregator.getPropertyValue<string>('target-org');
+      if (!aliasOrUsername) {
+        throw new Error(nls.localize('unable_to_retrieve_org_info'));
+      }
+
+      // Create connection
+      const org = await Org.create({ aliasOrUsername, aggregator: configAggregator });
+      const connection = org.getConnection();
 
       for (const heapDump of this.apexHeapDumps) {
         this.session.printToDebugConsole(nls.localize('fetching_heap_dump', heapDump.toString()));
-        const overlayActionCommand = new ApexExecutionOverlayResultCommand(heapDump.getHeapDumpId());
-        let errorString;
-        let returnString;
-        await requestService.execute(overlayActionCommand, RestHttpMethodEnum.Get).then(
-          value => {
-            returnString = value;
-          },
-          reason => {
-            errorString = reason;
-          }
-        );
-        if (returnString) {
+        try {
+          const result = await connection.tooling
+            .sobject('ApexExecutionOverlayResult')
+            .retrieve(heapDump.getHeapDumpId());
+          // jsforce doesn't have these tooling types
           // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          heapDump.setOverlaySuccessResult(JSON.parse(returnString) as ApexExecutionOverlayResultCommandSuccess);
-        } else if (errorString) {
-          try {
-            success = false;
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-            const error = JSON.parse(errorString) as ApexExecutionOverlayResultCommandFailure[];
-            const errorMessage = nls.localize(
-              'heap_dump_error',
-              error[0].message,
-              error[0].errorCode,
-              heapDump.toString()
-            );
+          heapDump.setOverlaySuccessResult(result as unknown as ApexExecutionOverlayResultCommandSuccess);
+          return true;
+        } catch (error) {
+          if (error instanceof Error && 'errorCode' in error && typeof error.errorCode === 'string') {
+            const errorMessage = nls.localize('heap_dump_error', error.message, error.errorCode, heapDump.toString());
             this.session.errorToDebugConsole(errorMessage);
-          } catch (error) {
-            const errorMessage = `${error}. ${errorString}. ${heapDump.toString()}`;
+            return false;
+          } else {
+            const errorMessage = `${String(error)}. ${heapDump.toString()}`;
             this.session.errorToDebugConsole(errorMessage);
+            return false;
           }
         }
       }

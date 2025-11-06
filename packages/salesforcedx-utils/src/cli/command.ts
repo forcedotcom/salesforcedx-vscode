@@ -4,9 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { Command as CommandType } from '../types/command';
 import { CommandBuilder } from './commandBuilder';
 
-export class Command {
+export class Command implements CommandType {
   public readonly command: string;
   public readonly description?: string;
   public readonly args: string[];

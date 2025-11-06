@@ -13,7 +13,8 @@ import {
   ENV_SF_TARGET_ORG,
   ENV_SF_ORG_INSTANCE_URL
 } from '../../../src/constants';
-import { BaseCommand, RequestService, RestHttpMethodEnum } from '../../../src/requestService';
+import { BaseCommand } from '../../../src/requestService/baseCommand';
+import { RequestService, RestHttpMethodEnum } from '../../../src/requestService/requestService';
 
 jest.mock('request-light');
 

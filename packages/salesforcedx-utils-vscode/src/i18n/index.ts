@@ -5,4 +5,4 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { LocalizationService, Config, LOCALE_JA, MISSING_LABEL_MSG } from '@salesforce/salesforcedx-utils';
+export { LocalizationService, LOCALE_JA, MISSING_LABEL_MSG } from '@salesforce/salesforcedx-utils';
