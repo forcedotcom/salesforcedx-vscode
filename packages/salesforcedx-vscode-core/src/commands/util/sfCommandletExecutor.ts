@@ -11,10 +11,9 @@ import {
   ContinueResponse,
   workspaceUtils,
   ProgressNotification,
-  Properties,
-  Measurements,
   TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import { Properties, Measurements } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { PROJECT_RETRIEVE_START_LOG_NAME, PROJECT_DEPLOY_START_LOG_NAME } from '../../constants';

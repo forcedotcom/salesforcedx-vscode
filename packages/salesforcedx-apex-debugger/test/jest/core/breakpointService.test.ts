@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as sfUtils from '@salesforce/salesforcedx-utils';
-import { BreakpointService } from '../../../src/core';
-import { DEBUGGER_BREAKPOINT_ID_PREFIX } from '../../../src/core/breakpointService';
+import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { BreakpointService, DEBUGGER_BREAKPOINT_ID_PREFIX } from '../../../src/core/breakpointService';
+import { CliCommandExecutor } from '../../../src/core/cliCommandExecutor';
 
 describe('breakpointService Unit Tests.', () => {
   const bpId = `${DEBUGGER_BREAKPOINT_ID_PREFIX}defabreakpoint`;
@@ -25,33 +25,15 @@ describe('breakpointService Unit Tests.', () => {
     } as any;
 
     executeMock = jest.fn().mockReturnValue(undefined);
-    jest.spyOn(sfUtils, 'CliCommandExecutor').mockImplementation(
-      () =>
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        ({
-          execute: executeMock
-        }) as any
-    );
+    jest.spyOn(CliCommandExecutor.prototype, 'execute').mockImplementation(executeMock as any);
 
-    jest.spyOn(sfUtils, 'SfCommandBuilder').mockImplementation(
-      () =>
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        ({
-          withArg: jest.fn().mockReturnThis(),
-          withFlag: jest.fn().mockReturnThis(),
-          withJson: jest.fn().mockReturnThis(),
-          build: jest.fn()
-        }) as any
-    );
+    jest.spyOn(SfCommandBuilder.prototype, 'withArg').mockReturnThis();
+    jest.spyOn(SfCommandBuilder.prototype, 'withFlag').mockReturnThis();
+    jest.spyOn(SfCommandBuilder.prototype, 'withJson').mockReturnThis();
+    jest.spyOn(SfCommandBuilder.prototype, 'build').mockReturnValue({} as any);
 
     getCmdResultMock = jest.fn();
-    jest.spyOn(sfUtils, 'CommandOutput').mockImplementation(
-      () =>
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        ({
-          getCmdResult: getCmdResultMock
-        }) as any
-    );
+    jest.spyOn(CommandOutput.prototype, 'getCmdResult').mockImplementation(getCmdResultMock as any);
 
     breakpointService = new BreakpointService(fakeRequestService as any);
   });

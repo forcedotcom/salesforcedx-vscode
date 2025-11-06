@@ -5,14 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ConfigUtil,
-  workspaceUtils,
-  ContinueResponse,
-  Properties,
-  TimingUtils
-} from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil, workspaceUtils, ContinueResponse, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import { TemplateOptions, TemplateService, TemplateType } from '@salesforce/templates';
+import type { Properties } from '@salesforce/vscode-service-provider';
 import * as path from 'node:path';
 import { ProgressLocation, window, workspace } from 'vscode';
 import { channelService } from '../../channels';
