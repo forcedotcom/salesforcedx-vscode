@@ -106,8 +106,8 @@ export const retrieveGeneralPropAccessModifiers = (): string[] =>
     .getConfiguration()
     .get<string[]>('salesforcedx-vscode-apex.apexoas.general.prop.access-modifiers', DEFAULT_PROP_ACCESS_MODIFIERS);
 
-export function getApexLanguageServerRestartBehavior(): string {
-  return vscode.workspace
-    .getConfiguration('salesforcedx-vscode-apex')
-    .get<string>('languageServer.restartBehavior', 'prompt');
-}
+export const getApexLanguageServerRestartBehavior = (): string =>
+  vscode.workspace.getConfiguration('salesforcedx-vscode-apex').get<string>('languageServer.restartBehavior', 'prompt');
+
+export const retrieveTestRunConcise = (): boolean =>
+  vscode.workspace.getConfiguration('salesforcedx-vscode-apex').get<boolean>('test-run-concise', false);

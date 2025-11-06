@@ -34,5 +34,6 @@
   "run_tests_title": "Run Tests",
   "show_error_title": "Display Error",
   "test_view_container_title": "Test Viewer",
-  "test_view_name": "Apex Tests"
+  "test_view_name": "Apex Tests",
+  "apex_test_run_concise": "Display only failed test results."
 }

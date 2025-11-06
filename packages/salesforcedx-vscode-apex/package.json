@@ -389,6 +389,11 @@
           "default": false,
           "description": "%enable-apex-ls-error-to-telemetry%"
         },
+        "salesforcedx-vscode-apex.test-run-concise": {
+          "type": "boolean",
+          "default": false,
+          "description": "%apex_test_run_concise%"
+        },
         "salesforcedx-vscode-apex.languageServer.restartBehavior": {
           "type": "string",
           "enum": [
