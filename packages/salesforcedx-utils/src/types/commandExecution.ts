@@ -4,15 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { CancellationToken } from './cancellationToken';
+import type { Command } from './command';
 import type { Observable } from 'rxjs/Observable';
-import { CancellationToken } from './cancellationToken';
-import { Command } from './command';
 
 /**
  * Represents a command execution (a process has already been spawned for it).
  * This is tightly coupled with the execution model (child_process).
  * If we ever use a different executor, this class should be refactored and abstracted
- * to take an event emitter/observable instead of child_proces.
+ * to take an event emitter/observable instead of child_process.
  */
 export type CommandExecution = {
   readonly command: Command;
