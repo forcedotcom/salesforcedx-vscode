@@ -12,11 +12,11 @@ import {
   disposeTraceFlagExpiration,
   UserService,
   refreshAllExtensionReporters,
-  handleTraceFlagCleanup
+  handleTraceFlagCleanup,
+  getDevHubIdFromScratchOrg,
+  errorToString
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { decorators } from '../decorators';
-import { OrgAuthInfo } from '../util/authInfo';
 import { workspaceContextUtils } from '.';
 
 /**
@@ -60,8 +60,7 @@ export class WorkspaceContext {
       // error reported by setupWorkspaceOrgType
       console.error(e)
     );
-
-    await decorators.showOrg();
+    // Note: decorators.showOrg() has been moved to the salesforcedx-vscode-org extension
   }
 
   protected async handleOrgShapeChange(orgInfo: OrgUserInfo) {
@@ -73,7 +72,7 @@ export class WorkspaceContext {
         WorkspaceContextUtil.getInstance().devHubId = undefined;
       }
       if (orgShape === 'Scratch') {
-        const devHubId = await OrgAuthInfo.getDevHubIdFromScratchOrg(username);
+        const devHubId = await getDevHubIdFromScratchOrg(username);
         WorkspaceContextUtil.getInstance().devHubId = devHubId;
       }
     }
@@ -90,7 +89,7 @@ export class WorkspaceContext {
     } catch (error) {
       // If the action performed results in no default org set, we need to remove the trace flag expiration
       disposeTraceFlagExpiration();
-      console.log('Failed to perform trace flag cleanup after org change:', error);
+      console.log('Failed to perform trace flag cleanup after org change:', errorToString(error));
     }
   };
 

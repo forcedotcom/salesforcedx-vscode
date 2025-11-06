@@ -7,24 +7,17 @@
 
 export { CommandletExecutor } from './commandletExecutor';
 export { CompositePostconditionChecker } from './compositePostconditionChecker';
-export { CompositePreconditionChecker } from './compositePreconditionChecker';
 export { ConflictDetectionMessages } from './conflictDetectionMessages';
 export { createComponentCount } from './createComponentCount';
-export { DevUsernameChecker } from './devUsernameChecker';
 export { EmptyPreChecker } from './emptyPreChecker';
-export { FlagParameter } from './flagParameter';
 export { formatException } from './formatException';
 export { LibraryPathsGatherer } from './libraryPathsGatherer';
 export { OverwriteComponentPrompt } from './overwriteComponentPrompt';
 export {
   FilePathGatherer,
-  FileSelection,
-  FileSelector,
   MetadataTypeGatherer,
-  PromptConfirmGatherer,
   SelectFileName,
   SelectOutputDir,
-  SelectUsername,
   SimpleGatherer
 } from './parameterGatherers';
 export { SfCommandlet } from './sfCommandlet';

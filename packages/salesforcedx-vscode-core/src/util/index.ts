@@ -5,7 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { OrgAuthInfo } from './authInfo';
+export {
+  getDevHubUsername,
+  getTargetOrgOrAlias,
+  getTargetDevHubOrAlias,
+  getUsername,
+  isAScratchOrg,
+  isASandboxOrg,
+  getDevHubIdFromScratchOrg,
+  getConnection,
+  getAuthFields
+} from '@salesforce/salesforcedx-utils-vscode';
 export {
   disableCLITelemetry,
   isCLIInstalled,
@@ -14,7 +24,6 @@ export {
   setSfLogLevel
 } from './cliConfiguration';
 export { MetadataDictionary, MetadataInfo } from './metadataDictionary';
-export { checkForSoonToBeExpiredOrgs, setUpOrgExpirationWatcher } from './orgUtil';
 
 export { ComponentName, ContinueOrCancel, OneOrMany, isContinue } from './types';
 

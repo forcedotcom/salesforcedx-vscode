@@ -54,39 +54,6 @@ export class FilePathGatherer implements ParametersGatherer<string> {
   }
 }
 
-export type FileSelection = { file: string };
-export class FileSelector implements ParametersGatherer<FileSelection> {
-  private readonly displayMessage: string;
-  private readonly errorMessage: string;
-  private readonly include: string;
-  private readonly exclude?: string;
-  private readonly maxResults?: number;
-
-  constructor(displayMessage: string, errorMessage: string, include: string, exclude?: string, maxResults?: number) {
-    this.displayMessage = displayMessage;
-    this.errorMessage = errorMessage;
-    this.include = include;
-    this.exclude = exclude;
-    this.maxResults = maxResults;
-  }
-
-  public async gather(): Promise<CancelResponse | ContinueResponse<FileSelection>> {
-    const files = await vscode.workspace.findFiles(this.include, this.exclude, this.maxResults);
-    const fileItems = files.map(file => ({
-      label: path.basename(file.toString()),
-      description: file.fsPath
-    }));
-    if (fileItems.length === 0) {
-      vscode.window.showErrorMessage(this.errorMessage);
-      return { type: CANCEL };
-    }
-    const selection = await vscode.window.showQuickPick(fileItems, {
-      placeHolder: this.displayMessage
-    });
-    return selection ? { type: CONTINUE, data: { file: selection.description.toString() } } : { type: CANCEL };
-  }
-}
-
 export class SelectFileName implements ParametersGatherer<FileNameParameter> {
   private maxFileNameLength: number;
 
@@ -109,16 +76,6 @@ export class SelectFileName implements ParametersGatherer<FileNameParameter> {
 
     const fileName = await vscode.window.showInputBox(fileNameInputBoxOptions);
     return fileName ? { type: CONTINUE, data: { fileName } } : { type: CANCEL };
-  }
-}
-
-export class SelectUsername implements ParametersGatherer<{ username: string }> {
-  public async gather(): Promise<CancelResponse | ContinueResponse<{ username: string }>> {
-    const usernameInputOptions: vscode.InputBoxOptions = {
-      prompt: nls.localize('parameter_gatherer_enter_username_name')
-    } satisfies vscode.InputBoxOptions;
-    const username = await vscode.window.showInputBox(usernameInputOptions);
-    return username ? { type: CONTINUE, data: { username } } : { type: CANCEL };
   }
 }
 
@@ -215,26 +172,6 @@ export class MetadataTypeGatherer extends SimpleGatherer<{ type: string }> {
 export class ApexTestTemplateGatherer extends SimpleGatherer<ApexTestTemplateParameter> {
   constructor(template: string) {
     super({ template });
-  }
-}
-
-export class PromptConfirmGatherer implements ParametersGatherer<{ choice: string }> {
-  private question: string;
-
-  constructor(question: string) {
-    this.question = question;
-  }
-  public async gather(): Promise<CancelResponse | ContinueResponse<{ choice: string }>> {
-    const confirmOpt = nls.localize('parameter_gatherer_prompt_confirm_option');
-    const cancelOpt = nls.localize('parameter_gatherer_prompt_cancel_option');
-    const choice = await this.showMenu([cancelOpt, confirmOpt]);
-    return confirmOpt === choice ? { type: CONTINUE, data: { choice } } : { type: CANCEL };
-  }
-
-  public async showMenu(options: string[]): Promise<string | undefined> {
-    return await vscode.window.showQuickPick(options, {
-      placeHolder: this.question
-    } satisfies vscode.QuickPickOptions);
   }
 }
 

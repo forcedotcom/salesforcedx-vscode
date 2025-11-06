@@ -8,7 +8,6 @@
 export const SFDX_PROJECT_FILE = 'sfdx-project.json';
 export const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 export const ENV_SF_DISABLE_TELEMETRY = 'SF_DISABLE_TELEMETRY';
-export const TARGET_ORG_KEY = 'target-org';
 export const PKG_ID_PREFIX = '04t';
 
 export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
@@ -18,12 +17,6 @@ export const TELEMETRY_METADATA_COUNT = 'metadataCount';
 export const BASE_EXTENSION = 'salesforce.salesforcedx-vscode';
 export const EXPANDED_EXTENSION = 'salesforce.salesforcedx-vscode-expanded';
 export const EXT_PACK_STATUS_EVENT_NAME = 'extensionPackStatus';
-
-export const CONFIG_SET_EXECUTOR = 'config_set_org_text';
-export const CONFIG_SET_NAME = 'config_set_title';
-export const TABLE_NAME_COL = 'table_header_name';
-export const TABLE_VAL_COL = 'table_header_value';
-export const TABLE_SUCCESS_COL = 'table_header_success';
 
 // sfdxCore setting config values
 export const ALL_EXCEPTION_CATCHER_ENABLED = 'allExceptionCatcherEnabled';
@@ -40,7 +33,6 @@ export const ENABLE_SOBJECT_REFRESH_ON_STARTUP = 'enable-sobject-refresh-on-star
 export const ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE = 'experimental.enableSourceTrackingForDeployAndRetrieve';
 export const ENV_NODE_EXTRA_CA_CERTS = 'NODE_EXTRA_CA_CERTS';
 export const ENV_SF_LOG_LEVEL = 'SF_LOG_LEVEL';
-export const ORG_LOGIN_WEB = 'org:login:web';
 export const USE_LEGACY_ORG_BROWSER = 'useLegacyOrgBrowser';
 
 export const APEX_FILE_NAME_EXTENSION = '.apex';
@@ -51,7 +43,6 @@ export const LWC_PATH = '/force-app/main/default/lwc/';
 export const FUNCTIONS_PATH = '/functions/';
 
 // Commands
-export const ORG_OPEN_COMMAND = 'sf.org.open';
 export const PROJECT_RETRIEVE_START_LOG_NAME = 'project_retrieve_start_default_scratch_org';
 export const PROJECT_DEPLOY_START_LOG_NAME = 'project_deploy_start_default_scratch_org';
 

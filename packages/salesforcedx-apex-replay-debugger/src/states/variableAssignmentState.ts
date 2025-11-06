@@ -91,7 +91,7 @@ export class VariableAssignmentState implements DebugLogState {
         // or if the this variable has not been assigned a reference yet
         if (
           (container && this.isNotCollection(container) && container.name !== 'this') ||
-          (container && container.name === 'this' && !container.ref)
+          (container?.name === 'this' && !container?.ref)
         ) {
           container.ref = ref;
           container.value = '';

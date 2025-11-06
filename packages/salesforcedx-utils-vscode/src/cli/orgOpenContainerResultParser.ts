@@ -39,7 +39,7 @@ export class OrgOpenContainerResultParser {
   }
 
   public openIsSuccessful(): boolean {
-    return this.response && this.response.status === 0 ? true : false;
+    return this.response?.status === 0 ? true : false;
   }
 
   public getResult(): OrgOpenSuccessResult | OrgOpenErrorResult {
