@@ -88,6 +88,5 @@
   "connected_org_walkthrough_set_alt": "changing default org",
   "connected_org_walkthrough_open_title": "Open and Manage Your Default Org",
   "connected_org_walkthrough_open_description": "Once you have a default org set, you can easily access it:\n\n**Open your default org:**\n1. Click the open org icon next to the default org icon in the footer, or\n2. Use Command Palette: **SFDX: Open Default Org**\n\n**Manage your org:**\nTo manage your default org, you can:\n1. **SFDX: Log Out from Default Org**\n2. **SFDX: Display Org Details for Default Org**\n\nOpening your org launches it in your default browser for easy access to the Salesforce interface.",
-  "connected_org_walkthrough_open_alt": "opening and managing org",
-  "apex_test_run_concise": "Display only failed test results."
+  "connected_org_walkthrough_open_alt": "opening and managing org"
 }
