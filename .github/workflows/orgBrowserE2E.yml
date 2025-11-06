@@ -42,7 +42,7 @@ jobs:
         run: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
 
       - name: create scratch org and set up dreamhouse
-        # the tests expect a scratch org with dreahmouse at a certain alias but don't use the directory directly
+        # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
         shell: bash
         run: |
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
@@ -73,9 +73,12 @@ jobs:
         run: |
           sf org delete scratch -o "$DREAMHOUSE_ORG_ALIAS" --no-prompt || true
 
-  e2e-mac:
-    runs-on: macos-latest
+  e2e-desktop:
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 60
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
     env:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
@@ -106,7 +109,7 @@ jobs:
         run: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
 
       - name: create scratch org and set up dreamhouse
-        # the tests expect a scratch org with dreahmouse at a certain alias but don't use the directory directly
+        # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
         shell: bash
         run: |
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
@@ -127,7 +130,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-desktop
+          name: playwright-report-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-org-browser/playwright-report
           if-no-files-found: ignore
 
@@ -135,7 +138,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-test-results-desktop
+          name: playwright-test-results-desktop-${{ matrix.os }}
           path: packages/salesforcedx-vscode-org-browser/test-results
           if-no-files-found: ignore
 
