@@ -6,12 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import {
-  CANCEL,
-  CONTINUE,
-  SelectFileName,
-  SelectLwcComponentType
-} from '../../../../src/commands/util/parameterGatherers';
+import { SelectFileName, SelectLwcComponentType } from '../../../../src/commands/util/parameterGatherers';
 import { nls } from '../../../../src/messages';
 
 describe('ParameterGatherers Unit Tests.', () => {
@@ -26,7 +21,7 @@ describe('ParameterGatherers Unit Tests.', () => {
       const selectFileNameInst = new SelectFileName();
       const result = await selectFileNameInst.gather();
       expect(result).toEqual({
-        type: CONTINUE,
+        type: 'CONTINUE',
         data: { fileName }
       });
     });
@@ -50,7 +45,7 @@ describe('ParameterGatherers Unit Tests.', () => {
       const selectFileNameInst = new SelectFileName(limit);
 
       const result = await selectFileNameInst.gather();
-      expect(result).toEqual({ type: CANCEL });
+      expect(result).toEqual({ type: 'CANCEL' });
     });
 
     it('Should continue if filename is equal to the limit.', async () => {
@@ -70,7 +65,7 @@ describe('ParameterGatherers Unit Tests.', () => {
 
       const result = await selectFileNameInst.gather();
       expect(result).toEqual({
-        type: CONTINUE,
+        type: 'CONTINUE',
         data: { fileName: fileNameWithTen }
       });
     });
@@ -92,7 +87,7 @@ describe('ParameterGatherers Unit Tests.', () => {
 
       const result = await selectFileNameInst.gather();
       expect(result).toEqual({
-        type: CONTINUE,
+        type: 'CONTINUE',
         data: { fileName: fileNameWithFive }
       });
     });
@@ -115,7 +110,7 @@ describe('ParameterGatherers Unit Tests.', () => {
       const showMenuSpy = jest.spyOn(selectLwcComponentTypeInstance, 'showMenu').mockImplementation(jest.fn());
       const result = await selectLwcComponentTypeInstance.gather();
       expect(result).toEqual({
-        type: CONTINUE,
+        type: 'CONTINUE',
         data: { extension: 'JavaScript' }
       });
       expect(showMenuSpy).not.toHaveBeenCalled();
@@ -129,7 +124,7 @@ describe('ParameterGatherers Unit Tests.', () => {
         .mockImplementation(jest.fn().mockReturnValueOnce('TypeScript'));
       const result = await selectLwcComponentTypeInstance.gather();
       expect(result).toEqual({
-        type: CONTINUE,
+        type: 'CONTINUE',
         data: { extension: 'TypeScript' }
       });
       expect(showMenuSpy).toHaveBeenCalled();
@@ -143,7 +138,7 @@ describe('ParameterGatherers Unit Tests.', () => {
         .mockImplementation(jest.fn().mockReturnValueOnce('JavaScript'));
       const result = await selectLwcComponentTypeInstance.gather();
       expect(result).toEqual({
-        type: CONTINUE,
+        type: 'CONTINUE',
         data: { extension: 'JavaScript' }
       });
       expect(showMenuSpy).toHaveBeenCalled();
@@ -157,7 +152,7 @@ describe('ParameterGatherers Unit Tests.', () => {
         .mockImplementation(jest.fn().mockReturnValueOnce(null));
       const result = await selectLwcComponentTypeInstance.gather();
       expect(result).toEqual({
-        type: CANCEL
+        type: 'CANCEL'
       });
       expect(showMenuSpy).toHaveBeenCalled();
     });

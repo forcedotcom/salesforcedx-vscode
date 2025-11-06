@@ -13,13 +13,8 @@ import {
   CliCommandExecutor,
   ConfigUtil,
   ContinueResponse,
-  DevUsernameChecker,
-  FileSelection,
-  FileSelector,
   isAlphaNumSpaceString,
   isIntegerInRange,
-  OrgCreateErrorResult,
-  OrgCreateResultParser,
   ParametersGatherer,
   ProgressNotification,
   SfCommandlet,
@@ -34,6 +29,9 @@ import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
+import { FileSelector, FileSelection } from '../parameterGatherers/fileSelector';
+import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreateResultParser';
+import { DevUsernameChecker } from '../preconditionCheckers/devUsernameChecker';
 import { telemetryService } from '../telemetry';
 
 // Get core API services at runtime

@@ -21,11 +21,11 @@ import {
   Row,
   SfWorkspaceChecker,
   Table,
-  PromptConfirmGatherer,
   SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
+import { PromptConfirmGatherer } from '../parameterGatherers/promptConfirmGatherer';
 import { getAuthFieldsFor } from '../util/orgUtil';
 import { OrgListCleanExecutor } from './orgListCleanExecutor';
 

@@ -8,7 +8,6 @@
 import { OrgInfo, OrgDisplay } from '@salesforce/salesforcedx-utils';
 import {
   FlagParameter,
-  SelectUsername,
   Column,
   ContinueResponse,
   EmptyParametersGatherer,
@@ -21,6 +20,7 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
+import { SelectUsername } from '../parameterGatherers/selectUsername';
 import { getTargetOrgOrAlias, getUsername } from '../util';
 
 class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }> {

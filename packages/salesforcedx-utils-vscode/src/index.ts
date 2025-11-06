@@ -8,19 +8,12 @@
 export { ChannelService } from './commands/channelService';
 export { notificationService } from './commands/notificationService';
 export { ProgressNotification } from './commands/progressNotification';
-export {
-  CompositeParametersGatherer,
-  EmptyParametersGatherer,
-  PromptConfirmGatherer,
-  SelectUsername
-} from './commands/parameterGatherers';
+export { CompositeParametersGatherer, EmptyParametersGatherer } from './commands/parameterGatherers';
 export { SfWorkspaceChecker, isSalesforceProjectOpened } from './commands/preconditionCheckers';
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { SfCommandlet } from './commands/sfCommandlet';
 export { CompositePreconditionChecker } from './commands/preconditionCheckers';
-export { DevUsernameChecker } from './commands/devUsernameChecker';
-export { FileSelector } from './commands/parameterGatherers';
-export type { FileSelection, FlagParameter } from './commands/parameterGatherers';
+export type { FlagParameter } from './commands/parameterGatherers';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
 export {
   SETTING_CLEAR_OUTPUT_TAB,
@@ -92,12 +85,6 @@ export {
 export { hasRootWorkspace, getRootWorkspacePath, workspaceUtils } from './workspaces/workspaceUtils';
 export { CliCommandExecutor } from './cli/commandExecutor';
 export { LocalCommandExecution } from './cli/localCommandExecutor';
-export { OrgCreateErrorResult, OrgCreateResultParser, OrgCreateSuccessResult } from './cli/orgCreateResultParser';
-export {
-  OrgOpenContainerResultParser,
-  OrgOpenErrorResult,
-  OrgOpenSuccessResult
-} from './cli/orgOpenContainerResultParser';
 export { LocalizationService, LOCALE_JA, MISSING_LABEL_MSG } from '@salesforce/salesforcedx-utils';
 export { SFDX_FOLDER } from './constants';
 

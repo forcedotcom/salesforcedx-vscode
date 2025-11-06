@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { PreconditionChecker } from './preconditionCheckers';
-import { getTargetDevHubOrAlias } from '../util/authInfo';
+import { getTargetDevHubOrAlias, type PreconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
 
 /** Checks if a Dev Hub is configured */
 export class DevUsernameChecker implements PreconditionChecker {

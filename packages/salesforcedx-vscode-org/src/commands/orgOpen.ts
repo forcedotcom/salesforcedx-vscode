@@ -11,9 +11,6 @@ import {
   ContinueResponse,
   EmptyParametersGatherer,
   isSFContainerMode,
-  OrgOpenContainerResultParser,
-  OrgOpenErrorResult,
-  OrgOpenSuccessResult,
   ProgressNotification,
   SfCommandlet,
   SfCommandletExecutor,
@@ -27,6 +24,11 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
+import {
+  OrgOpenContainerResultParser,
+  OrgOpenErrorResult,
+  OrgOpenSuccessResult
+} from '../parsers/orgOpenContainerResultParser';
 import { telemetryService } from '../telemetry';
 
 // Get core API services at runtime
