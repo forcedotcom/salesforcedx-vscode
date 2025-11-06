@@ -54,6 +54,7 @@ jobs:
       - name: Run Org Browser headless tests (headless config)
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          CI: 1
         # compile the entire project to
         run: |
           npx lerna run bundle:extension --scope salesforcedx-vscode-services --scope salesforcedx-vscode-org-browser --stream
@@ -121,6 +122,8 @@ jobs:
       - name: Run Org Browser headless tests (headless config)
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          CI: 1
+          VSCODE_DESKTOP: 1
         # compile the entire project to
         run: |
           npx lerna run bundle:extension --scope salesforcedx-vscode-services --scope salesforcedx-vscode-org-browser --stream
@@ -145,5 +148,6 @@ jobs:
       - name: Cleanup scratch org
         if: always()
         continue-on-error: true
+        shell: bash
         run: |
           sf org delete scratch -o "$DREAMHOUSE_ORG_ALIAS" --no-prompt || true
