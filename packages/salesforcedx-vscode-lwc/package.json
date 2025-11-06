@@ -30,6 +30,7 @@
     "@salesforce/salesforcedx-utils": "65.3.0",
     "@salesforce/salesforcedx-utils-vscode": "65.3.0",
     "applicationinsights": "1.0.7",
+    "effect": "^3.18.4",
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
     "rxjs": "^5.4.1",

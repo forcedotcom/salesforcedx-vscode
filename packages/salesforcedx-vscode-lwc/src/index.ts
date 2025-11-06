@@ -8,6 +8,7 @@
 import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
 import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
+import { Effect } from 'effect';
 import * as path from 'node:path';
 import { commands, Disposable, ExtensionContext, workspace, Uri, FileType } from 'vscode';
 import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
@@ -18,6 +19,7 @@ import { DevServerService } from './service/devServerService';
 import { telemetryService } from './telemetry';
 import { activateLwcTestSupport, shouldActivateLwcTestSupport } from './testSupport';
 import { WorkspaceUtils } from './util/workspaceUtils';
+import { bootstrapWorkspaceAwareness } from './workspaceLoader';
 
 export const activate = async (extensionContext: ExtensionContext) => {
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
@@ -45,10 +47,14 @@ export const activate = async (extensionContext: ExtensionContext) => {
     workspaceUris.push(folder.uri.fsPath);
   });
 
-  const fileSystemProvider = await createFileSystemProvider(workspaceUris);
+  // Create an empty FileSystemDataProvider - files will be loaded asynchronously via TextDocuments
+  // This allows the server to start immediately without waiting for all files to be read
+  const fileSystemProvider = new FileSystemDataProvider();
 
-  // If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = await lspCommon.detectWorkspaceType(workspaceUris, fileSystemProvider);
+  // For workspace type detection, we still need to check the file system
+  // Create a temporary provider just for detection
+  const tempFileSystemProvider = await createFileSystemProvider(workspaceUris);
+  const workspaceType = await lspCommon.detectWorkspaceType(workspaceUris, tempFileSystemProvider);
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
@@ -70,6 +76,17 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Start the client and add it to subscriptions
   await client.start();
   extensionContext.subscriptions.push(client);
+
+  // Trigger loading of workspace files into document cache after server initialization
+  // This runs asynchronously and does not block extension activation
+  void Effect.runPromise(
+    bootstrapWorkspaceAwareness({
+      fileGlob: '**/lwc/**/*.{js,ts,html}',
+      excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**'
+    })
+  ).catch((error: unknown) => {
+    log(`Failed to bootstrap workspace awareness: ${String(error)}`);
+  });
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
