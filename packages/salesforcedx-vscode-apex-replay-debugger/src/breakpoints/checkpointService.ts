@@ -542,8 +542,8 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
   try {
     // The lock is necessary here to prevent the user from deleting the underlying breakpoint
     // attached to the checkpoint while they're being uploaded into the org.
-    Effect.runSync(
-      lock.withPermits(1)(
+    await Effect.runPromise(
+      lock.withPermitsIfAvailable(1)(
         Effect.promise(async () => {
           writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`);
           await vscode.window.withProgress(
@@ -671,7 +671,7 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
 //    that may be on the checkpoint are the condition (which needs to get set to Checkpoint)
 //    and the logMessage. The logMessage is scrapped since this ends up being taken over by
 //    checkpoints for user input SOQL or Apex.
-export const sfToggleCheckpoint = async () => {
+export const sfToggleCheckpoint = () => {
   if (creatingCheckpoints) {
     writeToDebuggerOutputWindow(nls.localize('checkpoint_upload_in_progress'), true, VSCodeWindowTypeEnum.Warning);
     return;
@@ -692,14 +692,14 @@ export const sfToggleCheckpoint = async () => {
       // If the breakpoint is a checkpoint then remove it and return
       if (bp.condition?.toLowerCase().includes(CHECKPOINT)) {
         bpRemove.push(bp);
-        return await vscode.debug.removeBreakpoints(bpRemove);
+        return vscode.debug.removeBreakpoints(bpRemove);
       } else {
         // The only thing from the old breakpoint that is applicable to keep is the hitCondition
         // which maps to iterations. Squirrel away hitCondition, remove the breakpoint and let
         // processing go into the code to create a new breakpoint with the checkpoint condition
         hitCondition = bp.hitCondition;
         bpRemove.push(bp);
-        await vscode.debug.removeBreakpoints(bpRemove);
+        vscode.debug.removeBreakpoints(bpRemove);
       }
     }
 
@@ -708,7 +708,7 @@ export const sfToggleCheckpoint = async () => {
     const location = new vscode.Location(uri, range);
     const newBreakpoint = new vscode.SourceBreakpoint(location, true, CHECKPOINT, hitCondition);
     bpAdd.push(newBreakpoint);
-    await vscode.debug.addBreakpoints(bpAdd);
+    vscode.debug.addBreakpoints(bpAdd);
   }
 };
 
