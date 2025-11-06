@@ -6,8 +6,8 @@
  */
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import { SfWorkspaceChecker, SfCommandlet, SfCommandletExecutor } from '@salesforce/salesforcedx-utils-vscode';
+import { ORG_LOGIN_WEB } from '../../constants';
 import { nls } from '../../messages';
-import { ORG_LOGIN_WEB } from '../constants';
 import { AuthParams, AuthParamsGatherer } from './authParamsGatherer';
 
 class OrgLoginWebExecutor extends SfCommandletExecutor<AuthParams> {

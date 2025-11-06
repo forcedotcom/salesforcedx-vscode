@@ -78,7 +78,17 @@ export {
 export { isAlphaNumSpaceString, isIntegerInRange, isRecordIdFormat } from './helpers/validations';
 export { errorToString } from './helpers/errorUtils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
-export { getDevHubIdFromScratchOrg, getTargetOrgOrAlias, isASandboxOrg, isAScratchOrg } from './util/authInfo';
+export {
+  getDevHubIdFromScratchOrg,
+  getTargetOrgOrAlias,
+  isASandboxOrg,
+  isAScratchOrg,
+  getDevHubUsername,
+  getTargetDevHubOrAlias,
+  getUsername,
+  getConnection,
+  getAuthFields
+} from './util/authInfo';
 export { hasRootWorkspace, getRootWorkspacePath, workspaceUtils } from './workspaces/workspaceUtils';
 export { CliCommandExecutor } from './cli/commandExecutor';
 export { LocalCommandExecution } from './cli/localCommandExecutor';

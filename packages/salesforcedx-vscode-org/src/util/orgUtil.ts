@@ -9,7 +9,7 @@ import { AuthFields, AuthInfo } from '@salesforce/core';
 import { notificationService, ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { OrgList } from '../orgPicker';
+import { OrgList } from '../orgPicker/orgList';
 
 export const setUpOrgExpirationWatcher = async (orgList: OrgList): Promise<void> => {
   // Run once to start off with.

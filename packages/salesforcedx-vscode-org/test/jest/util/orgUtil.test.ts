@@ -10,7 +10,7 @@ import { ConfigUtil, notificationService } from '@salesforce/salesforcedx-utils-
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import { nls } from '../../../src/messages';
-import { OrgList } from '../../../src/orgPicker';
+import { OrgList } from '../../../src/orgPicker/orgList';
 import { checkForSoonToBeExpiredOrgs } from '../../../src/util';
 
 describe('orgUtil tests', () => {

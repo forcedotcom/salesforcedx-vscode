@@ -14,11 +14,7 @@ import { telemetryService } from '../services/telemetry';
 /** Get the Dev Hub username */
 export const getDevHubUsername = async (): Promise<string | undefined> => {
   const targetDevHubOrAlias = await getTargetDevHubOrAlias(false);
-  let targetDevHub: string | undefined;
-  if (targetDevHubOrAlias) {
-    targetDevHub = await getUsername(targetDevHubOrAlias);
-  }
-  return targetDevHub;
+  return targetDevHubOrAlias ? await getUsername(targetDevHubOrAlias) : undefined;
 };
 
 /** Get the target org or alias, optionally showing warnings */
