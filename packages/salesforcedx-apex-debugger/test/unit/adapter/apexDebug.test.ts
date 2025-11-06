@@ -502,7 +502,7 @@ describe('Interactive debugger adapter - unit', () => {
       args = {
         salesforceProject: 'some/project/path',
         workspaceSettings: {
-          connectionTimeoutMs: 60000
+          connectionTimeoutMs: 60_000
         } as WorkspaceSettings,
         lineBreakpointInfo: lineBpInfo
       };
@@ -512,7 +512,7 @@ describe('Interactive debugger adapter - unit', () => {
       expect(requestService.proxyUrl).to.be.undefined;
       expect(requestService.proxyStrictSSL).to.be.undefined;
       expect(requestService.proxyAuthorization).to.be.undefined;
-      expect(requestService.connectionTimeoutMs).to.equal(60000);
+      expect(requestService.connectionTimeoutMs).to.equal(60_000);
     });
   });
 
@@ -610,7 +610,7 @@ describe('Interactive debugger adapter - unit', () => {
       adapter.getIdleTimers().push(
         setTimeout(() => {
           // Do nothing
-        }, 10000)
+        }, 10_000)
       );
 
       adapter.clearIdleTimers();
@@ -626,8 +626,8 @@ describe('Interactive debugger adapter - unit', () => {
         expect((adapter.getEvents()[0] as OutputEvent).body.output).to.have.string(
           nls.localize(
             'idle_warn_text',
-            DEFAULT_IDLE_WARN1_MS / 60000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60000
+            DEFAULT_IDLE_WARN1_MS / 60_000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60_000
           )
         );
       }, DEFAULT_IDLE_WARN1_MS);
@@ -638,8 +638,8 @@ describe('Interactive debugger adapter - unit', () => {
         expect((adapter.getEvents()[1] as OutputEvent).body.output).to.have.string(
           nls.localize(
             'idle_warn_text',
-            DEFAULT_IDLE_WARN2_MS / 60000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60000
+            DEFAULT_IDLE_WARN2_MS / 60_000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60_000
           )
         );
       }, DEFAULT_IDLE_WARN2_MS);
@@ -650,8 +650,8 @@ describe('Interactive debugger adapter - unit', () => {
         expect((adapter.getEvents()[2] as OutputEvent).body.output).to.have.string(
           nls.localize(
             'idle_warn_text',
-            DEFAULT_IDLE_WARN3_MS / 60000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60000
+            DEFAULT_IDLE_WARN3_MS / 60_000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60_000
           )
         );
       }, DEFAULT_IDLE_WARN3_MS);
@@ -660,7 +660,7 @@ describe('Interactive debugger adapter - unit', () => {
       setTimeout(() => {
         expect(adapter.getEvents()[3].event).to.equal('output');
         expect((adapter.getEvents()[3] as OutputEvent).body.output).to.have.string(
-          nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60000)
+          nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60_000)
         );
         expect(adapter.getEvents()[4].event).to.equal('terminated');
       }, DEFAULT_IDLE_TIMEOUT_MS);

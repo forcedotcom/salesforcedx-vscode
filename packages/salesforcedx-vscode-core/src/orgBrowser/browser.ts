@@ -9,7 +9,7 @@ import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { BrowserNode, MetadataOutlineProvider } from '../orgBrowser';
 import { telemetryService } from '../telemetry';
-import { OrgAuthInfo } from '../util';
+import { getTargetOrgOrAlias } from '../util';
 
 export class OrgBrowser {
   private static VIEW_ID = 'metadata';
@@ -40,7 +40,7 @@ export class OrgBrowser {
   }
 
   public async init(extensionContext: ExtensionContext) {
-    const username = await OrgAuthInfo.getTargetOrgOrAlias(false);
+    const username = await getTargetOrgOrAlias(false);
     this._dataProvider = new MetadataOutlineProvider(username);
     this._treeView = window.createTreeView(OrgBrowser.VIEW_ID, {
       treeDataProvider: this._dataProvider,

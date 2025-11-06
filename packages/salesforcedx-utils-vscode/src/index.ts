@@ -12,6 +12,10 @@ export { CompositeParametersGatherer, EmptyParametersGatherer } from './commands
 export { SfWorkspaceChecker, isSalesforceProjectOpened } from './commands/preconditionCheckers';
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { SfCommandlet } from './commands/sfCommandlet';
+export { CompositePreconditionChecker } from './commands/preconditionCheckers';
+export { DevUsernameChecker } from './commands/devUsernameChecker';
+export { FileSelector } from './commands/parameterGatherers';
+export type { FileSelection } from './commands/parameterGatherers';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
 export {
   SETTING_CLEAR_OUTPUT_TAB,

@@ -21,8 +21,8 @@ export default defineConfig({
     trace: process.env.CI ? 'retain-on-failure' : 'on-first-retry',
     screenshot: process.env.CI ? 'on' : 'only-on-failure',
     video: process.env.CI ? 'on' : 'retain-on-failure',
-    actionTimeout: 15000,
-    navigationTimeout: 30000,
+    actionTimeout: 15_000,
+    navigationTimeout: 30_000,
     launchOptions: {
       args: [
         '--disable-web-security',

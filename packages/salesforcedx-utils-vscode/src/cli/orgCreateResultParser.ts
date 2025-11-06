@@ -41,7 +41,7 @@ export class OrgCreateResultParser {
   }
 
   public createIsSuccessful(): boolean {
-    return this.response && this.response.status === 0 ? true : false;
+    return this.response?.status === 0 ? true : false;
   }
 
   public getResult(): OrgCreateSuccessResult | OrgCreateErrorResult {

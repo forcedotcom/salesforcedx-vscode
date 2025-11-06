@@ -203,6 +203,6 @@ describe('initializeO11yReporter', () => {
     };
     const reporters = reImportedDetermineReporters(config);
     // Should include the O11yReporter instance
-    expect(reporters.some((r: any) => r && r.initialize === initializeMock)).toBe(true);
+    expect(reporters.some((r: any) => r?.initialize === initializeMock)).toBe(true);
   });
 });

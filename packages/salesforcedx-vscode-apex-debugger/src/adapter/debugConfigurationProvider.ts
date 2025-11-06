@@ -64,7 +64,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         proxyUrl: workspaceConfig.get('http.proxy', ''),
         proxyStrictSSL: workspaceConfig.get('http.proxyStrictSSL', false),
         proxyAuth: workspaceConfig.get('http.proxyAuthorization', ''),
-        connectionTimeoutMs: workspaceConfig.get('salesforcedx-vscode-apex-debugger.connectionTimeoutMs', 20000) // should match pjson default
+        connectionTimeoutMs: workspaceConfig.get('salesforcedx-vscode-apex-debugger.connectionTimeoutMs', 20_000) // should match pjson default
       } satisfies WorkspaceSettings;
     }
 

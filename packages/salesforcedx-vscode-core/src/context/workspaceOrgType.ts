@@ -7,7 +7,7 @@
 import { Org } from '@salesforce/core';
 import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { OrgAuthInfo } from '../util';
+import { getTargetOrgOrAlias as getTargetOrgOrAliasUtil } from '../util';
 import { WorkspaceContext } from './workspaceContext';
 
 export enum OrgType {
@@ -60,7 +60,7 @@ const setHasTargetOrg = (val: boolean): void => {
 
 export const getTargetOrgOrAlias = (): Promise<string | undefined> => {
   if (workspaceUtils.hasRootWorkspace()) {
-    return OrgAuthInfo.getTargetOrgOrAlias(true);
+    return getTargetOrgOrAliasUtil(true);
   }
   return Promise.resolve(undefined);
 };
