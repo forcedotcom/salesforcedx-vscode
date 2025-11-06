@@ -6,11 +6,21 @@
  */
 
 export * from './commands';
-export { CompositeParametersGatherer, EmptyParametersGatherer } from './commands/parameterGatherers';
+export {
+  CompositeParametersGatherer,
+  EmptyParametersGatherer,
+  PromptConfirmGatherer,
+  SelectUsername
+} from './commands/parameterGatherers';
+export type { FlagParameter } from './commands/parameterGatherers';
 export { EmptyPostChecker } from './commands/postconditionCheckers';
 export { SfWorkspaceChecker, isSalesforceProjectOpened } from './commands/preconditionCheckers';
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { SfCommandlet } from './commands/sfCommandlet';
+export { CompositePreconditionChecker } from './commands/preconditionCheckers';
+export { DevUsernameChecker } from './commands/devUsernameChecker';
+export { FileSelector } from './commands/parameterGatherers';
+export type { FileSelection } from './commands/parameterGatherers';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
 export {
   APEX_CODE_DEBUG_LEVEL,
@@ -24,7 +34,7 @@ export {
   VISUALFORCE_DEBUG_LEVEL
 } from './constants';
 export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
-export { TelemetryService, TelemetryBuilder } from './services/telemetry';
+export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
 export * from './helpers';
 export { TraceFlags, handleTraceFlagCleanup } from './helpers/traceFlags';
@@ -42,3 +52,4 @@ export * from './services';
 export * from './settings';
 export * from './languageClients/conversion';
 export * from './messages';
+export * from './util/authInfo';

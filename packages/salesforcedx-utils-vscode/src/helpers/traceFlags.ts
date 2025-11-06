@@ -32,7 +32,7 @@ export const getTraceFlagExpirationKey = (userId: string): string => `${TRACE_FL
 
 export class TraceFlags {
   private readonly LOG_TIMER_LENGTH_MINUTES = 30;
-  private readonly MILLISECONDS_PER_MINUTE = 60000;
+  private readonly MILLISECONDS_PER_MINUTE = 60_000;
   private connection: Connection;
 
   constructor(connection: Connection) {

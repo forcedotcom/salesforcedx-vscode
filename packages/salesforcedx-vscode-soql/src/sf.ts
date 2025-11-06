@@ -62,7 +62,7 @@ export const onOrgChange = (f: (orgInfo: any) => Promise<void>): void => {
 };
 
 export const isDefaultOrgSet = async (): Promise<boolean> =>
-  Boolean((await getActiveCoreExtension()).exports.OrgAuthInfo.getTargetOrgOrAlias(false));
+  Boolean((await getActiveCoreExtension()).exports.getTargetOrgOrAlias());
 
 export const getActiveCoreExtension = async () => {
   const coreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');

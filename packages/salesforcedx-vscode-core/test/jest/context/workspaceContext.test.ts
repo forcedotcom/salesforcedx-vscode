@@ -4,49 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { OrgUserInfo, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { OrgUserInfo, OrgShape, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { WorkspaceContext, workspaceContextUtils } from '../../../src/context';
-import { decorators } from '../../../src/decorators';
-import { OrgAuthInfo } from '../../../src/util/authInfo';
 
-jest.mock('../../../src/util/authInfo', () => ({
-  OrgAuthInfo: {
-    getDevHubIdFromScratchOrg: jest.fn()
-  }
-}));
-
+const getDevHubIdFromScratchOrgMock = jest.fn();
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
-  ConfigUtil: {
-    getTargetOrgOrAlias: jest.fn().mockResolvedValue('test@example.com')
-  }
-}));
-
-jest.mock('vscode', () => ({
-  window: {
-    createStatusBarItem: jest.fn(),
-    createOutputChannel: jest.fn().mockReturnValue({
-      appendLine: jest.fn(),
-      show: jest.fn(),
-      dispose: jest.fn()
-    })
-  },
-  workspace: {
-    workspaceFolders: [
-      {
-        uri: { fsPath: '/mock/workspace/path' },
-        name: 'test-workspace',
-        index: 0
-      }
-    ]
-  },
-  StatusBarAlignment: {
-    Left: 1
-  },
-  Disposable: class MockDisposable {
-    public dispose() {}
-  }
+  getDevHubIdFromScratchOrg: (...args: any[]) => getDevHubIdFromScratchOrgMock(...args)
 }));
 
 describe('workspaceContext', () => {
@@ -59,7 +24,6 @@ describe('workspaceContext', () => {
     };
     let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
     let setupWorkspaceOrgTypeMock: jest.SpyInstance;
-    let decoratorsMock: jest.SpyInstance;
     let createStatusBarItemMock: jest.SpyInstance;
     const mockStatusBarItem: any = {};
 
@@ -68,7 +32,6 @@ describe('workspaceContext', () => {
         .spyOn(WorkspaceContextUtil, 'getInstance')
         .mockReturnValue(mockWorkspaceContextUtil as any);
       setupWorkspaceOrgTypeMock = jest.spyOn(workspaceContextUtils, 'setupWorkspaceOrgType').mockResolvedValue();
-      decoratorsMock = jest.spyOn(decorators, 'showOrg');
       createStatusBarItemMock = vscode.window.createStatusBarItem as jest.Mock;
     });
 
@@ -86,7 +49,7 @@ describe('workspaceContext', () => {
 
       expect(workspaceContextUtilGetInstanceSpy).toHaveBeenCalled();
       expect(setupWorkspaceOrgTypeMock).toHaveBeenCalled();
-      expect(decoratorsMock).toHaveBeenCalled();
+      // Note: decorators.showOrg() has been moved to the salesforcedx-vscode-org extension
     });
   });
 
@@ -106,11 +69,11 @@ describe('workspaceContext', () => {
     const mockOrgUserInfo: OrgUserInfo = { username: 'test-username' };
     let workspaceContextUtilGetInstanceSpy: jest.SpyInstance;
     let getOrgShapeMock: jest.SpyInstance;
-    let getDevHubIdFromScratchOrgMock: jest.SpyInstance;
+
     const mockWorkspaceContextUtil = {
       onOrgChange: jest.fn(),
-      orgShape: undefined,
-      devHubId: undefined,
+      orgShape: undefined as OrgShape | undefined,
+      devHubId: undefined as string | undefined,
       username: 'mock-username',
       alias: 'mock-alias',
       orgId: 'mock-org-id',
@@ -127,7 +90,7 @@ describe('workspaceContext', () => {
 
       getOrgShapeMock = jest.spyOn(workspaceContextUtils, 'getOrgShape').mockResolvedValue('Undefined');
 
-      getDevHubIdFromScratchOrgMock = jest.spyOn(OrgAuthInfo, 'getDevHubIdFromScratchOrg');
+      getDevHubIdFromScratchOrgMock.mockResolvedValue(undefined);
     });
 
     it('should set orgShape and devHubId to undefined if orgShape is Undefined', async () => {

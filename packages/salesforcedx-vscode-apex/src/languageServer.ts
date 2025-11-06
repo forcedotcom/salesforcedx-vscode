@@ -207,7 +207,7 @@ const provideCodeLenses = async (
   const vscodeCoreExtension = await getVscodeCoreExtension();
   const [nsFromOrg, nsFromProject, lenses] = await Promise.all([
     // convert null to undefined
-    vscodeCoreExtension.exports.OrgAuthInfo.getAuthFields().then(fields => fields.namespacePrefix ?? undefined),
+    vscodeCoreExtension.exports.getAuthFields().then(fields => fields.namespacePrefix ?? undefined),
     vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance().then(cfg => cfg.getContents().namespace),
     next(document, token)
   ]);

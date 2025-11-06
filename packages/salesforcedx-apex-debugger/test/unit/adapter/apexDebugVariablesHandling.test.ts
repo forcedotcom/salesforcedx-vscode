@@ -440,7 +440,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
     it('Should call fetchReferences for unknown input', async () => {
       // given
-      const apexId = 12345;
+      const apexId = 12_345;
       const references: Reference[] = [
         {
           type: 'object',
@@ -663,7 +663,7 @@ describe('Debugger adapter variable handling - unit', () => {
     it('Should return no scopes for unknown frameId', async () => {
       // given
       const args: DebugProtocol.ScopesArguments = {
-        frameId: 1234567
+        frameId: 1_234_567
       };
 
       // when
@@ -802,7 +802,7 @@ describe('Debugger adapter variable handling - unit', () => {
     it('Should return no variables for unknown variablesReference', async () => {
       // given
       const args: DebugProtocol.VariablesArguments = {
-        variablesReference: 1234567
+        variablesReference: 1_234_567
       };
 
       // when

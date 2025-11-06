@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.2.0",
+  "version": "65.3.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -35,6 +35,7 @@
     "salesforce.salesforcedx-einstein-gpt",
     "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-lightning",
+    "salesforce.salesforcedx-vscode-org",
     "salesforce.salesforcedx-vscode-visualforce",
     "salesforce.salesforcedx-vscode-lwc",
     "salesforce.salesforcedx-vscode-soql",

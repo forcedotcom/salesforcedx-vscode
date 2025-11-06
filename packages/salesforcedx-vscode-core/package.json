@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.2.0",
+  "version": "65.3.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -26,13 +26,13 @@
   "dependencies": {
     "@salesforce/core": "^8.23.3",
     "@salesforce/o11y-reporter": "1.3.2",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "65.2.0",
-    "@salesforce/salesforcedx-utils": "65.2.0",
-    "@salesforce/salesforcedx-utils-vscode": "65.2.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "65.3.1",
+    "@salesforce/salesforcedx-utils": "65.3.1",
+    "@salesforce/salesforcedx-utils-vscode": "65.3.1",
     "@salesforce/schemas": "1.10.3",
     "@salesforce/source-deploy-retrieve": "^12.25.0",
     "@salesforce/source-tracking": "^7.5.0",
-    "@salesforce/templates": "^65.1.0",
+    "@salesforce/templates": "^65.1.1",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "applicationinsights": "1.0.7",
@@ -305,36 +305,8 @@
           "when": "sf:project_opened && sf:has_target_org"
         },
         {
-          "command": "sf.org.login.web.dev.hub",
-          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.org.login.access.token",
-          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.org.login.web",
-          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.org.logout.all",
-          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.org.logout.default",
-          "when": "sf:project_opened && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
           "command": "sf.open.documentation",
           "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.org.create",
-          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.org.open",
-          "when": "sf:project_opened && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.project.retrieve.start",
@@ -399,14 +371,6 @@
         {
           "command": "sf.alias.list",
           "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.org.display.default",
-          "when": "sf:project_opened && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.org.display.username",
-          "when": "sf:project_opened && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.data.query.input",
@@ -485,24 +449,8 @@
           "when": "false"
         },
         {
-          "command": "sf.org.delete.default",
-          "when": "sf:project_opened && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.org.delete.username",
-          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.org.list.clean",
-          "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
           "command": "sf.delete.source.current.file",
           "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && editorIsOpen && sf:has_target_org"
-        },
-        {
-          "command": "sf.set.default.org",
-          "when": "sf:project_opened"
         },
         {
           "command": "sf.lightning.generate.lwc",
@@ -584,36 +532,8 @@
         "title": "%package_install_text%"
       },
       {
-        "command": "sf.org.login.web.dev.hub",
-        "title": "%org_login_web_authorize_dev_hub_text%"
-      },
-      {
-        "command": "sf.org.login.web",
-        "title": "%org_login_web_authorize_org_text%"
-      },
-      {
-        "command": "sf.org.login.access.token",
-        "title": "%org_login_access_token_text%"
-      },
-      {
-        "command": "sf.org.logout.all",
-        "title": "%org_logout_all_text%"
-      },
-      {
-        "command": "sf.org.logout.default",
-        "title": "%org_logout_default_text%"
-      },
-      {
         "command": "sf.open.documentation",
         "title": "%open_documentation_text%"
-      },
-      {
-        "command": "sf.org.create",
-        "title": "%org_create_default_scratch_org_text%"
-      },
-      {
-        "command": "sf.org.open",
-        "title": "%org_open_default_scratch_org_text%"
       },
       {
         "command": "sf.project.retrieve.start",
@@ -712,26 +632,6 @@
         "title": "%alias_list_text%"
       },
       {
-        "command": "sf.org.delete.default",
-        "title": "%org_delete_default_text%"
-      },
-      {
-        "command": "sf.org.delete.username",
-        "title": "%org_delete_username_text%"
-      },
-      {
-        "command": "sf.org.display.default",
-        "title": "%org_display_default_text%"
-      },
-      {
-        "command": "sf.org.display.username",
-        "title": "%org_display_username_text%"
-      },
-      {
-        "command": "sf.org.list.clean",
-        "title": "%org_list_clean_text%"
-      },
-      {
         "command": "sf.data.query.input",
         "title": "%data_query_input_text%"
       },
@@ -794,10 +694,6 @@
       {
         "command": "sf.delete.source.current.file",
         "title": "%delete_source_this_source_text%"
-      },
-      {
-        "command": "sf.set.default.org",
-        "title": "%config_set_org_text%"
       },
       {
         "command": "sf.lightning.generate.lwc",

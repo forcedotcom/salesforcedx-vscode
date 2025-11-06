@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.2.0",
+  "version": "65.3.1",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -27,9 +27,9 @@
   ],
   "dependencies": {
     "@salesforce/apex-node": "^8.3.1",
-    "@salesforce/apex-tmlanguage": "1.8.2",
-    "@salesforce/salesforcedx-utils": "65.2.0",
-    "@salesforce/salesforcedx-utils-vscode": "65.2.0",
+    "@salesforce/apex-tmlanguage": "^1.8.3",
+    "@salesforce/salesforcedx-utils": "65.3.1",
+    "@salesforce/salesforcedx-utils-vscode": "65.3.1",
     "find-java-home": "1.2.2",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
@@ -37,7 +37,7 @@
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
     "esbuild": "0.25.10",
-    "salesforcedx-vscode-core": "65.2.0"
+    "salesforcedx-vscode-core": "65.3.1"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
@@ -54,7 +54,7 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "copy:files": "shx cp -R ../../node_modules/@salesforce/apex-tmlanguage/grammars .",
+    "copy:files": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/*.tmLanguage ./grammars/",
     "test": "jest --coverage"
   },
   "packaging": {
@@ -84,7 +84,8 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./out/src",
+  "main": "./out/src/index.js",
+  "types": "./out/src/index.d.ts",
   "languageServerDir": "out",
   "contributes": {
     "viewsContainers": {

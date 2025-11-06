@@ -140,9 +140,10 @@ export class ApexVariable extends Variable {
 
   constructor(value: Value, kind: ApexVariableKind, variableReference?: number, numOfChildren?: number) {
     // For collection types, pass numOfChildren as indexedVariables to parent constructor
-    const indexedVariables = kind === ApexVariableKind.Collection && numOfChildren !== undefined && numOfChildren > 0
-      ? numOfChildren
-      : undefined;
+    const indexedVariables =
+      kind === ApexVariableKind.Collection && numOfChildren !== undefined && numOfChildren > 0
+        ? numOfChildren
+        : undefined;
 
     super(value.name, ApexVariable.valueAsString(value), variableReference, indexedVariables);
     this.declaredTypeRef = value.declaredTypeRef;
@@ -514,8 +515,8 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
-            DEFAULT_IDLE_WARN1_MS / 60000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60000
+            DEFAULT_IDLE_WARN1_MS / 60_000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60_000
           )
         );
       }, DEFAULT_IDLE_WARN1_MS),
@@ -523,8 +524,8 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
-            DEFAULT_IDLE_WARN2_MS / 60000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60000
+            DEFAULT_IDLE_WARN2_MS / 60_000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60_000
           )
         );
       }, DEFAULT_IDLE_WARN2_MS),
@@ -532,13 +533,13 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
-            DEFAULT_IDLE_WARN3_MS / 60000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60000
+            DEFAULT_IDLE_WARN3_MS / 60_000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60_000
           )
         );
       }, DEFAULT_IDLE_WARN3_MS),
       setTimeout(() => {
-        this.warnToDebugConsole(nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60000));
+        this.warnToDebugConsole(nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60_000));
         this.sendEvent(new TerminatedEvent());
       }, DEFAULT_IDLE_TIMEOUT_MS)
     );
@@ -1376,7 +1377,7 @@ export class ApexDebug extends LoggingDebugSession {
       logMessage += ` | ${message.sobject.Description}`;
       const regExp: RegExp = /^(.*)\[(\d+)\]\|/;
       const matches = message.sobject.Description.match(regExp);
-      if (matches && matches.length === 3) {
+      if (matches?.length === 3) {
         const possibleClassName = matches[1];
         const possibleClassLine = parseInt(matches[2], 10);
         const possibleSourcePath = this.myBreakpointService.getSourcePathFromPartialTyperef(possibleClassName);
