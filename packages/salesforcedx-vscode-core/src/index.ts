@@ -89,7 +89,7 @@ import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { MetricsReporter } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel } from './util';
-import { OrgAuthInfoExtensions } from './util/orgAuthInfoExtensions';
+import { getUserId, getAuthFields } from './util/orgAuthInfoExtensions';
 
 /** Customer-facing commands */
 const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable =>
@@ -215,8 +215,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const api: SalesforceVSCodeCoreApi = {
     channelService,
     getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
-    getUserId: OrgAuthInfoExtensions.getUserId,
-    getAuthFields: OrgAuthInfoExtensions.getAuthFields,
+    getUserId,
+    getAuthFields,
     isCLIInstalled,
     notificationService,
     ProgressNotification,
@@ -389,8 +389,8 @@ const handleTheUnhandled = (): void => {
 export type SalesforceVSCodeCoreApi = {
   channelService: typeof channelService;
   getTargetOrgOrAlias: typeof workspaceContextUtils.getTargetOrgOrAlias;
-  getUserId: typeof OrgAuthInfoExtensions.getUserId;
-  getAuthFields: typeof OrgAuthInfoExtensions.getAuthFields;
+  getUserId: typeof getUserId;
+  getAuthFields: typeof getAuthFields;
   isCLIInstalled: typeof isCLIInstalled;
   notificationService: typeof notificationService;
   ProgressNotification: typeof ProgressNotification;
