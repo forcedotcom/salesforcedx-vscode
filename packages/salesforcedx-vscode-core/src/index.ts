@@ -83,7 +83,6 @@ import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { SalesforceProjectConfig } from './salesforceProject';
-import { getCoreLoggerService } from './services/getCoreLoggerService';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
 import { taskViewService } from './statuses/taskView';
@@ -144,7 +143,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.start.apex.debug.logging', () => turnOnLogging(extensionContext)),
     vscode.commands.registerCommand('sf.stop.apex.debug.logging', () => turnOffLogging(extensionContext)),
     vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap),
-    vscode.commands.registerCommand('sf.vscode.core.logger.get.instance', getCoreLoggerService),
     registerGetTelemetryServiceCommand()
   );
 const registerInternalDevCommands = (): vscode.Disposable =>
