@@ -385,18 +385,10 @@ export const isAuraWatchedDirectory = async (context: BaseWorkspaceContext, uri:
 export const isAuraRootDirectoryCreated = (context: BaseWorkspaceContext, changes: FileEvent[]): boolean =>
   changes.some(event => event.type === FileChangeType.Created && isAuraDirectory(context, event.uri));
 
-export const isAuraDirectory = (context: BaseWorkspaceContext, uri: string): boolean => {
-  if (context.type === 'SFDX') {
-    const file = toResolvedPath(uri);
-    return file.endsWith('aura');
-  }
-  return false;
-};
+const isAuraDirectory = (context: BaseWorkspaceContext, uri: string): boolean =>
+  context.type === 'SFDX' && toResolvedPath(uri).endsWith('aura');
 
 /**
- * @return string showing elapsed milliseconds from start mark
+ * @return elapsed milliseconds from start mark
  */
-export const elapsedMillis = (start: number): string => {
-  const elapsed = globalThis.performance.now() - start;
-  return `${elapsed.toFixed(2)} ms`;
-};
+export const elapsedMillis = (start: number) => (globalThis.performance.now() - start).toFixed(2);

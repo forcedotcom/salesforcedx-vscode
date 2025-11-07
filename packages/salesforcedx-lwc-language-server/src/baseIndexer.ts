@@ -11,7 +11,7 @@ import * as path from 'node:path';
 export const getWorkspaceRoot = (workspaceRoot: string): string => path.resolve(workspaceRoot);
 
 // Utility function to get SFDX configuration
-export const getSfdxConfig = async (root: string, fileSystemProvider: IFileSystemProvider): Promise<any> => {
+const getSfdxConfig = async (root: string, fileSystemProvider: IFileSystemProvider): Promise<any> => {
   const filename: string = path.join(root, 'sfdx-project.json');
 
   if (fileSystemProvider) {
