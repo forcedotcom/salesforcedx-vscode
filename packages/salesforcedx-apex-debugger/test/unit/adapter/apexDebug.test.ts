@@ -6,8 +6,9 @@
  */
 // This is only done in tests because we are mocking things
 
+import { Org } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import { OrgDisplay, OrgInfo, LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { OutputEvent, Source, StackFrame, StoppedEvent, ThreadEvent } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import * as AsyncLock from 'async-lock';
@@ -137,8 +138,8 @@ describe('Interactive debugger adapter - unit', () => {
     let resetIdleTimersSpy: sinon.SinonSpy;
     let breakpointHasLineNumberMappingSpy: sinon.SinonStub;
     let streamingSubscribeSpy: sinon.SinonStub;
-    let orgInfoSpy: sinon.SinonStub;
     let configGetSpy: sinon.SinonStub;
+    let orgCreateSpy: sinon.SinonStub;
     let args: LaunchRequestArguments;
     const lineBpInfo: LineBreakpointInfo[] = [];
     lineBpInfo.push({
@@ -153,10 +154,17 @@ describe('Interactive debugger adapter - unit', () => {
       sessionEntryFilterSpy = sinon.spy(SessionService.prototype, 'withEntryFilter');
       sessionRequestFilterSpy = sinon.spy(SessionService.prototype, 'withRequestFilter');
       resetIdleTimersSpy = sinon.spy(ApexDebugForTest.prototype, 'resetIdleTimer');
-      orgInfoSpy = sinon.stub(OrgDisplay.prototype, 'getOrgInfo').returns({} as OrgInfo);
       configGetSpy = sinon.stub(ConfigAggregator, 'create').returns(
         Promise.resolve({
           getPropertyValue: () => undefined
+        } as any)
+      );
+      orgCreateSpy = sinon.stub(Org, 'create').returns(
+        Promise.resolve({
+          getConnection: () => ({
+            instanceUrl: 'https://test.salesforce.com',
+            accessToken: 'test-token'
+          })
         } as any)
       );
       args = {
@@ -184,8 +192,10 @@ describe('Interactive debugger adapter - unit', () => {
       resetIdleTimersSpy.restore();
       streamingSubscribeSpy.restore();
       breakpointHasLineNumberMappingSpy.restore();
-      orgInfoSpy.restore();
       configGetSpy.restore();
+      if (orgCreateSpy) {
+        orgCreateSpy.restore();
+      }
       if (sessionPrintToDebugSpy) {
         sessionPrintToDebugSpy.restore();
       }
@@ -193,6 +203,11 @@ describe('Interactive debugger adapter - unit', () => {
 
     it('Should launch successfully (interactive debugger)', async () => {
       const sessionId = '07aFAKE';
+      configGetSpy.returns(
+        Promise.resolve({
+          getPropertyValue: (key: string) => (key === 'target-org' ? 'test-org' : undefined)
+        } as any)
+      );
       sessionStartSpy = sinon.stub(SessionService.prototype, 'start').returns(Promise.resolve(sessionId));
       sessionConnectedSpy = sinon.stub(SessionService.prototype, 'isConnected').returns(true);
       streamingSubscribeSpy = sinon.stub(StreamingService.prototype, 'subscribe').returns(Promise.resolve(true));
@@ -219,11 +234,14 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should not launch if ApexDebuggerSession object is not accessible', async () => {
-      sessionStartSpy = sinon
-        .stub(SessionService.prototype, 'start')
-        .returns(
-          Promise.reject('{"message":"entity type cannot be inserted: Apex Debugger Session", "action":"Try again"}')
-        );
+      const rejectionReason =
+        '{"message":"entity type cannot be inserted: Apex Debugger Session", "action":"Try again"}';
+      configGetSpy.returns(
+        Promise.resolve({
+          getPropertyValue: (key: string) => (key === 'target-org' ? 'test-org' : undefined)
+        } as any)
+      );
+      sessionStartSpy = sinon.stub(SessionService.prototype, 'start').returns(Promise.reject(rejectionReason));
       sessionConnectedSpy = sinon.stub(SessionService.prototype, 'isConnected').returns(false);
       streamingSubscribeSpy = sinon.stub(StreamingService.prototype, 'subscribe').returns(Promise.resolve(true));
       breakpointHasLineNumberMappingSpy = sinon.stub(BreakpointService.prototype, 'hasLineNumberMapping').returns(true);
@@ -443,7 +461,8 @@ describe('Interactive debugger adapter - unit', () => {
     let sessionConnectedSpy: sinon.SinonStub;
     let streamingSubscribeSpy: sinon.SinonStub;
     let breakpointHasLineNumberMappingSpy: sinon.SinonStub;
-    let orgInfoSpy: sinon.SinonStub;
+    let configGetSpy: sinon.SinonStub;
+    let orgCreateSpy: sinon.SinonStub;
 
     let requestService: RequestService;
     let args: LaunchRequestArguments;
@@ -457,10 +476,19 @@ describe('Interactive debugger adapter - unit', () => {
     beforeEach(() => {
       requestService = new RequestService();
       adapter = new ApexDebugForTest(requestService);
-      orgInfoSpy = sinon.stub(OrgDisplay.prototype, 'getOrgInfo').returns({
-        instanceUrl: 'https://na15.salesforce.com',
-        accessToken: '00DxxFaK3T0ken'
-      } as OrgInfo);
+      configGetSpy = sinon.stub(ConfigAggregator, 'create').returns(
+        Promise.resolve({
+          getPropertyValue: () => undefined
+        } as any)
+      );
+      orgCreateSpy = sinon.stub(Org, 'create').returns(
+        Promise.resolve({
+          getConnection: () => ({
+            instanceUrl: 'https://test.salesforce.com',
+            accessToken: 'test-token'
+          })
+        } as any)
+      );
     });
 
     afterEach(() => {
@@ -468,11 +496,27 @@ describe('Interactive debugger adapter - unit', () => {
       sessionConnectedSpy?.restore();
       streamingSubscribeSpy?.restore();
       breakpointHasLineNumberMappingSpy?.restore();
-      orgInfoSpy?.restore();
+      configGetSpy?.restore();
+      if (orgCreateSpy) {
+        orgCreateSpy.restore();
+      }
     });
 
     it('Should save proxy settings', async () => {
       const sessionId = '07aFAKE';
+      configGetSpy.returns(
+        Promise.resolve({
+          getPropertyValue: (key: string) => (key === 'target-org' ? 'test-org' : undefined)
+        } as any)
+      );
+      orgCreateSpy.returns(
+        Promise.resolve({
+          getConnection: () => ({
+            instanceUrl: 'https://na15.salesforce.com',
+            accessToken: '00DxxFaK3T0ken'
+          })
+        } as any)
+      );
       sessionStartSpy = sinon.stub(SessionService.prototype, 'start').returns(Promise.resolve(sessionId));
       sessionConnectedSpy = sinon.stub(SessionService.prototype, 'isConnected').returns(true);
       streamingSubscribeSpy = sinon.stub(StreamingService.prototype, 'subscribe').returns(Promise.resolve(true));
@@ -499,6 +543,11 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should save connection settings', async () => {
+      configGetSpy.returns(
+        Promise.resolve({
+          getPropertyValue: (key: string) => (key === 'target-org' ? 'test-org' : undefined)
+        } as any)
+      );
       args = {
         salesforceProject: 'some/project/path',
         workspaceSettings: {
@@ -518,18 +567,28 @@ describe('Interactive debugger adapter - unit', () => {
 
   describe('Line breakpoint info', () => {
     let args: LaunchRequestArguments;
-    let orgInfoSpy: sinon.SinonStub;
     let setValidLinesSpy: sinon.SinonSpy;
     let sessionStartSpy: sinon.SinonStub;
     let sessionConnectedSpy: sinon.SinonStub;
     let streamingSubscribeSpy: sinon.SinonStub;
+    let configGetSpy: sinon.SinonStub;
+    let orgCreateSpy: sinon.SinonStub;
 
     beforeEach(() => {
       adapter.initializeReq(initializedResponse, {} as DebugProtocol.InitializeRequestArguments);
-      orgInfoSpy = sinon.stub(OrgDisplay.prototype, 'getOrgInfo').returns({
-        instanceUrl: 'https://na15.salesforce.com',
-        accessToken: '00DxxFaK3T0ken'
-      } as OrgInfo);
+      configGetSpy = sinon.stub(ConfigAggregator, 'create').returns(
+        Promise.resolve({
+          getPropertyValue: () => undefined
+        } as any)
+      );
+      orgCreateSpy = sinon.stub(Org, 'create').returns(
+        Promise.resolve({
+          getConnection: () => ({
+            instanceUrl: 'https://test.salesforce.com',
+            accessToken: 'test-token'
+          })
+        } as any)
+      );
       setValidLinesSpy = sinon.spy(BreakpointService.prototype, 'setValidLines');
       sessionStartSpy = sinon.stub(SessionService.prototype, 'start').returns(Promise.resolve('07aFAKE'));
       sessionConnectedSpy = sinon.stub(SessionService.prototype, 'isConnected').returns(true);
@@ -541,7 +600,10 @@ describe('Interactive debugger adapter - unit', () => {
       sessionConnectedSpy.restore();
       streamingSubscribeSpy.restore();
       setValidLinesSpy.restore();
-      orgInfoSpy.restore();
+      configGetSpy?.restore();
+      if (orgCreateSpy) {
+        orgCreateSpy.restore();
+      }
     });
 
     it('Should not save line number mapping', async () => {
@@ -562,6 +624,11 @@ describe('Interactive debugger adapter - unit', () => {
     });
 
     it('Should save line number mapping', async () => {
+      configGetSpy.returns(
+        Promise.resolve({
+          getPropertyValue: (key: string) => (key === 'target-org' ? 'test-org' : undefined)
+        } as any)
+      );
       const info: LineBreakpointInfo[] = [
         { uri: 'file:///foo.cls', typeref: 'foo', lines: [1, 2, 3] },
         { uri: 'file:///foo.cls', typeref: 'foo$inner', lines: [4, 5, 6] },
