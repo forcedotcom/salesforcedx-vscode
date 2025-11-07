@@ -90,43 +90,10 @@ export class AppInsights
     }
   }
 
-  private getCommonProperties(): CommonProperties {
-    const commonProperties: CommonProperties = {
-      'common.os': os.platform(),
-      'common.platformversion': (os.release() ?? '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3'),
-      'common.systemmemory': `${(os.totalmem() / (1024 * 1024 * 1024)).toFixed(2)} GB`,
-      'common.extname': this.extensionId,
-      'common.extversion': this.extensionVersion
-    };
-
-    const cpus = os.cpus();
-    if (cpus && cpus.length > 0) {
-      commonProperties['common.cpus'] = `${cpus[0].model}(${cpus.length} x ${cpus[0].speed})`;
-    }
-
-    if (env) {
-      commonProperties['common.vscodemachineid'] = env.machineId;
-      commonProperties['common.vscodesessionid'] = env.sessionId;
-      commonProperties['common.vscodeversion'] = version;
-      if (env.uiKind) {
-        commonProperties['common.vscodeuikind'] = UIKind[env.uiKind];
-      }
-    }
-
-    return commonProperties;
-  }
-
-  private getInternalProperties(): InternalProperties {
-    return {
-      'sfInternal.hostname': os.hostname(),
-      'sfInternal.username': os.userInfo().username
-    };
-  }
-
   private aggregateLoggingProperties() {
-    const commonProperties = this.getCommonProperties();
+    const commonProperties = getCommonProperties(this.extensionId, this.extensionVersion);
     return isInternalHost()
-      ? { ...commonProperties, ...this.getInternalProperties(), webUserId: this.webUserId }
+      ? { ...commonProperties, ...getInternalProperties(), webUserId: this.webUserId }
       : { ...commonProperties, webUserId: this.webUserId };
   }
 
@@ -207,6 +174,37 @@ export class AppInsights
     return this.telemetryTag ? { ...properties, telemetryTag: this.telemetryTag } : properties;
   }
 }
+
+export const getCommonProperties = (extensionId: string, extensionVersion: string): CommonProperties => {
+  const commonProperties: CommonProperties = {
+    'common.os': os.platform(),
+    'common.platformversion': (os.release() ?? '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3'),
+    'common.systemmemory': `${(os.totalmem() / (1024 * 1024 * 1024)).toFixed(2)} GB`,
+    'common.extname': extensionId,
+    'common.extversion': extensionVersion
+  };
+
+  const cpus = os.cpus();
+  if (cpus && cpus.length > 0) {
+    commonProperties['common.cpus'] = `${cpus[0].model}(${cpus.length} x ${cpus[0].speed})`;
+  }
+
+  if (env) {
+    commonProperties['common.vscodemachineid'] = env.machineId;
+    commonProperties['common.vscodesessionid'] = env.sessionId;
+    commonProperties['common.vscodeversion'] = version;
+    if (env.uiKind) {
+      commonProperties['common.vscodeuikind'] = UIKind[env.uiKind];
+    }
+  }
+
+  return commonProperties;
+};
+
+export const getInternalProperties = (): InternalProperties => ({
+  'sfInternal.hostname': os.hostname(),
+  'sfInternal.username': os.userInfo().username
+});
 
 const getBaseProps = (): Record<string, string> => {
   const context = WorkspaceContextUtil.getInstance();
