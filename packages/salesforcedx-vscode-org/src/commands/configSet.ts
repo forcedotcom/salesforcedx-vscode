@@ -49,7 +49,7 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
       val: this.usernameOrAlias,
       success: String(result)
     };
-    const outputTable = this.formatOutput(this.outputTableRow);
+    const outputTable = formatOutput(this.outputTableRow);
     channelService.appendLine(outputTable);
     if (message) {
       channelService.appendLine(`Error: ${message}`);
@@ -57,21 +57,21 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
     }
     return result;
   }
-
-  private formatOutput(input: Row): string {
-    const title = nls.localize(CONFIG_SET_NAME);
-    const outputTable = createTable(
-      [input],
-      [
-        { key: 'name', label: nls.localize(TABLE_NAME_COL) },
-        { key: 'val', label: nls.localize(TABLE_VAL_COL) },
-        { key: 'success', label: nls.localize(TABLE_SUCCESS_COL) }
-      ],
-      title
-    );
-    return outputTable;
-  }
 }
+
+const formatOutput = (input: Row): string => {
+  const title = nls.localize(CONFIG_SET_NAME);
+  const outputTable = createTable(
+    [input],
+    [
+      { key: 'name', label: nls.localize(TABLE_NAME_COL) },
+      { key: 'val', label: nls.localize(TABLE_VAL_COL) },
+      { key: 'success', label: nls.localize(TABLE_SUCCESS_COL) }
+    ],
+    title
+  );
+  return outputTable;
+};
 
 export const configSet = async (usernameOrAlias: string): Promise<void> => {
   const commandlet = new SfCommandlet(
