@@ -2,6 +2,19 @@
 
 Similar to what vscode does, we are reporting on certain events that happen in the extensions in order to provide visibility on its usage.
 
+## What to track
+
+Your probably want
+
+- extension activation (how many times is your extension used)
+- command execution (how many times are commands run)
+- any special non-command UI operations (ex: in orgBrowser, retrieving some metadata)
+
+## What not to track
+
+- the telemetry framework will capture information about the environment (ex: os, geo) and package information (vscode version, extension version)
+- be careful not to capture identifying information (ex: file paths often contain a user's name, so use only project-relative paths )
+
 ## Disabling Telemetry
 
 There are several ways to disable telemetry for all Salesforce extensions.
