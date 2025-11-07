@@ -5,13 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Command, CommandExecution } from '@salesforce/salesforcedx-utils';
+import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { CliCommandExecutor } from '../cli';
 import { TimingUtils } from '../helpers/timingUtils';
-import { TelemetryBuilder, TelemetryService } from '../index';
+import { TelemetryService } from '../index';
 import { nls } from '../messages';
 import { SettingsService } from '../settings';
-import { Properties, Measurements, TelemetryData, CommandletExecutor, ContinueResponse } from '../types';
+import { CommandletExecutor, ContinueResponse } from '../types';
 import { getRootWorkspacePath } from '../workspaces';
 import { ChannelService } from './channelService';
 import { ProgressNotification, notificationService } from './index';
@@ -81,7 +82,7 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
   protected showChannelOutput = true;
   protected showSuccessNotifications = true;
   protected showFailureNotifications = true;
-  protected readonly telemetry = new TelemetryBuilder();
+  protected telemetry: TelemetryData = {};
 
   /**
    * @param executionName Name visible to user while executing.
@@ -131,7 +132,12 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
             this.cancelled = true;
             notificationService.showCanceledExecution(this.executionName);
 
-            telemetryService.sendCommandEvent(`${this.logName}_cancelled`, startTime, properties, measurements);
+            telemetryService.sendCommandEvent(
+              `${this.logName}_cancelled`,
+              startTime,
+              this.telemetry.properties,
+              this.telemetry.measurements
+            );
           });
           return this.run(response, progress, token);
         }
@@ -150,9 +156,13 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
         }
       }
 
-      this.telemetry.addProperty('success', String(success));
-      const { properties, measurements } = this.telemetry.build();
-      telemetryService.sendCommandEvent(this.logName, startTime, properties, measurements);
+      this.telemetry.properties = { ...this.telemetry.properties, success: String(success) };
+      telemetryService.sendCommandEvent(
+        this.logName,
+        startTime,
+        this.telemetry.properties,
+        this.telemetry.measurements
+      );
     } catch (e) {
       if (e instanceof Error) {
         telemetryService.sendException(
@@ -167,6 +177,6 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
   }
 
   public get telemetryData(): TelemetryData {
-    return this.telemetry.build();
+    return this.telemetry;
   }
 }

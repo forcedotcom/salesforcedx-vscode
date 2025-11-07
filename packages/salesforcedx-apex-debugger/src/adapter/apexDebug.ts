@@ -4,14 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 
+import { Connection, Org } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import {
-  OrgDisplay,
-  RequestService,
   SF_CONFIG_ISV_DEBUGGER_SID,
   SF_CONFIG_ISV_DEBUGGER_URL,
-  extractJsonObject,
   LineBreakpointInfo
 } from '@salesforce/salesforcedx-utils';
 import {
@@ -75,8 +74,10 @@ import {
   StreamingClientInfoBuilder,
   StreamingService
 } from '../core';
+import { extractJsonObject } from '../extractJsonObject';
 import { VscodeDebuggerMessage, VscodeDebuggerMessageType, WorkspaceSettings } from '../index';
 import { nls } from '../messages';
+import { RequestService } from '../requestService/requestService';
 
 // Below import has to be required for bundling
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -515,8 +516,8 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
-            DEFAULT_IDLE_WARN1_MS / 60000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60000
+            DEFAULT_IDLE_WARN1_MS / 60_000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60_000
           )
         );
       }, DEFAULT_IDLE_WARN1_MS),
@@ -524,8 +525,8 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
-            DEFAULT_IDLE_WARN2_MS / 60000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60000
+            DEFAULT_IDLE_WARN2_MS / 60_000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60_000
           )
         );
       }, DEFAULT_IDLE_WARN2_MS),
@@ -533,13 +534,13 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
-            DEFAULT_IDLE_WARN3_MS / 60000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60000
+            DEFAULT_IDLE_WARN3_MS / 60_000,
+            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60_000
           )
         );
       }, DEFAULT_IDLE_WARN3_MS),
       setTimeout(() => {
-        this.warnToDebugConsole(nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60000));
+        this.warnToDebugConsole(nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60_000));
         this.sendEvent(new TerminatedEvent());
       }, DEFAULT_IDLE_TIMEOUT_MS)
     );
@@ -597,9 +598,19 @@ export class ApexDebug extends LoggingDebugSession {
         this.myRequestService.instanceUrl = isvDebuggerUrl;
         this.myRequestService.accessToken = isvDebuggerSid;
       } else {
-        const orgInfo = await new OrgDisplay().getOrgInfo(args.salesforceProject);
-        this.myRequestService.instanceUrl = orgInfo.instanceUrl;
-        this.myRequestService.accessToken = orgInfo.accessToken;
+        try {
+          const conn = await this.getTargetOrgConnection();
+          if (!conn.instanceUrl || !conn.accessToken) {
+            response.message = nls.localize('could_not_get_instance_url_or_access_token_using_org');
+            this.errorToDebugConsole(nls.localize('could_not_get_instance_url_or_access_token_using_org'));
+            return this.sendResponse(response);
+          }
+          this.myRequestService.instanceUrl = conn.instanceUrl;
+          this.myRequestService.accessToken = conn.accessToken;
+        } catch (error) {
+          response.message = error instanceof Error ? error.message : String(error);
+          return this.sendResponse(response);
+        }
       }
 
       const isStreamingConnected = await this.connectStreaming(args.salesforceProject);
@@ -670,6 +681,32 @@ export class ApexDebug extends LoggingDebugSession {
       }
     }
     this.sendResponse(response);
+  }
+
+  public async getTargetOrgConnection(): Promise<Connection> {
+    const configAggregator = await ConfigAggregator.create();
+    const targetOrg = configAggregator.getPropertyValue<string>('target-org');
+    if (!targetOrg) {
+      throw new Error(nls.localize('no_target_org_found'));
+    }
+    try {
+      const org = await Org.create({ aliasOrUsername: targetOrg });
+      if (!org) {
+        throw new Error(nls.localize('could_not_create_org_using_target_org'));
+      }
+      const conn = org.getConnection();
+      if (!conn) {
+        throw new Error(nls.localize('could_not_get_connection_using_org'));
+      }
+      if (!conn.instanceUrl || !conn.accessToken) {
+        throw new Error(nls.localize('could_not_get_instance_url_or_access_token_using_org'));
+      }
+      this.myRequestService.instanceUrl = conn.instanceUrl;
+      this.myRequestService.accessToken = conn.accessToken;
+      return conn;
+    } catch (error) {
+      throw new Error(`${nls.localize('could_not_create_org_using_target_org')}: ${String(error)}`);
+    }
   }
 
   private initBreakpointSessionServices(args: LaunchRequestArguments): void {
@@ -1263,9 +1300,9 @@ export class ApexDebug extends LoggingDebugSession {
         response.message = nls.localize('unexpected_error_help_text');
         this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${error}`);
       }
-    } catch {
+    } catch (parseError) {
       response.message = response.message ?? nls.localize('unexpected_error_help_text');
-      this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${error}`);
+      this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${String(parseError)}`);
     }
   }
 

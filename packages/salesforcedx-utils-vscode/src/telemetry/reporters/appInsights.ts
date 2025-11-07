@@ -3,15 +3,19 @@
  * Copyright (C) Microsoft Corporation. All rights reserved.
  *--------------------------------------------------------*/
 
+import type { TelemetryReporterWithModifiableUserProperties } from './telemetryReporterConfig';
+import { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as appInsights from 'applicationinsights';
 import * as os from 'node:os';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
-import { TelemetryReporter } from '../../types';
 import { isInternalHost } from '../utils/isInternal';
 import { CommonProperties, InternalProperties } from './loggingProperties';
 
-export class AppInsights extends Disposable implements TelemetryReporter {
+export class AppInsights
+  extends Disposable
+  implements TelemetryReporter, TelemetryReporterWithModifiableUserProperties
+{
   private appInsightsClient: appInsights.TelemetryClient | undefined;
   private userOptIn: boolean = false;
   private toDispose: Disposable[] = [];
@@ -27,8 +31,8 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     private extensionId: string,
     private extensionVersion: string,
     key: string,
-    private readonly userId: string,
-    private readonly webUserId: string,
+    public userId: string,
+    public webUserId: string,
     enableUniqueMetrics?: boolean
   ) {
     super(() => this.toDispose.forEach(d => d?.dispose()));
@@ -76,6 +80,7 @@ export class AppInsights extends Disposable implements TelemetryReporter {
     if (this.uniqueUserMetrics && env) {
       this.appInsightsClient.context.tags['ai.user.id'] = this.userId;
       this.appInsightsClient.context.tags['ai.session.id'] = env.sessionId;
+      this.appInsightsClient.context.tags['ai.application.ver'] = this.extensionVersion;
       this.appInsightsClient.context.tags['ai.cloud.roleInstance'] = 'DEPRECATED';
     }
 

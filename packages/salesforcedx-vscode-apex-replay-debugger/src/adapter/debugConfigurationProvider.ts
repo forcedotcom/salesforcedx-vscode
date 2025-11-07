@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '@salesforce/salesforcedx-apex-replay-debugger';
-import { readFile } from '@salesforce/salesforcedx-utils-vscode';
+import { errorToString, readFile } from '@salesforce/salesforcedx-utils-vscode';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
+import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../debuggerConstants';
 import { nls } from '../messages';
 
 export class DebugConfigurationProvider implements vscode.DebugConfigurationProvider {
@@ -39,7 +39,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     _token?: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DebugConfiguration> {
     return this.asyncDebugConfig(config).catch(async err =>
-      vscode.window.showErrorMessage(err.message, { modal: true }).then(() => undefined)
+      vscode.window.showErrorMessage(errorToString(err), { modal: true }).then(() => undefined)
     );
   }
 

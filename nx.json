@@ -38,6 +38,7 @@
       "cache": true,
       "dependsOn": [
         "compile",
+        "^compile",
         "^bundle:extension"
       ],
       "inputs": [
@@ -55,8 +56,10 @@
     "vscode:package": {
       "cache": true,
       "dependsOn": [
-        "^vscode:package",
-        "vscode:bundle"
+        "compile",
+        "^compile",
+        "vscode:bundle",
+        "^bundle:extension"
       ],
       "inputs": [
         "{projectRoot}/esbuild.config.mjs",
@@ -68,7 +71,7 @@
         "{projectRoot}/src/**"
       ],
       "outputs": [
-        "{projectRoot}/out/**/*.vsix"
+        "{projectRoot}/*.vsix"
       ]
     }
   }

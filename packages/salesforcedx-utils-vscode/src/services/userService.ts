@@ -7,10 +7,12 @@
 
 import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import { ExtensionContext } from 'vscode';
-import { CliCommandExecutor, workspaceUtils } from '..';
+import { CliCommandExecutor } from '../cli';
 import { TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID, UNAUTHENTICATED_USER } from '../constants';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
+import { errorToString } from '../helpers';
 import { getSharedTelemetryUserId, hashUserIdentifier } from '../helpers/telemetryUtils';
+import { workspaceUtils } from '../workspaces';
 
 export class UserService {
   private static getRandomUserId = (): string => {
@@ -49,7 +51,7 @@ export class UserService {
         return cmdResult?.result?.cliId ?? this.getRandomUserId();
       })
       .catch(error => {
-        console.log(`Error: ${error} occurred in retrieving cliId, generating user-id ..`);
+        console.log(`Error: ${errorToString(error)} occurred in retrieving cliId, generating user-id ..`);
         return this.getRandomUserId();
       });
     // If the random UserId value is used here it will be unique per extension.

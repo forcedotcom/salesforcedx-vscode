@@ -12,11 +12,11 @@ import {
   disposeTraceFlagExpiration,
   UserService,
   refreshAllExtensionReporters,
-  handleTraceFlagCleanup
+  handleTraceFlagCleanup,
+  getDevHubIdFromScratchOrg,
+  errorToString
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { decorators } from '../decorators';
-import { OrgAuthInfo } from '../util/authInfo';
 import { workspaceContextUtils } from '.';
 
 /**
@@ -24,21 +24,23 @@ import { workspaceContextUtils } from '.';
  */
 export class WorkspaceContext {
   protected static instance?: WorkspaceContext;
-  private extensionContext?: vscode.ExtensionContext;
+  private coreExtensionContext?: vscode.ExtensionContext;
 
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
     const workspaceContextUtil = WorkspaceContextUtil.getInstance();
     this.onOrgChange = workspaceContextUtil.onOrgChange;
-    this.onOrgChange(this.handleCliConfigChange);
-    this.onOrgChange(this.handleOrgShapeChange);
-    this.onOrgChange(this.handleTraceFlagCleanup);
-    this.onOrgChange(this.handleTelemetryUpdate);
+    this.onOrgChange(c => this.handleCliConfigChange(c));
+    this.onOrgChange(c => this.handleOrgShapeChange(c));
+    this.onOrgChange(() => this.handleTraceFlagCleanup());
+    this.onOrgChange(() => this.handleTelemetryUpdate());
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
-    this.extensionContext = extensionContext;
+    if (extensionContext.extension.id === 'salesforce.salesforcedx-vscode-core') {
+      this.coreExtensionContext = extensionContext;
+    }
     await WorkspaceContextUtil.getInstance().initialize(extensionContext);
   }
 
@@ -58,8 +60,7 @@ export class WorkspaceContext {
       // error reported by setupWorkspaceOrgType
       console.error(e)
     );
-
-    await decorators.showOrg();
+    // Note: decorators.showOrg() has been moved to the salesforcedx-vscode-org extension
   }
 
   protected async handleOrgShapeChange(orgInfo: OrgUserInfo) {
@@ -71,7 +72,7 @@ export class WorkspaceContext {
         WorkspaceContextUtil.getInstance().devHubId = undefined;
       }
       if (orgShape === 'Scratch') {
-        const devHubId = await OrgAuthInfo.getDevHubIdFromScratchOrg(username);
+        const devHubId = await getDevHubIdFromScratchOrg(username);
         WorkspaceContextUtil.getInstance().devHubId = devHubId;
       }
     }
@@ -79,31 +80,31 @@ export class WorkspaceContext {
 
   /** Handle trace flag cleanup when org changes */
   protected handleTraceFlagCleanup = async () => {
-    if (!this.extensionContext) {
+    if (!this.coreExtensionContext) {
       return;
     }
 
     try {
-      await handleTraceFlagCleanup(this.extensionContext);
+      await handleTraceFlagCleanup(this.coreExtensionContext);
     } catch (error) {
       // If the action performed results in no default org set, we need to remove the trace flag expiration
       disposeTraceFlagExpiration();
-      console.log('Failed to perform trace flag cleanup after org change:', error);
+      console.log('Failed to perform trace flag cleanup after org change:', errorToString(error));
     }
   };
 
   /** Update telemetry user ID when org changes */
   protected handleTelemetryUpdate = async () => {
-    if (!this.extensionContext) {
+    if (!this.coreExtensionContext) {
       return;
     }
 
     try {
       // Update the telemetry user ID in global state (Core extension doesn't use shared provider to avoid infinite loop)
-      await UserService.getTelemetryUserId(this.extensionContext);
+      await UserService.getTelemetryUserId(this.coreExtensionContext);
 
       // Refresh telemetry reporters for ALL extensions (Core, Apex, etc.)
-      await refreshAllExtensionReporters(this.extensionContext);
+      await refreshAllExtensionReporters(this.coreExtensionContext);
     } catch (error) {
       console.log('Failed to update telemetry user ID after org change:', error);
     }

@@ -76,7 +76,7 @@ const defaultConfig = {
   verbose: true,
   debug: true,
   async: true,
-  dependencyBudget: 20000
+  dependencyBudget: 20_000
 };
 
 const auraInstanceLastSort = (a: string, b: string): number =>
