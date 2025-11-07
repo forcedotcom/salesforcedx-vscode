@@ -7,14 +7,14 @@
   "engines": {
     "vscode": "^1.90.0"
   },
-  "main": "out/src/indexer.js",
-  "typings": "out/src/indexer.d.ts",
+  "main": "out/src/server.js",
+  "typings": "out/src/server.d.ts",
   "sideEffects": false,
   "exports": {
     ".": {
-      "import": "./out/src/indexer.js",
-      "require": "./out/src/indexer.js",
-      "types": "./out/src/indexer.d.ts"
+      "import": "./out/src/server.js",
+      "require": "./out/src/server.js",
+      "types": "./out/src/server.d.ts"
     }
   },
   "license": "BSD-3-Clause",

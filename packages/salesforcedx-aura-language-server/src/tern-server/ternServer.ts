@@ -93,7 +93,7 @@ const getJsFilesRecursively = async (
     try {
       const entries = fileSystemProvider.getDirectoryListing(currentPath);
 
-      for (const entry of entries ?? []) {
+      for (const entry of entries) {
         if (entry.type === 'directory') {
           await processDirectory(path.join(currentPath, entry.name));
         } else if (entry.type === 'file' && entry.name.endsWith('.js')) {

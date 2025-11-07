@@ -4,13 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  Indexer,
-  TagInfo,
-  createTagInfo,
-  createAttributeInfo,
-  extractJsonFromImport
-} from '@salesforce/salesforcedx-lightning-lsp-common';
+import { Indexer, TagInfo, extractJsonFromImport } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as LineColumnFinderModule from 'line-column';
 
 import { EventEmitter as EventsEmitter } from 'node:events';
@@ -124,7 +118,14 @@ export default class AuraIndexer implements Indexer {
           }
         };
 
-        return createAttributeInfo(jsName, documentation, undefined, undefined, type, location);
+        return {
+          name: jsName,
+          documentation,
+          memberType: undefined,
+          decorator: undefined,
+          type,
+          location
+        };
       });
     tagInfo.attributes = attributeInfos;
     this.setCustomTag(tagInfo);
@@ -183,13 +184,25 @@ export default class AuraIndexer implements Indexer {
       for (const tag in auraSystem) {
         if (auraSystem.hasOwnProperty(tag) && typeof tag === 'string') {
           const tagObj = auraSystem[tag];
-          const info = createTagInfo(null, 'SYSTEM', false, []);
+          const info: TagInfo = {
+            file: null,
+            type: 'SYSTEM',
+            lwc: false,
+            attributes: [],
+            documentation: ''
+          };
           if (tagObj.attributes) {
             for (const a of tagObj.attributes) {
               // TODO - could we use more in depth doc from component library here?
-              info.attributes.push(
-                createAttributeInfo(a.name, a.description, undefined, undefined, a.type, undefined, 'Aura Attribute')
-              );
+              info.attributes.push({
+                name: a.name,
+                documentation: a.description,
+                memberType: undefined,
+                decorator: undefined,
+                type: a.type,
+                location: undefined,
+                detail: 'Aura Attribute'
+              });
             }
           }
           info.documentation = tagObj.description;
@@ -210,14 +223,26 @@ export default class AuraIndexer implements Indexer {
       for (const tag in standardComponents) {
         if (standardComponents.hasOwnProperty(tag) && typeof tag === 'string') {
           const tagObj = standardComponents[tag];
-          const info = createTagInfo(null, 'STANDARD', false, []);
+          const info: TagInfo = {
+            file: null,
+            type: 'STANDARD',
+            lwc: false,
+            attributes: [],
+            documentation: ''
+          };
           if (tagObj.attributes) {
             tagObj.attributes.sort((a, b) => a.name.localeCompare(b.name));
             for (const a of tagObj.attributes) {
               // TODO - could we use more in depth doc from component library here?
-              info.attributes.push(
-                createAttributeInfo(a.name, a.description, undefined, undefined, a.type, undefined, 'Aura Attribute')
-              );
+              info.attributes.push({
+                name: a.name,
+                documentation: a.description,
+                memberType: undefined,
+                decorator: undefined,
+                type: a.type,
+                location: undefined,
+                detail: 'Aura Attribute'
+              });
             }
           }
           info.documentation = tagObj.description;
@@ -278,7 +303,16 @@ export default class AuraIndexer implements Indexer {
       }
     };
     const name = componentFromFile(file, sfdxProject) ?? undefined;
-    const info = createTagInfo(file, 'CUSTOM', false, [], location, documentation, name, 'c');
+    const info: TagInfo = {
+      file,
+      type: 'CUSTOM',
+      lwc: false,
+      attributes: [],
+      location,
+      documentation: documentation ?? '',
+      name,
+      namespace: 'c'
+    };
     return info;
   }
 }

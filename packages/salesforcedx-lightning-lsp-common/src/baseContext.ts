@@ -149,7 +149,7 @@ export const getModulesDirs = (
       break;
     case 'CORE_ALL':
       // For CORE_ALL, return the modules directories for each project
-      const projects = fileSystemProvider.getDirectoryListing(workspaceRoots[0]) ?? [];
+      const projects = fileSystemProvider.getDirectoryListing(workspaceRoots[0]);
       for (const project of projects) {
         const modulesDir = path.resolve(workspaceRoots[0], project.name, 'modules');
         let pathExists = false;
@@ -233,14 +233,6 @@ export abstract class BaseWorkspaceContext {
     return languageIdMatches && isAuraExtension && (await this.isInsideAuraRoots(document));
   }
 
-  public async isLWCTemplate(document: TextDocument): Promise<boolean> {
-    return (
-      document.languageId === 'html' &&
-      utils.getExtension(document) === '.html' &&
-      (await this.isInsideModulesRoots(document))
-    );
-  }
-
   public async isInsideAuraRoots(document: TextDocument): Promise<boolean> {
     const file = utils.toResolvedPath(document.uri);
     for (const ws of this.workspaceRoots) {
@@ -252,34 +244,12 @@ export abstract class BaseWorkspaceContext {
     return false;
   }
 
-  public async isInsideModulesRoots(document: TextDocument): Promise<boolean> {
-    const file = utils.toResolvedPath(document.uri);
-    for (const ws of this.workspaceRoots) {
-      if (utils.pathStartsWith(file, ws)) {
-        return this.isFileInsideModulesRoots(file);
-      }
-    }
-    return false;
-  }
-
   public async isFileInsideModulesRoots(file: string): Promise<boolean> {
-    const namespaceRoots = await this.findNamespaceRootsUsingTypeCache();
-    for (const root of namespaceRoots.lwc) {
-      if (utils.pathStartsWith(file, root)) {
-        return true;
-      }
-    }
-    return false;
+    return (await this.findNamespaceRootsUsingTypeCache()).lwc.some(root => utils.pathStartsWith(file, root));
   }
 
   public async isFileInsideAuraRoots(file: string): Promise<boolean> {
-    const namespaceRoots = await this.findNamespaceRootsUsingType();
-    for (const root of namespaceRoots.aura) {
-      if (utils.pathStartsWith(file, root)) {
-        return true;
-      }
-    }
-    return false;
+    return (await this.findNamespaceRootsUsingTypeCache()).aura.some(root => utils.pathStartsWith(file, root));
   }
 
   /**
@@ -364,7 +334,7 @@ export abstract class BaseWorkspaceContext {
         if (jsconfigExists) {
           const existingConfigContent = this.fileSystemProvider.getFileContent(jsconfigPath);
           if (!existingConfigContent) {
-            throw new Error('Existing config not found');
+            throw new Error('Existing config content is not found');
           }
           const existingConfig: unknown = JSON.parse(existingConfigContent);
           if (!isRecord(existingConfig)) {
@@ -576,7 +546,7 @@ export abstract class BaseWorkspaceContext {
         // ignore
       }
       const dirs = this.fileSystemProvider.getDirectoryListing(path.join(resourceTypingsDir, 'copied'));
-      for (const file of dirs ?? []) {
+      for (const file of dirs) {
         try {
           this.fileSystemProvider.updateFileContent(
             path.join(resourceTypingsDir, 'copied', file.name),

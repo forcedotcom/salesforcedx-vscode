@@ -34,17 +34,8 @@ export {
 export { WorkspaceType, isLWC, getSfdxProjectFile, detectWorkspaceHelper, detectWorkspaceType } from './shared';
 
 // Re-export from indexer
-export {
-  TagInfo,
-  createTagInfo,
-  getAttributeInfo,
-  getHover,
-  getComponentLibraryLink,
-  getAttributeMarkdown,
-  getMethodMarkdown,
-  TagType
-} from './indexer/tagInfo';
-export { AttributeInfo, createAttributeInfo, DecoratorType, MemberType } from './indexer/attributeInfo';
+export { TagInfo, getHover } from './indexer/tagInfo';
+export { AttributeInfo, DecoratorType, MemberType } from './indexer/attributeInfo';
 
 // Re-export from other modules
 export { interceptConsoleLogger } from './logger';
@@ -63,4 +54,4 @@ export {
 
 // Re-export from file system providers
 export { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
-export * from './types/fileSystemTypes';
+export { DirectoryEntry, FileStat, WorkspaceConfig } from './types/fileSystemTypes';

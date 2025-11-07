@@ -1,4 +1,4 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, writeFileSync, unlinkSync } from 'fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, writeFileSync, unlinkSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { execSync } from 'child_process';
 
@@ -109,9 +109,37 @@ if (existsSync(monorepoPackages)) {
   }
 }
 
-// Run npm install
+// Temporarily remove local workspace packages from dependencies
+// They're already copied to node_modules, so we don't need npm to install them
+// This prevents npm from trying to fetch them from the registry
+const packageJsonPath = `${cwd}/package.json`;
+const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+const originalDependencies = { ...packageJson.dependencies };
+
+// Remove workspace packages from dependencies temporarily
+const workspacePackageNames = [
+  '@salesforce/salesforcedx-lightning-lsp-common',
+  '@salesforce/salesforcedx-lwc-language-server',
+  '@salesforce/salesforcedx-aura-language-server'
+];
+
+const removedDependencies: Record<string, string> = {};
+for (const pkgName of workspacePackageNames) {
+  if (packageJson.dependencies[pkgName]) {
+    removedDependencies[pkgName] = packageJson.dependencies[pkgName];
+    delete packageJson.dependencies[pkgName];
+  }
+}
+
+writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), 'utf-8');
+
+// Run npm install (will install other dependencies, but skip the local ones)
 logger('executing npm install');
-execSync('npm install', { stdio: 'inherit', cwd });
+execSync('npm install --no-audit --no-fund', { stdio: 'inherit', cwd });
+
+// Don't restore workspace packages to dependencies - they're already in node_modules
+// This prevents npm prune (run by vsce package) from trying to validate them against the registry
+// The packages will still be available in node_modules for the extension to use
 
 // Clean up any existing VSIX files from previous builds
 logger('cleaning up existing VSIX files');

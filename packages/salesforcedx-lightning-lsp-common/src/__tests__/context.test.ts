@@ -13,7 +13,6 @@ import {
   CORE_PROJECT_ROOT,
   FORCE_APP_ROOT,
   UTILS_ROOT,
-  readAsTextDocument,
   CORE_MULTI_ROOT,
   sfdxFileSystemProvider,
   standardFileSystemProvider,
@@ -210,66 +209,6 @@ describe('WorkspaceContext', () => {
     for (let i = 0; i < context.workspaceRoots.length; i = i + 1) {
       expect(modulesDirs[i]).toMatch(context.workspaceRoots[i]);
     }
-  });
-
-  it('isInsideModulesRoots()', async () => {
-    const context = new WorkspaceContext(SFDX_WORKSPACE_PATH, sfdxFileSystemProvider);
-    await context.initialize();
-
-    let document = readAsTextDocument(
-      path.resolve(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.js'),
-      sfdxFileSystemProvider
-    );
-    expect(await context.isInsideModulesRoots(document)).toBeTruthy();
-
-    document = readAsTextDocument(
-      path.resolve(FORCE_APP_ROOT, 'aura', 'helloWorldApp', 'helloWorldApp.app'),
-      sfdxFileSystemProvider
-    );
-    expect(await context.isInsideModulesRoots(document)).toBeFalsy();
-
-    document = readAsTextDocument(path.resolve(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.js'), sfdxFileSystemProvider);
-    expect(await context.isInsideModulesRoots(document)).toBeTruthy();
-  });
-
-  it('isLWCTemplate()', async () => {
-    const context = new WorkspaceContext(SFDX_WORKSPACE_PATH, sfdxFileSystemProvider);
-    await context.initialize();
-
-    // .js is not a template
-    let document = readAsTextDocument(
-      path.resolve(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.js'),
-      sfdxFileSystemProvider
-    );
-    expect(await context.isLWCTemplate(document)).toBeFalsy();
-
-    // .html is a template
-    document = readAsTextDocument(
-      path.resolve(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.html'),
-      sfdxFileSystemProvider
-    );
-    expect(await context.isLWCTemplate(document)).toBeTruthy();
-
-    // aura cmps are not a template (sfdx assigns the 'html' language id to aura components)
-    document = readAsTextDocument(
-      path.resolve(FORCE_APP_ROOT, 'aura', 'helloWorldApp', 'helloWorldApp.app'),
-      sfdxFileSystemProvider
-    );
-    expect(await context.isLWCTemplate(document)).toBeFalsy();
-
-    // html outside namespace roots is not a template
-    document = readAsTextDocument(
-      path.resolve(FORCE_APP_ROOT, 'aura', 'todoApp', 'randomHtmlInAuraFolder.html'),
-      sfdxFileSystemProvider
-    );
-    expect(await context.isLWCTemplate(document)).toBeFalsy();
-
-    // .html in utils folder is a template
-    document = readAsTextDocument(
-      path.resolve(UTILS_ROOT, 'lwc', 'todo_util', 'todo_util.html'),
-      sfdxFileSystemProvider
-    );
-    expect(await context.isLWCTemplate(document)).toBeTruthy();
   });
 
   it('processTemplate() with EJS', async () => {

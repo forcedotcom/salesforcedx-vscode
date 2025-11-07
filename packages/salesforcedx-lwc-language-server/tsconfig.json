@@ -2,12 +2,8 @@
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
     "outDir": "./out",
-    "target": "ES2022",
-    "lib": ["es2022", "dom"],
-    "esModuleInterop": true,
+    "esModuleInterop": true, // is needed because the code uses a default import from a CommonJS comment-parser module
     "strictNullChecks": true,
-    "noUnusedParameters": false,
-    "pretty": true,
     "skipLibCheck": true
   },
   "include": ["src/**/*.ts", "src/**/*.json", "src/resources/**/*.json", "typings/*.d.ts", "jest/*.ts"],

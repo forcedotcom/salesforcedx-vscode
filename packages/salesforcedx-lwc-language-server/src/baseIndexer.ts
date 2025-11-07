@@ -12,26 +12,30 @@ export const getWorkspaceRoot = (workspaceRoot: string): string => path.resolve(
 
 // Utility function to get SFDX configuration
 export const getSfdxConfig = async (root: string, fileSystemProvider: IFileSystemProvider): Promise<any> => {
-    const filename: string = path.join(root, 'sfdx-project.json');
+  const filename: string = path.join(root, 'sfdx-project.json');
 
-    if (fileSystemProvider) {
-        // Try with file:// prefix first
-        const content = fileSystemProvider.getFileContent(`file://${filename}`) ?? fileSystemProvider.getFileContent(filename);
-        if (content) {
-            return JSON.parse(content);
-        }
+  if (fileSystemProvider) {
+    // Try with file:// prefix first
+    const content =
+      fileSystemProvider.getFileContent(`file://${filename}`) ?? fileSystemProvider.getFileContent(filename);
+    if (content) {
+      return JSON.parse(content);
     }
+  }
 
-    // Fallback - return empty config
-    return {};
+  // Fallback - return empty config
+  return {};
 };
 
 // Utility function to get SFDX package directories pattern
-export const getSfdxPackageDirsPattern = async (workspaceRoot: string, fileSystemProvider: IFileSystemProvider): Promise<string> => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const config = await getSfdxConfig(workspaceRoot, fileSystemProvider);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const dirs = config.packageDirectories;
-    const paths: string[] = dirs?.map((item: { path: string }): string => item.path) ?? [];
-    return paths.length === 1 ? paths[0] : `{${paths.join()}}`;
+export const getSfdxPackageDirsPattern = async (
+  workspaceRoot: string,
+  fileSystemProvider: IFileSystemProvider
+): Promise<string> => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const config = await getSfdxConfig(workspaceRoot, fileSystemProvider);
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+  const dirs = config.packageDirectories;
+  const paths: string[] = dirs?.map((item: { path: string }): string => item.path) ?? [];
+  return paths.length === 1 ? paths[0] : `{${paths.join()}}`;
 };

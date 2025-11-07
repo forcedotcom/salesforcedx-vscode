@@ -6,14 +6,14 @@
  */
 import { transformSync } from '@lwc/compiler';
 import { BundleConfig, ScriptFile, collectBundleMetadata } from '@lwc/metadata';
-import { AttributeInfo, createAttributeInfo, ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { AttributeInfo, ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
 import type { SourceLocation } from 'babel-types';
 import commentParser from 'comment-parser';
 import * as path from 'node:path';
 import { Diagnostic, DiagnosticSeverity, Location, Position, Range, TextDocument } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { DIAGNOSTIC_SOURCE, MAX_32BIT_INTEGER } from '../constants';
-import { Metadata } from '../decorators';
+import { Metadata } from '../decorators/lwcDecorators';
 import { mapLwcMetadataToInternal } from './typeMapping';
 
 interface CompilerResult {
@@ -166,9 +166,15 @@ export const extractAttributes = (
 
         const name = x.name.replace(/([A-Z])/g, (match: string) => `-${match.toLowerCase()}`);
         const memberType = x.type === 'property' ? 'PROPERTY' : 'METHOD';
-        publicAttributes.push(
-          createAttributeInfo(name, x.doc ?? '', memberType, 'API', '', location, 'LWC custom attribute')
-        );
+        publicAttributes.push({
+          name,
+          documentation: x.doc ?? '',
+          memberType,
+          decorator: 'API',
+          type: '',
+          location,
+          detail: 'LWC custom attribute'
+        });
       }
     } else {
       if (x.loc) {
@@ -178,9 +184,15 @@ export const extractAttributes = (
         const memberType = x.type === 'property' ? 'PROPERTY' : 'METHOD';
         const decorator: 'TRACK' | undefined = x.decorator === 'track' ? 'TRACK' : undefined;
         if (decorator) {
-          privateAttributes.push(
-            createAttributeInfo(name, x.doc ?? '', memberType, decorator, '', location, 'LWC custom attribute')
-          );
+          privateAttributes.push({
+            name,
+            documentation: x.doc ?? '',
+            memberType,
+            decorator,
+            type: '',
+            location,
+            detail: 'LWC custom attribute'
+          });
         }
       }
     }

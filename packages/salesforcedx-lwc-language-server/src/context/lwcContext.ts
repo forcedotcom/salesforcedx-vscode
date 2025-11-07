@@ -14,7 +14,10 @@ import {
   relativePath,
   updateForceIgnoreFile,
   FileSystemDataProvider,
-  extractJsonFromImport
+  extractJsonFromImport,
+  getExtension,
+  toResolvedPath,
+  pathStartsWith
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import baseTsConfigJsonImport from '@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.base.json';
 import tsConfigTemplateJsonImport from '@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.json';
@@ -81,15 +84,13 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
       case 'CORE_ALL':
         // optimization: search only inside project/modules/
         const projectDirs = this.fileSystemProvider.getDirectoryListing(this.workspaceRoots[0]);
-        if (projectDirs) {
-          for (const entry of projectDirs) {
-            const project = entry.name;
-            const modulesDir = path.join(this.workspaceRoots[0], project, 'modules');
-            if (this.fileSystemProvider.fileExists(modulesDir)) {
-              const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
-              roots.lwc.push(...subroots.lwc);
-              roots.aura.push(...subroots.aura);
-            }
+        for (const entry of projectDirs) {
+          const project = entry.name;
+          const modulesDir = path.join(this.workspaceRoots[0], project, 'modules');
+          if (this.fileSystemProvider.fileExists(modulesDir)) {
+            const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
+            roots.lwc.push(...subroots.lwc);
+            roots.aura.push(...subroots.aura);
           }
         }
         return roots;
@@ -177,6 +178,24 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
       default:
         break;
     }
+  }
+
+  public async isLWCTemplate(document: TextDocument): Promise<boolean> {
+    return (
+      document.languageId === 'html' &&
+      getExtension(document) === '.html' &&
+      (await this.isInsideModulesRoots(document))
+    );
+  }
+
+  public async isInsideModulesRoots(document: TextDocument): Promise<boolean> {
+    const file = toResolvedPath(document.uri);
+    for (const ws of this.workspaceRoots) {
+      if (pathStartsWith(file, ws)) {
+        return this.isFileInsideModulesRoots(file);
+      }
+    }
+    return false;
   }
 
   public async isLWCJavascript(document: TextDocument): Promise<boolean> {

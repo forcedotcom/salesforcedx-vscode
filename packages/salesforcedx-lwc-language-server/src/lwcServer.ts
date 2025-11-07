@@ -11,10 +11,9 @@ import {
   getBasename,
   AttributeInfo,
   FileSystemDataProvider,
-  FileSystemRequests,
-  FileSystemNotifications,
   FileStat,
-  BaseWorkspaceContext
+  BaseWorkspaceContext,
+  DirectoryEntry
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { basename, dirname, parse } from 'node:path';
 import {
@@ -82,6 +81,21 @@ type CursorInfo = {
   range?: Range;
 };
 
+/**
+ * LSP notification types for file system operations
+ */
+const FILE_CONTENT_CHANGED = 'lwc/fileContentChanged';
+
+/**
+ * LSP request types for file system operations
+ */
+const GET_FILE_CONTENT = 'lwc/getFileContent';
+const GET_DIRECTORY_LISTING = 'lwc/getDirectoryListing';
+const GET_FILE_STAT = 'lwc/getFileStat';
+const CREATE_TYPING_FILES = 'lwc/createTypingFiles';
+const DELETE_TYPING_FILES = 'lwc/deleteTypingFiles';
+const UPDATE_COMPONENT_INDEX = 'lwc/updateComponentIndex';
+
 export const findDynamicContent = (text: string, offset: number): string | null => {
   const regex = new RegExp(/\{(?<property>\w+)(?:[.:]\w+)?\}/, 'g');
   let match = regex.exec(text);
@@ -147,7 +161,7 @@ export default class Server {
 
     // Register file system notification handlers
     this.connection.onNotification(
-      FileSystemNotifications.FILE_CONTENT_CHANGED,
+      FILE_CONTENT_CHANGED,
       (params: { uri: string; content: string }) => void this.onFileContentChanged(params)
     );
 
@@ -163,24 +177,23 @@ export default class Server {
     this.populateFileSystemProvider(params);
 
     // Register file system request handlers that depend on fileSystemProvider after reconstruction
-    this.connection.onRequest(FileSystemRequests.GET_FILE_CONTENT, (fileSystemParams: { uri: string }) =>
+    this.connection.onRequest(GET_FILE_CONTENT, (fileSystemParams: { uri: string }) =>
       this.onGetFileContent(fileSystemParams)
     );
-    this.connection.onRequest(FileSystemRequests.GET_DIRECTORY_LISTING, (fileSystemParams: { uri: string }) =>
+    this.connection.onRequest(GET_DIRECTORY_LISTING, (fileSystemParams: { uri: string }) =>
       this.onGetDirectoryListing(fileSystemParams)
     );
-    this.connection.onRequest(FileSystemRequests.GET_FILE_STAT, (fileSystemParams: { uri: string }) =>
+    this.connection.onRequest(GET_FILE_STAT, (fileSystemParams: { uri: string }) =>
       this.onGetFileStat(fileSystemParams)
     );
-    this.connection.onRequest(
-      FileSystemRequests.CREATE_TYPING_FILES,
-      (fileSystemParams: { files: { uri: string; content: string }[] }) => this.onCreateTypingFiles(fileSystemParams)
+    this.connection.onRequest(CREATE_TYPING_FILES, (fileSystemParams: { files: { uri: string; content: string }[] }) =>
+      this.onCreateTypingFiles(fileSystemParams)
     );
-    this.connection.onRequest(FileSystemRequests.DELETE_TYPING_FILES, (fileSystemParams: { files: string[] }) =>
+    this.connection.onRequest(DELETE_TYPING_FILES, (fileSystemParams: { files: string[] }) =>
       this.onDeleteTypingFiles(fileSystemParams)
     );
     this.connection.onRequest(
-      FileSystemRequests.UPDATE_COMPONENT_INDEX,
+      UPDATE_COMPONENT_INDEX,
       (fileSystemParams: { components: { uri: string; content: string; mtime: number; type: string }[] }) =>
         this.onUpdateComponentIndex(fileSystemParams)
     );
@@ -607,10 +620,10 @@ export default class Server {
     };
   }
 
-  private onGetDirectoryListing(params: { uri: string }): { entries: any[]; exists: boolean } {
+  private onGetDirectoryListing(params: { uri: string }): { entries: DirectoryEntry[]; exists: boolean } {
     const entries = this.fileSystemProvider.getDirectoryListing(params.uri);
     return {
-      entries: entries ?? [],
+      entries,
       exists: entries !== undefined
     };
   }
