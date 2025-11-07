@@ -87,7 +87,7 @@ import { getCoreLoggerService, registerGetTelemetryServiceCommand } from './serv
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
 import { taskViewService } from './statuses';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { MetricsReporter } from './telemetry/metricsReporter';
+import { reportExtensionPackStatus } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel } from './util';
 import { getUserId, getAuthFields } from './util/orgAuthInfoExtensions';
 
@@ -245,7 +245,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     extensionContext.subscriptions.push(registerInternalDevCommands());
 
     telemetryService.sendExtensionActivationEvent(activationStartTime);
-    MetricsReporter.extensionPackStatus();
+    reportExtensionPackStatus();
     console.log('SF CLI Extension Activated (internal dev mode)');
     return api;
   }
@@ -294,7 +294,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   }
 
   void activateTracker.markActivationStop();
-  MetricsReporter.extensionPackStatus();
+  reportExtensionPackStatus();
 
   // Handle trace flag cleanup after setting target org
   try {
