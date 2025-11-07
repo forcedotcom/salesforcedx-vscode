@@ -7,7 +7,7 @@
 
 import { AuthRemover, AuthInfo, ConfigAggregator, Org } from '@salesforce/core';
 import { shouldRemoveOrg, getConnectionStatusFromError } from '@salesforce/salesforcedx-utils';
-import { ConfigUtil, notificationService, Table } from '@salesforce/salesforcedx-utils-vscode';
+import { ConfigUtil, createTable, notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
 import {
@@ -49,7 +49,7 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
   SfWorkspaceChecker: jest.fn(),
   ContinueResponse: jest.fn(),
   LibraryCommandletExecutor: jest.fn(),
-  Table: jest.fn(),
+  createTable: jest.fn(),
   // Add these to align with command imports
   PromptConfirmGatherer: jest.fn(),
   SfCommandlet: jest.fn(),
@@ -100,11 +100,8 @@ describe('orgList command', () => {
     // Reset all mocks
     jest.clearAllMocks();
 
-    // Mock Table.createTable method
-    const mockTableInstance = {
-      createTable: jest.fn().mockReturnValue('mocked table output')
-    };
-    (Table as jest.Mock).mockImplementation(() => mockTableInstance);
+    // Mock createTable function
+    (createTable as jest.Mock).mockReturnValue('mocked table output');
   });
 
   it('should be a simple smoke test to verify basic functionality', () => {
@@ -339,7 +336,7 @@ describe('orgList command', () => {
     it('should create and display table for orgs', async () => {
       await displayRemainingOrgs();
 
-      expect(Table).toHaveBeenCalled();
+      expect(createTable).toHaveBeenCalled();
       expect(channelService.appendLine).toHaveBeenCalledWith(expect.stringContaining('mocked table output'));
     });
 

@@ -10,12 +10,12 @@ import {
   FlagParameter,
   Column,
   ContinueResponse,
+  createTable,
   EmptyParametersGatherer,
   getRootWorkspacePath,
   LibraryCommandletExecutor,
   Row,
   SfWorkspaceChecker,
-  Table,
   SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
@@ -107,8 +107,7 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
       ...(orgInfo.edition && !isScratchOrg ? [{ property: 'Edition', value: orgInfo.edition }] : [])
     ].sort((a, b) => String(a.property).localeCompare(String(b.property)));
 
-    const table = new Table();
-    return table.createTable(rows, columns, 'Org Description');
+    return createTable(rows, columns, 'Org Description');
   }
 }
 

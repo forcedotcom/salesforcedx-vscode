@@ -7,12 +7,12 @@
 import {
   ConfigUtil,
   ContinueResponse,
+  createTable,
   EmptyParametersGatherer,
   LibraryCommandletExecutor,
   Row,
   SfCommandlet,
-  SfWorkspaceChecker,
-  Table
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
@@ -60,8 +60,7 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
 
   private formatOutput(input: Row): string {
     const title = nls.localize(CONFIG_SET_NAME);
-    const table = new Table();
-    const outputTable = table.createTable(
+    const outputTable = createTable(
       [input],
       [
         { key: 'name', label: nls.localize(TABLE_NAME_COL) },

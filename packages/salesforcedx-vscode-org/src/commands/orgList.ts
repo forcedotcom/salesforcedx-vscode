@@ -18,9 +18,9 @@ import { getConnectionStatusFromError, shouldRemoveOrg } from '@salesforce/sales
 import {
   Column,
   ConfigUtil,
+  createTable,
   Row,
   SfWorkspaceChecker,
-  Table,
   SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../channels';
@@ -276,8 +276,7 @@ const createAndDisplayOrgTable = (orgData: Row[]): void => {
     { key: 'Expires', label: 'Expires' }
   ];
 
-  const table = new Table();
-  const tableOutput = table.createTable(orgData, columns, '');
+  const tableOutput = createTable(orgData, columns, '');
   channelService.appendLine(`\n${tableOutput}`);
 
   // Add legend

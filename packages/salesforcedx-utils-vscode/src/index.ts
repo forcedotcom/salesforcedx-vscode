@@ -102,7 +102,7 @@ export {
   TelemetryServiceInterface
 } from '@salesforce/vscode-service-provider';
 export { getYYYYMMddHHmmssDateFormat, optionYYYYMMddHHmmss } from './date/format';
-export { Column, Row, Table } from './output/table';
+export { calculateMaxColumnWidths, Column, createTable, Row } from './output/table';
 export { ConfigAggregatorProvider } from './providers/configAggregatorProvider';
 export { SourceTrackingType, SourceTrackingService } from './services/sourceTrackingService';
 export { UserService } from './services/userService';
