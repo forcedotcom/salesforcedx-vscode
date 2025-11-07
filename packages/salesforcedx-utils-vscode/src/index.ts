@@ -13,7 +13,7 @@ export { SfWorkspaceChecker, isSalesforceProjectOpened } from './commands/precon
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { SfCommandlet } from './commands/sfCommandlet';
 export type { FlagParameter } from './commands/parameterGatherers';
-export { ConfigSource, ConfigUtil } from './config/configUtil';
+export { ConfigUtil } from './config/configUtil';
 export {
   SETTING_CLEAR_OUTPUT_TAB,
   SFDX_CORE_CONFIGURATION_NAME,
@@ -90,18 +90,8 @@ export { SFDX_FOLDER } from './constants';
 export type { ContinueResponse, CancelResponse, ParametersGatherer } from './commands/parameterGatherers';
 export type { PreconditionChecker } from './commands/preconditionCheckers';
 export type { PostconditionChecker } from './commands/postconditionCheckers';
-export type { CommandletExecutor } from './commands/commandletExecutors';
-export { MessageArgs } from '@salesforce/salesforcedx-utils';
-export {
-  TelemetryReporter,
-  Measurements,
-  Properties,
-  TelemetryData,
-  ActivationInfo,
-  TelemetryServiceInterface
-} from '@salesforce/vscode-service-provider';
 export { getYYYYMMddHHmmssDateFormat, optionYYYYMMddHHmmss } from './date/format';
-export { calculateMaxColumnWidths, Column, createTable, Row } from './output/table';
+export { Column, createTable, Row } from './output/table';
 export { ConfigAggregatorProvider } from './providers/configAggregatorProvider';
 export { SourceTrackingType, SourceTrackingService } from './services/sourceTrackingService';
 export { UserService } from './services/userService';
