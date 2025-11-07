@@ -16,4 +16,4 @@ export {
   getConnection,
   getAuthFields
 } from '@salesforce/salesforcedx-utils-vscode';
-export { checkForSoonToBeExpiredOrgs } from './orgUtil';
+export { checkForSoonToBeExpiredOrgs, setTargetOrgOrAlias, unsetTargetOrg } from './orgUtil';

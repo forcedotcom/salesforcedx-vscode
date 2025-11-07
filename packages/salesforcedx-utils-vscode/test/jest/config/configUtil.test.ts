@@ -4,122 +4,218 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Config, Org, StateAggregator } from '@salesforce/core';
+import { Config, ConfigAggregator, OrgConfigProperties, StateAggregator } from '@salesforce/core';
 import { ConfigUtil } from '../../../src/config/configUtil';
-import { TARGET_ORG_KEY } from '../../../src/constants';
+import { SF_CONFIG_DISABLE_TELEMETRY } from '../../../src/constants';
 import { ConfigAggregatorProvider } from '../../../src/providers/configAggregatorProvider';
-import { workspaceUtils } from '../../../src/workspaces/workspaceUtils';
 
-describe('testing setTargetOrgOrAlias and private method setUsernameOrAlias', () => {
-  const fakeOriginalDirectory = 'test/directory';
-  const fakeWorkspace = 'test/workspace/';
-
-  let workspacePathStub: jest.SpyInstance;
-  let configStub: jest.SpyInstance;
-  let orgStub: jest.SpyInstance;
-  let chdirStub: jest.SpyInstance;
-  let setMock: jest.SpyInstance;
-  let writeMock: jest.SpyInstance;
-  let mockConfigAggregatorProvider: jest.SpyInstance;
-  const mockConfigAggregatorProviderInstance = {
-    reloadConfigAggregators: jest.fn()
-  };
-  let stateAggregatorClearInstanceMock: jest.SpyInstance;
+describe('ConfigUtil', () => {
+  let mockConfigAggregator: any;
 
   beforeEach(() => {
-    workspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
-    jest.spyOn(process, 'cwd').mockReturnValue(fakeOriginalDirectory);
-    setMock = jest.fn();
-    writeMock = jest.fn();
-    configStub = jest.spyOn(Config, 'create');
-    configStub.mockResolvedValue({ set: setMock, write: writeMock });
-    orgStub = jest.spyOn(Org, 'create').mockResolvedValue(undefined as any);
-    chdirStub = jest.spyOn(process, 'chdir').mockReturnValue();
-    mockConfigAggregatorProvider = jest
-      .spyOn(ConfigAggregatorProvider, 'getInstance')
-      .mockReturnValue(mockConfigAggregatorProviderInstance as any);
-    stateAggregatorClearInstanceMock = jest.spyOn(StateAggregator, 'clearInstance');
+    mockConfigAggregator = {
+      getPropertyValue: jest.fn(),
+      getLocation: jest.fn()
+    };
+    jest.spyOn(ConfigAggregatorProvider.prototype, 'getConfigAggregator').mockResolvedValue(mockConfigAggregator);
   });
 
-  it('should set provided username or alias as default configs', async () => {
-    const username = 'vscodeOrgs';
-    await ConfigUtil.setTargetOrgOrAlias(username);
-    expect(orgStub).toHaveBeenCalled();
-    expect(setMock).toHaveBeenCalledWith(TARGET_ORG_KEY, username);
-    expect(writeMock).toHaveBeenCalled();
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
-  it('should change the current working directory to the original working directory', async () => {
-    const username = 'vscodeO';
-    await ConfigUtil.setTargetOrgOrAlias(username);
-    expect(workspacePathStub).toHaveBeenCalledTimes(2);
-    expect(chdirStub).toHaveBeenCalledTimes(2);
-    expect(chdirStub).toHaveBeenNthCalledWith(1, fakeWorkspace);
-    expect(chdirStub).toHaveBeenNthCalledWith(2, fakeOriginalDirectory);
+  describe('getUserConfiguredApiVersion', () => {
+    it('should return API version when set', async () => {
+      mockConfigAggregator.getPropertyValue.mockReturnValue('58.0');
+      const result = await ConfigUtil.getUserConfiguredApiVersion();
+      expect(result).toBe('58.0');
+      expect(mockConfigAggregator.getPropertyValue).toHaveBeenCalledWith(OrgConfigProperties.ORG_API_VERSION);
+    });
+
+    it('should return undefined when not set', async () => {
+      mockConfigAggregator.getPropertyValue.mockReturnValue(undefined);
+      const result = await ConfigUtil.getUserConfiguredApiVersion();
+      expect(result).toBeUndefined();
+    });
   });
 
-  it('should be able to set username or alias to an empty string', async () => {
-    const username = '';
-    await ConfigUtil.setTargetOrgOrAlias(username);
-    expect(orgStub).not.toHaveBeenCalled();
-    expect(setMock).toHaveBeenCalledWith(TARGET_ORG_KEY, username);
-    expect(writeMock).toHaveBeenCalled();
-    expect(mockConfigAggregatorProvider).toHaveBeenCalled();
-    expect(mockConfigAggregatorProviderInstance.reloadConfigAggregators).toHaveBeenCalled();
-    expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
+  describe('getTargetOrgOrAlias', () => {
+    it('should return target org when set', async () => {
+      mockConfigAggregator.getPropertyValue.mockReturnValue('my-org');
+      const result = await ConfigUtil.getTargetOrgOrAlias();
+      expect(result).toBe('my-org');
+      expect(mockConfigAggregator.getPropertyValue).toHaveBeenCalledWith(OrgConfigProperties.TARGET_ORG);
+    });
 
-    const writeCallOrder = writeMock.mock.invocationCallOrder[0];
-    const reloadCallOrder = mockConfigAggregatorProviderInstance.reloadConfigAggregators.mock.invocationCallOrder[0];
-    const clearInstanceCallOrder = stateAggregatorClearInstanceMock.mock.invocationCallOrder[0];
-
-    expect(writeCallOrder).toBeLessThan(reloadCallOrder);
-    expect(reloadCallOrder).toBeLessThan(clearInstanceCallOrder);
-  });
-});
-
-describe('testing unsetTargetOrg', () => {
-  const fakeOriginalDirectory = 'test/directory';
-  const fakeWorkspace = 'test/workspace/';
-
-  let workspacePathStub: jest.SpyInstance;
-  let configStub: jest.SpyInstance;
-  let chdirStub: jest.SpyInstance;
-  let unsetMock: jest.SpyInstance;
-  let writeMock: jest.SpyInstance;
-  let mockConfigAggregatorProvider: jest.SpyInstance;
-  const mockConfigAggregatorProviderInstance = {
-    reloadConfigAggregators: jest.fn()
-  };
-  let stateAggregatorClearInstanceMock: jest.SpyInstance;
-
-  beforeEach(() => {
-    workspacePathStub = jest.spyOn(workspaceUtils, 'getRootWorkspacePath').mockReturnValue(fakeWorkspace);
-    jest.spyOn(process, 'cwd').mockReturnValue(fakeOriginalDirectory);
-    unsetMock = jest.fn();
-    writeMock = jest.fn();
-    configStub = jest.spyOn(Config, 'create');
-    configStub.mockResolvedValue({ unset: unsetMock, write: writeMock });
-    chdirStub = jest.spyOn(process, 'chdir').mockReturnValue();
-    mockConfigAggregatorProvider = jest
-      .spyOn(ConfigAggregatorProvider, 'getInstance')
-      .mockReturnValue(mockConfigAggregatorProviderInstance as any);
-    stateAggregatorClearInstanceMock = jest.spyOn(StateAggregator, 'clearInstance');
+    it('should return undefined when not set', async () => {
+      mockConfigAggregator.getPropertyValue.mockReturnValue(undefined);
+      const result = await ConfigUtil.getTargetOrgOrAlias();
+      expect(result).toBeUndefined();
+    });
   });
 
-  it('should unset provided username or alias', async () => {
-    await ConfigUtil.unsetTargetOrg();
-    expect(unsetMock).toHaveBeenCalledWith(TARGET_ORG_KEY);
-    expect(writeMock).toHaveBeenCalled();
-    expect(mockConfigAggregatorProvider).toHaveBeenCalled();
-    expect(mockConfigAggregatorProviderInstance.reloadConfigAggregators).toHaveBeenCalled();
-    expect(stateAggregatorClearInstanceMock).toHaveBeenCalled();
+  describe('isGlobalTargetOrg', () => {
+    it('should return true when target org is global', async () => {
+      mockConfigAggregator.getLocation.mockReturnValue(ConfigAggregator.Location.GLOBAL);
+      const result = await ConfigUtil.isGlobalTargetOrg();
+      expect(result).toBe(true);
+    });
+
+    it('should return false when target org is local', async () => {
+      mockConfigAggregator.getLocation.mockReturnValue(ConfigAggregator.Location.LOCAL);
+      const result = await ConfigUtil.isGlobalTargetOrg();
+      expect(result).toBe(false);
+    });
   });
 
-  it('should change the current working directory to the original working directory', async () => {
-    await ConfigUtil.unsetTargetOrg();
-    expect(workspacePathStub).toHaveBeenCalledTimes(2);
-    expect(chdirStub).toHaveBeenCalledTimes(2);
-    expect(chdirStub).toHaveBeenNthCalledWith(1, fakeWorkspace);
-    expect(chdirStub).toHaveBeenNthCalledWith(2, fakeOriginalDirectory);
+  describe('getTemplatesDirectory', () => {
+    it('should return templates directory when set', async () => {
+      mockConfigAggregator.getPropertyValue.mockReturnValue('/path/to/templates');
+      const result = await ConfigUtil.getTemplatesDirectory();
+      expect(result).toBe('/path/to/templates');
+      expect(mockConfigAggregator.getPropertyValue).toHaveBeenCalledWith(
+        OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES
+      );
+    });
+
+    it('should return undefined when not set', async () => {
+      mockConfigAggregator.getPropertyValue.mockReturnValue(undefined);
+      const result = await ConfigUtil.getTemplatesDirectory();
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('isTelemetryDisabled', () => {
+    it('should return true when telemetry is disabled', async () => {
+      mockConfigAggregator.getPropertyValue.mockReturnValue('true');
+      const result = await ConfigUtil.isTelemetryDisabled();
+      expect(result).toBe(true);
+      expect(mockConfigAggregator.getPropertyValue).toHaveBeenCalledWith(SF_CONFIG_DISABLE_TELEMETRY);
+    });
+
+    it('should return false when telemetry is enabled', async () => {
+      mockConfigAggregator.getPropertyValue.mockReturnValue('false');
+      const result = await ConfigUtil.isTelemetryDisabled();
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('getTargetDevHubOrAlias', () => {
+    it('should return dev hub when set', async () => {
+      mockConfigAggregator.getPropertyValue.mockReturnValue('my-devhub');
+      const result = await ConfigUtil.getTargetDevHubOrAlias();
+      expect(result).toBe('my-devhub');
+      expect(mockConfigAggregator.getPropertyValue).toHaveBeenCalledWith(OrgConfigProperties.TARGET_DEV_HUB);
+    });
+
+    it('should return undefined when not set', async () => {
+      mockConfigAggregator.getPropertyValue.mockReturnValue(undefined);
+      const result = await ConfigUtil.getTargetDevHubOrAlias();
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getGlobalTargetDevHubOrAlias', () => {
+    it('should return global dev hub when set', async () => {
+      const mockConfig = {
+        get: jest.fn().mockReturnValue('global-devhub')
+      };
+      jest.spyOn(Config, 'create').mockResolvedValue(mockConfig as any);
+      const result = await ConfigUtil.getGlobalTargetDevHubOrAlias();
+      expect(result).toBe('global-devhub');
+    });
+
+    it('should return undefined when not set', async () => {
+      const mockConfig = {
+        get: jest.fn().mockReturnValue(undefined)
+      };
+      jest.spyOn(Config, 'create').mockResolvedValue(mockConfig as any);
+      const result = await ConfigUtil.getGlobalTargetDevHubOrAlias();
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getAllAliasesFor', () => {
+    it('should return aliases for username', async () => {
+      const mockStateAggregator = {
+        aliases: {
+          getAll: jest.fn().mockReturnValue(['alias1', 'alias2'])
+        }
+      };
+      jest.spyOn(StateAggregator, 'getInstance').mockResolvedValue(mockStateAggregator as any);
+      jest.spyOn(StateAggregator, 'clearInstance').mockImplementation();
+
+      const result = await ConfigUtil.getAllAliasesFor('test@example.com');
+      expect(result).toEqual(['alias1', 'alias2']);
+      expect(StateAggregator.clearInstance).toHaveBeenCalled();
+    });
+  });
+
+  describe('getUsernameFor', () => {
+    it('should return username when alias exists', async () => {
+      const mockStateAggregator = {
+        aliases: {
+          getUsername: jest.fn().mockReturnValue('test@example.com')
+        }
+      };
+      jest.spyOn(StateAggregator, 'getInstance').mockResolvedValue(mockStateAggregator as any);
+
+      const result = await ConfigUtil.getUsernameFor('my-alias');
+      expect(result).toBe('test@example.com');
+    });
+
+    it('should return input when no alias found', async () => {
+      const mockStateAggregator = {
+        aliases: {
+          getUsername: jest.fn().mockReturnValue(undefined)
+        }
+      };
+      jest.spyOn(StateAggregator, 'getInstance').mockResolvedValue(mockStateAggregator as any);
+
+      const result = await ConfigUtil.getUsernameFor('test@example.com');
+      expect(result).toBe('test@example.com');
+    });
+  });
+
+  describe('getUsername', () => {
+    it('should return username when target org is set', async () => {
+      mockConfigAggregator.getPropertyValue.mockReturnValue('my-alias');
+      const mockStateAggregator = {
+        aliases: {
+          getUsername: jest.fn().mockReturnValue('test@example.com')
+        }
+      };
+      jest.spyOn(StateAggregator, 'getInstance').mockResolvedValue(mockStateAggregator as any);
+
+      const result = await ConfigUtil.getUsername();
+      expect(result).toBe('test@example.com');
+    });
+
+    it('should return undefined when target org is not set', async () => {
+      mockConfigAggregator.getPropertyValue.mockReturnValue(undefined);
+      const result = await ConfigUtil.getUsername();
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getDevHubUsername', () => {
+    it('should return dev hub username when set', async () => {
+      mockConfigAggregator.getPropertyValue.mockReturnValue('devhub-alias');
+      const mockStateAggregator = {
+        aliases: {
+          getUsername: jest.fn().mockReturnValue('devhub@example.com')
+        }
+      };
+      jest.spyOn(StateAggregator, 'getInstance').mockResolvedValue(mockStateAggregator as any);
+
+      const result = await ConfigUtil.getDevHubUsername();
+      expect(result).toBe('devhub@example.com');
+    });
+
+    it('should return undefined when dev hub is not set', async () => {
+      mockConfigAggregator.getPropertyValue.mockReturnValue(undefined);
+      const result = await ConfigUtil.getDevHubUsername();
+      expect(result).toBeUndefined();
+    });
   });
 });

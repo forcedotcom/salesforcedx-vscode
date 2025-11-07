@@ -5,7 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthFields, AuthInfo, Connection, Org, StateAggregator, ConfigAggregator } from '@salesforce/core';
+import {
+  AuthFields,
+  AuthInfo,
+  Connection,
+  Org,
+  StateAggregator,
+  ConfigAggregator,
+  OrgConfigProperties
+} from '@salesforce/core';
 import { getConnectionStatusFromError } from '../helpers/utils';
 import { messages } from '../i18n/i18n';
 import { OrgInfo, OrgQueryResult, ScratchOrgQueryResult } from '../types/orgInfo';
@@ -20,7 +28,7 @@ const resolveUsername = async (username: string | undefined, salesforceProject?:
       const configAggregator: ConfigAggregator = await ConfigAggregator.create({
         projectPath: salesforceProject
       });
-      const configUsernameOrAlias = configAggregator.getPropertyValue<string>('target-org');
+      const configUsernameOrAlias = configAggregator.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG);
       if (configUsernameOrAlias && typeof configUsernameOrAlias === 'string') {
         usernameOrAlias = configUsernameOrAlias;
       }

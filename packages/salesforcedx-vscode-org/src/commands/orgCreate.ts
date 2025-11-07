@@ -10,7 +10,6 @@ import {
   CompositeParametersGatherer,
   CancelResponse,
   CliCommandExecutor,
-  ConfigUtil,
   ContinueResponse,
   isAlphaNumSpaceString,
   isIntegerInRange,
@@ -33,6 +32,7 @@ import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreat
 import { CompositePreconditionChecker } from '../preconditionCheckers/compositePreconditionChecker';
 import { DevUsernameChecker } from '../preconditionCheckers/devUsernameChecker';
 import { telemetryService } from '../telemetry';
+import { setTargetOrgOrAlias } from '../util';
 
 // Get core API services at runtime
 const getCoreApi = (): SalesforceVSCodeCoreApi | undefined => {
@@ -90,7 +90,7 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
           // Explicitly ensure the org change event is triggered
           // Use the alias that was provided when creating the org
           if (response.data.alias) {
-            await ConfigUtil.setTargetOrgOrAlias(response.data.alias);
+            await setTargetOrgOrAlias(response.data.alias);
           }
 
           // Set workspace org type to source-tracked for newly created scratch orgs

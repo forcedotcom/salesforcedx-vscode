@@ -24,6 +24,9 @@ jest.mock('@salesforce/core', () => ({
   },
   ConfigAggregator: {
     create: jest.fn()
+  },
+  OrgConfigProperties: {
+    TARGET_ORG: 'target-org'
   }
 }));
 

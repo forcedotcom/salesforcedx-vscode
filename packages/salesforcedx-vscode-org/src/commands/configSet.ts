@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { OrgConfigProperties } from '@salesforce/core';
 import {
-  ConfigUtil,
   ContinueResponse,
   createTable,
   EmptyParametersGatherer,
@@ -16,13 +16,13 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
+import { setTargetOrgOrAlias } from '../util';
 
 const CONFIG_SET_ORG_TEXT = 'config_set_org_text';
 const CONFIG_SET_NAME = 'config_set_name';
 const TABLE_NAME_COL = 'table_header_name';
 const TABLE_VAL_COL = 'table_header_value';
 const TABLE_SUCCESS_COL = 'table_header_success';
-const TARGET_ORG_KEY = 'target-org';
 
 class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
   private usernameOrAlias: string;
@@ -39,13 +39,13 @@ class ConfigSetExecutor extends LibraryCommandletExecutor<{}> {
     let message: string | undefined;
     try {
       result = true;
-      await ConfigUtil.setTargetOrgOrAlias(this.usernameOrAlias);
+      await setTargetOrgOrAlias(this.usernameOrAlias);
     } catch (error) {
       message = error instanceof Error ? error.message : String(error);
       result = false;
     }
     this.outputTableRow = {
-      name: TARGET_ORG_KEY,
+      name: OrgConfigProperties.TARGET_ORG,
       val: this.usernameOrAlias,
       success: String(result)
     };
