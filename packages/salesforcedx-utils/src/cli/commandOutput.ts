@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { stripAnsiInJson } from '../helpers';
-import { CommandExecution } from '../types';
+import { stripAnsiInJson } from '../helpers/utils';
+import { CommandExecution } from '../types/commandExecution';
 import { JSON_FLAG } from './commandBuilder';
 
 export class CommandOutput {

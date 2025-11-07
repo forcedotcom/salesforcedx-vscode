@@ -6,7 +6,7 @@
  */
 // This is only done in tests because we are mocking things
 
-import { RequestService } from '@salesforce/salesforcedx-utils';
+import { Connection } from '@salesforce/core';
 import { Source } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import {
@@ -17,6 +17,7 @@ import {
 } from '../../../src/adapter/apexDebug';
 import { Reference } from '../../../src/commands';
 import { BreakpointService, SessionService, StreamingService } from '../../../src/core';
+import { RequestService } from '../../../src/requestService/requestService';
 
 export class ApexDebugForTest extends ApexDebug {
   private receivedResponses: DebugProtocol.Response[] = [];
@@ -76,6 +77,10 @@ export class ApexDebugForTest extends ApexDebug {
 
   public async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): Promise<void> {
     return super.launchRequest(response, args);
+  }
+
+  public async getTargetOrgConnection(): Promise<Connection> {
+    return super.getTargetOrgConnection();
   }
 
   public async disconnectReq(
@@ -146,6 +151,10 @@ export class ApexDebugForTest extends ApexDebug {
 
   public printToDebugConsole(msg?: string, sourceFile?: Source, sourceLine?: number): void {
     super.printToDebugConsole(msg, sourceFile, sourceLine);
+  }
+
+  public errorToDebugConsole(msg?: string): void {
+    super.errorToDebugConsole(msg);
   }
 
   public populateReferences(references: Reference[], requestId: string): void {
