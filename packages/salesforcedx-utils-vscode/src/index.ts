@@ -12,7 +12,6 @@ export { CompositeParametersGatherer, EmptyParametersGatherer } from './commands
 export { SfWorkspaceChecker, isSalesforceProjectOpened } from './commands/preconditionCheckers';
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { SfCommandlet } from './commands/sfCommandlet';
-export { CompositePreconditionChecker } from './commands/preconditionCheckers';
 export type { FlagParameter } from './commands/parameterGatherers';
 export { ConfigSource, ConfigUtil } from './config/configUtil';
 export {

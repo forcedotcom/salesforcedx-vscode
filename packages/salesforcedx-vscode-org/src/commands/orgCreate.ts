@@ -7,7 +7,6 @@
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   notificationService,
-  CompositePreconditionChecker,
   CompositeParametersGatherer,
   CancelResponse,
   CliCommandExecutor,
@@ -31,6 +30,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { FileSelector, FileSelection } from '../parameterGatherers/fileSelector';
 import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreateResultParser';
+import { CompositePreconditionChecker } from '../preconditionCheckers/compositePreconditionChecker';
 import { DevUsernameChecker } from '../preconditionCheckers/devUsernameChecker';
 import { telemetryService } from '../telemetry';
 

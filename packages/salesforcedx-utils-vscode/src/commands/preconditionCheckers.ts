@@ -38,20 +38,3 @@ export class SfWorkspaceChecker implements PreconditionChecker {
     return true;
   }
 }
-
-/** Runs multiple precondition checks in sequence */
-export class CompositePreconditionChecker implements PreconditionChecker {
-  public checks: PreconditionChecker[];
-
-  constructor(...checks: PreconditionChecker[]) {
-    this.checks = checks;
-  }
-
-  public async check(): Promise<boolean> {
-    for (const output of this.checks) {
-      if (!(await output.check())) return false;
-    }
-
-    return true;
-  }
-}
