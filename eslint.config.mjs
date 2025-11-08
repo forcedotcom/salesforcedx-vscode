@@ -446,7 +446,11 @@ export default [
   },
   {
     // Effect-specific rules for new Effect services-based packages
-    files: ['packages/salesforcedx-vscode-services/**/*.ts', 'packages/salesforcedx-vscode-org-browser/**/*.ts'],
+    files: [
+      'packages/salesforcedx-vscode-services/**/*.ts',
+      'packages/salesforcedx-vscode-org-browser/**/*.ts',
+      'packages/salesforcedx-vscode-metadata/**/*.ts'
+    ],
     rules: {
       'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
       'barrel-files/avoid-barrel-files': 'error',
@@ -503,8 +507,10 @@ export default [
     files: [
       'packages/salesforcedx-vscode-services/test/**/*.ts',
       'packages/salesforcedx-vscode-org-browser/test/**/*.ts',
+      'packages/salesforcedx-vscode-metadata/test/**/*.ts',
       'packages/salesforcedx-vscode-services/playwright*.ts',
-      'packages/salesforcedx-vscode-org-browser/playwright*.ts'
+      'packages/salesforcedx-vscode-org-browser/playwright*.ts',
+      'packages/salesforcedx-vscode-metadata/playwright*.ts'
     ],
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import

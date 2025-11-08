@@ -31,7 +31,6 @@
     "@playwright/test": "^1.54.1",
     "@salesforce/core": "^8.23.3",
     "@salesforce/source-deploy-retrieve": "^12.25.0",
-    "@types/node": "^20.0.0",
     "@vscode/test-web": "^0.0.71",
     "esbuild": "0.25.0",
     "nyc": "^15",

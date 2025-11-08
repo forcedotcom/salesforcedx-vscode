@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.common.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "out",
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM"],
+    "plugins": [
+      {
+        "name": "@effect/language-service"
+      }
+    ]
+  },
+  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "references": [
+    {
+      "path": "../salesforcedx-vscode-services"
+    }
+  ]
+}

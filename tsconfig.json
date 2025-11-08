@@ -63,6 +63,21 @@
     },
     {
       "path": "packages/salesforcedx-vscode-automation-tests"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-metadata"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-org-browser"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-org"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-services"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-services-types"
     }
   ]
 }
