@@ -50,6 +50,7 @@ export const AllServicesLayer = Layer.unwrapEffect(
       api.services.ConfigService.Default,
       api.services.ConnectionService.Default,
       api.services.FsService.Default,
+      api.services.MetadataDeployService.Default,
       api.services.MetadataRetrieveService.Default,
       api.services.MetadataRegistryService.Default,
       api.services.MetadataDescribeService.Default,

@@ -7,7 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { projectDeployStart } from './commands/projectDeployStart';
+import { projectDeployStart } from './commands/deployStart/projectDeployStart';
 import { EXTENSION_NAME } from './constants';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
 

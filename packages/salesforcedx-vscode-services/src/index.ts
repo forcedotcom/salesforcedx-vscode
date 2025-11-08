@@ -13,6 +13,7 @@ import { sampleProjectName } from './constants';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
 import { defaultOrgRef, watchConfigFiles } from './core/defaultOrgService';
+import { MetadataDeployService } from './core/metadataDeployService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
@@ -41,6 +42,7 @@ export type SalesforceVSCodeServicesApi = {
     FsService: typeof FsService;
     ConfigService: typeof ConfigService;
     MetadataDescribeService: typeof MetadataDescribeService;
+    MetadataDeployService: typeof MetadataDeployService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
     SourceTrackingService: typeof SourceTrackingService;
@@ -116,6 +118,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       FsService,
       ConfigService,
       MetadataDescribeService,
+      MetadataDeployService,
       MetadataRegistryService,
       MetadataRetrieveService,
       SourceTrackingService,
