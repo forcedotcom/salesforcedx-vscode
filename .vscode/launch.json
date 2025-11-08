@@ -349,32 +349,37 @@
       "internalConsoleOptions": "neverOpen"
     },
     {
-      "name": "Launch Only Org Browser & Services",
-      "type": "extensionHost",
-      "request": "launch",
-      "args": [
-        "--disable-extensions",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/packages/salesforcedx-vscode-services/dist/**/*.js",
-        "${workspaceFolder}/packages/salesforcedx-vscode-org-browser/dist/**/*.js"
-      ]
-    },
-    {
-      "name": "Launch Only Org Browser & Services & Core",
+      "name": "Launch Only Org Browser, Services & Metadata",
       "type": "extensionHost",
       "request": "launch",
       "args": [
         "--disable-extensions",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-metadata"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/packages/salesforcedx-vscode-services/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-org-browser/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-metadata/dist/**/*.js"
+      ]
+    },
+    {
+      "name": "Launch Only Org Browser, Services, Metadata & Core",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--disable-extensions",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-metadata",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core"
       ],
       "outFiles": [
         "${workspaceFolder}/packages/salesforcedx-vscode-services/dist/**/*.js",
-        "${workspaceFolder}/packages/salesforcedx-vscode-org-browser/dist/**/*.js"
+        "${workspaceFolder}/packages/salesforcedx-vscode-org-browser/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-metadata/dist/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-core/dist/**/*.js"
       ]
     }
   ],
