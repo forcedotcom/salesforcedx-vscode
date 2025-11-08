@@ -6,7 +6,6 @@
  */
 
 import { AuthRemover, AuthInfo, ConfigAggregator, Org } from '@salesforce/core';
-import { shouldRemoveOrg, getConnectionStatusFromError } from '@salesforce/salesforcedx-utils';
 import { ConfigUtil, createTable, notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { channelService } from '../../../src/channels';
@@ -17,6 +16,7 @@ import {
 } from '../../../src/commands/orgList';
 import { nls } from '../../../src/messages';
 import { getAuthFieldsFor } from '../../../src/util/orgUtil';
+import { shouldRemoveOrg, getConnectionStatusFromError } from '../../../src/util/orgUtils';
 
 // Mock the dependencies
 jest.mock('@salesforce/core', () => ({

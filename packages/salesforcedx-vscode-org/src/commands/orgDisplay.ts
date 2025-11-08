@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgInfo, OrgDisplay } from '@salesforce/salesforcedx-utils';
+import { OrgInfo } from '@salesforce/salesforcedx-utils';
 import {
   FlagParameter,
   Column,
@@ -22,6 +22,7 @@ import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { SelectUsername } from '../parameterGatherers/selectUsername';
 import { getTargetOrgOrAlias, getUsername } from '../util';
+import { OrgDisplay } from '../util/orgDisplay';
 
 class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }> {
   private flag: string | undefined;

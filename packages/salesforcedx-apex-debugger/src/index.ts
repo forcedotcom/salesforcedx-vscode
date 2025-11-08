@@ -16,7 +16,9 @@ export {
   HOTSWAP_REQUEST,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   LIVESHARE_DEBUG_TYPE_REQUEST,
-  EXCEPTION_BREAKPOINT_REQUEST
+  EXCEPTION_BREAKPOINT_REQUEST,
+  SF_CONFIG_ISV_DEBUGGER_SID,
+  SF_CONFIG_ISV_DEBUGGER_URL
 } from './constants';
 export { SetExceptionBreakpointsArguments } from './adapter/apexDebug';
 export enum VscodeDebuggerMessageType {

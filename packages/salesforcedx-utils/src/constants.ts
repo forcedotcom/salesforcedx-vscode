@@ -11,6 +11,4 @@ export const DEFAULT_LOCALE: Locale = 'en';
 export const LOCALE_JA: Locale = 'ja';
 export const MISSING_LABEL_MSG = '!!! MISSING LABEL !!!';
 export const SF_COMMAND = 'sf';
-export const SF_CONFIG_ISV_DEBUGGER_SID = 'org-isv-debugger-sid';
-export const SF_CONFIG_ISV_DEBUGGER_URL = 'org-isv-debugger-url';
 export const TELEMETRY_HEADER = 'salesforce-vscode-extensions';

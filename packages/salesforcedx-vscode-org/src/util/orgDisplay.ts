@@ -14,9 +14,32 @@ import {
   ConfigAggregator,
   OrgConfigProperties
 } from '@salesforce/core';
-import { getConnectionStatusFromError } from '../helpers/utils';
-import { messages } from '../i18n/i18n';
-import { OrgInfo, OrgQueryResult, ScratchOrgQueryResult } from '../types/orgInfo';
+import { OrgInfo } from '@salesforce/salesforcedx-utils';
+import { getConnectionStatusFromError } from './orgUtils';
+
+type OrgQueryResult = {
+  Id: string;
+  Name: string;
+  CreatedDate: string;
+  CreatedBy: { Username: string };
+  OrganizationType: string;
+  InstanceName: string;
+  IsSandbox: boolean;
+  NamespacePrefix: string;
+};
+
+type ScratchOrgQueryResult = {
+  Status: string;
+  CreatedBy: { Username: string };
+  CreatedDate: string;
+  ExpirationDate: string;
+  Edition: string;
+  OrgName: string;
+};
+
+const messages = {
+  no_username_provided: 'No username provided and no default username found in project config or state'
+};
 
 /** Resolve username from provided username or project config */
 const resolveUsername = async (username: string | undefined, salesforceProject?: string): Promise<string> => {

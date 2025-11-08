@@ -14,7 +14,6 @@ import {
   OrgAuthorization,
   OrgConfigProperties
 } from '@salesforce/core';
-import { getConnectionStatusFromError, shouldRemoveOrg } from '@salesforce/salesforcedx-utils';
 import {
   Column,
   ConfigUtil,
@@ -27,6 +26,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { PromptConfirmGatherer } from '../parameterGatherers/promptConfirmGatherer';
 import { getAuthFieldsFor } from '../util/orgUtil';
+import { getConnectionStatusFromError, shouldRemoveOrg } from '../util/orgUtils';
 import { OrgListCleanExecutor } from './orgListCleanExecutor';
 
 /** Check actual connection status by testing the connection */
