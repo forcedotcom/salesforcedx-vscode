@@ -143,10 +143,6 @@
         {
           "command": "sf.set.default.org",
           "when": "sf:project_opened"
-        },
-        {
-          "command": "sf.config.set",
-          "when": "false"
         }
       ]
     },
@@ -202,9 +198,6 @@
       {
         "command": "sf.set.default.org",
         "title": "%config_set_org_text%"
-      },
-      {
-        "command": "sf.config.set"
       }
     ]
   }
