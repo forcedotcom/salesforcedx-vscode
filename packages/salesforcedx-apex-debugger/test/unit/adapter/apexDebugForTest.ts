@@ -6,6 +6,7 @@
  */
 // This is only done in tests because we are mocking things
 
+import { Connection } from '@salesforce/core';
 import { Source } from '@vscode/debugadapter';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import {
@@ -78,6 +79,10 @@ export class ApexDebugForTest extends ApexDebug {
     return super.launchRequest(response, args);
   }
 
+  public async getTargetOrgConnection(): Promise<Connection> {
+    return super.getTargetOrgConnection();
+  }
+
   public async disconnectReq(
     response: DebugProtocol.DisconnectResponse,
     args: DebugProtocol.DisconnectArguments
@@ -146,6 +151,10 @@ export class ApexDebugForTest extends ApexDebug {
 
   public printToDebugConsole(msg?: string, sourceFile?: Source, sourceLine?: number): void {
     super.printToDebugConsole(msg, sourceFile, sourceLine);
+  }
+
+  public errorToDebugConsole(msg?: string): void {
+    super.errorToDebugConsole(msg);
   }
 
   public populateReferences(references: Reference[], requestId: string): void {

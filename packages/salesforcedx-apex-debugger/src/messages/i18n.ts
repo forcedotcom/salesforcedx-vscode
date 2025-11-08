@@ -17,6 +17,12 @@
  */
 export const messages = {
   command_error_help_text: 'Command returned the following error',
+  could_not_create_org_using_target_org:
+    'Could not create org using target-org. Please verify your target-org configuration and try again.',
+  could_not_get_connection_using_org:
+    'Could not get connection using the target org. Please verify your org configuration and try again.',
+  could_not_get_instance_url_or_access_token_using_org:
+    'Could not get instance URL or access token from the org connection. Please verify your org authentication and try again.',
   session_language_server_error_text: 'Apex language server could not provide information about valid breakpoints.',
   session_no_entity_access_text: "Either your org or user doesn't have the permission to debug Apex.",
   session_started_text: 'Apex Debugger session started with ID %s.',
@@ -41,6 +47,7 @@ export const messages = {
   interactive_debugger_launched_successfully: 'Interactive Debugger has been launched successfully.',
   isv_debugger_session_authentication_invalid:
     'The forceIde:// URL of the ISV debugger session is expired or the config variable org-isv-debugger-sid has an invalid value.',
+  no_target_org_found: 'No target-org found in your configuration. Please set a target-org and try again.',
   org_isv_debugger_url_invalid: 'The config variable org-isv-debugger-url has an invalid value.'
 } as const;
 
