@@ -159,7 +159,8 @@ export const IndexedDBStorageServiceShared =
 
 const writeFileWithOrWithoutDir = (entry: SerializedFileWithPath): void => {
   fs.mkdirSync(dirname(entry.path), { recursive: true });
-  fs.writeFileSync(entry.path, Buffer.from(entry.data, 'utf-8'));
+  // Use base64 to preserve binary data (e.g., git objects)
+  fs.writeFileSync(entry.path, Buffer.from(entry.data, 'base64'));
 };
 
 const buildFileEntry = (path: string): SerializedEntryWithPath => {
@@ -172,7 +173,8 @@ const buildFileEntry = (path: string): SerializedEntryWithPath => {
     ...(stats.isDirectory()
       ? { entries: {}, type: vscode.FileType.Directory }
       : {
-          data: fs.readFileSync(path).toString('utf-8'),
+          // Use base64 to preserve binary data (e.g., git objects)
+          data: fs.readFileSync(path).toString('base64'),
           type: vscode.FileType.File
         })
   };
