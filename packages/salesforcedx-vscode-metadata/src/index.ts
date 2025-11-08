@@ -7,6 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
+import { projectDeployStart } from './commands/projectDeployStart';
 import { EXTENSION_NAME } from './constants';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
 
@@ -18,14 +19,22 @@ export const deactivate = async (): Promise<void> =>
 
 /** Activate the metadata extension */
 export const activateEffect = (
-  _context: vscode.ExtensionContext
+  context: vscode.ExtensionContext
 ): Effect.Effect<void, Error, ExtensionProviderService> =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const svc = yield* api.services.ChannelService;
     yield* svc.appendToChannel('Salesforce Metadata extension activating');
 
-    // Extension-specific initialization will go here
+    // Register commands
+    context.subscriptions.push(
+      vscode.commands.registerCommand('sf.project.deploy.start', async (isDeployOnSave: boolean) =>
+        projectDeployStart(isDeployOnSave, false)
+      ),
+      vscode.commands.registerCommand('sf.project.deploy.start.ignore.conflicts', async (isDeployOnSave: boolean) =>
+        projectDeployStart(isDeployOnSave, true)
+      )
+    );
 
     yield* svc.appendToChannel('Salesforce Metadata activation complete.');
   }).pipe(Effect.withSpan(`activation:${EXTENSION_NAME}`), Effect.provide(AllServicesLayer));

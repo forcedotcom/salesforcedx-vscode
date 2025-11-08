@@ -45,6 +45,33 @@
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "jest --coverage"
   },
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json"
+  ],
   "main": "./dist/index.js",
-  "browser": "./dist/web/index.js"
+  "browser": "./dist/web/index.js",
+  "contributes": {
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sf.project.deploy.start",
+          "when": "sf:project_opened && sf:target_org_has_change_tracking && sf:has_target_org"
+        },
+        {
+          "command": "sf.project.deploy.start.ignore.conflicts",
+          "when": "sf:project_opened && sf:target_org_has_change_tracking && sf:has_target_org"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sf.project.deploy.start",
+        "title": "%project_deploy_start_default_org_text%"
+      },
+      {
+        "command": "sf.project.deploy.start.ignore.conflicts",
+        "title": "%project_deploy_start_ignore_conflicts_default_org_text%"
+      }
+    ]
+  }
 }

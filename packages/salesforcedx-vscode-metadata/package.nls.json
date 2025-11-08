@@ -1,0 +1,4 @@
+{
+  "project_deploy_start_default_org_text": "SFDX: Push Source to Default Org",
+  "project_deploy_start_ignore_conflicts_default_org_text": "SFDX: Push Source to Default Org and Ignore Conflicts"
+}

@@ -28,6 +28,7 @@ export const DefaultOrgInfoSchema = Schema.Struct({
 
 // A "global" ref that can be accessed anywhere in the program
 export const defaultOrgRef = Effect.runSync(SubscriptionRef.make<typeof DefaultOrgInfoSchema.Type>({}));
+
 const clearDefaultOrgRef = (): void =>
   Effect.runSync(
     Ref.update(defaultOrgRef, () => ({})).pipe(Effect.withSpan('cleared defaultOrgRef'), Effect.provide(SdkLayer))

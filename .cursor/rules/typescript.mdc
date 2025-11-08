@@ -1,0 +1,6 @@
+---
+globs: *.ts
+alwaysApply: false
+---
+
+do not create barrel files
