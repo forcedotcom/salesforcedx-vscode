@@ -186,35 +186,8 @@ async function extractMetadataFromPage(
   typeName: string
 ): Promise<Array<{ name: string; data: MetadataType }>> {
   try {
-    // Extract short description
-    const shortDescription = await contentFrame.evaluate(() => {
-      // Try meta description first
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) {
-        const content = metaDesc.getAttribute('content')?.trim() || '';
-        if (content && content.length > 20) {
-          return content;
-        }
-      }
-
-      // Try first meaningful paragraph
-      const allParagraphs = Array.from(document.querySelectorAll('p'));
-      for (const p of allParagraphs) {
-        const text = p.textContent?.trim() || '';
-        if (
-          text.length > 50 &&
-          !text.toLowerCase().includes('cookie') &&
-          !text.toLowerCase().includes('in this section') &&
-          !text.toLowerCase().includes('©')
-        ) {
-          return text;
-        }
-      }
-
-      return '';
-    });
-
     // Extract fields from ALL tables (each table is a separate metadata type)
+    // We'll extract descriptions per-table instead of one for the whole page
     const allTableFields = await contentFrame.evaluate(() => {
       const tablesData: Array<{
         fields: Array<{
@@ -223,7 +196,39 @@ async function extractMetadataFromPage(
           'Field Type': string;
         }>;
         tableName: string;
+        tableDescription: string;
+        pageTitle: string;
       }> = [];
+
+      // Get the page title (from h1, or from title element, or from first h2)
+      let pageTitle = '';
+
+      // Try h1 first
+      const h1 = document.querySelector('h1');
+      if (h1) {
+        pageTitle = h1.textContent?.trim() || '';
+      }
+
+      // If no h1 or h1 looks like it has navigation cruft, try first h2
+      if (!pageTitle || pageTitle.includes('|') || pageTitle.includes('Developers')) {
+        const h2 = document.querySelector('h2');
+        if (h2) {
+          const h2Text = h2.textContent?.trim() || '';
+          if (h2Text && h2Text.length < 100 && !h2Text.includes('|')) {
+            pageTitle = h2Text;
+          }
+        }
+      }
+
+      // Last resort: title element, but clean it up
+      if (!pageTitle) {
+        const titleElement = document.querySelector('title');
+        if (titleElement) {
+          const titleText = titleElement.textContent || '';
+          // Try to extract just the first part before any separator
+          pageTitle = titleText.split('|')[0].split('-')[0].trim();
+        }
+      }
 
       // Helper to collect all tables including those in shadow DOMs
       function getAllTablesIncludingShadowDOM(root: Document | ShadowRoot | Element): Element[] {
@@ -267,22 +272,131 @@ async function extractMetadataFromPage(
         const typeIdx = headers.findIndex(h => h.includes('type'));
         const descIdx = headers.findIndex(h => h.includes('description') || h.includes('detail'));
 
-        // Try to find a table name/caption
+        // Try to find a table name/caption and description
         let tableName = '';
+        let tableDescription = '';
         const caption = table.querySelector('caption');
         if (caption) {
           tableName = caption.textContent?.trim() || '';
         } else {
-          // Look for heading before the table
+          // Look for heading before the table - try multiple element types
           let prevElement = table.previousElementSibling;
           let attempts = 0;
-          while (prevElement && attempts < 3) {
-            if (prevElement.tagName.match(/^H[1-6]$/)) {
+          let foundHeading: Element | null = null;
+
+          while (prevElement && attempts < 10) {
+            const tagName = prevElement.tagName;
+
+            // Check for H1-H6 headings
+            if (tagName && tagName.match(/^H[1-6]$/)) {
               tableName = prevElement.textContent?.trim() || '';
+              foundHeading = prevElement;
               break;
             }
+
+            // Check for DT (definition term) which Salesforce docs sometimes use
+            if (tagName === 'DT') {
+              tableName = prevElement.textContent?.trim() || '';
+              foundHeading = prevElement;
+              break;
+            }
+
+            // Check for DIV or P with bold/strong text that looks like a heading
+            if (tagName === 'DIV' || tagName === 'P') {
+              const strong = prevElement.querySelector('strong, b');
+              if (strong) {
+                const text = strong.textContent?.trim() || '';
+                if (text.length > 2 && text.length < 100) {
+                  tableName = text;
+                  foundHeading = prevElement;
+                  break;
+                }
+              }
+            }
+
             prevElement = prevElement.previousElementSibling;
             attempts++;
+          }
+
+          // If no heading found as direct sibling, check parent's siblings
+          // (common in Salesforce docs where table is wrapped in a div)
+          if (!foundHeading && table.parentElement) {
+            let parentPrev = table.parentElement.previousElementSibling;
+            attempts = 0;
+
+            while (parentPrev && attempts < 10) {
+              const tagName = parentPrev.tagName;
+
+              // Check for H1-H6 headings
+              if (tagName && tagName.match(/^H[1-6]$/)) {
+                tableName = parentPrev.textContent?.trim() || '';
+                foundHeading = parentPrev;
+                break;
+              }
+
+              // Check for DT
+              if (tagName === 'DT') {
+                tableName = parentPrev.textContent?.trim() || '';
+                foundHeading = parentPrev;
+                break;
+              }
+
+              // Check for DIV or P with bold/strong text
+              if (tagName === 'DIV' || tagName === 'P') {
+                const strong = parentPrev.querySelector('strong, b');
+                if (strong) {
+                  const text = strong.textContent?.trim() || '';
+                  if (text.length > 2 && text.length < 100) {
+                    tableName = text;
+                    foundHeading = parentPrev;
+                    break;
+                  }
+                }
+              }
+
+              parentPrev = parentPrev.previousElementSibling;
+              attempts++;
+            }
+          }
+
+          // If we found a heading, look for a description paragraph right after it
+          if (foundHeading) {
+            let nextElement = foundHeading.nextElementSibling;
+            let searchAttempts = 0;
+
+            while (nextElement && searchAttempts < 10) {
+              // Stop if we reach the table itself
+              if (nextElement === table) {
+                break;
+              }
+
+              // Look for a paragraph with meaningful content
+              if (nextElement.tagName === 'P') {
+                const text = nextElement.textContent?.trim() || '';
+                // Make sure it's a substantial description
+                if (
+                  text.length > 20 &&
+                  !text.toLowerCase().includes('cookie') &&
+                  !text.toLowerCase().includes('in this section') &&
+                  !text.toLowerCase().includes('©')
+                ) {
+                  tableDescription = text;
+                  break;
+                }
+              }
+
+              // Also check for DD (definition description) after DT
+              if (nextElement.tagName === 'DD') {
+                const text = nextElement.textContent?.trim() || '';
+                if (text.length > 20) {
+                  tableDescription = text;
+                  break;
+                }
+              }
+
+              nextElement = nextElement.nextElementSibling;
+              searchAttempts++;
+            }
           }
         }
 
@@ -315,12 +429,33 @@ async function extractMetadataFromPage(
             if (cells.length >= 2) {
               const secondCell = cells[1];
 
-              // Try to find Field Type - look for first link or text after "Field Type" label
-              const typeLink = secondCell.querySelector('a[href*="meta_"]');
-              if (typeLink) {
-                fieldType = typeLink.textContent?.trim() || '';
-              } else {
-                // Look for text that looks like a type (capitalized words, array notation)
+              // Strategy 1: Look for <dt>Field Type</dt><dd>TYPE</dd> structure
+              const dtElements = Array.from(secondCell.querySelectorAll('dt'));
+              for (const dt of dtElements) {
+                const dtText = dt.textContent?.trim().toLowerCase() || '';
+                if (dtText.includes('field type') || dtText === 'type') {
+                  // Get the next dd sibling
+                  let nextSibling = dt.nextElementSibling;
+                  while (nextSibling && nextSibling.tagName !== 'DD' && nextSibling.tagName !== 'DT') {
+                    nextSibling = nextSibling.nextElementSibling;
+                  }
+                  if (nextSibling && nextSibling.tagName === 'DD') {
+                    fieldType = nextSibling.textContent?.trim() || '';
+                    break;
+                  }
+                }
+              }
+
+              // Strategy 2: Look for links to other metadata types
+              if (!fieldType) {
+                const typeLink = secondCell.querySelector('a[href*="meta_"]');
+                if (typeLink) {
+                  fieldType = typeLink.textContent?.trim() || '';
+                }
+              }
+
+              // Strategy 3: Look for text that looks like a type (capitalized words, array notation)
+              if (!fieldType) {
                 const allText = secondCell.textContent || '';
                 const typeMatch = allText.match(/Field Type\s*([A-Z][\w\[\]]+)/);
                 if (typeMatch) {
@@ -328,20 +463,40 @@ async function extractMetadataFromPage(
                 }
               }
 
-              // Try to find Description - look for text after "Description" label
-              const descElements = Array.from(secondCell.querySelectorAll('*'));
-              let foundDescLabel = false;
-              for (const elem of descElements) {
-                const text = elem.textContent?.trim() || '';
-                if (text.toLowerCase() === 'description') {
-                  foundDescLabel = true;
-                } else if (foundDescLabel && text && text.length > 10) {
-                  description = text;
-                  break;
+              // Try to find Description
+              // Strategy 1: Look for <dt>Description</dt><dd>DESC</dd> structure
+              const dtElementsForDesc = Array.from(secondCell.querySelectorAll('dt'));
+              for (const dt of dtElementsForDesc) {
+                const dtText = dt.textContent?.trim().toLowerCase() || '';
+                if (dtText.includes('description') || dtText === 'desc') {
+                  // Get the next dd sibling
+                  let nextSibling = dt.nextElementSibling;
+                  while (nextSibling && nextSibling.tagName !== 'DD' && nextSibling.tagName !== 'DT') {
+                    nextSibling = nextSibling.nextElementSibling;
+                  }
+                  if (nextSibling && nextSibling.tagName === 'DD') {
+                    description = nextSibling.textContent?.trim() || '';
+                    break;
+                  }
                 }
               }
 
-              // Fallback: if no structured description found, get all text after type
+              // Strategy 2: Look for text after "Description" label
+              if (!description) {
+                const descElements = Array.from(secondCell.querySelectorAll('*'));
+                let foundDescLabel = false;
+                for (const elem of descElements) {
+                  const text = elem.textContent?.trim() || '';
+                  if (text.toLowerCase() === 'description') {
+                    foundDescLabel = true;
+                  } else if (foundDescLabel && text && text.length > 10) {
+                    description = text;
+                    break;
+                  }
+                }
+              }
+
+              // Strategy 3: Fallback - get all text after type
               if (!description) {
                 const fullText = secondCell.textContent || '';
                 const lines = fullText
@@ -377,7 +532,9 @@ async function extractMetadataFromPage(
         if (tableFields.length > 0) {
           tablesData.push({
             fields: tableFields,
-            tableName: tableName
+            tableName: tableName,
+            tableDescription: tableDescription,
+            pageTitle: pageTitle
           });
         }
       }
@@ -392,32 +549,127 @@ async function extractMetadataFromPage(
       return [];
     }
 
-    // If only one table, use the original type name (or table name if it exists)
+    // Helper to extract type name from array notation (e.g., "AssignmentRule[]" -> "AssignmentRule")
+    const extractArrayTypeName = (fieldType: string): string | null => {
+      // Remove zero-width characters that might be in the type name
+      const cleanType = fieldType.replace(/[\u200B-\u200D\uFEFF]/g, '');
+      const match = cleanType.match(/^([A-Z][a-zA-Z0-9_]+)\[\]$/);
+      return match ? match[1] : null;
+    };
+
+    // Helper to extract complex type names (non-primitive types without [])
+    const extractComplexTypeName = (fieldType: string): string | null => {
+      // Skip enumeration types entirely - they don't represent table structures
+      if (fieldType.toLowerCase().includes('enumeration')) {
+        return null;
+      }
+
+      // Clean up the field type - remove enumeration info and extra spaces
+      let cleanType = fieldType.split('(')[0].trim();
+
+      // Remove any zero-width or special Unicode characters
+      cleanType = cleanType.replace(/[\u200B-\u200D\uFEFF]/g, '');
+
+      // Match types that start with capital letter and are not primitives
+      const primitives = ['string', 'boolean', 'int', 'double', 'date', 'datetime', 'long'];
+      if (primitives.includes(cleanType.toLowerCase())) {
+        return null;
+      }
+
+      // Match capitalized type names (but not array notation)
+      // Allow underscores and be more flexible with the pattern
+      const match = cleanType.match(/^([A-Z][a-zA-Z0-9_]+)$/);
+      return match ? match[1] : null;
+    };
+
+    // If only one table, use the table name from the heading (or page title, or fall back to typeName)
     if (allTableFields.length === 1) {
       const tableData = allTableFields[0];
-      const finalName = tableData.tableName || typeName;
+      const finalName = tableData.tableName || tableData.pageTitle || typeName;
 
       results.push({
         name: finalName,
         data: {
           fields: tableData.fields,
-          short_description: shortDescription,
+          short_description: tableData.tableDescription || '',
           url
         }
       });
     } else {
-      // Multiple tables - use actual table names (these are real metadata types)
+      // Multiple tables - use actual table names or infer from field types
       for (let i = 0; i < allTableFields.length; i++) {
         const tableData = allTableFields[i];
-        // Use the table name if found, otherwise fall back to parent name + number
-        const finalName = tableData.tableName || `${typeName} (Table ${i + 1})`;
+
+        let finalName: string;
+
+        // For the first table, ignore generic headings and use the page title/typeName
+        if (i === 0) {
+          // Generic headings that should be ignored for the first table
+          const genericHeadings = ['fields', 'field name', 'properties', 'attributes'];
+          const isGenericHeading = tableData.tableName && genericHeadings.includes(tableData.tableName.toLowerCase());
+
+          if (isGenericHeading || !tableData.tableName) {
+            // Use page title or fall back to typeName
+            finalName = tableData.pageTitle || typeName;
+          } else {
+            // Use the specific table name if it's not generic
+            finalName = tableData.tableName;
+          }
+        } else if (tableData.tableName) {
+          // For subsequent tables, use the found table name
+          finalName = tableData.tableName;
+        } else if (i > 0) {
+          // Try to infer name from types in previous tables (both arrays and complex types)
+          let inferredName: string | null = null;
+
+          // Collect candidate type names from previous tables
+          // Process tables in REVERSE order to prioritize more recent types
+          const arrayTypes: string[] = [];
+          const complexTypes: string[] = [];
+
+          for (let j = i - 1; j >= 0; j--) {
+            const prevTable = allTableFields[j];
+            for (const field of prevTable.fields) {
+              const fieldType = field['Field Type'];
+
+              // Collect array types (higher priority)
+              const arrayType = extractArrayTypeName(fieldType);
+              if (arrayType) {
+                arrayTypes.push(arrayType);
+              }
+
+              // Collect complex types (lower priority)
+              const complexType = extractComplexTypeName(fieldType);
+              if (complexType) {
+                complexTypes.push(complexType);
+              }
+            }
+          }
+
+          // Prioritize: arrays from recent tables, then complex types from recent tables
+          const candidateTypes = [...arrayTypes, ...complexTypes];
+
+          // Find the first unused candidate type
+          for (const candidate of candidateTypes) {
+            const alreadyUsed = results.some(r => r.name === candidate);
+            if (!alreadyUsed) {
+              inferredName = candidate;
+              break;
+            }
+          }
+
+          finalName = inferredName || `${typeName} (Table ${i + 1})`;
+        } else {
+          finalName = `${typeName} (Table ${i + 1})`;
+        }
 
         results.push({
           name: finalName,
           data: {
             fields: tableData.fields,
-            short_description: shortDescription,
-            url: url + `#${tableData.tableName || `table${i + 1}`}`
+            short_description: tableData.tableDescription || '',
+            url:
+              url + `#${tableData.tableName ? tableData.tableName.toLowerCase().replace(/\s+/g, '') : `table${i + 1}`}`
           }
         });
       }
@@ -773,10 +1025,30 @@ async function scrapeAll(outputFile?: string, isVisible: boolean = false): Promi
 
   // Allow testing with a subset
   const testMode = process.env.TEST_MODE === 'true';
+  const testAssignmentRulesOnly = process.env.TEST_ASSIGNMENT_RULES_ONLY === 'true';
   const testLimit = parseInt(process.env.TEST_LIMIT || '3');
-  const typesToScrape = testMode ? metadataTypes.slice(0, testLimit) : metadataTypes;
 
-  console.log(`📋 Will scrape ${typesToScrape.length} metadata types${testMode ? ' (TEST MODE)' : ''}\n`);
+  let typesToScrape = metadataTypes;
+
+  if (testAssignmentRulesOnly) {
+    // Filter for just AssignmentRules
+    typesToScrape = metadataTypes.filter(t => t.name === 'AssignmentRules');
+    if (typesToScrape.length === 0) {
+      console.log('⚠️  AssignmentRules not found, using fallback');
+      typesToScrape = [
+        {
+          name: 'AssignmentRules',
+          url: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_assignmentrules.htm'
+        }
+      ];
+    }
+  } else if (testMode) {
+    typesToScrape = metadataTypes.slice(0, testLimit);
+  }
+
+  console.log(
+    `📋 Will scrape ${typesToScrape.length} metadata types${testMode || testAssignmentRulesOnly ? ' (TEST MODE)' : ''}\n`
+  );
 
   try {
     for (let i = 0; i < typesToScrape.length; i++) {
