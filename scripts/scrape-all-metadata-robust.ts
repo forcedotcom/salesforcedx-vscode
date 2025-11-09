@@ -198,6 +198,7 @@ async function extractMetadataFromPage(
         tableName: string;
         tableDescription: string;
         pageTitle: string;
+        pageLevelDescription: string;
       }> = [];
 
       // Get the page title (from h1, or from title element, or from first h2)
@@ -227,6 +228,139 @@ async function extractMetadataFromPage(
           const titleText = titleElement.textContent || '';
           // Try to extract just the first part before any separator
           pageTitle = titleText.split('|')[0].split('-')[0].trim();
+        }
+      }
+
+      // Extract page-level description (for the first table)
+      // This is typically the first substantial paragraph after the main H1/H2 but before any tables
+      let pageLevelDescription = '';
+
+      // Helper to search including shadow DOMs
+      function findInShadowDOM(selector: string): Element | null {
+        // Try regular DOM first
+        let found = document.querySelector(selector);
+        if (found) return found;
+
+        // Search shadow DOMs
+        function searchShadow(root: Document | ShadowRoot | Element): Element | null {
+          const result = root.querySelector(selector);
+          if (result) return result;
+
+          const elements = root.querySelectorAll('*');
+          for (const el of Array.from(elements)) {
+            if (el.shadowRoot) {
+              const shadowResult = searchShadow(el.shadowRoot);
+              if (shadowResult) return shadowResult;
+            }
+          }
+          return null;
+        }
+
+        return searchShadow(document);
+      }
+
+      // Strategy 1: Look for Salesforce's standard shortdesc div (including in shadow DOM)
+      const shortdescDiv = findInShadowDOM('div.shortdesc');
+      if (shortdescDiv) {
+        const text = shortdescDiv.textContent?.trim() || '';
+        if (text.length > 20) {
+          pageLevelDescription = text;
+        }
+      }
+
+      // Strategy 2: Look for direct paragraph siblings after heading
+      const mainHeading = document.querySelector('h1') || document.querySelector('h2');
+      if (mainHeading && !pageLevelDescription) {
+        let current = mainHeading.nextElementSibling;
+        let attempts = 0;
+
+        while (current && attempts < 15 && !pageLevelDescription) {
+          // Stop if we hit a table
+          if (current.tagName === 'TABLE') {
+            break;
+          }
+
+          // Stop if we hit another major heading (H2 for a specific table)
+          if (current.tagName && current.tagName.match(/^H[2-6]$/)) {
+            const headingText = current.textContent?.trim().toLowerCase() || '';
+            if (headingText.includes('field') || headingText.length < 100) {
+              break;
+            }
+          }
+
+          // Check if this element or its children have the description
+          const checkElement = (el: Element) => {
+            const text = el.textContent?.trim() || '';
+            const textLower = text.toLowerCase();
+
+            const isSubstantial = text.length > 50;
+            const isNotNavigation =
+              !textLower.includes('cookie') &&
+              !textLower.includes('in this section') &&
+              !textLower.includes('©') &&
+              !textLower.includes('skip navigation') &&
+              !textLower.includes('related topics') &&
+              !textLower.includes('see also') &&
+              !textLower.startsWith('note:') &&
+              !textLower.startsWith('tip:') &&
+              !textLower.startsWith('important:');
+
+            return isSubstantial && isNotNavigation ? text : '';
+          };
+
+          // Try the element itself if it's P or DD
+          if (current.tagName === 'P' || current.tagName === 'DD') {
+            const desc = checkElement(current);
+            if (desc) {
+              pageLevelDescription = desc;
+              break;
+            }
+          }
+
+          // If it's a DIV, look for P or DD children
+          if (current.tagName === 'DIV') {
+            const paragraphs = current.querySelectorAll('p, dd');
+            for (const p of Array.from(paragraphs)) {
+              const desc = checkElement(p);
+              if (desc) {
+                pageLevelDescription = desc;
+                break;
+              }
+            }
+            if (pageLevelDescription) break;
+          }
+
+          current = current.nextElementSibling;
+          attempts++;
+        }
+      }
+
+      // Strategy 3: If still not found, do a broader search for the first P after the heading
+      if (!pageLevelDescription && mainHeading) {
+        const allParagraphs = Array.from(document.querySelectorAll('p, dd'));
+        for (const p of allParagraphs) {
+          // Only consider paragraphs that come after the heading in DOM order
+          if (mainHeading.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_FOLLOWING) {
+            const text = p.textContent?.trim() || '';
+            const textLower = text.toLowerCase();
+
+            const isSubstantial = text.length > 50;
+            const isNotNavigation =
+              !textLower.includes('cookie') &&
+              !textLower.includes('in this section') &&
+              !textLower.includes('©') &&
+              !textLower.includes('skip navigation') &&
+              !textLower.includes('related topics') &&
+              !textLower.includes('see also') &&
+              !textLower.startsWith('note:') &&
+              !textLower.startsWith('tip:') &&
+              !textLower.startsWith('important:');
+
+            if (isSubstantial && isNotNavigation) {
+              pageLevelDescription = text;
+              break;
+            }
+          }
         }
       }
 
@@ -547,7 +681,8 @@ async function extractMetadataFromPage(
             fields: tableFields,
             tableName: tableName,
             tableDescription: tableDescription,
-            pageTitle: pageTitle
+            pageTitle: pageTitle,
+            pageLevelDescription: pageLevelDescription
           });
         }
       }
@@ -600,15 +735,18 @@ async function extractMetadataFromPage(
       const tableData = allTableFields[0];
       const finalName = tableData.tableName || tableData.pageTitle || typeName;
 
+      // For the only/first table, use page-level description as fallback
+      const description = tableData.tableDescription || tableData.pageLevelDescription || '';
+
       results.push({
         name: finalName,
         data: {
           fields: tableData.fields,
-          short_description: tableData.tableDescription || '',
+          short_description: description,
           url: url.split('#')[0] // Strip hash fragment if present
         }
       });
-      console.log('Newest entry:', JSON.stringify(results[results.length - 1], null, 2));
+      console.log('Newest entry ONE TABLE:', JSON.stringify(results[results.length - 1], null, 2));
     } else {
       // Multiple tables - use actual table names or infer from field types
       for (let i = 0; i < allTableFields.length; i++) {
@@ -677,14 +815,22 @@ async function extractMetadataFromPage(
           finalName = `${typeName} (Table ${i + 1})`;
         }
 
+        // For the first table, use page-level description as fallback
+        // For subsequent tables, only use table-specific descriptions
+        const description =
+          i === 0
+            ? tableData.tableDescription || tableData.pageLevelDescription || ''
+            : tableData.tableDescription || '';
+
         results.push({
           name: finalName,
           data: {
             fields: tableData.fields,
-            short_description: tableData.tableDescription || '',
+            short_description: description,
             url: url.split('#')[0] // Strip hash fragment if present (all tables share the same base URL)
           }
         });
+        console.log('Newest entry MULTIPLE TABLES:', JSON.stringify(results[results.length - 1], null, 2));
       }
     }
 
