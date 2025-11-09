@@ -213,15 +213,28 @@ export class MetadataDocumentationService {
         if (!element['@_name']) continue;
 
         const fieldName = element['@_name'];
-        const fieldType = element['@_type'] ?? 'string';
+        let fieldType = element['@_type'] ?? 'string';
         const minOccurs = element['@_minOccurs'];
         const required = minOccurs !== '0';
 
         let description = '';
         const annotation = element['xsd:annotation'];
-        if (annotation?.['xsd:documentation']) {
-          const doc = annotation['xsd:documentation'];
-          description = typeof doc === 'string' ? doc : (doc['#text'] ?? '');
+        if (annotation) {
+          // Extract documentation
+          if (annotation['xsd:documentation']) {
+            const doc = annotation['xsd:documentation'];
+            description = typeof doc === 'string' ? doc : (doc['#text'] ?? '');
+          }
+
+          // Extract type from appinfo if available
+          if (annotation['xsd:appinfo']) {
+            const appinfo = annotation['xsd:appinfo'];
+            const appinfoText = typeof appinfo === 'string' ? appinfo : (appinfo['#text'] ?? '');
+            const typeMatch = appinfoText.match(/Type:\s*(.+)/);
+            if (typeMatch) {
+              fieldType = typeMatch[1].trim();
+            }
+          }
         }
 
         fields.push({
