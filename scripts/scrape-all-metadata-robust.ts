@@ -469,13 +469,26 @@ async function extractMetadataFromPage(
               for (const dt of dtElementsForDesc) {
                 const dtText = dt.textContent?.trim().toLowerCase() || '';
                 if (dtText.includes('description') || dtText === 'desc') {
-                  // Get the next dd sibling
-                  let nextSibling = dt.nextElementSibling;
-                  while (nextSibling && nextSibling.tagName !== 'DD' && nextSibling.tagName !== 'DT') {
-                    nextSibling = nextSibling.nextElementSibling;
+                  // Get ALL consecutive DD siblings until the next DT
+                  const descriptionParts: string[] = [];
+                  let current = dt.nextElementSibling;
+
+                  while (current) {
+                    if (current.tagName === 'DT') {
+                      // Stop at next DT
+                      break;
+                    }
+                    if (current.tagName === 'DD') {
+                      const ddText = current.textContent?.trim() || '';
+                      if (ddText) {
+                        descriptionParts.push(ddText);
+                      }
+                    }
+                    current = current.nextElementSibling;
                   }
-                  if (nextSibling && nextSibling.tagName === 'DD') {
-                    description = nextSibling.textContent?.trim() || '';
+
+                  if (descriptionParts.length > 0) {
+                    description = descriptionParts.join('\n\n');
                     break;
                   }
                 }
@@ -592,9 +605,10 @@ async function extractMetadataFromPage(
         data: {
           fields: tableData.fields,
           short_description: tableData.tableDescription || '',
-          url
+          url: url.split('#')[0] // Strip hash fragment if present
         }
       });
+      console.log('Newest entry:', JSON.stringify(results[results.length - 1], null, 2));
     } else {
       // Multiple tables - use actual table names or infer from field types
       for (let i = 0; i < allTableFields.length; i++) {
@@ -668,8 +682,7 @@ async function extractMetadataFromPage(
           data: {
             fields: tableData.fields,
             short_description: tableData.tableDescription || '',
-            url:
-              url + `#${tableData.tableName ? tableData.tableName.toLowerCase().replace(/\s+/g, '') : `table${i + 1}`}`
+            url: url.split('#')[0] // Strip hash fragment if present (all tables share the same base URL)
           }
         });
       }
@@ -715,25 +728,6 @@ async function scrapeMetadataType(
     }
 
     return [];
-  }
-
-  // Process each table result (names are already assigned by extractMetadataFromPage)
-  for (let i = 0; i < results.length; i++) {
-    const { name: tableName, data } = results[i];
-
-    // Show the actual metadata type name for each table
-    if (results.length > 1) {
-      console.log(`     📊 ${tableName}`);
-    }
-
-    console.log(`     ✅ Found ${data.fields.length} fields`);
-
-    // Print all field names for verification
-    if (data.fields.length > 0) {
-      data.fields.forEach((field, index) => {
-        console.log(`        ${index + 1}. ${field['Field Name']} (${field['Field Type']})`);
-      });
-    }
   }
 
   return results;
