@@ -177,6 +177,19 @@ async function loadPageRobustly(page: Page, url: string): Promise<{ success: boo
 }
 
 /**
+ * Clean up description text by normalizing whitespace
+ */
+function cleanDescription(text: string): string {
+  if (!text) return text;
+
+  // Replace \n followed by any number of spaces or tabs with a single space
+  return text
+    .replace(/\n[\s\t]+/g, ' ')
+    .replace(/\s+/g, ' ') // Also normalize multiple spaces to single space
+    .trim();
+}
+
+/**
  * Extract metadata from a loaded page (or iframe)
  * Returns an array because some pages have multiple tables representing different types
  */
@@ -738,11 +751,18 @@ async function extractMetadataFromPage(
       // For the only/first table, use page-level description as fallback
       const description = tableData.tableDescription || tableData.pageLevelDescription || '';
 
+      // Clean up all field descriptions and types
+      const cleanedFields = tableData.fields.map(field => ({
+        ...field,
+        Description: cleanDescription(field.Description),
+        'Field Type': cleanDescription(field['Field Type'])
+      }));
+
       results.push({
         name: finalName,
         data: {
-          fields: tableData.fields,
-          short_description: description,
+          fields: cleanedFields,
+          short_description: cleanDescription(description),
           url: url.split('#')[0] // Strip hash fragment if present
         }
       });
@@ -822,11 +842,18 @@ async function extractMetadataFromPage(
             ? tableData.tableDescription || tableData.pageLevelDescription || ''
             : tableData.tableDescription || '';
 
+        // Clean up all field descriptions and types
+        const cleanedFields = tableData.fields.map(field => ({
+          ...field,
+          Description: cleanDescription(field.Description),
+          'Field Type': cleanDescription(field['Field Type'])
+        }));
+
         results.push({
           name: finalName,
           data: {
-            fields: tableData.fields,
-            short_description: description,
+            fields: cleanedFields,
+            short_description: cleanDescription(description),
             url: url.split('#')[0] // Strip hash fragment if present (all tables share the same base URL)
           }
         });
