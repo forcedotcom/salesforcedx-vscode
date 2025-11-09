@@ -97,12 +97,12 @@ const exportSpan = (span: ReadableSpan): void => {
     ...telemetryTrace,
     spanKind: getSpanKindName(span.kind),
     telemetryTag,
-    startTime: String(span.startTime[0] * 1000 + span.startTime[1] / 1000000),
-    endTime: String(span.endTime[0] * 1000 + span.endTime[1] / 1000000)
+    startTime: String(span.startTime[0] * 1000 + span.startTime[1] / 1_000_000),
+    endTime: String(span.endTime[0] * 1000 + span.endTime[1] / 1_000_000)
   };
 
   const measurements = {
-    duration: span.duration ? span.duration[0] * 1000 + span.duration[1] / 1000000 : 0
+    duration: span.duration ? span.duration[0] * 1000 + span.duration[1] / 1_000_000 : 0
   };
 
   // eslint-disable-next-line functional/no-try-statements

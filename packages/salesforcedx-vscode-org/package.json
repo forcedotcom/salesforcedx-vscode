@@ -1,0 +1,204 @@
+{
+  "name": "salesforcedx-vscode-org",
+  "displayName": "Salesforce Org Management",
+  "description": "Provides org and authorization management commands for Salesforce Development",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "icon": "images/VSCodeOrg.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "65.3.1",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "dependencies": {
+    "@salesforce/core": "^8.19.1",
+    "@salesforce/salesforcedx-utils": "65.3.1",
+    "@salesforce/salesforcedx-utils-vscode": "65.3.1",
+    "@salesforce/templates": "^65.1.0",
+    "applicationinsights": "1.0.7",
+    "salesforcedx-vscode-core": "65.3.1",
+    "vscode-uri": "^3.0.8"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.5",
+    "esbuild": "0.25.10",
+    "jest": "^29.7.0",
+    "jest-junit": "14.0.1",
+    "ts-jest": "^29.4.1"
+  },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-core"
+  ],
+  "scripts": {
+    "bundle:extension": "node ./esbuild.config.mjs",
+    "vscode:prepublish": "npm prune --production",
+    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "compile": "tsc -p ./",
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "test": "jest --coverage"
+  },
+  "packaging": {
+    "assets": [
+      "LICENSE.txt",
+      "package.nls.ja.json",
+      "package.nls.json",
+      "README.md",
+      ".vscodeignore",
+      "OSSREADME.json",
+      "images",
+      "dist"
+    ],
+    "packageUpdates": {
+      "main": "dist/index.js",
+      "dependencies": {
+        "applicationinsights": "1.0.7"
+      },
+      "devDependencies": {}
+    }
+  },
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json"
+  ],
+  "enabledApiProposals": [],
+  "capabilities": {
+    "virtualWorkspaces": {
+      "supported": "limited",
+      "description": "Org management commands are available in desktop environments and in web environments only when Code Builder is enabled"
+    },
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Org management requires executing Salesforce CLI commands"
+    }
+  },
+  "main": "./out/src",
+  "contributes": {
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sf.org.login.web.dev.hub",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.org.login.access.token",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.org.login.web",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.org.logout.all",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.org.logout.default",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.org.create",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.org.open",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.org.display.default",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.org.display.username",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.org.delete.default",
+          "when": "sf:project_opened && sf:has_target_org"
+        },
+        {
+          "command": "sf.org.delete.username",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.org.list.clean",
+          "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.set.default.org",
+          "when": "sf:project_opened"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sf.org.login.web.dev.hub",
+        "title": "%org_login_web_authorize_dev_hub_text%"
+      },
+      {
+        "command": "sf.org.login.web",
+        "title": "%org_login_web_authorize_org_text%"
+      },
+      {
+        "command": "sf.org.login.access.token",
+        "title": "%org_login_access_token_text%"
+      },
+      {
+        "command": "sf.org.logout.all",
+        "title": "%org_logout_all_text%"
+      },
+      {
+        "command": "sf.org.logout.default",
+        "title": "%org_logout_default_text%"
+      },
+      {
+        "command": "sf.org.create",
+        "title": "%org_create_default_scratch_org_text%"
+      },
+      {
+        "command": "sf.org.open",
+        "title": "%org_open_default_scratch_org_text%"
+      },
+      {
+        "command": "sf.org.display.default",
+        "title": "%org_display_default_text%"
+      },
+      {
+        "command": "sf.org.display.username",
+        "title": "%org_display_username_text%"
+      },
+      {
+        "command": "sf.org.delete.default",
+        "title": "%org_delete_default_text%"
+      },
+      {
+        "command": "sf.org.delete.username",
+        "title": "%org_delete_username_text%"
+      },
+      {
+        "command": "sf.org.list.clean",
+        "title": "%org_list_clean_text%"
+      },
+      {
+        "command": "sf.set.default.org",
+        "title": "%config_set_org_text%"
+      }
+    ]
+  }
+}

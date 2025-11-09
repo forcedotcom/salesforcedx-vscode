@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { RequestService } from '@salesforce/salesforcedx-utils';
+import { RequestService } from '../requestService/requestService';
 import { ApexDebuggerEventType, StreamingClient, StreamingClientInfo } from './streamingClient';
 
 export class StreamingService {
   public static SYSTEM_EVENT_CHANNEL = '/systemTopic/ApexDebuggerSystemEvent';
   public static USER_EVENT_CHANNEL = '/systemTopic/ApexDebuggerEvent';
-  public static DEFAULT_TIMEOUT = 14400;
+  public static DEFAULT_TIMEOUT = 14_400;
   private static instance: StreamingService;
   private readonly apiVersion = '41.0';
   private systemEventClient!: StreamingClient;

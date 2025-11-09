@@ -7,7 +7,7 @@
 import { extractJson, isNullOrUndefined, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { OrgAuthInfo } from '../util';
+import { getTargetOrgOrAlias } from '../util';
 import { BrowserNode, ComponentUtils, CUSTOMOBJECTS_FULLNAME, MetadataObject, NodeType, TypeUtils } from './index';
 
 export class MetadataOutlineProvider implements vscode.TreeDataProvider<BrowserNode> {
@@ -121,7 +121,7 @@ export class MetadataOutlineProvider implements vscode.TreeDataProvider<BrowserN
 
   public async getTargetOrgOrAlias(): Promise<string | undefined> {
     if (workspaceUtils.hasRootWorkspace()) {
-      const username = await OrgAuthInfo.getTargetOrgOrAlias(false);
+      const username = await getTargetOrgOrAlias(false);
       return username;
     } else {
       throw new Error(nls.localize('cannot_determine_workspace'));

@@ -10,11 +10,6 @@ import {
   MetricError,
   MetricGeneral,
   MetricLaunch,
-  DEBUGGER_TYPE,
-  LAST_OPENED_LOG_FOLDER_KEY,
-  LAST_OPENED_LOG_KEY,
-  LIVESHARE_DEBUG_TYPE_REQUEST,
-  LIVESHARE_DEBUGGER_TYPE,
   SEND_METRIC_GENERAL_EVENT,
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT,
@@ -29,14 +24,21 @@ import { URI } from 'vscode-uri';
 import { getDialogStartingPath } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import {
-  CheckpointService,
   checkpointService,
   processBreakpointChangedForCheckpoints,
+  sfCreateCheckpoints,
   sfToggleCheckpoint
 } from './breakpoints/checkpointService';
 import { channelService } from './channels';
 import { launchFromLogFile } from './commands/launchFromLogFile';
 import { setupAndDebugTests } from './commands/quickLaunch';
+import {
+  DEBUGGER_TYPE,
+  LAST_OPENED_LOG_FOLDER_KEY,
+  LAST_OPENED_LOG_KEY,
+  LIVESHARE_DEBUG_TYPE_REQUEST,
+  LIVESHARE_DEBUGGER_TYPE
+} from './debuggerConstants';
 import { nls } from './messages';
 
 let extContext: vscode.ExtensionContext;
@@ -102,10 +104,7 @@ const registerCommands = async (): Promise<vscode.Disposable> => {
     }
   );
 
-  const sfCreateCheckpointsCmd = vscode.commands.registerCommand(
-    'sf.create.checkpoints',
-    CheckpointService.sfCreateCheckpoints
-  );
+  const sfCreateCheckpointsCmd = vscode.commands.registerCommand('sf.create.checkpoints', sfCreateCheckpoints);
   const sfToggleCheckpointCmd = vscode.commands.registerCommand('sf.toggle.checkpoint', sfToggleCheckpoint);
 
   return vscode.Disposable.from(
