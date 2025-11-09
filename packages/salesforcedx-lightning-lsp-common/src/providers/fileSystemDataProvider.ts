@@ -6,6 +6,7 @@
  */
 
 import { FileStat, DirectoryEntry, WorkspaceConfig } from '../types/fileSystemTypes';
+import { unixify } from '../utils';
 
 /**
  * Interface for file system operations
@@ -33,52 +34,64 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   private workspaceConfig: WorkspaceConfig | null = null;
 
   /**
+   * Normalize path to use forward slashes for cross-platform compatibility
+   */
+  private normalizePath(uri: string): string {
+    return unixify(uri);
+  }
+
+  /**
    * Update file content from client
    */
   public updateFileContent(uri: string, content: string): void {
-    this.fileContents.set(uri, content);
+    this.fileContents.set(this.normalizePath(uri), content);
   }
 
   /**
    * Get file content
    */
   public getFileContent(uri: string): string | undefined {
-    return this.fileContents.get(uri);
+    return this.fileContents.get(this.normalizePath(uri));
   }
 
   /**
    * Update directory listing from client
    */
   public updateDirectoryListing(uri: string, entries: DirectoryEntry[]): void {
-    this.directoryListings.set(uri, entries);
+    // Normalize URIs in directory entries as well
+    const normalizedEntries = entries.map(entry => ({
+      ...entry,
+      uri: this.normalizePath(entry.uri)
+    }));
+    this.directoryListings.set(this.normalizePath(uri), normalizedEntries);
   }
 
   /**
    * Get directory listing
    */
   public getDirectoryListing(uri: string): DirectoryEntry[] {
-    return this.directoryListings.get(uri) ?? [];
+    return this.directoryListings.get(this.normalizePath(uri)) ?? [];
   }
 
   /**
    * Update file stat from client
    */
   public updateFileStat(uri: string, stat: FileStat): void {
-    this.fileStats.set(uri, stat);
+    this.fileStats.set(this.normalizePath(uri), stat);
   }
 
   /**
    * Get file stat
    */
   public getFileStat(uri: string): FileStat | undefined {
-    return this.fileStats.get(uri);
+    return this.fileStats.get(this.normalizePath(uri));
   }
 
   /**
    * Check if file exists
    */
   public fileExists(uri: string): boolean {
-    const stat = this.fileStats.get(uri);
+    const stat = this.fileStats.get(this.normalizePath(uri));
     return stat?.exists ?? false;
   }
 
@@ -86,7 +99,7 @@ export class FileSystemDataProvider implements IFileSystemProvider {
    * Check if directory exists
    */
   public directoryExists(uri: string): boolean {
-    const stat = this.fileStats.get(uri);
+    const stat = this.fileStats.get(this.normalizePath(uri));
     return (stat?.exists && stat.type === 'directory') ?? false;
   }
 
@@ -112,6 +125,7 @@ export class FileSystemDataProvider implements IFileSystemProvider {
    * Get all directory URIs that have listings
    */
   public getAllDirectoryUris(): string[] {
+    // Keys are already normalized since we normalize on set
     return Array.from(this.directoryListings.keys());
   }
 
