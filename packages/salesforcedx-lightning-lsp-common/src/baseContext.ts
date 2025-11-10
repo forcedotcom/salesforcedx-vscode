@@ -530,28 +530,34 @@ export abstract class BaseWorkspaceContext {
       const resourceTypingsDir = utils.getSfdxResource('typings');
       this.fileSystemProvider.updateDirectoryListing(typingsDir, []);
       try {
-        this.fileSystemProvider.updateFileContent(
-          path.join(resourceTypingsDir, 'lds.d.ts'),
-          path.join(typingsDir, 'lds.d.ts')
-        );
+        const sourcePath = path.join(resourceTypingsDir, 'lds.d.ts');
+        const destPath = path.join(typingsDir, 'lds.d.ts');
+        const content = this.fileSystemProvider.getFileContent(sourcePath);
+        if (content) {
+          this.fileSystemProvider.updateFileContent(destPath, content);
+        }
       } catch {
         // ignore
       }
       try {
-        this.fileSystemProvider.updateFileContent(
-          path.join(resourceTypingsDir, 'messageservice.d.ts'),
-          path.join(typingsDir, 'messageservice.d.ts')
-        );
+        const sourcePath = path.join(resourceTypingsDir, 'messageservice.d.ts');
+        const destPath = path.join(typingsDir, 'messageservice.d.ts');
+        const content = this.fileSystemProvider.getFileContent(sourcePath);
+        if (content) {
+          this.fileSystemProvider.updateFileContent(destPath, content);
+        }
       } catch {
         // ignore
       }
       const dirs = this.fileSystemProvider.getDirectoryListing(path.join(resourceTypingsDir, 'copied'));
       for (const file of dirs) {
         try {
-          this.fileSystemProvider.updateFileContent(
-            path.join(resourceTypingsDir, 'copied', file.name),
-            path.join(typingsDir, file.name)
-          );
+          const sourcePath = path.join(resourceTypingsDir, 'copied', file.name);
+          const destPath = path.join(typingsDir, file.name);
+          const content = this.fileSystemProvider.getFileContent(sourcePath);
+          if (content) {
+            this.fileSystemProvider.updateFileContent(destPath, content);
+          }
         } catch {
           // ignore
         }

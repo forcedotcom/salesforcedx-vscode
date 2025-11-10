@@ -501,6 +501,9 @@ export const populateFileSystemProvider = (
   workspacePath: string,
   structure: Record<string, string>
 ): void => {
+  // Normalize workspace path for cross-platform compatibility
+  const normalizedWorkspacePath = unixify(workspacePath);
+
   // First, create all directories
   const allPaths = Object.keys(structure);
   const directories = new Set<string>();
@@ -524,17 +527,17 @@ export const populateFileSystemProvider = (
     workspaceRootEntries.push({
       name: item,
       type: item.includes('.') ? 'file' : 'directory',
-      uri: unixify(join(workspacePath, item))
+      uri: unixify(join(normalizedWorkspacePath, item))
     });
   });
 
   if (workspaceRootEntries.length > 0) {
-    fileSystemProvider.updateDirectoryListing(workspacePath, workspaceRootEntries);
+    fileSystemProvider.updateDirectoryListing(normalizedWorkspacePath, workspaceRootEntries);
   }
 
   // For CORE_PARTIAL detection, create parent workspace-user.xml file
   if (structure === CORE_PARTIAL_WORKSPACE_STRUCTURE) {
-    const parentDir = resolve(workspacePath, '..');
+    const parentDir = unixify(resolve(normalizedWorkspacePath, '..'));
     const parentWorkspaceUserFile = unixify(join(parentDir, 'workspace-user.xml'));
     fileSystemProvider.updateFileStat(parentWorkspaceUserFile, {
       type: 'file',
@@ -669,7 +672,7 @@ export const populateFileSystemProvider = (
   // Add Core typings files for Core workspaces
   // For CORE_PARTIAL, the typings should be in the parent directory (CORE_ALL_ROOT)
   if (structure === CORE_PARTIAL_WORKSPACE_STRUCTURE) {
-    const parentDir = resolve(workspacePath, '..');
+    const parentDir = unixify(resolve(normalizedWorkspacePath, '..'));
     const coreTypingsPath = unixify(join(parentDir, '.vscode', 'typings', 'lwc'));
     const coreEngineTypingsPath = unixify(join(coreTypingsPath, 'engine.d.ts'));
     const coreLdsTypingsPath = unixify(join(coreTypingsPath, 'lds.d.ts'));
@@ -709,7 +712,7 @@ export const populateFileSystemProvider = (
 
   // Create directory entries and stats
   directories.forEach(dirPath => {
-    const fullDirPath = unixify(join(workspacePath, dirPath));
+    const fullDirPath = unixify(join(normalizedWorkspacePath, dirPath));
 
     fileSystemProvider.updateFileStat(fullDirPath, {
       type: 'directory',
@@ -729,7 +732,7 @@ export const populateFileSystemProvider = (
       entries.push({
         name: childName,
         type: childName.includes('.') ? 'file' : 'directory',
-        uri: unixify(join(workspacePath, dirPath, childName))
+        uri: unixify(join(normalizedWorkspacePath, dirPath, childName))
       });
     });
 
@@ -740,7 +743,7 @@ export const populateFileSystemProvider = (
 
   // Then, create all files with content
   Object.entries(structure).forEach(([filePath, content]) => {
-    const fullFilePath = unixify(join(workspacePath, filePath));
+    const fullFilePath = unixify(join(normalizedWorkspacePath, filePath));
 
     fileSystemProvider.updateFileStat(fullFilePath, {
       type: 'file',
