@@ -143,9 +143,9 @@ export default class ComponentIndexer {
 
   public insertSfdxTsConfigPath(filePaths: string[]): void {
     const sfdxTsConfigPath = normalize(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
-    const uri = `file://${unixify(sfdxTsConfigPath)}`;
+    const normalizedPath = unixify(sfdxTsConfigPath);
 
-    const fileExists = this.fileSystemProvider.fileExists(uri);
+    const fileExists = this.fileSystemProvider.fileExists(normalizedPath);
 
     if (fileExists) {
       try {
@@ -177,13 +177,13 @@ export default class ComponentIndexer {
   // this can be removed.
   public async updateSfdxTsConfigPath(): Promise<void> {
     const sfdxTsConfigPath = normalize(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
-    const uri = `file://${unixify(sfdxTsConfigPath)}`;
+    const normalizedPath = unixify(sfdxTsConfigPath);
 
-    const fileExists = this.fileSystemProvider.fileExists(uri);
+    const fileExists = this.fileSystemProvider.fileExists(normalizedPath);
 
     if (fileExists) {
       try {
-        const content = this.fileSystemProvider.getFileContent(uri);
+        const content = this.fileSystemProvider.getFileContent(normalizedPath);
         if (content) {
           const sfdxTsConfig: SfdxTsConfig = JSON.parse(content);
           // The assumption here is that sfdxTsConfig will not be modified by the user as
@@ -192,7 +192,7 @@ export default class ComponentIndexer {
           sfdxTsConfig.compilerOptions.paths = await this.getTsConfigPathMapping();
 
           // Update the actual tsconfig file
-          this.fileSystemProvider.updateFileContent(uri, JSON.stringify(sfdxTsConfig, null, 2));
+          this.fileSystemProvider.updateFileContent(normalizedPath, JSON.stringify(sfdxTsConfig, null, 2));
         }
       } catch (err) {
         console.error(err);
