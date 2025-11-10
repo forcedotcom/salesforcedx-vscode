@@ -106,9 +106,6 @@ const escapeXml = (text: string): string => {
   escaped = escaped.replace(/"/g, '&quot;');
   escaped = escaped.replace(/'/g, '&apos;');
 
-  // Remove or replace problematic characters
-  escaped = escaped.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
-
   return escaped;
 };
 
