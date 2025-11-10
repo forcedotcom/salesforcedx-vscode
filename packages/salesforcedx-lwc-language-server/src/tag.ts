@@ -4,7 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ClassMember, AttributeInfo, IFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  ClassMember,
+  AttributeInfo,
+  IFileSystemProvider,
+  unixify
+} from '@salesforce/salesforcedx-lightning-lsp-common';
 import { camelCase, paramCase } from 'change-case';
 import * as glob from 'fast-glob';
 
@@ -75,7 +80,7 @@ export const createTag = async (attributes: TagAttrs, fileSystemProvider?: IFile
     updatedAt = new Date(attributes.updatedAt);
   } else if (file && fileSystemProvider) {
     try {
-      const stat = fileSystemProvider.getFileStat(`file://${file}`);
+      const stat = fileSystemProvider.getFileStat(`file://${unixify(file)}`);
       if (stat) {
         updatedAt = new Date(stat.mtime);
       } else {
@@ -162,6 +167,8 @@ export const getTagLocation = (tag: Tag): Location => Location.create(getTagUri(
 // Utility function to get all locations
 export const getAllLocations = (tag: Tag): Location[] => {
   const { dir, name } = path.parse(tag.file);
+  // Normalize dir for cross-platform compatibility (glob expects forward slashes)
+  const normalizedDir = unixify(dir);
 
   const convertFileToLocation = (file: string): Location => {
     const uri = URI.file(path.resolve(file)).toString();
@@ -170,7 +177,7 @@ export const getAllLocations = (tag: Tag): Location[] => {
     return Location.create(uri, range);
   };
 
-  const filteredFiles = glob.sync(`${dir}/${name}.+(html|css)`);
+  const filteredFiles = glob.sync(`${normalizedDir}/${name}.+(html|css)`);
   const locations = filteredFiles.map(convertFileToLocation);
   locations.unshift(getTagLocation(tag));
 
@@ -240,7 +247,7 @@ export const updateTagMetadata = async (
   tag._properties = null;
   if (fileSystemProvider) {
     try {
-      const stat = fileSystemProvider.getFileStat(`file://${tag.file}`);
+      const stat = fileSystemProvider.getFileStat(`file://${unixify(tag.file)}`);
       if (stat) {
         tag.updatedAt = new Date(stat.mtime);
       } else {
@@ -268,7 +275,7 @@ export const createTagFromFile = async (
   const fileName = filePath.base;
 
   try {
-    const content = fileSystemProvider.getFileContent(`${file}`);
+    const content = fileSystemProvider.getFileContent(unixify(file));
     if (!content) {
       return null;
     }

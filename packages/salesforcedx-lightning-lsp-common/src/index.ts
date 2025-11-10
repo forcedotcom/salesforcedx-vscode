@@ -17,7 +17,8 @@ export {
   writeJsonSync,
   extractJsonFromImport,
   SfdxTsConfig,
-  TsConfigPaths
+  TsConfigPaths,
+  unixify
 } from './utils';
 
 // Re-export from base-context

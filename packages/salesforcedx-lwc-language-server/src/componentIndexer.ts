@@ -11,7 +11,8 @@ import {
   writeJsonSync,
   SfdxTsConfig,
   TsConfigPaths,
-  IFileSystemProvider
+  IFileSystemProvider,
+  unixify
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { snakeCase, camelCase } from 'change-case';
 import { Entry, sync } from 'fast-glob';
@@ -115,7 +116,7 @@ export default class ComponentIndexer {
   private async loadTagsFromIndex(): Promise<void> {
     try {
       const indexPath: string = path.join(this.workspaceRoot, CUSTOM_COMPONENT_INDEX_FILE);
-      const uri = `file://${indexPath}`;
+      const uri = `file://${unixify(indexPath)}`;
 
       if (this.fileSystemProvider.fileExists(uri)) {
         const content = this.fileSystemProvider.getFileContent(uri);
@@ -142,7 +143,7 @@ export default class ComponentIndexer {
 
   public insertSfdxTsConfigPath(filePaths: string[]): void {
     const sfdxTsConfigPath = normalize(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
-    const uri = `file://${sfdxTsConfigPath}`;
+    const uri = `file://${unixify(sfdxTsConfigPath)}`;
 
     const fileExists = this.fileSystemProvider.fileExists(uri);
 
@@ -176,7 +177,7 @@ export default class ComponentIndexer {
   // this can be removed.
   public async updateSfdxTsConfigPath(): Promise<void> {
     const sfdxTsConfigPath = normalize(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
-    const uri = `${sfdxTsConfigPath}`;
+    const uri = `file://${unixify(sfdxTsConfigPath)}`;
 
     const fileExists = this.fileSystemProvider.fileExists(uri);
 

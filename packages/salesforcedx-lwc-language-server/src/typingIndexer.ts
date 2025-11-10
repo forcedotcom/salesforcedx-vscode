@@ -7,7 +7,8 @@
 import {
   detectWorkspaceHelper,
   WorkspaceType,
-  IFileSystemProvider
+  IFileSystemProvider,
+  unixify
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import { getWorkspaceRoot } from './baseIndexer';
@@ -77,7 +78,7 @@ const deleteStaleMetaTypings = async (indexer: TypingIndexerData): Promise<void>
   const filesToDelete: string[] = [];
 
   for (const filename of staleTypings) {
-    const uri = `${filename}`;
+    const uri = unixify(filename);
     if (indexer.fileSystemProvider.fileExists(uri)) {
       filesToDelete.push(uri);
     }
@@ -101,7 +102,7 @@ const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void>
   const typings: string[] = [];
 
   for (const filename of customLabelFiles) {
-    const uri = `${filename}`;
+    const uri = unixify(filename);
     if (indexer.fileSystemProvider.fileExists(uri)) {
       const content = indexer.fileSystemProvider.getFileContent(uri);
       if (content) {
@@ -115,8 +116,8 @@ const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void>
   const fileContent = typings.join('\n');
   if (fileContent.length > 0) {
     const customLabelTypingsPath = path.join(indexer.workspaceRoot, '.sfdx', 'typings', 'lwc', 'customlabels.d.ts');
-    indexer.fileSystemProvider.updateFileContent(customLabelTypingsPath, fileContent);
-    indexer.fileSystemProvider.updateFileStat(customLabelTypingsPath, {
+    indexer.fileSystemProvider.updateFileContent(unixify(customLabelTypingsPath), fileContent);
+    indexer.fileSystemProvider.updateFileStat(unixify(customLabelTypingsPath), {
       type: 'file',
       exists: true,
       ctime: Date.now(),
@@ -142,7 +143,7 @@ const getMetaFiles = (indexer: TypingIndexerData): string[] => {
 
   for (const metaFile of possibleMetaFiles) {
     const filePath = path.join(indexer.workspaceRoot, metaFile);
-    if (indexer.fileSystemProvider.fileExists(filePath)) {
+    if (indexer.fileSystemProvider.fileExists(unixify(filePath))) {
       metaFiles.push(path.resolve(filePath));
     }
   }
@@ -168,7 +169,7 @@ export const getMetaTypings = (indexer: TypingIndexerData): string[] => {
 
   for (const filename of possibleFiles) {
     const filePath = path.join(typingsBaseDir, filename);
-    if (indexer.fileSystemProvider.fileExists(filePath)) {
+    if (indexer.fileSystemProvider.fileExists(unixify(filePath))) {
       metaTypings.push(path.resolve(filePath));
     }
   }
@@ -183,7 +184,7 @@ const getCustomLabelFiles = (indexer: TypingIndexerData): string[] => {
     indexer.workspaceRoot,
     'force-app/main/default/labels/CustomLabels.labels-meta.xml'
   );
-  if (indexer.fileSystemProvider.fileExists(customLabelsPath)) {
+  if (indexer.fileSystemProvider.fileExists(unixify(customLabelsPath))) {
     return [customLabelsPath];
   }
   return [];
