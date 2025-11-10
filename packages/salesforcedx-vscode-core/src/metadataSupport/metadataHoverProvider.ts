@@ -378,7 +378,8 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
     if (fieldInfo) {
       const fieldDocumentation = this.documentationService.getFieldDocumentation(
         fieldInfo.metadataType,
-        fieldInfo.fieldName
+        fieldInfo.fieldName,
+        fieldInfo.intermediateLayers
       );
 
       if (fieldDocumentation) {

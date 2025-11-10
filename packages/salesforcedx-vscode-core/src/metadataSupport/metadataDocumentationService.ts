@@ -57,9 +57,37 @@ export class MetadataDocumentationService {
   /**
    * Get documentation for a specific field within a metadata type
    */
-  public getFieldDocumentation(metadataType: string, fieldName: string): MetadataFieldDocumentation | null {
-    // First, try to get field documentation from XSD-extracted metadata
-    const typeDoc = this.documentationMap.get(metadataType);
+  public getFieldDocumentation(
+    metadataType: string,
+    fieldName: string,
+    intermediateLayers: string[] = []
+  ): MetadataFieldDocumentation | null {
+    // Resolve the actual type by traversing intermediate layers
+    let currentType = metadataType;
+
+    for (const layerName of intermediateLayers) {
+      const layerTypeDoc = this.documentationMap.get(currentType);
+      if (!layerTypeDoc?.fields) {
+        break;
+      }
+
+      const layerField = layerTypeDoc.fields.find(f => f.name === layerName);
+      if (!layerField) {
+        break;
+      }
+
+      // Get the type of this layer field and strip array notation if present
+      let layerType = layerField.type;
+      if (layerType.endsWith('[]')) {
+        layerType = layerType.slice(0, -2);
+      }
+
+      // Update currentType to this resolved type for the next iteration
+      currentType = layerType;
+    }
+
+    // Now look up the field in the resolved type (not the original metadataType)
+    const typeDoc = this.documentationMap.get(currentType);
     if (typeDoc?.fields) {
       const field = typeDoc.fields.find(f => f.name === fieldName);
       if (field?.description.trim()) {
@@ -78,17 +106,17 @@ export class MetadataDocumentationService {
     if (typeDoc?.fields) {
       const field = typeDoc.fields.find(f => f.name === fieldName);
       if (field) {
-        const patternDoc = this.extractFieldFromXSDPatterns(metadataType, fieldName);
+        const patternDoc = this.extractFieldFromXSDPatterns(currentType, fieldName);
         return {
           ...field,
           description:
-            patternDoc?.description ?? field.description ?? `The ${fieldName} field for ${metadataType} metadata.`
+            patternDoc?.description ?? field.description ?? `The ${fieldName} field for ${currentType} metadata.`
         };
       }
     }
 
     // If no definition found, try to extract from XSD patterns
-    return this.extractFieldFromXSDPatterns(metadataType, fieldName);
+    return this.extractFieldFromXSDPatterns(currentType, fieldName);
   }
 
   /**
