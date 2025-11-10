@@ -6,26 +6,26 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-interface FieldInfo {
+type FieldInfo = {
   'Field Name': string;
   'Field Type': string;
   Description: string;
-}
+};
 
-interface MetadataType {
+type MetadataType = {
   fields: FieldInfo[];
   short_description: string;
   url: string;
-}
+};
 
-interface MetadataTypesMap {
+type MetadataTypesMap = {
   [typeName: string]: MetadataType;
-}
+};
 
 /**
  * Clean a name to be valid for XSD element names.
  */
-function cleanXsdName(name: string): string {
+const cleanXsdName = (name: string): string => {
   // Replace spaces and special characters with underscores
   let cleaned = name.replace(/[^\w]/g, '_');
 
@@ -41,12 +41,12 @@ function cleanXsdName(name: string): string {
   cleaned = cleaned.replace(/_+$/, '');
 
   return cleaned || 'unknown_field';
-}
+};
 
 /**
  * Map Salesforce field types to XSD types.
  */
-function mapFieldTypeToXsd(fieldType: string): string {
+const mapFieldTypeToXsd = (fieldType: string): string => {
   const lowerFieldType = fieldType.toLowerCase().trim();
 
   // Basic types
@@ -87,12 +87,12 @@ function mapFieldTypeToXsd(fieldType: string): string {
   } else {
     return 'xsd:anyType'; // Default to anyType for unknown types
   }
-}
+};
 
 /**
  * Escape XML special characters.
  */
-function escapeXml(text: string): string {
+const escapeXml = (text: string): string => {
   if (!text) {
     return '';
   }
@@ -110,12 +110,12 @@ function escapeXml(text: string): string {
   escaped = escaped.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
 
   return escaped;
-}
+};
 
 /**
- * Convert JSON metadata to XSD schema matching the elephant XSD format.
+ * Convert JSON metadata to XSD schema that fits the format for hover documentation.
  */
-function createXsdFromJson(jsonFilePath: string, outputFilePath: string): number {
+const createXsdFromJson = (jsonFilePath: string, outputFilePath: string): number => {
   // Load JSON data
   const jsonContent = fs.readFileSync(jsonFilePath, 'utf-8');
   const metadataTypes: MetadataTypesMap = JSON.parse(jsonContent);
@@ -251,12 +251,12 @@ function createXsdFromJson(jsonFilePath: string, outputFilePath: string): number
   fs.writeFileSync(outputFilePath, xsdLines.join('\n') + '\n', 'utf-8');
 
   return numTypes;
-}
+};
 
 /**
  * Main function to convert JSON to XSD.
  */
-function main(): void {
+const main = (): void => {
   const workspaceRoot = '/Users/daphne.yang/Development/salesforcedx-vscode-4';
   const jsonFile = path.join(workspaceRoot, 'packages/salesforcedx-vscode-core/metadata_types_map_scraped.json');
   const xsdFile = path.join(
@@ -284,7 +284,7 @@ function main(): void {
     console.error(`Error during conversion: ${error}`);
     throw error;
   }
-}
+};
 
 // Run the script
 if (require.main === module) {
