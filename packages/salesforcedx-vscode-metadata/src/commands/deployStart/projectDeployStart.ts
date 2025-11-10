@@ -23,8 +23,13 @@ export const projectDeployStart = async (_isDeployOnSave: boolean, _ignoreConfli
       const componentSet = yield* deployService.getComponentSetForDeploy;
 
       if (componentSet.size === 0) {
-        yield* channelService.appendToChannel('No local changes to deploy');
-        void vscode.window.showInformationMessage('No local changes to deploy');
+        yield* Effect.all(
+          [
+            channelService.appendToChannel('No local changes to deploy'),
+            Effect.promise(() => vscode.window.showInformationMessage('No local changes to deploy'))
+          ],
+          { concurrency: 'unbounded' }
+        );
         return;
       }
 

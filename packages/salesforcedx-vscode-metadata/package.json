@@ -35,6 +35,7 @@
   ],
   "scripts": {
     "bundle:extension": "npm run compile && node ./esbuild.config.mjs",
+    "run:web": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-org-browser --open-devtools --port 3001",
     "vscode:package": "npm run bundle:extension && vsce package",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -46,7 +47,8 @@
     "test": "jest --coverage"
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json"
+    "workspaceContains:sfdx-project.json",
+    "onFileSystem:memfs"
   ],
   "main": "./dist/index.js",
   "browser": "./dist/web/index.js",
@@ -54,12 +56,10 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sf.project.deploy.start",
-          "when": "sf:project_opened && sf:target_org_has_change_tracking && sf:has_target_org"
+          "command": "sf.project.deploy.start"
         },
         {
-          "command": "sf.project.deploy.start.ignore.conflicts",
-          "when": "sf:project_opened && sf:target_org_has_change_tracking && sf:has_target_org"
+          "command": "sf.project.deploy.start.ignore.conflicts"
         }
       ]
     },

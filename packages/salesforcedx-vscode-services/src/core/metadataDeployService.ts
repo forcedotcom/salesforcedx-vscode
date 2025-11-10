@@ -23,16 +23,19 @@ import { SourceTrackingService } from './sourceTrackingService';
 
 /** Get ComponentSet of local changes for deploy */
 const getComponentSetForDeploy = Effect.gen(function* () {
-  const tracking = yield* Effect.flatMap(SourceTrackingService, svc => svc.getSourceTracking);
-
+  const tracking = yield* Effect.flatMap(SourceTrackingService, svc => svc.getSourceTracking());
   if (!tracking) {
-    return new ComponentSet();
+    return yield* Effect.die(
+      'Source tracking not enabled.  The command should not have appeared in the Command Palette.'
+    );
   }
+  yield* Effect.promise(() => tracking.reReadLocalTrackingCache()).pipe(
+    Effect.withSpan('STL.ReReadLocalTrackingCache')
+  );
 
-  const localComponentSets = yield* Effect.tryPromise({
-    try: () => tracking.localChangesAsComponentSet(false),
-    catch: e => new Error('Failed to get local changes as ComponentSet', { cause: e })
-  });
+  const localComponentSets = yield* Effect.tryPromise(() => tracking.localChangesAsComponentSet(false)).pipe(
+    Effect.withSpan('STL.LocalChangesAsComponentSet')
+  );
 
   return localComponentSets[0] ?? new ComponentSet();
 }).pipe(Effect.withSpan('getComponentSetForDeploy'));
@@ -56,7 +59,8 @@ const deploy = (
       [
         Effect.flatMap(ConnectionService, service => service.getConnection),
         Effect.flatMap(ProjectService, service => service.getSfProject),
-        Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo)
+        Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo),
+        Effect.annotateCurrentSpan({ components: components.size })
       ],
       { concurrency: 'unbounded' }
     );
