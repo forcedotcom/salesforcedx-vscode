@@ -129,9 +129,9 @@ const verifyJsconfigCore = async (fileSystemProvider: FileSystemDataProvider, js
 };
 
 const verifyTypingsCore = async (fileSystemProvider: FileSystemDataProvider): Promise<void> => {
-  const typingsPath = `${CORE_ALL_ROOT}/.vscode/typings/lwc`;
-  expect(fileSystemProvider.fileExists(`${typingsPath}/engine.d.ts`)).toBe(true);
-  expect(fileSystemProvider.fileExists(`${typingsPath}/lds.d.ts`)).toBe(true);
+  const typingsPath = path.join(CORE_ALL_ROOT, '.vscode', 'typings', 'lwc');
+  expect(fileSystemProvider.fileExists(path.join(typingsPath, 'engine.d.ts'))).toBe(true);
+  expect(fileSystemProvider.fileExists(path.join(typingsPath, 'lds.d.ts'))).toBe(true);
   try {
     fileSystemProvider.updateFileStat(typingsPath, {
       type: 'directory',
@@ -369,9 +369,9 @@ function verifyCodeWorkspace(path: string) {
   it('configureCoreProject()', async () => {
     const context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemProvider);
     await context.initialize();
-    const jsconfigPath = `${CORE_PROJECT_ROOT}/modules/jsconfig.json`;
-    const typingsPath = `${CORE_ALL_ROOT}/.vscode/typings/lwc`;
-    const settingsPath = `${CORE_PROJECT_ROOT}/.vscode/settings.json`;
+    const jsconfigPath = path.join(CORE_PROJECT_ROOT, 'modules', 'jsconfig.json');
+    const typingsPath = path.join(CORE_ALL_ROOT, '.vscode', 'typings', 'lwc');
+    const settingsPath = path.join(CORE_PROJECT_ROOT, '.vscode', 'settings.json');
 
     // make sure no generated files are there from previous runs
     try {
@@ -450,8 +450,8 @@ function verifyCodeWorkspace(path: string) {
   it('configureCoreAll()', async () => {
     const context = new WorkspaceContext(CORE_ALL_ROOT, coreFileSystemProvider);
     await context.initialize();
-    const jsconfigPathGlobal = `${CORE_ALL_ROOT}/ui-global-components/modules/jsconfig.json`;
-    const jsconfigPathForce = `${CORE_ALL_ROOT}/ui-force-components/modules/jsconfig.json`;
+    const jsconfigPathGlobal = path.join(CORE_ALL_ROOT, 'ui-global-components', 'modules', 'jsconfig.json');
+    const jsconfigPathForce = path.join(CORE_ALL_ROOT, 'ui-force-components', 'modules', 'jsconfig.json');
 
     // configure and verify typings/jsconfig after configuration:
     await context.configureProject();

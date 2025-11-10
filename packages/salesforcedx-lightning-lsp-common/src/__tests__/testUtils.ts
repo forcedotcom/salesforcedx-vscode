@@ -135,7 +135,8 @@ const languageId = (path: string): string => {
 };
 
 export const readAsTextDocument = (path: string, fileSystemProvider: FileSystemDataProvider): TextDocument => {
-  const uri = join(path);
+  // Normalize path for cross-platform compatibility
+  const uri = unixify(path);
   const content = fileSystemProvider.getFileContent(uri) ?? '';
   return TextDocument.create(uri, languageId(path), 0, content);
 };
