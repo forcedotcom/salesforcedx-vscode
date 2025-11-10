@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.common.json",
+  "compilerOptions": {
+    "outDir": "./out",
+    "esModuleInterop": true, // is needed because the code uses a default import from a CommonJS comment-parser module
+    "strictNullChecks": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.json", "src/resources/**/*.json", "typings/*.d.ts", "jest/*.ts"],
+  "exclude": ["node_modules", "**/__tests__/fixtures/*.js"],
+  "references": [
+    {
+      "path": "../salesforcedx-lightning-lsp-common"
+    }
+  ]
+}

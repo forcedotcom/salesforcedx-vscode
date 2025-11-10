@@ -5,14 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { code2ProtocolConverter, TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  detectWorkspaceType,
+  DirectoryEntry,
+  FileSystemDataProvider,
+  isLWC
+} from '@salesforce/salesforcedx-lightning-lsp-common';
+import { TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { log } from 'node:console';
 import * as path from 'node:path';
-import { ExtensionContext, ProgressLocation, Uri, window, workspace } from 'vscode';
+import { ExtensionContext, Uri, workspace, FileType } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
 import { nls } from './messages';
-
-const protocol2CodeConverter = (value: string): Uri => Uri.parse(value);
 
 const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
@@ -21,7 +25,6 @@ const getActivationMode = (): string => {
 
 export const activate = async (extensionContext: ExtensionContext) => {
   const extensionStartTime = TimingUtils.getCurrentTime();
-  console.log(`Activation Mode: ${getActivationMode()}`);
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
@@ -41,28 +44,22 @@ export const activate = async (extensionContext: ExtensionContext) => {
     workspaceUris.push(folder.uri.fsPath);
   });
 
+  // Create a FileSystemDataProvider with workspace files for the language server
+  const serverFileSystemProvider = await createFileSystemProvider(workspaceUris);
+
   // 3) If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = lspCommon.detectWorkspaceType(workspaceUris);
+  const workspaceType = await detectWorkspaceType(workspaceUris, serverFileSystemProvider);
 
   // Check if we have a valid project structure
-  if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
+  if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
-    console.log('Aura LSP - autodetect did not find a valid project structure, exiting....');
-    console.log(`WorkspaceType detected: ${workspaceType}`);
     return;
   }
-  // If activationMode === always, ignore workspace type and continue activating
-
-  // 4) If we get here, we either passed autodetect validation or activationMode == always
-  console.log('Aura Components Extension Activated');
-  console.log(`WorkspaceType detected: ${workspaceType}`);
 
   // Initialize telemetry service
   await TelemetryService.getInstance().initializeService(extensionContext);
 
   // Start the Aura Language Server
-
-  // Setup the language server
   const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
 
@@ -73,7 +70,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // If the extension is launched in debug mode then the debug server options are used
   // Otherwise the run options are used
-
   const serverOptions: ServerOptions = {
     run: { module: serverModule, transport: TransportKind.ipc },
     debug: {
@@ -85,7 +81,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // Setup our fileSystemWatchers
   const clientOptions: LanguageClientOptions = {
-    outputChannelName: nls.localize('channel_name'),
     documentSelector: [
       {
         language: 'html',
@@ -98,6 +93,9 @@ export const activate = async (extensionContext: ExtensionContext) => {
       { language: 'javascript', scheme: 'file' },
       { language: 'javascript', scheme: 'untitled' }
     ],
+    initializationOptions: {
+      fileSystemProvider: serverFileSystemProvider.serialize()
+    },
     synchronize: {
       fileEvents: [
         workspace.createFileSystemWatcher('**/*.resource'),
@@ -113,19 +111,12 @@ export const activate = async (extensionContext: ExtensionContext) => {
         workspace.createFileSystemWatcher('**/lwc/*/*.js'),
         workspace.createFileSystemWatcher('**/modules/*/*/*.js')
       ]
-    },
-    uriConverters: {
-      code2Protocol: code2ProtocolConverter,
-      protocol2Code: protocol2CodeConverter
     }
   };
 
   // Create the language client and start the client.
   const client = new LanguageClient('auraLanguageServer', nls.localize('client_name'), serverOptions, clientOptions);
 
-  // Set up notifications
-  client.onNotification('salesforce/indexingStarted', startIndexing);
-  client.onNotification('salesforce/indexingEnded', endIndexing);
   // Start the language server
   await client.start();
 
@@ -137,30 +128,260 @@ export const activate = async (extensionContext: ExtensionContext) => {
   TelemetryService.getInstance().sendExtensionActivationEvent(extensionStartTime);
 };
 
-let indexingResolve: any;
-
-const startIndexing = (): void => {
-  const indexingPromise: Promise<void> = new Promise(resolve => {
-    indexingResolve = resolve;
-  });
-  void reportIndexing(indexingPromise);
-};
-
-const endIndexing = (): void => {
-  indexingResolve(undefined);
-};
-const reportIndexing = async (indexingPromise: Promise<void>) => {
-  void window.withProgress(
-    {
-      location: ProgressLocation.Window,
-      title: nls.localize('index_components_text'),
-      cancellable: true
-    },
-    () => indexingPromise
-  );
-};
-
 export const deactivate = () => {
   console.log('Aura Components Extension Deactivated');
   TelemetryService.getInstance().sendExtensionDeactivationEvent();
+};
+
+/**
+ * Creates a FileSystemDataProvider that reads all workspace files and directories
+ * @param workspaceUris Array of workspace folder paths
+ * @returns FileSystemDataProvider with workspace files and directories
+ */
+const createFileSystemProvider = async (workspaceUris: string[]): Promise<FileSystemDataProvider> => {
+  const fileSystemProvider = new FileSystemDataProvider();
+
+  for (const workspaceUri of workspaceUris) {
+    await populateWorkspaceRecursively(fileSystemProvider, workspaceUri);
+  }
+
+  // Add resources directory from the bundled extension
+  await populateResourcesDirectory(fileSystemProvider);
+
+  return fileSystemProvider;
+};
+
+/**
+ * Recursively populates all files and directories in the workspace
+ * @param provider FileSystemDataProvider to populate
+ * @param dirPath Path to the directory to populate
+ */
+const populateWorkspaceRecursively = async (provider: FileSystemDataProvider, dirPath: string): Promise<void> => {
+  try {
+    const dirUri = Uri.parse(dirPath);
+    const entries = await workspace.fs.readDirectory(dirUri);
+
+    // Update directory listing
+    const directoryEntries = entries.map(
+      ([name, type]: [string, number]): DirectoryEntry => ({
+        name,
+        type: type === 1 ? 'file' : 'directory', // FileType.File = 1, FileType.Directory = 2
+        uri: path.join(dirPath, name)
+      })
+    );
+    provider.updateDirectoryListing(dirPath, directoryEntries);
+
+    // Update directory stat
+    provider.updateFileStat(dirPath, {
+      type: 'directory',
+      exists: true,
+      ctime: Date.now(),
+      mtime: Date.now(),
+      size: 0 // Directories don't have a meaningful size
+    });
+
+    // Process each entry
+    for (const [name, type] of entries) {
+      const entryPath = path.join(dirPath, name);
+
+      if (type === FileType.File) {
+        await tryReadFile(provider, entryPath);
+      } else if (type === FileType.Directory) {
+        // Skip common directories that don't need to be populated
+        if (shouldSkipDirectory(name)) {
+          continue;
+        }
+        await populateWorkspaceRecursively(provider, entryPath);
+      }
+    }
+  } catch (error: any) {
+    // Directory doesn't exist or can't be read
+    if (!(error instanceof Error) || !error.message.includes('ENOENT')) {
+      log(`Unexpected error reading directory ${dirPath}: ${String(error)}`);
+      throw error;
+    }
+  }
+};
+
+/**
+ * Determines if a directory should be skipped during workspace population
+ * @param dirName Name of the directory
+ * @returns true if directory should be skipped
+ */
+const shouldSkipDirectory = (dirName: string): boolean => {
+  const skipDirs = [
+    'node_modules',
+    '.git',
+    '.vscode',
+    '.sfdx',
+    'coverage',
+    'dist',
+    'out',
+    'lib',
+    '.nyc_output',
+    'temp',
+    'tmp',
+    '.DS_Store'
+  ];
+  return skipDirs.includes(dirName) || dirName.startsWith('.');
+};
+
+/**
+ * Populates the resources directory from the bundled extension
+ * @param provider FileSystemDataProvider to populate
+ */
+const populateResourcesDirectory = async (provider: FileSystemDataProvider): Promise<void> => {
+  try {
+    // We know exactly where the resources are - they're bundled in the extension
+    // The resources are copied to dist/resources/aura during the build process
+    // During development, they're in src/resources/aura
+    const extensionPath = path.join(__dirname, '..', '..');
+    const distResourcesDir = path.join(extensionPath, 'dist', 'resources', 'aura');
+    const srcResourcesDir = path.join(extensionPath, 'src', 'resources', 'aura');
+
+    // Try dist first (production), then src (development)
+    let auraResourcesDir: string | undefined;
+
+    // Check dist directory using VSCode's fs API
+    try {
+      const distUri = Uri.file(distResourcesDir);
+      const distStat = await workspace.fs.stat(distUri);
+      if (distStat.type === FileType.Directory) {
+        auraResourcesDir = distResourcesDir;
+      }
+    } catch {
+      // dist directory doesn't exist, try src
+    }
+
+    // Check src directory if dist wasn't found
+    if (!auraResourcesDir) {
+      try {
+        const srcUri = Uri.file(srcResourcesDir);
+        const srcStat = await workspace.fs.stat(srcUri);
+        if (srcStat.type === FileType.Directory) {
+          auraResourcesDir = srcResourcesDir;
+        }
+      } catch {
+        // src directory doesn't exist either
+      }
+    }
+
+    if (!auraResourcesDir) {
+      log('Warning: resources/aura directory not found in dist or src');
+      return;
+    }
+
+    const resourcesDir = path.dirname(auraResourcesDir);
+    const auraDirName = path.basename(auraResourcesDir);
+
+    // Recursively populate all files and directories in resources/aura
+    await populateResourcesRecursively(provider, auraResourcesDir, resourcesDir);
+
+    // Add directory listings for parent directories
+    provider.updateDirectoryListing(resourcesDir, [{ name: auraDirName, type: 'directory', uri: auraResourcesDir }]);
+
+    // Add file stats for directories
+    provider.updateFileStat(resourcesDir, {
+      type: 'directory',
+      exists: true,
+      ctime: Date.now(),
+      mtime: Date.now(),
+      size: 0
+    });
+  } catch (error) {
+    log(`Error populating resources directory: ${String(error)}`);
+    throw error;
+  }
+};
+
+/**
+ * Recursively populates all files and directories in the resources/aura directory
+ * @param provider FileSystemDataProvider to populate
+ * @param dirPath Path to the directory to populate
+ * @param basePath Base path for relative URI resolution
+ */
+const populateResourcesRecursively = async (
+  provider: FileSystemDataProvider,
+  dirPath: string,
+  basePath: string
+): Promise<void> => {
+  try {
+    const dirUri = Uri.file(dirPath);
+
+    // Check if directory exists using VSCode's fs API
+    try {
+      const dirStat = await workspace.fs.stat(dirUri);
+      if (dirStat.type !== FileType.Directory) {
+        return;
+      }
+    } catch {
+      // Directory doesn't exist
+      return;
+    }
+
+    const entries = await workspace.fs.readDirectory(dirUri);
+
+    // Update directory listing
+    const directoryEntries = entries.map(
+      ([name, type]: [string, number]): DirectoryEntry => ({
+        name,
+        type: type === 1 ? 'file' : 'directory',
+        uri: path.join(dirPath, name)
+      })
+    );
+    provider.updateDirectoryListing(dirPath, directoryEntries);
+
+    // Update directory stat
+    provider.updateFileStat(dirPath, {
+      type: 'directory',
+      exists: true,
+      ctime: Date.now(),
+      mtime: Date.now(),
+      size: 0
+    });
+
+    // Process each entry
+    for (const [name, type] of entries) {
+      const entryPath = path.join(dirPath, name);
+
+      if (type === FileType.File) {
+        await tryReadFile(provider, entryPath);
+      } else if (type === FileType.Directory) {
+        await populateResourcesRecursively(provider, entryPath, basePath);
+      }
+    }
+  } catch (error: any) {
+    // Directory doesn't exist or can't be read
+    if (!(error instanceof Error) || !error.message.includes('ENOENT')) {
+      log(`Unexpected error reading resources directory ${dirPath}: ${String(error)}`);
+    }
+  }
+};
+
+/**
+ * Attempts to read a file and add it to the provider if it exists
+ * @param provider FileSystemDataProvider to update
+ * @param filePath Path to the file to read
+ */
+const tryReadFile = async (provider: FileSystemDataProvider, filePath: string): Promise<void> => {
+  try {
+    const fileUri = Uri.parse(filePath);
+    const fileContent = await workspace.fs.readFile(fileUri);
+    const content = Buffer.from(fileContent).toString('utf8');
+
+    provider.updateFileContent(filePath, content);
+    provider.updateFileStat(filePath, {
+      type: 'file',
+      exists: true,
+      ctime: Date.now(),
+      mtime: Date.now(),
+      size: content.length
+    });
+  } catch (error: any) {
+    // File doesn't exist or can't be read - this is expected for most files
+    // Only log if it's an unexpected error
+    if (!(error instanceof Error) || !error.message.includes('ENOENT')) {
+      log(`Unexpected error reading file ${filePath}: ${String(error)}`);
+    }
+  }
 };

@@ -1,0 +1,21 @@
+<template>
+    <h1 title={state.titleHover}>{state.title}</h1>
+
+    <p if:true={state.pIfTrue}>paragraph controlled by if:true</p>
+
+    <ol>
+        <template for:each={state.todos} for:item="todo">
+            <li>{todo.text}</li>
+        </template>
+    </ol>
+
+    <span>message: {state.message}</span>
+    <button onclick={reverseMessage}>Reverse</button>
+
+    <example-line text='line 1' hover='hover 1'></example-line>
+    <example-line text='line 2' hover='hover 2'></example-line>
+    <example-line text={computedMessage}></example-line>
+
+    <!-- TODO: css-ls shows bogus errors in next line -->
+    <example-line text='green line' style={lineStyle}></example-line>
+</template>

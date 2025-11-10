@@ -1,0 +1,47 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`tern completion tern completions 1`] = `
+{
+  "isIncomplete": true,
+  "items": [],
+}
+`;
+
+exports[`tern completion tern definition, same file 1`] = `undefined`;
+
+exports[`tern completion tern hover 1`] = `
+{
+  "contents": [],
+}
+`;
+
+exports[`tern completion tern references 1`] = `
+[
+  {
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 2,
+      },
+      "start": {
+        "character": 15,
+        "line": 2,
+      },
+    },
+    "uri": "file:///Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/sfdx-workspace/force-app/main/default/aura/lightningExamplesApp/lightningExamplesAppController.js",
+  },
+  {
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 1,
+      },
+      "start": {
+        "character": 4,
+        "line": 1,
+      },
+    },
+    "uri": "file:///Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/sfdx-workspace/force-app/main/default/aura/lightningExamplesApp/lightningExamplesAppHelper.js",
+  },
+]
+`;

@@ -1,0 +1,23 @@
+{
+  "name": "lwc-example",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "postinstall": "rm -f static/js/engine.js; mkdir -p static/js; cp node_modules/@lwc/engine-dom/dist/umd/es2017/engine.js static/js/engine.js",
+    "lint": "eslint *.js src/",
+    "build": "cross-env NODE_ENV=development rollup -c",
+    "start": "concurrently \"npm run build -- --watch\" \"node server.js\""
+  },
+  "devDependencies": {
+    "concurrently": "^3.5.0",
+    "cross-env": "^5.1.0",
+    "eslint": "^4.9.0",
+    "eslint-plugin-lwc": "^0.2.0",
+    "express": "^4.16.2",
+    "@lwc/compiler": "8.16.0",
+    "@lwc/engine-dom": "8.16.0",
+    "rollup": "^0.50.0",
+    "@lwc/rollup-plugin": "8.16.0",
+    "rollup-watch": "^4.3.1"
+  }
+}

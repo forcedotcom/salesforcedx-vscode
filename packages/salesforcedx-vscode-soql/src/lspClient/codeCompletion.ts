@@ -236,7 +236,7 @@ function objectFieldMatchesSOQLContext(field: SObjectField, soqlContext: SoqlIte
     (field.groupable || !soqlContext.onlyGroupable) &&
     (field.sortable || !soqlContext.onlySortable) &&
     (field.nillable || !soqlContext.onlyNillable) &&
-    (!soqlContext.onlyTypes || soqlContext.onlyTypes.length === 0 || soqlContext.onlyTypes.includes(field.type))
+    (!soqlContext.onlyTypes?.length || soqlContext.onlyTypes.includes(field.type))
   );
 }
 

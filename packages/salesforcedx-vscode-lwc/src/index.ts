@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { ActivationTracker, SFDX_LWC_EXTENSION_NAME } from '@salesforce/salesforcedx-utils-vscode';
+import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
+import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
-import { commands, ConfigurationTarget, Disposable, ExtensionContext, workspace, WorkspaceConfiguration } from 'vscode';
+import { commands, Disposable, ExtensionContext, workspace, Uri, FileType } from 'vscode';
 import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
-import { ESLINT_NODEPATH_CONFIG, log } from './constants';
+import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
 import { DevServerService } from './service/devServerService';
@@ -44,8 +45,10 @@ export const activate = async (extensionContext: ExtensionContext) => {
     workspaceUris.push(folder.uri.fsPath);
   });
 
+  const fileSystemProvider = await createFileSystemProvider(workspaceUris);
+
   // If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = lspCommon.detectWorkspaceType(workspaceUris);
+  const workspaceType = await lspCommon.detectWorkspaceType(workspaceUris, fileSystemProvider);
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
@@ -54,20 +57,15 @@ export const activate = async (extensionContext: ExtensionContext) => {
     log(`WorkspaceType detected: ${workspaceType}`);
     return;
   }
-  // If activationMode === always, ignore workspace type and continue activating
 
   // register commands
   const ourCommands = registerCommands(extensionContext);
   extensionContext.subscriptions.push(ourCommands);
 
-  // If we get here, we either passed autodetect validation or activationMode == always
-  log('Lightning Web Components Extension Activated');
-  log(`WorkspaceType detected: ${workspaceType}`);
-
   // Start the LWC Language Server
   const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
-  const client = createLanguageClient(serverModule);
+  const client = createLanguageClient(serverModule, fileSystemProvider);
 
   // Start the client and add it to subscriptions
   await client.start();
@@ -75,21 +73,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
-
-  if (workspaceType === lspCommon.WorkspaceType.SFDX) {
-    // We no longer want to manage the eslint.nodePath. Remove any previous configuration of the nodepath
-    // which points at our LWC extension node_modules path
-    const config: WorkspaceConfiguration = workspace.getConfiguration('');
-    const currentNodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
-    if (currentNodePath?.includes(SFDX_LWC_EXTENSION_NAME)) {
-      try {
-        log('Removing eslint.nodePath setting as the LWC Extension no longer manages this value');
-        await config.update(ESLINT_NODEPATH_CONFIG, undefined, ConfigurationTarget.Workspace);
-      } catch (e) {
-        telemetryService.sendException('lwc_eslint_nodepath_couldnt_be_set', e.message);
-      }
-    }
-  }
 
   // Activate Test support
   if (shouldActivateLwcTestSupport(workspaceType)) {
@@ -123,3 +106,125 @@ const registerCommands = (_extensionContext: ExtensionContext): Disposable =>
     commands.registerCommand('sf.lightning.lwc.open', lightningLwcOpen),
     commands.registerCommand('sf.lightning.lwc.preview', lightningLwcPreview)
   );
+
+/**
+ * Creates a FileSystemDataProvider that reads all workspace files and directories
+ * @param workspaceUris Array of workspace folder paths
+ * @returns FileSystemDataProvider with workspace files and directories
+ */
+const createFileSystemProvider = async (workspaceUris: string[]): Promise<FileSystemDataProvider> => {
+  const fileSystemProvider = new FileSystemDataProvider();
+
+  for (const workspaceUri of workspaceUris) {
+    try {
+      await populateWorkspaceRecursively(fileSystemProvider, workspaceUri);
+    } catch (error) {
+      log(`Error populating workspace files for workspace ${workspaceUri}: ${String(error)}`);
+      throw error;
+    }
+  }
+
+  return fileSystemProvider;
+};
+
+/**
+ * Recursively populates all files and directories in the workspace
+ * @param provider FileSystemDataProvider to populate
+ * @param dirPath Path to the directory to populate
+ */
+const populateWorkspaceRecursively = async (provider: FileSystemDataProvider, dirPath: string): Promise<void> => {
+  try {
+    const dirUri = Uri.parse(dirPath);
+    const entries = await workspace.fs.readDirectory(dirUri);
+
+    // Update directory listing
+    const directoryEntries = entries.map(
+      ([name, type]: [string, number]): lspCommon.DirectoryEntry => ({
+        name,
+        type: type === 1 ? 'file' : 'directory', // FileType.File = 1, FileType.Directory = 2
+        uri: path.join(dirPath, name)
+      })
+    );
+    provider.updateDirectoryListing(dirPath, directoryEntries);
+
+    // Update directory stat
+    provider.updateFileStat(dirPath, {
+      type: 'directory',
+      exists: true,
+      ctime: Date.now(),
+      mtime: Date.now(),
+      size: 0 // Directories don't have a meaningful size
+    });
+
+    // Process each entry
+    for (const [name, type] of entries) {
+      const entryPath = path.join(dirPath, name);
+
+      if (type === FileType.File) {
+        await tryReadFile(provider, entryPath);
+      } else if (type === FileType.Directory) {
+        // Skip common directories that don't need to be populated
+        if (shouldSkipDirectory(name)) {
+          continue;
+        }
+        await populateWorkspaceRecursively(provider, entryPath);
+      }
+    }
+  } catch (error: any) {
+    // Directory doesn't exist or can't be read
+    if (!(error instanceof Error) || !error.message.includes('ENOENT')) {
+      log(`Unexpected error reading directory ${dirPath}: ${String(error)}`);
+    }
+  }
+};
+
+/**
+ * Determines if a directory should be skipped during workspace population
+ * @param dirName Name of the directory
+ * @returns true if directory should be skipped
+ */
+const shouldSkipDirectory = (dirName: string): boolean => {
+  const skipDirs = [
+    'node_modules',
+    '.git',
+    '.vscode',
+    '.sfdx',
+    'coverage',
+    'dist',
+    'out',
+    'lib',
+    '.nyc_output',
+    'temp',
+    'tmp',
+    '.DS_Store'
+  ];
+  return skipDirs.includes(dirName) || dirName.startsWith('.');
+};
+
+/**
+ * Attempts to read a file and add it to the provider if it exists
+ * @param provider FileSystemDataProvider to update
+ * @param filePath Path to the file to read
+ */
+const tryReadFile = async (provider: FileSystemDataProvider, filePath: string): Promise<void> => {
+  try {
+    const fileUri = Uri.parse(filePath);
+    const fileContent = await workspace.fs.readFile(fileUri);
+    const content = Buffer.from(fileContent).toString('utf8');
+
+    provider.updateFileContent(filePath, content);
+    provider.updateFileStat(filePath, {
+      type: 'file',
+      exists: true,
+      ctime: Date.now(),
+      mtime: Date.now(),
+      size: content.length
+    });
+  } catch (error: any) {
+    // File doesn't exist or can't be read - this is expected for most files
+    // Only log if it's an unexpected error
+    if (!(error instanceof Error) || !error.message.includes('ENOENT')) {
+      log(`Unexpected error reading file ${filePath}: ${String(error)}`);
+    }
+  }
+};
