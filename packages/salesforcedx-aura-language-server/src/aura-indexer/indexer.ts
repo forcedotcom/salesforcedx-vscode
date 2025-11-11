@@ -183,6 +183,7 @@ export default class AuraIndexer implements Indexer {
     if (auraSystem && typeof auraSystem === 'object') {
       for (const tag in auraSystem) {
         if (auraSystem.hasOwnProperty(tag) && typeof tag === 'string') {
+          // @ts-ignore - auraSystem is typed as any
           const tagObj = auraSystem[tag];
           const info: TagInfo = {
             file: null,
@@ -222,6 +223,7 @@ export default class AuraIndexer implements Indexer {
     if (standardComponents && typeof standardComponents === 'object') {
       for (const tag in standardComponents) {
         if (standardComponents.hasOwnProperty(tag) && typeof tag === 'string') {
+          // @ts-ignore - standardComponents is typed as any
           const tagObj = standardComponents[tag];
           const info: TagInfo = {
             file: null,
@@ -231,6 +233,7 @@ export default class AuraIndexer implements Indexer {
             documentation: ''
           };
           if (tagObj.attributes) {
+            // @ts-ignore - tagObj.attributes is typed as any
             tagObj.attributes.sort((a, b) => a.name.localeCompare(b.name));
             for (const a of tagObj.attributes) {
               // TODO - could we use more in depth doc from component library here?

@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+// @ts-nocheck as this is a third party library
 import { extractJsonFromImport } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common/providers/fileSystemDataProvider';
 import LineColumnFinder from 'line-column';

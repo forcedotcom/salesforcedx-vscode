@@ -2,7 +2,6 @@
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
     "outDir": "./out",
-    "noImplicitAny": false, // needed for ternAura.ts & ternServer.ts to avoid type errors
     "strictNullChecks": true,
     "skipLibCheck": true
   },
