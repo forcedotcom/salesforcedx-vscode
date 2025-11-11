@@ -28,12 +28,8 @@ export const activateEffect = (
 
     // Register commands
     context.subscriptions.push(
-      vscode.commands.registerCommand('sf.project.deploy.start', async (isDeployOnSave: boolean) =>
-        projectDeployStart(isDeployOnSave, false)
-      ),
-      vscode.commands.registerCommand('sf.project.deploy.start.ignore.conflicts', async (isDeployOnSave: boolean) =>
-        projectDeployStart(isDeployOnSave, true)
-      )
+      vscode.commands.registerCommand('sf.project.deploy.start', async () => projectDeployStart(false)),
+      vscode.commands.registerCommand('sf.project.deploy.start.ignore.conflicts', async () => projectDeployStart(true))
     );
 
     yield* svc.appendToChannel('Salesforce Metadata activation complete.');

@@ -6,39 +6,82 @@
  */
 
 import { type DeployResult, ComponentSet } from '@salesforce/source-deploy-retrieve';
-
+import { type SourceTracking } from '@salesforce/source-tracking';
 import * as Brand from 'effect/Brand';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as vscode from 'vscode';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
+import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
-import { SourceTrackingService } from './sourceTrackingService';
+import { type SourceTrackingOptions, SourceTrackingService } from './sourceTrackingService';
 
 /** Get ComponentSet of local changes for deploy */
-const getComponentSetForDeploy = Effect.gen(function* () {
-  const tracking = yield* Effect.flatMap(SourceTrackingService, svc => svc.getSourceTracking());
-  if (!tracking) {
-    return yield* Effect.die(
-      'Source tracking not enabled.  The command should not have appeared in the Command Palette.'
+const getComponentSetForDeploy = (
+  options?: SourceTrackingOptions
+): Effect.Effect<
+  ComponentSet,
+  Error,
+  | ConnectionService
+  | SettingsService
+  | ConfigService
+  | WorkspaceService
+  | ProjectService
+  | MetadataRegistryService
+  | SourceTrackingService
+  | ChannelService
+> =>
+  Effect.gen(function* () {
+    const tracking = yield* Effect.flatMap(SourceTrackingService, svc => svc.getSourceTracking(options));
+    if (!tracking) {
+      return yield* Effect.die(
+        'Source tracking not enabled.  The command should not have appeared in the Command Palette.'
+      );
+    }
+    yield* Effect.promise(() => tracking.reReadLocalTrackingCache()).pipe(
+      Effect.withSpan('STL.ReReadLocalTrackingCache')
     );
-  }
-  yield* Effect.promise(() => tracking.reReadLocalTrackingCache()).pipe(
-    Effect.withSpan('STL.ReReadLocalTrackingCache')
-  );
 
-  const localComponentSets = yield* Effect.tryPromise(() => tracking.localChangesAsComponentSet(false)).pipe(
-    Effect.withSpan('STL.LocalChangesAsComponentSet')
-  );
+    if (!options?.ignoreConflicts) {
+      yield* conflictCheck(tracking).pipe(Effect.provide(ChannelService.Default));
+    }
+    const localComponentSets = yield* Effect.tryPromise(() => tracking.localChangesAsComponentSet(false)).pipe(
+      Effect.withSpan('STL.LocalChangesAsComponentSet')
+    );
 
-  return localComponentSets[0] ?? new ComponentSet();
-}).pipe(Effect.withSpan('getComponentSetForDeploy'));
+    return localComponentSets[0] ?? new ComponentSet();
+  }).pipe(Effect.withSpan('getComponentSetForDeploy'));
+
+const conflictCheck = (tracking: SourceTracking): Effect.Effect<void, Error, ChannelService> =>
+  Effect.gen(function* () {
+    const conflicts = yield* Effect.tryPromise(() => tracking.getConflicts()).pipe(Effect.withSpan('STL.GetConflicts'));
+    if (conflicts?.length > 0) {
+      yield* Effect.annotateCurrentSpan({
+        conflicts: true,
+        conflictDetails: conflicts.map(c => ({ type: c.type, name: c.name, filenames: c.filenames ?? [] }))
+      });
+      yield* Effect.flatMap(ChannelService, channelService =>
+        channelService.appendToChannel(
+          [
+            'Conflicts detected',
+            ...conflicts.flatMap(c => [`  ${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`])
+          ].join('\n')
+        )
+      );
+      (yield* Effect.flatMap(ChannelService, channelService => channelService.getChannel)).show();
+      return yield* Effect.fail(
+        new Error(
+          'Local and remote changes detected on the same file(s).  See output channel for details. Run a push or pull with ignored conflicts to proceed.'
+        )
+      );
+    }
+  });
 
 /** Deploy metadata to the default org */
 const deploy = (

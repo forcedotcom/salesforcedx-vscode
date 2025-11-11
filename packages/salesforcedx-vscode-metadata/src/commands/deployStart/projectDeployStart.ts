@@ -12,15 +12,16 @@ import { COMPONENT_STATUS_FAILED } from './constants';
 import { formatDeployOutput } from './formatDeployOutput';
 
 /** Deploy local changes to the default org */
-export const projectDeployStart = async (_isDeployOnSave: boolean, _ignoreConflicts = false): Promise<void> =>
+export const projectDeployStart = async (ignoreConflicts = false): Promise<void> =>
   Effect.runPromise(
     Effect.gen(function* () {
+      yield* Effect.annotateCurrentSpan({ ignoreConflicts });
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const channelService = yield* api.services.ChannelService;
       const deployService = yield* api.services.MetadataDeployService;
 
       // Get ComponentSet of local changes
-      const componentSet = yield* deployService.getComponentSetForDeploy;
+      const componentSet = yield* deployService.getComponentSetForDeploy({ ignoreConflicts });
 
       if (componentSet.size === 0) {
         yield* Effect.all(
@@ -51,5 +52,5 @@ export const projectDeployStart = async (_isDeployOnSave: boolean, _ignoreConfli
       if (result.getFileResponses().some(r => String(r.state) === COMPONENT_STATUS_FAILED)) {
         void vscode.window.showErrorMessage('Deploy completed with errors. Check output for details.');
       }
-    }).pipe(Effect.provide(AllServicesLayer))
+    }).pipe(Effect.withSpan('projectDeployStart'), Effect.provide(AllServicesLayer))
   );

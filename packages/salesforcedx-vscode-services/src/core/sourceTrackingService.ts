@@ -19,7 +19,7 @@ import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
 import { getOrgFromConnection } from './shared';
 
-type SourceTrackingOptions = { ignoreConflicts?: boolean };
+export type SourceTrackingOptions = { ignoreConflicts?: boolean };
 
 /** Creates a SourceTracking instance with optional configuration */
 const getTracking = (
@@ -40,7 +40,10 @@ const getTracking = (
       ],
       { concurrency: 'unbounded' }
     );
-    yield* Effect.annotateCurrentSpan({ supportsSourceTracking: ref.tracksSource });
+    yield* Effect.annotateCurrentSpan({
+      supportsSourceTracking: ref.tracksSource,
+      ignoreConflicts: options?.ignoreConflicts
+    });
 
     if (ref.tracksSource !== true) {
       return yield* Effect.succeed(undefined);
