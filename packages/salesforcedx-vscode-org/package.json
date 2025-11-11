@@ -27,8 +27,6 @@
     "@salesforce/core": "^8.19.1",
     "@salesforce/salesforcedx-utils": "65.4.0",
     "@salesforce/salesforcedx-utils-vscode": "65.4.0",
-    "@salesforce/templates": "^65.1.0",
-    "applicationinsights": "1.0.7",
     "salesforcedx-vscode-core": "65.4.0",
     "vscode-uri": "^3.0.8"
   },
