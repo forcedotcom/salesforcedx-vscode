@@ -63,8 +63,7 @@ const conflictCheck = (tracking: SourceTracking): Effect.Effect<void, Error, Cha
     const conflicts = yield* Effect.tryPromise(() => tracking.getConflicts()).pipe(Effect.withSpan('STL.GetConflicts'));
     if (conflicts?.length > 0) {
       yield* Effect.annotateCurrentSpan({
-        conflicts: true,
-        conflictDetails: conflicts.map(c => ({ type: c.type, name: c.name, filenames: c.filenames ?? [] }))
+        conflicts: true
       });
       yield* Effect.flatMap(ChannelService, channelService =>
         channelService.appendToChannel(
