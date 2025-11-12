@@ -18,20 +18,10 @@ export { MessageArgs } from './types/localization/messageArgs';
 export { LocalizationService } from './i18n/advancedLocalization';
 
 // Constants
-export {
-  LOCALE_JA,
-  MISSING_LABEL_MSG,
-  SF_CONFIG_ISV_DEBUGGER_SID,
-  SF_CONFIG_ISV_DEBUGGER_URL,
-  TELEMETRY_HEADER
-} from './constants';
-
-// Helpers
-export { getConnectionStatusFromError, shouldRemoveOrg } from './helpers/utils';
+export { LOCALE_JA, MISSING_LABEL_MSG, TELEMETRY_HEADER } from './constants';
 
 // CLI
 export { CommandBuilder } from './cli/commandBuilder';
 export { CommandOutput } from './cli/commandOutput';
 export { GlobalCliEnvironment } from './cli/globalCliEnvironment';
-export { OrgDisplay } from './cli/orgDisplay';
 export { SfCommandBuilder } from './cli/sfCommandBuilder';

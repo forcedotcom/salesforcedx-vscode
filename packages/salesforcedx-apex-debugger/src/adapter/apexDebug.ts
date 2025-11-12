@@ -8,11 +8,7 @@
 
 import { Connection, Org } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import {
-  SF_CONFIG_ISV_DEBUGGER_SID,
-  SF_CONFIG_ISV_DEBUGGER_URL,
-  LineBreakpointInfo
-} from '@salesforce/salesforcedx-utils';
+import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import {
   DebugSession,
   Event,
@@ -63,6 +59,8 @@ import {
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   SALESFORCE_EXCEPTION_PREFIX,
   SEND_METRIC_EVENT,
+  SF_CONFIG_ISV_DEBUGGER_SID,
+  SF_CONFIG_ISV_DEBUGGER_URL,
   SHOW_MESSAGE_EVENT,
   TRIGGER_EXCEPTION_PREFIX
 } from '../constants';

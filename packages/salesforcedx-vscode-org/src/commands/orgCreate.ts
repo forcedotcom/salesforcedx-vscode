@@ -7,19 +7,12 @@
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   notificationService,
-  CompositePreconditionChecker,
   CompositeParametersGatherer,
   CancelResponse,
   CliCommandExecutor,
-  ConfigUtil,
   ContinueResponse,
-  DevUsernameChecker,
-  FileSelection,
-  FileSelector,
   isAlphaNumSpaceString,
   isIntegerInRange,
-  OrgCreateErrorResult,
-  OrgCreateResultParser,
   ParametersGatherer,
   ProgressNotification,
   SfCommandlet,
@@ -34,7 +27,12 @@ import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
+import { FileSelector, FileSelection } from '../parameterGatherers/fileSelector';
+import { OrgCreateResultParser, OrgCreateErrorResult } from '../parsers/orgCreateResultParser';
+import { CompositePreconditionChecker } from '../preconditionCheckers/compositePreconditionChecker';
+import { DevUsernameChecker } from '../preconditionCheckers/devUsernameChecker';
 import { telemetryService } from '../telemetry';
+import { setTargetOrgOrAlias } from '../util';
 
 // Get core API services at runtime
 const getCoreApi = (): SalesforceVSCodeCoreApi | undefined => {
@@ -92,7 +90,7 @@ class OrgCreateExecutor extends SfCommandletExecutor<AliasAndFileSelection> {
           // Explicitly ensure the org change event is triggered
           // Use the alias that was provided when creating the org
           if (response.data.alias) {
-            await ConfigUtil.setTargetOrgOrAlias(response.data.alias);
+            await setTargetOrgOrAlias(response.data.alias);
           }
 
           // Set workspace org type to source-tracked for newly created scratch orgs

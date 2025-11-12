@@ -5,23 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgInfo, OrgDisplay } from '@salesforce/salesforcedx-utils';
+import { OrgInfo } from '@salesforce/salesforcedx-utils';
 import {
   FlagParameter,
-  SelectUsername,
   Column,
   ContinueResponse,
+  createTable,
   EmptyParametersGatherer,
   getRootWorkspacePath,
   LibraryCommandletExecutor,
   Row,
   SfWorkspaceChecker,
-  Table,
   SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
+import { SelectUsername } from '../parameterGatherers/selectUsername';
 import { getTargetOrgOrAlias, getUsername } from '../util';
+import { OrgDisplay } from '../util/orgDisplay';
 
 class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }> {
   private flag: string | undefined;
@@ -107,8 +108,7 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
       ...(orgInfo.edition && !isScratchOrg ? [{ property: 'Edition', value: orgInfo.edition }] : [])
     ].sort((a, b) => String(a.property).localeCompare(String(b.property)));
 
-    const table = new Table();
-    return table.createTable(rows, columns, 'Org Description');
+    return createTable(rows, columns, 'Org Description');
   }
 }
 

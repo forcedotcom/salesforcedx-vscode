@@ -8,14 +8,14 @@
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   FlagParameter,
-  PromptConfirmGatherer,
-  SelectUsername,
   CompositeParametersGatherer,
   SfCommandlet,
   SfCommandletExecutor,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { nls } from '../messages';
+import { PromptConfirmGatherer } from '../parameterGatherers/promptConfirmGatherer';
+import { SelectUsername } from '../parameterGatherers/selectUsername';
 
 class OrgDeleteExecutor extends SfCommandletExecutor<{}> {
   private flag: string | undefined;
