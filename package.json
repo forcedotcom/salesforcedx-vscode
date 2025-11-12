@@ -40,7 +40,7 @@
     "@types/node": "^22.15.1",
     "@types/semver": "7.5.8",
     "@types/vscode": "1.90.0",
-    "@typescript-eslint/eslint-plugin": "^8.42.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.4",
     "@typescript-eslint/parser": "^8.44.1",
     "@vscode/test-electron": "2.5.2",
     "@vscode/test-web": "0.0.71",
