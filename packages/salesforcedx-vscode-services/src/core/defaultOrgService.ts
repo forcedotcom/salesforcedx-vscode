@@ -8,13 +8,14 @@ import { Config } from '@salesforce/core/config';
 import { Global } from '@salesforce/core/global';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as PubSub from 'effect/PubSub';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
-
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { join } from 'node:path';
-import * as vscode from 'vscode';
+import { join, normalize, sep } from 'node:path';
 import { SdkLayer } from '../observability/spans';
+import { FileWatcherService } from '../vscode/fileWatcherService';
 
 export const DefaultOrgInfoSchema = Schema.Struct({
   orgId: Schema.optional(Schema.String),
@@ -34,31 +35,28 @@ const clearDefaultOrgRef = (): void =>
     Ref.update(defaultOrgRef, () => ({})).pipe(Effect.withSpan('cleared defaultOrgRef'), Effect.provide(SdkLayer))
   );
 
+/** Check if a file path is a config file (global or project-specific) */
+const isConfigFile = (path: string, globalConfigPath: string, projectConfigPattern: string): boolean => {
+  const normalizedPath = normalize(path);
+  return normalizedPath === globalConfigPath || normalizedPath.includes(projectConfigPattern);
+};
+
 /** watch the global and local sf/config.json files; clear the defaultOrgRef when they change */
-export const watchConfigFiles = (): Effect.Effect<void, Error> =>
+export const watchConfigFiles = (): Effect.Effect<void, never, FileWatcherService> =>
   Effect.scoped(
     Effect.gen(function* () {
       const configFileName = Config.getFileName();
-      const globalConfigWatcher = vscode.workspace.createFileSystemWatcher(join(Global.DIR, configFileName));
-      const projectConfigWatcher = vscode.workspace.createFileSystemWatcher(
-        `**/${Global.SF_STATE_FOLDER}/${configFileName}`
+      const globalConfigPath = normalize(join(Global.DIR, configFileName));
+      const projectConfigPattern = `${Global.SF_STATE_FOLDER}${sep}${configFileName}`;
+
+      const fileWatcherService = yield* FileWatcherService;
+      const dequeue = yield* PubSub.subscribe(fileWatcherService.pubsub);
+
+      // Subscribe to file changes and clear defaultOrgRef when config files change
+      yield* Stream.fromQueue(dequeue).pipe(
+        Stream.filter(event => isConfigFile(event.uri.fsPath, globalConfigPath, projectConfigPattern)),
+        Stream.debounce(Duration.millis(5)),
+        Stream.runForEach(() => Effect.sync(() => clearDefaultOrgRef()))
       );
-
-      globalConfigWatcher.onDidChange(() => clearDefaultOrgRef());
-      globalConfigWatcher.onDidCreate(() => clearDefaultOrgRef());
-      globalConfigWatcher.onDidDelete(() => clearDefaultOrgRef());
-      projectConfigWatcher.onDidChange(() => clearDefaultOrgRef());
-      projectConfigWatcher.onDidCreate(() => clearDefaultOrgRef());
-      projectConfigWatcher.onDidDelete(() => clearDefaultOrgRef());
-
-      yield* Effect.addFinalizer(() =>
-        Effect.sync(() => {
-          globalConfigWatcher.dispose();
-          projectConfigWatcher.dispose();
-        }).pipe(Effect.withSpan('disposing of file watchers'))
-      );
-
-      // keep these file watcher running until the parent scope closes
-      yield* Effect.sleep(Duration.infinity);
     })
   );

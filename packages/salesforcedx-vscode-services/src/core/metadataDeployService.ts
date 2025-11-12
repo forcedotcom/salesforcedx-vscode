@@ -55,6 +55,7 @@ const getComponentSetForDeploy = (
       Effect.withSpan('STL.LocalChangesAsComponentSet')
     );
 
+    console.log('localComponentSets[0]?.projectDirectory', localComponentSets[0]?.projectDirectory);
     return localComponentSets[0] ?? new ComponentSet();
   }).pipe(Effect.withSpan('getComponentSetForDeploy'));
 
@@ -111,7 +112,7 @@ const deploy = (
       return yield* Effect.fail(new Error('No workspace path found'));
     }
 
-    components.projectDirectory = project.getDefaultPackage().fullPath;
+    components.projectDirectory = project.getPath();
 
     const deployFiber = yield* Effect.fork(
       Effect.tryPromise({
@@ -153,6 +154,7 @@ const deploy = (
     });
 
     if (typeof deployOutcome !== 'string') {
+      yield* Effect.annotateCurrentSpan({ files: deployOutcome.getFileResponses().map(r => r.filePath) });
       yield* Effect.flatMap(SourceTrackingService, svc => svc.updateTrackingFromDeploy(deployOutcome)).pipe(
         Effect.withSpan('MetadataDeployService.updateTrackingFromDeploy')
       );

@@ -27,6 +27,7 @@
     "effect": "^3.18.4"
   },
   "devDependencies": {
+    "@salesforce/source-tracking": "7.6.0",
     "esbuild": "0.25.0",
     "salesforcedx-vscode-services": "65.3.1"
   },

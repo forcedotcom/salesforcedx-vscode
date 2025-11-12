@@ -16,5 +16,8 @@ export const forceignore = [
   '**/.eslintrc.json',
   '',
   '# LWC Jest',
-  '**/__tests__/**%'
+  '**/__tests__/**%',
+  '',
+  '# Profiles',
+  '**/profiles/**'
 ];

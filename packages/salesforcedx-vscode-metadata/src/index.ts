@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 import { projectDeployStart } from './commands/deployStart/projectDeployStart';
 import { EXTENSION_NAME } from './constants';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
+import { SourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> =>
   Effect.runPromise(Effect.provide(activateEffect(context), AllServicesLayer));
@@ -31,6 +32,10 @@ export const activateEffect = (
       vscode.commands.registerCommand('sf.project.deploy.start', async () => projectDeployStart(false)),
       vscode.commands.registerCommand('sf.project.deploy.start.ignore.conflicts', async () => projectDeployStart(true))
     );
+
+    // Register source tracking status bar
+    const statusBar = yield* Effect.promise(() => SourceTrackingStatusBar.create(api));
+    context.subscriptions.push(statusBar);
 
     yield* svc.appendToChannel('Salesforce Metadata activation complete.');
   }).pipe(Effect.withSpan(`activation:${EXTENSION_NAME}`), Effect.provide(AllServicesLayer));
