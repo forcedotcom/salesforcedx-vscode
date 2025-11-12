@@ -5,8 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgShape, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
-import { getTargetOrgOrAlias, isASandboxOrg, isAScratchOrg } from '../util';
+import {
+  OrgShape,
+  workspaceUtils,
+  getTargetOrgOrAlias,
+  isASandboxOrg,
+  isAScratchOrg
+} from '@salesforce/salesforcedx-utils-vscode';
 
 export const getOrgShape = async (username: string): Promise<OrgShape> => {
   if (workspaceUtils.hasRootWorkspace()) {

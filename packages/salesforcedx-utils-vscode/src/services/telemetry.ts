@@ -20,7 +20,7 @@ import {
   SFDX_CORE_EXTENSION_NAME,
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
-import { errorToString } from '../helpers';
+import { errorToString } from '../helpers/errorUtils';
 import { TimingUtils } from '../helpers/timingUtils';
 import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
 import { AppInsights } from '../telemetry/reporters/appInsights';
@@ -379,3 +379,5 @@ const stripEmptyValues = (obj: Record<string, string | undefined | null>): Recor
   Object.fromEntries(Object.entries(obj).filter(isStringEntry));
 
 const isStringEntry = (entry: [string, unknown]): entry is [string, string] => typeof entry[1] === 'string';
+
+export const telemetryService = TelemetryServiceProvider.getInstance();

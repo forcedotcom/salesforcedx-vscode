@@ -8,7 +8,6 @@
 import { AuthRemover } from '@salesforce/core';
 import { Command, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
-  ConfigUtil,
   ContinueResponse,
   EmptyParametersGatherer,
   ParametersGatherer,
@@ -21,7 +20,7 @@ import {
 import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
-import { getTargetOrgOrAlias, getUsername, isAScratchOrg } from '../../util';
+import { getTargetOrgOrAlias, getUsername, isAScratchOrg, unsetTargetOrg } from '../../util';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 // SimpleGatherer - need to inline this small utility
 class SimpleGatherer<T> implements ParametersGatherer<T> {
@@ -93,7 +92,7 @@ export const orgLogoutDefault = async () => {
 };
 
 const removeUsername = async (username: string) => {
-  await ConfigUtil.unsetTargetOrg();
+  await unsetTargetOrg();
   const authRemover = await AuthRemover.create();
   await authRemover.removeAuth(username);
 };

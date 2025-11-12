@@ -6,7 +6,7 @@
  */
 
 import { AuthInfo, Connection, Org, StateAggregator, ConfigAggregator } from '@salesforce/core';
-import { OrgDisplay } from '../../../src';
+import { OrgDisplay } from '../../../src/util/orgDisplay';
 
 // Mock the Salesforce Core classes
 jest.mock('@salesforce/core', () => ({
@@ -24,6 +24,9 @@ jest.mock('@salesforce/core', () => ({
   },
   ConfigAggregator: {
     create: jest.fn()
+  },
+  OrgConfigProperties: {
+    TARGET_ORG: 'target-org'
   }
 }));
 

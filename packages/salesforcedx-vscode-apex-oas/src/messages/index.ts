@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LocalizationService, MessageArgs } from '@salesforce/salesforcedx-utils-vscode';
+import type { MessageArgs } from '@salesforce/salesforcedx-utils';
+import { LocalizationService } from '@salesforce/salesforcedx-utils-vscode';
 import { messages as enMessages, MessageKey } from './i18n';
 
 const INSTANCE_NAME = 'salesforcedx-vscode-apex-oas';

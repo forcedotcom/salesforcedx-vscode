@@ -105,10 +105,10 @@ export const describeSObjects = async (
   sobjectNames: SObjectShortDescription[]
 ): Promise<SObjectsStandardAndCustom> => {
   const objects = await new SObjectDescribe(conn).fetchObjects(sobjectNames.map(s => s.name));
-  // TODO node22: object.groupBy
+  const grouped = Object.groupBy(objects, (o: SObject) => (o.custom ? 'custom' : 'standard'));
   return {
-    standard: objects.filter(o => !o.custom),
-    custom: objects.filter(o => o.custom)
+    standard: grouped.standard ?? [],
+    custom: grouped.custom ?? []
   };
 };
 

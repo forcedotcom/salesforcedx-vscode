@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Settings from '../../../../src/settings';
+import * as Settings from '../../../../src/settings/settingsService';
 import { isLocalLogging } from '../../../../src/telemetry/utils/devModeUtils';
 
 describe('isLocalLogging', () => {

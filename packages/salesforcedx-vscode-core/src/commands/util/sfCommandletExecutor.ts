@@ -17,9 +17,8 @@ import { Properties, Measurements } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
 import { channelService } from '../../channels';
 import { PROJECT_RETRIEVE_START_LOG_NAME, PROJECT_DEPLOY_START_LOG_NAME } from '../../constants';
-import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
-import { taskViewService } from '../../statuses';
+import { taskViewService } from '../../statuses/taskView';
 import { telemetryService } from '../../telemetry';
 import { CommandletExecutor } from './commandletExecutor';
 
@@ -74,25 +73,6 @@ export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
       this.onDidFinishExecutionEventEmitter.fire(startTime);
     });
     this.attachExecution(execution, cancellationTokenSource, cancellationToken);
-  }
-
-  /**
-   * Shows a notification and the raw response
-   * before throwing when a parsing error is encountered.
-   * @param output usually stdOut JSON string from a cli command.
-   * @returns parsed JSON object.
-   */
-  protected parseOutput(output: string) {
-    let parsed: JSON;
-    try {
-      parsed = JSON.parse(output);
-    } catch (error) {
-      console.log(`There was an error parsing the output. Raw output: ${output}`);
-
-      notificationService.showWarningMessage(nls.localize('lib_retrieve_result_parse_error'));
-      throw error;
-    }
-    return parsed;
   }
 
   /**

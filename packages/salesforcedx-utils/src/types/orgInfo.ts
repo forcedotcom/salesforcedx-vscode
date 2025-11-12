@@ -23,23 +23,3 @@ export type OrgInfo = {
   password?: string;
   namespace?: string;
 };
-
-export type OrgQueryResult = {
-  Id: string;
-  Name: string;
-  CreatedDate: string;
-  CreatedBy: { Username: string };
-  OrganizationType: string;
-  InstanceName: string;
-  IsSandbox: boolean;
-  NamespacePrefix: string;
-};
-
-export type ScratchOrgQueryResult = {
-  Status: string;
-  CreatedBy: { Username: string };
-  CreatedDate: string;
-  ExpirationDate: string;
-  Edition: string;
-  OrgName: string;
-};

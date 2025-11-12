@@ -5,13 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CancelResponse,
-  ContinueResponse,
-  DirFileNameSelection,
-  LocalComponent
-} from '@salesforce/salesforcedx-utils-vscode';
+import { CancelResponse, ContinueResponse } from '@salesforce/salesforcedx-utils-vscode';
 import { LWC } from './componentUtils';
+
+export type DirFileNameSelection = {
+  fileName: string;
+  outputdir: string;
+  template?: 'ApexUnitTest' | 'BasicUnitTest';
+  extension?: 'JavaScript' | 'TypeScript';
+};
+
+export type LocalComponent = DirFileNameSelection & {
+  type: string;
+  suffix?: string;
+};
+
 
 export type OneOrMany = LocalComponent | LocalComponent[];
 export type ContinueOrCancel = ContinueResponse<OneOrMany> | CancelResponse;

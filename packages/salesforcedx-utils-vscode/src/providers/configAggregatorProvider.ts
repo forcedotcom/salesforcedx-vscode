@@ -6,7 +6,7 @@
  */
 
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import { workspaceUtils } from '../workspaces';
+import { workspaceUtils } from '../workspaces/workspaceUtils';
 
 /*
  * The ConfigAggregatorProvider class is used to instantiate

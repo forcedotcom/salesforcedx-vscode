@@ -8,7 +8,7 @@ import { AuthFields, OrgAuthorization, StateAggregator } from '@salesforce/core'
 import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { nls } from '../../../src/messages';
-import { OrgList } from '../../../src/orgPicker';
+import { OrgList } from '../../../src/orgPicker/orgList';
 import * as util from '../../../src/util';
 import * as orgUtil from '../../../src/util/orgUtil';
 

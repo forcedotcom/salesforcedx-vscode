@@ -6,7 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import { extensionUris } from '../../../src';
+import { extensionUris } from '../../../src/helpers/extensionUris';
 
 describe('extensionUris Unit Tests.', () => {
   describe('extensionUri()', () => {

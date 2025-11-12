@@ -5,10 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Config, ConfigAggregator, Org, OrgConfigProperties, StateAggregator } from '@salesforce/core';
-import { workspaceUtils } from '..';
-import { SF_CONFIG_DISABLE_TELEMETRY, TARGET_DEV_HUB_KEY, TARGET_ORG_KEY } from '../constants';
-import { ConfigAggregatorProvider } from '../providers';
+import { Config, ConfigAggregator, OrgConfigProperties, StateAggregator } from '@salesforce/core';
+import { SF_CONFIG_DISABLE_TELEMETRY } from '../constants';
+import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
 import { TelemetryService } from '../services/telemetry';
 
 export enum ConfigSource {
@@ -17,20 +16,20 @@ export enum ConfigSource {
   None
 }
 
-export class ConfigUtil {
-  public static async getConfigSource(key: string): Promise<ConfigSource> {
-    const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const configSource = configAggregator.getLocation(key);
-    switch (configSource) {
-      case ConfigAggregator.Location.LOCAL:
-        return ConfigSource.Local;
-      case ConfigAggregator.Location.GLOBAL:
-        return ConfigSource.Global;
-      default:
-        return ConfigSource.None;
-    }
+const getConfigSource = async (key: string): Promise<ConfigSource> => {
+  const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
+  const configSource = configAggregator.getLocation(key);
+  switch (configSource) {
+    case ConfigAggregator.Location.LOCAL:
+      return ConfigSource.Local;
+    case ConfigAggregator.Location.GLOBAL:
+      return ConfigSource.Global;
+    default:
+      return ConfigSource.None;
   }
+};
 
+export class ConfigUtil {
   /*
    * The User-configured API version is set by the user, and is used to
    * override the API version that is otherwise gotten from the authenticated
@@ -45,7 +44,7 @@ export class ConfigUtil {
   public static async getTargetOrgOrAlias(): Promise<string | undefined> {
     try {
       const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-      const targetOrgOrAlias = configAggregator.getPropertyValue(TARGET_ORG_KEY);
+      const targetOrgOrAlias = configAggregator.getPropertyValue(OrgConfigProperties.TARGET_ORG);
       if (!targetOrgOrAlias) {
         return undefined;
       }
@@ -61,7 +60,7 @@ export class ConfigUtil {
   }
 
   public static async isGlobalTargetOrg(): Promise<boolean> {
-    const configSource: ConfigSource = await ConfigUtil.getConfigSource(TARGET_ORG_KEY);
+    const configSource: ConfigSource = await getConfigSource(OrgConfigProperties.TARGET_ORG);
     return configSource === ConfigSource.Global;
   }
 
@@ -79,13 +78,13 @@ export class ConfigUtil {
 
   public static async getTargetDevHubOrAlias(): Promise<string | undefined> {
     const configAggregator = await ConfigAggregatorProvider.getInstance().getConfigAggregator();
-    const targetDevHub = configAggregator.getPropertyValue(TARGET_DEV_HUB_KEY);
+    const targetDevHub = configAggregator.getPropertyValue(OrgConfigProperties.TARGET_DEV_HUB);
     return targetDevHub ? String(targetDevHub) : undefined;
   }
 
   public static async getGlobalTargetDevHubOrAlias(): Promise<string | undefined> {
     const globalConfig = await Config.create({ isGlobal: true });
-    const globalTargetDevHub = globalConfig.get(TARGET_DEV_HUB_KEY);
+    const globalTargetDevHub = globalConfig.get(OrgConfigProperties.TARGET_DEV_HUB);
 
     return globalTargetDevHub ? String(globalTargetDevHub) : undefined;
   }
@@ -139,55 +138,5 @@ export class ConfigUtil {
   public static async getUsernameFor(usernameOrAlias: string) {
     const info = await StateAggregator.getInstance();
     return info.aliases.getUsername(usernameOrAlias) ?? usernameOrAlias;
-  }
-
-  public static async unsetTargetOrg(): Promise<void> {
-    const originalDirectory = process.cwd();
-    // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
-    const workspacePath = workspaceUtils.getRootWorkspacePath();
-    try {
-      process.chdir(workspacePath);
-      const config = await Config.create(Config.getDefaultOptions());
-      config.unset(TARGET_ORG_KEY);
-      await config.write();
-      await this.updateConfigAndStateAggregators();
-    } finally {
-      process.chdir(originalDirectory);
-    }
-  }
-
-  public static async setTargetOrgOrAlias(usernameOrAlias: string): Promise<void> {
-    const originalDirectory = process.cwd();
-    // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
-    const workspacePath = workspaceUtils.getRootWorkspacePath();
-    try {
-      // checks if the usernameOrAlias is non-empty and active.
-      if (usernameOrAlias) {
-        // throws an error if the org associated with the usernameOrAlias is expired.
-        await Org.create({ aliasOrUsername: usernameOrAlias });
-      }
-      process.chdir(workspacePath);
-      await this.setUsernameOrAlias(usernameOrAlias);
-    } finally {
-      process.chdir(originalDirectory);
-    }
-  }
-
-  private static async setUsernameOrAlias(usernameOrAlias: string) {
-    const config = await Config.create(Config.getDefaultOptions());
-    config.set(TARGET_ORG_KEY, usernameOrAlias);
-    await config.write();
-    await this.updateConfigAndStateAggregators();
-  }
-
-  private static async updateConfigAndStateAggregators(): Promise<void> {
-    // Force the ConfigAggregatorProvider to reload its stored
-    // ConfigAggregators so that this config file change is accounted
-    // for and the ConfigAggregators are updated with the latest info.
-    const configAggregatorProvider = ConfigAggregatorProvider.getInstance();
-    await configAggregatorProvider.reloadConfigAggregators();
-    // Also force the StateAggregator to reload to have the latest
-    // authorization info.
-    StateAggregator.clearInstance(workspaceUtils.getRootWorkspacePath());
   }
 }

@@ -10,12 +10,12 @@ import {
   Column,
   ConfigAggregatorProvider,
   ContinueResponse,
+  createTable,
   LibraryCommandletExecutor,
   ParametersGatherer,
   Row,
   SfCommandlet,
   SfWorkspaceChecker,
-  Table,
   workspaceUtils,
   writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -202,7 +202,7 @@ export const generateTableOutput = (records: QueryResult['records'], title: stri
     );
   });
 
-  return new Table().createTable(rows, columns, title);
+  return createTable(rows, columns, title);
 };
 
 const isRecord = (record: unknown): record is Record<string, unknown> =>

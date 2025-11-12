@@ -17,6 +17,8 @@ export const HOTSWAP_REQUEST = 'hotswap';
 export const LIST_EXCEPTION_BREAKPOINTS_REQUEST = 'listExceptionBreakpoints';
 export const LIVESHARE_DEBUG_TYPE_REQUEST = 'debugType';
 export const EXCEPTION_BREAKPOINT_REQUEST = 'exceptionBreakpoint';
+export const SF_CONFIG_ISV_DEBUGGER_SID = 'org-isv-debugger-sid';
+export const SF_CONFIG_ISV_DEBUGGER_URL = 'org-isv-debugger-url';
 
 // used within this package only
 export const CLIENT_ID = 'sfdx-vscode';

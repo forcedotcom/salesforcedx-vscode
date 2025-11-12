@@ -9,8 +9,8 @@ import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
 import * as vscode from 'vscode';
 import { ConfigAggregatorProvider, TelemetryService } from '..';
 import { ConfigUtil } from '../config/configUtil';
-import { projectPaths } from '../helpers';
-import { nls } from '../messages';
+import { projectPaths } from '../helpers/paths';
+import { nls } from '../messages/messages';
 
 export type OrgUserInfo = {
   username?: string;

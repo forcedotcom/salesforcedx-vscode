@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Task, taskViewService } from '../statuses';
+import { Task, taskViewService } from '../statuses/taskView';
 
 export const taskStop = (task: Task): void => {
   if (task instanceof Task) {

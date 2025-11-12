@@ -7,7 +7,7 @@
 import type { CommandExecution } from '@salesforce/salesforcedx-utils';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
-import { nls } from '../messages';
+import { nls } from '../messages/messages';
 
 export class ProgressNotification {
   public static show(

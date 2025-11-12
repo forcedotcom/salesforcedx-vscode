@@ -7,9 +7,10 @@
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { WorkspaceContextUtil } from '../../../src';
-import { fileExtensionsMatch, projectPaths, workspaceUtils } from '../../../src/';
+import { WorkspaceContextUtil } from '../../../src/context/workspaceContextUtil';
 import {
+  projectPaths,
+  fileExtensionsMatch,
   APEX,
   APEX_DB,
   DEBUG,
@@ -21,6 +22,7 @@ import {
   TEST_RESULTS,
   TOOLS
 } from '../../../src/helpers/paths';
+import { workspaceUtils } from '../../../src/workspaces/workspaceUtils';
 
 jest.mock('@salesforce/core', () => ({
   Global: {

@@ -6,17 +6,6 @@
  */
 
 export {
-  getDevHubUsername,
-  getTargetOrgOrAlias,
-  getTargetDevHubOrAlias,
-  getUsername,
-  isAScratchOrg,
-  isASandboxOrg,
-  getDevHubIdFromScratchOrg,
-  getConnection,
-  getAuthFields
-} from '@salesforce/salesforcedx-utils-vscode';
-export {
   disableCLITelemetry,
   isCLIInstalled,
   isCLITelemetryAllowed,

@@ -22,7 +22,7 @@ import {
 } from './commands';
 import { ORG_OPEN_COMMAND } from './constants';
 import { showOrg } from './decorators/orgDecorator';
-import { OrgList } from './orgPicker';
+import { OrgList } from './orgPicker/orgList';
 import { setUpOrgExpirationWatcher } from './util/orgUtil';
 
 /** Register all org/auth commands */

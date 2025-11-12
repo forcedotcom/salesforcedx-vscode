@@ -63,12 +63,11 @@ type RecomposedComponent = {
 };
 
 const STATE_FOLDER = projectPaths.relativeStateFolder();
+const CACHE_FOLDER = [STATE_FOLDER, 'diff'];
+const PROPERTIES_FOLDER = ['prop'];
+const PROPERTIES_FILE = 'file-props.json';
 
 export class MetadataCacheService {
-  private static CACHE_FOLDER = [STATE_FOLDER, 'diff'];
-  private static PROPERTIES_FOLDER = ['prop'];
-  private static PROPERTIES_FILE = 'file-props.json';
-
   private cachePath: string;
   private componentPath?: string[];
   private projectPath?: string;
@@ -77,7 +76,7 @@ export class MetadataCacheService {
 
   constructor(username: string) {
     this.sourceComponents = new ComponentSet();
-    this.cachePath = this.makeCachePath(username);
+    this.cachePath = path.join(os.tmpdir(), ...CACHE_FOLDER, username);
   }
 
   /**
@@ -137,7 +136,7 @@ export class MetadataCacheService {
 
   public async createRetrieveOperation(comps?: ComponentSet): Promise<MetadataApiRetrieve> {
     const components = comps ?? (await this.getSourceComponents());
-    await this.clearDirectory(this.cachePath, true);
+    await safeDelete(this.cachePath, { recursive: true });
 
     await componentSetUtils.setApiVersion(components);
     const connection = await WorkspaceContext.getInstance().getConnection();
@@ -156,7 +155,7 @@ export class MetadataCacheService {
       return;
     }
 
-    const { components, properties } = this.extractResults(result);
+    const { components, properties } = extractResults(result);
     if (components.length > 0 && this.componentPath && this.projectPath) {
       const propsFile = await this.saveProperties(properties);
       const cacheCommon = this.findLongestCommonDir(components, this.cachePath);
@@ -196,29 +195,15 @@ export class MetadataCacheService {
     }
   }
 
-  private extractResults(result: RetrieveResult): {
-    components: SourceComponent[];
-    properties: FileProperties[];
-  } {
-    const properties: FileProperties[] = [];
-    if (Array.isArray(result.response.fileProperties)) {
-      properties.push(...result.response.fileProperties);
-    } else {
-      properties.push(result.response.fileProperties);
-    }
-    const components = result.components.getSourceComponents().toArray();
-    return { components, properties };
-  }
-
   private findLongestCommonDir(comps: SourceComponent[], baseDir: string): string {
     if (comps.length === 0) {
       return '';
     }
     if (comps.length === 1) {
-      return this.getRelativePath(comps[0], baseDir);
+      return getRelativePath(comps[0], baseDir);
     }
 
-    const allPaths = comps.map(c => this.getRelativePath(c, baseDir));
+    const allPaths = comps.map(c => getRelativePath(c, baseDir));
     const baseline = allPaths[0];
     let shortest = baseline.length;
 
@@ -243,21 +228,12 @@ export class MetadataCacheService {
       componentPath: this.componentPath,
       fileProperties: properties
     };
-    const propDir = this.getPropsPath();
-    const propsFile = path.join(propDir, MetadataCacheService.PROPERTIES_FILE);
+    const propDir = path.join(this.cachePath, ...PROPERTIES_FOLDER);
+    const propsFile = path.join(propDir, PROPERTIES_FILE);
 
     await createDirectory(propDir);
     await writeFile(propsFile, JSON.stringify(props));
     return propsFile;
-  }
-
-  private getRelativePath(comp: SourceComponent, baseDir: string): string {
-    const compPath = comp.content ?? comp.xml;
-    if (compPath) {
-      const compDir = path.dirname(compPath);
-      return compDir.substring(baseDir.length + path.sep.length);
-    }
-    return '';
   }
 
   /**
@@ -277,7 +253,7 @@ export class MetadataCacheService {
 
     const fileIndex = new Map<string, FileProperties>();
     for (const fileProperty of result.properties) {
-      fileIndex.set(MetadataCacheService.makeKey(fileProperty.type, fileProperty.fullName), fileProperty);
+      fileIndex.set(makeKey(fileProperty.type, fileProperty.fullName), fileProperty);
     }
 
     fileIndex.forEach((fileProperties, key) => {
@@ -315,10 +291,10 @@ export class MetadataCacheService {
    */
   private static pairParentsAndChildren(index: Map<string, RecomposedComponent>, components: SourceComponent[]) {
     for (const comp of components) {
-      const key = MetadataCacheService.makeKey(comp.type.name, comp.fullName);
+      const key = makeKey(comp.type.name, comp.fullName);
       // If the component has a parent it is assumed to be a child
       if (comp.parent) {
-        const parentKey = MetadataCacheService.makeKey(comp.parent.type.name, comp.parent.fullName);
+        const parentKey = makeKey(comp.parent.type.name, comp.parent.fullName);
         const parentEntry = index.get(parentKey);
         if (parentEntry) {
           // Add the child component if we have an entry for the parent
@@ -344,33 +320,34 @@ export class MetadataCacheService {
       }
     }
   }
-
-  private static makeKey(type: string, fullName: string): string {
-    return `${type}#${fullName}`;
-  }
-
-  public getCachePath(): string {
-    return this.cachePath;
-  }
-
-  public makeCachePath(cacheKey: string): string {
-    return path.join(os.tmpdir(), ...MetadataCacheService.CACHE_FOLDER, cacheKey);
-  }
-
-  public getPropsPath(): string {
-    return path.join(this.cachePath, ...MetadataCacheService.PROPERTIES_FOLDER);
-  }
-
-  private async clearDirectory(dirToRemove: string, throwErrorOnFailure: boolean) {
-    try {
-      await safeDelete(dirToRemove, { recursive: true });
-    } catch (error) {
-      if (throwErrorOnFailure) {
-        throw error;
-      }
-    }
-  }
 }
+
+const makeKey = (type: string, fullName: string): string => `${type}#${fullName}`;
+
+const extractResults = (
+  result: RetrieveResult
+): {
+  components: SourceComponent[];
+  properties: FileProperties[];
+} => {
+  const properties: FileProperties[] = [];
+  if (Array.isArray(result.response.fileProperties)) {
+    properties.push(...result.response.fileProperties);
+  } else {
+    properties.push(result.response.fileProperties);
+  }
+  const components = result.components.getSourceComponents().toArray();
+  return { components, properties };
+};
+
+const getRelativePath = (comp: SourceComponent, baseDir: string): string => {
+  const compPath = comp.content ?? comp.xml;
+  if (compPath) {
+    const compDir = path.dirname(compPath);
+    return compDir.substring(baseDir.length + path.sep.length);
+  }
+  return '';
+};
 
 type MetadataCacheCallback = (username: string, cache: MetadataCacheResult | undefined) => Promise<void>;
 

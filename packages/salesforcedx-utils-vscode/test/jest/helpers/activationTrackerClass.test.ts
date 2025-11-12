@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
+import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { ExtensionContext } from 'vscode';
 import { ActivationTracker } from '../../../src/helpers/activationTracker';
 import { getExtensionInfo } from '../../../src/helpers/activationTrackerUtils';

@@ -11,6 +11,6 @@ await build({
   ...nodeConfig,
   entryPoints: ['./src/index.ts'],
   outfile: './dist/index.js',
-  external: ['vscode', 'applicationinsights'],
+  external: ['vscode'],
   minify: true
 });

@@ -8,12 +8,12 @@
 import { CommandOutput } from '@salesforce/salesforcedx-utils';
 import { ExtensionContext } from 'vscode';
 import {
-  CliCommandExecution,
   CliCommandExecutor,
   TelemetryService,
   WorkspaceContextUtil,
   workspaceUtils
 } from '../../../../src';
+import { CliCommandExecution } from '../../../../src/cli/commandExecutor';
 import { UNAUTHENTICATED_USER } from '../../../../src/constants';
 import {
   UserService,

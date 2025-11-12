@@ -1,0 +1,25 @@
+/*
+ * Copyright (c) 2017, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import type { PreconditionChecker } from '@salesforce/salesforcedx-utils-vscode';
+
+/** Runs multiple precondition checks in sequence */
+export class CompositePreconditionChecker implements PreconditionChecker {
+  public checks: PreconditionChecker[];
+
+  constructor(...checks: PreconditionChecker[]) {
+    this.checks = checks;
+  }
+
+  public async check(): Promise<boolean> {
+    for (const output of this.checks) {
+      if (!(await output.check())) return false;
+    }
+
+    return true;
+  }
+}

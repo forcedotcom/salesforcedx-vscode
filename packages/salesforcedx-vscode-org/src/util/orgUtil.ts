@@ -5,11 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthFields, AuthInfo } from '@salesforce/core';
-import { notificationService, ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
+import { AuthFields, AuthInfo, OrgConfigProperties, Config } from '@salesforce/core';
+import {
+  notificationService,
+  ConfigUtil,
+  workspaceUtils,
+  ConfigAggregatorProvider
+} from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { OrgList } from '../orgPicker';
+import { OrgList } from '../orgPicker/orgList';
 
 export const setUpOrgExpirationWatcher = async (orgList: OrgList): Promise<void> => {
   // Run once to start off with.
@@ -103,4 +108,87 @@ export const getAuthFieldsFor = async (username: string): Promise<AuthFields> =>
   });
 
   return authInfo.getFields();
+};
+
+const updateConfigAndStateAggregators = async (): Promise<void> => {
+  const { StateAggregator } = await import('@salesforce/core');
+
+  // Force the ConfigAggregatorProvider to reload its stored
+  // ConfigAggregators so that this config file change is accounted
+  // for and the ConfigAggregators are updated with the latest info.
+  const configAggregatorProvider = ConfigAggregatorProvider.getInstance();
+  await configAggregatorProvider.reloadConfigAggregators();
+  // Also force the StateAggregator to reload to have the latest
+  // authorization info.
+  StateAggregator.clearInstance(workspaceUtils.getRootWorkspacePath());
+};
+
+const setUsernameOrAlias = async (usernameOrAlias: string): Promise<void> => {
+  const config = await Config.create(Config.getDefaultOptions());
+  config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
+  await config.write();
+  await updateConfigAndStateAggregators();
+};
+
+/** Unsets the target org from the local config */
+export const unsetTargetOrg = async (): Promise<void> => {
+  const originalDirectory = process.cwd();
+  // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
+  const workspacePath = workspaceUtils.getRootWorkspacePath();
+  try {
+    process.chdir(workspacePath);
+    const config = await Config.create(Config.getDefaultOptions());
+    config.unset(OrgConfigProperties.TARGET_ORG);
+    await config.write();
+    await updateConfigAndStateAggregators();
+  } finally {
+    process.chdir(originalDirectory);
+  }
+};
+
+/** Sets the target org or alias in the local config */
+export const setTargetOrgOrAlias = async (usernameOrAlias: string): Promise<void> => {
+  const { Org } = await import('@salesforce/core');
+
+  const originalDirectory = process.cwd();
+  // In order to correctly setup Config, the process directory needs to be set to the current workspace directory
+  const workspacePath = workspaceUtils.getRootWorkspacePath();
+  try {
+    // checks if the usernameOrAlias is non-empty and active.
+    if (usernameOrAlias) {
+      // throws an error if the org associated with the usernameOrAlias is expired.
+      await Org.create({ aliasOrUsername: usernameOrAlias });
+    }
+    process.chdir(workspacePath);
+    await setUsernameOrAlias(usernameOrAlias);
+  } finally {
+    process.chdir(originalDirectory);
+  }
+};
+
+/** Get connection status from error */
+export const getConnectionStatusFromError = (err: any, username?: string): string => {
+  const message = err instanceof Error ? err.message : String(err);
+  const lowerMsg = message.toLowerCase();
+
+  if (lowerMsg.includes('maintenance')) return 'Down (Maintenance)';
+  if (lowerMsg.includes('<html>') || lowerMsg.includes('<!doctype html>')) return 'Bad Response';
+  if (
+    ['expired access/refresh token', 'invalid_session_id', 'bad_oauth_token', 'refreshtokenautherror'].some(token =>
+      lowerMsg.includes(token)
+    )
+  ) {
+    return 'Unable to refresh session: expired access/refresh token';
+  }
+  if (shouldRemoveOrg(err)) {
+    return username ? `Invalid org: ${username}` : 'Invalid org';
+  }
+
+  return message;
+};
+
+/** Check if org should be removed based on error */
+export const shouldRemoveOrg = (err: any): boolean => {
+  const lowerMsg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+  return ['invalid_login', 'no such org', 'namedorgnotfound', 'noauthinfofound'].some(msg => lowerMsg.includes(msg));
 };

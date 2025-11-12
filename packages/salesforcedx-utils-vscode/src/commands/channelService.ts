@@ -8,8 +8,8 @@
 import type { CommandExecution } from '@salesforce/salesforcedx-utils';
 import { OutputChannel, window } from 'vscode';
 import { stripAnsi } from '../helpers/utils';
-import { nls } from '../messages';
-import { SettingsService } from '../settings';
+import { nls } from '../messages/messages';
+import { SettingsService } from '../settings/settingsService';
 
 export class ChannelService {
   private readonly channel: OutputChannel;

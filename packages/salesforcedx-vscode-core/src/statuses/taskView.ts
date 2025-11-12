@@ -118,3 +118,6 @@ export class Task extends TreeItem {
     }
   }
 }
+
+// instantiate and export the instance
+export const taskViewService = TaskViewService.getInstance();

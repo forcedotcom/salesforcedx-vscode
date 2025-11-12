@@ -7,12 +7,12 @@
 
 import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import { ExtensionContext } from 'vscode';
-import { CliCommandExecutor } from '../cli';
+import { CliCommandExecutor } from '../cli/commandExecutor';
 import { TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID, UNAUTHENTICATED_USER } from '../constants';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
-import { errorToString } from '../helpers';
+import { errorToString } from '../helpers/errorUtils';
 import { getSharedTelemetryUserId, hashUserIdentifier } from '../helpers/telemetryUtils';
-import { workspaceUtils } from '../workspaces';
+import { workspaceUtils } from '../workspaces/workspaceUtils';
 
 export class UserService {
   private static getRandomUserId = (): string => {

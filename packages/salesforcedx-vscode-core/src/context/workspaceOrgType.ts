@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Org } from '@salesforce/core';
-import { workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { workspaceUtils, getTargetOrgOrAlias as getTargetOrgOrAliasUtil } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { getTargetOrgOrAlias as getTargetOrgOrAliasUtil } from '../util';
 import { WorkspaceContext } from './workspaceContext';
 
 export enum OrgType {
