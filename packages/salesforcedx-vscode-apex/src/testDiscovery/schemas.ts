@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export type DiscoveredTestMethod = {
+export type ToolingTestMethod = {
   name: string;
   line?: number;
   column?: number;
@@ -17,7 +17,7 @@ export type ToolingTestClass = {
   name: string;
   // For Apex tests this is "" (default) or a namespace; for flow tests it follows "FlowTesting[.Namespace]"
   namespacePrefix: string;
-  testMethods: DiscoveredTestMethod[];
+  testMethods: ToolingTestMethod[];
 };
 
 export type TestDiscoveryResult = {
