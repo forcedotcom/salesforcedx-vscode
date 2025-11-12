@@ -259,6 +259,113 @@ describe('Build async payload', async () => {
     });
     expect(namespaceStub.notCalled).to.be.true;
   });
+
+  it('should include skipCodeCoverage in async payload when tests are provided', async () => {
+    const namespaceStub = sandboxStub
+      .stub(utils, 'queryNamespaces')
+      .resolves([]);
+    const payload = await testService.buildAsyncPayload(
+      TestLevel.RunSpecifiedTests,
+      'myClass.myTest',
+      undefined,
+      undefined,
+      undefined,
+      true
+    );
+
+    expect(payload).to.deep.equal({
+      tests: [{ className: 'myClass', testMethods: ['myTest'] }],
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: true
+    });
+    expect(namespaceStub.calledOnce).to.be.true;
+  });
+
+  it('should include skipCodeCoverage in async payload when classNames are provided', async () => {
+    const namespaceStub = sandboxStub.stub(utils, 'queryNamespaces');
+    const payload = await testService.buildAsyncPayload(
+      TestLevel.RunSpecifiedTests,
+      undefined,
+      'myClass',
+      undefined,
+      undefined,
+      true
+    );
+
+    expect(payload).to.deep.equal({
+      tests: [{ className: 'myClass' }],
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: true
+    });
+    expect(namespaceStub.notCalled).to.be.true;
+  });
+
+  it('should include skipCodeCoverage in async payload when suiteNames are provided', async () => {
+    const namespaceStub = sandboxStub.stub(utils, 'queryNamespaces');
+    const payload = await testService.buildAsyncPayload(
+      TestLevel.RunSpecifiedTests,
+      undefined,
+      undefined,
+      'mySuite',
+      undefined,
+      true
+    );
+
+    expect(payload).to.deep.equal({
+      suiteNames: 'mySuite',
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: true
+    });
+    expect(namespaceStub.notCalled).to.be.true;
+  });
+
+  it('should not include skipCodeCoverage in async payload when skipCodeCoverage is false', async () => {
+    const namespaceStub = sandboxStub
+      .stub(utils, 'queryNamespaces')
+      .resolves([]);
+    const payload = await testService.buildAsyncPayload(
+      TestLevel.RunSpecifiedTests,
+      'myClass.myTest',
+      undefined,
+      undefined,
+      undefined,
+      false
+    );
+
+    expect(payload).to.deep.equal({
+      tests: [{ className: 'myClass', testMethods: ['myTest'] }],
+      testLevel: TestLevel.RunSpecifiedTests
+    });
+    expect(payload).to.not.have.property('skipCodeCoverage');
+    expect(namespaceStub.calledOnce).to.be.true;
+  });
+
+  it('should include skipCodeCoverage in async payload when classNames with category are provided', async () => {
+    const namespaceStub = sandboxStub.stub(utils, 'queryNamespaces');
+    // Mock the buildClassPayloadForFlow method
+    const mockFlowPayload = {
+      testLevel: TestLevel.RunSpecifiedTests,
+      tests: [{ className: 'FlowTestClass' }],
+      skipCodeCoverage: true
+    };
+    sandboxStub
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .stub(testService as any, 'buildClassPayloadForFlow')
+      .resolves(mockFlowPayload);
+
+    const payload = await testService.buildAsyncPayload(
+      TestLevel.RunSpecifiedTests,
+      undefined,
+      'FlowTestClass',
+      undefined,
+      'Flow',
+      true
+    );
+
+    expect(payload).to.deep.equal(mockFlowPayload);
+    expect(payload).to.have.property('skipCodeCoverage', true);
+    expect(namespaceStub.notCalled).to.be.true;
+  });
 });
 
 describe('Build sync payload', async () => {
@@ -376,5 +483,71 @@ describe('Build sync payload', async () => {
     } catch (e) {
       expect(e.message).to.equal(nls.localize('payloadErr'));
     }
+  });
+
+  it('should include skipCodeCoverage in sync payload when tests are provided', async () => {
+    const namespaceStub = sandboxStub
+      .stub(utils, 'queryNamespaces')
+      .resolves([{ installedNs: false, namespace: 'myNamespace' }]);
+    const payload = await testSrv.buildSyncPayload(
+      TestLevel.RunSpecifiedTests,
+      'myClass.myTest',
+      undefined,
+      undefined,
+      true
+    );
+
+    expect(payload).to.deep.equal({
+      tests: [{ className: 'myClass', testMethods: ['myTest'] }],
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: true
+    });
+    expect(namespaceStub.calledOnce).to.be.true;
+  });
+
+  it('should not include skipCodeCoverage in sync payload when skipCodeCoverage is false', async () => {
+    const namespaceStub = sandboxStub
+      .stub(utils, 'queryNamespaces')
+      .resolves([{ installedNs: false, namespace: 'myNamespace' }]);
+    const payload = await testSrv.buildSyncPayload(
+      TestLevel.RunSpecifiedTests,
+      'myClass.myTest',
+      undefined,
+      undefined,
+      false
+    );
+
+    expect(payload).to.deep.equal({
+      tests: [{ className: 'myClass', testMethods: ['myTest'] }],
+      testLevel: TestLevel.RunSpecifiedTests
+    });
+    expect(payload).to.not.have.property('skipCodeCoverage');
+    expect(namespaceStub.calledOnce).to.be.true;
+  });
+
+  it('should include skipCodeCoverage in sync payload when classnames with category are provided', async () => {
+    const namespaceStub = sandboxStub.stub(utils, 'queryNamespaces');
+    // Mock the buildClassPayloadForFlow method
+    const mockFlowPayload = {
+      testLevel: TestLevel.RunSpecifiedTests,
+      tests: [{ className: 'FlowTestClass' }],
+      skipCodeCoverage: true
+    };
+    sandboxStub
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .stub(testSrv as any, 'buildClassPayloadForFlow')
+      .resolves(mockFlowPayload);
+
+    const payload = await testSrv.buildSyncPayload(
+      TestLevel.RunSpecifiedTests,
+      undefined,
+      'FlowTestClass',
+      'Flow',
+      true
+    );
+
+    expect(payload).to.deep.equal(mockFlowPayload);
+    expect(payload).to.have.property('skipCodeCoverage', true);
+    expect(namespaceStub.notCalled).to.be.true;
   });
 });

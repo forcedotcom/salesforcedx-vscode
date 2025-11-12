@@ -409,11 +409,12 @@ export class TestService {
     testLevel: TestLevel,
     tests?: string,
     classnames?: string,
-    category?: string
+    category?: string,
+    skipCodeCoverage?: boolean
   ): Promise<SyncTestConfiguration> {
     try {
       if (tests) {
-        const payload = await this.buildTestPayload(tests);
+        const payload = await this.buildTestPayload(tests, skipCodeCoverage);
         const classes = payload.tests
           ?.filter((testItem) => testItem.className)
           .map((testItem) => testItem.className);
@@ -423,7 +424,10 @@ export class TestService {
         return payload;
       } else if (classnames) {
         if (this.hasCategory(category)) {
-          const payload = await this.buildClassPayloadForFlow(classnames);
+          const payload = await this.buildClassPayloadForFlow(
+            classnames,
+            skipCodeCoverage
+          );
           const classes = (payload.tests || [])
             .filter((testItem) => testItem.className)
             .map((testItem) => testItem.className);
@@ -456,18 +460,26 @@ export class TestService {
     tests?: string,
     classNames?: string,
     suiteNames?: string,
-    category?: string
+    category?: string,
+    skipCodeCoverage?: boolean
   ): Promise<AsyncTestConfiguration | AsyncTestArrayConfiguration> {
     try {
       if (tests) {
         return (await this.buildTestPayload(
-          tests
+          tests,
+          skipCodeCoverage
         )) as AsyncTestArrayConfiguration;
       } else if (classNames) {
         if (this.hasCategory(category)) {
-          return await this.buildClassPayloadForFlow(classNames);
+          return await this.buildClassPayloadForFlow(
+            classNames,
+            skipCodeCoverage
+          );
         } else {
-          return await this.buildAsyncClassPayload(classNames);
+          return await this.buildAsyncClassPayload(
+            classNames,
+            skipCodeCoverage
+          );
         }
       } else {
         return {
@@ -475,7 +487,8 @@ export class TestService {
           testLevel,
           ...(this.hasCategory(category) && {
             category: this.toArray(category)
-          })
+          }),
+          ...(skipCodeCoverage && { skipCodeCoverage })
         };
       }
     } catch (e) {
@@ -485,7 +498,8 @@ export class TestService {
 
   @elapsedTime()
   private async buildAsyncClassPayload(
-    classNames: string
+    classNames: string,
+    skipCodeCoverage?: boolean
   ): Promise<AsyncTestArrayConfiguration> {
     const classNameArray = classNames.split(',') as string[];
     const classItems = classNameArray.map((item) => {
@@ -496,23 +510,33 @@ export class TestService {
       const prop = isValidApexClassID(item) ? 'classId' : 'className';
       return { [prop]: item } as TestItem;
     });
-    return { tests: classItems, testLevel: TestLevel.RunSpecifiedTests };
+    return {
+      tests: classItems,
+      testLevel: TestLevel.RunSpecifiedTests,
+      ...(skipCodeCoverage && { skipCodeCoverage })
+    };
   }
 
   @elapsedTime()
   private async buildClassPayloadForFlow(
-    classNames: string
+    classNames: string,
+    skipCodeCoverage?: boolean
   ): Promise<AsyncTestArrayConfiguration> {
     const classNameArray = classNames.split(',') as string[];
     const classItems = classNameArray.map(
       (item) => ({ className: item }) as TestItem
     );
-    return { tests: classItems, testLevel: TestLevel.RunSpecifiedTests };
+    return {
+      tests: classItems,
+      testLevel: TestLevel.RunSpecifiedTests,
+      ...(skipCodeCoverage && { skipCodeCoverage })
+    };
   }
 
   @elapsedTime()
   private async buildTestPayload(
-    testNames: string
+    testNames: string,
+    skipCodeCoverage?: boolean
   ): Promise<AsyncTestArrayConfiguration | SyncTestConfiguration> {
     const testNameArray = testNames.split(',');
     const testItems: TestItem[] = [];
@@ -547,7 +571,8 @@ export class TestService {
 
     return {
       tests: testItems,
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      ...(skipCodeCoverage && { skipCodeCoverage })
     };
   }
 
