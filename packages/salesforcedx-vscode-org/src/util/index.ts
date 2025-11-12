@@ -18,4 +18,4 @@ export {
 } from '@salesforce/salesforcedx-utils-vscode';
 export { checkForSoonToBeExpiredOrgs, setTargetOrgOrAlias, unsetTargetOrg } from './orgUtil';
 export { OrgDisplay } from './orgDisplay';
-export { getConnectionStatusFromError, shouldRemoveOrg } from './orgUtils';
+export { getConnectionStatusFromError, shouldRemoveOrg } from './orgUtil';

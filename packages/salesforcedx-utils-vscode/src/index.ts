@@ -8,11 +8,14 @@
 export { ChannelService } from './commands/channelService';
 export { notificationService } from './commands/notificationService';
 export { ProgressNotification } from './commands/progressNotification';
-export { CompositeParametersGatherer, EmptyParametersGatherer } from './commands/parameterGatherers';
+export {
+  CompositeParametersGatherer,
+  EmptyParametersGatherer,
+  type FlagParameter
+} from './commands/parameterGatherers';
 export { SfWorkspaceChecker, isSalesforceProjectOpened } from './commands/preconditionCheckers';
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { SfCommandlet } from './commands/sfCommandlet';
-export type { FlagParameter } from './commands/parameterGatherers';
 export { ConfigUtil } from './config/configUtil';
 export {
   SETTING_CLEAR_OUTPUT_TAB,

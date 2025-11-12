@@ -15,7 +15,7 @@ import {
   OrgConfigProperties
 } from '@salesforce/core';
 import { OrgInfo } from '@salesforce/salesforcedx-utils';
-import { getConnectionStatusFromError } from './orgUtils';
+import { getConnectionStatusFromError } from './orgUtil';
 
 type OrgQueryResult = {
   Id: string;

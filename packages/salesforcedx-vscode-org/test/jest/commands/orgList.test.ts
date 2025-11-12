@@ -15,8 +15,7 @@ import {
   displayRemainingOrgs
 } from '../../../src/commands/orgList';
 import { nls } from '../../../src/messages';
-import { getAuthFieldsFor } from '../../../src/util/orgUtil';
-import { shouldRemoveOrg, getConnectionStatusFromError } from '../../../src/util/orgUtils';
+import { getAuthFieldsFor, shouldRemoveOrg, getConnectionStatusFromError } from '../../../src/util/orgUtil';
 
 // Mock the dependencies
 jest.mock('@salesforce/core', () => ({
@@ -70,9 +69,13 @@ jest.mock('../../../src/telemetry', () => ({
     sendException: jest.fn()
   }
 }));
-jest.mock('../../../src/util/orgUtil', () => ({
-  getAuthFieldsFor: jest.fn()
-}));
+jest.mock('../../../src/util/orgUtil', () => {
+  const actual = jest.requireActual('../../../src/util/orgUtil');
+  return {
+    ...actual,
+    getAuthFieldsFor: jest.fn()
+  };
+});
 jest.mock('../../../src/messages', () => ({
   nls: {
     localize: jest.fn()
