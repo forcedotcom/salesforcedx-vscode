@@ -152,6 +152,32 @@ export const getConnection = async (usernameOrAlias?: string): Promise<Connectio
 /** Get auth fields for a connection */
 export const getAuthFields = (connection: Connection): AuthFields => connection.getAuthInfoFields();
 
+/**
+ * Gets the org API version as a numeric value.
+ * Uses instanceApiVersion (max supported API version) from auth fields if available,
+ * otherwise falls back to the connection's configured API version.
+ * @returns The org API version as a number, or undefined if unable to retrieve.
+ */
+export const getOrgApiVersion = async (): Promise<number | undefined> => {
+  try {
+    const connection = await getConnection();
+    const authFields = connection.getAuthInfoFields();
+
+    // Prefer instanceApiVersion (max supported API version) if available
+    const instanceApiVersion = authFields.instanceApiVersion;
+    if (instanceApiVersion) {
+      return parseFloat(instanceApiVersion);
+    }
+
+    // Fallback to the connection's configured API version
+    const apiVersion = connection.getApiVersion();
+    return apiVersion ? parseFloat(apiVersion) : undefined;
+  } catch (err) {
+    console.error('Failed to retrieve org version:', err);
+    return undefined;
+  }
+};
+
 enum VSCodeWindowTypeEnum {
   Error = 1,
   Informational = 2,
