@@ -13,6 +13,7 @@ import {
   OutputDirConfig,
   ResultFormat,
   SyncTestConfiguration,
+  TestCategory,
   TestItem,
   TestLevel,
   TestResult,
@@ -44,8 +45,6 @@ import { pipeline } from 'node:stream/promises';
 import { createWriteStream } from 'node:fs';
 
 import { JsonStreamStringify } from 'json-stream-stringify';
-
-type Category = 'Flow' | 'Apex';
 
 /**
  * Standalone function for writing test result files - easier to test
@@ -406,20 +405,18 @@ export class TestService {
   }
 
   /**
-   * Utility function to build test run payloads that may contain namespaces
-   * @param testLevel test level
-   * @param tests tests
-   * @param classnames classnames
-   * @param category category (Flow or Apex)
-   * @param skipCodeCoverage Specifies whether to opt out of collecting code coverage information during the test run ("true") or to collect code coverage information ("false"). Default value is "false".
-   * @returns SyncTestConfiguration
+   * Utility function to help build payload for https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_rest_resources_testing_runner_sync.htm
    */
   @elapsedTime()
   public async buildSyncPayload(
     testLevel: TestLevel,
     tests?: string,
     classnames?: string,
-    category?: Category,
+    category?: TestCategory | TestCategory[],
+    /**
+     * Specifies whether to opt out of collecting code coverage information during the test run ("true") or to collect code coverage information ("false").
+     * @default false
+     */
     skipCodeCoverage = false
   ): Promise<SyncTestConfiguration> {
     try {
@@ -456,7 +453,7 @@ export class TestService {
       } else if (this.hasCategory(category)) {
         return {
           testLevel,
-          category: this.toArray(category),
+          category: Array.isArray(category) ? category : [category],
           skipCodeCoverage
         };
       }
@@ -467,14 +464,7 @@ export class TestService {
   }
 
   /**
-   * Utility function to build test asynchronous run payloads
-   * @param testLevel test level
-   * @param tests tests
-   * @param classNames classNames
-   * @param suiteNames suiteNames
-   * @param category category (Flow or Apex, comma-separated for multiple)
-   * @param skipCodeCoverage Specifies whether to opt out of collecting code coverage information during the test run ("true") or to collect code coverage information ("false"). Default value is "false".
-   * @returns AsyncTestConfiguration or AsyncTestArrayConfiguration
+   * Utility function to help build payload for https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_rest_resources_testing_runner_async.htm
    */
   @elapsedTime()
   public async buildAsyncPayload(
@@ -482,7 +472,7 @@ export class TestService {
     tests?: string,
     classNames?: string,
     suiteNames?: string,
-    category?: string,
+    category?: TestCategory | TestCategory[],
     skipCodeCoverage = false
   ): Promise<AsyncTestConfiguration | AsyncTestArrayConfiguration> {
     try {
@@ -508,7 +498,7 @@ export class TestService {
           suiteNames,
           testLevel,
           ...(this.hasCategory(category) && {
-            category: this.toArray(category)
+            category: Array.isArray(category) ? category : [category]
           }),
           skipCodeCoverage
         };
@@ -744,10 +734,7 @@ export class TestService {
   public createStream(filePath: string): Writable {
     return createWriteStream(filePath, 'utf8');
   }
-  private hasCategory(category: string): boolean {
-    return category && category.length !== 0;
-  }
-  private toArray(category: string): string[] {
-    return category.split(',');
+  private hasCategory(category: TestCategory | TestCategory[]): boolean {
+    return Array.isArray(category) ? category.length > 0 : !!category;
   }
 }

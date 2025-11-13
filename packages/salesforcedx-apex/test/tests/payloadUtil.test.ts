@@ -10,7 +10,7 @@ import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { expect } from 'chai';
 import { assert, createSandbox, SinonSandbox } from 'sinon';
 import { nls } from '../../src/i18n';
-import { TestLevel, TestService } from '../../src/tests';
+import { TestCategory, TestLevel, TestService } from '../../src/tests';
 import * as utils from '../../src/tests/utils';
 
 let mockConnection: Connection;
@@ -371,7 +371,7 @@ describe('Build async payload', async () => {
       undefined,
       'FlowTestClass',
       undefined,
-      'Flow',
+      TestCategory.Flow,
       true
     );
 
@@ -559,7 +559,7 @@ describe('Build sync payload', async () => {
       TestLevel.RunSpecifiedTests,
       undefined,
       'FlowTestClass',
-      'Flow',
+      TestCategory.Flow,
       true
     );
 
