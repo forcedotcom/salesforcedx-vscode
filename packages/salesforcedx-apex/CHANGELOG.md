@@ -1,3 +1,15 @@
+## [8.3.7](https://github.com/forcedotcom/salesforcedx-apex/compare/8.3.6...8.3.7) (2025-11-13)
+
+
+### Bug Fixes
+
+* add new optional param ([9fd32d5](https://github.com/forcedotcom/salesforcedx-apex/commit/9fd32d506b844ed9486115af0b6bc69b5518a4c2))
+* pr feedback ([7f09bb2](https://github.com/forcedotcom/salesforcedx-apex/commit/7f09bb2fbfd1066166f226a8b80a15f478f4a23e))
+* pr suggestions ([6c471e9](https://github.com/forcedotcom/salesforcedx-apex/commit/6c471e91eb39c51bb2b37bdbc5993bff83f11923))
+* revert category changes ([181a612](https://github.com/forcedotcom/salesforcedx-apex/commit/181a61225e1389b6b2fb837799a378c9a0f989f9))
+
+
+
 ## [8.3.6](https://github.com/forcedotcom/salesforcedx-apex/compare/8.3.5...8.3.6) (2025-11-02)
 
 
