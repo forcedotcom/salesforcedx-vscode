@@ -94,6 +94,7 @@ export default [
       'unicorn/numeric-separators-style': 'error',
       'unicorn/prefer-at': 'error',
       'unicorn/prefer-array-find': 'error',
+      'unicorn/prefer-class-fields': 'error',
       'unicorn/prefer-includes': 'error',
 
       'unicorn/prefer-node-protocol': 'error',
