@@ -77,6 +77,7 @@ export default [
     rules: {
       'local/no-duplicate-i18n-values': 'error',
       'workspaces/no-relative-imports': 'error',
+      'unicorn/consistent-date-clone': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
       'unicorn/consistent-function-scoping': 'error',
       'unicorn/explicit-length-check': 'error',
