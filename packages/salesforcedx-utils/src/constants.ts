@@ -5,10 +5,5 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Locale } from './types/localization/config';
-
-export const DEFAULT_LOCALE: Locale = 'en';
-export const LOCALE_JA: Locale = 'ja';
-export const MISSING_LABEL_MSG = '!!! MISSING LABEL !!!';
 export const SF_COMMAND = 'sf';
 export const TELEMETRY_HEADER = 'salesforce-vscode-extensions';

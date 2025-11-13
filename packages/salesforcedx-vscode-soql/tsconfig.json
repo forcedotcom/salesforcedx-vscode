@@ -16,6 +16,9 @@
       "path": "../salesforcedx-utils-vscode"
     },
     {
+      "path": "../salesforcedx-vscode-i18n"
+    },
+    {
       "path": "../salesforcedx-utils"
     },
     {

@@ -6,7 +6,7 @@
  */
 
 // Import message bundles
-import { LOCALE_JA, LocalizationService, MessageArgs } from '@salesforce/salesforcedx-utils';
+import { LOCALE_JA, LocalizationService, MessageArgs } from '@salesforce/vscode-i18n';
 import { messages as enMessages, MessageKey } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 

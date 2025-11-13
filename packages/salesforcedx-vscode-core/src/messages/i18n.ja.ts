@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { MISSING_LABEL_MSG } from '@salesforce/salesforcedx-utils-vscode';
+import { MISSING_LABEL_MSG } from '@salesforce/vscode-i18n';
 import { MessageKey } from './i18n';
 
 /**

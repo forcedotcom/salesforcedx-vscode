@@ -87,7 +87,6 @@ export {
 export { hasRootWorkspace, getRootWorkspacePath, workspaceUtils } from './workspaces/workspaceUtils';
 export { CliCommandExecutor } from './cli/commandExecutor';
 export { LocalCommandExecution } from './cli/localCommandExecutor';
-export { LocalizationService, LOCALE_JA, MISSING_LABEL_MSG } from '@salesforce/salesforcedx-utils';
 export { SFDX_FOLDER } from './constants';
 
 export type { ContinueResponse, CancelResponse, ParametersGatherer } from './commands/parameterGatherers';

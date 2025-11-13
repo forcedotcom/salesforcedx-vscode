@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DEFAULT_LOCALE } from '../constants';
+import { DEFAULT_LOCALE, LOCALE_JA } from '../constants';
 import { AdvancedMessageBundle } from '../types/localization/advancedTypes';
 import { Config, Locale } from '../types/localization/config';
 import { Localization } from './localization';
@@ -13,7 +13,7 @@ import { Message } from './message';
 
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-const SUPPORTED_LOCALES: Locale[] = [DEFAULT_LOCALE, 'ja'] as const;
+const SUPPORTED_LOCALES: readonly Locale[] = [DEFAULT_LOCALE, LOCALE_JA] as const;
 
 /**
  * Type guard function to check if a value is a valid Locale

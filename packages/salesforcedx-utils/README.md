@@ -8,7 +8,9 @@ not existing outside of the VSCode runtime.
 
 ## Message Type Safety
 
-This package provides a comprehensive type-safe localization system that automatically infers argument types from printf-style format specifiers in message templates.
+> **Note**: The i18n functionality has been moved to `@salesforce/vscode-i18n`. For localization features including `MessageArgs`, `LocalizationService`, and related types, please use `@salesforce/vscode-i18n` instead.
+
+The `@salesforce/vscode-i18n` package provides a comprehensive type-safe localization system that automatically infers argument types from printf-style format specifiers in message templates.
 
 ### Core Features
 
@@ -25,7 +27,7 @@ This package provides a comprehensive type-safe localization system that automat
 Automatically infers argument types from message format specifiers:
 
 ```typescript
-import { MessageArgs } from '@salesforce/salesforcedx-utils';
+import { MessageArgs } from '@salesforce/vscode-i18n';
 
 // Message with format specifiers
 const messages = {
@@ -93,7 +95,7 @@ export type MessageKey = keyof typeof messages;
 2. **Create type-safe localize function**:
 
 ```typescript
-import { MessageArgs } from '@salesforce/salesforcedx-utils';
+import { MessageArgs } from '@salesforce/vscode-i18n';
 
 export const nls = {
   localize: <K extends MessageKey>(key: K, ...args: MessageArgs<K, typeof messages>): string =>
