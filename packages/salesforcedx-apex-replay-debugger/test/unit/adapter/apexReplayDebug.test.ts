@@ -522,7 +522,7 @@ describe('Replay debugger adapter - unit', () => {
       expect(sendResponseSpy).toHaveBeenCalledTimes(1);
       const actualResponse: DebugProtocol.StackTraceResponse = sendResponseSpy.mock.calls[0][0];
       expect(actualResponse.success).toBe(true);
-      expect(actualResponse.body.stackFrames).toEqual(sampleStackFrames.slice().reverse());
+      expect(actualResponse.body.stackFrames).toEqual(sampleStackFrames.toReversed());
     });
   });
 
