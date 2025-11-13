@@ -99,10 +99,11 @@ export default [
       'unicorn/prefer-date-now': 'error',
       'unicorn/prefer-export-from': 'error',
       'unicorn/prefer-includes': 'error',
-
+      'unicorn/prefer-modern-math-apis': 'error',
       'unicorn/prefer-node-protocol': 'error',
       'unicorn/prefer-object-from-entries': 'error',
       'unicorn/prefer-optional-catch-binding': 'error',
+      'unicorn/prefer-single-call': 'error',
       'unicorn/filename-case': [
         'error',
         {
