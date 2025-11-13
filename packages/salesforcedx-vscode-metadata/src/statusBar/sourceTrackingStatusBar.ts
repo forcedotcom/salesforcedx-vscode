@@ -15,6 +15,8 @@ import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
+import { AllServicesLayer } from '../services/extensionProvider';
 import { buildConflictsHoverText, buildLocalHoverText, buildRemoteHoverText } from './hover';
 
 type SourceTrackingCounts = {
@@ -57,11 +59,12 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
   private lastDetails?: SourceTrackingDetails;
 
   private constructor(private readonly servicesApi: SalesforceVSCodeServicesApi) {
-    this.localStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48.5);
-    this.localStatusBarItem.command = 'sf.project.deploy.start';
-
-    this.remoteStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48.4);
+    // Order: remote (left) -> local (right) to match Git's convention (origin/main vs main)
+    this.remoteStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48.5);
     // Remote command will be added when pull command is implemented
+
+    this.localStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48.4);
+    this.localStatusBarItem.command = 'sf.project.deploy.start';
 
     this.conflictsStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48.3);
   }
@@ -90,7 +93,12 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
           })
         )
       );
-    }).pipe(Effect.forkDaemon);
+      // Proactively populate orgRef by attempting to get a connection in the background
+      // This will trigger the subscription if a target-org is configured
+      yield* Effect.flatMap(servicesApi.services.ConnectionService, svc => svc.getConnection).pipe(
+        Effect.catchAll(() => Effect.void)
+      );
+    }).pipe(Effect.forkDaemon, Effect.provide(AllServicesLayer));
 
     instance.orgChangeSubscription = await Effect.runPromise(subscriptionEffect);
 
@@ -187,30 +195,32 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
       return;
     }
 
-    // Update local changes item
-    if (counts.local > 0) {
-      this.localStatusBarItem.text = `↑${counts.local}`;
-      this.localStatusBarItem.tooltip = buildLocalHoverText(this.lastDetails.localChanges);
-      this.localStatusBarItem.backgroundColor =
-        process.env.ESBUILD_PLATFORM === 'web' ? new vscode.ThemeColor('statusBarItem.warningBackground') : undefined;
-      this.localStatusBarItem.show();
-    } else {
-      this.localStatusBarItem.hide();
-    }
-
-    // Update remote changes item
+    // Update remote changes item (leftmost to match Git convention)
     if (counts.remote > 0) {
-      this.remoteStatusBarItem.text = `↓${counts.remote}`;
+      this.remoteStatusBarItem.text = nls.localize('source_tracking_remote_text', counts.remote);
       this.remoteStatusBarItem.tooltip = buildRemoteHoverText(this.lastDetails.remoteChanges);
       this.remoteStatusBarItem.backgroundColor = undefined;
+      this.remoteStatusBarItem.color = new vscode.ThemeColor('charts.blue');
       this.remoteStatusBarItem.show();
     } else {
       this.remoteStatusBarItem.hide();
     }
 
+    // Update local changes item
+    if (counts.local > 0) {
+      this.localStatusBarItem.text = nls.localize('source_tracking_local_text', counts.local);
+      this.localStatusBarItem.tooltip = buildLocalHoverText(this.lastDetails.localChanges);
+      this.localStatusBarItem.backgroundColor =
+        process.env.ESBUILD_PLATFORM === 'web' ? new vscode.ThemeColor('statusBarItem.warningBackground') : undefined;
+      this.localStatusBarItem.color = new vscode.ThemeColor('charts.blue');
+      this.localStatusBarItem.show();
+    } else {
+      this.localStatusBarItem.hide();
+    }
+
     // Update conflicts item
     if (counts.conflicts > 0) {
-      this.conflictsStatusBarItem.text = `↕${counts.conflicts}`;
+      this.conflictsStatusBarItem.text = nls.localize('source_tracking_conflicts_text', counts.conflicts);
       this.conflictsStatusBarItem.tooltip = buildConflictsHoverText(this.lastDetails.conflicts);
       this.conflictsStatusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
       this.conflictsStatusBarItem.show();

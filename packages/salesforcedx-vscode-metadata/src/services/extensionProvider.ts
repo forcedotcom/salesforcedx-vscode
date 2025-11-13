@@ -59,7 +59,8 @@ export const AllServicesLayer = Layer.unwrapEffect(
       api.services.SettingsService.Default,
       api.services.WorkspaceService.Default,
       api.services.SourceTrackingService.Default,
-      api.services.ChannelServiceLayer('Salesforce Metadata')
+      api.services.ChannelServiceLayer('Salesforce Metadata'),
+      api.services.FileWatcherService.Default
     );
   }).pipe(Effect.provide(ExtensionProviderServiceLive))
 );
