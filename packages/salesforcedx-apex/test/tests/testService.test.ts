@@ -406,12 +406,12 @@ describe('Apex Test Suites', async () => {
           TestLevel.RunLocalTests,
           undefined,
           undefined,
-          [TestCategory.Flow, TestCategory.Apex]
+          'Flow,Apex'
         );
 
         expect(result).to.deep.equal({
           testLevel: TestLevel.RunLocalTests,
-          category: [TestCategory.Flow, TestCategory.Apex],
+          category: ['Flow', 'Apex'],
           skipCodeCoverage: false
         });
       });

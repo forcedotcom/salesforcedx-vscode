@@ -13,7 +13,6 @@ import {
   OutputDirConfig,
   ResultFormat,
   SyncTestConfiguration,
-  TestCategory,
   TestItem,
   TestLevel,
   TestResult,
@@ -412,7 +411,10 @@ export class TestService {
     testLevel: TestLevel,
     tests?: string,
     classnames?: string,
-    category?: TestCategory | TestCategory[],
+    /**
+     * Category for this run, for Flow or Apex. Can be a single category or an array of categories.
+     */
+    category?: string,
     /**
      * Specifies whether to opt out of collecting code coverage information during the test run ("true") or to collect code coverage information ("false").
      * @default false
@@ -453,7 +455,7 @@ export class TestService {
       } else if (this.hasCategory(category)) {
         return {
           testLevel,
-          category: Array.isArray(category) ? category : [category],
+          category: category.split(','),
           skipCodeCoverage
         };
       }
@@ -472,7 +474,14 @@ export class TestService {
     tests?: string,
     classNames?: string,
     suiteNames?: string,
-    category?: TestCategory | TestCategory[],
+    /**
+     * Category for this run, for Flow or Apex. Can be a single category or an array of categories.
+     */
+    category?: string,
+    /**
+     * Specifies whether to opt out of collecting code coverage information during the test run ("true") or to collect code coverage information ("false").
+     * @default false
+     */
     skipCodeCoverage = false
   ): Promise<AsyncTestConfiguration | AsyncTestArrayConfiguration> {
     try {
@@ -498,7 +507,7 @@ export class TestService {
           suiteNames,
           testLevel,
           ...(this.hasCategory(category) && {
-            category: Array.isArray(category) ? category : [category]
+            category: category.split(',')
           }),
           skipCodeCoverage
         };
@@ -734,7 +743,7 @@ export class TestService {
   public createStream(filePath: string): Writable {
     return createWriteStream(filePath, 'utf8');
   }
-  private hasCategory(category: TestCategory | TestCategory[]): boolean {
-    return Array.isArray(category) ? category.length > 0 : !!category;
+  private hasCategory(category?: string): boolean {
+    return category && category.length !== 0;
   }
 }
