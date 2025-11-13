@@ -508,8 +508,7 @@ export class ApexDebug extends LoggingDebugSession {
   }
 
   private getSessionIdleTimer(): ReturnType<typeof setTimeout>[] {
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    timers.push(
+    const timers: ReturnType<typeof setTimeout>[] = [
       setTimeout(() => {
         this.warnToDebugConsole(
           nls.localize(
@@ -541,7 +540,7 @@ export class ApexDebug extends LoggingDebugSession {
         this.warnToDebugConsole(nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60_000));
         this.sendEvent(new TerminatedEvent());
       }, DEFAULT_IDLE_TIMEOUT_MS)
-    );
+    ];
     return timers;
   }
 

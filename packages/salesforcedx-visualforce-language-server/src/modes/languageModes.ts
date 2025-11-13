@@ -84,11 +84,11 @@ export const getLanguageModes = (supportedLanguages: { [languageId: string]: boo
     getDocumentRegions(htmlLanguageService, document)
   );
 
-  let modelCaches: LanguageModelCache<any>[] = [];
-  modelCaches.push(documentRegions);
+  let modelCaches: LanguageModelCache<any>[] = [documentRegions];
 
-  let modes = {};
-  modes['html'] = getHTMLMode(htmlLanguageService);
+  let modes: Record<string, LanguageMode> = {
+    html: getHTMLMode(htmlLanguageService)
+  };
   if (supportedLanguages['css']) {
     modes['css'] = getCSSMode(documentRegions);
   }

@@ -80,6 +80,7 @@ export default [
       'unicorn/consistent-empty-array-spread': 'error',
       'unicorn/consistent-function-scoping': 'error',
       'unicorn/explicit-length-check': 'error',
+      'unicorn/no-immediate-mutation': 'error',
       'unicorn/no-instanceof-builtins': 'error',
       'unicorn/no-typeof-undefined': 'error',
       'unicorn/no-useless-fallback-in-spread': 'error',
