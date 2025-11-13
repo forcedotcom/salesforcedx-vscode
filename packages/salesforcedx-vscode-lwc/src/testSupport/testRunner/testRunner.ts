@@ -92,12 +92,7 @@ export class TestRunner {
         ? getTestNamePatternArgs(testExecutionInfo.testName)
         : [];
 
-    let runModeArgs: string[];
-    if (testRunType === TestRunType.WATCH) {
-      runModeArgs = ['--watch'];
-    } else {
-      runModeArgs = [];
-    }
+    const runModeArgs = testRunType === TestRunType.WATCH ? ['--watch'] : [];
     const args = [
       ...runModeArgs,
       '--json',

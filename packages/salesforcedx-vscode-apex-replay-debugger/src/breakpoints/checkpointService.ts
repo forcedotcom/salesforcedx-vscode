@@ -483,11 +483,7 @@ const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreakpoint):
   // based upon whether or not the string starts with SELECT
   const logMessage = (breakpoint as any).logMessage as string;
   if (logMessage && logMessage.length > 0) {
-    if (logMessage.toLocaleLowerCase().startsWith('select')) {
-      checkpointOverlayAction.ActionScriptType = 'SOQL';
-    } else {
-      checkpointOverlayAction.ActionScriptType = 'Apex';
-    }
+    checkpointOverlayAction.ActionScriptType = logMessage.toLocaleLowerCase().startsWith('select') ? 'SOQL' : 'Apex';
     checkpointOverlayAction.ActionScript = logMessage;
   }
   return checkpointOverlayAction;

@@ -134,19 +134,15 @@ export class ComponentUtils {
     const freshFetch = Boolean(forceRefresh) || !(await fileOrFolderExists(componentsPath));
     const connection = await WorkspaceContext.getInstance().getConnection();
     if (metadataType === CUSTOMOBJECTS_FULLNAME && folderName) {
-      if (freshFetch) {
-        componentsList = await this.fetchCustomObjectsFields(connection, componentsPath, folderName);
-      } else {
-        componentsList = await this.fetchExistingCustomObjectsFields(componentsPath);
-      }
+      componentsList = await (freshFetch
+        ? this.fetchCustomObjectsFields(connection, componentsPath, folderName)
+        : this.fetchExistingCustomObjectsFields(componentsPath));
     } else if (metadataType === STANDARDVALUESET_FULLNAME) {
       componentsList = standardValueSet.fullnames;
     } else {
-      if (freshFetch) {
-        componentsList = await this.fetchMetadataComponents(metadataType, connection, componentsPath, folderName);
-      } else {
-        componentsList = await this.fetchExistingMetadataComponents(metadataType, componentsPath);
-      }
+      componentsList = await (freshFetch
+        ? this.fetchMetadataComponents(metadataType, connection, componentsPath, folderName)
+        : this.fetchExistingMetadataComponents(metadataType, componentsPath));
     }
     return componentsList;
   }

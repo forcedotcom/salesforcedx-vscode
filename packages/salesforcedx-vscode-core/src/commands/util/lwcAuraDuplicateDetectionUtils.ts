@@ -56,18 +56,10 @@ export const isNameMatch = (item: string, componentName: string, componentPath: 
  * @returns
  */
 export const checkForExistingComponentInAltLocation = async (componentPath: string, name: string): Promise<boolean> => {
-  let pathToCheck;
-  if (isLwcComponentPath(componentPath)) {
-    pathToCheck = path.join(path.dirname(componentPath), AURA);
-  } else {
-    pathToCheck = path.join(path.dirname(componentPath), LWC);
-  }
-
-  if (pathToCheck) {
-    return await fileOrFolderExists(path.join(pathToCheck, name));
-  }
-
-  return false; // No path to check
+  const pathToCheck = isLwcComponentPath(componentPath)
+    ? path.join(path.dirname(componentPath), AURA)
+    : path.join(path.dirname(componentPath), LWC);
+  return pathToCheck ? await fileOrFolderExists(path.join(pathToCheck, name)) : false; // No path to check
 };
 
 export const checkForDuplicateName = async (componentPath: string, newName: string) => {

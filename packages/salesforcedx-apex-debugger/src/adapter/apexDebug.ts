@@ -257,15 +257,15 @@ export class ScopeContainer implements VariableContainer {
     let variableKind: ApexVariableKind;
     switch (this.type) {
       case 'local':
-        values = this.frameInfo.locals ? this.frameInfo.locals : [];
+        values = this.frameInfo.locals ?? [];
         variableKind = ApexVariableKind.Local;
         break;
       case 'static':
-        values = this.frameInfo.statics ? this.frameInfo.statics : [];
+        values = this.frameInfo.statics ?? [];
         variableKind = ApexVariableKind.Static;
         break;
       case 'global':
-        values = this.frameInfo.globals ? this.frameInfo.globals : [];
+        values = this.frameInfo.globals ?? [];
         variableKind = ApexVariableKind.Global;
         break;
       default:
@@ -947,23 +947,17 @@ export class ApexDebug extends LoggingDebugSession {
               TRACE_CATEGORY_VARIABLES,
               `stackTraceRequest: state=${JSON.stringify(stateRespObj.stateResponse.state)}`
             );
-            if (stateRespObj.stateResponse.state.locals?.local) {
-              frameInfo.locals = stateRespObj.stateResponse.state.locals.local;
-            } else {
-              frameInfo.locals = [];
-            }
+            frameInfo.locals = stateRespObj.stateResponse.state.locals?.local
+              ? stateRespObj.stateResponse.state.locals.local
+              : [];
 
-            if (stateRespObj.stateResponse.state.statics?.static) {
-              frameInfo.statics = stateRespObj.stateResponse.state.statics.static;
-            } else {
-              frameInfo.statics = [];
-            }
+            frameInfo.statics = stateRespObj.stateResponse.state.statics?.static
+              ? stateRespObj.stateResponse.state.statics.static
+              : [];
 
-            if (stateRespObj.stateResponse.state.globals?.global) {
-              frameInfo.globals = stateRespObj.stateResponse.state.globals.global;
-            } else {
-              frameInfo.globals = [];
-            }
+            frameInfo.globals = stateRespObj.stateResponse.state.globals?.global
+              ? stateRespObj.stateResponse.state.globals.global
+              : [];
 
             if (stateRespObj.stateResponse.state.references?.references) {
               this.populateReferences(stateRespObj.stateResponse.state.references.references, frameInfo.requestId);
@@ -1115,23 +1109,17 @@ export class ApexDebug extends LoggingDebugSession {
         TRACE_CATEGORY_VARIABLES,
         `fetchFrameVariables: frame ${frameInfo.frameNumber} frame=${JSON.stringify(frameRespObj.frameResponse.frame)}`
       );
-      if (frameRespObj.frameResponse.frame.locals?.local) {
-        frameInfo.locals = frameRespObj.frameResponse.frame.locals.local;
-      } else {
-        frameInfo.locals = [];
-      }
+      frameInfo.locals = frameRespObj.frameResponse.frame.locals?.local
+        ? frameRespObj.frameResponse.frame.locals.local
+        : [];
 
-      if (frameRespObj.frameResponse.frame.statics?.static) {
-        frameInfo.statics = frameRespObj.frameResponse.frame.statics.static;
-      } else {
-        frameInfo.statics = [];
-      }
+      frameInfo.statics = frameRespObj.frameResponse.frame.statics?.static
+        ? frameRespObj.frameResponse.frame.statics.static
+        : [];
 
-      if (frameRespObj.frameResponse.frame.globals?.global) {
-        frameInfo.globals = frameRespObj.frameResponse.frame.globals.global;
-      } else {
-        frameInfo.globals = [];
-      }
+      frameInfo.globals = frameRespObj.frameResponse.frame.globals?.global
+        ? frameRespObj.frameResponse.frame.globals.global
+        : [];
 
       if (frameRespObj.frameResponse.frame.references?.references) {
         this.populateReferences(frameRespObj.frameResponse.frame.references.references, frameInfo.requestId);
@@ -1286,11 +1274,9 @@ export class ApexDebug extends LoggingDebugSession {
       const errorObj = extractJsonObject(error);
       if (errorObj?.message) {
         const errorMessage: string = errorObj.message;
-        if (errorMessage.includes('entity type cannot be inserted: Apex Debugger Session')) {
-          response.message = nls.localize('session_no_entity_access_text');
-        } else {
-          response.message = errorMessage;
-        }
+        response.message = errorMessage.includes('entity type cannot be inserted: Apex Debugger Session')
+          ? nls.localize('session_no_entity_access_text')
+          : errorMessage;
         if (errorObj.action) {
           this.errorToDebugConsole(`${nls.localize('command_error_help_text')}:${os.EOL}${errorObj.action}`);
         }
