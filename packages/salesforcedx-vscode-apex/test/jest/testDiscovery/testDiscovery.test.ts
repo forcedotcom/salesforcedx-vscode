@@ -105,14 +105,14 @@ describe('TestDiscovery', () => {
     expect(result.classes).toHaveLength(0);
   });
 
-  it('uses minimum API version 65.0 and does not include options by default', async () => {
+  it('uses minimum API version 65.0 and defaults showAllMethods=true', async () => {
     (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
     await discoverTests();
     expect(mockConnection.request).toHaveBeenCalledTimes(1);
     const firstCallArg = (mockConnection.request as jest.Mock).mock.calls[0][0];
     expect(firstCallArg.method).toBe('GET');
-    expect(firstCallArg.url).toMatch(/^\/services\/data\/v65\.0\/tooling\/tests/);
-    expect(firstCallArg.url).not.toContain('showAllMethods=');
+    expect(firstCallArg.url).toMatch(/^\/services\/data\/v65\.0\/tooling\/tests\?/);
+    expect(firstCallArg.url).toContain('showAllMethods=true');
     expect(firstCallArg.url).not.toContain('namespacePrefix=');
     expect(firstCallArg.url).not.toContain('pageSize=');
   });

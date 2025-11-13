@@ -23,7 +23,9 @@ export type DiscoverTestsOptions = {
   pageSize?: number;
 };
 
-export const discoverTests = async (options?: DiscoverTestsOptions): Promise<TestDiscoveryResult> => {
+export const discoverTests = async (
+  options: DiscoverTestsOptions = { showAllMethods: true }
+): Promise<TestDiscoveryResult> => {
   let connection;
   try {
     const core = await getVscodeCoreExtension();
@@ -44,6 +46,8 @@ export const discoverTests = async (options?: DiscoverTestsOptions): Promise<Tes
     const qp = new URLSearchParams();
     if (options?.showAllMethods !== undefined) {
       qp.set('showAllMethods', String(options.showAllMethods));
+    } else {
+      qp.set('showAllMethods', 'true');
     }
     if (options?.namespacePrefix) {
       qp.set('namespacePrefix', options.namespacePrefix);
