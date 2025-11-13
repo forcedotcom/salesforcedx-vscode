@@ -67,7 +67,7 @@ export class ComponentUtils {
         { metadataType },
         { metadataComponents: components.length }
       );
-      return components.sort();
+      return components.toSorted();
     } catch (e) {
       telemetryService.sendException('metadata_cmp_build_cmp_list', e.message);
       throw new Error(e);

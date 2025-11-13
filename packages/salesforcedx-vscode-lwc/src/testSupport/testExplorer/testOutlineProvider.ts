@@ -111,7 +111,7 @@ export class SfTestOutlineProvider implements vscode.TreeDataProvider<TestNode>,
             const testGroupNode = new SfTestGroupNode(testNodeLabel, testFileInfo);
             return testGroupNode;
           })
-          .sort(sortTestNodeByLabel);
+          .toSorted(sortTestNodeByLabel);
       } catch (error) {
         console.error(error);
         return [];

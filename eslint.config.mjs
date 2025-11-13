@@ -81,6 +81,7 @@ export default [
       'unicorn/consistent-function-scoping': 'error',
       'unicorn/explicit-length-check': 'error',
       'unicorn/no-array-reverse': 'error',
+      'unicorn/no-array-sort': 'error',
       'unicorn/no-immediate-mutation': 'error',
       'unicorn/no-instanceof-builtins': 'error',
       'unicorn/no-typeof-undefined': 'error',
