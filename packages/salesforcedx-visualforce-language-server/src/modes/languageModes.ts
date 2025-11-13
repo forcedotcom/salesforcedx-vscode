@@ -34,8 +34,6 @@ import { getDocumentRegions, HTMLDocumentRegions } from './embeddedSupport';
 import { getHTMLMode } from './htmlMode';
 import { getJavascriptMode } from './javascriptMode';
 
-export { ColorInformation };
-
 export type Settings = LanguageSettings & {
   css?: any;
   visualforce?: any;
@@ -150,3 +148,5 @@ export const getLanguageModes = (supportedLanguages: { [languageId: string]: boo
     }
   };
 };
+
+export { ColorInformation } from 'vscode-languageserver-protocol';
