@@ -396,7 +396,8 @@ describe('Apex Test Suites', async () => {
 
         expect(result).to.deep.equal({
           testLevel: TestLevel.RunLocalTests,
-          category: ['Flow']
+          category: ['Flow'],
+          skipCodeCoverage: false
         });
       });
 
@@ -405,12 +406,13 @@ describe('Apex Test Suites', async () => {
           TestLevel.RunLocalTests,
           undefined,
           undefined,
-          'Flow,Apex'
+          'Flow'
         );
 
         expect(result).to.deep.equal({
           testLevel: TestLevel.RunLocalTests,
-          category: ['Flow', 'Apex']
+          category: ['Flow'],
+          skipCodeCoverage: false
         });
       });
 
@@ -461,7 +463,8 @@ describe('Apex Test Suites', async () => {
         expect(result).to.deep.equal({
           suiteNames: undefined,
           testLevel: TestLevel.RunLocalTests,
-          category: ['Flow']
+          category: ['Flow'],
+          skipCodeCoverage: false
         });
       });
 
@@ -476,7 +479,8 @@ describe('Apex Test Suites', async () => {
 
         expect(result).to.deep.equal({
           testLevel: TestLevel.RunSpecifiedTests,
-          tests: [{ className: 'TestClass' }]
+          tests: [{ className: 'TestClass' }],
+          skipCodeCoverage: false
         });
         expect(result).to.not.have.property('category');
       });

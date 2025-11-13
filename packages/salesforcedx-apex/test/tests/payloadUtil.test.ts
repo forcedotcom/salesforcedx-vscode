@@ -54,7 +54,8 @@ describe('Build async payload', async () => {
 
     expect(payload).to.deep.equal({
       tests: [{ className: 'myClass', testMethods: ['myTest'] }],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.calledOnce).to.be.true;
   });
@@ -70,7 +71,8 @@ describe('Build async payload', async () => {
 
     expect(payload).to.deep.equal({
       tests: [{ className: 'myNamespace', testMethods: ['myClass'] }],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.calledOnce).to.be.true;
   });
@@ -91,7 +93,8 @@ describe('Build async payload', async () => {
           className: 'myClass'
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.calledOnce).to.be.true;
   });
@@ -111,7 +114,8 @@ describe('Build async payload', async () => {
           className: 'myNamespace.myClass'
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.calledOnce).to.be.true;
   });
@@ -136,7 +140,8 @@ describe('Build async payload', async () => {
           className: 'mySecondClass'
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.calledOnce).to.be.true;
   });
@@ -156,7 +161,8 @@ describe('Build async payload', async () => {
           testMethods: ['myTest']
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).to.be.true;
   });
@@ -169,7 +175,8 @@ describe('Build async payload', async () => {
     );
     expect(payload).to.deep.equal({
       tests: [{ className: 'myClass' }],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).to.be.true;
   });
@@ -182,7 +189,8 @@ describe('Build async payload', async () => {
     );
     expect(payload).to.deep.equal({
       tests: [{ classId: '01p4x00000KWt3T' }],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).to.be.true;
   });
@@ -196,7 +204,8 @@ describe('Build async payload', async () => {
     );
     expect(payload).to.deep.equal({
       tests: [{ className: 'myClass' }],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).to.be.true;
   });
@@ -210,7 +219,8 @@ describe('Build async payload', async () => {
     );
     expect(payload).to.deep.equal({
       tests: [{ classId: '01p4x00000KWt3TAAT' }],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).to.be.true;
   });
@@ -224,7 +234,8 @@ describe('Build async payload', async () => {
     );
     expect(payload).to.deep.equal({
       tests: [{ className: '01p4x00000KWt3TAATP' }],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).to.be.true;
   });
@@ -240,7 +251,8 @@ describe('Build async payload', async () => {
     );
     expect(payload).to.deep.equal({
       tests: [{ className: 'myNamespace.myClass' }],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).to.be.true;
   });
@@ -255,7 +267,8 @@ describe('Build async payload', async () => {
     );
     expect(payload).to.deep.equal({
       suiteNames: 'mySuite',
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).to.be.true;
   });
@@ -319,7 +332,7 @@ describe('Build async payload', async () => {
     expect(namespaceStub.notCalled).to.be.true;
   });
 
-  it('should not include skipCodeCoverage in async payload when skipCodeCoverage is false', async () => {
+  it('should include skipCodeCoverage as false in async payload when skipCodeCoverage is false', async () => {
     const namespaceStub = sandboxStub
       .stub(utils, 'queryNamespaces')
       .resolves([]);
@@ -334,9 +347,9 @@ describe('Build async payload', async () => {
 
     expect(payload).to.deep.equal({
       tests: [{ className: 'myClass', testMethods: ['myTest'] }],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
-    expect(payload).to.not.have.property('skipCodeCoverage');
     expect(namespaceStub.calledOnce).to.be.true;
   });
 
@@ -405,7 +418,8 @@ describe('Build sync payload', async () => {
 
     expect(payload).to.deep.equal({
       tests: [{ className: 'myClass', testMethods: ['myTest'] }],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.calledOnce).to.be.true;
   });
@@ -427,7 +441,8 @@ describe('Build sync payload', async () => {
           testMethods: ['myTest']
         }
       ],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).to.be.true;
   });
@@ -442,7 +457,8 @@ describe('Build sync payload', async () => {
 
     expect(payload).to.deep.equal({
       tests: [{ className: 'myClass' }],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).to.be.true;
   });
@@ -459,7 +475,8 @@ describe('Build sync payload', async () => {
 
     expect(payload).to.deep.equal({
       tests: [{ className: 'myNamespace.myClass' }],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
     expect(namespaceStub.notCalled).to.be.true;
   });
@@ -505,7 +522,7 @@ describe('Build sync payload', async () => {
     expect(namespaceStub.calledOnce).to.be.true;
   });
 
-  it('should not include skipCodeCoverage in sync payload when skipCodeCoverage is false', async () => {
+  it('should include skipCodeCoverage as false in sync payload when skipCodeCoverage is false', async () => {
     const namespaceStub = sandboxStub
       .stub(utils, 'queryNamespaces')
       .resolves([{ installedNs: false, namespace: 'myNamespace' }]);
@@ -519,9 +536,9 @@ describe('Build sync payload', async () => {
 
     expect(payload).to.deep.equal({
       tests: [{ className: 'myClass', testMethods: ['myTest'] }],
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage: false
     });
-    expect(payload).to.not.have.property('skipCodeCoverage');
     expect(namespaceStub.calledOnce).to.be.true;
   });
 

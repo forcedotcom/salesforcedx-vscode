@@ -45,6 +45,8 @@ import { createWriteStream } from 'node:fs';
 
 import { JsonStreamStringify } from 'json-stream-stringify';
 
+type Category = 'Flow' | 'Apex';
+
 /**
  * Standalone function for writing test result files - easier to test
  */
@@ -403,14 +405,22 @@ export class TestService {
     }
   }
 
-  // utils to build test run payloads that may contain namespaces
+  /**
+   * Utility function to build test run payloads that may contain namespaces
+   * @param testLevel test level
+   * @param tests tests
+   * @param classnames classnames
+   * @param category category (Flow or Apex)
+   * @param skipCodeCoverage Specifies whether to opt out of collecting code coverage information during the test run ("true") or to collect code coverage information ("false"). Default value is "false".
+   * @returns SyncTestConfiguration
+   */
   @elapsedTime()
   public async buildSyncPayload(
     testLevel: TestLevel,
     tests?: string,
     classnames?: string,
-    category?: string,
-    skipCodeCoverage?: boolean
+    category?: Category,
+    skipCodeCoverage = false
   ): Promise<SyncTestConfiguration> {
     try {
       if (tests) {
@@ -439,13 +449,15 @@ export class TestService {
           const prop = isValidApexClassID(classnames) ? 'classId' : 'className';
           return {
             tests: [{ [prop]: classnames }],
-            testLevel
+            testLevel,
+            skipCodeCoverage
           };
         }
       } else if (this.hasCategory(category)) {
         return {
           testLevel,
-          category: this.toArray(category)
+          category: this.toArray(category),
+          skipCodeCoverage
         };
       }
       throw new Error(nls.localize('payloadErr'));
@@ -454,6 +466,16 @@ export class TestService {
     }
   }
 
+  /**
+   * Utility function to build test asynchronous run payloads
+   * @param testLevel test level
+   * @param tests tests
+   * @param classNames classNames
+   * @param suiteNames suiteNames
+   * @param category category (Flow or Apex, comma-separated for multiple)
+   * @param skipCodeCoverage Specifies whether to opt out of collecting code coverage information during the test run ("true") or to collect code coverage information ("false"). Default value is "false".
+   * @returns AsyncTestConfiguration or AsyncTestArrayConfiguration
+   */
   @elapsedTime()
   public async buildAsyncPayload(
     testLevel: TestLevel,
@@ -461,7 +483,7 @@ export class TestService {
     classNames?: string,
     suiteNames?: string,
     category?: string,
-    skipCodeCoverage?: boolean
+    skipCodeCoverage = false
   ): Promise<AsyncTestConfiguration | AsyncTestArrayConfiguration> {
     try {
       if (tests) {
@@ -488,7 +510,7 @@ export class TestService {
           ...(this.hasCategory(category) && {
             category: this.toArray(category)
           }),
-          ...(skipCodeCoverage && { skipCodeCoverage })
+          skipCodeCoverage
         };
       }
     } catch (e) {
@@ -499,9 +521,9 @@ export class TestService {
   @elapsedTime()
   private async buildAsyncClassPayload(
     classNames: string,
-    skipCodeCoverage?: boolean
+    skipCodeCoverage: boolean
   ): Promise<AsyncTestArrayConfiguration> {
-    const classNameArray = classNames.split(',') as string[];
+    const classNameArray = classNames.split(',');
     const classItems = classNameArray.map((item) => {
       const classParts = item.split('.');
       if (classParts.length > 1) {
@@ -513,30 +535,30 @@ export class TestService {
     return {
       tests: classItems,
       testLevel: TestLevel.RunSpecifiedTests,
-      ...(skipCodeCoverage && { skipCodeCoverage })
+      skipCodeCoverage
     };
   }
 
   @elapsedTime()
   private async buildClassPayloadForFlow(
     classNames: string,
-    skipCodeCoverage?: boolean
+    skipCodeCoverage: boolean
   ): Promise<AsyncTestArrayConfiguration> {
-    const classNameArray = classNames.split(',') as string[];
+    const classNameArray = classNames.split(',');
     const classItems = classNameArray.map(
-      (item) => ({ className: item }) as TestItem
+      (item): TestItem => ({ className: item })
     );
     return {
       tests: classItems,
       testLevel: TestLevel.RunSpecifiedTests,
-      ...(skipCodeCoverage && { skipCodeCoverage })
+      skipCodeCoverage
     };
   }
 
   @elapsedTime()
   private async buildTestPayload(
     testNames: string,
-    skipCodeCoverage?: boolean
+    skipCodeCoverage: boolean
   ): Promise<AsyncTestArrayConfiguration | SyncTestConfiguration> {
     const testNameArray = testNames.split(',');
     const testItems: TestItem[] = [];
@@ -572,7 +594,7 @@ export class TestService {
     return {
       tests: testItems,
       testLevel: TestLevel.RunSpecifiedTests,
-      ...(skipCodeCoverage && { skipCodeCoverage })
+      skipCodeCoverage
     };
   }
 
