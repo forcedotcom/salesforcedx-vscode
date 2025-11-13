@@ -107,6 +107,7 @@ export default [
       'unicorn/prefer-set-size': 'error',
       'unicorn/prefer-single-call': 'error',
       'unicorn/prefer-string-replace-all': 'error',
+      'unicorn/prefer-string-starts-ends-with': 'error',
       'unicorn/filename-case': [
         'error',
         {

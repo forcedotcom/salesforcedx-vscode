@@ -857,8 +857,10 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should return breakpoints', () => {
-      const expectedPath = /^win32/.test(process.platform) ? 'C:\\space in path\\foo.cls' : '/space in path/foo.cls';
-      const uriFromLanguageServer = /^win32/.test(process.platform)
+      const expectedPath = process.platform.startsWith('win32')
+        ? 'C:\\space in path\\foo.cls'
+        : '/space in path/foo.cls';
+      const uriFromLanguageServer = process.platform.startsWith('win32')
         ? 'file:///c:/space%20in%20path/foo.cls'
         : 'file:///space%20in%20path/foo.cls';
       args.source.path = expectedPath;
