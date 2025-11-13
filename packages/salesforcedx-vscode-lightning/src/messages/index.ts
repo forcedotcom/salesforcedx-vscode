@@ -4,8 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { LOCALE_JA, MessageArgs, LocalizationService } from '@salesforce/salesforcedx-utils-vscode';
+import { LOCALE_JA, LocalizationService, type MessageArgs } from '@salesforce/vscode-i18n';
 import { messages as enMessages, MessageKey } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 

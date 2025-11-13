@@ -28,7 +28,7 @@ import { URI } from 'vscode-uri';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
-import { taskViewService } from '../../statuses';
+import { taskViewService } from '../../statuses/taskView';
 import {
   PathExistsChecker,
   ProjectNameAndPathAndTemplate,

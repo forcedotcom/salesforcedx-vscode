@@ -8,8 +8,8 @@ import type { CommandExecution } from '@salesforce/salesforcedx-utils';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { SFDX_CORE_CONFIGURATION_NAME } from '../constants';
-import { nls } from '../messages';
-import { ChannelService } from './index';
+import { nls } from '../messages/messages';
+import { ChannelService } from './channelService';
 
 const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 
@@ -119,3 +119,5 @@ export class NotificationService {
     });
   }
 }
+
+export const notificationService = NotificationService.getInstance();

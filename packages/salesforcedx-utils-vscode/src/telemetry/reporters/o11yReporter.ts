@@ -7,7 +7,7 @@
 
 import type { TelemetryReporterWithModifiableUserProperties } from './telemetryReporterConfig';
 import { O11yService } from '@salesforce/o11y-reporter';
-import { TelemetryReporter } from '@salesforce/vscode-service-provider';
+import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
 import * as os from 'node:os';
 import { Disposable, env, UIKind, version, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';

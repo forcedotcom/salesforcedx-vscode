@@ -6,19 +6,15 @@
  */
 import { AuthFields, AuthInfo, Connection, StateAggregator, Org } from '@salesforce/core';
 import * as vscode from 'vscode';
-import { notificationService } from '../commands';
+import { notificationService } from '../commands/notificationService';
 import { ConfigSource, ConfigUtil } from '../config/configUtil';
-import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
+import { nls } from '../messages/messages';
+import { telemetryService } from '../services/telemetry';
 
 /** Get the Dev Hub username */
 export const getDevHubUsername = async (): Promise<string | undefined> => {
   const targetDevHubOrAlias = await getTargetDevHubOrAlias(false);
-  let targetDevHub: string | undefined;
-  if (targetDevHubOrAlias) {
-    targetDevHub = await getUsername(targetDevHubOrAlias);
-  }
-  return targetDevHub;
+  return targetDevHubOrAlias ? await getUsername(targetDevHubOrAlias) : undefined;
 };
 
 /** Get the target org or alias, optionally showing warnings */

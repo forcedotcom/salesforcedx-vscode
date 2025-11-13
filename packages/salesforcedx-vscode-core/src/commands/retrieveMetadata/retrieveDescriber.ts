@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LocalComponent } from '@salesforce/salesforcedx-utils-vscode';
+import type { LocalComponent } from '../../util/types';
 
 /**
  * Provides information for force.source.retrieve.component execution

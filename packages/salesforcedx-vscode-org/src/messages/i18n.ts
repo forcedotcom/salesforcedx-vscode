@@ -73,6 +73,7 @@ export const messages = {
   parameter_gatherer_enter_session_id: 'Enter Session ID',
   parameter_gatherer_enter_session_id_diagnostic_message: 'Enter a valid Session ID',
   parameter_gatherer_enter_session_id_placeholder: 'Session ID',
+  parameter_gatherer_enter_username_name: 'Enter target username',
   parameter_gatherer_placeholder_delete_selected_org: 'Confirm to continue deleting the selected org',
   parameter_gatherer_placeholder_delete_default_org: 'Confirm to continue deleting the default org',
   parameter_gatherer_placeholder_org_list_clean: 'Confirm to continue removing deleted and expired scratch orgs',

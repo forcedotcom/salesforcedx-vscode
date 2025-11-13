@@ -543,7 +543,7 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
     // The lock is necessary here to prevent the user from deleting the underlying breakpoint
     // attached to the checkpoint while they're being uploaded into the org.
     await Effect.runPromise(
-      lock.withPermitsIfAvailable(1)(
+      lock.withPermits(1)(
         Effect.promise(async () => {
           writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`);
           await vscode.window.withProgress(

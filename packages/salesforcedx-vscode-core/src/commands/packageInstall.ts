@@ -59,19 +59,11 @@ class SelectPackageID implements ParametersGatherer<PackageID> {
 }
 
 class SelectInstallationKey implements ParametersGatherer<InstallationKey> {
-  private readonly prefillValueProvider?: () => string;
-
-  constructor(prefillValueProvider?: () => string) {
-    this.prefillValueProvider = prefillValueProvider;
-  }
-
   public async gather(): Promise<CancelResponse | ContinueResponse<InstallationKey>> {
     const installationKeyInputOptions: vscode.InputBoxOptions = {
       prompt: nls.localize('parameter_gatherer_enter_installation_key_if_necessary')
     };
-    if (this.prefillValueProvider) {
-      installationKeyInputOptions.value = this.prefillValueProvider();
-    }
+
     const installationKey = await vscode.window.showInputBox(installationKeyInputOptions);
     return installationKey || installationKey === ''
       ? { type: 'CONTINUE', data: { installationKey } }
