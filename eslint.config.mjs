@@ -103,6 +103,7 @@ export default [
       'unicorn/prefer-node-protocol': 'error',
       'unicorn/prefer-object-from-entries': 'error',
       'unicorn/prefer-optional-catch-binding': 'error',
+      'unicorn/prefer-set-has': 'error',
       'unicorn/prefer-single-call': 'error',
       'unicorn/filename-case': [
         'error',
