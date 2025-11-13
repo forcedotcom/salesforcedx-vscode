@@ -104,7 +104,9 @@ export default [
       'unicorn/prefer-object-from-entries': 'error',
       'unicorn/prefer-optional-catch-binding': 'error',
       'unicorn/prefer-set-has': 'error',
+      'unicorn/prefer-set-size': 'error',
       'unicorn/prefer-single-call': 'error',
+      'unicorn/prefer-string-replace-all': 'error',
       'unicorn/filename-case': [
         'error',
         {

@@ -52,7 +52,7 @@ const fieldDeclToString = (decl: FieldDeclaration): string =>
 // VisibleForTesting
 export const commentToString = (comment?: string): string =>
   // for some reasons if the comment is on a single line the help context shows the last '*/'
-  comment ? `${INDENT}/* ${comment.replace(/(\/\*+\/)|(\/\*+)|(\*+\/)/g, '')}${EOL}${INDENT}*/${EOL}` : '';
+  comment ? `${INDENT}/* ${comment.replaceAll(/(\/\*+\/)|(\/\*+)|(\*+\/)/g, '')}${EOL}${INDENT}*/${EOL}` : '';
 
 // VisibleForTesting
 export const generateFauxClassText = (definition: SObjectDefinition): string => {
