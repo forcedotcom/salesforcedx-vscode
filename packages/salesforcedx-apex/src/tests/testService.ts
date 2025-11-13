@@ -403,17 +403,27 @@ export class TestService {
     }
   }
 
-  // utils to build test run payloads that may contain namespaces
+  /**
+   * Utility function to help build payload for https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_rest_resources_testing_runner_sync.htm
+   */
   @elapsedTime()
   public async buildSyncPayload(
     testLevel: TestLevel,
     tests?: string,
     classnames?: string,
-    category?: string
+    /**
+     * Category for this run, for Flow or Apex. Can be a single category or an array of categories.
+     */
+    category?: string,
+    /**
+     * Specifies whether to opt out of collecting code coverage information during the test run ("true") or to collect code coverage information ("false").
+     * @default false
+     */
+    skipCodeCoverage = false
   ): Promise<SyncTestConfiguration> {
     try {
       if (tests) {
-        const payload = await this.buildTestPayload(tests);
+        const payload = await this.buildTestPayload(tests, skipCodeCoverage);
         const classes = payload.tests
           ?.filter((testItem) => testItem.className)
           .map((testItem) => testItem.className);
@@ -423,7 +433,10 @@ export class TestService {
         return payload;
       } else if (classnames) {
         if (this.hasCategory(category)) {
-          const payload = await this.buildClassPayloadForFlow(classnames);
+          const payload = await this.buildClassPayloadForFlow(
+            classnames,
+            skipCodeCoverage
+          );
           const classes = (payload.tests || [])
             .filter((testItem) => testItem.className)
             .map((testItem) => testItem.className);
@@ -435,13 +448,15 @@ export class TestService {
           const prop = isValidApexClassID(classnames) ? 'classId' : 'className';
           return {
             tests: [{ [prop]: classnames }],
-            testLevel
+            testLevel,
+            skipCodeCoverage
           };
         }
       } else if (this.hasCategory(category)) {
         return {
           testLevel,
-          category: this.toArray(category)
+          category: category.split(','),
+          skipCodeCoverage
         };
       }
       throw new Error(nls.localize('payloadErr'));
@@ -450,32 +465,51 @@ export class TestService {
     }
   }
 
+  /**
+   * Utility function to help build payload for https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_rest_resources_testing_runner_async.htm
+   */
   @elapsedTime()
   public async buildAsyncPayload(
     testLevel: TestLevel,
     tests?: string,
     classNames?: string,
     suiteNames?: string,
-    category?: string
+    /**
+     * Category for this run, for Flow or Apex. Can be a single category or an array of categories.
+     */
+    category?: string,
+    /**
+     * Specifies whether to opt out of collecting code coverage information during the test run ("true") or to collect code coverage information ("false").
+     * @default false
+     */
+    skipCodeCoverage = false
   ): Promise<AsyncTestConfiguration | AsyncTestArrayConfiguration> {
     try {
       if (tests) {
         return (await this.buildTestPayload(
-          tests
+          tests,
+          skipCodeCoverage
         )) as AsyncTestArrayConfiguration;
       } else if (classNames) {
         if (this.hasCategory(category)) {
-          return await this.buildClassPayloadForFlow(classNames);
+          return await this.buildClassPayloadForFlow(
+            classNames,
+            skipCodeCoverage
+          );
         } else {
-          return await this.buildAsyncClassPayload(classNames);
+          return await this.buildAsyncClassPayload(
+            classNames,
+            skipCodeCoverage
+          );
         }
       } else {
         return {
           suiteNames,
           testLevel,
           ...(this.hasCategory(category) && {
-            category: this.toArray(category)
-          })
+            category: category.split(',')
+          }),
+          skipCodeCoverage
         };
       }
     } catch (e) {
@@ -485,9 +519,10 @@ export class TestService {
 
   @elapsedTime()
   private async buildAsyncClassPayload(
-    classNames: string
+    classNames: string,
+    skipCodeCoverage: boolean
   ): Promise<AsyncTestArrayConfiguration> {
-    const classNameArray = classNames.split(',') as string[];
+    const classNameArray = classNames.split(',');
     const classItems = classNameArray.map((item) => {
       const classParts = item.split('.');
       if (classParts.length > 1) {
@@ -496,23 +531,33 @@ export class TestService {
       const prop = isValidApexClassID(item) ? 'classId' : 'className';
       return { [prop]: item } as TestItem;
     });
-    return { tests: classItems, testLevel: TestLevel.RunSpecifiedTests };
+    return {
+      tests: classItems,
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage
+    };
   }
 
   @elapsedTime()
   private async buildClassPayloadForFlow(
-    classNames: string
+    classNames: string,
+    skipCodeCoverage: boolean
   ): Promise<AsyncTestArrayConfiguration> {
-    const classNameArray = classNames.split(',') as string[];
+    const classNameArray = classNames.split(',');
     const classItems = classNameArray.map(
-      (item) => ({ className: item }) as TestItem
+      (item): TestItem => ({ className: item })
     );
-    return { tests: classItems, testLevel: TestLevel.RunSpecifiedTests };
+    return {
+      tests: classItems,
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage
+    };
   }
 
   @elapsedTime()
   private async buildTestPayload(
-    testNames: string
+    testNames: string,
+    skipCodeCoverage: boolean
   ): Promise<AsyncTestArrayConfiguration | SyncTestConfiguration> {
     const testNameArray = testNames.split(',');
     const testItems: TestItem[] = [];
@@ -547,7 +592,8 @@ export class TestService {
 
     return {
       tests: testItems,
-      testLevel: TestLevel.RunSpecifiedTests
+      testLevel: TestLevel.RunSpecifiedTests,
+      skipCodeCoverage
     };
   }
 
@@ -697,10 +743,7 @@ export class TestService {
   public createStream(filePath: string): Writable {
     return createWriteStream(filePath, 'utf8');
   }
-  private hasCategory(category: string): boolean {
+  private hasCategory(category?: string): boolean {
     return category && category.length !== 0;
-  }
-  private toArray(category: string): string[] {
-    return category.split(',');
   }
 }

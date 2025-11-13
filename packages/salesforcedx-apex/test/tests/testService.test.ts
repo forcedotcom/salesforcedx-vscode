@@ -10,7 +10,7 @@ import { fail } from 'assert';
 import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub, spy } from 'sinon';
 import { TestService } from '../../src';
-import { TestLevel } from '../../src/tests/types';
+import { TestCategory, TestLevel } from '../../src/tests/types';
 
 let mockConnection: Connection;
 let sandboxStub: SinonSandbox;
@@ -391,12 +391,13 @@ describe('Apex Test Suites', async () => {
           TestLevel.RunLocalTests,
           undefined,
           undefined,
-          'Flow'
+          TestCategory.Flow
         );
 
         expect(result).to.deep.equal({
           testLevel: TestLevel.RunLocalTests,
-          category: ['Flow']
+          category: [TestCategory.Flow],
+          skipCodeCoverage: false
         });
       });
 
@@ -410,7 +411,8 @@ describe('Apex Test Suites', async () => {
 
         expect(result).to.deep.equal({
           testLevel: TestLevel.RunLocalTests,
-          category: ['Flow', 'Apex']
+          category: ['Flow', 'Apex'],
+          skipCodeCoverage: false
         });
       });
 
@@ -441,7 +443,7 @@ describe('Apex Test Suites', async () => {
           TestLevel.RunSpecifiedTests,
           undefined,
           'FlowTestClass',
-          'Flow'
+          TestCategory.Flow
         );
 
         expect(result).to.deep.equal(mockFlowPayload);
@@ -455,13 +457,14 @@ describe('Apex Test Suites', async () => {
           undefined,
           undefined,
           undefined,
-          'Flow'
+          TestCategory.Flow
         );
 
         expect(result).to.deep.equal({
           suiteNames: undefined,
           testLevel: TestLevel.RunLocalTests,
-          category: ['Flow']
+          category: ['Flow'],
+          skipCodeCoverage: false
         });
       });
 
@@ -476,7 +479,8 @@ describe('Apex Test Suites', async () => {
 
         expect(result).to.deep.equal({
           testLevel: TestLevel.RunSpecifiedTests,
-          tests: [{ className: 'TestClass' }]
+          tests: [{ className: 'TestClass' }],
+          skipCodeCoverage: false
         });
         expect(result).to.not.have.property('category');
       });
@@ -497,23 +501,6 @@ describe('Apex Test Suites', async () => {
         expect(testServiceAny.hasCategory('')).to.not.be.ok;
         expect(testServiceAny.hasCategory(null)).to.not.be.ok;
         expect(testServiceAny.hasCategory(undefined)).to.not.be.ok;
-      });
-
-      it('should correctly convert category string to array (toArray)', () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const testServiceAny = testService as any;
-
-        expect(testServiceAny.toArray('Flow')).to.deep.equal(['Flow']);
-        expect(testServiceAny.toArray('Flow,Apex')).to.deep.equal([
-          'Flow',
-          'Apex'
-        ]);
-        expect(testServiceAny.toArray('Flow,Apex,Custom')).to.deep.equal([
-          'Flow',
-          'Apex',
-          'Custom'
-        ]);
-        expect(testServiceAny.toArray('')).to.deep.equal(['']);
       });
     });
   });
