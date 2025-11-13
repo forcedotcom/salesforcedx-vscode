@@ -167,9 +167,23 @@ const buildTestPayload = async (
   const testLevel = TestLevel.RunSpecifiedTests;
   switch (data.type) {
     case TestType.Class:
-      return await testService.buildAsyncPayload(testLevel, undefined, data.label);
+      return await testService.buildAsyncPayload(
+        testLevel,
+        undefined,
+        data.label,
+        undefined,
+        undefined,
+        !settings.retrieveTestCodeCoverage() // the setting enables code coverage, so we need to pass false to disable it
+      );
     case TestType.Suite:
-      return await testService.buildAsyncPayload(testLevel, undefined, undefined, data.label);
+      return await testService.buildAsyncPayload(
+        testLevel,
+        undefined,
+        undefined,
+        data.label,
+        undefined,
+        !settings.retrieveTestCodeCoverage()
+      );
     case TestType.AllLocal:
       return { testLevel: TestLevel.RunLocalTests };
     case TestType.All:
