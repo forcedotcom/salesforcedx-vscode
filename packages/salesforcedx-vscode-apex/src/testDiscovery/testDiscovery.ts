@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+/* eslint-disable jsdoc/check-indentation */
 
 import type { ToolingTestClass, TestDiscoveryResult, ToolingTestsPage } from './schemas';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
@@ -17,6 +18,22 @@ import { getTelemetryService } from '../telemetry/telemetry';
 
 const minApiVersion = 65.0;
 
+/**
+ * Query options mirroring the Tooling REST Test Discovery API.
+ *
+ * Notes from the remote API:
+ * - showAllMethods:
+ *   - When true (our default), retrieve all methods; when false (Tooling default), only visible methods.
+ *   - Visibility depends on namespace, package origin, class and method access modifiers and user permissions.
+ *   - Remote default is false; this client defaults to true to surface more tests by default.
+ * - namespacePrefix:
+ *   - Omit (undefined) to retrieve tests in all namespaces (Apex and Flow).
+ *   - Use 'FlowTesting' or 'FlowTesting.<Namespace>' to filter to flow tests (per docs).
+ *   - Use '<Namespace>' to filter to a specific Apex namespace.
+ *   - Supplying '' (empty string) is treated as omitted by this client and won’t be sent.
+ * - pageSize:
+ *   - Number of classes per page; remote default is 1000; maximum 10000.
+ */
 export type DiscoverTestsOptions = {
   showAllMethods?: boolean;
   namespacePrefix?: string;
