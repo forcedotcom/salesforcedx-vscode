@@ -85,6 +85,7 @@ export default [
       'unicorn/no-immediate-mutation': 'error',
       'unicorn/no-instanceof-builtins': 'error',
       'unicorn/no-typeof-undefined': 'error',
+      'unicorn/no-static-only-class': 'error',
       'unicorn/no-useless-collection-argument': 'error',
       'unicorn/no-useless-error-capture-stack-trace': 'error',
       'unicorn/no-useless-fallback-in-spread': 'error',
