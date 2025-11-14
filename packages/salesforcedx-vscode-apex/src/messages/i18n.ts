@@ -77,6 +77,7 @@ export const messages = {
   eligible_method_not_in_doc: 'Methods %s are eligible for OAS generation, but not present in the document',
   enter_new_nc: 'Enter a custom Named Credential...',
   enter_nc_name: 'Enter the name of the Named Credential',
+  error_no_connection_found_message: 'No connection found',
   error_parsing_nc: 'Error parsing named credentials result',
   error_parsing_yaml: 'Error parsing YAML',
   error_retrieving_org_version: 'Failed to retrieve org version',
@@ -108,8 +109,7 @@ export const messages = {
   java_version_check_command_failed: 'Running java command %s failed with error: %s',
   launch_apex_replay_debugger_unsupported_file:
     'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
-  launch_apex_replay_debugger_with_selected_file:
-    'Launch Apex Replay Debugger with Selected File',
+  launch_apex_replay_debugger_with_selected_file: 'Launch Apex Replay Debugger with Selected File',
   merge: 'Manually merge with existing ESR',
   method_not_found_in_doc_symbols: 'Method %s is not found in the document symbols',
   mixed_frameworks_not_allowed:
