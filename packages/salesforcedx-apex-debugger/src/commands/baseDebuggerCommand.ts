@@ -31,10 +31,6 @@ export class BaseDebuggerCommand extends BaseCommand {
   }
 
   public getRequest(): string | undefined {
-    if (this.request) {
-      return JSON.stringify(this.request);
-    } else {
-      return undefined;
-    }
+    return this.request ? JSON.stringify(this.request) : undefined;
   }
 }

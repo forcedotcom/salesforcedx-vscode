@@ -126,7 +126,7 @@ class AliasGatherer implements ParametersGatherer<Alias> {
     if (workspaceUtils.hasRootWorkspace()) {
       const folderName = workspaceUtils
         .getRootWorkspace()
-        .name.replace(/\W/g /* Replace all non-alphanumeric characters */, '');
+        .name.replaceAll(/\W/g /* Replace all non-alphanumeric characters */, '');
       defaultAlias = isAlphaNumSpaceString(folderName) ? folderName : DEFAULT_ALIAS;
     }
     const aliasInputOptions: vscode.InputBoxOptions = {

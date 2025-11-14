@@ -26,15 +26,6 @@ Rules:
 - All commands run from salesforcedx-vscode root; use `-w` to specify runs for a single package. Never `cd` into a package.
 - do not say a test/compile/lint failure was "pre-existing" without running the same operation on a previous version of the code before the current un-pushed commits began.
 
-## Error handling
+Troubleshooting
 
-### knip
-
-if knip does this, then `rm -rf` the `/_npx` directory and re-run. Say yes to knip if asked
-
-````node:internal/modules/package_json_reader:266
-  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
-        ^
-
-Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'typescript' imported from /Users/shane.mclaughlin/.npm/_npx/8d873e0e769cf1b4/node_modules/knip/dist/PrincipalFactory.js```
-````
+- if knip fails due to `ERR_MODULE_NOT_FOUND` you can `rm -rf ~/.npm/_npx` and re-run it. You'll have to agree to it (or pass `-y` to it)

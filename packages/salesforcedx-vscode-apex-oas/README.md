@@ -10,8 +10,8 @@ This extension provides OpenAPI Specification (OAS) generation capabilities for 
 
 ## Commands
 
-- `SFDX: Create OpenAPI Document from This Class (Beta)` - Generate an OpenAPI document from an Apex class
-- `SFDX: Validate OpenAPI Document (Beta)` - Validate an existing OpenAPI document
+- `SFDX: Create OpenAPI Document from This Class` - Generate an OpenAPI document from an Apex class
+- `SFDX: Validate OpenAPI Document` - Validate an existing OpenAPI document
 
 ## Requirements
 
