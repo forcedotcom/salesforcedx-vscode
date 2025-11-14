@@ -29,3 +29,4 @@ Rules:
 Troubleshooting
 
 - if knip fails due to `ERR_MODULE_NOT_FOUND` you can `rm -rf ~/.npm/_npx` and re-run it. You'll have to agree to it (or pass `-y` to it)
+  .

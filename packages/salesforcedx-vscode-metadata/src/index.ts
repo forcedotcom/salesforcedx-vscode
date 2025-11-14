@@ -8,6 +8,8 @@
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { projectDeployStart } from './commands/deployStart/projectDeployStart';
+import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
+import { showSourceTrackingDetails } from './commands/showSourceTrackingDetails';
 import { EXTENSION_NAME } from './constants';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
 import { SourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
@@ -29,8 +31,12 @@ export const activateEffect = (
 
     // Register commands
     context.subscriptions.push(
-      vscode.commands.registerCommand('sf.project.deploy.start', async () => projectDeployStart(false)),
-      vscode.commands.registerCommand('sf.project.deploy.start.ignore.conflicts', async () => projectDeployStart(true))
+      vscode.commands.registerCommand('sf.metadata.deploy.start', async () => projectDeployStart(false)),
+      vscode.commands.registerCommand('sf.metadata.deploy.start.ignore.conflicts', async () =>
+        projectDeployStart(true)
+      ),
+      vscode.commands.registerCommand('sf.metadata.retrieve.start', projectRetrieveStart),
+      vscode.commands.registerCommand('sf.metadata.source.tracking.details', showSourceTrackingDetails)
     );
 
     // Register source tracking status bar

@@ -58,21 +58,35 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sf.project.deploy.start"
+          "command": "sf.metadata.deploy.start"
         },
         {
-          "command": "sf.project.deploy.start.ignore.conflicts"
+          "command": "sf.metadata.deploy.start.ignore.conflicts"
+        },
+        {
+          "command": "sf.metadata.retrieve.start"
+        },
+        {
+          "command": "sf.metadata.source.tracking.details"
         }
       ]
     },
     "commands": [
       {
-        "command": "sf.project.deploy.start",
-        "title": "%project_deploy_start_default_org_text%"
+        "command": "sf.metadata.deploy.start",
+        "title": "%metadata_deploy_start_text%"
       },
       {
-        "command": "sf.project.deploy.start.ignore.conflicts",
-        "title": "%project_deploy_start_ignore_conflicts_default_org_text%"
+        "command": "sf.metadata.deploy.start.ignore.conflicts",
+        "title": "%metadata_deploy_start_ignore_conflicts_text%"
+      },
+      {
+        "command": "sf.metadata.retrieve.start",
+        "title": "%metadata_retrieve_start_text%"
+      },
+      {
+        "command": "sf.metadata.source.tracking.details",
+        "title": "%metadata_source_tracking_details_text%"
       }
     ]
   }

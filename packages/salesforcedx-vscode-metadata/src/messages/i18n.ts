@@ -23,5 +23,7 @@ export const messages = {
   source_tracking_status_bar_local_changes: 'Local Changes',
   source_tracking_status_bar_remote_changes: 'Remote Changes',
   source_tracking_status_bar_conflicts: 'Conflicts',
-  source_tracking_status_bar_click_to_push: '💡 Click to deploy these changes to the org'
+  source_tracking_status_bar_click_to_push: '💡 Click to deploy these changes to the org',
+  source_tracking_status_bar_click_to_retrieve: '💡 Click to retrieve these changes from the org',
+  source_tracking_status_bar_click_to_view_details: '💡 Click to view full details in the output channel'
 };

@@ -9,57 +9,70 @@ import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
-export const buildLocalHoverText = (changes: StatusOutputRow[]): vscode.MarkdownString => {
-  const md = new vscode.MarkdownString();
-  md.isTrusted = true;
-
-  const label = nls.localize('source_tracking_status_bar_local_changes');
-  md.appendMarkdown(`**${label} (${String(changes.length)}):**\n\n`);
-
-  const list = changes.slice(0, 10).map(row => `- ${String(row.type)}: ${String(row.fullName)}`);
-  md.appendMarkdown(list.join('\n'));
-
-  if (changes.length > 10) {
-    md.appendMarkdown(`\n- _(${String(changes.length - 10)} more...)_`);
-  }
-
-  const clickMsg = nls.localize('source_tracking_status_bar_click_to_push');
-  md.appendMarkdown(`\n\n---\n\n${clickMsg}`);
-
-  return md;
+type SourceTrackingCounts = {
+  local: number;
+  remote: number;
+  conflicts: number;
 };
 
-/** Build hover text for remote changes */
-export const buildRemoteHoverText = (changes: StatusOutputRow[]): vscode.MarkdownString => {
-  const md = new vscode.MarkdownString();
-  md.isTrusted = true;
-
-  const label = nls.localize('source_tracking_status_bar_remote_changes');
-  md.appendMarkdown(`**${label} (${String(changes.length)}):**\n\n`);
-
-  const list = changes.slice(0, 10).map(row => `- ${String(row.type)}: ${String(row.fullName)}`);
-  md.appendMarkdown(list.join('\n'));
-
-  if (changes.length > 10) {
-    md.appendMarkdown(`\n- _(${String(changes.length - 10)} more...)_`);
-  }
-
-  return md;
+type SourceTrackingDetails = {
+  localChanges: StatusOutputRow[];
+  remoteChanges: StatusOutputRow[];
+  conflicts: StatusOutputRow[];
 };
 
-/** Build hover text for conflicts */
-export const buildConflictsHoverText = (conflicts: StatusOutputRow[]): vscode.MarkdownString => {
+/** Build combined hover text with up to 3 sections */
+export const buildCombinedHoverText = (
+  details: SourceTrackingDetails,
+  counts: SourceTrackingCounts
+): vscode.MarkdownString => {
   const md = new vscode.MarkdownString();
   md.isTrusted = true;
 
-  const label = nls.localize('source_tracking_status_bar_conflicts');
-  md.appendMarkdown(`**${label} (${String(conflicts.length)}):**\n\n`);
+  const sections: string[] = [];
 
-  const list = conflicts.slice(0, 10).map(row => `- ${String(row.type)}: ${String(row.fullName)}`);
-  md.appendMarkdown(list.join('\n'));
+  // Conflicts section
+  if (counts.conflicts > 0) {
+    const label = nls.localize('source_tracking_status_bar_conflicts');
+    const items = details.conflicts.slice(0, 10).map(row => `- ${String(row.type)}: ${String(row.fullName)}`);
+    const moreText = details.conflicts.length > 10 ? `\n- _(${String(details.conflicts.length - 10)} more...)_` : '';
+    sections.push(`**${label} (${String(counts.conflicts)}):**\n\n${items.join('\n')}${moreText}`);
+  }
 
-  if (conflicts.length > 10) {
-    md.appendMarkdown(`\n- _(${String(conflicts.length - 10)} more...)_`);
+  // Remote Changes section
+  if (counts.remote > 0) {
+    const label = nls.localize('source_tracking_status_bar_remote_changes');
+    const items = details.remoteChanges.slice(0, 10).map(row => `- ${String(row.type)}: ${String(row.fullName)}`);
+    const moreText =
+      details.remoteChanges.length > 10 ? `\n- _(${String(details.remoteChanges.length - 10)} more...)_` : '';
+    sections.push(`**${label} (${String(counts.remote)}):**\n\n${items.join('\n')}${moreText}`);
+  }
+
+  // Local Changes section
+  if (counts.local > 0) {
+    const label = nls.localize('source_tracking_status_bar_local_changes');
+    const items = details.localChanges.slice(0, 10).map(row => `- ${String(row.type)}: ${String(row.fullName)}`);
+    const moreText =
+      details.localChanges.length > 10 ? `\n- _(${String(details.localChanges.length - 10)} more...)_` : '';
+    sections.push(`**${label} (${String(counts.local)}):**\n\n${items.join('\n')}${moreText}`);
+  }
+
+  md.appendMarkdown(sections.join('\n\n---\n\n'));
+
+  // Add click hint based on state
+  const hasRemoteOnly = counts.remote > 0 && counts.local === 0 && counts.conflicts === 0;
+  const hasLocalOnly = counts.local > 0 && counts.remote === 0 && counts.conflicts === 0;
+  const hasBothOrConflicts = (counts.remote > 0 && counts.local > 0) || counts.conflicts > 0;
+
+  if (hasRemoteOnly) {
+    const clickMsg = nls.localize('source_tracking_status_bar_click_to_retrieve');
+    md.appendMarkdown(`\n\n---\n\n${clickMsg}`);
+  } else if (hasLocalOnly) {
+    const clickMsg = nls.localize('source_tracking_status_bar_click_to_push');
+    md.appendMarkdown(`\n\n---\n\n${clickMsg}`);
+  } else if (hasBothOrConflicts) {
+    const clickMsg = nls.localize('source_tracking_status_bar_click_to_view_details');
+    md.appendMarkdown(`\n\n---\n\n${clickMsg}`);
   }
 
   return md;

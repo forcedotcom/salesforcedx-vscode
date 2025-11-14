@@ -16,7 +16,7 @@ import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { AllServicesLayer } from '../services/extensionProvider';
-import { buildConflictsHoverText, buildLocalHoverText, buildRemoteHoverText } from './hover';
+import { buildCombinedHoverText } from './hover';
 
 type SourceTrackingCounts = {
   local: number;
@@ -50,21 +50,13 @@ const separateChanges = (status: StatusOutputRow[]): SourceTrackingDetails => {
 
 /** Status bar items that display source tracking changes */
 export class SourceTrackingStatusBar implements vscode.Disposable {
-  private localStatusBarItem: vscode.StatusBarItem;
-  private remoteStatusBarItem: vscode.StatusBarItem;
-  private conflictsStatusBarItem: vscode.StatusBarItem;
+  private statusBarItem: vscode.StatusBarItem;
   private fileWatcherSubscription?: Fiber.RuntimeFiber<void, never>;
   private orgChangeSubscription?: Fiber.RuntimeFiber<void, never>;
   private lastDetails?: SourceTrackingDetails;
 
   private constructor(private readonly servicesApi: SalesforceVSCodeServicesApi) {
-    this.remoteStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48.5);
-    // Remote command will be added when pull command is implemented
-
-    this.localStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48.4);
-    this.localStatusBarItem.command = 'sf.project.deploy.start';
-
-    this.conflictsStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48.3);
+    this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48);
   }
 
   /** Create and initialize a new source tracking status bar */
@@ -108,7 +100,7 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
   private handleOrgChange = (orgInfo: { tracksSource?: boolean; orgId?: string }): void => {
     console.log('handleOrgChange', JSON.stringify(orgInfo, null, 2));
     if (!orgInfo.tracksSource || !orgInfo.orgId) {
-      this.hideAll();
+      this.statusBarItem.hide();
       this.stopFileWatcherSubscription();
       return;
     }
@@ -157,7 +149,7 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
       );
 
       if (!tracking) {
-        self.hideAll();
+        self.statusBarItem.hide();
         return;
       }
 
@@ -174,61 +166,58 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
 
   /** Update the status bar display */
   private updateDisplay = (counts: SourceTrackingCounts): void => {
-    if (!this.lastDetails) {
-      this.hideAll();
+    if (!this.lastDetails || (counts.remote === 0 && counts.local === 0 && counts.conflicts === 0)) {
+      this.statusBarItem.hide();
       return;
     }
 
-    // Update remote changes item (leftmost to match Git convention)
-    if (counts.remote > 0) {
-      this.remoteStatusBarItem.text = nls.localize('source_tracking_remote_text', counts.remote);
-      this.remoteStatusBarItem.tooltip = buildRemoteHoverText(this.lastDetails.remoteChanges);
-      this.remoteStatusBarItem.backgroundColor = undefined;
-      this.remoteStatusBarItem.color = new vscode.ThemeColor('charts.blue');
-      this.remoteStatusBarItem.show();
-    } else {
-      this.remoteStatusBarItem.hide();
-    }
+    // Build combined text showing all present indicators
+    this.statusBarItem.text = [
+      counts.conflicts > 0 ? nls.localize('source_tracking_conflicts_text', counts.conflicts) : undefined,
+      counts.remote > 0 ? nls.localize('source_tracking_remote_text', counts.remote) : undefined,
+      counts.local > 0 ? nls.localize('source_tracking_local_text', counts.local) : undefined
+    ]
+      .filter(Boolean)
+      .join(' ');
 
-    // Update local changes item
-    if (counts.local > 0) {
-      this.localStatusBarItem.text = nls.localize('source_tracking_local_text', counts.local);
-      this.localStatusBarItem.tooltip = buildLocalHoverText(this.lastDetails.localChanges);
-      this.localStatusBarItem.backgroundColor =
-        process.env.ESBUILD_PLATFORM === 'web' ? new vscode.ThemeColor('statusBarItem.warningBackground') : undefined;
-      this.localStatusBarItem.color = new vscode.ThemeColor('charts.blue');
-      this.localStatusBarItem.show();
-    } else {
-      this.localStatusBarItem.hide();
-    }
+    // Build combined tooltip
+    this.statusBarItem.tooltip = buildCombinedHoverText(this.lastDetails, counts);
 
-    // Update conflicts item
+    this.statusBarItem.command = getCommand(counts);
+
+    // Apply styling
     if (counts.conflicts > 0) {
-      this.conflictsStatusBarItem.text = nls.localize('source_tracking_conflicts_text', counts.conflicts);
-      this.conflictsStatusBarItem.tooltip = buildConflictsHoverText(this.lastDetails.conflicts);
-      this.conflictsStatusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
-      this.conflictsStatusBarItem.show();
+      this.statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
+      this.statusBarItem.color = undefined;
+    } else if (counts.local > 0 && process.env.ESBUILD_PLATFORM === 'web') {
+      this.statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+      this.statusBarItem.color = undefined;
     } else {
-      this.conflictsStatusBarItem.hide();
+      this.statusBarItem.backgroundColor = undefined;
+      this.statusBarItem.color = new vscode.ThemeColor('charts.blue');
     }
-  };
 
-  /** Hide all status bar items */
-  private hideAll = (): void => {
-    this.localStatusBarItem.hide();
-    this.remoteStatusBarItem.hide();
-    this.conflictsStatusBarItem.hide();
+    this.statusBarItem.show();
   };
 
   /** Dispose of all resources */
   public dispose = (): void => {
     this.stopFileWatcherSubscription();
-    this.localStatusBarItem.dispose();
-    this.remoteStatusBarItem.dispose();
-    this.conflictsStatusBarItem.dispose();
+    this.statusBarItem.dispose();
 
     if (this.orgChangeSubscription) {
       void Effect.runPromise(Fiber.interrupt(this.orgChangeSubscription));
     }
   };
 }
+
+const getCommand = (counts: SourceTrackingCounts): string | undefined => {
+  if (counts.remote > 0 && counts.local === 0 && counts.conflicts === 0) {
+    return 'sf.metadata.retrieve.start';
+  } else if (counts.local > 0 && counts.remote === 0 && counts.conflicts === 0) {
+    return 'sf.metadata.deploy.start';
+  } else if ((counts.remote > 0 && counts.local > 0) || counts.conflicts > 0) {
+    return 'sf.metadata.source.tracking.details';
+  }
+  return undefined;
+};

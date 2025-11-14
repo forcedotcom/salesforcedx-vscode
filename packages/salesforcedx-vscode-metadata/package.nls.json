@@ -1,6 +1,8 @@
 {
-  "project_deploy_start_default_org_text": "SFDX: Push Source to Default Org",
-  "project_deploy_start_ignore_conflicts_default_org_text": "SFDX: Push Source to Default Org and Ignore Conflicts",
+  "metadata_deploy_start_text": "BETA: Push Source to Default Org",
+  "metadata_deploy_start_ignore_conflicts_text": "BETA: Push Source to Default Org and Ignore Conflicts",
+  "metadata_retrieve_start_text": "BETA: Pull Source from Default Org",
+  "metadata_source_tracking_details_text": "BETA: View Source Tracking Details",
   "source_tracking_status_bar_tooltip_header": "Source Tracking Status",
   "source_tracking_status_bar_local_changes": "Local Changes",
   "source_tracking_status_bar_remote_changes": "Remote Changes",
