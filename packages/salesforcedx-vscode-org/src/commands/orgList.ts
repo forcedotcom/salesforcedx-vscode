@@ -14,19 +14,18 @@ import {
   OrgAuthorization,
   OrgConfigProperties
 } from '@salesforce/core';
-import { getConnectionStatusFromError, shouldRemoveOrg } from '@salesforce/salesforcedx-utils';
 import {
   Column,
   ConfigUtil,
+  createTable,
   Row,
   SfWorkspaceChecker,
-  Table,
-  PromptConfirmGatherer,
   SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { getAuthFieldsFor } from '../util/orgUtil';
+import { PromptConfirmGatherer } from '../parameterGatherers/promptConfirmGatherer';
+import { getAuthFieldsFor, getConnectionStatusFromError, shouldRemoveOrg } from '../util/orgUtil';
 import { OrgListCleanExecutor } from './orgListCleanExecutor';
 
 /** Check actual connection status by testing the connection */
@@ -168,18 +167,18 @@ const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): st
 
 /** Determine default org markers for display */
 const determineOrgMarkers = (orgAuth: OrgAuthorization, alias: string, defaultConfig: DefaultOrgConfig): string => {
-  const possibleDefaults = [alias, orgAuth.username].filter(Boolean);
+  const possibleDefaults = new Set([alias, orgAuth.username].filter(Boolean));
 
   // Check if this org is the default DevHub (by property value or resolved username)
   const matchesDevHubProperty =
-    defaultConfig.defaultDevHubProperty && possibleDefaults.includes(String(defaultConfig.defaultDevHubProperty));
+    defaultConfig.defaultDevHubProperty && possibleDefaults.has(String(defaultConfig.defaultDevHubProperty));
   const matchesDevHubUsername =
     defaultConfig.defaultDevHubUsername && orgAuth.username === defaultConfig.defaultDevHubUsername;
   const isDefaultDevHub = orgAuth.isDevHub && (matchesDevHubProperty ?? matchesDevHubUsername);
 
   // Check if this org is the default org (by property value or resolved username)
   const matchesOrgProperty =
-    defaultConfig.defaultOrgProperty && possibleDefaults.includes(String(defaultConfig.defaultOrgProperty));
+    defaultConfig.defaultOrgProperty && possibleDefaults.has(String(defaultConfig.defaultOrgProperty));
   const matchesOrgUsername = defaultConfig.defaultOrgUsername && orgAuth.username === defaultConfig.defaultOrgUsername;
   const isDefaultOrg = matchesOrgProperty ?? matchesOrgUsername;
 
@@ -276,8 +275,7 @@ const createAndDisplayOrgTable = (orgData: Row[]): void => {
     { key: 'Expires', label: 'Expires' }
   ];
 
-  const table = new Table();
-  const tableOutput = table.createTable(orgData, columns, '');
+  const tableOutput = createTable(orgData, columns, '');
   channelService.appendLine(`\n${tableOutput}`);
 
   // Add legend

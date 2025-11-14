@@ -28,7 +28,7 @@ import { URI } from 'vscode-uri';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
 import { notificationService } from '../../notifications';
-import { taskViewService } from '../../statuses';
+import { taskViewService } from '../../statuses/taskView';
 import {
   PathExistsChecker,
   ProjectNameAndPathAndTemplate,
@@ -420,7 +420,7 @@ export const isvDebugBootstrap = async (): Promise<void> => {
     forceIdeUrlGatherer,
     new SelectProjectName(() => {
       if (forceIdeUrlGatherer.forceIdUrl?.orgName) {
-        return sanitize(forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_'));
+        return sanitize(forceIdeUrlGatherer.forceIdUrl.orgName.replaceAll(/[+]/g, '_'));
       }
       return '';
     }),

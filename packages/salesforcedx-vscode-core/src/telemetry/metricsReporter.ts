@@ -8,37 +8,29 @@ import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { BASE_EXTENSION, EXPANDED_EXTENSION, EXT_PACK_STATUS_EVENT_NAME } from '../constants';
 
-enum EXT_PACK_TYPES {
-  BASE = 'BASE',
-  EXPANDED = 'EXPANDED',
-  BOTH = 'BOTH',
-  NONE = 'NONE'
-}
+type EXT_PACK_TYPES = 'BASE' | 'EXPANDED' | 'BOTH' | 'NONE';
 
-export class MetricsReporter {
-  public static extensionPackStatus = (): void => {
-    const extensionPackStatus = MetricsReporter.getExtensionPackStatus();
-    TelemetryService.getInstance().sendEventData(EXT_PACK_STATUS_EVENT_NAME, { extpack: extensionPackStatus });
-  };
+const isExtensionInstalled = (extensionName: string): boolean =>
+  vscode.extensions.getExtension(extensionName) !== undefined;
 
-  private static getExtensionPackStatus = (): EXT_PACK_TYPES => {
-    const hasBasePack = this.isExtensionInstalled(BASE_EXTENSION);
-    const hasExpandedPack = this.isExtensionInstalled(EXPANDED_EXTENSION);
+const getExtensionPackStatus = (): EXT_PACK_TYPES => {
+  const hasBasePack = isExtensionInstalled(BASE_EXTENSION);
+  const hasExpandedPack = isExtensionInstalled(EXPANDED_EXTENSION);
 
-    let status = EXT_PACK_TYPES.NONE;
+  if (hasBasePack && hasExpandedPack) {
+    return 'BOTH';
+  }
+  if (hasBasePack) {
+    return 'BASE';
+  }
+  if (hasExpandedPack) {
+    return 'EXPANDED';
+  }
+  return 'NONE';
+};
 
-    if (hasBasePack && hasExpandedPack) {
-      status = EXT_PACK_TYPES.BOTH;
-    } else if (hasBasePack) {
-      status = EXT_PACK_TYPES.BASE;
-    } else if (hasExpandedPack) {
-      status = EXT_PACK_TYPES.EXPANDED;
-    }
-    return status;
-  };
-
-  private static isExtensionInstalled = (extensionName: string): boolean => {
-    const extension = vscode.extensions.getExtension(extensionName);
-    return extension !== undefined;
-  };
-}
+/** Reports extension pack status telemetry */
+export const reportExtensionPackStatus = (): void => {
+  const extensionPackStatus = getExtensionPackStatus();
+  TelemetryService.getInstance().sendEventData(EXT_PACK_STATUS_EVENT_NAME, { extpack: extensionPackStatus });
+};

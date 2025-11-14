@@ -7,11 +7,5 @@
 import { Uri } from 'vscode';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
-export const code2ProtocolConverter = (value: Uri) => {
-  if (/^win32/.test(process.platform)) {
-    // The *first* : is also being encoded which is not the standard for URI on Windows
-    // Here we transform it back to the standard way
-    return value.toString().replace('%3A', ':');
-  }
-  return value.toString();
-};
+export const code2ProtocolConverter = (value: Uri) =>
+  process.platform.startsWith('win32') ? value.toString().replace('%3A', ':') : value.toString();

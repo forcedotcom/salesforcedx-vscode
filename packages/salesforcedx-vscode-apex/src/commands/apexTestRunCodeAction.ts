@@ -67,7 +67,14 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     const vscodeCoreExtension = await getVscodeCoreExtension();
     const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const testService = new TestService(connection);
-    const payload = await testService.buildAsyncPayload(TestLevel.RunSpecifiedTests, this.tests.join());
+    const payload = await testService.buildAsyncPayload(
+      TestLevel.RunSpecifiedTests,
+      this.tests.join(),
+      undefined,
+      undefined,
+      undefined,
+      !this.codeCoverage // the setting enables code coverage, so we need to pass false to disable it
+    );
 
     const progressReporter: Progress<ApexTestProgressValue> = {
       report: value => {

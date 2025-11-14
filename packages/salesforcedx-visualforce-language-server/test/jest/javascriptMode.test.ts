@@ -30,7 +30,7 @@ describe('HTML Javascript Support', () => {
     const list = mode.doComplete(document, position);
     assert.ok(list);
 
-    const actualLabels = list.items.map(c => c.label).sort();
+    const actualLabels = list.items.map(c => c.label).toSorted();
     for (const expected of expectedProposals) {
       assert.ok(actualLabels.includes(expected), `Not found:${expected} is ${actualLabels.join(', ')}`);
     }

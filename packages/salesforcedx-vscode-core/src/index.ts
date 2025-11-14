@@ -83,13 +83,13 @@ import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
 import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { SalesforceProjectConfig } from './salesforceProject';
-import { getCoreLoggerService, registerGetTelemetryServiceCommand } from './services';
+import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { registerPushOrDeployOnSave, salesforceCoreSettings } from './settings';
-import { taskViewService } from './statuses';
+import { taskViewService } from './statuses/taskView';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { MetricsReporter } from './telemetry/metricsReporter';
+import { reportExtensionPackStatus } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel } from './util';
-import { OrgAuthInfoExtensions } from './util/orgAuthInfoExtensions';
+import { getUserId, getAuthFields } from './util/orgAuthInfoExtensions';
 
 /** Customer-facing commands */
 const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable =>
@@ -143,7 +143,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.start.apex.debug.logging', () => turnOnLogging(extensionContext)),
     vscode.commands.registerCommand('sf.stop.apex.debug.logging', () => turnOffLogging(extensionContext)),
     vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap),
-    vscode.commands.registerCommand('sf.vscode.core.logger.get.instance', getCoreLoggerService),
     registerGetTelemetryServiceCommand()
   );
 const registerInternalDevCommands = (): vscode.Disposable =>
@@ -215,8 +214,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const api: SalesforceVSCodeCoreApi = {
     channelService,
     getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
-    getUserId: OrgAuthInfoExtensions.getUserId,
-    getAuthFields: OrgAuthInfoExtensions.getAuthFields,
+    getUserId,
+    getAuthFields,
     isCLIInstalled,
     notificationService,
     ProgressNotification,
@@ -245,7 +244,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     extensionContext.subscriptions.push(registerInternalDevCommands());
 
     telemetryService.sendExtensionActivationEvent(activationStartTime);
-    MetricsReporter.extensionPackStatus();
+    reportExtensionPackStatus();
     console.log('SF CLI Extension Activated (internal dev mode)');
     return api;
   }
@@ -294,7 +293,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   }
 
   void activateTracker.markActivationStop();
-  MetricsReporter.extensionPackStatus();
+  reportExtensionPackStatus();
 
   // Handle trace flag cleanup after setting target org
   try {
@@ -389,8 +388,8 @@ const handleTheUnhandled = (): void => {
 export type SalesforceVSCodeCoreApi = {
   channelService: typeof channelService;
   getTargetOrgOrAlias: typeof workspaceContextUtils.getTargetOrgOrAlias;
-  getUserId: typeof OrgAuthInfoExtensions.getUserId;
-  getAuthFields: typeof OrgAuthInfoExtensions.getAuthFields;
+  getUserId: typeof getUserId;
+  getAuthFields: typeof getAuthFields;
   isCLIInstalled: typeof isCLIInstalled;
   notificationService: typeof notificationService;
   ProgressNotification: typeof ProgressNotification;

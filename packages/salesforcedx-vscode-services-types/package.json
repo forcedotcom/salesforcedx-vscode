@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/vscode-services",
-  "version": "65.3.1",
+  "version": "65.4.0",
   "description": "TypeScript type definitions for Salesforce VS Code Services extension API",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "shx": "^0.3.4",
+    "shx": "^0.4.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.2"
   }

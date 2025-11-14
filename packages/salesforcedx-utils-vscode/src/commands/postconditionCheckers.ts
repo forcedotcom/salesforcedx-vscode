@@ -4,7 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CancelResponse, ContinueResponse, PostconditionChecker } from '../types';
+import type { CancelResponse, ContinueResponse } from './parameterGatherers';
+
+export type PostconditionChecker<T> = {
+  check(inputs: ContinueResponse<T> | CancelResponse): Promise<ContinueResponse<T> | CancelResponse>;
+};
 
 export class EmptyPostChecker implements PostconditionChecker<any> {
   public async check(inputs: ContinueResponse<any> | CancelResponse): Promise<ContinueResponse<any> | CancelResponse> {

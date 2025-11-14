@@ -13,7 +13,7 @@ import { handleConflictsWithUI } from '../conflict/conflictUtils';
 import { assertConflictLogName } from '../conflict/messages';
 import { PersistentStorageService } from '../conflict/persistentStorageService';
 import { WorkspaceContext, workspaceContextUtils } from '../context';
-import { handleDeployDiagnostics } from '../diagnostics';
+import { handleDeployDiagnostics } from '../diagnostics/diagnostics';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { DeployQueue, salesforceCoreSettings } from '../settings';
 import { DeployRetrieveOperationType } from '../util/types';
