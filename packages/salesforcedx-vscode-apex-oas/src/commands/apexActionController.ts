@@ -6,7 +6,12 @@
  */
 
 import type { OASGenerationCommandMeasure, OASGenerationCommandProperties } from '../oas/schemas';
-import { notificationService, TimingUtils, WorkspaceContextUtil } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  getOrgApiVersion,
+  notificationService,
+  TimingUtils,
+  WorkspaceContextUtil
+} from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
@@ -43,7 +48,7 @@ export class ApexActionController {
     const type = isClass ? 'Class' : 'Method';
     const createdMessage = `OASDocumentFor${type}Created`;
     const command = isClass
-      ? 'SFDX: Create OpenAPI Document from This Class (Beta)'
+      ? 'SFDX: Create OpenAPI Document from This Class'
       : 'SFDX: Create OpenAPI Document from Selected Method';
     let eligibilityResult;
     let context;
@@ -127,21 +132,25 @@ export class ApexActionController {
             this.gil.addGuidedJson(strategy!.openAPISchema);
           }
 
-          // Step 8: Process the OAS document
+          // Step 8: Get org version for conditional beta info and active property
+          const orgApiVersion = await getOrgApiVersion();
+          const shouldIncludeBetaInfo = orgApiVersion !== undefined && orgApiVersion < 66.0;
+
+          // Step 9: Process the OAS document
           progress.report({ message: nls.localize('processing_generated_oas') });
           const processedOasResult = await processOasDocument(openApiDocument, {
             context,
             eligibleResult: eligibilityResult,
             isRevalidation: false,
-            betaInfo: strategy?.betaInfo
+            betaInfo: shouldIncludeBetaInfo ? strategy?.betaInfo : undefined
           });
 
-          // Step 9: Write OpenAPI Document to File
+          // Step 10: Write OpenAPI Document to File
           progress.report({ message: nls.localize('write_openapi_document') });
           overwrite = fullPath[0] === fullPath[1];
-          await this.esrHandler.generateEsrMD(this.isESRDecomposed, processedOasResult, fullPath);
+          await this.esrHandler.generateEsrMD(this.isESRDecomposed, processedOasResult, fullPath, orgApiVersion);
 
-          // Step 10: Gather metrics
+          // Step 11: Gather metrics
           props = {
             isClass: `${isClass}`,
             overwrite: `${overwrite}`,
@@ -164,7 +173,7 @@ export class ApexActionController {
         }
       );
 
-      // Step 11: Notify Success
+      // Step 12: Notify Success
       if (overwrite) {
         // Case 1: User decided to overwrite the original ESR file
         notificationService.showInformationMessage(nls.localize('openapi_doc_created', type.toLowerCase(), name));

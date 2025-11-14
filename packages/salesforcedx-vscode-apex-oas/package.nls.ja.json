@@ -6,6 +6,6 @@
   "apex_oas_generation_schema": "生成に OpenAPI スキーマを含めます。",
   "apex_generation_output_token_limit": "出力で生成するトークンの最大数。",
   "configuration_title": "Salesforce Apex OAS 設定",
-  "create_openapi_doc_class": "SFDX: このクラスから OpenAPI ドキュメントを作成 (ベータ)",
-  "validate_oas_document": "SFDX: OpenAPI ドキュメントを検証 (ベータ)"
+  "create_openapi_doc_class": "SFDX: このクラスから OpenAPI ドキュメントを作成",
+  "validate_oas_document": "SFDX: OpenAPI ドキュメントを検証"
 }
