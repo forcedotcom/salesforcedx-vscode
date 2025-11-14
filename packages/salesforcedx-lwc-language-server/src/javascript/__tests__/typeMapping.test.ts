@@ -15,73 +15,73 @@ import { mapLwcMetadataToInternal } from '../typeMapping';
 const isScriptFile = (file: any): file is ScriptFile => 'classes' in file;
 
 it('can map new metadata to old metadata', async () => {
-    const filepath = vscode.Uri.file(path.join(__dirname, 'fixtures', 'metadata.js'));
-    const fileBuffer = await vscode.workspace.fs.readFile(filepath);
-    const content = Buffer.from(fileBuffer).toString('utf8');
+  const filepath = vscode.Uri.file(path.join(__dirname, 'fixtures', 'metadata.js'));
+  const fileBuffer = await vscode.workspace.fs.readFile(filepath);
+  const content = Buffer.from(fileBuffer).toString('utf8');
 
-    const newMetadataOpts: BundleConfig = {
-        type: 'internal',
-        name: 'metadata',
-        namespace: 'x',
-        namespaceMapping: {},
-        files: [
-            {
-                fileName: 'metadata.js',
-                source: content,
-            },
-        ],
-        npmModuleMapping: {},
-    };
+  const newMetadataOpts: BundleConfig = {
+    type: 'internal',
+    name: 'metadata',
+    namespace: 'x',
+    namespaceMapping: {},
+    files: [
+      {
+        fileName: 'metadata.js',
+        source: content
+      }
+    ],
+    npmModuleMapping: {}
+  };
 
-    const modernMetadata = collectBundleMetadata(newMetadataOpts);
-    const scriptFile = modernMetadata.files.find(isScriptFile);
-    expect(scriptFile).toBeDefined();
-    const derivedMetadata = mapLwcMetadataToInternal(scriptFile!);
+  const modernMetadata = collectBundleMetadata(newMetadataOpts);
+  const scriptFile = modernMetadata.files.find(isScriptFile);
+  expect(scriptFile).toBeDefined();
+  const derivedMetadata = mapLwcMetadataToInternal(scriptFile!);
 
-    const oldTransformOpts: OldCompilerOptions = {
-        name: 'metadata',
-        namespace: 'x',
-        files: {},
-    };
-    const transformerResult = await transform(content, 'metadata.js', oldTransformOpts);
-    const oldMetadata = transformerResult.metadata;
-    expect(oldMetadata).toBeDefined();
+  const oldTransformOpts: OldCompilerOptions = {
+    name: 'metadata',
+    namespace: 'x',
+    files: {}
+  };
+  const transformerResult = await transform(content, 'metadata.js', oldTransformOpts);
+  const oldMetadata = transformerResult.metadata;
+  expect(oldMetadata).toBeDefined();
 
-    expect(derivedMetadata).toEqual(oldMetadata);
+  expect(derivedMetadata).toEqual(oldMetadata);
 });
 
 it('Should handle mapping when there is a property with only a setter', async () => {
-    const filepath = vscode.Uri.file(path.join(__dirname, 'fixtures', 'nogetter.js'));
-    const fileBuffer = await vscode.workspace.fs.readFile(filepath);
-    const content = Buffer.from(fileBuffer).toString('utf8');
+  const filepath = vscode.Uri.file(path.join(__dirname, 'fixtures', 'nogetter.js'));
+  const fileBuffer = await vscode.workspace.fs.readFile(filepath);
+  const content = Buffer.from(fileBuffer).toString('utf8');
 
-    const newMetadataOpts: BundleConfig = {
-        type: 'internal',
-        name: 'nogetter',
-        namespace: 'x',
-        namespaceMapping: {},
-        files: [
-            {
-                fileName: 'nogetter.js',
-                source: content,
-            },
-        ],
-        npmModuleMapping: {},
-    };
+  const newMetadataOpts: BundleConfig = {
+    type: 'internal',
+    name: 'nogetter',
+    namespace: 'x',
+    namespaceMapping: {},
+    files: [
+      {
+        fileName: 'nogetter.js',
+        source: content
+      }
+    ],
+    npmModuleMapping: {}
+  };
 
-    const modernMetadata = collectBundleMetadata(newMetadataOpts);
-    const scriptFile = modernMetadata.files.find(isScriptFile);
-    expect(scriptFile).toBeDefined();
-    const derivedMetadata = mapLwcMetadataToInternal(scriptFile!);
+  const modernMetadata = collectBundleMetadata(newMetadataOpts);
+  const scriptFile = modernMetadata.files.find(isScriptFile);
+  expect(scriptFile).toBeDefined();
+  const derivedMetadata = mapLwcMetadataToInternal(scriptFile!);
 
-    const oldTransformOpts: OldCompilerOptions = {
-        name: 'metadata',
-        namespace: 'x',
-        files: {},
-    };
-    const transformerResult = await transform(content, 'nogetter.js', oldTransformOpts);
-    const oldMetadata = transformerResult.metadata;
-    expect(oldMetadata).toBeDefined();
+  const oldTransformOpts: OldCompilerOptions = {
+    name: 'metadata',
+    namespace: 'x',
+    files: {}
+  };
+  const transformerResult = await transform(content, 'nogetter.js', oldTransformOpts);
+  const oldMetadata = transformerResult.metadata;
+  expect(oldMetadata).toBeDefined();
 
-    expect(derivedMetadata).toEqual(oldMetadata);
+  expect(derivedMetadata).toEqual(oldMetadata);
 });

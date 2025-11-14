@@ -11,8 +11,6 @@ import {
   getBasename,
   AttributeInfo,
   FileSystemDataProvider,
-  FileSystemRequests,
-  FileSystemNotifications,
   FileStat,
   BaseWorkspaceContext,
   DirectoryEntry
@@ -148,12 +146,6 @@ export default class Server {
     this.connection.onDefinition(params => this.onDefinition(params));
     this.connection.onDidChangeWatchedFiles(params => void this.onDidChangeWatchedFiles(params));
 
-    // Register file system notification handlers
-    this.connection.onNotification(
-      FileSystemNotifications.FILE_CONTENT_CHANGED,
-      (params: { uri: string; content: string }) => void this.onFileContentChanged(params)
-    );
-
     this.documents.listen(this.connection);
     this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
     this.documents.onDidChangeContent(changeEvent => this.onDidChangeContent(changeEvent));
@@ -165,29 +157,6 @@ export default class Server {
     this.workspaceRoots = this.workspaceFolders.map(folder => URI.parse(folder.uri).fsPath);
 
     this.populateFileSystemProvider(params);
-
-    // Register file system request handlers that depend on fileSystemProvider after reconstruction
-    this.connection.onRequest(FileSystemRequests.GET_FILE_CONTENT, (fileSystemParams: { uri: string }) =>
-      this.onGetFileContent(fileSystemParams)
-    );
-    this.connection.onRequest(FileSystemRequests.GET_DIRECTORY_LISTING, (fileSystemParams: { uri: string }) =>
-      this.onGetDirectoryListing(fileSystemParams)
-    );
-    this.connection.onRequest(FileSystemRequests.GET_FILE_STAT, (fileSystemParams: { uri: string }) =>
-      this.onGetFileStat(fileSystemParams)
-    );
-    this.connection.onRequest(
-      FileSystemRequests.CREATE_TYPING_FILES,
-      (fileSystemParams: { files: { uri: string; content: string }[] }) => this.onCreateTypingFiles(fileSystemParams)
-    );
-    this.connection.onRequest(FileSystemRequests.DELETE_TYPING_FILES, (fileSystemParams: { files: string[] }) =>
-      this.onDeleteTypingFiles(fileSystemParams)
-    );
-    this.connection.onRequest(
-      FileSystemRequests.UPDATE_COMPONENT_INDEX,
-      (fileSystemParams: { components: { uri: string; content: string; mtime: number; type: string }[] }) =>
-        this.onUpdateComponentIndex(fileSystemParams)
-    );
 
     this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
     this.componentIndexer = new ComponentIndexer({
@@ -727,55 +696,6 @@ export default class Server {
   public listen(): void {
     interceptConsoleLogger(this.connection);
     this.connection.listen();
-  }
-
-  // File system request handlers
-  private onGetFileContent(params: { uri: string }): { content: string; exists: boolean } {
-    const content = this.fileSystemProvider.getFileContent(params.uri);
-    return {
-      content: content ?? '',
-      exists: content !== undefined
-    };
-  }
-
-  private onGetDirectoryListing(params: { uri: string }): { entries: any[]; exists: boolean } {
-    const entries = this.fileSystemProvider.getDirectoryListing(params.uri);
-    return {
-      entries: entries ?? [],
-      exists: entries !== undefined
-    };
-  }
-
-  private onGetFileStat(params: { uri: string }): { stat: any } {
-    const stat = this.fileSystemProvider.getFileStat(params.uri);
-    return { stat: stat ?? { exists: false } };
-  }
-
-  private onCreateTypingFiles(params: { files: { uri: string; content: string }[] }): void {
-    // Handle typing file creation requests from client
-    for (const file of params.files) {
-      this.fileSystemProvider.updateFileContent(file.uri, file.content);
-    }
-  }
-
-  private onDeleteTypingFiles(_params: { files: string[] }): void {
-    // Handle typing file deletion requests from client
-    // Note: Actual deletion will be handled by the client
-    // This is just for server-side tracking
-  }
-
-  private onUpdateComponentIndex(params: {
-    components: { uri: string; content: string; mtime: number; type: string }[];
-  }): void {
-    // Handle component index updates from client
-    for (const component of params.components) {
-      this.fileSystemProvider.updateFileContent(component.uri, component.content);
-    }
-  }
-
-  // File system notification handlers
-  private onFileContentChanged(params: { uri: string; content: string }): void {
-    this.fileSystemProvider.updateFileContent(params.uri, params.content);
   }
 
   private isFileStat(obj: unknown): obj is FileStat {

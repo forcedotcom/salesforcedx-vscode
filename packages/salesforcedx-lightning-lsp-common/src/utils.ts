@@ -48,7 +48,7 @@ export const isLWCRootDirectoryCreated = (context: BaseWorkspaceContext, changes
   return false;
 };
 
-const unixify = (filePath: string): string => filePath.replace(/\\/g, '/');
+export const unixify = (filePath: string): string => filePath.replace(/\\/g, '/');
 
 export const relativePath = (from: string, to: string): string => unixify(relative(from, to));
 

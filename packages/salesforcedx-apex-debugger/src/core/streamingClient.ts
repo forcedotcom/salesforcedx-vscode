@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { RequestService } from '@salesforce/salesforcedx-utils';
 import { Client } from 'faye';
 import * as os from 'node:os';
 import { DEFAULT_STREAMING_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
+import { RequestService } from '../requestService/requestService';
 
 export type ApexDebuggerEventType =
   | 'ApexException'
@@ -152,7 +152,7 @@ export class StreamingClient {
       incoming: (message: any, callback: (message: any) => void) => {
         if (message.channel === '/meta/handshake') {
           if (message.successful === true) {
-            if (message.ext?.ext['replay'] === true) {
+            if (message.ext?.['replay'] === true) {
               this.isReplaySupported = true;
             }
             this.shouldDisconnect = false;

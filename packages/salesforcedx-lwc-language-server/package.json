@@ -7,14 +7,14 @@
   "engines": {
     "vscode": "^1.90.0"
   },
-  "main": "out/src/indexer.js",
-  "typings": "out/src/indexer.d.ts",
+  "main": "out/src/server.js",
+  "typings": "out/src/server.d.ts",
   "sideEffects": false,
   "exports": {
     ".": {
-      "import": "./out/src/indexer.js",
-      "require": "./out/src/indexer.js",
-      "types": "./out/src/indexer.d.ts"
+      "import": "./out/src/server.js",
+      "require": "./out/src/server.js",
+      "types": "./out/src/server.d.ts"
     }
   },
   "license": "BSD-3-Clause",
@@ -34,14 +34,12 @@
   },
   "dependencies": {
     "@lwc/compiler": "8.16.0",
-    "@lwc/engine-dom": "8.16.0",
     "@lwc/errors": "8.16.0",
     "@lwc/metadata": "12.2.0",
     "@lwc/template-compiler": "8.16.0",
     "@salesforce/apex": "0.0.21",
     "@salesforce/label": "0.0.21",
     "@salesforce/salesforcedx-lightning-lsp-common": "64.16.1",
-    "@salesforce/resourceurl": "0.0.21",
     "@salesforce/schema": "0.0.21",
     "babel-types": "^6.26.0",
     "change-case": "^4.1.1",

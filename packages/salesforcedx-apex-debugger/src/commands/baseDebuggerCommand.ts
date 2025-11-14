@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { BaseCommand } from '@salesforce/salesforcedx-utils';
+import { BaseCommand } from '../requestService/baseCommand';
 import { DebuggerRequest } from './protocol';
 
 const DEBUGGER_API_PATH = 'services/debug/v41.0';

@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+// @ts-nocheck as this is a third party library
 import { extractJsonFromImport } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common/providers/fileSystemDataProvider';
 import LineColumnFinder from 'line-column';
@@ -76,7 +77,7 @@ const defaultConfig = {
   verbose: true,
   debug: true,
   async: true,
-  dependencyBudget: 20000
+  dependencyBudget: 20_000
 };
 
 const auraInstanceLastSort = (a: string, b: string): number =>
@@ -93,7 +94,7 @@ const getJsFilesRecursively = async (
     try {
       const entries = fileSystemProvider.getDirectoryListing(currentPath);
 
-      for (const entry of entries ?? []) {
+      for (const entry of entries) {
         if (entry.type === 'directory') {
           await processDirectory(path.join(currentPath, entry.name));
         } else if (entry.type === 'file' && entry.name.endsWith('.js')) {

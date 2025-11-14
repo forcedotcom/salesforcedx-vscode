@@ -2,12 +2,7 @@
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
     "outDir": "./out",
-    "target": "ES2022",
-    "lib": ["es2022", "dom"],
-    "noImplicitAny": false,
     "strictNullChecks": true,
-    "noUnusedParameters": false,
-    "pretty": true,
     "skipLibCheck": true
   },
   "include": ["src/**/*.ts", "src/**/*.json", "src/**/*.js", "resources/**/*.js", "typings/*.d.ts", "jest/*.js"],

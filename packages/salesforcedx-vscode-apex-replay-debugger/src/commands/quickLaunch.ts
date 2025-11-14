@@ -25,10 +25,10 @@ import {
 import * as path from 'node:path';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
-import { checkpointService, CheckpointService } from '../breakpoints/checkpointService';
+import { checkpointService, sfCreateCheckpoints } from '../breakpoints/checkpointService';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { retrieveTestCodeCoverage } from '../utils';
+import { retrieveTestCodeCoverage } from '../utils/settings';
 import { launchFromLogFile } from './launchFromLogFile';
 
 type TestRunResult = {
@@ -59,7 +59,7 @@ class QuickLaunch {
 
     const oneOrMoreCheckpoints = checkpointService.hasOneOrMoreActiveCheckpoints();
     if (oneOrMoreCheckpoints) {
-      const createCheckpointsResult = await CheckpointService.sfCreateCheckpoints();
+      const createCheckpointsResult = await sfCreateCheckpoints();
       if (!createCheckpointsResult) {
         return false;
       }

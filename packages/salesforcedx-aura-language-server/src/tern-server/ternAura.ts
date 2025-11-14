@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+// @ts-nocheck as this is a third party library
 import { FileSystemDataProvider, extractJsonFromImport } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as walk from 'acorn-walk';
 import * as infer from '../tern/lib/infer';
@@ -231,9 +232,9 @@ const connectModule = async (file: any, out: any): Promise<void> => {
               const grand = infer.parentNode(parent, file.ast);
               if (grand.type === 'Program') {
                 // add some jsdoc
-                // @ts-ignore - objType is a custom tern property
+                // @ts-expect-error - objType is a custom tern property
                 if (node.objType) {
-                  // @ts-ignore - objType is a custom tern property
+                  // @ts-expect-error - objType is a custom tern property
                   node.objType.doc =
                     'A helper resource contains functions that can be reused by your JavaScript code in the component bundle. ';
                 }
@@ -248,10 +249,10 @@ const connectModule = async (file: any, out: any): Promise<void> => {
                 //note: propogate calls addType on the target
                 // todo: this could be made more efficient with a custom propogation strategy
                 // similar to ForAllProps_Purgeable
-                // @ts-ignore - objType is a custom tern property
+                // @ts-expect-error - objType is a custom tern property
                 if (node.objType) {
                   try {
-                    // @ts-ignore - objType is a custom tern property
+                    // @ts-expect-error - objType is a custom tern property
                     node.objType.propagate(target);
                   } catch (err) {
                     console.error(err);
@@ -299,9 +300,9 @@ const connectModule = async (file: any, out: any): Promise<void> => {
         const grand = infer.parentNode(parent, file.ast);
         if (grand.type === 'Program') {
           for (const property of node.properties) {
-            // @ts-ignore - Property type narrowing
+            // @ts-expect-error - Property type narrowing
             if (property.value.type === 'FunctionExpression') {
-              // @ts-ignore - Property type narrowing
+              // @ts-expect-error - Property type narrowing
               const val = property.value;
               const fn = val?.scope?.fnType;
               if (!fn?.name) {

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { RequestService } from '@salesforce/salesforcedx-utils';
 import { DebugProtocol } from '@vscode/debugprotocol';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
@@ -23,6 +22,7 @@ import {
 } from '../../../src/adapter/apexDebug';
 import { LocalValue, Reference, Value } from '../../../src/commands';
 import { BreakpointService } from '../../../src/core/breakpointService';
+import { RequestService } from '../../../src/requestService/requestService';
 import { ApexDebugForTest } from './apexDebugForTest';
 
 describe('Debugger adapter variable handling - unit', () => {
@@ -200,7 +200,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
       // expect
       expect(result1).to.be.greaterThan(0, 'numbers after names');
-      expect(result2).to.be.lessThan(0), 'names before numbers';
+      (expect(result2).to.be.lessThan(0), 'names before numbers');
     });
   });
 
@@ -440,7 +440,7 @@ describe('Debugger adapter variable handling - unit', () => {
 
     it('Should call fetchReferences for unknown input', async () => {
       // given
-      const apexId = 12345;
+      const apexId = 12_345;
       const references: Reference[] = [
         {
           type: 'object',
@@ -663,7 +663,7 @@ describe('Debugger adapter variable handling - unit', () => {
     it('Should return no scopes for unknown frameId', async () => {
       // given
       const args: DebugProtocol.ScopesArguments = {
-        frameId: 1234567
+        frameId: 1_234_567
       };
 
       // when
@@ -802,7 +802,7 @@ describe('Debugger adapter variable handling - unit', () => {
     it('Should return no variables for unknown variablesReference', async () => {
       // given
       const args: DebugProtocol.VariablesArguments = {
-        variablesReference: 1234567
+        variablesReference: 1_234_567
       };
 
       // when
