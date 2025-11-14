@@ -947,17 +947,9 @@ export class ApexDebug extends LoggingDebugSession {
               TRACE_CATEGORY_VARIABLES,
               `stackTraceRequest: state=${JSON.stringify(stateRespObj.stateResponse.state)}`
             );
-            frameInfo.locals = stateRespObj.stateResponse.state.locals?.local
-              ? stateRespObj.stateResponse.state.locals.local
-              : [];
-
-            frameInfo.statics = stateRespObj.stateResponse.state.statics?.static
-              ? stateRespObj.stateResponse.state.statics.static
-              : [];
-
-            frameInfo.globals = stateRespObj.stateResponse.state.globals?.global
-              ? stateRespObj.stateResponse.state.globals.global
-              : [];
+            frameInfo.locals = stateRespObj.stateResponse.state.locals?.local ?? [];
+            frameInfo.statics = stateRespObj.stateResponse.state.statics?.static ?? [];
+            frameInfo.globals = stateRespObj.stateResponse.state.globals?.global ?? [];
 
             if (stateRespObj.stateResponse.state.references?.references) {
               this.populateReferences(stateRespObj.stateResponse.state.references.references, frameInfo.requestId);
