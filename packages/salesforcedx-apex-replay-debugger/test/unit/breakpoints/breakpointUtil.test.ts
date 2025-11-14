@@ -63,7 +63,6 @@ describe('Breakpoint utilities', () => {
       ],
       // It should be noted that the order of insertion is intentionally being mixed  up to ensure
       // that insertion order doesn't play any part in what is returned.
-      ['__sfdc_trigger/Namespace/YourTriggerName', 'file:///triggerWithNamespace.trigger'],
       ['__sfdc_trigger/Namespace/YourTriggerName', 'file:///triggerWithNamespace.trigger']
     ]);
 
