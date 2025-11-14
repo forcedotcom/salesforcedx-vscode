@@ -43,8 +43,7 @@ describe('breakpointService Unit Tests.', () => {
   });
 
   it('Should be able to call setValidLines.', () => {
-    const lineNumberMapping = new Map();
-    lineNumberMapping.set('test', []);
+    const lineNumberMapping = new Map([['test', []]]);
     const typerefMapping = new Map();
     breakpointService.setValidLines(lineNumberMapping, typerefMapping);
     expect(breakpointService.hasLineNumberMapping()).toBeTruthy();
@@ -80,12 +79,16 @@ describe('breakpointService Unit Tests.', () => {
     });
 
     it('Should return undefined if the line is not found.', () => {
-      const lineNumberMapping = new Map();
-      lineNumberMapping.set('test', [
-        {
-          typeref: 'test',
-          lines: [2]
-        }
+      const lineNumberMapping = new Map([
+        [
+          'test',
+          [
+            {
+              typeref: 'test',
+              lines: [2]
+            }
+          ]
+        ]
       ]);
       const typerefMapping = new Map();
       breakpointService.setValidLines(lineNumberMapping, typerefMapping);
@@ -94,12 +97,16 @@ describe('breakpointService Unit Tests.', () => {
     });
 
     it('Should return the typeref if the line is found.', () => {
-      const lineNumberMapping = new Map();
-      lineNumberMapping.set('test', [
-        {
-          typeref: 'test',
-          lines: [1]
-        }
+      const lineNumberMapping = new Map([
+        [
+          'test',
+          [
+            {
+              typeref: 'test',
+              lines: [1]
+            }
+          ]
+        ]
       ]);
       const typerefMapping = new Map();
       breakpointService.setValidLines(lineNumberMapping, typerefMapping);
@@ -115,8 +122,7 @@ describe('breakpointService Unit Tests.', () => {
     });
 
     it('Should return typeref if getSourcePathFromTyperef is not empty.', () => {
-      const typerefMapping = new Map();
-      typerefMapping.set('test', 'test');
+      const typerefMapping = new Map([['test', 'test']]);
       breakpointService.setValidLines(new Map(), typerefMapping);
       const typeref = breakpointService.getSourcePathFromTyperef('test');
       expect(typeref).toEqual('test');
@@ -130,8 +136,7 @@ describe('breakpointService Unit Tests.', () => {
     });
 
     it('Should return typeref if getSourcePathFromPartialTyperef is not empty.', () => {
-      const typerefMapping = new Map();
-      typerefMapping.set('test', 'test');
+      const typerefMapping = new Map([['test', 'test']]);
       breakpointService.setValidLines(new Map(), typerefMapping);
       const typeref = breakpointService.getSourcePathFromPartialTyperef('test');
       expect(typeref).toEqual('test');

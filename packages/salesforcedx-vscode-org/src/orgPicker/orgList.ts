@@ -40,11 +40,7 @@ export class OrgList implements vscode.Disposable {
     if (targetOrgOrAlias) {
       try {
         const isExpired = await this.isOrgExpired(targetOrgOrAlias);
-        if (isExpired) {
-          this.statusBarItem.text = `$(warning) ${targetOrgOrAlias}`;
-        } else {
-          this.statusBarItem.text = `$(plug) ${targetOrgOrAlias}`;
-        }
+        this.statusBarItem.text = isExpired ? `$(warning) ${targetOrgOrAlias}` : `$(plug) ${targetOrgOrAlias}`;
       } catch (error: unknown) {
         if (error instanceof Error && error.name === 'NamedOrgNotFoundError') {
           this.statusBarItem.text = `$(plug) ${targetOrgOrAlias}`;

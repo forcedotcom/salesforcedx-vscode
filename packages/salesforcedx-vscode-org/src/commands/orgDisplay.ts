@@ -106,7 +106,7 @@ class OrgDisplayExecutor extends LibraryCommandletExecutor<{ username?: string }
           ]
         : []),
       ...(orgInfo.edition && !isScratchOrg ? [{ property: 'Edition', value: orgInfo.edition }] : [])
-    ].sort((a, b) => String(a.property).localeCompare(String(b.property)));
+    ].toSorted((a, b) => String(a.property).localeCompare(String(b.property)));
 
     return createTable(rows, columns, 'Org Description');
   }

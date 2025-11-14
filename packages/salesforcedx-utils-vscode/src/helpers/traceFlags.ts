@@ -131,7 +131,7 @@ export class TraceFlags {
   }
 
   public calculateExpirationDate(expirationDate: Date): Date {
-    const currDate = new Date().valueOf();
+    const currDate = Date.now();
     const isValidLength = expirationDate.getTime() - currDate > LOG_TIMER_LENGTH_MINUTES * MILLISECONDS_PER_MINUTE;
     return !isValidLength ? new Date(Date.now() + LOG_TIMER_LENGTH_MINUTES * MILLISECONDS_PER_MINUTE) : expirationDate;
   }

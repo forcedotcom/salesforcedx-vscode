@@ -211,7 +211,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
 
   public stackTraceRequest(response: DebugProtocol.StackTraceResponse, _args: DebugProtocol.StackTraceArguments): void {
     response.body = {
-      stackFrames: this.logContext.getFrames().slice().reverse()
+      stackFrames: this.logContext.getFrames().toReversed()
     };
     response.success = true;
     this.sendResponse(response);

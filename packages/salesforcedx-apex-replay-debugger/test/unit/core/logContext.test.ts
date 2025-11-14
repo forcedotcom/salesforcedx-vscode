@@ -379,10 +379,11 @@ describe('LogContext', () => {
   });
 
   describe('Signature-to-URI', () => {
-    const typerefMapping: Map<string, string> = new Map();
-    typerefMapping.set('namespace/Foo$Bar', '/path/foo.cls');
-    typerefMapping.set('namespace/Foo', '/path/foo.cls');
-    typerefMapping.set('__sfdc_trigger/namespace/MyTrigger', '/path/MyTrigger.trigger');
+    const typerefMapping: Map<string, string> = new Map([
+      ['namespace/Foo$Bar', '/path/foo.cls'],
+      ['namespace/Foo', '/path/foo.cls'],
+      ['__sfdc_trigger/namespace/MyTrigger', '/path/MyTrigger.trigger']
+    ]);
 
     beforeEach(() => {
       getTyperefMappingSpy = jest.spyOn(breakpointUtil, 'getTyperefMapping').mockReturnValue(typerefMapping);

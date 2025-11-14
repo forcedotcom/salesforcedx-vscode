@@ -13,7 +13,7 @@ import { URI } from 'vscode-uri';
 import { ApexReplayDebug } from '../../src/adapter/apexReplayDebug';
 import { GoldFileUtil } from './goldFileUtil';
 
-const PROJECT_NAME = `project_${new Date().getTime()}`;
+const PROJECT_NAME = `project_${Date.now()}`;
 const CONFIG_DIR = path.join(__dirname, '..', '..', 'test', 'integration', 'config');
 const LOG_FOLDER = path.join(CONFIG_DIR, 'logs');
 

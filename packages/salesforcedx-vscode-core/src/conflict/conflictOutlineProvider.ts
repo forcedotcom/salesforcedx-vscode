@@ -14,17 +14,13 @@ import { ConflictFile, ConflictGroupNode, ConflictNode } from './conflictNode';
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 export class ConflictOutlineProvider implements vscode.TreeDataProvider<ConflictNode> {
-  private root: ConflictGroupNode | null;
+  private root: ConflictGroupNode | null = null;
   private emptyLabel?: string;
 
   private internalOnDidChangeTreeData: vscode.EventEmitter<ConflictNode | undefined> = new vscode.EventEmitter<
     ConflictNode | undefined
   >();
   public readonly onDidChangeTreeData: vscode.Event<ConflictNode | undefined> = this.internalOnDidChangeTreeData.event;
-
-  constructor() {
-    this.root = null;
-  }
 
   public onViewChange() {
     this.internalOnDidChangeTreeData.fire(undefined);

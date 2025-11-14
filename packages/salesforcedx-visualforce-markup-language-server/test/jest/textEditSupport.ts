@@ -8,7 +8,7 @@ import { TextDocument, TextEdit } from 'vscode-languageserver-types';
 
 export const applyEdits = (document: TextDocument, edits: TextEdit[]): string => {
   let text = document.getText();
-  const sortedEdits = edits.sort((a, b) => document.offsetAt(b.range.start) - document.offsetAt(a.range.start));
+  const sortedEdits = edits.toSorted((a, b) => document.offsetAt(b.range.start) - document.offsetAt(a.range.start));
   let lastOffset = text.length;
   sortedEdits.forEach(e => {
     const startOffset = document.offsetAt(e.range.start);

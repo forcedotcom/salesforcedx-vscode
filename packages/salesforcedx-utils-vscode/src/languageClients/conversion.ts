@@ -8,4 +8,4 @@ import { Uri } from 'vscode';
 
 // See https://github.com/Microsoft/vscode-languageserver-node/issues/105
 export const code2ProtocolConverter = (value: Uri) =>
-  /^win32/.test(process.platform) ? value.toString().replace('%3A', ':') : value.toString();
+  process.platform.startsWith('win32') ? value.toString().replace('%3A', ':') : value.toString();

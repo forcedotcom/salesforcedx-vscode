@@ -467,10 +467,10 @@ const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreakpoint):
     ExecutableEntityName: undefined,
     IsDumpingHeap: true,
     Iteration: 1,
-    Line: -1
+    Line: breakpoint.location.range.start.line + 1
   };
 
-  checkpointOverlayAction.Line = breakpoint.location.range.start.line + 1; // need to add 1 since the lines are 0 based
+  // need to add 1 since the lines are 0 based
 
   // if the hit condition is a number then use it
   if (breakpoint.hitCondition) {
@@ -483,11 +483,7 @@ const parseCheckpointInfoFromBreakpoint = (breakpoint: vscode.SourceBreakpoint):
   // based upon whether or not the string starts with SELECT
   const logMessage = (breakpoint as any).logMessage as string;
   if (logMessage && logMessage.length > 0) {
-    if (logMessage.toLocaleLowerCase().startsWith('select')) {
-      checkpointOverlayAction.ActionScriptType = 'SOQL';
-    } else {
-      checkpointOverlayAction.ActionScriptType = 'Apex';
-    }
+    checkpointOverlayAction.ActionScriptType = logMessage.toLocaleLowerCase().startsWith('select') ? 'SOQL' : 'Apex';
     checkpointOverlayAction.ActionScript = logMessage;
   }
   return checkpointOverlayAction;

@@ -168,7 +168,7 @@ describe('HTML Embedded Formatting', () => {
 
 const applyEdits = (document: TextDocument, edits: TextEdit[]): string => {
   let text = document.getText();
-  const sortedEdits = edits.sort((a, b) => {
+  const sortedEdits = edits.toSorted((a, b) => {
     const startDiff = document.offsetAt(b.range.start) - document.offsetAt(a.range.start);
     if (startDiff === 0) {
       return document.offsetAt(b.range.end) - document.offsetAt(a.range.end);

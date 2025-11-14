@@ -63,7 +63,7 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
   private async saveResultsToCSV(queryResult: QueryResult): Promise<void> {
     const csvContent = convertQueryResultToCSV(queryResult);
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
     const fileName = `soql-query-${timestamp}.csv`;
     const outputDir = path.join(workspaceUtils.getRootWorkspacePath(), '.sfdx', 'data');
     const filePath = path.join(outputDir, fileName);
@@ -115,7 +115,7 @@ class GetQueryAndApiInputs implements ParametersGatherer<QueryAndApiInputs> {
     query = query
       .replace('[', '')
       .replace(']', '')
-      .replace(/(\r\n|\n)/g, ' ');
+      .replaceAll(/(\r\n|\n)/g, ' ');
 
     const restApi = {
       api: 'REST' as const,
@@ -309,7 +309,7 @@ export const convertToCSV = (records: QueryResult['records']): string => {
 export const escapeCSVField = (field: string): string => {
   // If field contains comma, quote, or newline, wrap in quotes and escape internal quotes
   if (field.includes(',') || field.includes('"') || field.includes('\n') || field.includes('\r')) {
-    return `"${field.replace(/"/g, '""')}"`;
+    return `"${field.replaceAll('"', '""')}"`;
   }
   return field;
 };

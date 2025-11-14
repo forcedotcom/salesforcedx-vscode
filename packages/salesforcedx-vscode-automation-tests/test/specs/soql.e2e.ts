@@ -100,7 +100,7 @@ describe('SOQL', () => {
     const expectedText = ['SELECT COUNT()', 'from Account'].join('\n');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'countAccounts.soql');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.be(expectedText);
   });
 

@@ -94,7 +94,7 @@ const upsertSettings = async (page: Page, settings: Record<string, string>): Pro
     await performSearch(id);
 
     // Deterministic locator: target the element that actually contains the `data-id` attribute
-    const searchResultId = `searchResultModel_${id.replace(/\./g, '_')}`;
+    const searchResultId = `searchResultModel_${id.replaceAll('.', '_')}`;
     const rowById = page.locator(`[data-id="${searchResultId}"]`).first();
 
     if (debugAria) {

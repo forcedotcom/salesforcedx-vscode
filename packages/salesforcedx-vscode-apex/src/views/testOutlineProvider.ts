@@ -37,13 +37,12 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
   public onDidChangeTreeData = this.onDidChangeTestData.event;
 
   private apexTestMap: Map<string, TestNode> = new Map<string, TestNode>();
-  private rootNode: TestNode | null;
+  private rootNode: TestNode | null = null;
   public testStrings: Set<string> = new Set<string>();
   private apexTestInfo: ApexTestMethod[] | null;
   private testIndex: Map<string, string> = new Map<string, string>();
 
   constructor(apexTestInfo: ApexTestMethod[] | null) {
-    this.rootNode = null;
     this.apexTestInfo = apexTestInfo;
     this.createTestIndex();
     this.getAllApexTests();

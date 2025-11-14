@@ -38,10 +38,10 @@ describe('Frame entry event', () => {
   let map: Map<string, Map<string, ApexVariableContainer>>;
 
   beforeEach(() => {
-    const variableMap = new Map<string, ApexVariableContainer>();
-    variableMap.set('var1', new ApexVariableContainer('var1', '0', 'Integer'));
-    map = new Map<string, Map<string, ApexVariableContainer>>();
-    map.set('previousClass', variableMap);
+    const variableMap = new Map<string, ApexVariableContainer>([
+      ['var1', new ApexVariableContainer('var1', '0', 'Integer')]
+    ]);
+    map = new Map<string, Map<string, ApexVariableContainer>>([['previousClass', variableMap]]);
     getUriFromSignatureStub = jest.spyOn(LogContext.prototype, 'getUriFromSignature').mockReturnValue(uriFromSignature);
     getStaticMapStub = jest.spyOn(LogContext.prototype, 'getStaticVariablesClassMap').mockReturnValue(map);
   });

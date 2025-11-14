@@ -34,10 +34,10 @@ export class LogContextUtil {
   }
 
   public surroundBlobsWithQuotes(value: string): string {
-    return value.replace(/(BLOB\(\d+ bytes\))/g, '"$1"');
+    return value.replaceAll(/(BLOB\(\d+ bytes\))/g, '"$1"');
   }
 
   public removeQuotesFromBlob(value: string): string {
-    return value.replace(/'(BLOB\(\d+ bytes\))'/g, '$1');
+    return value.replaceAll(/'(BLOB\(\d+ bytes\))'/g, '$1');
   }
 }

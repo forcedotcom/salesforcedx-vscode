@@ -29,7 +29,7 @@ export const enum TestRunType {
  * @param testFsPath
  */
 const normalizeRunTestsByPath = (cwd: string, testFsPath: string) => {
-  if (/^win32/.test(process.platform)) {
+  if (process.platform.startsWith('win32')) {
     return path.relative(cwd, testFsPath);
   }
   return testFsPath;
@@ -92,12 +92,7 @@ export class TestRunner {
         ? getTestNamePatternArgs(testExecutionInfo.testName)
         : [];
 
-    let runModeArgs: string[];
-    if (testRunType === TestRunType.WATCH) {
-      runModeArgs = ['--watch'];
-    } else {
-      runModeArgs = [];
-    }
+    const runModeArgs = testRunType === TestRunType.WATCH ? ['--watch'] : [];
     const args = [
       ...runModeArgs,
       '--json',

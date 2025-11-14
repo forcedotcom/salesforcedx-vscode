@@ -111,7 +111,7 @@ export class SfTestOutlineProvider implements vscode.TreeDataProvider<TestNode>,
             const testGroupNode = new SfTestGroupNode(testNodeLabel, testFileInfo);
             return testGroupNode;
           })
-          .sort(sortTestNodeByLabel);
+          .toSorted(sortTestNodeByLabel);
       } catch (error) {
         console.error(error);
         return [];
@@ -127,8 +127,7 @@ export class SfTestOutlineProvider implements vscode.TreeDataProvider<TestNode>,
 export const registerLwcTestExplorerTreeView = (extensionContext: vscode.ExtensionContext) => {
   const testOutlineProvider = new SfTestOutlineProvider();
   const testProvider = vscode.window.registerTreeDataProvider(testOutlineProvider.getId(), testOutlineProvider);
-  extensionContext.subscriptions.push(testOutlineProvider);
-  extensionContext.subscriptions.push(testProvider);
+  extensionContext.subscriptions.push(testOutlineProvider, testProvider);
 
   const collapseAllTestCommand = vscode.commands.registerCommand(`${testOutlineProvider.getId()}.collapseAll`, () =>
     testOutlineProvider.collapseAll()

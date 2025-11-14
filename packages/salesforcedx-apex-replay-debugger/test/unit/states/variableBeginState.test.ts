@@ -41,8 +41,7 @@ describe('Variable begin scope event', () => {
   let map: Map<string, Map<string, ApexVariable>>;
 
   beforeEach(() => {
-    map = new Map<string, Map<string, ApexVariable>>();
-    map.set('fakeClass', new Map<string, ApexVariable>());
+    map = new Map<string, Map<string, ApexVariable>>([['fakeClass', new Map<string, ApexVariable>()]]);
     getUriFromSignatureStub = jest.spyOn(LogContext.prototype, 'getUriFromSignature').mockReturnValue(uriFromSignature);
     getStaticMapStub = jest.spyOn(LogContext.prototype, 'getStaticVariablesClassMap').mockReturnValue(map as any);
   });

@@ -99,14 +99,9 @@ export abstract class LibraryBaseTemplateCommand<T> implements CommandletExecuto
   private async createTemplate(templateType: TemplateType, templateOptions: TemplateOptions) {
     const cwd = workspaceUtils.getRootWorkspacePath();
     const templateService = TemplateService.getInstance(cwd);
-    let customOrgMetadataTemplates;
 
     const configValue = await ConfigUtil.getTemplatesDirectory();
-    if (configValue === undefined) {
-      customOrgMetadataTemplates = undefined;
-    } else {
-      customOrgMetadataTemplates = String(configValue);
-    }
+    const customOrgMetadataTemplates = configValue === undefined ? undefined : String(configValue);
 
     this.telemetryProperties.isUsingCustomOrgMetadataTemplates = String(customOrgMetadataTemplates !== undefined);
 

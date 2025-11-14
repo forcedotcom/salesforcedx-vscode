@@ -7,7 +7,7 @@
 import { forceignore } from './forceignore';
 import { gitignore } from './gitignore';
 import { jestConfig } from './jestConfig';
-import { metadataDirs } from './metadataDirs';
+
 import { prettierignore } from './prettierignore';
 import { prettierrc } from './prettierrc';
 import { readme } from './readme';
@@ -28,4 +28,4 @@ export const TEMPLATES = {
   'tsconfig.json': tsconfig
 };
 
-export { metadataDirs };
+export { metadataDirs } from './metadataDirs';

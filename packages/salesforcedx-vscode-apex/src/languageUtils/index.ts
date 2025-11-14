@@ -7,9 +7,7 @@
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
-import { ProcessDetail, languageClientManager } from './languageClientManager';
-
-export { languageClientManager };
+import { type ProcessDetail, languageClientManager } from './languageClientManager';
 
 export const getLineBreakpointInfo = async () => languageClientManager.getLineBreakpointInfo();
 
@@ -44,3 +42,4 @@ export const terminateProcess = (pid: number): void => {
 };
 
 export { configureApexLanguage } from './apexLanguageConfiguration';
+export { languageClientManager } from './languageClientManager';

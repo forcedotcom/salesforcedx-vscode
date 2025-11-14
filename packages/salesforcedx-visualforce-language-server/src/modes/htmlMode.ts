@@ -49,11 +49,9 @@ export const getHTMLMode = (htmlLanguageService: HTMLLanguageService): LanguageM
     ) => {
       const formatSettings: HTMLFormatConfiguration = settings?.visualforce?.format ?? {};
 
-      if (formatSettings.contentUnformatted) {
-        formatSettings.contentUnformatted = `${formatSettings.contentUnformatted},script`;
-      } else {
-        formatSettings.contentUnformatted = 'script';
-      }
+      formatSettings.contentUnformatted = formatSettings.contentUnformatted
+        ? `${formatSettings.contentUnformatted},script`
+        : 'script';
       return htmlLanguageService.format(document, range, { ...formatParams, ...formatSettings });
     },
     doAutoClose: (document: TextDocument, position: Position) => {

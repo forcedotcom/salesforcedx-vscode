@@ -255,13 +255,11 @@ export class HeapDumpService {
     // set so it can be expanded in the variables window. Note this check
     // is kind of superfluous but it's better to be safe than sorry
     if (!this.isPrimitiveType(tmpContainer.type)) {
-      if (createVarRef) {
-        tmpContainer.variablesRef = this.logContext.getVariableHandler().create(tmpContainer);
-      } else {
-        // If the variable is being cloned for a name change then
-        // it needs to use the same variablesRef as the parent
-        tmpContainer.variablesRef = refContainer.variablesRef;
-      }
+      tmpContainer.variablesRef = createVarRef
+        ? this.logContext.getVariableHandler().create(tmpContainer)
+        : // If the variable is being cloned for a name change then
+          // it needs to use the same variablesRef as the parent
+          refContainer.variablesRef;
     }
     return tmpContainer;
   }
@@ -489,12 +487,7 @@ export class HeapDumpService {
 
   public createStringFromExtentValue(value: any): string {
     // can't toString undefined or null
-    if (value === undefined) {
-      return 'undefined';
-    } else if (value === null) {
-      return 'null';
-    }
-    return value.toString();
+    return value === undefined ? 'undefined' : value === null ? 'null' : value.toString();
   }
   // When this is invoked, the leaf references have all been set and it is now time to
   // create the variable, piecing it together from any references.

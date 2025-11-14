@@ -49,7 +49,7 @@ export class ConfigUtil {
         return undefined;
       }
 
-      return JSON.stringify(targetOrgOrAlias).replace(/"/g, '');
+      return JSON.stringify(targetOrgOrAlias).replaceAll('"', '');
     } catch (err) {
       console.error(err);
       if (err instanceof Error) {

@@ -81,7 +81,7 @@ test.describe('Org Browser - Foldered Report retrieval ', () => {
     await test.step('verify editor shows the report tab and capture', async () => {
       const editorPart = page.locator('#workbench\\.parts\\.editor');
       await expect(editorPart).toBeVisible();
-      const safeName = (reportName ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const safeName = (reportName ?? '').replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const reportTab = page.getByRole('tab', { name: new RegExp(safeName, 'i') }).first();
       await expect(reportTab).toBeVisible();
       await expect(reportTab).toMatchAriaSnapshot({ name: 'report-editor-tab' });

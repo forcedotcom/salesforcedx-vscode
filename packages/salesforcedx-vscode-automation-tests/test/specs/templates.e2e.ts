@@ -78,7 +78,7 @@ describe('Templates', () => {
     );
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'ApexClass1.cls');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(expectedText);
   });
 
@@ -116,7 +116,7 @@ describe('Templates', () => {
     ].join('\n');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'ApexUnitTestClass1.cls');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.contain(expectedText);
   });
 
@@ -141,7 +141,7 @@ describe('Templates', () => {
     const expectedText = ['trigger ApexTrigger1 on SOBJECT (before insert) {', '', '}'].join('\n');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'ApexTrigger1.trigger');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(expectedText);
   });
 
@@ -188,7 +188,7 @@ describe('Templates', () => {
     const expectedText = ['<aura:application>', '', '</aura:application>'].join('\n');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'AuraApp1.app');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(expectedText);
   });
 
@@ -221,7 +221,7 @@ describe('Templates', () => {
     const expectedText = ['<aura:component>', '', '</aura:component>'].join('\n');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'auraComponent1.cmp');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(expectedText);
   });
 
@@ -246,7 +246,7 @@ describe('Templates', () => {
     const expectedText = ['<aura:event type="APPLICATION" description="Event template" />'].join('\n');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'auraEvent1.evt');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(expectedText);
   });
 
@@ -274,7 +274,7 @@ describe('Templates', () => {
     ].join('\n');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'AuraInterface1.intf');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(expectedText);
   });
 
@@ -313,7 +313,7 @@ describe('Templates', () => {
     ].join('\n');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'lightningWebComponent1.js');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(expectedText);
   });
 
@@ -342,7 +342,7 @@ describe('Templates', () => {
     ].join('\n');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'VisualforceCmp1.component');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(expectedText);
   });
 
@@ -376,7 +376,7 @@ describe('Templates', () => {
     ].join('\n');
     const workbench = getWorkbench();
     const textEditor = await getTextEditor(workbench, 'VisualforcePage1.page');
-    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    const textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(expectedText);
   });
 
@@ -424,31 +424,31 @@ describe('Templates', () => {
     // Verify the default code for a Sample Analytics Template.
     const workbench = getWorkbench();
     let textEditor = await getTextEditor(workbench, 'app-to-template-rules.json');
-    let textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    let textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(analyticsTemplate.appToTemplateRules);
 
     textEditor = await getTextEditor(workbench, 'folder.json');
-    textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(analyticsTemplate.folder);
 
     textEditor = await getTextEditor(workbench, 'releaseNotes.html');
-    textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(analyticsTemplate.releaseNotes);
 
     textEditor = await getTextEditor(workbench, 'template-info.json');
-    textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(analyticsTemplate.templateInfo);
 
     textEditor = await getTextEditor(workbench, 'template-to-app-rules.json');
-    textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(analyticsTemplate.templateToAppRules);
 
     textEditor = await getTextEditor(workbench, 'ui.json');
-    textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(analyticsTemplate.ui);
 
     textEditor = await getTextEditor(workbench, 'variables.json');
-    textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replace(/\r\n/g, '\n');
+    textGeneratedFromTemplate = (await textEditor.getText()).trimEnd().replaceAll('\r\n', '\n');
     expect(textGeneratedFromTemplate).to.equal(analyticsTemplate.variables);
   });
 

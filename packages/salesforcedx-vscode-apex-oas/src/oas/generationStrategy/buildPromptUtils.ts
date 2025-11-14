@@ -48,7 +48,7 @@ export const buildClassPrompt = (classDetail: ApexOASClassDetail): string =>
     ...(classDetail.comment !== undefined
       ? [
           `The documentation of the class is ${classDetail.comment
-            .replace(/\/\*\*|\*\//g, '') // remove opening and closing comment markers
+            .replaceAll(/\/\*\*|\*\//g, '') // remove opening and closing comment markers
             .split('\n')
             .map(line => line.trim().replace(/^\* ?/, '')) // remove leading '*'
             .filter(line => line.length > 0)

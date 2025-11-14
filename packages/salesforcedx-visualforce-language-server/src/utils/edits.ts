@@ -9,7 +9,7 @@ import { Position, TextEdit } from 'vscode-languageserver-types';
 
 export const applyEdits = (document: TextDocument, edits: TextEdit[]): string => {
   let text = document.getText();
-  const sortedEdits = edits.sort((a, b) => {
+  const sortedEdits = edits.toSorted((a, b) => {
     const startDiff = comparePositions(a.range.start, b.range.start);
     if (startDiff === 0) {
       return comparePositions(a.range.end, b.range.end);

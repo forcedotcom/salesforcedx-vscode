@@ -141,12 +141,13 @@ describe('Interactive debugger adapter - unit', () => {
     let configGetSpy: sinon.SinonStub;
     let orgCreateSpy: sinon.SinonStub;
     let args: LaunchRequestArguments;
-    const lineBpInfo: LineBreakpointInfo[] = [];
-    lineBpInfo.push({
-      uri: 'classA',
-      typeref: 'StaticVarsA',
-      lines: [9, 10, 13]
-    });
+    const lineBpInfo: LineBreakpointInfo[] = [
+      {
+        uri: 'classA',
+        typeref: 'StaticVarsA',
+        lines: [9, 10, 13]
+      }
+    ];
 
     beforeEach(() => {
       sessionProjectSpy = sinon.spy(SessionService.prototype, 'forProject');
@@ -296,9 +297,10 @@ describe('Interactive debugger adapter - unit', () => {
       breakpointHasLineNumberMappingSpy = sinon.stub(BreakpointService.prototype, 'hasLineNumberMapping').returns(true);
 
       args.connectType = 'ISV_DEBUGGER';
-      const config = new Map<string, string>();
-      config.set('org-isv-debugger-sid', '123');
-      config.set('org-isv-debugger-url', 'instanceurl');
+      const config = new Map<string, string>([
+        ['org-isv-debugger-sid', '123'],
+        ['org-isv-debugger-url', 'instanceurl']
+      ]);
       configGetSpy.returns(
         Promise.resolve({
           getPropertyValue: (key: string) => config.get(key)
@@ -336,9 +338,10 @@ describe('Interactive debugger adapter - unit', () => {
       breakpointHasLineNumberMappingSpy = sinon.stub(BreakpointService.prototype, 'hasLineNumberMapping').returns(true);
 
       args.connectType = 'ISV_DEBUGGER';
-      const config = new Map<string, string>();
-      config.set('nonexistent-sid', '123');
-      config.set('nonexistent-url', 'instanceurl');
+      const config = new Map<string, string>([
+        ['nonexistent-sid', '123'],
+        ['nonexistent-url', 'instanceurl']
+      ]);
       configGetSpy.returns(
         Promise.resolve({
           getPropertyValue: (key: string) => config.get(key)
@@ -466,12 +469,13 @@ describe('Interactive debugger adapter - unit', () => {
 
     let requestService: RequestService;
     let args: LaunchRequestArguments;
-    const lineBpInfo: LineBreakpointInfo[] = [];
-    lineBpInfo.push({
-      uri: 'classA',
-      typeref: 'StaticVarsA',
-      lines: [9, 10, 13]
-    });
+    const lineBpInfo: LineBreakpointInfo[] = [
+      {
+        uri: 'classA',
+        typeref: 'StaticVarsA',
+        lines: [9, 10, 13]
+      }
+    ];
 
     beforeEach(() => {
       requestService = new RequestService();

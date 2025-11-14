@@ -49,7 +49,7 @@ class TestResultsWatcher implements vscode.Disposable {
     let fileSystemWatcher = this.fileSystemWatchers.get(outputFileFolder);
     if (!fileSystemWatcher) {
       const outputFileExtname = path.extname(outputFilePath);
-      const testResultsGlobPattern = path.join(outputFileFolder, `*${outputFileExtname}`).replace(/\\/g, '/');
+      const testResultsGlobPattern = path.join(outputFileFolder, `*${outputFileExtname}`).replaceAll('\\', '/');
       fileSystemWatcher = vscode.workspace.createFileSystemWatcher(testResultsGlobPattern);
       fileSystemWatcher.onDidCreate(async testResultsUri => {
         await this.updateTestResultsFromTestResultsJson(testResultsUri);

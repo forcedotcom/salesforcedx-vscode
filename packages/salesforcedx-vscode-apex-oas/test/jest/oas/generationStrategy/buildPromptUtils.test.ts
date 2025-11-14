@@ -21,20 +21,24 @@ describe('getMethodImplementation', () => {
         // Method implementation
       }
     `;
-    const methodsDocSymbolMap = new Map<string, DocumentSymbol>();
-    methodsDocSymbolMap.set(methodName, {
-      name: methodName,
-      detail: '',
-      kind: 6,
-      range: {
-        start: { line: 1, character: 0 },
-        end: { line: 3, character: 4 }
-      },
-      selectionRange: {
-        start: { line: 1, character: 0 },
-        end: { line: 3, character: 4 }
-      }
-    });
+    const methodsDocSymbolMap = new Map<string, DocumentSymbol>([
+      [
+        methodName,
+        {
+          name: methodName,
+          detail: '',
+          kind: 6,
+          range: {
+            start: { line: 1, character: 0 },
+            end: { line: 3, character: 4 }
+          },
+          selectionRange: {
+            start: { line: 1, character: 0 },
+            end: { line: 3, character: 4 }
+          }
+        }
+      ]
+    ]);
     const result = getMethodImplementation(methodName, doc, methodsDocSymbolMap);
     expect(result).toBe(`
 public void myMethod() {

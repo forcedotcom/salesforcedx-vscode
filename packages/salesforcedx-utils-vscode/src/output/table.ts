@@ -64,9 +64,7 @@ export const createTable = (rows: Row[], cols: Column[], title?: string): string
     }
   });
 
-  if (columnHeader && headerSeparator) {
-    table += `${title ? '\n' : ''}${columnHeader}\n${headerSeparator}\n`;
-  }
+  table += columnHeader && headerSeparator ? `${title ? '\n' : ''}${columnHeader}\n${headerSeparator}\n` : '';
 
   rows.forEach(row => {
     let outputRow = '';
@@ -77,18 +75,12 @@ export const createTable = (rows: Row[], cols: Column[], title?: string): string
       cell.split('\n').forEach((line, lineIndex) => {
         const cellWidth = maxColWidths.get(col.key);
         if (cellWidth) {
-          if (lineIndex === 0) {
-            outputRow += fillColumn(line, cellWidth, COLUMN_FILLER, isLastCol);
-          } else {
-            // If the cell is multiline, add an additional line to the table
-            // and pad it to the beginning of the current column
-            outputRow += `\n${fillColumn(
-              '',
-              rowWidth,
-              COLUMN_FILLER,
-              isLastCol
-            )}${fillColumn(line, rowWidth, COLUMN_FILLER, isLastCol)}`;
-          }
+          outputRow +=
+            lineIndex === 0
+              ? fillColumn(line, cellWidth, COLUMN_FILLER, isLastCol)
+              : // If the cell is multiline, add an additional line to the table
+                // and pad it to the beginning of the current column
+                `\n${fillColumn('', rowWidth, COLUMN_FILLER, isLastCol)}${fillColumn(line, rowWidth, COLUMN_FILLER, isLastCol)}`;
         }
       });
     });

@@ -165,12 +165,11 @@ export class MetadataOrchestrator {
 
 const buildRequestTarget = (requestPayload: ApexOASEligiblePayload): ApexOASResource => {
   const payload = requestPayload.payload;
-  if (payload.length > 1) return ApexOASResource.multiClass;
-  else {
+  if (payload.length > 1) {
+    return ApexOASResource.multiClass;
+  } else {
     const request = payload[0];
     if (!request.includeAllMethods && !request.includeAllProperties) return ApexOASResource.singleMethodOrProp;
-    if (!request.resourceUri?.fsPath.endsWith('.cls')) {
-      return ApexOASResource.folder;
-    } else return ApexOASResource.class;
+    return !request.resourceUri?.fsPath.endsWith('.cls') ? ApexOASResource.folder : ApexOASResource.class;
   }
 };

@@ -77,7 +77,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
             Effect.tap(result => Effect.annotateCurrentSpan({ result })),
             Effect.withSpan('listMetadata (API call)'),
             Effect.map(ensureArray),
-            Effect.map(arr => arr.sort((a, b) => a.fullName.localeCompare(b.fullName))),
+            Effect.map(arr => arr.toSorted((a, b) => a.fullName.localeCompare(b.fullName))),
             Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
             Effect.mapError(e => new Error(`Failed to decode FileProperties: ${String(e)}`))
           )

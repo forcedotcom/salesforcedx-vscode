@@ -75,7 +75,7 @@ const buildTypesList = (describeResult: DescribeMetadataResult): MetadataObject[
           : nls.localize(coerceMessageKey(mdTypeObject.xmlName)),
         suffix: mdTypeObject.suffix ?? undefined
       }))
-      .sort((a, b) => (a.label > b.label ? 1 : -1));
+      .toSorted((a, b) => (a.label > b.label ? 1 : -1));
     telemetryService.sendEventData('Metadata Types Quantity', undefined, {
       metadataTypes: metadataTypeObjects.length
     });

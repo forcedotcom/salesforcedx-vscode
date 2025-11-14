@@ -63,7 +63,7 @@ export const getTargetDevHubOrAlias = async (
       }
       return undefined;
     }
-    return JSON.stringify(targetDevHub).replace(/"/g, '');
+    return JSON.stringify(targetDevHub).replaceAll('"', '');
   } catch (err) {
     if (err instanceof Error) {
       telemetryService.sendException('get_target_dev_hub_alias', err.message);

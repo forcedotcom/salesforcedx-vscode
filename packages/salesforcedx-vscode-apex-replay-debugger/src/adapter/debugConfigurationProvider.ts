@@ -128,7 +128,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
 // Helper function to extract filename from path (web-compatible)
 const getBasename = (filePath: string): string => {
   // Handle both forward and backward slashes
-  const normalizedPath = filePath.replace(/\\/g, '/');
+  const normalizedPath = filePath.replaceAll('\\', '/');
   const parts = normalizedPath.split('/');
   return parts.at(-1) ?? filePath;
 };

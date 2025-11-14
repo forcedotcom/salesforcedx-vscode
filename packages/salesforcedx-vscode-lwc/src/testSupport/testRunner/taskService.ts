@@ -131,7 +131,7 @@ class TaskService {
     // https://github.com/forcedotcom/salesforcedx-vscode/issues/2097
     // Git Bash shell doesn't handle command paths correctly.
     // Always launch with command prompt (cmd.exe) in Windows.
-    const isWin32 = /^win32/.test(process.platform);
+    const isWin32 = process.platform.startsWith('win32');
     let taskShellExecutionOptions: vscode.ShellExecutionOptions | undefined;
     if (isWin32) {
       channelService.appendLine(nls.localize('task_windows_command_prompt_messaging'));

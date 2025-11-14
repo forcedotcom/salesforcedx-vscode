@@ -93,12 +93,13 @@ describe('Replay debugger adapter - unit', () => {
     let errorToDebugConsoleStub: jest.SpyInstance;
     let scanLogForHeapDumpLinesStub: jest.SpyInstance;
     let fetchOverlayResultsForApexHeapDumpsStub: jest.SpyInstance;
-    const lineBpInfo: LineBreakpointInfo[] = [];
-    lineBpInfo.push({
-      uri: 'classA',
-      typeref: 'StaticVarsA',
-      lines: [9, 10, 13]
-    });
+    const lineBpInfo: LineBreakpointInfo[] = [
+      {
+        uri: 'classA',
+        typeref: 'StaticVarsA',
+        lines: [9, 10, 13]
+      }
+    ];
 
     beforeEach(() => {
       adapter = new MockApexReplayDebug();
@@ -521,7 +522,7 @@ describe('Replay debugger adapter - unit', () => {
       expect(sendResponseSpy).toHaveBeenCalledTimes(1);
       const actualResponse: DebugProtocol.StackTraceResponse = sendResponseSpy.mock.calls[0][0];
       expect(actualResponse.success).toBe(true);
-      expect(actualResponse.body.stackFrames).toEqual(sampleStackFrames.slice().reverse());
+      expect(actualResponse.body.stackFrames).toEqual(sampleStackFrames.toReversed());
     });
   });
 
@@ -856,8 +857,10 @@ describe('Replay debugger adapter - unit', () => {
     });
 
     it('Should return breakpoints', () => {
-      const expectedPath = /^win32/.test(process.platform) ? 'C:\\space in path\\foo.cls' : '/space in path/foo.cls';
-      const uriFromLanguageServer = /^win32/.test(process.platform)
+      const expectedPath = process.platform.startsWith('win32')
+        ? 'C:\\space in path\\foo.cls'
+        : '/space in path/foo.cls';
+      const uriFromLanguageServer = process.platform.startsWith('win32')
         ? 'file:///c:/space%20in%20path/foo.cls'
         : 'file:///space%20in%20path/foo.cls';
       args.source.path = expectedPath;
@@ -992,9 +995,10 @@ describe('Replay debugger adapter - unit', () => {
           { uri: 'file:///bar.cls', typeref: 'bar', lines: [1, 2, 3] },
           { uri: 'file:///bar.cls', typeref: 'bar$inner', lines: [4, 5, 6] }
         ];
-        const expectedLineNumberMapping: Map<string, number[]> = new Map();
-        expectedLineNumberMapping.set('file:///foo.cls', [1, 2, 3, 4, 5, 6]);
-        expectedLineNumberMapping.set('file:///bar.cls', [1, 2, 3, 4, 5, 6]);
+        const expectedLineNumberMapping: Map<string, number[]> = new Map([
+          ['file:///foo.cls', [1, 2, 3, 4, 5, 6]],
+          ['file:///bar.cls', [1, 2, 3, 4, 5, 6]]
+        ]);
         const projectPathArg = 'some path';
 
         const config = {

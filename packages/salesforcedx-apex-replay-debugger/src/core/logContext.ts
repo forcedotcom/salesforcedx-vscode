@@ -356,11 +356,7 @@ export class LogContext {
     let uri = '';
     typerefMapping.forEach((value, key) => {
       let processedKey = '';
-      if (key.startsWith(SFDC_TRIGGER)) {
-        processedKey = key;
-      } else {
-        processedKey = key.replace('/', '.').replace('$', '.');
-      }
+      processedKey = key.startsWith(SFDC_TRIGGER) ? key : key.replace('/', '.').replace('$', '.');
 
       if (processedKey === processedSignature) {
         uri = value;
@@ -410,11 +406,9 @@ export class LogContext {
         case EVENT_METHOD_ENTRY:
           return new FrameEntryState(fields);
         case EVENT_VF_APEX_CALL_START:
-          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!)) {
-            return new NoOpState();
-          } else {
-            return new FrameEntryState(fields);
-          }
+          return FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!)
+            ? new NoOpState()
+            : new FrameEntryState(fields);
         case EVENT_CODE_UNIT_FINISHED:
         case EVENT_CONSTRUCTOR_EXIT:
         case EVENT_METHOD_EXIT:
@@ -424,11 +418,9 @@ export class LogContext {
         case EVENT_VARIABLE_ASSIGNMENT:
           return new VariableAssignmentState(fields);
         case EVENT_VF_APEX_CALL_END:
-          if (FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!)) {
-            return new NoOpState();
-          } else {
-            return new FrameExitState(fields);
-          }
+          return FrameStateUtil.isExtraneousVFGetterOrSetterLogLine(fields.at(-2)!)
+            ? new NoOpState()
+            : new FrameExitState(fields);
         case EVENT_STATEMENT_EXECUTE:
           if (logLine.match(/.*\|.*\|\[\d{1,}\]/)) {
             fields[2] = this.util.stripBrackets(fields[2]);
