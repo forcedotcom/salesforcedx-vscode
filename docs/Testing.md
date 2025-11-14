@@ -67,8 +67,7 @@ pros
 
 cons
 
-- haven't tried with windows yet
-- you might spend some time screwing around getting the selectors right
+- you might spend some time screwing around getting the selectors right (recommendation: have your LLM log html snapshots so it can iterate based on the contents)
 - our test using this are much newer, and the code exists only within the extensions, so you'll be copy-pasting a bit if you want to reuse that. On the roadmap to make that more shared
 
 I'd probably start with playwright if I were doing a new extension.

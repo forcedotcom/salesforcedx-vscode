@@ -26,7 +26,7 @@ export default defineConfig({
     {
       name: 'desktop-electron',
       retries: process.env.CI ? 2 : 0, // No retries locally for faster feedback,
-      snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/desktop-electron/{arg}{ext}'
+      snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/desktop-{platform}/{arg}{ext}'
     }
   ]
 });

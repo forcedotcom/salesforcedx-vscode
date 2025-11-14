@@ -25,7 +25,7 @@ export const saveScreenshot = async (page: Page, fileName: string, fullPage = fa
     const filePath = path.join(testResultsDir, fileName);
 
     // Take the screenshot
-    await page.screenshot({ path: `./${filePath}`, fullPage });
+    await page.screenshot({ path: filePath, fullPage });
 
     return filePath;
   } catch (error) {

@@ -25,7 +25,7 @@ type TestFixtures = {
 };
 
 export const test = base.extend<TestFixtures, WorkerFixtures>({
-  // Download VS Code once per worker (cached in ~/.vscode-test/)
+  // Download VS Code once per worker (cached in ~/.vscode-test/ or the windows equivalent)
   vscodeExecutable: [
     async ({}, use): Promise<void> => {
       const executablePath = await downloadAndUnzipVSCode();
