@@ -9,7 +9,6 @@ import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
-import * as Layer from 'effect/Layer';
 import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -49,7 +48,7 @@ const separateChanges = (status: StatusOutputRow[]): SourceTrackingDetails => {
   return { localChanges, remoteChanges, conflicts };
 };
 
-/** Status bar item that displays source tracking changes */
+/** Status bar items that display source tracking changes */
 export class SourceTrackingStatusBar implements vscode.Disposable {
   private localStatusBarItem: vscode.StatusBarItem;
   private remoteStatusBarItem: vscode.StatusBarItem;
@@ -59,7 +58,6 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
   private lastDetails?: SourceTrackingDetails;
 
   private constructor(private readonly servicesApi: SalesforceVSCodeServicesApi) {
-    // Order: remote (left) -> local (right) to match Git's convention (origin/main vs main)
     this.remoteStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48.5);
     // Remote command will be added when pull command is implemented
 
@@ -87,26 +85,28 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
       yield* targetOrgRef.changes.pipe(
         Stream.runForEach(orgInfo =>
           Effect.sync(() => {
+            console.log('target org change');
             if (orgInfo && typeof orgInfo === 'object' && 'tracksSource' in orgInfo) {
               instance.handleOrgChange(orgInfo);
             }
           })
         )
       );
-      // Proactively populate orgRef by attempting to get a connection in the background
-      // This will trigger the subscription if a target-org is configured
-      yield* Effect.flatMap(servicesApi.services.ConnectionService, svc => svc.getConnection).pipe(
-        Effect.catchAll(() => Effect.void)
-      );
     }).pipe(Effect.forkDaemon, Effect.provide(AllServicesLayer));
 
     instance.orgChangeSubscription = await Effect.runPromise(subscriptionEffect);
+    Effect.runSync(
+      Effect.flatMap(servicesApi.services.ConnectionService, svc => svc.getConnection).pipe(
+        Effect.provide(AllServicesLayer)
+      )
+    );
 
     return instance;
   };
 
   /** Handle org change events */
   private handleOrgChange = (orgInfo: { tracksSource?: boolean; orgId?: string }): void => {
+    console.log('handleOrgChange', JSON.stringify(orgInfo, null, 2));
     if (!orgInfo.tracksSource || !orgInfo.orgId) {
       this.hideAll();
       this.stopFileWatcherSubscription();
@@ -136,9 +136,7 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
       })
     ).pipe(Effect.provide(this.servicesApi.services.FileWatcherService.Default), Effect.forkDaemon);
 
-    void Effect.runPromise(subscriptionEffect).then(fiber => {
-      this.fileWatcherSubscription = fiber;
-    });
+    this.fileWatcherSubscription = Effect.runSync(subscriptionEffect);
   };
 
   /** Stop the file watcher subscription */
@@ -165,27 +163,13 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
 
       yield* Effect.promise(() => tracking.reReadLocalTrackingCache());
       const status = yield* Effect.tryPromise(() => tracking.getStatus({ local: true, remote: true }));
-      console.log('status', JSON.stringify(status, null, 2));
+      console.log('status from stl', JSON.stringify(status, null, 2));
 
       self.lastDetails = separateChanges(status);
       self.updateDisplay(calculateCounts(status));
-    }).pipe(Effect.catchAll(() => Effect.sync(() => self.hideAll())));
+    });
 
-    await Effect.runPromise(
-      Effect.provide(
-        refreshEffect,
-        Layer.mergeAll(
-          this.servicesApi.services.SourceTrackingService.Default,
-          this.servicesApi.services.ConnectionService.Default,
-          this.servicesApi.services.ProjectService.Default,
-          this.servicesApi.services.WorkspaceService.Default,
-          this.servicesApi.services.ConfigService.Default,
-          this.servicesApi.services.MetadataRegistryService.Default,
-          this.servicesApi.services.SettingsService.Default,
-          this.servicesApi.services.SdkLayer
-        )
-      )
-    );
+    await Effect.runPromise(Effect.provide(refreshEffect, AllServicesLayer));
   };
 
   /** Update the status bar display */
