@@ -82,12 +82,7 @@ export const handleConflictsWithUI = async <T>(
 
     if (conflictResult?.type === 'CONTINUE') {
       // User chose to continue - retry the operation if a retry function is provided
-      if (retryOperation) {
-        return await retryOperation();
-      } else {
-        // If no retry function, proceed with original operation
-        return await operation();
-      }
+      return retryOperation ? await retryOperation() : await operation();
     } else {
       // User cancelled
       return undefined;

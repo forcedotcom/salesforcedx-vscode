@@ -50,7 +50,7 @@ const FILE_SEARCH_PATTERN = `{**/*${APEX_TESTSUITE_EXT},**/*${APEX_CLASS_EXT}}`;
 class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
     const { testSuites, apexClasses } = (await workspace.findFiles(FILE_SEARCH_PATTERN, SFDX_FOLDER))
-      .sort((a, b) => a.fsPath.localeCompare(b.fsPath))
+      .toSorted((a, b) => a.fsPath.localeCompare(b.fsPath))
       .reduce(
         (acc: { testSuites: Uri[]; apexClasses: Uri[] }, file) => {
           if (file.path.endsWith('.cls')) {
