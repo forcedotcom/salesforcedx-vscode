@@ -27,8 +27,7 @@
     "@salesforce/core": "^8.19.1",
     "@salesforce/salesforcedx-utils": "65.4.0",
     "@salesforce/salesforcedx-utils-vscode": "65.4.0",
-    "@salesforce/templates": "^65.1.0",
-    "applicationinsights": "1.0.7",
+    "@salesforce/vscode-i18n": "65.4.0",
     "salesforcedx-vscode-core": "65.4.0",
     "vscode-uri": "^3.0.8"
   },
@@ -68,9 +67,7 @@
     ],
     "packageUpdates": {
       "main": "dist/index.js",
-      "dependencies": {
-        "applicationinsights": "1.0.7"
-      },
+      "dependencies": {},
       "devDependencies": {}
     }
   },

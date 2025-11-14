@@ -6,23 +6,12 @@
  */
 import { fixupError, getRootWorkspacePath } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentStatus, DeployResult } from '@salesforce/source-deploy-retrieve';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { SfCommandletExecutor } from '../commands/util';
 
-const notApplicable = 'N/A';
-
-export const getFileUri = (workspacePath: string, filePath: string, defaultErrorPath: string): string => {
-  const resolvedFilePath = filePath.includes(workspacePath) ? filePath : path.join(workspacePath, filePath);
-  // source:deploy sometimes returns N/A as filePath
-  return filePath === notApplicable ? defaultErrorPath : resolvedFilePath;
-};
-
-export const getRange = (lineNumber: string, columnNumber: string): vscode.Range => {
-  const ln = Number(lineNumber);
-  const col = Number(columnNumber);
-  const pos = new vscode.Position(ln > 0 ? ln - 1 : 0, col > 0 ? col - 1 : 0);
+const getRange = (lineNumber = 1, columnNumber = 1): vscode.Range => {
+  const pos = new vscode.Position(lineNumber > 0 ? lineNumber - 1 : 0, columnNumber > 0 ? columnNumber - 1 : 0);
   return new vscode.Range(pos, pos);
 };
 
@@ -35,13 +24,9 @@ export const handleDeployDiagnostics = (
 
   const diagnosticMap: Map<string, vscode.Diagnostic[]> = new Map();
 
-  for (const fileResponse of deployResult.getFileResponses()) {
-    if (fileResponse.state !== ComponentStatus.Failed) {
-      continue;
-    }
-
+  for (const fileResponse of deployResult.getFileResponses().filter(fr => fr.state === ComponentStatus.Failed)) {
     const { lineNumber, columnNumber, error, problemType, type } = fileResponse;
-    const range = getRange(lineNumber ? lineNumber.toString() : '1', columnNumber ? columnNumber.toString() : '1');
+    const range = getRange(lineNumber, columnNumber);
     const severity = problemType === 'Error' ? vscode.DiagnosticSeverity.Error : vscode.DiagnosticSeverity.Warning;
 
     const vscDiagnostic: vscode.Diagnostic = {

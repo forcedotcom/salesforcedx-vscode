@@ -6,7 +6,7 @@
  */
 
 import { basename } from 'node:path';
-import { telemetryService } from '../telemetry';
+import { telemetryService } from '../services/telemetry';
 
 export const getJsonCandidate = (str: string): string | null => {
   const firstCurly = str.indexOf('{');

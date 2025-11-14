@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { LocalComponent } from '../../util/types';
 import {
   CancelResponse,
   ContinueResponse,
-  LocalComponent,
   ParametersGatherer,
   SFDX_LWC_EXTENSION_NAME,
   workspaceUtils
@@ -20,8 +20,6 @@ import { coerceMessageKey, nls } from '../../messages';
 import { SalesforcePackageDirectories } from '../../salesforceProject';
 import { RetrieveDescriber } from '../retrieveMetadata';
 
-export const CONTINUE = 'CONTINUE';
-export const CANCEL = 'CANCEL';
 const LWC_PREVIEW_TYPESCRIPT_SUPPORT = 'preview.typeScriptSupport';
 
 export type FileNameParameter = {
@@ -48,9 +46,9 @@ export class FilePathGatherer implements ParametersGatherer<string> {
 
   public async gather(): Promise<CancelResponse | ContinueResponse<string>> {
     if (workspaceUtils.hasRootWorkspace()) {
-      return { type: CONTINUE, data: this.filePath };
+      return { type: 'CONTINUE', data: this.filePath };
     }
-    return { type: CANCEL };
+    return { type: 'CANCEL' };
   }
 }
 
@@ -75,7 +73,7 @@ export class SelectFileName implements ParametersGatherer<FileNameParameter> {
     };
 
     const fileName = await vscode.window.showInputBox(fileNameInputBoxOptions);
-    return fileName ? { type: CONTINUE, data: { fileName } } : { type: CANCEL };
+    return fileName ? { type: 'CONTINUE', data: { fileName } } : { type: 'CANCEL' };
   }
 }
 
@@ -108,7 +106,7 @@ export class SelectOutputDir implements ParametersGatherer<OutputDirParameter> {
       outputdir = await this.showMenu(dirOptions);
     }
 
-    return outputdir ? { type: CONTINUE, data: { outputdir } } : { type: CANCEL };
+    return outputdir ? { type: 'CONTINUE', data: { outputdir } } : { type: 'CANCEL' };
   }
 
   public getDefaultOptions(packageDirectories: string[]): string[] {
@@ -142,7 +140,7 @@ export class SimpleGatherer<T> implements ParametersGatherer<T> {
 
   public gather(): Promise<ContinueResponse<T>> {
     return Promise.resolve({
-      type: CONTINUE,
+      type: 'CONTINUE',
       data: this.input
     });
   }
@@ -157,7 +155,7 @@ export class RetrieveComponentOutputGatherer implements ParametersGatherer<Local
 
   public async gather(): Promise<CancelResponse | ContinueResponse<LocalComponent[]>> {
     return {
-      type: CONTINUE,
+      type: 'CONTINUE',
       data: await this.describer.gatherOutputLocations()
     };
   }
@@ -185,12 +183,12 @@ export class SelectLwcComponentType implements ParametersGatherer<{ extension: s
       const lwcComponentType = await this.showMenu(lwcComponentTypes, 'parameter_gatherer_select_lwc_type');
       return lwcComponentType
         ? {
-            type: CONTINUE,
+            type: 'CONTINUE',
             data: { extension: lwcComponentType }
           }
-        : { type: CANCEL };
+        : { type: 'CANCEL' };
     }
-    return { type: CONTINUE, data: { extension: 'JavaScript' } };
+    return { type: 'CONTINUE', data: { extension: 'JavaScript' } };
   }
 
   public async showMenu(options: string[], message: string): Promise<string | undefined> {

@@ -6,19 +6,15 @@
  */
 import { AuthFields, AuthInfo, Connection, StateAggregator, Org } from '@salesforce/core';
 import * as vscode from 'vscode';
-import { notificationService } from '../commands';
+import { notificationService } from '../commands/notificationService';
 import { ConfigSource, ConfigUtil } from '../config/configUtil';
-import { nls } from '../messages';
-import { telemetryService } from '../telemetry';
+import { nls } from '../messages/messages';
+import { telemetryService } from '../services/telemetry';
 
 /** Get the Dev Hub username */
 export const getDevHubUsername = async (): Promise<string | undefined> => {
   const targetDevHubOrAlias = await getTargetDevHubOrAlias(false);
-  let targetDevHub: string | undefined;
-  if (targetDevHubOrAlias) {
-    targetDevHub = await getUsername(targetDevHubOrAlias);
-  }
-  return targetDevHub;
+  return targetDevHubOrAlias ? await getUsername(targetDevHubOrAlias) : undefined;
 };
 
 /** Get the target org or alias, optionally showing warnings */
@@ -151,6 +147,32 @@ export const getConnection = async (usernameOrAlias?: string): Promise<Connectio
 
 /** Get auth fields for a connection */
 export const getAuthFields = (connection: Connection): AuthFields => connection.getAuthInfoFields();
+
+/**
+ * Gets the org API version as a numeric value.
+ * Uses instanceApiVersion (max supported API version) from auth fields if available,
+ * otherwise falls back to the connection's configured API version.
+ * @returns The org API version as a number, or undefined if unable to retrieve.
+ */
+export const getOrgApiVersion = async (): Promise<number | undefined> => {
+  try {
+    const connection = await getConnection();
+    const authFields = connection.getAuthInfoFields();
+
+    // Prefer instanceApiVersion (max supported API version) if available
+    const instanceApiVersion = authFields.instanceApiVersion;
+    if (instanceApiVersion) {
+      return parseFloat(instanceApiVersion);
+    }
+
+    // Fallback to the connection's configured API version
+    const apiVersion = connection.getApiVersion();
+    return apiVersion ? parseFloat(apiVersion) : undefined;
+  } catch (err) {
+    console.error('Failed to retrieve org version:', err);
+    return undefined;
+  }
+};
 
 enum VSCodeWindowTypeEnum {
   Error = 1,

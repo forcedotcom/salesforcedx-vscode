@@ -4,12 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { getTargetOrgOrAlias } from '@salesforce/salesforcedx-utils-vscode';
 import { ExtensionContext, TreeView, window } from 'vscode';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { BrowserNode, MetadataOutlineProvider } from '../orgBrowser';
 import { telemetryService } from '../telemetry';
-import { getTargetOrgOrAlias } from '../util';
 
 export class OrgBrowser {
   private static VIEW_ID = 'metadata';
