@@ -82,7 +82,8 @@ export {
   getTargetDevHubOrAlias,
   getUsername,
   getConnection,
-  getAuthFields
+  getAuthFields,
+  getOrgApiVersion
 } from './util/authInfo';
 export { hasRootWorkspace, getRootWorkspacePath, workspaceUtils } from './workspaces/workspaceUtils';
 export { CliCommandExecutor } from './cli/commandExecutor';
