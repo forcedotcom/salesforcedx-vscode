@@ -16,14 +16,13 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  source_tracking_remote_text: '%s$(arrow-down)',
-  source_tracking_local_text: '%s$(arrow-up)',
-  source_tracking_conflicts_text: '%s$(warning)',
-
   source_tracking_status_bar_local_changes: 'Local Changes',
   source_tracking_status_bar_remote_changes: 'Remote Changes',
   source_tracking_status_bar_conflicts: 'Conflicts',
   source_tracking_status_bar_click_to_push: '💡 Click to deploy these changes to the org',
   source_tracking_status_bar_click_to_retrieve: '💡 Click to retrieve these changes from the org',
-  source_tracking_status_bar_click_to_view_details: '💡 Click to view full details in the output channel'
-};
+  source_tracking_status_bar_click_to_view_details: '💡 Click to view full details in the output channel',
+  source_tracking_status_bar_no_changes: 'No changes (Org and project are in sync)'
+} as const;
+
+export type MessageKey = keyof typeof messages;

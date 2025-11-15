@@ -14,7 +14,6 @@ import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { nls } from '../messages';
 import { AllServicesLayer } from '../services/extensionProvider';
 import { buildCombinedHoverText } from './hover';
 
@@ -80,11 +79,8 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
     const subscriptionEffect = Effect.gen(function* () {
       const targetOrgRef = servicesApi.services.TargetOrgRef;
 
-      // Get initial org state
-      const initialOrg = yield* SubscriptionRef.get(targetOrgRef);
-      if (initialOrg && typeof initialOrg === 'object' && 'tracksSource' in initialOrg) {
-        instance.handleOrgChange(initialOrg);
-      }
+      // First scenario: org state has already been set
+      instance.handleOrgChange(yield* SubscriptionRef.get(targetOrgRef));
 
       // Subscribe to changes
       yield* targetOrgRef.changes.pipe(
@@ -100,8 +96,11 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
     }).pipe(Effect.forkDaemon, Effect.provide(AllServicesLayer));
 
     instance.orgChangeSubscription = await Effect.runPromise(subscriptionEffect);
-    Effect.runSync(
+
+    // if the the org ref is not set, get the connection to try to init it.  If there is no connection or an error, that's fine.
+    await Effect.runPromise(
       Effect.flatMap(servicesApi.services.ConnectionService, svc => svc.getConnection).pipe(
+        Effect.catchAll(e => Effect.logError(e).pipe(Effect.as(undefined))),
         Effect.provide(AllServicesLayer)
       )
     );
@@ -111,7 +110,6 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
 
   /** Handle org change events */
   private handleOrgChange = (orgInfo: { tracksSource?: boolean; orgId?: string }): void => {
-    console.log('handleOrgChange', JSON.stringify(orgInfo, null, 2));
     if (!orgInfo.tracksSource || !orgInfo.orgId) {
       this.statusBarItem.hide();
       this.stopFileWatcherSubscription();
@@ -152,7 +150,7 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
     }
   };
 
-  /** Refresh the status bar display */
+  /** Refresh the status bar's data */
   private refresh = async (): Promise<void> => {
     const self = this;
     const refreshEffect = Effect.gen(function* () {
@@ -181,34 +179,29 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
   /** Update the status bar display */
   private updateDisplay = (counts: SourceTrackingCounts): void => {
     if (!this.lastDetails) {
-      this.statusBarItem.hide();
-      return;
+      return this.statusBarItem.hide();
     }
 
     // Build combined text - always show remote and local, only show conflicts if > 0
     this.statusBarItem.text = [
-      counts.conflicts > 0 ? nls.localize('source_tracking_conflicts_text', counts.conflicts) : undefined,
-      nls.localize('source_tracking_remote_text', counts.remote),
-      nls.localize('source_tracking_local_text', counts.local)
+      counts.conflicts > 0 ? `${counts.conflicts}$(warning)` : undefined,
+      `${counts.remote}$(arrow-down)`,
+      `${counts.local}$(arrow-up)`
     ]
       .filter(Boolean)
       .join(' ');
 
     // Build combined tooltip
     this.statusBarItem.tooltip = buildCombinedHoverText(this.lastDetails, counts);
-
     this.statusBarItem.command = getCommand(counts);
 
     // Apply styling
     if (counts.conflicts > 0) {
       this.statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
-      this.statusBarItem.color = undefined;
     } else if (counts.local > 0 && process.env.ESBUILD_PLATFORM === 'web') {
       this.statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
-      this.statusBarItem.color = undefined;
     } else {
       this.statusBarItem.backgroundColor = undefined;
-      this.statusBarItem.color = new vscode.ThemeColor('charts.blue');
     }
 
     this.statusBarItem.show();

@@ -6,6 +6,7 @@
  */
 
 import type { StatusOutputRow } from '@salesforce/source-tracking';
+import * as Match from 'effect/Match';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
@@ -29,51 +30,54 @@ export const buildCombinedHoverText = (
   const md = new vscode.MarkdownString();
   md.isTrusted = true;
 
-  const sections: string[] = [];
-
   // Conflicts section - only if > 0
   if (counts.conflicts > 0) {
-    const label = nls.localize('source_tracking_status_bar_conflicts');
     const items = details.conflicts.slice(0, 10).map(row => `- ${String(row.type)}: ${String(row.fullName)}`);
     const moreText = details.conflicts.length > 10 ? `\n- _(${String(details.conflicts.length - 10)} more...)_` : '';
-    sections.push(`**${label} (${String(counts.conflicts)}):**\n\n${items.join('\n')}${moreText}`);
+    md.appendMarkdown(
+      `**${nls.localize('source_tracking_status_bar_conflicts')} (${String(counts.conflicts)}):**\n\n${items.join('\n')}${moreText}`
+    );
+    md.appendMarkdown('\n\n---\n\n');
   }
 
   // Remote Changes section - only if > 0
   if (counts.remote > 0) {
-    const label = nls.localize('source_tracking_status_bar_remote_changes');
     const items = details.remoteChanges.slice(0, 10).map(row => `- ${String(row.type)}: ${String(row.fullName)}`);
     const moreText =
       details.remoteChanges.length > 10 ? `\n- _(${String(details.remoteChanges.length - 10)} more...)_` : '';
-    sections.push(`**${label} (${String(counts.remote)}):**\n\n${items.join('\n')}${moreText}`);
+    md.appendMarkdown(
+      `**${nls.localize('source_tracking_status_bar_remote_changes')} (${String(counts.remote)}):**\n\n${items.join('\n')}${moreText}`
+    );
+    md.appendMarkdown('\n\n---\n\n');
   }
 
   // Local Changes section - only if > 0
   if (counts.local > 0) {
-    const label = nls.localize('source_tracking_status_bar_local_changes');
     const items = details.localChanges.slice(0, 10).map(row => `- ${String(row.type)}: ${String(row.fullName)}`);
     const moreText =
       details.localChanges.length > 10 ? `\n- _(${String(details.localChanges.length - 10)} more...)_` : '';
-    sections.push(`**${label} (${String(counts.local)}):**\n\n${items.join('\n')}${moreText}`);
+    md.appendMarkdown(
+      `**${nls.localize('source_tracking_status_bar_local_changes')} (${String(counts.local)}):**\n\n${items.join('\n')}${moreText}`
+    );
+    md.appendMarkdown('\n\n---\n\n');
   }
 
-  md.appendMarkdown(sections.join('\n\n---\n\n'));
-
-  // Add click hint based on state
-  const hasRemoteOnly = counts.remote > 0 && counts.local === 0 && counts.conflicts === 0;
-  const hasLocalOnly = counts.local > 0 && counts.remote === 0 && counts.conflicts === 0;
-  const hasBothOrConflicts = (counts.remote > 0 && counts.local > 0) || counts.conflicts > 0;
-
-  if (hasRemoteOnly) {
-    const clickMsg = nls.localize('source_tracking_status_bar_click_to_retrieve');
-    md.appendMarkdown(`\n\n---\n\n${clickMsg}`);
-  } else if (hasLocalOnly) {
-    const clickMsg = nls.localize('source_tracking_status_bar_click_to_push');
-    md.appendMarkdown(`\n\n---\n\n${clickMsg}`);
-  } else if (hasBothOrConflicts) {
-    const clickMsg = nls.localize('source_tracking_status_bar_click_to_view_details');
-    md.appendMarkdown(`\n\n---\n\n${clickMsg}`);
-  }
+  md.appendMarkdown(getClickHint(counts));
 
   return md;
 };
+
+/** Get click hint based on counts */
+const getClickHint = (counts: SourceTrackingCounts): string =>
+  Match.value(counts).pipe(
+    Match.when({ remote: (n: number) => n > 0, local: 0, conflicts: 0 }, () =>
+      nls.localize('source_tracking_status_bar_click_to_retrieve')
+    ),
+    Match.when({ local: (n: number) => n > 0, remote: 0, conflicts: 0 }, () =>
+      nls.localize('source_tracking_status_bar_click_to_push')
+    ),
+    Match.when({ remote: (n: number) => n > 0, local: (n: number) => n > 0 }, () =>
+      nls.localize('source_tracking_status_bar_click_to_view_details')
+    ),
+    Match.orElse(() => nls.localize('source_tracking_status_bar_no_changes'))
+  );

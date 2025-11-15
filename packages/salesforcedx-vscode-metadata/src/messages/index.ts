@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LocalizationService } from '@salesforce/vscode-i18n';
+import { LocalizationService, type MessageArgs } from '@salesforce/vscode-i18n';
 import { EXTENSION_NAME } from '../constants';
-import { messages } from './i18n';
+import { messages, type MessageKey } from './i18n';
 
 const localizationService = LocalizationService.getInstance(EXTENSION_NAME);
 
@@ -17,5 +17,6 @@ localizationService.messageBundleManager.registerMessageBundle(EXTENSION_NAME, {
 });
 
 export const nls = {
-  localize: (key: keyof typeof messages, ...args: unknown[]): string => localizationService.localize(key, ...args)
+  localize: <K extends MessageKey>(key: K, ...args: MessageArgs<K, typeof messages>): string =>
+    localizationService.localize(key, ...args)
 };
