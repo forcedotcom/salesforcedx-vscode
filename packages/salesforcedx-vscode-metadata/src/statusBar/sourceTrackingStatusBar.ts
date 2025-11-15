@@ -30,6 +30,19 @@ type SourceTrackingDetails = {
   conflicts: StatusOutputRow[];
 };
 
+/** Deduplicate status rows by fullName and type */
+const dedupeStatus = (status: StatusOutputRow[]): StatusOutputRow[] => {
+  const seen = new Set<string>();
+  return status.filter(row => {
+    const key = `${row.fullName}:${row.type}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+};
+
 /** Calculate counts from status output rows */
 const calculateCounts = (status: StatusOutputRow[]): SourceTrackingCounts => {
   const local = status.filter(row => row.origin === 'local' && !row.conflict && !row.ignored).length;
@@ -157,8 +170,9 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
       const status = yield* Effect.tryPromise(() => tracking.getStatus({ local: true, remote: true }));
       console.log('status from stl', JSON.stringify(status, null, 2));
 
-      self.lastDetails = separateChanges(status);
-      self.updateDisplay(calculateCounts(status));
+      const dedupedStatus = dedupeStatus(status);
+      self.lastDetails = separateChanges(dedupedStatus);
+      self.updateDisplay(calculateCounts(dedupedStatus));
     });
 
     await Effect.runPromise(Effect.provide(refreshEffect, AllServicesLayer));
@@ -166,16 +180,16 @@ export class SourceTrackingStatusBar implements vscode.Disposable {
 
   /** Update the status bar display */
   private updateDisplay = (counts: SourceTrackingCounts): void => {
-    if (!this.lastDetails || (counts.remote === 0 && counts.local === 0 && counts.conflicts === 0)) {
+    if (!this.lastDetails) {
       this.statusBarItem.hide();
       return;
     }
 
-    // Build combined text showing all present indicators
+    // Build combined text - always show remote and local, only show conflicts if > 0
     this.statusBarItem.text = [
       counts.conflicts > 0 ? nls.localize('source_tracking_conflicts_text', counts.conflicts) : undefined,
-      counts.remote > 0 ? nls.localize('source_tracking_remote_text', counts.remote) : undefined,
-      counts.local > 0 ? nls.localize('source_tracking_local_text', counts.local) : undefined
+      nls.localize('source_tracking_remote_text', counts.remote),
+      nls.localize('source_tracking_local_text', counts.local)
     ]
       .filter(Boolean)
       .join(' ');

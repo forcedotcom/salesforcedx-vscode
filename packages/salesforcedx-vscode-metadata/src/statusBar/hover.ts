@@ -21,7 +21,7 @@ type SourceTrackingDetails = {
   conflicts: StatusOutputRow[];
 };
 
-/** Build combined hover text with up to 3 sections */
+/** Build combined hover text with up to 3 sections (only showing non-zero counts) */
 export const buildCombinedHoverText = (
   details: SourceTrackingDetails,
   counts: SourceTrackingCounts
@@ -31,7 +31,7 @@ export const buildCombinedHoverText = (
 
   const sections: string[] = [];
 
-  // Conflicts section
+  // Conflicts section - only if > 0
   if (counts.conflicts > 0) {
     const label = nls.localize('source_tracking_status_bar_conflicts');
     const items = details.conflicts.slice(0, 10).map(row => `- ${String(row.type)}: ${String(row.fullName)}`);
@@ -39,7 +39,7 @@ export const buildCombinedHoverText = (
     sections.push(`**${label} (${String(counts.conflicts)}):**\n\n${items.join('\n')}${moreText}`);
   }
 
-  // Remote Changes section
+  // Remote Changes section - only if > 0
   if (counts.remote > 0) {
     const label = nls.localize('source_tracking_status_bar_remote_changes');
     const items = details.remoteChanges.slice(0, 10).map(row => `- ${String(row.type)}: ${String(row.fullName)}`);
@@ -48,7 +48,7 @@ export const buildCombinedHoverText = (
     sections.push(`**${label} (${String(counts.remote)}):**\n\n${items.join('\n')}${moreText}`);
   }
 
-  // Local Changes section
+  // Local Changes section - only if > 0
   if (counts.local > 0) {
     const label = nls.localize('source_tracking_status_bar_local_changes');
     const items = details.localChanges.slice(0, 10).map(row => `- ${String(row.type)}: ${String(row.fullName)}`);

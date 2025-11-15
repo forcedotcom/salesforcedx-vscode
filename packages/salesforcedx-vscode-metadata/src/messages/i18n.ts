@@ -16,9 +16,9 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  source_tracking_remote_text: '$(arrow-down)%s',
-  source_tracking_local_text: '$(arrow-up)%s',
-  source_tracking_conflicts_text: '$(warning)%s',
+  source_tracking_remote_text: '%s$(arrow-down)',
+  source_tracking_local_text: '%s$(arrow-up)',
+  source_tracking_conflicts_text: '%s$(warning)',
 
   source_tracking_status_bar_local_changes: 'Local Changes',
   source_tracking_status_bar_remote_changes: 'Remote Changes',
