@@ -47,7 +47,7 @@ export const PROJECT_RETRIEVE_START_LOG_NAME = 'project_retrieve_start_default_s
 export const PROJECT_DEPLOY_START_LOG_NAME = 'project_deploy_start_default_scratch_org';
 
 /**
- * Valid Salesforce metadata types extracted from salesforce_metadata_api_clean.xsd
+ * Valid Salesforce metadata types extracted from salesforce_metadata_api_common.xsd
  */
 export const VALID_METADATA_TYPES = new Set([
   'AIApplication',
