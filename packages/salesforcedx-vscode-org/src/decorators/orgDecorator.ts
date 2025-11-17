@@ -18,7 +18,7 @@ const displayBrowserIcon = async () => {
   const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();
   if (targetOrgOrAlias) {
     if (!statusBarItem) {
-      statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 50);
+      statusBarItem = window.createStatusBarItem(StatusBarAlignment.Left, 49);
       statusBarItem.tooltip = nls.localize('status_bar_open_org_tooltip');
       statusBarItem.command = ORG_OPEN_COMMAND;
       statusBarItem.show();
