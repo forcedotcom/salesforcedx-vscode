@@ -47,7 +47,7 @@
     "bundle:extension": "npm run bundle:extension:build && npm run bundle:extension:copy",
     "bundle:extension:copy": "cp ./out/apex-jorje-lsp.jar ./dist/",
     "bundle:extension:build": "node ./esbuild.config.mjs",
-    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package:legacy": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./ && shx mkdir -p out && shx cp jars/apex-jorje-lsp.jar out/",

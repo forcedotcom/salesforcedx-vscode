@@ -43,7 +43,7 @@
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix",
     "test": "jest --coverage --passWithNoTests",
-    "vscode:package": "vsce package",
+    "vscode:package": "vsce package --allow-package-all-secrets",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "watch": "tsc -watch -p ."
