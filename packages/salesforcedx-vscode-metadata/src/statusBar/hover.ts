@@ -5,22 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { StatusOutputRow } from '@salesforce/source-tracking';
+import type { SourceTrackingCounts, SourceTrackingDetails } from './helpers';
 import * as Match from 'effect/Match';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-
-type SourceTrackingCounts = {
-  local: number;
-  remote: number;
-  conflicts: number;
-};
-
-type SourceTrackingDetails = {
-  localChanges: StatusOutputRow[];
-  remoteChanges: StatusOutputRow[];
-  conflicts: StatusOutputRow[];
-};
 
 /** Build combined hover text with up to 3 sections (only showing non-zero counts) */
 export const buildCombinedHoverText = (

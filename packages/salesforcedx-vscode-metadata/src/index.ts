@@ -6,16 +6,20 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { projectDeployStart } from './commands/deployStart/projectDeployStart';
 import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
 import { showSourceTrackingDetails } from './commands/showSourceTrackingDetails';
 import { EXTENSION_NAME } from './constants';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
-import { createSourceTrackingStatusBar, disposeSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
+import { closeExtensionScope, getExtensionScope } from './services/extensionScope';
+import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
 
-export const activate = async (context: vscode.ExtensionContext): Promise<void> =>
-  Effect.runPromise(Effect.provide(activateEffect(context), AllServicesLayer));
+export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
+  const extensionScope = Effect.runSync(getExtensionScope());
+  await Effect.runPromise(Effect.provide(activateEffect(context), AllServicesLayer).pipe(Scope.extend(extensionScope)));
+};
 
 export const deactivate = async (): Promise<void> =>
   Effect.runPromise(Effect.provide(deactivateEffect, AllServicesLayer));
@@ -23,7 +27,7 @@ export const deactivate = async (): Promise<void> =>
 /** Activate the metadata extension */
 export const activateEffect = (
   context: vscode.ExtensionContext
-): Effect.Effect<void, Error, ExtensionProviderService> =>
+): Effect.Effect<void, Error, ExtensionProviderService | Scope.Scope> =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const svc = yield* api.services.ChannelService;
@@ -40,16 +44,14 @@ export const activateEffect = (
     );
 
     // Register source tracking status bar
-    yield* createSourceTrackingStatusBar();
-    context.subscriptions.push({ dispose: disposeSourceTrackingStatusBar });
+    yield* Effect.forkIn(createSourceTrackingStatusBar(), yield* getExtensionScope());
 
     yield* svc.appendToChannel('Salesforce Metadata activation complete.');
   }).pipe(Effect.withSpan(`activation:${EXTENSION_NAME}`), Effect.provide(AllServicesLayer));
 
-export const deactivateEffect = ExtensionProviderService.pipe(
-  Effect.flatMap(svcProvider => svcProvider.getServicesApi),
-  Effect.flatMap(api => api.services.ChannelService),
-  Effect.flatMap(svc => svc.appendToChannel('Salesforce Metadata extension is now deactivated!')),
-  Effect.withSpan(`deactivation:${EXTENSION_NAME}`),
-  Effect.provide(AllServicesLayer)
-);
+export const deactivateEffect = Effect.gen(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const svc = yield* api.services.ChannelService;
+  yield* closeExtensionScope();
+  yield* svc.appendToChannel('Salesforce Metadata extension is now deactivated!');
+}).pipe(Effect.withSpan(`deactivation:${EXTENSION_NAME}`), Effect.provide(AllServicesLayer));
