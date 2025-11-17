@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// This is Node.js test infrastructure, not extension code
 import type { AuthFields } from '@salesforce/core';
 import { exec } from 'node:child_process';
 import * as fs from 'node:fs/promises';

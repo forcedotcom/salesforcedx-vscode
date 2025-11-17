@@ -25,3 +25,7 @@ export { saveScreenshot } from './shared/screenshotUtils';
 
 // Fixtures
 export { createTestWorkspace } from './fixtures/desktopWorkspace';
+export type { WorkerFixtures, TestFixtures } from './fixtures/desktopFixtureTypes';
+
+// Web
+export { createHeadlessServer, setupSignalHandlers } from './web/createHeadlessServer';

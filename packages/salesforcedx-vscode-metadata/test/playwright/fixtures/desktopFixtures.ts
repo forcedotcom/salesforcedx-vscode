@@ -53,7 +53,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
         `--user-data-dir=${userDataDir}`,
         // Unique extensions directory to avoid parallel install conflicts
         `--extensions-dir=${extensionsDir}`,
-        // Load both extensions (org-browser depends on services)
+        // Load both extensions (metadata depends on services)
         `--extensionDevelopmentPath=${extensionPath}`,
         `--extensionDevelopmentPath=${servicesPath}`,
         '--disable-extensions', // Disable other extensions

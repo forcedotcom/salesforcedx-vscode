@@ -10,5 +10,5 @@ import { createHeadlessServer, setupSignalHandlers } from 'salesforcedx-vscode-p
 setupSignalHandlers();
 
 if (require.main === module) {
-  void createHeadlessServer({ extensionName: 'Org Browser' });
+  void createHeadlessServer({ extensionName: 'Metadata' });
 }

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// This is Node.js test infrastructure, not extension code
 import { Global } from '@salesforce/core/global';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
