@@ -245,18 +245,18 @@ Move these files from `packages/salesforcedx-vscode-org-browser/test/playwright/
 
 ### To-dos
 
-- [ ] Create salesforcedx-vscode-playwright package directory with src folders
-- [ ] Configure package.json (private, dependencies) and tsconfig.json, verify compile
-- [ ] Move shared utilities from org-browser to playwright package, verify compile
-- [ ] Create src/index.ts with explicit named exports, verify compile
-- [ ] Add playwright package dependency, update imports, remove duplicated files, verify compile
-- [ ] Run org-browser playwright tests (desktop and web) to ensure they still pass
-- [ ] Create test/playwright directory structure in metadata extension
-- [ ] Create fixtures (index.ts, desktopFixtures.ts, web/headlessServer.ts), verify compile
-- [ ] Create sourceTrackingStatusBarPage.ts, verify compile
-- [ ] Create apexFileHelpers.ts and notifications.ts, verify compile
-- [ ] Create sourceTrackingStatusBar.headless.spec.ts with 4 test steps, verify compile
-- [ ] Create playwright configs, verify compile
-- [ ] Add dependencies and test scripts, verify compile and bundle
-- [ ] Run metadata playwright tests (desktop and web), verify all pass
-- [ ] Re-run org-browser tests to ensure nothing broke
+- [x] Create salesforcedx-vscode-playwright package directory with src folders (1.1 - COMPLETE)
+- [x] Configure package.json (private, dependencies) and tsconfig.json, verify compile (1.2 - COMPLETE)
+- [x] Move shared utilities from org-browser to playwright package, verify compile (1.3 - COMPLETE)
+- [x] Create src/index.ts with explicit named exports, verify compile (1.4 - COMPLETE)
+- [ ] Add playwright package dependency, update imports, remove duplicated files, verify compile (1.5 - IN PROGRESS)
+- [ ] Run org-browser playwright tests (desktop and web) to ensure they still pass (1.5 verify)
+- [ ] Create test/playwright directory structure in metadata extension (2.1)
+- [ ] Create fixtures (index.ts, desktopFixtures.ts, web/headlessServer.ts), verify compile (2.2)
+- [ ] Create sourceTrackingStatusBarPage.ts, verify compile (2.3)
+- [ ] Create apexFileHelpers.ts and notifications.ts, verify compile (2.4)
+- [ ] Create sourceTrackingStatusBar.headless.spec.ts with 4 test steps, verify compile (2.5)
+- [ ] Create playwright configs, verify compile (2.6)
+- [ ] Add dependencies and test scripts, verify compile and bundle (2.7)
+- [ ] Run metadata playwright tests (desktop and web), verify all pass (2.8)
+- [ ] Re-run org-browser tests to ensure nothing broke (2.8)

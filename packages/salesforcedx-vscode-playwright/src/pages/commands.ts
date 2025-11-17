@@ -7,12 +7,12 @@
 
 import { Page } from '@playwright/test';
 
-const openCommandPalette = async (page: Page): Promise<void> => {
+export const openCommandPalette = async (page: Page): Promise<void> => {
   await page.keyboard.press('F1');
   await page.locator('.quick-input-widget').waitFor({ state: 'visible', timeout: 3000 });
 };
 
-const executeCommand = async (page: Page, command: string): Promise<void> => {
+export const executeCommand = async (page: Page, command: string): Promise<void> => {
   await page.keyboard.type(command, { delay: 10 });
   await page.keyboard.press('Enter');
 };

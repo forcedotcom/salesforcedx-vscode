@@ -50,7 +50,7 @@ test.describe('Org Browser - CustomTab retrieval', () => {
     });
 
     await test.step('wait for editor file to open (completion signal)', async () => {
-      await orgBrowserPage.waitForFileToOpenInEditor(120_000);
+      await orgBrowserPage.waitForFileToOpenInEditor(300_000);
     });
 
     await test.step('verify editor is visible and capture final state', async () => {

@@ -50,7 +50,7 @@ test.describe('Org Browser - CustomObject retrieval', () => {
     });
 
     await test.step('wait for editor file to open (completion signal)', async () => {
-      await orgBrowserPage.waitForFileToOpenInEditor(60_000 * 5);
+      await orgBrowserPage.waitForFileToOpenInEditor(300_000);
     });
 
     await test.step('override confirmation for Broker__c', async () => {

@@ -18,7 +18,7 @@ export { create, DREAMHOUSE_ORG_ALIAS } from './utils/dreamhouseScratchOrgSetup'
 // Pages
 export { upsertScratchOrgAuthFieldsToSettings } from './pages/settings';
 
-export { executeCommandWithCommandPalette } from './pages/commands';
+export { executeCommandWithCommandPalette, openCommandPalette, executeCommand } from './pages/commands';
 
 // Shared
 export { saveScreenshot } from './shared/screenshotUtils';
