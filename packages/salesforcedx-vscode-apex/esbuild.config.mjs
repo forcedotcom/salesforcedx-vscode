@@ -4,13 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { build } from 'esbuild';
+import { nodeConfig } from '../../scripts/bundling/node.mjs';
+import { writeFile } from 'fs/promises';
 
-await build({
+const nodeBuild = await build({
   ...nodeConfig,
-  external: [...nodeConfig.external],
-  keepNames: false, // set it false to get rid of error: __name is undefined. https://github.com/evanw/esbuild/issues/3455
-  entryPoints: ['./src/index.ts'],
-  outdir: 'dist'
+  entryPoints: ['./out/src/index.js'],
+  outdir: './dist',
+  plugins: [...(nodeConfig.plugins ?? [])],
+  metafile: true
 });
+
+await writeFile('dist/node-metafile.json', JSON.stringify(nodeBuild.metafile, null, 2));
