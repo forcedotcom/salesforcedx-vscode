@@ -4,7 +4,5 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import SalesforcePackageDirectories from './salesforcePackageDirectories';
-import SalesforceProjectConfig from './salesforceProjectConfig';
-
-export { SalesforcePackageDirectories, SalesforceProjectConfig };
+export { default as SalesforcePackageDirectories } from './salesforcePackageDirectories';
+export { default as SalesforceProjectConfig } from './salesforceProjectConfig';

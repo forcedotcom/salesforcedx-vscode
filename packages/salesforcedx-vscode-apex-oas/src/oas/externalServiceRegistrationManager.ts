@@ -425,10 +425,10 @@ export class ExternalServiceRegistrationManager {
   private cleanDescription(description: string): string {
     // First normalize newlines to \n and clean up excessive whitespace
     return description
-      .replace(/\r\n/g, '\n') // Normalize Windows line endings
-      .replace(/\r/g, '\n') // Normalize Mac line endings
-      .replace(/\n\s*\n/g, '\n') // Replace multiple newlines with single newline
-      .replace(/[ \t]+/g, ' ') // Replace multiple spaces/tabs with single space
+      .replaceAll('\r\n', '\n') // Normalize Windows line endings
+      .replaceAll('\r', '\n') // Normalize Mac line endings
+      .replaceAll(/\n\s*\n/g, '\n') // Replace multiple newlines with single newline
+      .replaceAll(/[ \t]+/g, ' ') // Replace multiple spaces/tabs with single space
       .trim();
   }
 }

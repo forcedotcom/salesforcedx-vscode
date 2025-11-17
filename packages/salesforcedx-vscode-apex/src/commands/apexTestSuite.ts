@@ -29,7 +29,7 @@ const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const apexClasses = await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER);
   return (await Promise.all(apexClasses.map(getTestInfo)))
     .filter(item => item !== undefined)
-    .sort((a, b) => a.label.localeCompare(b.label));
+    .toSorted((a, b) => a.label.localeCompare(b.label));
 };
 
 const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {

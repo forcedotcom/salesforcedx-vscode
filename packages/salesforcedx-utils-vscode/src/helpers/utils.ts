@@ -111,7 +111,7 @@ const flushFilePath = (filePath: string): string => {
   // We found that filePath is the correct path and the stale name issue
   // no longer exists.
   let nativePath = filePath;
-  if (/^win32/.test(process.platform)) {
+  if (process.platform.startsWith('win32')) {
     // The file path on Windows is in the form of "c:\Users\User Name\foo.cls".
     // When called, fs.realpathSync.native() is returning the file path back as
     // "C:\Users\User Name\foo.cls", and the capitalization of the drive letter

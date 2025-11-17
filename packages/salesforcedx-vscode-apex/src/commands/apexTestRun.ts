@@ -50,7 +50,7 @@ const FILE_SEARCH_PATTERN = `{**/*${APEX_TESTSUITE_EXT},**/*${APEX_CLASS_EXT}}`;
 class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
     const { testSuites, apexClasses } = (await workspace.findFiles(FILE_SEARCH_PATTERN, SFDX_FOLDER))
-      .sort((a, b) => a.fsPath.localeCompare(b.fsPath))
+      .toSorted((a, b) => a.fsPath.localeCompare(b.fsPath))
       .reduce(
         (acc: { testSuites: Uri[]; apexClasses: Uri[] }, file) => {
           if (file.path.endsWith('.cls')) {
@@ -167,9 +167,23 @@ const buildTestPayload = async (
   const testLevel = TestLevel.RunSpecifiedTests;
   switch (data.type) {
     case TestType.Class:
-      return await testService.buildAsyncPayload(testLevel, undefined, data.label);
+      return await testService.buildAsyncPayload(
+        testLevel,
+        undefined,
+        data.label,
+        undefined,
+        undefined,
+        !settings.retrieveTestCodeCoverage() // the setting enables code coverage, so we need to pass false to disable it
+      );
     case TestType.Suite:
-      return await testService.buildAsyncPayload(testLevel, undefined, undefined, data.label);
+      return await testService.buildAsyncPayload(
+        testLevel,
+        undefined,
+        undefined,
+        data.label,
+        undefined,
+        !settings.retrieveTestCodeCoverage()
+      );
     case TestType.AllLocal:
       return { testLevel: TestLevel.RunLocalTests };
     case TestType.All:

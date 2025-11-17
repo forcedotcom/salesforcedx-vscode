@@ -87,6 +87,7 @@ export {
 export { hasRootWorkspace, getRootWorkspacePath, workspaceUtils } from './workspaces/workspaceUtils';
 export { CliCommandExecutor } from './cli/commandExecutor';
 export { LocalCommandExecution } from './cli/localCommandExecutor';
+export { getOrgApiVersion } from './util/authInfo';
 export { SFDX_FOLDER } from './constants';
 
 export type { ContinueResponse, CancelResponse, ParametersGatherer } from './commands/parameterGatherers';
