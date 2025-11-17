@@ -4,3 +4,4 @@ alwaysApply: false
 ---
 
 do not create barrel files
+do not add code with the keyword `void` to run async code within synchronous contexts. use async or effect

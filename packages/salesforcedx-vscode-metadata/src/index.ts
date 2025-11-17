@@ -12,7 +12,7 @@ import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveSt
 import { showSourceTrackingDetails } from './commands/showSourceTrackingDetails';
 import { EXTENSION_NAME } from './constants';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
-import { SourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
+import { createSourceTrackingStatusBar, disposeSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> =>
   Effect.runPromise(Effect.provide(activateEffect(context), AllServicesLayer));
@@ -40,8 +40,8 @@ export const activateEffect = (
     );
 
     // Register source tracking status bar
-    const statusBar = yield* Effect.promise(() => SourceTrackingStatusBar.create(api));
-    context.subscriptions.push(statusBar);
+    yield* createSourceTrackingStatusBar();
+    context.subscriptions.push({ dispose: disposeSourceTrackingStatusBar });
 
     yield* svc.appendToChannel('Salesforce Metadata activation complete.');
   }).pipe(Effect.withSpan(`activation:${EXTENSION_NAME}`), Effect.provide(AllServicesLayer));

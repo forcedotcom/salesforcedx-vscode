@@ -12,9 +12,8 @@ import * as Fiber from 'effect/Fiber';
 import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { AllServicesLayer } from '../services/extensionProvider';
+import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { buildCombinedHoverText } from './hover';
 
 type SourceTrackingCounts = {
@@ -28,6 +27,12 @@ type SourceTrackingDetails = {
   remoteChanges: StatusOutputRow[];
   conflicts: StatusOutputRow[];
 };
+
+/* eslint-disable functional/no-let */
+let statusBarItem: vscode.StatusBarItem | undefined;
+let fileWatcherSubscription: Fiber.RuntimeFiber<void, Error> | undefined;
+let lastDetails: SourceTrackingDetails | undefined;
+/* eslint-enable functional/no-let */
 
 /** Deduplicate status rows by fullName and type */
 const dedupeStatus = (status: StatusOutputRow[]): StatusOutputRow[] => {
@@ -60,163 +65,142 @@ const separateChanges = (status: StatusOutputRow[]): SourceTrackingDetails => {
   return { localChanges, remoteChanges, conflicts };
 };
 
-/** Status bar items that display source tracking changes */
-export class SourceTrackingStatusBar implements vscode.Disposable {
-  private statusBarItem: vscode.StatusBarItem;
-  private fileWatcherSubscription?: Fiber.RuntimeFiber<void, never>;
-  private orgChangeSubscription?: Fiber.RuntimeFiber<void, never>;
-  private lastDetails?: SourceTrackingDetails;
-
-  private constructor(private readonly servicesApi: SalesforceVSCodeServicesApi) {
-    this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48);
-  }
-
-  /** Create and initialize a new source tracking status bar */
-  public static create = async (servicesApi: SalesforceVSCodeServicesApi): Promise<SourceTrackingStatusBar> => {
-    const instance = new SourceTrackingStatusBar(servicesApi);
-
-    // Subscribe to org changes
-    const subscriptionEffect = Effect.gen(function* () {
-      const targetOrgRef = servicesApi.services.TargetOrgRef;
-
-      // First scenario: org state has already been set
-      instance.handleOrgChange(yield* SubscriptionRef.get(targetOrgRef));
-
-      // Subscribe to changes
-      yield* targetOrgRef.changes.pipe(
-        Stream.runForEach(orgInfo =>
-          Effect.sync(() => {
-            console.log('target org change');
-            if (orgInfo && typeof orgInfo === 'object' && 'tracksSource' in orgInfo) {
-              instance.handleOrgChange(orgInfo);
-            }
-          })
-        )
-      );
-    }).pipe(Effect.forkDaemon, Effect.provide(AllServicesLayer));
-
-    instance.orgChangeSubscription = await Effect.runPromise(subscriptionEffect);
-
-    // if the the org ref is not set, get the connection to try to init it.  If there is no connection or an error, that's fine.
-    await Effect.runPromise(
-      Effect.flatMap(servicesApi.services.ConnectionService, svc => svc.getConnection).pipe(
-        Effect.catchAll(e => Effect.logError(e).pipe(Effect.as(undefined))),
-        Effect.provide(AllServicesLayer)
-      )
-    );
-
-    return instance;
-  };
-
-  /** Handle org change events */
-  private handleOrgChange = (orgInfo: { tracksSource?: boolean; orgId?: string }): void => {
-    if (!orgInfo.tracksSource || !orgInfo.orgId) {
-      this.statusBarItem.hide();
-      this.stopFileWatcherSubscription();
+/** Handle org change events */
+const handleOrgChange = (orgInfo: {
+  tracksSource?: boolean;
+  orgId?: string;
+}): Effect.Effect<void, Error, ExtensionProviderService> =>
+  Effect.gen(function* () {
+    if (!statusBarItem || !orgInfo.tracksSource || !orgInfo.orgId) {
+      statusBarItem?.hide();
+      stopFileWatcherSubscription();
       return;
     }
 
-    this.startFileWatcherSubscription();
-    void this.refresh();
-  };
+    yield* startFileWatcherSubscription();
+    yield* refresh();
+  });
 
-  /** Subscribe to the centralized file watcher PubSub with debouncing */
-  private startFileWatcherSubscription = (): void => {
-    this.stopFileWatcherSubscription();
-
-    const self = this;
-    const subscriptionEffect = Effect.scoped(
+/** Subscribe to the centralized file watcher PubSub with debouncing */
+const startFileWatcherSubscription = (): Effect.Effect<void, Error, ExtensionProviderService> =>
+  Effect.gen(function* () {
+    stopFileWatcherSubscription();
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    fileWatcherSubscription = yield* Effect.scoped(
       Effect.gen(function* () {
-        const fileWatcherService = yield* self.servicesApi.services.FileWatcherService;
+        const fileWatcherService = yield* api.services.FileWatcherService;
         const dequeue = yield* PubSub.subscribe(fileWatcherService.pubsub);
 
         // Subscribe to file changes with debouncing - we don't care which files changed, just that something changed
         yield* Stream.fromQueue(dequeue).pipe(
           // TODO: maybe filter out some changes by type or uri
           Stream.debounce(Duration.millis(500)),
-          Stream.runForEach(() => Effect.promise(() => self.refresh()))
+          Stream.runForEach(() => refresh())
         );
       })
-    ).pipe(Effect.provide(this.servicesApi.services.FileWatcherService.Default), Effect.forkDaemon);
+    ).pipe(Effect.provide(AllServicesLayer), Effect.forkDaemon);
+  });
 
-    this.fileWatcherSubscription = Effect.runSync(subscriptionEffect);
-  };
-
-  /** Stop the file watcher subscription */
-  private stopFileWatcherSubscription = (): void => {
-    if (this.fileWatcherSubscription) {
-      void Effect.runPromise(Fiber.interrupt(this.fileWatcherSubscription));
-      this.fileWatcherSubscription = undefined;
-    }
-  };
-
-  /** Refresh the status bar's data */
-  private refresh = async (): Promise<void> => {
-    const self = this;
-    const refreshEffect = Effect.gen(function* () {
-      console.log('refresh source tracking status bar');
-      const tracking = yield* Effect.flatMap(self.servicesApi.services.SourceTrackingService, svc =>
-        svc.getSourceTracking()
-      );
-
-      if (!tracking) {
-        self.statusBarItem.hide();
-        return;
-      }
-
-      yield* Effect.promise(() => tracking.reReadLocalTrackingCache());
-      const status = yield* Effect.tryPromise(() => tracking.getStatus({ local: true, remote: true }));
-      console.log('status from stl', JSON.stringify(status, null, 2));
-
-      const dedupedStatus = dedupeStatus(status);
-      self.lastDetails = separateChanges(dedupedStatus);
-      self.updateDisplay(calculateCounts(dedupedStatus));
+/** Stop the file watcher subscription */
+const stopFileWatcherSubscription = (): void => {
+  if (fileWatcherSubscription) {
+    Effect.runPromise(Fiber.interrupt(fileWatcherSubscription)).catch(() => {
+      // Ignore errors when interrupting
     });
+    fileWatcherSubscription = undefined;
+  }
+};
 
-    await Effect.runPromise(Effect.provide(refreshEffect, AllServicesLayer));
-  };
-
-  /** Update the status bar display */
-  private updateDisplay = (counts: SourceTrackingCounts): void => {
-    if (!this.lastDetails) {
-      return this.statusBarItem.hide();
+/** Refresh the status bar's data */
+const refresh = (): Effect.Effect<void, never> =>
+  Effect.gen(function* () {
+    if (!statusBarItem) {
+      return yield* Effect.succeed(undefined);
     }
 
-    // Build combined text - always show remote and local, only show conflicts if > 0
-    this.statusBarItem.text = [
-      counts.conflicts > 0 ? `${counts.conflicts}$(warning)` : undefined,
-      `${counts.remote}$(arrow-down)`,
-      `${counts.local}$(arrow-up)`
-    ]
-      .filter(Boolean)
-      .join(' ');
+    console.log('refresh source tracking status bar');
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const sourceTrackingService = yield* api.services.SourceTrackingService;
 
-    // Build combined tooltip
-    this.statusBarItem.tooltip = buildCombinedHoverText(this.lastDetails, counts);
-    this.statusBarItem.command = getCommand(counts);
+    const tracking = yield* sourceTrackingService.getSourceTracking();
 
-    // Apply styling
-    if (counts.conflicts > 0) {
-      this.statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
-    } else if (counts.local > 0 && process.env.ESBUILD_PLATFORM === 'web') {
-      this.statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
-    } else {
-      this.statusBarItem.backgroundColor = undefined;
+    if (!tracking) {
+      statusBarItem!.hide();
+      return;
     }
 
-    this.statusBarItem.show();
-  };
+    yield* Effect.promise(() => tracking.reReadLocalTrackingCache());
+    const status = yield* Effect.tryPromise(() => tracking.getStatus({ local: true, remote: true }));
+    console.log('status from stl', JSON.stringify(status, null, 2));
 
-  /** Dispose of all resources */
-  public dispose = (): void => {
-    this.stopFileWatcherSubscription();
-    this.statusBarItem.dispose();
+    const dedupedStatus = dedupeStatus(status);
+    lastDetails = separateChanges(dedupedStatus);
+    updateDisplay(calculateCounts(dedupedStatus));
+  }).pipe(
+    Effect.provide(AllServicesLayer),
+    Effect.catchAll(() => Effect.succeed(undefined)) // ignore errors in refresh
+  );
 
-    if (this.orgChangeSubscription) {
-      void Effect.runPromise(Fiber.interrupt(this.orgChangeSubscription));
-    }
-  };
-}
+/** Update the status bar display */
+const updateDisplay = (counts: SourceTrackingCounts): void => {
+  if (!statusBarItem || !lastDetails) {
+    return statusBarItem?.hide();
+  }
+
+  // Build combined text - always show remote and local, only show conflicts if > 0
+  statusBarItem.text = [
+    counts.conflicts > 0 ? `${counts.conflicts}$(warning)` : undefined,
+    `${counts.remote}$(arrow-down)`,
+    `${counts.local}$(arrow-up)`
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  // Build combined tooltip
+  statusBarItem.tooltip = buildCombinedHoverText(lastDetails, counts);
+  statusBarItem.command = getCommand(counts);
+
+  // Apply styling
+  if (counts.conflicts > 0) {
+    statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
+  } else if (counts.local > 0 && process.env.ESBUILD_PLATFORM === 'web') {
+    statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+  } else {
+    statusBarItem.backgroundColor = undefined;
+  }
+
+  statusBarItem.show();
+};
+
+/** Create and initialize source tracking status bar */
+export const createSourceTrackingStatusBar = (): Effect.Effect<void, Error> =>
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const channelService = yield* api.services.ChannelService;
+    statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 47);
+
+    yield* Stream.concat(
+      Stream.fromEffect(SubscriptionRef.get(api.services.TargetOrgRef)), // initial org state has already been set
+      api.services.TargetOrgRef.changes // Second scenario: org state changes laster
+    ).pipe(
+      Stream.tap(orgInfo => channelService.appendToChannel(`target org change: ${JSON.stringify(orgInfo)}`)),
+      Stream.filter(orgInfo => orgInfo && typeof orgInfo === 'object' && 'tracksSource' in orgInfo),
+      Stream.runForEach(orgInfo => handleOrgChange(orgInfo).pipe(Effect.catchAll(() => Effect.void))),
+      Effect.forkDaemon
+    );
+
+    // in case the org ref is not set, get the connection to try to init it.  If there is no connection or an error, that's fine.
+    yield* Effect.flatMap(api.services.ConnectionService, svc => svc.getConnection).pipe(
+      Effect.catchAll(e => Effect.logError(e).pipe(Effect.as(undefined)))
+    );
+  }).pipe(Effect.provide(AllServicesLayer));
+
+/** Dispose of all resources */
+export const disposeSourceTrackingStatusBar = (): void => {
+  stopFileWatcherSubscription();
+  statusBarItem?.dispose();
+  statusBarItem = undefined;
+};
 
 const getCommand = (counts: SourceTrackingCounts): string | undefined => {
   if (counts.remote > 0 && counts.local === 0 && counts.conflicts === 0) {
