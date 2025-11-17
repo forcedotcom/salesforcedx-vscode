@@ -11,12 +11,13 @@ We use spaces, not tabs. [automatic]
 
 ## Names
 
-- Use PascalCase for `type` names
-- Use UPPERCASE_WITH_SPACES for `enum` values and constants
-- Use camelCase for `function` and `method` names
+- Use PascalCase for `type` names [automatic]
+- Use UPPERCASE_WITH_SPACES for `enum` values and non-local constants
+- Use camelCase for `function` names [automatic]
+- Use camelCase for `method` names
 - Use camelCase for `property` names and `local variables`
 - Use whole words in names when possible
-- Use camelCase for file names (name files after the main Type it exports)
+- Use camelCase for file names [automatic]
 
 ## Conventions
 
