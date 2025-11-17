@@ -56,6 +56,67 @@ async function scrapeMetadataType(
 }
 
 /**
+ * Extract child/related metadata type links from a page content
+ */
+async function findChildMetadataTypes(page: Page, parentUrl: string): Promise<Array<{ name: string; url: string }>> {
+  try {
+    await page.goto(parentUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForTimeout(3000);
+
+    const frames = page.frames();
+    const urlParts = parentUrl.split('/');
+    const expectedPage = urlParts[urlParts.length - 1];
+    const contentFrame = frames.find(f => f.url().includes(expectedPage)) || page.mainFrame();
+
+    // Look for child metadata type links in the page content
+    const childLinks = await contentFrame.evaluate(() => {
+      const children: Array<{ name: string; url: string }> = [];
+
+      // Search both regular DOM and Shadow DOM
+      function findLinksInDOM(root: Document | ShadowRoot | Element) {
+        const allLinks = Array.from(root.querySelectorAll('a[href]'));
+
+        for (const link of allLinks) {
+          const href = (link as HTMLAnchorElement).href || link.getAttribute('href') || '';
+          const text = link.textContent?.trim() || '';
+
+          // Look for links to other metadata types in the same documentation
+          // Be less restrictive here - we'll filter more carefully later
+          if (
+            href.includes('/api_meta/') &&
+            href.includes('.htm') &&
+            text.length > 0 &&
+            text.length < 200 &&
+            !href.includes('#') // Skip anchor links
+          ) {
+            // Normalize the URL
+            const normalizedUrl = href.split('#')[0];
+            if (!children.some(c => c.url === normalizedUrl)) {
+              children.push({ name: text, url: normalizedUrl });
+            }
+          }
+        }
+
+        // Search Shadow DOM
+        const elements = root.querySelectorAll('*');
+        elements.forEach(el => {
+          if (el.shadowRoot) {
+            findLinksInDOM(el.shadowRoot);
+          }
+        });
+      }
+
+      findLinksInDOM(document);
+      return children;
+    });
+
+    return childLinks;
+  } catch (error) {
+    return [];
+  }
+}
+
+/**
  * Discover ALL metadata types from the documentation sidebar
  */
 async function discoverMetadataTypes(page: Page): Promise<Array<{ name: string; url: string }>> {
@@ -89,6 +150,98 @@ async function discoverMetadataTypes(page: Page): Promise<Array<{ name: string; 
     let contentFrame = frames.find(f => f.url().includes(expectedPage)) || page.mainFrame();
 
     console.log(`   Using frame: ${contentFrame.url()}`);
+
+    // Expand all collapsed sections in the sidebar to reveal nested items
+    console.log('   Expanding collapsed sidebar sections...');
+
+    // Multiple passes to handle nested collapsible items
+    for (let pass = 1; pass <= 3; pass++) {
+      const expandedCount = await contentFrame.evaluate(() => {
+        let count = 0;
+
+        // Helper to expand all collapsible elements in the DOM and Shadow DOM
+        function expandAll(root: Document | ShadowRoot | Element): number {
+          let localCount = 0;
+
+          // Find all elements with various collapse indicators
+          const selectors = [
+            '[aria-expanded="false"]',
+            'button[aria-expanded="false"]',
+            '.collapsed',
+            'summary',
+            '.slds-is-collapsed',
+            '.slds-tree__item[aria-expanded="false"]',
+            '[role="button"][aria-expanded="false"]',
+            'details:not([open])'
+          ];
+
+          for (const selector of selectors) {
+            const elements = root.querySelectorAll(selector);
+            elements.forEach(el => {
+              if (el instanceof HTMLElement) {
+                // Check if it's actually collapsed before clicking
+                const isCollapsed =
+                  el.getAttribute('aria-expanded') === 'false' ||
+                  el.classList.contains('collapsed') ||
+                  el.classList.contains('slds-is-collapsed') ||
+                  (el.tagName === 'DETAILS' && !(el as HTMLDetailsElement).open) ||
+                  (el.tagName === 'SUMMARY' &&
+                    el.parentElement?.tagName === 'DETAILS' &&
+                    !(el.parentElement as HTMLDetailsElement).open);
+
+                if (isCollapsed) {
+                  // Try clicking to expand
+                  try {
+                    el.click();
+                    localCount++;
+                  } catch (e) {
+                    // Ignore click errors
+                  }
+
+                  // Also try setting aria-expanded if it exists
+                  if (el.hasAttribute('aria-expanded')) {
+                    el.setAttribute('aria-expanded', 'true');
+                  }
+
+                  // For details/summary elements
+                  if (el.tagName === 'SUMMARY' || el.tagName === 'DETAILS') {
+                    const details = el.tagName === 'DETAILS' ? el : el.parentElement;
+                    if (details && details.tagName === 'DETAILS') {
+                      (details as HTMLDetailsElement).open = true;
+                    }
+                  }
+                }
+              }
+            });
+          }
+
+          // Recursively search shadow DOMs
+          const allElements = root.querySelectorAll('*');
+          allElements.forEach(el => {
+            if (el.shadowRoot) {
+              localCount += expandAll(el.shadowRoot);
+            }
+          });
+
+          return localCount;
+        }
+
+        count = expandAll(document);
+        return count;
+      });
+
+      console.log(`   Pass ${pass}: Expanded ${expandedCount} elements`);
+
+      // Wait for DOM updates after each pass
+      await page.waitForTimeout(1500);
+
+      // If nothing was expanded, no need for more passes
+      if (expandedCount === 0 && pass > 1) {
+        break;
+      }
+    }
+
+    console.log('   ✓ Expansion complete');
 
     // Extract all metadata type links including from Shadow DOM
     const links = await contentFrame.evaluate(() => {
@@ -205,18 +358,194 @@ async function discoverMetadataTypes(page: Page): Promise<Array<{ name: string; 
       return metadataLinks;
     });
 
-    console.log(`   ✅ Discovered ${links.length} metadata types!\n`);
+    const metadataLinks = links;
 
-    // Print all discovered metadata types for verification
-    if (links.length > 0) {
-      console.log('   📋 Discovered metadata types:');
-      links.forEach((link, index) => {
-        console.log(`      ${index + 1}. ${link.name}`);
+    console.log(`   ✅ Discovered ${metadataLinks.length} metadata types!\n`);
+
+    // Print ALL discovered metadata types from sidebar
+    if (metadataLinks.length > 0) {
+      console.log('   📋 All metadata types discovered from sidebar:');
+      metadataLinks.forEach((link, index) => {
+        console.log(`      ${String(index + 1).padStart(4)}. ${link.name}`);
       });
       console.log('');
     }
 
-    return links.length > 0 ? links : getFallbackMetadataTypes();
+    // Step 2: Look for nested/child metadata types by visiting parent pages
+    console.log('\n🔎 Searching for nested metadata types...');
+    const allMetadataTypes = new Map<string, { name: string; url: string }>();
+
+    // Add all discovered types
+    for (const link of metadataLinks) {
+      allMetadataTypes.set(link.url, link);
+    }
+
+    // Check ALL metadata types for potential nested children
+    const parentsToCheck = metadataLinks;
+
+    console.log(`   Checking all ${parentsToCheck.length} metadata type pages for nested types...`);
+    console.log(`   (This will take a few minutes due to rate limiting)\n`);
+
+    let totalNested = 0;
+    for (let i = 0; i < parentsToCheck.length; i++) {
+      const parent = parentsToCheck[i];
+
+      // Show progress every 10 items
+      if (i % 10 === 0) {
+        console.log(`   Progress: ${i}/${parentsToCheck.length} pages checked...`);
+      }
+
+      const children = await findChildMetadataTypes(page, parent.url);
+      let addedCount = 0;
+
+      for (const child of children) {
+        if (!allMetadataTypes.has(child.url) && child.name !== parent.name) {
+          // Filter out non-metadata-type pages
+          const isVersionRelease =
+            child.name.match(/\d{2}\.\d/) || child.name.match(/(Spring|Summer|Winter|Fall)\s+'\d{2}/);
+          const isIntroPage = child.url.includes('_intro') || child.name.toLowerCase().includes('intro');
+          const isOverviewPage = child.url.includes('_overview') || child.name.toLowerCase().includes('overview');
+          const isCallsPage = child.url.includes('_calls') || child.name.toLowerCase().includes('call');
+          const isIndexPage = child.url.includes('index.htm');
+          const isCoverageReport = child.url.includes('coverage_report') || child.url.includes('unsupported_types');
+          const isSpecialBehavior = child.url.includes('special_behavior');
+
+          // Verify it looks like a valid metadata type page
+          const hasValidPattern = child.url.match(/meta_[a-z]+\.htm/) || child.url.match(/[a-z]+\.htm$/);
+
+          if (
+            hasValidPattern &&
+            !isVersionRelease &&
+            !isIntroPage &&
+            !isOverviewPage &&
+            !isCallsPage &&
+            !isIndexPage &&
+            !isCoverageReport &&
+            !isSpecialBehavior
+          ) {
+            allMetadataTypes.set(child.url, child);
+            addedCount++;
+            totalNested++;
+            console.log(`      + Found nested type: ${child.name} (under ${parent.name})`);
+          }
+        }
+      }
+
+      // Respectful delay between requests
+      await page.waitForTimeout(500);
+    }
+
+    console.log(`   ✓ Completed checking all pages. Found ${totalNested} total nested types.\n`);
+
+    // Step 3: Check the Metadata Coverage Report for any types we might have missed
+    console.log('\n🔎 Checking Metadata Coverage Report for complete list...');
+    try {
+      const coverageUrl =
+        'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_coverage_report.htm';
+      await page.goto(coverageUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await page.waitForTimeout(5000);
+
+      const frames = page.frames();
+      const contentFrame = frames.find(f => f.url().includes('meta_coverage_report.htm')) || page.mainFrame();
+
+      const coverageTypes = await contentFrame.evaluate(() => {
+        const types: Array<{ name: string; url: string }> = [];
+
+        // Look for metadata type names in tables and convert them to URLs
+        const allTextNodes: string[] = [];
+        const tables = document.querySelectorAll('table');
+
+        tables.forEach(table => {
+          const cells = table.querySelectorAll('td, th');
+          cells.forEach(cell => {
+            const text = cell.textContent?.trim();
+            if (text && text.length > 0 && text.length < 100) {
+              allTextNodes.push(text);
+            }
+          });
+        });
+
+        // Common patterns for metadata type names and their URL forms
+        const baseUrl = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/';
+        allTextNodes.forEach(text => {
+          // Convert CamelCase type name to lowercase URL format
+          const urlName = text.replace(/([A-Z])/g, (match, p1, offset) =>
+            offset > 0 ? match.toLowerCase() : match.toLowerCase()
+          );
+          const possibleUrl = `${baseUrl}meta_${urlName}.htm`;
+
+          if (text.match(/^[A-Z][a-zA-Z0-9]*$/)) {
+            // Looks like a metadata type name
+            types.push({ name: text, url: possibleUrl });
+          }
+        });
+
+        return types;
+      });
+
+      let addedFromCoverage = 0;
+      for (const type of coverageTypes) {
+        if (!allMetadataTypes.has(type.url)) {
+          allMetadataTypes.set(type.url, type);
+          addedFromCoverage++;
+        }
+      }
+
+      console.log(`   + Added ${addedFromCoverage} types from coverage report`);
+    } catch (error) {
+      console.log(`   ⚠️  Could not check coverage report: ${error}`);
+    }
+
+    // Step 4: Check for known "hidden" metadata types that aren't linked in the sidebar
+    console.log('\n🔎 Checking for known unlisted metadata types...');
+    const knownUnlistedTypes = [
+      {
+        name: 'FolderShare',
+        url: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_foldershare.htm'
+      }
+      // Add more known unlisted types here as they're discovered
+    ];
+
+    for (const type of knownUnlistedTypes) {
+      if (!allMetadataTypes.has(type.url)) {
+        try {
+          // Verify the page exists by trying to load it
+          console.log(`   Checking ${type.name}...`);
+          await page.goto(type.url, { waitUntil: 'domcontentloaded', timeout: 15000 });
+          await page.waitForTimeout(2000);
+
+          // Check if page loaded successfully (not a 404 or error page)
+          const pageTitle = await page.title();
+          if (pageTitle && !pageTitle.toLowerCase().includes('404') && !pageTitle.toLowerCase().includes('not found')) {
+            allMetadataTypes.set(type.url, type);
+            console.log(`      + Found unlisted type: ${type.name}`);
+          }
+        } catch (error) {
+          console.log(`      - ${type.name} not found or inaccessible`);
+        }
+        await page.waitForTimeout(500);
+      }
+    }
+
+    const finalList = Array.from(allMetadataTypes.values());
+    console.log(`   ✅ Total after all discovery: ${finalList.length} metadata types\n`);
+
+    // Final check for FolderShare
+    const finalFolderShare = finalList.find(l => l.name === 'FolderShare');
+    if (finalFolderShare) {
+      console.log('   🎉 FolderShare successfully discovered!\n');
+    }
+
+    // Print complete list of all discovered metadata types
+    console.log('\n📋 COMPLETE LIST OF ALL DISCOVERED METADATA TYPES:');
+    console.log('═'.repeat(80));
+    finalList.forEach((type, index) => {
+      console.log(`${String(index + 1).padStart(4)}. ${type.name}`);
+    });
+    console.log('═'.repeat(80));
+    console.log(`Total: ${finalList.length} metadata types\n`);
+
+    return finalList.length > 0 ? finalList : getFallbackMetadataTypes();
   } catch (error) {
     console.error(`   ❌ Discovery failed:`, error);
     console.log(`   📋 Using fallback list...\n`);
