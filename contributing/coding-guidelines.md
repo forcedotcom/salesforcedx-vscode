@@ -7,7 +7,7 @@ When possible, the following are enforced through the code formatter
 
 ## Indentation
 
-We use spaces, not tabs.
+We use spaces, not tabs. [automatic]
 
 ## Names
 
@@ -21,10 +21,6 @@ We use spaces, not tabs.
 ## Conventions
 
 - Create a folder for each major subarea
-- In the folder, create an index.ts which exports the public facing API for that
-  subarea.
-- Tests can refer directly to the .ts files; other consumers should refer to the
-  index.ts file.
 
 ## Comments
 
@@ -33,7 +29,7 @@ We use spaces, not tabs.
 
 ## Strings
 
-- Use 'single quotes'
+- Use 'single quotes' [automatic]
 - All strings visible to the user need to be externalized in a `messages.ts` file.
 
 ## null and undefined
