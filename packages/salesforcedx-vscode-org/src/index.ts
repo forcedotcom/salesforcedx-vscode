@@ -21,7 +21,7 @@ import {
   orgOpen
 } from './commands';
 import { ORG_OPEN_COMMAND } from './constants';
-import { showOrg } from './decorators/orgDecorator';
+import { OrgDecorator } from './decorators/orgDecorator';
 import { OrgList } from './orgPicker/orgList';
 import { setUpOrgExpirationWatcher } from './util/orgUtil';
 
@@ -56,13 +56,11 @@ const registerOrgPickerCommands = (orgListParam: OrgList): vscode.Disposable => 
 /** Initialize org picker and org status bar */
 const initializeOrgPicker = (extensionContext: vscode.ExtensionContext): void => {
   const orgListParam = new OrgList();
-  extensionContext.subscriptions.push(orgListParam, registerOrgPickerCommands(orgListParam));
+  const orgDecorator = new OrgDecorator();
+  extensionContext.subscriptions.push(orgListParam, orgDecorator, registerOrgPickerCommands(orgListParam));
 
   // Set up org expiration watcher
   void setUpOrgExpirationWatcher(orgListParam);
-
-  // Show org decorator in status bar
-  void showOrg();
 };
 
 export const activate = (extensionContext: vscode.ExtensionContext): void => {
