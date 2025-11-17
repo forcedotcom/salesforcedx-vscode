@@ -1,25 +1,30 @@
-# 65.4.0 - November 12, 2025
+# 65.5.0 - November 19, 2025
 
 ## Added
 
-#### salesforcedx-utils
+#### salesforcedx-utils-vscode
 
-#### salesforcedx-vscode-apex
+- [W-20037083] oas gen changes for ga ([PR #6645](https://github.com/forcedotcom/salesforcedx-vscode/pull/6645))
 
-- We added the `Test-run-concise` setting, defaulting to false. Enabling this skips over successful test results, and only displays failures, using the `--concise` flag in the CLI. Thank you [Kyle Capehart](https://github.com/k-capehart) for your contribution. ([PR #6636](https://github.com/forcedotcom/salesforcedx-vscode/pull/6636))
+#### salesforcedx-vscode-apex-oas
+
+- [W-20037083] oas gen changes for ga ([PR #6645](https://github.com/forcedotcom/salesforcedx-vscode/pull/6645))
 
 #### salesforcedx-vscode-core
 
-- In preparation for making our extensions web-compatible, we moved the org/auth related commands from the CLI Integration extension to a new **Salesforce Org Management** extension. This new extension is included in the Salesforce Extension Pack and Salesforce Extension Pack Expanded, so there is no functionality change. ([PR #6612](https://github.com/forcedotcom/salesforcedx-vscode/pull/6612))
+- New npm-publishable i18n support in a no-dep  standalone pkg W-20205059 ([PR #6647](https://github.com/forcedotcom/salesforcedx-vscode/pull/6647))
 
 ## Fixed
 
-#### docs
+#### salesforcedx-utils-vscode
 
-- We added documentation to help teams new to Salesforce extension development get started. ([PR #6634](https://github.com/forcedotcom/salesforcedx-vscode/pull/6634))
+- Export new fn from utils-vscode ([PR #6651](https://github.com/forcedotcom/salesforcedx-vscode/pull/6651))
 
-#### salesforcedx-apex-debugger
+#### salesforcedx-vscode-apex
 
-#### salesforcedx-vscode-apex-debugger
+- Adding new optional param ([PR #6650](https://github.com/forcedotcom/salesforcedx-vscode/pull/6650))
 
-- We fixed a bug where the Apex Interactive Debugger was producing the error `Error: No username provided and no default username found in project config or state.` when attempting to start a debugging session. Thank you [sf-blilley](https://github.com/sf-blilley) for filing this issue. ([PR #6633](https://github.com/forcedotcom/salesforcedx-vscode/pull/6633), [ISSUE #6558](https://github.com/forcedotcom/salesforcedx-vscode/issues/6558))
+#### salesforcedx-vscode-apex-replay-debugger
+
+- Adding new optional param ([PR #6650](https://github.com/forcedotcom/salesforcedx-vscode/pull/6650))
+
