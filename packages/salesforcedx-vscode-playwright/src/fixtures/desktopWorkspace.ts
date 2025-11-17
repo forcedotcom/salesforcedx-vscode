@@ -6,14 +6,14 @@
  */
 
 // This is Node.js test infrastructure, not extension code
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
-import * as os from 'node:os';
 import { Global } from '@salesforce/core/global';
-import { DREAMHOUSE_ORG_ALIAS } from 'salesforcedx-vscode-playwright';
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { DREAMHOUSE_ORG_ALIAS } from '../utils/dreamhouseScratchOrgSetup';
 
 /** Create a temporary workspace directory with sfdx-project.json for desktop tests */
-export const createTestWorkspace = async (): Promise<string> => {
+export const createTestWorkspace = async (orgAlias = DREAMHOUSE_ORG_ALIAS): Promise<string> => {
   const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-orgbrowser-test-'));
 
   await Promise.all([
@@ -42,7 +42,7 @@ export const createTestWorkspace = async (): Promise<string> => {
     path.join(workspaceDir, Global.SF_STATE_FOLDER, 'config.json'),
     JSON.stringify(
       {
-        'target-org': DREAMHOUSE_ORG_ALIAS
+        'target-org': orgAlias
       },
       null,
       2

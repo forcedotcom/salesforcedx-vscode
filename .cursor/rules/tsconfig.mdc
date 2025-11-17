@@ -1,0 +1,6 @@
+---
+globs: **/tsconfig*.json
+alwaysApply: false
+---
+
+when creating a new tsconfig, ex adding a new package to the repo, be sure to update the top-level tsconfigs to know about the new one

@@ -35,6 +35,7 @@
     "cross-env": "^7.0.3",
     "esbuild": "0.25.0",
     "nyc": "^15",
+    "salesforcedx-vscode-playwright": "65.4.0",
     "salesforcedx-vscode-services": "65.4.0"
   },
   "extensionDependencies": [

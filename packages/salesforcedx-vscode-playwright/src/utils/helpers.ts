@@ -6,7 +6,6 @@
  */
 
 import type { Page } from '@playwright/test';
-import { isDesktop } from '../fixtures';
 
 type ConsoleError = { text: string; url?: string };
 type NetworkError = { status: number; url: string; description: string };
@@ -78,6 +77,7 @@ export const filterNetworkErrors = (errors: NetworkError[]): NetworkError[] =>
 /** Wait for VS Code workbench to load. For web, navigates to /. For desktop, just waits. */
 export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promise<void> => {
   // Desktop: page is already loaded by Electron, no navigation possible
+  const isDesktop = process.env.VSCODE_DESKTOP === '1';
   if (isDesktop) {
     await page.waitForSelector('.monaco-workbench', { timeout: 60_000 });
     return;

@@ -7,10 +7,10 @@
 
 // This is Node.js test infrastructure, not extension code
 import type { AuthFields } from '@salesforce/core';
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
-import * as os from 'node:os';
 import { exec } from 'node:child_process';
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { promisify } from 'node:util';
 
 const DREAMHOUSE_REPO = 'https://github.com/trailheadapps/dreamhouse-lwc';
@@ -28,12 +28,13 @@ export const create = async (): Promise<
   try {
     const displayResponse = JSON.parse(
       (await execAsync(`sf org display -o ${DREAMHOUSE_ORG_ALIAS} --json`, { env })).stdout
-    ).result as { accessToken: string; instanceUrl: string; apiVersion: string }; // TODO: can we get these type definitions from the org plugin?
+    );
+    const result = displayResponse.result;
 
     return {
-      accessToken: displayResponse.accessToken,
-      instanceUrl: displayResponse.instanceUrl,
-      instanceApiVersion: displayResponse.apiVersion
+      accessToken: result.accessToken,
+      instanceUrl: result.instanceUrl,
+      instanceApiVersion: result.apiVersion
     };
   } catch {
     if (process.env.CI) {
@@ -55,6 +56,7 @@ export const create = async (): Promise<
 
   const createResponse = JSON.parse(createStdout);
   const authFields = createResponse?.result?.authFields ?? {};
+
   if (!authFields.instanceUrl || !authFields.accessToken || !authFields.instanceApiVersion) {
     throw new Error(
       'Scratch org creation did not return required credentials (authFields.instanceUrl, authFields.accessToken, authFields.instanceApiVersion).'

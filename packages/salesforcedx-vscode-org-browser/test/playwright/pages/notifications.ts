@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Page, Locator, expect } from '@playwright/test';
-import { saveScreenshot } from '../shared/screenshotUtils';
+import { saveScreenshot } from 'salesforcedx-vscode-playwright';
 
 /**
  * Wait for progress notification to appear

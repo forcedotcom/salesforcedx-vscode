@@ -8,10 +8,9 @@
 // This is Node.js test infrastructure, not extension code
 import { test as base, _electron as electron, type ElectronApplication, type Page } from '@playwright/test';
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
-import { createTestWorkspace } from './desktopWorkspace';
-import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
-import { filterErrors } from '../utils/helpers';
+import * as path from 'node:path';
+import { createTestWorkspace, filterErrors } from 'salesforcedx-vscode-playwright';
 
 /** Worker-scoped fixtures (shared across tests in same worker) */
 type WorkerFixtures = {

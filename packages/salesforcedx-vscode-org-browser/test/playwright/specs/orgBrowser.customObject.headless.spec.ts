@@ -7,8 +7,7 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
-import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
-import { create } from '../utils/dreamhouseScratchOrgSetup';
+import { upsertScratchOrgAuthFieldsToSettings, create } from 'salesforcedx-vscode-playwright';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
 test.describe('Org Browser - CustomObject retrieval', () => {
@@ -16,7 +15,8 @@ test.describe('Org Browser - CustomObject retrieval', () => {
 
   test.beforeEach(async ({ page }) => {
     const createResult = await create();
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    const orgBrowserPage = new OrgBrowserPage(page);
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
   });
 
   test('customobject headless: retrieve Broker__c', async ({ page }) => {
@@ -50,7 +50,7 @@ test.describe('Org Browser - CustomObject retrieval', () => {
     });
 
     await test.step('wait for editor file to open (completion signal)', async () => {
-      await orgBrowserPage.waitForFileToOpenInEditor(120_000);
+      await orgBrowserPage.waitForFileToOpenInEditor(60_000 * 5);
     });
 
     await test.step('override confirmation for Broker__c', async () => {

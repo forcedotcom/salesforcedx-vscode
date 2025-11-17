@@ -5,18 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Locator, Page, expect } from '@playwright/test';
-import { saveScreenshot } from '../shared/screenshotUtils';
+import type { AuthFields } from '@salesforce/core';
 import {
   ACCESS_TOKEN_KEY,
   API_VERSION_KEY,
   CODE_BUILDER_WEB_SECTION,
   INSTANCE_URL_KEY
 } from 'salesforcedx-vscode-services/src/constants';
+import { saveScreenshot } from '../shared/screenshotUtils';
 import { waitForVSCodeWorkbench } from '../utils/helpers';
-import { OrgBrowserPage } from './orgBrowserPage';
-import type { AuthFields } from '@salesforce/core';
 import { executeCommandWithCommandPalette } from './commands';
-import { isDesktop } from '../fixtures';
 
 const settingsLocator = (page: Page): Locator =>
   page.locator(
@@ -26,7 +24,6 @@ const settingsLocator = (page: Page): Locator =>
     ].join(',')
   );
 
-/** Open the Command Palette and execute Preferences: Open Settings (UI) */
 const openSettingsUI = async (page: Page): Promise<void> => {
   await page.waitForSelector('.monaco-workbench', { timeout: 60_000 });
   await page.locator('.monaco-workbench').click({ timeout: 5000 });
@@ -40,19 +37,24 @@ const openSettingsUI = async (page: Page): Promise<void> => {
  * */
 export const upsertScratchOrgAuthFieldsToSettings = async (
   page: Page,
-  authFields: Required<Pick<AuthFields, 'instanceUrl' | 'accessToken' | 'instanceApiVersion'>>
+  authFields: Required<Pick<AuthFields, 'instanceUrl' | 'accessToken' | 'instanceApiVersion'>>,
+  waitForProject?: () => Promise<void>
 ): Promise<void> => {
   // Desktop uses real CLI auth files, so just wait for workbench (no navigation, no settings)
+  const isDesktop = process.env.VSCODE_DESKTOP === '1';
   if (isDesktop) {
-    // Page is already loaded by Electron fixture, just wait for project
-    await new OrgBrowserPage(page).waitForProject();
+    // Page is already loaded by Electron fixture, just wait for project if callback provided
+    if (waitForProject) {
+      await waitForProject();
+    }
     return;
   }
 
   // Web: navigate and manually set auth fields in settings
   await waitForVSCodeWorkbench(page, true);
-  const orgBrowserPage = new OrgBrowserPage(page);
-  await orgBrowserPage.waitForProject();
+  if (waitForProject) {
+    await waitForProject();
+  }
   await upsertSettings(page, {
     [`${CODE_BUILDER_WEB_SECTION}.${INSTANCE_URL_KEY}`]: authFields.instanceUrl,
     [`${CODE_BUILDER_WEB_SECTION}.${ACCESS_TOKEN_KEY}`]: authFields.accessToken,

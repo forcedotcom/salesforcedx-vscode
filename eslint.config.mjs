@@ -403,7 +403,8 @@ export default [
       'packages/salesforcedx**/test/unit/**/*',
       'packages/salesforcedx**/test/web/**/*',
       'packages/salesforcedx**/test/playwright/**/*',
-      'packages/salesforcedx-vscode-automation-tests/**/*'
+      'packages/salesforcedx-vscode-automation-tests/**/*',
+      'packages/salesforcedx-vscode-playwright/**/*'
     ],
     plugins: {
       '@typescript-eslint': typescriptEslint,

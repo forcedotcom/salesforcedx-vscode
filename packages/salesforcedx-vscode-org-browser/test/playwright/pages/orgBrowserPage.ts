@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Page, Locator, expect } from '@playwright/test';
-import { saveScreenshot } from '../shared/screenshotUtils';
-import { typingSpeed } from '../utils/helpers';
+import { saveScreenshot, typingSpeed } from 'salesforcedx-vscode-playwright';
 import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
 import { isDesktop } from '../fixtures';
