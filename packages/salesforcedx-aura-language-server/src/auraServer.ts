@@ -212,12 +212,10 @@ export default class Server {
         this.fileSystemProvider.updateWorkspaceConfig(serializedProvider.workspaceConfig);
       }
     } else {
-      // Gracefully handle case where fileSystemProvider is not provided
-      this.connection.console.warn(
-        'No fileSystemProvider provided in initializationOptions. Static Aura resources will not be available for Tern server.'
+      throw new Error(
+        'No fileSystemProvider provided in initializationOptions. Static Aura resources will not be available for the language server.'
       );
     }
-    // Note: fileSystemProvider now has static resources AND will be updated with dynamic documents via onDidOpen
   }
 
   private setupIndexerEvents(): void {
@@ -245,8 +243,8 @@ export default class Server {
   }
 
   public async onCompletion(completionParams: CompletionParams): Promise<CompletionList> {
-    const document = this.documents.get(completionParams.textDocument.uri);
-    if (!document || !this.isContextReady()) {
+    const document = this.getDocumentIfReady(completionParams.textDocument.uri);
+    if (!document) {
       return { isIncomplete: false, items: [] };
     }
 
@@ -286,8 +284,8 @@ export default class Server {
     }
 
     const documentUri = textDocumentPosition.textDocument.uri;
-    const document = this.documents.get(documentUri);
-    if (!document || !this.isContextReady()) {
+    const document = this.getDocumentIfReady(documentUri);
+    if (!document) {
       return null;
     }
 
@@ -369,8 +367,8 @@ export default class Server {
   }
 
   public async onDefinition(textDocumentPosition: TextDocumentPositionParams): Promise<Location | null> {
-    const document = this.documents.get(textDocumentPosition.textDocument.uri);
-    if (!document || !this.isContextReady()) {
+    const document = this.getDocumentIfReady(textDocumentPosition.textDocument.uri);
+    if (!document) {
       return null;
     }
 
@@ -523,6 +521,12 @@ export default class Server {
    */
   private isContextReady(): boolean {
     return this.context !== undefined;
+  }
+
+  /** Get document if it exists and context is ready for processing */
+  private getDocumentIfReady(uri: string): TextDocument | undefined {
+    const document = this.documents.get(uri);
+    return document !== undefined && this.isContextReady() ? document : undefined;
   }
 
   /**
