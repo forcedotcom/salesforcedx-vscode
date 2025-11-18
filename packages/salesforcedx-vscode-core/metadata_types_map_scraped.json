@@ -2059,7 +2059,7 @@
         "Field Type": "ApexCodeUnitStatus (enumeration of type string)"
       }
     ],
-    "short_description": "This metadata type contains the following fields:",
+    "short_description": "Represents an Apex class. An Apex class is a template or blueprint from which Apex objects are created. Classes consist of other classes, user-defined methods, variables, exception types, and static initialization code.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_classes.htm"
   },
   "PackageVersion": {
@@ -2116,7 +2116,7 @@
         "Field Type": "PackageVersion[]"
       }
     ],
-    "short_description": "This metadata type contains the following fields:",
+    "short_description": "Represents a Visualforce component.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_component.htm"
   },
   "ApexEmailNotifications": {
@@ -2189,7 +2189,7 @@
         "Field Type": "PackageVersion[]"
       }
     ],
-    "short_description": "This metadata type contains the following fields:",
+    "short_description": "Represents a Visualforce page.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_pages.htm"
   },
   "ApexTestSuite": {
@@ -2231,7 +2231,7 @@
         "Field Type": "ApexCodeUnitStatus (enumeration of type string)"
       }
     ],
-    "short_description": "This metadata type contains the following fields:",
+    "short_description": "Represents an Apex trigger. A trigger is Apex code that executes before or after specific data manipulation language (DML) events occur, such as before object records are inserted into the database, or after records have been deleted.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_triggers.htm"
   },
   "AppointmentAssignmentPolicy": {
@@ -3642,7 +3642,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "This metadata type contains the following fields:",
+    "short_description": "Represents a connected app that is inaccessible to your Salesforce org’s users. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_blacklistedconsumer.htm"
   },
   "Bot": {
@@ -7772,7 +7772,7 @@
         "Field Type": "ConversationVendorType (enumeration of type string)"
       }
     ],
-    "short_description": "The fields in the ConversationVendorInfo type apply to all Service Cloud features unless otherwise stated in the field description. For example, if a field applies to just one Service Cloud Voice telephony model setup or is applied differently by different partner systems, this is stated in the field description.",
+    "short_description": "Represents the connection between the partner vendor system and the Service Cloud feature. For example, for Service Cloud Voice, this type contains information about the partner telephony system or Contact Center as a Service (CCaaS) system. For Bring Your Own Channel for Messaging or Bring Your Own Channel for CCaaS, this type contains information about the partner messaging system or CCaaS system.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_conversationvendorinfo.htm"
   },
   "ConvIntelligenceSignalRule": {
@@ -8736,7 +8736,7 @@
         "Field Type": "SetupObjectVisibility (enumeration of type string)"
       }
     ],
-    "short_description": "Custom metadata types can contain the following CustomObject fields.",
+    "short_description": "Represents the metadata associated with a custom metadata type.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_custommetadatatypes.htm"
   },
   "CustomNotificationType": {
@@ -9038,7 +9038,7 @@
         "Field Type": "WebLink[]"
       }
     ],
-    "short_description": "Unless otherwise noted, all fields are creatable, filterable, and nillable.",
+    "short_description": "Represents a custom object that stores data unique to your org or an external object that maps to data stored outside your org.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm"
   },
   "MktDataModelAttributes": {
@@ -9130,7 +9130,7 @@
         "Field Type": "ActionOverrideType (enumeration of type string)"
       }
     ],
-    "short_description": "Unless otherwise noted, all fields are creatable, filterable, and nillable.",
+    "short_description": "Represents an action override on a standard or custom object. Use it to create, update, edit, or delete action overrides. You can access ActionOverride only by accessing its encompassing CustomObject.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/actionoverride.htm"
   },
   "CustomObjectTranslation": {
@@ -10063,7 +10063,7 @@
         "Field Type": "Encoding (enumeration of type string)"
       }
     ],
-    "short_description": "This metadata type contains the following fields:",
+    "short_description": "Represents a custom tab. Custom tabs let you display custom object data or other web content in Salesforce. When you add a custom tab to an app in Salesforce Classic, it appears as a tab. When you add a custom tab to an app in Lightning Experience, it appears as an item in the app’s navigation bar and in the App Launcher. When a tab displays a custom object, the tab name is the same as the custom object name. For page, s-control, or URL tabs, the name is arbitrary.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_tab.htm"
   },
   "CustomValue": {
@@ -10877,7 +10877,7 @@
         "Field Type": "ObjectUsage"
       }
     ],
-    "short_description": "This metadata type contains the following fields:",
+    "short_description": "Represents a data category group.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datacategorygroup.htm"
   },
   "DataCategory": {
@@ -12487,7 +12487,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "This metadata type contains the following fields:",
+    "short_description": "Represents a Document. All documents must be in a document folder, such as sampleFolder/TestDocument.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_document.htm"
   },
   "DocumentCategory": {
@@ -12966,7 +12966,7 @@
         "Field Type": "EmailTemplateUiType (enumeration of type string)"
       }
     ],
-    "short_description": "This metadata type contains the following fields:",
+    "short_description": "Represents a template for an email, mass email, list email, or Sales Engagement email. Supported in first-generation managed packages only.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailtemplate.htm"
   },
   "Attachment": {
@@ -16980,7 +16980,7 @@
         "Field Type": "FlowWait[]"
       }
     ],
-    "short_description": "This metadata type represents a valid definition of a flow. This type extends the Metadata metadata type and inherits its fullName field.",
+    "short_description": "Represents the metadata associated with a flow that encompasses the flow's structure, logic, and run-time behavior. It allows you to build dynamic applications that guide users through interactive screens, automate processes, and connect with various Salesforce and external services. This includes managing data operations like creating, updating, or deleting records, handling complex decisions, looping through collections, and invoking actions like Apex or external services to extend functionality. A flow contains options for API versioning, various execution environments, and detailed configuration of elements to design powerful automation solutions.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.258.0.api_meta.meta/api_meta/meta_visual_workflow.htm"
   },
   "FlowActionCall": {
@@ -19857,7 +19857,7 @@
         "Field Type": "SharedTo"
       }
     ],
-    "short_description": "This metadata type contains the following fields:",
+    "short_description": "Represents a folder. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_folder.htm"
   },
   "ForecastingFilter": {
@@ -21120,7 +21120,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "This metadata type represents the valid values that define a group:",
+    "short_description": "Represents a set of public groups, which can have users, roles, and other groups.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_group.htm"
   },
   "HomePageComponent": {
@@ -21171,7 +21171,7 @@
         "Field Type": "PageComponentWidth (enumeration of type string)"
       }
     ],
-    "short_description": "This metadata type represents the valid values that define a home page component:",
+    "short_description": "Represents the metadata associated with a home page component. You can customize the Home tab in Salesforce Classic to include components such as sidebar links, a company logo, a dashboard snapshot, or custom components that you create. Use to create, update, or delete home page component definitions.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_homepagecomponent.htm"
   },
   "HomePageLayout": {
@@ -21192,7 +21192,7 @@
         "Field Type": "string[]"
       }
     ],
-    "short_description": "This metadata type represents the valid values that define a home page layout:",
+    "short_description": "Represents the metadata associated with a home page layout. You can customize home page layouts and assign the layouts to users based on their user profile.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_homepagelayouts.htm"
   },
   "IdentityVerificationProcDef": {
@@ -21331,7 +21331,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "This metadata type contains the following fields:",
+    "short_description": "Represents a mutual authentication certificate that is imported to your Salesforce org.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_inboundcertificate.htm"
   },
   "InboundNetworkConnection": {
@@ -21901,7 +21901,7 @@
         "Field Type": "SummaryLayout"
       }
     ],
-    "short_description": "This metadata type represents the valid values that define a page layout.",
+    "short_description": "Represents the metadata associated with a page layout. For more information, see Page Layouts in Salesforce Help.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_layouts.htm"
   },
   "CustomConsoleComponents": {
@@ -22631,7 +22631,7 @@
         "Field Type": "LetterheadLine"
       }
     ],
-    "short_description": "With the exception of logo, and horizontal and vertical alignment, all of these fields are required.",
+    "short_description": "Represents formatting options for the letterhead in an email template. A letterhead defines the logo, page color, and text settings for your HTML email templates. Use letterheads to ensure a consistent look and feel in your company’s emails.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_letterhead.htm"
   },
   "LetterheadHeaderFooter": {
@@ -29018,6 +29018,11 @@
         "Description": "Output type that's generated from a pricing element. Valid values are: AdjustmentType AdjustmentValue CustomOutput HashOutput UnitPrice",
         "Field Name": "outputType",
         "Field Type": "string"
+      },
+      {
+        "Description": "Type of pricing element, which is a derived field from PricingRecipeTableMapping.PricingComponentType.Valid values are: AssetDiscovery AttributeDiscount BundleDiscount DerivedPricing DiscountDistributionService ListPrice MinimumPrice PriceAdjustmentMatrix PriceRevision PromotionsDiscount RuleFetch VolumeDiscount VolumeTierDiscount",
+        "Field Name": "pricingElementType",
+        "Field Type": "PricingElementType (enumeration of type string)"
       }
     ],
     "short_description": "Represents the mapping of the outputs of the pricing procedures to the associated lookup tables. Each record specifies the output mapping of the associated lookup table based on the pricing component type specified in the PricingRecipeTableMapping object.",
@@ -29146,7 +29151,7 @@
         "Field Type": "ProfileUserPermission[]"
       }
     ],
-    "short_description": "The content of a profile returned by Metadata API depends on the content requested in the RetrieveRequest message. For example, profiles only include field-level security for fields included in custom objects returned in the same RetrieveRequest as the profiles. The profile definition contains the following fields:",
+    "short_description": "Represents a user profile. A profile defines a user’s permission to perform different functions within Salesforce. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_profile.htm"
   },
   "LoginFlow": {
@@ -30031,7 +30036,7 @@
         "Field Type": "QueueSobject[]"
       }
     ],
-    "short_description": "This metadata type represents the valid values that define a queue:",
+    "short_description": "Represents a holding area for items before they are processed.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_queue.htm"
   },
   "QueueMembers": {
@@ -31536,7 +31541,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "The following information assumes that you’re familiar with creating and running reports. For more information on these fields, see Build a Report in Salesforce Help.",
+    "short_description": "Represents a custom report. This metadata type only supports custom reports; standard reports aren’t supported.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
   },
   "ReportAggregateFilter": {
@@ -32390,7 +32395,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "This metadata type extends to subtype RoleOrTerritory.",
+    "short_description": "Represents a role in your organization.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_role.htm"
   },
   "RoleOrTerritory": {
@@ -32723,7 +32728,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "This metadata type contains the following fields:",
+    "short_description": "Deprecated. Represents an Scontrol component, corresponding to an s-control in the Salesforce user interface.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_scontrol.htm"
   },
   "SearchCustomization": {
@@ -33369,7 +33374,7 @@
         "Field Type": "SharingTerritoryRule[]"
       }
     ],
-    "short_description": "The following information assumes that you’re familiar with implementing sharing rules for standard objects and custom objects. For more information on these fields, see “Sharing Settings” in Salesforce Help.",
+    "short_description": "Represents the base container for sharing rules, which can be criteria-based, ownership-based, territory-based, or for guest user access. SharingRules enables you to share records with a set of users, using rules that specify the access level for the target user group.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sharingrules.htm"
   },
   "SharingCriteriaRule": {
@@ -33708,7 +33713,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "This metadata type contains the following fields:",
+    "short_description": "Represents a static resource file, often a code library in a ZIP file. Static resources allow you to upload content that you can reference in a Visualforce page, including archives (such as .zip and .jar files), images, style sheets, JavaScript, and other files. Static resources can be used only within your Salesforce org, so you can’t host content here for other apps or websites.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_staticresource.htm"
   },
   "StageAssignment": {
@@ -34512,7 +34517,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "This metadata type extends to subtype RoleOrTerritory.",
+    "short_description": "Represents a territory.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_territory.htm"
   },
   "Territory2": {
@@ -34999,6 +35004,32 @@
       }
     ],
     "short_description": "Metadata type that enables work with translations for various supported languages. The ability to translate component labels is part of the Translation Workbench.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.258.0.api_meta.meta/api_meta/meta_translations.htm"
+  },
+  "AiCoachAgentScnrDefTranslation": {
+    "fields": [
+      {
+        "Description": "The description of the coaching scenario.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The title of the coaching scenario.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Name of the coaching scenario.",
+        "Field Name": "name",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The instructions that the rep has to follow before starting the coaching session.",
+        "Field Name": "infoMessage",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "AiCoachAgentScnrDefTranslation contains details for the translation of Agentforce Sales Coach scenarios. Available in API version 64.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.258.0.api_meta.meta/api_meta/meta_translations.htm"
   },
   "BotTranslation": {
@@ -37309,7 +37340,7 @@
         "Field Type": "WorkflowTask[]"
       }
     ],
-    "short_description": "This metadata type represents the valid types of workflow rules and actions associated with a standard or custom object.",
+    "short_description": "Represents the metadata associated with a workflow rule. A workflow rule sets workflow actions into motion when its designated conditions are met. You can configure workflow actions to execute immediately when a record meets the conditions in your workflow rule, or set time triggers that execute the workflow actions on a specific day. Use this metadata type to create, update, or delete workflow rule definitions.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_workflow.htm"
   },
   "WorkflowActionReference": {
@@ -38084,7 +38115,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Settings for all types listed below are controlled on the Activity Settings page or the User Interface settings page as noted.",
+    "short_description": "Represents an org's activity settings, and its user interface settings for the calendar. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_activitiessettings.htm"
   },
   "CountriesAndStates": {
@@ -38095,7 +38126,7 @@
         "Field Type": "Country[]"
       }
     ],
-    "short_description": "This complex metadata type represents valid definitions of states and countries/territories in picklists.",
+    "short_description": "Represents the configuration of country/territory and state picklists. Use the AddressSettings component type to configure state and country/territory data in your organization so that you can convert text-based values into standard picklist values. To convert your state and country/territory values, from Setup, enter State and Country/Territory Picklists in the Quick Find box, then select State and Country/Territory Picklists.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_addresssettings.htm"
   },
   "Country": {
@@ -42474,7 +42505,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Users need the FSC Insurance permission set to access the settings available in editions with Financial Services Cloud.",
+    "short_description": "Represents settings for industries verticals such as Financial Services Cloud, Consumer Goods Cloud, Public Sector Solutions, Education Cloud, Salesforce Scheduler, Life Sciences Cloud, and Health Cloud.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_industriessettings.htm"
   },
   "Fields for Health Cloud": {
@@ -43605,7 +43636,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Reserved for future use.",
+        "Description": "Indicates whether the “Defer loading inactive console workspace pages” setting is enabled (true) or not (false). The default value is true. This field is available in API version 64.0 and later. See Defer Loading Inactive Lightning Console Workspace Pages in Salesforce Help.",
         "Field Name": "enableDeferRenderingWorkspacePage",
         "Field Type": "boolean"
       },
@@ -48571,7 +48602,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Unless otherwise noted, all fields are creatable, filterable, and nillable.",
+    "short_description": "Represents the metadata associated with a field. Use this metadata type to create, update, or delete custom field definitions on standard, custom, and external objects or standard field definitions on standard objects.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customfield.htm"
   },
   "MktDataModelFieldAttributes": {
@@ -49119,7 +49150,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Unless otherwise noted, all fields are creatable, filterable, and nillable.",
+    "short_description": "Represents the metadata associated with a lookup filter. This metadata type is used to create, update, or delete lookup filter definitions. This component has been removed as of API version 30.0 and is only available in previous API versions. The metadata associated with a lookup filter is now represented by the lookupFilter field in the CustomField component.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/namedfilter.htm"
   },
   "FilterItems": {
@@ -49156,7 +49187,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Picklist contains the following fields:",
+    "short_description": "Deprecated. Represents a picklist (or dependent picklist) definition for a custom field in a custom object or a custom or standard field in a standard object, such as an account.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_picklist.htm"
   },
   "ProfileSearchLayouts": {
@@ -49250,7 +49281,7 @@
         "Field Type": "string[]"
       }
     ],
-    "short_description": "When defining metadata for search layouts:",
+    "short_description": "Represents the metadata associated with the search layouts for an object. You can customize which fields to display for users in search results, search filter fields, lookup dialogs, and recent record lists on tab home pages. You can access SearchLayouts only by accessing its encompassing CustomObject.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_searchlayouts.htm"
   },
   "SharingReason": {
@@ -49676,7 +49707,7 @@
         "Field Type": "FilterItem[]"
       }
     ],
-    "short_description": "The following information assumes that you’re familiar with implementing sharing rules for standard objects and custom objects. For more information on these fields, see Sharing Settings in Salesforce Help.",
+    "short_description": "This component is removed as of API version 33.0 and is available in earlier versions only. Use SharingRules instead. Represents a criteria-based sharing rule. CriteriaBasedSharingRule enables you to share records based on specific criteria.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_cbsrule.htm"
   },
   "AccountCriteriaBasedSharingRule": {
@@ -49920,7 +49951,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "The following information assumes that you are familiar with implementing sharing rules for standard objects and custom objects. For more information on these fields, see “Sharing Settings” in the Salesforce online help.",
+    "short_description": "Represents an ownership-based sharing rule. OwnerSharingRule enables you to share records owned by a set of users with another set, using rules that specify the access level of the target user group. This component is removed as of API version 33.0 and is available in earlier versions only.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ownersharingrule.htm"
   },
   "AccountOwnerSharingRule": {

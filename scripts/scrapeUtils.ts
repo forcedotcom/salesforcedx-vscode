@@ -742,8 +742,8 @@ export async function extractMetadataFromPage(
       const tableData = allTableFields[0];
       const finalName = tableData.pageTitle || typeName;
 
-      // For the only/first table, use page-level description as fallback
-      const description = tableData.tableDescription || tableData.pageLevelDescription || '';
+      // For the only table, always use page-level description first (just like we always use page title)
+      const description = tableData.pageLevelDescription || tableData.tableDescription || '';
 
       // Clean up all field descriptions and types
       const cleanedFields = tableData.fields.map(field => ({
@@ -829,11 +829,11 @@ export async function extractMetadataFromPage(
           finalName = `${typeName} (Table ${i + 1})`;
         }
 
-        // For the first table, use page-level description as fallback
+        // For the first table, always use page-level description first (just like we always use page title)
         // For subsequent tables, only use table-specific descriptions
         const description =
           i === 0
-            ? tableData.tableDescription || tableData.pageLevelDescription || ''
+            ? tableData.pageLevelDescription || tableData.tableDescription || ''
             : tableData.tableDescription || '';
 
         // Clean up all field descriptions and types
