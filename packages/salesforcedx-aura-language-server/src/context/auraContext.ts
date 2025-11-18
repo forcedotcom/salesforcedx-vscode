@@ -45,6 +45,7 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
           const utilsLwcPathExists = this.fileSystemProvider.fileExists(utilsLwcPath);
           const registeredLwcPathExists = this.fileSystemProvider.fileExists(registeredLwcPath);
           const auraPathExists = this.fileSystemProvider.fileExists(auraPath);
+
           if (lwcPathExists) {
             roots.lwc.push(lwcPath);
           }
@@ -133,20 +134,27 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
 
 const findAuraMarkupIn = async (namespaceRoot: string, context: AuraWorkspaceContext): Promise<string[]> => {
   const files: string[] = [];
-  const dirs = context.fileSystemProvider.getDirectoryListing(namespaceRoot);
 
-  for (const dir of dirs) {
-    const componentDir = path.join(namespaceRoot, dir.name);
-    const isDir = context.fileSystemProvider.directoryExists(componentDir);
-    if (isDir) {
-      for (const ext of AURA_EXTENSIONS) {
-        const markupFile = path.join(componentDir, dir.name + ext);
-        const exists = context.fileSystemProvider.fileExists(markupFile);
-        if (exists) {
-          files.push(markupFile);
+  try {
+    const dirs = context.fileSystemProvider.getDirectoryListing(namespaceRoot);
+
+    for (const dir of dirs) {
+      const componentDir = path.join(namespaceRoot, dir.name);
+      const isDir = context.fileSystemProvider.directoryExists(componentDir);
+
+      if (isDir) {
+        for (const ext of AURA_EXTENSIONS) {
+          const markupFile = path.join(componentDir, dir.name + ext);
+          const exists = context.fileSystemProvider.fileExists(markupFile);
+          if (exists) {
+            files.push(markupFile);
+          }
         }
       }
     }
+  } catch (error) {
+    console.error(`findAuraMarkupIn: Error accessing ${namespaceRoot}:`, error);
   }
+
   return files;
 };

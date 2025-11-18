@@ -28,6 +28,7 @@
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/salesforcedx-utils-vscode": "65.3.1",
     "applicationinsights": "1.0.7",
+    "effect": "^3.10.3",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageclient": "^9.0.1"
   },

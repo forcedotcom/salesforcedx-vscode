@@ -6,7 +6,6 @@
  */
 import { Effect } from 'effect';
 import * as vscode from 'vscode';
-import { log } from './constants';
 
 // --- Configuration ---
 const MAX_CONCURRENCY = 50;
@@ -21,6 +20,8 @@ export interface BootstrapOptions {
   fileGlob: string;
   /** Glob pattern for files/directories to exclude */
   excludeGlob: string;
+  /** Optional logger function - defaults to console.log */
+  logger?: (message: string) => void;
 }
 
 // --- Effect-wrapped VSCode API ---
@@ -35,15 +36,14 @@ const openDoc = (uri: vscode.Uri): Effect.Effect<vscode.Uri, Error> =>
 
 // --- Main bootstrap effect ---
 /**
- * Loads workspace LWC files into VSCode document cache after server initialization.
+ * Loads workspace files into VSCode document cache after server initialization.
  * This pre-loads documents to improve language server responsiveness.
  * Runs asynchronously and does not block extension activation.
  *
- * @param options Configuration options for file glob patterns
+ * @param options Configuration options for file glob patterns and logging
  */
 export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.Effect<void, Error> => {
-  const fileGlob = options.fileGlob;
-  const excludeGlob = options.excludeGlob;
+  const { fileGlob, excludeGlob, logger = console.log } = options;
 
   return Effect.gen(function* () {
     // 1. Find all matching workspace files
@@ -53,12 +53,13 @@ export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.E
     });
 
     if (uris.length === 0) {
-      log('No LWC files found to bootstrap');
+      logger(`No matching files found for pattern: ${fileGlob} (excluding: ${excludeGlob})`);
       return;
     }
 
-    log(`📁 Bootstrapping ${uris.length} LWC files into document cache...`);
-    yield* Effect.log(`📁 Bootstrapping ${uris.length} LWC files`);
+    logger(`📁 Bootstrapping ${uris.length} files into document cache...`);
+    logger(`Files found: ${uris.slice(0, 10).map(uri => uri.fsPath).join(', ')}${uris.length > 10 ? '...' : ''}`);
+    yield* Effect.log(`📁 Bootstrapping ${uris.length} files`);
 
     // 2. Open all files in bounded parallel fashion
     const itemsWithIndex: { uri: vscode.Uri; idx: number }[] = uris.map((uri: vscode.Uri, idx: number) => ({
@@ -77,7 +78,7 @@ export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.E
     );
 
     // 3. Log completion
-    log(`✅ Workspace bootstrap complete (${uris.length} files loaded into document cache)`);
+    logger(`✅ Workspace bootstrap complete (${uris.length} files loaded into document cache)`);
     yield* Effect.log(`✅ Workspace bootstrap complete (${uris.length} files)`);
   });
 };

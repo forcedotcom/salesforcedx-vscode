@@ -21,6 +21,7 @@ export interface IFileSystemProvider {
   updateDirectoryListing(uri: string, entries: DirectoryEntry[]): void;
   updateFileStat(uri: string, stat: FileStat): void;
   updateWorkspaceConfig(config: WorkspaceConfig): void;
+  getAllFileUris(): string[];
 }
 
 /**
@@ -127,6 +128,20 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   public getAllDirectoryUris(): string[] {
     // Keys are already normalized since we normalize on set
     return Array.from(this.directoryListings.keys());
+  }
+
+  /**
+   * Get all file URIs
+   */
+  public getAllFileUris(): string[] {
+    const allKeys = Array.from(this.fileStats.keys());
+
+    const existingFiles = allKeys.filter(uri => {
+      const stat = this.getFileStat(uri);
+      return stat?.exists ?? false;
+    });
+
+    return existingFiles;
   }
 
   /**

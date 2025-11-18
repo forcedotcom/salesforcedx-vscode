@@ -48,6 +48,16 @@ const updateConfigFile = (filePath: string, content: string, fileSystemProvider:
  */
 export class LWCWorkspaceContext extends BaseWorkspaceContext {
   /**
+   * Clear the memoized namespace cache to force re-detection
+   */
+  public clearNamespaceCache(): void {
+    this.findNamespaceRootsUsingTypeCache = memoize(() => this.findNamespaceRootsUsingType());
+
+    // Immediately call the new memoized function to populate the cache
+    void this.findNamespaceRootsUsingTypeCache();
+  }
+
+  /**
    * @returns string list of all lwc and aura namespace roots
    */
   protected async findNamespaceRootsUsingType(): Promise<{ lwc: string[]; aura: string[] }> {

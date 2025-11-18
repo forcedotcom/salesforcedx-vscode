@@ -11,7 +11,8 @@ import {
   FileSystemDataProvider,
   isLWC
 } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { bootstrapWorkspaceAwareness, TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { Effect } from 'effect';
 import { log } from 'node:console';
 import * as path from 'node:path';
 import { ExtensionContext, Uri, workspace, FileType } from 'vscode';
@@ -44,11 +45,11 @@ export const activate = async (extensionContext: ExtensionContext) => {
     workspaceUris.push(folder.uri.fsPath);
   });
 
-  // Create a FileSystemDataProvider with workspace files for the language server
-  const serverFileSystemProvider = await createFileSystemProvider(workspaceUris);
+  // Create FileSystemDataProvider with Aura resources and essential workspace files for the language server
+  const fileSystemProvider = await createAuraResourcesProvider(extensionContext, workspaceUris);
 
   // 3) If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = await detectWorkspaceType(workspaceUris, serverFileSystemProvider);
+  const workspaceType = await detectWorkspaceType(workspaceUris, await createWorkspaceTypeProvider(workspaceUris));
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
@@ -94,7 +95,8 @@ export const activate = async (extensionContext: ExtensionContext) => {
       { language: 'javascript', scheme: 'untitled' }
     ],
     initializationOptions: {
-      fileSystemProvider: serverFileSystemProvider.serialize()
+      // static Aura resources for the language server, not the entire workspace
+      fileSystemProvider: fileSystemProvider.serialize()
     },
     synchronize: {
       fileEvents: [
@@ -124,6 +126,34 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // client can be deactivated on extension deactivation
   extensionContext.subscriptions.push(client);
 
+  // Trigger loading of workspace files into document cache after server initialization
+  // This runs asynchronously and does not block extension activation
+  void Effect.runPromise(
+    bootstrapWorkspaceAwareness({
+      fileGlob: '**/aura/**/*.{cmp,app,intf,evt,js}',
+      excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
+      logger: log
+    })
+  ).catch((error: unknown) => {
+    log(`Failed to bootstrap workspace awareness: ${String(error)}`);
+  });
+
+  // Also load essential JSON files for workspace type detection
+  log('Starting to load essential JSON/XML files...');
+  void Effect.runPromise(
+    bootstrapWorkspaceAwareness({
+      fileGlob: '*.{json,xml}',
+      excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
+      logger: log
+    })
+  )
+    .then(() => {
+      log('Successfully loaded essential JSON/XML files');
+    })
+    .catch((error: unknown) => {
+      log(`Failed to bootstrap essential files: ${String(error)}`);
+    });
+
   // Notify telemetry that our extension is now active
   TelemetryService.getInstance().sendExtensionActivationEvent(extensionStartTime);
 };
@@ -134,31 +164,108 @@ export const deactivate = () => {
 };
 
 /**
- * Creates a FileSystemDataProvider that reads all workspace files and directories
- * @param workspaceUris Array of workspace folder paths
- * @returns FileSystemDataProvider with workspace files and directories
+ * Creates a FileSystemDataProvider with Aura framework resources and essential workspace files
  */
-const createFileSystemProvider = async (workspaceUris: string[]): Promise<FileSystemDataProvider> => {
+const createAuraResourcesProvider = async (
+  extensionContext: ExtensionContext,
+  workspaceUris: string[]
+): Promise<FileSystemDataProvider> => {
+  const provider = new FileSystemDataProvider();
+
+  // Load Aura framework resources from extension
+  const extensionPath = extensionContext.extensionPath;
+  const auraResourcesPath = path.join(extensionPath, 'src', 'resources', 'aura');
+
+  await loadAuraResourcesRecursively(provider, auraResourcesPath);
+
+  // Also load essential workspace files (like sfdx-project.json) for workspace type detection
+  for (const workspaceUri of workspaceUris) {
+    await populateWorkspaceTypeFiles(provider, workspaceUri);
+  }
+
+  return provider;
+};
+
+/**
+ * Creates a minimal FileSystemDataProvider for workspace type detection
+ */
+const createWorkspaceTypeProvider = async (workspaceUris: string[]): Promise<FileSystemDataProvider> => {
   const fileSystemProvider = new FileSystemDataProvider();
 
   for (const workspaceUri of workspaceUris) {
-    await populateWorkspaceRecursively(fileSystemProvider, workspaceUri);
+    try {
+      await populateWorkspaceTypeFiles(fileSystemProvider, workspaceUri);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      log(`Error populating workspace type files for workspace ${workspaceUri}: ${errorMessage}`);
+      throw error;
+    }
   }
-
-  // Add resources directory from the bundled extension
-  await populateResourcesDirectory(fileSystemProvider);
 
   return fileSystemProvider;
 };
 
 /**
- * Recursively populates all files and directories in the workspace
- * @param provider FileSystemDataProvider to populate
- * @param dirPath Path to the directory to populate
+ * Populates only the files needed for workspace type detection
  */
-const populateWorkspaceRecursively = async (provider: FileSystemDataProvider, dirPath: string): Promise<void> => {
+const populateWorkspaceTypeFiles = async (provider: FileSystemDataProvider, workspaceRoot: string): Promise<void> => {
+  // Files that detectWorkspaceType checks for, in order of priority
+  const workspaceTypeFiles = [
+    'sfdx-project.json',
+    'workspace-user.xml',
+    'lwc.config.json',
+    'package.json',
+    'lerna.json'
+  ];
+
+  // Also check parent directory for workspace-user.xml (for CORE_PARTIAL detection)
+  const parentWorkspaceUserPath = path.join(workspaceRoot, '..', 'workspace-user.xml');
+
+  // Try to read each workspace type detection file
+  for (const fileName of workspaceTypeFiles) {
+    const filePath = path.join(workspaceRoot, fileName);
+    await tryReadFile(provider, filePath);
+  }
+
+  // Also try parent workspace-user.xml
+  await tryReadFile(provider, parentWorkspaceUserPath);
+};
+
+/**
+ * Attempts to read a file and add it to the provider if it exists
+ * Uses fsPath format (no file:// prefix) to match LWC server behavior
+ */
+const tryReadFile = async (provider: FileSystemDataProvider, filePath: string): Promise<void> => {
   try {
-    const dirUri = Uri.parse(dirPath);
+    const fileUri = Uri.file(filePath);
+    const fileContent = await workspace.fs.readFile(fileUri);
+    const content = Buffer.from(fileContent).toString('utf8');
+
+    // Store using fsPath format only (consistent with LWC server)
+    provider.updateFileContent(filePath, content);
+    provider.updateFileStat(filePath, {
+      type: 'file',
+      exists: true,
+      ctime: Date.now(),
+      mtime: Date.now(),
+      size: content.length
+    });
+  } catch (error: any) {
+    // File doesn't exist or can't be read - this is expected for most files
+    // Only log if it's an unexpected error
+    if (!(error instanceof Error) || !error.message.includes('ENOENT')) {
+      log(`Unexpected error reading file ${filePath}: ${String(error)}`);
+    }
+  }
+};
+
+/**
+ * Loads Aura resources recursively from the extension's resources directory
+ * Uses fsPath format (no file:// prefix) to match LWC server behavior
+ */
+const loadAuraResourcesRecursively = async (provider: FileSystemDataProvider, dirPath: string): Promise<void> => {
+  try {
+    const dirUri = Uri.file(dirPath);
     const entries = await workspace.fs.readDirectory(dirUri);
 
     // Update directory listing
@@ -191,7 +298,7 @@ const populateWorkspaceRecursively = async (provider: FileSystemDataProvider, di
         if (shouldSkipDirectory(name)) {
           continue;
         }
-        await populateWorkspaceRecursively(provider, entryPath);
+        await loadAuraResourcesRecursively(provider, entryPath);
       }
     }
   } catch (error: any) {
@@ -224,164 +331,4 @@ const shouldSkipDirectory = (dirName: string): boolean => {
     '.DS_Store'
   ];
   return skipDirs.includes(dirName) || dirName.startsWith('.');
-};
-
-/**
- * Populates the resources directory from the bundled extension
- * @param provider FileSystemDataProvider to populate
- */
-const populateResourcesDirectory = async (provider: FileSystemDataProvider): Promise<void> => {
-  try {
-    // We know exactly where the resources are - they're bundled in the extension
-    // The resources are copied to dist/resources/aura during the build process
-    // During development, they're in src/resources/aura
-    const extensionPath = path.join(__dirname, '..', '..');
-    const distResourcesDir = path.join(extensionPath, 'dist', 'resources', 'aura');
-    const srcResourcesDir = path.join(extensionPath, 'src', 'resources', 'aura');
-
-    // Try dist first (production), then src (development)
-    let auraResourcesDir: string | undefined;
-
-    // Check dist directory using VSCode's fs API
-    try {
-      const distUri = Uri.file(distResourcesDir);
-      const distStat = await workspace.fs.stat(distUri);
-      if (distStat.type === FileType.Directory) {
-        auraResourcesDir = distResourcesDir;
-      }
-    } catch {
-      // dist directory doesn't exist, try src
-    }
-
-    // Check src directory if dist wasn't found
-    if (!auraResourcesDir) {
-      try {
-        const srcUri = Uri.file(srcResourcesDir);
-        const srcStat = await workspace.fs.stat(srcUri);
-        if (srcStat.type === FileType.Directory) {
-          auraResourcesDir = srcResourcesDir;
-        }
-      } catch {
-        // src directory doesn't exist either
-      }
-    }
-
-    if (!auraResourcesDir) {
-      log('Warning: resources/aura directory not found in dist or src');
-      return;
-    }
-
-    const resourcesDir = path.dirname(auraResourcesDir);
-    const auraDirName = path.basename(auraResourcesDir);
-
-    // Recursively populate all files and directories in resources/aura
-    await populateResourcesRecursively(provider, auraResourcesDir, resourcesDir);
-
-    // Add directory listings for parent directories
-    provider.updateDirectoryListing(resourcesDir, [{ name: auraDirName, type: 'directory', uri: auraResourcesDir }]);
-
-    // Add file stats for directories
-    provider.updateFileStat(resourcesDir, {
-      type: 'directory',
-      exists: true,
-      ctime: Date.now(),
-      mtime: Date.now(),
-      size: 0
-    });
-  } catch (error) {
-    log(`Error populating resources directory: ${String(error)}`);
-    throw error;
-  }
-};
-
-/**
- * Recursively populates all files and directories in the resources/aura directory
- * @param provider FileSystemDataProvider to populate
- * @param dirPath Path to the directory to populate
- * @param basePath Base path for relative URI resolution
- */
-const populateResourcesRecursively = async (
-  provider: FileSystemDataProvider,
-  dirPath: string,
-  basePath: string
-): Promise<void> => {
-  try {
-    const dirUri = Uri.file(dirPath);
-
-    // Check if directory exists using VSCode's fs API
-    try {
-      const dirStat = await workspace.fs.stat(dirUri);
-      if (dirStat.type !== FileType.Directory) {
-        return;
-      }
-    } catch {
-      // Directory doesn't exist
-      return;
-    }
-
-    const entries = await workspace.fs.readDirectory(dirUri);
-
-    // Update directory listing
-    const directoryEntries = entries.map(
-      ([name, type]: [string, number]): DirectoryEntry => ({
-        name,
-        type: type === 1 ? 'file' : 'directory',
-        uri: path.join(dirPath, name)
-      })
-    );
-    provider.updateDirectoryListing(dirPath, directoryEntries);
-
-    // Update directory stat
-    provider.updateFileStat(dirPath, {
-      type: 'directory',
-      exists: true,
-      ctime: Date.now(),
-      mtime: Date.now(),
-      size: 0
-    });
-
-    // Process each entry
-    for (const [name, type] of entries) {
-      const entryPath = path.join(dirPath, name);
-
-      if (type === FileType.File) {
-        await tryReadFile(provider, entryPath);
-      } else if (type === FileType.Directory) {
-        await populateResourcesRecursively(provider, entryPath, basePath);
-      }
-    }
-  } catch (error: any) {
-    // Directory doesn't exist or can't be read
-    if (!(error instanceof Error) || !error.message.includes('ENOENT')) {
-      log(`Unexpected error reading resources directory ${dirPath}: ${String(error)}`);
-    }
-  }
-};
-
-/**
- * Attempts to read a file and add it to the provider if it exists
- * @param provider FileSystemDataProvider to update
- * @param filePath Path to the file to read
- */
-const tryReadFile = async (provider: FileSystemDataProvider, filePath: string): Promise<void> => {
-  try {
-    const fileUri = Uri.parse(filePath);
-    const fileContent = await workspace.fs.readFile(fileUri);
-    const content = Buffer.from(fileContent).toString('utf8');
-
-    provider.updateFileContent(filePath, content);
-    provider.updateFileStat(filePath, {
-      type: 'file',
-      exists: true,
-      ctime: Date.now(),
-      mtime: Date.now(),
-      size: content.length
-    });
-  } catch (error: any) {
-    // File doesn't exist or can't be read - this is expected for most files
-    // Only log if it's an unexpected error
-    if (!(error instanceof Error) || !error.message.includes('ENOENT')) {
-      log(`Unexpected error reading file ${filePath}: ${String(error)}`);
-    }
-  }
 };

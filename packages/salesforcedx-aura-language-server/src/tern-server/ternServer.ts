@@ -83,7 +83,7 @@ const defaultConfig = {
 const auraInstanceLastSort = (a: string, b: string): number =>
   a.endsWith('AuraInstance.js') === b.endsWith('AuraInstance.js') ? 0 : a.endsWith('AuraInstance.js') ? 1 : -1;
 
-/** Recursively get all .js files from a directory using VS Code APIs */
+/** Recursively get all .js files from a directory using FileSystemDataProvider */
 const getJsFilesRecursively = async (
   dirPath: string,
   fileSystemProvider: FileSystemDataProvider
@@ -96,9 +96,11 @@ const getJsFilesRecursively = async (
 
       for (const entry of entries) {
         if (entry.type === 'directory') {
-          await processDirectory(path.join(currentPath, entry.name));
+          // entry.uri is already the full URI for the subdirectory
+          await processDirectory(entry.uri);
         } else if (entry.type === 'file' && entry.name.endsWith('.js')) {
-          files.push(path.join(currentPath, entry.name));
+          // entry.uri is already the full URI for the file
+          files.push(entry.uri);
         }
       }
     } catch {
