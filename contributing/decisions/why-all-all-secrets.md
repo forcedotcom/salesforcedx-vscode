@@ -23,6 +23,6 @@ dist/web/index.js#1179:17791-1179:17808
 
 `
 
-OH NOES, minified code has something that uses `SG*` in it.
+OH NOES, minified code has something that uses `SG*` in it. This started showing up when minification was put in.
 
 We have enough secret scanners already in place to disable this one.

@@ -97,7 +97,7 @@ for (const vsixFile of existingVsixFiles) {
 
 // Run the vsce package command
 logger(`Execute vsce from ${cwd}`);
-execSync('vsce package', { stdio: 'inherit', cwd });
+execSync('vsce package --allow-package-all-secrets', { stdio: 'inherit', cwd });
 
 // copy the vsix back to the extension directory
 logger('copy vsix back to extension directory');

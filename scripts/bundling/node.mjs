@@ -5,7 +5,7 @@ export const nodeConfig = {
   platform: 'node',
   target: 'es2023',
   keepNames: true,
-  minify: false,
+  minify: true,
   sourcemap: true,
   supported: {
     'dynamic-import': false

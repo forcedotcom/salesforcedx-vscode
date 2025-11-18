@@ -1,27 +1,21 @@
 .vscode/**
 .vscode-test/**
-out/test/**
+out/**
 test/**
-scripts/**
 src/**
 **/*.map
 .gitignore
 tsconfig.json
+jest.config.js
+esbuild.config.mjs
+junit*
+node_modules
+dist/*-metafile.json
+coverage
+extension
+jars
+scripts
 
-# ignore unused jsforce code
-node_modules/jsforce/test/**
-node_modules/jsforce/build/**
-node_modules/jsforce/dist/**
-
-# ignore unused sfdx-faye code
-node_modules/sfdx-faye/examples/**
-node_modules/sfdx-faye/site/**
-node_modules/sfdx-faye/spec/**
-
-# ignore unused dayjs code
-node_modules/dayjs/esm/**
-
-node_modules/**/rxjs/dist/bundles
-node_modules/**/rxjs/dist/esm
-node_modules/**/rxjs/dist/esm5
-node_modules/**/rxjs/dist/types
+# do not reach outside the package
+../../**
+../**
