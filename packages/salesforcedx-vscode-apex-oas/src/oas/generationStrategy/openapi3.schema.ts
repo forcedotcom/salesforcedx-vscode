@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-export const openAPISchema_v3_0_guided = {
+export const openAPISchemaV3Guided = {
   id: 'https://spec.openapis.org/oas/3.0/schema/2024-10-18',
   $schema: 'http://json-schema.org/draft-04/schema#',
   description: 'The description of OpenAPI v3.0.x Documents',
