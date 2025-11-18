@@ -57,7 +57,7 @@
   },
   "scripts": {
     "bundle:extension": "node esbuild.config.mjs",
-    "vscode:package": "npm run bundle:extension && vsce package",
+    "vscode:package": "npm run bundle:extension && vsce package --allow-package-all-secrets",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./ && ts-node ../salesforcedx-vscode-services-types/scripts/generateEntry.ts && ts-node ../salesforcedx-vscode-services-types/scripts/syncDeps.ts",

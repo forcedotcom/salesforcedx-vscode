@@ -44,7 +44,7 @@
     "bundle:extension:copy": "cp ../salesforcedx-apex-debugger/dist/apexDebug.js ./dist/",
     "bundle:extension:build": "node ./esbuild.config.mjs",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package:legacy": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
