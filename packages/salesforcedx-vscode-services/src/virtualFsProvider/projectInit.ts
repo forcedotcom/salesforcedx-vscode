@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
 import { SettingsService } from '../vscode/settingsService';
 import { fsPrefix } from './constants';
-import { fsProvider } from './fsTypes';
+import { FsProvider } from './fsTypes';
 import { TEMPLATES, metadataDirs } from './templates/templates';
 
 const sampleProjectPath = `${fsPrefix}:/${sampleProjectName}`;
@@ -29,7 +29,7 @@ const getDirsToCreate = (): string[] => [
   ...metadataDirs.map(dir => `${sampleProjectPath}/force-app/main/default/${dir}`)
 ];
 
-const createConfigFiles = (fsp: fsProvider): void => {
+const createConfigFiles = (fsp: FsProvider): void => {
   Object.entries(TEMPLATES).forEach(([name, content]) => {
     const uri = vscode.Uri.parse(`${sampleProjectPath}/${name}`);
     fsp.writeFile(uri, new Uint8Array(Buffer.from(content.join('\n'))), {
@@ -40,7 +40,7 @@ const createConfigFiles = (fsp: fsProvider): void => {
 };
 
 /** Creates the project directory structure and files */
-const createProjectStructure = (fsp: fsProvider): Effect.Effect<void, Error, never> =>
+const createProjectStructure = (fsp: FsProvider): Effect.Effect<void, Error, never> =>
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ sampleProjectPath });
     const dirsToCreate = getDirsToCreate();
@@ -62,7 +62,7 @@ const createProjectStructure = (fsp: fsProvider): Effect.Effect<void, Error, nev
     });
   }).pipe(Effect.withSpan('projectInit: createProjectStructure'));
 
-const createVSCodeFiles = (fsp: fsProvider): void => {
+const createVSCodeFiles = (fsp: FsProvider): void => {
   // Create .vscode directory and config files
   fsp.writeFile(
     vscode.Uri.parse(`${sampleProjectPath}/.vscode/tasks.json`),
@@ -85,7 +85,7 @@ const createVSCodeFiles = (fsp: fsProvider): void => {
 };
 
 /** Creates the files for an empty sfdx project */
-export const projectFiles = (fsp: fsProvider): Effect.Effect<void, Error, SettingsService> =>
+export const projectFiles = (fsp: FsProvider): Effect.Effect<void, Error, SettingsService> =>
   Effect.gen(function* () {
     // Check if project already exists, if not create it
     const projectExists = fsp.exists(vscode.Uri.parse(`${sampleProjectPath}/sfdx-project.json`));

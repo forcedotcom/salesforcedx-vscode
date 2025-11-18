@@ -195,12 +195,32 @@ export default [
       ],
       '@typescript-eslint/member-ordering': 'off',
       '@typescript-eslint/naming-convention': [
-        'off',
+        'error',
+        {
+          selector: 'typeLike',
+          format: ['PascalCase']
+        },
+        {
+          selector: 'function',
+          format: ['camelCase']
+        },
+        {
+          selector: 'method',
+          format: ['camelCase'],
+          // Only enforce for class/interface methods, not object literal methods
+          modifiers: ['public', 'protected', 'private']
+        },
         {
           selector: 'variable',
-          format: ['camelCase', 'UPPER_CASE'],
-          leadingUnderscore: 'forbid',
-          trailingUnderscore: 'forbid'
+          format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
+          leadingUnderscore: 'allow'
+        },
+        {
+          selector: 'property',
+          format: null,
+          // Properties are very permissive due to external APIs, i18n keys, HTTP headers, etc.
+          // We'll rely on code review for property naming
+          leadingUnderscore: 'allow'
         }
       ],
       '@typescript-eslint/no-empty-function': 'off',

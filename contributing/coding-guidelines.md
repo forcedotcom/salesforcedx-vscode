@@ -7,24 +7,21 @@ When possible, the following are enforced through the code formatter
 
 ## Indentation
 
-We use spaces, not tabs.
+We use spaces, not tabs. [automatic]
 
 ## Names
 
-- Use PascalCase for `type` names
-- Use UPPERCASE_WITH_SPACES for `enum` values and constants
-- Use camelCase for `function` and `method` names
+- Use PascalCase for `type` names [automatic]
+- Use UPPERCASE_WITH_SPACES for `enum` values and non-local constants
+- Use camelCase for `function` names [automatic]
+- Use camelCase for `method` names
 - Use camelCase for `property` names and `local variables`
 - Use whole words in names when possible
-- Use camelCase for file names (name files after the main Type it exports)
+- Use camelCase for file names [automatic]
 
 ## Conventions
 
 - Create a folder for each major subarea
-- In the folder, create an index.ts which exports the public facing API for that
-  subarea.
-- Tests can refer directly to the .ts files; other consumers should refer to the
-  index.ts file.
 
 ## Comments
 
@@ -33,7 +30,7 @@ We use spaces, not tabs.
 
 ## Strings
 
-- Use 'single quotes'
+- Use 'single quotes' [automatic]
 - All strings visible to the user need to be externalized in a `messages.ts` file.
 
 ## null and undefined

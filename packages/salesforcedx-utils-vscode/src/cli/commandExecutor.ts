@@ -13,7 +13,7 @@ import { Subscription } from 'rxjs/Subscription';
 
 // Below two dependencies are not structured correctly for import unless require is used.
 /* eslint-disable @typescript-eslint/no-var-requires */
-const cross_spawn = require('cross-spawn');
+const crossSpawn = require('cross-spawn');
 const kill = require('tree-kill');
 /* eslint-enable @typescript-eslint/no-var-requires */
 
@@ -55,7 +55,7 @@ export class CliCommandExecutor {
   }
 
   public execute(cancellationToken?: CancellationToken): CliCommandExecution {
-    const childProcess = cross_spawn(this.command.command, this.command.args, this.options);
+    const childProcess = crossSpawn(this.command.command, this.command.args, this.options);
     return new CliCommandExecution(this.command, childProcess, cancellationToken);
   }
 }

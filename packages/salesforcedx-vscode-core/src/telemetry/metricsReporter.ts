@@ -8,12 +8,12 @@ import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { BASE_EXTENSION, EXPANDED_EXTENSION, EXT_PACK_STATUS_EVENT_NAME } from '../constants';
 
-type EXT_PACK_TYPES = 'BASE' | 'EXPANDED' | 'BOTH' | 'NONE';
+type ExtPackTypes = 'BASE' | 'EXPANDED' | 'BOTH' | 'NONE';
 
 const isExtensionInstalled = (extensionName: string): boolean =>
   vscode.extensions.getExtension(extensionName) !== undefined;
 
-const getExtensionPackStatus = (): EXT_PACK_TYPES => {
+const getExtensionPackStatus = (): ExtPackTypes => {
   const hasBasePack = isExtensionInstalled(BASE_EXTENSION);
   const hasExpandedPack = isExtensionInstalled(EXPANDED_EXTENSION);
 
