@@ -43,8 +43,7 @@
   ],
   "scripts": {
     "bundle:extension": "node ./esbuild.config.mjs",
-    "vscode:prepublish": "npm prune --production",
-    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package": "vsce package --allow-package-all-secrets",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
@@ -53,23 +52,6 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "test": "jest --coverage"
-  },
-  "packaging": {
-    "assets": [
-      "LICENSE.txt",
-      "package.nls.ja.json",
-      "package.nls.json",
-      "README.md",
-      ".vscodeignore",
-      "OSSREADME.json",
-      "images",
-      "dist"
-    ],
-    "packageUpdates": {
-      "main": "dist/index.js",
-      "dependencies": {},
-      "devDependencies": {}
-    }
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
@@ -85,7 +67,7 @@
       "description": "Org management requires executing Salesforce CLI commands"
     }
   },
-  "main": "./out/src",
+  "main": "./dist/index.js",
   "contributes": {
     "menus": {
       "commandPalette": [

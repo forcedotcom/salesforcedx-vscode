@@ -65,7 +65,7 @@
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
     "copy:files": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage ./grammars/",
     "test": "jest --coverage",
-    "vscode:package": "vsce package",
+    "vscode:package": "vsce package --allow-package-all-secrets",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
   },
