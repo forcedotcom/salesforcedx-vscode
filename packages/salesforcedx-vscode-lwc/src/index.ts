@@ -7,10 +7,14 @@
 
 import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
 import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { bootstrapWorkspaceAwareness, ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ActivationTracker,
+  bootstrapWorkspaceAwareness,
+  populateWorkspaceTypeFiles
+} from '@salesforce/salesforcedx-utils-vscode';
 import { Effect } from 'effect';
 import * as path from 'node:path';
-import { commands, Disposable, ExtensionContext, workspace, Uri } from 'vscode';
+import { commands, Disposable, ExtensionContext, workspace } from 'vscode';
 import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
 import { log } from './constants';
 import { createLanguageClient } from './languageClient';
@@ -141,7 +145,7 @@ const createFileSystemProvider = async (workspaceUris: string[]): Promise<FileSy
 
   for (const workspaceUri of workspaceUris) {
     try {
-      await populateWorkspaceTypeFiles(fileSystemProvider, workspaceUri);
+      await populateWorkspaceTypeFiles(fileSystemProvider, workspaceUri, log);
     } catch (error) {
       log(`Error populating workspace type files for workspace ${workspaceUri}: ${String(error)}`);
       throw error;
@@ -149,60 +153,4 @@ const createFileSystemProvider = async (workspaceUris: string[]): Promise<FileSy
   }
 
   return fileSystemProvider;
-};
-
-/**
- * Populates only the files needed for workspace type detection
- * @param provider FileSystemDataProvider to populate
- * @param workspaceRoot Path to the workspace root
- */
-const populateWorkspaceTypeFiles = async (provider: FileSystemDataProvider, workspaceRoot: string): Promise<void> => {
-  // Files that detectWorkspaceType checks for, in order of priority
-  const workspaceTypeFiles = [
-    'sfdx-project.json',
-    'workspace-user.xml',
-    'lwc.config.json',
-    'package.json',
-    'lerna.json'
-  ];
-
-  // Also check parent directory for workspace-user.xml (for CORE_PARTIAL detection)
-  const parentWorkspaceUserPath = path.join(workspaceRoot, '..', 'workspace-user.xml');
-
-  // Try to read each workspace type detection file
-  for (const fileName of workspaceTypeFiles) {
-    const filePath = path.join(workspaceRoot, fileName);
-    await tryReadFile(provider, filePath);
-  }
-
-  // Also try parent workspace-user.xml
-  await tryReadFile(provider, parentWorkspaceUserPath);
-};
-
-/**
- * Attempts to read a file and add it to the provider if it exists
- * @param provider FileSystemDataProvider to update
- * @param filePath Path to the file to read
- */
-const tryReadFile = async (provider: FileSystemDataProvider, filePath: string): Promise<void> => {
-  try {
-    const fileUri = Uri.parse(filePath);
-    const fileContent = await workspace.fs.readFile(fileUri);
-    const content = Buffer.from(fileContent).toString('utf8');
-
-    provider.updateFileContent(filePath, content);
-    provider.updateFileStat(filePath, {
-      type: 'file',
-      exists: true,
-      ctime: Date.now(),
-      mtime: Date.now(),
-      size: content.length
-    });
-  } catch (error: any) {
-    // File doesn't exist or can't be read - this is expected for most files
-    // Only log if it's an unexpected error
-    if (!(error instanceof Error) || !error.message.includes('ENOENT')) {
-      log(`Unexpected error reading file ${filePath}: ${String(error)}`);
-    }
-  }
 };

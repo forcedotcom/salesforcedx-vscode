@@ -11,7 +11,12 @@ import {
   FileSystemDataProvider,
   isLWC
 } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { bootstrapWorkspaceAwareness, TelemetryService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  bootstrapWorkspaceAwareness,
+  populateWorkspaceTypeFiles,
+  TelemetryService,
+  TimingUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { Effect } from 'effect';
 import { log } from 'node:console';
 import * as path from 'node:path';
@@ -180,7 +185,7 @@ const createAuraResourcesProvider = async (
 
   // Also load essential workspace files (like sfdx-project.json) for workspace type detection
   for (const workspaceUri of workspaceUris) {
-    await populateWorkspaceTypeFiles(provider, workspaceUri);
+    await populateWorkspaceTypeFiles(provider, workspaceUri, log);
   }
 
   return provider;
@@ -194,7 +199,7 @@ const createWorkspaceTypeProvider = async (workspaceUris: string[]): Promise<Fil
 
   for (const workspaceUri of workspaceUris) {
     try {
-      await populateWorkspaceTypeFiles(fileSystemProvider, workspaceUri);
+      await populateWorkspaceTypeFiles(fileSystemProvider, workspaceUri, log);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       log(`Error populating workspace type files for workspace ${workspaceUri}: ${errorMessage}`);
@@ -206,34 +211,8 @@ const createWorkspaceTypeProvider = async (workspaceUris: string[]): Promise<Fil
 };
 
 /**
- * Populates only the files needed for workspace type detection
- */
-const populateWorkspaceTypeFiles = async (provider: FileSystemDataProvider, workspaceRoot: string): Promise<void> => {
-  // Files that detectWorkspaceType checks for, in order of priority
-  const workspaceTypeFiles = [
-    'sfdx-project.json',
-    'workspace-user.xml',
-    'lwc.config.json',
-    'package.json',
-    'lerna.json'
-  ];
-
-  // Also check parent directory for workspace-user.xml (for CORE_PARTIAL detection)
-  const parentWorkspaceUserPath = path.join(workspaceRoot, '..', 'workspace-user.xml');
-
-  // Try to read each workspace type detection file
-  for (const fileName of workspaceTypeFiles) {
-    const filePath = path.join(workspaceRoot, fileName);
-    await tryReadFile(provider, filePath);
-  }
-
-  // Also try parent workspace-user.xml
-  await tryReadFile(provider, parentWorkspaceUserPath);
-};
-
-/**
  * Attempts to read a file and add it to the provider if it exists
- * Uses fsPath format (no file:// prefix) to match LWC server behavior
+ * Used for loading Aura framework resources
  */
 const tryReadFile = async (provider: FileSystemDataProvider, filePath: string): Promise<void> => {
   try {
@@ -241,7 +220,6 @@ const tryReadFile = async (provider: FileSystemDataProvider, filePath: string): 
     const fileContent = await workspace.fs.readFile(fileUri);
     const content = Buffer.from(fileContent).toString('utf8');
 
-    // Store using fsPath format only (consistent with LWC server)
     provider.updateFileContent(filePath, content);
     provider.updateFileStat(filePath, {
       type: 'file',
@@ -250,9 +228,8 @@ const tryReadFile = async (provider: FileSystemDataProvider, filePath: string): 
       mtime: Date.now(),
       size: content.length
     });
-  } catch (error: any) {
-    // File doesn't exist or can't be read - this is expected for most files
-    // Only log if it's an unexpected error
+  } catch (error: unknown) {
+    // File doesn't exist or can't be read - this is expected for some files
     if (!(error instanceof Error) || !error.message.includes('ENOENT')) {
       log(`Unexpected error reading file ${filePath}: ${String(error)}`);
     }

@@ -54,3 +54,4 @@ export * from './languageClients/conversion';
 export * from './messages';
 export * from './util/authInfo';
 export { bootstrapWorkspaceAwareness, BootstrapOptions } from './workspaceLoader';
+export { populateWorkspaceTypeFiles } from './workspaceTypeFiles';

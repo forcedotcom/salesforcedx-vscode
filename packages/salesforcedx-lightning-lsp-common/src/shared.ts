@@ -33,34 +33,19 @@ export const detectWorkspaceHelper = async (
   root: string,
   fileSystemProvider: IFileSystemProvider
 ): Promise<WorkspaceType> => {
-  // Determine which URI format is used by checking available files
-  const fileUriPrefix = `file://${root}/`;
-  const fsPathPrefix = `${root}/`;
-  let prefix = fsPathPrefix; // Default to fsPath
-
+  // Early return if no files are available
   try {
     const allFiles = fileSystemProvider.getAllFileUris();
-
     if (allFiles.length === 0) {
       return 'UNKNOWN';
     }
-
-    // Check both formats and use the one that has matches
-    const matchingUriFiles = allFiles.filter(uri => uri.startsWith(fileUriPrefix));
-    prefix = matchingUriFiles.length > 0 ? fileUriPrefix : fsPathPrefix;
   } catch {
     // Error listing files, continue
   }
 
   try {
     const sfdxProjectFile = getSfdxProjectFile(root);
-
-    // Try both URI and fsPath formats for sfdx-project.json
-    let fileStat = fileSystemProvider.getFileStat(`file://${sfdxProjectFile}`);
-    fileStat ??= fileSystemProvider.getFileStat(sfdxProjectFile);
-
-    // Also try with the prefix format that matches the files we found
-    fileStat ??= fileSystemProvider.getFileStat(`${prefix}sfdx-project.json`);
+    const fileStat = fileSystemProvider.getFileStat(sfdxProjectFile);
 
     if (fileStat?.type === 'file') {
       return 'SFDX';
