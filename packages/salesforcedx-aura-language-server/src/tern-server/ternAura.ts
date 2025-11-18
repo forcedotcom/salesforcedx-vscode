@@ -399,7 +399,6 @@ tern.registerPlugin('aura', (s, _options) => {
     return filteredResult;
   });
 
-  console.log('IDE mode');
   // Extract JSON content from import - may be wrapped in .default or spread
   const defs = extractJsonFromImport(auraTypesJsonImport);
   server.addDefs(defs);
