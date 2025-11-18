@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { build } from 'esbuild';
+import copy from 'esbuild-plugin-copy';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { writeFile } from 'fs/promises';
 
@@ -12,7 +13,15 @@ const nodeBuild = await build({
   ...nodeConfig,
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
-  plugins: [...(nodeConfig.plugins ?? [])],
+  plugins: [
+    ...(nodeConfig.plugins ?? []),
+    copy({
+      assets: {
+        from: ['./out/apex-jorje-lsp.jar'],
+        to: ['.']
+      }
+    })
+  ],
   metafile: true
 });
 
