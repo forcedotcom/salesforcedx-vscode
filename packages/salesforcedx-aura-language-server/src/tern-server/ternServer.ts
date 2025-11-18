@@ -203,9 +203,7 @@ const ternInit = async (fileSystemProvider: FileSystemDataProvider): Promise<voi
   }
 };
 
-const init = (fileSystemProvider: FileSystemDataProvider) => ternInit(fileSystemProvider);
-
-export { init };
+export const init = (fileSystemProvider: FileSystemDataProvider) => ternInit(fileSystemProvider);
 
 export const startServer = async (
   rootPath: string,

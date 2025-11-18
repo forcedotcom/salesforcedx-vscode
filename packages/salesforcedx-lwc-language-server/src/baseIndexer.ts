@@ -8,13 +8,13 @@ import { IFileSystemProvider, unixify } from '@salesforce/salesforcedx-lightning
 import * as path from 'node:path';
 
 /** Package directory configuration in sfdx-project.json */
-export interface SfdxPackageDirectory {
+interface SfdxPackageDirectory {
   path: string;
   default?: boolean;
 }
 
 /** Structure of sfdx-project.json file */
-export interface SfdxProjectConfig {
+interface SfdxProjectConfig {
   packageDirectories?: SfdxPackageDirectory[];
   namespace?: string;
   sfdcLoginUrl?: string;
