@@ -73,7 +73,8 @@ const convertApiToApexTestMethods = async (
     // If not found in the prebuilt index, try a targeted search in case the index missed it
     if (!uri) {
       try {
-        const matches = await vscode.workspace.findFiles(`**/classes/${c.name}.cls`, undefined, 1);
+        // Look for the class file anywhere in the workspace (exclude .sfdx)
+        const matches = await vscode.workspace.findFiles(`**/${c.name}.cls`, '**/.sfdx/**', 1);
         uri = matches[0];
       } catch {
         // ignore search failures
