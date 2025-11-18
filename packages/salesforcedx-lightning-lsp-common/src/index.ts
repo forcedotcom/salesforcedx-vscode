@@ -58,11 +58,7 @@ export { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSys
 export { DirectoryEntry, FileStat, WorkspaceConfig } from './types/fileSystemTypes';
 
 // Re-export from document sync
-export { ensureDirectoryTracked, addFileToDirectoryListing, syncDocumentToTextDocumentsProvider } from './documentSync';
+export { syncDocumentToTextDocumentsProvider } from './documentSync';
 
 // Re-export from reinitialization scheduler
-export {
-  scheduleReinitialization,
-  StabilityConfig,
-  ReinitializationSchedulerOptions
-} from './reinitializationScheduler';
+export { scheduleReinitialization } from './reinitializationScheduler';

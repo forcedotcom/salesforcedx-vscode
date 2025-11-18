@@ -7,7 +7,7 @@
 
 import { FileSystemDataProvider } from './providers/fileSystemDataProvider';
 
-export interface StabilityConfig {
+interface StabilityConfig {
   maxWaitTime: number;
   checkInterval: number;
   stableChecks: number;
@@ -16,7 +16,7 @@ export interface StabilityConfig {
   startTime: number;
 }
 
-export interface ReinitializationSchedulerOptions {
+interface ReinitializationSchedulerOptions {
   /** Maximum time to wait for stability (default: 30 seconds) */
   maxWaitTime?: number;
   /** Interval between stability checks (default: 500ms) */

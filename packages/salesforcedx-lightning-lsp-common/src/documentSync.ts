@@ -14,7 +14,7 @@ import { DirectoryEntry } from './types/fileSystemTypes';
  * Ensures parent directories are tracked in FileSystemDataProvider.
  * Creates directory entries and stats for all parent directories up to the workspace root.
  */
-export const ensureDirectoryTracked = async (
+const ensureDirectoryTracked = async (
   dirUri: string,
   provider: FileSystemDataProvider,
   workspaceRoots: string[]
@@ -54,7 +54,7 @@ export const ensureDirectoryTracked = async (
  * Adds a file entry to its parent directory's listing.
  * Expects fileUri to be in fsPath format (already normalized).
  */
-export const addFileToDirectoryListing = async (
+const addFileToDirectoryListing = async (
   fileUri: string,
   provider: FileSystemDataProvider,
   workspaceRoots: string[]
