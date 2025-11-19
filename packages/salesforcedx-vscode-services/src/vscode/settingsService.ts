@@ -54,7 +54,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
      * Get the Salesforce instance URL from settings
      */
     getInstanceUrl: Effect.try({
-      try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY),
+      try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY)?.trim(),
       catch: error => new Error(`Failed to get instanceUrl: ${String(error)}`)
     }).pipe(Effect.flatMap(isNonEmptyString(INSTANCE_URL_KEY))),
 
@@ -62,7 +62,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
      * Get the Salesforce access token from settings
      */
     getAccessToken: Effect.try({
-      try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(ACCESS_TOKEN_KEY),
+      try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(ACCESS_TOKEN_KEY)?.trim(),
       catch: error => new Error(`Failed to get accessToken: ${String(error)}`)
     }).pipe(Effect.flatMap(isNonEmptyString(ACCESS_TOKEN_KEY))),
 

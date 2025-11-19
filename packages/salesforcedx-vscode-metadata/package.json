@@ -1,0 +1,93 @@
+{
+  "name": "salesforcedx-vscode-metadata",
+  "displayName": "Salesforce Metadata",
+  "description": "Metadata operations for Salesforce development",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "icon": "images/VSCodeBundle.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "65.3.1",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "dependencies": {
+    "effect": "^3.18.4",
+    "@salesforce/vscode-i18n": "65.4.0"
+  },
+  "devDependencies": {
+    "@salesforce/source-tracking": "7.6.0",
+    "esbuild": "0.25.0",
+    "salesforcedx-vscode-services": "65.4.0"
+  },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-services"
+  ],
+  "scripts": {
+    "bundle:extension": "npm run compile && node ./esbuild.config.mjs",
+    "run:web": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-org-browser --open-devtools --port 3001",
+    "vscode:package": "npm run bundle:extension && vsce package",
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "compile": "tsc -p ./",
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "test": "jest --coverage"
+  },
+  "activationEvents": [
+    "workspaceContains:sfdx-project.json",
+    "onFileSystem:memfs"
+  ],
+  "main": "./dist/index.js",
+  "browser": "./dist/web/index.js",
+  "contributes": {
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "sf.metadata.deploy.start"
+        },
+        {
+          "command": "sf.metadata.deploy.start.ignore.conflicts"
+        },
+        {
+          "command": "sf.metadata.retrieve.start"
+        },
+        {
+          "command": "sf.metadata.source.tracking.details"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "sf.metadata.deploy.start",
+        "title": "%metadata_deploy_start_text%"
+      },
+      {
+        "command": "sf.metadata.deploy.start.ignore.conflicts",
+        "title": "%metadata_deploy_start_ignore_conflicts_text%"
+      },
+      {
+        "command": "sf.metadata.retrieve.start",
+        "title": "%metadata_retrieve_start_text%"
+      },
+      {
+        "command": "sf.metadata.source.tracking.details",
+        "title": "%metadata_source_tracking_details_text%"
+      }
+    ]
+  }
+}

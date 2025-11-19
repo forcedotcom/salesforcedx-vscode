@@ -16,6 +16,7 @@ type WorkspaceInfo = {
   fsPath: string;
   isEmpty: boolean;
   isVirtualFs: boolean;
+  cwd: string;
 };
 
 const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
@@ -30,7 +31,8 @@ const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
     // vscode-uri implementation: https://github.com/microsoft/vscode-uri/blob/65786c7aef8aa1d142fedfde76073cc3549736d2/src/platform.ts#L19C18-L19C37
     // finds the string "windows" in the useragent in the runner.  I haven't found a way to set that to not have the word Windows in it
     // this could cause problems in other places, too.
-    fsPath: isVirtualFs ? originalFsPath.replaceAll('\\', '/') : originalFsPath
+    fsPath: isVirtualFs ? originalFsPath.replaceAll('\\', '/') : originalFsPath,
+    cwd: process.cwd()
   };
 }).pipe(
   Effect.tap(info => Effect.annotateCurrentSpan(info)),
