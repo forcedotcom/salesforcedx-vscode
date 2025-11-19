@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/vscode-i18n",
-  "version": "65.4.0",
+  "version": "65.5.0",
   "description": "Internationalization (i18n) library for Salesforce VS Code extensions",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
@@ -29,6 +29,5 @@
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage",
     "test": "jest --coverage"
-  },
-  "devDependencies": {}
+  }
 }

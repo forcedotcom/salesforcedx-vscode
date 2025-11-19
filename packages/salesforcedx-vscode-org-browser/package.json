@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.4.0",
+  "version": "65.5.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -32,8 +32,8 @@
     "@salesforce/source-deploy-retrieve": "^12.25.0",
     "esbuild": "0.25.0",
     "nyc": "^15",
-    "salesforcedx-vscode-playwright": "65.4.0",
-    "salesforcedx-vscode-services": "65.4.0"
+    "salesforcedx-vscode-playwright": "65.5.0",
+    "salesforcedx-vscode-services": "65.5.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"

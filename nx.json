@@ -53,6 +53,27 @@
         "{projectRoot}/dist"
       ]
     },
+    "vscode:package:legacy": {
+      "cache": true,
+      "dependsOn": [
+        "compile",
+        "^compile",
+        "vscode:bundle",
+        "^bundle:extension"
+      ],
+      "inputs": [
+        "{projectRoot}/esbuild.config.mjs",
+        "{projectRoot}/package.json",
+        "{workspaceRoot}/package.json",
+        "{workspaceRoot}/scripts/vsce-bundled-extension.ts",
+        "{projectRoot}/dist",
+        "{projectRoot}/.vscodeignore",
+        "{projectRoot}/src/**"
+      ],
+      "outputs": [
+        "{projectRoot}/*.vsix"
+      ]
+    },
     "vscode:package": {
       "cache": true,
       "dependsOn": [

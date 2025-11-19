@@ -337,9 +337,9 @@ export class ExternalServiceRegistrationManager {
         const currentTimestamp = getCurrentTimestamp();
         const namePart = path.basename(filename, '.externalServiceRegistration-meta.xml');
         const newFileName = `${namePart}_${currentTimestamp}.externalServiceRegistration-meta.xml`;
-        const esr_files_for_merge_folder = path.join(workspaceUtils.getRootWorkspacePath(), 'esr_files_for_merge');
-        await createDirectory(esr_files_for_merge_folder);
-        const newFullPath = path.join(esr_files_for_merge_folder, newFileName);
+        const esrFilesForMergeFolder = path.join(workspaceUtils.getRootWorkspacePath(), 'esr_files_for_merge');
+        await createDirectory(esrFilesForMergeFolder);
+        const newFullPath = path.join(esrFilesForMergeFolder, newFileName);
         return [fullPath, newFullPath];
       }
     }
