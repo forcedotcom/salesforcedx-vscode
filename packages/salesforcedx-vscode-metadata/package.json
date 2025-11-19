@@ -25,14 +25,14 @@
   ],
   "dependencies": {
     "effect": "^3.18.4",
-    "@salesforce/vscode-i18n": "65.4.0"
+    "@salesforce/vscode-i18n": "65.5.0"
   },
   "devDependencies": {
     "@salesforce/source-deploy-retrieve": "^12.28.0",
     "@salesforce/source-tracking": "7.6.0",
     "esbuild": "0.25.0",
     "salesforcedx-vscode-playwright": "65.5.0",
-    "salesforcedx-vscode-services": "65.4.0"
+    "salesforcedx-vscode-services": "65.5.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
