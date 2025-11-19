@@ -34,6 +34,7 @@ import { nls } from '../messages';
 import * as settings from '../settings';
 import { apexTestRunCacheService, isEmpty } from '../testRunCache';
 import { getZeroBasedRange } from './range';
+import { getTelemetryService } from '../telemetry/telemetry';
 
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   protected cancellable: boolean = true;
@@ -64,6 +65,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     }>,
     token?: vscode.CancellationToken
   ): Promise<boolean> {
+    const telemetry = getTelemetryService();
+    const startTime = Date.now();
     const vscodeCoreExtension = await getVscodeCoreExtension();
     const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const testService = new TestService(connection);
@@ -106,6 +109,18 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     channelService.appendLine(humanOutput);
 
     await this.handleDiagnostics(result);
+    const durationMs = Date.now() - startTime;
+    const summary = result.summary;
+    telemetry.sendEventData(
+      'apexTestRun',
+      { trigger: 'codeAction' },
+      {
+        durationMs,
+        testsRan: Number(summary?.testsRan ?? 0),
+        testsPassed: Number(summary?.passing ?? 0),
+        testsFailed: Number(summary?.failing ?? 0)
+      }
+    );
     return result.summary.outcome === 'Passed';
   }
 
