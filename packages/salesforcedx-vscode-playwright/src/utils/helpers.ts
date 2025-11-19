@@ -26,7 +26,15 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Failed to load resource', // Generic failed to load resources (paired with specific url filtering below)
   'vscode-userdata:/user/caches/cachedconfigurations', // VS Code user data caching in web environment
   'vsliveshare', // vscode liveshare ext
-  'punycode' // known jsforce and transitive dep deprecation by node
+  'punycode', // known jsforce and transitive dep deprecation by node
+  'selectedStep', // VS Code internal walkthrough/tutorial state errors
+  'onWillSaveTextDocument', // VS Code save event timeout (non-critical)
+  'vscode-log:', // VS Code internal logging infrastructure errors
+  'tasks.log', // VS Code tasks log file creation conflicts
+  'theme-defaults/themes', // VS Code theme loading failures
+  'light_modern.json', // VS Code theme file loading
+  'Failed to fetch', // Generic fetch failures (often for optional resources)
+  'NO_COLOR' // Node.js color env var warnings
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [

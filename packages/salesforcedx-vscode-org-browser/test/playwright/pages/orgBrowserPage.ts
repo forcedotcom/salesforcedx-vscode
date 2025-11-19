@@ -245,21 +245,13 @@ export class OrgBrowserPage {
    * throws if no file opens
    */
   public async waitForFileToOpenInEditor(timeout = 10_000): Promise<void> {
-    await this.page.waitForFunction(
-      () =>
-        Array.from(document.querySelectorAll('.monaco-workbench .tabs-container .tab'))
-          .map(tab => tab.textContent ?? '')
-          .filter(tab => tab !== '')
-          .filter(
-            // Look for any tab that's not the welcome/walkthrough tab
-            tabText =>
-              !tabText.includes('Welcome') &&
-              !tabText.includes('Walkthrough') &&
-              !tabText.includes('Get Started') &&
-              !tabText.includes('Settings')
-          ).length > 0,
-      { timeout }
-    );
+    await this.page
+      .locator('.monaco-workbench .tabs-container .tab')
+      .filter({
+        hasNotText: /Welcome|Walkthrough|Get Started|Settings/
+      })
+      .first()
+      .waitFor({ state: 'visible', timeout });
     await saveScreenshot(this.page, 'waitForFileToOpenInEditor.png', true);
   }
 }

@@ -6,13 +6,13 @@
  */
 
 // This is Node.js test infrastructure, not extension code
+import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
 import { test as base, _electron as electron } from '@playwright/test';
 import { downloadAndUnzipVSCode } from '@vscode/test-electron';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { createTestWorkspace } from './desktopWorkspace';
 import { filterErrors } from '../utils/helpers';
-import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
+import { createTestWorkspace } from './desktopWorkspace';
 
 type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */

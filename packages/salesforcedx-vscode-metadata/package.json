@@ -28,8 +28,10 @@
     "@salesforce/vscode-i18n": "65.4.0"
   },
   "devDependencies": {
+    "@salesforce/source-deploy-retrieve": "^12.28.0",
     "@salesforce/source-tracking": "7.6.0",
     "esbuild": "0.25.0",
+    "salesforcedx-vscode-playwright": "65.4.0",
     "salesforcedx-vscode-services": "65.4.0"
   },
   "extensionDependencies": [
@@ -46,7 +48,13 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "test:web": "npm run bundle:extension && playwright test --config=playwright.config.web.ts --headed",
+    "test:headless": "npm run bundle:extension && playwright test --config=playwright.config.web.ts",
+    "test:web:headless:ci": "npm run bundle:extension && playwright test --config=playwright.config.web.ts",
+    "test:desktop": "npm run bundle:extension && cross-env VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts",
+    "test:desktop:ci": "npm run bundle:extension && cross-env VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts",
+    "test:e2e": "npm run test:headless && npm run test:desktop"
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",

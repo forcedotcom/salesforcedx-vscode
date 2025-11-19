@@ -5,11 +5,12 @@
   "main": "./out/src/index.js",
   "dependencies": {
     "@playwright/test": "^1.54.1",
-    "@vscode/test-web": "^0.0.71"
+    "@vscode/test-electron": "2.5.2",
+    "@vscode/test-web": "^0.0.71",
+    "cross-env": "^7.0.3"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.23.3",
-    "@vscode/test-electron": "2.5.2"
+    "@salesforce/core": "^8.23.3"
   },
   "scripts": {
     "compile": "tsc -p ./",

@@ -7,8 +7,7 @@
 
 import { createHeadlessServer, setupSignalHandlers } from 'salesforcedx-vscode-playwright';
 
-setupSignalHandlers();
-
 if (require.main === module) {
-  void createHeadlessServer({ extensionName: 'Metadata' });
+  void createHeadlessServer({ extensionName: 'Metadata', callerDirname: __dirname });
+  setupSignalHandlers();
 }

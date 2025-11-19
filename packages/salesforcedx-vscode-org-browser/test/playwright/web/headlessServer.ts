@@ -7,8 +7,7 @@
 
 import { createHeadlessServer, setupSignalHandlers } from 'salesforcedx-vscode-playwright';
 
-setupSignalHandlers();
-
 if (require.main === module) {
-  void createHeadlessServer({ extensionName: 'Org Browser' });
+  void createHeadlessServer({ extensionName: 'Org Browser', callerDirname: __dirname });
+  setupSignalHandlers();
 }

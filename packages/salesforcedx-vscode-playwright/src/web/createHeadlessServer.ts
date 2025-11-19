@@ -11,13 +11,15 @@ import * as path from 'node:path';
 type HeadlessServerOptions = {
   /** Extension name for logging (e.g., "Org Browser", "Metadata") */
   extensionName: string;
+  /** The __dirname from the calling headlessServer.ts file (used to resolve extension paths) */
+  callerDirname: string;
 };
 
 /** Creates and starts a headless VS Code web server for testing an extension with services */
 export const createHeadlessServer = async (options: HeadlessServerOptions): Promise<void> => {
   try {
-    // __dirname at runtime is '<pkg>/out/web' → go up two levels to '<pkg>'
-    const extensionDevelopmentPath = path.resolve(__dirname, '..', '..');
+    // callerDirname is '<pkg>/out/test/playwright/web' → go up four levels to '<pkg>'
+    const extensionDevelopmentPath = path.resolve(options.callerDirname, '..', '..', '..', '..');
     const servicesExtensionPath = path.resolve(extensionDevelopmentPath, '..', 'salesforcedx-vscode-services');
 
     console.log(`🌐 Starting VS Code Web (headless) for ${options.extensionName} tests...`);

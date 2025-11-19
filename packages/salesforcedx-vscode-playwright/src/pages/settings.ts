@@ -6,12 +6,7 @@
  */
 import { Locator, Page, expect } from '@playwright/test';
 import type { AuthFields } from '@salesforce/core';
-import {
-  ACCESS_TOKEN_KEY,
-  API_VERSION_KEY,
-  CODE_BUILDER_WEB_SECTION,
-  INSTANCE_URL_KEY
-} from 'salesforcedx-vscode-services/src/constants';
+import { ACCESS_TOKEN_KEY, API_VERSION_KEY, CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY } from '../constants';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { waitForVSCodeWorkbench } from '../utils/helpers';
 import { executeCommandWithCommandPalette } from './commands';
