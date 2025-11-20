@@ -235,7 +235,6 @@ export class ExternalServiceRegistrationManager {
         schemaUploadFileExtension: 'yaml',
         schemaUploadFileName: `${className.toLowerCase()}_openapi`,
         status: 'Complete',
-        systemVersion: '3',
         operations: isGa ? undefined : operations,
         ...(isGa ? { registrationProviderAsset: className } : { registrationProvider: className }),
         registrationProviderType: this.providerType,
