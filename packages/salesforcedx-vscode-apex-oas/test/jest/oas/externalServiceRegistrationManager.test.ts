@@ -57,6 +57,11 @@ interface ParsedXml {
 const getOperationsArray = (parsed: ParsedXml): ParsedOperation[] => {
   const ops = parsed.ExternalServiceRegistration.operations;
 
+  // If operations is undefined (for orgs >= 66.0), return empty array
+  if (ops === undefined) {
+    return [];
+  }
+
   // If operations are wrapped in 'operation' property
   if (ops.operation) {
     const operation = ops.operation;
@@ -328,12 +333,14 @@ describe('ExternalServiceRegistrationManager', () => {
     });
   });
 
-  it('createESRObject', () => {
+  it('createESRObject', async () => {
     const description = 'Test Description';
     const className = 'TestClass';
     const safeOasSpec = 'safeOasSpec';
     const operations: any = [{ active: true, name: 'getPets' }];
 
+    // Test with org < 66.0 - operations should be included
+    esrHandler['initialize'](false, processedOasResult, fullPath, 65.0);
     const result = esrHandler.createESRObject(description, className, safeOasSpec, operations);
 
     expect(result).toHaveProperty('ExternalServiceRegistration');
@@ -341,6 +348,24 @@ describe('ExternalServiceRegistrationManager', () => {
     expect(result.ExternalServiceRegistration).toHaveProperty('label', className);
     expect(result.ExternalServiceRegistration).toHaveProperty('schema', safeOasSpec);
     expect(result.ExternalServiceRegistration).toHaveProperty('operations', operations);
+  });
+
+  it('createESRObject should not include operations for orgs >= 66.0', async () => {
+    const description = 'Test Description';
+    const className = 'TestClass';
+    const safeOasSpec = 'safeOasSpec';
+    const operations: any = [{ active: true, name: 'getPets' }];
+
+    // Test with org >= 66.0 - operations should be undefined
+    await esrHandler['initialize'](false, processedOasResult, fullPath, 66.0);
+    const result = esrHandler.createESRObject(description, className, safeOasSpec, operations);
+
+    expect(result).toHaveProperty('ExternalServiceRegistration');
+    expect(result.ExternalServiceRegistration).toHaveProperty('description', description);
+    expect(result.ExternalServiceRegistration).toHaveProperty('label', className);
+    expect(result.ExternalServiceRegistration).toHaveProperty('schema', safeOasSpec);
+    // For orgs >= 66.0, operations should be undefined (not included in the object)
+    expect(result.ExternalServiceRegistration.operations).toBeUndefined();
   });
 
   it('extractInfoProperties', async () => {
@@ -367,18 +392,18 @@ describe('ExternalServiceRegistrationManager', () => {
       expect(result).toEqual([{ active: true, name: 'getPets' }]);
     });
 
-    it('should set active to false for orgs >= 66.0', async () => {
+    it('should return empty array for orgs >= 66.0', async () => {
       await esrHandler['initialize'](true, processedOasResult, fullPath, 66.0);
       const result = esrHandler.getOperationsFromYaml();
 
-      expect(result).toEqual([{ active: false, name: 'getPets' }]);
+      expect(result).toEqual([]);
     });
 
-    it('should set active to false for orgs > 66.0', async () => {
+    it('should return empty array for orgs > 66.0', async () => {
       await esrHandler['initialize'](true, processedOasResult, fullPath, 67.0);
       const result = esrHandler.getOperationsFromYaml();
 
-      expect(result).toEqual([{ active: false, name: 'getPets' }]);
+      expect(result).toEqual([]);
     });
   });
 
@@ -407,20 +432,22 @@ describe('ExternalServiceRegistrationManager', () => {
       expect(operations[0].active).toBe(true);
     });
 
-    it('should generate XML with active=true when orgApiVersion is undefined', async () => {
+    it('should generate XML without operations when orgApiVersion is undefined', async () => {
       await esrHandler['initialize'](false, processedOasResult, [
         '/path/to/test.externalServiceRegistration-meta.xml',
         '/path/to/test.externalServiceRegistration-meta.xml'
       ]);
       const result = await esrHandler.buildESRXml(undefined);
 
+      // When orgApiVersion is undefined, it's treated as GA (>= 66.0), so operations should be removed
+      expect(result).not.toContain('<operations>');
+
       const parser = new XMLParser({ ignoreAttributes: false });
       const parsed = parser.parse(result) as ParsedXml;
-      const operations = getOperationsArray(parsed);
-      expect(operations[0].active).toBe(true);
+      expect(parsed.ExternalServiceRegistration.operations).toBeUndefined();
     });
 
-    it('should generate XML with active=false for orgs >= 66.0', async () => {
+    it('should generate XML without operations for orgs >= 66.0', async () => {
       await esrHandler['initialize'](
         false,
         processedOasResult,
@@ -429,14 +456,18 @@ describe('ExternalServiceRegistrationManager', () => {
       );
       const result = await esrHandler.buildESRXml(undefined);
 
+      // Verify operations section is not in XML
+      expect(result).not.toContain('<operations>');
+      expect(result).toContain('<ExternalServiceRegistration');
+      expect(result).toContain('<description>oas description</description>');
+
+      // Parse XML to verify operations are not present
       const parser = new XMLParser({ ignoreAttributes: false });
       const parsed = parser.parse(result) as ParsedXml;
-      const operations = getOperationsArray(parsed);
-      expect(operations[0].name).toBe('getPets');
-      expect(operations[0].active).toBe(false);
+      expect(parsed.ExternalServiceRegistration.operations).toBeUndefined();
     });
 
-    it('should generate XML with active=false for orgs > 66.0', async () => {
+    it('should generate XML without operations for orgs > 66.0', async () => {
       await esrHandler['initialize'](
         false,
         processedOasResult,
@@ -445,10 +476,13 @@ describe('ExternalServiceRegistrationManager', () => {
       );
       const result = await esrHandler.buildESRXml(undefined);
 
+      // Verify operations section is not in XML
+      expect(result).not.toContain('<operations>');
+
+      // Parse XML to verify operations are not present
       const parser = new XMLParser({ ignoreAttributes: false });
       const parsed = parser.parse(result) as ParsedXml;
-      const operations = getOperationsArray(parsed);
-      expect(operations[0].active).toBe(false);
+      expect(parsed.ExternalServiceRegistration.operations).toBeUndefined();
     });
 
     it('should update existing XML with correct active values based on org boundaries', async () => {
@@ -481,7 +515,7 @@ describe('ExternalServiceRegistrationManager', () => {
       expect(operations[0].active).toBe(true);
     });
 
-    it('should update existing XML with active=false for orgs >= 66.0', async () => {
+    it('should update existing XML and remove operations for orgs >= 66.0', async () => {
       const existingXml = `<?xml version="1.0" encoding="UTF-8"?>
 <ExternalServiceRegistration xmlns="http://soap.sforce.com/2006/04/metadata">
   <description>Existing description</description>
@@ -495,7 +529,7 @@ describe('ExternalServiceRegistrationManager', () => {
   </operations>
 </ExternalServiceRegistration>`;
 
-      // Test with org >= 66.0 - should set active=false
+      // Test with org >= 66.0 - should remove operations
       await esrHandler['initialize'](
         false,
         processedOasResult,
@@ -504,11 +538,13 @@ describe('ExternalServiceRegistrationManager', () => {
       );
       const result = await esrHandler.buildESRXml(existingXml);
 
+      // Verify operations section is removed from XML
+      expect(result).not.toContain('<operations>');
+
+      // Parse XML to verify operations are not present
       const parser = new XMLParser({ ignoreAttributes: false });
       const parsed = parser.parse(result) as ParsedXml;
-      const operations = getOperationsArray(parsed);
-      expect(operations[0].name).toBe('getPets');
-      expect(operations[0].active).toBe(false);
+      expect(parsed.ExternalServiceRegistration.operations).toBeUndefined();
     });
 
     it('should verify XML structure includes operations with correct active attributes', async () => {
@@ -535,7 +571,7 @@ describe('ExternalServiceRegistrationManager', () => {
       expect(operations[0].active).toBe(true);
     });
 
-    it('should verify XML structure includes operations with active=false for orgs >= 66.0', async () => {
+    it('should verify XML structure does not include operations for orgs >= 66.0', async () => {
       await esrHandler['initialize'](
         false,
         processedOasResult,
@@ -544,16 +580,15 @@ describe('ExternalServiceRegistrationManager', () => {
       );
       const result = await esrHandler.buildESRXml(undefined);
 
-      // Verify XML contains operation elements with active=false
-      expect(result).toContain('<operations>');
-      expect(result).toContain('<name>getPets</name>');
-      expect(result).toContain('<active>false</active>');
+      // Verify XML does not contain operations section
+      expect(result).not.toContain('<operations>');
+      expect(result).not.toContain('<name>getPets</name>');
+      expect(result).not.toContain('<active>');
 
-      // Parse and verify structure
+      // Parse and verify operations are not present
       const parser = new XMLParser({ ignoreAttributes: false });
       const parsed = parser.parse(result) as ParsedXml;
-      const operations = getOperationsArray(parsed);
-      expect(operations[0].active).toBe(false);
+      expect(parsed.ExternalServiceRegistration.operations).toBeUndefined();
     });
   });
 
