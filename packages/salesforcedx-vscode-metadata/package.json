@@ -25,7 +25,8 @@
   ],
   "dependencies": {
     "effect": "^3.18.4",
-    "@salesforce/vscode-i18n": "65.5.0"
+    "@salesforce/vscode-i18n": "65.5.0",
+    "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/source-deploy-retrieve": "^12.28.0",
@@ -76,6 +77,9 @@
         },
         {
           "command": "sf.metadata.source.tracking.details"
+        },
+        {
+          "command": "sf.metadata.apex.generate.class"
         }
       ]
     },
@@ -95,6 +99,10 @@
       {
         "command": "sf.metadata.source.tracking.details",
         "title": "%metadata_source_tracking_details_text%"
+      },
+      {
+        "command": "sf.metadata.apex.generate.class",
+        "title": "%apex_generate_class_text%"
       }
     ]
   }

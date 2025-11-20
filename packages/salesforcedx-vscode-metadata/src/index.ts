@@ -8,6 +8,7 @@
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
+import { createApexClass } from './commands/createApexClass';
 import { projectDeployStart } from './commands/deployStart/projectDeployStart';
 import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
 import { showSourceTrackingDetails } from './commands/showSourceTrackingDetails';
@@ -40,7 +41,8 @@ export const activateEffect = (
         projectDeployStart(true)
       ),
       vscode.commands.registerCommand('sf.metadata.retrieve.start', projectRetrieveStart),
-      vscode.commands.registerCommand('sf.metadata.source.tracking.details', showSourceTrackingDetails)
+      vscode.commands.registerCommand('sf.metadata.source.tracking.details', showSourceTrackingDetails),
+      vscode.commands.registerCommand('sf.metadata.apex.generate.class', createApexClass)
     );
 
     // Register source tracking status bar

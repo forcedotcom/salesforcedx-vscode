@@ -10,8 +10,26 @@ export {
   filterErrors,
   filterNetworkErrors,
   waitForVSCodeWorkbench,
+  closeWelcomeTabs,
+  closeSettingsTab,
   typingSpeed
 } from './utils/helpers';
+
+export { createFileWithContents } from './utils/fileHelpers';
+
+export {
+  WORKBENCH,
+  EDITOR,
+  EDITOR_WITH_URI,
+  DIRTY_EDITOR,
+  QUICK_INPUT_WIDGET,
+  QUICK_INPUT_LIST_ROW,
+  TAB,
+  TAB_CLOSE_BUTTON,
+  STATUS_BAR_ITEM_LABEL,
+  NOTIFICATION_LIST_ITEM,
+  SETTINGS_SEARCH_INPUT
+} from './utils/locators';
 
 export { create, DREAMHOUSE_ORG_ALIAS } from './utils/dreamhouseScratchOrgSetup';
 

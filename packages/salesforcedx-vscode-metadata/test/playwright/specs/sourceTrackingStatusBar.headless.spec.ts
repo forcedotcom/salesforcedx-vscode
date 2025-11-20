@@ -13,50 +13,94 @@ import {
   filterErrors,
   filterNetworkErrors,
   waitForVSCodeWorkbench,
+  closeWelcomeTabs,
+  closeSettingsTab,
   create,
-  upsertScratchOrgAuthFieldsToSettings
+  upsertScratchOrgAuthFieldsToSettings,
+  executeCommandWithCommandPalette,
+  NOTIFICATION_LIST_ITEM,
+  EDITOR_WITH_URI
 } from 'salesforcedx-vscode-playwright';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
+import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
+import { editOpenFile } from '../utils/apexFileHelpers';
+import { DEPLOY_COMMAND_TITLE } from '../../../src/constants';
 
 test.describe('Source Tracking Status Bar', () => {
-  test('load verification: status bar shows remote changes after org setup', async ({ page }) => {
+  test('tracks remote and local changes through full deploy cycle', async ({ page }) => {
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
 
-    // Setup scratch org with dreamhouse
-    const createResult = await create();
+    const statusBarPage = await test.step('setup scratch org and wait for status bar', async () => {
+      const createResult = await create();
+      await waitForVSCodeWorkbench(page);
+      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
-    await waitForVSCodeWorkbench(page);
+      const statusBar = new SourceTrackingStatusBarPage(page);
+      await statusBar.waitForVisible(120_000);
+      await closeWelcomeTabs(page);
+      return statusBar;
+    });
 
-    // Configure auth settings (this triggers re-auth and connection)
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    await test.step('verify initial state shows remote changes', async () => {
+      const initialCounts = await statusBarPage.getCounts();
+      expect(initialCounts.remote, 'Remote changes should be > 0 after dreamhouse deployment').toBeGreaterThan(0);
+      expect(initialCounts.local, 'Local changes should be 0 initially').toBe(0);
+      expect(initialCounts.conflicts, 'Conflicts should be 0 initially').toBe(0);
 
-    // Create page object
-    const statusBarPage = new SourceTrackingStatusBarPage(page);
+      const hasError = await statusBarPage.hasErrorBackground();
+      expect(hasError, 'Status bar should not have error background when conflicts = 0').toBe(false);
+    });
 
-    // Wait for status bar to be visible (may take time for connection + source tracking to initialize)
-    await statusBarPage.waitForVisible(120_000);
+    await test.step('create new apex class', async () => {
+      const className = `TestClass${Date.now()}`;
 
-    // Get counts
-    const counts = await statusBarPage.getCounts();
+      // Close Settings tab to avoid focus issues
+      await closeSettingsTab(page);
+      await closeWelcomeTabs(page);
 
-    // Verify initial state:
-    // - remote changes should be > 0 (dreamhouse was just deployed)
-    // - local changes should be 0 (no local edits yet)
-    // - conflicts should be 0 (no conflicts yet)
-    expect(counts.remote, 'Remote changes should be > 0 after dreamhouse deployment').toBeGreaterThan(0);
-    expect(counts.local, 'Local changes should be 0 initially').toBe(0);
-    expect(counts.conflicts, 'Conflicts should be 0 initially').toBe(0);
+      await executeCommandWithCommandPalette(page, 'BETA: Create Apex Class');
 
-    // Verify no error background (conflicts = 0)
-    const hasError = await statusBarPage.hasErrorBackground();
-    expect(hasError, 'Status bar should not have error background when conflicts = 0').toBe(false);
+      // Prompt: "Enter Apex class name"
+      await page
+        .locator('.quick-input-widget')
+        .getByText(/Enter Apex class name/i)
+        .waitFor({ state: 'visible', timeout: 5000 });
+      await page.keyboard.type(className);
+      await page.keyboard.press('Enter');
 
-    // Validate no critical errors
-    const criticalConsole = filterErrors(consoleErrors);
-    const criticalNetwork = filterNetworkErrors(networkErrors);
+      // Wait for the editor to open with the new class
+      await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 15_000 });
+    });
 
-    expect(criticalConsole, `Console errors: ${criticalConsole.map(e => e.text).join(' | ')}`).toHaveLength(0);
-    expect(criticalNetwork, `Network errors: ${criticalNetwork.map(e => e.description).join(' | ')}`).toHaveLength(0);
+    await test.step('verify local count increments to 1', async () => {
+      await statusBarPage.waitForCounts({ local: 1 }, 60_000);
+    });
+
+    await test.step('edit class and verify count stays at 1', async () => {
+      await editOpenFile(page, 'Modified for testing');
+      const afterEditCounts = await statusBarPage.getCounts();
+      expect(afterEditCounts.local, 'Local count should stay at 1 after editing existing change').toBe(1);
+    });
+
+    await test.step('deploy changes and verify local count returns to 0', async () => {
+      await executeCommandWithCommandPalette(page, DEPLOY_COMMAND_TITLE);
+      await waitForDeployProgressNotificationToAppear(page, 30_000);
+
+      const deployingNotification = page
+        .locator(NOTIFICATION_LIST_ITEM)
+        .filter({ hasText: /Deploying/i })
+        .first();
+      await expect(deployingNotification).not.toBeVisible({ timeout: 120_000 });
+
+      await statusBarPage.waitForCounts({ local: 0 }, 60_000);
+    });
+
+    await test.step('validate no critical errors', async () => {
+      const criticalConsole = filterErrors(consoleErrors);
+      const criticalNetwork = filterNetworkErrors(networkErrors);
+      expect(criticalConsole, `Console errors: ${criticalConsole.map(e => e.text).join(' | ')}`).toHaveLength(0);
+      expect(criticalNetwork, `Network errors: ${criticalNetwork.map(e => e.description).join(' | ')}`).toHaveLength(0);
+    });
   });
 });

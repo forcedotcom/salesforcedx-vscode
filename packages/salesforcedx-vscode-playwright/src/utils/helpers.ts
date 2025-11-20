@@ -6,6 +6,7 @@
  */
 
 import type { Page } from '@playwright/test';
+import { WORKBENCH, TAB, TAB_CLOSE_BUTTON } from './locators';
 
 type ConsoleError = { text: string; url?: string };
 type NetworkError = { status: number; url: string; description: string };
@@ -87,7 +88,7 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
   // Desktop: page is already loaded by Electron, no navigation possible
   const isDesktop = process.env.VSCODE_DESKTOP === '1';
   if (isDesktop) {
-    await page.waitForSelector('.monaco-workbench', { timeout: 60_000 });
+    await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
     return;
   }
 
@@ -95,7 +96,35 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
   if (navigate) {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
   }
-  await page.waitForSelector('.monaco-workbench', { timeout: 60_000 });
+  await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
+};
+
+/** Close VS Code Welcome/Walkthrough tabs if they're open */
+export const closeWelcomeTabs = async (page: Page): Promise<void> => {
+  const welcomeTab = page
+    .locator(TAB)
+    .filter({ hasText: /Welcome|Walkthrough/i })
+    .first();
+  const isWelcomeVisible = await welcomeTab.isVisible().catch(() => false);
+  if (isWelcomeVisible) {
+    const closeButton = welcomeTab.locator(TAB_CLOSE_BUTTON);
+    await closeButton.click();
+    await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+  }
+};
+
+/** Closes any visible Settings tabs */
+export const closeSettingsTab = async (page: Page): Promise<void> => {
+  const settingsTab = page
+    .locator(TAB)
+    .filter({ hasText: /Settings/i })
+    .first();
+  const isSettingsVisible = await settingsTab.isVisible().catch(() => false);
+  if (isSettingsVisible) {
+    const closeButton = settingsTab.locator(TAB_CLOSE_BUTTON);
+    await closeButton.click();
+    await settingsTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+  }
 };
 
 export const typingSpeed = 50; // ms

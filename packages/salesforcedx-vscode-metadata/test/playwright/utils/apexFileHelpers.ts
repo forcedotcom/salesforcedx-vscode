@@ -6,32 +6,42 @@
  */
 
 import type { Page } from '@playwright/test';
+import {
+  WORKBENCH,
+  QUICK_INPUT_WIDGET,
+  QUICK_INPUT_LIST_ROW,
+  EDITOR_WITH_URI,
+  DIRTY_EDITOR
+} from 'salesforcedx-vscode-playwright';
 
 /** Open a file using Quick Open (Ctrl+P) */
 export const openFileByName = async (page: Page, fileName: string): Promise<void> => {
+  // Ensure workbench is focused first
+  await page.locator(WORKBENCH).click();
+
   // Open Quick Open with Ctrl+P
   await page.keyboard.press('Control+p');
 
   // Wait for Quick Open to appear
-  await page.locator('.quick-input-widget').waitFor({ state: 'visible', timeout: 10_000 });
+  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10_000 });
 
   // Type the filename
   await page.keyboard.type(fileName);
 
-  // Wait a bit for search results
-  await page.waitForTimeout(500);
+  // Wait for search results to populate
+  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 10_000 });
 
   // Press Enter to open the first result
   await page.keyboard.press('Enter');
 
-  // Wait for editor to open
-  await page.locator('.monaco-editor').waitFor({ state: 'visible', timeout: 10_000 });
+  // Wait for editor to open with the file
+  await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });
 };
 
 /** Edit the currently open file by adding a comment at the top */
 export const editOpenFile = async (page: Page, comment: string): Promise<void> => {
   // Wait for editor to be ready
-  const editor = page.locator('.monaco-editor[data-uri]').first();
+  const editor = page.locator(EDITOR_WITH_URI).first();
   await editor.waitFor({ state: 'visible' });
 
   // Click into the editor to focus it
@@ -70,7 +80,7 @@ export const editOpenFile = async (page: Page, comment: string): Promise<void> =
   await page.keyboard.press('Control+s');
 
   // Wait for save indicator to disappear (file tab loses "dirty" state)
-  await page.waitForSelector('.monaco-editor.dirty', { state: 'detached', timeout: 5000 }).catch(() => {
+  await page.waitForSelector(DIRTY_EDITOR, { state: 'detached', timeout: 5000 }).catch(() => {
     // Ignore timeout - file might save instantly
   });
 };

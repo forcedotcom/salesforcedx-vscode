@@ -106,8 +106,8 @@ export const createDesktopTest = ({ fixturesDir }: CreateDesktopTestOptions) =>
         }
       });
 
-      await page.waitForSelector('.monaco-workbench', { timeout: 60_000 });
+      const { WORKBENCH } = await import('../utils/locators.js');
+      await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
       await use(page);
     }
   });
-

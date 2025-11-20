@@ -9,19 +9,13 @@ import type { AuthFields } from '@salesforce/core';
 import { ACCESS_TOKEN_KEY, API_VERSION_KEY, CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY } from '../constants';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { waitForVSCodeWorkbench } from '../utils/helpers';
+import { WORKBENCH, SETTINGS_SEARCH_INPUT } from '../utils/locators';
 import { executeCommandWithCommandPalette } from './commands';
 
-const settingsLocator = (page: Page): Locator =>
-  page.locator(
-    [
-      '#workbench\\.parts\\.editor .settings-header .search-container .monaco-editor',
-      '[aria-label="Settings"] .settings-header .search-container .monaco-editor'
-    ].join(',')
-  );
+const settingsLocator = (page: Page): Locator => page.locator(SETTINGS_SEARCH_INPUT.join(','));
 
 const openSettingsUI = async (page: Page): Promise<void> => {
-  await page.waitForSelector('.monaco-workbench', { timeout: 60_000 });
-  await page.locator('.monaco-workbench').click({ timeout: 5000 });
+  await page.locator(WORKBENCH).click({ timeout: 60_000 });
   await page.waitForTimeout(2000);
   await executeCommandWithCommandPalette(page, 'Preferences: Open Settings UI');
   await settingsLocator(page).first().waitFor({ timeout: 3000 });
