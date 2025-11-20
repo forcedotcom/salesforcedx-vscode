@@ -32,9 +32,9 @@ import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
+import { getTelemetryService } from '../telemetry/telemetry';
 import { apexTestRunCacheService, isEmpty } from '../testRunCache';
 import { getZeroBasedRange } from './range';
-import { getTelemetryService } from '../telemetry/telemetry';
 
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   protected cancellable: boolean = true;

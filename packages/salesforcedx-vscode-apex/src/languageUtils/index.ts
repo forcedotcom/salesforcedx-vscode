@@ -27,10 +27,15 @@ export const fetchFromLs = async (): Promise<{ tests: ApexTestMethod[]; duration
 };
 
 /** Fetch tests from the Tooling API Test Discovery endpoint */
-export const fetchFromApi = async (): Promise<{ tests: ApexTestMethod[]; durationMs: number }> => {
+export const fetchFromApi = async (options?: {
+  namespacePrefix?: string;
+}): Promise<{ tests: ApexTestMethod[]; durationMs: number }> => {
   const start = Date.now();
   // API path already emits its own Start/End events with source=api internally
-  const result = await discoverTests();
+  const result = await discoverTests({
+    showAllMethods: true,
+    namespacePrefix: options?.namespacePrefix
+  });
   const tests = await convertApiToApexTestMethods(result.classes ?? []);
   const durationMs = Date.now() - start;
   return { tests, durationMs };
@@ -66,51 +71,58 @@ const convertApiToApexTestMethods = async (
   classes: { name: string; namespacePrefix?: string | null; testMethods?: { name: string }[] }[]
 ): Promise<ApexTestMethod[]> => {
   const classNameToUri = await buildClassToUriIndex();
+  const apiByClassName = new Map<string, { namespacePrefix?: string | null; testMethods?: { name: string }[] }[]>();
+  for (const cls of classes) {
+    if (!cls.testMethods || cls.testMethods.length === 0) continue;
+    // Only consider tests in the local (default) namespace; workspace index maps local files only
+    if (cls.namespacePrefix && cls.namespacePrefix.trim() !== '') continue;
+    const list = apiByClassName.get(cls.name) ?? [];
+    list.push(cls);
+    apiByClassName.set(cls.name, list);
+  }
 
   const tests: ApexTestMethod[] = [];
-  for (const c of classes) {
-    let uri = classNameToUri.get(c.name);
-    // If not found in the prebuilt index, try a targeted search in case the index missed it
-    if (!uri) {
-      try {
-        // Look for the class file anywhere in the workspace (exclude .sfdx)
-        const matches = await vscode.workspace.findFiles(`**/${c.name}.cls`, '**/.sfdx/**', 1);
-        uri = matches[0];
-      } catch {
-        // ignore search failures
-      }
-    }
-    // Skip classes we can't find in the workspace
-    if (!uri) {
-      continue;
-    }
-    const definingType = c.namespacePrefix ? `${c.namespacePrefix}.${c.name}` : c.name;
+  for (const [className, uri] of classNameToUri) {
+    const apiEntries = apiByClassName.get(className);
+    if (!apiEntries) continue;
+
+    const emitted = new Set<string>();
     const location = new vscode.Location(uri, new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)));
-    for (const m of c.testMethods ?? []) {
-      tests.push({
-        methodName: m.name,
-        definingType,
-        location
-      });
+    for (const entry of apiEntries) {
+      const definingType = entry.namespacePrefix ? `${entry.namespacePrefix}.${className}` : className;
+      for (const testMethod of entry.testMethods ?? []) {
+        if (emitted.has(testMethod.name)) continue;
+        tests.push({
+          methodName: testMethod.name,
+          definingType,
+          location
+        });
+        emitted.add(testMethod.name);
+      }
     }
   }
   return tests;
 };
 
-/** Build an index of test class names to their file URIs by searching for files matching *Test*.cls */
+/** Build an index of class baseName -> file URI with a single pass per workspace folder */
 const buildClassToUriIndex = async (): Promise<Map<string, vscode.Uri>> => {
   const map = new Map<string, vscode.Uri>();
+  const folder = vscode.workspace.workspaceFolders?.[0];
+  if (!folder) {
+    return map;
+  }
   try {
-    // Exclude .sfdx folder to avoid cached/generated files
-    const apexFiles = await vscode.workspace.findFiles('**/*[Tt]est*.cls', '**/.sfdx/**');
-    for (const file of apexFiles) {
+    // Only look under classes folders for Apex test files
+    const pattern = new vscode.RelativePattern(folder, '**/classes/**/*[Tt]est*.cls');
+    const exclude = '{**/.sfdx/**,**/.sf/**,**/node_modules/**}';
+    const files = await vscode.workspace.findFiles(pattern, exclude);
+    files.sort((a, b) => a.fsPath.length - b.fsPath.length);
+    for (const file of files) {
       const base = path.parse(file.fsPath).name;
-      if (!map.has(base)) {
-        map.set(base, file);
-      }
+      map.set(base, file);
     }
   } catch {
-    // ignore
+    console.error('Error building class to URI index');
   }
   return map;
 };
