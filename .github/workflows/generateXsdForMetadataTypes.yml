@@ -1,0 +1,30 @@
+name: Generate XSD for Metadata Types
+
+on:
+  workflow_dispatch:
+
+jobs:
+  scrape-all-metadata-pages:
+    name: Scrape All Metadata Pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run scrape:all:pages
+
+  json-to-xsd:
+    name: Convert JSON to XSD
+    needs: scrape-all-metadata-pages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: node scripts/jsonToXsdConverter.ts
+
+  upload-xsd:
+    name: Upload XSD
+    needs: json-to-xsd
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/upload-artifact@v4
+        with:
+          name: salesforce_metadata_api_common.xsd
+          path: packages/salesforcedx-vscode-core/resources/salesforce_metadata_api_common.xsd
