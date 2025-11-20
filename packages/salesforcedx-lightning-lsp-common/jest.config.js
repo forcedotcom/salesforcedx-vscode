@@ -11,7 +11,7 @@ module.exports = {
     url: 'http://localhost/'
   },
   moduleNameMapper: {
-    '^vscode$': '<rootDir>/../../config/__mocks__/vscode.js',
-    '^tiny-jsonc$': '<rootDir>/__mocks__/tiny-jsonc.js'
+    '^vscode$': '<rootDir>/../../config/__mocks__/vscode.js'
+    // '^tiny-jsonc$': '<rootDir>/__mocks__/tiny-jsonc.js'
   }
 };
