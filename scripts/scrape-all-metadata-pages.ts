@@ -3,9 +3,9 @@
  * Produces JSON output identical to metadata_types_map.json
  *
  * Usage:
- *   npm run scrape:robust
- *   npm run scrape:robust -- --output custom-output.json
- *   npm run scrape:robust -- --visible  (runs with visible browser for debugging)
+ *   npm run scrape:all:pages
+ *   npm run scrape:all:pages -- --output custom-output.json
+ *   npm run scrape:all:pages -- --visible  (runs with visible browser for debugging)
  *
  * Environment Variables:
  *   BATCH_SIZE=100          - Number of metadata types to scrape in parallel (default: 100)
