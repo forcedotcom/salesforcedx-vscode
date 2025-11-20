@@ -340,7 +340,7 @@ describe('ExternalServiceRegistrationManager', () => {
     const operations: any = [{ active: true, name: 'getPets' }];
 
     // Test with org < 66.0 - operations should be included
-    await esrHandler['initialize'](false, processedOasResult, fullPath, 65.0);
+    esrHandler['initialize'](false, processedOasResult, fullPath, 65.0);
     const result = esrHandler.createESRObject(description, className, safeOasSpec, operations);
 
     expect(result).toHaveProperty('ExternalServiceRegistration');

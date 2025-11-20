@@ -166,16 +166,28 @@ describe('PromptGenerationOrchestrator', () => {
   });
 
   describe('selectStrategyByBidRule', () => {
-    let mockStrategy: jest.Mocked<GenerationStrategy>;
+    let mockStrategyApexRest: jest.Mocked<GenerationStrategy>;
+    let mockStrategyAuraEnabled: jest.Mocked<GenerationStrategy>;
 
     beforeEach(() => {
-      mockStrategy = {
+      mockStrategyApexRest = {
         generateOAS: jest.fn(),
         bid: jest.fn(),
         outputTokenLimit: 1000,
         includeOASSchema: false,
         openAPISchema: undefined,
         strategyName: 'ApexRest',
+        metadata: mockMetadata,
+        context: mockContext
+      } as any;
+
+      mockStrategyAuraEnabled = {
+        generateOAS: jest.fn(),
+        bid: jest.fn(),
+        outputTokenLimit: 1000,
+        includeOASSchema: false,
+        openAPISchema: undefined,
+        strategyName: 'AuraEnabled',
         metadata: mockMetadata,
         context: mockContext
       } as any;
@@ -189,8 +201,8 @@ describe('PromptGenerationOrchestrator', () => {
         ['AuraEnabled', { result: { callCounts: 10, maxBudget: 100 } }]
       ]);
       const strategies = new Map<GenerationStrategyType, GenerationStrategy>([
-        ['ApexRest', mockStrategy],
-        ['AuraEnabled', mockStrategy]
+        ['ApexRest', mockStrategyApexRest],
+        ['AuraEnabled', mockStrategyAuraEnabled]
       ]);
 
       (initializeAndBid as jest.Mock).mockResolvedValue({ strategies, bids });
@@ -198,8 +210,8 @@ describe('PromptGenerationOrchestrator', () => {
       const result = await orchestrator.selectStrategyByBidRule(BID_RULES.LEAST_CALLS);
 
       expect(initializeAndBid).toHaveBeenCalledWith(mockMetadata, mockContext);
-      expect(result).toBe(mockStrategy);
-      expect(orchestrator.strategy).toBe(mockStrategy);
+      expect(result).toBe(mockStrategyApexRest);
+      expect(orchestrator.strategy).toBe(mockStrategyApexRest);
     });
 
     it('should select and return strategy based on MOST_CALLS rule', async () => {
@@ -208,8 +220,8 @@ describe('PromptGenerationOrchestrator', () => {
         ['AuraEnabled', { result: { callCounts: 10, maxBudget: 100 } }]
       ]);
       const strategies = new Map<GenerationStrategyType, GenerationStrategy>([
-        ['ApexRest', mockStrategy],
-        ['AuraEnabled', mockStrategy]
+        ['ApexRest', mockStrategyApexRest],
+        ['AuraEnabled', mockStrategyAuraEnabled]
       ]);
 
       (initializeAndBid as jest.Mock).mockResolvedValue({ strategies, bids });
@@ -217,8 +229,8 @@ describe('PromptGenerationOrchestrator', () => {
       const result = await orchestrator.selectStrategyByBidRule(BID_RULES.MOST_CALLS);
 
       expect(initializeAndBid).toHaveBeenCalledWith(mockMetadata, mockContext);
-      expect(result).toBe(mockStrategy);
-      expect(orchestrator.strategy).toBe(mockStrategy);
+      expect(result).toBe(mockStrategyAuraEnabled);
+      expect(orchestrator.strategy).toBe(mockStrategyAuraEnabled);
     });
 
     it('should throw error when no strategy qualifies', async () => {
@@ -227,8 +239,8 @@ describe('PromptGenerationOrchestrator', () => {
         ['AuraEnabled', { result: { callCounts: 0, maxBudget: 100 } }]
       ]);
       const strategies = new Map<GenerationStrategyType, GenerationStrategy>([
-        ['ApexRest', mockStrategy],
-        ['AuraEnabled', mockStrategy]
+        ['ApexRest', mockStrategyApexRest],
+        ['AuraEnabled', mockStrategyAuraEnabled]
       ]);
 
       (initializeAndBid as jest.Mock).mockResolvedValue({ strategies, bids });
