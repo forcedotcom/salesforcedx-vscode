@@ -20794,6 +20794,11 @@
         "Field Type": "string"
       },
       {
+        "Description": "Reference to the policies for the prompt template version.",
+        "Field Name": "generationTemplateConfigs",
+        "Field Type": "GenAiPromptTemplateGenerationConfig[]"
+      },
+      {
         "Description": "An array of prompt template inputs associated with the prompt template version.",
         "Field Name": "inputs",
         "Field Type": "GenAiPromptTemplateInput[]"
@@ -20825,6 +20830,17 @@
       }
     ],
     "short_description": "Represents a version of a prompt template.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiprompttemplate.htm"
+  },
+  "GenAiPromptTemplateGenerationConfig": {
+    "fields": [
+      {
+        "Description": "Developer name of the policy for this prompt template version.",
+        "Field Name": "generationConfigDeveloperName",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "References the policies for this prompt template version. A policy describes high-level behavior for the prompt template, such as the allowed languages, conversation style, or desired response length. Currently, a policy is defined in a configuration file.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiprompttemplate.htm"
   },
   "GenAiPromptTemplateInput": {

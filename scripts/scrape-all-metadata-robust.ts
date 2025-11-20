@@ -6,6 +6,12 @@
  *   npm run scrape:robust
  *   npm run scrape:robust -- --output custom-output.json
  *   npm run scrape:robust -- --visible  (runs with visible browser for debugging)
+ *
+ * Environment Variables:
+ *   BATCH_SIZE=100          - Number of metadata types to scrape in parallel (default: 100)
+ *   TEST_MODE=true          - Test with limited number of types
+ *   TEST_LIMIT=3            - Number of types to test when TEST_MODE is enabled
+ *   TEST_ASSIGNMENT_RULES_ONLY=true - Test only AssignmentRules type
  */
 
 import { chromium, Page } from 'playwright';
@@ -593,36 +599,15 @@ function getFallbackMetadataTypes(): Array<{ name: string; url: string }> {
 }
 
 /**
- * Main scraping function
+ * Scrapes a single metadata type with its own page instance
  */
-async function scrapeAll(outputFile?: string, isVisible: boolean = false): Promise<void> {
-  console.log(`🚀 Starting robust metadata scraper${isVisible ? ' (VISIBLE MODE)' : ''}...\n`);
-
-  const browser = await chromium.launch({
-    headless: !isVisible,
-    args: [
-      '--disable-blink-features=AutomationControlled',
-      '--disable-dev-shm-usage',
-      '--disable-web-security',
-      '--disable-features=IsolateOrigins,site-per-process',
-      '--no-first-run',
-      '--no-default-browser-check'
-    ]
-  });
-
-  const context = await browser.newContext({
-    userAgent:
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-    viewport: { width: 1920, height: 1080 },
-    locale: 'en-US',
-    timezoneId: 'America/Los_Angeles',
-    extraHTTPHeaders: {
-      'Accept-Language': 'en-US,en;q=0.9',
-      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-      'Accept-Encoding': 'gzip, deflate, br'
-    }
-  });
-
+async function scrapeMetadataTypeWithContext(
+  context: any,
+  type: { name: string; url: string },
+  index: number,
+  total: number,
+  isVisible: boolean
+): Promise<{ success: boolean; results: Array<{ name: string; data: MetadataType }> }> {
   const page = await context.newPage();
 
   // Comprehensive anti-detection
@@ -661,17 +646,156 @@ async function scrapeAll(outputFile?: string, isVisible: boolean = false): Promi
     });
   });
 
+  try {
+    console.log(`[${index + 1}/${total}] ${type.name}`);
+    const pageResults = await scrapeMetadataType(page, type.name, type.url, isVisible);
+
+    if (pageResults.length > 0) {
+      console.log(`     ✓ ${type.name} completed successfully`);
+      return { success: true, results: pageResults };
+    } else {
+      console.log(`     ⚠️  ${type.name} returned no results`);
+      return { success: false, results: [] };
+    }
+  } catch (error: any) {
+    console.log(`     ❌ ${type.name} failed: ${error.message}`);
+    return { success: false, results: [] };
+  } finally {
+    await page.close();
+  }
+}
+
+/**
+ * Process metadata types in parallel batches
+ */
+async function scrapeInBatches(
+  context: any,
+  typesToScrape: Array<{ name: string; url: string }>,
+  isVisible: boolean,
+  batchSize: number = 100
+): Promise<{ results: MetadataMap; successCount: number; failCount: number }> {
   const results: MetadataMap = {};
   let successCount = 0;
   let failCount = 0;
 
+  // Process in batches
+  for (let i = 0; i < typesToScrape.length; i += batchSize) {
+    const batch = typesToScrape.slice(i, Math.min(i + batchSize, typesToScrape.length));
+    const batchNumber = Math.floor(i / batchSize) + 1;
+    const totalBatches = Math.ceil(typesToScrape.length / batchSize);
+
+    console.log(`\n📦 Processing batch ${batchNumber}/${totalBatches} (${batch.length} types)...`);
+
+    // Process batch in parallel
+    const batchPromises = batch.map((type, batchIndex) =>
+      scrapeMetadataTypeWithContext(context, type, i + batchIndex, typesToScrape.length, isVisible)
+    );
+
+    const batchResults = await Promise.all(batchPromises);
+
+    // Collect results
+    for (const batchResult of batchResults) {
+      if (batchResult.success && batchResult.results.length > 0) {
+        for (const { name, data } of batchResult.results) {
+          results[name] = data;
+        }
+        successCount++;
+      } else {
+        failCount++;
+      }
+    }
+
+    console.log(
+      `✓ Batch ${batchNumber} complete (Success: ${batchResults.filter(r => r.success).length}, Failed: ${batchResults.filter(r => !r.success).length})`
+    );
+
+    // Be respectful between batches
+    if (i + batchSize < typesToScrape.length) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
+
+  return { results, successCount, failCount };
+}
+
+/**
+ * Main scraping function
+ */
+async function scrapeAll(outputFile?: string, isVisible: boolean = false): Promise<void> {
+  console.log(`🚀 Starting robust metadata scraper${isVisible ? ' (VISIBLE MODE)' : ''}...\n`);
+
+  const browser = await chromium.launch({
+    headless: !isVisible,
+    args: [
+      '--disable-blink-features=AutomationControlled',
+      '--disable-dev-shm-usage',
+      '--disable-web-security',
+      '--disable-features=IsolateOrigins,site-per-process',
+      '--no-first-run',
+      '--no-default-browser-check'
+    ]
+  });
+
+  const context = await browser.newContext({
+    userAgent:
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+    viewport: { width: 1920, height: 1080 },
+    locale: 'en-US',
+    timezoneId: 'America/Los_Angeles',
+    extraHTTPHeaders: {
+      'Accept-Language': 'en-US,en;q=0.9',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+      'Accept-Encoding': 'gzip, deflate, br'
+    }
+  });
+
+  const page = await context.newPage();
+
+  // Comprehensive anti-detection for discovery page
+  await page.addInitScript(() => {
+    // Hide webdriver
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+
+    // Mock chrome object
+    (window as any).chrome = {
+      runtime: {},
+      loadTimes: function () {},
+      csi: function () {},
+      app: {}
+    };
+
+    // Mock plugins
+    Object.defineProperty(navigator, 'plugins', {
+      get: () => [1, 2, 3, 4, 5]
+    });
+
+    // Mock languages
+    Object.defineProperty(navigator, 'languages', {
+      get: () => ['en-US', 'en']
+    });
+
+    // Mock permissions
+    const originalQuery = window.navigator.permissions.query;
+    window.navigator.permissions.query = (parameters: any) =>
+      parameters.name === 'notifications'
+        ? Promise.resolve({ state: 'prompt' } as PermissionStatus)
+        : originalQuery(parameters);
+
+    // Override the headless property
+    Object.defineProperty(navigator, 'platform', {
+      get: () => 'MacIntel'
+    });
+  });
+
   // Step 1: Discover all metadata types from documentation
   const metadataTypes = await discoverMetadataTypes(page);
+  await page.close(); // Close the discovery page
 
   // Allow testing with a subset
   const testMode = process.env.TEST_MODE === 'true';
   const testAssignmentRulesOnly = process.env.TEST_ASSIGNMENT_RULES_ONLY === 'true';
   const testLimit = parseInt(process.env.TEST_LIMIT || '3');
+  const batchSize = parseInt(process.env.BATCH_SIZE || '100');
 
   let typesToScrape = metadataTypes;
 
@@ -692,42 +816,12 @@ async function scrapeAll(outputFile?: string, isVisible: boolean = false): Promi
   }
 
   console.log(
-    `📋 Will scrape ${typesToScrape.length} metadata types${testMode || testAssignmentRulesOnly ? ' (TEST MODE)' : ''}\n`
+    `📋 Will scrape ${typesToScrape.length} metadata types in parallel batches of ${batchSize}${testMode || testAssignmentRulesOnly ? ' (TEST MODE)' : ''}\n`
   );
 
   try {
-    for (let i = 0; i < typesToScrape.length; i++) {
-      const type = typesToScrape[i];
-      console.log(`[${i + 1}/${typesToScrape.length}] ${type.name}`);
-
-      try {
-        const pageResults = await scrapeMetadataType(page, type.name, type.url, isVisible);
-
-        if (pageResults.length > 0) {
-          // Add each table result as a separate entry
-          for (const { name, data } of pageResults) {
-            results[name] = data;
-          }
-          successCount++;
-        } else {
-          failCount++;
-        }
-
-        // Be respectful
-        await page.waitForTimeout(2000);
-      } catch (error: any) {
-        console.log(`     ❌ Error: ${error.message}`);
-        failCount++;
-        // Try to recover by creating a new page if browser is still alive
-        try {
-          if (!page.isClosed()) {
-            await page.waitForTimeout(1000);
-          }
-        } catch {
-          // Page is closed, continue with next type
-        }
-      }
-    }
+    // Scrape in parallel batches
+    const { results, successCount, failCount } = await scrapeInBatches(context, typesToScrape, isVisible, batchSize);
 
     // Save results
     const outputPath =
@@ -766,6 +860,16 @@ Options:
   --visible        Run with visible browser (useful for debugging)
   --output <file>  Custom output file path
   --help           Show this help
+
+Environment Variables:
+  BATCH_SIZE=100                      # Number of types to scrape in parallel (default: 100)
+  TEST_MODE=true                      # Test with limited number of types
+  TEST_LIMIT=3                        # Number of types when TEST_MODE enabled
+  TEST_ASSIGNMENT_RULES_ONLY=true     # Test only AssignmentRules
+
+Examples:
+  BATCH_SIZE=50 npm run scrape:robust                    # Use 50 parallel workers
+  TEST_MODE=true TEST_LIMIT=5 npm run scrape:robust      # Test with 5 types
     `);
     return;
   }
