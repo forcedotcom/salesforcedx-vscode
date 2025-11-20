@@ -62,8 +62,10 @@ export default class ComponentIndexer {
 
     switch (this.workspaceType) {
       case 'SFDX':
+        // Normalize workspaceRoot for cross-platform compatibility (Windows uses backslashes)
+        const normalizedWorkspaceRoot = unixify(this.workspaceRoot);
         const sfdxSource = normalize(
-          `${this.workspaceRoot}/${await this.getSfdxPackageDirsPattern()}/**/*/lwc/**/*.js`
+          `${normalizedWorkspaceRoot}/${await this.getSfdxPackageDirsPattern()}/**/*/lwc/**/*.js`
         );
         files = sync(sfdxSource, {
           stats: true
@@ -74,7 +76,9 @@ export default class ComponentIndexer {
         });
       default:
         // For CORE_ALL and CORE_PARTIAL
-        const defaultSource = normalize(`${this.workspaceRoot}/**/*/modules/**/*.js`);
+        // Normalize workspaceRoot for cross-platform compatibility (Windows uses backslashes)
+        const normalizedWorkspaceRootDefault = unixify(this.workspaceRoot);
+        const defaultSource = normalize(`${normalizedWorkspaceRootDefault}/**/*/modules/**/*.js`);
         files = sync(defaultSource, {
           stats: true
         });
@@ -204,8 +208,10 @@ export default class ComponentIndexer {
   public async getTsConfigPathMapping(): Promise<TsConfigPaths> {
     const files: TsConfigPaths = {};
     if (this.workspaceType === 'SFDX') {
+      // Normalize workspaceRoot for cross-platform compatibility (Windows uses backslashes)
+      const normalizedWorkspaceRoot = unixify(this.workspaceRoot);
       const sfdxSource = normalize(
-        `${this.workspaceRoot}/${await this.getSfdxPackageDirsPattern()}/**/*/lwc/*/*.{js,ts}`
+        `${normalizedWorkspaceRoot}/${await this.getSfdxPackageDirsPattern()}/**/*/lwc/*/*.{js,ts}`
       );
       const filePaths = sync(sfdxSource, {
         stats: true

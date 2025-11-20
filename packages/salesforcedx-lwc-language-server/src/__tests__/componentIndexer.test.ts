@@ -165,6 +165,31 @@ describe('ComponentIndexer', () => {
 
       describe('updateSfdxTsConfigPath', () => {
         it('updates tsconfig.sfdx.json path mapping', async () => {
+          // Clean up any files created by other tests (e.g., newlyAddedFile from lwcServer.test.ts)
+          // This ensures the test only sees the expected components
+          const newlyAddedFileDir = path.join(workspaceRoot, 'force-app', 'main', 'default', 'lwc', 'newlyAddedFile');
+          const possibleFiles = [
+            path.join(newlyAddedFileDir, 'newlyAddedFile.js'),
+            path.join(newlyAddedFileDir, 'newlyAddedFile.ts'),
+            path.join(newlyAddedFileDir, 'newlyAddedFile.html'),
+            path.join(newlyAddedFileDir, 'newlyAddedFile.css'),
+            path.join(newlyAddedFileDir, '__tests__', 'newlyAddedFile', 'newlyAddedFile.js'),
+            path.join(newlyAddedFileDir, '__tests__', 'newlyAddedFile', 'newlyAddedFile.ts')
+          ];
+          for (const filePath of possibleFiles) {
+            if (sfdxFileSystemProvider.fileExists(filePath)) {
+              sfdxFileSystemProvider.updateFileStat(filePath, {
+                type: 'file',
+                exists: false,
+                ctime: 0,
+                mtime: 0,
+                size: 0
+              });
+            }
+          }
+          // Re-initialize to pick up the cleaned state
+          await componentIndexer.init();
+
           const tsconfigTemplate = {
             compilerOptions: {
               target: 'ESNext',
