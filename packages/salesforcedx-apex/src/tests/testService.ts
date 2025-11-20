@@ -81,10 +81,7 @@ export const writeResultFiles = async (
     console.error(`Error writing file: ${err}`);
   }
 
-  if (resultFormats) {
-    if (!isTestResult(result)) {
-      throw new Error(nls.localize('runIdFormatErr'));
-    }
+  if (resultFormats && isTestResult(result)) {
     for (const format of resultFormats) {
       let filePath;
       let readable;
@@ -122,10 +119,7 @@ export const writeResultFiles = async (
     }
   }
 
-  if (codeCoverage) {
-    if (!isTestResult(result)) {
-      throw new Error(nls.localize('covIdFormatErr'));
-    }
+  if (codeCoverage && isTestResult(result)) {
     const filePath = join(
       dirPath,
       `test-result-${testRunId}-codecoverage.json`

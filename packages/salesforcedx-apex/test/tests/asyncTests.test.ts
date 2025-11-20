@@ -1893,7 +1893,7 @@ describe('Create Result Files', () => {
     sandboxStub1.restore();
   });
 
-  it('should only create test-run-id.txt if no result format nor fileInfos are specified', async () => {
+  it('should create test-run-id.txt if no result format nor fileInfos are specified', async () => {
     const config = {
       dirPath: 'path/to/directory'
     } as OutputDirConfig;
@@ -1905,44 +1905,40 @@ describe('Create Result Files', () => {
     expect(testServiceSpy.callCount).to.eql(0);
   });
 
-  it('should throw an error if result format is specified with TestRunId result', async () => {
+  it('should still create test-run-id.txt if result format is specified with TestRunId result', async () => {
     const config = {
       dirPath: 'path/to/directory',
       resultFormats: [ResultFormat.tap]
     };
+
     const testSrv = new TestService(mockConnection);
-    try {
-      await testSrv.writeResultFiles(
-        { testRunId } as TestRunIdResult,
-        config,
-        false
-      );
-      assert.fail();
-    } catch (e) {
-      expect(e.message).to.equal(
-        'Cannot specify a result format with a TestRunId result'
-      );
-    }
+    await testSrv.writeResultFiles(
+      { testRunId } as TestRunIdResult,
+      config,
+      false
+    );
+
+    expect(writeFileSpy.calledWith(join(config.dirPath, 'test-run-id.txt'))).to
+      .be.true;
+    expect(testServiceSpy.callCount).to.eql(0);
   });
 
-  it('should throw an error if code coverage is specified with TestRunId result', async () => {
+  it('should still create test-run-id.txt if code coverage is specified with TestRunId result', async () => {
     const config = {
-      dirPath: 'path/to/directory',
-      resultFormats: [ResultFormat.tap]
+      dirPath: 'path/to/directory'
     };
+
     const testSrv = new TestService(mockConnection);
-    try {
-      await testSrv.writeResultFiles(
-        { testRunId } as TestRunIdResult,
-        config,
-        true
-      );
-      assert.fail();
-    } catch (e) {
-      expect(e.message).to.equal(
-        'Cannot specify a result format with a TestRunId result'
-      );
-    }
+
+    await testSrv.writeResultFiles(
+      { testRunId } as TestRunIdResult,
+      config,
+      true
+    );
+
+    expect(writeFileSpy.calledWith(join(config.dirPath, 'test-run-id.txt'))).to
+      .be.true;
+    expect(testServiceSpy.callCount).to.eql(0);
   });
 
   it('should create the json files if json result format is specified', async () => {
