@@ -141,7 +141,7 @@ export default class ComponentIndexer {
     this.fileSystemProvider.updateFileContent('lwc:componentIndex', indexJsonString);
   }
 
-  public insertSfdxTsConfigPath(filePaths: string[]): void {
+  public async insertSfdxTsConfigPath(filePaths: string[]): Promise<void> {
     const sfdxTsConfigPath = normalize(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
     const normalizedPath = unixify(sfdxTsConfigPath);
 
@@ -149,7 +149,7 @@ export default class ComponentIndexer {
 
     if (fileExists) {
       try {
-        const sfdxTsConfig: SfdxTsConfig = readJsonSync(sfdxTsConfigPath, this.fileSystemProvider);
+        const sfdxTsConfig: SfdxTsConfig = await readJsonSync(sfdxTsConfigPath, this.fileSystemProvider);
         sfdxTsConfig.compilerOptions = sfdxTsConfig.compilerOptions ?? { paths: {} };
         sfdxTsConfig.compilerOptions.paths = sfdxTsConfig.compilerOptions.paths ?? {};
         // Update TypeScript path mappings to include component file paths.

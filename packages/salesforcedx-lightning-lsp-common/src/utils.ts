@@ -5,13 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as jsonc from 'jsonc-parser';
 import { basename, extname, join, relative, resolve } from 'node:path';
 import { FileEvent, FileChangeType } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { BaseWorkspaceContext } from './baseContext';
 import { IFileSystemProvider } from './providers/fileSystemDataProvider';
+
+// Cache the dynamically imported tiny-jsonc module to avoid repeated imports
+let jsoncModule: { default: { parse: (text: string) => unknown } } | null = null;
 
 const RESOURCES_DIR = 'resources';
 
@@ -83,16 +85,19 @@ export const memoize = <T>(fn: () => T): (() => T) => {
   };
 };
 
-export const readJsonSync = (file: string, fileSystemProvider: IFileSystemProvider): SfdxTsConfig => {
+export const readJsonSync = async (file: string, fileSystemProvider: IFileSystemProvider): Promise<SfdxTsConfig> => {
   try {
     const content = fileSystemProvider.getFileContent(`${file}`);
     if (!content) {
       return {};
     }
-    // jsonc.parse will return an object without comments.
+    // Dynamically import tiny-jsonc (ES module) and parse JSONC content
     // Comments will be lost if this object is written back to file.
     // Individual properties should be updated directly via VS Code API to preserve comments.
-    const parsed = jsonc.parse(content);
+    // Cache the module to avoid repeated dynamic imports (Node.js caches imports, but we avoid the lookup)
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    jsoncModule ??= await import('tiny-jsonc');
+    const parsed = jsoncModule.default.parse(content);
     return isRecord(parsed) ? parsed : {};
   } catch (err) {
     console.log(`onIndexCustomComponents(LOTS): Error reading jsconfig ${file}`, err);
