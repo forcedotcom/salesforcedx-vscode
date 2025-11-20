@@ -1,3 +1,12 @@
+## [8.3.8](https://github.com/forcedotcom/salesforcedx-apex/compare/8.3.7...8.3.8) (2025-11-20)
+
+
+### Bug Fixes
+
+* test id file now written even if code coverage specified @W-16441400@ ([da08aa4](https://github.com/forcedotcom/salesforcedx-apex/commit/da08aa47cfa4becd2af6d12f1166df56f69e785c))
+
+
+
 ## [8.3.7](https://github.com/forcedotcom/salesforcedx-apex/compare/8.3.6...8.3.7) (2025-11-13)
 
 
