@@ -50,7 +50,11 @@ describe('utils', () => {
 
   it('test canonicalizing in nodejs', () => {
     const canonical = resolve(join('tmp', '.', 'a', 'b', '..'));
-    expect(canonical.endsWith(join('tmp', 'a'))).toBe(true);
+    const expected = join('tmp', 'a');
+    // Normalize paths for cross-platform compatibility
+    const normalizedCanonical = utils.unixify(canonical);
+    const normalizedExpected = utils.unixify(expected);
+    expect(normalizedCanonical.endsWith(normalizedExpected)).toBe(true);
   });
 
   describe('readJsonSync()', () => {
