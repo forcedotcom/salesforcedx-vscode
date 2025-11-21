@@ -55,6 +55,7 @@
     "test:web:headless:ci": "npm run bundle:extension && playwright test --config=playwright.config.web.ts",
     "test:desktop": "npm run bundle:extension && cross-env VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts",
     "test:desktop:ci": "npm run bundle:extension && cross-env VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts",
+    "test:desktop:debug": "npm run bundle:extension && cross-env DEBUG_MODE=1 VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts --retries=0",
     "test:e2e": "npm run test:headless && npm run test:desktop"
   },
   "activationEvents": [

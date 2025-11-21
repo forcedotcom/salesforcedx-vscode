@@ -8,3 +8,12 @@
 import { createDesktopTest } from 'salesforcedx-vscode-playwright';
 
 export const test = createDesktopTest({ fixturesDir: __dirname });
+
+// Keep VS Code window open on test failure when in debug mode
+test.afterEach(async ({ page }, testInfo) => {
+  if (process.env.DEBUG_MODE && testInfo.status !== 'passed') {
+    console.log('\n🔍 DEBUG_MODE: Test failed - pausing to keep VS Code window open.');
+    console.log('Press Resume in Playwright Inspector or close VS Code window to continue.');
+    await page.pause();
+  }
+});
