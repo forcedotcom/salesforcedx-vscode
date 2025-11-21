@@ -4,11 +4,27 @@ on:
   workflow_dispatch:
 
 jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ./salesforcedx-vscode
+          ref: ${{ github.event.ref }}
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: npm
+          cache-dependency-path: |
+            salesforcedx-vscode/package-lock.json
+
   scrape-all-metadata-pages:
     name: Scrape All Metadata Pages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - run: npm run scrape:all:pages
 
   json-to-xsd:
@@ -16,7 +32,6 @@ jobs:
     needs: scrape-all-metadata-pages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - run: node scripts/jsonToXsdConverter.ts
 
   upload-xsd:
