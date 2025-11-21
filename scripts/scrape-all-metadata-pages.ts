@@ -8,7 +8,7 @@
  *   npm run scrape:all:pages -- --visible  (runs with visible browser for debugging)
  *
  * Environment Variables:
- *   BATCH_SIZE=100          - Number of metadata types to scrape in parallel (default: 100)
+ *   BATCH_SIZE=20           - Number of metadata types to scrape in parallel (default: 20)
  *   TEST_MODE=true          - Test with limited number of types
  *   TEST_LIMIT=3            - Number of types to test when TEST_MODE is enabled
  *   TEST_ASSIGNMENT_RULES_ONLY=true - Test only AssignmentRules type
@@ -672,7 +672,7 @@ async function scrapeInBatches(
   context: any,
   typesToScrape: Array<{ name: string; url: string }>,
   isVisible: boolean,
-  batchSize: number = 100
+  batchSize: number = 20
 ): Promise<{ results: MetadataMap; successCount: number; failCount: number }> {
   const results: MetadataMap = {};
   let successCount = 0;
@@ -795,7 +795,7 @@ async function scrapeAll(outputFile?: string, isVisible: boolean = false): Promi
   const testMode = process.env.TEST_MODE === 'true';
   const testAssignmentRulesOnly = process.env.TEST_ASSIGNMENT_RULES_ONLY === 'true';
   const testLimit = parseInt(process.env.TEST_LIMIT || '3');
-  const batchSize = parseInt(process.env.BATCH_SIZE || '100');
+  const batchSize = parseInt(process.env.BATCH_SIZE || '20');
 
   let typesToScrape = metadataTypes;
 
@@ -862,7 +862,7 @@ Options:
   --help           Show this help
 
 Environment Variables:
-  BATCH_SIZE=100                      # Number of types to scrape in parallel (default: 100)
+  BATCH_SIZE=20                       # Number of types to scrape in parallel (default: 20)
   TEST_MODE=true                      # Test with limited number of types
   TEST_LIMIT=3                        # Number of types when TEST_MODE enabled
   TEST_ASSIGNMENT_RULES_ONLY=true     # Test only AssignmentRules
