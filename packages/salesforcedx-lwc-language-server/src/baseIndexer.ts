@@ -46,10 +46,7 @@ const getSfdxConfig = (root: string, fileSystemProvider: IFileSystemProvider): S
 };
 
 /** Get SFDX package directories pattern from sfdx-project.json */
-export const getSfdxPackageDirsPattern = async (
-  workspaceRoot: string,
-  fileSystemProvider: IFileSystemProvider
-): Promise<string> => {
+export const getSfdxPackageDirsPattern = (workspaceRoot: string, fileSystemProvider: IFileSystemProvider): string => {
   const config = getSfdxConfig(workspaceRoot, fileSystemProvider);
   const dirs = config.packageDirectories;
   const paths: string[] = dirs?.map(item => item.path) ?? [];

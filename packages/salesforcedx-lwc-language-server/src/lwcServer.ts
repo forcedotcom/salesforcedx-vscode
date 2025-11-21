@@ -478,7 +478,7 @@ export default class Server {
     let result: Location[] = [];
     switch (cursorInfo.type) {
       case 'tag':
-        result = tag ? getAllLocations(tag) : [];
+        result = tag ? getAllLocations(tag, this.fileSystemProvider) : [];
         break;
 
       case 'attributeKey':

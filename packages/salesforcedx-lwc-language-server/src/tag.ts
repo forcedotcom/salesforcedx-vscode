@@ -11,7 +11,6 @@ import {
   unixify
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { camelCase, paramCase } from 'change-case';
-import * as glob from 'fast-glob';
 
 import * as path from 'node:path';
 import { Location, Position, Range } from 'vscode-languageserver';
@@ -164,20 +163,51 @@ export const getTagRange = (tag: Tag): Range => {
 // Utility function to get tag location
 export const getTagLocation = (tag: Tag): Location => Location.create(getTagUri(tag), getTagRange(tag));
 
+/**
+ * Finds files matching a pattern in a directory using FileSystemDataProvider
+ * This replaces fast-glob for web compatibility
+ */
+const findFilesInDirectory = (
+  dirPath: string,
+  pattern: RegExp,
+  fileSystemProvider: IFileSystemProvider
+): string[] => {
+  const results: string[] = [];
+  const normalizedDirPath = unixify(dirPath);
+
+  if (!fileSystemProvider.directoryExists(normalizedDirPath)) {
+    return results;
+  }
+
+  const entries = fileSystemProvider.getDirectoryListing(normalizedDirPath);
+  for (const entry of entries) {
+    if (entry.type === 'file') {
+      const fileName = path.basename(entry.uri);
+      if (pattern.test(fileName)) {
+        results.push(entry.uri);
+      }
+    }
+  }
+
+  return results;
+};
+
 // Utility function to get all locations
-export const getAllLocations = (tag: Tag): Location[] => {
+export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvider): Location[] => {
   const { dir, name } = path.parse(tag.file);
-  // Normalize dir for cross-platform compatibility (glob expects forward slashes)
+  // Normalize dir for cross-platform compatibility
   const normalizedDir = unixify(dir);
 
   const convertFileToLocation = (file: string): Location => {
-    const uri = URI.file(path.resolve(file)).toString();
+    const uri = URI.file(file).toString();
     const position = Position.create(0, 0);
     const range = Range.create(position, position);
     return Location.create(uri, range);
   };
 
-  const filteredFiles = glob.sync(`${normalizedDir}/${name}.+(html|css)`);
+  // Match files like name.html or name.css
+  const pattern = new RegExp(`^${name.replace(/[.+^${}()|[\]\\]/g, '\\$&')}\\.(html|css)$`);
+  const filteredFiles = findFilesInDirectory(normalizedDir, pattern, fileSystemProvider);
   const locations = filteredFiles.map(convertFileToLocation);
   locations.unshift(getTagLocation(tag));
 

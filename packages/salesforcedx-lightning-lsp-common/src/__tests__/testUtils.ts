@@ -79,40 +79,37 @@ const readFileContent = (filePath: string): string => {
   return '';
 };
 
+// Helper function to recursively find all files in a directory
+const findFilesRecursively = (dirPath: string, basePath: string, files: Record<string, string>): void => {
+  try {
+    if (!fs.existsSync(dirPath)) {
+      return;
+    }
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = join(dirPath, entry.name);
+      if (entry.isDirectory()) {
+        findFilesRecursively(fullPath, basePath, files);
+      } else if (entry.isFile()) {
+        const relativePath = fullPath.substring(basePath.length + 1);
+        const content = readFileContent(fullPath);
+        if (content) {
+          files[relativePath] = content;
+        }
+      }
+    }
+  } catch {
+    // Ignore errors when reading directories
+  }
+};
+
 // Helper function to get all files from test-workspaces
 const getTestWorkspaceFiles = (): Record<string, string> => {
   const files: Record<string, string> = {};
 
-  // Read key files from the test workspace
-  const keyFiles = [
-    'force-app/main/default/lwc/hello_world/hello_world.html',
-    'force-app/main/default/lwc/hello_world/hello_world.js',
-    'force-app/main/default/lwc/hello_world/hello_world.js-meta.xml',
-    'force-app/main/default/lwc/todo/todo.html',
-    'force-app/main/default/lwc/todo/todo.js',
-    'force-app/main/default/lwc/todo/todo.js-meta.xml',
-    'force-app/main/default/lwc/todo_item/todo_item.html',
-    'force-app/main/default/lwc/todo_item/todo_item.js',
-    'force-app/main/default/lwc/todo_item/todo_item.js-meta.xml',
-    'force-app/main/default/lwc/lightning_tree_example/lightning_tree_example.html',
-    'force-app/main/default/lwc/lightning_tree_example/lightning_tree_example.js',
-    'force-app/main/default/lwc/lightning_tree_example/lightning_tree_example.js-meta.xml',
-    'force-app/main/default/aura/helloWorldApp/helloWorldApp.app',
-    'force-app/main/default/aura/helloWorldApp/helloWorldApp.app-meta.xml',
-    'force-app/main/default/aura/todoApp/todoApp.app',
-    'force-app/main/default/aura/todoApp/todoApp.app-meta.xml',
-    'utils/meta/lwc/todo_util/todo_util.html',
-    'utils/meta/lwc/todo_util/todo_util.js',
-    'utils/meta/lwc/todo_util/todo_util.js-meta.xml'
-  ];
-
-  keyFiles.forEach(relativePath => {
-    const fullPath = join(SFDX_WORKSPACE_ROOT, relativePath);
-    const content = readFileContent(fullPath);
-    if (content) {
-      files[relativePath] = content;
-    }
-  });
+  // Read all files from the test workspace to match what fast-glob would find
+  // This ensures the FileSystemDataProvider has all files that would be found by fast-glob
+  findFilesRecursively(SFDX_WORKSPACE_ROOT, SFDX_WORKSPACE_ROOT, files);
 
   return files;
 };
