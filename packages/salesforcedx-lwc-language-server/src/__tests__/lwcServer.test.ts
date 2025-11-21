@@ -20,7 +20,15 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
         // Match the real implementation: use the file path as-is (no normalization)
         // The real readJsonSync uses `${file}` directly, and getFileContent normalizes internally
         // This ensures cross-platform compatibility (Windows paths are normalized by getFileContent)
-        const content = fileSystemProvider.getFileContent(`${file}`);
+        // Try the path as-is first, then try normalized version for Windows compatibility
+        let content = fileSystemProvider.getFileContent(`${file}`);
+        if (!content) {
+          // On Windows, paths might need normalization - try unixify version
+          const normalizedFile = actual.unixify(file);
+          if (normalizedFile !== file) {
+            content = fileSystemProvider.getFileContent(normalizedFile);
+          }
+        }
         if (!content) {
           return {};
         }
@@ -337,8 +345,8 @@ describe('lwcServer', () => {
         const labels = completions?.items.map(item => item.label) ?? [];
         // Updated to match actual workspace structure - finding components including todo_util from utils/meta/lwc
         expect(labels.length).toBeGreaterThanOrEqual(5);
-        expect(labels).toInclude('c/todo_util');
-        expect(labels).toInclude('c/todo_item');
+        expect(labels).toContain('c/todo_util');
+        expect(labels).toContain('c/todo_item');
       });
 
       it('should not return a list of completion items in a javascript file for open curly brace', async () => {
@@ -371,11 +379,11 @@ describe('lwcServer', () => {
         await server.onInitialize(initializeParams);
         const completions = await server.onCompletion(params);
         const labels = completions?.items.map(item => item.label) ?? [];
-        expect(labels).toInclude('c-todo_item');
-        expect(labels).toInclude('c-todo');
-        expect(labels).toInclude('lightning-icon');
-        expect(labels).not.toInclude('div');
-        expect(labels).not.toInclude('lightning:icon'); // this is handled by the aura Lang. server
+        expect(labels).toContain('c-todo_item');
+        expect(labels).toContain('c-todo');
+        expect(labels).toContain('lightning-icon');
+        expect(labels).not.toContain('div');
+        expect(labels).not.toContain('lightning:icon'); // this is handled by the aura Lang. server
       });
 
       it('should return a list of available attribute completion items in a LWC template', async () => {
@@ -395,8 +403,8 @@ describe('lwcServer', () => {
         const completions = await server.onCompletion(params);
         const labels = completions?.items.map(item => item.label) ?? [];
         expect(labels).toBeArrayOfSize(21);
-        expect(labels).toInclude('handleToggleAll');
-        expect(labels).toInclude('handleClearCompleted');
+        expect(labels).toContain('handleToggleAll');
+        expect(labels).toContain('handleClearCompleted');
       });
 
       it('should still return a list of completion items inside the curly brace without the trigger character in a LWC template', async () => {
@@ -411,10 +419,10 @@ describe('lwcServer', () => {
         await server.onInitialize(initializeParams);
         const completions = await server.onCompletion(params);
         const labels = completions?.items.map(item => item.label) ?? [];
-        expect(labels).toInclude('handleToggleAll');
-        expect(labels).toInclude('handleClearCompleted');
-        expect(labels).toInclude('has5Todos_today');
-        expect(labels).toInclude('$has5Todos_today');
+        expect(labels).toContain('handleToggleAll');
+        expect(labels).toContain('handleClearCompleted');
+        expect(labels).toContain('has5Todos_today');
+        expect(labels).toContain('$has5Todos_today');
       });
 
       it('returns a list of available completion items in a Aura template', async () => {
@@ -429,9 +437,9 @@ describe('lwcServer', () => {
         await server.onInitialize(initializeParams);
         const completions = await server.onCompletion(params);
         const labels = completions?.items.map(item => item.label) ?? [];
-        expect(labels).toInclude('c:todoItem');
-        expect(labels).toInclude('c:todo');
-        expect(labels).not.toInclude('div');
+        expect(labels).toContain('c:todoItem');
+        expect(labels).toContain('c:todo');
+        expect(labels).not.toContain('div');
       });
     });
 
