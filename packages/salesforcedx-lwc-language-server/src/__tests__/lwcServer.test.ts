@@ -17,9 +17,10 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
     ...actual,
     readJsonSync: jest.fn(async (file: string, fileSystemProvider: any) => {
       try {
-        // Normalize the file path to handle cross-platform paths
-        const normalizedFile = actual.unixify(file);
-        const content = fileSystemProvider.getFileContent(normalizedFile);
+        // Match the real implementation: use the file path as-is (no normalization)
+        // The real readJsonSync uses `${file}` directly, and getFileContent normalizes internally
+        // This ensures cross-platform compatibility (Windows paths are normalized by getFileContent)
+        const content = fileSystemProvider.getFileContent(`${file}`);
         if (!content) {
           return {};
         }
