@@ -15,10 +15,13 @@ import { defaultOrgRef } from '../core/defaultOrgService';
 /** Custom span processor that transforms spans before they're exported */
 export class SpanTransformProcessor extends BatchSpanProcessor {
   public onStart(span: Span, parentContext: Context): void {
-    getAdditionalAttributes()
-      .concat(Effect.runSync(memoized('everySpanIsTheSame'))) // it seems to want a key
-      .filter(isNotUndefined)
-      .map(([k, v]) => span.setAttribute(k, v));
+    // for top level spans, add additional attributes
+    if (!span.parentSpanContext) {
+      getAdditionalAttributes()
+        .concat(Effect.runSync(memoized('everySpanIsTheSame'))) // it seems to want a key
+        .filter(isNotUndefined)
+        .map(([k, v]) => span.setAttribute(k, v));
+    }
     super.onStart(span, parentContext);
   }
 }

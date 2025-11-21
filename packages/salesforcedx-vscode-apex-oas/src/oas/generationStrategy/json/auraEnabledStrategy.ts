@@ -16,7 +16,7 @@ import {
 import { buildClassPrompt } from '../buildPromptUtils';
 import { SUM_TOKEN_MAX_LIMIT, IMPOSED_FACTOR } from '../constants';
 import { GenerationStrategy } from '../generationStrategy';
-import { openAPISchema_v3_0_guided } from '../openapi3.schema';
+import { openAPISchemaV3Guided } from '../openapi3.schema';
 
 const MIN_ORG_VERSION = 65.0;
 
@@ -39,7 +39,7 @@ export class AuraEnabledStrategy extends GenerationStrategy {
     );
     this.sourceText = sourceText;
     this.classPrompt = buildClassPrompt(this.context.classDetail);
-    this.oasSchema = JSON.stringify(openAPISchema_v3_0_guided);
+    this.oasSchema = JSON.stringify(openAPISchemaV3Guided);
     this.isDefaultOrg = false;
     this.isOrgVersionCompatible = false;
   }

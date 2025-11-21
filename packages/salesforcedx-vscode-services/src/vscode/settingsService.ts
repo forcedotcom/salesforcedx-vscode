@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSION_KEY } from '../constants';
 
@@ -112,6 +114,19 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
           await config.update(API_VERSION_KEY, version, vscode.ConfigurationTarget.Global);
         },
         catch: error => new Error(`Failed to set apiVersion: ${String(error)}`)
-      })
+      }),
+
+    /** Stream of configuration change events */
+    configurationChangeStream: Stream.async<vscode.ConfigurationChangeEvent>(emit => {
+      const disposable = vscode.workspace.onDidChangeConfiguration(event => {
+        emit(Effect.succeed(Chunk.of(event))).catch(() => {
+          // Ignore emission errors
+        });
+      });
+      return Effect.sync(() => {
+        console.log('Disposing of configuration change stream');
+        disposable.dispose();
+      });
+    })
   } as const
 }) {}

@@ -6,6 +6,7 @@
  */
 
 import type { StatusOutputRow } from '@salesforce/source-tracking';
+import * as vscode from 'vscode';
 
 export type SourceTrackingCounts = {
   local: number;
@@ -30,6 +31,15 @@ export const dedupeStatus = (status: StatusOutputRow[]): StatusOutputRow[] => {
     seen.add(key);
     return true;
   });
+};
+
+export const calculateBackground = (counts: SourceTrackingCounts): vscode.ThemeColor | undefined => {
+  if (counts.conflicts > 0) {
+    return new vscode.ThemeColor('statusBarItem.errorBackground');
+  } else if (counts.local > 0 && process.env.ESBUILD_PLATFORM === 'web') {
+    return new vscode.ThemeColor('statusBarItem.warningBackground');
+  }
+  return undefined;
 };
 
 /** Calculate counts from status output rows */

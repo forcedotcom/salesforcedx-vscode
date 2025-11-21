@@ -32,7 +32,7 @@ const commandName = nls.localize('lightning_lwc_start_text');
  * Hints for providing a user-friendly error message / action.
  * Hints come from the stderr output of lwc-dev-server. (We should move this to lwc-dev-server later)
  */
-const enum errorHints {
+const enum ErrorHints {
   SERVER_STARTUP_FAILED = 'Server start up failed',
   ADDRESS_IN_USE = 'EADDRINUSE',
   INACTIVE_SCRATCH_ORG = 'Error authenticating to your scratch org. Make sure that it is still active'
@@ -127,14 +127,14 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
     execution.stderrSubject.subscribe(data => {
       if (!printedError && data) {
         let errorCode = -1;
-        if (data.toString().includes(errorHints.SERVER_STARTUP_FAILED)) {
+        if (data.toString().includes(ErrorHints.SERVER_STARTUP_FAILED)) {
           errorCode = 1;
         }
-        if (data.toString().includes(errorHints.ADDRESS_IN_USE)) {
+        if (data.toString().includes(ErrorHints.ADDRESS_IN_USE)) {
           errorCode = 98;
         }
-        if (data.toString().includes(errorHints.INACTIVE_SCRATCH_ORG)) {
-          this.errorHint = errorHints.INACTIVE_SCRATCH_ORG;
+        if (data.toString().includes(ErrorHints.INACTIVE_SCRATCH_ORG)) {
+          this.errorHint = ErrorHints.INACTIVE_SCRATCH_ORG;
         }
         if (errorCode !== -1) {
           this.handleErrors(cancellationToken, serverHandler, serverStarted, errorCode);
@@ -169,7 +169,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
     if (!serverStarted && !cancellationToken.isCancellationRequested) {
       let message = nls.localize('lightning_lwc_start_failed');
 
-      if (exitCode === 1 && this.errorHint === errorHints.INACTIVE_SCRATCH_ORG) {
+      if (exitCode === 1 && this.errorHint === ErrorHints.INACTIVE_SCRATCH_ORG) {
         message = nls.localize('lightning_lwc_inactive_scratch_org');
       }
       if (exitCode === 127) {

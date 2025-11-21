@@ -23,7 +23,7 @@ import { getFormattedString } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
 import { EmptyPreChecker, SfCommandlet } from './util';
 
-type projectGenerateOptions = {
+type ProjectGenerateOptions = {
   isProjectWithManifest: boolean;
 };
 
@@ -37,7 +37,7 @@ class ProjectTemplateItem implements vscode.QuickPickItem {
 }
 
 class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectNameAndPathAndTemplate> {
-  private readonly options: projectGenerateOptions;
+  private readonly options: ProjectGenerateOptions;
 
   constructor(options = { isProjectWithManifest: false }) {
     super();

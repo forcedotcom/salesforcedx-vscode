@@ -12,7 +12,8 @@ import { AllServicesLayer, ExtensionProviderService } from '../services/extensio
 const formatChanges = (changes: StatusOutputRow[], sectionTitle: string): string => {
   const lines = [`\n${sectionTitle} (${changes.length}):\n${'='.repeat(sectionTitle.length + 5)}`];
   changes.forEach(row => {
-    lines.push(`  ${String(row.type)}: ${String(row.fullName)}`);
+    const pathInfo = row.filePath ? ` (${String(row.filePath)})` : '';
+    lines.push(`  ${String(row.type)}: ${String(row.fullName)}${pathInfo}`);
   });
   return lines.join('\n');
 };

@@ -11,7 +11,7 @@ import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { sampleProjectName } from './constants';
 import { ConfigService } from './core/configService';
-import { ConnectionService } from './core/connectionService';
+import { ConnectionService, watchSettingsService } from './core/connectionService';
 import { defaultOrgRef, watchConfigFiles } from './core/defaultOrgService';
 import { MetadataDeployService } from './core/metadataDeployService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
@@ -57,19 +57,28 @@ export type SalesforceVSCodeServicesApi = {
 /** Effect that runs when the extension is activated */
 const activationEffect = (
   context: vscode.ExtensionContext
-): Effect.Effect<void, Error, WorkspaceService | SettingsService | IndexedDBStorageService | ChannelService> =>
+): Effect.Effect<
+  void,
+  Error,
+  | WorkspaceService
+  | SettingsService
+  | IndexedDBStorageService
+  | ChannelService
+  | ConnectionService
+  | ConfigService
+  | FileWatcherService
+  | Scope.CloseableScope
+> =>
   Effect.gen(function* () {
     yield* (yield* ChannelService).appendToChannel('Salesforce Services extension is activating!');
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
       yield* fileSystemSetup(context);
+      yield* Effect.forkIn(watchSettingsService(), yield* getExtensionScope());
     }
 
     // watch the config files for changes, which various serices use to invalidate caches
-    yield* Effect.forkIn(
-      watchConfigFiles().pipe(Effect.provide(FileWatcherService.Default)),
-      yield* getExtensionScope()
-    );
+    yield* Effect.forkIn(watchConfigFiles(), yield* getExtensionScope());
 
     // watch default org changes to update VS Code context variables
     yield* Effect.forkIn(watchDefaultOrgContext(), yield* getExtensionScope());
@@ -98,7 +107,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     SettingsService.Default,
     IndexedDBStorageServiceShared,
     SdkLayer,
-    ChannelService.Default
+    ChannelService.Default,
+    ConnectionService.Default,
+    ConfigService.Default,
+    FileWatcherService.Default
   );
   await Effect.runPromise(
     Effect.provide(

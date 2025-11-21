@@ -11,16 +11,17 @@ import {
   setupNetworkMonitoring,
   filterErrors,
   filterNetworkErrors,
-  waitForVSCodeWorkbench
-} from '../utils/helpers';
+  waitForVSCodeWorkbench,
+  create,
+  upsertScratchOrgAuthFieldsToSettings
+} from 'salesforcedx-vscode-playwright';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
-import { create } from '../utils/dreamhouseScratchOrgSetup';
-import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 
 test.describe('Org Browser headless smoke', () => {
   test.beforeEach(async ({ page }) => {
     const createResult = await create();
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    const orgBrowserPage = new OrgBrowserPage(page);
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
   });
 
   test('loads VS Code web and opens Org Browser activity', async ({ page }) => {

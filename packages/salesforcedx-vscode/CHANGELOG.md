@@ -1,25 +1,33 @@
-# 65.4.0 - November 12, 2025
+# 65.5.0 - November 19, 2025
 
 ## Added
 
-#### salesforcedx-utils
+#### salesforcedx-utils-vscode
 
-#### salesforcedx-vscode-apex
+#### salesforcedx-vscode-apex-oas
 
-- We added the `Test-run-concise` setting, defaulting to false. Enabling this skips over successful test results, and only displays failures, using the `--concise` flag in the CLI. Thank you [Kyle Capehart](https://github.com/k-capehart) for your contribution. ([PR #6636](https://github.com/forcedotcom/salesforcedx-vscode/pull/6636))
+- OpenAPI (OAS) documents now adjust behavior based on the org’s API version:
 
-#### salesforcedx-vscode-core
+**Operations active Flag**
 
-- In preparation for making our extensions web-compatible, we moved the org/auth related commands from the CLI Integration extension to a new **Salesforce Org Management** extension. This new extension is included in the Salesforce Extension Pack and Salesforce Extension Pack Expanded, so there is no functionality change. ([PR #6612](https://github.com/forcedotcom/salesforcedx-vscode/pull/6612))
+**API < 66.0**: active: true (same as today)
+
+**API ≥ 66.0**: active: false (new GA behavior)
+
+**Beta Info (x-betaInfo)**
+
+**API < 66.0**: Included, indicating the feature is in beta
+
+**API ≥ 66.0**: Removed, reflecting GA status
+
+This ensures OAS documents behave correctly for both pre-GA (earlier versions) and GA (66.0+) orgs. ([PR #6645](https://github.com/forcedotcom/salesforcedx-vscode/pull/6645))
+
 
 ## Fixed
 
-#### docs
+#### salesforcedx-vscode-apex
 
-- We added documentation to help teams new to Salesforce extension development get started. ([PR #6634](https://github.com/forcedotcom/salesforcedx-vscode/pull/6634))
+#### salesforcedx-vscode-apex-replay-debugger
 
-#### salesforcedx-apex-debugger
+- `skipCodeCoverage` is now passed using your `retrieve-test-code-coverage` setting. If set to `True`, coverage is skipped for faster test runs. ([PR #6650](https://github.com/forcedotcom/salesforcedx-vscode/pull/6650))
 
-#### salesforcedx-vscode-apex-debugger
-
-- We fixed a bug where the Apex Interactive Debugger was producing the error `Error: No username provided and no default username found in project config or state.` when attempting to start a debugging session. Thank you [sf-blilley](https://github.com/sf-blilley) for filing this issue. ([PR #6633](https://github.com/forcedotcom/salesforcedx-vscode/pull/6633), [ISSUE #6558](https://github.com/forcedotcom/salesforcedx-vscode/issues/6558))
