@@ -328,7 +328,8 @@ export class TestService {
     immediatelyReturn = false,
     progress?: Progress<ApexTestProgressValue>,
     token?: CancellationToken,
-    timeout?: Duration
+    timeout?: Duration,
+    interval?: Duration
   ): Promise<TestResult | TestRunIdResult> {
     HeapMonitor.getInstance().startMonitoring();
     try {
@@ -338,7 +339,8 @@ export class TestService {
         immediatelyReturn,
         progress,
         token,
-        timeout
+        timeout,
+        interval
       );
     } finally {
       HeapMonitor.getInstance().stopMonitoring();
