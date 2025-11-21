@@ -23,6 +23,7 @@ jobs:
 
   scrape-all-metadata-pages:
     name: Scrape All Metadata Pages
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - run: npm run scrape:all:pages
