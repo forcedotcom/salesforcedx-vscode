@@ -115,7 +115,7 @@ describe('Tag', () => {
 
         describe('#allLocations', () => {
             it('returns multiple files if present', () => {
-                const allLocations = getAllLocations(tag!);
+                const allLocations = getAllLocations(tag!, sfdxFileSystemProvider);
                 expect(allLocations.length).toEqual(3);
             });
         });

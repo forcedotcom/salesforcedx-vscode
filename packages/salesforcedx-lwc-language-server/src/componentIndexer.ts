@@ -15,7 +15,7 @@ import {
   unixify
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { snakeCase, camelCase } from 'change-case';
-import { Entry, sync } from 'fast-glob';
+import globToRegExp from 'glob-to-regexp';
 import * as path from 'node:path';
 /** Normalizes paths for glob patterns by converting backslashes to forward slashes and normalizing */
 const normalize = (p: string): string => path.posix.normalize(p.replace(/\\/g, '/'));
@@ -35,11 +35,82 @@ type ComponentIndexerAttributes = {
 const AURA_DELIMITER = ':';
 const LWC_DELIMITER = '-';
 
+// Entry type matching fast-glob's Entry interface
+export type Entry = {
+  path: string;
+  stats?: {
+    mtime: Date;
+  };
+  dirent?: unknown; // Optional dirent for test compatibility
+  name?: string; // Optional name for test compatibility
+};
+
 const tagEqualsFile = (tag: Tag, entry: Entry): boolean =>
   tag.file === entry.path && tag.updatedAt?.getTime() === entry.stats?.mtime.getTime();
 
 export const unIndexedFiles = (entries: Entry[], tags: Tag[]): Entry[] =>
   entries.filter(entry => !tags.some(tag => tagEqualsFile(tag, entry)));
+
+/**
+ * Expands brace patterns like {a,b} into multiple patterns
+ */
+const expandBraces = (pattern: string): string[] => {
+  const braceMatch = pattern.match(/\{([^}]+)\}/);
+  if (!braceMatch) {
+    return [pattern];
+  }
+
+  const [fullMatch, alternatives] = braceMatch;
+  const options = alternatives.split(',').map((opt: string) => opt.trim());
+  const results: string[] = [];
+
+  for (const option of options) {
+    const expanded = pattern.replace(fullMatch, option);
+    // Recursively expand any remaining braces
+    results.push(...expandBraces(expanded));
+  }
+
+  return results;
+};
+
+/**
+ * Traverses directories using FileSystemDataProvider and matches files against a glob pattern
+ * This replaces fast-glob for web compatibility
+ */
+const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvider, basePath: string): Entry[] => {
+  const results: Entry[] = [];
+  const normalizedBasePath = unixify(basePath);
+
+  // Expand brace patterns like {force-app,utils} into multiple patterns
+  const patterns = expandBraces(pattern);
+  const regexes = patterns.map(p => globToRegExp(p, { globstar: true, extended: true }));
+
+  // Use getAllFileUris as a reliable source of all files in the provider
+  // This ensures we don't miss files even if directory listings are incomplete
+  const allFileUris = fileSystemProvider.getAllFileUris();
+
+  for (const fileUri of allFileUris) {
+    const normalizedFileUri = unixify(fileUri);
+    const relativePath = path.posix.relative(normalizedBasePath, normalizedFileUri);
+
+    // Check if file matches any of the patterns
+    const matches = regexes.some(regex => regex.test(relativePath) ?? regex.test(normalizedFileUri));
+
+    if (matches) {
+      const fileStat = fileSystemProvider.getFileStat(normalizedFileUri);
+      results.push({
+        path: normalizedFileUri,
+        stats: fileStat
+          ? {
+              mtime: new Date(fileStat.mtime)
+            }
+          : undefined
+      });
+    }
+  }
+
+  return results;
+};
 
 export default class ComponentIndexer {
   public readonly workspaceRoot: string;
@@ -64,12 +135,11 @@ export default class ComponentIndexer {
       case 'SFDX':
         // Normalize workspaceRoot for cross-platform compatibility (Windows uses backslashes)
         const normalizedWorkspaceRoot = unixify(this.workspaceRoot);
-        const sfdxSource = normalize(
-          `${normalizedWorkspaceRoot}/${await this.getSfdxPackageDirsPattern()}/**/*/lwc/**/*.js`
-        );
-        files = sync(sfdxSource, {
-          stats: true
-        });
+        const packageDirsPattern = await this.getSfdxPackageDirsPattern();
+        // Pattern matches: {packageDir}/**/*/lwc/**/*.js
+        // The **/* before lwc requires at least one directory level (e.g., main/default/lwc or meta/lwc)
+        const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.js`;
+        files = await findFilesWithGlob(sfdxPattern, this.fileSystemProvider, normalizedWorkspaceRoot);
         return files.filter((item: Entry): boolean => {
           const data = path.parse(item.path);
           return data.dir.endsWith(data.name);
@@ -78,10 +148,8 @@ export default class ComponentIndexer {
         // For CORE_ALL and CORE_PARTIAL
         // Normalize workspaceRoot for cross-platform compatibility (Windows uses backslashes)
         const normalizedWorkspaceRootDefault = unixify(this.workspaceRoot);
-        const defaultSource = normalize(`${normalizedWorkspaceRootDefault}/**/*/modules/**/*.js`);
-        files = sync(defaultSource, {
-          stats: true
-        });
+        const defaultPattern = '**/*/modules/**/*.js';
+        files = await findFilesWithGlob(defaultPattern, this.fileSystemProvider, normalizedWorkspaceRootDefault);
         return files.filter((item: Entry): boolean => {
           const data = path.parse(item.path);
           return data.dir.endsWith(data.name);
@@ -210,12 +278,10 @@ export default class ComponentIndexer {
     if (this.workspaceType === 'SFDX') {
       // Normalize workspaceRoot for cross-platform compatibility (Windows uses backslashes)
       const normalizedWorkspaceRoot = unixify(this.workspaceRoot);
-      const sfdxSource = normalize(
-        `${normalizedWorkspaceRoot}/${await this.getSfdxPackageDirsPattern()}/**/*/lwc/*/*.{js,ts}`
-      );
-      const filePaths = sync(sfdxSource, {
-        stats: true
-      });
+      const packageDirsPattern = await this.getSfdxPackageDirsPattern();
+      // Use **/* after lwc to match any depth (e.g., utils/meta/lwc/todo_util/todo_util.js)
+      const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.{js,ts}`;
+      const filePaths = await findFilesWithGlob(sfdxPattern, this.fileSystemProvider, normalizedWorkspaceRoot);
       for (const filePath of filePaths) {
         const { dir, name: fileName } = path.parse(filePath.path);
         const folderName = path.basename(dir);

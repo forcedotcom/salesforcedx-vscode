@@ -13,6 +13,7 @@ module.exports = {
   },
   moduleNameMapper: {
     '^vscode$': '<rootDir>/../../config/__mocks__/vscode.js',
+    '^tiny-jsonc$': '<rootDir>/../salesforcedx-lightning-lsp-common/__mocks__/tiny-jsonc.js',
     '^@salesforce/salesforcedx-lightning-lsp-common/testUtils$':
       '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/__tests__/testUtils',
     '^@salesforce/salesforcedx-lightning-lsp-common/providers/fileSystemDataProvider$':
