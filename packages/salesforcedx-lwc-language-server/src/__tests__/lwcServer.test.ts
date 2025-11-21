@@ -17,16 +17,25 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
     ...actual,
     readJsonSync: jest.fn(async (file: string, fileSystemProvider: any) => {
       try {
-        // Match the real implementation: use the file path as-is (no normalization)
-        // The real readJsonSync uses `${file}` directly, and getFileContent normalizes internally
-        // This ensures cross-platform compatibility (Windows paths are normalized by getFileContent)
-        // Try the path as-is first, then try normalized version for Windows compatibility
-        let content = fileSystemProvider.getFileContent(`${file}`);
+        // CRITICAL FIX for Windows: The componentIndexer stores files using normalizedPath = unixify(normalize(path)),
+        // but calls readJsonSync with sfdxTsConfigPath = normalize(path). On Windows, these can differ.
+        // We must match the exact path format used when storing the file.
+        // componentIndexer line 217-218:
+        //   sfdxTsConfigPath = normalize(path)  // e.g., "C:/path/to/file" on Windows
+        //   normalizedPath = unixify(sfdxTsConfigPath)  // e.g., "C:/path/to/file" (same if no backslashes)
+        // The file is stored/checked using normalizedPath, so we need to use the same transformation.
+        // Match componentIndexer's exact transformation: unixify(normalize(path))
+        const normalized = path.posix.normalize(file.replace(/\\/g, '/'));
+        const unixifiedNormalized = actual.unixify(normalized);
+        // Try the exact path format used for storage first
+        let content = fileSystemProvider.getFileContent(unixifiedNormalized);
+        // Fallback: try the path as-is (getFileContent normalizes internally)
+        content ??= fileSystemProvider.getFileContent(`${file}`);
+        // Another fallback: try just unixify (in case normalize didn't change anything)
         if (!content) {
-          // On Windows, paths might need normalization - try unixify version
-          const normalizedFile = actual.unixify(file);
-          if (normalizedFile !== file) {
-            content = fileSystemProvider.getFileContent(normalizedFile);
+          const unixified = actual.unixify(file);
+          if (unixified !== file && unixified !== unixifiedNormalized) {
+            content = fileSystemProvider.getFileContent(unixified);
           }
         }
         if (!content) {
