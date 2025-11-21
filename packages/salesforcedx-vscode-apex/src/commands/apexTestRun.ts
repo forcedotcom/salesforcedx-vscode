@@ -34,6 +34,7 @@ import { APEX_CLASS_EXT, APEX_TESTSUITE_EXT } from '../constants';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
+import { getTelemetryService } from '../telemetry/telemetry';
 import { getTestInfo } from './readTestFile';
 
 export enum TestType {
@@ -112,6 +113,8 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
     }>,
     token?: CancellationToken
   ): Promise<boolean> {
+    const telemetry = getTelemetryService();
+    const startTime = Date.now();
     const vscodeCoreExtension = await getVscodeCoreExtension();
     const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const testService = new TestService(connection);
@@ -151,6 +154,18 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
     );
     const humanOutput = new HumanReporter().format(result, codeCoverage, concise);
     channelService.appendLine(humanOutput);
+    const durationMs = Date.now() - startTime;
+    const summary = result.summary;
+    telemetry.sendEventData(
+      'apexTestRun',
+      { trigger: 'quickPick' },
+      {
+        durationMs,
+        testsRan: Number(summary?.testsRan ?? 0),
+        testsPassed: Number(summary?.passing ?? 0),
+        testsFailed: Number(summary?.failing ?? 0)
+      }
+    );
     return true;
   }
 }
