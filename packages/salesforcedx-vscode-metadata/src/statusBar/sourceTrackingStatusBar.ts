@@ -84,7 +84,6 @@ const refresh = (statusBarItem: vscode.StatusBarItem): Effect.Effect<void, never
 
     yield* Effect.promise(() => tracking.reReadLocalTrackingCache());
     const status = yield* Effect.tryPromise(() => tracking.getStatus({ local: true, remote: true }));
-    console.log('status from stl', JSON.stringify(status, null, 2));
     updateDisplay(statusBarItem)(dedupeStatus(status));
   }).pipe(
     Effect.provide(AllServicesLayer),

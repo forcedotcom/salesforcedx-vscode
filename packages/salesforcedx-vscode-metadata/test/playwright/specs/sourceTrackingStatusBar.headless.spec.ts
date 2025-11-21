@@ -61,12 +61,16 @@ test.describe('Source Tracking Status Bar', () => {
 
       await executeCommandWithCommandPalette(page, 'BETA: Create Apex Class');
 
-      // Prompt: "Enter Apex class name"
+      // First prompt: "Enter Apex class name"
       await page
         .locator('.quick-input-widget')
         .getByText(/Enter Apex class name/i)
         .waitFor({ state: 'visible', timeout: 5000 });
       await page.keyboard.type(className);
+      await page.keyboard.press('Enter');
+
+      // Second prompt: Quick Pick to select output directory - just press Enter to accept default
+      await page.locator('.quick-input-list .monaco-list-row').first().waitFor({ state: 'visible', timeout: 5000 });
       await page.keyboard.press('Enter');
 
       // Wait for the editor to open with the new class

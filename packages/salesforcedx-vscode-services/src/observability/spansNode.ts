@@ -18,7 +18,7 @@ export const NodeSdkLayer = NodeSdk.layer(() => ({
   resource: {
     serviceName: 'salesforcedx-vscode-services',
     //manually bump this to cause rebuilds/bust cache
-    serviceVersion: '2025-11-14T12:36:30.000Z',
+    serviceVersion: '2025-11-21T12:36:30.004Z',
     attributes: {}
   },
   spanProcessor: [

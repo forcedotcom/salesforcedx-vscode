@@ -192,7 +192,6 @@ const commandEffect = (params?: CreateApexClassParams): Effect.Effect<void, neve
 
     // Create files
     yield* createFiles(className, outputDir, apiVersion);
-    void vscode.window.showInformationMessage(nls.localize('apex_generate_class_success'));
   }).pipe(
     Effect.withSpan('createApexClassCommand'),
     Effect.provide(AllServicesLayer),

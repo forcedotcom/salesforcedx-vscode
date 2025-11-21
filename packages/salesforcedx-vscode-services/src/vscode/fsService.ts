@@ -22,23 +22,18 @@ import { ChannelService } from '../vscode/channelService';
 export const toUri = (filePath: string | vscode.Uri): vscode.Uri => {
   // If it's already a URI object, return it
   if (typeof filePath !== 'string') {
-    console.log('[toUri] input is URI object:', filePath.toString());
     return filePath;
   }
-
-  console.log('[toUri] input string:', filePath);
 
   // Check if it's already a URI string (has scheme:/path format)
   // Must have colon followed by slash, but not be a Windows drive letter (single letter + colon)
   if (/^[a-z][\w+.-]*:/i.test(filePath) && !/^[a-z]:/i.test(filePath)) {
     const parsed = URI.parse(filePath);
-    console.log('[toUri] parsed as URI scheme:', parsed.scheme, 'path:', parsed.path, 'toString:', parsed.toString());
     return parsed;
   }
 
   // Otherwise treat as file path (including Windows paths like C:\)
   const fileUri = URI.file(filePath);
-  console.log('[toUri] converted to file URI:', fileUri.toString());
   return fileUri;
 };
 

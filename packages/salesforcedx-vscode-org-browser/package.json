@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.3",
-    "@salesforce/source-deploy-retrieve": "^12.25.0",
+    "@salesforce/source-deploy-retrieve": "^12.29.0",
     "esbuild": "0.25.0",
     "nyc": "^15",
     "salesforcedx-vscode-playwright": "65.5.0",
