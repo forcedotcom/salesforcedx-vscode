@@ -4,43 +4,32 @@ on:
   workflow_dispatch:
 
 jobs:
-  setup:
-    name: Setup
+  generate-xsd:
+    name: Generate XSD
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          path: ./salesforcedx-vscode
           ref: ${{ github.event.ref }}
+
       - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
           cache: npm
-          cache-dependency-path: |
-            salesforcedx-vscode/package-lock.json
 
-  scrape-all-metadata-pages:
-    name: Scrape All Metadata Pages
-    needs: setup
-    runs-on: ubuntu-latest
-    steps:
-      - run: npm run scrape:all:pages
+      - name: Install dependencies
+        run: npm ci
 
-  json-to-xsd:
-    name: Convert JSON to XSD
-    needs: scrape-all-metadata-pages
-    runs-on: ubuntu-latest
-    steps:
-      - run: node scripts/jsonToXsdConverter.ts
+      - name: Scrape all metadata pages
+        run: npm run scrape:all:pages
 
-  upload-xsd:
-    name: Upload XSD
-    needs: json-to-xsd
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/upload-artifact@v4
+      - name: Convert JSON to XSD
+        run: npx ts-node scripts/jsonToXsdConverter.ts
+
+      - name: Upload XSD artifact
+        uses: actions/upload-artifact@v4
         with:
           name: salesforce_metadata_api_common.xsd
           path: packages/salesforcedx-vscode-core/resources/salesforce_metadata_api_common.xsd
