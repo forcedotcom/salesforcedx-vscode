@@ -17,29 +17,20 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
     ...actual,
     readJsonSync: jest.fn(async (file: string, fileSystemProvider: any) => {
       try {
-        // CRITICAL FIX for Windows: The componentIndexer stores files using normalizedPath = unixify(normalize(path)),
-        // but calls readJsonSync with sfdxTsConfigPath = normalize(path). On Windows, these can differ.
-        // We must match the exact path format used when storing the file.
-        // componentIndexer line 217-218:
-        //   sfdxTsConfigPath = normalize(path)  // e.g., "C:/path/to/file" on Windows
-        //   normalizedPath = unixify(sfdxTsConfigPath)  // e.g., "C:/path/to/file" (same if no backslashes)
-        // The file is stored/checked using normalizedPath, so we need to use the same transformation.
-        // Match componentIndexer's exact transformation: unixify(normalize(path))
-        const normalized = path.posix.normalize(file.replace(/\\/g, '/'));
-        const unixifiedNormalized = actual.unixify(normalized);
-        // Try the exact path format used for storage first
-        let content = fileSystemProvider.getFileContent(unixifiedNormalized);
-        // Fallback: try the path as-is (getFileContent normalizes internally)
-        content ??= fileSystemProvider.getFileContent(`${file}`);
-        // Another fallback: try just unixify (in case normalize didn't change anything)
+        // Try fileSystemProvider first (for test isolation), then fall back to actual file system
+        // This is acceptable in test files and ensures cross-platform compatibility
+        let content = fileSystemProvider.getFileContent(`${file}`);
         if (!content) {
-          const unixified = actual.unixify(file);
-          if (unixified !== file && unixified !== unixifiedNormalized) {
-            content = fileSystemProvider.getFileContent(unixified);
+          // Fallback to actual file system if not in mock provider
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const fs = require('node:fs');
+          try {
+            console.log(`Reading file ${file} from actual file system`);
+            content = fs.readFileSync(file, 'utf8');
+          } catch (e) {
+            console.log(`Error reading file ${file} from actual file system:`, e);
+            return {};
           }
-        }
-        if (!content) {
-          return {};
         }
         // Simple JSONC parser that strips comments and trailing commas (same as tiny-jsonc mock)
         let cleaned = content;
