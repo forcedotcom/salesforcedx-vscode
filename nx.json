@@ -19,7 +19,7 @@
     "lint": {
       "cache": true,
       "dependsOn": [
-        "^lint"
+        "^compile"
       ],
       "inputs": [
         "{workspaceRoot}/eslint.config.mjs"
@@ -28,7 +28,7 @@
     "test": {
       "cache": true,
       "dependsOn": [
-        "^test"
+        "^compile"
       ],
       "outputs": [
         "{projectRoot}/coverage"
