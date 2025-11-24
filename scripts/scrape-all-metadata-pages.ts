@@ -475,7 +475,7 @@ const discoverMetadataTypes = async (page: Page): Promise<Array<{ name: string; 
         const baseUrl = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/';
         allTextNodes.forEach(text => {
           // Convert CamelCase type name to lowercase URL format
-          const urlName = text.replace(/([A-Z])/g, (match, p1, offset) =>
+          const urlName = text.replace(/([A-Z])/g, (match, offset) =>
             offset > 0 ? match.toLowerCase() : match.toLowerCase()
           );
           const possibleUrl = `${baseUrl}meta_${urlName}.htm`;
