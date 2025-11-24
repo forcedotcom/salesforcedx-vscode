@@ -29,7 +29,9 @@ export const messages = {
   apex_class_output_dir_prompt: 'Select output directory',
   apex_class_already_exists: 'One or more files already exist. Do you want to overwrite them?',
   apex_generate_class_success: 'Apex class created successfully',
-  apex_generate_class_cancelled: 'Apex class creation cancelled'
+  apex_generate_class_cancelled: 'Apex class creation cancelled',
+  deploy_no_local_changes_message: 'No local changes to deploy',
+  deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.'
 } as const;
 
 export type MessageKey = keyof typeof messages;

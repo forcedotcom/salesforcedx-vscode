@@ -7,50 +7,52 @@
 
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
+import { nls } from '../../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../../services/extensionProvider';
 import { COMPONENT_STATUS_FAILED } from './constants';
 import { formatDeployOutput } from './formatDeployOutput';
 
 /** Deploy local changes to the default org */
 export const projectDeployStart = async (ignoreConflicts = false): Promise<void> =>
-  Effect.runPromise(
-    Effect.gen(function* () {
-      yield* Effect.annotateCurrentSpan({ ignoreConflicts });
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const channelService = yield* api.services.ChannelService;
-      const deployService = yield* api.services.MetadataDeployService;
+  Effect.runPromise(projectDeployStartEffect(ignoreConflicts).pipe(Effect.provide(AllServicesLayer)));
 
-      // Get ComponentSet of local changes
-      const componentSet = yield* deployService.getComponentSetForDeploy({ ignoreConflicts });
+const projectDeployStartEffect = Effect.fn('projectDeployStart')(function* (ignoreConflicts: boolean) {
+  yield* Effect.annotateCurrentSpan({ ignoreConflicts });
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const channelService = yield* api.services.ChannelService;
+  const deployService = yield* api.services.MetadataDeployService;
 
-      if (componentSet.size === 0) {
-        yield* Effect.all(
-          [
-            channelService.appendToChannel('No local changes to deploy'),
-            Effect.promise(() => vscode.window.showInformationMessage('No local changes to deploy'))
-          ],
-          { concurrency: 'unbounded' }
-        );
-        return;
-      }
+  // Get ComponentSet of local changes
+  const componentSet = yield* deployService.getComponentSetForDeploy({ ignoreConflicts });
 
-      yield* channelService.appendToChannel(
-        `Deploying ${componentSet.size} component${componentSet.size === 1 ? '' : 's'}...`
-      );
+  if (componentSet.size === 0) {
+    const noChangesMessage = nls.localize('deploy_no_local_changes_message');
+    yield* Effect.all(
+      [
+        channelService.appendToChannel(noChangesMessage),
+        Effect.promise(() => vscode.window.showInformationMessage(noChangesMessage))
+      ],
+      { concurrency: 'unbounded' }
+    );
+    return;
+  }
 
-      // Deploy the components
-      const result = yield* deployService.deploy(componentSet);
-
-      // Handle cancellation
-      if (typeof result === 'string') {
-        yield* channelService.appendToChannel('Deploy cancelled by user');
-        return;
-      }
-
-      yield* channelService.appendToChannel(formatDeployOutput(result));
-
-      if (result.getFileResponses().some(r => String(r.state) === COMPONENT_STATUS_FAILED)) {
-        void vscode.window.showErrorMessage('Deploy completed with errors. Check output for details.');
-      }
-    }).pipe(Effect.withSpan('projectDeployStart'), Effect.provide(AllServicesLayer))
+  yield* channelService.appendToChannel(
+    `Deploying ${componentSet.size} component${componentSet.size === 1 ? '' : 's'}...`
   );
+
+  // Deploy the components
+  const result = yield* deployService.deploy(componentSet);
+
+  // Handle cancellation
+  if (typeof result === 'string') {
+    yield* channelService.appendToChannel('Deploy cancelled by user');
+    return;
+  }
+
+  yield* channelService.appendToChannel(formatDeployOutput(result));
+
+  if (result.getFileResponses().some(r => String(r.state) === COMPONENT_STATUS_FAILED)) {
+    void vscode.window.showErrorMessage(nls.localize('deploy_completed_with_errors_message'));
+  }
+});

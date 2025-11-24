@@ -19,41 +19,36 @@ import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusB
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
-  await Effect.runPromise(Effect.provide(activateEffect(context), AllServicesLayer).pipe(Scope.extend(extensionScope)));
+  await Effect.runPromise(activateEffect(context).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope)));
 };
 
 export const deactivate = async (): Promise<void> =>
-  Effect.runPromise(Effect.provide(deactivateEffect, AllServicesLayer));
+  Effect.runPromise(deactivateEffect().pipe(Effect.provide(AllServicesLayer)));
 
 /** Activate the metadata extension */
-export const activateEffect = (
-  context: vscode.ExtensionContext
-): Effect.Effect<void, Error, ExtensionProviderService | Scope.Scope> =>
-  Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const svc = yield* api.services.ChannelService;
-    yield* svc.appendToChannel('Salesforce Metadata extension activating');
+export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const svc = yield* api.services.ChannelService;
+  yield* svc.appendToChannel('Salesforce Metadata extension activating');
 
-    // Register commands
-    context.subscriptions.push(
-      vscode.commands.registerCommand('sf.metadata.deploy.start', async () => projectDeployStart(false)),
-      vscode.commands.registerCommand('sf.metadata.deploy.start.ignore.conflicts', async () =>
-        projectDeployStart(true)
-      ),
-      vscode.commands.registerCommand('sf.metadata.retrieve.start', projectRetrieveStart),
-      vscode.commands.registerCommand('sf.metadata.source.tracking.details', showSourceTrackingDetails),
-      vscode.commands.registerCommand('sf.metadata.apex.generate.class', createApexClass)
-    );
+  // Register commands
+  context.subscriptions.push(
+    vscode.commands.registerCommand('sf.metadata.deploy.start', async () => projectDeployStart(false)),
+    vscode.commands.registerCommand('sf.metadata.deploy.start.ignore.conflicts', async () => projectDeployStart(true)),
+    vscode.commands.registerCommand('sf.metadata.retrieve.start', projectRetrieveStart),
+    vscode.commands.registerCommand('sf.metadata.source.tracking.details', showSourceTrackingDetails),
+    vscode.commands.registerCommand('sf.metadata.apex.generate.class', createApexClass)
+  );
 
-    // Register source tracking status bar
-    yield* Effect.forkIn(createSourceTrackingStatusBar(), yield* getExtensionScope());
+  // Register source tracking status bar
+  yield* Effect.forkIn(createSourceTrackingStatusBar(), yield* getExtensionScope());
 
-    yield* svc.appendToChannel('Salesforce Metadata activation complete.');
-  }).pipe(Effect.withSpan(`activation:${EXTENSION_NAME}`), Effect.provide(AllServicesLayer));
+  yield* svc.appendToChannel('Salesforce Metadata activation complete.');
+});
 
-export const deactivateEffect = Effect.gen(function* () {
+export const deactivateEffect = Effect.fn(`deactivation:${EXTENSION_NAME}`)(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* closeExtensionScope();
   yield* svc.appendToChannel('Salesforce Metadata extension is now deactivated!');
-}).pipe(Effect.withSpan(`deactivation:${EXTENSION_NAME}`), Effect.provide(AllServicesLayer));
+});
