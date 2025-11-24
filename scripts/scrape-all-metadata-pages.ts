@@ -514,51 +514,12 @@ const discoverMetadataTypes = async (page: Page): Promise<Array<{ name: string; 
     console.log('═'.repeat(80));
     console.log(`Total: ${finalList.length} metadata types\n`);
 
-    return finalList.length > 0 ? finalList : getFallbackMetadataTypes();
+    return finalList.length > 0 ? finalList : [];
   } catch (error) {
     console.error(`   ❌ Discovery failed:`, error);
     console.log(`   📋 Using fallback list...\n`);
-    return getFallbackMetadataTypes();
+    return [];
   }
-};
-
-/**
- * Fallback list of known metadata types (subset for testing)
- */
-const getFallbackMetadataTypes = (): Array<{ name: string; url: string }> => {
-  const baseUrl = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/';
-
-  return [
-    { name: 'AIApplication', url: `${baseUrl}meta_aiapplication.htm` },
-    { name: 'ApexClass', url: `${baseUrl}meta_classes.htm` },
-    { name: 'ApexComponent', url: `${baseUrl}meta_apexcomponent.htm` },
-    { name: 'ApexPage', url: `${baseUrl}meta_apexpage.htm` },
-    { name: 'ApexTrigger', url: `${baseUrl}meta_apextrigger.htm` },
-    { name: 'ApprovalProcess', url: `${baseUrl}meta_approvalprocess.htm` },
-    { name: 'AssignmentRules', url: `${baseUrl}meta_assignmentrules.htm` },
-    { name: 'AuraDefinitionBundle', url: `${baseUrl}meta_auradefinitionbundle.htm` },
-    { name: 'AuthProvider', url: `${baseUrl}meta_authprovider.htm` },
-    { name: 'AutoResponseRules', url: `${baseUrl}meta_autoresponserules.htm` },
-    { name: 'CustomApplication', url: `${baseUrl}meta_customapplication.htm` },
-    { name: 'CustomField', url: `${baseUrl}customfield.htm` },
-    { name: 'CustomLabel', url: `${baseUrl}meta_customlabels.htm` },
-    { name: 'CustomMetadata', url: `${baseUrl}meta_custommetadata.htm` },
-    { name: 'CustomObject', url: `${baseUrl}customobject.htm` },
-    { name: 'CustomTab', url: `${baseUrl}meta_customtab.htm` },
-    { name: 'Dashboard', url: `${baseUrl}meta_dashboard.htm` },
-    { name: 'EmailTemplate', url: `${baseUrl}meta_email.htm` },
-    { name: 'Flow', url: `${baseUrl}meta_visual_workflow.htm` },
-    { name: 'FlowDefinition', url: `${baseUrl}meta_flowdefinition.htm` },
-    { name: 'Layout', url: `${baseUrl}meta_layout.htm` },
-    { name: 'LightningComponentBundle', url: `${baseUrl}meta_lightningcomponentbundle.htm` },
-    { name: 'PermissionSet', url: `${baseUrl}meta_permissionset.htm` },
-    { name: 'Profile', url: `${baseUrl}meta_profile.htm` },
-    { name: 'QuickAction', url: `${baseUrl}meta_quickaction.htm` },
-    { name: 'Report', url: `${baseUrl}meta_report.htm` },
-    { name: 'StaticResource', url: `${baseUrl}meta_staticresources.htm` },
-    { name: 'ValidationRule', url: `${baseUrl}meta_validationrule.htm` },
-    { name: 'Workflow', url: `${baseUrl}meta_workflow.htm` }
-  ];
 };
 
 /**
