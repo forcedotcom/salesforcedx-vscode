@@ -152,7 +152,7 @@ const discoverMetadataTypes = async (page: Page): Promise<Array<{ name: string; 
 
     // Try to find the content frame
     const urlParts = MAIN_PAGE_URL.split('/');
-    const expectedPage = urlParts[urlParts.length - 1];
+    const expectedPage = urlParts.at(-1)!;
     let contentFrame = frames.find(f => f.url().includes(expectedPage)) || page.mainFrame();
 
     console.log(`   Using frame: ${contentFrame.url()}`);
@@ -465,7 +465,7 @@ const discoverMetadataTypes = async (page: Page): Promise<Array<{ name: string; 
           const cells = table.querySelectorAll('td, th');
           cells.forEach(cell => {
             const text = cell.textContent?.trim();
-            if (text && text.length > 0 && text.length < 100) {
+            if (text?.length > 0 && text?.length < 100) {
               allTextNodes.push(text);
             }
           });
