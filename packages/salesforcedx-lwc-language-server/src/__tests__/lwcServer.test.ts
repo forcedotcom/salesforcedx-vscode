@@ -10,8 +10,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
 // Mock readJsonSync from the common package to avoid dynamic import issues with tiny-jsonc
-// This is simpler than trying to mock tiny-jsonc itself, which has issues with dynamic imports
-// Since updateConfigFile writes to fileSystemProvider (not disk), we read from the provider
+// jest.mock() doesn't intercept dynamic imports, so we need to mock readJsonSync directly
 jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
   const actual = jest.requireActual('@salesforce/salesforcedx-lightning-lsp-common');
 
@@ -19,46 +18,7 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
     ...actual,
     readJsonSync: jest.fn(async (file: string, fileSystemProvider: any) => {
       try {
-        // Normalize the path using unixify to match how FileSystemDataProvider stores files
-        // This ensures cross-platform compatibility (Windows uses backslashes, Unix uses forward slashes)
-        // Note: FileSystemDataProvider.getFileContent() also normalizes internally, but normalizing
-        // here ensures consistency regardless of the input path format
-        // Use unixify from the actual module (not the mocked one) - it's imported at the top of the file
-        const { unixify: unixifyFn } = actual;
-        const normalizedFile = unixifyFn(file);
-
-        // Log for debugging Windows path issues
-        console.error('[lwcServer.test.ts] readJsonSync - original file path:', file);
-        console.error('[lwcServer.test.ts] readJsonSync - normalized file path:', normalizedFile);
-
-        // Log what files are in the provider for debugging
-        if (fileSystemProvider?.getAllFileUris) {
-          const allFiles = fileSystemProvider.getAllFileUris();
-          console.error('[lwcServer.test.ts] readJsonSync - total files in provider:', allFiles.length);
-          const matchingFiles = allFiles.filter((f: string) => f.includes('tsconfig') || f.includes('.sfdx'));
-          console.error('[lwcServer.test.ts] readJsonSync - tsconfig-related files in provider (first 10):');
-          matchingFiles.slice(0, 10).forEach((f: string) => {
-            console.error(`  - ${f}`);
-          });
-
-          // Check if normalized path matches any file in provider
-          const exactMatch = allFiles.find((f: string) => f === normalizedFile);
-          const containsMatch = allFiles.filter((f: string) => f.includes('tsconfig.sfdx.json'));
-          console.error('[lwcServer.test.ts] readJsonSync - exact match found:', !!exactMatch);
-          if (containsMatch.length > 0) {
-            console.error('[lwcServer.test.ts] readJsonSync - files containing tsconfig.sfdx.json:');
-            containsMatch.forEach((f: string) => {
-              console.error(`  - ${f} (matches: ${f === normalizedFile})`);
-            });
-          }
-        }
-
-        const content = fileSystemProvider?.getFileContent?.(normalizedFile);
-        console.error(
-          '[lwcServer.test.ts] readJsonSync - content found:',
-          !!content,
-          content ? `(${content.length} chars)` : 'NOT FOUND'
-        );
+        const content = fileSystemProvider?.getFileContent?.(file);
         if (!content) {
           return {};
         }
@@ -73,12 +33,10 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
         cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
         try {
           return JSON.parse(cleaned);
-        } catch (e) {
-          console.error(`Error parsing JSON from ${file}:`, e);
+        } catch {
           return {};
         }
-      } catch (err) {
-        console.error(`Error reading jsconfig ${file}`, err);
+      } catch {
         return {};
       }
     })
