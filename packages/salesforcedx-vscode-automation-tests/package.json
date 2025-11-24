@@ -1,6 +1,6 @@
 {
   "name": "salesforcedx-vscode-automation-tests",
-  "version": "65.4.0",
+  "version": "65.6.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -14,7 +14,7 @@
     "@salesforce/salesforcedx-vscode-test-tools": "1.2.3",
     "@types/chai": "^4.3.17",
     "@types/mocha": "^10.0.9",
-    "@typescript-eslint/eslint-plugin": "^8.42.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.4",
     "chai": "^4.5.0",
     "husky": "9.1.6",
     "mocha": "^10.8.2",

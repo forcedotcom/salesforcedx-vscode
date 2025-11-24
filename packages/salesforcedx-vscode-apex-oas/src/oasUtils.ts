@@ -183,7 +183,7 @@ const PROMPT_TEMPLATES = {
   METHOD_BY_METHOD: path.join('resources', 'templates', 'methodByMethod.ejs')
 };
 
-export type ejsTemplateKey = keyof typeof PROMPT_TEMPLATES;
+export type EjsTemplateKey = keyof typeof PROMPT_TEMPLATES;
 
 export enum EjsTemplatesEnum {
   METHOD_BY_METHOD = 'METHOD_BY_METHOD'
@@ -237,10 +237,10 @@ const resolveTemplateDir = async (): Promise<URI> => {
 export const ejsTemplateHelpers = {
   /**
    * Gets the template path for a given key.
-   * @param {ejsTemplateKey} key - The key for the template.
+   * @param {EjsTemplateKey} key - The key for the template.
    * @returns {Promise<URI>} - The URI of the template path.
    */
-  getTemplatePath: async (key: ejsTemplateKey): Promise<URI> => {
+  getTemplatePath: async (key: EjsTemplateKey): Promise<URI> => {
     const baseExtensionPath = await resolveTemplateDir();
     return URI.file(path.join(baseExtensionPath.fsPath, PROMPT_TEMPLATES[key]));
   }
