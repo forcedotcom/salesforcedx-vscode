@@ -6,7 +6,7 @@ import { Page } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export interface MetadataField {
+interface MetadataField {
   Description: string;
   'Field Name': string;
   'Field Type': string;
@@ -22,11 +22,11 @@ export interface MetadataType {
  * Improved page loading with multiple strategies
  * Returns the frame containing the actual content (might be an iframe)
  */
-export async function loadPageRobustly(
+export const loadPageRobustly = async (
   page: Page,
   url: string,
   indent: string = '     '
-): Promise<{ success: boolean; contentFrame: any }> {
+): Promise<{ success: boolean; contentFrame: any }> => {
   try {
     console.log(`${indent.slice(0, -2)}📄 Loading: ${url}`);
 
@@ -170,10 +170,10 @@ export async function loadPageRobustly(
     console.error(`${indent}Error loading page: ${error}`);
     return { success: false, contentFrame: null };
   }
-}
+};
 
 /** Clean up description text by normalizing whitespace */
-export function cleanDescription(text: string): string {
+const cleanDescription = (text: string): string => {
   if (!text) return text;
 
   // Replace \n followed by any number of spaces or tabs with a single space
@@ -181,17 +181,17 @@ export function cleanDescription(text: string): string {
     .replace(/\n[\s\t]+/g, ' ')
     .replace(/\s+/g, ' ') // Also normalize multiple spaces to single space
     .trim();
-}
+};
 
 /**
  * Extract metadata from a loaded page (or iframe)
  * Returns an array because some pages have multiple tables representing different types
  */
-export async function extractMetadataFromPage(
+export const extractMetadataFromPage = async (
   contentFrame: any,
   url: string,
   typeName: string
-): Promise<Array<{ name: string; data: MetadataType }>> {
+): Promise<Array<{ name: string; data: MetadataType }>> => {
   try {
     // Extract fields from ALL tables (each table is a separate metadata type)
     // We'll extract descriptions per-table instead of one for the whole page
@@ -860,4 +860,4 @@ export async function extractMetadataFromPage(
     console.error(`    Error extracting data: ${error}`);
     return [];
   }
-}
+};
