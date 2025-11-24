@@ -3,8 +3,7 @@
   "repository": "forcedotcom/salesforcedx-vscode",
   "license": "BSD-3-Clause",
   "workspaces": [
-    "packages/*",
-    "eslint-local-rules"
+    "packages/*"
   ],
   "engines": {
     "node": ">=22.15.1"
