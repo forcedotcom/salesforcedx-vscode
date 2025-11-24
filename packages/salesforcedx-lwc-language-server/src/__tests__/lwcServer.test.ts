@@ -19,9 +19,33 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
     ...actual,
     readJsonSync: jest.fn(async (file: string, fileSystemProvider: any) => {
       try {
-        const content = fileSystemProvider?.getFileContent?.(`${file}`);
-        console.log('[lwcServer.test.ts] readJsonSync file', file);
-        console.log('[lwcServer.test.ts] readJsonSync content', content);
+        // Normalize the path using unixify to match how FileSystemDataProvider stores files
+        // This ensures cross-platform compatibility (Windows uses backslashes, Unix uses forward slashes)
+        // Note: FileSystemDataProvider.getFileContent() also normalizes internally, but normalizing
+        // here ensures consistency regardless of the input path format
+        // Use unixify from the actual module (not the mocked one) - it's imported at the top of the file
+        const { unixify: unixifyFn } = actual;
+        const normalizedFile = unixifyFn(file);
+        console.log('[lwcServer.test.ts] readJsonSync - original file path:', file);
+        console.log('[lwcServer.test.ts] readJsonSync - normalized file path:', normalizedFile);
+
+        // Log what files are in the provider (first 10 keys for debugging)
+        if (fileSystemProvider?.getAllFileUris) {
+          const allFiles = fileSystemProvider.getAllFileUris();
+          console.log('[lwcServer.test.ts] readJsonSync - total files in provider:', allFiles.length);
+          const matchingFiles = allFiles.filter((f: string) => f.includes('tsconfig') || f.includes('.sfdx'));
+          console.log(
+            '[lwcServer.test.ts] readJsonSync - tsconfig-related files in provider:',
+            matchingFiles.slice(0, 5)
+          );
+        }
+
+        const content = fileSystemProvider?.getFileContent?.(normalizedFile);
+        console.log(
+          '[lwcServer.test.ts] readJsonSync - content found:',
+          !!content,
+          content ? `(${content.length} chars)` : ''
+        );
         if (!content) {
           return {};
         }
