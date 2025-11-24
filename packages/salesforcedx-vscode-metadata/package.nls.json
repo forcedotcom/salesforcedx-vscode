@@ -1,0 +1,12 @@
+{
+  "metadata_deploy_start_text": "BETA: Push Source to Default Org",
+  "metadata_deploy_start_ignore_conflicts_text": "BETA: Push Source to Default Org and Ignore Conflicts",
+  "metadata_retrieve_start_text": "BETA: Pull Source from Default Org",
+  "metadata_source_tracking_details_text": "BETA: View Source Tracking Details",
+  "source_tracking_status_bar_tooltip_header": "Source Tracking Status",
+  "source_tracking_status_bar_local_changes": "Local Changes",
+  "source_tracking_status_bar_remote_changes": "Remote Changes",
+  "source_tracking_status_bar_conflicts": "Conflicts",
+  "source_tracking_status_bar_click_to_push": "Click to push local changes to org",
+  "source_tracking_status_bar_no_changes": "No source tracking changes"
+}

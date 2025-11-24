@@ -13,6 +13,7 @@ import { sampleProjectName } from './constants';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
 import { defaultOrgRef, watchConfigFiles } from './core/defaultOrgService';
+import { MetadataDeployService } from './core/metadataDeployService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
@@ -26,6 +27,8 @@ import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './virtua
 import { startWatch } from './virtualFsProvider/memfsWatcher';
 import { projectFiles } from './virtualFsProvider/projectInit';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
+import { watchDefaultOrgContext } from './vscode/context';
+import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { SettingsService } from './vscode/settingsService';
 import { WorkspaceService } from './vscode/workspaceService';
@@ -38,8 +41,10 @@ export type SalesforceVSCodeServicesApi = {
     ChannelServiceLayer: typeof ChannelServiceLayer;
     WorkspaceService: typeof WorkspaceService;
     FsService: typeof FsService;
+    FileWatcherService: typeof FileWatcherService;
     ConfigService: typeof ConfigService;
     MetadataDescribeService: typeof MetadataDescribeService;
+    MetadataDeployService: typeof MetadataDeployService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
     SourceTrackingService: typeof SourceTrackingService;
@@ -61,7 +66,13 @@ const activationEffect = (
     }
 
     // watch the config files for changes, which various serices use to invalidate caches
-    yield* Effect.forkIn(watchConfigFiles(), yield* getExtensionScope());
+    yield* Effect.forkIn(
+      watchConfigFiles().pipe(Effect.provide(FileWatcherService.Default)),
+      yield* getExtensionScope()
+    );
+
+    // watch default org changes to update VS Code context variables
+    yield* Effect.forkIn(watchDefaultOrgContext(), yield* getExtensionScope());
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**
@@ -110,8 +121,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ChannelServiceLayer,
       WorkspaceService,
       FsService,
+      FileWatcherService,
       ConfigService,
       MetadataDescribeService,
+      MetadataDeployService,
       MetadataRegistryService,
       MetadataRetrieveService,
       SourceTrackingService,

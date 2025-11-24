@@ -15,6 +15,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { SettingsService } from '../vscode/settingsService';
 import { ConfigService } from './configService';
 import { DefaultOrgInfoSchema, defaultOrgRef } from './defaultOrgService';
+import { getOrgFromConnection } from './shared';
 
 type WebConnectionKey = {
   instanceUrl: string;
@@ -24,7 +25,7 @@ type WebConnectionKey = {
 type WebConnectionKeyAndApiVersion = WebConnectionKey & { apiVersion: string };
 
 /** side effect: save the auth info in the background */
-const createAuthInfo = (instanceUrl: string, accessToken: string): Effect.Effect<AuthInfo, Error> =>
+const createWebAuthInfo = (instanceUrl: string, accessToken: string): Effect.Effect<AuthInfo, Error> =>
   Effect.tryPromise({
     try: () =>
       AuthInfo.create({
@@ -39,10 +40,14 @@ const createAuthInfo = (instanceUrl: string, accessToken: string): Effect.Effect
         Effect.tryPromise({
           try: () => authInfo.save(),
           catch: error => new Error('Failed to save AuthInfo', { cause: error })
-        }).pipe(Effect.withSpan('saveAuthInfo'))
+        }).pipe(
+          Effect.tap(savedAuthInfo => Effect.annotateCurrentSpan({ authFields: savedAuthInfo.getFields() })),
+          Effect.withSpan('saveAuthInfo')
+        )
       )
     ),
-    Effect.withSpan('createAuthInfo')
+
+    Effect.withSpan('createWebAuthInfo')
   );
 
 const createConnection = (authInfo: AuthInfo, apiVersion?: string): Effect.Effect<Connection, Error> =>
@@ -54,10 +59,10 @@ const createConnection = (authInfo: AuthInfo, apiVersion?: string): Effect.Effec
 
 const createWebConnection = (key: string): Effect.Effect<Connection, Error> => {
   const { instanceUrl, accessToken, apiVersion } = fromKey(key);
-  return createAuthInfo(instanceUrl, accessToken).pipe(
+  return createWebAuthInfo(instanceUrl, accessToken).pipe(
     Effect.flatMap(authInfo => createConnection(authInfo, apiVersion)),
     Effect.withSpan('createWebConnection (cache miss)', {
-      attributes: { apiVersion }
+      attributes: { apiVersion, instanceUrl }
     })
   );
 };
@@ -117,7 +122,8 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
           return yield* cache.get(username);
         }
       }).pipe(
-        Effect.tap(conn => maybeUpdateDefaultOrgRef(conn)),
+        // update the org ref in the background
+        Effect.tap(conn => maybeUpdateDefaultOrgRef(conn).pipe(Effect.forkDaemon)),
         Effect.withSpan('getConnection')
       )
     } as const;
@@ -125,11 +131,18 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
   dependencies: [SettingsService.Default, ConfigService.Default]
 }) {}
 
+const getTracksSourceFromOrg = (conn: Connection): Effect.Effect<boolean, Error> =>
+  getOrgFromConnection(conn).pipe(
+    Effect.andThen(org => org.tracksSource()),
+    Effect.withSpan('getTracksSourceFromOrg')
+  );
+
 //** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
 const maybeUpdateDefaultOrgRef = (conn: Connection): Effect.Effect<typeof DefaultOrgInfoSchema.Type, Error> =>
   Effect.gen(function* () {
     const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
 
+    yield* Effect.annotateCurrentSpan({ orgId, devHubUsername, isScratch, isSandbox, tracksSource });
     const devHubOrgId = yield* yield* Effect.cached(getDevHubId(devHubUsername));
     const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
 
@@ -137,7 +150,7 @@ const maybeUpdateDefaultOrgRef = (conn: Connection): Effect.Effect<typeof Defaul
       Object.entries({
         orgId,
         devHubUsername,
-        tracksSource,
+        tracksSource: tracksSource ?? (yield* getTracksSourceFromOrg(conn)),
         isScratch,
         isSandbox,
         devHubOrgId
@@ -151,6 +164,7 @@ const maybeUpdateDefaultOrgRef = (conn: Connection): Effect.Effect<typeof Defaul
       })
     );
     // Check if objects have the same content (deep equality using schema)
+    // otherwise, calling set on the ref counts as a change bu it's really not one.
     if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
       yield* Effect.annotateCurrentSpan({ changed: false });
       return updated;
