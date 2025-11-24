@@ -160,6 +160,9 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
   }
 
   private getAllApexTests(): TestNode {
+    // Rebuild the tree from scratch to avoid duplicates when sources/settings change
+    this.apexTestMap.clear();
+    this.testStrings.clear();
     this.rootNode ??= new ApexTestGroupNode(APEX_TESTS, null);
     this.rootNode.children = new Array<TestNode>();
     if (this.apexTestInfo) {
