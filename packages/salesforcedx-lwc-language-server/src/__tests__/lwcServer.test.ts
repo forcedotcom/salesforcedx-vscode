@@ -26,25 +26,38 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
         // Use unixify from the actual module (not the mocked one) - it's imported at the top of the file
         const { unixify: unixifyFn } = actual;
         const normalizedFile = unixifyFn(file);
+
+        // Log for debugging Windows path issues
         console.log('[lwcServer.test.ts] readJsonSync - original file path:', file);
         console.log('[lwcServer.test.ts] readJsonSync - normalized file path:', normalizedFile);
 
-        // Log what files are in the provider (first 10 keys for debugging)
+        // Log what files are in the provider for debugging
         if (fileSystemProvider?.getAllFileUris) {
           const allFiles = fileSystemProvider.getAllFileUris();
           console.log('[lwcServer.test.ts] readJsonSync - total files in provider:', allFiles.length);
           const matchingFiles = allFiles.filter((f: string) => f.includes('tsconfig') || f.includes('.sfdx'));
-          console.log(
-            '[lwcServer.test.ts] readJsonSync - tsconfig-related files in provider:',
-            matchingFiles.slice(0, 5)
-          );
+          console.log('[lwcServer.test.ts] readJsonSync - tsconfig-related files in provider (first 10):');
+          matchingFiles.slice(0, 10).forEach((f: string) => {
+            console.log(`  - ${f}`);
+          });
+
+          // Check if normalized path matches any file in provider
+          const exactMatch = allFiles.find((f: string) => f === normalizedFile);
+          const containsMatch = allFiles.filter((f: string) => f.includes('tsconfig.sfdx.json'));
+          console.log('[lwcServer.test.ts] readJsonSync - exact match found:', !!exactMatch);
+          if (containsMatch.length > 0) {
+            console.log('[lwcServer.test.ts] readJsonSync - files containing tsconfig.sfdx.json:');
+            containsMatch.forEach((f: string) => {
+              console.log(`  - ${f} (matches: ${f === normalizedFile})`);
+            });
+          }
         }
 
         const content = fileSystemProvider?.getFileContent?.(normalizedFile);
         console.log(
           '[lwcServer.test.ts] readJsonSync - content found:',
           !!content,
-          content ? `(${content.length} chars)` : ''
+          content ? `(${content.length} chars)` : 'NOT FOUND'
         );
         if (!content) {
           return {};
