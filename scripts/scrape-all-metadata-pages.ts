@@ -502,45 +502,8 @@ const discoverMetadataTypes = async (page: Page): Promise<Array<{ name: string; 
       console.log(`   ⚠️  Could not check coverage report: ${error}`);
     }
 
-    // Step 4: Check for known "hidden" metadata types that aren't linked in the sidebar
-    console.log('\n🔎 Checking for known unlisted metadata types...');
-    const knownUnlistedTypes = [
-      {
-        name: 'FolderShare',
-        url: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_foldershare.htm'
-      }
-      // Add more known unlisted types here as they're discovered
-    ];
-
-    for (const type of knownUnlistedTypes) {
-      if (!allMetadataTypes.has(type.url)) {
-        try {
-          // Verify the page exists by trying to load it
-          console.log(`   Checking ${type.name}...`);
-          await page.goto(type.url, { waitUntil: 'domcontentloaded', timeout: 15000 });
-          await page.waitForTimeout(2000);
-
-          // Check if page loaded successfully (not a 404 or error page)
-          const pageTitle = await page.title();
-          if (pageTitle && !pageTitle.toLowerCase().includes('404') && !pageTitle.toLowerCase().includes('not found')) {
-            allMetadataTypes.set(type.url, type);
-            console.log(`      + Found unlisted type: ${type.name}`);
-          }
-        } catch (error) {
-          console.log(`      - ${type.name} not found or inaccessible`);
-        }
-        await page.waitForTimeout(500);
-      }
-    }
-
     const finalList = Array.from(allMetadataTypes.values());
     console.log(`   ✅ Total after all discovery: ${finalList.length} metadata types\n`);
-
-    // Final check for FolderShare
-    const finalFolderShare = finalList.find(l => l.name === 'FolderShare');
-    if (finalFolderShare) {
-      console.log('   🎉 FolderShare successfully discovered!\n');
-    }
 
     // Print complete list of all discovered metadata types
     console.log('\n📋 COMPLETE LIST OF ALL DISCOVERED METADATA TYPES:');
