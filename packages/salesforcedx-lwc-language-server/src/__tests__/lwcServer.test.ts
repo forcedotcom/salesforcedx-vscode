@@ -34,10 +34,13 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
   return {
     ...actual,
     readJsonSync: jest.fn(async (file: string, fileSystemProvider: IFileSystemProvider) => {
+      // Log every call to see if mock is being invoked
+      console.log(`[readJsonSync] Called with file: ${file}`);
       try {
         // Normalize the path to match how FileSystemDataProvider stores paths (using unixify)
         // This is critical for cross-platform compatibility (Windows uses backslashes)
         const normalizedFile = actual.unixify(file);
+        console.log(`[readJsonSync] Normalized path: ${normalizedFile}`);
         const content = fileSystemProvider?.getFileContent?.(normalizedFile);
         if (!content) {
           // Try original path as fallback (in case it's already normalized)
@@ -47,22 +50,42 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
             console.log(`[readJsonSync] File not found (normalized): ${normalizedFile}`);
             console.log(`[readJsonSync] File not found (original): ${file}`);
             const allUris = fileSystemProvider?.getAllFileUris?.() ?? [];
-            console.log(`[readJsonSync] Available files (first 5): ${allUris.slice(0, 5).join(', ')}`);
+            console.log(`[readJsonSync] Available files (first 10): ${allUris.slice(0, 10).join(', ')}`);
             console.log(`[readJsonSync] Total available files: ${allUris.length}`);
+            // Check if any available file matches (case-insensitive, basename, etc.)
+            const fileBasename = actual.getBasename?.(file) ?? file.split(/[/\\]/).pop();
+            const matchingFiles = allUris.filter(availableUri => {
+              const uriBasename = actual.getBasename?.(availableUri) ?? availableUri.split(/[/\\]/).pop();
+              return (
+                uriBasename === fileBasename ||
+                availableUri.includes(fileBasename ?? '') ||
+                file.includes(uriBasename ?? '')
+              );
+            });
+            if (matchingFiles.length > 0) {
+              console.log(
+                `[readJsonSync] Found ${matchingFiles.length} potentially matching files: ${matchingFiles.slice(0, 5).join(', ')}`
+              );
+            }
             throw new Error('File not found', { cause: file });
           }
+          console.log(`[readJsonSync] Found file using original path (fallback): ${file}`);
           // Use fallback content
           const fallbackCleaned = fallbackContent
             .replace(/\/\/.*$/gm, '')
             .replace(/\/\*[\s\S]*?\*\//g, '')
             .replace(/,(\s*[}\]])/g, '$1');
           try {
-            return JSON.parse(fallbackCleaned);
-          } catch {
+            const parsed = JSON.parse(fallbackCleaned);
+            console.log('[readJsonSync] Successfully parsed JSON from fallback path');
+            return parsed;
+          } catch (parseErr) {
+            console.log('[readJsonSync] Failed to parse JSON from fallback path:', parseErr);
             return {};
           }
         }
 
+        console.log(`[readJsonSync] Found file using normalized path: ${normalizedFile}`);
         // Simple JSONC parser that strips comments and trailing commas (same as tiny-jsonc mock)
         let cleaned = content;
         // Remove single-line comments (// ...)
@@ -72,14 +95,21 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
         // Remove trailing commas before } or ]
         cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
         try {
-          return JSON.parse(cleaned);
-        } catch {
+          const parsed = JSON.parse(cleaned);
+          console.log('[readJsonSync] Successfully parsed JSON from normalized path');
+          return parsed;
+        } catch (parseErr) {
+          console.log('[readJsonSync] Failed to parse JSON from normalized path:', parseErr);
           return {};
         }
       } catch (err) {
         // Log error for debugging but return empty object to avoid breaking tests
         // Use console.log instead of console.error - console.error output is suppressed in CI
         console.log(`[readJsonSync] Error for file ${file}:`, err);
+        if (err instanceof Error) {
+          console.log(`[readJsonSync] Error message: ${err.message}`);
+          console.log(`[readJsonSync] Error cause: ${err.cause}`);
+        }
         return {};
       }
     })
