@@ -19,9 +19,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { loadPageRobustly, extractMetadataFromPage, MetadataType } from './scrapeUtils';
 
-interface MetadataMap {
+type MetadataMap = {
   [key: string]: MetadataType;
-}
+};
 
 /**
  * Scrape a single metadata type (may return multiple if page has multiple tables)
