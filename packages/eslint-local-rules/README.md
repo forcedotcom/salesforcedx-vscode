@@ -1,4 +1,4 @@
-# @salesforce/eslint-plugin-local-rules
+# @salesforce/eslint-plugin-vscode-extensions
 
 Custom ESLint rules for Salesforce VSCode extensions.
 

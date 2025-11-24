@@ -1,5 +1,5 @@
 {
-  "name": "@salesforce/eslint-plugin-local-rules",
+  "name": "@salesforce/eslint-plugin-vscode-extensions",
   "version": "65.6.0",
   "description": "Custom ESLint rules for Salesforce VSCode extensions",
   "main": "out/index.js",
