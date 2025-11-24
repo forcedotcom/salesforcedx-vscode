@@ -7,7 +7,7 @@ module.exports = {
   // Use regex patterns that match both forward slashes and backslashes for cross-platform compatibility
   testPathIgnorePatterns: ['[/\\\\]out[/\\\\]', '[/\\\\]lib[/\\\\]'],
   moduleFileExtensions: ['ts', 'js', 'json'],
-  setupFilesAfterEnv: ['<rootDir>/jest/matchers.ts', 'jest-extended', '<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: ['<rootDir>/jest/matchers.ts', 'jest-extended'],
   testEnvironmentOptions: {
     url: 'http://localhost/'
   },

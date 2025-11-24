@@ -35,11 +35,32 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
     ...actual,
     readJsonSync: jest.fn(async (file: string, fileSystemProvider: IFileSystemProvider) => {
       try {
-        const content = fileSystemProvider?.getFileContent?.(file);
+        // Normalize the path to match how FileSystemDataProvider stores paths (using unixify)
+        // This is critical for cross-platform compatibility (Windows uses backslashes)
+        const normalizedFile = actual.unixify(file);
+        const content = fileSystemProvider?.getFileContent?.(normalizedFile);
         if (!content) {
-          console.error(`File: ${file}`);
-          console.error(`FileSystemProvider: ${fileSystemProvider.getAllFileUris()[0]}`);
-          throw new Error('File not found', { cause: file });
+          // Try original path as fallback (in case it's already normalized)
+          const fallbackContent = fileSystemProvider?.getFileContent?.(file);
+          if (!fallbackContent) {
+            // Use console.log instead of console.error - console.error output is suppressed in CI
+            console.log(`[readJsonSync] File not found (normalized): ${normalizedFile}`);
+            console.log(`[readJsonSync] File not found (original): ${file}`);
+            const allUris = fileSystemProvider?.getAllFileUris?.() ?? [];
+            console.log(`[readJsonSync] Available files (first 5): ${allUris.slice(0, 5).join(', ')}`);
+            console.log(`[readJsonSync] Total available files: ${allUris.length}`);
+            throw new Error('File not found', { cause: file });
+          }
+          // Use fallback content
+          const fallbackCleaned = fallbackContent
+            .replace(/\/\/.*$/gm, '')
+            .replace(/\/\*[\s\S]*?\*\//g, '')
+            .replace(/,(\s*[}\]])/g, '$1');
+          try {
+            return JSON.parse(fallbackCleaned);
+          } catch {
+            return {};
+          }
         }
 
         // Simple JSONC parser that strips comments and trailing commas (same as tiny-jsonc mock)
@@ -55,7 +76,10 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
         } catch {
           return {};
         }
-      } catch {
+      } catch (err) {
+        // Log error for debugging but return empty object to avoid breaking tests
+        // Use console.log instead of console.error - console.error output is suppressed in CI
+        console.log(`[readJsonSync] Error for file ${file}:`, err);
         return {};
       }
     })
