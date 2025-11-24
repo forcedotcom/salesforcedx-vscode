@@ -23,9 +23,11 @@ import eslintPluginWorkspaces from 'eslint-plugin-workspaces';
 import effectPlugin from '@effect/eslint-plugin';
 
 import noDuplicateI18nValues from './eslint-local-rules/no-duplicate-i18n-values.js';
+import noVscodeMessageLiterals from './eslint-local-rules/no-vscode-message-literals.js';
 
 const localRules = {
-  'no-duplicate-i18n-values': noDuplicateI18nValues
+  'no-duplicate-i18n-values': noDuplicateI18nValues,
+  'no-vscode-message-literals': noVscodeMessageLiterals
 };
 
 export default [
@@ -76,6 +78,7 @@ export default [
     },
     rules: {
       'local/no-duplicate-i18n-values': 'error',
+      'local/no-vscode-message-literals': 'error',
       'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-date-clone': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
