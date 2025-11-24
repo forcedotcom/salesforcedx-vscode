@@ -79,7 +79,7 @@ const findChildMetadataTypes = async (page: Page, parentUrl: string): Promise<Ar
       const children: Array<{ name: string; url: string }> = [];
 
       // Search both regular DOM and Shadow DOM
-      function findLinksInDOM(root: Document | ShadowRoot | Element) {
+      const findLinksInDOM = (root: Document | ShadowRoot | Element) => {
         const allLinks = Array.from(root.querySelectorAll('a[href]'));
 
         for (const link of allLinks) {
@@ -110,7 +110,7 @@ const findChildMetadataTypes = async (page: Page, parentUrl: string): Promise<Ar
             findLinksInDOM(el.shadowRoot);
           }
         });
-      }
+      };
 
       findLinksInDOM(document);
       return children;
@@ -166,7 +166,7 @@ const discoverMetadataTypes = async (page: Page): Promise<Array<{ name: string; 
         let count = 0;
 
         // Helper to expand all collapsible elements in the DOM and Shadow DOM
-        function expandAll(root: Document | ShadowRoot | Element): number {
+        const expandAll = (root: Document | ShadowRoot | Element): number => {
           let localCount = 0;
 
           // Find all elements with various collapse indicators
@@ -230,7 +230,7 @@ const discoverMetadataTypes = async (page: Page): Promise<Array<{ name: string; 
           });
 
           return localCount;
-        }
+        };
 
         count = expandAll(document);
         return count;
@@ -267,7 +267,7 @@ const discoverMetadataTypes = async (page: Page): Promise<Array<{ name: string; 
       ];
 
       // Helper to traverse Shadow DOMs and find metadata type links
-      function findLinks(root: Document | ShadowRoot | Element) {
+      const findLinks = (root: Document | ShadowRoot | Element) => {
         // Look for navigation lists that contain the links
         const navLists = Array.from(root.querySelectorAll('ul, ol, nav'));
 
@@ -358,7 +358,7 @@ const discoverMetadataTypes = async (page: Page): Promise<Array<{ name: string; 
             findLinks(el.shadowRoot);
           }
         });
-      }
+      };
 
       findLinks(document);
       return metadataLinks;
@@ -618,8 +618,8 @@ const scrapeMetadataTypeWithContext = async (
     // Mock chrome object
     (window as any).chrome = {
       runtime: {},
-      loadTimes: function () {},
-      csi: function () {},
+      loadTimes: () => {},
+      csi: () => {},
       app: {}
     };
 
@@ -759,8 +759,8 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
     // Mock chrome object
     (window as any).chrome = {
       runtime: {},
-      loadTimes: function () {},
-      csi: function () {},
+      loadTimes: () => {},
+      csi: () => {},
       app: {}
     };
 
