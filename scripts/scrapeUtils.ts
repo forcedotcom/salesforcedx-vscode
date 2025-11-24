@@ -6,17 +6,17 @@ import { Page } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
 
-interface MetadataField {
+type MetadataField = {
   Description: string;
   'Field Name': string;
   'Field Type': string;
-}
+};
 
-export interface MetadataType {
+export type MetadataType = {
   fields: MetadataField[];
   short_description: string;
   url: string;
-}
+};
 
 /**
  * Improved page loading with multiple strategies
