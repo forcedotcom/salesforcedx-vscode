@@ -13,7 +13,7 @@ import * as path from 'path';
 import { loadPageRobustly, extractMetadataFromPage } from './scrapeUtils';
 
 /** Main function */
-async function main() {
+const main = async () => {
   const args = process.argv.slice(2);
 
   if (args.length === 0 || args.includes('--help')) {
@@ -127,7 +127,7 @@ Options:
   } finally {
     await browser.close();
   }
-}
+};
 
 main().catch(error => {
   console.error('❌ Fatal error:', error);

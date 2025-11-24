@@ -26,12 +26,12 @@ interface MetadataMap {
 /**
  * Scrape a single metadata type (may return multiple if page has multiple tables)
  */
-async function scrapeMetadataType(
+const scrapeMetadataType = async (
   page: Page,
   name: string,
   url: string,
   isVisible: boolean
-): Promise<Array<{ name: string; data: MetadataType }>> {
+): Promise<Array<{ name: string; data: MetadataType }>> => {
   console.log(`  📄 ${name}`);
   console.log(`     Loading: ${url}`);
 
@@ -59,12 +59,12 @@ async function scrapeMetadataType(
   }
 
   return results;
-}
+};
 
 /**
  * Extract child/related metadata type links from a page content
  */
-async function findChildMetadataTypes(page: Page, parentUrl: string): Promise<Array<{ name: string; url: string }>> {
+const findChildMetadataTypes = async (page: Page, parentUrl: string): Promise<Array<{ name: string; url: string }>> => {
   try {
     await page.goto(parentUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForTimeout(3000);
@@ -120,12 +120,12 @@ async function findChildMetadataTypes(page: Page, parentUrl: string): Promise<Ar
   } catch (error) {
     return [];
   }
-}
+};
 
 /**
  * Discover ALL metadata types from the documentation sidebar
  */
-async function discoverMetadataTypes(page: Page): Promise<Array<{ name: string; url: string }>> {
+const discoverMetadataTypes = async (page: Page): Promise<Array<{ name: string; url: string }>> => {
   const MAIN_PAGE_URL = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_types_list.htm';
 
   console.log('\n🔍 Discovering all metadata types from documentation...');
@@ -557,12 +557,12 @@ async function discoverMetadataTypes(page: Page): Promise<Array<{ name: string; 
     console.log(`   📋 Using fallback list...\n`);
     return getFallbackMetadataTypes();
   }
-}
+};
 
 /**
  * Fallback list of known metadata types (subset for testing)
  */
-function getFallbackMetadataTypes(): Array<{ name: string; url: string }> {
+const getFallbackMetadataTypes = (): Array<{ name: string; url: string }> => {
   const baseUrl = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/';
 
   return [
@@ -596,18 +596,18 @@ function getFallbackMetadataTypes(): Array<{ name: string; url: string }> {
     { name: 'ValidationRule', url: `${baseUrl}meta_validationrule.htm` },
     { name: 'Workflow', url: `${baseUrl}meta_workflow.htm` }
   ];
-}
+};
 
 /**
  * Scrapes a single metadata type with its own page instance
  */
-async function scrapeMetadataTypeWithContext(
+const scrapeMetadataTypeWithContext = async (
   context: any,
   type: { name: string; url: string },
   index: number,
   total: number,
   isVisible: boolean
-): Promise<{ success: boolean; results: Array<{ name: string; data: MetadataType }> }> {
+): Promise<{ success: boolean; results: Array<{ name: string; data: MetadataType }> }> => {
   const page = await context.newPage();
 
   // Comprehensive anti-detection
@@ -663,17 +663,17 @@ async function scrapeMetadataTypeWithContext(
   } finally {
     await page.close();
   }
-}
+};
 
 /**
  * Process metadata types in parallel batches
  */
-async function scrapeInBatches(
+const scrapeInBatches = async (
   context: any,
   typesToScrape: Array<{ name: string; url: string }>,
   isVisible: boolean,
   batchSize: number = 20
-): Promise<{ results: MetadataMap; successCount: number; failCount: number }> {
+): Promise<{ results: MetadataMap; successCount: number; failCount: number }> => {
   const results: MetadataMap = {};
   let successCount = 0;
   let failCount = 0;
@@ -716,12 +716,12 @@ async function scrapeInBatches(
   }
 
   return { results, successCount, failCount };
-}
+};
 
 /**
  * Main scraping function
  */
-async function scrapeAll(outputFile?: string, isVisible: boolean = false): Promise<void> {
+const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promise<void> => {
   console.log(`🚀 Starting robust metadata scraper${isVisible ? ' (VISIBLE MODE)' : ''}...\n`);
 
   const browser = await chromium.launch({
@@ -839,12 +839,12 @@ async function scrapeAll(outputFile?: string, isVisible: boolean = false): Promi
   } finally {
     await browser.close();
   }
-}
+};
 
 /**
  * Main entry point
  */
-async function main() {
+const main = async () => {
   const args = process.argv.slice(2);
 
   if (args.includes('--help')) {
@@ -879,7 +879,7 @@ Examples:
   const isVisible = args.includes('--visible');
 
   await scrapeAll(outputFile, isVisible);
-}
+};
 
 main().catch(error => {
   console.error('❌ Fatal error:', error);
