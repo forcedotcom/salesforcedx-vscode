@@ -6,13 +6,12 @@
  */
 
 import { LocalizationService, type MessageArgs } from '@salesforce/vscode-i18n';
+import { EXTENSION_NAME } from '../constants';
 import { messages as enMessages, isValidMessageKey, type MessageKey } from './i18n';
 
-const INSTANCE_NAME = 'salesforcedx-vscode-org-browser';
+const localizationService = LocalizationService.getInstance(EXTENSION_NAME);
 
-const localizationService = LocalizationService.getInstance(INSTANCE_NAME);
-
-localizationService.messageBundleManager.registerMessageBundle(INSTANCE_NAME, {
+localizationService.messageBundleManager.registerMessageBundle(EXTENSION_NAME, {
   messages: enMessages,
   type: 'base'
 });

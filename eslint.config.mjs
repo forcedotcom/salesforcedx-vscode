@@ -21,14 +21,11 @@ import eslintPluginBarrelFiles from 'eslint-plugin-barrel-files';
 import functional from 'eslint-plugin-functional';
 import eslintPluginWorkspaces from 'eslint-plugin-workspaces';
 import effectPlugin from '@effect/eslint-plugin';
+import eslintPluginEslintPlugin from 'eslint-plugin-eslint-plugin';
 
-import noDuplicateI18nValues from './eslint-local-rules/no-duplicate-i18n-values.js';
-import noVscodeMessageLiterals from './eslint-local-rules/no-vscode-message-literals.js';
+import localRulesPlugin from './packages/eslint-local-rules/out/index.js';
 
-const localRules = {
-  'no-duplicate-i18n-values': noDuplicateI18nValues,
-  'no-vscode-message-literals': noVscodeMessageLiterals
-};
+const localRules = localRulesPlugin.rules;
 
 export default [
   {
@@ -557,6 +554,24 @@ export default [
       'functional/prefer-property-signatures': 'off',
       'import/no-extraneous-dependencies': 'off'
     }
+  },
+  // ESLint plugin rules for eslint-local-rules package only
+  {
+    files: ['packages/eslint-local-rules/src/**/*.ts'],
+    plugins: {
+      'eslint-plugin': eslintPluginEslintPlugin
+    },
+    rules: {
+      ...eslintPluginEslintPlugin.configs.recommended.rules,
+      // Allow node:fs in ESLint plugin (needed for reading i18n files at lint time)
+      'no-restricted-imports': 'off',
+      // Allow type assertions for parser compatibility
+      '@typescript-eslint/consistent-type-assertions': 'off'
+    }
+  },
+  // Ignore test files for eslint-local-rules
+  {
+    ignores: ['packages/eslint-local-rules/test/**']
   },
   eslintConfigPrettier
 ];
