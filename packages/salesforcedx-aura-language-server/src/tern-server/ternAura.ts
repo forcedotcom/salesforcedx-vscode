@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 // @ts-nocheck as this is a third party library
-import { FileSystemDataProvider, extractJsonFromImport } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { extractJsonFromImport } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as walk from 'acorn-walk';
 import * as infer from '../tern/lib/infer';
 import * as tern from '../tern/lib/tern';
 import * as auraTypesJsonImport from './aura_types.json';
 
 const WG_DEFAULT_EXPORT = 95;
-let server: any = {};
+let server: Server = {};
 
 let shouldFilter = false;
 /* this is necessary to inform the parameter types of the controller when
@@ -65,8 +65,7 @@ const readFile = async (filename: string): Promise<string> => {
   }
 
   try {
-    const fileSystem = new FileSystemDataProvider();
-    const content = fileSystem.getFileContent(`file://${normalized}`);
+    const content = server.fileSystemProvider.getFileContent(`file://${normalized}`);
     return content ?? '';
   } catch {
     // Handle file not found or other errors
