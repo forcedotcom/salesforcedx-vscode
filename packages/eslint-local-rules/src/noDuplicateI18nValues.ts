@@ -119,11 +119,24 @@ export const noDuplicateI18nValues = RuleCreator.withoutDocs({
     }
 
     const enPath = path.resolve(path.dirname(filename), 'i18n.ts');
-    const enSource = fs.readFileSync(enPath, 'utf8');
-    const enAst = tsParser.parse(enSource, {
-      sourceType: 'module',
-      ecmaVersion: 2020
-    }) as unknown as TSESTree.Program;
+
+    let enSource: string;
+    try {
+      enSource = fs.readFileSync(enPath, 'utf8');
+    } catch (error) {
+      throw new Error(`Failed to read base i18n file at ${enPath}`, { cause: error });
+    }
+
+    let enAst: TSESTree.Program;
+    try {
+      enAst = tsParser.parse(enSource, {
+        sourceType: 'module',
+        ecmaVersion: 2020
+      }) as unknown as TSESTree.Program;
+    } catch (error) {
+      throw new Error(`Failed to parse base i18n file at ${enPath}`, { cause: error });
+    }
+
     const enMessages: MessagesObject = extractMessagesObject(enAst);
     return {
       Property: (node: TSESTree.Property): void => {
