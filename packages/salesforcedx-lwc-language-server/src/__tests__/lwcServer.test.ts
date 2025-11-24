@@ -9,6 +9,8 @@
 
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
+import { IFileSystemProvider, unixify } from '@salesforce/salesforcedx-lightning-lsp-common';
+
 // Mock readJsonSync from the common package to avoid dynamic import issues with tiny-jsonc
 // jest.mock() doesn't intercept dynamic imports, so we need to mock readJsonSync directly
 jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
@@ -16,11 +18,13 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
 
   return {
     ...actual,
-    readJsonSync: jest.fn(async (file: string, fileSystemProvider: any) => {
+    readJsonSync: jest.fn(async (file: string, fileSystemProvider: IFileSystemProvider) => {
       try {
         const content = fileSystemProvider?.getFileContent?.(file);
         if (!content) {
-          return {};
+          console.error(`File: ${file}`);
+          console.error(`FileSystemProvider: ${fileSystemProvider.getAllFileUris()[0]}`);
+          throw new Error('File not found', { cause: file });
         }
 
         // Simple JSONC parser that strips comments and trailing commas (same as tiny-jsonc mock)
@@ -115,7 +119,6 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig
   mockJsonFromCommon('resources/sfdx/tsconfig-sfdx.json')
 );
 
-import { unixify } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import { dirname, basename } from 'node:path';
