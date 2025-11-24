@@ -71,7 +71,7 @@ const findChildMetadataTypes = async (page: Page, parentUrl: string): Promise<Ar
 
     const frames = page.frames();
     const urlParts = parentUrl.split('/');
-    const expectedPage = urlParts[urlParts.length - 1];
+    const expectedPage = urlParts.at(-1)!;
     const contentFrame = frames.find(f => f.url().includes(expectedPage)) || page.mainFrame();
 
     // Look for child metadata type links in the page content
