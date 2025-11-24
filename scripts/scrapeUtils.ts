@@ -22,7 +22,7 @@ export type MetadataType = {
  * Improved page loading with multiple strategies
  * Returns the frame containing the actual content (might be an iframe)
  */
-export const loadPageRobustly = async (
+export const loadMetadataPage = async (
   page: Page,
   url: string,
   indent: string = '     '

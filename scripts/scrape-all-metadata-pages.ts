@@ -17,7 +17,7 @@
 import { chromium, Page } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadPageRobustly, extractMetadataFromPage, MetadataType } from './scrapeUtils';
+import { loadMetadataPage, extractMetadataFromPage, MetadataType } from './scrapeUtils';
 
 type MetadataMap = {
   [key: string]: MetadataType;
@@ -35,7 +35,7 @@ const scrapeMetadataType = async (
   console.log(`  📄 ${name}`);
   console.log(`     Loading: ${url}`);
 
-  const { success, contentFrame } = await loadPageRobustly(page, url);
+  const { success, contentFrame } = await loadMetadataPage(page, url);
 
   if (!success || !contentFrame) {
     console.log(`     ❌ Content failed to load`);

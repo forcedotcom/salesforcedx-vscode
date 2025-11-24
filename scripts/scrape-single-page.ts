@@ -10,7 +10,7 @@
 import { chromium } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadPageRobustly, extractMetadataFromPage } from './scrapeUtils';
+import { loadMetadataPage, extractMetadataFromPage } from './scrapeUtils';
 
 /** Main function */
 const main = async () => {
@@ -77,7 +77,7 @@ Options:
   const page = await context.newPage();
 
   try {
-    const { success, contentFrame } = await loadPageRobustly(page, url, '   ');
+    const { success, contentFrame } = await loadMetadataPage(page, url, '   ');
 
     if (!success || !contentFrame) {
       console.log(`\n❌ Failed to load page content`);
