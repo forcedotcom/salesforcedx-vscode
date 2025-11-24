@@ -9,7 +9,22 @@
 
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 
-import { IFileSystemProvider, unixify } from '@salesforce/salesforcedx-lightning-lsp-common';
+const mockJsonFromCommon = (relativePath: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const fs = require('node:fs');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const pathModule = require('node:path');
+  let current = __dirname;
+  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
+    const parent = pathModule.resolve(current, '..');
+    if (parent === current) break;
+    current = parent;
+  }
+  const packagesDir = pathModule.resolve(current, '..');
+  const filePath = pathModule.join(packagesDir, 'salesforcedx-lightning-lsp-common', 'src', relativePath);
+  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  return { default: content, ...content };
+};
 
 // Mock readJsonSync from the common package to avoid dynamic import issues with tiny-jsonc
 // jest.mock() doesn't intercept dynamic imports, so we need to mock readJsonSync directly
@@ -69,22 +84,6 @@ jest.mock('../resources/transformed-lwc-standard.json', () => {
 // Mock JSON imports from baseContext.ts - these are runtime require() calls in compiled code
 // moduleNameMapper doesn't apply to runtime require() calls within loaded modules - it only works for
 // static imports Jest resolves at the top level. So we need explicit mocks for these relative requires.
-const mockJsonFromCommon = (relativePath: string) => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const pathModule = require('node:path');
-  let current = __dirname;
-  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-    const parent = pathModule.resolve(current, '..');
-    if (parent === current) break;
-    current = parent;
-  }
-  const packagesDir = pathModule.resolve(current, '..');
-  const filePath = pathModule.join(packagesDir, 'salesforcedx-lightning-lsp-common', 'src', relativePath);
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  return { default: content, ...content };
-};
 
 // Mock relative imports - these need to match the exact paths Jest resolves when baseContext.js
 // executes require("./resources/..."). Since baseContext.js is in out/src/, the relative path
@@ -119,6 +118,7 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig
   mockJsonFromCommon('resources/sfdx/tsconfig-sfdx.json')
 );
 
+import { IFileSystemProvider, unixify } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import { dirname, basename } from 'node:path';
