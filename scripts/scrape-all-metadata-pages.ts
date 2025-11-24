@@ -715,33 +715,10 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
   const metadataTypes = await discoverMetadataTypes(page);
   await page.close(); // Close the discovery page
 
-  // Allow testing with a subset
-  const testMode = process.env.TEST_MODE === 'true';
-  const testAssignmentRulesOnly = process.env.TEST_ASSIGNMENT_RULES_ONLY === 'true';
-  const testLimit = parseInt(process.env.TEST_LIMIT || '3');
   const batchSize = parseInt(process.env.BATCH_SIZE || '20');
+  const typesToScrape = metadataTypes;
 
-  let typesToScrape = metadataTypes;
-
-  if (testAssignmentRulesOnly) {
-    // Filter for just AssignmentRules
-    typesToScrape = metadataTypes.filter(t => t.name === 'AssignmentRules');
-    if (typesToScrape.length === 0) {
-      console.log('⚠️  AssignmentRules not found, using fallback');
-      typesToScrape = [
-        {
-          name: 'AssignmentRules',
-          url: 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_assignmentrules.htm'
-        }
-      ];
-    }
-  } else if (testMode) {
-    typesToScrape = metadataTypes.slice(0, testLimit);
-  }
-
-  console.log(
-    `📋 Will scrape ${typesToScrape.length} metadata types in parallel batches of ${batchSize}${testMode || testAssignmentRulesOnly ? ' (TEST MODE)' : ''}\n`
-  );
+  console.log(`📋 Will scrape ${typesToScrape.length} metadata types in parallel batches of ${batchSize}\n`);
 
   try {
     // Scrape in parallel batches
