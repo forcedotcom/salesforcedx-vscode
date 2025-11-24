@@ -148,17 +148,6 @@ export const loadMetadataPage = async (
       return countTablesIncludingShadowDOM(document);
     });
 
-    // Optional: Save debug files if DEBUG env var is set
-    if (process.env.DEBUG === 'true') {
-      const screenshotPath = path.join(__dirname, 'debug-screenshot.png');
-      await page.screenshot({ path: screenshotPath, fullPage: true });
-      console.log(`${indent}📸 Screenshot saved to: ${screenshotPath}`);
-
-      const htmlPath = path.join(__dirname, 'debug-page.html');
-      fs.writeFileSync(htmlPath, await page.content());
-      console.log(`${indent}📝 HTML saved to: ${htmlPath}`);
-    }
-
     if (tableCount === 0) {
       console.log(`${indent}❌ No tables found after all strategies`);
       return { success: false, contentFrame: null };
