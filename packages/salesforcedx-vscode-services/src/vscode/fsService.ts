@@ -71,7 +71,10 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
                   const uint8Array = encoder.encode(content);
                   await vscode.workspace.fs.writeFile(uri, uint8Array);
                 },
-                catch: e => new Error(`Failed to write file ${filePath}: ${String(e)}`)
+                catch: e =>
+                  new Error(
+                    `Failed to write file ${typeof filePath === 'string' ? filePath : filePath.toString()}: ${String(e)}`
+                  )
               })
             )
           )
