@@ -101,7 +101,7 @@ export const loadPageRobustly = async (
 
       const currentTableCount = await contentFrame.evaluate(() => {
         // Helper function to traverse shadow DOMs recursively
-        function countTablesIncludingShadowDOM(root: Document | ShadowRoot | Element): number {
+        const countTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): number => {
           let count = root.querySelectorAll('table').length;
 
           // Check all elements for shadow roots
@@ -113,7 +113,7 @@ export const loadPageRobustly = async (
           });
 
           return count;
-        }
+        };
 
         return countTablesIncludingShadowDOM(document);
       });
@@ -135,7 +135,7 @@ export const loadPageRobustly = async (
 
     // Final check: do we have tables?
     const tableCount = await contentFrame.evaluate(() => {
-      function countTablesIncludingShadowDOM(root: Document | ShadowRoot | Element): number {
+      const countTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): number => {
         let count = root.querySelectorAll('table').length;
         const elements = root.querySelectorAll('*');
         elements.forEach(el => {
@@ -144,7 +144,7 @@ export const loadPageRobustly = async (
           }
         });
         return count;
-      }
+      };
       return countTablesIncludingShadowDOM(document);
     });
 
@@ -243,13 +243,13 @@ export const extractMetadataFromPage = async (
       let pageLevelDescription = '';
 
       // Helper to search including shadow DOMs
-      function findInShadowDOM(selector: string): Element | null {
+      const findInShadowDOM = (selector: string): Element | null => {
         // Try regular DOM first
         let found = document.querySelector(selector);
         if (found) return found;
 
         // Search shadow DOMs
-        function searchShadow(root: Document | ShadowRoot | Element): Element | null {
+        const searchShadow = (root: Document | ShadowRoot | Element): Element | null => {
           const result = root.querySelector(selector);
           if (result) return result;
 
@@ -261,10 +261,10 @@ export const extractMetadataFromPage = async (
             }
           }
           return null;
-        }
+        };
 
         return searchShadow(document);
-      }
+      };
 
       // Strategy 1: Look for Salesforce's standard shortdesc div (including in shadow DOM)
       const shortdescDiv = findInShadowDOM('div.shortdesc');
@@ -372,7 +372,7 @@ export const extractMetadataFromPage = async (
       }
 
       // Helper to collect all tables including those in shadow DOMs
-      function getAllTablesIncludingShadowDOM(root: Document | ShadowRoot | Element): Element[] {
+      const getAllTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): Element[] => {
         const tables: Element[] = Array.from(root.querySelectorAll('table'));
 
         const elements = root.querySelectorAll('*');
@@ -383,7 +383,7 @@ export const extractMetadataFromPage = async (
         });
 
         return tables;
-      }
+      };
 
       // Find all tables (including in shadow DOMs)
       const tables = getAllTablesIncludingShadowDOM(document);
