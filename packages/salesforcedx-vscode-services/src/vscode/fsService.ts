@@ -28,8 +28,14 @@ export const toUri = (filePath: string | vscode.Uri): vscode.Uri => {
   // Check if it's already a URI string (has scheme:/path format)
   // Must have colon followed by slash, but not be a Windows drive letter (single letter + colon)
   if (/^[a-z][\w+.-]*:/i.test(filePath) && !/^[a-z]:/i.test(filePath)) {
-    const parsed = URI.parse(filePath);
-    return parsed;
+    return URI.parse(filePath);
+  }
+
+  // Handle Windows UNC paths (\\server\share\file.txt) by converting to proper file URI
+  if (filePath.startsWith('\\\\')) {
+    // Convert \\server\share\file.txt to /server/share/file.txt for URI.path
+    const normalizedPath = filePath.slice(2).replaceAll('\\', '/'); // Remove leading \\, normalize separators
+    return URI.file(`/${normalizedPath}`);
   }
 
   // Otherwise treat as file path (including Windows paths like C:\)
