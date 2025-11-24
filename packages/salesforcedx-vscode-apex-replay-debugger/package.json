@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.5.0",
+  "version": "65.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,18 +25,18 @@
   ],
   "dependencies": {
     "@salesforce/apex-node": "^8.3.7",
-    "@salesforce/salesforcedx-apex-replay-debugger": "65.5.0",
-    "@salesforce/salesforcedx-utils": "65.5.0",
-    "@salesforce/salesforcedx-utils-vscode": "65.5.0",
-    "@salesforce/vscode-i18n": "65.5.0",
+    "@salesforce/salesforcedx-apex-replay-debugger": "65.6.0",
+    "@salesforce/salesforcedx-utils": "65.6.0",
+    "@salesforce/salesforcedx-utils-vscode": "65.6.0",
+    "@salesforce/vscode-i18n": "65.6.0",
     "effect": "^3.18.4",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
     "esbuild": "0.25.10",
-    "salesforcedx-vscode-apex": "65.5.0",
-    "salesforcedx-vscode-core": "65.5.0"
+    "salesforcedx-vscode-apex": "65.6.0",
+    "salesforcedx-vscode-core": "65.6.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
@@ -44,7 +44,7 @@
   ],
   "scripts": {
     "bundle:extension": "node ./esbuild.config.mjs",
-    "vscode:package": "vsce package",
+    "vscode:package": "vsce package --allow-package-all-secrets",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",

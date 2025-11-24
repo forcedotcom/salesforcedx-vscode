@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.5.0",
+  "version": "65.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,15 +25,15 @@
   ],
   "dependencies": {
     "@salesforce/core": "^8.23.3",
-    "@salesforce/salesforcedx-apex-debugger": "65.5.0",
-    "@salesforce/salesforcedx-utils": "65.5.0",
-    "@salesforce/salesforcedx-utils-vscode": "65.5.0",
-    "@salesforce/vscode-i18n": "65.5.0",
+    "@salesforce/salesforcedx-apex-debugger": "65.6.0",
+    "@salesforce/salesforcedx-utils": "65.6.0",
+    "@salesforce/salesforcedx-utils-vscode": "65.6.0",
+    "@salesforce/vscode-i18n": "65.6.0",
     "@vscode/debugprotocol": "1.68.0"
   },
   "devDependencies": {
     "esbuild": "0.25.10",
-    "salesforcedx-vscode-apex": "65.5.0"
+    "salesforcedx-vscode-apex": "65.6.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
@@ -44,7 +44,7 @@
     "bundle:extension:copy": "cp ../salesforcedx-apex-debugger/dist/apexDebug.js ./dist/",
     "bundle:extension:build": "node ./esbuild.config.mjs",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package": "ts-node  ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package:legacy": "ts-node  ../../scripts/vsce-bundled-extension.ts",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./",
