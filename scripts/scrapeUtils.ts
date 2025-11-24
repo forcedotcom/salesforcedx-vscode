@@ -71,7 +71,7 @@ export const loadMetadataPage = async (
 
     // Extract the expected page name from the URL (e.g., "meta_classes.htm")
     const urlParts = url.split('/');
-    const expectedPage = urlParts[urlParts.length - 1];
+    const expectedPage = urlParts.at(-1)!;
 
     // Find the frame matching our target URL
     let contentFrame = frames.find(f => f.url().includes(expectedPage));
