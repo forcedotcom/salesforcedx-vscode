@@ -71,8 +71,7 @@ jobs:
             --base main \
             --head automated/update-xsd-${{ steps.timestamp.outputs.value }}
 
-          # Auto-merge the PR
+          # Merge the PR immediately
           gh pr merge automated/update-xsd-${{ steps.timestamp.outputs.value }} \
             --squash \
-            --auto \
             --delete-branch
