@@ -11,27 +11,21 @@
 
 // Mock readJsonSync from the common package to avoid dynamic import issues with tiny-jsonc
 // This is simpler than trying to mock tiny-jsonc itself, which has issues with dynamic imports
+// Since updateConfigFile writes to fileSystemProvider (not disk), we read from the provider
 jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
   const actual = jest.requireActual('@salesforce/salesforcedx-lightning-lsp-common');
+
   return {
     ...actual,
     readJsonSync: jest.fn(async (file: string, fileSystemProvider: any) => {
       try {
-        // Try fileSystemProvider first (for test isolation), then fall back to actual file system
-        // This is acceptable in test files and ensures cross-platform compatibility
-        let content = fileSystemProvider.getFileContent(`${file}`);
+        const content = fileSystemProvider?.getFileContent?.(`${file}`);
+        console.log('[lwcServer.test.ts] readJsonSync file', file);
+        console.log('[lwcServer.test.ts] readJsonSync content', content);
         if (!content) {
-          // Fallback to actual file system if not in mock provider
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const fs = require('node:fs');
-          try {
-            console.log(`Reading file ${file} from actual file system`);
-            content = fs.readFileSync(file, 'utf8');
-          } catch (e) {
-            console.log(`Error reading file ${file} from actual file system:`, e);
-            return {};
-          }
+          return {};
         }
+
         // Simple JSONC parser that strips comments and trailing commas (same as tiny-jsonc mock)
         let cleaned = content;
         // Remove single-line comments (// ...)
