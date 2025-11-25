@@ -306,7 +306,8 @@ export default class ComponentIndexer {
         const folderName = path.basename(dir);
         if (folderName === fileName) {
           const componentName = `c/${fileName}`;
-          const componentFilePath = path.join(dir, fileName);
+          // Normalize path to ensure consistent forward slashes (path.join uses backslashes on Windows)
+          const componentFilePath = normalizePath(path.join(dir, fileName));
           files[componentName] = files[componentName] ?? [];
           if (!files[componentName].includes(componentFilePath)) {
             files[componentName].push(componentFilePath);
