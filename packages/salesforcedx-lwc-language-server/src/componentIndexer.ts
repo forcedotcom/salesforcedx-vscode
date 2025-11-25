@@ -17,8 +17,6 @@ import {
 import { snakeCase, camelCase } from 'change-case';
 import globToRegExp from 'glob-to-regexp';
 import * as path from 'node:path';
-/** Normalizes paths for glob patterns by converting backslashes to forward slashes and normalizing */
-const normalize = (p: string): string => path.posix.normalize(p.replace(/\\/g, '/'));
 
 import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
 import { Tag, TagAttrs, createTag, createTagFromFile, getTagName, getTagUri } from './tag';
@@ -214,12 +212,12 @@ export default class ComponentIndexer {
   }
 
   public async insertSfdxTsConfigPath(filePaths: string[]): Promise<void> {
-    const sfdxTsConfigPath = normalize(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
-    const normalizedPath = unixify(sfdxTsConfigPath);
+    // Use unixify directly to match FileSystemDataProvider's internal normalization
+    // This ensures drive letter casing matches what was used when the file was written
+    const normalizedPath = unixify(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
 
     // Add logging to debug path matching on Windows
     process.stdout.write('[componentIndexer] insertSfdxTsConfigPath called\n');
-    process.stdout.write(`[componentIndexer] sfdxTsConfigPath: ${sfdxTsConfigPath}\n`);
     process.stdout.write(`[componentIndexer] normalizedPath: ${normalizedPath}\n`);
 
     const fileExists = this.fileSystemProvider.fileExists(normalizedPath);
@@ -227,7 +225,7 @@ export default class ComponentIndexer {
 
     if (fileExists) {
       try {
-        const sfdxTsConfig: SfdxTsConfig = await readJsonSync(sfdxTsConfigPath, this.fileSystemProvider);
+        const sfdxTsConfig: SfdxTsConfig = await readJsonSync(normalizedPath, this.fileSystemProvider);
         sfdxTsConfig.compilerOptions = sfdxTsConfig.compilerOptions ?? { paths: {} };
         sfdxTsConfig.compilerOptions.paths = sfdxTsConfig.compilerOptions.paths ?? {};
         // Update TypeScript path mappings to include component file paths.
@@ -242,7 +240,7 @@ export default class ComponentIndexer {
             paths.push(componentFilePath);
           }
         }
-        writeJsonSync(sfdxTsConfigPath, sfdxTsConfig, this.fileSystemProvider);
+        writeJsonSync(normalizedPath, sfdxTsConfig, this.fileSystemProvider);
       } catch (err) {
         console.error(err);
       }
@@ -254,11 +252,11 @@ export default class ComponentIndexer {
   // TODO: Once the LWC custom module resolution plugin has been developed in the language server
   // this can be removed.
   public async updateSfdxTsConfigPath(): Promise<void> {
-    const sfdxTsConfigPath = normalize(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
-    const normalizedPath = unixify(sfdxTsConfigPath);
+    // Use unixify directly to match FileSystemDataProvider's internal normalization
+    // This ensures drive letter casing matches what was used when the file was written
+    const normalizedPath = unixify(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
 
     process.stdout.write('[updateSfdxTsConfigPath] Called\n');
-    process.stdout.write(`[updateSfdxTsConfigPath] sfdxTsConfigPath: ${sfdxTsConfigPath}\n`);
     process.stdout.write(`[updateSfdxTsConfigPath] normalizedPath: ${normalizedPath}\n`);
 
     const fileExists = this.fileSystemProvider.fileExists(normalizedPath);
