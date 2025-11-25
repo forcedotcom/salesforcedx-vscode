@@ -44,7 +44,7 @@ const createReadJsonSyncMockImplementation = (actualUtils: any) => async (file: 
     `[readJsonSync] fileSystemProvider has getAllFileUris: ${typeof fileSystemProvider?.getAllFileUris}\n`
   );
   try {
-    const normalizedFile = actualUtils.unixify(file);
+    const normalizedFile = actualUtils.normalizePath?.(file) ?? actualUtils.unixify?.(file) ?? file;
     process.stdout.write(`[readJsonSync] Normalized path: ${normalizedFile}\n`);
     process.stdout.write(`[readJsonSync] Original file path: ${file}\n`);
     const content = fileSystemProvider?.getFileContent?.(normalizedFile);
@@ -200,7 +200,7 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig
   mockJsonFromCommon('resources/sfdx/tsconfig-sfdx.json')
 );
 
-import { unixify } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import { dirname, basename } from 'node:path';
@@ -273,9 +273,9 @@ server.fileSystemProvider = sfdxFileSystemProvider as any;
 // Helper function to create a file in the fileSystemProvider (replaces vscode.workspace.fs.writeFile)
 // Uses path normalization to handle cross-platform paths
 const createFileInProvider = (provider: any, filePath: string, content: string): void => {
-  // Normalize path separators for cross-platform compatibility
-  const normalizedPath = unixify(filePath);
-  const parentDir = unixify(dirname(normalizedPath));
+  // Normalize path the same way FileSystemDataProvider normalizes paths
+  const normalizedPath = normalizePath(filePath);
+  const parentDir = normalizePath(dirname(normalizedPath));
   const fileName = basename(normalizedPath);
 
   // Ensure parent directory exists
