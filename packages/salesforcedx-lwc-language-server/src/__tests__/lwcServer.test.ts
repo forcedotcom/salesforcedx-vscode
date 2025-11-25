@@ -204,7 +204,6 @@ import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import { dirname, basename } from 'node:path';
-import * as vscode from 'vscode';
 import { getLanguageService } from 'vscode-html-languageservice';
 import {
   InitializeParams,
@@ -269,6 +268,37 @@ const setupDocuments = async (): Promise<void> => {
 const server: Server = new Server();
 // Use the pre-populated file system provider from testUtils
 server.fileSystemProvider = sfdxFileSystemProvider as any;
+
+// Helper function to delete a file or directory from the fileSystemProvider (replaces vscode.workspace.fs.delete)
+const deleteFromProvider = (provider: any, filePath: string, recursive = false): void => {
+  const normalizedPath = normalizePath(filePath);
+
+  // Remove file content and stat
+  provider.updateFileContent(normalizedPath, '');
+  provider.updateFileStat(normalizedPath, {
+    type: 'file',
+    exists: false,
+    ctime: 0,
+    mtime: 0,
+    size: 0
+  });
+
+  // Remove from parent directory listing
+  const parentDir = normalizePath(dirname(normalizedPath));
+  const fileName = basename(normalizedPath);
+  const entries = provider.getDirectoryListing(parentDir) ?? [];
+  const updatedEntries = entries.filter((entry: any) => entry.name !== fileName);
+  provider.updateDirectoryListing(parentDir, updatedEntries);
+
+  // If recursive, also remove directory listings
+  if (recursive) {
+    const dirEntries = provider.getDirectoryListing(normalizedPath) ?? [];
+    for (const entry of dirEntries) {
+      deleteFromProvider(provider, entry.uri, true);
+    }
+    provider.updateDirectoryListing(normalizedPath, []);
+  }
+};
 
 // Helper function to create a file in the fileSystemProvider (replaces vscode.workspace.fs.writeFile)
 // Uses path normalization to handle cross-platform paths
@@ -716,17 +746,13 @@ describe('lwcServer', () => {
 
       afterEach(async () => {
         // Clean up after each test run
-        try {
-          await vscode.workspace.fs.delete(vscode.Uri.file(baseTsconfigPath));
-        } catch {
-          /* ignore if doesn't exist */
+        if (server.fileSystemProvider.fileExists(baseTsconfigPath)) {
+          deleteFromProvider(server.fileSystemProvider, baseTsconfigPath);
         }
         const tsconfigPaths = getTsConfigPaths();
         for (const tsconfigPath of tsconfigPaths) {
-          try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(tsconfigPath));
-          } catch {
-            /* ignore if doesn't exist */
+          if (server.fileSystemProvider.fileExists(tsconfigPath)) {
+            deleteFromProvider(server.fileSystemProvider, tsconfigPath);
           }
         }
         mockTypeScriptSupportConfig = false;
@@ -736,12 +762,7 @@ describe('lwcServer', () => {
         await server.onInitialize(initializeParams);
         await server.onInitialized();
 
-        try {
-          await vscode.workspace.fs.stat(vscode.Uri.file(baseTsconfigPath));
-          expect(true).toBe(false); // Should not reach here
-        } catch {
-          expect(true).toBe(true); // File doesn't exist, which is expected
-        }
+        expect(server.fileSystemProvider.fileExists(baseTsconfigPath)).toBe(false);
         const tsconfigPaths = getTsConfigPaths();
         expect(tsconfigPaths.length).toBe(0);
       });
@@ -843,24 +864,18 @@ describe('lwcServer', () => {
 
       afterEach(async () => {
         // Clean up after each test run
-        try {
-          await vscode.workspace.fs.delete(vscode.Uri.file(baseTsconfigPath));
-        } catch {
-          /* ignore if doesn't exist */
+        if (server.fileSystemProvider.fileExists(baseTsconfigPath)) {
+          deleteFromProvider(server.fileSystemProvider, baseTsconfigPath);
         }
         // Use fileSystemProvider to find tsconfig files
         const tsconfigPaths = getTsConfigPaths();
         for (const tsconfigPath of tsconfigPaths) {
-          try {
-            await vscode.workspace.fs.delete(vscode.Uri.file(tsconfigPath));
-          } catch {
-            /* ignore if doesn't exist */
+          if (server.fileSystemProvider.fileExists(tsconfigPath)) {
+            deleteFromProvider(server.fileSystemProvider, tsconfigPath);
           }
         }
-        try {
-          await vscode.workspace.fs.delete(vscode.Uri.file(watchedFileDir), { recursive: true });
-        } catch {
-          /* ignore if doesn't exist */
+        if (server.fileSystemProvider.directoryExists(watchedFileDir)) {
+          deleteFromProvider(server.fileSystemProvider, watchedFileDir, true);
         }
         mockTypeScriptSupportConfig = false;
       });
