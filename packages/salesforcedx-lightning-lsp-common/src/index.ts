@@ -18,8 +18,7 @@ export {
   extractJsonFromImport,
   SfdxTsConfig,
   TsConfigPaths,
-  unixify,
-  normalizePath
+  unixify
 } from './utils';
 
 // Re-export from base-context
