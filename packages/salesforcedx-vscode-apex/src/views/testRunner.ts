@@ -92,16 +92,26 @@ export class ApexTestRunner {
   }
 
   public async runAllApexTests(): Promise<void> {
+    // Refresh only if the cache is empty (e.g., first run after activation)
+    if (this.testOutline.testStrings.size === 0) {
+      await this.testOutline.refresh();
+    }
     const tests = Array.from(this.testOutline.testStrings.values());
     await this.runApexTests(tests, TestRunType.All);
   }
 
   public async runApexTests(tests: string[], testRunType: TestRunType) {
-    const languageClientStatus = languageClientManager.getStatus();
-    if (!languageClientStatus.isReady()) {
-      if (languageClientStatus.failedToInitialize()) {
-        vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());
-        return [];
+    // Only gate on Language Server when using LS discovery; API discovery should not be blocked by LS status
+    const discoverySource = vscode.workspace
+      .getConfiguration('salesforcedx-vscode-apex')
+      .get<'ls' | 'api'>('testing.discoverySource', 'ls');
+    if (discoverySource === 'ls') {
+      const languageClientStatus = languageClientManager.getStatus();
+      if (!languageClientStatus.isReady()) {
+        if (languageClientStatus.failedToInitialize()) {
+          vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());
+          return [];
+        }
       }
     }
 

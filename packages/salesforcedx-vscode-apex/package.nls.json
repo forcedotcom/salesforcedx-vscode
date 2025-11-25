@@ -35,5 +35,8 @@
   "show_error_title": "Display Error",
   "test_view_container_title": "Test Viewer",
   "test_view_name": "Apex Tests",
-  "apex_test_run_concise": "Display only failed test results."
+  "apex_test_run_concise": "Display only failed test results.",
+  "apex_testing_discovery_source_description": "Select the source for Apex test discovery.",
+  "apex_testing_discovery_source_ls_description": "Use the Language Server (LS) for discovery.",
+  "apex_testing_discovery_source_api_description": "Use the Tooling API Test Discovery endpoint for discovery."
 }

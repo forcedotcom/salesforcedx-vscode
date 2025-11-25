@@ -83,6 +83,9 @@ export const activate = async (context: vscode.ExtensionContext) => {
     if (event.affectsConfiguration('salesforcedx-vscode-apex.advanced.lspParityCapabilities')) {
       void vscode.commands.executeCommand('sf.apex.languageServer.restart', 'commandPalette');
     }
+    if (event.affectsConfiguration('salesforcedx-vscode-apex.testing.discoverySource')) {
+      void getTestOutlineProvider().refresh();
+    }
   });
   context.subscriptions.push(lspParitySettingsWatcher);
 
