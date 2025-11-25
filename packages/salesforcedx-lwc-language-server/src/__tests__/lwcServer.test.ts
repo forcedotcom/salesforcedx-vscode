@@ -33,28 +33,28 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
 
   return {
     ...actual,
-    readJsonSync: jest.fn(async (file: string, fileSystemProvider: IFileSystemProvider) => {
-      // Log every call to see if mock is being invoked
-      console.log(`[readJsonSync] Called with file: ${file}`);
+    readJsonSync: jest.fn(async (file: string, fileSystemProvider: any) => {
+      // Use process.stdout.write to ensure output is visible even if console.log is suppressed
+      process.stdout.write(`[readJsonSync] Called with file: ${file}\n`);
       try {
         // Normalize the path to match how FileSystemDataProvider stores paths (using unixify)
         // This is critical for cross-platform compatibility (Windows uses backslashes)
         const normalizedFile = actual.unixify(file);
-        console.log(`[readJsonSync] Normalized path: ${normalizedFile}`);
+        process.stdout.write(`[readJsonSync] Normalized path: ${normalizedFile}\n`);
         const content = fileSystemProvider?.getFileContent?.(normalizedFile);
         if (!content) {
           // Try original path as fallback (in case it's already normalized)
           const fallbackContent = fileSystemProvider?.getFileContent?.(file);
           if (!fallbackContent) {
-            // Use console.log instead of console.error - console.error output is suppressed in CI
-            console.log(`[readJsonSync] File not found (normalized): ${normalizedFile}`);
-            console.log(`[readJsonSync] File not found (original): ${file}`);
+            // Use process.stdout.write to ensure visibility in CI
+            process.stdout.write(`[readJsonSync] File not found (normalized): ${normalizedFile}\n`);
+            process.stdout.write(`[readJsonSync] File not found (original): ${file}\n`);
             const allUris = fileSystemProvider?.getAllFileUris?.() ?? [];
-            console.log(`[readJsonSync] Available files (first 10): ${allUris.slice(0, 10).join(', ')}`);
-            console.log(`[readJsonSync] Total available files: ${allUris.length}`);
+            process.stdout.write(`[readJsonSync] Available files (first 10): ${allUris.slice(0, 10).join(', ')}\n`);
+            process.stdout.write(`[readJsonSync] Total available files: ${allUris.length}\n`);
             // Check if any available file matches (case-insensitive, basename, etc.)
             const fileBasename = actual.getBasename?.(file) ?? file.split(/[/\\]/).pop();
-            const matchingFiles = allUris.filter(availableUri => {
+            const matchingFiles = allUris.filter((availableUri: string) => {
               const uriBasename = actual.getBasename?.(availableUri) ?? availableUri.split(/[/\\]/).pop();
               return (
                 uriBasename === fileBasename ||
@@ -63,13 +63,13 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
               );
             });
             if (matchingFiles.length > 0) {
-              console.log(
-                `[readJsonSync] Found ${matchingFiles.length} potentially matching files: ${matchingFiles.slice(0, 5).join(', ')}`
+              process.stdout.write(
+                `[readJsonSync] Found ${matchingFiles.length} potentially matching files: ${matchingFiles.slice(0, 5).join(', ')}\n`
               );
             }
             throw new Error('File not found', { cause: file });
           }
-          console.log(`[readJsonSync] Found file using original path (fallback): ${file}`);
+          process.stdout.write(`[readJsonSync] Found file using original path (fallback): ${file}\n`);
           // Use fallback content
           const fallbackCleaned = fallbackContent
             .replace(/\/\/.*$/gm, '')
@@ -77,15 +77,15 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
             .replace(/,(\s*[}\]])/g, '$1');
           try {
             const parsed = JSON.parse(fallbackCleaned);
-            console.log('[readJsonSync] Successfully parsed JSON from fallback path');
+            process.stdout.write('[readJsonSync] Successfully parsed JSON from fallback path\n');
             return parsed;
           } catch (parseErr) {
-            console.log('[readJsonSync] Failed to parse JSON from fallback path:', parseErr);
+            process.stdout.write(`[readJsonSync] Failed to parse JSON from fallback path: ${String(parseErr)}\n`);
             return {};
           }
         }
 
-        console.log(`[readJsonSync] Found file using normalized path: ${normalizedFile}`);
+        process.stdout.write(`[readJsonSync] Found file using normalized path: ${normalizedFile}\n`);
         // Simple JSONC parser that strips comments and trailing commas (same as tiny-jsonc mock)
         let cleaned = content;
         // Remove single-line comments (// ...)
@@ -96,19 +96,19 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
         cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
         try {
           const parsed = JSON.parse(cleaned);
-          console.log('[readJsonSync] Successfully parsed JSON from normalized path');
+          process.stdout.write('[readJsonSync] Successfully parsed JSON from normalized path\n');
           return parsed;
         } catch (parseErr) {
-          console.log('[readJsonSync] Failed to parse JSON from normalized path:', parseErr);
+          process.stdout.write(`[readJsonSync] Failed to parse JSON from normalized path: ${String(parseErr)}\n`);
           return {};
         }
       } catch (err) {
         // Log error for debugging but return empty object to avoid breaking tests
-        // Use console.log instead of console.error - console.error output is suppressed in CI
-        console.log(`[readJsonSync] Error for file ${file}:`, err);
+        // Use process.stdout.write to ensure visibility in CI
+        process.stdout.write(`[readJsonSync] Error for file ${file}: ${String(err)}\n`);
         if (err instanceof Error) {
-          console.log(`[readJsonSync] Error message: ${err.message}`);
-          console.log(`[readJsonSync] Error cause: ${err.cause}`);
+          process.stdout.write(`[readJsonSync] Error message: ${err.message}\n`);
+          process.stdout.write(`[readJsonSync] Error cause: ${String(err.cause)}\n`);
         }
         return {};
       }
@@ -172,7 +172,7 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig
   mockJsonFromCommon('resources/sfdx/tsconfig-sfdx.json')
 );
 
-import { IFileSystemProvider, unixify } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { unixify } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import { dirname, basename } from 'node:path';
