@@ -16,5 +16,7 @@ jobs:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           cache: npm
       - run: npm ci
+      - run: npm run compile -w @salesforce/eslint-plugin-vscode-extensions
+        name: Compile ESLint rules
       - name: Lint
         run: npm run lint

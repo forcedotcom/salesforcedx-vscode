@@ -1,0 +1,8 @@
+---
+globs: package.json
+alwaysApply: false
+---
+
+packages should not duplicate devDependencies that exist at the top level of the repo.
+
+packages that publish to npm should have a `files` property in the package.json
