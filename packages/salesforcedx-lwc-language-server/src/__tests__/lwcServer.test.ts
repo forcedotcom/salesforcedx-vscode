@@ -28,91 +28,101 @@ const mockJsonFromCommon = (relativePath: string) => {
 
 // Mock readJsonSync from the common package to avoid dynamic import issues with tiny-jsonc
 // jest.mock() doesn't intercept dynamic imports, so we need to mock readJsonSync directly
+// We need to mock both the package-level export AND the internal utils module
+// because baseContext.ts imports from './utils' directly (which resolves to out/src/utils.js)
+
+// Create the mock implementation function
+const createReadJsonSyncMockImplementation = (actualUtils: any) => async (file: string, fileSystemProvider: any) => {
+  process.stdout.write(`[readJsonSync] Called with file: ${file}\n`);
+  try {
+    const normalizedFile = actualUtils.unixify(file);
+    process.stdout.write(`[readJsonSync] Normalized path: ${normalizedFile}\n`);
+    const content = fileSystemProvider?.getFileContent?.(normalizedFile);
+    if (!content) {
+      const fallbackContent = fileSystemProvider?.getFileContent?.(file);
+      if (!fallbackContent) {
+        process.stdout.write(`[readJsonSync] File not found (normalized): ${normalizedFile}\n`);
+        process.stdout.write(`[readJsonSync] File not found (original): ${file}\n`);
+        const allUris = fileSystemProvider?.getAllFileUris?.() ?? [];
+        process.stdout.write(`[readJsonSync] Available files (first 10): ${allUris.slice(0, 10).join(', ')}\n`);
+        process.stdout.write(`[readJsonSync] Total available files: ${allUris.length}\n`);
+        const fileBasename = actualUtils.getBasename?.(file) ?? file.split(/[/\\]/).pop();
+        const matchingFiles = allUris.filter((availableUri: string) => {
+          const uriBasename = actualUtils.getBasename?.(availableUri) ?? availableUri.split(/[/\\]/).pop();
+          return (
+            uriBasename === fileBasename ||
+            availableUri.includes(fileBasename ?? '') ||
+            file.includes(uriBasename ?? '')
+          );
+        });
+        if (matchingFiles.length > 0) {
+          process.stdout.write(
+            `[readJsonSync] Found ${matchingFiles.length} potentially matching files: ${matchingFiles.slice(0, 5).join(', ')}\n`
+          );
+        }
+        throw new Error('File not found', { cause: file });
+      }
+      process.stdout.write(`[readJsonSync] Found file using original path (fallback): ${file}\n`);
+      const fallbackCleaned = fallbackContent
+        .replace(/\/\/.*$/gm, '')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/,(\s*[}\]])/g, '$1');
+      try {
+        const parsed = JSON.parse(fallbackCleaned);
+        process.stdout.write('[readJsonSync] Successfully parsed JSON from fallback path\n');
+        return parsed;
+      } catch (parseErr) {
+        process.stdout.write(`[readJsonSync] Failed to parse JSON from fallback path: ${String(parseErr)}\n`);
+        return {};
+      }
+    }
+    process.stdout.write(`[readJsonSync] Found file using normalized path: ${normalizedFile}\n`);
+    let cleaned = content;
+    cleaned = cleaned.replace(/\/\/.*$/gm, '');
+    cleaned = cleaned.replace(/\/\*[\s\S]*?\*\//g, '');
+    cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
+    try {
+      const parsed = JSON.parse(cleaned);
+      process.stdout.write('[readJsonSync] Successfully parsed JSON from normalized path\n');
+      return parsed;
+    } catch (parseErr) {
+      process.stdout.write(`[readJsonSync] Failed to parse JSON from normalized path: ${String(parseErr)}\n`);
+      return {};
+    }
+  } catch (err) {
+    process.stdout.write(`[readJsonSync] Error for file ${file}: ${String(err)}\n`);
+    if (err instanceof Error) {
+      process.stdout.write(`[readJsonSync] Error message: ${err.message}\n`);
+      process.stdout.write(`[readJsonSync] Error cause: ${String(err.cause)}\n`);
+    }
+    return {};
+  }
+};
+
+// Mock the internal utils module (used by baseContext.ts via './utils')
+jest.mock(
+  '../../../salesforcedx-lightning-lsp-common/out/src/utils',
+  () => {
+    const actual = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
+    process.stdout.write('[MOCK SETUP] Mocking internal utils module\n');
+
+    return {
+      ...actual,
+      readJsonSync: jest.fn(createReadJsonSyncMockImplementation(actual))
+    };
+  },
+  { virtual: true }
+);
+
+// Also mock the package-level export (for direct imports from the package)
 jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
   const actual = jest.requireActual('@salesforce/salesforcedx-lightning-lsp-common');
+  const actualUtils = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
+  process.stdout.write('[MOCK SETUP] Mocking package-level export\n');
 
   return {
     ...actual,
-    readJsonSync: jest.fn(async (file: string, fileSystemProvider: any) => {
-      // Use process.stdout.write to ensure output is visible even if console.log is suppressed
-      process.stdout.write(`[readJsonSync] Called with file: ${file}\n`);
-      try {
-        // Normalize the path to match how FileSystemDataProvider stores paths (using unixify)
-        // This is critical for cross-platform compatibility (Windows uses backslashes)
-        const normalizedFile = actual.unixify(file);
-        process.stdout.write(`[readJsonSync] Normalized path: ${normalizedFile}\n`);
-        const content = fileSystemProvider?.getFileContent?.(normalizedFile);
-        if (!content) {
-          // Try original path as fallback (in case it's already normalized)
-          const fallbackContent = fileSystemProvider?.getFileContent?.(file);
-          if (!fallbackContent) {
-            // Use process.stdout.write to ensure visibility in CI
-            process.stdout.write(`[readJsonSync] File not found (normalized): ${normalizedFile}\n`);
-            process.stdout.write(`[readJsonSync] File not found (original): ${file}\n`);
-            const allUris = fileSystemProvider?.getAllFileUris?.() ?? [];
-            process.stdout.write(`[readJsonSync] Available files (first 10): ${allUris.slice(0, 10).join(', ')}\n`);
-            process.stdout.write(`[readJsonSync] Total available files: ${allUris.length}\n`);
-            // Check if any available file matches (case-insensitive, basename, etc.)
-            const fileBasename = actual.getBasename?.(file) ?? file.split(/[/\\]/).pop();
-            const matchingFiles = allUris.filter((availableUri: string) => {
-              const uriBasename = actual.getBasename?.(availableUri) ?? availableUri.split(/[/\\]/).pop();
-              return (
-                uriBasename === fileBasename ||
-                availableUri.includes(fileBasename ?? '') ||
-                file.includes(uriBasename ?? '')
-              );
-            });
-            if (matchingFiles.length > 0) {
-              process.stdout.write(
-                `[readJsonSync] Found ${matchingFiles.length} potentially matching files: ${matchingFiles.slice(0, 5).join(', ')}\n`
-              );
-            }
-            throw new Error('File not found', { cause: file });
-          }
-          process.stdout.write(`[readJsonSync] Found file using original path (fallback): ${file}\n`);
-          // Use fallback content
-          const fallbackCleaned = fallbackContent
-            .replace(/\/\/.*$/gm, '')
-            .replace(/\/\*[\s\S]*?\*\//g, '')
-            .replace(/,(\s*[}\]])/g, '$1');
-          try {
-            const parsed = JSON.parse(fallbackCleaned);
-            process.stdout.write('[readJsonSync] Successfully parsed JSON from fallback path\n');
-            return parsed;
-          } catch (parseErr) {
-            process.stdout.write(`[readJsonSync] Failed to parse JSON from fallback path: ${String(parseErr)}\n`);
-            return {};
-          }
-        }
-
-        process.stdout.write(`[readJsonSync] Found file using normalized path: ${normalizedFile}\n`);
-        // Simple JSONC parser that strips comments and trailing commas (same as tiny-jsonc mock)
-        let cleaned = content;
-        // Remove single-line comments (// ...)
-        cleaned = cleaned.replace(/\/\/.*$/gm, '');
-        // Remove multi-line comments (/* ... */)
-        cleaned = cleaned.replace(/\/\*[\s\S]*?\*\//g, '');
-        // Remove trailing commas before } or ]
-        cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
-        try {
-          const parsed = JSON.parse(cleaned);
-          process.stdout.write('[readJsonSync] Successfully parsed JSON from normalized path\n');
-          return parsed;
-        } catch (parseErr) {
-          process.stdout.write(`[readJsonSync] Failed to parse JSON from normalized path: ${String(parseErr)}\n`);
-          return {};
-        }
-      } catch (err) {
-        // Log error for debugging but return empty object to avoid breaking tests
-        // Use process.stdout.write to ensure visibility in CI
-        process.stdout.write(`[readJsonSync] Error for file ${file}: ${String(err)}\n`);
-        if (err instanceof Error) {
-          process.stdout.write(`[readJsonSync] Error message: ${err.message}\n`);
-          process.stdout.write(`[readJsonSync] Error cause: ${String(err.cause)}\n`);
-        }
-        return {};
-      }
-    })
+    readJsonSync: jest.fn(createReadJsonSyncMockImplementation(actualUtils))
   };
 });
 
