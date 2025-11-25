@@ -93,16 +93,46 @@ export class FileSystemDataProvider implements IFileSystemProvider {
    * Check if directory exists
    * A directory exists if:
    * 1. It has a file stat with type 'directory', OR
-   * 2. It has a directory listing (even if no explicit stat was created)
+   * 2. It has a directory listing (even if no explicit stat was created), OR
+   * 3. Any files exist with paths that start with this directory path (inferred existence)
    */
   public directoryExists(uri: string): boolean {
     const normalizedUri = normalizePath(uri);
+    process.stdout.write(`[directoryExists] Checking: ${uri} -> normalized: ${normalizedUri}\n`);
+
     const stat = this.fileStats.get(normalizedUri);
     if (stat?.exists && stat.type === 'directory') {
+      process.stdout.write(`[directoryExists] Found directory stat: ${normalizedUri}\n`);
       return true;
     }
-    // Also check if there's a directory listing (directory might exist without explicit stat)
-    return this.directoryListings.has(normalizedUri);
+    process.stdout.write(`[directoryExists] No directory stat found for: ${normalizedUri}\n`);
+
+    // Check if there's a directory listing (directory might exist without explicit stat)
+    if (this.directoryListings.has(normalizedUri)) {
+      process.stdout.write(`[directoryExists] Found directory listing: ${normalizedUri}\n`);
+      return true;
+    }
+    process.stdout.write(`[directoryExists] No directory listing found for: ${normalizedUri}\n`);
+
+    // Infer directory existence from files: if any file path starts with this directory path,
+    // the directory must exist. Ensure we check with a trailing slash to avoid partial matches.
+    const dirPathWithSlash = normalizedUri.endsWith('/') ? normalizedUri : `${normalizedUri}/`;
+    process.stdout.write(`[directoryExists] Checking for files with prefix: ${dirPathWithSlash}\n`);
+    let matchingFileCount = 0;
+    for (const fileUri of this.fileStats.keys()) {
+      if (fileUri.startsWith(dirPathWithSlash)) {
+        matchingFileCount++;
+        if (matchingFileCount === 1) {
+          process.stdout.write(`[directoryExists] Found matching file (first): ${fileUri}\n`);
+        }
+      }
+    }
+    if (matchingFileCount > 0) {
+      process.stdout.write(`[directoryExists] Inferred directory existence from ${matchingFileCount} file(s)\n`);
+      return true;
+    }
+    process.stdout.write(`[directoryExists] Directory does not exist: ${normalizedUri}\n`);
+    return false;
   }
 
   /**
