@@ -91,10 +91,18 @@ export class FileSystemDataProvider implements IFileSystemProvider {
 
   /**
    * Check if directory exists
+   * A directory exists if:
+   * 1. It has a file stat with type 'directory', OR
+   * 2. It has a directory listing (even if no explicit stat was created)
    */
   public directoryExists(uri: string): boolean {
-    const stat = this.fileStats.get(normalizePath(uri));
-    return (stat?.exists && stat.type === 'directory') ?? false;
+    const normalizedUri = normalizePath(uri);
+    const stat = this.fileStats.get(normalizedUri);
+    if (stat?.exists && stat.type === 'directory') {
+      return true;
+    }
+    // Also check if there's a directory listing (directory might exist without explicit stat)
+    return this.directoryListings.has(normalizedUri);
   }
 
   /**
