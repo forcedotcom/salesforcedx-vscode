@@ -1,33 +1,13 @@
-# 65.5.0 - November 19, 2025
+# 65.6.0 - November 26, 2025
 
 ## Added
 
-#### salesforcedx-utils-vscode
-
 #### salesforcedx-vscode-apex-oas
 
-- OpenAPI (OAS) documents now adjust behavior based on the org’s API version:
-
-**Operations active Flag**
-
-**API < 66.0**: active: true (same as today)
-
-**API ≥ 66.0**: active: false (new GA behavior)
-
-**Beta Info (x-betaInfo)**
-
-**API < 66.0**: Included, indicating the feature is in beta
-
-**API ≥ 66.0**: Removed, reflecting GA status
-
-This ensures OAS documents behave correctly for both pre-GA (earlier versions) and GA (66.0+) orgs. ([PR #6645](https://github.com/forcedotcom/salesforcedx-vscode/pull/6645))
-
+- We adapted the External Service Registration (ESR) generation logic to meet General Availability (GA) requirements. The key change is that for org API version 66.0 and above, the operations section is completely removed from the ESR metadata, rather than being included with `active=false`. ([PR #6664](https://github.com/forcedotcom/salesforcedx-vscode/pull/6664))
 
 ## Fixed
 
-#### salesforcedx-vscode-apex
+#### salesforcedx-vscode-org
 
-#### salesforcedx-vscode-apex-replay-debugger
-
-- `skipCodeCoverage` is now passed using your `retrieve-test-code-coverage` setting. If set to `True`, coverage is skipped for faster test runs. ([PR #6650](https://github.com/forcedotcom/salesforcedx-vscode/pull/6650))
-
+- We fixed the ordering of the status bar entries so that the "Open Default Org in Browser" button is returned to its original location next to the org picker. ([PR #6652](https://github.com/forcedotcom/salesforcedx-vscode/pull/6652))

@@ -31,7 +31,8 @@ export const messages = {
   apex_generate_class_success: 'Apex class created successfully',
   apex_generate_class_cancelled: 'Apex class creation cancelled',
   deploy_no_local_changes_message: 'No local changes to deploy',
-  deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.'
+  deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.',
+  failed_to_create_apex_class: 'Failed to create Apex class: %s'
 } as const;
 
 export type MessageKey = keyof typeof messages;

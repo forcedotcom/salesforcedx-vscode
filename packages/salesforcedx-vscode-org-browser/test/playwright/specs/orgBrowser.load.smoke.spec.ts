@@ -7,14 +7,14 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
-  setupConsoleMonitoring,
-  setupNetworkMonitoring,
   filterErrors,
   filterNetworkErrors,
   waitForVSCodeWorkbench,
   create,
-  upsertScratchOrgAuthFieldsToSettings
-} from 'salesforcedx-vscode-playwright';
+  upsertScratchOrgAuthFieldsToSettings,
+  setupConsoleMonitoring,
+  setupNetworkMonitoring
+} from '@salesforce/playwright-vscode-ext';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 
 test.describe('Org Browser headless smoke', () => {

@@ -158,7 +158,7 @@ export const createApexClass = async (params?: CreateApexClassParams): Promise<v
         if (error instanceof UserCancelledOverwriteError) {
           return Effect.void; // not an error, they meant to cancel
         }
-        void vscode.window.showErrorMessage(`Failed to create Apex class: ${error.message}`);
+        void vscode.window.showErrorMessage(nls.localize('failed_to_create_apex_class', error.message));
         return Effect.succeed(undefined);
       })
     )

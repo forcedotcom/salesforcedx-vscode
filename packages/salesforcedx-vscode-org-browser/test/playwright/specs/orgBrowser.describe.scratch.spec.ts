@@ -7,7 +7,7 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
-import { upsertScratchOrgAuthFieldsToSettings, create } from 'salesforcedx-vscode-playwright';
+import { upsertScratchOrgAuthFieldsToSettings, create } from '@salesforce/playwright-vscode-ext';
 
 test.describe('Org Browser high-level validation', () => {
   test.setTimeout(10 * 60 * 1000);

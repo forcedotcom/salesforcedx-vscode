@@ -6,7 +6,7 @@
  */
 
 import { expect, type Page, type Locator } from '@playwright/test';
-import { saveScreenshot, NOTIFICATION_LIST_ITEM } from 'salesforcedx-vscode-playwright';
+import { saveScreenshot, NOTIFICATION_LIST_ITEM } from '@salesforce/playwright-vscode-ext';
 
 /** Wait for deploy progress notification to appear */
 export const waitForDeployProgressNotificationToAppear = async (page: Page, timeout = 30_000): Promise<Locator> => {

@@ -20,7 +20,7 @@ import {
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   EDITOR_WITH_URI
-} from 'salesforcedx-vscode-playwright';
+} from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { editOpenFile } from '../utils/apexFileHelpers';

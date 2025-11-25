@@ -12,7 +12,7 @@ import {
   QUICK_INPUT_LIST_ROW,
   EDITOR_WITH_URI,
   DIRTY_EDITOR
-} from 'salesforcedx-vscode-playwright';
+} from '@salesforce/playwright-vscode-ext';
 
 /** Open a file using Quick Open (Ctrl+P) */
 export const openFileByName = async (page: Page, fileName: string): Promise<void> => {

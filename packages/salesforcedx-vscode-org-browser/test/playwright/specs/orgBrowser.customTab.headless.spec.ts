@@ -7,7 +7,7 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
-import { upsertScratchOrgAuthFieldsToSettings, create } from 'salesforcedx-vscode-playwright';
+import { upsertScratchOrgAuthFieldsToSettings, create } from '@salesforce/playwright-vscode-ext';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
 test.describe('Org Browser - CustomTab retrieval', () => {
