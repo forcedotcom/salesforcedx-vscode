@@ -173,14 +173,20 @@ const findFilesInDirectory = (dirPath: string, pattern: RegExp, fileSystemProvid
   const normalizedDirPath = normalizePath(dirPath);
 
   if (!fileSystemProvider.directoryExists(normalizedDirPath)) {
+    process.stdout.write(`[findFilesInDirectory] Directory does not exist: ${normalizedDirPath}\n`);
     return results;
   }
 
   const entries = fileSystemProvider.getDirectoryListing(normalizedDirPath);
+  process.stdout.write(`[findFilesInDirectory] Looking in directory: ${normalizedDirPath}\n`);
+  process.stdout.write(`[findFilesInDirectory] Pattern: ${pattern}\n`);
+  process.stdout.write(`[findFilesInDirectory] Found ${entries.length} entries\n`);
   for (const entry of entries) {
     if (entry.type === 'file') {
+      process.stdout.write(`[findFilesInDirectory] Checking file: ${entry.name}\n`);
       // Use entry.name directly instead of parsing entry.uri to avoid path parsing issues on Windows
       if (pattern.test(entry.name)) {
+        process.stdout.write(`[findFilesInDirectory] Pattern matched: ${entry.name}\n`);
         results.push(entry.uri);
       }
     }
@@ -197,6 +203,11 @@ export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvide
   // Normalize dir the same way FileSystemDataProvider normalizes paths
   const normalizedDir = normalizePath(dir);
 
+  process.stdout.write(`[getAllLocations] tag.file: ${tag.file}\n`);
+  process.stdout.write(`[getAllLocations] normalizedTagFile: ${normalizedTagFile}\n`);
+  process.stdout.write(`[getAllLocations] dir: ${dir}, name: ${name}\n`);
+  process.stdout.write(`[getAllLocations] normalizedDir: ${normalizedDir}\n`);
+
   const convertFileToLocation = (file: string): Location => {
     const uri = URI.file(file).toString();
     const position = Position.create(0, 0);
@@ -206,9 +217,12 @@ export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvide
 
   // Match files like name.html or name.css
   const pattern = new RegExp(`^${name.replace(/[.+^${}()|[\]\\]/g, '\\$&')}\\.(html|css)$`);
+  process.stdout.write(`[getAllLocations] Pattern: ${pattern}\n`);
   const filteredFiles = findFilesInDirectory(normalizedDir, pattern, fileSystemProvider);
+  process.stdout.write(`[getAllLocations] Found ${filteredFiles.length} matching files\n`);
   const locations = filteredFiles.map(convertFileToLocation);
   locations.unshift(getTagLocation(tag));
+  process.stdout.write(`[getAllLocations] Returning ${locations.length} locations\n`);
 
   return locations;
 };
