@@ -62,9 +62,52 @@ export class FileSystemDataProvider implements IFileSystemProvider {
 
   /**
    * Get directory listing
+   * If no explicit listing exists but the directory exists (inferred from files),
+   * build a listing from files that are direct children of this directory.
    */
   public getDirectoryListing(uri: string): DirectoryEntry[] {
-    return this.directoryListings.get(normalizePath(uri)) ?? [];
+    const normalizedUri = normalizePath(uri);
+    const explicitListing = this.directoryListings.get(normalizedUri);
+    if (explicitListing) {
+      return explicitListing;
+    }
+
+    // If no explicit listing, but directory exists (inferred from files), build listing
+    if (this.directoryExists(normalizedUri)) {
+      const dirPathWithSlash = normalizedUri.endsWith('/') ? normalizedUri : `${normalizedUri}/`;
+      const entries: DirectoryEntry[] = [];
+      const seenNames = new Set<string>();
+
+      // Find all files that are direct children of this directory
+      for (const fileUri of this.fileStats.keys()) {
+        if (fileUri.startsWith(dirPathWithSlash)) {
+          // Get the relative path from the directory
+          const relativePath = fileUri.substring(dirPathWithSlash.length);
+          // Only include immediate children (not nested files)
+          if (relativePath && !relativePath.includes('/')) {
+            const fileName = relativePath;
+            if (!seenNames.has(fileName)) {
+              seenNames.add(fileName);
+              const stat = this.fileStats.get(fileUri);
+              entries.push({
+                name: fileName,
+                type: stat?.type ?? 'file',
+                uri: fileUri
+              });
+            }
+          }
+        }
+      }
+
+      if (entries.length > 0) {
+        process.stdout.write(
+          `[getDirectoryListing] Built listing from ${entries.length} file(s) for: ${normalizedUri}\n`
+        );
+        return entries;
+      }
+    }
+
+    return [];
   }
 
   /**
