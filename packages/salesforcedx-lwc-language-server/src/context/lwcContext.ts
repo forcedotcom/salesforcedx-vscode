@@ -30,8 +30,12 @@ const baseTsConfigJson = extractJsonFromImport(baseTsConfigJsonImport);
 const tsConfigTemplateJson = extractJsonFromImport(tsConfigTemplateJsonImport);
 
 const updateConfigFile = (filePath: string, content: string, fileSystemProvider: FileSystemDataProvider): void => {
+  // Normalize the path to ensure cross-platform compatibility
+  // Use unixify to convert Windows paths to Unix-style paths for consistent storage
+  const normalizedPath = unixify(filePath);
+
   // Create the file stat first
-  fileSystemProvider.updateFileStat(filePath, {
+  fileSystemProvider.updateFileStat(normalizedPath, {
     type: 'file',
     exists: true,
     ctime: Date.now(),
@@ -40,7 +44,7 @@ const updateConfigFile = (filePath: string, content: string, fileSystemProvider:
   });
 
   // Store the file content
-  fileSystemProvider.updateFileContent(filePath, content);
+  fileSystemProvider.updateFileContent(normalizedPath, content);
 };
 
 /**
