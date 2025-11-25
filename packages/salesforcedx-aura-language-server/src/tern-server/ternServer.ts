@@ -27,6 +27,7 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import URI from 'vscode-uri';
+import { nls } from '../messages';
 import * as infer from '../tern/lib/infer';
 import * as tern from '../tern/lib/tern';
 import { findPreviousWord, findPreviousLeftParan, countPreviousCommas } from './stringUtil';
@@ -83,7 +84,7 @@ const defaultConfig = {
 const auraInstanceLastSort = (a: string, b: string): number =>
   a.endsWith('AuraInstance.js') === b.endsWith('AuraInstance.js') ? 0 : a.endsWith('AuraInstance.js') ? 1 : -1;
 
-/** Recursively get all .js files from a directory using VS Code APIs */
+/** Recursively get all .js files from a directory using FileSystemDataProvider */
 const getJsFilesRecursively = async (
   dirPath: string,
   fileSystemProvider: FileSystemDataProvider
@@ -96,9 +97,11 @@ const getJsFilesRecursively = async (
 
       for (const entry of entries) {
         if (entry.type === 'directory') {
-          await processDirectory(path.join(currentPath, entry.name));
+          // entry.uri is already the full URI for the subdirectory
+          await processDirectory(entry.uri);
         } else if (entry.type === 'file' && entry.name.endsWith('.js')) {
-          files.push(path.join(currentPath, entry.name));
+          // entry.uri is already the full URI for the file
+          files.push(entry.uri);
         }
       }
     } catch {
@@ -189,7 +192,7 @@ const ternInit = async (fileSystemProvider: FileSystemDataProvider): Promise<voi
   for (const file of files) {
     const content = fileSystemProvider.getFileContent(file);
     if (!content) {
-      throw new Error('File not found');
+      throw new Error(nls.localize('file_not_found_message'));
     }
 
     const contents = file.endsWith('AuraInstance.js')
@@ -201,9 +204,7 @@ const ternInit = async (fileSystemProvider: FileSystemDataProvider): Promise<voi
   }
 };
 
-const init = (fileSystemProvider: FileSystemDataProvider) => ternInit(fileSystemProvider);
-
-export { init };
+export const init = (fileSystemProvider: FileSystemDataProvider) => ternInit(fileSystemProvider);
 
 export const startServer = async (
   rootPath: string,
@@ -217,13 +218,13 @@ export const startServer = async (
   try {
     browserJsonImport = require(BROWSER_JSON_PATH);
   } catch (e) {
-    throw new Error(`Failed to load browser.json from ${BROWSER_JSON_PATH}: ${e}`);
+    throw new Error(nls.localize('failed_to_load_browser_json_message', BROWSER_JSON_PATH, e));
   }
 
   try {
     ecmascriptJsonImport = require(ECMASCRIPT_JSON_PATH);
   } catch (e) {
-    throw new Error(`Failed to load ecmascript.json from ${ECMASCRIPT_JSON_PATH}: ${e}`);
+    throw new Error(nls.localize('failed_to_load_ecmascript_json_message', ECMASCRIPT_JSON_PATH, e));
   }
 
   // Extract JSON content from imports - may be wrapped in .default or spread
@@ -232,12 +233,24 @@ export const startServer = async (
 
   if (!browser || typeof browser !== 'object' || !('!name' in browser)) {
     throw new Error(
-      `Invalid browser definition: type=${typeof browser}, isNull=${browser === null}, isUndefined=${browser === undefined}, keys=${browser && typeof browser === 'object' ? Object.keys(browser).join(',') : 'none'}`
+      nls.localize(
+        'invalid_browser_definition_message',
+        typeof browser,
+        browser === null,
+        browser === undefined,
+        browser && typeof browser === 'object' ? Object.keys(browser).join(',') : 'none'
+      )
     );
   }
   if (!ecmascript || typeof ecmascript !== 'object' || !('!name' in ecmascript)) {
     throw new Error(
-      `Invalid ecmascript definition: type=${typeof ecmascript}, isNull=${ecmascript === null}, isUndefined=${ecmascript === undefined}, keys=${ecmascript && typeof ecmascript === 'object' ? Object.keys(ecmascript).join(',') : 'none'}`
+      nls.localize(
+        'invalid_ecmascript_definition_message',
+        typeof ecmascript,
+        ecmascript === null,
+        ecmascript === undefined,
+        ecmascript && typeof ecmascript === 'object' ? Object.keys(ecmascript).join(',') : 'none'
+      )
     );
   }
 

@@ -56,3 +56,9 @@ export {
 // Re-export from file system providers
 export { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
 export { DirectoryEntry, FileStat, WorkspaceConfig } from './types/fileSystemTypes';
+
+// Re-export from document sync
+export { syncDocumentToTextDocumentsProvider } from './documentSync';
+
+// Re-export from reinitialization scheduler
+export { scheduleReinitialization } from './reinitializationScheduler';

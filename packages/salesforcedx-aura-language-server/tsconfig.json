@@ -5,7 +5,14 @@
     "strictNullChecks": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "src/**/*.json", "src/**/*.js", "resources/**/*.js", "typings/*.d.ts", "jest/*.js"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.json",
+    "src/**/*.js",
+    "resources/**/*.js",
+    "typings/*.d.ts",
+    "jest/*.js"
+  ],
   "exclude": [
     "node_modules",
     "src/tern/**/*.js",
@@ -18,6 +25,9 @@
   "references": [
     {
       "path": "../salesforcedx-lightning-lsp-common"
+    },
+    {
+      "path": "../salesforcedx-utils"
     }
   ]
 }
