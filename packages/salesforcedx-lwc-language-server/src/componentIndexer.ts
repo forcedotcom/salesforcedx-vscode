@@ -217,7 +217,13 @@ export default class ComponentIndexer {
     const sfdxTsConfigPath = normalize(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
     const normalizedPath = unixify(sfdxTsConfigPath);
 
+    // Add logging to debug path matching on Windows
+    process.stdout.write('[componentIndexer] insertSfdxTsConfigPath called\n');
+    process.stdout.write(`[componentIndexer] sfdxTsConfigPath: ${sfdxTsConfigPath}\n`);
+    process.stdout.write(`[componentIndexer] normalizedPath: ${normalizedPath}\n`);
+
     const fileExists = this.fileSystemProvider.fileExists(normalizedPath);
+    process.stdout.write(`[componentIndexer] fileExists(${normalizedPath}): ${fileExists}\n`);
 
     if (fileExists) {
       try {

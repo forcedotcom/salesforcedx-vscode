@@ -167,6 +167,8 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
 
         try {
           const baseTsConfig = JSON.stringify(baseTsConfigJson, null, 4);
+          process.stdout.write(`[lwcContext] Writing tsconfig.sfdx.json with path: ${baseTsConfigPath}\n`);
+          process.stdout.write(`[lwcContext] Normalized path will be: ${unixify(baseTsConfigPath)}\n`);
           updateConfigFile(baseTsConfigPath, baseTsConfig, this.fileSystemProvider);
         } catch (error) {
           console.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);
