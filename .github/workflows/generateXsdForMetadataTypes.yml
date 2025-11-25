@@ -31,6 +31,12 @@ jobs:
       - name: Convert JSON to XSD
         run: npx ts-node scripts/jsonToXsdConverter.ts
 
+      - name: Upload JSON artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: metadata_types_map_scraped.json
+          path: packages/salesforcedx-vscode-core/metadata_types_map_scraped.json
+
       - name: Upload XSD artifact
         uses: actions/upload-artifact@v4
         with:
