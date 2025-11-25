@@ -257,7 +257,12 @@ export default class ComponentIndexer {
     const sfdxTsConfigPath = normalize(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
     const normalizedPath = unixify(sfdxTsConfigPath);
 
+    process.stdout.write('[updateSfdxTsConfigPath] Called\n');
+    process.stdout.write(`[updateSfdxTsConfigPath] sfdxTsConfigPath: ${sfdxTsConfigPath}\n`);
+    process.stdout.write(`[updateSfdxTsConfigPath] normalizedPath: ${normalizedPath}\n`);
+
     const fileExists = this.fileSystemProvider.fileExists(normalizedPath);
+    process.stdout.write(`[updateSfdxTsConfigPath] fileExists(${normalizedPath}): ${fileExists}\n`);
 
     if (fileExists) {
       try {
