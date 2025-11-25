@@ -12,7 +12,7 @@ import {
   SfdxTsConfig,
   TsConfigPaths,
   IFileSystemProvider,
-  unixify
+  normalizePath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { snakeCase, camelCase } from 'change-case';
 import globToRegExp from 'glob-to-regexp';
@@ -78,7 +78,8 @@ const expandBraces = (pattern: string): string[] => {
  */
 const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvider, basePath: string): Entry[] => {
   const results: Entry[] = [];
-  const normalizedBasePath = unixify(basePath);
+  // Normalize basePath the same way FileSystemDataProvider normalizes paths
+  const normalizedBasePath = normalizePath(basePath);
 
   // Expand brace patterns like {force-app,utils} into multiple patterns
   const patterns = expandBraces(pattern);
@@ -89,16 +90,17 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
   const allFileUris = fileSystemProvider.getAllFileUris();
 
   for (const fileUri of allFileUris) {
-    const normalizedFileUri = unixify(fileUri);
-    const relativePath = path.posix.relative(normalizedBasePath, normalizedFileUri);
+    // fileUri is already normalized by FileSystemDataProvider (unixify + drive letter)
+    // so we can use it directly
+    const relativePath = path.posix.relative(normalizedBasePath, fileUri);
 
     // Check if file matches any of the patterns
-    const matches = regexes.some(regex => regex.test(relativePath) ?? regex.test(normalizedFileUri));
+    const matches = regexes.some(regex => regex.test(relativePath) ?? regex.test(fileUri));
 
     if (matches) {
-      const fileStat = fileSystemProvider.getFileStat(normalizedFileUri);
+      const fileStat = fileSystemProvider.getFileStat(fileUri);
       results.push({
-        path: normalizedFileUri,
+        path: fileUri,
         stats: fileStat
           ? {
               mtime: new Date(fileStat.mtime)
@@ -132,8 +134,8 @@ export default class ComponentIndexer {
 
     switch (this.workspaceType) {
       case 'SFDX':
-        // Normalize workspaceRoot for cross-platform compatibility (Windows uses backslashes)
-        const normalizedWorkspaceRoot = unixify(this.workspaceRoot);
+        // Normalize workspaceRoot the same way FileSystemDataProvider normalizes paths
+        const normalizedWorkspaceRoot = normalizePath(this.workspaceRoot);
         const packageDirsPattern = await this.getSfdxPackageDirsPattern();
         // Pattern matches: {packageDir}/**/*/lwc/**/*.js
         // The **/* before lwc requires at least one directory level (e.g., main/default/lwc or meta/lwc)
@@ -145,8 +147,8 @@ export default class ComponentIndexer {
         });
       default:
         // For CORE_ALL and CORE_PARTIAL
-        // Normalize workspaceRoot for cross-platform compatibility (Windows uses backslashes)
-        const normalizedWorkspaceRootDefault = unixify(this.workspaceRoot);
+        // Normalize workspaceRoot the same way FileSystemDataProvider normalizes paths
+        const normalizedWorkspaceRootDefault = normalizePath(this.workspaceRoot);
         const defaultPattern = '**/*/modules/**/*.js';
         files = await findFilesWithGlob(defaultPattern, this.fileSystemProvider, normalizedWorkspaceRootDefault);
         return files.filter((item: Entry): boolean => {
@@ -187,7 +189,7 @@ export default class ComponentIndexer {
   private async loadTagsFromIndex(): Promise<void> {
     try {
       const indexPath: string = path.join(this.workspaceRoot, CUSTOM_COMPONENT_INDEX_FILE);
-      const uri = `file://${unixify(indexPath)}`;
+      const uri = `file://${normalizePath(indexPath)}`;
 
       if (this.fileSystemProvider.fileExists(uri)) {
         const content = this.fileSystemProvider.getFileContent(uri);
@@ -293,8 +295,8 @@ export default class ComponentIndexer {
   public async getTsConfigPathMapping(): Promise<TsConfigPaths> {
     const files: TsConfigPaths = {};
     if (this.workspaceType === 'SFDX') {
-      // Normalize workspaceRoot for cross-platform compatibility (Windows uses backslashes)
-      const normalizedWorkspaceRoot = unixify(this.workspaceRoot);
+      // Normalize workspaceRoot the same way FileSystemDataProvider normalizes paths
+      const normalizedWorkspaceRoot = normalizePath(this.workspaceRoot);
       const packageDirsPattern = await this.getSfdxPackageDirsPattern();
       // Use **/* after lwc to match any depth (e.g., utils/meta/lwc/todo_util/todo_util.js)
       const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.{js,ts}`;

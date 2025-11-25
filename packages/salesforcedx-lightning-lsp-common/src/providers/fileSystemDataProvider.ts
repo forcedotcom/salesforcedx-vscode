@@ -6,7 +6,7 @@
  */
 
 import { FileStat, DirectoryEntry, WorkspaceConfig } from '../types/fileSystemTypes';
-import { unixify } from '../utils';
+import { normalizePath as normalizePathUtil } from '../utils';
 
 /**
  * Interface for file system operations
@@ -40,10 +40,7 @@ export class FileSystemDataProvider implements IFileSystemProvider {
    * (Windows file system is case-insensitive, but JavaScript Map keys are case-sensitive)
    */
   private normalizePath(uri: string): string {
-    const unixified = unixify(uri);
-    // Normalize Windows drive letter to lowercase (e.g., "D:/path" -> "d:/path")
-    // This ensures paths match regardless of drive letter casing
-    return unixified.replace(/^([A-Z]):/, (_match: string, drive: string) => `${drive.toLowerCase()}:`);
+    return normalizePathUtil(uri);
   }
 
   /**

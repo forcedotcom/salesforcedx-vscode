@@ -49,6 +49,18 @@ export const isLWCRootDirectoryCreated = (context: BaseWorkspaceContext, changes
 
 export const unixify = (filePath: string): string => filePath.replace(/\\/g, '/');
 
+/**
+ * Normalizes a path for consistent storage and matching in FileSystemDataProvider.
+ * Converts backslashes to forward slashes (unixify) and normalizes Windows drive letters to lowercase.
+ * This ensures paths match regardless of drive letter casing (Windows file system is case-insensitive,
+ * but JavaScript Map keys are case-sensitive).
+ */
+export const normalizePath = (filePath: string): string => {
+  const unixified = unixify(filePath);
+  // Normalize Windows drive letter to lowercase (e.g., "D:/path" -> "d:/path")
+  return unixified.replace(/^([A-Z]):/, (_match: string, drive: string) => `${drive.toLowerCase()}:`);
+};
+
 export const relativePath = (from: string, to: string): string => unixify(relative(from, to));
 
 export const pathStartsWith = (path: string, root: string): boolean => {
