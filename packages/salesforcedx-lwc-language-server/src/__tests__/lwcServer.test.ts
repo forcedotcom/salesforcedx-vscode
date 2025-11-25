@@ -115,15 +115,23 @@ jest.mock(
 );
 
 // Also mock the package-level export (for direct imports from the package)
+// This is used by componentIndexer.ts which imports readJsonSync from the package
 jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
   const actual = jest.requireActual('@salesforce/salesforcedx-lightning-lsp-common');
   const actualUtils = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
   process.stdout.write('[MOCK SETUP] Mocking package-level export\n');
+  process.stdout.write(`[MOCK SETUP] Actual readJsonSync exists: ${typeof actual.readJsonSync}\n`);
 
-  return {
+  const mockFn = jest.fn(createReadJsonSyncMockImplementation(actualUtils));
+  process.stdout.write(`[MOCK SETUP] Mock function created: ${typeof mockFn}\n`);
+
+  const mocked = {
     ...actual,
-    readJsonSync: jest.fn(createReadJsonSyncMockImplementation(actualUtils))
+    readJsonSync: mockFn
   };
+
+  process.stdout.write(`[MOCK SETUP] Mocked readJsonSync type: ${typeof mocked.readJsonSync}\n`);
+  return mocked;
 });
 
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
@@ -359,6 +367,11 @@ describe('lwcServer', () => {
   // Initialize documents before running tests
   beforeAll(async () => {
     await setupDocuments();
+
+    // Verify the mock is working by checking if readJsonSync is mocked
+    const { readJsonSync } = await import('@salesforce/salesforcedx-lightning-lsp-common');
+    process.stdout.write(`[TEST SETUP] readJsonSync type after import: ${typeof readJsonSync}\n`);
+    process.stdout.write(`[TEST SETUP] readJsonSync is jest.fn: ${jest.isMockFunction(readJsonSync)}\n`);
   });
 
   describe('new', () => {
