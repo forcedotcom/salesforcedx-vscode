@@ -203,15 +203,15 @@ export const extractMetadataFromPage = async (
       // Try h1 first
       const h1 = document.querySelector('h1');
       if (h1) {
-        pageTitle = h1.textContent?.trim() || '';
+        pageTitle = h1.textContent?.trim();
       }
 
       // If no h1 or h1 looks like it has navigation cruft, try first h2
       if (!pageTitle || pageTitle.includes('|') || pageTitle.includes('Developers')) {
         const h2 = document.querySelector('h2');
         if (h2) {
-          const h2Text = h2.textContent?.trim() || '';
-          if (h2Text && h2Text.length < 100 && !h2Text.includes('|')) {
+          const h2Text = h2.textContent?.trim();
+          if (h2Text?.length < 100 && !h2Text.includes('|')) {
             pageTitle = h2Text;
           }
         }
@@ -221,7 +221,7 @@ export const extractMetadataFromPage = async (
       if (!pageTitle) {
         const titleElement = document.querySelector('title');
         if (titleElement) {
-          const titleText = titleElement.textContent || '';
+          const titleText = titleElement.textContent;
           // Try to extract just the first part before any separator
           pageTitle = titleText.split('|')[0].split('-')[0].trim();
         }
@@ -258,7 +258,7 @@ export const extractMetadataFromPage = async (
       // Strategy 1: Look for Salesforce's standard shortdesc div (including in shadow DOM)
       const shortdescDiv = findInShadowDOM('div.shortdesc');
       if (shortdescDiv) {
-        const text = shortdescDiv.textContent?.trim() || '';
+        const text = shortdescDiv.textContent?.trim();
         if (text.length > 20) {
           pageLevelDescription = text;
         }
