@@ -36,9 +36,14 @@ export class FileSystemDataProvider implements IFileSystemProvider {
 
   /**
    * Normalize path to use forward slashes for cross-platform compatibility
+   * Also normalizes Windows drive letter to lowercase for consistent path matching
+   * (Windows file system is case-insensitive, but JavaScript Map keys are case-sensitive)
    */
   private normalizePath(uri: string): string {
-    return unixify(uri);
+    const unixified = unixify(uri);
+    // Normalize Windows drive letter to lowercase (e.g., "D:/path" -> "d:/path")
+    // This ensures paths match regardless of drive letter casing
+    return unixified.replace(/^([A-Z]):/, (_match: string, drive: string) => `${drive.toLowerCase()}:`);
   }
 
   /**

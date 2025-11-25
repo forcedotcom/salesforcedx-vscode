@@ -29,21 +29,13 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 const baseTsConfigJson = extractJsonFromImport(baseTsConfigJsonImport);
 const tsConfigTemplateJson = extractJsonFromImport(tsConfigTemplateJsonImport);
 
-/**
- * Normalizes Windows drive letter to lowercase for consistent path matching
- * This ensures paths match regardless of drive letter casing (D: vs d:)
- * Matches Windows drive letter pattern (e.g., "D:/path" or "d:/path")
- */
-const normalizeDriveLetter = (filePath: string): string =>
-  filePath.replace(/^([A-Z]):/, (_match: string, drive: string) => `${drive.toLowerCase()}:`);
 const updateConfigFile = (filePath: string, content: string, fileSystemProvider: FileSystemDataProvider): void => {
-  // Normalize the path to ensure cross-platform compatibility
-  // Use unixify to convert Windows paths to Unix-style paths for consistent storage
-  // Normalize drive letter to lowercase for consistent path matching on Windows
-  const normalizedPath = normalizeDriveLetter(unixify(filePath));
+  // FileSystemDataProvider.normalizePath() handles all normalization (unixify + drive letter case)
+  // So we can just pass the path directly - it will be normalized internally
+  process.stdout.write(`[updateConfigFile] Input path: ${filePath}\n`);
 
   // Create the file stat first
-  fileSystemProvider.updateFileStat(normalizedPath, {
+  fileSystemProvider.updateFileStat(filePath, {
     type: 'file',
     exists: true,
     ctime: Date.now(),
@@ -52,7 +44,7 @@ const updateConfigFile = (filePath: string, content: string, fileSystemProvider:
   });
 
   // Store the file content
-  fileSystemProvider.updateFileContent(normalizedPath, content);
+  fileSystemProvider.updateFileContent(filePath, content);
 };
 
 /**
@@ -176,9 +168,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
         try {
           const baseTsConfig = JSON.stringify(baseTsConfigJson, null, 4);
           process.stdout.write(`[lwcContext] Writing tsconfig.sfdx.json with path: ${baseTsConfigPath}\n`);
-          const normalizedPath = normalizeDriveLetter(unixify(baseTsConfigPath));
-          process.stdout.write(`[lwcContext] Final normalized path: ${normalizedPath}\n`);
-          updateConfigFile(normalizedPath, baseTsConfig, this.fileSystemProvider);
+          updateConfigFile(baseTsConfigPath, baseTsConfig, this.fileSystemProvider);
         } catch (error) {
           console.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);
           throw error;
