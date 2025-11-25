@@ -191,7 +191,9 @@ const findFilesInDirectory = (dirPath: string, pattern: RegExp, fileSystemProvid
 
 // Utility function to get all locations
 export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvider): Location[] => {
-  const { dir, name } = path.parse(tag.file);
+  // Normalize tag.file first to ensure consistent path handling across platforms
+  const normalizedTagFile = normalizePath(tag.file);
+  const { dir, name } = path.parse(normalizedTagFile);
   // Normalize dir the same way FileSystemDataProvider normalizes paths
   const normalizedDir = normalizePath(dir);
 
