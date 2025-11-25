@@ -179,8 +179,8 @@ const findFilesInDirectory = (dirPath: string, pattern: RegExp, fileSystemProvid
   const entries = fileSystemProvider.getDirectoryListing(normalizedDirPath);
   for (const entry of entries) {
     if (entry.type === 'file') {
-      const fileName = path.basename(entry.uri);
-      if (pattern.test(fileName)) {
+      // Use entry.name directly instead of parsing entry.uri to avoid path parsing issues on Windows
+      if (pattern.test(entry.name)) {
         results.push(entry.uri);
       }
     }
