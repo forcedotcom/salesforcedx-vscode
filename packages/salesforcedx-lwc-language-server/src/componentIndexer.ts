@@ -19,6 +19,14 @@ import globToRegExp from 'glob-to-regexp';
 import * as path from 'node:path';
 
 import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
+
+/**
+ * Normalizes Windows drive letter to lowercase for consistent path matching
+ * This ensures paths match regardless of drive letter casing (D: vs d:)
+ */
+const normalizeDriveLetter = (filePath: string): string =>
+  // Match Windows drive letter pattern (e.g., "D:/path" or "d:/path")
+  filePath.replace(/^([A-Z]):/, (_, drive) => `${drive.toLowerCase()}:`);
 import { Tag, TagAttrs, createTag, createTagFromFile, getTagName, getTagUri } from './tag';
 
 const CUSTOM_COMPONENT_INDEX_PATH = path.join('.sfdx', 'indexes', 'lwc');
@@ -213,8 +221,8 @@ export default class ComponentIndexer {
 
   public async insertSfdxTsConfigPath(filePaths: string[]): Promise<void> {
     // Use unixify directly to match FileSystemDataProvider's internal normalization
-    // This ensures drive letter casing matches what was used when the file was written
-    const normalizedPath = unixify(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
+    // Normalize drive letter to lowercase for consistent path matching on Windows
+    const normalizedPath = normalizeDriveLetter(unixify(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`));
 
     // Add logging to debug path matching on Windows
     process.stdout.write('[componentIndexer] insertSfdxTsConfigPath called\n');
@@ -253,8 +261,8 @@ export default class ComponentIndexer {
   // this can be removed.
   public async updateSfdxTsConfigPath(): Promise<void> {
     // Use unixify directly to match FileSystemDataProvider's internal normalization
-    // This ensures drive letter casing matches what was used when the file was written
-    const normalizedPath = unixify(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
+    // Normalize drive letter to lowercase for consistent path matching on Windows
+    const normalizedPath = normalizeDriveLetter(unixify(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`));
 
     process.stdout.write('[updateSfdxTsConfigPath] Called\n');
     process.stdout.write(`[updateSfdxTsConfigPath] normalizedPath: ${normalizedPath}\n`);

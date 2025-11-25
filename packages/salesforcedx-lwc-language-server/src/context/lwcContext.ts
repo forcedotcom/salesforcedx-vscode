@@ -29,10 +29,18 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 const baseTsConfigJson = extractJsonFromImport(baseTsConfigJsonImport);
 const tsConfigTemplateJson = extractJsonFromImport(tsConfigTemplateJsonImport);
 
+/**
+ * Normalizes Windows drive letter to lowercase for consistent path matching
+ * This ensures paths match regardless of drive letter casing (D: vs d:)
+ */
+const normalizeDriveLetter = (filePath: string): string =>
+  // Match Windows drive letter pattern (e.g., "D:/path" or "d:/path")
+  filePath.replace(/^([A-Z]):/, (_, drive) => `${drive.toLowerCase()}:`);
 const updateConfigFile = (filePath: string, content: string, fileSystemProvider: FileSystemDataProvider): void => {
   // Normalize the path to ensure cross-platform compatibility
   // Use unixify to convert Windows paths to Unix-style paths for consistent storage
-  const normalizedPath = unixify(filePath);
+  // Normalize drive letter to lowercase for consistent path matching on Windows
+  const normalizedPath = normalizeDriveLetter(unixify(filePath));
 
   // Create the file stat first
   fileSystemProvider.updateFileStat(normalizedPath, {
