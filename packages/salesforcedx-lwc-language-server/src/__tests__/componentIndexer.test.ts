@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import { URI } from 'vscode-uri';
 import ComponentIndexer, { Entry, unIndexedFiles } from '../componentIndexer';
@@ -62,10 +63,10 @@ describe('ComponentIndexer', () => {
           'utils/meta/lwc/todo_util/todo_util.js',
           'utils/meta/lwc/todo_utils/todo_utils.js'
           // Note: todo_util and todo_utils are now found with the updated pattern **/lwc/**/*.js
-        ].map(item => path.join(componentIndexer.workspaceRoot, item));
+        ].map(item => normalizePath(path.join(componentIndexer.workspaceRoot, item)));
 
         const componentEntries = await componentIndexer.getComponentEntries();
-        const paths = componentEntries.map(entry => path.resolve(entry.path)).sort();
+        const paths = componentEntries.map(entry => normalizePath(path.resolve(entry.path))).sort();
 
         expect(paths).toEqual(expectedComponents.sort());
         expect(paths).not.toContain(path.join('force-app', 'main', 'default', 'lwc', 'import_relative', 'messages.js'));
@@ -155,7 +156,7 @@ describe('ComponentIndexer', () => {
         ['c/todo_util', 'utils/meta/lwc/todo_util/todo_util'],
         ['c/todo_utils', 'utils/meta/lwc/todo_utils/todo_utils']
       ].map(([componentName, filePath]) => {
-        const resolvedFilePath = [path.join(componentIndexer.workspaceRoot, filePath)];
+        const resolvedFilePath = [normalizePath(path.join(componentIndexer.workspaceRoot, filePath))];
         return [componentName, resolvedFilePath];
       });
       const expectedComponents = Object.fromEntries(data);
