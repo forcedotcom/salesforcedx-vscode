@@ -33,10 +33,20 @@ const mockJsonFromCommon = (relativePath: string) => {
 
 // Create the mock implementation function
 const createReadJsonSyncMockImplementation = (actualUtils: any) => async (file: string, fileSystemProvider: any) => {
+  // Use both console.log and process.stdout.write to ensure visibility
+  console.log(`[readJsonSync] Called with file: ${file}`);
   process.stdout.write(`[readJsonSync] Called with file: ${file}\n`);
+  process.stdout.write(`[readJsonSync] fileSystemProvider type: ${typeof fileSystemProvider}\n`);
+  process.stdout.write(
+    `[readJsonSync] fileSystemProvider has getFileContent: ${typeof fileSystemProvider?.getFileContent}\n`
+  );
+  process.stdout.write(
+    `[readJsonSync] fileSystemProvider has getAllFileUris: ${typeof fileSystemProvider?.getAllFileUris}\n`
+  );
   try {
     const normalizedFile = actualUtils.unixify(file);
     process.stdout.write(`[readJsonSync] Normalized path: ${normalizedFile}\n`);
+    process.stdout.write(`[readJsonSync] Original file path: ${file}\n`);
     const content = fileSystemProvider?.getFileContent?.(normalizedFile);
     if (!content) {
       const fallbackContent = fileSystemProvider?.getFileContent?.(file);
@@ -378,6 +388,16 @@ describe('lwcServer', () => {
     it('creates a new instance', () => {
       expect(server.connection);
       expect(server.documents);
+    });
+  });
+
+  // Add a test to verify readJsonSync mock is being called
+  describe('readJsonSync mock verification', () => {
+    it('should track readJsonSync calls', async () => {
+      const { readJsonSync } = await import('@salesforce/salesforcedx-lightning-lsp-common');
+      const mockCallCount = jest.isMockFunction(readJsonSync) ? (readJsonSync as jest.Mock).mock.calls.length : 0;
+      process.stdout.write(`[MOCK VERIFY] readJsonSync call count: ${mockCallCount}\n`);
+      // This test just verifies the mock is set up - actual calls will be tracked in other tests
     });
   });
 
@@ -748,8 +768,27 @@ describe('lwcServer', () => {
       it('updates tsconfig.sfdx.json path mapping', async () => {
         // Enable feature flag
         mockTypeScriptSupportConfig = true;
+
+        // Check mock call count before initialization
+        const { readJsonSync } = await import('@salesforce/salesforcedx-lightning-lsp-common');
+        const initialCallCount = jest.isMockFunction(readJsonSync) ? (readJsonSync as jest.Mock).mock.calls.length : 0;
+        process.stdout.write(`[TEST] readJsonSync call count before init: ${initialCallCount}\n`);
+
         await server.onInitialize(initializeParams);
         await server.onInitialized();
+
+        // Check mock call count after initialization
+        const finalCallCount = jest.isMockFunction(readJsonSync) ? (readJsonSync as jest.Mock).mock.calls.length : 0;
+        process.stdout.write(`[TEST] readJsonSync call count after init: ${finalCallCount}\n`);
+        if (finalCallCount > initialCallCount) {
+          process.stdout.write(`[TEST] readJsonSync was called ${finalCallCount - initialCallCount} time(s)\n`);
+          const calls = (readJsonSync as jest.Mock).mock.calls;
+          calls.slice(initialCallCount).forEach((call, idx) => {
+            process.stdout.write(`[TEST] readJsonSync call ${idx + 1}: file=${call[0]}\n`);
+          });
+        } else {
+          process.stdout.write('[TEST] WARNING: readJsonSync was NOT called during initialization!\n');
+        }
 
         const sfdxTsConfigContent = server.fileSystemProvider.getFileContent(baseTsconfigPath);
         expect(sfdxTsConfigContent).not.toBeUndefined();
