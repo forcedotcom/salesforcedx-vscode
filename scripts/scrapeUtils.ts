@@ -418,7 +418,7 @@ export const extractMetadataFromPage = async (
             const tagName = prevElement.tagName;
 
             // Check for H1-H6 headings
-            if (tagName && tagName.match(/^H[1-6]$/)) {
+            if (tagName?.match(/^H[1-6]$/)) {
               tableName = prevElement.textContent?.trim() || '';
               foundHeading = prevElement;
               break;
@@ -435,7 +435,7 @@ export const extractMetadataFromPage = async (
             if (tagName === 'DIV' || tagName === 'P') {
               const strong = prevElement.querySelector('strong, b');
               if (strong) {
-                const text = strong.textContent?.trim() || '';
+                const text = strong.textContent?.trim();
                 if (text.length > 2 && text.length < 100) {
                   tableName = text;
                   foundHeading = prevElement;
@@ -458,8 +458,8 @@ export const extractMetadataFromPage = async (
               const tagName = parentPrev.tagName;
 
               // Check for H1-H6 headings
-              if (tagName && tagName.match(/^H[1-6]$/)) {
-                tableName = parentPrev.textContent?.trim() || '';
+              if (tagName?.match(/^H[1-6]$/)) {
+                tableName = parentPrev.textContent?.trim();
                 foundHeading = parentPrev;
                 break;
               }
@@ -502,7 +502,7 @@ export const extractMetadataFromPage = async (
 
               // Look for a paragraph with meaningful content
               if (nextElement.tagName === 'P') {
-                const text = nextElement.textContent?.trim() || '';
+                const text = nextElement.textContent?.trim();
                 // Make sure it's a substantial description
                 if (
                   text.length > 20 &&
@@ -517,7 +517,7 @@ export const extractMetadataFromPage = async (
 
               // Also check for DD (definition description) after DT
               if (nextElement.tagName === 'DD') {
-                const text = nextElement.textContent?.trim() || '';
+                const text = nextElement.textContent?.trim();
                 if (text.length > 20) {
                   tableDescription = text;
                   break;
@@ -549,12 +549,12 @@ export const extractMetadataFromPage = async (
 
           // Try traditional 3-column format first
           if (cells.length >= 3 && typeIdx >= 0 && descIdx >= 0) {
-            fieldName = cells[fieldIdx >= 0 ? fieldIdx : 0]?.textContent?.trim() || '';
-            fieldType = cells[typeIdx]?.textContent?.trim() || '';
-            description = cells[descIdx]?.textContent?.trim() || '';
+            fieldName = cells[fieldIdx >= 0 ? fieldIdx : 0]?.textContent?.trim();
+            fieldType = cells[typeIdx]?.textContent?.trim();
+            description = cells[descIdx]?.textContent?.trim();
           } else {
             // Try nested format (2 columns: Field Name, then nested Field Type + Description)
-            fieldName = cells[0]?.textContent?.trim() || '';
+            fieldName = cells[0]?.textContent?.trim();
 
             if (cells.length >= 2) {
               const secondCell = cells[1];
@@ -570,7 +570,7 @@ export const extractMetadataFromPage = async (
                     nextSibling = nextSibling.nextElementSibling;
                   }
                   if (nextSibling && nextSibling.tagName === 'DD') {
-                    fieldType = nextSibling.textContent?.trim() || '';
+                    fieldType = nextSibling.textContent?.trim();
                     break;
                   }
                 }
@@ -580,13 +580,13 @@ export const extractMetadataFromPage = async (
               if (!fieldType) {
                 const typeLink = secondCell.querySelector('a[href*="meta_"]');
                 if (typeLink) {
-                  fieldType = typeLink.textContent?.trim() || '';
+                  fieldType = typeLink.textContent?.trim();
                 }
               }
 
               // Strategy 3: Look for text that looks like a type (capitalized words, array notation)
               if (!fieldType) {
-                const allText = secondCell.textContent || '';
+                const allText = secondCell.textContent;
                 const typeMatch = allText.match(/Field Type\s*([A-Z][\w\[\]]+)/);
                 if (typeMatch) {
                   fieldType = typeMatch[1];
@@ -597,7 +597,7 @@ export const extractMetadataFromPage = async (
               // Strategy 1: Look for <dt>Description</dt><dd>DESC</dd> structure
               const dtElementsForDesc = Array.from(secondCell.querySelectorAll('dt'));
               for (const dt of dtElementsForDesc) {
-                const dtText = dt.textContent?.trim().toLowerCase() || '';
+                const dtText = dt.textContent?.trim().toLowerCase();
                 if (dtText.includes('description') || dtText === 'desc') {
                   // Get ALL consecutive DD siblings until the next DT
                   const descriptionParts: string[] = [];
@@ -609,7 +609,7 @@ export const extractMetadataFromPage = async (
                       break;
                     }
                     if (current.tagName === 'DD') {
-                      const ddText = current.textContent?.trim() || '';
+                      const ddText = current.textContent?.trim();
                       if (ddText) {
                         descriptionParts.push(ddText);
                       }
@@ -629,7 +629,7 @@ export const extractMetadataFromPage = async (
                 const descElements = Array.from(secondCell.querySelectorAll('*'));
                 let foundDescLabel = false;
                 for (const elem of descElements) {
-                  const text = elem.textContent?.trim() || '';
+                  const text = elem.textContent?.trim();
                   if (text.toLowerCase() === 'description') {
                     foundDescLabel = true;
                   } else if (foundDescLabel && text && text.length > 10) {
@@ -641,7 +641,7 @@ export const extractMetadataFromPage = async (
 
               // Strategy 3: Fallback - get all text after type
               if (!description) {
-                const fullText = secondCell.textContent || '';
+                const fullText = secondCell.textContent;
                 const lines = fullText
                   .split('\n')
                   .map(l => l.trim())
@@ -732,7 +732,7 @@ export const extractMetadataFromPage = async (
       const finalName = tableData.pageTitle || typeName;
 
       // For the only table, always use page-level description first (just like we always use page title)
-      const description = tableData.pageLevelDescription || tableData.tableDescription || '';
+      const description = tableData.pageLevelDescription || tableData.tableDescription;
 
       // Clean up all field descriptions and types
       const cleanedFields = tableData.fields.map(field => ({
@@ -821,9 +821,7 @@ export const extractMetadataFromPage = async (
         // For the first table, always use page-level description first (just like we always use page title)
         // For subsequent tables, only use table-specific descriptions
         const description =
-          i === 0
-            ? tableData.pageLevelDescription || tableData.tableDescription || ''
-            : tableData.tableDescription || '';
+          i === 0 ? tableData.pageLevelDescription || tableData.tableDescription : tableData.tableDescription;
 
         // Clean up all field descriptions and types
         const cleanedFields = tableData.fields.map(field => ({
