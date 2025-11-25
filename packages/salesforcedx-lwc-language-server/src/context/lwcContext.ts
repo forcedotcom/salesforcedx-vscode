@@ -32,10 +32,10 @@ const tsConfigTemplateJson = extractJsonFromImport(tsConfigTemplateJsonImport);
 /**
  * Normalizes Windows drive letter to lowercase for consistent path matching
  * This ensures paths match regardless of drive letter casing (D: vs d:)
+ * Matches Windows drive letter pattern (e.g., "D:/path" or "d:/path")
  */
 const normalizeDriveLetter = (filePath: string): string =>
-  // Match Windows drive letter pattern (e.g., "D:/path" or "d:/path")
-  filePath.replace(/^([A-Z]):/, (_, drive) => `${drive.toLowerCase()}:`);
+  filePath.replace(/^([A-Z]):/, (_match: string, drive: string) => `${drive.toLowerCase()}:`);
 const updateConfigFile = (filePath: string, content: string, fileSystemProvider: FileSystemDataProvider): void => {
   // Normalize the path to ensure cross-platform compatibility
   // Use unixify to convert Windows paths to Unix-style paths for consistent storage
@@ -176,8 +176,9 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
         try {
           const baseTsConfig = JSON.stringify(baseTsConfigJson, null, 4);
           process.stdout.write(`[lwcContext] Writing tsconfig.sfdx.json with path: ${baseTsConfigPath}\n`);
-          process.stdout.write(`[lwcContext] Normalized path will be: ${unixify(baseTsConfigPath)}\n`);
-          updateConfigFile(baseTsConfigPath, baseTsConfig, this.fileSystemProvider);
+          const normalizedPath = normalizeDriveLetter(unixify(baseTsConfigPath));
+          process.stdout.write(`[lwcContext] Final normalized path: ${normalizedPath}\n`);
+          updateConfigFile(normalizedPath, baseTsConfig, this.fileSystemProvider);
         } catch (error) {
           console.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);
           throw error;

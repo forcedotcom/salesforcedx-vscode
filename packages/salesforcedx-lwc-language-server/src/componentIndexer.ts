@@ -23,10 +23,11 @@ import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
 /**
  * Normalizes Windows drive letter to lowercase for consistent path matching
  * This ensures paths match regardless of drive letter casing (D: vs d:)
+ * Matches Windows drive letter pattern (e.g., "D:/path" or "d:/path")
  */
 const normalizeDriveLetter = (filePath: string): string =>
-  // Match Windows drive letter pattern (e.g., "D:/path" or "d:/path")
-  filePath.replace(/^([A-Z]):/, (_, drive) => `${drive.toLowerCase()}:`);
+  filePath.replace(/^([A-Z]):/, (_match: string, drive: string) => `${drive.toLowerCase()}:`);
+
 import { Tag, TagAttrs, createTag, createTagFromFile, getTagName, getTagUri } from './tag';
 
 const CUSTOM_COMPONENT_INDEX_PATH = path.join('.sfdx', 'indexes', 'lwc');
