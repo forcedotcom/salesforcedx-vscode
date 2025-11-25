@@ -8,7 +8,7 @@ import {
   ClassMember,
   AttributeInfo,
   IFileSystemProvider,
-  unixify
+  normalizePath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { camelCase, paramCase } from 'change-case';
 
@@ -79,7 +79,7 @@ export const createTag = async (attributes: TagAttrs, fileSystemProvider?: IFile
     updatedAt = new Date(attributes.updatedAt);
   } else if (file && fileSystemProvider) {
     try {
-      const stat = fileSystemProvider.getFileStat(`file://${unixify(file)}`);
+      const stat = fileSystemProvider.getFileStat(`file://${normalizePath(file)}`);
       if (stat) {
         updatedAt = new Date(stat.mtime);
       } else {
@@ -167,13 +167,10 @@ export const getTagLocation = (tag: Tag): Location => Location.create(getTagUri(
  * Finds files matching a pattern in a directory using FileSystemDataProvider
  * This replaces fast-glob for web compatibility
  */
-const findFilesInDirectory = (
-  dirPath: string,
-  pattern: RegExp,
-  fileSystemProvider: IFileSystemProvider
-): string[] => {
+const findFilesInDirectory = (dirPath: string, pattern: RegExp, fileSystemProvider: IFileSystemProvider): string[] => {
   const results: string[] = [];
-  const normalizedDirPath = unixify(dirPath);
+  // Normalize path the same way FileSystemDataProvider normalizes paths
+  const normalizedDirPath = normalizePath(dirPath);
 
   if (!fileSystemProvider.directoryExists(normalizedDirPath)) {
     return results;
@@ -195,8 +192,8 @@ const findFilesInDirectory = (
 // Utility function to get all locations
 export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvider): Location[] => {
   const { dir, name } = path.parse(tag.file);
-  // Normalize dir for cross-platform compatibility
-  const normalizedDir = unixify(dir);
+  // Normalize dir the same way FileSystemDataProvider normalizes paths
+  const normalizedDir = normalizePath(dir);
 
   const convertFileToLocation = (file: string): Location => {
     const uri = URI.file(file).toString();
@@ -277,7 +274,7 @@ export const updateTagMetadata = async (
   tag._properties = null;
   if (fileSystemProvider) {
     try {
-      const stat = fileSystemProvider.getFileStat(`file://${unixify(tag.file)}`);
+      const stat = fileSystemProvider.getFileStat(`file://${normalizePath(tag.file)}`);
       if (stat) {
         tag.updatedAt = new Date(stat.mtime);
       } else {
@@ -305,7 +302,7 @@ export const createTagFromFile = async (
   const fileName = filePath.base;
 
   try {
-    const content = fileSystemProvider.getFileContent(unixify(file));
+    const content = fileSystemProvider.getFileContent(normalizePath(file));
     if (!content) {
       return null;
     }
