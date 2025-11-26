@@ -81,16 +81,18 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
           const utilsLwcPath = path.join(utilsPath, 'lwc');
           const registeredLwcPath = path.join(registeredEmptyPath, 'lwc');
 
-          if (this.fileSystemProvider.fileExists(unixify(lwcPath))) {
+          const lwcPathUnixified = unixify(lwcPath);
+          const lwcExists = this.fileSystemProvider.directoryExists(lwcPathUnixified);
+          if (lwcExists) {
             roots.lwc.push(lwcPath);
           }
-          if (this.fileSystemProvider.fileExists(unixify(utilsLwcPath))) {
+          if (this.fileSystemProvider.directoryExists(unixify(utilsLwcPath))) {
             roots.lwc.push(utilsLwcPath);
           }
-          if (this.fileSystemProvider.fileExists(unixify(registeredLwcPath))) {
+          if (this.fileSystemProvider.directoryExists(unixify(registeredLwcPath))) {
             roots.lwc.push(registeredLwcPath);
           }
-          if (this.fileSystemProvider.fileExists(unixify(auraPath))) {
+          if (this.fileSystemProvider.directoryExists(unixify(auraPath))) {
             roots.aura.push(auraPath);
           }
         }
@@ -101,7 +103,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
         for (const entry of projectDirs) {
           const project = entry.name;
           const modulesDir = path.join(this.workspaceRoots[0], project, 'modules');
-          if (this.fileSystemProvider.fileExists(unixify(modulesDir))) {
+          if (this.fileSystemProvider.directoryExists(unixify(modulesDir))) {
             const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
             roots.lwc.push(...subroots.lwc);
             roots.aura.push(...subroots.aura);
@@ -112,7 +114,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
         // optimization: search only inside modules/
         for (const ws of this.workspaceRoots) {
           const modulesDir = path.join(ws, 'modules');
-          if (this.fileSystemProvider.fileExists(unixify(modulesDir))) {
+          if (this.fileSystemProvider.directoryExists(unixify(modulesDir))) {
             const subroots = await findNamespaceRoots(path.join(ws, 'modules'), this.fileSystemProvider, 2);
             roots.lwc.push(...subroots.lwc);
           }
@@ -195,18 +197,21 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
   }
 
   public async isLWCTemplate(document: TextDocument): Promise<boolean> {
-    return (
-      document.languageId === 'html' &&
-      getExtension(document) === '.html' &&
-      (await this.isInsideModulesRoots(document))
-    );
+    const languageIdMatch = document.languageId === 'html';
+    const extensionMatch = getExtension(document) === '.html';
+    const isInsideModules = await this.isInsideModulesRoots(document);
+
+    return languageIdMatch && extensionMatch && isInsideModules;
   }
 
   public async isInsideModulesRoots(document: TextDocument): Promise<boolean> {
     const file = toResolvedPath(document.uri);
+
     for (const ws of this.workspaceRoots) {
-      if (pathStartsWith(file, ws)) {
-        return this.isFileInsideModulesRoots(file);
+      const startsWith = pathStartsWith(file, ws);
+      if (startsWith) {
+        const isInside = await this.isFileInsideModulesRoots(file);
+        return isInside;
       }
     }
     return false;

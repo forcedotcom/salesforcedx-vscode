@@ -310,6 +310,7 @@ export default class Server {
       position,
       textDocument: { uri }
     } = params;
+
     const doc = this.documents.get(uri);
     if (!doc) {
       return null;
@@ -317,17 +318,21 @@ export default class Server {
 
     const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
 
-    if (await this.context.isLWCTemplate(doc)) {
+    const isLWCTemplate = await this.context.isLWCTemplate(doc);
+    const isAuraMarkup = await this.context.isAuraMarkup(doc);
+
+    if (isLWCTemplate) {
       this.auraDataProvider.activated = false;
       this.lwcDataProvider.activated = true;
-    } else if (await this.context.isAuraMarkup(doc)) {
+    } else if (isAuraMarkup) {
       this.auraDataProvider.activated = true;
       this.lwcDataProvider.activated = false;
     } else {
       return null;
     }
 
-    return this.languageService.doHover(doc, position, htmlDoc);
+    const hover = this.languageService.doHover(doc, position, htmlDoc);
+    return hover;
   }
 
   /**

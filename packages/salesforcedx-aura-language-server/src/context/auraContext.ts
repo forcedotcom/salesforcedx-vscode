@@ -41,10 +41,11 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
 
           const utilsLwcPath = path.join(utilsPath, 'lwc');
           const registeredLwcPath = path.join(registeredEmptyPath, 'lwc');
-          const lwcPathExists = this.fileSystemProvider.fileExists(lwcPath);
-          const utilsLwcPathExists = this.fileSystemProvider.fileExists(utilsLwcPath);
-          const registeredLwcPathExists = this.fileSystemProvider.fileExists(registeredLwcPath);
-          const auraPathExists = this.fileSystemProvider.fileExists(auraPath);
+
+          const auraPathExists = this.fileSystemProvider.directoryExists(auraPath);
+          const lwcPathExists = this.fileSystemProvider.directoryExists(lwcPath);
+          const utilsLwcPathExists = this.fileSystemProvider.directoryExists(utilsLwcPath);
+          const registeredLwcPathExists = this.fileSystemProvider.directoryExists(registeredLwcPath);
 
           if (lwcPathExists) {
             roots.lwc.push(lwcPath);
@@ -65,14 +66,14 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
         const projects = this.fileSystemProvider.getDirectoryListing(this.workspaceRoots[0]);
         for (const project of projects) {
           const modulesDir = path.join(this.workspaceRoots[0], project.name, 'modules');
-          if (this.fileSystemProvider.fileExists(modulesDir)) {
+          if (this.fileSystemProvider.directoryExists(modulesDir)) {
             const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
             roots.lwc.push(...subroots.lwc);
           }
           const auraDir = path.join(this.workspaceRoots[0], project.name, 'components');
-          if (this.fileSystemProvider.fileExists(auraDir)) {
+          if (this.fileSystemProvider.directoryExists(auraDir)) {
             const subroots = await findNamespaceRoots(auraDir, this.fileSystemProvider, 2);
-            roots.aura.push(...subroots.lwc);
+            roots.aura.push(...subroots.aura);
           }
         }
         return roots;
@@ -80,14 +81,14 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
         // optimization: search only inside modules/
         for (const ws of this.workspaceRoots) {
           const modulesDir = path.join(ws, 'modules');
-          if (this.fileSystemProvider.fileExists(modulesDir)) {
+          if (this.fileSystemProvider.directoryExists(modulesDir)) {
             const subroots = await findNamespaceRoots(path.join(ws, 'modules'), this.fileSystemProvider, 2);
             roots.lwc.push(...subroots.lwc);
           }
           const auraDir = path.join(ws, 'components');
-          if (this.fileSystemProvider.fileExists(auraDir)) {
+          if (this.fileSystemProvider.directoryExists(auraDir)) {
             const subroots = await findNamespaceRoots(path.join(ws, 'components'), this.fileSystemProvider, 2);
-            roots.aura.push(...subroots.lwc);
+            roots.aura.push(...subroots.aura);
           }
         }
         return roots;

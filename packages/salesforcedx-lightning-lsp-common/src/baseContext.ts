@@ -245,7 +245,8 @@ export abstract class BaseWorkspaceContext {
   }
 
   public async isFileInsideModulesRoots(file: string): Promise<boolean> {
-    return (await this.findNamespaceRootsUsingTypeCache()).lwc.some(root => utils.pathStartsWith(file, root));
+    const namespaceRoots = await this.findNamespaceRootsUsingTypeCache();
+    return namespaceRoots.lwc.some(root => utils.pathStartsWith(file, root));
   }
 
   public async isFileInsideAuraRoots(file: string): Promise<boolean> {
