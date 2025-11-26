@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Convert metadata_types_map_scraped.json to XSD file matching the format of salesforce_metadata_api_elephant.xsd.
+ * Convert metadata_types_map_scraped.json to XSD file compatible with the RedHat XML extension.
  */
 
 import * as fs from 'fs';
