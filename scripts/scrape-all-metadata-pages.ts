@@ -1,6 +1,6 @@
 /**
- * Robust Metadata API scraper with improved content loading
- * Produces JSON output identical to metadata_types_map.json
+ * Salesforce Metadata API scraper
+ * Produces JSON output with all metadata types from the Salesforce Metadata API documentation
  *
  * Usage:
  *   npm run scrape:all:pages
@@ -9,9 +9,6 @@
  *
  * Environment Variables:
  *   BATCH_SIZE=20           - Number of metadata types to scrape in parallel (default: 20)
- *   TEST_MODE=true          - Test with limited number of types
- *   TEST_LIMIT=3            - Number of types to test when TEST_MODE is enabled
- *   TEST_ASSIGNMENT_RULES_ONLY=true - Test only AssignmentRules type
  */
 
 import { chromium, Page } from 'playwright';
@@ -295,7 +292,7 @@ const scrapeInBatches = async (
  * Main scraping function
  */
 const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promise<void> => {
-  console.log(`🚀 Starting robust metadata scraper${isVisible ? ' (VISIBLE MODE)' : ''}...\n`);
+  console.log(`🚀 Starting Salesforce Metadata API scraper${isVisible ? ' (VISIBLE MODE)' : ''}...\n`);
 
   const browser = await chromium.launch({
     headless: !isVisible,
@@ -399,12 +396,12 @@ const main = async () => {
 
   if (args.includes('--help')) {
     console.log(`
-Robust Salesforce Metadata Scraper
+Salesforce Metadata Scraper
 
 Usage:
-  npm run scrape:robust                          # Headless mode
-  npm run scrape:robust -- --visible             # Visible browser (for debugging)
-  npm run scrape:robust -- --output file.json   # Custom output
+  npm run scrape:all:pages                          # Headless mode
+  npm run scrape:all:pages -- --visible             # Visible browser (for debugging)
+  npm run scrape:all:pages -- --output file.json    # Custom output
 
 Options:
   --visible        Run with visible browser (useful for debugging)
@@ -413,13 +410,9 @@ Options:
 
 Environment Variables:
   BATCH_SIZE=20                       # Number of types to scrape in parallel (default: 20)
-  TEST_MODE=true                      # Test with limited number of types
-  TEST_LIMIT=3                        # Number of types when TEST_MODE enabled
-  TEST_ASSIGNMENT_RULES_ONLY=true     # Test only AssignmentRules
 
 Examples:
-  BATCH_SIZE=50 npm run scrape:robust                    # Use 50 parallel workers
-  TEST_MODE=true TEST_LIMIT=5 npm run scrape:robust      # Test with 5 types
+  BATCH_SIZE=50 npm run scrape:all:pages            # Use 50 parallel workers
     `);
     return;
   }
