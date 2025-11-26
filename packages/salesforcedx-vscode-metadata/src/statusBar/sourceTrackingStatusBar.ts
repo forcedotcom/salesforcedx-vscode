@@ -15,7 +15,7 @@ import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
-import { calculateCounts, dedupeStatus, getCommand, separateChanges } from './helpers';
+import { calculateBackground, calculateCounts, dedupeStatus, getCommand, separateChanges } from './helpers';
 import { buildCombinedHoverText } from './hover';
 
 /* eslint-disable functional/no-let */
@@ -84,7 +84,6 @@ const refresh = (statusBarItem: vscode.StatusBarItem): Effect.Effect<void, never
 
     yield* Effect.promise(() => tracking.reReadLocalTrackingCache());
     const status = yield* Effect.tryPromise(() => tracking.getStatus({ local: true, remote: true }));
-    console.log('status from stl', JSON.stringify(status, null, 2));
     updateDisplay(statusBarItem)(dedupeStatus(status));
   }).pipe(
     Effect.provide(AllServicesLayer),
@@ -108,15 +107,7 @@ const updateDisplay =
     // Build combined tooltip
     statusBarItem.tooltip = buildCombinedHoverText(separateChanges(dedupedStatus), counts);
     statusBarItem.command = getCommand(counts);
-
-    // Apply styling
-    if (counts.conflicts > 0) {
-      statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
-    } else if (counts.local > 0 && process.env.ESBUILD_PLATFORM === 'web') {
-      statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
-    } else {
-      statusBarItem.backgroundColor = undefined;
-    }
+    statusBarItem.backgroundColor = calculateBackground(counts);
 
     statusBarItem.show();
   };
@@ -130,11 +121,18 @@ export const createSourceTrackingStatusBar = (): Effect.Effect<void, Error, Scop
       [api.services.ChannelService, api.services.ConnectionService],
       { concurrency: 'unbounded' }
     );
-    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 47);
+    const statusBarItem = vscode.window.createStatusBarItem(
+      'source-tracking-status-bar',
+      vscode.StatusBarAlignment.Left,
+      47
+    );
+    statusBarItem.name = 'Salesforce: Source Tracking';
 
     yield* Effect.fork(
       Stream.concat(
-        Stream.fromEffect(SubscriptionRef.get(api.services.TargetOrgRef)), // initial org state has already been set
+        Stream.fromEffect(SubscriptionRef.get(api.services.TargetOrgRef)).pipe(
+          Stream.filter(org => org && typeof org === 'object' && 'tracksSource' in org)
+        ), //in case initial org state has already been set
         api.services.TargetOrgRef.changes // Second scenario: org state changes laster
       ).pipe(
         Stream.tap(orgInfo => channelService.appendToChannel(`target org change: ${JSON.stringify(orgInfo)}`)),

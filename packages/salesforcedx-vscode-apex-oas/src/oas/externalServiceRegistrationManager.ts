@@ -220,6 +220,10 @@ export class ExternalServiceRegistrationManager {
     safeOasSpec: string,
     operations: ExternalServiceOperation[]
   ) {
+    // For orgs < 66.0: active = true operations are included with registrationProvider element
+    // For orgs >= 66.0: active = false operations are not included with registrationProviderAsset element
+    const isGa = this.orgApiVersion === undefined || this.orgApiVersion >= 66.0;
+
     return {
       '?xml': { '@_version': '1.0', '@_encoding': 'UTF-8' },
       ExternalServiceRegistration: {
@@ -231,9 +235,8 @@ export class ExternalServiceRegistrationManager {
         schemaUploadFileExtension: 'yaml',
         schemaUploadFileName: `${className.toLowerCase()}_openapi`,
         status: 'Complete',
-        systemVersion: '3',
-        operations,
-        registrationProvider: className,
+        operations: isGa ? undefined : operations,
+        ...(isGa ? { registrationProviderAsset: className } : { registrationProvider: className }),
         registrationProviderType: this.providerType,
         namedCredential: 'null'
       }
@@ -272,7 +275,7 @@ export class ExternalServiceRegistrationManager {
       });
     });
 
-    return operations.filter((operation): operation is ExternalServiceOperation => operation !== null);
+    return !active ? [] : operations.filter((operation): operation is ExternalServiceOperation => operation !== null);
   }
 
   /**
@@ -337,9 +340,9 @@ export class ExternalServiceRegistrationManager {
         const currentTimestamp = getCurrentTimestamp();
         const namePart = path.basename(filename, '.externalServiceRegistration-meta.xml');
         const newFileName = `${namePart}_${currentTimestamp}.externalServiceRegistration-meta.xml`;
-        const esr_files_for_merge_folder = path.join(workspaceUtils.getRootWorkspacePath(), 'esr_files_for_merge');
-        await createDirectory(esr_files_for_merge_folder);
-        const newFullPath = path.join(esr_files_for_merge_folder, newFileName);
+        const esrFilesForMergeFolder = path.join(workspaceUtils.getRootWorkspacePath(), 'esr_files_for_merge');
+        await createDirectory(esrFilesForMergeFolder);
+        const newFullPath = path.join(esrFilesForMergeFolder, newFileName);
         return [fullPath, newFullPath];
       }
     }

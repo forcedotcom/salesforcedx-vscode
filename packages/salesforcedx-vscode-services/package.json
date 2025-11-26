@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.4.0",
+  "version": "65.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -28,7 +28,7 @@
     "@effect/opentelemetry": "0.58.0",
     "@opentelemetry/api": "1.9.0",
     "@opentelemetry/core": "2.0.1",
-    "@opentelemetry/exporter-trace-otlp-http": "0.203.0",
+    "@opentelemetry/exporter-trace-otlp-http": "0.208.0",
     "@opentelemetry/resources": "2.0.1",
     "@opentelemetry/sdk-logs": "0.203.0",
     "@opentelemetry/sdk-metrics": "2.0.1",
@@ -36,8 +36,8 @@
     "@opentelemetry/sdk-trace-node": "2.0.1",
     "@opentelemetry/sdk-trace-web": "2.0.1",
     "@salesforce/core": "^8.23.4",
-    "@salesforce/source-deploy-retrieve": "^12.27.1",
-    "@salesforce/source-tracking": "^7.6.0",
+    "@salesforce/source-deploy-retrieve": "^12.29.1",
+    "@salesforce/source-tracking": "^7.7.0",
     "@vscode/extension-telemetry": "^1.0.0",
     "effect": "^3.18.4",
     "jsforce": "^3.10.2",
@@ -56,7 +56,7 @@
   },
   "scripts": {
     "bundle:extension": "node esbuild.config.mjs",
-    "vscode:package": "npm run bundle:extension && vsce package",
+    "vscode:package": "npm run bundle:extension && vsce package --allow-package-all-secrets",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "tsc -p ./ && ts-node ../salesforcedx-vscode-services-types/scripts/generateEntry.ts && ts-node ../salesforcedx-vscode-services-types/scripts/syncDeps.ts",

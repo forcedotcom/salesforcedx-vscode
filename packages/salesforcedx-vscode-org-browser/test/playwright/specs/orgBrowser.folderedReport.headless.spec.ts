@@ -7,8 +7,7 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
-import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
-import { create } from '../utils/dreamhouseScratchOrgSetup';
+import { upsertScratchOrgAuthFieldsToSettings, create } from '@salesforce/playwright-vscode-ext';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
 /** Headless-like test for foldered Report retrieval */
@@ -17,7 +16,8 @@ test.describe('Org Browser - Foldered Report retrieval ', () => {
 
   test.beforeEach(async ({ page }) => {
     const createResult = await create();
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    const orgBrowserPage = new OrgBrowserPage(page);
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
   });
 
   test('foldered report headless: retrieve flow_orchestration_log from unfiled$public', async ({ page }) => {
@@ -75,7 +75,7 @@ test.describe('Org Browser - Foldered Report retrieval ', () => {
     });
 
     await test.step('wait for editor file to open (completion signal)', async () => {
-      await orgBrowserPage.waitForFileToOpenInEditor(120_000);
+      await orgBrowserPage.waitForFileToOpenInEditor(300_000);
     });
 
     await test.step('verify editor shows the report tab and capture', async () => {

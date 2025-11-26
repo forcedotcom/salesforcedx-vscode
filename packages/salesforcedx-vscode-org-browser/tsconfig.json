@@ -3,8 +3,6 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "out",
-    "target": "ES2023",
-    "lib": ["ES2023", "DOM"],
     "plugins": [
       {
         "name": "@effect/language-service"
@@ -14,6 +12,12 @@
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "include": ["src/**/*.ts", "test/**/*.ts", "playwright.config.web.ts", "playwright.config.desktop.ts"],
   "references": [
+    {
+      "path": "../salesforcedx-vscode-i18n"
+    },
+    {
+      "path": "../playwright-vscode-ext"
+    },
     {
       "path": "../salesforcedx-vscode-services"
     }

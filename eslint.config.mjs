@@ -21,12 +21,11 @@ import eslintPluginBarrelFiles from 'eslint-plugin-barrel-files';
 import functional from 'eslint-plugin-functional';
 import eslintPluginWorkspaces from 'eslint-plugin-workspaces';
 import effectPlugin from '@effect/eslint-plugin';
+import eslintPluginEslintPlugin from 'eslint-plugin-eslint-plugin';
 
-import noDuplicateI18nValues from './eslint-local-rules/no-duplicate-i18n-values.js';
+import localRulesPlugin from './packages/eslint-local-rules/out/index.js';
 
-const localRules = {
-  'no-duplicate-i18n-values': noDuplicateI18nValues
-};
+const localRules = localRulesPlugin.rules;
 
 export default [
   {
@@ -76,6 +75,7 @@ export default [
     },
     rules: {
       'local/no-duplicate-i18n-values': 'error',
+      'local/no-vscode-message-literals': 'error',
       'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-date-clone': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
@@ -195,12 +195,32 @@ export default [
       ],
       '@typescript-eslint/member-ordering': 'off',
       '@typescript-eslint/naming-convention': [
-        'off',
+        'error',
+        {
+          selector: 'typeLike',
+          format: ['PascalCase']
+        },
+        {
+          selector: 'function',
+          format: ['camelCase']
+        },
+        {
+          selector: 'method',
+          format: ['camelCase'],
+          // Only enforce for class/interface methods, not object literal methods
+          modifiers: ['public', 'protected', 'private']
+        },
         {
           selector: 'variable',
-          format: ['camelCase', 'UPPER_CASE'],
-          leadingUnderscore: 'forbid',
-          trailingUnderscore: 'forbid'
+          format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
+          leadingUnderscore: 'allow'
+        },
+        {
+          selector: 'property',
+          format: null,
+          // Properties are very permissive due to external APIs, i18n keys, HTTP headers, etc.
+          // We'll rely on code review for property naming
+          leadingUnderscore: 'allow'
         }
       ],
       '@typescript-eslint/no-empty-function': 'off',
@@ -403,7 +423,8 @@ export default [
       'packages/salesforcedx**/test/unit/**/*',
       'packages/salesforcedx**/test/web/**/*',
       'packages/salesforcedx**/test/playwright/**/*',
-      'packages/salesforcedx-vscode-automation-tests/**/*'
+      'packages/salesforcedx-vscode-automation-tests/**/*',
+      'packages/playwright-vscode-ext/**/*'
     ],
     plugins: {
       '@typescript-eslint': typescriptEslint,
@@ -540,6 +561,24 @@ export default [
       'functional/prefer-property-signatures': 'off',
       'import/no-extraneous-dependencies': 'off'
     }
+  },
+  // ESLint plugin rules for eslint-local-rules package only
+  {
+    files: ['packages/eslint-local-rules/src/**/*.ts'],
+    plugins: {
+      'eslint-plugin': eslintPluginEslintPlugin
+    },
+    rules: {
+      ...eslintPluginEslintPlugin.configs.recommended.rules,
+      // Allow node:fs in ESLint plugin (needed for reading i18n files at lint time)
+      'no-restricted-imports': 'off',
+      // Allow type assertions for parser compatibility
+      '@typescript-eslint/consistent-type-assertions': 'off'
+    }
+  },
+  // Ignore test files for eslint-local-rules
+  {
+    ignores: ['packages/eslint-local-rules/test/**']
   },
   eslintConfigPrettier
 ];

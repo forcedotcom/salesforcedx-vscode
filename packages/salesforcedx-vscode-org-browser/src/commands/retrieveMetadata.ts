@@ -11,6 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import type { SuccessfulCancelResult } from 'salesforcedx-vscode-services/src/vscode/cancellation';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
@@ -21,7 +22,7 @@ export const retrieveOrgBrowserTreeItemCommand = async (
 ): Promise<void> => {
   const result = await Effect.runPromise(retrieveEffect(node, treeProvider));
   if (typeof result === 'string') {
-    vscode.window.showInformationMessage('Retrieve canceled');
+    void vscode.window.showInformationMessage(nls.localize('retrieve_canceled'));
   }
 };
 
@@ -71,7 +72,7 @@ const retrieveEffect = (
     Effect.provide(AllServicesLayer),
     Effect.catchAll(error =>
       Effect.sync(() => {
-        vscode.window.showErrorMessage(`Retrieve failed: ${String(error)}`);
+        void vscode.window.showErrorMessage(nls.localize('retrieve_failed', String(error)));
       })
     )
   );
@@ -96,8 +97,7 @@ const confirmOverwrite = (localComponents: ComponentSet, target: MetadataMember)
   Effect.promise(async () => {
     if (localComponents.size === 0) return true;
     const answer = await vscode.window.showWarningMessage(
-      // TODO: i18n
-      `Overwrite local files for ${localComponents.size} ${target.type} ?`,
+      nls.localize('confirm_overwrite', String(localComponents.size), target.type),
       'Yes',
       'No'
     );

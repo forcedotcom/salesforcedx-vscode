@@ -1,7 +1,9 @@
 ---
-globs: *.spec.ts,**/test/web/**
+globs: *.spec.ts,**/test/web/**,**/test/playwright/**
 alwaysApply: false
 ---
+
+## Waiting and Timing
 
 Never use `waitForTimeout`. Always wait for something specific on the page:
 
@@ -10,14 +12,44 @@ Never use `waitForTimeout`. Always wait for something specific on the page:
 - Use `page.waitForLoadState()` for page state changes
 
 Do not use `page.waitForResponse()` for network requests because it doesn't work in desktop/electron.
+Do not use `networkidle` not available on desktop/electron
+
+use `test.step` to organize sequential tests.
+
+## File System and VS Code API
+
+**NEVER use Node.js fs/path or VS Code API** - only work in desktop, not web.
+
+**Use UI interactions instead:**
+
+- `Control+p` - Quick Open
+- `Control+Home`, `Control+s` - navigate and save
+- `page.keyboard.type()` - edit content
+- Monaco editor selectors - interact with editor
+
+Tests must work identically in web and desktop.
+
+## Selectors and Assertions
 
 Prefer `aria` (getByRole) over css selectors
 
-Prefer `expect` assertions that will fail with clear messages instead of logging failures to the console. Expects should have a message property to produce good errors. import `expect` from playwright
+`expect` assertions need clear error messages. Import `expect` from playwright
 
-Use f1 to access commands, not meta-shift-P. Use `Control` for all (copy, paste, etc) commands. Do not use ControlOrMeta
+Locators that might be reused by other tests in other packages belong in `locators.ts`. Check this file before creating new locator selectors.
+
+## Commands and Shortcuts
+
+Use f1 for commands, not meta-shift-P. Use `Control` for all. No ControlOrMeta
+
+## Things to ignore
+
+All installed extensions are temporarily disabled (this refers to other extensions, not the ones installed as part of our e2e)
+
+## Debugging
 
 Use @https://playwright.dev/docs/api/class-locator#locator-inner-html on a known-good locator and use the result to get more accurate locators for stuff inside it.
+
+Take screenshots and review them (tool call `read_file`) for additional context.
 
 Fail early, avoid creating fallbacks.
 

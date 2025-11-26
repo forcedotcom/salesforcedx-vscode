@@ -11,6 +11,7 @@ import * as Brand from 'effect/Brand';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
+import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { ChannelService } from '../vscode/channelService';
@@ -55,7 +56,14 @@ const getComponentSetForDeploy = (
       Effect.withSpan('STL.LocalChangesAsComponentSet')
     );
 
-    console.log('localComponentSets[0]?.projectDirectory', localComponentSets[0]?.projectDirectory);
+    yield* Effect.annotateCurrentSpan({
+      files: localComponentSets
+        .flatMap(cs => Array.from(cs.getSourceComponents()))
+        .flatMap(c => [c.xml, c.content])
+        .filter(isString)
+        .join(','),
+      projectDirectory: localComponentSets[0]?.projectDirectory
+    });
     return localComponentSets[0] ?? new ComponentSet();
   }).pipe(Effect.withSpan('getComponentSetForDeploy'));
 
@@ -154,7 +162,7 @@ const deploy = (
     });
 
     if (typeof deployOutcome !== 'string') {
-      yield* Effect.annotateCurrentSpan({ files: deployOutcome.getFileResponses().map(r => r.filePath) });
+      yield* Effect.annotateCurrentSpan({ fileResponses: deployOutcome.getFileResponses().map(r => r.filePath) });
       yield* Effect.flatMap(SourceTrackingService, svc => svc.updateTrackingFromDeploy(deployOutcome)).pipe(
         Effect.withSpan('MetadataDeployService.updateTrackingFromDeploy')
       );

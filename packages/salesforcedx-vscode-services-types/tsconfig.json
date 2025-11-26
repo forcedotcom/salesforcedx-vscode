@@ -4,8 +4,6 @@
     "outDir": "out",
     "declaration": true,
     "emitDeclarationOnly": true,
-    "target": "ES2023",
-    "lib": ["ES2023", "DOM"],
     "skipLibCheck": true,
     "composite": false
   },

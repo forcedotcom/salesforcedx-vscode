@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Page, Locator, expect } from '@playwright/test';
-import { saveScreenshot } from '../shared/screenshotUtils';
-import { typingSpeed } from '../utils/helpers';
+import { saveScreenshot, typingSpeed } from '@salesforce/playwright-vscode-ext';
 import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
 import { isDesktop } from '../fixtures';
@@ -246,21 +245,13 @@ export class OrgBrowserPage {
    * throws if no file opens
    */
   public async waitForFileToOpenInEditor(timeout = 10_000): Promise<void> {
-    await this.page.waitForFunction(
-      () =>
-        Array.from(document.querySelectorAll('.monaco-workbench .tabs-container .tab'))
-          .map(tab => tab.textContent ?? '')
-          .filter(tab => tab !== '')
-          .filter(
-            // Look for any tab that's not the welcome/walkthrough tab
-            tabText =>
-              !tabText.includes('Welcome') &&
-              !tabText.includes('Walkthrough') &&
-              !tabText.includes('Get Started') &&
-              !tabText.includes('Settings')
-          ).length > 0,
-      { timeout }
-    );
+    await this.page
+      .locator('.monaco-workbench .tabs-container .tab')
+      .filter({
+        hasNotText: /Welcome|Walkthrough|Get Started|Settings/
+      })
+      .first()
+      .waitFor({ state: 'visible', timeout });
     await saveScreenshot(this.page, 'waitForFileToOpenInEditor.png', true);
   }
 }

@@ -25,12 +25,15 @@
   ],
   "dependencies": {
     "effect": "^3.18.4",
-    "@salesforce/vscode-i18n": "65.4.0"
+    "@salesforce/vscode-i18n": "65.5.0",
+    "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/source-tracking": "7.6.0",
+    "@salesforce/source-deploy-retrieve": "^12.29.1",
+    "@salesforce/source-tracking": "^7.7.0",
     "esbuild": "0.25.0",
-    "salesforcedx-vscode-services": "65.4.0"
+    "@salesforce/playwright-vscode-ext": "65.6.0",
+    "salesforcedx-vscode-services": "65.6.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -46,7 +49,14 @@
     "lint:fix": "npm run lint -- --fix",
     "watch": "tsc -watch -p .",
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "test:web": "npm run bundle:extension && playwright test --config=playwright.config.web.ts --headed",
+    "test:headless": "npm run bundle:extension && playwright test --config=playwright.config.web.ts",
+    "test:web:headless:ci": "npm run bundle:extension && playwright test --config=playwright.config.web.ts",
+    "test:desktop": "npm run bundle:extension && cross-env VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts",
+    "test:desktop:ci": "npm run bundle:extension && cross-env VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts",
+    "test:desktop:debug": "npm run bundle:extension && cross-env DEBUG_MODE=1 VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts --retries=0",
+    "test:e2e": "npm run test:headless && npm run test:desktop"
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
@@ -68,6 +78,9 @@
         },
         {
           "command": "sf.metadata.source.tracking.details"
+        },
+        {
+          "command": "sf.metadata.apex.generate.class"
         }
       ]
     },
@@ -87,6 +100,10 @@
       {
         "command": "sf.metadata.source.tracking.details",
         "title": "%metadata_source_tracking_details_text%"
+      },
+      {
+        "command": "sf.metadata.apex.generate.class",
+        "title": "%apex_generate_class_text%"
       }
     ]
   }

@@ -21,7 +21,7 @@ export class OrgList implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;
 
   constructor() {
-    this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 49);
+    this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48);
     this.statusBarItem.command = 'sf.set.default.org';
     this.statusBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
     this.statusBarItem.show();

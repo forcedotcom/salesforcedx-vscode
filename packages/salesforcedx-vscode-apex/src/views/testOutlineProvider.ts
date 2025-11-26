@@ -41,6 +41,10 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
   public testStrings: Set<string> = new Set<string>();
   private apexTestInfo: ApexTestMethod[] | null;
   private testIndex: Map<string, string> = new Map<string, string>();
+  // Avoid duplicate refresh when both create and change fire for the same result file
+  private lastProcessedResultFile: string | null = null;
+  // Track whether an update actually applied to existing nodes
+  private lastUpdateAppliedCount: number = 0;
 
   constructor(apexTestInfo: ApexTestMethod[] | null) {
     this.apexTestInfo = apexTestInfo;
@@ -127,8 +131,18 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
     );
 
     if (testResultFile === testResultFilePath) {
-      await this.refresh();
+      // Process only once per unique result file path (unique per run id)
+      if (this.lastProcessedResultFile === testResultFilePath) {
+        return;
+      }
+      this.lastProcessedResultFile = testResultFilePath;
+      // First try to apply results to the existing tree without refetching tests
       await this.updateTestResults(testResultFile);
+      // If nothing was updated (tree not populated yet), populate tests once and re-apply results
+      if (this.lastUpdateAppliedCount === 0) {
+        await this.refresh();
+        await this.updateTestResults(testResultFile);
+      }
     }
   }
 
@@ -146,6 +160,9 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
   }
 
   private getAllApexTests(): TestNode {
+    // Rebuild the tree from scratch to avoid duplicates when sources/settings change
+    this.apexTestMap.clear();
+    this.testStrings.clear();
     this.rootNode ??= new ApexTestGroupNode(APEX_TESTS, null);
     this.rootNode.children = new Array<TestNode>();
     if (this.apexTestInfo) {
@@ -174,12 +191,13 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
     const testResultOutput = await readFile(testResultFilePath);
     const testResultContent = JSON.parse(testResultOutput) as TestResult;
 
-    this.updateTestsFromLibrary(testResultContent);
+    this.lastUpdateAppliedCount = this.updateTestsFromLibrary(testResultContent);
     this.onDidChangeTestData.fire(undefined);
   }
 
-  private updateTestsFromLibrary(testResult: TestResult) {
+  private updateTestsFromLibrary(testResult: TestResult): number {
     const groups = new Set<ApexTestGroupNode>();
+    let applied = 0;
     for (const test of testResult.tests) {
       const { name, namespacePrefix } = test.apexClass;
       const apexGroupName = namespacePrefix ? `${namespacePrefix}.${name}` : name;
@@ -202,11 +220,13 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
           apexTestNode.stackTrace = test.stackTrace ?? '';
           apexTestNode.description = `${apexTestNode.stackTrace}\n${apexTestNode.errorMessage}`;
         }
+        applied++;
       }
     }
     groups.forEach(group => {
       group.updatePassFailLabel();
     });
+    return applied;
   }
 }
 
@@ -219,7 +239,7 @@ export abstract class TestNode extends vscode.TreeItem {
   constructor(label: string, collapsibleState: vscode.TreeItemCollapsibleState, location: vscode.Location | null) {
     super(label, collapsibleState);
     this.location = location;
-    this.description = label;
+    this.description = '';
     this.name = label;
     this.command = {
       command: `${BASE_ID}.showError`,
