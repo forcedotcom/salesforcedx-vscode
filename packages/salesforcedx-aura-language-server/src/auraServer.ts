@@ -614,6 +614,12 @@ export default class Server {
       this.connection.console.error(`Stack: ${errorStack}`);
       throw error;
     }
+
+    // send notification that delayed initialization is complete
+    void this.connection.sendNotification(ShowMessageNotification.type, {
+      type: MessageType.Info,
+      message: 'Aura Language Server is ready'
+    });
   }
 
   public listen(): void {

@@ -635,5 +635,11 @@ export default class Server {
       customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
       useDefaultDataProvider: false
     });
+
+    // send notification that re-initialization is complete with new FileSystemProvider
+    void this.connection.sendNotification(ShowMessageNotification.type, {
+      type: MessageType.Info,
+      message: 'LWC Language Server is ready'
+    });
   }
 }
