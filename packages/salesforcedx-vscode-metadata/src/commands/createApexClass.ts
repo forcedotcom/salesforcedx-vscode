@@ -9,7 +9,7 @@ import type { SfProject } from '@salesforce/core/project';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 
@@ -43,9 +43,10 @@ const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) 
 const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfo;
+  const fsService = yield* api.services.FsService;
 
   const packageDirs = project.getPackageDirectories();
-  const workspaceUri = URI.parse(workspaceInfo.path);
+  const workspaceUri = fsService.toUri(workspaceInfo.path);
 
   // Build Quick Pick items for each package directory
   const items = packageDirs.map(pkg => ({
