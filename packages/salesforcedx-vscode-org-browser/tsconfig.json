@@ -15,6 +15,9 @@
   "include": ["src/**/*.ts", "test/**/*.ts", "playwright.config.web.ts", "playwright.config.desktop.ts"],
   "references": [
     {
+      "path": "../salesforcedx-vscode-i18n"
+    },
+    {
       "path": "../salesforcedx-vscode-services"
     }
   ]

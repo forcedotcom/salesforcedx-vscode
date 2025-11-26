@@ -24,6 +24,7 @@
     "Other"
   ],
   "dependencies": {
+    "@salesforce/vscode-i18n": "65.6.0",
     "effect": "^3.18.4",
     "vscode-uri": "^3.1.0"
   },
