@@ -32,7 +32,6 @@ const tsConfigTemplateJson = extractJsonFromImport(tsConfigTemplateJsonImport);
 const updateConfigFile = (filePath: string, content: string, fileSystemProvider: FileSystemDataProvider): void => {
   // FileSystemDataProvider.normalizePath() handles all normalization (unixify + drive letter case)
   // So we can just pass the path directly - it will be normalized internally
-  process.stdout.write(`[updateConfigFile] Input path: ${filePath}\n`);
 
   // Create the file stat first
   fileSystemProvider.updateFileStat(filePath, {
@@ -167,7 +166,6 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
 
         try {
           const baseTsConfig = JSON.stringify(baseTsConfigJson, null, 4);
-          process.stdout.write(`[lwcContext] Writing tsconfig.sfdx.json with path: ${baseTsConfigPath}\n`);
           updateConfigFile(baseTsConfigPath, baseTsConfig, this.fileSystemProvider);
         } catch (error) {
           console.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);

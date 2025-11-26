@@ -218,11 +218,7 @@ export default class ComponentIndexer {
     // FileSystemDataProvider.normalizePath() handles all normalization (unixify + drive letter case)
     const sfdxTsConfigPath = `${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`;
 
-    process.stdout.write('[componentIndexer] insertSfdxTsConfigPath called\n');
-    process.stdout.write(`[componentIndexer] Path: ${sfdxTsConfigPath}\n`);
-
     const fileExists = this.fileSystemProvider.fileExists(sfdxTsConfigPath);
-    process.stdout.write(`[componentIndexer] fileExists(${sfdxTsConfigPath}): ${fileExists}\n`);
 
     if (fileExists) {
       try {
@@ -256,21 +252,7 @@ export default class ComponentIndexer {
     // FileSystemDataProvider.normalizePath() handles all normalization (unixify + drive letter case)
     const sfdxTsConfigPath = `${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`;
 
-    process.stdout.write('[updateSfdxTsConfigPath] Called\n');
-    process.stdout.write(`[updateSfdxTsConfigPath] Path: ${sfdxTsConfigPath}\n`);
-
     const fileExists = this.fileSystemProvider.fileExists(sfdxTsConfigPath);
-    process.stdout.write(`[updateSfdxTsConfigPath] fileExists(${sfdxTsConfigPath}): ${fileExists}\n`);
-
-    // Debug: Check what's actually in the fileStats map
-    const allFileUris = this.fileSystemProvider.getAllFileUris();
-    const matchingUris = allFileUris.filter(uri => uri.includes('tsconfig.sfdx.json'));
-    process.stdout.write(
-      `[updateSfdxTsConfigPath] Found ${matchingUris.length} tsconfig.sfdx.json files in provider\n`
-    );
-    if (matchingUris.length > 0) {
-      process.stdout.write(`[updateSfdxTsConfigPath] Matching URIs: ${matchingUris.slice(0, 3).join(', ')}\n`);
-    }
 
     if (fileExists) {
       try {

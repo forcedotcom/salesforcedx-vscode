@@ -434,34 +434,34 @@ export default class Server {
     const content = document.getText();
 
     // Sync to TextDocuments FileSystemDataProvider
-    await syncDocumentToTextDocumentsProvider(uri, content, this.textDocumentsFileSystemProvider, this.workspaceRoots);
+    void syncDocumentToTextDocumentsProvider(uri, content, this.textDocumentsFileSystemProvider, this.workspaceRoots);
 
     if (await this.context.isLWCJavascript(document)) {
-      const { metadata } = await javascriptCompileDocument(document);
+      const { metadata } = javascriptCompileDocument(document);
       if (metadata) {
         const tag: Tag | null = this.componentIndexer.findTagByURI(document.uri);
         if (tag) {
-          await updateTagMetadata(tag, metadata);
+          void updateTagMetadata(tag, metadata);
         }
       }
     }
   }
 
-  public async onShutdown(): Promise<void> {
+  public onShutdown(): void {
     // Persist custom components for faster startup on next session
-    await this.componentIndexer.persistCustomComponents();
+    this.componentIndexer.persistCustomComponents();
 
-    await this.connection.sendNotification(ShowMessageNotification.type, {
+    void this.connection.sendNotification(ShowMessageNotification.type, {
       type: MessageType.Info,
       message: 'LWC Language Server shutting down'
     });
   }
 
-  public async onExit(): Promise<void> {
+  public onExit(): void {
     // Persist custom components for faster startup on next session
-    await this.componentIndexer.persistCustomComponents();
+    this.componentIndexer.persistCustomComponents();
 
-    await this.connection.sendNotification(ShowMessageNotification.type, {
+    void this.connection.sendNotification(ShowMessageNotification.type, {
       type: MessageType.Info,
       message: 'LWC Language Server exiting'
     });
@@ -613,7 +613,7 @@ export default class Server {
    * Performs the actual re-initialization of component indexer and data providers
    */
   private async performReinitialization(): Promise<void> {
-    await this.context.clearNamespaceCache();
+    this.context.clearNamespaceCache();
 
     // Re-initialize component indexer with updated FileSystemProvider
     this.componentIndexer = new ComponentIndexer({

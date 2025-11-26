@@ -33,78 +33,36 @@ const mockJsonFromCommon = (relativePath: string) => {
 
 // Create the mock implementation function
 const createReadJsonSyncMockImplementation = (actualUtils: any) => async (file: string, fileSystemProvider: any) => {
-  // Use both console.log and process.stdout.write to ensure visibility
-  console.log(`[readJsonSync] Called with file: ${file}`);
-  process.stdout.write(`[readJsonSync] Called with file: ${file}\n`);
-  process.stdout.write(`[readJsonSync] fileSystemProvider type: ${typeof fileSystemProvider}\n`);
-  process.stdout.write(
-    `[readJsonSync] fileSystemProvider has getFileContent: ${typeof fileSystemProvider?.getFileContent}\n`
-  );
-  process.stdout.write(
-    `[readJsonSync] fileSystemProvider has getAllFileUris: ${typeof fileSystemProvider?.getAllFileUris}\n`
-  );
   try {
     const normalizedFile = actualUtils.normalizePath?.(file) ?? actualUtils.unixify?.(file) ?? file;
-    process.stdout.write(`[readJsonSync] Normalized path: ${normalizedFile}\n`);
-    process.stdout.write(`[readJsonSync] Original file path: ${file}\n`);
     const content = fileSystemProvider?.getFileContent?.(normalizedFile);
     if (!content) {
       const fallbackContent = fileSystemProvider?.getFileContent?.(file);
       if (!fallbackContent) {
-        process.stdout.write(`[readJsonSync] File not found (normalized): ${normalizedFile}\n`);
-        process.stdout.write(`[readJsonSync] File not found (original): ${file}\n`);
-        const allUris = fileSystemProvider?.getAllFileUris?.() ?? [];
-        process.stdout.write(`[readJsonSync] Available files (first 10): ${allUris.slice(0, 10).join(', ')}\n`);
-        process.stdout.write(`[readJsonSync] Total available files: ${allUris.length}\n`);
-        const fileBasename = actualUtils.getBasename?.(file) ?? file.split(/[/\\]/).pop();
-        const matchingFiles = allUris.filter((availableUri: string) => {
-          const uriBasename = actualUtils.getBasename?.(availableUri) ?? availableUri.split(/[/\\]/).pop();
-          return (
-            uriBasename === fileBasename ||
-            availableUri.includes(fileBasename ?? '') ||
-            file.includes(uriBasename ?? '')
-          );
-        });
-        if (matchingFiles.length > 0) {
-          process.stdout.write(
-            `[readJsonSync] Found ${matchingFiles.length} potentially matching files: ${matchingFiles.slice(0, 5).join(', ')}\n`
-          );
-        }
         throw new Error('File not found', { cause: file });
       }
-      process.stdout.write(`[readJsonSync] Found file using original path (fallback): ${file}\n`);
       const fallbackCleaned = fallbackContent
         .replace(/\/\/.*$/gm, '')
         .replace(/\/\*[\s\S]*?\*\//g, '')
         .replace(/,(\s*[}\]])/g, '$1');
       try {
         const parsed = JSON.parse(fallbackCleaned);
-        process.stdout.write('[readJsonSync] Successfully parsed JSON from fallback path\n');
         return parsed;
-      } catch (parseErr) {
-        process.stdout.write(`[readJsonSync] Failed to parse JSON from fallback path: ${String(parseErr)}\n`);
+      } catch {
         return {};
       }
     }
-    process.stdout.write(`[readJsonSync] Found file using normalized path: ${normalizedFile}\n`);
     let cleaned = content;
     cleaned = cleaned.replace(/\/\/.*$/gm, '');
     cleaned = cleaned.replace(/\/\*[\s\S]*?\*\//g, '');
     cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
     try {
       const parsed = JSON.parse(cleaned);
-      process.stdout.write('[readJsonSync] Successfully parsed JSON from normalized path\n');
       return parsed;
-    } catch (parseErr) {
-      process.stdout.write(`[readJsonSync] Failed to parse JSON from normalized path: ${String(parseErr)}\n`);
+    } catch {
       return {};
     }
-  } catch (err) {
-    process.stdout.write(`[readJsonSync] Error for file ${file}: ${String(err)}\n`);
-    if (err instanceof Error) {
-      process.stdout.write(`[readJsonSync] Error message: ${err.message}\n`);
-      process.stdout.write(`[readJsonSync] Error cause: ${String(err.cause)}\n`);
-    }
+  } catch {
     return {};
   }
 };
@@ -114,7 +72,6 @@ jest.mock(
   '../../../salesforcedx-lightning-lsp-common/out/src/utils',
   () => {
     const actual = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
-    process.stdout.write('[MOCK SETUP] Mocking internal utils module\n');
 
     return {
       ...actual,
@@ -129,18 +86,14 @@ jest.mock(
 jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
   const actual = jest.requireActual('@salesforce/salesforcedx-lightning-lsp-common');
   const actualUtils = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
-  process.stdout.write('[MOCK SETUP] Mocking package-level export\n');
-  process.stdout.write(`[MOCK SETUP] Actual readJsonSync exists: ${typeof actual.readJsonSync}\n`);
 
   const mockFn = jest.fn(createReadJsonSyncMockImplementation(actualUtils));
-  process.stdout.write(`[MOCK SETUP] Mock function created: ${typeof mockFn}\n`);
 
   const mocked = {
     ...actual,
     readJsonSync: mockFn
   };
 
-  process.stdout.write(`[MOCK SETUP] Mocked readJsonSync type: ${typeof mocked.readJsonSync}\n`);
   return mocked;
 });
 
@@ -407,11 +360,6 @@ describe('lwcServer', () => {
   // Initialize documents before running tests
   beforeAll(async () => {
     await setupDocuments();
-
-    // Verify the mock is working by checking if readJsonSync is mocked
-    const { readJsonSync } = await import('@salesforce/salesforcedx-lightning-lsp-common');
-    process.stdout.write(`[TEST SETUP] readJsonSync type after import: ${typeof readJsonSync}\n`);
-    process.stdout.write(`[TEST SETUP] readJsonSync is jest.fn: ${jest.isMockFunction(readJsonSync)}\n`);
   });
 
   describe('new', () => {
@@ -424,9 +372,6 @@ describe('lwcServer', () => {
   // Add a test to verify readJsonSync mock is being called
   describe('readJsonSync mock verification', () => {
     it('should track readJsonSync calls', async () => {
-      const { readJsonSync } = await import('@salesforce/salesforcedx-lightning-lsp-common');
-      const mockCallCount = jest.isMockFunction(readJsonSync) ? (readJsonSync as jest.Mock).mock.calls.length : 0;
-      process.stdout.write(`[MOCK VERIFY] readJsonSync call count: ${mockCallCount}\n`);
       // This test just verifies the mock is set up - actual calls will be tracked in other tests
     });
   });
@@ -790,26 +735,8 @@ describe('lwcServer', () => {
         // Enable feature flag
         mockTypeScriptSupportConfig = true;
 
-        // Check mock call count before initialization
-        const { readJsonSync } = await import('@salesforce/salesforcedx-lightning-lsp-common');
-        const initialCallCount = jest.isMockFunction(readJsonSync) ? (readJsonSync as jest.Mock).mock.calls.length : 0;
-        process.stdout.write(`[TEST] readJsonSync call count before init: ${initialCallCount}\n`);
-
         await server.onInitialize(initializeParams);
         await server.onInitialized();
-
-        // Check mock call count after initialization
-        const finalCallCount = jest.isMockFunction(readJsonSync) ? (readJsonSync as jest.Mock).mock.calls.length : 0;
-        process.stdout.write(`[TEST] readJsonSync call count after init: ${finalCallCount}\n`);
-        if (finalCallCount > initialCallCount) {
-          process.stdout.write(`[TEST] readJsonSync was called ${finalCallCount - initialCallCount} time(s)\n`);
-          const calls = (readJsonSync as jest.Mock).mock.calls;
-          calls.slice(initialCallCount).forEach((call, idx) => {
-            process.stdout.write(`[TEST] readJsonSync call ${idx + 1}: file=${call[0]}\n`);
-          });
-        } else {
-          process.stdout.write('[TEST] WARNING: readJsonSync was NOT called during initialization!\n');
-        }
 
         const sfdxTsConfigContent = server.fileSystemProvider.getFileContent(baseTsconfigPath);
         expect(sfdxTsConfigContent).not.toBeUndefined();
