@@ -53,6 +53,8 @@
     "test": "jest --coverage"
   },
   "activationEvents": [
+    "workspaceContains:sfdx-project.json",
+    "onView:sf.test.view",
     "onCommand:sf.apex.test.run",
     "onCommand:sf.apex.test.class.run",
     "onCommand:sf.apex.test.method.run",
