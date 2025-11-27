@@ -33,7 +33,7 @@
     "@salesforce/core": "^8.23.3",
     "@salesforce/source-deploy-retrieve": "^12.25.0",
     "@types/node": "^20.0.0",
-    "@vscode/test-web": "^0.0.71",
+    "@vscode/test-web": "^0.0.76",
     "cross-env": "^7.0.3",
     "esbuild": "0.25.0",
     "nyc": "^15",
