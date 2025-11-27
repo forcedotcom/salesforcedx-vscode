@@ -42,7 +42,7 @@ import {
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
-import { defaultExtensionConfigs } from '../testData/constants';
+import { apexTestExtensionConfigs } from '../testData/constants';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
@@ -80,7 +80,7 @@ describe('Run Apex Tests', () => {
     },
     isOrgRequired: true,
     testSuiteSuffixName: 'RunApexTests',
-    extensionConfigs: defaultExtensionConfigs
+    extensionConfigs: apexTestExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {

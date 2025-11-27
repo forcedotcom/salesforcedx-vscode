@@ -43,19 +43,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   apex_log_get_pick_log_text: '取得する Apex デバッグログを選択',
   apex_log_get_text: 'SFDX: Apex デバッグログを取得',
   apex_log_list_text: 'Apex デバッグログを取得しています',
-  apex_test_run_all_local_test_label: 'すべてのローカルのテスト',
-  apex_test_run_all_local_tests_description_text:
-    'インストールされた管理パッケージに含まれるテストを除き、現在の組織にあるすべてのテストを実行',
-  apex_test_run_all_test_label: 'すべてのテスト',
-  apex_test_run_all_tests_description_text: '現在の組織にあるすべてのテストを実行',
-  apex_test_run_codeAction_description_text: 'Apex テストを実行',
-  apex_test_run_codeAction_no_class_test_param_text:
-    'テストクラスがありません。@isTest アノテーションのあるクラスでコードアクションを実行してください。',
-  apex_test_run_codeAction_no_method_test_param_text:
-    'テストメソッドがありません. @isTest アノテーションまたは testMethod キーワードのあるメソッドでコードアクションを実行してください。',
-  apex_test_run_description_text: 'Apex テストを実行',
-  apex_test_run_text: 'SFDX: Apex テストを呼び出す',
-  apex_test_suite_build_text: 'SFDX: Apex テストスイートを作成',
   artifact_failed: '成果物の保存に失敗しました: %s',
   cannot_determine_workspace: 'ワークスペースのフォルダを特定できませんでした。',
   cannot_gather_context: 'Apex クラスのコンテキスト収集中にエラーが発生しました。',
@@ -152,11 +139,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   terminate_show_processes: 'プロセスを表示',
   terminated_orphaned_process: 'Apex 言語サーバプロセス PID: %d を終了しました',
   terminated_orphaned_processes: '%d 個の孤立プロセスを終了しました。',
-  test_view_loading_message: 'Apex テストを読み込んでいます...',
-  test_view_no_tests_description:
-    'プロジェクトに Apex テストメソッドがありません。Apex テストを実行するには、@isTest アノテーションまたは testMethod キーワードのあるメソッドを含むプロジェクトを開いてください。',
-  test_view_no_tests_message: 'Apex テストが見つかりませんでした',
-  test_view_show_error_title: 'エラーを表示',
   unable_to_locate_document: 'ソースファイルに対してのみこのコマンドを実行できます。',
   unable_to_locate_editor: 'ソースファイルに対してのみこのコマンドを実行できます。',
   unknown: '不明',

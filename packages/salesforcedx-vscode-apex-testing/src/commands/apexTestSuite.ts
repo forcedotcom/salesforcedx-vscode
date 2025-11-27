@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -107,7 +107,7 @@ class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
 }
 
 class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuiteOptions> {
-  public static diagnostics = vscode.languages.createDiagnosticCollection('apex-errors');
+  public static diagnostics = vscode.languages.createDiagnosticCollection('apex-testing-errors');
 
   constructor() {
     super(nls.localize('apex_test_suite_build_text'), 'apex_test_suite_build_library', OUTPUT_CHANNEL);

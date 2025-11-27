@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -34,7 +34,7 @@ import { APEX_CLASS_EXT, APEX_TESTSUITE_EXT } from '../constants';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
-import { getTelemetryService } from '../telemetry/telemetry';
+import { telemetryService } from '../telemetry/telemetry';
 import { getTestInfo } from './readTestFile';
 
 export enum TestType {
@@ -99,7 +99,7 @@ const getTempFolder = async (): Promise<string> => {
 
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTestQuickPickItem> {
   protected cancellable: boolean = true;
-  public static diagnostics = languages.createDiagnosticCollection('apex-errors');
+  public static diagnostics = languages.createDiagnosticCollection('apex-testing-errors');
 
   constructor() {
     super(nls.localize('apex_test_run_text'), 'apex_test_run_library', OUTPUT_CHANNEL);
@@ -113,7 +113,6 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
     }>,
     token?: CancellationToken
   ): Promise<boolean> {
-    const telemetry = getTelemetryService();
     const startTime = Date.now();
     const vscodeCoreExtension = await getVscodeCoreExtension();
     const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
@@ -156,7 +155,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
     channelService.appendLine(humanOutput);
     const durationMs = Date.now() - startTime;
     const summary = result.summary;
-    telemetry.sendEventData(
+    telemetryService.sendEventData(
       'apexTestRun',
       { trigger: 'quickPick' },
       {

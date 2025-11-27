@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -10,8 +10,8 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { APEX_GROUP_RANGE, APEX_TESTS, FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
-import { getApexTests, languageClientManager } from '../languageUtils';
 import { nls } from '../messages';
+import { getApexTests, getLanguageClientStatus } from '../utils/testUtils';
 import { iconHelpers } from './icons';
 import { ApexTestMethod } from './lspConverter';
 
@@ -22,7 +22,6 @@ import { ApexTestMethod } from './lspConverter';
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 // Message
-const LOADING_MESSAGE = nls.localize('test_view_loading_message');
 const NO_TESTS_MESSAGE = nls.localize('test_view_no_tests_message');
 const NO_TESTS_DESCRIPTION = nls.localize('test_view_no_tests_description');
 
@@ -67,16 +66,23 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
       if (this.rootNode && this.rootNode.children.length > 0) {
         return this.rootNode.children;
       } else {
-        let message = NO_TESTS_MESSAGE;
-        let description = NO_TESTS_DESCRIPTION;
-        const languageClientStatus = languageClientManager.getStatus();
-        if (!languageClientStatus.isReady()) {
-          if (languageClientStatus.failedToInitialize()) {
-            void vscode.window.showInformationMessage(languageClientStatus.getStatusMessage());
-            return new Array<ApexTestNode>();
-          }
-          message = LOADING_MESSAGE;
-          description = '';
+        const message = NO_TESTS_MESSAGE;
+        const description = NO_TESTS_DESCRIPTION;
+        // Check language client status only if using LS discovery
+        const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
+        const source = config.get<'ls' | 'api'>('testing.discoverySource', 'ls');
+        if (source === 'ls') {
+          void getLanguageClientStatus()
+            .then(languageClientStatus => {
+              if (!languageClientStatus.isReady()) {
+                if (languageClientStatus.failedToInitialize()) {
+                  void vscode.window.showInformationMessage(languageClientStatus.getStatusMessage());
+                }
+              }
+            })
+            .catch(() => {
+              // Ignore errors when checking status
+            });
         }
         const emptyArray = new Array<ApexTestNode>();
         const testToDisplay = new ApexTestNode(message, null);
@@ -92,16 +98,14 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
       return element;
     } else {
       this.getAllApexTests();
-      let message = NO_TESTS_MESSAGE;
-      let description = NO_TESTS_DESCRIPTION;
-      if (!languageClientManager.getStatus().isReady()) {
-        message = LOADING_MESSAGE;
-        description = '';
-      }
+      const message = NO_TESTS_MESSAGE;
+      const description = NO_TESTS_DESCRIPTION;
+      const emptyArray = new Array<ApexTestNode>();
+      const testToDisplay = new ApexTestNode(message, null);
+      testToDisplay.description = description;
+      emptyArray.push(testToDisplay);
       if (!(this.rootNode && this.rootNode.children.length > 0)) {
         this.rootNode = new ApexTestNode(message, null);
-        const testToDisplay = new ApexTestNode(message, null);
-        testToDisplay.description = description;
         this.rootNode.children.push(testToDisplay);
       }
       return this.rootNode;
@@ -112,10 +116,19 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
     this.rootNode = null; // Reset tests
     this.apexTestMap.clear();
     this.testStrings.clear();
-    this.apexTestInfo = await getApexTests();
-    this.createTestIndex();
-    this.getAllApexTests();
-    this.onDidChangeTestData.fire(undefined);
+    try {
+      this.apexTestInfo = await getApexTests();
+      this.createTestIndex();
+      this.getAllApexTests();
+      this.onDidChangeTestData.fire(undefined);
+    } catch (error) {
+      console.debug('Failed to refresh test outline:', error);
+      // Still update the UI even if we couldn't fetch tests
+      this.apexTestInfo = null;
+      this.createTestIndex();
+      this.getAllApexTests();
+      this.onDidChangeTestData.fire(undefined);
+    }
   }
 
   public async collapseAll(): Promise<void> {

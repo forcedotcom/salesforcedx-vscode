@@ -8,7 +8,7 @@
 import type { DiscoverTestsOptions, ToolingTestClass, TestDiscoveryResult, ToolingTestsPage } from './schemas';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
-import { getTelemetryService } from '../telemetry/telemetry';
+import { telemetryService } from '../telemetry/telemetry';
 
 /**
  * Discover Apex test classes and methods using the Tooling REST Test Discovery API.
@@ -28,7 +28,6 @@ export const discoverTests = async (
     throw new Error(nls.localize('error_no_connection_found_message'));
   }
   const connectionApiVersion = parseFloat(connection.getApiVersion());
-  const telemetry = getTelemetryService();
   const startTime = Date.now();
 
   try {
@@ -67,7 +66,7 @@ export const discoverTests = async (
     }
 
     const durationMs = Date.now() - startTime;
-    telemetry.sendEventData(
+    telemetryService.sendEventData(
       'apexTestDiscoveryEnd',
       { apiVersion: connectionApiVersion.toString() },
       {
@@ -80,7 +79,7 @@ export const discoverTests = async (
   } catch (error) {
     const durationMs = Date.now() - startTime;
     const message = error instanceof Error ? error.message : 'Unknown error';
-    telemetry.sendEventData(
+    telemetryService.sendEventData(
       'apexTestDiscoveryError',
       {
         apiVersion: connectionApiVersion.toString(),

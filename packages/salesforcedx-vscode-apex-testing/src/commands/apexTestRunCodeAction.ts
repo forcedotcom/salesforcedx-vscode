@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -32,7 +32,7 @@ import { channelService, OUTPUT_CHANNEL } from '../channels';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
-import { getTelemetryService } from '../telemetry/telemetry';
+import { telemetryService } from '../telemetry/telemetry';
 import { apexTestRunCacheService, isEmpty } from '../testRunCache';
 import { getZeroBasedRange } from './range';
 
@@ -42,7 +42,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   private readonly outputDir: string;
   private readonly codeCoverage: boolean;
   private readonly concise: boolean;
-  public static diagnostics = vscode.languages.createDiagnosticCollection('apex-errors');
+  public static diagnostics = vscode.languages.createDiagnosticCollection('apex-testing-errors');
 
   constructor(
     tests: string[],
@@ -65,7 +65,6 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     }>,
     token?: vscode.CancellationToken
   ): Promise<boolean> {
-    const telemetry = getTelemetryService();
     const startTime = Date.now();
     const vscodeCoreExtension = await getVscodeCoreExtension();
     const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
@@ -111,7 +110,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     await this.handleDiagnostics(result);
     const durationMs = Date.now() - startTime;
     const summary = result.summary;
-    telemetry.sendEventData(
+    telemetryService.sendEventData(
       'apexTestRun',
       { trigger: 'codeAction' },
       {

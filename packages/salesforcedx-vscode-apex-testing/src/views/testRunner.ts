@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
@@ -15,10 +15,10 @@ import * as events from 'node:events';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { ApexLibraryTestRunExecutor } from '../commands';
-import { languageClientManager } from '../languageUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { apexTestRunCacheService } from '../testRunCache';
+import { getLanguageClientStatus } from '../utils/testUtils';
 import { ApexTestGroupNode, ApexTestNode, ApexTestOutlineProvider, TestNode } from './testOutlineProvider';
 
 export enum TestRunType {
@@ -106,7 +106,7 @@ export class ApexTestRunner {
       .getConfiguration('salesforcedx-vscode-apex')
       .get<'ls' | 'api'>('testing.discoverySource', 'ls');
     if (discoverySource === 'ls') {
-      const languageClientStatus = languageClientManager.getStatus();
+      const languageClientStatus = await getLanguageClientStatus();
       if (!languageClientStatus.isReady()) {
         if (languageClientStatus.failedToInitialize()) {
           vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());

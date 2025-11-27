@@ -33,7 +33,7 @@ import {
 import { expect } from 'chai';
 import * as path from 'node:path';
 import { By, InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
-import { defaultExtensionConfigs } from '../testData/constants';
+import { apexTestExtensionConfigs } from '../testData/constants';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
@@ -53,7 +53,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     },
     isOrgRequired: true,
     testSuiteSuffixName: 'TrailApexReplayDebugger',
-    extensionConfigs: defaultExtensionConfigs
+    extensionConfigs: apexTestExtensionConfigs
   };
 
   before('Set up the testing environment', async () => {

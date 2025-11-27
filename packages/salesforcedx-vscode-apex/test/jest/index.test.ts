@@ -38,7 +38,6 @@ import * as index from '../../src/index';
 import { languageClientManager, indexerDoneHandler } from '../../src/languageUtils';
 import { ClientStatus } from '../../src/languageUtils/languageClientManager';
 import { getTelemetryService } from '../../src/telemetry/telemetry';
-import * as testOutlineProvider from '../../src/views/testOutlineProvider';
 import ApexLSPStatusBarItem from './../../src/apexLspStatusBarItem';
 import { MockTelemetryService } from './telemetry/mockTelemetryService';
 
@@ -48,15 +47,8 @@ describe('index tests', () => {
     let onNotificationSpy: jest.SpyInstance;
     let mockLanguageClient: any;
     let languageServerStatusBarItem: ApexLSPStatusBarItem;
-    let mockTestOutlineProvider: any;
 
     beforeEach(() => {
-      // Set up mock test outline provider
-      mockTestOutlineProvider = {
-        refresh: jest.fn().mockResolvedValue(undefined)
-      };
-      jest.spyOn(testOutlineProvider, 'getTestOutlineProvider').mockReturnValue(mockTestOutlineProvider);
-
       setStatusSpy = jest.spyOn(languageClientManager, 'setStatus');
       mockLanguageClient = {
         onNotification: jest.fn(),
@@ -82,7 +74,6 @@ describe('index tests', () => {
       const mockCallback = onNotificationSpy.mock.calls[0][1];
       await mockCallback();
 
-      expect(mockTestOutlineProvider.refresh).toHaveBeenCalled();
       expect(languageServerStatusBarItem.ready).toHaveBeenCalled();
       expect(setStatusSpy).toHaveBeenCalledWith(ClientStatus.Ready, '');
       expect(mockLanguageClient.errorHandler.serviceHasStartedSuccessfully).toHaveBeenCalled();
@@ -93,7 +84,6 @@ describe('index tests', () => {
 
       expect(setStatusSpy).not.toHaveBeenCalledWith(ClientStatus.Indexing, '');
       expect(onNotificationSpy).not.toHaveBeenCalled();
-      expect(mockTestOutlineProvider.refresh).toHaveBeenCalled();
       expect(languageServerStatusBarItem.ready).toHaveBeenCalled();
       expect(setStatusSpy).toHaveBeenCalledWith(ClientStatus.Ready, '');
       expect(mockLanguageClient.errorHandler.serviceHasStartedSuccessfully).toHaveBeenCalled();

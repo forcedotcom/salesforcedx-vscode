@@ -40,19 +40,6 @@ export const messages = {
   apex_log_get_pick_log_text: 'Pick an Apex debug log to get',
   apex_log_get_text: 'SFDX: Get Apex Debug Logs',
   apex_log_list_text: 'Getting Apex debug logs',
-  apex_test_run_all_local_test_label: 'All Local Tests',
-  apex_test_run_all_local_tests_description_text:
-    'Runs all tests in the current org except the ones that originate from installed managed packages',
-  apex_test_run_all_test_label: 'All Tests',
-  apex_test_run_all_tests_description_text: 'Runs all tests in the current org',
-  apex_test_run_codeAction_description_text: 'Run Apex test(s)',
-  apex_test_run_codeAction_no_class_test_param_text:
-    'Test class not provided. Run the code action on a class annotated with @isTest.',
-  apex_test_run_codeAction_no_method_test_param_text:
-    'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
-  apex_test_run_description_text: 'Run Apex test(s)',
-  apex_test_run_text: 'SFDX: Run Apex Tests',
-  apex_test_suite_build_text: 'SFDX: Build Apex Test Suite',
   artifact_failed: 'Failed to save the artifact: %s',
   cancel: 'Cancel',
   cannot_determine_workspace: 'Unable to determine workspace folders for workspace',
@@ -153,11 +140,6 @@ export const messages = {
   terminate_show_processes: 'Show Processes',
   terminated_orphaned_process: 'Terminated Apex Language Server process PID: %d',
   terminated_orphaned_processes: 'Terminated %d orphaned processes.',
-  test_view_loading_message: 'Loading Apex tests ...',
-  test_view_no_tests_description:
-    "Your project doesn't contain any Apex test methods. To run Apex tests, open a project that contains methods with @istest annotations or the testMethod keyword",
-  test_view_no_tests_message: 'No Apex Tests Found',
-  test_view_show_error_title: 'Show Error',
   unable_to_locate_document: 'You can run this command only on a source file.',
   unable_to_locate_editor: 'You can run this command only on a source file.',
   unknown: 'Unknown',

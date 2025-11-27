@@ -14,10 +14,10 @@ import {
   SfCommandletExecutor,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
+import type { ApexTestingVSCodeApi } from 'salesforcedx-vscode-apex-testing';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { getTestOutlineProvider } from '../views/testOutlineProvider';
 import { anonApexDebug } from './anonApexExecute';
 
 export const launchApexReplayDebuggerWithCurrentFile = async () => {
@@ -67,11 +67,22 @@ const getApexTestClassName = async (sourceUri: URI): Promise<string | undefined>
     return undefined;
   }
 
-  const testOutlineProvider = getTestOutlineProvider();
-  await testOutlineProvider.refresh();
-  const flushedUri = URI.file(fileUtils.flushFilePath(sourceUri.fsPath));
-
-  return testOutlineProvider.getTestClassName(flushedUri);
+  try {
+    const testingExtension = vscode.extensions.getExtension<ApexTestingVSCodeApi>(
+      'salesforce.salesforcedx-vscode-apex-testing'
+    );
+    if (!testingExtension) {
+      return undefined;
+    }
+    if (!testingExtension.isActive) {
+      await testingExtension.activate();
+    }
+    const api = testingExtension.exports;
+    const flushedUri = URI.file(fileUtils.flushFilePath(sourceUri.fsPath));
+    return await api.getTestClassName(vscode.Uri.parse(flushedUri.toString()));
+  } catch {
+    return undefined;
+  }
 };
 
 const launchAnonymousApexReplayDebugger = async () => {
