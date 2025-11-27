@@ -14,7 +14,6 @@ import {
   SfCommandletExecutor,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
-import type { ApexTestingVSCodeApi } from 'salesforcedx-vscode-apex-testing';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
@@ -60,6 +59,11 @@ const launchReplayDebuggerLogFile = async (sourceUri: URI) => {
   await vscode.commands.executeCommand('sf.launch.replay.debugger.logfile', {
     fsPath: sourceUri.fsPath
   });
+};
+
+/** Local type definition matching ApexTestingVSCodeApi to avoid circular dependency */
+type ApexTestingVSCodeApi = {
+  getTestClassName: (uri: vscode.Uri) => Promise<string | undefined>;
 };
 
 const getApexTestClassName = async (sourceUri: URI): Promise<string | undefined> => {
