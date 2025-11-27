@@ -11,7 +11,7 @@
   "main": "out/src",
   "dependencies": {
     "@salesforce/core": "^8.23.3",
-    "@salesforce/o11y-reporter": "1.4.0",
+    "@salesforce/o11y-reporter": "1.6.0",
     "@salesforce/salesforcedx-utils": "65.6.0",
     "@salesforce/source-tracking": "^7.5.0",
     "@salesforce/vscode-i18n": "65.6.0",
