@@ -44,7 +44,6 @@ import { expect } from 'chai';
 import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
 import { getFolderPath } from '../utils/buildFilePathHelper';
-import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 // Helper function to find a checkbox element using multiple selectors.
@@ -87,9 +86,6 @@ describe('Run Apex Tests', () => {
     log('RunApexTests - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
-
-    // Hide copilot
-    await tryToHideCopilot();
 
     // Create Apex class 1 and test
     await retryOperation(
@@ -156,7 +152,7 @@ describe('Run Apex Tests', () => {
 
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
-    const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    const outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
     const expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -189,7 +185,7 @@ describe('Run Apex Tests', () => {
 
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
-    const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    const outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
     const expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -221,7 +217,7 @@ describe('Run Apex Tests', () => {
 
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
-    const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    const outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
     const expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -253,7 +249,7 @@ describe('Run Apex Tests', () => {
 
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
-    const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    const outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
     const expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -293,7 +289,7 @@ describe('Run Apex Tests', () => {
 
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
-    const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    const outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
     const expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -384,7 +380,7 @@ describe('Run Apex Tests', () => {
 
     // Verify test results are listed on vscode's Output section
     // Also verify that the test fails
-    let outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    let outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
     let expectedTexts = ['Assertion Failed: incorrect ticker symbol', 'Expected: CRM, Actual: SFDC'];
 
     await verifyOutputPanelText(outputPanelText, expectedTexts);
@@ -415,7 +411,7 @@ describe('Run Apex Tests', () => {
     await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
     // Verify test results are listed on vscode's Output section
-    outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
     expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -491,7 +487,7 @@ describe('Run Apex Tests', () => {
 
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
-    const outputPanelText = await attemptToFindOutputPanelText('Apex', '=== Test Results', 10);
+    const outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
     const expectedTexts = [
       '=== Test Summary',
       'TEST NAME',
