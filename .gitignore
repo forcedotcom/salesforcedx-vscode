@@ -123,4 +123,5 @@ extensions/
 e2e-temp/
 test-resources/
 .nx/cache
+.wireit
 **/playwright-report/

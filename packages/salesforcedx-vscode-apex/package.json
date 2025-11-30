@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.7.0",
+  "version": "65.6.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,9 +28,9 @@
   "dependencies": {
     "@salesforce/apex-node": "^8.3.7",
     "@salesforce/apex-tmlanguage": "^1.8.3",
-    "@salesforce/salesforcedx-utils": "65.7.0",
-    "@salesforce/salesforcedx-utils-vscode": "65.7.0",
-    "@salesforce/vscode-i18n": "65.7.0",
+    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/salesforcedx-utils-vscode": "*",
+    "@salesforce/vscode-i18n": "*",
     "find-java-home": "1.2.2",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
@@ -38,23 +38,125 @@
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
     "esbuild": "0.25.10",
-    "salesforcedx-vscode-core": "65.7.0"
+    "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "node ./esbuild.config.mjs",
-    "vscode:package": "vsce package --allow-package-all-secrets",
+    "bundle:extension": "wireit",
+    "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "compile": "tsc -p ./ && shx mkdir -p out && shx cp jars/apex-jorje-lsp.jar out/",
-    "lint": "eslint .",
-    "lint:fix": "npm run lint -- --fix",
-    "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && cd out && node ../../../scripts/clean-all-but-jar.js && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "copy:files": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/*.tmLanguage ./grammars/",
-    "test": "jest --coverage"
+    "compile": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules coverage .nyc_output .wireit *.vsix && cd out && node ../../../scripts/clean-all-but-jar.js",
+    "copy:files": "wireit",
+    "copy:jar": "wireit",
+    "test": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "copy:jar",
+        "../salesforcedx-utils:compile",
+        "../salesforcedx-utils-vscode:compile",
+        "../salesforcedx-vscode-i18n:compile",
+        "../salesforcedx-vscode-core:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "copy:jar": {
+      "command": "shx mkdir -p out && shx cp jars/apex-jorje-lsp.jar out/",
+      "files": [
+        "jars/apex-jorje-lsp.jar"
+      ],
+      "output": [
+        "out/apex-jorje-lsp.jar"
+      ]
+    },
+    "copy:files": {
+      "command": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/*.tmLanguage ./grammars/",
+      "files": [
+        "../../node_modules/@salesforce/apex-tmlanguage/grammars/*.tmLanguage"
+      ],
+      "output": [
+        "grammars/*.tmLanguage"
+      ]
+    },
+    "bundle:extension": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile",
+        "copy:files"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "out/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "test": {
+      "command": "jest --coverage",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    },
+    "vscode:package": {
+      "command": "vsce package --allow-package-all-secrets",
+      "dependencies": [
+        "bundle:extension"
+      ],
+      "files": [
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**",
+        "syntaxes/**",
+        "grammars/**",
+        "snippets/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
+    }
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json"

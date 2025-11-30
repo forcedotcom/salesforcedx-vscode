@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-apex-debugger",
   "displayName": "Apex Debugger Adapter",
   "description": "Implements the VS Code Debug Protocol for the Apex Debugger",
-  "version": "65.7.0",
+  "version": "65.6.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "main": "out/src",
@@ -14,8 +14,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "^8.23.3",
-    "@salesforce/salesforcedx-utils": "65.7.0",
-    "@salesforce/vscode-i18n": "65.7.0",
+    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/vscode-i18n": "*",
     "@vscode/debugadapter": "1.68.0",
     "@vscode/debugprotocol": "1.68.0",
     "async-lock": "1.4.1",
@@ -43,13 +43,70 @@
     "vscode-uri": "^3.1.0"
   },
   "scripts": {
-    "bundle:debugger": "esbuild ./src/adapter/apexDebug.ts --bundle --outfile=dist/apexDebug.js --format=cjs --platform=node --minify --define:process.env.SF_DISABLE_LOG_FILE=\"'true'\"",
-    "compile": "tsc -p ./",
-    "lint": "eslint .",
-    "lint:fix": "npm run lint -- --fix",
-    "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "jest --coverage --forceExit"
+    "bundle:debugger": "wireit",
+    "compile": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules out coverage .nyc_output .wireit",
+    "test": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-utils:compile",
+        "../salesforcedx-vscode-i18n:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "bundle:debugger": {
+      "command": "esbuild ./src/adapter/apexDebug.ts --bundle --outfile=dist/apexDebug.js --format=cjs --platform=node --minify --define:process.env.SF_DISABLE_LOG_FILE=\"'true'\"",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "out/**"
+      ],
+      "output": [
+        "dist/apexDebug.js"
+      ]
+    },
+    "test": {
+      "command": "jest --coverage --forceExit",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    }
   },
   "nyc": {
     "reporter": [
