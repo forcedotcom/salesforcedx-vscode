@@ -11,7 +11,8 @@ export const nodeConfig = {
     'dynamic-import': false
   },
   logOverride: {
-    'unsupported-dynamic-import': 'error'
+    'unsupported-dynamic-import': 'error',
+    'require-resolve-not-external': 'error'
   },
   define: {
     // this prevents the logger from writing to any files, obviating the need for pino-bundling stuff
