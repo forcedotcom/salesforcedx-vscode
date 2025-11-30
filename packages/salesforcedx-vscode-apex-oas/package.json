@@ -56,7 +56,7 @@
     "salesforce.salesforcedx-einstein-gpt"
   ],
   "scripts": {
-    "bundle:extension": "wireit",
+    "vscode:bundle": "wireit",
     "vscode:package:legacy": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -86,7 +86,7 @@
         "tsconfig.tsbuildinfo"
       ]
     },
-    "bundle:extension": {
+    "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile"
@@ -130,7 +130,7 @@
     "vscode:package:legacy": {
       "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
       "dependencies": [
-        "bundle:extension"
+        "vscode:bundle"
       ]
     }
   },

@@ -40,7 +40,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "wireit",
+    "vscode:bundle": "wireit",
     "clean": "shx rm -rf node_modules out coverage .nyc_output .wireit *.vsix",
     "compile": "wireit",
     "lint": "wireit",
@@ -69,7 +69,7 @@
         "tsconfig.tsbuildinfo"
       ]
     },
-    "bundle:extension": {
+    "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile"
@@ -113,7 +113,7 @@
     "vscode:package:legacy": {
       "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
       "dependencies": [
-        "bundle:extension"
+        "vscode:bundle"
       ]
     }
   },
