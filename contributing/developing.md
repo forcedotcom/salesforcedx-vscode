@@ -2,9 +2,8 @@
 
 ## Pre-requisites
 
-1.  We are requiring Node 20 and npm v10 at a minimum. If you need to work with multiple versions of Node, you might consider using [nvm](https://github.com/creationix/nvm).
-1.  This repository uses [Lerna](https://lerna.js.org) to manage it as a
-    _monorepo_. Please install Lerna globally using `npm install --global lerna`.
+1.  We are requiring Node 22 and npm v10 at a minimum. If you need to work with multiple versions of Node, you might consider using [nvm](https://github.com/creationix/nvm).
+1.  This repository uses [npm workspaces](https://docs.npmjs.com/cli/using-npm/workspaces) and [wireit](https://github.com/nicolo-ribaudo/wireit) to manage it as a _monorepo_.
 1.  We use `eslint` so please install it using `npm install --global eslint`.
 1.  It is preferred, though not required, that you use the Insiders version of VS
     Code from [here](https://code.visualstudio.com/insiders).
@@ -132,7 +131,7 @@ develop debugger extensions.
 ## List of Useful commands
 
 _These commands assume that they are executed from the top-level directory.
-Internally, they delegate to `lerna` to call them on each npm module in the
+Internally, they use `wireit` to orchestrate tasks across npm workspaces in the
 packages directory._
 
 ### `npm run bootstrap`
@@ -187,10 +186,6 @@ Runs `markdown-link-check` on all markdown files in the repo to check for any br
 - Does not check html files.
 - Ignores [429 Too Many Requests](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429)
   - We get 429 mostly from github as there are many URLs pointing to PRs etc in Changelog
-
-### `npm run check:deps`
-
-This runs `depcheck` on each package to check for unused and missing dependencies. Pay particular attention to "Missing dependencies". Unused dependency result might have [false positives](https://github.com/depcheck/depcheck#false-alert). Check code usage to verify.
 
 ### `npm run check:peer-deps`
 
@@ -272,7 +267,6 @@ For debugging and interactive testing:
    This opens VS Code web in Chrome with debugging enabled
 
 2. **Test extension interaction:**
-
    - Click Explorer tab to verify file tree loads (Services extension working)
    - Click Org Browser tab to test extension switching
    - Monitor browser console for errors (especially EventEmitter issues)

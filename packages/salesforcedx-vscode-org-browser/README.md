@@ -162,7 +162,7 @@ npm run test:web -- --grep "should verify org browser"
 
 **EventEmitter/polyfill issues:**
 
-- Rebuild extensions after polyfill changes: `npx lerna run bundle:extension`
+- Rebuild extensions after polyfill changes: `npm run vscode:bundle`
 - Check esbuild alias configuration in `scripts/bundling/web.mjs`
 - Verify `events` module properly aliased for jsforce compatibility
 
