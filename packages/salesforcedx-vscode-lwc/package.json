@@ -51,7 +51,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "wireit",
+    "vscode:bundle": "wireit",
     "vscode:prepublish": "npm prune --production",
     "vscode:package:legacy": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -82,7 +82,7 @@
         "tsconfig.tsbuildinfo"
       ]
     },
-    "bundle:extension": {
+    "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile"
@@ -126,7 +126,7 @@
     "vscode:package:legacy": {
       "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
       "dependencies": [
-        "bundle:extension",
+        "vscode:bundle",
         "../salesforcedx-vscode-core:vscode:package:legacy"
       ]
     }
