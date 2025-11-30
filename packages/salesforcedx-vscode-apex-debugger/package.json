@@ -40,8 +40,8 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "wireit",
-    "bundle:extension:build": "wireit",
+    "vscode:bundle": "wireit",
+    "vscode:bundle:build": "wireit",
     "vscode:prepublish": "npm prune --production",
     "vscode:package:legacy": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -73,7 +73,7 @@
         "tsconfig.tsbuildinfo"
       ]
     },
-    "bundle:extension:build": {
+    "vscode:bundle:build": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile"
@@ -87,10 +87,10 @@
         "dist"
       ]
     },
-    "bundle:extension": {
+    "vscode:bundle": {
       "command": "cp ../salesforcedx-apex-debugger/dist/apexDebug.js ./dist/",
       "dependencies": [
-        "bundle:extension:build",
+        "vscode:bundle:build",
         "../salesforcedx-apex-debugger:bundle:debugger"
       ],
       "files": [
@@ -130,7 +130,7 @@
     "vscode:package:legacy": {
       "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
       "dependencies": [
-        "bundle:extension"
+        "vscode:bundle"
       ]
     }
   },

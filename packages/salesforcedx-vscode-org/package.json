@@ -42,7 +42,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "wireit",
+    "vscode:bundle": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -72,7 +72,7 @@
         "tsconfig.tsbuildinfo"
       ]
     },
-    "bundle:extension": {
+    "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile"
@@ -116,7 +116,7 @@
     "vscode:package": {
       "command": "vsce package --allow-package-all-secrets",
       "dependencies": [
-        "bundle:extension"
+        "vscode:bundle"
       ],
       "files": [
         "package.json",

@@ -57,7 +57,7 @@
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "wireit",
+    "vscode:bundle": "wireit",
     "compile": "wireit",
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out coverage .nyc_output .wireit *.vsix",
@@ -98,7 +98,7 @@
         "grammars/soql.tmLanguage"
       ]
     },
-    "bundle:extension": {
+    "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
@@ -143,7 +143,7 @@
     "vscode:package": {
       "command": "vsce package --allow-package-all-secrets",
       "dependencies": [
-        "bundle:extension"
+        "vscode:bundle"
       ],
       "files": [
         "package.json",
