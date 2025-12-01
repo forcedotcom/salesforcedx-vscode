@@ -91,8 +91,8 @@ const registerCommands = (_context: vscode.ExtensionContext): vscode.Disposable 
     'sf.apex.test.class.run.delegate',
     apexTestClassRunCodeActionDelegate
   );
-  const apexTestClassDebugDelegateCmd = vscode.commands.registerCommand(
-    'sf.apex.test.class.debug.delegate',
+  const apexDebugClassRunDelegateCmd = vscode.commands.registerCommand(
+    'sf.apex.debug.class.run.delegate',
     apexDebugClassRunCodeActionDelegate
   );
   const apexTestLastClassRunCmd = vscode.commands.registerCommand(
@@ -104,8 +104,8 @@ const registerCommands = (_context: vscode.ExtensionContext): vscode.Disposable 
     'sf.apex.test.method.run.delegate',
     apexTestMethodRunCodeActionDelegate
   );
-  const apexTestMethodDebugDelegateCmd = vscode.commands.registerCommand(
-    'sf.apex.test.method.debug.delegate',
+  const apexDebugMethodRunDelegateCmd = vscode.commands.registerCommand(
+    'sf.apex.debug.method.run.delegate',
     apexDebugMethodRunCodeActionDelegate
   );
   const apexTestLastMethodRunCmd = vscode.commands.registerCommand(
@@ -121,12 +121,12 @@ const registerCommands = (_context: vscode.ExtensionContext): vscode.Disposable 
   return vscode.Disposable.from(
     apexTestClassRunCmd,
     apexTestClassRunDelegateCmd,
-    apexTestClassDebugDelegateCmd,
+    apexDebugClassRunDelegateCmd,
     apexTestLastClassRunCmd,
     apexTestLastMethodRunCmd,
     apexTestMethodRunCmd,
     apexTestMethodRunDelegateCmd,
-    apexTestMethodDebugDelegateCmd,
+    apexDebugMethodRunDelegateCmd,
     apexTestRunCmd,
     apexTestSuiteCreateCmd,
     apexTestSuiteRunCmd,
