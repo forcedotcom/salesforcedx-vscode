@@ -15,7 +15,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
-      - run: npm ci
+      - run: npm install -g lerna
+      - run: npm install
       - run: npm run compile
       - run: npm run vscode:package
       - name: Stage Artifacts

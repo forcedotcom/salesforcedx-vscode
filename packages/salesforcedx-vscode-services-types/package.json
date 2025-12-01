@@ -19,9 +19,7 @@
     }
   },
   "files": [
-    "out/**/*.d.ts",
-    "README.md",
-    "LICENSE.txt"
+    "out/**/*.d.ts"
   ],
   "publishConfig": {
     "access": "public"
@@ -29,26 +27,8 @@
   "scripts": {
     "generate-entry": "ts-node scripts/generateEntry.ts",
     "sync-deps": "ts-node scripts/syncDeps.ts",
-    "compile": "wireit",
-    "clean": "shx rm -rf src out node_modules .wireit *.tgz"
-  },
-  "wireit": {
-    "compile": {
-      "command": "tsc --build --pretty",
-      "clean": "if-file-deleted",
-      "dependencies": [
-        "../salesforcedx-vscode-services:generate-types"
-      ],
-      "files": [
-        "src/**/*.ts",
-        "tsconfig.json",
-        "../../tsconfig.common.json"
-      ],
-      "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
-      ]
-    }
+    "compile": "tsc -p ./",
+    "clean": "shx rm -rf src out node_modules *.tgz"
   },
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.32",

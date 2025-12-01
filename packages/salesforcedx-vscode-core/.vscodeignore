@@ -1,6 +1,5 @@
 .vscode/**
 .vscode-test/**
-.wireit/**
 **/*.map
 
 # ignore unused rxjs code

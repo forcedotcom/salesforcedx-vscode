@@ -23,52 +23,11 @@
     "access": "public"
   },
   "scripts": {
-    "compile": "wireit",
-    "lint": "wireit",
-    "clean": "shx rm -rf node_modules out coverage .wireit",
-    "test": "wireit"
-  },
-  "wireit": {
-    "compile": {
-      "command": "tsc --build --pretty",
-      "clean": "if-file-deleted",
-      "files": [
-        "src/**/*.ts",
-        "test/**/*.ts",
-        "tsconfig.json",
-        "../../tsconfig.common.json"
-      ],
-      "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
-      ]
-    },
-    "test": {
-      "command": "jest --coverage",
-      "dependencies": [
-        "compile"
-      ],
-      "files": [
-        "src/**/*.ts",
-        "test/**/*.ts",
-        "jest.config.js",
-        "../../config/jest.base.config.js"
-      ],
-      "output": [
-        "coverage"
-      ]
-    },
-    "lint": {
-      "command": "eslint --color --cache --cache-location .eslintcache .",
-      "dependencies": [
-        "../eslint-local-rules:compile"
-      ],
-      "files": [
-        "src/**/*.ts",
-        "test/**/*.ts",
-        "../../eslint.config.mjs"
-      ],
-      "output": []
-    }
+    "compile": "tsc -p ./",
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage",
+    "test": "jest --coverage"
   }
 }

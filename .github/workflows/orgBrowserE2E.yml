@@ -55,8 +55,9 @@ jobs:
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
+        # compile the entire project to
         run: |
-          npm run vscode:bundle -w salesforcedx-vscode-services && npm run vscode:bundle -w salesforcedx-vscode-org-browser
+          npx lerna run bundle:extension --scope salesforcedx-vscode-services --scope salesforcedx-vscode-org-browser --stream
           npm run test:web:headless:ci -w salesforcedx-vscode-org-browser -- --reporter=html
 
       - name: Upload Playwright HTML report
@@ -125,8 +126,9 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
           VSCODE_DESKTOP: 1
+        # compile the entire project to
         run: |
-          npm run vscode:bundle -w salesforcedx-vscode-services && npm run vscode:bundle -w salesforcedx-vscode-org-browser
+          npx lerna run bundle:extension --scope salesforcedx-vscode-services --scope salesforcedx-vscode-org-browser --stream
           npm run test:desktop:ci -w salesforcedx-vscode-org-browser -- --reporter=html
 
       - name: Upload Playwright HTML report

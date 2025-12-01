@@ -1,0 +1,12 @@
+{
+  "version": "65.7.0",
+  "command": {
+    "version": {
+      "allowBranch": [
+        "develop",
+        "release/*"
+      ]
+    }
+  },
+  "useNx": true
+}

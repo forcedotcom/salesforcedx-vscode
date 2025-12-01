@@ -1,3 +1,2 @@
-.wireit/**
 images/**/*
 !images/VSCodeBundle.png

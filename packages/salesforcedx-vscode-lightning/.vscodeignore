@@ -1,6 +1,5 @@
 .vscode/**
 .vscode-test/**
-.wireit/**
 out/test/**
 test/**
 src/**
