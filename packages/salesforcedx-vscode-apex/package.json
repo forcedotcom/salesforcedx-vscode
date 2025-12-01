@@ -51,7 +51,7 @@
     "compile": "wireit",
     "lint": "wireit",
     "clean": "shx rm -rf node_modules coverage .nyc_output .wireit *.vsix && cd out && node ../../../scripts/clean-all-but-jar.js",
-    "copy:files": "wireit",
+    "copy:grammars": "wireit",
     "copy:jar": "wireit",
     "test": "wireit"
   },
@@ -87,7 +87,7 @@
         "out/apex-jorje-lsp.jar"
       ]
     },
-    "copy:files": {
+    "copy:grammars": {
       "command": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/*.tmLanguage ./grammars/",
       "files": [
         "../../node_modules/@salesforce/apex-tmlanguage/grammars/*.tmLanguage"
@@ -100,7 +100,7 @@
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "copy:files"
+        "copy:grammars"
       ],
       "files": [
         "esbuild.config.mjs",
