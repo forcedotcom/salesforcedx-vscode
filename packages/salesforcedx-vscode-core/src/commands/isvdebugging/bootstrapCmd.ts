@@ -11,6 +11,7 @@ import {
   CompositeParametersGatherer,
   ContinueResponse,
   createDirectory,
+  notificationService,
   ParametersGatherer,
   ProgressNotification,
   projectPaths,
@@ -28,7 +29,6 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
-import { notificationService } from '../../notifications';
 import { taskViewService } from '../../statuses/taskView';
 import {
   PathExistsChecker,
@@ -349,7 +349,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
   ) {
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
-    notificationService.reportCommandExecutionStatus(execution, cancellationToken);
+    notificationService.reportCommandExecutionStatus(execution, channelService, cancellationToken);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }

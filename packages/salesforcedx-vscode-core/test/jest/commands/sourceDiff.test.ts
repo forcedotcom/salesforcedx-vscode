@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -14,7 +14,6 @@ import * as differ from '../../../src/conflict/directoryDiffer';
 import { MetadataCacheExecutor, MetadataCacheResult, PathType } from '../../../src/conflict/metadataCacheService';
 import { WorkspaceContext } from '../../../src/context';
 import { nls } from '../../../src/messages';
-import { notificationService } from '../../../src/notifications';
 
 // Mock modules whose real implementation we want to avoid
 jest.mock('../../../src/conflict/directoryDiffer');

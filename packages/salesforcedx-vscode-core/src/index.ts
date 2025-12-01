@@ -7,17 +7,18 @@
 import {
   ActivationTracker,
   ChannelService,
+  ensureCurrentWorkingDirIsProjectPath,
+  errorToString,
+  getRootWorkspacePath,
+  handleTraceFlagCleanup,
+  isSalesforceProjectOpened,
+  notificationService,
   ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
   SfCommandlet,
   SfWorkspaceChecker,
   TelemetryService,
-  handleTraceFlagCleanup,
-  TimingUtils,
-  ensureCurrentWorkingDirIsProjectPath,
-  getRootWorkspacePath,
-  isSalesforceProjectOpened,
-  errorToString
+  TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as os from 'node:os';
@@ -81,7 +82,6 @@ import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { MetadataXmlSupport } from './metadataSupport/metadataXmlSupport';
-import { notificationService } from './notifications';
 import { orgBrowser } from './orgBrowser';
 import { SalesforceProjectConfig } from './salesforceProject';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';

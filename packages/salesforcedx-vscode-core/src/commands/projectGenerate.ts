@@ -9,6 +9,7 @@ import {
   CancelResponse,
   CompositeParametersGatherer,
   ContinueResponse,
+  notificationService,
   ParametersGatherer,
   PostconditionChecker,
   SfCommandlet,
@@ -19,7 +20,6 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { coerceMessageKey, nls } from '../messages';
-import { notificationService } from '../notifications';
 import { getFormattedString } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
 import { EmptyPreChecker } from './util';

@@ -10,6 +10,7 @@ import {
   workspaceUtils,
   ContinueResponse,
   EmptyParametersGatherer,
+  notificationService,
   ParametersGatherer,
   ProgressNotification,
   SfCommandlet,
@@ -19,7 +20,6 @@ import {
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { taskViewService } from '../statuses/taskView';
 import { SfCommandletExecutor } from './util';
 
