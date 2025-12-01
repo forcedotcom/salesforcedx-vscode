@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.6.0",
+  "version": "65.7.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,7 +24,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/vscode-i18n": "65.6.0",
+    "@salesforce/vscode-i18n": "65.7.0",
     "effect": "^3.18.4",
     "vscode-uri": "^3.1.0"
   },
@@ -33,11 +33,11 @@
     "@salesforce/core": "^8.23.3",
     "@salesforce/source-deploy-retrieve": "^12.25.0",
     "@types/node": "^20.0.0",
-    "@vscode/test-web": "^0.0.71",
+    "@vscode/test-web": "^0.0.76",
     "cross-env": "^7.0.3",
     "esbuild": "0.25.0",
     "nyc": "^15",
-    "salesforcedx-vscode-services": "65.6.0"
+    "salesforcedx-vscode-services": "65.7.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
