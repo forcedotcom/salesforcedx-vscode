@@ -1,6 +1,5 @@
 .vscode/**
 .vscode-test/**
-.wireit/**
 out/test/**
 test/**
 src/**
@@ -8,7 +7,7 @@ src/**
 .gitignore
 tsconfig.json
 
-# ignore unused rxjs code
+# ignore unused rxjs code 
 node_modules/rxjs/src/**
 node_modules/rxjs/bundles/**
 node_modules/rxjs/_esm5/**
