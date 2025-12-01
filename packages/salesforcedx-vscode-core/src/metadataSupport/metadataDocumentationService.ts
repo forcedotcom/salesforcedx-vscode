@@ -77,10 +77,7 @@ export class MetadataDocumentationService {
       }
 
       // Get the type of this layer field and strip array notation if present
-      let layerType = layerField.type;
-      if (layerType.endsWith('[]')) {
-        layerType = layerType.slice(0, -2);
-      }
+      const layerType = layerField.type.endsWith('[]') ? layerField.type.slice(0, -2) : layerField.type
 
       // Update currentType to this resolved type for the next iteration
       currentType = layerType;
