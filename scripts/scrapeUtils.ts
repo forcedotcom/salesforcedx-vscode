@@ -89,7 +89,7 @@ export const loadMetadataPage = async (
       contentFrame = page.mainFrame(); // Fallback to main frame
     }
 
-    console.log(`${indent}✓ Using frame: ${contentFrame.url() || 'main'}`);
+    console.log(`${indent}✓ Using frame: ${contentFrame.url() ?? 'main'}`);
 
     // Wait for tables in the iframe
     console.log(`${indent}⏳ Waiting for tables to stabilize...`);
@@ -265,7 +265,7 @@ export const extractMetadataFromPage = async (
       }
 
       // Strategy 2: Look for direct paragraph siblings after heading
-      const mainHeading = document.querySelector('h1') || document.querySelector('h2');
+      const mainHeading = document.querySelector('h1') ?? document.querySelector('h2');
       if (mainHeading && !pageLevelDescription) {
         let current = mainHeading.nextElementSibling;
         let attempts = 0;
@@ -278,7 +278,7 @@ export const extractMetadataFromPage = async (
 
           // Stop if we hit another major heading (H2 for a specific table)
           if (current.tagName && current.tagName.match(/^H[2-6]$/)) {
-            const headingText = current.textContent?.trim().toLowerCase() || '';
+            const headingText = current.textContent?.trim().toLowerCase() ?? '';
             if (headingText.includes('field') || headingText.length < 100) {
               break;
             }
@@ -286,7 +286,7 @@ export const extractMetadataFromPage = async (
 
           // Check if this element or its children have the description
           const checkElement = (el: Element) => {
-            const text = el.textContent?.trim() || '';
+            const text = el.textContent?.trim() ?? '';
             const textLower = text.toLowerCase();
 
             const isSubstantial = text.length > 50;
@@ -337,7 +337,7 @@ export const extractMetadataFromPage = async (
         for (const p of allParagraphs) {
           // Only consider paragraphs that come after the heading in DOM order
           if (mainHeading.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_FOLLOWING) {
-            const text = p.textContent?.trim() || '';
+            const text = p.textContent?.trim() ?? '';
             const textLower = text.toLowerCase();
 
             const isSubstantial = text.length > 50;
@@ -380,7 +380,7 @@ export const extractMetadataFromPage = async (
       for (const table of tables) {
         // Get headers
         const headerCells = Array.from(table.querySelectorAll('th, thead td'));
-        const headers = headerCells.map(cell => cell.textContent?.trim().toLowerCase() || '');
+        const headers = headerCells.map(cell => cell.textContent?.trim().toLowerCase() ?? '');
 
         if (headers.length === 0) continue;
 
@@ -407,7 +407,7 @@ export const extractMetadataFromPage = async (
         let tableDescription = '';
         const caption = table.querySelector('caption');
         if (caption) {
-          tableName = caption.textContent?.trim() || '';
+          tableName = caption.textContent?.trim() ?? '';
         } else {
           // Look for heading before the table - try multiple element types
           let prevElement = table.previousElementSibling;
@@ -419,14 +419,14 @@ export const extractMetadataFromPage = async (
 
             // Check for H1-H6 headings
             if (tagName?.match(/^H[1-6]$/)) {
-              tableName = prevElement.textContent?.trim() || '';
+              tableName = prevElement.textContent?.trim() ?? '';
               foundHeading = prevElement;
               break;
             }
 
             // Check for DT (definition term) which Salesforce docs sometimes use
             if (tagName === 'DT') {
-              tableName = prevElement.textContent?.trim() || '';
+              tableName = prevElement.textContent?.trim() ?? '';
               foundHeading = prevElement;
               break;
             }
@@ -466,7 +466,7 @@ export const extractMetadataFromPage = async (
 
               // Check for DT
               if (tagName === 'DT') {
-                tableName = parentPrev.textContent?.trim() || '';
+                tableName = parentPrev.textContent?.trim() ?? '';
                 foundHeading = parentPrev;
                 break;
               }
@@ -475,7 +475,7 @@ export const extractMetadataFromPage = async (
               if (tagName === 'DIV' || tagName === 'P') {
                 const strong = parentPrev.querySelector('strong, b');
                 if (strong) {
-                  const text = strong.textContent?.trim() || '';
+                  const text = strong.textContent?.trim() ?? '';
                   if (text.length > 2 && text.length < 100) {
                     tableName = text;
                     foundHeading = parentPrev;
@@ -562,7 +562,7 @@ export const extractMetadataFromPage = async (
               // Strategy 1: Look for <dt>Field Type</dt><dd>TYPE</dd> structure
               const dtElements = Array.from(secondCell.querySelectorAll('dt'));
               for (const dt of dtElements) {
-                const dtText = dt.textContent?.trim().toLowerCase() || '';
+                const dtText = dt.textContent?.trim().toLowerCase() ?? '';
                 if (dtText.includes('field type') || dtText === 'type') {
                   // Get the next dd sibling
                   let nextSibling = dt.nextElementSibling;
@@ -729,10 +729,10 @@ export const extractMetadataFromPage = async (
     // If only one table, always use the page title or typeName (the table represents the main type)
     if (allTableFields.length === 1) {
       const tableData = allTableFields[0];
-      const finalName = tableData.pageTitle || typeName;
+      const finalName = tableData.pageTitle ?? typeName;
 
       // For the only table, always use page-level description first (just like we always use page title)
-      const description = tableData.pageLevelDescription || tableData.tableDescription;
+      const description = tableData.pageLevelDescription ?? tableData.tableDescription;
 
       // Clean up all field descriptions and types
       const cleanedFields = tableData.fields.map(field => ({
@@ -765,7 +765,7 @@ export const extractMetadataFromPage = async (
 
           if (isGenericHeading || !tableData.tableName) {
             // Use page title or fall back to typeName
-            finalName = tableData.pageTitle || typeName;
+            finalName = tableData.pageTitle ?? typeName;
           } else {
             // Use the specific table name if it's not generic
             finalName = tableData.tableName;
@@ -813,7 +813,7 @@ export const extractMetadataFromPage = async (
             }
           }
 
-          finalName = inferredName || `${typeName} (Table ${i + 1})`;
+          finalName = inferredName ?? `${typeName} (Table ${i + 1})`;
         } else {
           finalName = `${typeName} (Table ${i + 1})`;
         }
@@ -821,7 +821,7 @@ export const extractMetadataFromPage = async (
         // For the first table, always use page-level description first (just like we always use page title)
         // For subsequent tables, only use table-specific descriptions
         const description =
-          i === 0 ? tableData.pageLevelDescription || tableData.tableDescription : tableData.tableDescription;
+          i === 0 ? (tableData.pageLevelDescription ?? tableData.tableDescription) : tableData.tableDescription;
 
         // Clean up all field descriptions and types
         const cleanedFields = tableData.fields.map(field => ({

@@ -40,7 +40,7 @@ const cleanXsdName = (name: string): string => {
   // Remove trailing underscores
   cleaned = cleaned.replace(/_+$/, '');
 
-  return cleaned || 'unknown_field';
+  return cleaned ?? 'unknown_field';
 };
 
 /**
@@ -155,11 +155,11 @@ const createXsdFromJson = (jsonFilePath: string, outputFilePath: string): number
 
     const typeData = metadataTypes[typeName];
     const cleanTypeName = cleanXsdName(typeName);
-    const fields = typeData.fields || [];
+    const fields = typeData.fields ?? [];
 
     // Create complex type
-    const shortDesc = typeData.short_description || '';
-    const url = typeData.url || '';
+    const shortDesc = typeData.short_description ?? '';
+    const url = typeData.url ?? '';
 
     xsdLines.push(` <xsd:complexType name="${cleanTypeName}">`);
 
@@ -185,9 +185,9 @@ const createXsdFromJson = (jsonFilePath: string, outputFilePath: string): number
 
       // Add fields
       for (const field of fields) {
-        const fieldName = field['Field Name'] || '';
-        const fieldType = field['Field Type'] || '';
-        const description = field.Description || '';
+        const fieldName = field['Field Name'] ?? '';
+        const fieldType = field['Field Type'] ?? '';
+        const description = field.Description ?? '';
 
         if (fieldName) {
           const cleanFieldName = cleanXsdName(fieldName);

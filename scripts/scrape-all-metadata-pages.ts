@@ -77,7 +77,7 @@ const discoverMetadataTypes = async (page: Page): Promise<Array<{ name: string; 
     console.log(`   ✓ JSON document loaded successfully`);
 
     // Navigate to: .toc[] -> find "Reference" -> .children[] -> find "Metadata Types" -> .children[]
-    const toc = docData.toc || [];
+    const toc = docData.toc ?? [];
     const referenceSection = toc.find((section: any) => section.text === 'Reference');
 
     if (!referenceSection?.children) {
@@ -120,7 +120,7 @@ const discoverMetadataTypes = async (page: Page): Promise<Array<{ name: string; 
       // Filter out excluded pages
       const nameLower = name.toLowerCase();
       const hrefLower = href.toLowerCase();
-      const idLower = id?.toLowerCase() || '';
+      const idLower = id?.toLowerCase() ?? '';
 
       const isExcluded = excludedPages.some(
         excluded => nameLower.includes(excluded) || hrefLower.includes(excluded) || idLower.includes(excluded)
@@ -361,7 +361,7 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
   const metadataTypes = await discoverMetadataTypes(page);
   await page.close(); // Close the discovery page
 
-  const batchSize = parseInt(process.env.BATCH_SIZE || '20');
+  const batchSize = parseInt(process.env.BATCH_SIZE ?? '20');
   const typesToScrape = metadataTypes;
 
   console.log(`📋 Will scrape ${typesToScrape.length} metadata types in parallel batches of ${batchSize}\n`);
@@ -372,7 +372,7 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
 
     // Save results
     const outputPath =
-      outputFile || path.join(__dirname, '../packages/salesforcedx-vscode-core', 'metadata_types_map_scraped.json');
+      outputFile ?? path.join(__dirname, '../packages/salesforcedx-vscode-core', 'metadata_types_map_scraped.json');
 
     console.log(`\n=== Summary ===`);
     console.log(`Discovered: ${metadataTypes.length} metadata types`);
