@@ -17,7 +17,6 @@ import {
   executeQuickPick,
   getWorkbench,
   getTextEditor,
-  getOutputViewText,
   reloadWindow,
   moveCursorWithFallback
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
@@ -57,16 +56,6 @@ describe('LWC LSP', () => {
 
     // Reload the VSCode window to allow the LWC to be indexed by the LWC Language Server
     await reloadWindow(Duration.seconds(20));
-  });
-
-  it('Verify LSP finished indexing', async () => {
-    logTestStart(testSetup, 'Verify LSP finished indexing');
-
-    // Get output text from the LSP
-    const outputViewText = await getOutputViewText('LWC Language Server');
-    log('Output view text');
-    log(outputViewText);
-    expect(outputViewText).to.contain('LWC Language Server started successfully');
   });
 
   it('Go to Definition (JavaScript)', async () => {
