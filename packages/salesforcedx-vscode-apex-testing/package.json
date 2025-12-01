@@ -208,7 +208,7 @@
       },
       {
         "command": "sf.apex.test.suite.add",
-        "title": "%apex_test_suite_build_text%"
+        "title": "%apex_test_suite_add_text%"
       },
       {
         "command": "sf.test.view.run",

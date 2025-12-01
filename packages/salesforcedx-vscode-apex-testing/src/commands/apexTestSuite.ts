@@ -19,7 +19,7 @@ import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { APEX_CLASS_EXT } from '../constants';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
-import { nls } from '../messages';
+import { nls, type MessageKey } from '../messages';
 import { ApexLibraryTestRunExecutor, ApexTestQuickPickItem, TestType } from './apexTestRun';
 import { getTestInfo } from './readTestFile';
 
@@ -109,8 +109,8 @@ class TestSuiteCreator implements ParametersGatherer<ApexTestSuiteOptions> {
 class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuiteOptions> {
   public static diagnostics = vscode.languages.createDiagnosticCollection('apex-testing-errors');
 
-  constructor() {
-    super(nls.localize('apex_test_suite_build_text'), 'apex_test_suite_build_library', OUTPUT_CHANNEL);
+  constructor(notificationMessageKey: MessageKey) {
+    super(nls.localize(notificationMessageKey), 'apex_test_suite_build_library', OUTPUT_CHANNEL);
   }
 
   public async run(response: ContinueResponse<ApexTestSuiteOptions>): Promise<boolean> {
@@ -126,7 +126,7 @@ export const apexTestSuiteAdd = async () => {
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
     new TestSuiteBuilder(),
-    new ApexLibraryTestSuiteBuilder()
+    new ApexLibraryTestSuiteBuilder('apex_test_suite_add_text')
   );
   await commandlet.run();
 };
@@ -135,7 +135,7 @@ export const apexTestSuiteCreate = async () => {
   const commandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
     new TestSuiteCreator(),
-    new ApexLibraryTestSuiteBuilder()
+    new ApexLibraryTestSuiteBuilder('apex_test_suite_create_text')
   );
   await commandlet.run();
 };

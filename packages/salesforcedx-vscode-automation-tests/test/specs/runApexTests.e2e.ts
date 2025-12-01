@@ -441,8 +441,8 @@ describe('Run Apex Tests', () => {
     await checkbox.click();
     await clickFilePathOkButton();
 
-    // Look for the success notification that appears which says, "SFDX: Build Apex Test Suite successfully ran".
-    await verifyNotificationWithRetry(/SFDX: Build Apex Test Suite successfully ran/, Duration.TEN_MINUTES);
+    // Look for the success notification that appears which says, "SFDX: Create Apex Test Suite successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Create Apex Test Suite successfully ran/, Duration.TEN_MINUTES);
   });
 
   it('Add test to Apex Test Suite', async () => {
@@ -467,8 +467,8 @@ describe('Run Apex Tests', () => {
     );
     await clickFilePathOkButton();
 
-    // Look for the success notification that appears which says, "SFDX: Build Apex Test Suite successfully ran".
-    await verifyNotificationWithRetry(/SFDX: Build Apex Test Suite successfully ran/, Duration.TEN_MINUTES);
+    // Look for the success notification that appears which says, "SFDX: Add Tests to Apex Test Suite successfully ran".
+    await verifyNotificationWithRetry(/SFDX: Add Tests to Apex Test Suite successfully ran/, Duration.TEN_MINUTES);
   });
 
   it('Run Apex Test Suite', async () => {
