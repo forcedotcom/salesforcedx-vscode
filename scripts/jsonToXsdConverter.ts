@@ -139,14 +139,11 @@ const createXsdFromJson = (jsonFilePath: string, outputFilePath: string): number
   );
 
   // Process each metadata type (sorted alphabetically)
-  const sortedTypes = Object.keys(metadataTypes).sort();
+  const sortedTypes = Object.keys(metadataTypes)
+    .filter(typeName => typeName !== 'Metadata')
+    .sort();
 
   for (const typeName of sortedTypes) {
-    // Skip the base Metadata type to avoid duplicate definition
-    if (typeName === 'Metadata') {
-      continue;
-    }
-
     const typeData = metadataTypes[typeName];
     const cleanTypeName = cleanXsdName(typeName);
     const fields = typeData.fields ?? [];
