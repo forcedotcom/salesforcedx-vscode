@@ -14,7 +14,7 @@
 import { chromium, Page } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadMetadataPage, extractMetadataFromPage, MetadataType } from './scrapeUtils';
+import { loadMetadataPage, extractMetadataFromPage, MetadataType, BROWSER_LAUNCH_ARGS } from './scrapeUtils';
 
 type MetadataMap = {
   [key: string]: MetadataType;
@@ -296,14 +296,7 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
 
   const browser = await chromium.launch({
     headless: !isVisible,
-    args: [
-      '--disable-blink-features=AutomationControlled',
-      '--disable-dev-shm-usage',
-      '--disable-web-security',
-      '--disable-features=IsolateOrigins,site-per-process',
-      '--no-first-run',
-      '--no-default-browser-check'
-    ]
+    args: BROWSER_LAUNCH_ARGS
   });
 
   const context = await browser.newContext({

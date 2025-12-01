@@ -16,6 +16,16 @@ export type MetadataType = {
   url: string;
 };
 
+/** Browser launch arguments for anti-detection */
+export const BROWSER_LAUNCH_ARGS = [
+  '--disable-blink-features=AutomationControlled',
+  '--disable-dev-shm-usage',
+  '--disable-web-security',
+  '--disable-features=IsolateOrigins,site-per-process',
+  '--no-first-run',
+  '--no-default-browser-check'
+];
+
 /**
  * Improved page loading with multiple strategies
  * Returns the frame containing the actual content (might be an iframe)

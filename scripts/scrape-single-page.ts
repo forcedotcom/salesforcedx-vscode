@@ -10,7 +10,7 @@
 import { chromium } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadMetadataPage, extractMetadataFromPage } from './scrapeUtils';
+import { loadMetadataPage, extractMetadataFromPage, BROWSER_LAUNCH_ARGS } from './scrapeUtils';
 
 /** Main function */
 const main = async () => {
@@ -51,14 +51,7 @@ Options:
 
   const browser = await chromium.launch({
     headless: !isVisible,
-    args: [
-      '--disable-blink-features=AutomationControlled',
-      '--disable-dev-shm-usage',
-      '--disable-web-security',
-      '--disable-features=IsolateOrigins,site-per-process',
-      '--no-first-run',
-      '--no-default-browser-check'
-    ]
+    args: BROWSER_LAUNCH_ARGS
   });
 
   const context = await browser.newContext({
