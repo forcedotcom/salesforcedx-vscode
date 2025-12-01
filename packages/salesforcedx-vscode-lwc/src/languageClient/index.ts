@@ -7,11 +7,17 @@
 
 import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import { Uri, workspace } from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
+import {
+  LanguageClient,
+  LanguageClientOptions,
+  RevealOutputChannelOn,
+  ServerOptions,
+  TransportKind
+} from 'vscode-languageclient/node';
 
 const protocol2CodeConverter = (value: string) => Uri.parse(value);
 
-export const createLanguageClient = (serverPath: string): LanguageClient => {
+export const createLanguageClient = (serverPath: string, outputChannel?: any): LanguageClient => {
   // Setup the language server
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6030'] };
   // If the extension is launched in debug mode then the debug server options are used
@@ -46,6 +52,8 @@ export const createLanguageClient = (serverPath: string): LanguageClient => {
         workspace.createFileSystemWatcher('**/', false, true, false)
       ]
     },
+    revealOutputChannelOn: RevealOutputChannelOn.Error,
+    ...(outputChannel && { outputChannel }), // Use the pre-created output channel if provided
     uriConverters: {
       code2Protocol: code2ProtocolConverter,
       protocol2Code: protocol2CodeConverter

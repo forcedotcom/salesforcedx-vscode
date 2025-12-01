@@ -20,7 +20,6 @@ import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
 import { getFolderPath } from '../utils/buildFilePathHelper';
-import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Aura LSP', () => {
@@ -33,16 +32,20 @@ describe('Aura LSP', () => {
     },
     isOrgRequired: false,
     testSuiteSuffixName: 'AuraLsp',
-    extensionConfigs: defaultExtensionConfigs
+    extensionConfigs: [
+      ...defaultExtensionConfigs,
+      {
+        extensionId: 'salesforcedx-vscode-lightning',
+        shouldVerifyActivation: false, // We don't activate until we have an Aura Component
+        shouldInstall: 'always'
+      }
+    ]
   };
 
   before('Set up the testing environment', async () => {
     log('AuraLsp - Set up the testing environment');
     testSetup = await TestSetup.setUp(testReqConfig);
     auraFolderPath = getFolderPath(testSetup.projectFolderPath!, 'aura');
-
-    // Hide copilot
-    await tryToHideCopilot();
 
     // Create Aura Component
     await createAura('aura1', auraFolderPath);

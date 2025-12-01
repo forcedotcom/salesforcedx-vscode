@@ -58,11 +58,8 @@
   ],
   "main": "./out/src",
   "serverPath": [
-    "..",
-    "salesforcedx-aura-language-server",
-    "out",
-    "src",
-    "server.js"
+    "dist",
+    "auraServer.js"
   ],
   "packaging": {
     "assets": [
@@ -75,20 +72,18 @@
       "images",
       "syntaxes",
       "images",
-      "dist"
+      "dist",
+      "tern"
     ],
     "packageUpdates": {
       "main": "dist/index.js",
       "serverPath": [
-        "node_modules",
-        "@salesforce",
-        "salesforcedx-aura-language-server",
-        "out",
-        "src",
-        "server.js"
+        "dist",
+        "auraServer.js"
       ],
       "dependencies": {
-        "applicationinsights": "1.0.7"
+        "applicationinsights": "1.0.7",
+        "vscode-html-languageservice": "^5.5.1"
       },
       "devDependencies": {}
     }

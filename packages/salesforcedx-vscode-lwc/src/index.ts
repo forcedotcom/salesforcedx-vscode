@@ -31,7 +31,8 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
-    log('LWC Language Server activationMode set to off, exiting...');
+    const message = 'LWC Language Server activationMode set to off, exiting...';
+    log(message);
     return;
   }
 
@@ -40,7 +41,8 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders) {
-    log('No workspace, exiting extension');
+    const message = 'No workspace, exiting extension';
+    log(message);
     return;
   }
 
@@ -58,10 +60,12 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
-    log('LWC LSP - autodetect did not find a valid project structure, exiting....');
-    log(`WorkspaceType detected: ${workspaceType}`);
+    const message = `LWC LSP - autodetect did not find a valid project structure, exiting.... WorkspaceType detected: ${workspaceType}`;
+    log(message);
     return;
   }
+
+  console.log('Starting LWC Language Server...');
 
   // register commands
   const ourCommands = registerCommands(extensionContext);
@@ -73,8 +77,14 @@ export const activate = async (extensionContext: ExtensionContext) => {
   const client = createLanguageClient(serverModule);
 
   // Start the client and add it to subscriptions
-  await client.start();
-  extensionContext.subscriptions.push(client);
+  try {
+    await client.start();
+    extensionContext.subscriptions.push(client);
+  } catch (error) {
+    const errorMessage = `Failed to start LWC Language Server: ${String(error)}`;
+    log(errorMessage);
+    throw error;
+  }
 
   // Trigger loading of workspace files into document cache after server initialization
   // This runs asynchronously and does not block extension activation
@@ -124,7 +134,7 @@ export const deactivate = async () => {
 
 const getActivationMode = (): string => {
   const config = workspace.getConfiguration('salesforcedx-vscode-lightning');
-  return config.get('activationMode') ?? 'autodetect'; // default to autodetect
+  return config.get('activationMode') ?? 'always'; // default to always for now
 };
 
 const registerCommands = (_extensionContext: ExtensionContext): Disposable =>

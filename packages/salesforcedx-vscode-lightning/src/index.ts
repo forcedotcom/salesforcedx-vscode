@@ -21,7 +21,13 @@ import { Effect } from 'effect';
 import { log } from 'node:console';
 import * as path from 'node:path';
 import { ExtensionContext, Uri, workspace, FileType } from 'vscode';
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
+import {
+  LanguageClient,
+  LanguageClientOptions,
+  RevealOutputChannelOn,
+  ServerOptions,
+  TransportKind
+} from 'vscode-languageclient/node';
 import { nls } from './messages';
 
 const getActivationMode = (): string => {
@@ -31,16 +37,19 @@ const getActivationMode = (): string => {
 
 export const activate = async (extensionContext: ExtensionContext) => {
   const extensionStartTime = TimingUtils.getCurrentTime();
+
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
-    console.log('Aura Language Server activationMode set to off, exiting...');
+    const message = 'Aura Language Server activationMode set to off, exiting...';
+    console.log(message);
     return;
   }
 
   // 2) if we have no workspace folders, exit
   if (!workspace.workspaceFolders) {
-    console.log('No workspace, exiting extension');
+    const message = 'No workspace, exiting extension';
+    console.log(message);
     return;
   }
 
@@ -59,8 +68,12 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
+    const message = `Aura LSP - autodetect did not find a valid project structure, exiting.... WorkspaceType detected: ${workspaceType}`;
+    log(message);
     return;
   }
+
+  console.log('Starting Aura Language Server...');
 
   // Initialize telemetry service
   await TelemetryService.getInstance().initializeService(extensionContext);
@@ -103,6 +116,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
       // static Aura resources for the language server, not the entire workspace
       fileSystemProvider: fileSystemProvider.serialize()
     },
+    revealOutputChannelOn: RevealOutputChannelOn.Error,
     synchronize: {
       fileEvents: [
         workspace.createFileSystemWatcher('**/*.resource'),
@@ -123,9 +137,17 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // Create the language client and start the client.
   const client = new LanguageClient('auraLanguageServer', nls.localize('client_name'), serverOptions, clientOptions);
+  console.log(`Server module path: ${serverModule}`);
 
   // Start the language server
-  await client.start();
+  try {
+    await client.start();
+    console.log('Aura Language Server started successfully');
+  } catch (error) {
+    const errorMessage = `Failed to start Aura Language Server: ${String(error)}`;
+    log(errorMessage);
+    throw error;
+  }
 
   // Push the disposable to the context's subscriptions so that the
   // client can be deactivated on extension deactivation
@@ -178,8 +200,21 @@ const createAuraResourcesProvider = async (
   const provider = new FileSystemDataProvider();
 
   // Load Aura framework resources from extension
+  // In packaged extension: dist/resources/aura (copied during bundling)
+  // In development: dist/resources/aura exists if bundling ran, otherwise fall back to src/resources/aura
   const extensionPath = extensionContext.extensionPath;
-  const auraResourcesPath = path.join(extensionPath, 'src', 'resources', 'aura');
+  // Try dist first (packaged or development with bundling), then fall back to src (development without bundling)
+  const distResourcesPath = path.join(extensionPath, 'dist', 'resources', 'aura');
+  const srcResourcesPath = path.join(extensionPath, 'src', 'resources', 'aura');
+
+  let auraResourcesPath: string;
+  try {
+    await workspace.fs.stat(Uri.file(distResourcesPath));
+    auraResourcesPath = distResourcesPath;
+  } catch {
+    // dist/resources/aura doesn't exist (development mode without bundling), try src/resources/aura
+    auraResourcesPath = srcResourcesPath;
+  }
 
   await loadAuraResourcesRecursively(provider, auraResourcesPath);
 

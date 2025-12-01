@@ -17,6 +17,7 @@ import {
   executeQuickPick,
   getWorkbench,
   getTextEditor,
+  getOutputViewText,
   reloadWindow,
   moveCursorWithFallback
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
@@ -24,7 +25,7 @@ import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
 import { getFolderPath } from '../utils/buildFilePathHelper';
-import { tryToHideCopilot } from '../utils/copilotHidingHelper';
+// import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('LWC LSP', () => {
@@ -36,7 +37,14 @@ describe('LWC LSP', () => {
     },
     isOrgRequired: false,
     testSuiteSuffixName: 'LwcLsp',
-    extensionConfigs: defaultExtensionConfigs
+    extensionConfigs: [
+      ...defaultExtensionConfigs,
+      {
+        extensionId: 'salesforcedx-vscode-lwc',
+        shouldVerifyActivation: false, // We don't activate until we have an LWC
+        shouldInstall: 'always'
+      }
+    ]
   };
 
   before('Set up the testing environment', async () => {
@@ -44,14 +52,21 @@ describe('LWC LSP', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
     lwcFolderPath = getFolderPath(testSetup.projectFolderPath!, 'lwc');
 
-    // Hide copilot
-    await tryToHideCopilot();
-
     // Create Lightning Web Component
     await createLwc('lwc1', lwcFolderPath);
 
     // Reload the VSCode window to allow the LWC to be indexed by the LWC Language Server
     await reloadWindow(Duration.seconds(20));
+  });
+
+  it('Verify LSP finished indexing', async () => {
+    logTestStart(testSetup, 'Verify LSP finished indexing');
+
+    // Get output text from the LSP
+    const outputViewText = await getOutputViewText('LWC Language Server');
+    log('Output view text');
+    log(outputViewText);
+    expect(outputViewText).to.contain('LWC Language Server started successfully');
   });
 
   it('Go to Definition (JavaScript)', async () => {
@@ -70,7 +85,7 @@ describe('LWC LSP', () => {
     const editorView = workbench.getEditorView();
     const activeTab = await editorView.getActiveTab();
     const title = await activeTab?.getTitle();
-    expect(title).to.equal('engine.d.ts');
+    expect(title).to.equal('types.d.ts');
   });
 
   it('Go to Definition (HTML)', async () => {
