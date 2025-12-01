@@ -61,7 +61,7 @@
     "compile": "wireit",
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out coverage .nyc_output .wireit *.vsix",
-    "copy:files": "wireit",
+    "copy:grammars": "wireit",
     "test": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -89,7 +89,7 @@
         "tsconfig.tsbuildinfo"
       ]
     },
-    "copy:files": {
+    "copy:grammars": {
       "command": "shx mkdir -p grammars && shx cp ../../node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage ./grammars/",
       "files": [
         "../../node_modules/@salesforce/apex-tmlanguage/grammars/soql.tmLanguage"
@@ -102,7 +102,7 @@
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "copy:files"
+        "copy:grammars"
       ],
       "files": [
         "esbuild.config.mjs",
