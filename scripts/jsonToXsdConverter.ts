@@ -93,20 +93,14 @@ const mapFieldTypeToXsd = (fieldType: string): string => {
  * Escape XML special characters.
  */
 const escapeXml = (text: string): string => {
-  if (!text) {
-    return '';
-  }
+  if (!text) return '';
 
-  let escaped = text;
-
-  // Basic XML escaping
-  escaped = escaped.replace(/&/g, '&amp;');
-  escaped = escaped.replace(/</g, '&lt;');
-  escaped = escaped.replace(/>/g, '&gt;');
-  escaped = escaped.replace(/"/g, '&quot;');
-  escaped = escaped.replace(/'/g, '&apos;');
-
-  return escaped;
+  return text
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&apos;');
 };
 
 /**
