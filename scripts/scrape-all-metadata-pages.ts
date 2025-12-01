@@ -20,6 +20,9 @@ type MetadataMap = {
   [key: string]: MetadataType;
 };
 
+const JSON_DOC_URL = 'https://developer.salesforce.com/docs/get_document/atlas.en-us.api_meta.meta';
+const BASE_DOC_URL = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/';
+
 /**
  * Scrape a single metadata type (may return multiple if page has multiple tables)
  */
@@ -60,9 +63,6 @@ const scrapeMetadataType = async (
 
 /** Discovers metadata types from the Salesforce Metadata API JSON documentation endpoint */
 const discoverMetadataTypes = async (page: Page): Promise<Array<{ name: string; url: string }>> => {
-  const JSON_DOC_URL = 'https://developer.salesforce.com/docs/get_document/atlas.en-us.api_meta.meta';
-  const BASE_DOC_URL = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/';
-
   console.log('\n🔍 Discovering metadata types from JSON documentation...');
   console.log(`   Fetching: ${JSON_DOC_URL}`);
 
