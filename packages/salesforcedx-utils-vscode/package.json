@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-utils-vscode",
   "displayName": "SFDX Utilities for VS Code",
   "description": "Provides utilities to interface the SFDX libraries with VS Code",
-  "version": "65.6.0",
+  "version": "65.7.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "categories": [
@@ -11,10 +11,10 @@
   "main": "out/src",
   "dependencies": {
     "@salesforce/core": "^8.23.3",
-    "@salesforce/o11y-reporter": "1.4.0",
-    "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/source-tracking": "^7.7.0",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/o11y-reporter": "1.6.0",
+    "@salesforce/salesforcedx-utils": "65.7.0",
+    "@salesforce/source-tracking": "^7.5.0",
+    "@salesforce/vscode-i18n": "65.7.0",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "applicationinsights": "1.0.7",
     "cross-spawn": "7.0.6",
@@ -24,7 +24,7 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
-    "@salesforce/source-deploy-retrieve": "^12.29.1",
+    "@salesforce/source-deploy-retrieve": "^12.25.0",
     "@types/cross-spawn": "6.0.6",
     "@types/jest": "^29.5.5",
     "jest": "^29.7.0",
@@ -34,56 +34,11 @@
     "vscode": "^1.90.0"
   },
   "scripts": {
-    "compile": "wireit",
-    "lint": "wireit",
-    "clean": "shx rm -rf node_modules out coverage .nyc_output .wireit",
-    "test": "wireit"
-  },
-  "wireit": {
-    "compile": {
-      "command": "tsc --build --pretty",
-      "clean": "if-file-deleted",
-      "dependencies": [
-        "../salesforcedx-utils:compile",
-        "../salesforcedx-vscode-i18n:compile"
-      ],
-      "files": [
-        "src/**/*.ts",
-        "test/**/*.ts",
-        "tsconfig.json",
-        "../../tsconfig.common.json"
-      ],
-      "output": [
-        "out/**",
-        "tsconfig.tsbuildinfo"
-      ]
-    },
-    "test": {
-      "command": "jest --coverage",
-      "dependencies": [
-        "compile"
-      ],
-      "files": [
-        "src/**/*.ts",
-        "test/**/*.ts",
-        "jest.config.js",
-        "../../config/jest.base.config.js"
-      ],
-      "output": [
-        "coverage"
-      ]
-    },
-    "lint": {
-      "command": "eslint --color --cache --cache-location .eslintcache .",
-      "dependencies": [
-        "../eslint-local-rules:compile"
-      ],
-      "files": [
-        "src/**/*.ts",
-        "test/**/*.ts",
-        "../../eslint.config.mjs"
-      ],
-      "output": []
-    }
+    "compile": "tsc -p ./",
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix",
+    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
+    "test": "jest --coverage"
   }
 }
