@@ -26,9 +26,9 @@
   "dependencies": {
     "@salesforce/apex-node": "^8.3.7",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",
-    "@salesforce/salesforcedx-utils": "65.6.0",
+    "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
-    "@salesforce/vscode-i18n": "65.6.0",
+    "@salesforce/vscode-i18n": "*",
     "effect": "^3.18.4",
     "vscode-uri": "^3.1.0"
   },

@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "esbuild": "0.25.10",
-    "salesforcedx-vscode-apex": "65.6.0"
+    "salesforcedx-vscode-apex": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
