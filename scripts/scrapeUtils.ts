@@ -3,8 +3,6 @@
  */
 
 import { Page } from 'playwright';
-import * as fs from 'fs';
-import * as path from 'path';
 
 type MetadataField = {
   Description: string;
