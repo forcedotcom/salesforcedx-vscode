@@ -2,6 +2,7 @@
 .eslint.json
 .vscode/**
 .vscode-test/**
+.wireit/**
 *.xml
 *.vsix
 test/**
