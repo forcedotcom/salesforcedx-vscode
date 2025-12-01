@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.6.0",
+  "version": "65.7.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,8 +27,8 @@
     "workspaceContains:sfdx-project.json"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "65.6.0",
-    "@salesforce/vscode-i18n": "65.6.0",
+    "@salesforce/salesforcedx-utils-vscode": "65.7.0",
+    "@salesforce/vscode-i18n": "65.7.0",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "@stoplight/spectral-core": "1.20.0",
     "@stoplight/spectral-functions": "1.10.1",
@@ -46,8 +46,8 @@
     "@types/ejs": "3.1.5",
     "esbuild": "0.25.10",
     "openapi-types": "12.1.3",
-    "salesforcedx-vscode-apex": "65.6.0",
-    "salesforcedx-vscode-core": "65.6.0",
+    "salesforcedx-vscode-apex": "65.7.0",
+    "salesforcedx-vscode-core": "65.7.0",
     "vscode-languageserver-protocol": "3.17.5"
   },
   "extensionDependencies": [

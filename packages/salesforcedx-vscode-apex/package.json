@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.6.0",
+  "version": "65.7.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,9 +28,9 @@
   "dependencies": {
     "@salesforce/apex-node": "^8.3.7",
     "@salesforce/apex-tmlanguage": "^1.8.3",
-    "@salesforce/salesforcedx-utils": "65.6.0",
-    "@salesforce/salesforcedx-utils-vscode": "65.6.0",
-    "@salesforce/vscode-i18n": "65.6.0",
+    "@salesforce/salesforcedx-utils": "65.7.0",
+    "@salesforce/salesforcedx-utils-vscode": "65.7.0",
+    "@salesforce/vscode-i18n": "65.7.0",
     "find-java-home": "1.2.2",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0"
@@ -38,7 +38,7 @@
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
     "esbuild": "0.25.10",
-    "salesforcedx-vscode-core": "65.6.0"
+    "salesforcedx-vscode-core": "65.7.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
