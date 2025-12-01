@@ -74,10 +74,10 @@ const mapFieldTypeToXsd = (fieldType: string): string => {
     return 'xsd:base64Binary';
   } else if (lowerFieldType.includes('reference')) {
     return 'xsd:string'; // References are typically string IDs
-  } else if (lowerFieldType.includes('picklist') || lowerFieldType.includes('enumeration')) {
-    return 'xsd:string'; // Picklists are string values
   } else if (lowerFieldType.includes('multipicklist')) {
     return 'xsd:anyType'; // Multi-picklists are anyType
+  } else if (lowerFieldType.includes('picklist') || lowerFieldType.includes('enumeration')) {
+    return 'xsd:string'; // Picklists are string values
   } else if (lowerFieldType.includes('email')) {
     return 'xsd:string';
   } else if (lowerFieldType.includes('url')) {
