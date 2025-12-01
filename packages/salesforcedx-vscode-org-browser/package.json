@@ -85,7 +85,7 @@
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "../salesforcedx-vscode-services:bundle:extension"
+        "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
         "esbuild.config.mjs",
