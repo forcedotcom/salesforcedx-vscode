@@ -8,6 +8,7 @@
 import {
   ContinueResponse,
   EmptyParametersGatherer,
+  SfCommandlet,
   SfWorkspaceChecker,
   SourceTrackingService,
   workspaceUtils
@@ -19,7 +20,6 @@ import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
 import { DeployRetrieveOperationType } from '../util/types';
 import { RetrieveExecutor } from './retrieveExecutor';
-import { SfCommandlet } from './util';
 
 export class ProjectRetrieveStartExecutor extends RetrieveExecutor<{}> {
   constructor(ignoreConflicts: boolean = false) {

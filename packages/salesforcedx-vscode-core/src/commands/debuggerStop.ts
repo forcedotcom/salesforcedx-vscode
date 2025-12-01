@@ -12,6 +12,7 @@ import {
   EmptyParametersGatherer,
   ParametersGatherer,
   ProgressNotification,
+  SfCommandlet,
   SfWorkspaceChecker,
   TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -20,7 +21,7 @@ import { channelService } from '../channels';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
 import { taskViewService } from '../statuses/taskView';
-import { SfCommandlet, SfCommandletExecutor } from './util';
+import { SfCommandletExecutor } from './util';
 
 type QueryResponse = {
   status: number;

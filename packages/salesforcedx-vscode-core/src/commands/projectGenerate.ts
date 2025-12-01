@@ -11,6 +11,7 @@ import {
   ContinueResponse,
   ParametersGatherer,
   PostconditionChecker,
+  SfCommandlet,
   fileOrFolderExists
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ProjectOptions, TemplateType } from '@salesforce/templates';
@@ -21,7 +22,7 @@ import { coerceMessageKey, nls } from '../messages';
 import { notificationService } from '../notifications';
 import { getFormattedString } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
-import { EmptyPreChecker, SfCommandlet } from './util';
+import { EmptyPreChecker } from './util';
 
 type ProjectGenerateOptions = {
   isProjectWithManifest: boolean;

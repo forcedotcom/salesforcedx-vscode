@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
+import { SfCommandlet, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { URI } from 'vscode-uri';
 import { MetadataCacheExecutor, MetadataCacheResult, PathType } from '../conflict';
 import * as differ from '../conflict/directoryDiffer';
 import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
 import { notificationService } from '../notifications';
-import { FilePathGatherer, SfCommandlet } from './util';
+import { FilePathGatherer } from './util';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
 const workspaceChecker = new SfWorkspaceChecker();

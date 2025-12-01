@@ -9,6 +9,7 @@ import {
   ChannelService,
   ProgressNotification,
   SFDX_CORE_CONFIGURATION_NAME,
+  SfCommandlet,
   SfWorkspaceChecker,
   TelemetryService,
   handleTraceFlagCleanup,
@@ -71,7 +72,7 @@ import {
 } from './commands';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
-import { SelectFileName, SelectOutputDir, SfCommandlet, SfCommandletExecutor } from './commands/util';
+import { SelectFileName, SelectOutputDir, SfCommandletExecutor } from './commands/util';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';

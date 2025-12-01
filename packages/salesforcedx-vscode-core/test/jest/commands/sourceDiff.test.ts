@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { sourceDiff, sourceFolderDiff } from '../../../src/commands/sourceDiff';
-import { SfCommandlet } from '../../../src/commands/util';
 import * as differ from '../../../src/conflict/directoryDiffer';
 import { MetadataCacheExecutor, MetadataCacheResult, PathType } from '../../../src/conflict/metadataCacheService';
 import { WorkspaceContext } from '../../../src/context';
@@ -18,7 +18,10 @@ import { notificationService } from '../../../src/notifications';
 
 // Mock modules whose real implementation we want to avoid
 jest.mock('../../../src/conflict/directoryDiffer');
-jest.mock('../../../src/commands/util/sfCommandlet');
+jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
+  ...jest.requireActual('@salesforce/salesforcedx-utils-vscode'),
+  SfCommandlet: jest.fn()
+}));
 jest.mock('../../../src/conflict/metadataCacheService');
 jest.mock('../../../src/commands/util/parameterGatherers');
 

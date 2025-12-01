@@ -6,11 +6,6 @@
  */
 
 import { createNls } from '@salesforce/vscode-i18n';
-import { messages as enMessages, isValidMessageKey, type MessageKey } from './i18n';
+import { messages as enMessages } from './i18n';
 
 export const nls = createNls({ instanceName: 'salesforcedx-vscode-org-browser', messages: enMessages });
-
-export const coerceMessageKey = (key: string): MessageKey => {
-  const isValid = isValidMessageKey(key);
-  return isValid ? key : 'retrieve_canceled';
-};

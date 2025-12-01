@@ -16,6 +16,7 @@ import {
   projectPaths,
   readFile,
   safeDelete,
+  SfCommandlet,
   TimingUtils,
   writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -35,7 +36,7 @@ import {
   SelectProjectFolder,
   SelectProjectName
 } from '../projectGenerate';
-import { EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from '../util';
+import { EmptyPreChecker, SfCommandletExecutor } from '../util';
 
 type InstalledPackageInfo = {
   id: string;

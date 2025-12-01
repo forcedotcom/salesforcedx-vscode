@@ -18,7 +18,7 @@ import { channelService } from '../channels';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { getTelemetryService } from '../telemetry/telemetry';
 
-export type ApexTestRunOptions = {
+type ApexTestRunOptions = {
   payload: AsyncTestConfiguration;
   outputDir: string;
   codeCoverage: boolean;
