@@ -21,24 +21,9 @@
     "vscode": "^1.90.0"
   },
   "scripts": {
-    "vscode:package": "wireit",
+    "vscode:package": "vsce package --no-dependencies",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js"
-  },
-  "wireit": {
-    "vscode:package": {
-      "command": "vsce package --no-dependencies",
-      "files": [
-        "package.json",
-        "images/**",
-        "README.md",
-        "CHANGELOG.md",
-        "LICENSE.txt"
-      ],
-      "output": [
-        "*.vsix"
-      ]
-    }
   },
   "categories": [
     "Extension Packs"

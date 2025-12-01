@@ -1,34 +1,11 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
-const path = require('path');
 const { execSync } = require('child_process');
 const { checkVSCodeVersion, checkBaseBranch } = require('./validation-utils');
 const logger = require('./logger-util');
 
 const RELEASE_TYPE = process.env['RELEASE_TYPE'];
-
-// Check if package publishes (extension via vscode:publish, or npm via publishConfig)
-const shouldUpdateVersion = pkgJson => pkgJson.scripts?.['vscode:publish'] || pkgJson.publishConfig;
-
-// Update version only in packages that publish (extensions + npm packages)
-const updatePackageVersions = nextVersion => {
-  const packagesDir = path.join(__dirname, '..', 'packages');
-  const packages = fs.readdirSync(packagesDir).filter(dir => {
-    const pkgPath = path.join(packagesDir, dir, 'package.json');
-    return fs.existsSync(pkgPath);
-  });
-
-  packages.forEach(pkg => {
-    const pkgPath = path.join(packagesDir, pkg, 'package.json');
-    const pkgJson = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-    if (shouldUpdateVersion(pkgJson)) {
-      pkgJson.version = nextVersion;
-      fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2) + '\n');
-      logger.info(`Updated ${pkg} to ${nextVersion}`);
-    }
-  });
-};
 
 function getReleaseVersion() {
   const currentVersion = require('../packages/salesforcedx-vscode/package.json').version;
@@ -93,10 +70,13 @@ execSync(`git checkout -b ${releaseBranchName}`);
 // git clean but keeping node_modules around
 execSync('git clean -xfd -e node_modules');
 
-// Update version in all package.json files
-logger.info(`Updating package versions to ${nextVersion}...`);
-updatePackageVersions(nextVersion);
+// lerna version
+// increment the version number in all packages without publishing to npmjs
+// only run on branch named develop and do not create git tags
+execSync(`lerna version ${nextVersion} --force-publish --no-git-tag-version --exact --yes`);
 
+// Using --no-git-tag-version prevents creating git tags but also prevents commiting
+// all the version bump changes so we'll now need to commit those using git add & commit.
 // Add all package.json version update changes
 execSync(`git add "**/package.json"`);
 
@@ -106,6 +86,9 @@ execSync(`npm install --ignore-scripts --package-lock-only --no-audit`);
 
 // Add change to package lockfile that includes version bump
 execSync('git add package-lock.json');
+
+// Add change to lerna.json
+execSync('git add lerna.json');
 
 // If it is a beta release, add all files
 if (isBetaRelease()) {

@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 
-const packageVersion = JSON.parse(fs.readFileSync('./packages/salesforcedx-vscode-core/package.json', 'utf8')).version;
+const packageVersion = JSON.parse(fs.readFileSync('./lerna.json', 'utf8')).version;
 
 const HEADER = `Currently, Visual Studio Code extensions are not signed or verified on the
 Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash
