@@ -56,7 +56,7 @@ const mapFieldTypeToXsd = (fieldType: string): string => {
     return 'xsd:string';
   } else if (lowerFieldType.includes('boolean')) {
     return 'xsd:boolean';
-  } else if (lowerFieldType.includes('int') || lowerFieldType.includes('integer')) {
+  } else if (lowerFieldType.includes('int')) {
     return 'xsd:int';
   } else if (
     lowerFieldType.includes('double') ||
