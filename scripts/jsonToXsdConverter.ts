@@ -97,7 +97,7 @@ const escapeXml = (text: string): string => {
     return '';
   }
 
-  let escaped = String(text);
+  let escaped = text;
 
   // Basic XML escaping
   escaped = escaped.replace(/&/g, '&amp;');
