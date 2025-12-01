@@ -104,10 +104,7 @@ Options:
       }
     } else {
       // Save results
-      const output: any = {};
-      for (const { name, data } of results) {
-        output[name] = data;
-      }
+      const output = Object.fromEntries(results.map(({ name, data }) => [name, data]));
 
       fs.writeFileSync(outputFile, JSON.stringify(output, null, 2));
       console.log(`\n💾 Output saved to: ${outputFile}`);
