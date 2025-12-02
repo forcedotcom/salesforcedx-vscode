@@ -255,7 +255,7 @@ describe('Run LWC Tests', () => {
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
     const workbench = getWorkbench();
-    const terminalText = await getTerminalViewText(workbench, 10);
+    const terminalText = await getTerminalViewText(workbench, 20);
     const expectedTexts = [
       'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
       'Test Suites: 1 passed, 1 total',

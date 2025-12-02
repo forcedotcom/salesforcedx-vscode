@@ -11,26 +11,30 @@ import { Connection } from 'vscode-languageserver';
  * This allows language server log messages to appear in the client's output panel
  * (e.g., VS Code's Output view) instead of the server's local console.
  *
+ * This provides a centralized logging solution - once called, any code in the language
+ * server can use console.log(), console.error(), etc., and the messages will automatically
+ * appear in the client's output channel without needing to pass the connection object around.
+ *
  * @param connection - The LSP connection to redirect console output to
  */
 export const interceptConsoleLogger = (connection: Connection): void => {
-    const console: any = global.console;
-    if (!console) {
-        return;
-    }
-    const intercept = (method: string): void => {
-        const original = console[method];
-        console[method] = (...args: any): void => {
-            if (connection) {
-                const remote: any = connection.console;
-                remote[method].apply(connection.console, args);
-            } else {
-                original.apply(console, args);
-            }
-        };
+  const console: any = global.console;
+  if (!console) {
+    return;
+  }
+  const intercept = (method: string): void => {
+    const original = console[method];
+    console[method] = (...args: any[]): void => {
+      if (connection) {
+        const remote: any = connection.console;
+        remote[method].apply(connection.console, args);
+      } else {
+        original.apply(console, args);
+      }
     };
-    const methods = ['log', 'info', 'warn', 'error'];
-    for (const method of methods) {
-        intercept(method);
-    }
+  };
+  const methods = ['log', 'info', 'warn', 'error'];
+  for (const method of methods) {
+    intercept(method);
+  }
 };
