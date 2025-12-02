@@ -103,6 +103,23 @@ export const loadMetadataPage = async (
 
     console.log(`${indent}✓ Using frame: ${contentFrame.url() ?? 'main'}`);
 
+    // Helper function to count tables including those in shadow DOMs
+    const countTables = async (frame: any): Promise<number> => {
+      return frame.evaluate(() => {
+        const countTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): number => {
+          let count = root.querySelectorAll('table').length;
+          const elements = root.querySelectorAll('*');
+          elements.forEach(el => {
+            if (el.shadowRoot) {
+              count += countTablesIncludingShadowDOM(el.shadowRoot);
+            }
+          });
+          return count;
+        };
+        return countTablesIncludingShadowDOM(document);
+      });
+    };
+
     // Wait for tables in the iframe
     console.log(`${indent}⏳ Waiting for tables to stabilize...`);
     let lastTableCount = 0;
@@ -111,24 +128,7 @@ export const loadMetadataPage = async (
     for (let i = 0; i < 15; i++) {
       await page.waitForTimeout(2000);
 
-      const currentTableCount = await contentFrame.evaluate(() => {
-        // Helper function to traverse shadow DOMs recursively
-        const countTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): number => {
-          let count = root.querySelectorAll('table').length;
-
-          // Check all elements for shadow roots
-          const elements = root.querySelectorAll('*');
-          elements.forEach(el => {
-            if (el.shadowRoot) {
-              count += countTablesIncludingShadowDOM(el.shadowRoot);
-            }
-          });
-
-          return count;
-        };
-
-        return countTablesIncludingShadowDOM(document);
-      });
+      const currentTableCount = await countTables(contentFrame);
 
       console.log(`${indent}🔍 Table count: ${currentTableCount}`);
 
@@ -146,19 +146,7 @@ export const loadMetadataPage = async (
     }
 
     // Final check: do we have tables?
-    const tableCount = await contentFrame.evaluate(() => {
-      const countTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): number => {
-        let count = root.querySelectorAll('table').length;
-        const elements = root.querySelectorAll('*');
-        elements.forEach(el => {
-          if (el.shadowRoot) {
-            count += countTablesIncludingShadowDOM(el.shadowRoot);
-          }
-        });
-        return count;
-      };
-      return countTablesIncludingShadowDOM(document);
-    });
+    const tableCount = await countTables(contentFrame);
 
     if (tableCount === 0) {
       console.log(`${indent}❌ No tables found after all strategies`);
@@ -276,6 +264,23 @@ export const extractMetadataFromPage = async (
         }
       }
 
+      // Helper to check if text is a valid description
+      const isValidDescription = (text: string): boolean => {
+        const textLower = text.toLowerCase();
+        const isSubstantial = text.length > 50;
+        const isNotNavigation =
+          !textLower.includes('cookie') &&
+          !textLower.includes('in this section') &&
+          !textLower.includes('©') &&
+          !textLower.includes('skip navigation') &&
+          !textLower.includes('related topics') &&
+          !textLower.includes('see also') &&
+          !textLower.startsWith('note:') &&
+          !textLower.startsWith('tip:') &&
+          !textLower.startsWith('important:');
+        return isSubstantial && isNotNavigation;
+      };
+
       // Strategy 2: Look for direct paragraph siblings after heading
       const mainHeading = document.querySelector('h1') ?? document.querySelector('h2');
       if (mainHeading && !pageLevelDescription) {
@@ -299,21 +304,7 @@ export const extractMetadataFromPage = async (
           // Check if this element or its children have the description
           const checkElement = (el: Element) => {
             const text = el.textContent?.trim() ?? '';
-            const textLower = text.toLowerCase();
-
-            const isSubstantial = text.length > 50;
-            const isNotNavigation =
-              !textLower.includes('cookie') &&
-              !textLower.includes('in this section') &&
-              !textLower.includes('©') &&
-              !textLower.includes('skip navigation') &&
-              !textLower.includes('related topics') &&
-              !textLower.includes('see also') &&
-              !textLower.startsWith('note:') &&
-              !textLower.startsWith('tip:') &&
-              !textLower.startsWith('important:');
-
-            return isSubstantial && isNotNavigation ? text : '';
+            return isValidDescription(text) ? text : '';
           };
 
           // Try the element itself if it's P or DD
@@ -350,21 +341,7 @@ export const extractMetadataFromPage = async (
           // Only consider paragraphs that come after the heading in DOM order
           if (mainHeading.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_FOLLOWING) {
             const text = p.textContent?.trim() ?? '';
-            const textLower = text.toLowerCase();
-
-            const isSubstantial = text.length > 50;
-            const isNotNavigation =
-              !textLower.includes('cookie') &&
-              !textLower.includes('in this section') &&
-              !textLower.includes('©') &&
-              !textLower.includes('skip navigation') &&
-              !textLower.includes('related topics') &&
-              !textLower.includes('see also') &&
-              !textLower.startsWith('note:') &&
-              !textLower.startsWith('tip:') &&
-              !textLower.startsWith('important:');
-
-            if (isSubstantial && isNotNavigation) {
+            if (isValidDescription(text)) {
               pageLevelDescription = text;
               break;
             }
@@ -414,6 +391,44 @@ export const extractMetadataFromPage = async (
         const typeIdx = headers.findIndex(h => h.includes('type'));
         const descIdx = headers.findIndex(h => h.includes('description') || h.includes('detail'));
 
+        // Helper to find heading element before a given element
+        const findHeadingBefore = (startElement: Element | null): Element | null => {
+          if (!startElement) return null;
+
+          let current = startElement.previousElementSibling;
+          let attempts = 0;
+
+          while (current && attempts < 10) {
+            const tagName = current.tagName;
+
+            // Check for H1-H6 headings
+            if (tagName?.match(/^H[1-6]$/)) {
+              return current;
+            }
+
+            // Check for DT (definition term) which Salesforce docs sometimes use
+            if (tagName === 'DT') {
+              return current;
+            }
+
+            // Check for DIV or P with bold/strong text that looks like a heading
+            if (tagName === 'DIV' || tagName === 'P') {
+              const strong = current.querySelector('strong, b');
+              if (strong) {
+                const text = strong.textContent?.trim();
+                if (text && text.length > 2 && text.length < 100) {
+                  return current;
+                }
+              }
+            }
+
+            current = current.previousElementSibling;
+            attempts++;
+          }
+
+          return null;
+        };
+
         // Try to find a table name/caption and description
         let tableName = '';
         let tableDescription = '';
@@ -421,88 +436,19 @@ export const extractMetadataFromPage = async (
         if (caption) {
           tableName = caption.textContent?.trim() ?? '';
         } else {
-          // Look for heading before the table - try multiple element types
-          let prevElement = table.previousElementSibling;
-          let attempts = 0;
-          let foundHeading: Element | null = null;
-
-          while (prevElement && attempts < 10) {
-            const tagName = prevElement.tagName;
-
-            // Check for H1-H6 headings
-            if (tagName?.match(/^H[1-6]$/)) {
-              tableName = prevElement.textContent?.trim() ?? '';
-              foundHeading = prevElement;
-              break;
-            }
-
-            // Check for DT (definition term) which Salesforce docs sometimes use
-            if (tagName === 'DT') {
-              tableName = prevElement.textContent?.trim() ?? '';
-              foundHeading = prevElement;
-              break;
-            }
-
-            // Check for DIV or P with bold/strong text that looks like a heading
-            if (tagName === 'DIV' || tagName === 'P') {
-              const strong = prevElement.querySelector('strong, b');
-              if (strong) {
-                const text = strong.textContent?.trim();
-                if (text.length > 2 && text.length < 100) {
-                  tableName = text;
-                  foundHeading = prevElement;
-                  break;
-                }
-              }
-            }
-
-            prevElement = prevElement.previousElementSibling;
-            attempts++;
-          }
+          // Look for heading before the table
+          let foundHeading = findHeadingBefore(table);
 
           // If no heading found as direct sibling, check parent's siblings
           // (common in Salesforce docs where table is wrapped in a div)
           if (!foundHeading && table.parentElement) {
-            let parentPrev = table.parentElement.previousElementSibling;
-            attempts = 0;
-
-            while (parentPrev && attempts < 10) {
-              const tagName = parentPrev.tagName;
-
-              // Check for H1-H6 headings
-              if (tagName?.match(/^H[1-6]$/)) {
-                tableName = parentPrev.textContent?.trim();
-                foundHeading = parentPrev;
-                break;
-              }
-
-              // Check for DT
-              if (tagName === 'DT') {
-                tableName = parentPrev.textContent?.trim() ?? '';
-                foundHeading = parentPrev;
-                break;
-              }
-
-              // Check for DIV or P with bold/strong text
-              if (tagName === 'DIV' || tagName === 'P') {
-                const strong = parentPrev.querySelector('strong, b');
-                if (strong) {
-                  const text = strong.textContent?.trim() ?? '';
-                  if (text.length > 2 && text.length < 100) {
-                    tableName = text;
-                    foundHeading = parentPrev;
-                    break;
-                  }
-                }
-              }
-
-              parentPrev = parentPrev.previousElementSibling;
-              attempts++;
-            }
+            foundHeading = findHeadingBefore(table.parentElement);
           }
 
-          // If we found a heading, look for a description paragraph right after it
           if (foundHeading) {
+            tableName = foundHeading.textContent?.trim() ?? '';
+
+            // Look for a description paragraph right after the heading
             let nextElement = foundHeading.nextElementSibling;
             let searchAttempts = 0;
 
