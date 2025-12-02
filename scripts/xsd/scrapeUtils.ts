@@ -47,14 +47,16 @@ export const loadMetadataPage = async (
 
     // Strategy 2: Handle cookie consent FIRST
     try {
-      await page.waitForTimeout(1000);
       const cookieButton = page.locator(
         'button:has-text("Accept All"), button:has-text("Accept"), button:has-text("Agree")'
       );
-      if (await cookieButton.isVisible({ timeout: 2000 })) {
+      // Wait for cookie button to appear, but don't block too long
+      await cookieButton.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+      if (await cookieButton.isVisible({ timeout: 500 })) {
         await cookieButton.click();
         console.log(`${indent}✓ Accepted cookies`);
-        await page.waitForTimeout(1000);
+        // Wait for any cookie-related redirects/animations to complete
+        await page.waitForLoadState('domcontentloaded', { timeout: 3000 }).catch(() => {});
       }
     } catch {
       // No cookie banner
@@ -63,30 +65,45 @@ export const loadMetadataPage = async (
     // Strategy 3: Wait for network to settle
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
-    // Strategy 4: Wait for JavaScript to fully render
-    console.log(`${indent}⏳ Waiting 10 seconds for content to fully load...`);
-    await page.waitForTimeout(10000);
-
-    // Strategy 5: Scroll to trigger any lazy-loaded content
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await page.waitForTimeout(3000);
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await page.waitForTimeout(3000);
-
-    // Strategy 6: Wait for iframe and its content to load
-    console.log(`${indent}⏳ Waiting for iframe content...`);
-    await page.waitForTimeout(3000);
-
-    // Get the iframe's content
-    const frames = page.frames();
-    console.log(`${indent}🔍 Found ${frames.length} frames`);
+    // Strategy 4: Wait for the main content frame to appear
+    console.log(`${indent}⏳ Waiting for content frame...`);
 
     // Extract the expected page name from the URL (e.g., "meta_classes.htm")
     const urlParts = url.split('/');
     const expectedPage = urlParts.at(-1)!;
 
+    // Wait for iframe with expected URL to load
+    let contentFrame: any = null;
+    try {
+      await page
+        .waitForFunction(
+          expectedUrl => {
+            const frames = window.frames;
+            for (let i = 0; i < frames.length; i++) {
+              try {
+                if (frames[i].location.href.includes(expectedUrl)) {
+                  return true;
+                }
+              } catch (e) {
+                // Cross-origin frame, skip
+              }
+            }
+            return false;
+          },
+          expectedPage,
+          { timeout: 10000 }
+        )
+        .catch(() => {});
+    } catch {
+      // Iframe might not load, we'll check frames manually
+    }
+
+    // Get the iframe's content
+    const frames = page.frames();
+    console.log(`${indent}🔍 Found ${frames.length} frames`);
+
     // Find the frame matching our target URL
-    let contentFrame = frames.find(f => f.url().includes(expectedPage));
+    contentFrame = frames.find(f => f.url().includes(expectedPage));
 
     if (!contentFrame) {
       // Fallback: find any frame with the base path
@@ -102,6 +119,9 @@ export const loadMetadataPage = async (
     }
 
     console.log(`${indent}✓ Using frame: ${contentFrame.url() ?? 'main'}`);
+
+    // Strategy 5: Wait for tables to appear in the content frame
+    console.log(`${indent}⏳ Waiting for tables to appear...`);
 
     // Helper function to count tables including those in shadow DOMs
     const countTables = async (frame: any): Promise<number> => {
@@ -120,40 +140,78 @@ export const loadMetadataPage = async (
       });
     };
 
-    // Wait for tables in the iframe
-    console.log(`${indent}⏳ Waiting for tables to stabilize...`);
-    let lastTableCount = 0;
-    let stableIterations = 0;
+    // Wait for at least one table with the expected structure to appear
+    try {
+      await contentFrame.waitForFunction(
+        () => {
+          const checkForMetadataTables = (root: Document | ShadowRoot | Element): boolean => {
+            const tables = root.querySelectorAll('table');
+            for (const table of Array.from(tables)) {
+              const headers = Array.from(table.querySelectorAll('th, thead td')).map(
+                cell => cell.textContent?.trim().toLowerCase() ?? ''
+              );
 
-    for (let i = 0; i < 15; i++) {
-      await page.waitForTimeout(2000);
+              if (headers.length === 0) continue;
 
-      const currentTableCount = await countTables(contentFrame);
+              const hasField = headers.some(h => h.includes('field') || h === 'name');
+              const hasType = headers.some(h => h.includes('type'));
+              const hasDesc = headers.some(h => h.includes('description') || h.includes('detail'));
 
-      console.log(`${indent}🔍 Table count: ${currentTableCount}`);
+              // Accept tables with all 3 columns OR 2-column format
+              if ((hasField && hasType && hasDesc) || (headers.length === 2 && hasField && hasDesc)) {
+                // Also check if there's at least one data row
+                const rows = table.querySelectorAll('tbody tr, tr:not(:first-child)');
+                if (rows.length > 0) {
+                  return true;
+                }
+              }
+            }
 
-      if (currentTableCount === lastTableCount && currentTableCount > 0) {
-        stableIterations++;
-        if (stableIterations >= 2) {
-          console.log(`${indent}✓ Content stabilized with ${currentTableCount} tables`);
-          break;
-        }
-      } else {
-        stableIterations = 0;
+            // Check shadow DOMs
+            const elements = root.querySelectorAll('*');
+            for (const el of Array.from(elements)) {
+              if (el.shadowRoot && checkForMetadataTables(el.shadowRoot)) {
+                return true;
+              }
+            }
+
+            return false;
+          };
+
+          return checkForMetadataTables(document);
+        },
+        { timeout: 20000 }
+      );
+
+      const tableCount = await countTables(contentFrame);
+      console.log(`${indent}✅ Ready to extract (${tableCount} tables found)`);
+    } catch (error) {
+      // If waiting for tables times out, try scrolling to trigger lazy loading
+      console.log(`${indent}⏳ Tables not immediately visible, trying scroll trigger...`);
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      await page.evaluate(() => window.scrollTo(0, 0));
+
+      // Wait a bit for lazy-loaded content
+      try {
+        await contentFrame.waitForFunction(
+          () => {
+            const tables = document.querySelectorAll('table');
+            return tables.length > 0;
+          },
+          { timeout: 5000 }
+        );
+      } catch {
+        // Still no tables
       }
 
-      lastTableCount = currentTableCount;
+      const tableCount = await countTables(contentFrame);
+      if (tableCount === 0) {
+        console.log(`${indent}❌ No tables found after all strategies`);
+        return { success: false, contentFrame: null };
+      }
+      console.log(`${indent}✅ Found ${tableCount} tables after scroll`);
     }
 
-    // Final check: do we have tables?
-    const tableCount = await countTables(contentFrame);
-
-    if (tableCount === 0) {
-      console.log(`${indent}❌ No tables found after all strategies`);
-      return { success: false, contentFrame: null };
-    }
-
-    console.log(`${indent}✅ Ready to extract (${tableCount} tables found)`);
     return { success: true, contentFrame };
   } catch (error) {
     console.error(`${indent}Error loading page: ${error}`);

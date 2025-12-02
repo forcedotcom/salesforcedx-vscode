@@ -367,7 +367,7 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
 
     // Save results
     const outputPath =
-      outputFile ?? path.join(__dirname, '../packages/salesforcedx-vscode-core', 'metadata_types_map_scraped.json');
+      outputFile ?? path.join(__dirname, '../../packages/salesforcedx-vscode-core', 'metadata_types_map_scraped.json');
 
     console.log(`\n=== Summary ===`);
     console.log(`Discovered: ${metadataTypes.length} metadata types`);

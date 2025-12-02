@@ -230,7 +230,7 @@ const createXsdFromJson = (jsonFilePath: string, outputFilePath: string): number
  * Main function to convert JSON to XSD.
  */
 const main = (): void => {
-  const workspaceRoot = path.resolve(__dirname, '..');
+  const workspaceRoot = path.resolve(__dirname, '..', '..');
   const jsonFile = path.join(workspaceRoot, 'packages/salesforcedx-vscode-core/metadata_types_map_scraped.json');
   const xsdFile = path.join(
     workspaceRoot,
