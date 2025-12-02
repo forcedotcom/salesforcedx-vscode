@@ -16,7 +16,7 @@
     "vscode-uri": "^3.1.0"
   },
   "scripts": {
-    "clean": "shx rm -rf node_modules out coverage .nyc_output .wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache",
     "compile": "wireit",
     "lint": "wireit",
     "test": "wireit"

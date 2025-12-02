@@ -60,7 +60,7 @@
     "vscode:bundle": "wireit",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out coverage .nyc_output .wireit *.vsix",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "copy:grammars": "wireit",
     "test": "wireit",
     "vscode:package": "wireit",

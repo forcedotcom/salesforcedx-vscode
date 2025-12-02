@@ -12,7 +12,7 @@
     "compile": "wireit",
     "test": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf out .wireit"
+    "clean": "shx rm -rf out dist .wireit .eslintcache"
   },
   "wireit": {
     "compile": {

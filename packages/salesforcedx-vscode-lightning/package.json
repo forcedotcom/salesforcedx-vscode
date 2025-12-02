@@ -41,7 +41,7 @@
   ],
   "scripts": {
     "vscode:bundle": "wireit",
-    "clean": "shx rm -rf node_modules out coverage .nyc_output .wireit *.vsix",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "compile": "wireit",
     "lint": "wireit",
     "test": "wireit",

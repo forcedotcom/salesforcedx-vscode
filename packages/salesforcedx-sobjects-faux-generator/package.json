@@ -24,7 +24,7 @@
   "scripts": {
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out .wireit",
+    "clean": "shx rm -rf node_modules out dist .wireit .eslintcache",
     "test": "wireit"
   },
   "wireit": {

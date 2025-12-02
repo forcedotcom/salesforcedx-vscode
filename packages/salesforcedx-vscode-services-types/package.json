@@ -30,7 +30,7 @@
     "generate-entry": "ts-node scripts/generateEntry.ts",
     "sync-deps": "ts-node scripts/syncDeps.ts",
     "compile": "wireit",
-    "clean": "shx rm -rf src out node_modules .wireit *.tgz"
+    "clean": "shx rm -rf src out dist node_modules .wireit .eslintcache *.tgz"
   },
   "wireit": {
     "compile": {
