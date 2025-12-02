@@ -11,12 +11,13 @@ import {
   CompositeParametersGatherer,
   ContinueResponse,
   isRecordIdFormat,
-  ParametersGatherer
+  ParametersGatherer,
+  SfCommandlet
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { PKG_ID_PREFIX } from '../constants';
 import { nls } from '../messages';
-import { EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from './util';
+import { EmptyPreChecker, SfCommandletExecutor } from './util';
 
 class PackageInstallExecutor extends SfCommandletExecutor<PackageIdAndInstallationKey> {
   public build(data: PackageIdAndInstallationKey): Command {

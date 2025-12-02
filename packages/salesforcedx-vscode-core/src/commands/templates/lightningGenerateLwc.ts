@@ -6,18 +6,12 @@
  */
 
 import type { DirFileNameSelection, LocalComponent } from '../../util/types';
-import { CompositeParametersGatherer, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
+import { CompositeParametersGatherer, SfCommandlet, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningComponentOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { salesforceCoreSettings } from '../../settings';
-import {
-  CompositePostconditionChecker,
-  MetadataTypeGatherer,
-  SelectFileName,
-  SelectOutputDir,
-  SfCommandlet
-} from '../util';
+import { CompositePostconditionChecker, MetadataTypeGatherer, SelectFileName, SelectOutputDir } from '../util';
 import { LwcAuraDuplicateComponentCheckerForCreate } from '../util/lwcAuraDuplicateComponentCheckers';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { SelectLwcComponentType } from '../util/parameterGatherers';

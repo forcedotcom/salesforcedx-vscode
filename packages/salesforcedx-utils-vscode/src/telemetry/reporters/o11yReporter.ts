@@ -8,11 +8,10 @@
 import type { TelemetryReporterWithModifiableUserProperties } from './telemetryReporterConfig';
 import { O11yService } from '@salesforce/o11y-reporter';
 import type { TelemetryReporter } from '@salesforce/vscode-service-provider';
-import * as os from 'node:os';
-import { Disposable, env, UIKind, version, workspace } from 'vscode';
+import { Disposable, env, workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { isInternalHost } from '../utils/isInternal';
-import { CommonProperties, InternalProperties } from './loggingProperties';
+import { getCommonProperties, getInternalProperties } from './telemetryUtils';
 
 export class O11yReporter
   extends Disposable
@@ -48,39 +47,6 @@ export class O11yReporter
     await this.o11yService.initialize(extensionName, this.o11yUploadEndpoint);
   }
 
-  private getCommonProperties(): CommonProperties {
-    const commonProperties: CommonProperties = {
-      'common.os': os.platform(),
-      'common.platformversion': (os.release() ?? '').replace(/^(\d+)(\.\d+)?(\.\d+)?(.*)/, '$1$2$3'),
-      'common.systemmemory': `${(os.totalmem() / (1024 * 1024 * 1024)).toFixed(2)} GB`,
-      'common.extname': this.extensionId,
-      'common.extversion': this.extensionVersion
-    };
-
-    const cpus = os.cpus();
-    if (cpus && cpus.length > 0) {
-      commonProperties['common.cpus'] = `${cpus[0].model}(${cpus.length} x ${cpus[0].speed})`;
-    }
-
-    if (env) {
-      commonProperties['common.vscodemachineid'] = env.machineId;
-      commonProperties['common.vscodesessionid'] = env.sessionId;
-      commonProperties['common.vscodeversion'] = version;
-      if (env.uiKind) {
-        commonProperties['common.vscodeuikind'] = UIKind[env.uiKind];
-      }
-    }
-
-    return commonProperties;
-  }
-
-  private getInternalProperties(): InternalProperties {
-    return {
-      'sfInternal.hostname': os.hostname(),
-      'sfInternal.username': os.userInfo().username
-    };
-  }
-
   private getUserProperties(): Record<string, string> {
     return {
       user_Id: this.userId,
@@ -89,8 +55,11 @@ export class O11yReporter
   }
 
   private aggregateLoggingProperties(): { [key: string]: string } {
-    const commonProperties = { ...this.getUserProperties(), ...this.getCommonProperties() };
-    return isInternalHost() ? { ...commonProperties, ...this.getInternalProperties() } : commonProperties;
+    const commonProperties = {
+      ...this.getUserProperties(),
+      ...getCommonProperties(this.extensionId, this.extensionVersion)
+    };
+    return isInternalHost() ? { ...commonProperties, ...getInternalProperties() } : commonProperties;
   }
 
   public sendTelemetryEvent(

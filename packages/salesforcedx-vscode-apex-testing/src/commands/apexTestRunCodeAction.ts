@@ -4,20 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  ApexTestProgressValue,
-  ApexTestResultData,
-  HumanReporter,
-  Progress,
-  ResultFormat,
-  TestLevel,
-  TestResult,
-  TestService
-} from '@salesforce/apex-node';
+import { ApexTestResultData, TestLevel, TestResult, TestService } from '@salesforce/apex-node';
 import { ApexDiagnostic } from '@salesforce/apex-node/lib/src/utils';
-import type { NamedPackageDir } from '@salesforce/core';
+import { type NamedPackageDir } from '@salesforce/core';
 import {
-  ContinueResponse,
+  type ContinueResponse,
   EmptyParametersGatherer,
   getTestResultsFolder,
   LibraryCommandletExecutor,
@@ -28,12 +19,12 @@ import {
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { OUTPUT_CHANNEL } from '../channels';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
-import { telemetryService } from '../telemetry/telemetry';
 import { apexTestRunCacheService, isEmpty } from '../testRunCache';
+import { runApexTests } from './apexTestRunUtils';
 import { getZeroBasedRange } from './range';
 
 export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
@@ -58,14 +49,10 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
   }
 
   public async run(
-    response?: ContinueResponse<{}>,
-    progress?: vscode.Progress<{
-      message?: string | undefined;
-      increment?: number | undefined;
-    }>,
+    _response?: ContinueResponse<{}>,
+    progress?: vscode.Progress<{ message?: string }>,
     token?: vscode.CancellationToken
   ): Promise<boolean> {
-    const startTime = Date.now();
     const vscodeCoreExtension = await getVscodeCoreExtension();
     const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const testService = new TestService(connection);
@@ -78,48 +65,23 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
       !this.codeCoverage // the setting enables code coverage, so we need to pass false to disable it
     );
 
-    const progressReporter: Progress<ApexTestProgressValue> = {
-      report: value => {
-        if (value.type === 'StreamingClientProgress' || value.type === 'FormatTestResultProgress') {
-          progress?.report({ message: value.message });
-        }
-      }
-    };
-    // TODO: fix in apex-node W-18453221
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const result = (await testService.runTestAsynchronous(
-      payload,
-      this.codeCoverage,
-      false,
-      progressReporter,
+    const result = await runApexTests(
+      {
+        payload,
+        outputDir: this.outputDir,
+        codeCoverage: this.codeCoverage,
+        concise: this.concise,
+        telemetryTrigger: 'codeAction'
+      },
+      progress,
       token
-    )) as TestResult;
+    );
 
-    if (token?.isCancellationRequested) {
+    if (!result) {
       return false;
     }
 
-    await testService.writeResultFiles(
-      result,
-      { resultFormats: [ResultFormat.json], dirPath: this.outputDir },
-      this.codeCoverage
-    );
-    const humanOutput = new HumanReporter().format(result, this.codeCoverage, this.concise);
-    channelService.appendLine(humanOutput);
-
     await this.handleDiagnostics(result);
-    const durationMs = Date.now() - startTime;
-    const summary = result.summary;
-    telemetryService.sendEventData(
-      'apexTestRun',
-      { trigger: 'codeAction' },
-      {
-        durationMs,
-        testsRan: Number(summary?.testsRan ?? 0),
-        testsPassed: Number(summary?.passing ?? 0),
-        testsFailed: Number(summary?.failing ?? 0)
-      }
-    );
     return result.summary.outcome === 'Passed';
   }
 

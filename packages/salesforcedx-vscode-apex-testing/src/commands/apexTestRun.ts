@@ -5,36 +5,27 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { AsyncTestConfiguration, Progress, TestLevel, TestService } from '@salesforce/apex-node';
 import {
-  ApexTestProgressValue,
-  AsyncTestConfiguration,
-  HumanReporter,
-  Progress,
-  ResultFormat,
-  TestLevel,
-  TestResult,
-  TestService
-} from '@salesforce/apex-node';
-import {
+  type CancelResponse,
+  type ContinueResponse,
   getRootWorkspacePath,
+  getTestResultsFolder,
   hasRootWorkspace,
   LibraryCommandletExecutor,
+  type ParametersGatherer,
   SFDX_FOLDER,
   SfCommandlet,
-  SfWorkspaceChecker,
-  getTestResultsFolder,
-  CancelResponse,
-  ContinueResponse,
-  ParametersGatherer
+  SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { basename } from 'node:path';
-import { languages, workspace, window, CancellationToken, QuickPickItem, Uri } from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
+import { type CancellationToken, languages, type QuickPickItem, type Uri, window, workspace } from 'vscode';
+import { OUTPUT_CHANNEL } from '../channels';
 import { APEX_CLASS_EXT, APEX_TESTSUITE_EXT } from '../constants';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
-import { telemetryService } from '../telemetry/telemetry';
+import { runApexTests } from './apexTestRunUtils';
 import { getTestInfo } from './readTestFile';
 
 export enum TestType {
@@ -107,65 +98,27 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
 
   public async run(
     response: ContinueResponse<ApexTestQuickPickItem>,
-    progress?: Progress<{
-      message?: string | undefined;
-      increment?: number | undefined;
-    }>,
+    progress?: Progress<{ message?: string }>,
     token?: CancellationToken
   ): Promise<boolean> {
-    const startTime = Date.now();
     const vscodeCoreExtension = await getVscodeCoreExtension();
     const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
     const testService = new TestService(connection);
-    const codeCoverage = settings.retrieveTestCodeCoverage();
-    const concise = settings.retrieveTestRunConcise();
+    const payload = await buildTestPayload(testService, response.data);
 
-    const payload: AsyncTestConfiguration = await buildTestPayload(testService, response.data);
-
-    const progressReporter: Progress<ApexTestProgressValue> = {
-      report: value => {
-        if (value.type === 'StreamingClientProgress' || value.type === 'FormatTestResultProgress') {
-          progress?.report({ message: value.message });
-        }
-      }
-    };
-    // TODO: fix in apex-node W-18453221
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const result = (await testService.runTestAsynchronous(
-      payload,
-      codeCoverage,
-      false,
-      progressReporter,
-      token
-    )) as TestResult;
-
-    if (token?.isCancellationRequested) {
-      return false;
-    }
-
-    await testService.writeResultFiles(
-      result,
+    const result = await runApexTests(
       {
-        resultFormats: [ResultFormat.json],
-        dirPath: await getTempFolder()
+        payload,
+        outputDir: await getTempFolder(),
+        codeCoverage: settings.retrieveTestCodeCoverage(),
+        concise: settings.retrieveTestRunConcise(),
+        telemetryTrigger: 'quickPick'
       },
-      codeCoverage
+      progress,
+      token
     );
-    const humanOutput = new HumanReporter().format(result, codeCoverage, concise);
-    channelService.appendLine(humanOutput);
-    const durationMs = Date.now() - startTime;
-    const summary = result.summary;
-    telemetryService.sendEventData(
-      'apexTestRun',
-      { trigger: 'quickPick' },
-      {
-        durationMs,
-        testsRan: Number(summary?.testsRan ?? 0),
-        testsPassed: Number(summary?.passing ?? 0),
-        testsFailed: Number(summary?.failing ?? 0)
-      }
-    );
-    return true;
+
+    return result !== undefined;
   }
 }
 
