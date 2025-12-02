@@ -6,13 +6,13 @@
  */
 
 import * as fsUtils from '@salesforce/salesforcedx-utils-vscode';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import type { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import * as conflictModule from '../../../src/conflict';
 import { diffFolder, diffMultipleFiles, diffOneFile } from '../../../src/conflict/directoryDiffer';
 import { MetadataCacheResult, PathType } from '../../../src/conflict/metadataCacheService';
-import { notificationService } from '../../../src/notifications';
 
 // Mock dependencies
 jest.mock('../../../src/conflict', () => ({

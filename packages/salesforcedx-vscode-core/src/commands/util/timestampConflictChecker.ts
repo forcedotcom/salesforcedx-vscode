@@ -8,9 +8,10 @@
 import {
   CancelResponse,
   ContinueResponse,
+  errorToString,
+  notificationService,
   PostconditionChecker,
-  workspaceUtils,
-  errorToString
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import { basename, normalize } from 'node:path';
 import { channelService } from '../../channels';
@@ -18,7 +19,6 @@ import { conflictView, DirectoryDiffResults, MetadataCacheService } from '../../
 import { TimestampConflictDetector } from '../../conflict/timestampConflictDetector';
 import { WorkspaceContext } from '../../context';
 import { coerceMessageKey, nls } from '../../messages';
-import { notificationService } from '../../notifications';
 import { DeployQueue, salesforceCoreSettings } from '../../settings';
 import { telemetryService } from '../../telemetry';
 import { DeployRetrieveOperationType } from '../../util/types';

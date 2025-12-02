@@ -6,10 +6,14 @@
  */
 
 import type { LocalComponent } from '../../util/types';
-import { fileOrFolderExists, PostconditionChecker, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  fileOrFolderExists,
+  notificationService,
+  PostconditionChecker,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { join } from 'node:path';
 import { nls } from '../../messages';
-import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import { ContinueOrCancel, isContinue, MetadataDictionary, OneOrMany } from '../../util';
 

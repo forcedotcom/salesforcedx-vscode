@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { readDirectory, isDirectory, errorToString } from '@salesforce/salesforcedx-utils-vscode';
+import { errorToString, isDirectory, notificationService, readDirectory } from '@salesforce/salesforcedx-utils-vscode';
 import type { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -13,7 +13,6 @@ import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { conflictView } from '../conflict';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { telemetryService } from '../telemetry';
 import { filesDiffer } from './conflictUtils';
 import { MetadataCacheResult } from './metadataCacheService';

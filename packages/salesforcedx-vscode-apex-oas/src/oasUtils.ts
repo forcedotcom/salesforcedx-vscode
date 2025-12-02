@@ -183,13 +183,9 @@ const PROMPT_TEMPLATES = {
   METHOD_BY_METHOD: path.join('resources', 'templates', 'methodByMethod.ejs')
 };
 
-export type EjsTemplateKey = keyof typeof PROMPT_TEMPLATES;
+type EjsTemplateKey = keyof typeof PROMPT_TEMPLATES;
 
 export enum EjsTemplatesEnum {
-  METHOD_BY_METHOD = 'METHOD_BY_METHOD'
-}
-
-export enum EjsTemplateKeys {
   METHOD_BY_METHOD = 'METHOD_BY_METHOD'
 }
 
@@ -278,7 +274,7 @@ export const getCurrentTimestamp = (): string => {
  * @param {ApexClassOASGatherContextResponse} context - The context containing class details.
  * @returns {boolean} - True if the class has RestResource annotation.
  */
-export const hasRestResourceAnnotation = (context: ApexClassOASGatherContextResponse): boolean => {
+const hasRestResourceAnnotation = (context: ApexClassOASGatherContextResponse): boolean => {
   const validClassAnnotations = retrieveAAClassRestAnnotations();
   return context.classDetail.annotations.some(a => validClassAnnotations.includes(a.name));
 };
@@ -288,7 +284,7 @@ export const hasRestResourceAnnotation = (context: ApexClassOASGatherContextResp
  * @param {ApexClassOASGatherContextResponse} context - The context containing method details.
  * @returns {boolean} - True if any method has HTTP REST annotations.
  */
-export const hasHttpRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean => {
+const hasHttpRestAnnotations = (context: ApexClassOASGatherContextResponse): boolean => {
   const validMethodAnnotations = retrieveAAMethodRestAnnotations();
   return context.methods.some(method =>
     method.annotations.some(annotation => validMethodAnnotations.includes(annotation.name))
@@ -317,7 +313,7 @@ export const hasNoClassAnnotations = (context: ApexClassOASGatherContextResponse
  * @param {ApexClassOASGatherContextResponse} context - The context containing method details.
  * @returns {boolean} - True if any method has AuraEnabled annotation.
  */
-export const hasAuraEnabledMethods = (context: ApexClassOASGatherContextResponse): boolean =>
+const hasAuraEnabledMethods = (context: ApexClassOASGatherContextResponse): boolean =>
   context.methods.some(method => method.annotations.some(annotation => annotation.name === 'AuraEnabled'));
 
 /**

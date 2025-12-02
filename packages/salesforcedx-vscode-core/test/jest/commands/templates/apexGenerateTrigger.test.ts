@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as utilsVscode from '@salesforce/salesforcedx-utils-vscode';
 import { CompositeParametersGatherer, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { apexGenerateTrigger } from '../../../../src/commands/templates';
 import { LibraryApexGenerateTriggerExecutor } from '../../../../src/commands/templates/executors/libraryApexGenerateTriggerExecutor';
@@ -19,7 +20,6 @@ import {
   SelectFileName,
   SelectOutputDir
 } from '../../../../src/commands/util/parameterGatherers';
-import * as commandlet from '../../../../src/commands/util/sfCommandlet';
 
 jest.mock('../../../../src/commands/templates/executors/libraryApexGenerateTriggerExecutor');
 jest.mock('../../../../src/commands/util/overwriteComponentPrompt');
@@ -47,9 +47,7 @@ describe('apexGenerateTrigger Unit Tests.', () => {
 
   beforeEach(() => {
     runMock = jest.fn();
-    // Note that the entire sfCommandlet module can not be mocked like the other modules b/c
-    // there are multiple exports there that cause issues if not available.
-    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => ({
+    sfCommandletMocked = jest.spyOn(utilsVscode, 'SfCommandlet').mockImplementation((): any => ({
       run: runMock
     }));
   });

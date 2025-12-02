@@ -17,6 +17,7 @@ After ANY code change, run these in order from repo root. Avoid responding while
    - Run with `--retries 0` to get quicker feedback
    - If there are failures, be sure to look at the screenshots produced
    - unzip traces.zip for more screenshots and json results
+7. check for dupes `npm run check:dupes` and then look in `jscpd-report` to make sure none of your changes are flagged.
 
 Rules:
 

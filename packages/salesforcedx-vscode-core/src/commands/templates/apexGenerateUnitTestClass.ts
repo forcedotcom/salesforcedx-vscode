@@ -9,12 +9,13 @@ import type { LocalComponent } from '../../util/types';
 import {
   CompositeParametersGatherer,
   ParametersGatherer,
+  SfCommandlet,
   SfWorkspaceChecker,
   workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import type { URI } from 'vscode-uri';
-import { MetadataTypeGatherer, OverwriteComponentPrompt, SfCommandlet, SimpleGatherer } from '../util';
+import { MetadataTypeGatherer, OverwriteComponentPrompt, SimpleGatherer } from '../util';
 import { getParamGatherers } from './apexGenerateClass';
 import { LibraryApexGenerateUnitTestClassExecutor } from './executors/libraryApexGenerateUnitTestClassExecutor';
 import { APEX_CLASS_TYPE } from './metadataTypeConstants';

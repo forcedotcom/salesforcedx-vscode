@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { workspaceUtils, SourceTrackingService, nls } from '@salesforce/salesforcedx-utils-vscode';
+import { workspaceUtils, SourceTrackingService, nls, SfCommandlet } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { channelService } from '../../../src/channels';
 import { DeployRetrieveExecutor } from '../../../src/commands/baseDeployRetrieve';
 import { ProjectDeployStartExecutor, projectDeployStart } from '../../../src/commands/projectDeployStart';
-import { SfCommandletExecutor, SfCommandlet } from '../../../src/commands/util';
+import { SfCommandletExecutor } from '../../../src/commands/util';
 import { PersistentStorageService } from '../../../src/conflict';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import SalesforcePackageDirectories from '../../../src/salesforceProject/salesforcePackageDirectories';

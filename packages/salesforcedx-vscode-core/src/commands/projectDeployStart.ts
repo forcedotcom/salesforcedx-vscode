@@ -9,6 +9,7 @@ import {
   ContinueResponse,
   EmptyParametersGatherer,
   errorToString,
+  SfCommandlet,
   SfWorkspaceChecker,
   SourceTrackingService,
   workspaceUtils
@@ -22,7 +23,6 @@ import { nls } from '../messages';
 import { salesforceCoreSettings } from '../settings';
 import { DeployRetrieveOperationType } from '../util/types';
 import { DeployExecutor } from './deployExecutor';
-import { SfCommandlet } from './util';
 
 export class ProjectDeployStartExecutor extends DeployExecutor<{}> {
   constructor(showChannelOutput: boolean = true, ignoreConflicts: boolean = false) {

@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
-import { SfCommandlet } from '../util';
+import { SfCommandlet, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { RetrieveComponentOutputGatherer } from '../util/parameterGatherers';
 import { LibraryRetrieveSourcePathExecutor } from './libraryRetrieveSourcePathExecutor';

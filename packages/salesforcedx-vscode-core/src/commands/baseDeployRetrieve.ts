@@ -73,7 +73,7 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
       if (e instanceof Error && e.message === 'CONFLICT_CANCELLED') {
         // Disable failure notifications and show cancellation notification
         this.showFailureNotifications = false;
-        notificationService.showCanceledExecution(this.executionName);
+        notificationService.showCanceledExecution(this.executionName, channelService);
         return false; // Return false to indicate operation was not successful
       }
       throw formatException(e);
@@ -140,7 +140,7 @@ export abstract class DeployRetrieveExecutor<T, R extends MetadataTransferResult
       if (e instanceof Error && e.message === 'CONFLICT_CANCELLED') {
         // Disable failure notifications
         this.showFailureNotifications = false;
-        notificationService.showCanceledExecution(this.executionName);
+        notificationService.showCanceledExecution(this.executionName, channelService);
         return false; // Return false to indicate operation was not successful
       }
       throw formatException(e);

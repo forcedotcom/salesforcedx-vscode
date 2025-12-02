@@ -11,6 +11,7 @@ import {
   LibraryCommandletExecutor,
   notificationService,
   ParametersGatherer,
+  SfCommandlet,
   SfWorkspaceChecker,
   readDirectory,
   rename
@@ -22,7 +23,7 @@ import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
 import { ComponentName, getComponentName, getComponentPath, isLwcComponent, TEST_FOLDER } from '../util';
-import { SfCommandlet, LwcAuraDuplicateComponentCheckerForRename } from './util';
+import { LwcAuraDuplicateComponentCheckerForRename } from './util';
 import {
   isNameMatch,
   RENAME_ERROR,

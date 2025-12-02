@@ -7,19 +7,20 @@
 import {
   CancelResponse,
   ContinueResponse,
+  notificationService,
   PostconditionChecker,
+  SfCommandlet,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { salesforceCoreSettings } from '../settings';
 import { telemetryService } from '../telemetry';
 import { RetrieveExecutor } from './retrieveExecutor';
-import { LibraryPathsGatherer, SfCommandlet } from './util';
+import { LibraryPathsGatherer } from './util';
 import { getUriFromActiveEditor } from './util/getUriFromActiveEditor';
 
 class LibraryRetrieveSourcePathExecutor extends RetrieveExecutor<string[]> {

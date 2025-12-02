@@ -7,7 +7,7 @@
 
 import { Lifecycle, Org, SfProject } from '@salesforce/core';
 import * as sfdxUtils from '@salesforce/salesforcedx-utils-vscode';
-import { workspaceUtils, fileUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { fileUtils, notificationService, workspaceUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as sdrBundle from '@salesforce/source-deploy-retrieve';
 import {
   ComponentSet,
@@ -33,7 +33,6 @@ import * as getUriFromActiveEditor from '../../../../src/commands/util/getUriFro
 import { OrgType, workspaceContextUtils } from '../../../../src/context';
 import { WorkspaceContext } from '../../../../src/context/workspaceContext';
 import { nls } from '../../../../src/messages';
-import { notificationService } from '../../../../src/notifications';
 import { componentSetUtils } from '../../../../src/services/sdr/componentSetUtils';
 
 // Mock the new dependencies used by showDetailedErrors and LibraryCommandletExecutor
