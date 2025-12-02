@@ -16,13 +16,11 @@ const getTitle = (changes: StatusOutputRow[], sectionTitle: string): string[] =>
   `${sectionTitle} (${changes.length}):`
 ];
 
+const rowToLine = (row: StatusOutputRow): string =>
+  `  ${String(row.type)}: ${String(row.fullName)}${row.filePath ? ` (${String(row.filePath)})` : ''}`;
+
 const formatChanges = (changes: StatusOutputRow[], sectionTitle: string): string =>
-  [
-    getTitle(changes, sectionTitle),
-    ...changes.map(
-      row => `  ${String(row.type)}: ${String(row.fullName)}${row.filePath ? ` (${String(row.filePath)})` : ''}`
-    )
-  ].join('\n');
+  changes.length > 0 ? [getTitle(changes, sectionTitle), ...changes.map(rowToLine)].join('\n') : '';
 
 const viewChangesEffect = Effect.fn('viewChanges')(function* (options: ViewChangesOptions) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -36,37 +34,27 @@ const viewChangesEffect = Effect.fn('viewChanges')(function* (options: ViewChang
   }
 
   yield* Effect.promise(() => tracking.reReadLocalTrackingCache());
-  const status = yield* Effect.tryPromise(() => tracking.getStatus(options));
+  const status = (yield* Effect.tryPromise(() => tracking.getStatus(options))).filter(row => !row.ignored);
 
-  const remoteChanges = options.remote
-    ? status.filter(row => row.origin === 'remote' && !row.conflict && !row.ignored)
-    : [];
-  const localChanges = options.local
-    ? status.filter(row => row.origin === 'local' && !row.conflict && !row.ignored)
-    : [];
-  const conflicts = status.filter(row => row.conflict && !row.ignored);
+  const remoteChanges = options.remote ? status.filter(row => row.origin === 'remote' && !row.conflict) : [];
+  const localChanges = options.local ? status.filter(row => row.origin === 'local' && !row.conflict) : [];
+  const conflicts = status.filter(row => row.conflict);
 
   const title =
     options.local && options.remote ? 'Source Tracking Details' : options.local ? 'Local Changes' : 'Remote Changes';
-  const output: string[] = [`\n\n${title}\n${'='.repeat(title.length)}`];
 
-  if (remoteChanges.length > 0) {
-    output.push(formatChanges(remoteChanges, 'Remote Changes'));
-  }
+  const output = [
+    '',
+    `${title}:`,
+    formatChanges(remoteChanges, 'Remote Changes'),
+    formatChanges(localChanges, 'Local Changes'),
+    formatChanges(conflicts, 'Conflicts'),
+    ...(remoteChanges.length === 0 && localChanges.length === 0 && conflicts.length === 0
+      ? ['', 'No changes detected']
+      : [])
+  ].join('\n');
 
-  if (localChanges.length > 0) {
-    output.push(formatChanges(localChanges, 'Local Changes'));
-  }
-
-  if (conflicts.length > 0) {
-    output.push(formatChanges(conflicts, 'Conflicts'));
-  }
-
-  if (remoteChanges.length === 0 && localChanges.length === 0 && conflicts.length === 0) {
-    output.push('\nNo changes detected');
-  }
-
-  yield* channelService.appendToChannel(output.join('\n'));
+  yield* channelService.appendToChannel(output);
   yield* Effect.sync(() => channel.show());
 });
 
