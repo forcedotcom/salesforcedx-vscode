@@ -24,6 +24,7 @@ import {
 import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { nls } from './messages';
 import { telemetryService } from './telemetry/telemetry';
+import { getTestController } from './views/testController';
 import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
 
@@ -36,13 +37,24 @@ export const activate = async (context: vscode.ExtensionContext) => {
   const activationTracker = new ActivationTracker(context, telemetryService);
 
   const testOutlineProvider = getTestOutlineProvider();
+  const testController = getTestController();
+
   if (vscode.workspace?.workspaceFolders) {
     const apexDirPath = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
     const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(path.join(apexDirPath, '*.json'));
-    testResultFileWatcher.onDidCreate(uri => testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath));
-    testResultFileWatcher.onDidChange(uri => testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath));
+    testResultFileWatcher.onDidCreate(uri => {
+      void testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath);
+      void testController.onResultFileCreate(apexDirPath, uri.fsPath);
+    });
+    testResultFileWatcher.onDidChange(uri => {
+      void testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath);
+      void testController.onResultFileCreate(apexDirPath, uri.fsPath);
+    });
 
     context.subscriptions.push(testResultFileWatcher);
+
+    // Initialize test discovery for TestController
+    void testController.discoverTests();
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
   }
@@ -55,6 +67,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
     if (event.affectsConfiguration('salesforcedx-vscode-apex.testing.discoverySource')) {
       try {
         await getTestOutlineProvider().refresh();
+        await getTestController().refresh();
       } catch (error) {
         // Ignore errors if Apex extension isn't ready yet
         console.debug('Failed to refresh test outline after settings change:', error);
@@ -184,6 +197,7 @@ const registerTestView = (): vscode.Disposable => {
 };
 
 export const deactivate = () => {
+  getTestController().dispose();
   telemetryService.sendExtensionDeactivationEvent();
 };
 
