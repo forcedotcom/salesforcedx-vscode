@@ -125,3 +125,4 @@ test-resources/
 .nx/cache
 .wireit
 **/playwright-report/
+jscpd-report/

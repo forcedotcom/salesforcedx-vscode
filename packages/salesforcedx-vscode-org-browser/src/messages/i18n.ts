@@ -10,7 +10,3 @@ export const messages = {
   retrieve_failed: 'Retrieve failed: %s',
   confirm_overwrite: 'Overwrite local files for %s %s?'
 } as const;
-
-export type MessageKey = keyof typeof messages;
-
-export const isValidMessageKey = (key: string): key is MessageKey => key in messages;

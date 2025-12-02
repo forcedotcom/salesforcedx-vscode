@@ -12,6 +12,7 @@ import {
   createDirectory,
   deleteFile,
   fileUtils,
+  notificationService,
   readFile,
   rename,
   workspaceUtils,
@@ -38,7 +39,6 @@ import { OUTPUT_CHANNEL, channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { WorkspaceContext } from '../context/workspaceContext';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { componentSetUtils } from '../services/sdr/componentSetUtils';
 import { createOperationOutput } from './baseDeployRetrieve';

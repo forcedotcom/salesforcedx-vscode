@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { errorToString, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import { errorToString, notificationService, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import { setTimeout } from 'node:timers';
 import * as vscode from 'vscode';
@@ -13,7 +13,6 @@ import { URI } from 'vscode-uri';
 import { channelService } from '../channels';
 import { OrgType, workspaceContextUtils } from '../context';
 import { nls } from '../messages';
-import { notificationService } from '../notifications';
 import { SalesforcePackageDirectories } from '../salesforceProject';
 import { salesforceCoreSettings } from '../settings';
 

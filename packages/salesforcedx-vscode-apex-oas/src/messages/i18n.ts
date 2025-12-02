@@ -77,5 +77,3 @@ export const messages = {
   write_openapi_document: 'Writing OpenAPI Document.',
   yes: 'Yes'
 } as const;
-
-export type MessageKey = keyof typeof messages;
