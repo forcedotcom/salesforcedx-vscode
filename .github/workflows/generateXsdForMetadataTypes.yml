@@ -8,7 +8,7 @@ on:
 jobs:
   generate-xsd:
     name: Generate XSD
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     permissions:
       contents: write
       pull-requests: write
