@@ -5,22 +5,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-
-type FieldInfo = {
-  'Field Name': string;
-  'Field Type': string;
-  Description: string;
-};
-
-type MetadataType = {
-  fields: FieldInfo[];
-  short_description: string;
-  url: string;
-};
-
-type MetadataTypesMap = {
-  [typeName: string]: MetadataType;
-};
+import { MetadataTypesMap } from './scrapeUtils';
 
 /**
  * Clean a name to be valid for XSD element names.

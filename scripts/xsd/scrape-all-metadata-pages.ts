@@ -14,11 +14,13 @@
 import { chromium, Page } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadMetadataPage, extractMetadataFromPage, MetadataType, BROWSER_LAUNCH_ARGS } from './scrapeUtils';
-
-type MetadataMap = {
-  [key: string]: MetadataType;
-};
+import {
+  loadMetadataPage,
+  extractMetadataFromPage,
+  MetadataType,
+  MetadataTypesMap,
+  BROWSER_LAUNCH_ARGS
+} from './scrapeUtils';
 
 const JSON_DOC_URL = 'https://developer.salesforce.com/docs/get_document/atlas.en-us.api_meta.meta';
 const BASE_DOC_URL = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/';
@@ -243,8 +245,8 @@ const scrapeInBatches = async (
   typesToScrape: Array<{ name: string; url: string }>,
   isVisible: boolean,
   batchSize: number = 20
-): Promise<{ results: MetadataMap; successCount: number; failCount: number }> => {
-  const results: MetadataMap = {};
+): Promise<{ results: MetadataTypesMap; successCount: number; failCount: number }> => {
+  const results: MetadataTypesMap = {};
   let successCount = 0;
   let failCount = 0;
 

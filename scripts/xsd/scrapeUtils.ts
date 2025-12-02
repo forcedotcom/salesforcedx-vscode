@@ -16,6 +16,10 @@ export type MetadataType = {
   url: string;
 };
 
+export type MetadataTypesMap = {
+  [typeName: string]: MetadataType;
+};
+
 /** Browser launch arguments for anti-detection */
 export const BROWSER_LAUNCH_ARGS = [
   '--disable-blink-features=AutomationControlled',
