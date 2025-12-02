@@ -29,7 +29,7 @@
     "@octokit/core": "^5",
     "@octokit/webhooks-types": "7.6.1",
     "@playwright/test": "^1.49.0",
-    "@salesforce/dev-config": "^4.3.1",
+    "@salesforce/dev-config": "^4.3.2",
     "@salesforce/salesforcedx-vscode-test-tools": "*",
     "@secretlint/node": "11.2.5",
     "@stylistic/eslint-plugin-ts": "2.13.0",
