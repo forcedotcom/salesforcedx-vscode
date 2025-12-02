@@ -172,6 +172,39 @@ const cleanDescription = (text: string): string => {
     .trim();
 };
 
+/** Extract type name from array notation (e.g., "AssignmentRule[]" -> "AssignmentRule") */
+const extractArrayTypeName = (fieldType: string): string | null => {
+  // Remove zero-width characters that might be in the type name
+  const cleanType = fieldType.replace(/[\u200B-\u200D\uFEFF]/g, '');
+  const match = cleanType.match(/^([A-Z][a-zA-Z0-9_]+)\[\]$/);
+  return match ? match[1] : null;
+};
+
+/** Extract complex type names (non-primitive types without []) */
+const extractComplexTypeName = (fieldType: string): string | null => {
+  // Skip enumeration types entirely - they don't represent table structures
+  if (fieldType.toLowerCase().includes('enumeration')) {
+    return null;
+  }
+
+  // Clean up the field type - remove enumeration info and extra spaces
+  let cleanType = fieldType.split('(')[0].trim();
+
+  // Remove any zero-width or special Unicode characters
+  cleanType = cleanType.replace(/[\u200B-\u200D\uFEFF]/g, '');
+
+  // Match types that start with capital letter and are not primitives
+  const primitives = ['string', 'boolean', 'int', 'double', 'date', 'datetime', 'long'];
+  if (primitives.includes(cleanType.toLowerCase())) {
+    return null;
+  }
+
+  // Match capitalized type names (but not array notation)
+  // Allow underscores and be more flexible with the pattern
+  const match = cleanType.match(/^([A-Z][a-zA-Z0-9_]+)$/);
+  return match ? match[1] : null;
+};
+
 /**
  * Extract metadata from a loaded page (or iframe)
  * Returns an array because some pages have multiple tables representing different types
@@ -650,39 +683,6 @@ export const extractMetadataFromPage = async (
     if (allTableFields.length === 0) {
       return [];
     }
-
-    // Helper to extract type name from array notation (e.g., "AssignmentRule[]" -> "AssignmentRule")
-    const extractArrayTypeName = (fieldType: string): string | null => {
-      // Remove zero-width characters that might be in the type name
-      const cleanType = fieldType.replace(/[\u200B-\u200D\uFEFF]/g, '');
-      const match = cleanType.match(/^([A-Z][a-zA-Z0-9_]+)\[\]$/);
-      return match ? match[1] : null;
-    };
-
-    // Helper to extract complex type names (non-primitive types without [])
-    const extractComplexTypeName = (fieldType: string): string | null => {
-      // Skip enumeration types entirely - they don't represent table structures
-      if (fieldType.toLowerCase().includes('enumeration')) {
-        return null;
-      }
-
-      // Clean up the field type - remove enumeration info and extra spaces
-      let cleanType = fieldType.split('(')[0].trim();
-
-      // Remove any zero-width or special Unicode characters
-      cleanType = cleanType.replace(/[\u200B-\u200D\uFEFF]/g, '');
-
-      // Match types that start with capital letter and are not primitives
-      const primitives = ['string', 'boolean', 'int', 'double', 'date', 'datetime', 'long'];
-      if (primitives.includes(cleanType.toLowerCase())) {
-        return null;
-      }
-
-      // Match capitalized type names (but not array notation)
-      // Allow underscores and be more flexible with the pattern
-      const match = cleanType.match(/^([A-Z][a-zA-Z0-9_]+)$/);
-      return match ? match[1] : null;
-    };
 
     // If only one table, always use the page title or typeName (the table represents the main type)
     if (allTableFields.length === 1) {
