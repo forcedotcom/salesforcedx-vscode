@@ -19,7 +19,8 @@ import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { APEX_CLASS_EXT } from '../constants';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
-import { nls, type MessageKey } from '../messages';
+import { nls } from '../messages';
+import { MessageKey } from '../messages/i18n';
 import { ApexLibraryTestRunExecutor, ApexTestQuickPickItem, TestType } from './apexTestRun';
 import { getTestInfo } from './readTestFile';
 
