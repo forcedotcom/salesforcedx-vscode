@@ -247,7 +247,7 @@ const scrapeInBatches = async (
   context: any,
   typesToScrape: { name: string; url: string }[],
   isVisible: boolean,
-  concurrencyLimit: number = 100
+  concurrencyLimit: number = 20
 ): Promise<{
   results: MetadataTypesMap;
   successCount: number;
@@ -407,7 +407,7 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
   const metadataTypes = await discoverMetadataTypes(page);
   await page.close(); // Close the discovery page
 
-  const concurrencyLimit = parseInt(process.env.BATCH_SIZE ?? '100', 10);
+  const concurrencyLimit = parseInt(process.env.BATCH_SIZE ?? '20', 10);
   const typesToScrape = metadataTypes;
 
   console.log(`📋 Will scrape ${typesToScrape.length} metadata types with concurrency limit of ${concurrencyLimit}\n`);
@@ -474,11 +474,11 @@ Options:
   --help           Show this help
 
 Environment Variables:
-  BATCH_SIZE=100                       # Concurrency limit (default: 100)
+  BATCH_SIZE=20                       # Concurrency limit (default: 20)
                                       # Using Effect queue system - new tasks start as old ones complete
 
 Examples:
-  BATCH_SIZE=20 npm run scrape:all:pages            # Use 20 concurrent workers
+  BATCH_SIZE=50 npm run scrape:all:pages            # Use 50 concurrent workers
     `);
     return;
   }
