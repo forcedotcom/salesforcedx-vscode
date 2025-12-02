@@ -218,18 +218,18 @@
     },
     "vscode:bundle": {
       "dependencies": [
-        "./packages/salesforcedx-vscode-core:bundle:extension",
-        "./packages/salesforcedx-vscode-apex:bundle:extension",
-        "./packages/salesforcedx-vscode-apex-debugger:bundle:extension",
-        "./packages/salesforcedx-vscode-apex-replay-debugger:bundle:extension",
-        "./packages/salesforcedx-vscode-apex-oas:bundle:extension",
-        "./packages/salesforcedx-vscode-lwc:bundle:extension",
-        "./packages/salesforcedx-vscode-lightning:bundle:extension",
-        "./packages/salesforcedx-vscode-soql:bundle:extension",
-        "./packages/salesforcedx-vscode-visualforce:bundle:extension",
-        "./packages/salesforcedx-vscode-services:bundle:extension",
-        "./packages/salesforcedx-vscode-org:bundle:extension",
-        "./packages/salesforcedx-vscode-org-browser:bundle:extension"
+        "./packages/salesforcedx-vscode-core:vscode:bundle",
+        "./packages/salesforcedx-vscode-apex:vscode:bundle",
+        "./packages/salesforcedx-vscode-apex-debugger:vscode:bundle",
+        "./packages/salesforcedx-vscode-apex-replay-debugger:vscode:bundle",
+        "./packages/salesforcedx-vscode-apex-oas:vscode:bundle",
+        "./packages/salesforcedx-vscode-lwc:vscode:bundle",
+        "./packages/salesforcedx-vscode-lightning:vscode:bundle",
+        "./packages/salesforcedx-vscode-soql:vscode:bundle",
+        "./packages/salesforcedx-vscode-visualforce:vscode:bundle",
+        "./packages/salesforcedx-vscode-services:vscode:bundle",
+        "./packages/salesforcedx-vscode-org:vscode:bundle",
+        "./packages/salesforcedx-vscode-org-browser:vscode:bundle"
       ]
     },
     "vscode:package:legacy": {

@@ -43,17 +43,17 @@
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
-    "bundle:extension": "wireit",
+    "vscode:bundle": "wireit",
     "run:web": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --open-devtools --port 3001",
-    "test:web": "npm run bundle:extension && playwright test --config=playwright.config.web.ts --headed",
-    "test:web:headless": "npm run bundle:extension && playwright test --config=playwright.config.web.ts",
-    "test:web:debug": "npm run bundle:extension && playwright test --config=playwright.config.web.ts --debug",
-    "test:web:headless:ci": "npm run bundle:extension && playwright test --config=playwright.config.web.ts",
-    "test:desktop": "npm run bundle:extension && cross-env VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts",
-    "test:desktop:debug": "npm run bundle:extension && cross-env VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts --debug",
-    "test:desktop:ci": "npm run bundle:extension && cross-env VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts",
+    "test:web": "npm run vscode:bundle && playwright test --config=playwright.config.web.ts --headed",
+    "test:web:headless": "npm run vscode:bundle && playwright test --config=playwright.config.web.ts",
+    "test:web:debug": "npm run vscode:bundle && playwright test --config=playwright.config.web.ts --debug",
+    "test:web:headless:ci": "npm run vscode:bundle && playwright test --config=playwright.config.web.ts",
+    "test:desktop": "npm run vscode:bundle && cross-env VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts",
+    "test:desktop:debug": "npm run vscode:bundle && cross-env VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts --debug",
+    "test:desktop:ci": "npm run vscode:bundle && cross-env VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts",
     "test:e2e": "npm run test:web:headless && npm run test:desktop",
-    "test:setup:check": "npm run bundle:extension && npx ts-node test/web/scripts/setup-check.ts",
+    "test:setup:check": "npm run vscode:bundle && npx ts-node test/web/scripts/setup-check.ts",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -81,7 +81,7 @@
         "tsconfig.tsbuildinfo"
       ]
     },
-    "bundle:extension": {
+    "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
@@ -127,7 +127,7 @@
     "vscode:package": {
       "command": "vsce package",
       "dependencies": [
-        "bundle:extension"
+        "vscode:bundle"
       ],
       "files": [
         "package.json",
