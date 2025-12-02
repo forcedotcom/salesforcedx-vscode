@@ -10,9 +10,10 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import {
-  installJestUTToolsForLwc,
-  createLwc
+  createLwc,
+  installJestUTToolsForLwc
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import {
   getTestsSection,
@@ -70,6 +71,9 @@ describe('Run LWC Tests', () => {
 
     // Install Jest unit testing tools for LWC
     await installJestUTToolsForLwc(testSetup.projectFolderPath);
+
+    // wait for server initialization to complete
+    await verifyNotificationWithRetry(/LWC Language Server is ready/, Duration.seconds(10));
   });
 
   it('SFDX: Run All Lightning Web Component Tests from Command Palette', async () => {
