@@ -80,6 +80,12 @@
           "command": "sf.metadata.source.tracking.details"
         },
         {
+          "command": "sf.metadata.view.local.changes"
+        },
+        {
+          "command": "sf.metadata.view.remote.changes"
+        },
+        {
           "command": "sf.metadata.apex.generate.class"
         }
       ]
@@ -100,6 +106,14 @@
       {
         "command": "sf.metadata.source.tracking.details",
         "title": "%metadata_source_tracking_details_text%"
+      },
+      {
+        "command": "sf.metadata.view.local.changes",
+        "title": "%view_local_changes_text%"
+      },
+      {
+        "command": "sf.metadata.view.remote.changes",
+        "title": "%view_remote_changes_text%"
       },
       {
         "command": "sf.metadata.apex.generate.class",

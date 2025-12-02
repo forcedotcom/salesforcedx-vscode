@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import { createApexClass } from './commands/createApexClass';
 import { projectDeployStart } from './commands/deployStart/projectDeployStart';
 import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
-import { showSourceTrackingDetails } from './commands/showSourceTrackingDetails';
+import { showSourceTrackingDetails, viewLocalChanges, viewRemoteChanges } from './commands/showSourceTrackingDetails';
 import { EXTENSION_NAME } from './constants';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
 import { closeExtensionScope, getExtensionScope } from './services/extensionScope';
@@ -37,6 +37,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     vscode.commands.registerCommand('sf.metadata.deploy.start.ignore.conflicts', async () => projectDeployStart(true)),
     vscode.commands.registerCommand('sf.metadata.retrieve.start', projectRetrieveStart),
     vscode.commands.registerCommand('sf.metadata.source.tracking.details', showSourceTrackingDetails),
+    vscode.commands.registerCommand('sf.metadata.view.local.changes', viewLocalChanges),
+    vscode.commands.registerCommand('sf.metadata.view.remote.changes', viewRemoteChanges),
     vscode.commands.registerCommand('sf.metadata.apex.generate.class', createApexClass)
   );
 
