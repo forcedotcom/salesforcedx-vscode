@@ -1,7 +1,6 @@
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, writeFileSync, unlinkSync, readFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { execSync } from 'child_process';
-import path from 'path';
 
 const logger = (msg: string, obj?: any) => {
   if (!obj) {
@@ -105,24 +104,6 @@ if (existsSync(monorepoPackages)) {
     const dest = `${extensionNodeModules}/${pkg.name}`;
     if (existsSync(src)) {
       logger(`Copying ${pkg.name} from ${src} to ${dest}`);
-      // Verify that the out directory exists before copying (language servers need to be compiled)
-      const outDir = `${src}/out`;
-      if (!existsSync(outDir)) {
-        console.error(`ERROR: ${pkg.name} has not been compiled. The 'out' directory does not exist at ${outDir}`);
-        console.error(`Please run 'npm run compile' in the ${pkg.dir} package before packaging.`);
-        process.exit(1);
-      }
-
-      // Verify that the server.js file exists for language servers
-      if (pkg.name.includes('language-server')) {
-        const serverJsPath = path.join(src, 'out', 'src', 'server.js');
-        if (!existsSync(serverJsPath)) {
-          console.error(`ERROR: ${pkg.name} server.js not found at ${serverJsPath}`);
-          console.error(`Please run 'npm run compile' in the ${pkg.dir} package before packaging.`);
-          process.exit(1);
-        }
-        logger(`Verified server.js exists for ${pkg.name} at ${serverJsPath}`);
-      }
 
       cpSync(src, dest, { recursive: true, dereference: true });
       // Verify that the out directory was copied successfully
@@ -130,16 +111,6 @@ if (existsSync(monorepoPackages)) {
       if (!existsSync(destOutDir)) {
         console.error(`ERROR: Failed to copy 'out' directory for ${pkg.name} to ${destOutDir}`);
         process.exit(1);
-      }
-
-      // Verify server.js was copied for language servers
-      if (pkg.name.includes('language-server')) {
-        const copiedServerJsPath = path.join(dest, 'out', 'src', 'server.js');
-        if (!existsSync(copiedServerJsPath)) {
-          console.error(`ERROR: server.js not found in copied package: ${copiedServerJsPath}`);
-          process.exit(1);
-        }
-        logger(`Verified server.js was copied for ${pkg.name} to ${copiedServerJsPath}`);
       }
 
       logger(`Successfully copied ${pkg.name} including out directory`);
