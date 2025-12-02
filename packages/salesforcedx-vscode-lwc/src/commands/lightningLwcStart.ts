@@ -151,7 +151,7 @@ export class LightningLwcStartExecutor extends SfCommandletExecutor<{}> {
       }
     });
 
-    notificationService.reportExecutionError(executionName, execution.processErrorSubject);
+    notificationService.reportExecutionError(executionName, channelService, execution.processErrorSubject);
 
     cancellationToken.onCancellationRequested(() => {
       notificationService.showWarningMessage(nls.localize('command_canceled', executionName));
