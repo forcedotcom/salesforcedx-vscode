@@ -68,55 +68,55 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sf.metadata.deploy.start"
+          "command": "sf.project.deploy.start"
         },
         {
-          "command": "sf.metadata.deploy.start.ignore.conflicts"
+          "command": "sf.project.deploy.start.ignore.conflicts"
         },
         {
-          "command": "sf.metadata.retrieve.start"
+          "command": "sf.project.retrieve.start"
         },
         {
-          "command": "sf.metadata.source.tracking.details"
+          "command": "sf.view.all.changes"
         },
         {
-          "command": "sf.metadata.view.local.changes"
+          "command": "sf.view.local.changes"
         },
         {
-          "command": "sf.metadata.view.remote.changes"
+          "command": "sf.view.remote.changes"
         },
         {
-          "command": "sf.metadata.apex.generate.class"
+          "command": "sf.apex.generate.class"
         }
       ]
     },
     "commands": [
       {
-        "command": "sf.metadata.deploy.start",
-        "title": "%metadata_deploy_start_text%"
+        "command": "sf.project.deploy.start",
+        "title": "%project_deploy_start_default_org_text%"
       },
       {
-        "command": "sf.metadata.deploy.start.ignore.conflicts",
-        "title": "%metadata_deploy_start_ignore_conflicts_text%"
+        "command": "sf.project.deploy.start.ignore.conflicts",
+        "title": "%project_deploy_start_ignore_conflicts_default_org_text%"
       },
       {
-        "command": "sf.metadata.retrieve.start",
-        "title": "%metadata_retrieve_start_text%"
+        "command": "sf.project.retrieve.start",
+        "title": "%project_retrieve_start_default_org_text%"
       },
       {
-        "command": "sf.metadata.source.tracking.details",
-        "title": "%metadata_source_tracking_details_text%"
+        "command": "sf.view.all.changes",
+        "title": "%view_all_changes_text%"
       },
       {
-        "command": "sf.metadata.view.local.changes",
+        "command": "sf.view.local.changes",
         "title": "%view_local_changes_text%"
       },
       {
-        "command": "sf.metadata.view.remote.changes",
+        "command": "sf.view.remote.changes",
         "title": "%view_remote_changes_text%"
       },
       {
-        "command": "sf.metadata.apex.generate.class",
+        "command": "sf.apex.generate.class",
         "title": "%apex_generate_class_text%"
       }
     ]

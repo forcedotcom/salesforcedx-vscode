@@ -21,7 +21,8 @@ import {
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED,
   ALL_EXCEPTION_CATCHER_ENABLED,
-  USE_LEGACY_ORG_BROWSER
+  USE_LEGACY_ORG_BROWSER,
+  USE_METADATA_EXTENSION_COMMANDS
 } from '../constants';
 /**
  * A centralized location for interacting with sfdx-core settings.
@@ -109,6 +110,10 @@ export class SalesforceCoreSettings {
 
   public getUseLegacyOrgBrowser(): boolean {
     return this.getConfigValue(USE_LEGACY_ORG_BROWSER, false);
+  }
+
+  public getUseMetadataExtensionCommands(): boolean {
+    return this.getConfigValue(USE_METADATA_EXTENSION_COMMANDS, false);
   }
 
   private getConfigValue<T>(key: string, defaultValue: T): T {

@@ -6,4 +6,4 @@
  */
 
 export const EXTENSION_NAME = 'salesforcedx-vscode-metadata';
-export const DEPLOY_COMMAND_TITLE = 'BETA: Push Source to Default Org';
+export const DEPLOY_COMMAND_TITLE = 'SFDX: Push Source to Default Org';

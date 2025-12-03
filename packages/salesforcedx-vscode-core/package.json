@@ -851,6 +851,11 @@
           "type": "boolean",
           "default": true,
           "description": "%use_legacy_org_browser_description%"
+        },
+        "salesforcedx-vscode-core.useMetadataExtensionCommands": {
+          "type": "boolean",
+          "default": false,
+          "description": "%use_metadata_extension_commands_description%"
         }
       }
     },

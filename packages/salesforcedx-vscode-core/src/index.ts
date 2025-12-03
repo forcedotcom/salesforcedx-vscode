@@ -91,6 +91,27 @@ import { reportExtensionPackStatus } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel } from './util';
 import { getUserId, getAuthFields } from './util/orgAuthInfoExtensions';
 
+/** Commands shared with metadata extension - only register if config doesn't delegate to metadata extension */
+const registerSharedCommands = (): vscode.Disposable => {
+  const useMetadataCommands = salesforceCoreSettings.getUseMetadataExtensionCommands();
+  if (useMetadataCommands) {
+    return vscode.Disposable.from();
+  }
+  return vscode.Disposable.from(
+    vscode.commands.registerCommand('sf.project.deploy.start', async (isDeployOnSave: boolean) =>
+      projectDeployStart(isDeployOnSave, false)
+    ),
+    vscode.commands.registerCommand('sf.project.deploy.start.ignore.conflicts', async (isDeployOnSave: boolean) =>
+      projectDeployStart(isDeployOnSave, true)
+    ),
+    vscode.commands.registerCommand('sf.project.retrieve.start', projectRetrieveStart),
+    vscode.commands.registerCommand('sf.view.all.changes', viewAllChanges),
+    vscode.commands.registerCommand('sf.view.local.changes', viewLocalChanges),
+    vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
+    vscode.commands.registerCommand('sf.apex.generate.class', apexGenerateClass)
+  );
+};
+
 /** Customer-facing commands */
 const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable =>
   vscode.Disposable.from(
@@ -108,22 +129,11 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest),
     vscode.commands.registerCommand('sf.deploy.multiple.source.paths', deploySourcePaths),
     vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
-    vscode.commands.registerCommand('sf.project.deploy.start', async (isDeployOnSave: boolean) =>
-      projectDeployStart(isDeployOnSave, false)
-    ),
-    vscode.commands.registerCommand('sf.project.deploy.start.ignore.conflicts', async (isDeployOnSave: boolean) =>
-      projectDeployStart(isDeployOnSave, true)
-    ),
-    vscode.commands.registerCommand('sf.project.retrieve.start', projectRetrieveStart),
     vscode.commands.registerCommand('sf.project.retrieve.start.ignore.conflicts', () => projectRetrieveStart(true)),
     vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths),
     vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
     vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest),
-    vscode.commands.registerCommand('sf.view.all.changes', viewAllChanges),
-    vscode.commands.registerCommand('sf.view.local.changes', viewLocalChanges),
-    vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
     vscode.commands.registerCommand('sf.task.stop', taskStop),
-    vscode.commands.registerCommand('sf.apex.generate.class', apexGenerateClass),
     vscode.commands.registerCommand('sf.apex.generate.unit.test.class', apexGenerateUnitTestClass),
     vscode.commands.registerCommand('sf.analytics.generate.template', analyticsGenerateTemplate),
     vscode.commands.registerCommand('sf.visualforce.generate.component', visualforceGenerateComponent),
@@ -143,7 +153,8 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.start.apex.debug.logging', () => turnOnLogging(extensionContext)),
     vscode.commands.registerCommand('sf.stop.apex.debug.logging', () => turnOffLogging(extensionContext)),
     vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap),
-    registerGetTelemetryServiceCommand()
+    registerGetTelemetryServiceCommand(),
+    registerSharedCommands()
   );
 const registerInternalDevCommands = (): vscode.Disposable =>
   vscode.Disposable.from(
