@@ -308,13 +308,25 @@ export const createTagFromFile = async (
 
   try {
     // file is already normalized (comes from entry.path), and getFileContent normalizes internally
+    console.log(`[createTagFromFile] Attempting to read file content from fileSystemProvider for: ${file}`);
     const content = fileSystemProvider.getFileContent(file);
     if (!content) {
       console.log(`[createTagFromFile] No content found for file: ${file}, returning null`);
+      // Try alternative paths to see if file exists with different casing or format
+      const allFileUris = fileSystemProvider.getAllFileUris();
+      const matchingFiles = allFileUris.filter(uri => uri.toLowerCase().endsWith(file.toLowerCase()));
+      if (matchingFiles.length > 0) {
+        console.log(
+          `[createTagFromFile] Found ${matchingFiles.length} files with similar path: ${matchingFiles.join(', ')}`
+        );
+      }
       return null;
     }
     const data = content;
     console.log(`[createTagFromFile] File content length: ${data.length} characters`);
+    if (data.length > 0 && data.length <= 500) {
+      console.log(`[createTagFromFile] File content preview (first 200 chars): ${data.substring(0, 200)}`);
+    }
 
     if (!(data.includes('from "lwc"') || data.includes("from 'lwc'"))) {
       console.log('[createTagFromFile] File does not contain \'from "lwc"\' or "from \'lwc\'", returning null');

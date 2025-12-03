@@ -510,6 +510,10 @@ export default class ComponentIndexer {
 
   public async init(): Promise<void> {
     console.log(`[ComponentIndexer.init] Starting initialization for workspaceRoot: ${this.attributes.workspaceRoot}`);
+    console.log(`[ComponentIndexer.init] Normalized workspaceRoot: ${this.workspaceRoot}`);
+    console.log(
+      `[ComponentIndexer.init] fileSystemProvider has ${this.fileSystemProvider.getAllFileUris().length} files before workspace type detection`
+    );
     this.workspaceType = await detectWorkspaceHelper(this.attributes.workspaceRoot, this.fileSystemProvider);
     console.log(`[ComponentIndexer.init] Detected workspaceType: ${this.workspaceType}`);
 
@@ -522,9 +526,23 @@ export default class ComponentIndexer {
     console.log(
       `[ComponentIndexer.init] Processing ${unIndexedFilesResult.length} unindexed files: ${unIndexedFilesResult.map(e => e.path).join(', ')}`
     );
-    const promises = unIndexedFilesResult.map(entry =>
-      createTagFromFile(entry.path, this.fileSystemProvider, entry.stats?.mtime)
-    );
+    console.log(`[ComponentIndexer.init] About to create tags from ${unIndexedFilesResult.length} files`);
+    const promises = unIndexedFilesResult.map(async (entry, index) => {
+      console.log(
+        `[ComponentIndexer.init] Creating tag ${index + 1}/${unIndexedFilesResult.length} from file: ${entry.path}`
+      );
+      const tag = await createTagFromFile(entry.path, this.fileSystemProvider, entry.stats?.mtime);
+      if (tag) {
+        console.log(
+          `[ComponentIndexer.init] Successfully created tag ${index + 1}/${unIndexedFilesResult.length}: ${getTagName(tag)}`
+        );
+      } else {
+        console.log(
+          `[ComponentIndexer.init] Failed to create tag ${index + 1}/${unIndexedFilesResult.length} from file: ${entry.path}`
+        );
+      }
+      return tag;
+    });
     const tags = await Promise.all(promises);
 
     // Log which files succeeded and which failed

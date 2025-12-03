@@ -313,6 +313,7 @@ export default class Server {
           console.log(
             `[onCompletion] LWC JavaScript - tag names: ${customData.map(tag => getTagName(tag)).join(', ')}`
           );
+          console.log(`[onCompletion] LWC JavaScript - tag files: ${customData.map(tag => tag.file).join(', ')}`);
         } else {
           console.log(
             '[onCompletion] LWC JavaScript - WARNING: componentIndexer.getCustomData() returned empty array. Checking componentIndexer state...'
@@ -324,10 +325,27 @@ export default class Server {
             `[onCompletion] LWC JavaScript - componentIndexer.workspaceType: ${this.componentIndexer.workspaceType}`
           );
           console.log(`[onCompletion] LWC JavaScript - componentIndexer.tags.size: ${this.componentIndexer.tags.size}`);
+          if (this.componentIndexer.tags.size > 0) {
+            const tagNames = Array.from(this.componentIndexer.tags.keys());
+            console.log(`[onCompletion] LWC JavaScript - componentIndexer.tags keys: ${tagNames.join(', ')}`);
+          }
           const allFileUris = this.componentIndexer.fileSystemProvider.getAllFileUris();
           console.log(`[onCompletion] LWC JavaScript - fileSystemProvider has ${allFileUris.length} files`);
           if (allFileUris.length > 0 && allFileUris.length <= 20) {
             console.log(`[onCompletion] LWC JavaScript - fileSystemProvider file URIs: ${allFileUris.join(', ')}`);
+          } else if (allFileUris.length > 20) {
+            console.log(
+              `[onCompletion] LWC JavaScript - fileSystemProvider file URIs (first 10): ${allFileUris.slice(0, 10).join(', ')}`
+            );
+            console.log(
+              `[onCompletion] LWC JavaScript - fileSystemProvider file URIs (last 10): ${allFileUris.slice(-10).join(', ')}`
+            );
+          }
+          // Check if there are any LWC component files in the file system provider
+          const lwcFiles = allFileUris.filter(fileUri => fileUri.includes('/lwc/') && fileUri.endsWith('.js'));
+          console.log(`[onCompletion] LWC JavaScript - Found ${lwcFiles.length} .js files in /lwc/ directories`);
+          if (lwcFiles.length > 0 && lwcFiles.length <= 20) {
+            console.log(`[onCompletion] LWC JavaScript - LWC .js files: ${lwcFiles.join(', ')}`);
           }
         }
         const customTags = customData.map(tag => ({
