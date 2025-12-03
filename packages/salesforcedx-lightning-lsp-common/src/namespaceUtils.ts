@@ -7,6 +7,7 @@
 
 import * as path from 'node:path';
 import { IFileSystemProvider } from './providers/fileSystemDataProvider';
+import { normalizePath } from './utils';
 
 /**
  * Check if a directory contains module roots
@@ -15,7 +16,7 @@ const isModuleRoot = async (subdirs: string[], fileSystemProvider: IFileSystemPr
   for (const subdir of subdirs) {
     // Is a root if any subdir matches a name/name.js with name.js being a module
     const basename = path.basename(subdir);
-    const modulePath = path.join(subdir, `${basename}.js`);
+    const modulePath = normalizePath(path.join(subdir, `${basename}.js`));
     try {
       const stat = fileSystemProvider.getFileStat(modulePath);
       if (stat?.type === 'file') {
@@ -48,12 +49,15 @@ const traverse = async (
   }
 
   // module_root/name/name.js
-  const entries = fileSystemProvider.getDirectoryListing(candidate);
+  // Normalize candidate before calling getDirectoryListing to ensure path format consistency
+  const normalizedCandidate = normalizePath(candidate);
+  const entries = fileSystemProvider.getDirectoryListing(normalizedCandidate);
   const dirs = [];
   if (entries) {
     for (const entry of entries) {
       if (entry.type === 'directory') {
-        dirs.push(path.join(candidate, entry.name));
+        // Normalize the joined path to ensure consistent format (especially Windows drive letter casing)
+        dirs.push(normalizePath(path.join(normalizedCandidate, entry.name)));
       }
     }
   }
@@ -61,9 +65,10 @@ const traverse = async (
   // Is a root if we have a folder called lwc
   const isDirLWC =
     (await isModuleRoot(dirs, fileSystemProvider)) ||
-    (!path.parse(candidate).ext && path.parse(candidate).name === 'lwc');
+    (!path.parse(normalizedCandidate).ext && path.parse(normalizedCandidate).name === 'lwc');
   if (isDirLWC) {
-    roots.lwc.push(path.resolve(candidate));
+    // Normalize the resolved path to ensure consistent format (especially Windows drive letter casing)
+    roots.lwc.push(normalizePath(path.resolve(normalizedCandidate)));
   } else {
     for (const subdir of dirs) {
       await traverse(subdir, depth - 1, roots, fileSystemProvider);
@@ -85,9 +90,11 @@ export const findNamespaceRoots = async (
   };
 
   try {
-    const stat = fileSystemProvider.getFileStat(root);
+    // Normalize root path before calling getFileStat to ensure path format consistency
+    const normalizedRoot = normalizePath(root);
+    const stat = fileSystemProvider.getFileStat(normalizedRoot);
     if (stat?.type === 'directory') {
-      await traverse(root, maxDepth, roots, fileSystemProvider);
+      await traverse(normalizedRoot, maxDepth, roots, fileSystemProvider);
     }
   } catch {
     // Directory doesn't exist
