@@ -94,17 +94,19 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
   const allFileUris = fileSystemProvider.getAllFileUris();
 
   for (const fileUri of allFileUris) {
-    const normalizedFileUri = normalizePath(fileUri);
-
+    // fileUri is already normalized by FileSystemDataProvider (normalized when stored via updateFileContent/updateFileStat)
     // Skip files outside the workspace by checking if the file path starts with the base path
     // This is more reliable than path.posix.relative on Windows where drive letter case mismatches
     // can cause path.posix.relative to return paths starting with ../ even for files in the workspace
-    const basePathWithSlash = `${normalizedBasePath}/`;
-    if (!normalizedFileUri.startsWith(basePathWithSlash) && normalizedFileUri !== normalizedBasePath) {
+    // Use case-insensitive comparison on Windows for drive letters
+    const basePathLower = normalizedBasePath.toLowerCase();
+    const fileUriLower = fileUri.toLowerCase();
+    const basePathWithSlash = `${basePathLower}/`;
+    if (!fileUriLower.startsWith(basePathWithSlash) && fileUriLower !== basePathLower) {
       continue;
     }
 
-    const relativePath = path.posix.relative(normalizedBasePath, normalizedFileUri);
+    const relativePath = path.posix.relative(normalizedBasePath, fileUri);
 
     // Additional safety check: skip if path.posix.relative returns an absolute path
     // (this happens when paths are on different drives on Windows)
@@ -116,7 +118,7 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
     // Use || (logical OR) instead of ?? (nullish coalescing) for boolean logic
     // ?? only checks for null/undefined, not falsy values like false
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const matches = regexes.some(regex => regex.test(relativePath) || regex.test(normalizedFileUri));
+    const matches = regexes.some(regex => regex.test(relativePath) || regex.test(fileUri));
 
     if (matches) {
       const fileStat = fileSystemProvider.getFileStat(fileUri);
