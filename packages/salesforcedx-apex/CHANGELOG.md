@@ -1,3 +1,12 @@
+# [8.4.0](https://github.com/forcedotcom/salesforcedx-apex/compare/8.3.8...8.4.0) (2025-12-03)
+
+
+### Features
+
+* add support for user-specified polling interval @W-20268166@ ([76c21a6](https://github.com/forcedotcom/salesforcedx-apex/commit/76c21a65b5976c2dadf6fcf30664063329167490))
+
+
+
 ## [8.3.8](https://github.com/forcedotcom/salesforcedx-apex/compare/8.3.7...8.3.8) (2025-11-20)
 
 
