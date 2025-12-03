@@ -153,7 +153,9 @@ export const getModulesDirs = (
       // For CORE_ALL, return the modules directories for each project
       const projects = fileSystemProvider.getDirectoryListing(workspaceRoots[0]);
       for (const project of projects) {
-        const modulesDir = path.resolve(workspaceRoots[0], project.name, 'modules');
+        // Use path.join instead of path.resolve since workspaceRoots[0] is already absolute
+        // This prevents path.resolve from potentially duplicating path segments on Windows
+        const modulesDir = path.join(workspaceRoots[0], project.name, 'modules');
         let pathExists = false;
         try {
           const fileStat = fileSystemProvider.getFileStat(modulesDir);
@@ -213,7 +215,11 @@ export abstract class BaseWorkspaceContext {
    * @return BaseWorkspaceContext representing the workspace with workspaceRoots
    */
   constructor(workspaceRoots: string[] | string, fileSystemProvider: FileSystemDataProvider) {
-    this.workspaceRoots = typeof workspaceRoots === 'string' ? [path.resolve(workspaceRoots)] : workspaceRoots;
+    // Normalize workspaceRoots to ensure consistent path format (especially Windows drive letter casing)
+    this.workspaceRoots =
+      typeof workspaceRoots === 'string'
+        ? [utils.normalizePath(path.resolve(workspaceRoots))]
+        : workspaceRoots.map(root => utils.normalizePath(root));
 
     this.findNamespaceRootsUsingTypeCache = utils.memoize(() => this.findNamespaceRootsUsingType());
     this.initSfdxProjectConfigCache = utils.memoize(() => this.initSfdxProject());
