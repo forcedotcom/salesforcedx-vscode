@@ -85,13 +85,23 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
   // Normalize basePath the same way FileSystemDataProvider normalizes paths
   const normalizedBasePath = normalizePath(basePath);
 
+  console.log(`[findFilesWithGlob] pattern: ${pattern}`);
+  console.log(`[findFilesWithGlob] basePath (original): ${basePath}`);
+  console.log(`[findFilesWithGlob] normalizedBasePath: ${normalizedBasePath}`);
+
   // Expand brace patterns like {force-app,utils} into multiple patterns
   const patterns = expandBraces(pattern);
   const regexes = patterns.map(p => globToRegExp(p, { globstar: true, extended: true }));
+  console.log(`[findFilesWithGlob] expanded patterns: ${JSON.stringify(patterns)}`);
 
   // Use getAllFileUris as a reliable source of all files in the provider
   // This ensures we don't miss files even if directory listings are incomplete
   const allFileUris = fileSystemProvider.getAllFileUris();
+  console.log(`[findFilesWithGlob] total files in provider: ${allFileUris.length}`);
+
+  let filesInWorkspace = 0;
+  let filesFilteredByStartsWith = 0;
+  let filesMatched = 0;
 
   for (const fileUri of allFileUris) {
     // fileUri is already normalized by FileSystemDataProvider (normalized when stored via updateFileContent/updateFileStat)
@@ -102,25 +112,58 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
     const basePathLower = normalizedBasePath.toLowerCase();
     const fileUriLower = fileUri.toLowerCase();
     const basePathWithSlash = `${basePathLower}/`;
-    if (!fileUriLower.startsWith(basePathWithSlash) && fileUriLower !== basePathLower) {
+    const startsWithCheck = fileUriLower.startsWith(basePathWithSlash) || fileUriLower === basePathLower;
+
+    if (!startsWithCheck) {
+      filesFilteredByStartsWith++;
+      if (filesFilteredByStartsWith <= 5) {
+        // Log first 5 filtered files for debugging
+        console.log(`[findFilesWithGlob] FILTERED (startsWith): ${fileUri} (base: ${normalizedBasePath})`);
+      }
       continue;
     }
 
-    const relativePath = path.posix.relative(normalizedBasePath, fileUri);
+    filesInWorkspace++;
 
-    // Additional safety check: skip if path.posix.relative returns an absolute path
-    // (this happens when paths are on different drives on Windows)
-    if (path.posix.isAbsolute(relativePath)) {
-      continue;
+    // Calculate relative path - if path.posix.relative fails (returns absolute path),
+    // manually compute it by removing the base path prefix
+    let relativePath = path.posix.relative(normalizedBasePath, fileUri);
+    const isAbsoluteRelative = path.posix.isAbsolute(relativePath);
+
+    if (isAbsoluteRelative) {
+      // path.posix.relative failed (e.g., drive letter mismatch on Windows)
+      // Since we've already verified the file is in the workspace via startsWith,
+      // manually compute the relative path by removing the base path prefix
+      if (fileUriLower.startsWith(basePathWithSlash)) {
+        relativePath = fileUri.substring(normalizedBasePath.length + 1);
+        console.log(
+          `[findFilesWithGlob] path.posix.relative returned absolute, using manual calculation: ${relativePath} (from ${fileUri})`
+        );
+      } else if (fileUriLower === basePathLower) {
+        // File is the workspace root itself
+        relativePath = '.';
+      } else {
+        // Should not happen given the startsWith check above, but skip to be safe
+        console.log(
+          `[findFilesWithGlob] WARNING: startsWith passed but manual relative path calculation failed for: ${fileUri}`
+        );
+        continue;
+      }
     }
 
     // Check if file matches any of the patterns
-    // Use || (logical OR) instead of ?? (nullish coalescing) for boolean logic
-    // ?? only checks for null/undefined, not falsy values like false
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const matches = regexes.some(regex => regex.test(relativePath) || regex.test(fileUri));
+    const matchesRelative = regexes.some(regex => regex.test(relativePath));
+    const matchesAbsolute = regexes.some(regex => regex.test(fileUri));
+    const matches = matchesRelative || matchesAbsolute;
 
     if (matches) {
+      filesMatched++;
+      if (filesMatched <= 5) {
+        // Log first 5 matched files for debugging
+        console.log(
+          `[findFilesWithGlob] MATCHED: ${fileUri} (relative: ${relativePath}, matchesRelative: ${matchesRelative}, matchesAbsolute: ${matchesAbsolute})`
+        );
+      }
       const fileStat = fileSystemProvider.getFileStat(fileUri);
       results.push({
         path: fileUri,
@@ -130,8 +173,15 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
             }
           : undefined
       });
+    } else if (filesInWorkspace <= 10) {
+      // Log first 10 files in workspace that didn't match (for debugging)
+      console.log(`[findFilesWithGlob] IN WORKSPACE BUT NO MATCH: ${fileUri} (relative: ${relativePath})`);
     }
   }
+
+  console.log(
+    `[findFilesWithGlob] Summary: total=${allFileUris.length}, inWorkspace=${filesInWorkspace}, filteredByStartsWith=${filesFilteredByStartsWith}, matched=${filesMatched}, results=${results.length}`
+  );
 
   return results;
 };
