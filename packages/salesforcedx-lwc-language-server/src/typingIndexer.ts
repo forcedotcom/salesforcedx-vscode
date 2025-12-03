@@ -8,6 +8,7 @@ import {
   detectWorkspaceHelper,
   WorkspaceType,
   IFileSystemProvider,
+  normalizePath,
   unixify
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
@@ -74,7 +75,7 @@ const createNewMetaTypings = async (indexer: TypingIndexerData): Promise<void> =
 
 // Utility function to delete stale meta typings
 const deleteStaleMetaTypings = async (indexer: TypingIndexerData): Promise<void> => {
-  const staleTypings = diffItems(getMetaTypings(indexer), await getMetaFiles(indexer));
+  const staleTypings = diffItems(getMetaTypings(indexer), getMetaFiles(indexer));
   const filesToDelete: string[] = [];
 
   for (const filename of staleTypings) {
@@ -142,9 +143,9 @@ const getMetaFiles = (indexer: TypingIndexerData): string[] => {
   ];
 
   for (const metaFile of possibleMetaFiles) {
-    const filePath = path.join(indexer.workspaceRoot, metaFile);
-    if (indexer.fileSystemProvider.fileExists(unixify(filePath))) {
-      metaFiles.push(path.resolve(filePath));
+    const filePath = normalizePath(path.join(indexer.workspaceRoot, metaFile));
+    if (indexer.fileSystemProvider.fileExists(filePath)) {
+      metaFiles.push(filePath);
     }
   }
 
