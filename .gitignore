@@ -124,3 +124,4 @@ e2e-temp/
 test-resources/
 .nx/cache
 **/playwright-report/
+jscpd-report/

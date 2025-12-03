@@ -5,13 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConfigUtil, workspaceUtils, ContinueResponse, TimingUtils } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ConfigUtil,
+  ContinueResponse,
+  notificationService,
+  TimingUtils,
+  workspaceUtils
+} from '@salesforce/salesforcedx-utils-vscode';
 import { TemplateOptions, TemplateService, TemplateType } from '@salesforce/templates';
 import type { Properties } from '@salesforce/vscode-service-provider';
 import * as path from 'node:path';
 import { ProgressLocation, window, workspace } from 'vscode';
 import { channelService } from '../../channels';
-import { notificationService } from '../../notifications';
 import { telemetryService } from '../../telemetry';
 import { MetadataDictionary, MetadataInfo } from '../../util';
 
@@ -86,13 +91,13 @@ export abstract class LibraryBaseTemplateCommand<T> implements CommandletExecuto
     if (result.output) {
       channelService.appendLine(result.output);
       channelService.showCommandWithTimestamp(`Finished ${commandName}`);
-      notificationService.showSuccessfulExecution(commandName).catch(() => {
+      notificationService.showSuccessfulExecution(commandName, channelService).catch(() => {
         // ignore
       });
     }
     if (result.error) {
       channelService.appendLine(result.error.message);
-      notificationService.showFailedExecution(commandName);
+      notificationService.showFailedExecution(commandName, channelService);
     }
   }
 

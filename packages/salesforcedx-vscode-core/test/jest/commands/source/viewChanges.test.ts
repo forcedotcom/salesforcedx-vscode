@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as utilsVscode from '@salesforce/salesforcedx-utils-vscode';
 import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from '../../../../src/commands';
-import * as commandlet from '../../../../src/commands/util/sfCommandlet';
 
 describe('viewChanges', () => {
   let runMock: jest.Mock<any, any>;
@@ -14,7 +14,7 @@ describe('viewChanges', () => {
   beforeEach(() => {
     // Arrange
     runMock = jest.fn();
-    sfCommandletMocked = jest.spyOn(commandlet, 'SfCommandlet').mockImplementation((): any => ({
+    sfCommandletMocked = jest.spyOn(utilsVscode, 'SfCommandlet').mockImplementation((): any => ({
       run: runMock
     }));
   });

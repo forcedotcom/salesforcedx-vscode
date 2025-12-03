@@ -20,3 +20,6 @@ export { Message } from './i18n/message';
 
 // Constants
 export { DEFAULT_LOCALE, LOCALE_JA, MISSING_LABEL_MSG } from './constants';
+
+// Factory
+export { createNls, Nls } from './nlsFactory';
