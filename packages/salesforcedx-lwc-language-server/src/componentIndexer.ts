@@ -193,17 +193,35 @@ export default class ComponentIndexer {
   public readonly fileSystemProvider: IFileSystemProvider;
 
   constructor(private readonly attributes: ComponentIndexerAttributes) {
+    console.log(`[ComponentIndexer.constructor] attributes.workspaceRoot: ${attributes.workspaceRoot}`);
     this.workspaceRoot = getWorkspaceRoot(attributes.workspaceRoot);
+    console.log(`[ComponentIndexer.constructor] normalized workspaceRoot: ${this.workspaceRoot}`);
     this.fileSystemProvider = attributes.fileSystemProvider;
+    const allFileUris = this.fileSystemProvider.getAllFileUris();
+    const totalFiles = allFileUris.length;
+    console.log(`[ComponentIndexer.constructor] fileSystemProvider has ${totalFiles} files`);
+    if (totalFiles > 0 && totalFiles <= 20) {
+      // Log all file URIs if there are 20 or fewer (for debugging small test cases)
+      console.log(`[ComponentIndexer.constructor] sample file URIs (first 20): ${allFileUris.slice(0, 20).join(', ')}`);
+    } else if (totalFiles > 20) {
+      // Log first 10 and last 10 if there are many files
+      console.log(`[ComponentIndexer.constructor] sample file URIs (first 10): ${allFileUris.slice(0, 10).join(', ')}`);
+      console.log(`[ComponentIndexer.constructor] sample file URIs (last 10): ${allFileUris.slice(-10).join(', ')}`);
+    }
   }
 
   private async getSfdxPackageDirsPattern(): Promise<string> {
-    return await getSfdxPackageDirsPattern(this.attributes.workspaceRoot, this.fileSystemProvider);
+    const pattern = await getSfdxPackageDirsPattern(this.attributes.workspaceRoot, this.fileSystemProvider);
+    console.log(`[ComponentIndexer.getSfdxPackageDirsPattern] pattern: ${pattern}`);
+    return pattern;
   }
 
   // visible for testing
   public async getComponentEntries(): Promise<Entry[]> {
     let files: Entry[] = [];
+
+    console.log(`[ComponentIndexer.getComponentEntries] workspaceType: ${this.workspaceType}`);
+    console.log(`[ComponentIndexer.getComponentEntries] workspaceRoot: ${this.workspaceRoot}`);
 
     switch (this.workspaceType) {
       case 'SFDX':
@@ -212,20 +230,45 @@ export default class ComponentIndexer {
         // Pattern matches: {packageDir}/**/*/lwc/**/*.js
         // The **/* before lwc requires at least one directory level (e.g., main/default/lwc or meta/lwc)
         const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.js`;
+        console.log(`[ComponentIndexer.getComponentEntries] SFDX pattern: ${sfdxPattern}`);
+        console.log(`[ComponentIndexer.getComponentEntries] packageDirsPattern: ${packageDirsPattern}`);
         files = await findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot);
-        return files.filter((item: Entry): boolean => {
+        console.log(`[ComponentIndexer.getComponentEntries] Found ${files.length} files before filtering`);
+        const filteredFiles = files.filter((item: Entry): boolean => {
           const data = path.parse(item.path);
-          return data.dir.endsWith(data.name);
+          const dirEndsWithName = data.dir.endsWith(data.name);
+          if (!dirEndsWithName && files.length <= 10) {
+            // Log first 10 filtered files for debugging
+            console.log(
+              `[ComponentIndexer.getComponentEntries] FILTERED (dir doesn't end with name): ${item.path} (dir: ${data.dir}, name: ${data.name})`
+            );
+          }
+          return dirEndsWithName;
         });
+        console.log(`[ComponentIndexer.getComponentEntries] Found ${filteredFiles.length} files after filtering`);
+        return filteredFiles;
       default:
         // For CORE_ALL and CORE_PARTIAL
         // workspaceRoot is already normalized by getWorkspaceRoot()
         const defaultPattern = '**/*/modules/**/*.js';
+        console.log(`[ComponentIndexer.getComponentEntries] CORE pattern: ${defaultPattern}`);
         files = await findFilesWithGlob(defaultPattern, this.fileSystemProvider, this.workspaceRoot);
-        return files.filter((item: Entry): boolean => {
+        console.log(`[ComponentIndexer.getComponentEntries] Found ${files.length} files before filtering`);
+        const filteredFilesDefault = files.filter((item: Entry): boolean => {
           const data = path.parse(item.path);
-          return data.dir.endsWith(data.name);
+          const dirEndsWithName = data.dir.endsWith(data.name);
+          if (!dirEndsWithName && files.length <= 10) {
+            // Log first 10 filtered files for debugging
+            console.log(
+              `[ComponentIndexer.getComponentEntries] FILTERED (dir doesn't end with name): ${item.path} (dir: ${data.dir}, name: ${data.name})`
+            );
+          }
+          return dirEndsWithName;
         });
+        console.log(
+          `[ComponentIndexer.getComponentEntries] Found ${filteredFilesDefault.length} files after filtering`
+        );
+        return filteredFilesDefault;
     }
   }
 
@@ -371,7 +414,19 @@ export default class ComponentIndexer {
   }
 
   private async getUnIndexedFiles(): Promise<Entry[]> {
-    return unIndexedFiles(await this.getComponentEntries(), this.getCustomData());
+    const componentEntries = await this.getComponentEntries();
+    const customData = this.getCustomData();
+    console.log(
+      `[ComponentIndexer.getUnIndexedFiles] componentEntries: ${componentEntries.length}, existing tags: ${customData.length}`
+    );
+    const unIndexed = unIndexedFiles(componentEntries, customData);
+    console.log(`[ComponentIndexer.getUnIndexedFiles] unIndexed files: ${unIndexed.length}`);
+    if (unIndexed.length > 0 && unIndexed.length <= 10) {
+      console.log(
+        `[ComponentIndexer.getUnIndexedFiles] unIndexed file paths: ${unIndexed.map(e => e.path).join(', ')}`
+      );
+    }
+    return unIndexed;
   }
 
   public async getStaleTags(): Promise<Tag[]> {
@@ -381,25 +436,31 @@ export default class ComponentIndexer {
   }
 
   public async init(): Promise<void> {
+    console.log(`[ComponentIndexer.init] Starting initialization for workspaceRoot: ${this.attributes.workspaceRoot}`);
     this.workspaceType = await detectWorkspaceHelper(this.attributes.workspaceRoot, this.fileSystemProvider);
+    console.log(`[ComponentIndexer.init] Detected workspaceType: ${this.workspaceType}`);
 
     await this.loadTagsFromIndex();
+    console.log(`[ComponentIndexer.init] Loaded ${this.tags.size} tags from index`);
 
     const unIndexedFilesResult = await this.getUnIndexedFiles();
+    console.log(`[ComponentIndexer.init] Processing ${unIndexedFilesResult.length} unindexed files`);
 
     const promises = unIndexedFilesResult.map(entry =>
       createTagFromFile(entry.path, this.fileSystemProvider, entry.stats?.mtime)
     );
     const tags = await Promise.all(promises);
 
-    tags.filter(Boolean).forEach(tag => {
+    const validTags = tags.filter(Boolean);
+    console.log(`[ComponentIndexer.init] Created ${validTags.length} tags from unindexed files`);
+    validTags.forEach(tag => {
       if (tag) {
         this.tags.set(getTagName(tag), tag);
       }
     });
 
     const staleTags = await this.getStaleTags();
-
+    console.log(`[ComponentIndexer.init] Found ${staleTags.length} stale tags to remove`);
     staleTags.forEach(tag => {
       if (tag) {
         this.tags.delete(getTagName(tag));
@@ -407,5 +468,6 @@ export default class ComponentIndexer {
     });
 
     this.persistCustomComponents();
+    console.log(`[ComponentIndexer.init] Initialization complete. Total tags: ${this.tags.size}`);
   }
 }
