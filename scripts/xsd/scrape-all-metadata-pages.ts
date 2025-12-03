@@ -340,18 +340,23 @@ const scrapeInBatches = async (
   return Effect.runPromise(program);
 };
 
-/**
- * Main scraping function
- */
-const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promise<void> => {
-  const startTime = Date.now();
-  console.log(`🚀 Starting Salesforce Metadata API scraper${isVisible ? ' (VISIBLE MODE)' : ''}...\n`);
+/** Split an array into N roughly equal chunks */
+const chunkArray = <T>(array: T[], numChunks: number): T[][] => {
+  if (numChunks <= 0 || array.length === 0) return [array];
+  if (numChunks >= array.length) return array.map(item => [item]);
 
-  const browser = await chromium.launch({
-    headless: !isVisible,
-    args: BROWSER_LAUNCH_ARGS
-  });
+  const chunks: T[][] = [];
+  const chunkSize = Math.ceil(array.length / numChunks);
 
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize));
+  }
+
+  return chunks;
+};
+
+/** Create a browser context with standard configuration */
+const createBrowserContext = async (browser: any) => {
   const context = await browser.newContext({
     userAgent:
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
@@ -365,10 +370,35 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
     }
   });
 
-  const page = await context.newPage();
+  return context;
+};
+
+/**
+ * Main scraping function with multi-browser support
+ */
+const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promise<void> => {
+  const startTime = Date.now();
+  const numBrowsers = parseInt(process.env.NUM_BROWSERS ?? '5', 10);
+  const concurrencyPerBrowser = parseInt(process.env.BATCH_SIZE ?? '20', 10);
+  const totalConcurrency = numBrowsers * concurrencyPerBrowser;
+
+  console.log(`🚀 Starting Salesforce Metadata API scraper${isVisible ? ' (VISIBLE MODE)' : ''}...\n`);
+  console.log(
+    `🌐 Configuration: ${numBrowsers} browsers × ${concurrencyPerBrowser} concurrent tabs = ${totalConcurrency} total workers\n`
+  );
+
+  // Step 1: Launch a single browser for discovery
+  console.log('🔍 Launching discovery browser...');
+  const discoveryBrowser = await chromium.launch({
+    headless: !isVisible,
+    args: BROWSER_LAUNCH_ARGS
+  });
+
+  const discoveryContext = await createBrowserContext(discoveryBrowser);
+  const discoveryPage = await discoveryContext.newPage();
 
   // Comprehensive anti-detection for discovery page
-  await page.addInitScript(() => {
+  await discoveryPage.addInitScript(() => {
     // Hide webdriver
     Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
 
@@ -404,52 +434,154 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
   });
 
   // Step 1: Discover all metadata types from documentation
-  const metadataTypes = await discoverMetadataTypes(page);
-  await page.close(); // Close the discovery page
+  const metadataTypes = await discoverMetadataTypes(discoveryPage);
+  await discoveryPage.close();
+  await discoveryBrowser.close();
+  console.log('✅ Discovery browser closed\n');
 
-  const concurrencyLimit = parseInt(process.env.BATCH_SIZE ?? '20', 10);
   const typesToScrape = metadataTypes;
 
-  console.log(`📋 Will scrape ${typesToScrape.length} metadata types with concurrency limit of ${concurrencyLimit}\n`);
+  if (typesToScrape.length === 0) {
+    console.log('⚠️  No metadata types to scrape. Exiting.');
+    return;
+  }
+
+  console.log(`📋 Will scrape ${typesToScrape.length} metadata types\n`);
+
+  // Step 2: Launch multiple browsers in parallel for scraping
+  console.log(`🚀 Launching ${numBrowsers} scraping browsers in parallel...`);
+  const launchStartTime = Date.now();
+
+  const browsers = await Promise.all(
+    Array.from({ length: numBrowsers }, async (_, i) => {
+      const browser = await chromium.launch({
+        headless: !isVisible,
+        args: BROWSER_LAUNCH_ARGS
+      });
+      console.log(`   ✓ Browser ${i + 1}/${numBrowsers} launched`);
+      return browser;
+    })
+  );
+
+  const launchEndTime = Date.now();
+  const launchTime = formatElapsedTime(launchStartTime, launchEndTime);
+  console.log(`✅ All browsers launched in ${launchTime}\n`);
+
+  // Step 3: Create contexts for each browser
+  console.log('🔧 Creating browser contexts...');
+  const contexts = await Promise.all(
+    browsers.map(async (browser, i) => {
+      const context = await createBrowserContext(browser);
+      console.log(`   ✓ Context ${i + 1}/${numBrowsers} created`);
+      return context;
+    })
+  );
+  console.log('✅ All contexts created\n');
 
   try {
-    // Scrape using Effect queue system
-    const { results, successCount, failCount, slowestType, fastestType, averageDuration } = await scrapeInBatches(
-      context,
-      typesToScrape,
-      isVisible,
-      concurrencyLimit
+    // Step 4: Split work across browsers
+    const workChunks = chunkArray(typesToScrape, numBrowsers);
+
+    console.log('📦 Work distribution:');
+    workChunks.forEach((chunk, i) => {
+      console.log(
+        `   Browser ${i + 1}: ${chunk.length} types (${((chunk.length / typesToScrape.length) * 100).toFixed(1)}%)`
+      );
+    });
+    console.log('');
+
+    // Step 5: Process all chunks in parallel, each browser with its own concurrency
+    const scrapeStartTime = Date.now();
+    const allResults = await Promise.all(
+      workChunks.map(async (chunk, browserIndex) => {
+        console.log(`🌐 Browser ${browserIndex + 1} starting with ${chunk.length} types...\n`);
+        return scrapeInBatches(contexts[browserIndex], chunk, isVisible, concurrencyPerBrowser);
+      })
     );
+
+    const scrapeEndTime = Date.now();
+
+    // Step 6: Merge results from all browsers
+    console.log('\n📊 Merging results from all browsers...');
+    const mergedResults: MetadataTypesMap = {};
+    let totalSuccess = 0;
+    let totalFail = 0;
+    let globalSlowestType: { name: string; duration: number } | null = null;
+    let globalFastestType: { name: string; duration: number } | null = null;
+    let totalDuration = 0;
+    let totalTypes = 0;
+
+    allResults.forEach((result, browserIndex) => {
+      // Merge metadata results
+      Object.assign(mergedResults, result.results);
+
+      // Aggregate statistics
+      totalSuccess += result.successCount;
+      totalFail += result.failCount;
+      totalDuration += result.averageDuration * (result.successCount + result.failCount);
+      totalTypes += result.successCount + result.failCount;
+
+      // Track global slowest
+      if (result.slowestType !== null) {
+        if (globalSlowestType === null || result.slowestType.duration > globalSlowestType.duration) {
+          globalSlowestType = result.slowestType;
+        }
+      }
+
+      // Track global fastest
+      if (result.fastestType !== null) {
+        if (globalFastestType === null || result.fastestType.duration < globalFastestType.duration) {
+          globalFastestType = result.fastestType;
+        }
+      }
+
+      console.log(`   Browser ${browserIndex + 1}: ✅ ${result.successCount} success, ❌ ${result.failCount} failed`);
+    });
+
+    const globalAverageDuration = totalTypes > 0 ? totalDuration / totalTypes : 0;
 
     // Save results
     const outputPath =
       outputFile ?? path.join(__dirname, '../../packages/salesforcedx-vscode-core', 'metadata_types_map_scraped.json');
 
     const endTime = Date.now();
-    const elapsedTime = formatElapsedTime(startTime, endTime);
+    const totalElapsedTime = formatElapsedTime(startTime, endTime);
+    const scrapeElapsedTime = formatElapsedTime(scrapeStartTime, scrapeEndTime);
 
     console.log('\n=== Summary ===');
-    console.log(`Discovered: ${metadataTypes.length} metadata types`);
-    console.log(`Attempted: ${typesToScrape.length}`);
-    console.log(`✅ Success: ${successCount}`);
-    console.log(`❌ Failed: ${failCount}`);
-    console.log(`⏱️  Total time: ${elapsedTime}`);
-    if (slowestType) {
-      const slowestTime = formatElapsedTime(0, slowestType.duration);
-      console.log(`🐌 Slowest type: ${slowestType.name} (${slowestTime})`);
+    console.log(`🌐 Browsers used: ${numBrowsers}`);
+    console.log(`🔄 Concurrency per browser: ${concurrencyPerBrowser}`);
+    console.log(`⚡ Total concurrency: ${totalConcurrency}`);
+    console.log(`📋 Discovered: ${metadataTypes.length} metadata types`);
+    console.log(`🎯 Attempted: ${typesToScrape.length}`);
+    console.log(`✅ Success: ${totalSuccess}`);
+    console.log(`❌ Failed: ${totalFail}`);
+    console.log(`⏱️  Scraping time: ${scrapeElapsedTime}`);
+    console.log(`⏱️  Total time: ${totalElapsedTime}`);
+    if (globalSlowestType !== null) {
+      const slowestTime = formatElapsedTime(0, globalSlowestType.duration);
+      console.log(`🐌 Slowest type: ${globalSlowestType.name} (${slowestTime})`);
     }
-    if (fastestType) {
-      const fastestTime = formatElapsedTime(0, fastestType.duration);
-      console.log(`⚡ Fastest type: ${fastestType.name} (${fastestTime})`);
+    if (globalFastestType !== null) {
+      const fastestTime = formatElapsedTime(0, globalFastestType.duration);
+      console.log(`⚡ Fastest type: ${globalFastestType.name} (${fastestTime})`);
     }
-    const avgTime = formatElapsedTime(0, averageDuration);
+    const avgTime = formatElapsedTime(0, globalAverageDuration);
     console.log(`📊 Average time per type: ${avgTime}`);
     console.log(`\n💾 Writing results to: ${outputPath}`);
 
-    fs.writeFileSync(outputPath, JSON.stringify(results, null, 2));
+    fs.writeFileSync(outputPath, JSON.stringify(mergedResults, null, 2));
     console.log('✅ Done!');
   } finally {
-    await browser.close();
+    // Clean up all browsers
+    console.log('\n🧹 Closing all browsers...');
+    await Promise.all(
+      browsers.map(async (browser, i) => {
+        await browser.close();
+        console.log(`   ✓ Browser ${i + 1}/${numBrowsers} closed`);
+      })
+    );
+    console.log('✅ All browsers closed');
   }
 };
 
@@ -474,11 +606,14 @@ Options:
   --help           Show this help
 
 Environment Variables:
-  BATCH_SIZE=20                       # Concurrency limit (default: 20)
-                                      # Using Effect queue system - new tasks start as old ones complete
+  NUM_BROWSERS=5                      # Number of parallel browser instances (default: 5)
+  BATCH_SIZE=20                       # Concurrency per browser (default: 20)
+                                      # Total concurrency = NUM_BROWSERS × BATCH_SIZE
 
 Examples:
-  BATCH_SIZE=50 npm run scrape:all:pages            # Use 50 concurrent workers
+  NUM_BROWSERS=5 BATCH_SIZE=20 npm run scrape:all:pages     # 100 total workers (5 × 20)
+  NUM_BROWSERS=10 BATCH_SIZE=10 npm run scrape:all:pages    # 100 total workers (10 × 10)
+  NUM_BROWSERS=1 BATCH_SIZE=50 npm run scrape:all:pages     # 50 workers in single browser
     `);
     return;
   }
