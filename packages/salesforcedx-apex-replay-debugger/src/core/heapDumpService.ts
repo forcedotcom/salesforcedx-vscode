@@ -165,7 +165,7 @@ export class HeapDumpService {
             for (const innerExtent of outerExtent.extent) {
               // All of the symbols are going to start with the trigger prefix and will be exclusive
               // to trigger context varables. It's worth noting that any local variables or statics
-              // within the triggger will be under "this" and won't get picked up there.
+              // within the trigger will be under "this" and won't get picked up there.
               if (innerExtent.symbols && innerExtent.symbols.length > 0) {
                 for (const symName of innerExtent.symbols) {
                   if (symName?.startsWith(EXTENT_TRIGGER_PREFIX)) {
@@ -532,7 +532,7 @@ export class HeapDumpService {
         const childVarName = entry[0];
         const childVarContainer = entry[1];
 
-        // If the type is KEY_VALUE_PAIR then the name/vavlue of the container are will
+        // If the type is KEY_VALUE_PAIR then the name/value of the container are will
         // need to get updated if either of them are references. Further, the child container
         // is going to need to have it's variablesRef set so it'll expand correctly. There will
         // be exactly two immediate children in it's variables, one named 'key' and one named
