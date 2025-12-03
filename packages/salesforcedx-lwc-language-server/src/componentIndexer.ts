@@ -95,7 +95,22 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
 
   for (const fileUri of allFileUris) {
     const normalizedFileUri = normalizePath(fileUri);
+
+    // Skip files outside the workspace by checking if the file path starts with the base path
+    // This is more reliable than path.posix.relative on Windows where drive letter case mismatches
+    // can cause path.posix.relative to return paths starting with ../ even for files in the workspace
+    const basePathWithSlash = `${normalizedBasePath}/`;
+    if (!normalizedFileUri.startsWith(basePathWithSlash) && normalizedFileUri !== normalizedBasePath) {
+      continue;
+    }
+
     const relativePath = path.posix.relative(normalizedBasePath, normalizedFileUri);
+
+    // Additional safety check: skip if path.posix.relative returns an absolute path
+    // (this happens when paths are on different drives on Windows)
+    if (path.posix.isAbsolute(relativePath)) {
+      continue;
+    }
 
     // Check if file matches any of the patterns
     // Use || (logical OR) instead of ?? (nullish coalescing) for boolean logic
