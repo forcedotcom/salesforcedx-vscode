@@ -305,20 +305,36 @@ export const createTagFromFile = async (
   }
   const filePath = path.parse(file);
   const fileName = filePath.base;
+  console.log(
+    `[createTagFromFile] Parsed path - dir: "${filePath.dir}", base: "${filePath.base}", name: "${filePath.name}", ext: "${filePath.ext}"`
+  );
 
   try {
     // file is already normalized (comes from entry.path), and getFileContent normalizes internally
     console.log(`[createTagFromFile] Attempting to read file content from fileSystemProvider for: ${file}`);
-    const content = fileSystemProvider.getFileContent(file);
+    // Try both with and without file:// prefix
+    let content = fileSystemProvider.getFileContent(file);
+    if (!content) {
+      const fileWithPrefix = file.startsWith('file://') ? file : `file://${file}`;
+      console.log(`[createTagFromFile] No content with direct path, trying with file:// prefix: ${fileWithPrefix}`);
+      content = fileSystemProvider.getFileContent(fileWithPrefix);
+    }
     if (!content) {
       console.log(`[createTagFromFile] No content found for file: ${file}, returning null`);
       // Try alternative paths to see if file exists with different casing or format
       const allFileUris = fileSystemProvider.getAllFileUris();
-      const matchingFiles = allFileUris.filter(uri => uri.toLowerCase().endsWith(file.toLowerCase()));
-      if (matchingFiles.length > 0) {
-        console.log(
-          `[createTagFromFile] Found ${matchingFiles.length} files with similar path: ${matchingFiles.join(', ')}`
-        );
+      const fileLower = file.toLowerCase();
+      const matchingFiles = allFileUris.filter(uri => {
+        const uriLower = uri.toLowerCase();
+        return uriLower === fileLower || uriLower.endsWith(fileLower) || fileLower.endsWith(uriLower);
+      });
+      console.log(
+        `[createTagFromFile] Searched ${allFileUris.length} total files, found ${matchingFiles.length} files with similar path`
+      );
+      if (matchingFiles.length > 0 && matchingFiles.length <= 10) {
+        console.log(`[createTagFromFile] Similar files: ${matchingFiles.join(', ')}`);
+      } else if (matchingFiles.length > 10) {
+        console.log(`[createTagFromFile] Similar files (first 5): ${matchingFiles.slice(0, 5).join(', ')}`);
       }
       return null;
     }

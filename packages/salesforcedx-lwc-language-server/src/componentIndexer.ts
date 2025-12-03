@@ -114,6 +114,13 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
     const basePathWithSlash = `${basePathLower}/`;
     const startsWithCheck = fileUriLower.startsWith(basePathWithSlash) || fileUriLower === basePathLower;
 
+    // Log detailed comparison for first few files to diagnose path matching issues
+    if (filesInWorkspace + filesFilteredByStartsWith < 5) {
+      console.log(
+        `[findFilesWithGlob] Path comparison - fileUri: "${fileUri}" | normalizedBasePath: "${normalizedBasePath}" | fileUriLower: "${fileUriLower}" | basePathLower: "${basePathLower}" | startsWithCheck: ${startsWithCheck}`
+      );
+    }
+
     if (!startsWithCheck) {
       filesFilteredByStartsWith++;
       if (filesFilteredByStartsWith <= 5) {
@@ -130,6 +137,13 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
     let relativePath = path.posix.relative(normalizedBasePath, fileUri);
     const isAbsoluteRelative = path.posix.isAbsolute(relativePath);
 
+    // Log path.posix.relative results for first few files to diagnose Windows path issues
+    if (filesInWorkspace <= 5) {
+      console.log(
+        `[findFilesWithGlob] path.posix.relative result - base: "${normalizedBasePath}" | file: "${fileUri}" | relative: "${relativePath}" | isAbsolute: ${isAbsoluteRelative}`
+      );
+    }
+
     if (isAbsoluteRelative) {
       // path.posix.relative failed (e.g., drive letter mismatch on Windows)
       // Since we've already verified the file is in the workspace via startsWith,
@@ -137,15 +151,16 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
       if (fileUriLower.startsWith(basePathWithSlash)) {
         relativePath = fileUri.substring(normalizedBasePath.length + 1);
         console.log(
-          `[findFilesWithGlob] path.posix.relative returned absolute, using manual calculation: ${relativePath} (from ${fileUri})`
+          `[findFilesWithGlob] path.posix.relative returned absolute, using manual calculation: ${relativePath} (from ${fileUri}, base length: ${normalizedBasePath.length})`
         );
       } else if (fileUriLower === basePathLower) {
         // File is the workspace root itself
         relativePath = '.';
+        console.log('[findFilesWithGlob] File is workspace root, relativePath set to "."');
       } else {
         // Should not happen given the startsWith check above, but skip to be safe
         console.log(
-          `[findFilesWithGlob] WARNING: startsWith passed but manual relative path calculation failed for: ${fileUri}`
+          `[findFilesWithGlob] WARNING: startsWith passed but manual relative path calculation failed for: ${fileUri} (base: ${normalizedBasePath}, baseWithSlash: ${basePathWithSlash})`
         );
         continue;
       }
@@ -258,6 +273,15 @@ export default class ComponentIndexer {
         const filteredFiles = files.filter((item: Entry): boolean => {
           const data = path.parse(item.path);
           const dirEndsWithName = data.dir.endsWith(data.name);
+          // Log detailed comparison for debugging path issues
+          if (files.length <= 10) {
+            const dirLower = data.dir.toLowerCase();
+            const nameLower = data.name.toLowerCase();
+            const dirEndsWithNameCaseInsensitive = dirLower.endsWith(nameLower);
+            console.log(
+              `[ComponentIndexer.getComponentEntries] Checking: ${item.path} | dir: "${data.dir}" (len: ${data.dir.length}) | name: "${data.name}" (len: ${data.name.length}) | endsWith (case-sensitive): ${dirEndsWithName} | endsWith (case-insensitive): ${dirEndsWithNameCaseInsensitive}`
+            );
+          }
           if (!dirEndsWithName && files.length <= 10) {
             // Log first 10 filtered files for debugging
             console.log(
