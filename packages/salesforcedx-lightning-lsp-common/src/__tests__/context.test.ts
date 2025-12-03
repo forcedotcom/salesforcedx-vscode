@@ -8,6 +8,7 @@ import * as path from 'node:path';
 import { processTemplate, getModulesDirs } from '../baseContext';
 import '../../jest/matchers';
 import { FileSystemDataProvider } from '../providers/fileSystemDataProvider';
+import { normalizePath } from '../utils';
 import {
   CORE_ALL_ROOT,
   CORE_PROJECT_ROOT,
@@ -197,7 +198,7 @@ describe('WorkspaceContext', () => {
       await getModulesDirs(context.type, context.workspaceRoots, coreProjectFileSystemProvider, () =>
         context.initSfdxProjectConfigCache()
       )
-    ).toEqual([path.join(context.workspaceRoots[0], 'modules')]);
+    ).toEqual([normalizePath(path.join(context.workspaceRoots[0], 'modules'))]);
 
     context = new WorkspaceContext(CORE_MULTI_ROOT, coreMultiFileSystemProvider);
     await context.initialize();
@@ -207,7 +208,9 @@ describe('WorkspaceContext', () => {
       context.initSfdxProjectConfigCache()
     );
     for (let i = 0; i < context.workspaceRoots.length; i = i + 1) {
-      expect(modulesDirs[i]).toMatch(context.workspaceRoots[i]);
+      // modulesDirs[i] should be a path like "workspaceRoot/modules", so it should start with workspaceRoot
+      // Normalize both paths to ensure consistent comparison (especially Windows drive letter casing)
+      expect(normalizePath(modulesDirs[i])).toContain(normalizePath(context.workspaceRoots[i]));
     }
   });
 

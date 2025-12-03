@@ -133,13 +133,15 @@ export const getModulesDirs = (
         const newLwcDirStat = fileSystemProvider.getFileStat(newLwcDir);
         if (newLwcDirStat?.type === 'directory') {
           // Add the LWC directory itself, not individual components
-          modulesDirs.push(newLwcDir);
+          // Normalize path to ensure consistent format (especially Windows drive letter casing)
+          modulesDirs.push(utils.normalizePath(newLwcDir));
         } else {
           // New structure doesn't exist, check for LWC components in old structure
           const oldLwcDir = path.join(oldPkgDir, 'lwc');
           const oldLwcDirStat = fileSystemProvider.getFileStat(oldLwcDir);
           if (oldLwcDirStat?.type === 'directory') {
-            modulesDirs.push(oldLwcDir);
+            // Normalize path to ensure consistent format (especially Windows drive letter casing)
+            modulesDirs.push(utils.normalizePath(oldLwcDir));
           }
         }
 
@@ -162,7 +164,8 @@ export const getModulesDirs = (
           // path doesn't exist, skip
         }
         if (pathExists) {
-          modulesDirs.push(modulesDir);
+          // Normalize path to ensure consistent format (especially Windows drive letter casing)
+          modulesDirs.push(utils.normalizePath(modulesDir));
         }
       }
       break;
@@ -180,7 +183,8 @@ export const getModulesDirs = (
           // path doesn't exist, skip
         }
         if (pathExists) {
-          modulesDirs.push(modulesDir);
+          // Normalize path to ensure consistent format (especially Windows drive letter casing)
+          modulesDirs.push(utils.normalizePath(modulesDir));
         }
       }
       break;
