@@ -61,9 +61,20 @@ export class ApexTestRunner {
     }
 
     if (testNode.location) {
-      vscode.window.showTextDocument(testNode.location.uri).then(() => {
-        this.eventsEmitter.emit('sf:update_selection', position);
-      });
+      // Use the location's range directly for navigation
+      const location = testNode.location;
+      console.debug(
+        `Navigating to ${location.uri.toString()} at ${location.range.start.line}:${location.range.start.character}`
+      );
+      vscode.window
+        .showTextDocument(location.uri, {
+          selection: location.range,
+          preserveFocus: false
+        })
+        .then(() => {
+          // Also emit the selection event for compatibility
+          this.eventsEmitter.emit('sf:update_selection', position);
+        });
     }
   }
 
