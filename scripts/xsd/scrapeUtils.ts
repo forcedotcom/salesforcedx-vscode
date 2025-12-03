@@ -1,5 +1,8 @@
-/**
- * Shared utilities for metadata scraping scripts
+/*
+ * Copyright (c) 2025, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
 import { Page } from 'playwright';
@@ -43,27 +46,10 @@ export const loadMetadataPage = async (
     console.log(`${indent.slice(0, -2)}📄 Loading: ${url}`);
 
     // Strategy 1: Load page with domcontentloaded
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
-
-    // Strategy 2: Handle cookie consent FIRST
-    try {
-      const cookieButton = page.locator(
-        'button:has-text("Accept All"), button:has-text("Accept"), button:has-text("Agree")'
-      );
-      // Wait for cookie button to appear, but don't block too long
-      await cookieButton.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
-      if (await cookieButton.isVisible({ timeout: 500 })) {
-        await cookieButton.click();
-        console.log(`${indent}✓ Accepted cookies`);
-        // Wait for any cookie-related redirects/animations to complete
-        await page.waitForLoadState('domcontentloaded', { timeout: 3000 }).catch(() => {});
-      }
-    } catch {
-      // No cookie banner
-    }
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
 
     // Strategy 3: Wait for network to settle
-    await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
 
     // Strategy 4: Wait for the main content frame to appear
     console.log(`${indent}⏳ Waiting for content frame...`);
@@ -84,14 +70,14 @@ export const loadMetadataPage = async (
                 if (frames[i].location.href.includes(expectedUrl)) {
                   return true;
                 }
-              } catch (e) {
+              } catch {
                 // Cross-origin frame, skip
               }
             }
             return false;
           },
           expectedPage,
-          { timeout: 10000 }
+          { timeout: 10_000 }
         )
         .catch(() => {});
     } catch {
@@ -124,8 +110,8 @@ export const loadMetadataPage = async (
     console.log(`${indent}⏳ Waiting for tables to appear...`);
 
     // Helper function to count tables including those in shadow DOMs
-    const countTables = async (frame: any): Promise<number> => {
-      return frame.evaluate(() => {
+    const countTables = async (frame: any): Promise<number> =>
+      frame.evaluate(() => {
         const countTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): number => {
           let count = root.querySelectorAll('table').length;
           const elements = root.querySelectorAll('*');
@@ -138,7 +124,6 @@ export const loadMetadataPage = async (
         };
         return countTablesIncludingShadowDOM(document);
       });
-    };
 
     // Wait for at least one table with the expected structure to appear
     try {
@@ -180,12 +165,12 @@ export const loadMetadataPage = async (
 
           return checkForMetadataTables(document);
         },
-        { timeout: 20000 }
+        { timeout: 20_000 }
       );
 
       const tableCount = await countTables(contentFrame);
       console.log(`${indent}✅ Ready to extract (${tableCount} tables found)`);
-    } catch (error) {
+    } catch {
       // If waiting for tables times out, try scrolling to trigger lazy loading
       console.log(`${indent}⏳ Tables not immediately visible, trying scroll trigger...`);
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
@@ -225,15 +210,15 @@ const cleanDescription = (text: string): string => {
 
   // Replace \n followed by any number of spaces or tabs with a single space
   return text
-    .replace(/\n[\s\t]+/g, ' ')
-    .replace(/\s+/g, ' ') // Also normalize multiple spaces to single space
+    .replaceAll(/\n[\s\t]+/g, ' ')
+    .replaceAll(/\s+/g, ' ') // Also normalize multiple spaces to single space
     .trim();
 };
 
 /** Extract type name from array notation (e.g., "AssignmentRule[]" -> "AssignmentRule") */
 const extractArrayTypeName = (fieldType: string): string | null => {
   // Remove zero-width characters that might be in the type name
-  const cleanType = fieldType.replace(/[\u200B-\u200D\uFEFF]/g, '');
+  const cleanType = fieldType.replaceAll(/[\u200B-\u200D\uFEFF]/g, '');
   const match = cleanType.match(/^([A-Z][a-zA-Z0-9_]+)\[\]$/);
   return match ? match[1] : null;
 };
@@ -249,7 +234,7 @@ const extractComplexTypeName = (fieldType: string): string | null => {
   let cleanType = fieldType.split('(')[0].trim();
 
   // Remove any zero-width or special Unicode characters
-  cleanType = cleanType.replace(/[\u200B-\u200D\uFEFF]/g, '');
+  cleanType = cleanType.replaceAll(/[\u200B-\u200D\uFEFF]/g, '');
 
   // Match types that start with capital letter and are not primitives
   const primitives = ['string', 'boolean', 'int', 'double', 'date', 'datetime', 'long'];
@@ -271,22 +256,22 @@ export const extractMetadataFromPage = async (
   contentFrame: any,
   url: string,
   typeName: string
-): Promise<Array<{ name: string; data: MetadataType }>> => {
+): Promise<{ name: string; data: MetadataType }[]> => {
   try {
     // Extract fields from ALL tables (each table is a separate metadata type)
     // We'll extract descriptions per-table instead of one for the whole page
     const allTableFields = await contentFrame.evaluate(() => {
-      const tablesData: Array<{
-        fields: Array<{
+      const tablesData: {
+        fields: {
           Description: string;
           'Field Name': string;
           'Field Type': string;
-        }>;
+        }[];
         tableName: string;
         tableDescription: string;
         pageTitle: string;
         pageLevelDescription: string;
-      }> = [];
+      }[] = [];
 
       // Get the page title (from h1, or from title element, or from first h2)
       let pageTitle = '';
@@ -325,7 +310,7 @@ export const extractMetadataFromPage = async (
       // Helper to search including shadow DOMs
       const findInShadowDOM = (selector: string): Element | null => {
         // Try regular DOM first
-        let found = document.querySelector(selector);
+        const found = document.querySelector(selector);
         if (found) return found;
 
         // Search shadow DOMs
@@ -581,11 +566,11 @@ export const extractMetadataFromPage = async (
 
         // Extract rows for this table
         const rows = Array.from(table.querySelectorAll('tbody tr, tr:not(:first-child)'));
-        const tableFields: Array<{
+        const tableFields: {
           Description: string;
           'Field Name': string;
           'Field Type': string;
-        }> = [];
+        }[] = [];
 
         for (const row of rows) {
           const cells = Array.from(row.querySelectorAll('td, th'));
@@ -618,7 +603,7 @@ export const extractMetadataFromPage = async (
                   while (nextSibling && nextSibling.tagName !== 'DD' && nextSibling.tagName !== 'DT') {
                     nextSibling = nextSibling.nextElementSibling;
                   }
-                  if (nextSibling && nextSibling.tagName === 'DD') {
+                  if (nextSibling?.tagName === 'DD') {
                     fieldType = nextSibling.textContent?.trim();
                     break;
                   }
@@ -724,10 +709,10 @@ export const extractMetadataFromPage = async (
         if (tableFields.length > 0) {
           tablesData.push({
             fields: tableFields,
-            tableName: tableName,
-            tableDescription: tableDescription,
-            pageTitle: pageTitle,
-            pageLevelDescription: pageLevelDescription
+            tableName,
+            tableDescription,
+            pageTitle,
+            pageLevelDescription
           });
         }
       }
@@ -736,7 +721,7 @@ export const extractMetadataFromPage = async (
     });
 
     // Create a separate metadata type entry for each table
-    const results: Array<{ name: string; data: MetadataType }> = [];
+    const results: { name: string; data: MetadataType }[] = [];
 
     if (allTableFields.length === 0) {
       return [];
@@ -765,7 +750,7 @@ export const extractMetadataFromPage = async (
           url: url.split('#')[0] // Strip hash fragment if present
         }
       });
-      console.log('Newest entry ONE TABLE:', JSON.stringify(results[results.length - 1], null, 2));
+      console.log('Newest entry ONE TABLE:', JSON.stringify(results.at(-1), null, 2));
     } else {
       // Multiple tables - use actual table names or infer from field types
       for (let i = 0; i < allTableFields.length; i++) {
@@ -854,7 +839,7 @@ export const extractMetadataFromPage = async (
             url: url.split('#')[0] // Strip hash fragment if present (all tables share the same base URL)
           }
         });
-        console.log('Newest entry MULTIPLE TABLES:', JSON.stringify(results[results.length - 1], null, 2));
+        console.log('Newest entry MULTIPLE TABLES:', JSON.stringify(results.at(-1), null, 2));
       }
     }
 
