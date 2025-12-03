@@ -173,16 +173,57 @@ const discoverMetadataTypes = async (page: Page): Promise<{ name: string; url: s
   }
 };
 
+/** Context pool for dynamic work distribution */
+class ContextPool {
+  private contexts: any[];
+  private availableSlots: number[];
+
+  constructor(contexts: any[], maxSlotsPerContext: number) {
+    this.contexts = contexts;
+    // Track available slots per context
+    this.availableSlots = contexts.map(() => maxSlotsPerContext);
+  }
+
+  /** Acquire a context (returns context and its index) */
+  public async acquire(): Promise<{ context: any; index: number }> {
+    // Find first context with available slots
+    while (true) {
+      for (let i = 0; i < this.contexts.length; i++) {
+        if (this.availableSlots[i] > 0) {
+          this.availableSlots[i]--;
+          return { context: this.contexts[i], index: i };
+        }
+      }
+      // If no slots available, wait a bit and retry
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+  }
+
+  /** Release a context slot */
+  public release(index: number): void {
+    this.availableSlots[index]++;
+  }
+
+  /** Get current slot availability for stats */
+  public getAvailability(): number[] {
+    return [...this.availableSlots];
+  }
+}
+
 /**
- * Scrapes a single metadata type with its own page instance
+ * Scrapes a single metadata type with dynamic context acquisition
+ * Acquires an available context from the pool when the task starts
  */
 const scrapeMetadataTypeWithContext = async (
-  context: any,
+  contextPool: ContextPool,
   type: { name: string; url: string },
   index: number,
   total: number,
   isVisible: boolean
-): Promise<{ success: boolean; results: { name: string; data: MetadataType }[] }> => {
+): Promise<{ success: boolean; results: { name: string; data: MetadataType }[]; contextIndex: number }> => {
+  // Dynamically acquire an available context when this task starts
+  const { context, index: contextIndex } = await contextPool.acquire();
+
   const page = await context.newPage();
 
   // Comprehensive anti-detection
@@ -222,32 +263,36 @@ const scrapeMetadataTypeWithContext = async (
   });
 
   try {
-    console.log(`[${index + 1}/${total}] ${type.name}`);
+    console.log(`[${index + 1}/${total}] ${type.name} → Browser ${contextIndex + 1}`);
     const pageResults = await scrapeMetadataType(page, type.name, type.url, isVisible);
 
     if (pageResults.length > 0) {
       console.log(`     ✓ ${type.name} completed successfully`);
-      return { success: true, results: pageResults };
+      return { success: true, results: pageResults, contextIndex };
     } else {
       console.log(`     ⚠️  ${type.name} returned no results`);
-      return { success: false, results: [] };
+      return { success: false, results: [], contextIndex };
     }
   } catch (error: any) {
     console.log(`     ❌ ${type.name} failed: ${error.message}`);
-    return { success: false, results: [] };
+    return { success: false, results: [], contextIndex };
   } finally {
     await page.close();
+    // Release context back to pool
+    contextPool.release(contextIndex);
   }
 };
 
 /**
- * Process metadata types using Effect queue system with concurrency control
+ * Process metadata types using Effect queue system with dynamic work distribution
+ * All browsers share a single queue - work is distributed as capacity becomes available
+ * Uses a context pool for true dynamic load balancing
  */
 const scrapeInBatches = async (
-  context: any,
+  contextPool: ContextPool,
   typesToScrape: { name: string; url: string }[],
   isVisible: boolean,
-  concurrencyLimit: number = 20
+  concurrencyLimit: number = 100
 ): Promise<{
   results: MetadataTypesMap;
   successCount: number;
@@ -255,6 +300,7 @@ const scrapeInBatches = async (
   slowestType: { name: string; duration: number } | null;
   fastestType: { name: string; duration: number } | null;
   averageDuration: number;
+  perBrowserStats: { successCount: number; failCount: number }[];
 }> => {
   const results: MetadataTypesMap = {};
   let successCount = 0;
@@ -265,8 +311,15 @@ const scrapeInBatches = async (
   let fastestType: { name: string; duration: number } | null = null;
   let totalDuration = 0;
 
+  // Track per-browser statistics - dynamically allocated
+  const numBrowsers = contextPool['contexts'].length;
+  const perBrowserStats: { successCount: number; failCount: number }[] = Array.from({ length: numBrowsers }, () => ({
+    successCount: 0,
+    failCount: 0
+  }));
+
   console.log(
-    `\n🚀 Processing ${totalMetadataTypes} metadata types with concurrency limit of ${concurrencyLimit}...\n`
+    `\n🚀 Processing ${totalMetadataTypes} metadata types with shared queue (concurrency limit: ${concurrencyLimit})...\n`
   );
 
   /** Wrap scraping logic in an Effect */
@@ -274,7 +327,7 @@ const scrapeInBatches = async (
     Effect.tryPromise({
       try: async () => {
         const typeStartTime = Date.now();
-        const result = await scrapeMetadataTypeWithContext(context, type, index, totalMetadataTypes, isVisible);
+        const result = await scrapeMetadataTypeWithContext(contextPool, type, index, totalMetadataTypes, isVisible);
         const typeEndTime = Date.now();
         const duration = typeEndTime - typeStartTime;
 
@@ -291,6 +344,13 @@ const scrapeInBatches = async (
         // Accumulate total duration
         totalDuration += duration;
 
+        // Update per-browser stats
+        if (result.success) {
+          perBrowserStats[result.contextIndex].successCount++;
+        } else {
+          perBrowserStats[result.contextIndex].failCount++;
+        }
+
         completed++;
         const progress = ((completed / totalMetadataTypes) * 100).toFixed(1);
         console.log(
@@ -305,7 +365,7 @@ const scrapeInBatches = async (
   /** Create all effects with concurrency control */
   const effects = typesToScrape.map((type, index) => scrapeTypeEffect(type, index));
 
-  /** Process all types with concurrency control using Effect.all */
+  /** Process all types with concurrency control using Effect.all - single shared queue */
   const program = Effect.all(effects, { concurrency: concurrencyLimit }).pipe(
     Effect.map(allResults => {
       // Collect results
@@ -320,7 +380,7 @@ const scrapeInBatches = async (
         }
       }
       const averageDuration = totalMetadataTypes > 0 ? totalDuration / totalMetadataTypes : 0;
-      return { results, successCount, failCount, slowestType, fastestType, averageDuration };
+      return { results, successCount, failCount, slowestType, fastestType, averageDuration, perBrowserStats };
     }),
     // Catch any errors and return partial results
     Effect.catchAll(_error => {
@@ -331,28 +391,14 @@ const scrapeInBatches = async (
         failCount: failCount + (totalMetadataTypes - successCount - failCount),
         slowestType,
         fastestType,
-        averageDuration
+        averageDuration,
+        perBrowserStats
       });
     })
   );
 
   // Run the Effect program
   return Effect.runPromise(program);
-};
-
-/** Split an array into N roughly equal chunks */
-const chunkArray = <T>(array: T[], numChunks: number): T[][] => {
-  if (numChunks <= 0 || array.length === 0) return [array];
-  if (numChunks >= array.length) return array.map(item => [item]);
-
-  const chunks: T[][] = [];
-  const chunkSize = Math.ceil(array.length / numChunks);
-
-  for (let i = 0; i < array.length; i += chunkSize) {
-    chunks.push(array.slice(i, i + chunkSize));
-  }
-
-  return chunks;
 };
 
 /** Create a browser context with standard configuration */
@@ -383,9 +429,12 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
   const totalConcurrency = numBrowsers * concurrencyPerBrowser;
 
   console.log(`🚀 Starting Salesforce Metadata API scraper${isVisible ? ' (VISIBLE MODE)' : ''}...\n`);
-  console.log(
-    `🌐 Configuration: ${numBrowsers} browsers × ${concurrencyPerBrowser} concurrent tabs = ${totalConcurrency} total workers\n`
-  );
+  console.log('🌐 Configuration:');
+  console.log(`   • Worker pool: ${numBrowsers} browser instances`);
+  console.log(`   • Capacity: ${concurrencyPerBrowser} concurrent tabs per browser`);
+  console.log(`   • Total workers: ${totalConcurrency} (shared queue)`);
+  console.log('   • Load balancing: Dynamic context acquisition');
+  console.log('   • Fast browsers will process more tasks than slow ones\n');
 
   // Step 1: Launch a single browser for discovery
   console.log('🔍 Launching discovery browser...');
@@ -479,66 +528,34 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
   console.log('✅ All contexts created\n');
 
   try {
-    // Step 4: Split work across browsers
-    const workChunks = chunkArray(typesToScrape, numBrowsers);
+    // Step 4: Create context pool for dynamic work distribution
+    const contextPool = new ContextPool(contexts, concurrencyPerBrowser);
+    console.log('📦 Work distribution: Dynamic (context pool with true load balancing)\n');
+    console.log(`   Each browser can handle up to ${concurrencyPerBrowser} concurrent tasks`);
+    console.log('   Workers acquire contexts dynamically as they become available\n');
 
-    console.log('📦 Work distribution:');
-    workChunks.forEach((chunk, i) => {
-      console.log(
-        `   Browser ${i + 1}: ${chunk.length} types (${((chunk.length / typesToScrape.length) * 100).toFixed(1)}%)`
-      );
-    });
-    console.log('');
-
-    // Step 5: Process all chunks in parallel, each browser with its own concurrency
     const scrapeStartTime = Date.now();
-    const allResults = await Promise.all(
-      workChunks.map(async (chunk, browserIndex) => {
-        console.log(`🌐 Browser ${browserIndex + 1} starting with ${chunk.length} types...\n`);
-        return scrapeInBatches(contexts[browserIndex], chunk, isVisible, concurrencyPerBrowser);
-      })
-    );
+    const {
+      results: mergedResults,
+      successCount: totalSuccess,
+      failCount: totalFail,
+      slowestType: globalSlowestType,
+      fastestType: globalFastestType,
+      averageDuration: globalAverageDuration,
+      perBrowserStats
+    } = await scrapeInBatches(contextPool, typesToScrape, isVisible, totalConcurrency);
 
     const scrapeEndTime = Date.now();
 
-    // Step 6: Merge results from all browsers
-    console.log('\n📊 Merging results from all browsers...');
-    const mergedResults: MetadataTypesMap = {};
-    let totalSuccess = 0;
-    let totalFail = 0;
-    let globalSlowestType: { name: string; duration: number } | null = null;
-    let globalFastestType: { name: string; duration: number } | null = null;
-    let totalDuration = 0;
-    let totalTypes = 0;
-
-    allResults.forEach((result, browserIndex) => {
-      // Merge metadata results
-      Object.assign(mergedResults, result.results);
-
-      // Aggregate statistics
-      totalSuccess += result.successCount;
-      totalFail += result.failCount;
-      totalDuration += result.averageDuration * (result.successCount + result.failCount);
-      totalTypes += result.successCount + result.failCount;
-
-      // Track global slowest
-      if (result.slowestType !== null) {
-        if (globalSlowestType === null || result.slowestType.duration > globalSlowestType.duration) {
-          globalSlowestType = result.slowestType;
-        }
-      }
-
-      // Track global fastest
-      if (result.fastestType !== null) {
-        if (globalFastestType === null || result.fastestType.duration < globalFastestType.duration) {
-          globalFastestType = result.fastestType;
-        }
-      }
-
-      console.log(`   Browser ${browserIndex + 1}: ✅ ${result.successCount} success, ❌ ${result.failCount} failed`);
+    // Display per-browser statistics
+    console.log('\n📊 Per-browser statistics (dynamic distribution):');
+    perBrowserStats.forEach((stats, browserIndex) => {
+      const totalForBrowser = stats.successCount + stats.failCount;
+      const percentage = ((totalForBrowser / typesToScrape.length) * 100).toFixed(1);
+      console.log(
+        `   Browser ${browserIndex + 1}: ${totalForBrowser} types (${percentage}%) - ✅ ${stats.successCount} success, ❌ ${stats.failCount} failed`
+      );
     });
-
-    const globalAverageDuration = totalTypes > 0 ? totalDuration / totalTypes : 0;
 
     // Save results
     const outputPath =
@@ -549,9 +566,9 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
     const scrapeElapsedTime = formatElapsedTime(scrapeStartTime, scrapeEndTime);
 
     console.log('\n=== Summary ===');
-    console.log(`🌐 Browsers used: ${numBrowsers}`);
-    console.log(`🔄 Concurrency per browser: ${concurrencyPerBrowser}`);
-    console.log(`⚡ Total concurrency: ${totalConcurrency}`);
+    console.log(
+      `🌐 Worker pool: ${numBrowsers} browsers × ${concurrencyPerBrowser} tabs = ${totalConcurrency} total workers`
+    );
     console.log(`📋 Discovered: ${metadataTypes.length} metadata types`);
     console.log(`🎯 Attempted: ${typesToScrape.length}`);
     console.log(`✅ Success: ${totalSuccess}`);
@@ -609,6 +626,18 @@ Environment Variables:
   NUM_BROWSERS=5                      # Number of parallel browser instances (default: 5)
   BATCH_SIZE=20                       # Concurrency per browser (default: 20)
                                       # Total concurrency = NUM_BROWSERS × BATCH_SIZE
+                                      # Work is distributed dynamically via shared queue
+
+Work Distribution:
+  True dynamic load balancing with context pool. When ANY worker finishes a task,
+  it acquires the next available browser context and processes the next job from
+  the shared queue. Fast browsers naturally process more tasks than slow ones.
+
+  Example: With 20 total jobs and 2 browsers:
+  - Browser 1 gets 3 slow jobs → processes only 3 tasks total
+  - Browser 2 gets fast jobs → processes remaining 17 tasks
+
+  This maximizes throughput and eliminates idle time.
 
 Examples:
   NUM_BROWSERS=5 BATCH_SIZE=20 npm run scrape:all:pages     # 100 total workers (5 × 20)
