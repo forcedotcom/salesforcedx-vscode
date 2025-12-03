@@ -163,6 +163,12 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
         console.log(
           `[findFilesWithGlob] MATCHED: ${fileUri} (relative: ${relativePath}, matchesRelative: ${matchesRelative}, matchesAbsolute: ${matchesAbsolute})`
         );
+        // Log which specific pattern matched
+        for (let i = 0; i < regexes.length; i++) {
+          if (regexes[i].test(relativePath) || regexes[i].test(fileUri)) {
+            console.log(`[findFilesWithGlob] Matched pattern ${i}: ${patterns[i]}`);
+          }
+        }
       }
       const fileStat = fileSystemProvider.getFileStat(fileUri);
       results.push({
@@ -176,6 +182,16 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
     } else if (filesInWorkspace <= 10) {
       // Log first 10 files in workspace that didn't match (for debugging)
       console.log(`[findFilesWithGlob] IN WORKSPACE BUT NO MATCH: ${fileUri} (relative: ${relativePath})`);
+      // Log why it didn't match - test each pattern
+      for (let i = 0; i < regexes.length; i++) {
+        const relativeMatch = regexes[i].test(relativePath);
+        const absoluteMatch = regexes[i].test(fileUri);
+        if (!relativeMatch && !absoluteMatch) {
+          console.log(
+            `[findFilesWithGlob] Pattern ${i} (${patterns[i]}) did not match relative (${relativePath}) or absolute (${fileUri})`
+          );
+        }
+      }
     }
   }
 
@@ -234,6 +250,11 @@ export default class ComponentIndexer {
         console.log(`[ComponentIndexer.getComponentEntries] packageDirsPattern: ${packageDirsPattern}`);
         files = await findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot);
         console.log(`[ComponentIndexer.getComponentEntries] Found ${files.length} files before filtering`);
+        if (files.length > 0 && files.length <= 10) {
+          console.log(
+            `[ComponentIndexer.getComponentEntries] Files before filtering: ${files.map(f => f.path).join(', ')}`
+          );
+        }
         const filteredFiles = files.filter((item: Entry): boolean => {
           const data = path.parse(item.path);
           const dirEndsWithName = data.dir.endsWith(data.name);
@@ -242,10 +263,20 @@ export default class ComponentIndexer {
             console.log(
               `[ComponentIndexer.getComponentEntries] FILTERED (dir doesn't end with name): ${item.path} (dir: ${data.dir}, name: ${data.name})`
             );
+          } else if (dirEndsWithName && files.length <= 10) {
+            // Log files that pass the filter
+            console.log(
+              `[ComponentIndexer.getComponentEntries] PASSED (dir ends with name): ${item.path} (dir: ${data.dir}, name: ${data.name})`
+            );
           }
           return dirEndsWithName;
         });
         console.log(`[ComponentIndexer.getComponentEntries] Found ${filteredFiles.length} files after filtering`);
+        if (filteredFiles.length > 0 && filteredFiles.length <= 10) {
+          console.log(
+            `[ComponentIndexer.getComponentEntries] Files after filtering: ${filteredFiles.map(f => f.path).join(', ')}`
+          );
+        }
         return filteredFiles;
       default:
         // For CORE_ALL and CORE_PARTIAL
@@ -254,6 +285,11 @@ export default class ComponentIndexer {
         console.log(`[ComponentIndexer.getComponentEntries] CORE pattern: ${defaultPattern}`);
         files = await findFilesWithGlob(defaultPattern, this.fileSystemProvider, this.workspaceRoot);
         console.log(`[ComponentIndexer.getComponentEntries] Found ${files.length} files before filtering`);
+        if (files.length > 0 && files.length <= 10) {
+          console.log(
+            `[ComponentIndexer.getComponentEntries] Files before filtering: ${files.map(f => f.path).join(', ')}`
+          );
+        }
         const filteredFilesDefault = files.filter((item: Entry): boolean => {
           const data = path.parse(item.path);
           const dirEndsWithName = data.dir.endsWith(data.name);
@@ -262,12 +298,22 @@ export default class ComponentIndexer {
             console.log(
               `[ComponentIndexer.getComponentEntries] FILTERED (dir doesn't end with name): ${item.path} (dir: ${data.dir}, name: ${data.name})`
             );
+          } else if (dirEndsWithName && files.length <= 10) {
+            // Log files that pass the filter
+            console.log(
+              `[ComponentIndexer.getComponentEntries] PASSED (dir ends with name): ${item.path} (dir: ${data.dir}, name: ${data.name})`
+            );
           }
           return dirEndsWithName;
         });
         console.log(
           `[ComponentIndexer.getComponentEntries] Found ${filteredFilesDefault.length} files after filtering`
         );
+        if (filteredFilesDefault.length > 0 && filteredFilesDefault.length <= 10) {
+          console.log(
+            `[ComponentIndexer.getComponentEntries] Files after filtering: ${filteredFilesDefault.map(f => f.path).join(', ')}`
+          );
+        }
         return filteredFilesDefault;
     }
   }
@@ -473,24 +519,39 @@ export default class ComponentIndexer {
     const unIndexedFilesResult = await this.getUnIndexedFiles();
     console.log(`[ComponentIndexer.init] Processing ${unIndexedFilesResult.length} unindexed files`);
 
+    console.log(
+      `[ComponentIndexer.init] Processing ${unIndexedFilesResult.length} unindexed files: ${unIndexedFilesResult.map(e => e.path).join(', ')}`
+    );
     const promises = unIndexedFilesResult.map(entry =>
       createTagFromFile(entry.path, this.fileSystemProvider, entry.stats?.mtime)
     );
     const tags = await Promise.all(promises);
 
-    const validTags = tags.filter(Boolean);
-    console.log(`[ComponentIndexer.init] Created ${validTags.length} tags from unindexed files`);
-    if (validTags.length > 0) {
+    // Log which files succeeded and which failed
+    const validTags: Tag[] = [];
+    const failedFiles: string[] = [];
+    tags.forEach((tag, index) => {
+      if (tag) {
+        validTags.push(tag);
+      } else {
+        failedFiles.push(unIndexedFilesResult[index].path);
+      }
+    });
+    console.log(
+      `[ComponentIndexer.init] Created ${validTags.length} tags from ${unIndexedFilesResult.length} unindexed files`
+    );
+    if (failedFiles.length > 0) {
       console.log(
-        `[ComponentIndexer.init] Valid tag names: ${validTags.map(tag => (tag ? getTagName(tag) : 'null')).join(', ')}`
+        `[ComponentIndexer.init] Failed to create tags from ${failedFiles.length} files: ${failedFiles.join(', ')}`
       );
     }
+    if (validTags.length > 0) {
+      console.log(`[ComponentIndexer.init] Valid tag names: ${validTags.map(tag => getTagName(tag)).join(', ')}`);
+    }
     validTags.forEach(tag => {
-      if (tag) {
-        const tagName = getTagName(tag);
-        this.tags.set(tagName, tag);
-        console.log(`[ComponentIndexer.init] Added tag to map: ${tagName} (file: ${tag.file})`);
-      }
+      const tagName = getTagName(tag);
+      this.tags.set(tagName, tag);
+      console.log(`[ComponentIndexer.init] Added tag to map: ${tagName} (file: ${tag.file})`);
     });
 
     const staleTags = await this.getStaleTags();

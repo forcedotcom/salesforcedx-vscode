@@ -151,7 +151,7 @@ export default class Server {
   }
 
   public async onInitialize(params: InitializeParams): Promise<InitializeResult> {
-    console.log(`[onInitialize] Starting initialization`);
+    console.log('[onInitialize] Starting initialization');
     this.workspaceFolders = params.workspaceFolders ?? [];
     // Normalize workspaceRoots at entry point to ensure all paths are consistent
     // This ensures all downstream code receives normalized paths
@@ -164,13 +164,13 @@ export default class Server {
     this.documents.onDidSave(changeEvent => this.onDidSave(changeEvent));
 
     this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
-    console.log(`[onInitialize] Created LWCWorkspaceContext`);
+    console.log('[onInitialize] Created LWCWorkspaceContext');
 
     this.componentIndexer = new ComponentIndexer({
       workspaceRoot: this.workspaceRoots[0],
       fileSystemProvider: this.fileSystemProvider
     });
-    console.log(`[onInitialize] Created ComponentIndexer`);
+    console.log('[onInitialize] Created ComponentIndexer');
 
     this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
     this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
@@ -181,12 +181,12 @@ export default class Server {
     });
 
     await this.context.initialize();
-    console.log(`[onInitialize] Context initialized`);
+    console.log('[onInitialize] Context initialized');
     this.context.configureProject();
-    console.log(`[onInitialize] Project configured`);
+    console.log('[onInitialize] Project configured');
 
     // Initialize componentIndexer to get workspace structure
-    console.log(`[onInitialize] Starting componentIndexer.init()`);
+    console.log('[onInitialize] Starting componentIndexer.init()');
     await this.componentIndexer.init();
     const tagsAfterInit = this.componentIndexer.getCustomData();
     console.log(`[onInitialize] componentIndexer.init() complete. Total tags: ${tagsAfterInit.length}`);
@@ -242,13 +242,17 @@ export default class Server {
       return;
     }
 
-    console.log(`[onCompletion] Processing completion for uri: ${uri}, position: ${position.line}:${position.character}`);
+    console.log(
+      `[onCompletion] Processing completion for uri: ${uri}, position: ${position.line}:${position.character}`
+    );
     const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
 
     const isLWCTemplate = await this.context.isLWCTemplate(doc);
     const isLWCJavascript = await this.context.isLWCJavascript(doc);
     const isAuraMarkup = await this.context.isAuraMarkup(doc);
-    console.log(`[onCompletion] Document type - isLWCTemplate: ${isLWCTemplate}, isLWCJavascript: ${isLWCJavascript}, isAuraMarkup: ${isAuraMarkup}`);
+    console.log(
+      `[onCompletion] Document type - isLWCTemplate: ${isLWCTemplate}, isLWCJavascript: ${isLWCJavascript}, isAuraMarkup: ${isAuraMarkup}`
+    );
 
     if (isLWCTemplate) {
       this.auraDataProvider.activated = false; // provide completions for lwc components in an Aura template
@@ -258,6 +262,11 @@ export default class Server {
         console.log(`[onCompletion] LWC template - finding bind items for basename: ${docBasename}`);
         const customTags: CompletionItem[] = this.findBindItems(docBasename);
         console.log(`[onCompletion] LWC template - found ${customTags.length} bind items`);
+        if (customTags.length > 0 && customTags.length <= 20) {
+          console.log(
+            `[onCompletion] LWC template - bind item labels: ${customTags.map(item => item.label).join(', ')}`
+          );
+        }
         return {
           isIncomplete: false,
           items: customTags
@@ -265,35 +274,62 @@ export default class Server {
       }
     } else if (isLWCJavascript) {
       const shouldComplete = this.shouldCompleteJavascript(params);
-      console.log(`[onCompletion] LWC JavaScript - shouldCompleteJavascript: ${shouldComplete}, triggerCharacter: ${params.context?.triggerCharacter}`);
+      console.log(
+        `[onCompletion] LWC JavaScript - shouldCompleteJavascript: ${shouldComplete}, triggerCharacter: ${params.context?.triggerCharacter}`
+      );
       if (shouldComplete) {
         const customData = this.componentIndexer.getCustomData();
-        console.log(`[onCompletion] LWC JavaScript - componentIndexer.getCustomData() returned ${customData.length} tags`);
+        console.log(
+          `[onCompletion] LWC JavaScript - componentIndexer.getCustomData() returned ${customData.length} tags`
+        );
         if (customData.length > 0) {
-          console.log(`[onCompletion] LWC JavaScript - tag names: ${customData.map(tag => getTagName(tag)).join(', ')}`);
+          console.log(
+            `[onCompletion] LWC JavaScript - tag names: ${customData.map(tag => getTagName(tag)).join(', ')}`
+          );
         }
         const customTags = customData.map(tag => ({
           label: getLwcTypingsName(tag),
           kind: CompletionItemKind.Folder
         }));
         console.log(`[onCompletion] LWC JavaScript - returning ${customTags.length} completion items`);
+        if (customTags.length > 0 && customTags.length <= 20) {
+          console.log(
+            `[onCompletion] LWC JavaScript - completion item labels: ${customTags.map(item => item.label).join(', ')}`
+          );
+        }
         return {
           isIncomplete: false,
           items: customTags
         };
       } else {
-        console.log(`[onCompletion] LWC JavaScript - shouldCompleteJavascript returned false, returning undefined`);
+        console.log('[onCompletion] LWC JavaScript - shouldCompleteJavascript returned false, returning undefined');
         return;
       }
     } else if (isAuraMarkup) {
       this.auraDataProvider.activated = true;
       this.lwcDataProvider.activated = false;
     } else {
-      console.log(`[onCompletion] Document type not recognized, returning undefined`);
+      console.log('[onCompletion] Document type not recognized, returning undefined');
       return;
     }
 
-    return this.languageService.doComplete(doc, position, htmlDoc);
+    const languageServiceResult = this.languageService.doComplete(doc, position, htmlDoc);
+    console.log(
+      `[onCompletion] languageService.doComplete returned ${languageServiceResult?.items?.length ?? 0} items`
+    );
+    if (
+      languageServiceResult?.items &&
+      languageServiceResult.items.length > 0 &&
+      languageServiceResult.items.length <= 20
+    ) {
+      console.log(
+        `[onCompletion] languageService completion item labels: ${languageServiceResult.items
+          .slice(0, 10)
+          .map(item => item.label)
+          .join(', ')}`
+      );
+    }
+    return languageServiceResult;
   }
 
   public shouldProvideBindingsInHTML(params: CompletionParams): boolean {
@@ -323,10 +359,17 @@ export default class Server {
   }
 
   public findBindItems(docBasename: string): CompletionItem[] {
+    console.log(`[findBindItems] Looking for bind items for docBasename: ${docBasename}`);
     const customTags: CompletionItem[] = [];
-    this.componentIndexer.getCustomData().forEach(tag => {
-      if (getTagName(tag) === docBasename) {
-        getClassMembers(tag).forEach(cm => {
+    const allTags = this.componentIndexer.getCustomData();
+    console.log(`[findBindItems] Checking ${allTags.length} tags for match with basename: ${docBasename}`);
+    allTags.forEach(tag => {
+      const tagName = getTagName(tag);
+      if (tagName === docBasename) {
+        console.log(`[findBindItems] Found matching tag: ${tagName}, getting class members`);
+        const classMembers = getClassMembers(tag);
+        console.log(`[findBindItems] Found ${classMembers.length} class members for tag ${tagName}`);
+        classMembers.forEach(cm => {
           const bindName = `${getTagName(tag)}.${cm.name}`;
           const kind = cm.type === 'method' ? CompletionItemKind.Function : CompletionItemKind.Property;
           const detail = cm.decorator ? `@${cm.decorator}` : '';
@@ -334,6 +377,7 @@ export default class Server {
         });
       }
     });
+    console.log(`[findBindItems] Returning ${customTags.length} bind items`);
     return customTags;
   }
 
