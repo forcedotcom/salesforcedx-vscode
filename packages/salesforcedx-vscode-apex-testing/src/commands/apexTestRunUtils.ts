@@ -15,8 +15,8 @@ import {
 } from '@salesforce/apex-node';
 import { channelService } from 'salesforcedx-vscode-apex/src/channels';
 import { getVscodeCoreExtension } from 'salesforcedx-vscode-apex/src/coreExtensionUtils';
-import { getTelemetryService } from 'salesforcedx-vscode-apex/src/telemetry/telemetry';
 import { CancellationToken } from 'vscode';
+import { telemetryService } from '../telemetry/telemetry';
 
 type ApexTestRunOptions = {
   payload: AsyncTestConfiguration;
@@ -70,7 +70,7 @@ export const runApexTests = async (
 
   const durationMs = Date.now() - startTime;
   const summary = result.summary;
-  getTelemetryService().sendEventData(
+  telemetryService.sendEventData(
     'apexTestRun',
     { trigger: options.telemetryTrigger },
     {
