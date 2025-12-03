@@ -300,7 +300,7 @@ export const createTagFromFile = async (
 ): Promise<Tag | null> => {
   console.log(`[createTagFromFile] Attempting to create tag from file: ${file}`);
   if (file === '' || file.length === 0) {
-    console.log(`[createTagFromFile] File is empty, returning null`);
+    console.log('[createTagFromFile] File is empty, returning null');
     return null;
   }
   const filePath = path.parse(file);
@@ -317,20 +317,28 @@ export const createTagFromFile = async (
     console.log(`[createTagFromFile] File content length: ${data.length} characters`);
 
     if (!(data.includes('from "lwc"') || data.includes("from 'lwc'"))) {
-      console.log(`[createTagFromFile] File does not contain 'from "lwc"' or "from 'lwc'", returning null`);
+      console.log('[createTagFromFile] File does not contain \'from "lwc"\' or "from \'lwc\'", returning null');
       return null;
     }
 
     const { metadata, diagnostics } = compileSource(data, fileName);
     if (diagnostics && diagnostics.length > 0) {
       console.log(`[createTagFromFile] Compilation diagnostics found (${diagnostics.length}), returning null`);
+      if (diagnostics.length <= 10) {
+        console.log(
+          `[createTagFromFile] Diagnostic details: ${diagnostics.map(d => `${d.message} (line ${d.range?.start?.line ?? 'unknown'})`).join(', ')}`
+        );
+      }
       return null;
     }
 
     if (!metadata) {
-      console.log(`[createTagFromFile] No metadata found, returning null`);
+      console.log('[createTagFromFile] No metadata found, returning null');
       return null;
     }
+    console.log(
+      `[createTagFromFile] Metadata found - classMembers: ${metadata.classMembers?.length ?? 0}, decorators: ${metadata.decorators?.length ?? 0}`
+    );
 
     const tag = await createTag({ file, metadata, updatedAt });
     console.log(`[createTagFromFile] Successfully created tag for file: ${file}, tag name: ${getTagName(tag)}`);
