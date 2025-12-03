@@ -151,12 +151,10 @@ export default class Server {
   }
 
   public async onInitialize(params: InitializeParams): Promise<InitializeResult> {
-    console.log('[onInitialize] Starting initialization');
     this.workspaceFolders = params.workspaceFolders ?? [];
     // Normalize workspaceRoots at entry point to ensure all paths are consistent
     // This ensures all downstream code receives normalized paths
     this.workspaceRoots = this.workspaceFolders.map(folder => normalizePath(URI.parse(folder.uri).fsPath));
-    console.log(`[onInitialize] Workspace roots: ${this.workspaceRoots.join(', ')}`);
 
     // Set up document event handlers
     this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
@@ -164,13 +162,11 @@ export default class Server {
     this.documents.onDidSave(changeEvent => this.onDidSave(changeEvent));
 
     this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
-    console.log('[onInitialize] Created LWCWorkspaceContext');
 
     this.componentIndexer = new ComponentIndexer({
       workspaceRoot: this.workspaceRoots[0],
       fileSystemProvider: this.fileSystemProvider
     });
-    console.log('[onInitialize] Created ComponentIndexer');
 
     this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
     this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
@@ -181,28 +177,10 @@ export default class Server {
     });
 
     await this.context.initialize();
-    console.log('[onInitialize] Context initialized');
     this.context.configureProject();
-    console.log('[onInitialize] Project configured');
 
     // Initialize componentIndexer to get workspace structure
-    console.log('[onInitialize] Starting componentIndexer.init()');
     await this.componentIndexer.init();
-    const tagsAfterInit = this.componentIndexer.getCustomData();
-    console.log(`[onInitialize] componentIndexer.init() complete. Total tags: ${tagsAfterInit.length}`);
-    if (tagsAfterInit.length > 0) {
-      console.log(`[onInitialize] Tag names after init: ${tagsAfterInit.map(tag => getTagName(tag)).join(', ')}`);
-    } else {
-      console.log('[onInitialize] WARNING: No tags found after initialization. Checking fileSystemProvider state...');
-      const allFileUris = this.fileSystemProvider.getAllFileUris();
-      console.log(`[onInitialize] fileSystemProvider has ${allFileUris.length} files`);
-      if (allFileUris.length > 0 && allFileUris.length <= 50) {
-        console.log(`[onInitialize] fileSystemProvider file URIs: ${allFileUris.join(', ')}`);
-      } else if (allFileUris.length > 50) {
-        console.log(`[onInitialize] fileSystemProvider file URIs (first 25): ${allFileUris.slice(0, 25).join(', ')}`);
-        console.log(`[onInitialize] fileSystemProvider file URIs (last 25): ${allFileUris.slice(-25).join(', ')}`);
-      }
-    }
 
     return this.capabilities;
   }
@@ -248,148 +226,50 @@ export default class Server {
     } = params;
     const doc = this.documents.get(uri);
     if (!doc) {
-      console.log(`[onCompletion] No document found for uri: ${uri}`);
       return;
     }
-
-    console.log(
-      `[onCompletion] Processing completion for uri: ${uri}, position: ${position.line}:${position.character}`
-    );
-    console.log(`[onCompletion] Document language: ${doc.languageId}, version: ${doc.version}`);
-    const docText = doc.getText();
-    const textAroundPosition = docText.substring(
-      Math.max(0, doc.offsetAt(position) - 20),
-      Math.min(docText.length, doc.offsetAt(position) + 20)
-    );
-    console.log(`[onCompletion] Text around position: "${textAroundPosition}"`);
-    console.log(`[onCompletion] Trigger character: ${params.context?.triggerCharacter ?? 'none'}`);
 
     const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
 
     const isLWCTemplate = await this.context.isLWCTemplate(doc);
     const isLWCJavascript = await this.context.isLWCJavascript(doc);
     const isAuraMarkup = await this.context.isAuraMarkup(doc);
-    console.log(
-      `[onCompletion] Document type - isLWCTemplate: ${isLWCTemplate}, isLWCJavascript: ${isLWCJavascript}, isAuraMarkup: ${isAuraMarkup}`
-    );
 
     if (isLWCTemplate) {
       this.auraDataProvider.activated = false; // provide completions for lwc components in an Aura template
       this.lwcDataProvider.activated = true; // provide completions for lwc components in an LWC template
       const shouldProvideBindings = this.shouldProvideBindingsInHTML(params);
-      console.log(
-        `[onCompletion] LWC template - shouldProvideBindingsInHTML: ${shouldProvideBindings}, triggerCharacter: ${params.context?.triggerCharacter}, isWithinCurlyBraces: ${this.isWithinCurlyBraces(params)}`
-      );
       if (shouldProvideBindings) {
         const docBasename = getBasename(doc);
-        console.log(`[onCompletion] LWC template - finding bind items for basename: ${docBasename}`);
         const customTags: CompletionItem[] = this.findBindItems(docBasename);
-        console.log(`[onCompletion] LWC template - found ${customTags.length} bind items`);
-        if (customTags.length > 0 && customTags.length <= 20) {
-          console.log(
-            `[onCompletion] LWC template - bind item labels: ${customTags.map(item => item.label).join(', ')}`
-          );
-        }
         return {
           isIncomplete: false,
           items: customTags
         };
-      } else {
-        console.log(
-          '[onCompletion] LWC template - shouldProvideBindingsInHTML returned false, falling through to languageService.doComplete'
-        );
       }
     } else if (isLWCJavascript) {
       const shouldComplete = this.shouldCompleteJavascript(params);
-      console.log(
-        `[onCompletion] LWC JavaScript - shouldCompleteJavascript: ${shouldComplete}, triggerCharacter: ${params.context?.triggerCharacter}`
-      );
       if (shouldComplete) {
         const customData = this.componentIndexer.getCustomData();
-        console.log(
-          `[onCompletion] LWC JavaScript - componentIndexer.getCustomData() returned ${customData.length} tags`
-        );
-        if (customData.length > 0) {
-          console.log(
-            `[onCompletion] LWC JavaScript - tag names: ${customData.map(tag => getTagName(tag)).join(', ')}`
-          );
-          console.log(`[onCompletion] LWC JavaScript - tag files: ${customData.map(tag => tag.file).join(', ')}`);
-        } else {
-          console.log(
-            '[onCompletion] LWC JavaScript - WARNING: componentIndexer.getCustomData() returned empty array. Checking componentIndexer state...'
-          );
-          console.log(
-            `[onCompletion] LWC JavaScript - componentIndexer.workspaceRoot: ${this.componentIndexer.workspaceRoot}`
-          );
-          console.log(
-            `[onCompletion] LWC JavaScript - componentIndexer.workspaceType: ${this.componentIndexer.workspaceType}`
-          );
-          console.log(`[onCompletion] LWC JavaScript - componentIndexer.tags.size: ${this.componentIndexer.tags.size}`);
-          if (this.componentIndexer.tags.size > 0) {
-            const tagNames = Array.from(this.componentIndexer.tags.keys());
-            console.log(`[onCompletion] LWC JavaScript - componentIndexer.tags keys: ${tagNames.join(', ')}`);
-          }
-          const allFileUris = this.componentIndexer.fileSystemProvider.getAllFileUris();
-          console.log(`[onCompletion] LWC JavaScript - fileSystemProvider has ${allFileUris.length} files`);
-          if (allFileUris.length > 0 && allFileUris.length <= 20) {
-            console.log(`[onCompletion] LWC JavaScript - fileSystemProvider file URIs: ${allFileUris.join(', ')}`);
-          } else if (allFileUris.length > 20) {
-            console.log(
-              `[onCompletion] LWC JavaScript - fileSystemProvider file URIs (first 10): ${allFileUris.slice(0, 10).join(', ')}`
-            );
-            console.log(
-              `[onCompletion] LWC JavaScript - fileSystemProvider file URIs (last 10): ${allFileUris.slice(-10).join(', ')}`
-            );
-          }
-          // Check if there are any LWC component files in the file system provider
-          const lwcFiles = allFileUris.filter(fileUri => fileUri.includes('/lwc/') && fileUri.endsWith('.js'));
-          console.log(`[onCompletion] LWC JavaScript - Found ${lwcFiles.length} .js files in /lwc/ directories`);
-          if (lwcFiles.length > 0 && lwcFiles.length <= 20) {
-            console.log(`[onCompletion] LWC JavaScript - LWC .js files: ${lwcFiles.join(', ')}`);
-          }
-        }
         const customTags = customData.map(tag => ({
           label: getLwcTypingsName(tag),
           kind: CompletionItemKind.Folder
         }));
-        console.log(`[onCompletion] LWC JavaScript - returning ${customTags.length} completion items`);
-        if (customTags.length > 0 && customTags.length <= 20) {
-          console.log(
-            `[onCompletion] LWC JavaScript - completion item labels: ${customTags.map(item => item.label).join(', ')}`
-          );
-        }
         return {
           isIncomplete: false,
           items: customTags
         };
       } else {
-        console.log('[onCompletion] LWC JavaScript - shouldCompleteJavascript returned false, returning undefined');
         return;
       }
     } else if (isAuraMarkup) {
       this.auraDataProvider.activated = true;
       this.lwcDataProvider.activated = false;
     } else {
-      console.log('[onCompletion] Document type not recognized, returning undefined');
       return;
     }
 
     const languageServiceResult = this.languageService.doComplete(doc, position, htmlDoc);
-    console.log(
-      `[onCompletion] languageService.doComplete returned ${languageServiceResult?.items?.length ?? 0} items`
-    );
-    if (
-      languageServiceResult?.items &&
-      languageServiceResult.items.length > 0 &&
-      languageServiceResult.items.length <= 20
-    ) {
-      console.log(
-        `[onCompletion] languageService completion item labels: ${languageServiceResult.items
-          .slice(0, 10)
-          .map(item => item.label)
-          .join(', ')}`
-      );
-    }
     return languageServiceResult;
   }
 
@@ -420,40 +300,20 @@ export default class Server {
   }
 
   public findBindItems(docBasename: string): CompletionItem[] {
-    console.log(`[findBindItems] Looking for bind items for docBasename: ${docBasename}`);
     const customTags: CompletionItem[] = [];
     const allTags = this.componentIndexer.getCustomData();
-    console.log(`[findBindItems] Checking ${allTags.length} tags for match with basename: ${docBasename}`);
-    if (allTags.length === 0) {
-      console.log(
-        `[findBindItems] WARNING: No tags available. componentIndexer.tags.size: ${this.componentIndexer.tags.size}`
-      );
-      console.log(`[findBindItems] componentIndexer.workspaceRoot: ${this.componentIndexer.workspaceRoot}`);
-      console.log(`[findBindItems] componentIndexer.workspaceType: ${this.componentIndexer.workspaceType}`);
-    }
     allTags.forEach(tag => {
       const tagName = getTagName(tag);
-      console.log(`[findBindItems] Checking tag: ${tagName} (file: ${tag.file}) against basename: ${docBasename}`);
       if (tagName === docBasename) {
-        console.log(`[findBindItems] Found matching tag: ${tagName}, getting class members`);
         const classMembers = getClassMembers(tag);
-        console.log(`[findBindItems] Found ${classMembers.length} class members for tag ${tagName}`);
-        if (classMembers.length > 0 && classMembers.length <= 20) {
-          console.log(
-            `[findBindItems] Class member names: ${classMembers.map(cm => `${cm.name} (${cm.type}, ${cm.decorator ?? 'no decorator'})`).join(', ')}`
-          );
-        }
         classMembers.forEach(cm => {
           const bindName = `${getTagName(tag)}.${cm.name}`;
           const kind = cm.type === 'method' ? CompletionItemKind.Function : CompletionItemKind.Property;
           const detail = cm.decorator ? `@${cm.decorator}` : '';
           customTags.push({ label: cm.name, kind, documentation: bindName, detail, sortText: bindName });
         });
-      } else {
-        console.log(`[findBindItems] Tag ${tagName} does not match basename ${docBasename}`);
       }
     });
-    console.log(`[findBindItems] Returning ${customTags.length} bind items`);
     return customTags;
   }
 

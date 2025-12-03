@@ -172,29 +172,22 @@ const findFilesInDirectory = (dirPath: string, pattern: RegExp, fileSystemProvid
   const results: string[] = [];
   // Normalize path the same way FileSystemDataProvider normalizes paths
   const normalizedDirPath = normalizePath(dirPath);
-  console.log(`[findFilesInDirectory] Looking for files in directory: ${dirPath} (normalized: ${normalizedDirPath})`);
-  console.log(`[findFilesInDirectory] Pattern: ${pattern}`);
 
   if (!fileSystemProvider.directoryExists(normalizedDirPath)) {
-    console.log(`[findFilesInDirectory] Directory does not exist: ${normalizedDirPath}`);
     return results;
   }
 
   const entries = fileSystemProvider.getDirectoryListing(normalizedDirPath);
-  console.log(`[findFilesInDirectory] Found ${entries.length} entries in directory`);
   for (const entry of entries) {
     if (entry.type === 'file') {
       // Use entry.name directly instead of parsing entry.uri to avoid path parsing issues on Windows
       const matches = pattern.test(entry.name);
-      console.log(`[findFilesInDirectory] Checking entry: ${entry.name} (uri: ${entry.uri}) - matches: ${matches}`);
       if (matches) {
         results.push(entry.uri);
-        console.log(`[findFilesInDirectory] Added file to results: ${entry.uri}`);
       }
     }
   }
 
-  console.log(`[findFilesInDirectory] Returning ${results.length} matching files`);
   return results;
 };
 
@@ -204,8 +197,6 @@ export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvide
   const { dir, name } = path.parse(tag.file);
   // Normalize dir because path.parse() returns backslashes on Windows
   const normalizedDir = normalizePath(dir);
-  console.log(`[getAllLocations] Getting locations for tag: ${getTagName(tag)}, file: ${tag.file}`);
-  console.log(`[getAllLocations] Parsed dir: ${dir}, name: ${name}, normalizedDir: ${normalizedDir}`);
 
   const convertFileToLocation = (file: string): Location => {
     const uri = URI.file(file).toString();
@@ -216,13 +207,10 @@ export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvide
 
   // Match files like name.html or name.css
   const pattern = new RegExp(`^${name.replace(/[.+^${}()|[\]\\]/g, '\\$&')}\\.(html|css)$`);
-  console.log(`[getAllLocations] Pattern for matching files: ${pattern}`);
   const filteredFiles = findFilesInDirectory(normalizedDir, pattern, fileSystemProvider);
-  console.log(`[getAllLocations] Found ${filteredFiles.length} matching files: ${filteredFiles.join(', ')}`);
   const locations = filteredFiles.map(convertFileToLocation);
   const tagLocation = getTagLocation(tag);
   locations.unshift(tagLocation);
-  console.log(`[getAllLocations] Returning ${locations.length} locations (including tag location)`);
 
   return locations;
 };
@@ -312,94 +300,39 @@ export const createTagFromFile = async (
   fileSystemProvider: IFileSystemProvider,
   updatedAt?: Date
 ): Promise<Tag | null> => {
-  console.log(`[createTagFromFile] Attempting to create tag from file: ${file}`);
   if (file === '' || file.length === 0) {
-    console.log('[createTagFromFile] File is empty, returning null');
     return null;
   }
   const filePath = path.parse(file);
   const fileName = filePath.base;
-  console.log(
-    `[createTagFromFile] Parsed path - dir: "${filePath.dir}", base: "${filePath.base}", name: "${filePath.name}", ext: "${filePath.ext}"`
-  );
 
   try {
     // file is already normalized (comes from entry.path), and getFileContent normalizes internally
-    console.log(`[createTagFromFile] Attempting to read file content from fileSystemProvider for: ${file}`);
     // Try both with and without file:// prefix
     let content = fileSystemProvider.getFileContent(file);
     if (!content) {
       const fileWithPrefix = file.startsWith('file://') ? file : `file://${file}`;
-      console.log(`[createTagFromFile] No content with direct path, trying with file:// prefix: ${fileWithPrefix}`);
       content = fileSystemProvider.getFileContent(fileWithPrefix);
     }
     if (!content) {
-      console.log(`[createTagFromFile] No content found for file: ${file}, returning null`);
-      // Try alternative paths to see if file exists with different casing or format
-      const allFileUris = fileSystemProvider.getAllFileUris();
-      const fileLower = file.toLowerCase();
-      const matchingFiles = allFileUris.filter(uri => {
-        const uriLower = uri.toLowerCase();
-        return uriLower === fileLower || uriLower.endsWith(fileLower) || fileLower.endsWith(uriLower);
-      });
-      console.log(
-        `[createTagFromFile] Searched ${allFileUris.length} total files, found ${matchingFiles.length} files with similar path`
-      );
-      if (matchingFiles.length > 0 && matchingFiles.length <= 10) {
-        console.log(`[createTagFromFile] Similar files: ${matchingFiles.join(', ')}`);
-      } else if (matchingFiles.length > 10) {
-        console.log(`[createTagFromFile] Similar files (first 5): ${matchingFiles.slice(0, 5).join(', ')}`);
-      }
       return null;
     }
     const data = content;
-    console.log(`[createTagFromFile] File content length: ${data.length} characters`);
-    if (data.length > 0 && data.length <= 500) {
-      console.log(`[createTagFromFile] File content preview (first 200 chars): ${data.substring(0, 200)}`);
-    }
 
     if (!(data.includes('from "lwc"') || data.includes("from 'lwc'"))) {
-      console.log('[createTagFromFile] File does not contain \'from "lwc"\' or "from \'lwc\'", returning null');
       return null;
     }
 
-    console.log(`[createTagFromFile] Calling compileSource for fileName: ${fileName}`);
     const { metadata, diagnostics } = compileSource(data, fileName);
-    console.log(
-      `[createTagFromFile] compileSource returned - metadata: ${metadata ? 'present' : 'null'}, diagnostics: ${diagnostics?.length ?? 0}`
-    );
     if (diagnostics && diagnostics.length > 0) {
-      console.log(`[createTagFromFile] Compilation diagnostics found (${diagnostics.length}), returning null`);
-      if (diagnostics.length <= 10) {
-        console.log(
-          `[createTagFromFile] Diagnostic details: ${diagnostics.map(d => `${d.message} (line ${d.range?.start?.line ?? 'unknown'})`).join(', ')}`
-        );
-      } else {
-        console.log(
-          `[createTagFromFile] First 5 diagnostic details: ${diagnostics
-            .slice(0, 5)
-            .map(d => `${d.message} (line ${d.range?.start?.line ?? 'unknown'})`)
-            .join(', ')}`
-        );
-      }
       return null;
     }
 
     if (!metadata) {
-      console.log('[createTagFromFile] No metadata found, returning null');
       return null;
-    }
-    console.log(
-      `[createTagFromFile] Metadata found - classMembers: ${metadata.classMembers?.length ?? 0}, decorators: ${metadata.decorators?.length ?? 0}`
-    );
-    if (metadata.classMembers && metadata.classMembers.length > 0 && metadata.classMembers.length <= 20) {
-      console.log(
-        `[createTagFromFile] Class member names: ${metadata.classMembers.map(cm => `${cm.name} (${cm.type})`).join(', ')}`
-      );
     }
 
     const tag = await createTag({ file, metadata, updatedAt });
-    console.log(`[createTagFromFile] Successfully created tag for file: ${file}, tag name: ${getTagName(tag)}`);
     return tag;
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : String(e);

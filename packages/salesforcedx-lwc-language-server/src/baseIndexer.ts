@@ -32,21 +32,13 @@ export const getWorkspaceRoot = (workspaceRoot: string): string => {
   const isWindowsAbsolute = /^[A-Za-z]:[/\\]/.test(workspaceRoot);
   const isUnixAbsolute = path.isAbsolute(workspaceRoot);
 
-  console.log(
-    `[getWorkspaceRoot] Input: "${workspaceRoot}" | isWindowsAbsolute: ${isWindowsAbsolute} | isUnixAbsolute: ${isUnixAbsolute}`
-  );
-
   if (isUnixAbsolute || isWindowsAbsolute) {
     // Path is already absolute, just normalize it
-    const normalized = normalizePath(workspaceRoot);
-    console.log(`[getWorkspaceRoot] Path is absolute, normalized to: "${normalized}"`);
-    return normalized;
+    return normalizePath(workspaceRoot);
   }
   // Otherwise, resolve relative paths
   const resolved = path.resolve(workspaceRoot);
-  const normalized = normalizePath(resolved);
-  console.log(`[getWorkspaceRoot] Path is relative, resolved to: "${resolved}", normalized to: "${normalized}"`);
-  return normalized;
+  return normalizePath(resolved);
 };
 
 /** Get SFDX configuration from sfdx-project.json */

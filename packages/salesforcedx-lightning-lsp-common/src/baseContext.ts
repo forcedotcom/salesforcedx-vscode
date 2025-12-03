@@ -119,14 +119,17 @@ export const getModulesDirs = (
   fileSystemProvider: IFileSystemProvider,
   getSfdxProjectConfig: () => SfdxProjectConfig
 ): string[] => {
+  // Normalize workspaceRoots at the start to ensure consistent path format
+  // This ensures all path operations use normalized paths
+  const normalizedWorkspaceRoots = workspaceRoots.map(root => utils.normalizePath(root));
   const modulesDirs: string[] = [];
   switch (workspaceType) {
     case 'SFDX':
       const { packageDirectories } = getSfdxProjectConfig();
       for (const pkg of packageDirectories) {
         // Check both new SFDX structure (main/default) and old structure (meta)
-        const newPkgDir = path.join(workspaceRoots[0], pkg.path, 'main', 'default');
-        const oldPkgDir = path.join(workspaceRoots[0], pkg.path, 'meta');
+        const newPkgDir = path.join(normalizedWorkspaceRoots[0], pkg.path, 'main', 'default');
+        const oldPkgDir = path.join(normalizedWorkspaceRoots[0], pkg.path, 'meta');
 
         // Check for LWC components in new structure
         const newLwcDir = path.join(newPkgDir, 'lwc');
@@ -151,11 +154,11 @@ export const getModulesDirs = (
       break;
     case 'CORE_ALL':
       // For CORE_ALL, return the modules directories for each project
-      const projects = fileSystemProvider.getDirectoryListing(workspaceRoots[0]);
+      const projects = fileSystemProvider.getDirectoryListing(normalizedWorkspaceRoots[0]);
       for (const project of projects) {
-        // Use path.join instead of path.resolve since workspaceRoots[0] is already absolute
+        // Use path.join instead of path.resolve since normalizedWorkspaceRoots[0] is already absolute
         // This prevents path.resolve from potentially duplicating path segments on Windows
-        const modulesDir = path.join(workspaceRoots[0], project.name, 'modules');
+        const modulesDir = path.join(normalizedWorkspaceRoots[0], project.name, 'modules');
         let pathExists = false;
         try {
           const fileStat = fileSystemProvider.getFileStat(modulesDir);
@@ -173,7 +176,7 @@ export const getModulesDirs = (
       break;
     case 'CORE_PARTIAL':
       // For CORE_PARTIAL, return the modules directory for each workspace root
-      for (const ws of workspaceRoots) {
+      for (const ws of normalizedWorkspaceRoots) {
         const modulesDir = path.join(ws, 'modules');
         let pathExists = false;
         try {
