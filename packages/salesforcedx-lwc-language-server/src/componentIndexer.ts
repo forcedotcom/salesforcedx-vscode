@@ -98,7 +98,10 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
     const relativePath = path.posix.relative(normalizedBasePath, normalizedFileUri);
 
     // Check if file matches any of the patterns
-    const matches = regexes.some(regex => regex.test(relativePath) ?? regex.test(normalizedFileUri));
+    // Use || (logical OR) instead of ?? (nullish coalescing) for boolean logic
+    // ?? only checks for null/undefined, not falsy values like false
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const matches = regexes.some(regex => regex.test(relativePath) || regex.test(normalizedFileUri));
 
     if (matches) {
       const fileStat = fileSystemProvider.getFileStat(fileUri);
