@@ -94,12 +94,11 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
   const allFileUris = fileSystemProvider.getAllFileUris();
 
   for (const fileUri of allFileUris) {
-    // fileUri is already normalized by FileSystemDataProvider (unixify + drive letter)
-    // so we can use it directly
-    const relativePath = path.posix.relative(normalizedBasePath, fileUri);
+    const normalizedFileUri = normalizePath(fileUri);
+    const relativePath = path.posix.relative(normalizedBasePath, normalizedFileUri);
 
     // Check if file matches any of the patterns
-    const matches = regexes.some(regex => regex.test(relativePath) ?? regex.test(fileUri));
+    const matches = regexes.some(regex => regex.test(relativePath) ?? regex.test(normalizedFileUri));
 
     if (matches) {
       const fileStat = fileSystemProvider.getFileStat(fileUri);
