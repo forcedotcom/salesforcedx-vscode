@@ -13,9 +13,9 @@ import {
   TestResult,
   TestService
 } from '@salesforce/apex-node';
-import { channelService } from 'salesforcedx-vscode-apex/src/channels';
 import { getVscodeCoreExtension } from 'salesforcedx-vscode-apex/src/coreExtensionUtils';
 import { CancellationToken } from 'vscode';
+import { channelService } from '../channels';
 import { telemetryService } from '../telemetry/telemetry';
 
 type ApexTestRunOptions = {
