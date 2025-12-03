@@ -56,15 +56,19 @@ const PACKAGE_CORE_ALL_ROOT = resolve(
 const normalizedDirname = __dirname.replace(/\\/g, '/');
 const isCommonPackage = __dirname.includes('salesforcedx-lightning-lsp-common') && !normalizedDirname.includes('/out/');
 
-export const SFDX_WORKSPACE_ROOT = isCommonPackage ? COMMON_SFDX_WORKSPACE_ROOT : PACKAGE_SFDX_WORKSPACE_ROOT;
-export const FORCE_APP_ROOT = join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default');
-export const UTILS_ROOT = join(SFDX_WORKSPACE_ROOT, 'utils', 'meta');
-export const REGISTERED_EMPTY_FOLDER_ROOT = join(SFDX_WORKSPACE_ROOT, 'registered-empty-folder', 'meta');
-export const CORE_ALL_ROOT = isCommonPackage ? COMMON_CORE_ALL_ROOT : PACKAGE_CORE_ALL_ROOT;
-export const CORE_PROJECT_ROOT = join(CORE_ALL_ROOT, 'ui-global-components');
+// Normalize workspace roots to ensure consistent path format (especially Windows drive letter casing)
+// This ensures paths match how files are stored in FileSystemDataProvider (which normalizes paths)
+export const SFDX_WORKSPACE_ROOT = normalizePath(
+  isCommonPackage ? COMMON_SFDX_WORKSPACE_ROOT : PACKAGE_SFDX_WORKSPACE_ROOT
+);
+export const FORCE_APP_ROOT = normalizePath(join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default'));
+export const UTILS_ROOT = normalizePath(join(SFDX_WORKSPACE_ROOT, 'utils', 'meta'));
+export const REGISTERED_EMPTY_FOLDER_ROOT = normalizePath(join(SFDX_WORKSPACE_ROOT, 'registered-empty-folder', 'meta'));
+export const CORE_ALL_ROOT = normalizePath(isCommonPackage ? COMMON_CORE_ALL_ROOT : PACKAGE_CORE_ALL_ROOT);
+export const CORE_PROJECT_ROOT = normalizePath(join(CORE_ALL_ROOT, 'ui-global-components'));
 export const CORE_MULTI_ROOT = [
-  join(CORE_ALL_ROOT, 'ui-force-components'),
-  join(CORE_ALL_ROOT, 'ui-global-components')
+  normalizePath(join(CORE_ALL_ROOT, 'ui-force-components')),
+  normalizePath(join(CORE_ALL_ROOT, 'ui-global-components'))
 ];
 
 // Helper function to read file content safely
