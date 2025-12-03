@@ -469,8 +469,9 @@ export default class Server {
     const uri = document.uri;
     const content = document.getText();
 
-    // Sync to TextDocuments FileSystemDataProvider
-    await syncDocumentToTextDocumentsProvider(uri, content, this.fileSystemProvider, this.workspaceRoots);
+    // Normalize URI to fsPath before syncing (entry point for path normalization)
+    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
+    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
 
     // Perform delayed initialization once we have documents
     if (!this.isDelayedInitializationComplete) {
@@ -478,7 +479,8 @@ export default class Server {
     }
 
     // Check if this is an Aura component file and initialize indexer if needed
-    const fileName = uri.split('/').pop();
+    // Parse URI to get filename in a cross-platform way (URIs use forward slashes, but path.basename handles both)
+    const fileName = path.basename(URI.parse(uri).fsPath);
     if (fileName && this.isAuraComponentFile(fileName)) {
       this.hasDetectedAuraFiles = true;
 
@@ -500,8 +502,9 @@ export default class Server {
     const { uri } = document;
     const content = document.getText();
 
-    // Sync to TextDocuments FileSystemDataProvider
-    await syncDocumentToTextDocumentsProvider(uri, content, this.fileSystemProvider, this.workspaceRoots);
+    // Normalize URI to fsPath before syncing (entry point for path normalization)
+    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
+    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
   }
 
   public async onDidSave(change: TextDocumentChangeEvent<TextDocument>): Promise<void> {
@@ -509,8 +512,9 @@ export default class Server {
     const uri = document.uri;
     const content = document.getText();
 
-    // Sync to TextDocuments FileSystemDataProvider
-    await syncDocumentToTextDocumentsProvider(uri, content, this.fileSystemProvider, this.workspaceRoots);
+    // Normalize URI to fsPath before syncing (entry point for path normalization)
+    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
+    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
   }
 
   /**

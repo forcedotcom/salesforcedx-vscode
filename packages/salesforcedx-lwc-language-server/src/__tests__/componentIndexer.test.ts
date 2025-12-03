@@ -33,7 +33,8 @@ afterEach(() => {
 describe('ComponentIndexer', () => {
   describe('new', () => {
     it('initializes with the root of a workspace', () => {
-      const expectedPath: string = SFDX_WORKSPACE_ROOT;
+      // workspaceRoot is normalized by getWorkspaceRoot, so normalize the expected path for comparison
+      const expectedPath: string = normalizePath(SFDX_WORKSPACE_ROOT);
       expect(componentIndexer.workspaceRoot).toEqual(expectedPath);
       expect(componentIndexer.workspaceType).toEqual('SFDX');
     });

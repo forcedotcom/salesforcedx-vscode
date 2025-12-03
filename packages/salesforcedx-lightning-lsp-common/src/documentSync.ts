@@ -6,27 +6,26 @@
  */
 
 import { basename, dirname } from 'node:path';
-import { URI } from 'vscode-uri';
 import { FileSystemDataProvider } from './providers/fileSystemDataProvider';
 import { DirectoryEntry } from './types/fileSystemTypes';
-import { normalizePath } from './utils';
 
 /**
  * Ensures parent directories are tracked in FileSystemDataProvider.
  * Creates directory entries and stats for all parent directories up to the workspace root.
+ * Expects dirPath to be in fsPath format (already normalized).
  */
 const ensureDirectoryTracked = async (
-  dirUri: string,
+  dirPath: string,
   provider: FileSystemDataProvider,
   workspaceRoots: string[]
 ): Promise<void> => {
   // Check if directory is already tracked
-  if (provider.directoryExists(dirUri)) {
+  if (provider.directoryExists(dirPath)) {
     return;
   }
 
   // Create directory stat
-  provider.updateFileStat(dirUri, {
+  provider.updateFileStat(dirPath, {
     type: 'directory',
     exists: true,
     ctime: Date.now(),
@@ -35,17 +34,17 @@ const ensureDirectoryTracked = async (
   });
 
   // Get or create directory listing
-  const entries = provider.getDirectoryListing(dirUri) ?? [];
+  const entries = provider.getDirectoryListing(dirPath) ?? [];
 
   // Update directory listing (will be populated as files are added)
-  provider.updateDirectoryListing(dirUri, entries);
+  provider.updateDirectoryListing(dirPath, entries);
 
   // Recursively ensure parent directory is tracked
-  const parentDir = normalizePath(dirname(dirUri));
-  if (parentDir && parentDir !== dirUri && parentDir !== '.') {
+  const parentDir = dirname(dirPath);
+  if (parentDir && parentDir !== dirPath && parentDir !== '.') {
     // Check if parent is within workspace roots
     // workspaceRoots are already normalized, so we can compare directly
-    const isInWorkspace = workspaceRoots.some(root => dirUri.startsWith(root));
+    const isInWorkspace = workspaceRoots.some(root => dirPath.startsWith(root));
     if (isInWorkspace) {
       await ensureDirectoryTracked(parentDir, provider, workspaceRoots);
     }
@@ -54,16 +53,15 @@ const ensureDirectoryTracked = async (
 
 /**
  * Adds a file entry to its parent directory's listing.
- * Expects fileUri to be in fsPath format (already normalized).
+ * Expects filePath to be in fsPath format (already normalized).
  */
 const addFileToDirectoryListing = async (
-  fileUri: string,
+  filePath: string,
   provider: FileSystemDataProvider,
   workspaceRoots: string[]
 ): Promise<void> => {
-  // fileUri is already normalized to fsPath format, but handle both formats for safety
-  const filePath = fileUri.startsWith('file://') ? normalizePath(URI.parse(fileUri).fsPath) : normalizePath(fileUri);
-  const parentDir = normalizePath(dirname(filePath));
+  // filePath is already normalized to fsPath format
+  const parentDir = dirname(filePath);
   const fileName = basename(filePath);
 
   // Ensure parent directory is tracked
@@ -91,22 +89,18 @@ const addFileToDirectoryListing = async (
 
 /**
  * Syncs a document to the TextDocuments FileSystemDataProvider.
- * Normalizes URI to fsPath to match init provider format.
- * This is a key entry point - all paths should be normalized here.
+ * Expects filePath to be a normalized fsPath (not a file:// URI).
+ * Callers should normalize URIs before calling this function.
  */
 export const syncDocumentToTextDocumentsProvider = async (
-  uri: string,
+  filePath: string,
   content: string,
   provider: FileSystemDataProvider,
   workspaceRoots: string[]
 ): Promise<void> => {
-  // Normalize URI to fsPath to match init provider format (plain path, not file:// URI)
-  // Use normalizePath (not just unixify) to ensure drive letter normalization on Windows
-  const normalizedUri = normalizePath(URI.parse(uri).fsPath);
-
   // Update TextDocuments FileSystemDataProvider with document content
-  provider.updateFileContent(normalizedUri, content);
-  provider.updateFileStat(normalizedUri, {
+  provider.updateFileContent(filePath, content);
+  provider.updateFileStat(filePath, {
     type: 'file',
     exists: true,
     ctime: Date.now(),
@@ -115,5 +109,5 @@ export const syncDocumentToTextDocumentsProvider = async (
   });
 
   // Ensure parent directory is tracked and file is in directory listing
-  await addFileToDirectoryListing(normalizedUri, provider, workspaceRoots);
+  await addFileToDirectoryListing(filePath, provider, workspaceRoots);
 };

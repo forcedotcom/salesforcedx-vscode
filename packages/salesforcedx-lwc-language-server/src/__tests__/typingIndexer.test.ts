@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import { getSfdxPackageDirsPattern } from '../baseIndexer';
@@ -28,7 +29,8 @@ describe('TypingIndexer', () => {
 
   describe('new', () => {
     it('initializes with the root of a workspace', async () => {
-      const expectedPath: string = SFDX_WORKSPACE_ROOT;
+      // workspaceRoot is normalized by getWorkspaceRoot, so normalize the expected path for comparison
+      const expectedPath: string = normalizePath(SFDX_WORKSPACE_ROOT);
       expect(typingIndexer.workspaceRoot).toEqual(expectedPath);
       expect(await getSfdxPackageDirsPattern(typingIndexer.workspaceRoot, sfdxFileSystemProvider)).toEqual(
         '{force-app,utils,registered-empty-folder}'
@@ -93,14 +95,23 @@ describe('TypingIndexer', () => {
   describe('#metaFilePaths', () => {
     test('it returns all the paths of meta files', () => {
       const metaFilePaths: string[] = typingIndexer.metaFiles.sort();
+      // metaFilePaths are normalized, so normalize expected paths for comparison
       const expectedMetaFilePaths: string[] = [
-        path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/contentassets/logo.asset-meta.xml'),
-        path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/messageChannels/Channel1.messageChannel-meta.xml'),
-        path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/messageChannels/Channel2.messageChannel-meta.xml'),
-        path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/staticresources/bike_assets.resource-meta.xml'),
-        path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/staticresources/logo.resource-meta.xml'),
-        path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/staticresources/todocss.resource-meta.xml'),
-        path.join(SFDX_WORKSPACE_ROOT, 'utils/meta/staticresources/todoutil.resource-meta.xml')
+        normalizePath(path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/contentassets/logo.asset-meta.xml')),
+        normalizePath(
+          path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/messageChannels/Channel1.messageChannel-meta.xml')
+        ),
+        normalizePath(
+          path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/messageChannels/Channel2.messageChannel-meta.xml')
+        ),
+        normalizePath(
+          path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/staticresources/bike_assets.resource-meta.xml')
+        ),
+        normalizePath(path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/staticresources/logo.resource-meta.xml')),
+        normalizePath(
+          path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/staticresources/todocss.resource-meta.xml')
+        ),
+        normalizePath(path.join(SFDX_WORKSPACE_ROOT, 'utils/meta/staticresources/todoutil.resource-meta.xml'))
       ].sort();
 
       expect(metaFilePaths).toEqual(expectedMetaFilePaths);

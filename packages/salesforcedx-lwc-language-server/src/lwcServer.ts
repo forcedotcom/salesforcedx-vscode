@@ -347,11 +347,17 @@ export default class Server {
     const uri = document.uri;
     const content = document.getText();
 
-    // Sync to TextDocuments FileSystemDataProvider
-    await syncDocumentToTextDocumentsProvider(uri, content, this.textDocumentsFileSystemProvider, this.workspaceRoots);
+    // Normalize URI to fsPath before syncing (entry point for path normalization)
+    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
+    await syncDocumentToTextDocumentsProvider(
+      normalizedPath,
+      content,
+      this.textDocumentsFileSystemProvider,
+      this.workspaceRoots
+    );
 
     // Check if this is sfdx-project.json and re-detect workspace type if needed
-    const fileName = uri.split('/').pop();
+    const fileName = normalizedPath.split('/').pop();
     if (fileName === 'sfdx-project.json' && this.context.type === 'UNKNOWN') {
       // Update context to use the populated TextDocuments provider
       this.context.fileSystemProvider = this.textDocumentsFileSystemProvider;
@@ -368,8 +374,14 @@ export default class Server {
     const { uri } = document;
     const content = document.getText();
 
-    // Sync to TextDocuments FileSystemDataProvider
-    await syncDocumentToTextDocumentsProvider(uri, content, this.textDocumentsFileSystemProvider, this.workspaceRoots);
+    // Normalize URI to fsPath before syncing (entry point for path normalization)
+    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
+    await syncDocumentToTextDocumentsProvider(
+      normalizedPath,
+      content,
+      this.textDocumentsFileSystemProvider,
+      this.workspaceRoots
+    );
 
     if (await this.context.isLWCTemplate(document)) {
       const diagnostics = templateLinter(document);
@@ -441,8 +453,14 @@ export default class Server {
     const uri = document.uri;
     const content = document.getText();
 
-    // Sync to TextDocuments FileSystemDataProvider
-    void syncDocumentToTextDocumentsProvider(uri, content, this.textDocumentsFileSystemProvider, this.workspaceRoots);
+    // Normalize URI to fsPath before syncing (entry point for path normalization)
+    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
+    void syncDocumentToTextDocumentsProvider(
+      normalizedPath,
+      content,
+      this.textDocumentsFileSystemProvider,
+      this.workspaceRoots
+    );
 
     if (await this.context.isLWCJavascript(document)) {
       const { metadata } = javascriptCompileDocument(document);
