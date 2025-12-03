@@ -172,21 +172,29 @@ const findFilesInDirectory = (dirPath: string, pattern: RegExp, fileSystemProvid
   const results: string[] = [];
   // Normalize path the same way FileSystemDataProvider normalizes paths
   const normalizedDirPath = normalizePath(dirPath);
+  console.log(`[findFilesInDirectory] Looking for files in directory: ${dirPath} (normalized: ${normalizedDirPath})`);
+  console.log(`[findFilesInDirectory] Pattern: ${pattern}`);
 
   if (!fileSystemProvider.directoryExists(normalizedDirPath)) {
+    console.log(`[findFilesInDirectory] Directory does not exist: ${normalizedDirPath}`);
     return results;
   }
 
   const entries = fileSystemProvider.getDirectoryListing(normalizedDirPath);
+  console.log(`[findFilesInDirectory] Found ${entries.length} entries in directory`);
   for (const entry of entries) {
     if (entry.type === 'file') {
       // Use entry.name directly instead of parsing entry.uri to avoid path parsing issues on Windows
-      if (pattern.test(entry.name)) {
+      const matches = pattern.test(entry.name);
+      console.log(`[findFilesInDirectory] Checking entry: ${entry.name} (uri: ${entry.uri}) - matches: ${matches}`);
+      if (matches) {
         results.push(entry.uri);
+        console.log(`[findFilesInDirectory] Added file to results: ${entry.uri}`);
       }
     }
   }
 
+  console.log(`[findFilesInDirectory] Returning ${results.length} matching files`);
   return results;
 };
 
@@ -196,6 +204,8 @@ export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvide
   const { dir, name } = path.parse(tag.file);
   // Normalize dir because path.parse() returns backslashes on Windows
   const normalizedDir = normalizePath(dir);
+  console.log(`[getAllLocations] Getting locations for tag: ${getTagName(tag)}, file: ${tag.file}`);
+  console.log(`[getAllLocations] Parsed dir: ${dir}, name: ${name}, normalizedDir: ${normalizedDir}`);
 
   const convertFileToLocation = (file: string): Location => {
     const uri = URI.file(file).toString();
@@ -206,9 +216,13 @@ export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvide
 
   // Match files like name.html or name.css
   const pattern = new RegExp(`^${name.replace(/[.+^${}()|[\]\\]/g, '\\$&')}\\.(html|css)$`);
+  console.log(`[getAllLocations] Pattern for matching files: ${pattern}`);
   const filteredFiles = findFilesInDirectory(normalizedDir, pattern, fileSystemProvider);
+  console.log(`[getAllLocations] Found ${filteredFiles.length} matching files: ${filteredFiles.join(', ')}`);
   const locations = filteredFiles.map(convertFileToLocation);
-  locations.unshift(getTagLocation(tag));
+  const tagLocation = getTagLocation(tag);
+  locations.unshift(tagLocation);
+  console.log(`[getAllLocations] Returning ${locations.length} locations (including tag location)`);
 
   return locations;
 };
@@ -349,12 +363,23 @@ export const createTagFromFile = async (
       return null;
     }
 
+    console.log(`[createTagFromFile] Calling compileSource for fileName: ${fileName}`);
     const { metadata, diagnostics } = compileSource(data, fileName);
+    console.log(
+      `[createTagFromFile] compileSource returned - metadata: ${metadata ? 'present' : 'null'}, diagnostics: ${diagnostics?.length ?? 0}`
+    );
     if (diagnostics && diagnostics.length > 0) {
       console.log(`[createTagFromFile] Compilation diagnostics found (${diagnostics.length}), returning null`);
       if (diagnostics.length <= 10) {
         console.log(
           `[createTagFromFile] Diagnostic details: ${diagnostics.map(d => `${d.message} (line ${d.range?.start?.line ?? 'unknown'})`).join(', ')}`
+        );
+      } else {
+        console.log(
+          `[createTagFromFile] First 5 diagnostic details: ${diagnostics
+            .slice(0, 5)
+            .map(d => `${d.message} (line ${d.range?.start?.line ?? 'unknown'})`)
+            .join(', ')}`
         );
       }
       return null;
@@ -367,12 +392,25 @@ export const createTagFromFile = async (
     console.log(
       `[createTagFromFile] Metadata found - classMembers: ${metadata.classMembers?.length ?? 0}, decorators: ${metadata.decorators?.length ?? 0}`
     );
+    if (metadata.classMembers && metadata.classMembers.length > 0 && metadata.classMembers.length <= 20) {
+      console.log(
+        `[createTagFromFile] Class member names: ${metadata.classMembers.map(cm => `${cm.name} (${cm.type})`).join(', ')}`
+      );
+    }
 
     const tag = await createTag({ file, metadata, updatedAt });
     console.log(`[createTagFromFile] Successfully created tag for file: ${file}, tag name: ${getTagName(tag)}`);
     return tag;
   } catch (e) {
-    console.error(`[createTagFromFile] Error creating tag from file ${file}:`, e);
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    const errorStack = e instanceof Error ? e.stack : 'No stack trace available';
+    console.error(`[createTagFromFile] Error creating tag from file ${file}:`);
+    console.error(`[createTagFromFile] Error message: ${errorMessage}`);
+    console.error(`[createTagFromFile] Error stack: ${errorStack}`);
+    if (e instanceof Error && e.cause) {
+      const causeMessage = e.cause instanceof Error ? e.cause.message : String(e.cause);
+      console.error(`[createTagFromFile] Error cause: ${causeMessage}`);
+    }
     return null;
   }
 };
