@@ -273,7 +273,25 @@ export default class ComponentIndexer {
   }
 
   public getCustomData(): Tag[] {
-    return Array.from(this.tags.values());
+    const tags = Array.from(this.tags.values());
+    console.log(`[ComponentIndexer.getCustomData] Returning ${tags.length} tags`);
+    if (tags.length > 0 && tags.length <= 20) {
+      console.log(`[ComponentIndexer.getCustomData] Tag names: ${tags.map(tag => getTagName(tag)).join(', ')}`);
+    } else if (tags.length > 20) {
+      console.log(
+        `[ComponentIndexer.getCustomData] First 10 tag names: ${tags
+          .slice(0, 10)
+          .map(tag => getTagName(tag))
+          .join(', ')}`
+      );
+      console.log(
+        `[ComponentIndexer.getCustomData] Last 10 tag names: ${tags
+          .slice(-10)
+          .map(tag => getTagName(tag))
+          .join(', ')}`
+      );
+    }
+    return tags;
   }
 
   public findTagByName(query: string): Tag | null {
@@ -304,20 +322,29 @@ export default class ComponentIndexer {
     try {
       const indexPath: string = path.join(this.workspaceRoot, CUSTOM_COMPONENT_INDEX_FILE);
       const uri = `file://${normalizePath(indexPath)}`;
+      console.log(`[ComponentIndexer.loadTagsFromIndex] Checking for index file at: ${uri}`);
 
       if (this.fileSystemProvider.fileExists(uri)) {
+        console.log('[ComponentIndexer.loadTagsFromIndex] Index file exists, loading tags');
         const content = this.fileSystemProvider.getFileContent(uri);
         if (content) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const index: TagAttrs[] = JSON.parse(content);
+          console.log(`[ComponentIndexer.loadTagsFromIndex] Found ${index.length} tags in index`);
           for (const data of index) {
             const info = await createTag(data);
-            this.tags.set(getTagName(info), info);
+            const tagName = getTagName(info);
+            this.tags.set(tagName, info);
+            console.log(`[ComponentIndexer.loadTagsFromIndex] Loaded tag from index: ${tagName} (file: ${info.file})`);
           }
+        } else {
+          console.log('[ComponentIndexer.loadTagsFromIndex] Index file exists but has no content');
         }
+      } else {
+        console.log('[ComponentIndexer.loadTagsFromIndex] Index file does not exist');
       }
     } catch (err) {
-      console.error(err);
+      console.error('[ComponentIndexer.loadTagsFromIndex] Error loading tags from index:', err);
     }
   }
 
@@ -453,9 +480,16 @@ export default class ComponentIndexer {
 
     const validTags = tags.filter(Boolean);
     console.log(`[ComponentIndexer.init] Created ${validTags.length} tags from unindexed files`);
+    if (validTags.length > 0) {
+      console.log(
+        `[ComponentIndexer.init] Valid tag names: ${validTags.map(tag => (tag ? getTagName(tag) : 'null')).join(', ')}`
+      );
+    }
     validTags.forEach(tag => {
       if (tag) {
-        this.tags.set(getTagName(tag), tag);
+        const tagName = getTagName(tag);
+        this.tags.set(tagName, tag);
+        console.log(`[ComponentIndexer.init] Added tag to map: ${tagName} (file: ${tag.file})`);
       }
     });
 

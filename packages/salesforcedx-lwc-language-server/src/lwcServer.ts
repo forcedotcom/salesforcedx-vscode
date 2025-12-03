@@ -151,10 +151,12 @@ export default class Server {
   }
 
   public async onInitialize(params: InitializeParams): Promise<InitializeResult> {
+    console.log(`[onInitialize] Starting initialization`);
     this.workspaceFolders = params.workspaceFolders ?? [];
     // Normalize workspaceRoots at entry point to ensure all paths are consistent
     // This ensures all downstream code receives normalized paths
     this.workspaceRoots = this.workspaceFolders.map(folder => normalizePath(URI.parse(folder.uri).fsPath));
+    console.log(`[onInitialize] Workspace roots: ${this.workspaceRoots.join(', ')}`);
 
     // Set up document event handlers
     this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
@@ -162,10 +164,14 @@ export default class Server {
     this.documents.onDidSave(changeEvent => this.onDidSave(changeEvent));
 
     this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
+    console.log(`[onInitialize] Created LWCWorkspaceContext`);
+
     this.componentIndexer = new ComponentIndexer({
       workspaceRoot: this.workspaceRoots[0],
       fileSystemProvider: this.fileSystemProvider
     });
+    console.log(`[onInitialize] Created ComponentIndexer`);
+
     this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
     this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
     await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemProvider);
@@ -175,10 +181,18 @@ export default class Server {
     });
 
     await this.context.initialize();
+    console.log(`[onInitialize] Context initialized`);
     this.context.configureProject();
+    console.log(`[onInitialize] Project configured`);
 
     // Initialize componentIndexer to get workspace structure
+    console.log(`[onInitialize] Starting componentIndexer.init()`);
     await this.componentIndexer.init();
+    const tagsAfterInit = this.componentIndexer.getCustomData();
+    console.log(`[onInitialize] componentIndexer.init() complete. Total tags: ${tagsAfterInit.length}`);
+    if (tagsAfterInit.length > 0) {
+      console.log(`[onInitialize] Tag names after init: ${tagsAfterInit.map(tag => getTagName(tag)).join(', ')}`);
+    }
 
     return this.capabilities;
   }
@@ -224,39 +238,58 @@ export default class Server {
     } = params;
     const doc = this.documents.get(uri);
     if (!doc) {
+      console.log(`[onCompletion] No document found for uri: ${uri}`);
       return;
     }
 
+    console.log(`[onCompletion] Processing completion for uri: ${uri}, position: ${position.line}:${position.character}`);
     const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
 
-    if (await this.context.isLWCTemplate(doc)) {
+    const isLWCTemplate = await this.context.isLWCTemplate(doc);
+    const isLWCJavascript = await this.context.isLWCJavascript(doc);
+    const isAuraMarkup = await this.context.isAuraMarkup(doc);
+    console.log(`[onCompletion] Document type - isLWCTemplate: ${isLWCTemplate}, isLWCJavascript: ${isLWCJavascript}, isAuraMarkup: ${isAuraMarkup}`);
+
+    if (isLWCTemplate) {
       this.auraDataProvider.activated = false; // provide completions for lwc components in an Aura template
       this.lwcDataProvider.activated = true; // provide completions for lwc components in an LWC template
       if (this.shouldProvideBindingsInHTML(params)) {
         const docBasename = getBasename(doc);
+        console.log(`[onCompletion] LWC template - finding bind items for basename: ${docBasename}`);
         const customTags: CompletionItem[] = this.findBindItems(docBasename);
+        console.log(`[onCompletion] LWC template - found ${customTags.length} bind items`);
         return {
           isIncomplete: false,
           items: customTags
         };
       }
-    } else if (await this.context.isLWCJavascript(doc)) {
-      if (this.shouldCompleteJavascript(params)) {
-        const customTags = this.componentIndexer.getCustomData().map(tag => ({
+    } else if (isLWCJavascript) {
+      const shouldComplete = this.shouldCompleteJavascript(params);
+      console.log(`[onCompletion] LWC JavaScript - shouldCompleteJavascript: ${shouldComplete}, triggerCharacter: ${params.context?.triggerCharacter}`);
+      if (shouldComplete) {
+        const customData = this.componentIndexer.getCustomData();
+        console.log(`[onCompletion] LWC JavaScript - componentIndexer.getCustomData() returned ${customData.length} tags`);
+        if (customData.length > 0) {
+          console.log(`[onCompletion] LWC JavaScript - tag names: ${customData.map(tag => getTagName(tag)).join(', ')}`);
+        }
+        const customTags = customData.map(tag => ({
           label: getLwcTypingsName(tag),
           kind: CompletionItemKind.Folder
         }));
+        console.log(`[onCompletion] LWC JavaScript - returning ${customTags.length} completion items`);
         return {
           isIncomplete: false,
           items: customTags
         };
       } else {
+        console.log(`[onCompletion] LWC JavaScript - shouldCompleteJavascript returned false, returning undefined`);
         return;
       }
-    } else if (await this.context.isAuraMarkup(doc)) {
+    } else if (isAuraMarkup) {
       this.auraDataProvider.activated = true;
       this.lwcDataProvider.activated = false;
     } else {
+      console.log(`[onCompletion] Document type not recognized, returning undefined`);
       return;
     }
 

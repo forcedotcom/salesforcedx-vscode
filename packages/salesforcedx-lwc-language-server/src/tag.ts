@@ -298,7 +298,9 @@ export const createTagFromFile = async (
   fileSystemProvider: IFileSystemProvider,
   updatedAt?: Date
 ): Promise<Tag | null> => {
+  console.log(`[createTagFromFile] Attempting to create tag from file: ${file}`);
   if (file === '' || file.length === 0) {
+    console.log(`[createTagFromFile] File is empty, returning null`);
     return null;
   }
   const filePath = path.parse(file);
@@ -308,26 +310,33 @@ export const createTagFromFile = async (
     // file is already normalized (comes from entry.path), and getFileContent normalizes internally
     const content = fileSystemProvider.getFileContent(file);
     if (!content) {
+      console.log(`[createTagFromFile] No content found for file: ${file}, returning null`);
       return null;
     }
     const data = content;
+    console.log(`[createTagFromFile] File content length: ${data.length} characters`);
 
     if (!(data.includes('from "lwc"') || data.includes("from 'lwc'"))) {
+      console.log(`[createTagFromFile] File does not contain 'from "lwc"' or "from 'lwc'", returning null`);
       return null;
     }
 
     const { metadata, diagnostics } = compileSource(data, fileName);
     if (diagnostics && diagnostics.length > 0) {
+      console.log(`[createTagFromFile] Compilation diagnostics found (${diagnostics.length}), returning null`);
       return null;
     }
 
     if (!metadata) {
+      console.log(`[createTagFromFile] No metadata found, returning null`);
       return null;
     }
 
-    return await createTag({ file, metadata, updatedAt });
+    const tag = await createTag({ file, metadata, updatedAt });
+    console.log(`[createTagFromFile] Successfully created tag for file: ${file}, tag name: ${getTagName(tag)}`);
+    return tag;
   } catch (e) {
-    console.error(e);
+    console.error(`[createTagFromFile] Error creating tag from file ${file}:`, e);
     return null;
   }
 };
