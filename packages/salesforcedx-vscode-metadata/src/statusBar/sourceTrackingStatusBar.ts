@@ -10,6 +10,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as PubSub from 'effect/PubSub';
+import * as Schedule from 'effect/Schedule';
 import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -36,7 +37,7 @@ const handleOrgChange =
       yield* refresh(statusBarItem);
     });
 
-/** Subscribe to the centralized file watcher PubSub with debouncing */
+/** Subscribe to the centralized file watcher PubSub with debouncing, plus polling for remote changes if active */
 const startFileWatcherSubscription = (
   statusBarItem: vscode.StatusBarItem
 ): Effect.Effect<void, Error, ExtensionProviderService> =>
@@ -48,9 +49,12 @@ const startFileWatcherSubscription = (
         const fileWatcherService = yield* api.services.FileWatcherService;
         const dequeue = yield* PubSub.subscribe(fileWatcherService.pubsub);
 
-        // Subscribe to file changes with debouncing - we don't care which files changed, just that something changed
-        yield* Stream.fromQueue(dequeue).pipe(
-          // TODO: maybe filter out some changes by type or uri
+        yield* Stream.merge(
+          // Subscribe to file changes TODO: maybe filter out some changes by type or uri
+          Stream.fromQueue(dequeue).pipe(Stream.debounce(Duration.millis(500))),
+          // poll for remote changes TODO: make this a configurable Setting for polling frequency
+          Stream.fromSchedule(Schedule.fixed(Duration.minutes(1))).pipe(Stream.filter(() => vscode.window.state.active))
+        ).pipe(
           Stream.debounce(Duration.millis(500)),
           Stream.runForEach(() => refresh(statusBarItem))
         );

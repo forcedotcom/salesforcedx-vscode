@@ -23,7 +23,10 @@ export type SourceTrackingDetails = {
 /** Deduplicate status rows by fullName and type */
 export const dedupeStatus = (status: StatusOutputRow[]): StatusOutputRow[] => {
   const seen = new Set<string>();
-  return status.filter(row => {
+  // priority is conflicts, always preserve those
+  const conflicts = status.filter(row => row.conflict);
+  const notConflicts = status.filter(row => !row.conflict);
+  return [...conflicts, ...notConflicts].filter(row => {
     const key = `${row.fullName}:${row.type}`;
     if (seen.has(key)) {
       return false;
