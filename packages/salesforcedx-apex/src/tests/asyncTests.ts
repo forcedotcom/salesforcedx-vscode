@@ -121,7 +121,8 @@ export class AsyncTests {
     exitOnTestRunId = false,
     progress?: Progress<ApexTestProgressValue>,
     token?: CancellationToken,
-    timeout?: Duration
+    timeout?: Duration,
+    interval: Duration = POLLING_FREQUENCY
   ): Promise<TestResult | TestRunIdResult> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.runTests');
     let testRunId: string;
@@ -213,7 +214,7 @@ export class AsyncTests {
             payload: queueItem
           };
         },
-        frequency: POLLING_FREQUENCY,
+        frequency: interval,
         timeout: timeout ?? POLLING_TIMEOUT
       });
 
