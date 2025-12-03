@@ -48,11 +48,30 @@ export type Entry = {
   name?: string; // Optional name for test compatibility
 };
 
-const tagEqualsFile = (tag: Tag, entry: Entry): boolean =>
-  tag.file === entry.path && tag.updatedAt?.getTime() === entry.stats?.mtime.getTime();
+const tagEqualsFile = (tag: Tag, entry: Entry): boolean => {
+  const fileMatch = tag.file === entry.path;
+  const timeMatch = tag.updatedAt?.getTime() === entry.stats?.mtime.getTime();
+  return fileMatch && timeMatch;
+};
 
-export const unIndexedFiles = (entries: Entry[], tags: Tag[]): Entry[] =>
-  entries.filter(entry => !tags.some(tag => tagEqualsFile(tag, entry)));
+export const unIndexedFiles = (entries: Entry[], tags: Tag[]): Entry[] => {
+  console.log(`[unIndexedFiles] Checking ${entries.length} entries against ${tags.length} tags`);
+  if (entries.length > 0 && entries.length <= 10) {
+    console.log(`[unIndexedFiles] Entry paths: ${entries.map(e => e.path).join(', ')}`);
+  }
+  if (tags.length > 0 && tags.length <= 10) {
+    console.log(`[unIndexedFiles] Tag files: ${tags.map(t => t.file).join(', ')}`);
+  }
+  const unIndexed = entries.filter(entry => {
+    const hasMatchingTag = tags.some(tag => tagEqualsFile(tag, entry));
+    if (!hasMatchingTag && entries.length <= 10) {
+      console.log(`[unIndexedFiles] Entry ${entry.path} has no matching tag`);
+    }
+    return !hasMatchingTag;
+  });
+  console.log(`[unIndexedFiles] Found ${unIndexed.length} unindexed files out of ${entries.length} entries`);
+  return unIndexed;
+};
 
 /**
  * Expands brace patterns like {a,b} into multiple patterns
@@ -535,8 +554,19 @@ export default class ComponentIndexer {
   public async init(): Promise<void> {
     console.log(`[ComponentIndexer.init] Starting initialization for workspaceRoot: ${this.attributes.workspaceRoot}`);
     console.log(`[ComponentIndexer.init] Normalized workspaceRoot: ${this.workspaceRoot}`);
+    const fileCountBeforeDetection = this.fileSystemProvider.getAllFileUris().length;
     console.log(
-      `[ComponentIndexer.init] fileSystemProvider has ${this.fileSystemProvider.getAllFileUris().length} files before workspace type detection`
+      `[ComponentIndexer.init] fileSystemProvider has ${fileCountBeforeDetection} files before workspace type detection`
+    );
+    if (fileCountBeforeDetection > 0 && fileCountBeforeDetection <= 20) {
+      console.log(
+        `[ComponentIndexer.init] fileSystemProvider file URIs before detection: ${this.fileSystemProvider
+          .getAllFileUris()
+          .join(', ')}`
+      );
+    }
+    console.log(
+      `[ComponentIndexer.init] Calling detectWorkspaceHelper with workspaceRoot: ${this.attributes.workspaceRoot}`
     );
     this.workspaceType = await detectWorkspaceHelper(this.attributes.workspaceRoot, this.fileSystemProvider);
     console.log(`[ComponentIndexer.init] Detected workspaceType: ${this.workspaceType}`);
