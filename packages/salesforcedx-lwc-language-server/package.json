@@ -45,7 +45,7 @@
     "babel-types": "^6.26.0",
     "change-case": "^4.1.1",
     "comment-parser": "^0.7.6",
-    "glob-to-regexp": "^0.4.1",
+    "glob-to-regexp": "0.4.1",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12",

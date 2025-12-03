@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { FileSystemDataProvider, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import { Uri, workspace } from 'vscode';
 
@@ -58,9 +58,11 @@ const tryReadFile = async (
     const fileContent = await workspace.fs.readFile(fileUri);
     const content = Buffer.from(fileContent).toString('utf8');
 
-    // Store using fsPath format only (consistent with LWC server)
-    provider.updateFileContent(filePath, content);
-    provider.updateFileStat(filePath, {
+    // Normalize path before storing to ensure consistency with FileSystemDataProvider
+    // This is a key entry point - paths from path.join() may have backslashes on Windows
+    const normalizedFilePath = normalizePath(filePath);
+    provider.updateFileContent(normalizedFilePath, content);
+    provider.updateFileStat(normalizedFilePath, {
       type: 'file',
       exists: true,
       ctime: Date.now(),

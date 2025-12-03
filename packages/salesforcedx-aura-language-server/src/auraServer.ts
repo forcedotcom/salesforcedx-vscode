@@ -11,7 +11,8 @@ import {
   FileSystemDataProvider,
   FileStat,
   syncDocumentToTextDocumentsProvider,
-  scheduleReinitialization
+  scheduleReinitialization,
+  normalizePath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 
@@ -98,7 +99,11 @@ export default class Server {
 
   public async onInitialize(params: InitializeParams): Promise<InitializeResult> {
     const { workspaceFolders } = params;
-    this.workspaceRoots = (workspaceFolders ?? []).map(folder => path.resolve(URI.parse(folder.uri).fsPath));
+    // Normalize workspaceRoots at entry point to ensure all paths are consistent
+    // This ensures all downstream code receives normalized paths
+    this.workspaceRoots = (workspaceFolders ?? []).map(folder =>
+      normalizePath(path.resolve(URI.parse(folder.uri).fsPath))
+    );
 
     try {
       if (this.workspaceRoots.length === 0) {

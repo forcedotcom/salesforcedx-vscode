@@ -9,7 +9,7 @@ import { basename, dirname } from 'node:path';
 import { URI } from 'vscode-uri';
 import { FileSystemDataProvider } from './providers/fileSystemDataProvider';
 import { DirectoryEntry } from './types/fileSystemTypes';
-import { unixify } from './utils';
+import { normalizePath } from './utils';
 
 /**
  * Ensures parent directories are tracked in FileSystemDataProvider.
@@ -41,13 +41,11 @@ const ensureDirectoryTracked = async (
   provider.updateDirectoryListing(dirUri, entries);
 
   // Recursively ensure parent directory is tracked
-  const parentDir = unixify(dirname(dirUri));
+  const parentDir = normalizePath(dirname(dirUri));
   if (parentDir && parentDir !== dirUri && parentDir !== '.') {
     // Check if parent is within workspace roots
-    // Normalize paths for cross-platform compatibility
-    const normalizedDirUri = unixify(dirUri);
-    const normalizedWorkspaceRoots = workspaceRoots.map(root => unixify(root));
-    const isInWorkspace = normalizedWorkspaceRoots.some(root => normalizedDirUri.startsWith(root));
+    // workspaceRoots are already normalized, so we can compare directly
+    const isInWorkspace = workspaceRoots.some(root => dirUri.startsWith(root));
     if (isInWorkspace) {
       await ensureDirectoryTracked(parentDir, provider, workspaceRoots);
     }
@@ -64,8 +62,8 @@ const addFileToDirectoryListing = async (
   workspaceRoots: string[]
 ): Promise<void> => {
   // fileUri is already normalized to fsPath format, but handle both formats for safety
-  const filePath = fileUri.startsWith('file://') ? unixify(URI.parse(fileUri).fsPath) : unixify(fileUri);
-  const parentDir = unixify(dirname(filePath));
+  const filePath = fileUri.startsWith('file://') ? normalizePath(URI.parse(fileUri).fsPath) : normalizePath(fileUri);
+  const parentDir = normalizePath(dirname(filePath));
   const fileName = basename(filePath);
 
   // Ensure parent directory is tracked
@@ -94,6 +92,7 @@ const addFileToDirectoryListing = async (
 /**
  * Syncs a document to the TextDocuments FileSystemDataProvider.
  * Normalizes URI to fsPath to match init provider format.
+ * This is a key entry point - all paths should be normalized here.
  */
 export const syncDocumentToTextDocumentsProvider = async (
   uri: string,
@@ -102,8 +101,8 @@ export const syncDocumentToTextDocumentsProvider = async (
   workspaceRoots: string[]
 ): Promise<void> => {
   // Normalize URI to fsPath to match init provider format (plain path, not file:// URI)
-  // Also normalize path separators for cross-platform compatibility
-  const normalizedUri = unixify(URI.parse(uri).fsPath);
+  // Use normalizePath (not just unixify) to ensure drive letter normalization on Windows
+  const normalizedUri = normalizePath(URI.parse(uri).fsPath);
 
   // Update TextDocuments FileSystemDataProvider with document content
   provider.updateFileContent(normalizedUri, content);

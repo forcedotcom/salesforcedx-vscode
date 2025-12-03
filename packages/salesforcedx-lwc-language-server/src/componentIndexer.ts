@@ -15,6 +15,10 @@ import {
   normalizePath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { snakeCase, camelCase } from 'change-case';
+// glob-to-regexp is correctly listed in this package's package.json dependencies,
+// but eslint-plugin-import's no-extraneous-dependencies rule doesn't properly detect
+// dependencies in monorepo setups (it checks the root package.json instead of the package's own)
+// eslint-disable-next-line import/no-extraneous-dependencies
 import globToRegExp from 'glob-to-regexp';
 import * as path from 'node:path';
 
@@ -134,23 +138,21 @@ export default class ComponentIndexer {
 
     switch (this.workspaceType) {
       case 'SFDX':
-        // Normalize workspaceRoot the same way FileSystemDataProvider normalizes paths
-        const normalizedWorkspaceRoot = normalizePath(this.workspaceRoot);
+        // workspaceRoot is already normalized by getWorkspaceRoot()
         const packageDirsPattern = await this.getSfdxPackageDirsPattern();
         // Pattern matches: {packageDir}/**/*/lwc/**/*.js
         // The **/* before lwc requires at least one directory level (e.g., main/default/lwc or meta/lwc)
         const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.js`;
-        files = await findFilesWithGlob(sfdxPattern, this.fileSystemProvider, normalizedWorkspaceRoot);
+        files = await findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot);
         return files.filter((item: Entry): boolean => {
           const data = path.parse(item.path);
           return data.dir.endsWith(data.name);
         });
       default:
         // For CORE_ALL and CORE_PARTIAL
-        // Normalize workspaceRoot the same way FileSystemDataProvider normalizes paths
-        const normalizedWorkspaceRootDefault = normalizePath(this.workspaceRoot);
+        // workspaceRoot is already normalized by getWorkspaceRoot()
         const defaultPattern = '**/*/modules/**/*.js';
-        files = await findFilesWithGlob(defaultPattern, this.fileSystemProvider, normalizedWorkspaceRootDefault);
+        files = await findFilesWithGlob(defaultPattern, this.fileSystemProvider, this.workspaceRoot);
         return files.filter((item: Entry): boolean => {
           const data = path.parse(item.path);
           return data.dir.endsWith(data.name);
@@ -277,12 +279,11 @@ export default class ComponentIndexer {
   public async getTsConfigPathMapping(): Promise<TsConfigPaths> {
     const files: TsConfigPaths = {};
     if (this.workspaceType === 'SFDX') {
-      // Normalize workspaceRoot the same way FileSystemDataProvider normalizes paths
-      const normalizedWorkspaceRoot = normalizePath(this.workspaceRoot);
+      // workspaceRoot is already normalized by getWorkspaceRoot()
       const packageDirsPattern = await this.getSfdxPackageDirsPattern();
       // Use **/* after lwc to match any depth (e.g., utils/meta/lwc/todo_util/todo_util.js)
       const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.{js,ts}`;
-      const filePaths = await findFilesWithGlob(sfdxPattern, this.fileSystemProvider, normalizedWorkspaceRoot);
+      const filePaths = await findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot);
       for (const filePath of filePaths) {
         const { dir, name: fileName } = path.parse(filePath.path);
         const folderName = path.basename(dir);

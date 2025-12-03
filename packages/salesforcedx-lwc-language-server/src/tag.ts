@@ -79,7 +79,8 @@ export const createTag = async (attributes: TagAttrs, fileSystemProvider?: IFile
     updatedAt = new Date(attributes.updatedAt);
   } else if (file && fileSystemProvider) {
     try {
-      const stat = fileSystemProvider.getFileStat(`file://${normalizePath(file)}`);
+      // file is already normalized, and getFileStat normalizes internally
+      const stat = fileSystemProvider.getFileStat(`file://${file}`);
       if (stat) {
         updatedAt = new Date(stat.mtime);
       } else {
@@ -191,10 +192,9 @@ const findFilesInDirectory = (dirPath: string, pattern: RegExp, fileSystemProvid
 
 // Utility function to get all locations
 export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvider): Location[] => {
-  // Normalize tag.file first to ensure consistent path handling across platforms
-  const normalizedTagFile = normalizePath(tag.file);
-  const { dir, name } = path.parse(normalizedTagFile);
-  // Normalize dir the same way FileSystemDataProvider normalizes paths
+  // tag.file is already normalized (comes from entry.path which is normalized by FileSystemDataProvider)
+  const { dir, name } = path.parse(tag.file);
+  // Normalize dir because path.parse() returns backslashes on Windows
   const normalizedDir = normalizePath(dir);
 
   const convertFileToLocation = (file: string): Location => {
@@ -276,7 +276,8 @@ export const updateTagMetadata = async (
   tag._properties = null;
   if (fileSystemProvider) {
     try {
-      const stat = fileSystemProvider.getFileStat(`file://${normalizePath(tag.file)}`);
+      // tag.file is already normalized, and getFileStat normalizes internally
+      const stat = fileSystemProvider.getFileStat(`file://${tag.file}`);
       if (stat) {
         tag.updatedAt = new Date(stat.mtime);
       } else {
@@ -304,7 +305,8 @@ export const createTagFromFile = async (
   const fileName = filePath.base;
 
   try {
-    const content = fileSystemProvider.getFileContent(normalizePath(file));
+    // file is already normalized (comes from entry.path), and getFileContent normalizes internally
+    const content = fileSystemProvider.getFileContent(file);
     if (!content) {
       return null;
     }

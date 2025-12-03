@@ -103,9 +103,9 @@ export const readJsonSync = async (file: string, fileSystemProvider: IFileSystem
     // Dynamically import tiny-jsonc (ES module) and parse JSONC content
     // Comments will be lost if this object is written back to file.
     // Individual properties should be updated directly via VS Code API to preserve comments.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, import/no-extraneous-dependencies, @typescript-eslint/no-unsafe-member-access
     const { parse } = (await import('tiny-jsonc')).default;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
     const parsed = parse(content);
     return isRecord(parsed) ? parsed : {};
   } catch (err) {
