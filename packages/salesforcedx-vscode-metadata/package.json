@@ -69,25 +69,32 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sf.project.deploy.start"
+          "command": "sf.project.deploy.start",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands"
         },
         {
-          "command": "sf.project.deploy.start.ignore.conflicts"
+          "command": "sf.project.deploy.start.ignore.conflicts",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands"
         },
         {
-          "command": "sf.project.retrieve.start"
+          "command": "sf.project.retrieve.start",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands"
         },
         {
-          "command": "sf.view.all.changes"
+          "command": "sf.view.all.changes",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands"
         },
         {
-          "command": "sf.view.local.changes"
+          "command": "sf.view.local.changes",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands"
         },
         {
-          "command": "sf.view.remote.changes"
+          "command": "sf.view.remote.changes",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands"
         },
         {
-          "command": "sf.apex.generate.class"
+          "command": "sf.apex.generate.class",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands"
         }
       ]
     },

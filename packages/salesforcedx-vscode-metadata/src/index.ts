@@ -36,12 +36,13 @@ const shouldRegisterSharedCommands = (): boolean => {
 
 /** Activate the metadata extension */
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const svc = yield* api.services.ChannelService;
+  const svc = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ChannelService;
   yield* svc.appendToChannel('Salesforce Metadata extension activating');
 
   // Register shared commands only if core extension is not installed or config enables it
   if (shouldRegisterSharedCommands()) {
+    vscode.commands.executeCommand('setContext', 'salesforcedx-vscode-metadata.showSharedCommands', true);
+
     yield* svc.appendToChannel('Registering shared commands (core extension not present or config enabled)');
     context.subscriptions.push(
       vscode.commands.registerCommand('sf.project.deploy.start', async () => projectDeployStart(false)),
