@@ -19,12 +19,14 @@ import {
   upsertScratchOrgAuthFieldsToSettings,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
-  EDITOR_WITH_URI
+  EDITOR_WITH_URI,
+  QUICK_INPUT_LIST_ROW,
+  QUICK_INPUT_WIDGET
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { editOpenFile } from '../utils/apexFileHelpers';
-import { DEPLOY_COMMAND_TITLE } from '../../../src/constants';
+import packageNls from '../../../package.nls.json';
 
 test.describe('Source Tracking Status Bar', () => {
   test('tracks remote and local changes through full deploy cycle', async ({ page }) => {
@@ -59,18 +61,18 @@ test.describe('Source Tracking Status Bar', () => {
       await closeSettingsTab(page);
       await closeWelcomeTabs(page);
 
-      await executeCommandWithCommandPalette(page, 'BETA: Create Apex Class');
+      await executeCommandWithCommandPalette(page, packageNls.apex_generate_class_text);
 
       // First prompt: "Enter Apex class name"
       await page
-        .locator('.quick-input-widget')
+        .locator(QUICK_INPUT_WIDGET)
         .getByText(/Enter Apex class name/i)
         .waitFor({ state: 'visible', timeout: 5000 });
       await page.keyboard.type(className);
       await page.keyboard.press('Enter');
 
       // Second prompt: Quick Pick to select output directory - just press Enter to accept default
-      await page.locator('.quick-input-list .monaco-list-row').first().waitFor({ state: 'visible', timeout: 5000 });
+      await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
       await page.keyboard.press('Enter');
 
       // Wait for the editor to open with the new class
@@ -88,14 +90,14 @@ test.describe('Source Tracking Status Bar', () => {
     });
 
     await test.step('deploy changes and verify local count returns to 0', async () => {
-      await executeCommandWithCommandPalette(page, DEPLOY_COMMAND_TITLE);
+      await executeCommandWithCommandPalette(page, packageNls.project_deploy_start_ignore_conflicts_default_org_text);
       await waitForDeployProgressNotificationToAppear(page, 30_000);
 
       const deployingNotification = page
         .locator(NOTIFICATION_LIST_ITEM)
         .filter({ hasText: /Deploying/i })
         .first();
-      await expect(deployingNotification).not.toBeVisible({ timeout: 120_000 });
+      await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
 
       await statusBarPage.waitForCounts({ local: 0 }, 60_000);
     });

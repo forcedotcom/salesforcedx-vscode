@@ -66,11 +66,11 @@ export const separateChanges = (status: StatusOutputRow[]): SourceTrackingDetail
 /** Get command based on counts */
 export const getCommand = (counts: SourceTrackingCounts): string | undefined => {
   if (counts.remote > 0 && counts.local === 0 && counts.conflicts === 0) {
-    return 'sf.metadata.retrieve.start';
+    return 'sf.project.retrieve.start';
   } else if (counts.local > 0 && counts.remote === 0 && counts.conflicts === 0) {
-    return 'sf.metadata.deploy.start';
+    return 'sf.project.deploy.start';
   } else if ((counts.remote > 0 && counts.local > 0) || counts.conflicts > 0) {
-    return 'sf.metadata.source.tracking.details';
+    return 'sf.view.all.changes';
   }
   return undefined;
 };

@@ -6,6 +6,7 @@
  */
 
 import { expect, type Page, type Locator } from '@playwright/test';
+import { STATUS_BAR_ITEM_LABEL } from '@salesforce/playwright-vscode-ext';
 
 type StatusBarCounts = {
   conflicts: number;
@@ -32,7 +33,7 @@ export class SourceTrackingStatusBarPage {
   /** Get the current status bar label text */
   public async getText(): Promise<string> {
     // Try to get text from the inner label element (web), fall back to button itself (desktop)
-    const label = this.statusBarItem.locator('.statusbar-item-label');
+    const label = this.statusBarItem.locator(STATUS_BAR_ITEM_LABEL);
     const count = await label.count();
     const text = count > 0 ? await label.textContent() : await this.statusBarItem.textContent();
     return text ?? '';
