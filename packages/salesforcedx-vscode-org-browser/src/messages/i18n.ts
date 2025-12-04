@@ -12,5 +12,3 @@ export const messages = {
 } as const;
 
 export type MessageKey = keyof typeof messages;
-
-export const isValidMessageKey = (key: string): key is MessageKey => key in messages;
