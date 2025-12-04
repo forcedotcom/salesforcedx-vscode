@@ -91,6 +91,7 @@ const activationEffect = (
  */
 export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
   if (process.env.ESBUILD_PLATFORM === 'web') {
+    // test-web has this on by default. vscode-dev does not
     const autoSave = vscode.workspace.getConfiguration('files').get<boolean>('autoSave', false);
     if (autoSave) {
       await vscode.workspace.getConfiguration('files').update('autoSave', 'off', vscode.ConfigurationTarget.Global);
