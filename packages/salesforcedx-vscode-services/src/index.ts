@@ -91,6 +91,10 @@ const activationEffect = (
  */
 export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
   if (process.env.ESBUILD_PLATFORM === 'web') {
+    const autoSave = vscode.workspace.getConfiguration('files').get<boolean>('autoSave', false);
+    if (autoSave) {
+      await vscode.workspace.getConfiguration('files').update('autoSave', 'off', vscode.ConfigurationTarget.Global);
+    }
     const { getWebAppInsightsReporter } = await import('./observability/applicationInsightsWebExporter.js');
     context.subscriptions.push(getWebAppInsightsReporter());
   }
