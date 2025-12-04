@@ -10,13 +10,27 @@ import { OUTPUT_TAB_ROLE } from '../utils/locators';
 import { executeCommandWithCommandPalette } from './commands';
 
 const outputPanel = (page: Page) => page.locator('[id="workbench.panel.output"]');
-
 const outputPanelViewLines = (page: Page) => outputPanel(page).locator('.monaco-editor .view-line');
-
 const outputPanelCodeArea = (page: Page) => outputPanel(page).locator('.monaco-editor').locator('.view-lines');
 
-/** Normalize non-breaking spaces (char 160) to regular spaces (char 32) */
-const normalizeSpaces = (text: string): string => text.replaceAll('\u00A0', ' ');
+const filterInput = (page: Page) => page.getByPlaceholder(/Filter/i);
+
+/** Get combined text from visible view lines, normalized */
+const getVisibleOutputText = async (page: Page): Promise<string> =>
+  /** Normalize non-breaking spaces (char 160) to regular spaces (char 32) */
+  (await outputPanelViewLines(page).allTextContents()).join(' ').replaceAll('\u00A0', ' ');
+
+/** Use filter to search and check for text, clearing filter afterward */
+const withOutputFilter = async <T>(page: Page, searchText: string, fn: () => Promise<T>): Promise<T> => {
+  const input = filterInput(page);
+  await input.fill(searchText);
+  await page.waitForTimeout(500);
+  try {
+    return await fn();
+  } finally {
+    await input.fill('');
+  }
+};
 
 const outputFocusCommand = 'Output: Focus on Output View';
 
@@ -26,7 +40,6 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
   const isVisible = await outputTab.isVisible();
 
   if (!isVisible) {
-    // Panel is hidden, use command to show it
     await executeCommandWithCommandPalette(page, outputFocusCommand);
     await outputTab.waitFor({ state: 'visible', timeout: 5000 });
   }
@@ -44,34 +57,20 @@ export const selectOutputChannel = async (page: Page, channelName: string): Prom
 };
 
 /** Checks if the output channel contains specific text using the filter input */
-export const outputChannelContains = async (page: Page, searchText: string): Promise<boolean> => {
-  const filterInput = page.getByPlaceholder(/Filter/i);
-  await filterInput.fill(searchText);
-  await page.waitForTimeout(500);
-
-  try {
-    // After filtering, check if matching content appears in visible .view-line elements
-    const allText = await outputPanelViewLines(page).allTextContents();
-    const combinedText = normalizeSpaces(allText.join(' '));
-
+export const outputChannelContains = async (page: Page, searchText: string): Promise<boolean> =>
+  withOutputFilter(page, searchText, async () => {
+    const combinedText = await getVisibleOutputText(page);
     const found = combinedText.includes(searchText);
-    // Debug screenshot
     const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
     await page.screenshot({ path: `test-results/filter-${safeName}.png` });
-
     return found;
-  } finally {
-    await filterInput.fill('');
-  }
-};
+  });
 
 /** Clears the output channel by clicking the clear button in the output panel toolbar */
 export const clearOutputChannel = async (page: Page): Promise<void> => {
-  // The clear button is in the output panel's action bar - use first() to avoid Terminal's clear button
   const clearButton = page.getByRole('button', { name: 'Clear Output' }).first();
   await clearButton.click();
 
-  // Wait for the output code area to be cleared
   const codeArea = outputPanelCodeArea(page);
   await expect(async () => {
     const text = await codeArea.textContent();
@@ -86,24 +85,16 @@ export const waitForOutputChannelText = async (
 ): Promise<void> => {
   const { expectedText, timeout = 30_000 } = opts;
 
-  // First wait for output panel to have some content
   const codeArea = outputPanelCodeArea(page);
   await expect(async () => {
     const text = await codeArea.textContent();
     expect(text?.trim().length ?? 0).toBeGreaterThan(10);
   }).toPass({ timeout: 5000 });
 
-  const filterInput = page.getByPlaceholder(/Filter/i);
-
-  await filterInput.fill(expectedText);
-
-  // Wait for the text to appear in visible .view-line elements (filter scrolls to match)
-  const viewLines = outputPanelViewLines(page);
-  await expect(async () => {
-    const allText = await viewLines.allTextContents();
-    const combinedText = normalizeSpaces(allText.join(' '));
-    expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
-  }).toPass({ timeout });
-
-  await filterInput.fill('');
+  await withOutputFilter(page, expectedText, async () => {
+    await expect(async () => {
+      const combinedText = await getVisibleOutputText(page);
+      expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
+    }).toPass({ timeout });
+  });
 };
