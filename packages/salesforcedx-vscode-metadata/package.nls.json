@@ -6,7 +6,6 @@
   "view_local_changes_text": "SFDX: View Local Changes",
   "view_remote_changes_text": "SFDX: View Changes in Default Org",
   "apex_generate_class_text": "SFDX: Create Apex Class",
-  "source_tracking_status_bar_tooltip_header": "Source Tracking Status",
   "source_tracking_status_bar_local_changes": "Local Changes",
   "source_tracking_status_bar_remote_changes": "Remote Changes",
   "source_tracking_status_bar_conflicts": "Conflicts",
