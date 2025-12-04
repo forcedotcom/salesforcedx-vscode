@@ -61,15 +61,17 @@ test.describe('View Changes Commands', () => {
       const hasTitle = await outputChannelContains(page, titleAllChanges);
       expect(hasTitle, `View All Changes should show "${titleAllChanges}" title`).toBe(true);
 
-      // Verify both remote and local sections are present
-      // Use simpler search - VS Code filter is case-insensitive substring match
-      const hasRemote = await outputChannelContains(page, 'Remote Changes');
-      await page.screenshot({ path: 'test-results/04-after-remote-check.png' });
-      expect(hasRemote, 'View All Changes should show "Remote Changes" section').toBe(true);
+      const sectionRemote = nls.localize('source_tracking_section_remote_changes');
+      const sectionLocal = nls.localize('source_tracking_section_local_changes');
 
-      const hasLocal = await outputChannelContains(page, 'Local Changes');
+      // Verify both remote and local sections are present
+      const hasRemote = await outputChannelContains(page, sectionRemote);
+      await page.screenshot({ path: 'test-results/04-after-remote-check.png' });
+      expect(hasRemote, `View All Changes should show "${sectionRemote}" section`).toBe(true);
+
+      const hasLocal = await outputChannelContains(page, sectionLocal);
       await page.screenshot({ path: 'test-results/05-after-local-check.png' });
-      expect(hasLocal, 'View All Changes should show "Local Changes" section').toBe(true);
+      expect(hasLocal, `View All Changes should show "${sectionLocal}" section`).toBe(true);
     });
 
     await test.step('View Local Changes shows local section title', async () => {
@@ -78,17 +80,20 @@ test.describe('View Changes Commands', () => {
       await clearOutputChannel(page);
       await executeCommandWithCommandPalette(page, packageNls.view_local_changes_text);
 
-      // Wait for the local changes title to appear in output (title is "Local Changes:")
       const titleLocalChanges = nls.localize('source_tracking_title_local_changes');
+      const sectionLocal = nls.localize('source_tracking_section_local_changes');
+      const sectionRemote = nls.localize('source_tracking_section_remote_changes');
+
+      // Wait for the local changes title to appear in output
       await waitForOutputChannelText(page, { expectedText: titleLocalChanges });
 
       // Verify local section header is present (section is "Local Changes (X):")
-      const hasLocal = await outputChannelContains(page, 'Local Changes (');
-      expect(hasLocal, 'View Local Changes should show "Local Changes" section').toBe(true);
+      const hasLocal = await outputChannelContains(page, `${sectionLocal} (`);
+      expect(hasLocal, `View Local Changes should show "${sectionLocal}" section`).toBe(true);
 
-      // Verify remote section is NOT present (should not appear)
-      const hasRemote = await outputChannelContains(page, 'Remote Changes (');
-      expect(hasRemote, 'View Local Changes should NOT show "Remote Changes" section').toBe(false);
+      // Verify remote section is NOT present
+      const hasRemote = await outputChannelContains(page, `${sectionRemote} (`);
+      expect(hasRemote, `View Local Changes should NOT show "${sectionRemote}" section`).toBe(false);
     });
 
     await test.step('View Remote Changes shows remote section title', async () => {
@@ -97,17 +102,20 @@ test.describe('View Changes Commands', () => {
       await clearOutputChannel(page);
       await executeCommandWithCommandPalette(page, packageNls.view_remote_changes_text);
 
-      // Wait for the remote changes title to appear in output (title is "Remote Changes:")
       const titleRemoteChanges = nls.localize('source_tracking_title_remote_changes');
+      const sectionRemote = nls.localize('source_tracking_section_remote_changes');
+      const sectionLocal = nls.localize('source_tracking_section_local_changes');
+
+      // Wait for the remote changes title to appear in output
       await waitForOutputChannelText(page, { expectedText: titleRemoteChanges });
 
       // Verify remote section header is present (section is "Remote Changes (X):")
-      const hasRemote = await outputChannelContains(page, 'Remote Changes (');
-      expect(hasRemote, 'View Remote Changes should show "Remote Changes" section').toBe(true);
+      const hasRemote = await outputChannelContains(page, `${sectionRemote} (`);
+      expect(hasRemote, `View Remote Changes should show "${sectionRemote}" section`).toBe(true);
 
-      // Verify local section is NOT present (should not appear)
-      const hasLocal = await outputChannelContains(page, 'Local Changes (');
-      expect(hasLocal, 'View Remote Changes should NOT show "Local Changes" section').toBe(false);
+      // Verify local section is NOT present
+      const hasLocal = await outputChannelContains(page, `${sectionLocal} (`);
+      expect(hasLocal, `View Remote Changes should NOT show "${sectionLocal}" section`).toBe(false);
     });
 
     await test.step('validate no critical errors', async () => {

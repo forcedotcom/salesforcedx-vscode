@@ -16,11 +16,6 @@
  * If omitted, we will assume _message.
  */
 export const messages = {
-  // Command titles (from package.nls.json)
-  view_all_changes_text: 'SFDX: View All Changes (Local and in Default Org)',
-  view_local_changes_text: 'SFDX: View Local Changes',
-  view_remote_changes_text: 'SFDX: View Changes in Default Org',
-
   // Source tracking output channel headings
   source_tracking_title_all_changes: 'Source Tracking Details',
   source_tracking_title_local_changes: 'Local Changes',
@@ -28,7 +23,6 @@ export const messages = {
   source_tracking_section_local_changes: 'Local Changes',
   source_tracking_section_remote_changes: 'Remote Changes',
   source_tracking_section_conflicts: 'Conflicts',
-  source_tracking_no_changes: 'No changes detected',
 
   // Status bar messages
   source_tracking_status_bar_local_changes: 'Local Changes',
@@ -43,7 +37,6 @@ export const messages = {
   apex_class_output_dir_prompt: 'Select output directory',
   apex_class_already_exists: 'One or more files already exist. Do you want to overwrite them?',
   apex_generate_class_success: 'Apex class created successfully',
-  apex_generate_class_cancelled: 'Apex class creation cancelled',
   deploy_no_local_changes_message: 'No local changes to deploy',
   deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.',
   failed_to_create_apex_class: 'Failed to create Apex class: %s'

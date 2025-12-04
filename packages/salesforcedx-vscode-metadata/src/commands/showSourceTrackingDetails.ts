@@ -7,6 +7,7 @@
 
 import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as Effect from 'effect/Effect';
+import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 
 type ViewChangesOptions = { local: boolean; remote: boolean };
@@ -49,14 +50,18 @@ const viewChangesEffect = Effect.fn('viewChanges')(function* (options: ViewChang
   const conflicts = status.filter(row => row.conflict);
 
   const title =
-    options.local && options.remote ? 'Source Tracking Details' : options.local ? 'Local Changes' : 'Remote Changes';
+    options.local && options.remote
+      ? nls.localize('source_tracking_title_all_changes')
+      : options.local
+        ? nls.localize('source_tracking_title_local_changes')
+        : nls.localize('source_tracking_title_remote_changes');
 
   const output = [
     '',
     `${title}:`,
-    formatChanges(remoteChanges, 'Remote Changes'),
-    formatChanges(localChanges, 'Local Changes'),
-    formatChanges(conflicts, 'Conflicts')
+    formatChanges(remoteChanges, nls.localize('source_tracking_section_remote_changes')),
+    formatChanges(localChanges, nls.localize('source_tracking_section_local_changes')),
+    formatChanges(conflicts, nls.localize('source_tracking_section_conflicts'))
   ].join('\n');
 
   yield* channelService.appendToChannel(output);
