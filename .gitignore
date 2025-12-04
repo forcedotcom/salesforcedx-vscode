@@ -125,3 +125,4 @@ test-resources/
 .nx/cache
 **/playwright-report/
 jscpd-report/
+/scripts/xsd/bin

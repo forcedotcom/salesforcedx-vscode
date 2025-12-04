@@ -1,0 +1,16 @@
+{
+  "name": "@salesforce/xsd-scraper",
+  "version": "1.0.0",
+  "description": "Scripts for scraping Salesforce Metadata API documentation and generating XSD schemas",
+  "license": "BSD-3-Clause",
+  "private": true,
+  "type": "commonjs",
+  "main": "./out",
+  "scripts": {
+    "build": "tsc",
+    "compile": "npm run build",
+    "scrape:all": "ts-node scrape-all-metadata-pages.ts",
+    "scrape:single": "ts-node scrape-single-page.ts",
+    "convert:json": "ts-node jsonToXsdConverter.ts"
+  }
+}

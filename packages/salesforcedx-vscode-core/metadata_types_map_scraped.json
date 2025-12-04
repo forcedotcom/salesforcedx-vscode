@@ -11224,7 +11224,7 @@
         "Field Type": "DefinitionCreationType enumeration"
       },
       {
-        "Description": "When the model is a Standard Data Cloud model, a Reference to the Data Model from which this Object was started. Currently only supports the following strings: if the creationType is Standard, it must be Reference, if creationType is Custom, it must be View.",
+        "Description": "When the model is a Standard Data 360 model, a Reference to the Data Model from which this Object was started. Currently only supports the following strings: if the creationType is Standard, it must be Reference, if creationType is Custom, it must be View.",
         "Field Name": "dataModelTaxonomy",
         "Field Type": "string"
       },
@@ -11269,7 +11269,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "This type is a Data Cloud subtype of CustomObject.",
+    "short_description": "This type is a Data 360 subtype of CustomObject.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm"
   },
   "ActionOverride": {
