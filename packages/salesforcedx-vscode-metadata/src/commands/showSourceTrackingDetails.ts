@@ -20,7 +20,7 @@ const rowToLine = (row: StatusOutputRow): string =>
   `  ${String(row.type)}: ${String(row.fullName)}${row.filePath ? ` (${String(row.filePath)})` : ''}`;
 
 const formatChanges = (changes: StatusOutputRow[], sectionTitle: string): string =>
-  changes.length > 0 ? [getTitle(changes, sectionTitle), ...changes.map(rowToLine)].join('\n') : '';
+  changes.length > 0 ? [...getTitle(changes, sectionTitle), ...changes.map(rowToLine)].join('\n') : '';
 
 const viewChangesEffect = Effect.fn('viewChanges')(function* (options: ViewChangesOptions) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -33,7 +33,11 @@ const viewChangesEffect = Effect.fn('viewChanges')(function* (options: ViewChang
     return;
   }
 
-  yield* Effect.promise(() => tracking.reReadLocalTrackingCache());
+  // Re-read both remote and local tracking to ensure fresh data
+  yield* Effect.all(
+    [Effect.promise(() => tracking.reReadRemoteTracking()), Effect.promise(() => tracking.reReadLocalTrackingCache())],
+    { concurrency: 'unbounded' }
+  );
   const status = (yield* Effect.tryPromise(() => tracking.getStatus(options))).filter(row => !row.ignored);
 
   const remoteChanges = options.remote ? status.filter(row => row.origin === 'remote' && !row.conflict) : [];

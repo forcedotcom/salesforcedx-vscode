@@ -40,3 +40,6 @@ export const SETTINGS_SEARCH_INPUT = [
   '#workbench\\.parts\\.editor .settings-header .search-container .monaco-editor',
   '[aria-label="Settings"] .settings-header .search-container .monaco-editor'
 ] as const;
+
+/** Output tab in the bottom panel */
+export const OUTPUT_TAB_ROLE = { role: 'tab', name: /Output \(Ctrl\+Shift\+U\)/i } as const;

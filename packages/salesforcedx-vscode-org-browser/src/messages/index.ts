@@ -7,7 +7,7 @@
 
 import { LocalizationService, type MessageArgs } from '@salesforce/vscode-i18n';
 import { EXTENSION_NAME } from '../constants';
-import { messages as enMessages, isValidMessageKey, type MessageKey } from './i18n';
+import { messages as enMessages, type MessageKey } from './i18n';
 
 const localizationService = LocalizationService.getInstance(EXTENSION_NAME);
 
@@ -19,9 +19,4 @@ localizationService.messageBundleManager.registerMessageBundle(EXTENSION_NAME, {
 export const nls = {
   localize: <K extends MessageKey>(key: K, ...args: MessageArgs<K, typeof enMessages>): string =>
     localizationService.localize(key, ...args)
-};
-
-export const coerceMessageKey = (key: string): MessageKey => {
-  const isValid = isValidMessageKey(key);
-  return isValid ? key : 'retrieve_canceled';
 };

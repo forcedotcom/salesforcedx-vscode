@@ -3,6 +3,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "out",
+    "resolveJsonModule": true,
     "plugins": [
       {
         "name": "@effect/language-service"
@@ -10,7 +11,13 @@
     ]
   },
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
-  "include": ["src/**/*.ts", "test/**/*.ts", "playwright.config.web.ts", "playwright.config.desktop.ts"],
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "playwright.config.web.ts",
+    "playwright.config.desktop.ts",
+    "package.nls.json"
+  ],
   "references": [
     {
       "path": "../playwright-vscode-ext"

@@ -24,7 +24,7 @@ import {
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { editOpenFile } from '../utils/apexFileHelpers';
-import { DEPLOY_COMMAND_TITLE } from '../../../src/constants';
+import packageNls from '../../../package.nls.json';
 
 test.describe('Source Tracking Status Bar', () => {
   test('tracks remote and local changes through full deploy cycle', async ({ page }) => {
@@ -88,7 +88,7 @@ test.describe('Source Tracking Status Bar', () => {
     });
 
     await test.step('deploy changes and verify local count returns to 0', async () => {
-      await executeCommandWithCommandPalette(page, DEPLOY_COMMAND_TITLE);
+      await executeCommandWithCommandPalette(page, packageNls.project_deploy_start_default_org_text);
       await waitForDeployProgressNotificationToAppear(page, 30_000);
 
       const deployingNotification = page

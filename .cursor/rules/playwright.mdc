@@ -1,5 +1,5 @@
 ---
-globs: *.spec.ts,**/test/web/**,**/test/playwright/**
+globs: *.spec.ts,**/test/web/**,**/test/playwright/**,**/playwright-vscode-ext/**
 alwaysApply: false
 ---
 
@@ -46,6 +46,8 @@ Use f1 for commands, not meta-shift-P. Use `Control` for all. No ControlOrMeta
 All installed extensions are temporarily disabled (this refers to other extensions, not the ones installed as part of our e2e)
 
 ## Debugging
+
+LLMs should not run `debug` mode playwright tests unless instructed to. Those pause and requier the human to step through.
 
 Use @https://playwright.dev/docs/api/class-locator#locator-inner-html on a known-good locator and use the result to get more accurate locators for stuff inside it.
 
