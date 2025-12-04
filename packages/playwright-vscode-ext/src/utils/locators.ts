@@ -40,6 +40,3 @@ export const SETTINGS_SEARCH_INPUT = [
   `${WORKBENCH} .settings-header .search-container ${EDITOR}`,
   `${WORKBENCH} [aria-label="Settings"] .settings-header .search-container ${EDITOR}`
 ] as const;
-
-/** Output tab in the bottom panel */
-export const OUTPUT_TAB_ROLE = { role: 'tab', name: /^Output\b/i } as const;

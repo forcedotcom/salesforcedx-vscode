@@ -28,8 +28,7 @@ export {
   TAB_CLOSE_BUTTON,
   STATUS_BAR_ITEM_LABEL,
   NOTIFICATION_LIST_ITEM,
-  SETTINGS_SEARCH_INPUT,
-  OUTPUT_TAB_ROLE
+  SETTINGS_SEARCH_INPUT
 } from './utils/locators';
 
 export { create, DREAMHOUSE_ORG_ALIAS } from './utils/dreamhouseScratchOrgSetup';

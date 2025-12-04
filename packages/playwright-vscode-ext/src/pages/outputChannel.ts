@@ -6,10 +6,11 @@
  */
 
 import { expect, type Page } from '@playwright/test';
-import { OUTPUT_TAB_ROLE, EDITOR } from '../utils/locators';
+import { EDITOR } from '../utils/locators';
 import { executeCommandWithCommandPalette } from './commands';
 
-const outputPanel = (page: Page) => page.locator('[id="workbench.panel.output"]');
+const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
+const outputPanel = (page: Page) => page.locator(OUTPUT_PANEL_ID);
 const outputPanelViewLines = (page: Page) => outputPanel(page).locator(`${EDITOR} .view-line`);
 const outputPanelCodeArea = (page: Page) => outputPanel(page).locator(`${EDITOR} .view-lines`);
 const filterInput = (page: Page) => page.getByPlaceholder(/Filter/i);
@@ -35,17 +36,12 @@ const outputFocusCommand = 'Output: Focus on Output View';
 
 /** Opens the Output panel (idempotent - safe to call if already open) */
 export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
-  const outputTab = page.getByRole(OUTPUT_TAB_ROLE.role, { name: OUTPUT_TAB_ROLE.name });
-  const isVisible = await outputTab.isVisible();
+  const panel = outputPanel(page);
+  const isVisible = await panel.isVisible();
 
   if (!isVisible) {
     await executeCommandWithCommandPalette(page, outputFocusCommand);
-    await outputTab.waitFor({ state: 'visible', timeout: 5000 });
-  }
-
-  const isSelected = (await outputTab.getAttribute('aria-selected')) === 'true';
-  if (!isSelected) {
-    await outputTab.click();
+    await panel.waitFor({ state: 'visible', timeout: 5000 });
   }
 };
 
