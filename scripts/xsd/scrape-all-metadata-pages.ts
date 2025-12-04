@@ -301,6 +301,7 @@ const scrapeInBatches = async (
   fastestType: { name: string; duration: number } | null;
   averageDuration: number;
   perBrowserStats: { successCount: number; failCount: number }[];
+  failedTypesNoTables: { name: string; url: string }[];
 }> => {
   const results: MetadataTypesMap = {};
   let successCount = 0;
@@ -310,6 +311,7 @@ const scrapeInBatches = async (
   let slowestType: { name: string; duration: number } | null = null;
   let fastestType: { name: string; duration: number } | null = null;
   let totalDuration = 0;
+  const failedTypesNoTables: { name: string; url: string }[] = [];
 
   // Track per-browser statistics - dynamically allocated
   const numBrowsers = contextPool['contexts'].length;
@@ -369,7 +371,7 @@ const scrapeInBatches = async (
   const program = Effect.all(effects, { concurrency: concurrencyLimit }).pipe(
     Effect.map(allResults => {
       // Collect results
-      for (const { result } of allResults) {
+      for (const { type, result } of allResults) {
         if (result.success && result.results.length > 0) {
           for (const { name, data } of result.results) {
             results[name] = data;
@@ -377,10 +379,21 @@ const scrapeInBatches = async (
           successCount++;
         } else {
           failCount++;
+          // Track types that failed due to no tables
+          failedTypesNoTables.push({ name: type.name, url: type.url });
         }
       }
       const averageDuration = totalMetadataTypes > 0 ? totalDuration / totalMetadataTypes : 0;
-      return { results, successCount, failCount, slowestType, fastestType, averageDuration, perBrowserStats };
+      return {
+        results,
+        successCount,
+        failCount,
+        slowestType,
+        fastestType,
+        averageDuration,
+        perBrowserStats,
+        failedTypesNoTables
+      };
     }),
     // Catch any errors and return partial results
     Effect.catchAll(_error => {
@@ -392,7 +405,8 @@ const scrapeInBatches = async (
         slowestType,
         fastestType,
         averageDuration,
-        perBrowserStats
+        perBrowserStats,
+        failedTypesNoTables
       });
     })
   );
@@ -542,7 +556,8 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
       slowestType: globalSlowestType,
       fastestType: globalFastestType,
       averageDuration: globalAverageDuration,
-      perBrowserStats
+      perBrowserStats,
+      failedTypesNoTables
     } = await scrapeInBatches(contextPool, typesToScrape, isVisible, totalConcurrency);
 
     const scrapeEndTime = Date.now();
@@ -585,6 +600,16 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
     }
     const avgTime = formatElapsedTime(0, globalAverageDuration);
     console.log(`📊 Average time per type: ${avgTime}`);
+
+    // Print failed types (no tables found)
+    if (failedTypesNoTables.length > 0) {
+      console.log(`\n⚠️  Failed types (no tables found): ${failedTypesNoTables.length}`);
+      failedTypesNoTables.forEach(({ name, url }) => {
+        console.log(`   • ${name}`);
+        console.log(`     ${url}`);
+      });
+    }
+
     console.log(`\n💾 Writing results to: ${outputPath}`);
 
     fs.writeFileSync(outputPath, JSON.stringify(mergedResults, null, 2));
