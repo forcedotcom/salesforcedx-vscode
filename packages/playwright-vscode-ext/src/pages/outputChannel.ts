@@ -9,10 +9,17 @@ import { expect, type Page } from '@playwright/test';
 import { OUTPUT_TAB_ROLE } from '../utils/locators';
 import { executeCommandWithCommandPalette } from './commands';
 
-const filteredOutputLocator = (page: Page) => page.locator('.findMatchInline');
+const outputPanel = (page: Page) => page.locator('[id="workbench.panel.output"]');
 
-const outputPanelCodeArea = (page: Page) =>
-  page.locator('[id="workbench.panel.output"]').locator('.monaco-editor').locator('.view-lines');
+const outputPanelViewLines = (page: Page) => outputPanel(page).locator('.monaco-editor .view-line');
+
+const outputPanelCodeArea = (page: Page) => outputPanel(page).locator('.monaco-editor').locator('.view-lines');
+
+/** Normalize non-breaking spaces (char 160) to regular spaces (char 32) */
+const normalizeSpaces = (text: string): string => text.replaceAll('\u00A0', ' ');
+
+const outputFocusCommand = 'Output: Focus on Output View';
+
 /** Opens the Output panel (idempotent - safe to call if already open) */
 export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
   const outputTab = page.getByRole(OUTPUT_TAB_ROLE.role, { name: OUTPUT_TAB_ROLE.name });
@@ -20,7 +27,7 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
 
   if (!isVisible) {
     // Panel is hidden, use command to show it
-    await executeCommandWithCommandPalette(page, 'View: Show Output');
+    await executeCommandWithCommandPalette(page, outputFocusCommand);
     await outputTab.waitFor({ state: 'visible', timeout: 5000 });
   }
 
@@ -36,48 +43,40 @@ export const selectOutputChannel = async (page: Page, channelName: string): Prom
   await dropdown.selectOption({ label: channelName });
 };
 
-/** Checks if the output channel contains specific text using the filter box */
+/** Checks if the output channel contains specific text using the filter input */
 export const outputChannelContains = async (page: Page, searchText: string): Promise<boolean> => {
   const filterInput = page.getByPlaceholder(/Filter/i);
   await filterInput.fill(searchText);
-
-  // Filter highlights matching text with findMatchInline class
-  // Note: highlights may be split across multiple spans (one per word)
-  const matchHighlight = filteredOutputLocator(page);
+  await page.waitForTimeout(500);
 
   try {
-    // If the filter shows highlights, it found the search text
-    await expect(matchHighlight.first()).toBeVisible({ timeout: 1000 });
+    // After filtering, check if matching content appears in visible .view-line elements
+    const allText = await outputPanelViewLines(page).allTextContents();
+    const combinedText = normalizeSpaces(allText.join(' '));
 
-    // Verify the combined highlighted text contains the search string
-    const allHighlights = await matchHighlight.allTextContents();
-    const withSpaces = allHighlights.join(' ');
-    const withoutSpaces = allHighlights.join('');
+    const found = combinedText.includes(searchText);
+    // Debug screenshot
+    const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
+    await page.screenshot({ path: `test-results/filter-${safeName}.png` });
 
-    // Normalize non-breaking spaces (char code 160) to regular spaces (char code 32)
-    const normalizeSpaces = (str: string) => str.replace(/\u00A0/g, ' ');
-    const normalizedHighlight = normalizeSpaces(withSpaces);
-    const normalizedSearch = normalizeSpaces(searchText);
-
-    return normalizedHighlight.includes(normalizedSearch) || withoutSpaces.includes(searchText);
-  } catch {
-    return false;
+    return found;
   } finally {
     await filterInput.fill('');
   }
 };
 
-/** Clears the output channel */
+/** Clears the output channel by clicking the clear button in the output panel toolbar */
 export const clearOutputChannel = async (page: Page): Promise<void> => {
-  const clearButton = page.getByRole('button', { name: 'Clear Output' });
+  // The clear button is in the output panel's action bar - use first() to avoid Terminal's clear button
+  const clearButton = page.getByRole('button', { name: 'Clear Output' }).first();
   await clearButton.click();
 
   // Wait for the output code area to be cleared
   const codeArea = outputPanelCodeArea(page);
   await expect(async () => {
     const text = await codeArea.textContent();
-    expect(text?.trim().length ?? 0).toBeLessThan(50);
-  }).toPass({ timeout: 3000 });
+    expect(text?.trim().length ?? 0, 'Output channel should be cleared').toBeLessThan(50);
+  }).toPass({ timeout: 1000 });
 };
 
 /** Wait for output channel to contain specific text using filter */
@@ -91,23 +90,20 @@ export const waitForOutputChannelText = async (
   const codeArea = outputPanelCodeArea(page);
   await expect(async () => {
     const text = await codeArea.textContent();
-    console.log(`[waitForOutputChannelText] Current output length: ${text?.length ?? 0}`);
     expect(text?.trim().length ?? 0).toBeGreaterThan(10);
   }).toPass({ timeout: 5000 });
 
   const filterInput = page.getByPlaceholder(/Filter/i);
 
-  console.log(`[waitForOutputChannelText] Searching for: "${expectedText}"`);
   await filterInput.fill(expectedText);
 
-  console.log(`[waitForOutputChannelText] Filter value: "${await filterInput.inputValue()}"`);
-
-  // Filter highlights matching text with findMatchInline class
-  // Note: highlights may be split across multiple spans (one per word)
-  const matchHighlight = filteredOutputLocator(page);
-
-  // Wait for any highlight to appear (indicates filter found a match)
-  await expect(matchHighlight.first()).toBeVisible({ timeout });
+  // Wait for the text to appear in visible .view-line elements (filter scrolls to match)
+  const viewLines = outputPanelViewLines(page);
+  await expect(async () => {
+    const allText = await viewLines.allTextContents();
+    const combinedText = normalizeSpaces(allText.join(' '));
+    expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
+  }).toPass({ timeout });
 
   await filterInput.fill('');
 };

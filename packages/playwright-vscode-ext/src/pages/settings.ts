@@ -17,7 +17,7 @@ const settingsLocator = (page: Page): Locator => page.locator(SETTINGS_SEARCH_IN
 const openSettingsUI = async (page: Page): Promise<void> => {
   await page.locator(WORKBENCH).click({ timeout: 60_000 });
   await page.waitForTimeout(2000);
-  await executeCommandWithCommandPalette(page, 'Preferences: Open Settings UI');
+  await executeCommandWithCommandPalette(page, 'Preferences: Open Settings (UI)');
   await settingsLocator(page).first().waitFor({ timeout: 3000 });
 };
 

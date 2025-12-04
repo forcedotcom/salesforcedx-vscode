@@ -48,10 +48,6 @@ test.describe('View Changes Commands', () => {
       await clearOutputChannel(page);
       await page.screenshot({ path: 'test-results/01-after-clear.png' });
 
-      // Capture console logs from extension
-      const consoleLogs: string[] = [];
-      page.on('console', msg => consoleLogs.push(`${msg.type()}: ${msg.text()}`));
-
       await executeCommandWithCommandPalette(page, packageNls.view_all_changes_text);
       await page.screenshot({ path: 'test-results/02-after-command.png' });
 
@@ -61,27 +57,19 @@ test.describe('View Changes Commands', () => {
       await waitForOutputChannelText(page, { expectedText: titleAllChanges });
       await page.screenshot({ path: 'test-results/03-after-wait-title.png' });
 
-      // Log extension console messages for debugging
-      console.log(
-        'Extension logs:',
-        consoleLogs.filter(l => l.includes('[viewChanges]'))
-      );
-
-      // Verify title, remote section, and local section are present
+      // Verify title is present
       const hasTitle = await outputChannelContains(page, titleAllChanges);
       expect(hasTitle, `View All Changes should show "${titleAllChanges}" title`).toBe(true);
 
-      await page.screenshot({ path: 'test-results/04-before-remote-check.png' });
+      // Verify both remote and local sections are present
+      // Use simpler search - VS Code filter is case-insensitive substring match
+      const hasRemote = await outputChannelContains(page, 'Remote Changes');
+      await page.screenshot({ path: 'test-results/04-after-remote-check.png' });
+      expect(hasRemote, 'View All Changes should show "Remote Changes" section').toBe(true);
 
-      // Try simpler search pattern
-      const hasRemote = await outputChannelContains(page, 'Remote');
-      await page.screenshot({ path: 'test-results/05-after-remote-check.png' });
-      console.log(`hasRemote for "Remote": ${hasRemote}`);
-      expect(hasRemote, `View All Changes should show "Remote" in output`).toBe(true);
-
-      const hasLocal = await outputChannelContains(page, 'Local');
-      console.log(`hasLocal for "Local": ${hasLocal}`);
-      expect(hasLocal, `View All Changes should show "Local" in output`).toBe(true);
+      const hasLocal = await outputChannelContains(page, 'Local Changes');
+      await page.screenshot({ path: 'test-results/05-after-local-check.png' });
+      expect(hasLocal, 'View All Changes should show "Local Changes" section').toBe(true);
     });
 
     await test.step('View Local Changes shows local section title', async () => {
@@ -90,20 +78,17 @@ test.describe('View Changes Commands', () => {
       await clearOutputChannel(page);
       await executeCommandWithCommandPalette(page, packageNls.view_local_changes_text);
 
-      // Wait for the local changes title to appear in output
+      // Wait for the local changes title to appear in output (title is "Local Changes:")
       const titleLocalChanges = nls.localize('source_tracking_title_local_changes');
       await waitForOutputChannelText(page, { expectedText: titleLocalChanges });
 
-      // Verify local section is present and remote section is absent
-      const sectionLocal = nls.localize('source_tracking_section_local_changes');
-      const sectionRemote = nls.localize('source_tracking_section_remote_changes');
+      // Verify local section header is present (section is "Local Changes (X):")
+      const hasLocal = await outputChannelContains(page, 'Local Changes (');
+      expect(hasLocal, 'View Local Changes should show "Local Changes" section').toBe(true);
 
-      // Sections include count in format "Local Changes (X):"
-      const hasLocal = await outputChannelContains(page, `${sectionLocal} (`);
-      expect(hasLocal, `View Local Changes should show "${sectionLocal}" section`).toBe(true);
-
-      const hasRemote = await outputChannelContains(page, `${sectionRemote} (`);
-      expect(hasRemote, `View Local Changes should NOT show "${sectionRemote}" section`).toBe(false);
+      // Verify remote section is NOT present (should not appear)
+      const hasRemote = await outputChannelContains(page, 'Remote Changes (');
+      expect(hasRemote, 'View Local Changes should NOT show "Remote Changes" section').toBe(false);
     });
 
     await test.step('View Remote Changes shows remote section title', async () => {
@@ -112,20 +97,17 @@ test.describe('View Changes Commands', () => {
       await clearOutputChannel(page);
       await executeCommandWithCommandPalette(page, packageNls.view_remote_changes_text);
 
-      // Wait for the remote changes title to appear in output
+      // Wait for the remote changes title to appear in output (title is "Remote Changes:")
       const titleRemoteChanges = nls.localize('source_tracking_title_remote_changes');
       await waitForOutputChannelText(page, { expectedText: titleRemoteChanges });
 
-      // Verify remote section is present and local section is absent
-      const sectionRemote = nls.localize('source_tracking_section_remote_changes');
-      const sectionLocal = nls.localize('source_tracking_section_local_changes');
+      // Verify remote section header is present (section is "Remote Changes (X):")
+      const hasRemote = await outputChannelContains(page, 'Remote Changes (');
+      expect(hasRemote, 'View Remote Changes should show "Remote Changes" section').toBe(true);
 
-      // Sections include count in format "Remote Changes (X):"
-      const hasRemote = await outputChannelContains(page, `${sectionRemote} (`);
-      expect(hasRemote, `View Remote Changes should show "${sectionRemote}" section`).toBe(true);
-
-      const hasLocal = await outputChannelContains(page, `${sectionLocal} (`);
-      expect(hasLocal, `View Remote Changes should NOT show "${sectionLocal}" section`).toBe(false);
+      // Verify local section is NOT present (should not appear)
+      const hasLocal = await outputChannelContains(page, 'Local Changes (');
+      expect(hasLocal, 'View Remote Changes should NOT show "Local Changes" section').toBe(false);
     });
 
     await test.step('validate no critical errors', async () => {

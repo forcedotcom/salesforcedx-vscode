@@ -29,6 +29,12 @@ use `test.step` to organize sequential tests.
 
 Tests must work identically in web and desktop.
 
+## Virtualized DOM
+
+Many things in the vscode API (tree views, editors, output panels) only contain the visible lines in the DOM (the remainder are not present until they scroll into view).
+
+You can't rely on scrollTo because the target element doesn't exist.
+
 ## Selectors and Assertions
 
 Prefer `aria` (getByRole) over css selectors
@@ -52,6 +58,8 @@ LLMs should not run `debug` mode playwright tests unless instructed to. Those pa
 Use @https://playwright.dev/docs/api/class-locator#locator-inner-html on a known-good locator and use the result to get more accurate locators for stuff inside it.
 
 Take screenshots and review them (tool call `read_file`) for additional context.
+
+Capture html "parent" levels up from where you are having a problem and study it to make sure you are using correct locators.
 
 Fail early, avoid creating fallbacks.
 

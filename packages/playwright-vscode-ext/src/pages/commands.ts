@@ -15,7 +15,8 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
 
 export const executeCommand = async (page: Page, command: string): Promise<void> => {
   await page.keyboard.type(command, { delay: 10 });
-  await page.keyboard.press('Enter');
+  // Use text content matching to find exact command (bypasses MRU prioritization)
+  await page.locator('.monaco-list-row').filter({ hasText: command }).first().click();
 };
 
 export const executeCommandWithCommandPalette = async (page: Page, command: string): Promise<void> => {
