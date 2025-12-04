@@ -19,10 +19,8 @@
 import { MessageKey } from './i18n';
 
 export const messages: Partial<Record<MessageKey, string>> = {
-  active_text_editor_not_apex: 'アクティブなテキストエディタは Apex クラスファイルではありません',
   anon_apex_execute_document_text: 'SFDX: エディタの内容で匿名 Apex コードを実行',
   anon_apex_execute_selection_text: 'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
-  apex_class_not_valid: 'Apex クラス %s は OpenAPI ドキュメント生成に適していません。',
   apex_execute_compile_success: '正常にコンパイルされました。',
   apex_execute_runtime_success: '正常に実行されました。',
   apex_execute_text: '匿名 Apex を実行',
@@ -43,15 +41,7 @@ export const messages: Partial<Record<MessageKey, string>> = {
   apex_log_get_pick_log_text: '取得する Apex デバッグログを選択',
   apex_log_get_text: 'SFDX: Apex デバッグログを取得',
   apex_log_list_text: 'Apex デバッグログを取得しています',
-  artifact_failed: '成果物の保存に失敗しました: %s',
   cannot_determine_workspace: 'ワークスペースのフォルダを特定できませんでした。',
-  cannot_gather_context: 'Apex クラスのコンテキスト収集中にエラーが発生しました。',
-  cannot_get_apexoaseligibility_response: 'Apex 言語サーバからの apexoas/isEligible の応答を取得できませんでした',
-  cancel: 'キャンセル',
-  check_openapi_doc_failed: 'OpenAPI ドキュメントのチェックに失敗しました',
-  check_openapi_doc_succeeded: 'OpenAPI ドキュメント %s の検証に成功しました',
-  class_validation_failed: '%s からの適格性の検証に失敗しました',
-  cleanup_openapi_doc_failed: 'ソースで OpenAPI ドキュメントが見つかりませんでした:\n',
   client_name: 'Apex 言語サーバ',
   colorizer_no_code_coverage_current_file:
     'このファイルでコードカバレッジの情報が見つかりませんでした。ユーザまたはワークスペースの設定で、"salesforcedx-vscode-core.retrieve-test-code-coverage" を true に設定してください。次に、このファイルを含むApex テストを実行してください。Apex テストのサイドバーまたは、ファイル内の テストの実行 または すべてのテストの実行 のコードレンズを使用してテストを実行できます。',
@@ -62,26 +52,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   colorizer_out_of_sync_code_coverage_data:
     'このファイルは更新されているようです。コードカバレッジの数値を更新するには、このファイルでテストを実行してください。',
   colorizer_statusbar_hover_text: 'Apex コードカバレッジを強調表示',
-  create_openapi_doc_failed: 'OpenAPI ドキュメントの作成に失敗しました',
-  eligible_method_not_in_doc: 'メソッド %s は OAS 生成に適格ですが、ドキュメントに存在しません',
-  enter_new_nc: 'カスタムの名前付き認証情報を入力...',
-  enter_nc_name: '名前付き認証情報の名前を入力',
-  error_parsing_nc: '名前付き認証情報の結果の解析中にエラーが発生しました',
-  error_parsing_yaml: 'YAML の解析中にエラーが発生しました',
-  error_retrieving_org_version: '組織バージョンの取得に失敗しました',
-  failed_to_combine_oas: 'yaml ドキュメントの結合に失敗しました',
-  failed_to_parse_yaml: 'ドキュメントを YAML として解析できませんでした: %s',
-  file_exists: 'ファイルは既に存在します。どのように処理しますか？',
-  full_path_failed: 'OpenAPI ドキュメントの完全なパスを特定できませんでした。',
-  gathering_context: 'コンテキストデータを収集中です。',
-  generate_openapi_document: 'OpenAPI ドキュメントを生成中です。',
-  generating_oas_doc: 'OpenAPI ドキュメントを生成中です。',
-  get_document_path: 'OpenAPI ドキュメントフォルダ名を取得',
-  ineligible_method_in_doc: 'メソッド %s は OAS 生成に適格ではありませんが、ドキュメントに存在します',
-  invalid_active_text_editor: 'アクティブなテキストエディタが存在しないか、無効なファイルです。',
-  invalid_file_for_generating_oas_doc: 'OAS ドキュメント生成に無効なファイルです',
-  invalid_file_for_processing_oas_doc: 'OAS ドキュメント処理に無効なファイルです',
-  invalid_named_credential: '名前付き認証情報が提供されていないか、無効です。',
   java_binary_not_executable_text:
     '%s の Java バイナリ %s が実行可能ではありません。ファイルの権限を確認してください。',
   java_binary_missing_text: '%s の Java バイナリ %s が見つかりません。Java のインストールを確認してください。',
@@ -98,30 +68,11 @@ export const messages: Partial<Record<MessageKey, string>> = {
   java_version_check_command_failed: 'Java コマンド %s の実行に失敗しました。エラー: %s',
   launch_apex_replay_debugger_unsupported_file:
     '匿名 Apex ファイル、Apex テストファイル、または Apex デバッグログファイルに対してのみこのコマンドを実行できます。',
-  merge: '既存の ESR と手動でマージ',
-  method_not_found_in_doc_symbols: 'メソッド %s がドキュメントシンボルに見つかりません',
-  no_eligible_method: 'クラスに適格なメソッドが見つかりません',
-  no_folder_selected: '操作がキャンセルされました: フォルダが選択されていません。',
-  no_oas_doc_in_file: 'ファイルに OAS ドキュメントが検出されませんでした',
-  no_oas_generated: 'LLM がコンテンツを返しませんでした。',
-  not_eligible_method:
-    'メソッド %s は OpenAPI ドキュメント生成に適していません。http アノテーションがないか、アクセス修飾子が正しくありません。',
-  openapi_doc_created: '%s の OpenAPI ドキュメントを作成しました: %s',
-  openapi_doc_created_merge:
-    '%s の新しい OpenAPI ドキュメント %s %s が作成されました。差分エディタを使用して2つのファイルを手動でマージしてください。',
-  operation_cancelled: '操作がキャンセルされました',
-  operations_element_not_found: '提供された XML に <operations> 要素が見つかりませんでした。',
   orphan_process_advice:
     '以下のプロセスリストは、適切にシャットダウンされなかった Apex 言語サーバのインスタンスです。\nこれらのプロセスは、この警告メッセージから停止することも、自分で処理することもできます。\n自分でこれらのプロセスを終了する場合は、関連するドキュメントを参照してプロセスを停止してください。',
-  overwrite: '上書き',
   parent_process_id: '親プロセス ID',
   process_command: 'プロセスコマンド',
   process_id: 'プロセス ID',
-  processing_generated_oas: '生成された OpenAPI ドキュメントを検証中です。',
-  registry_access_failed: 'レジストリから ESR ディレクトリ名を取得できませんでした。',
-  schema_element_not_found: '提供された XML に <schema> 要素が見つかりませんでした。',
-  select_folder_for_oas: 'OpenAPI ドキュメントを保存するフォルダを選択',
-  select_named_credential: '名前付き認証情報を選択',
   sobjects_no_refresh_if_already_active_error_text:
     'sObject 定義の更新が既に実行中です。プロセスを再起動する必要がある場合は、実行中のタスクをキャンセルしてください。',
   source_java_home_env_var_text: '環境変数 JAVA_HOME',
@@ -129,7 +80,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   source_jdk_home_env_var_text: '環境変数 JDK_HOME',
   source_missing_text:
     '指定されたフォルダ %s は存在しません。Salesforce Apex 拡張機能の設定方法についての詳細は、[Java 設定](%s) を参照してください。',
-  strategy_not_qualified: '選択されたクラスまたはメソッドに適した生成戦略がありません。',
   terminate_failed: 'Apex 言語サーバプロセス PID: %d の終了に失敗しました: %s',
   terminate_orphaned_language_server_instances:
     '%d 個の孤立した Apex 言語サーバプロセスが見つかりました。\nこれらを終了しますか？',
@@ -143,9 +93,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   unable_to_locate_editor: 'ソースファイルに対してのみこのコマンドを実行できます。',
   unknown: '不明',
   unknown_error: '不明なエラー',
-  validate_eligibility: '適格性を検証中です。',
-  validation_failed: '適格性の検証に失敗しました。',
-  write_openapi_document: 'OpenAPI ドキュメントを書き込み中です。',
   wrong_java_version_short: 'サポートされていない Java バージョン',
   wrong_java_version_text:
     'サポートされていない Java バージョンを検出しました。Java 11 以上がサポートされています。拡張機能の実行には [Java 21](https://www.oracle.com/java/technologies/downloads/#java21) を推奨します。詳細については、[Java バージョンの設定](%s) を参照してください。',
