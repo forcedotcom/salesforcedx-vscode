@@ -38,7 +38,6 @@ export const messages = {
   source_tracking_status_bar_click_to_retrieve: '💡 Click to retrieve these changes from the org',
   source_tracking_status_bar_click_to_view_details: '💡 Click to view full details in the output channel',
   source_tracking_status_bar_no_changes: 'No changes (Org and project are in sync)',
-  apex_generate_class_text: 'BETA: Create Apex Class',
   apex_class_name_prompt: 'Enter Apex class name',
   apex_class_name_placeholder: 'MyApexClass',
   apex_class_output_dir_prompt: 'Select output directory',

@@ -7,7 +7,11 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
-import { upsertScratchOrgAuthFieldsToSettings, create } from '@salesforce/playwright-vscode-ext';
+import {
+  upsertScratchOrgAuthFieldsToSettings,
+  create,
+  NOTIFICATION_LIST_ITEM
+} from '@salesforce/playwright-vscode-ext';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
 test.describe('Org Browser - CustomTab retrieval', () => {
@@ -72,7 +76,7 @@ test.describe('Org Browser - CustomTab retrieval', () => {
       await orgBrowserPage.clickRetrieveButton(brokerItem);
 
       const overwrite = page
-        .locator('.monaco-workbench .notification-list-item')
+        .locator(NOTIFICATION_LIST_ITEM)
         .filter({ hasText: /Overwrite\s+local\s+files\s+for/i })
         .first();
       await expect(overwrite).toBeVisible();
@@ -81,7 +85,7 @@ test.describe('Org Browser - CustomTab retrieval', () => {
       await overwrite.getByRole('button', { name: /^Yes$/ }).click();
 
       const retrieving = page
-        .locator('.monaco-workbench .notification-list-item')
+        .locator(NOTIFICATION_LIST_ITEM)
         .filter({ hasText: /Retrieving\s+CustomTab/i })
         .first();
       await expect(retrieving).toBeVisible({ timeout: 60_000 });
@@ -93,7 +97,7 @@ test.describe('Org Browser - CustomTab retrieval', () => {
       await orgBrowserPage.clickRetrieveButton(typeLocator);
 
       const overwrite = page
-        .locator('.monaco-workbench .notification-list-item')
+        .locator(NOTIFICATION_LIST_ITEM)
         .filter({ hasText: /Overwrite\s+local\s+files\s+for/i })
         .first();
       await expect(overwrite).toBeVisible();
@@ -102,7 +106,7 @@ test.describe('Org Browser - CustomTab retrieval', () => {
       await overwrite.getByRole('button', { name: /^Yes$/ }).click();
 
       const retrieving = page
-        .locator('.monaco-workbench .notification-list-item')
+        .locator(NOTIFICATION_LIST_ITEM)
         .filter({ hasText: /Retrieving\s+CustomTab/i })
         .first();
       await expect(retrieving).toBeVisible({ timeout: 60_000 });

@@ -24,7 +24,7 @@ export const QUICK_INPUT_WIDGET = '.quick-input-widget';
 export const QUICK_INPUT_LIST_ROW = '.quick-input-list .monaco-list-row';
 
 /** File tab in the editor tab bar */
-export const TAB = '.tab';
+export const TAB = `${WORKBENCH} .tabs-container .tab`;
 
 /** Close button icon on tabs */
 export const TAB_CLOSE_BUTTON = '.codicon-close';
@@ -33,7 +33,7 @@ export const TAB_CLOSE_BUTTON = '.codicon-close';
 export const STATUS_BAR_ITEM_LABEL = '.statusbar-item-label';
 
 /** Notification list items in the notification center */
-export const NOTIFICATION_LIST_ITEM = '.monaco-workbench .notification-list-item';
+export const NOTIFICATION_LIST_ITEM = `${WORKBENCH} .notification-list-item`;
 
 /** Settings editor search input */
 export const SETTINGS_SEARCH_INPUT = [

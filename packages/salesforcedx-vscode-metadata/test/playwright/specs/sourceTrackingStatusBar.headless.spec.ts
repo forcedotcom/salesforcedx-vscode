@@ -59,7 +59,7 @@ test.describe('Source Tracking Status Bar', () => {
       await closeSettingsTab(page);
       await closeWelcomeTabs(page);
 
-      await executeCommandWithCommandPalette(page, 'BETA: Create Apex Class');
+      await executeCommandWithCommandPalette(page, packageNls.apex_generate_class_text);
 
       // First prompt: "Enter Apex class name"
       await page
