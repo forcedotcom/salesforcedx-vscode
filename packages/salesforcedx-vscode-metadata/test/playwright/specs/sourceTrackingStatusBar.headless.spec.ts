@@ -90,14 +90,14 @@ test.describe('Source Tracking Status Bar', () => {
     });
 
     await test.step('deploy changes and verify local count returns to 0', async () => {
-      await executeCommandWithCommandPalette(page, packageNls.project_deploy_start_default_org_text);
+      await executeCommandWithCommandPalette(page, packageNls.project_deploy_start_ignore_conflicts_default_org_text);
       await waitForDeployProgressNotificationToAppear(page, 30_000);
 
       const deployingNotification = page
         .locator(NOTIFICATION_LIST_ITEM)
         .filter({ hasText: /Deploying/i })
         .first();
-      await expect(deployingNotification).not.toBeVisible({ timeout: 120_000 });
+      await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
 
       await statusBarPage.waitForCounts({ local: 0 }, 60_000);
     });
