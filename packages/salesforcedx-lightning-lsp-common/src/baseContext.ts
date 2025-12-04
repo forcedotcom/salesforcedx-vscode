@@ -258,11 +258,17 @@ export abstract class BaseWorkspaceContext {
   }
 
   public async isFileInsideModulesRoots(file: string): Promise<boolean> {
-    return (await this.findNamespaceRootsUsingTypeCache()).lwc.some(root => utils.pathStartsWith(file, root));
+    // Normalize file path to ensure consistent format (especially Windows drive letter casing and path separators)
+    const normalizedFile = utils.normalizePath(file);
+    return (await this.findNamespaceRootsUsingTypeCache()).lwc.some(root => utils.pathStartsWith(normalizedFile, root));
   }
 
   public async isFileInsideAuraRoots(file: string): Promise<boolean> {
-    return (await this.findNamespaceRootsUsingTypeCache()).aura.some(root => utils.pathStartsWith(file, root));
+    // Normalize file path to ensure consistent format (especially Windows drive letter casing and path separators)
+    const normalizedFile = utils.normalizePath(file);
+    return (await this.findNamespaceRootsUsingTypeCache()).aura.some(root =>
+      utils.pathStartsWith(normalizedFile, root)
+    );
   }
 
   /**
