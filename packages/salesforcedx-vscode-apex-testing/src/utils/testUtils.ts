@@ -152,7 +152,7 @@ export const findMethodInSymbols = (
       }
     }
     // Recursively search in children (nested classes)
-    if (symbol.children && symbol.children.length > 0) {
+    if (symbol.children?.length > 0) {
       const found = findMethodInSymbols(symbol.children, methodName, uri);
       if (found) return found;
     }
@@ -219,16 +219,16 @@ export const getMethodLocationsFromSymbols = async (
 const convertApiToApexTestMethods = async (classes: ToolingTestClass[]): Promise<ApexTestMethod[]> => {
   // Extract class names from discovery results to drive file lookup
   const classNames = classes
-    .filter(cls => cls.testMethods && cls.testMethods.length > 0)
+    .filter(cls => cls.testMethods?.length > 0)
     .filter(cls => !cls.namespacePrefix || cls.namespacePrefix.trim() === '')
     .map(cls => cls.name);
 
   const classNameToUri = await buildClassToUriIndex(classNames);
   const apiByClassName = new Map<string, ToolingTestClass[]>();
   for (const cls of classes) {
-    if (!cls.testMethods || cls.testMethods.length === 0) continue;
+    if (cls.testMethods?.length === 0) continue;
     // Only consider tests in the local (default) namespace; workspace index maps local files only
-    if (cls.namespacePrefix && cls.namespacePrefix.trim() !== '') continue;
+    if (cls.namespacePrefix?.trim() !== '') continue;
     const list = apiByClassName.get(cls.name) ?? [];
     list.push(cls);
     apiByClassName.set(cls.name, list);
