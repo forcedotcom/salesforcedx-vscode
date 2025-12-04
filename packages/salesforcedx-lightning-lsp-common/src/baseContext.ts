@@ -247,7 +247,8 @@ export abstract class BaseWorkspaceContext {
   }
 
   public async isInsideAuraRoots(document: TextDocument): Promise<boolean> {
-    const file = utils.toResolvedPath(document.uri);
+    // Normalize file path to ensure consistent format (especially Windows drive letter casing and path separators)
+    const file = utils.normalizePath(utils.toResolvedPath(document.uri));
     for (const ws of this.workspaceRoots) {
       if (utils.pathStartsWith(file, ws)) {
         const isInsideAuraRoots = await this.isFileInsideAuraRoots(file);
