@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Effect, Pool, Duration, Metric, MetricBoundaries, Tracer, Logger, LogLevel, Ref } from 'effect';
+import { Effect, Pool, Duration, Metric, MetricBoundaries, Logger, LogLevel, Ref } from 'effect';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { chromium, Page } from 'playwright';
@@ -544,7 +544,7 @@ const createBrowserContext = async (browser: any) => {
  * Parse log level from string
  */
 const parseLogLevel = (level: string | undefined): LogLevel.LogLevel => {
-  if (!level) return LogLevel.Debug; // Default to Debug
+  if (!level) return LogLevel.Info; // Default to Info
 
   const upperLevel = level.toUpperCase();
   switch (upperLevel) {
