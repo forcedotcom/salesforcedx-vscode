@@ -17,7 +17,6 @@ import { nls } from '../messages';
 import { retrieveEnableSyncInitJobs } from '../settings';
 import { getTelemetryService } from '../telemetry/telemetry';
 import { ApexLSPConverter, ApexTestMethod, LSPApexTestMethod } from '../views/lspConverter';
-import { getTestOutlineProvider } from '../views/testOutlineProvider';
 
 export enum ClientStatus {
   Unavailable,
@@ -365,7 +364,6 @@ export class LanguageClientManager {
     languageClient: ApexLanguageClient,
     languageServerStatusBarItem: ApexLSPStatusBarItem
   ): Promise<void> {
-    await getTestOutlineProvider().refresh();
     languageServerStatusBarItem.ready();
     this.setStatus(ClientStatus.Ready, '');
     languageClient?.errorHandler?.serviceHasStartedSuccessfully();

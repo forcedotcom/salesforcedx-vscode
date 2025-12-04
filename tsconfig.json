@@ -38,6 +38,9 @@
       "path": "packages/salesforcedx-vscode-apex-replay-debugger"
     },
     {
+      "path": "packages/salesforcedx-vscode-apex-testing"
+    },
+    {
       "path": "packages/salesforcedx-vscode-core"
     },
     {

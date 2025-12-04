@@ -5,28 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getTestResultsFolder, ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
-import * as path from 'node:path';
+import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { CodeCoverageHandler as CodeCoverage } from './codecoverage/colorizer';
 import { StatusBarToggle } from './codecoverage/statusBarToggle';
-import {
-  anonApexDebug,
-  anonApexExecute,
-  apexDebugClassRunCodeActionDelegate,
-  apexDebugMethodRunCodeActionDelegate,
-  apexLogGet,
-  apexTestClassRunCodeAction,
-  apexTestClassRunCodeActionDelegate,
-  apexTestMethodRunCodeAction,
-  apexTestMethodRunCodeActionDelegate,
-  apexTestRun,
-  apexTestSuiteAdd,
-  apexTestSuiteCreate,
-  apexTestSuiteRun,
-  launchApexReplayDebuggerWithCurrentFile
-} from './commands';
+import { anonApexDebug, anonApexExecute, apexLogGet, launchApexReplayDebuggerWithCurrentFile } from './commands';
 import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { languageServerOrphanHandler as lsoh } from './languageServerOrphanHandler';
 import {
@@ -40,8 +24,6 @@ import {
 } from './languageUtils';
 import { nls } from './messages';
 import { getTelemetryService, setTelemetryService } from './telemetry/telemetry';
-import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
-import { ApexTestRunner, TestRunType } from './views/testRunner';
 
 export const activate = async (context: vscode.ExtensionContext) => {
   const vscodeCoreExtension = await getVscodeCoreExtension();
@@ -58,15 +40,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
   const activationTracker = new ActivationTracker(context, telemetryService);
 
-  const testOutlineProvider = getTestOutlineProvider();
-  if (vscode.workspace?.workspaceFolders) {
-    const apexDirPath = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
-    const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(path.join(apexDirPath, '*.json'));
-    testResultFileWatcher.onDidCreate(uri => testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath));
-    testResultFileWatcher.onDidChange(uri => testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath));
-
-    context.subscriptions.push(testResultFileWatcher);
-  } else {
+  if (!vscode.workspace?.workspaceFolders) {
     throw new Error(nls.localize('cannot_determine_workspace'));
   }
 
@@ -83,9 +57,6 @@ export const activate = async (context: vscode.ExtensionContext) => {
     if (event.affectsConfiguration('salesforcedx-vscode-apex.advanced.lspParityCapabilities')) {
       void vscode.commands.executeCommand('sf.apex.languageServer.restart', 'commandPalette');
     }
-    if (event.affectsConfiguration('salesforcedx-vscode-apex.testing.discoverySource')) {
-      void getTestOutlineProvider().refresh();
-    }
   });
   context.subscriptions.push(lspParitySettingsWatcher);
 
@@ -94,7 +65,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
   // Commands
   const commands = registerCommands(context);
-  context.subscriptions.push(commands, registerTestView());
+  context.subscriptions.push(commands);
 
   const exportedApi: ApexVSCodeApi = {
     getLineBreakpointInfo,
@@ -122,39 +93,9 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
   );
 
   // Customer-facing commands
-  const apexTestClassRunDelegateCmd = vscode.commands.registerCommand(
-    'sf.apex.test.class.run.delegate',
-    apexTestClassRunCodeActionDelegate
-  );
-  const apexTestLastClassRunCmd = vscode.commands.registerCommand(
-    'sf.apex.test.last.class.run',
-    apexTestClassRunCodeAction
-  );
-  const apexTestClassRunCmd = vscode.commands.registerCommand('sf.apex.test.class.run', apexTestClassRunCodeAction);
-  const apexTestMethodRunDelegateCmd = vscode.commands.registerCommand(
-    'sf.apex.test.method.run.delegate',
-    apexTestMethodRunCodeActionDelegate
-  );
-  const apexDebugClassRunDelegateCmd = vscode.commands.registerCommand(
-    'sf.apex.debug.class.run.delegate',
-    apexDebugClassRunCodeActionDelegate
-  );
-  const apexDebugMethodRunDelegateCmd = vscode.commands.registerCommand(
-    'sf.apex.debug.method.run.delegate',
-    apexDebugMethodRunCodeActionDelegate
-  );
   const anonApexRunDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.run.delegate', anonApexExecute);
   const anonApexDebugDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.debug.delegate', anonApexDebug);
   const apexLogGetCmd = vscode.commands.registerCommand('sf.apex.log.get', apexLogGet);
-  const apexTestLastMethodRunCmd = vscode.commands.registerCommand(
-    'sf.apex.test.last.method.run',
-    apexTestMethodRunCodeAction
-  );
-  const apexTestMethodRunCmd = vscode.commands.registerCommand('sf.apex.test.method.run', apexTestMethodRunCodeAction);
-  const apexTestSuiteCreateCmd = vscode.commands.registerCommand('sf.apex.test.suite.create', apexTestSuiteCreate);
-  const apexTestSuiteRunCmd = vscode.commands.registerCommand('sf.apex.test.suite.run', apexTestSuiteRun);
-  const apexTestSuiteAddCmd = vscode.commands.registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd);
-  const apexTestRunCmd = vscode.commands.registerCommand('sf.apex.test.run', apexTestRun);
   const anonApexExecuteDocumentCmd = vscode.commands.registerCommand('sf.anon.apex.execute.document', anonApexExecute);
   const anonApexDebugDocumentCmd = vscode.commands.registerCommand('sf.apex.debug.document', anonApexDebug);
   const anonApexExecuteSelectionCmd = vscode.commands.registerCommand(
@@ -178,64 +119,11 @@ const registerCommands = (context: vscode.ExtensionContext): vscode.Disposable =
     anonApexExecuteDocumentCmd,
     anonApexExecuteSelectionCmd,
     anonApexRunDelegateCmd,
-    apexDebugClassRunDelegateCmd,
-    apexDebugMethodRunDelegateCmd,
     apexLogGetCmd,
-    apexTestClassRunCmd,
-    apexTestClassRunDelegateCmd,
-    apexTestLastClassRunCmd,
-    apexTestLastMethodRunCmd,
-    apexTestMethodRunCmd,
-    apexTestMethodRunDelegateCmd,
-    apexTestRunCmd,
     apexToggleColorizerCmd,
-    apexTestSuiteCreateCmd,
-    apexTestSuiteRunCmd,
-    apexTestSuiteAddCmd,
     launchApexReplayDebuggerWithCurrentFileCmd,
     restartApexLanguageServerCmd
   );
-};
-
-const registerTestView = (): vscode.Disposable => {
-  const testOutlineProvider = getTestOutlineProvider();
-  // Create TestRunner
-  const testRunner = new ApexTestRunner(testOutlineProvider);
-
-  // Test View
-  const testViewItems: vscode.Disposable[] = [
-    vscode.window.registerTreeDataProvider(testOutlineProvider.getId(), testOutlineProvider),
-    // Run Test Button on Test View command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.run`, () => testRunner.runAllApexTests()),
-    // Show Error Message command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.showError`, (test: TestNode) =>
-      testRunner.showErrorMessage(test)
-    ),
-    // Show Definition command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.goToDefinition`, (test: TestNode) =>
-      testRunner.showErrorMessage(test)
-    ),
-    // Run Class Tests command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.runClassTests`, (test: TestNode) =>
-      testRunner.runApexTests([test.name], TestRunType.Class)
-    ),
-    // Run Single Test command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.runSingleTest`, (test: TestNode) =>
-      testRunner.runApexTests([test.name], TestRunType.Method)
-    ),
-    // Refresh Test View command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.refresh`, () => {
-      if (languageClientManager.getStatus().isReady()) {
-        return testOutlineProvider.refresh();
-      }
-    }),
-    // Collapse All Apex Tests command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.collapseAll`, () =>
-      testOutlineProvider.collapseAll()
-    )
-  ];
-
-  return vscode.Disposable.from(...testViewItems);
 };
 
 export const deactivate = async () => {
