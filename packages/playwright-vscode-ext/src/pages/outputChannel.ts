@@ -12,12 +12,11 @@ import { executeCommandWithCommandPalette } from './commands';
 const outputPanel = (page: Page) => page.locator('[id="workbench.panel.output"]');
 const outputPanelViewLines = (page: Page) => outputPanel(page).locator('.monaco-editor .view-line');
 const outputPanelCodeArea = (page: Page) => outputPanel(page).locator('.monaco-editor').locator('.view-lines');
-
 const filterInput = (page: Page) => page.getByPlaceholder(/Filter/i);
 
 /** Get combined text from visible view lines, normalized */
 const getVisibleOutputText = async (page: Page): Promise<string> =>
-  /** Normalize non-breaking spaces (char 160) to regular spaces (char 32) */
+  // Normalize non-breaking spaces (char 160) to regular spaces (char 32)
   (await outputPanelViewLines(page).allTextContents()).join(' ').replaceAll('\u00A0', ' ');
 
 /** Use filter to search and check for text, clearing filter afterward */
@@ -52,8 +51,10 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
 
 /** Selects a specific output channel from the dropdown */
 export const selectOutputChannel = async (page: Page, channelName: string): Promise<void> => {
-  const dropdown = page.getByRole('combobox').filter({ has: page.getByRole('option', { name: channelName }) });
-  await dropdown.selectOption({ label: channelName });
+  await page
+    .getByRole('combobox')
+    .filter({ has: page.getByRole('option', { name: channelName }) })
+    .selectOption({ label: channelName });
 };
 
 /** Checks if the output channel contains specific text using the filter input */
@@ -66,7 +67,10 @@ export const outputChannelContains = async (page: Page, searchText: string): Pro
     return found;
   });
 
-/** Clears the output channel by clicking the clear button in the output panel toolbar */
+/**
+ * Clears the output channel by clicking the clear button in the output panel toolbar.
+ * Use this to make sure that your assertions are not picking up text from the previous test unless you mean to
+ */
 export const clearOutputChannel = async (page: Page): Promise<void> => {
   const clearButton = page.getByRole('button', { name: 'Clear Output' }).first();
   await clearButton.click();
@@ -89,7 +93,7 @@ export const waitForOutputChannelText = async (
   await expect(async () => {
     const text = await codeArea.textContent();
     expect(text?.trim().length ?? 0).toBeGreaterThan(10);
-  }).toPass({ timeout: 5000 });
+  }).toPass({ timeout });
 
   await withOutputFilter(page, expectedText, async () => {
     await expect(async () => {
