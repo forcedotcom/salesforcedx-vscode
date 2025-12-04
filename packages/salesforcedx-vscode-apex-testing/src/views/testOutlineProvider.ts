@@ -118,17 +118,14 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
     this.testStrings.clear();
     try {
       this.apexTestInfo = await getApexTests();
-      this.createTestIndex();
-      this.getAllApexTests();
-      this.onDidChangeTestData.fire(undefined);
     } catch (error) {
       console.debug('Failed to refresh test outline:', error);
       // Still update the UI even if we couldn't fetch tests
       this.apexTestInfo = null;
-      this.createTestIndex();
-      this.getAllApexTests();
-      this.onDidChangeTestData.fire(undefined);
     }
+    this.createTestIndex();
+    this.getAllApexTests();
+    this.onDidChangeTestData.fire(undefined);
   }
 
   public async collapseAll(): Promise<void> {
