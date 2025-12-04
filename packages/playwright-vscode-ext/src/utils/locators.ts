@@ -12,10 +12,10 @@ export const WORKBENCH = '.monaco-workbench';
 export const EDITOR = '.monaco-editor';
 
 /** Monaco editor with a file URI data attribute */
-export const EDITOR_WITH_URI = '.monaco-editor[data-uri]';
+export const EDITOR_WITH_URI = `${EDITOR}[data-uri]`;
 
 /** Editor with unsaved changes */
-export const DIRTY_EDITOR = '.monaco-editor.dirty';
+export const DIRTY_EDITOR = `${EDITOR}.dirty`;
 
 /** Quick Open/Quick Pick widget (Ctrl+P, F1, etc) */
 export const QUICK_INPUT_WIDGET = '.quick-input-widget';
@@ -37,8 +37,8 @@ export const NOTIFICATION_LIST_ITEM = `${WORKBENCH} .notification-list-item`;
 
 /** Settings editor search input */
 export const SETTINGS_SEARCH_INPUT = [
-  '#workbench\\.parts\\.editor .settings-header .search-container .monaco-editor',
-  '[aria-label="Settings"] .settings-header .search-container .monaco-editor'
+  `${WORKBENCH} .settings-header .search-container ${EDITOR}`,
+  `${WORKBENCH} [aria-label="Settings"] .settings-header .search-container ${EDITOR}`
 ] as const;
 
 /** Output tab in the bottom panel */

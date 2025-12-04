@@ -6,12 +6,12 @@
  */
 
 import { expect, type Page } from '@playwright/test';
-import { OUTPUT_TAB_ROLE } from '../utils/locators';
+import { OUTPUT_TAB_ROLE, EDITOR } from '../utils/locators';
 import { executeCommandWithCommandPalette } from './commands';
 
 const outputPanel = (page: Page) => page.locator('[id="workbench.panel.output"]');
-const outputPanelViewLines = (page: Page) => outputPanel(page).locator('.monaco-editor .view-line');
-const outputPanelCodeArea = (page: Page) => outputPanel(page).locator('.monaco-editor').locator('.view-lines');
+const outputPanelViewLines = (page: Page) => outputPanel(page).locator(`${EDITOR} .view-line`);
+const outputPanelCodeArea = (page: Page) => outputPanel(page).locator(`${EDITOR} .view-lines`);
 const filterInput = (page: Page) => page.getByPlaceholder(/Filter/i);
 
 /** Get combined text from visible view lines, normalized */
