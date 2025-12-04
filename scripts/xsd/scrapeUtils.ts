@@ -5,7 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { Effect, Metric, MetricBoundaries } from 'effect';
 import { Page } from 'playwright';
+
+// Page load duration metric
+const pageLoadDuration = Metric.histogram(
+  'scraper.page.load.duration',
+  MetricBoundaries.exponential({ start: 0.1, factor: 2, count: 6 }),
+  'Page load time in seconds'
+);
 
 type MetadataField = {
   Description: string;
@@ -42,8 +50,9 @@ export const loadMetadataPage = async (
   url: string,
   indent: string = '     '
 ): Promise<{ success: boolean; contentFrame: any }> => {
+  const pageLoadStart = Date.now();
   try {
-    console.log(`${indent.slice(0, -2)}📄 Loading: ${url}`);
+    Effect.runSync(Effect.logDebug(`Loading metadata page: ${url}`).pipe(Effect.catchAll(() => Effect.void)));
 
     // Strategy 1: Load page with domcontentloaded
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
@@ -52,7 +61,7 @@ export const loadMetadataPage = async (
     await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
 
     // Strategy 4: Wait for the main content frame to appear
-    console.log(`${indent}⏳ Waiting for content frame...`);
+    Effect.runSync(Effect.logDebug(`Waiting for content frame: ${url}`).pipe(Effect.catchAll(() => Effect.void)));
 
     // Extract the expected page name from the URL (e.g., "meta_classes.htm")
     const urlParts = url.split('/');
@@ -86,7 +95,9 @@ export const loadMetadataPage = async (
 
     // Get the iframe's content
     const frames = page.frames();
-    console.log(`${indent}🔍 Found ${frames.length} frames`);
+    Effect.runSync(
+      Effect.logDebug(`Frames found: ${frames.length} frames for ${url}`).pipe(Effect.catchAll(() => Effect.void))
+    );
 
     // Find the frame matching our target URL
     contentFrame = frames.find(f => f.url().includes(expectedPage));
@@ -104,10 +115,14 @@ export const loadMetadataPage = async (
       contentFrame = page.mainFrame(); // Fallback to main frame
     }
 
-    console.log(`${indent}✓ Using frame: ${contentFrame.url() ?? 'main'}`);
+    Effect.runSync(
+      Effect.logDebug(`Using content frame: ${contentFrame.url() ?? 'main'} for ${url}`).pipe(
+        Effect.catchAll(() => Effect.void)
+      )
+    );
 
     // Strategy 5: Wait for tables to appear in the content frame
-    console.log(`${indent}⏳ Waiting for tables to appear...`);
+    Effect.runSync(Effect.logDebug(`Waiting for tables to appear: ${url}`).pipe(Effect.catchAll(() => Effect.void)));
 
     // Helper function to count tables including those in shadow DOMs
     const countTables = async (frame: any): Promise<number> =>
@@ -115,11 +130,13 @@ export const loadMetadataPage = async (
         const countTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): number => {
           let count = root.querySelectorAll('table').length;
           const elements = root.querySelectorAll('*');
-          elements.forEach(el => {
+          const elementsArray = Array.from(elements);
+          for (let i = 0; i < elementsArray.length; i++) {
+            const el = elementsArray[i];
             if (el.shadowRoot) {
               count += countTablesIncludingShadowDOM(el.shadowRoot);
             }
-          });
+          }
           return count;
         };
         return countTablesIncludingShadowDOM(document);
@@ -131,7 +148,9 @@ export const loadMetadataPage = async (
         () => {
           const checkForMetadataTables = (root: Document | ShadowRoot | Element): boolean => {
             const tables = root.querySelectorAll('table');
-            for (const table of Array.from(tables)) {
+            const tablesArray = Array.from(tables);
+            for (let i = 0; i < tablesArray.length; i++) {
+              const table = tablesArray[i];
               const headers = Array.from(table.querySelectorAll('th, thead td')).map(
                 cell => cell.textContent?.trim().toLowerCase() ?? ''
               );
@@ -154,7 +173,9 @@ export const loadMetadataPage = async (
 
             // Check shadow DOMs
             const elements = root.querySelectorAll('*');
-            for (const el of Array.from(elements)) {
+            const elementsArray = Array.from(elements);
+            for (let i = 0; i < elementsArray.length; i++) {
+              const el = elementsArray[i];
               if (el.shadowRoot && checkForMetadataTables(el.shadowRoot)) {
                 return true;
               }
@@ -169,10 +190,18 @@ export const loadMetadataPage = async (
       );
 
       const tableCount = await countTables(contentFrame);
-      console.log(`${indent}✅ Ready to extract (${tableCount} tables found)`);
+      Effect.runSync(
+        Effect.logDebug(`Tables found, ready to extract: ${tableCount} tables for ${url}`).pipe(
+          Effect.catchAll(() => Effect.void)
+        )
+      );
     } catch {
       // If waiting for tables times out, try scrolling to trigger lazy loading
-      console.log(`${indent}⏳ Tables not immediately visible, trying scroll trigger...`);
+      Effect.runSync(
+        Effect.logDebug(`Tables not immediately visible, trying scroll trigger: ${url}`).pipe(
+          Effect.catchAll(() => Effect.void)
+        )
+      );
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
       await page.evaluate(() => window.scrollTo(0, 0));
 
@@ -191,14 +220,34 @@ export const loadMetadataPage = async (
 
       const tableCount = await countTables(contentFrame);
       if (tableCount === 0) {
-        console.log(`${indent}❌ No tables found after all strategies`);
+        Effect.runSync(
+          Effect.logDebug(`No tables found after all strategies: ${url}`).pipe(Effect.catchAll(() => Effect.void))
+        );
         return { success: false, contentFrame: null };
       }
-      console.log(`${indent}✅ Found ${tableCount} tables after scroll`);
+      Effect.runSync(
+        Effect.logDebug(`Found tables after scroll: ${tableCount} tables for ${url}`).pipe(
+          Effect.catchAll(() => Effect.void)
+        )
+      );
     }
 
+    const pageLoadEnd = Date.now();
+    const pageLoadTime = (pageLoadEnd - pageLoadStart) / 1000;
+    // Record page load duration metric
+    Effect.runSync(Metric.update(pageLoadTime)(pageLoadDuration).pipe(Effect.catchAll(() => Effect.void)));
+
     return { success: true, contentFrame };
-  } catch (error) {
+  } catch (error: any) {
+    const pageLoadEnd = Date.now();
+    const pageLoadTime = (pageLoadEnd - pageLoadStart) / 1000;
+    // Record failed page load
+    Effect.runSync(
+      Effect.gen(function* () {
+        yield* Effect.logError(`Error loading page ${url}: ${error.message}`);
+        yield* Metric.update(pageLoadTime)(pageLoadDuration);
+      }).pipe(Effect.catchAll(() => Effect.void))
+    );
     console.error(`${indent}Error loading page: ${error}`);
     return { success: false, contentFrame: null };
   }
@@ -279,7 +328,10 @@ export const extractMetadataFromPage = async (
       // Try h1 first
       const h1 = document.querySelector('h1');
       if (h1) {
-        pageTitle = h1.textContent?.trim();
+        const h1Text = h1.textContent?.trim();
+        if (h1Text) {
+          pageTitle = h1Text;
+        }
       }
 
       // If no h1 or h1 looks like it has navigation cruft, try first h2
@@ -287,7 +339,7 @@ export const extractMetadataFromPage = async (
         const h2 = document.querySelector('h2');
         if (h2) {
           const h2Text = h2.textContent?.trim();
-          if (h2Text?.length < 100 && !h2Text.includes('|')) {
+          if (h2Text && h2Text.length < 100 && !h2Text.includes('|')) {
             pageTitle = h2Text;
           }
         }
@@ -298,8 +350,10 @@ export const extractMetadataFromPage = async (
         const titleElement = document.querySelector('title');
         if (titleElement) {
           const titleText = titleElement.textContent;
-          // Try to extract just the first part before any separator
-          pageTitle = titleText.split('|')[0].split('-')[0].trim();
+          if (titleText) {
+            // Try to extract just the first part before any separator
+            pageTitle = titleText.split('|')[0].split('-')[0].trim();
+          }
         }
       }
 
@@ -319,7 +373,9 @@ export const extractMetadataFromPage = async (
           if (result) return result;
 
           const elements = root.querySelectorAll('*');
-          for (const el of Array.from(elements)) {
+          const elementsArray = Array.from(elements);
+          for (let i = 0; i < elementsArray.length; i++) {
+            const el = elementsArray[i];
             if (el.shadowRoot) {
               const shadowResult = searchShadow(el.shadowRoot);
               if (shadowResult) return shadowResult;
@@ -335,7 +391,7 @@ export const extractMetadataFromPage = async (
       const shortdescDiv = findInShadowDOM('div.shortdesc');
       if (shortdescDiv) {
         const text = shortdescDiv.textContent?.trim();
-        if (text.length > 20) {
+        if (text && text.length > 20) {
           pageLevelDescription = text;
         }
       }
@@ -395,7 +451,9 @@ export const extractMetadataFromPage = async (
           // If it's a DIV, look for P or DD children
           if (current.tagName === 'DIV') {
             const paragraphs = current.querySelectorAll('p, dd');
-            for (const p of Array.from(paragraphs)) {
+            const paragraphsArray = Array.from(paragraphs);
+            for (let i = 0; i < paragraphsArray.length; i++) {
+              const p = paragraphsArray[i];
               const desc = checkElement(p);
               if (desc) {
                 pageLevelDescription = desc;
@@ -413,7 +471,8 @@ export const extractMetadataFromPage = async (
       // Strategy 3: If still not found, do a broader search for the first P after the heading
       if (!pageLevelDescription && mainHeading) {
         const allParagraphs = Array.from(document.querySelectorAll('p, dd'));
-        for (const p of allParagraphs) {
+        for (let i = 0; i < allParagraphs.length; i++) {
+          const p = allParagraphs[i];
           // Only consider paragraphs that come after the heading in DOM order
           if (mainHeading.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_FOLLOWING) {
             const text = p.textContent?.trim() ?? '';
@@ -430,11 +489,16 @@ export const extractMetadataFromPage = async (
         const tables: Element[] = Array.from(root.querySelectorAll('table'));
 
         const elements = root.querySelectorAll('*');
-        elements.forEach(el => {
+        const elementsArray = Array.from(elements);
+        for (let i = 0; i < elementsArray.length; i++) {
+          const el = elementsArray[i];
           if (el.shadowRoot) {
-            tables.push(...getAllTablesIncludingShadowDOM(el.shadowRoot));
+            const shadowTables = getAllTablesIncludingShadowDOM(el.shadowRoot);
+            for (let j = 0; j < shadowTables.length; j++) {
+              tables.push(shadowTables[j]);
+            }
           }
-        });
+        }
 
         return tables;
       };
@@ -442,7 +506,8 @@ export const extractMetadataFromPage = async (
       // Find all tables (including in shadow DOMs)
       const tables = getAllTablesIncludingShadowDOM(document);
 
-      for (const table of tables) {
+      for (let tableIdx = 0; tableIdx < tables.length; tableIdx++) {
+        const table = tables[tableIdx];
         // Get headers
         const headerCells = Array.from(table.querySelectorAll('th, thead td'));
         const headers = headerCells.map(cell => cell.textContent?.trim().toLowerCase() ?? '');
@@ -539,6 +604,8 @@ export const extractMetadataFromPage = async (
                 const text = nextElement.textContent?.trim();
                 // Make sure it's a substantial description
                 if (
+                  text &&
+                  text.length &&
                   text.length > 20 &&
                   !text.toLowerCase().includes('cookie') &&
                   !text.toLowerCase().includes('in this section') &&
@@ -552,7 +619,7 @@ export const extractMetadataFromPage = async (
               // Also check for DD (definition description) after DT
               if (nextElement.tagName === 'DD') {
                 const text = nextElement.textContent?.trim();
-                if (text.length > 20) {
+                if (text && text.length > 20) {
                   tableDescription = text;
                   break;
                 }
@@ -572,7 +639,9 @@ export const extractMetadataFromPage = async (
           'Field Type': string;
         }[] = [];
 
-        for (const row of rows) {
+        const rowsArray = Array.from(rows);
+        for (let rowIdx = 0; rowIdx < rowsArray.length; rowIdx++) {
+          const row = rowsArray[rowIdx];
           const cells = Array.from(row.querySelectorAll('td, th'));
 
           if (cells.length < 2) continue;
@@ -583,19 +652,23 @@ export const extractMetadataFromPage = async (
 
           // Try traditional 3-column format first
           if (cells.length >= 3 && typeIdx >= 0 && descIdx >= 0) {
-            fieldName = cells[fieldIdx >= 0 ? fieldIdx : 0]?.textContent?.trim();
-            fieldType = cells[typeIdx]?.textContent?.trim();
-            description = cells[descIdx]?.textContent?.trim();
+            const fieldNameCell = cells[fieldIdx >= 0 ? fieldIdx : 0];
+            fieldName = fieldNameCell?.textContent?.trim() ?? '';
+            const fieldTypeCell = cells[typeIdx];
+            fieldType = fieldTypeCell?.textContent?.trim() ?? '';
+            const descCell = cells[descIdx];
+            description = descCell?.textContent?.trim() ?? '';
           } else {
             // Try nested format (2 columns: Field Name, then nested Field Type + Description)
-            fieldName = cells[0]?.textContent?.trim();
+            fieldName = cells[0]?.textContent?.trim() ?? '';
 
             if (cells.length >= 2) {
               const secondCell = cells[1];
 
               // Strategy 1: Look for <dt>Field Type</dt><dd>TYPE</dd> structure
               const dtElements = Array.from(secondCell.querySelectorAll('dt'));
-              for (const dt of dtElements) {
+              for (let dtIdx = 0; dtIdx < dtElements.length; dtIdx++) {
+                const dt = dtElements[dtIdx];
                 const dtText = dt.textContent?.trim().toLowerCase() ?? '';
                 if (dtText.includes('field type') || dtText === 'type') {
                   // Get the next dd sibling
@@ -604,7 +677,7 @@ export const extractMetadataFromPage = async (
                     nextSibling = nextSibling.nextElementSibling;
                   }
                   if (nextSibling?.tagName === 'DD') {
-                    fieldType = nextSibling.textContent?.trim();
+                    fieldType = nextSibling.textContent?.trim() ?? '';
                     break;
                   }
                 }
@@ -614,24 +687,27 @@ export const extractMetadataFromPage = async (
               if (!fieldType) {
                 const typeLink = secondCell.querySelector('a[href*="meta_"]');
                 if (typeLink) {
-                  fieldType = typeLink.textContent?.trim();
+                  fieldType = typeLink.textContent?.trim() ?? '';
                 }
               }
 
               // Strategy 3: Look for text that looks like a type (capitalized words, array notation)
               if (!fieldType) {
                 const allText = secondCell.textContent;
-                const typeMatch = allText.match(/Field Type\s*([A-Z][\w\[\]]+)/);
-                if (typeMatch) {
-                  fieldType = typeMatch[1];
+                if (allText) {
+                  const typeMatch = allText.match(/Field Type\s*([A-Z][\w\[\]]+)/);
+                  if (typeMatch) {
+                    fieldType = typeMatch[1];
+                  }
                 }
               }
 
               // Try to find Description
               // Strategy 1: Look for <dt>Description</dt><dd>DESC</dd> structure
               const dtElementsForDesc = Array.from(secondCell.querySelectorAll('dt'));
-              for (const dt of dtElementsForDesc) {
-                const dtText = dt.textContent?.trim().toLowerCase();
+              for (let dtIdx = 0; dtIdx < dtElementsForDesc.length; dtIdx++) {
+                const dt = dtElementsForDesc[dtIdx];
+                const dtText = dt.textContent?.trim().toLowerCase() ?? '';
                 if (dtText.includes('description') || dtText === 'desc') {
                   // Get ALL consecutive DD siblings until the next DT
                   const descriptionParts: string[] = [];
@@ -662,8 +738,9 @@ export const extractMetadataFromPage = async (
               if (!description) {
                 const descElements = Array.from(secondCell.querySelectorAll('*'));
                 let foundDescLabel = false;
-                for (const elem of descElements) {
-                  const text = elem.textContent?.trim();
+                for (let elemIdx = 0; elemIdx < descElements.length; elemIdx++) {
+                  const elem = descElements[elemIdx];
+                  const text = elem.textContent?.trim() ?? '';
                   if (text.toLowerCase() === 'description') {
                     foundDescLabel = true;
                   } else if (foundDescLabel && text && text.length > 10) {
@@ -676,20 +753,22 @@ export const extractMetadataFromPage = async (
               // Strategy 3: Fallback - get all text after type
               if (!description) {
                 const fullText = secondCell.textContent;
-                const lines = fullText
-                  .split('\n')
-                  .map(l => l.trim())
-                  .filter(l => l);
-                // Description is usually the last substantial line
-                for (let i = lines.length - 1; i >= 0; i--) {
-                  if (
-                    lines[i].length > 20 &&
-                    !lines[i].toLowerCase().includes('field type') &&
-                    !lines[i].toLowerCase().includes('description') &&
-                    lines[i] !== fieldType
-                  ) {
-                    description = lines[i];
-                    break;
+                if (fullText) {
+                  const lines = fullText
+                    .split('\n')
+                    .map(l => l.trim())
+                    .filter(l => l);
+                  // Description is usually the last substantial line
+                  for (let i = lines.length - 1; i >= 0; i--) {
+                    if (
+                      lines[i].length > 20 &&
+                      !lines[i].toLowerCase().includes('field type') &&
+                      !lines[i].toLowerCase().includes('description') &&
+                      lines[i] !== fieldType
+                    ) {
+                      description = lines[i];
+                      break;
+                    }
                   }
                 }
               }
@@ -737,8 +816,8 @@ export const extractMetadataFromPage = async (
 
       // Clean up all field descriptions and types
       const cleanedFields = tableData.fields.map(field => ({
-        ...field,
         Description: cleanDescription(field.Description),
+        'Field Name': field['Field Name'],
         'Field Type': cleanDescription(field['Field Type'])
       }));
 
@@ -750,7 +829,14 @@ export const extractMetadataFromPage = async (
           url: url.split('#')[0] // Strip hash fragment if present
         }
       });
-      console.log('Newest entry ONE TABLE:', JSON.stringify(results.at(-1), null, 2));
+      Effect.runSync(
+        Effect.logDebug('Extracted metadata (single table)', {
+          typeName,
+          url,
+          resultCount: results.length,
+          entry: results.at(-1)
+        }).pipe(Effect.catchAll(() => Effect.void))
+      );
     } else {
       // Multiple tables - use actual table names or infer from field types
       for (let i = 0; i < allTableFields.length; i++) {
@@ -785,7 +871,8 @@ export const extractMetadataFromPage = async (
 
           for (let j = i - 1; j >= 0; j--) {
             const prevTable = allTableFields[j];
-            for (const field of prevTable.fields) {
+            for (let fieldIdx = 0; fieldIdx < prevTable.fields.length; fieldIdx++) {
+              const field = prevTable.fields[fieldIdx];
               const fieldType = field['Field Type'];
 
               // Collect array types (higher priority)
@@ -803,10 +890,11 @@ export const extractMetadataFromPage = async (
           }
 
           // Prioritize: arrays from recent tables, then complex types from recent tables
-          const candidateTypes = [...arrayTypes, ...complexTypes];
+          const candidateTypes = arrayTypes.concat(complexTypes);
 
           // Find the first unused candidate type
-          for (const candidate of candidateTypes) {
+          for (let candidateIdx = 0; candidateIdx < candidateTypes.length; candidateIdx++) {
+            const candidate = candidateTypes[candidateIdx];
             const alreadyUsed = results.some(r => r.name === candidate);
             if (!alreadyUsed) {
               inferredName = candidate;
@@ -826,8 +914,8 @@ export const extractMetadataFromPage = async (
 
         // Clean up all field descriptions and types
         const cleanedFields = tableData.fields.map(field => ({
-          ...field,
           Description: cleanDescription(field.Description),
+          'Field Name': field['Field Name'],
           'Field Type': cleanDescription(field['Field Type'])
         }));
 
@@ -839,12 +927,27 @@ export const extractMetadataFromPage = async (
             url: url.split('#')[0] // Strip hash fragment if present (all tables share the same base URL)
           }
         });
-        console.log('Newest entry MULTIPLE TABLES:', JSON.stringify(results.at(-1), null, 2));
+        Effect.runSync(
+          Effect.logDebug('Extracted metadata (multiple tables)', {
+            typeName,
+            url,
+            resultCount: results.length,
+            tableCount: allTableFields.length,
+            entry: results.at(-1)
+          }).pipe(Effect.catchAll(() => Effect.void))
+        );
       }
     }
 
     return results;
-  } catch (error) {
+  } catch (error: any) {
+    Effect.runSync(
+      Effect.logError('Error extracting data', {
+        error: error.message,
+        url,
+        typeName
+      }).pipe(Effect.catchAll(() => Effect.void))
+    );
     console.error(`    Error extracting data: ${error}`);
     return [];
   }

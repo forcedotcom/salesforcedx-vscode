@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Effect } from 'effect';
+import { Effect, Pool, Duration, Metric, MetricBoundaries, Tracer, Logger, LogLevel, Ref } from 'effect';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { chromium, Page } from 'playwright';
@@ -16,9 +16,59 @@ import {
   MetadataTypesMap,
   BROWSER_LAUNCH_ARGS
 } from './scrapeUtils';
+import { NodeSdkLayer, MetricsLayer } from './observability';
 
 const JSON_DOC_URL = 'https://developer.salesforce.com/docs/get_document/atlas.en-us.api_meta.meta';
 const BASE_DOC_URL = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/';
+
+/** Counter metrics */
+const metadataTypesDiscovered = Metric.counter('scraper.metadata_types.discovered', {
+  description: 'Total number of metadata types discovered'
+});
+
+const metadataTypesAttempted = Metric.counter('scraper.metadata_types.attempted', {
+  description: 'Total number of metadata types attempted to scrape'
+});
+
+const metadataTypesSuccess = Metric.counter('scraper.metadata_types.success', {
+  description: 'Number of successful metadata type scrapes'
+});
+
+const metadataTypesFailed = Metric.counter('scraper.metadata_types.failed', {
+  description: 'Number of failed metadata type scrapes'
+});
+
+const errorsTotal = Metric.counter('scraper.errors.total', {
+  description: 'Total number of errors encountered'
+});
+
+/** Histogram metrics */
+const scrapeDuration = Metric.histogram(
+  'scraper.scrape.duration',
+  MetricBoundaries.exponential({ start: 0.1, factor: 2, count: 8 }),
+  'Duration per metadata type scrape in seconds'
+);
+
+const pageLoadDuration = Metric.histogram(
+  'scraper.page.load.duration',
+  MetricBoundaries.exponential({ start: 0.1, factor: 2, count: 6 }),
+  'Page load time in seconds'
+);
+
+const contextAcquisitionDuration = Metric.histogram(
+  'scraper.context.acquisition.duration',
+  MetricBoundaries.exponential({ start: 0.001, factor: 10, count: 5 }),
+  'Context acquisition time in seconds'
+);
+
+/** Gauge metrics */
+const poolUtilization = Metric.gauge('scraper.pool.utilization', {
+  description: 'Pool utilization percentage'
+});
+
+const browserActivePages = Metric.gauge('scraper.browser.active_pages', {
+  description: 'Number of active pages per browser'
+});
 
 /** Calculate elapsed time in minutes and seconds */
 const formatElapsedTime = (startTime: number, endTime: number): string => {
@@ -35,28 +85,48 @@ const scrapeMetadataType = async (
   page: Page,
   name: string,
   url: string,
-  isVisible: boolean
+  isVisible: boolean,
+  logLevel: LogLevel.LogLevel = LogLevel.Debug
 ): Promise<{ name: string; data: MetadataType }[]> => {
-  console.log(`  📄 ${name}`);
-  console.log(`     Loading: ${url}`);
+  Effect.runSync(
+    Effect.logDebug(`📄 ${name}`)
+      .pipe(Logger.withMinimumLogLevel(logLevel))
+      .pipe(Effect.catchAll(() => Effect.void))
+  );
 
   const { success, contentFrame } = await loadMetadataPage(page, url);
 
   if (!success || !contentFrame) {
-    console.log('     ❌ Content failed to load');
+    Effect.runSync(
+      Effect.logDebug('Content failed to load')
+        .pipe(Logger.withMinimumLogLevel(logLevel))
+        .pipe(Effect.catchAll(() => Effect.void))
+    );
     return [];
   }
 
-  console.log('     ✓ Content loaded');
+  Effect.runSync(
+    Effect.logDebug('Content loaded')
+      .pipe(Logger.withMinimumLogLevel(logLevel))
+      .pipe(Effect.catchAll(() => Effect.void))
+  );
 
   const results = await extractMetadataFromPage(contentFrame, url, name);
 
   if (results.length === 0) {
-    console.log('     ⚠️  No fields found');
+    Effect.runSync(
+      Effect.logDebug('No fields found')
+        .pipe(Logger.withMinimumLogLevel(logLevel))
+        .pipe(Effect.catchAll(() => Effect.void))
+    );
 
     // In visible mode, pause to let user inspect
     if (isVisible) {
-      console.log('     Press Ctrl+C when ready to continue...');
+      Effect.runSync(
+        Effect.logDebug('Waiting for user inspection (30s timeout)')
+          .pipe(Logger.withMinimumLogLevel(logLevel))
+          .pipe(Effect.catchAll(() => Effect.void))
+      );
       await page.waitForTimeout(30_000);
     }
 
@@ -67,19 +137,24 @@ const scrapeMetadataType = async (
 };
 
 /** Discovers metadata types from the Salesforce Metadata API JSON documentation endpoint */
-const discoverMetadataTypes = async (page: Page): Promise<{ name: string; url: string }[]> => {
-  console.log('\n🔍 Discovering metadata types from JSON documentation...');
-  console.log(`   Fetching: ${JSON_DOC_URL}`);
+const discoverMetadataTypes = (
+  page: Page,
+  logLevel: LogLevel.LogLevel = LogLevel.Debug
+): Effect.Effect<{ name: string; url: string }[], Error> =>
+  Effect.gen(function* () {
+    yield* Effect.logInfo(`Discovering metadata types from JSON documentation: ${JSON_DOC_URL}`);
 
-  try {
     // Fetch the JSON document directly (no browser needed for this part!)
-    const response = await page.context().request.get(JSON_DOC_URL);
+    const response = yield* Effect.promise(() => page.context().request.get(JSON_DOC_URL));
     if (!response.ok()) {
-      throw new Error(`Failed to fetch JSON document: ${response.status()} ${response.statusText()}`);
+      yield* Effect.logError(`Failed to fetch JSON document: ${response.status()} ${response.statusText()}`);
+      return yield* Effect.fail(
+        new Error(`Failed to fetch JSON document: ${response.status()} ${response.statusText()}`)
+      );
     }
 
-    const docData = await response.json();
-    console.log('   ✓ JSON document loaded successfully');
+    const docData = yield* Effect.promise(() => response.json());
+    yield* Effect.logDebug('JSON document loaded successfully');
 
     // Navigate to: .toc[] -> find "Reference" -> .children[] -> find "Metadata Types" -> .children[]
     const toc = docData.toc ?? [];
@@ -154,254 +229,261 @@ const discoverMetadataTypes = async (page: Page): Promise<{ name: string; url: s
       extractMetadataType(entry);
     }
 
-    console.log(`   ✅ Discovered ${metadataTypes.length} metadata types from JSON!\n`);
+    yield* Effect.logInfo(`Metadata types discovered: ${metadataTypes.length}`);
 
     // Print all discovered metadata types
     if (metadataTypes.length > 0) {
-      console.log('   📋 All metadata types discovered:');
-      metadataTypes.forEach((type, index) => {
-        console.log(`      ${String(index + 1).padStart(4)}. ${type.name}`);
-      });
-      console.log('');
+      yield* Effect.logDebug(`All discovered metadata types: ${metadataTypes.map(t => t.name).join(', ')}`);
     }
+
+    // Record metric
+    yield* Metric.incrementBy(metadataTypes.length)(metadataTypesDiscovered);
 
     return metadataTypes.length > 0 ? metadataTypes : [];
-  } catch (error) {
-    console.error('   ❌ Discovery failed:', error);
-    console.log('   📋 Using fallback list...\n');
-    return [];
-  }
+  })
+    .pipe(Logger.withMinimumLogLevel(logLevel))
+    .pipe(Effect.withSpan('discoverMetadataTypes', { kind: 'internal' }))
+    .pipe(
+      Effect.catchAll(error => {
+        return Effect.gen(function* () {
+          yield* Effect.logError(`Discovery failed: ${String(error)}`);
+          yield* Metric.increment(errorsTotal);
+          yield* Effect.logInfo('Using fallback list');
+          return [];
+        }).pipe(Logger.withMinimumLogLevel(logLevel));
+      })
+    );
+
+/** Wrapper for browser context with index for statistics tracking */
+type ContextWithIndex = {
+  context: any;
+  index: number;
 };
 
-/** Context pool for dynamic work distribution */
-class ContextPool {
-  private contexts: any[];
-  private availableSlots: number[];
-
-  constructor(contexts: any[], maxSlotsPerContext: number) {
-    this.contexts = contexts;
-    // Track available slots per context
-    this.availableSlots = contexts.map(() => maxSlotsPerContext);
-  }
-
-  /** Acquire a context (returns context and its index) */
-  public async acquire(): Promise<{ context: any; index: number }> {
-    // Find first context with available slots
-    while (true) {
-      for (let i = 0; i < this.contexts.length; i++) {
-        if (this.availableSlots[i] > 0) {
-          this.availableSlots[i]--;
-          return { context: this.contexts[i], index: i };
-        }
-      }
-      // If no slots available, wait a bit and retry
-      await new Promise(resolve => setTimeout(resolve, 10));
-    }
-  }
-
-  /** Release a context slot */
-  public release(index: number): void {
-    this.availableSlots[index]++;
-  }
-
-  /** Get current slot availability for stats */
-  public getAvailability(): number[] {
-    return [...this.availableSlots];
-  }
-}
-
 /**
- * Scrapes a single metadata type with dynamic context acquisition
+ * Scrapes a single metadata type with dynamic context acquisition using Effect Pool
  * Acquires an available context from the pool when the task starts
  */
-const scrapeMetadataTypeWithContext = async (
-  contextPool: ContextPool,
+const scrapeMetadataTypeWithContext = (
+  contextPool: Pool.Pool<ContextWithIndex, Error>,
   type: { name: string; url: string },
   index: number,
   total: number,
-  isVisible: boolean
-): Promise<{ success: boolean; results: { name: string; data: MetadataType }[]; contextIndex: number }> => {
-  // Dynamically acquire an available context when this task starts
-  const { context, index: contextIndex } = await contextPool.acquire();
+  isVisible: boolean,
+  logLevel: LogLevel.LogLevel = LogLevel.Debug
+): Effect.Effect<{ success: boolean; results: { name: string; data: MetadataType }[]; contextIndex: number }, Error> =>
+  Effect.scoped(
+    Effect.gen(function* () {
+      // Track context acquisition time
+      const contextAcquisitionStart = Date.now();
+      // Acquire context from pool (automatically released when Effect completes)
+      // Note: Anti-detection script is already added to the context when it was created
+      const { context, index: contextIndex } = yield* Pool.get(contextPool);
+      const contextAcquisitionEnd = Date.now();
+      const contextAcquisitionTime = (contextAcquisitionEnd - contextAcquisitionStart) / 1000;
+      yield* Metric.update(contextAcquisitionTime)(contextAcquisitionDuration);
 
-  const page = await context.newPage();
+      const page = yield* Effect.promise<Page>(() => context.newPage() as Promise<Page>);
 
-  // Comprehensive anti-detection
-  await page.addInitScript(() => {
-    // Hide webdriver
-    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+      // Track scrape duration
+      const scrapeStart = Date.now();
+      try {
+        yield* Effect.logDebug(`[${index + 1}/${total}] ${type.name} → Browser ${contextIndex + 1}`);
 
-    // Mock chrome object
-    (window as any).chrome = {
-      runtime: {},
-      loadTimes: () => {},
-      csi: () => {},
-      app: {}
-    };
+        const pageResults = yield* Effect.promise<{ name: string; data: MetadataType }[]>(() =>
+          scrapeMetadataType(page, type.name, type.url, isVisible, logLevel)
+        );
 
-    // Mock plugins
-    Object.defineProperty(navigator, 'plugins', {
-      get: () => [1, 2, 3, 4, 5]
-    });
+        const scrapeEnd = Date.now();
+        const scrapeDurationSeconds = (scrapeEnd - scrapeStart) / 1000;
 
-    // Mock languages
-    Object.defineProperty(navigator, 'languages', {
-      get: () => ['en-US', 'en']
-    });
-
-    // Mock permissions
-    const originalQuery = window.navigator.permissions.query;
-    window.navigator.permissions.query = (parameters: any) =>
-      parameters.name === 'notifications'
-        ? Promise.resolve({ state: 'prompt' } as PermissionStatus)
-        : originalQuery(parameters);
-
-    // Override the headless property
-    Object.defineProperty(navigator, 'platform', {
-      get: () => 'MacIntel'
-    });
-  });
-
-  try {
-    console.log(`[${index + 1}/${total}] ${type.name} → Browser ${contextIndex + 1}`);
-    const pageResults = await scrapeMetadataType(page, type.name, type.url, isVisible);
-
-    if (pageResults.length > 0) {
-      console.log(`     ✓ ${type.name} completed successfully`);
-      return { success: true, results: pageResults, contextIndex };
-    } else {
-      console.log(`     ⚠️  ${type.name} returned no results`);
-      return { success: false, results: [], contextIndex };
-    }
-  } catch (error: any) {
-    console.log(`     ❌ ${type.name} failed: ${error.message}`);
-    return { success: false, results: [], contextIndex };
-  } finally {
-    await page.close();
-    // Release context back to pool
-    contextPool.release(contextIndex);
-  }
-};
+        if (pageResults.length > 0) {
+          yield* Effect.logDebug(`${type.name} completed successfully`);
+          yield* Metric.increment(metadataTypesSuccess);
+          yield* Metric.update(scrapeDurationSeconds)(scrapeDuration);
+          return { success: true, results: pageResults, contextIndex };
+        } else {
+          yield* Effect.logDebug(`${type.name} returned no results`);
+          yield* Metric.increment(metadataTypesFailed);
+          yield* Metric.update(scrapeDurationSeconds)(scrapeDuration);
+          return { success: false, results: [], contextIndex };
+        }
+      } catch (error: any) {
+        const scrapeEnd = Date.now();
+        const scrapeDurationSeconds = (scrapeEnd - scrapeStart) / 1000;
+        yield* Effect.logError(`Scraping failed for ${type.name}: ${error.message} (Browser ${contextIndex + 1})`);
+        yield* Metric.increment(errorsTotal);
+        yield* Metric.increment(metadataTypesFailed);
+        yield* Metric.update(scrapeDurationSeconds)(scrapeDuration);
+        return { success: false, results: [], contextIndex };
+      } finally {
+        yield* Effect.promise<void>(() => page.close());
+      }
+    })
+      .pipe(Logger.withMinimumLogLevel(logLevel))
+      .pipe(
+        Effect.withSpan('scrapeMetadataTypeWithContext', {
+          kind: 'internal',
+          attributes: {
+            metadata_type: type.name,
+            url: type.url
+          }
+        })
+      )
+  );
 
 /**
  * Process metadata types using Effect queue system with dynamic work distribution
  * All browsers share a single queue - work is distributed as capacity becomes available
- * Uses a context pool for true dynamic load balancing
+ * Uses Effect Pool for true dynamic load balancing
  */
-const scrapeInBatches = async (
-  contextPool: ContextPool,
+const scrapeInBatches = (
+  contextPool: Pool.Pool<ContextWithIndex, Error>,
   typesToScrape: { name: string; url: string }[],
   isVisible: boolean,
-  concurrencyLimit: number = 100
-): Promise<{
-  results: MetadataTypesMap;
-  successCount: number;
-  failCount: number;
-  slowestType: { name: string; duration: number } | null;
-  fastestType: { name: string; duration: number } | null;
-  averageDuration: number;
-  perBrowserStats: { successCount: number; failCount: number }[];
-}> => {
-  const results: MetadataTypesMap = {};
-  let successCount = 0;
-  let failCount = 0;
-  let completed = 0;
+  concurrencyLimit: number,
+  numBrowsers: number,
+  logLevel: LogLevel.LogLevel = LogLevel.Debug
+): Effect.Effect<
+  {
+    results: MetadataTypesMap;
+    successCount: number;
+    failCount: number;
+    slowestType: { name: string; duration: number } | null;
+    fastestType: { name: string; duration: number } | null;
+    averageDuration: number;
+    perBrowserStats: { successCount: number; failCount: number }[];
+  },
+  Error
+> => {
   const totalMetadataTypes = typesToScrape.length;
-  let slowestType: { name: string; duration: number } | null = null;
-  let fastestType: { name: string; duration: number } | null = null;
-  let totalDuration = 0;
 
-  // Track per-browser statistics - dynamically allocated
-  const numBrowsers = contextPool['contexts'].length;
+  // Track per-browser statistics
   const perBrowserStats: { successCount: number; failCount: number }[] = Array.from({ length: numBrowsers }, () => ({
     successCount: 0,
     failCount: 0
   }));
 
-  console.log(
-    `\n🚀 Processing ${totalMetadataTypes} metadata types with shared queue (concurrency limit: ${concurrencyLimit})...\n`
-  );
+  return Effect.gen(function* () {
+    yield* Effect.logInfo(`Processing ${totalMetadataTypes} metadata types (concurrency: ${concurrencyLimit})`);
 
-  /** Wrap scraping logic in an Effect */
-  const scrapeTypeEffect = (type: { name: string; url: string }, index: number) =>
-    Effect.tryPromise({
-      try: async () => {
+    // Track attempted count
+    yield* Metric.incrementBy(totalMetadataTypes)(metadataTypesAttempted);
+
+    // Create a Ref to track completed count for real-time progress logging
+    const completedRef = yield* Ref.make(0);
+
+    /** Wrap scraping logic in an Effect with timing and stats tracking */
+    const scrapeTypeEffect = (type: { name: string; url: string }, index: number) =>
+      Effect.gen(function* () {
         const typeStartTime = Date.now();
-        const result = await scrapeMetadataTypeWithContext(contextPool, type, index, totalMetadataTypes, isVisible);
+        const result = yield* scrapeMetadataTypeWithContext(
+          contextPool,
+          type,
+          index,
+          totalMetadataTypes,
+          isVisible,
+          logLevel
+        );
         const typeEndTime = Date.now();
         const duration = typeEndTime - typeStartTime;
 
-        // Track slowest type
-        if (!slowestType || duration > slowestType.duration) {
-          slowestType = { name: type.name, duration };
-        }
-
-        // Track fastest type
-        if (!fastestType || duration < fastestType.duration) {
-          fastestType = { name: type.name, duration };
-        }
-
-        // Accumulate total duration
-        totalDuration += duration;
-
-        // Update per-browser stats
-        if (result.success) {
-          perBrowserStats[result.contextIndex].successCount++;
-        } else {
-          perBrowserStats[result.contextIndex].failCount++;
-        }
-
-        completed++;
+        // Log progress in real-time as each task completes
+        const completed = yield* Ref.updateAndGet(completedRef, n => n + 1);
         const progress = ((completed / totalMetadataTypes) * 100).toFixed(1);
-        console.log(
-          `📊 Progress: ${completed}/${totalMetadataTypes} (${progress}%) - ${result.success ? '✅' : '❌'} ${type.name}`
+        yield* Effect.logInfo(
+          `Progress: [${completed}/${totalMetadataTypes}] (${progress}%) - ${type.name} - ${result.success ? 'success' : 'failed'}`
         );
 
-        return { type, result };
-      },
-      catch: _error => new Error(`Failed to scrape ${type.name}: ${String(_error)}`)
-    });
+        // Update pool utilization metric
+        const utilization = (completed / totalMetadataTypes) * 100;
+        yield* Metric.update(utilization)(poolUtilization);
 
-  /** Create all effects with concurrency control */
-  const effects = typesToScrape.map((type, index) => scrapeTypeEffect(type, index));
-
-  /** Process all types with concurrency control using Effect.all - single shared queue */
-  const program = Effect.all(effects, { concurrency: concurrencyLimit }).pipe(
-    Effect.map(allResults => {
-      // Collect results
-      for (const { result } of allResults) {
-        if (result.success && result.results.length > 0) {
-          for (const { name, data } of result.results) {
-            results[name] = data;
-          }
-          successCount++;
-        } else {
-          failCount++;
-        }
-      }
-      const averageDuration = totalMetadataTypes > 0 ? totalDuration / totalMetadataTypes : 0;
-      return { results, successCount, failCount, slowestType, fastestType, averageDuration, perBrowserStats };
-    }),
-    // Catch any errors and return partial results
-    Effect.catchAll(_error => {
-      const averageDuration = totalMetadataTypes > 0 ? totalDuration / totalMetadataTypes : 0;
-      return Effect.succeed({
-        results,
-        successCount,
-        failCount: failCount + (totalMetadataTypes - successCount - failCount),
-        slowestType,
-        fastestType,
-        averageDuration,
-        perBrowserStats
+        return { type, result, duration };
       });
-    })
-  );
 
-  // Run the Effect program
-  return Effect.runPromise(program);
+    /** Create all effects with concurrency control */
+    const effects = typesToScrape.map((type, index) => scrapeTypeEffect(type, index));
+
+    /** Process all types with concurrency control using Effect.all - single shared queue */
+    const allResults = yield* Effect.all(effects, { concurrency: concurrencyLimit }).pipe(
+      Effect.mapError((error): Error => (error instanceof Error ? error : new Error(String(error))))
+    );
+
+    const results: MetadataTypesMap = {};
+    let successCount = 0;
+    let failCount = 0;
+    let slowestType: { name: string; duration: number } | null = null;
+    let fastestType: { name: string; duration: number } | null = null;
+    let totalDuration = 0;
+    let completed = 0;
+
+    // Collect results and track statistics
+    for (const { type, result, duration } of allResults) {
+      // Track slowest type
+      if (!slowestType || duration > slowestType.duration) {
+        slowestType = { name: type.name, duration };
+      }
+
+      // Track fastest type
+      if (!fastestType || duration < fastestType.duration) {
+        fastestType = { name: type.name, duration };
+      }
+
+      // Accumulate total duration
+      totalDuration += duration;
+
+      // Update per-browser stats
+      if (result.success) {
+        perBrowserStats[result.contextIndex].successCount++;
+      } else {
+        perBrowserStats[result.contextIndex].failCount++;
+      }
+
+      // Collect results
+      if (result.success && result.results.length > 0) {
+        for (const { name, data } of result.results) {
+          results[name] = data;
+        }
+        successCount++;
+      } else {
+        failCount++;
+      }
+    }
+
+    const averageDuration = totalMetadataTypes > 0 ? totalDuration / totalMetadataTypes : 0;
+    return { results, successCount, failCount, slowestType, fastestType, averageDuration, perBrowserStats };
+  })
+    .pipe(Logger.withMinimumLogLevel(logLevel))
+    .pipe(
+      // Catch any errors and return partial results
+      Effect.catchAll(error => {
+        return Effect.gen(function* () {
+          yield* Effect.logError(`Scraping in batches failed: ${String(error)}`);
+          yield* Metric.increment(errorsTotal);
+          // Return partial results even on error
+          const results: MetadataTypesMap = {};
+          let successCount = 0;
+          let failCount = 0;
+          let slowestType: { name: string; duration: number } | null = null;
+          let fastestType: { name: string; duration: number } | null = null;
+          let totalDuration = 0;
+          const averageDuration = totalMetadataTypes > 0 ? totalDuration / totalMetadataTypes : 0;
+          return {
+            results,
+            successCount,
+            failCount: failCount + (totalMetadataTypes - successCount - failCount),
+            slowestType,
+            fastestType,
+            averageDuration,
+            perBrowserStats
+          };
+        }).pipe(Logger.withMinimumLogLevel(logLevel));
+      })
+    );
 };
 
-/** Create a browser context with standard configuration */
+/** Create a browser context with standard configuration and anti-detection */
 const createBrowserContext = async (browser: any) => {
   const context = await browser.newContext({
     userAgent:
@@ -416,38 +498,8 @@ const createBrowserContext = async (browser: any) => {
     }
   });
 
-  return context;
-};
-
-/**
- * Main scraping function with multi-browser support
- */
-const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promise<void> => {
-  const startTime = Date.now();
-  const numBrowsers = parseInt(process.env.NUM_BROWSERS ?? '5', 10);
-  const concurrencyPerBrowser = parseInt(process.env.BATCH_SIZE ?? '20', 10);
-  const totalConcurrency = numBrowsers * concurrencyPerBrowser;
-
-  console.log(`🚀 Starting Salesforce Metadata API scraper${isVisible ? ' (VISIBLE MODE)' : ''}...\n`);
-  console.log('🌐 Configuration:');
-  console.log(`   • Worker pool: ${numBrowsers} browser instances`);
-  console.log(`   • Capacity: ${concurrencyPerBrowser} concurrent tabs per browser`);
-  console.log(`   • Total workers: ${totalConcurrency} (shared queue)`);
-  console.log('   • Load balancing: Dynamic context acquisition');
-  console.log('   • Fast browsers will process more tasks than slow ones\n');
-
-  // Step 1: Launch a single browser for discovery
-  console.log('🔍 Launching discovery browser...');
-  const discoveryBrowser = await chromium.launch({
-    headless: !isVisible,
-    args: BROWSER_LAUNCH_ARGS
-  });
-
-  const discoveryContext = await createBrowserContext(discoveryBrowser);
-  const discoveryPage = await discoveryContext.newPage();
-
-  // Comprehensive anti-detection for discovery page
-  await discoveryPage.addInitScript(() => {
+  // Add comprehensive anti-detection script to context (applies to all pages)
+  await context.addInitScript(() => {
     // Hide webdriver
     Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
 
@@ -482,23 +534,121 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
     });
   });
 
+  return context;
+};
+
+/**
+ * Main scraping function with multi-browser support
+ */
+/**
+ * Parse log level from string
+ */
+const parseLogLevel = (level: string | undefined): LogLevel.LogLevel => {
+  if (!level) return LogLevel.Debug; // Default to Debug
+
+  const upperLevel = level.toUpperCase();
+  switch (upperLevel) {
+    case 'ALL':
+      return LogLevel.All;
+    case 'TRACE':
+      return LogLevel.Trace;
+    case 'DEBUG':
+      return LogLevel.Debug;
+    case 'INFO':
+      return LogLevel.Info;
+    case 'WARNING':
+    case 'WARN':
+      return LogLevel.Warning;
+    case 'ERROR':
+      return LogLevel.Error;
+    case 'FATAL':
+      return LogLevel.Fatal;
+    case 'NONE':
+      return LogLevel.None;
+    default:
+      console.warn(`Unknown log level "${level}", defaulting to Info`);
+      return LogLevel.Info;
+  }
+};
+
+/**
+ * Create Logger layer with minimum log level
+ * Note: Logger.withMinimumLogLevel is a pipeable operator that filters logs in an Effect
+ */
+const createLoggerLayer = (logLevel: LogLevel.LogLevel) => Logger.withMinimumLogLevel(logLevel);
+
+const scrapeAll = async (
+  outputFile?: string,
+  isVisible: boolean = false,
+  logLevel: LogLevel.LogLevel = LogLevel.Debug
+): Promise<void> => {
+  // Logger.withMinimumLogLevel is a pipeable operator that filters logs
+  // Apply it to entire Effect programs, not individual log calls
+  const startTime = Date.now();
+  const numBrowsers = parseInt(process.env.NUM_BROWSERS ?? '5', 10);
+  const concurrencyPerBrowser = parseInt(process.env.BATCH_SIZE ?? '20', 10);
+  const totalConcurrency = numBrowsers * concurrencyPerBrowser;
+
+  // Log configuration info
+  await Effect.runPromise(
+    Effect.logInfo(
+      `Starting Salesforce Metadata API scraper (visible: ${isVisible}, browsers: ${numBrowsers}, concurrency: ${concurrencyPerBrowser}, total: ${totalConcurrency})`
+    )
+      .pipe(Logger.withMinimumLogLevel(logLevel))
+      .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+  );
+
+  // Step 1: Launch a single browser for discovery
+  await Effect.runPromise(
+    Effect.logInfo('Launching discovery browser')
+      .pipe(Logger.withMinimumLogLevel(logLevel))
+      .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+  );
+  const discoveryBrowser = await chromium.launch({
+    headless: !isVisible,
+    args: BROWSER_LAUNCH_ARGS
+  });
+
+  const discoveryContext = await createBrowserContext(discoveryBrowser);
+  const discoveryPage = await discoveryContext.newPage();
+
+  // Note: Anti-detection script is already added to the context when it was created
+
   // Step 1: Discover all metadata types from documentation
-  const metadataTypes = await discoverMetadataTypes(discoveryPage);
+  const metadataTypes = await Effect.runPromise(
+    discoverMetadataTypes(discoveryPage, logLevel).pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+  );
   await discoveryPage.close();
   await discoveryBrowser.close();
-  console.log('✅ Discovery browser closed\n');
+  await Effect.runPromise(
+    Effect.logInfo('Discovery browser closed')
+      .pipe(Logger.withMinimumLogLevel(logLevel))
+      .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+  );
 
   const typesToScrape = metadataTypes;
 
   if (typesToScrape.length === 0) {
-    console.log('⚠️  No metadata types to scrape. Exiting.');
+    await Effect.runPromise(
+      Effect.logInfo('No metadata types to scrape, exiting')
+        .pipe(Logger.withMinimumLogLevel(logLevel))
+        .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+    );
     return;
   }
 
-  console.log(`📋 Will scrape ${typesToScrape.length} metadata types\n`);
+  await Effect.runPromise(
+    Effect.logInfo(`Metadata types to scrape: ${typesToScrape.length}`)
+      .pipe(Logger.withMinimumLogLevel(logLevel))
+      .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+  );
 
   // Step 2: Launch multiple browsers in parallel for scraping
-  console.log(`🚀 Launching ${numBrowsers} scraping browsers in parallel...`);
+  await Effect.runPromise(
+    Effect.logInfo(`Launching ${numBrowsers} scraping browsers`)
+      .pipe(Logger.withMinimumLogLevel(logLevel))
+      .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+  );
   const launchStartTime = Date.now();
 
   const browsers = await Promise.all(
@@ -507,55 +657,134 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
         headless: !isVisible,
         args: BROWSER_LAUNCH_ARGS
       });
-      console.log(`   ✓ Browser ${i + 1}/${numBrowsers} launched`);
+      await Effect.runPromise(
+        Effect.logDebug(`Browser ${i + 1}/${numBrowsers} launched`)
+          .pipe(Logger.withMinimumLogLevel(logLevel))
+          .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+      );
       return browser;
     })
   );
 
   const launchEndTime = Date.now();
   const launchTime = formatElapsedTime(launchStartTime, launchEndTime);
-  console.log(`✅ All browsers launched in ${launchTime}\n`);
+  await Effect.runPromise(
+    Effect.logInfo(`All ${numBrowsers} browsers launched in ${launchTime}`)
+      .pipe(Logger.withMinimumLogLevel(logLevel))
+      .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+  );
 
   // Step 3: Create contexts for each browser
-  console.log('🔧 Creating browser contexts...');
+  await Effect.runPromise(
+    Effect.logInfo(`Creating ${numBrowsers} browser contexts`)
+      .pipe(Logger.withMinimumLogLevel(logLevel))
+      .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+  );
   const contexts = await Promise.all(
     browsers.map(async (browser, i) => {
       const context = await createBrowserContext(browser);
-      console.log(`   ✓ Context ${i + 1}/${numBrowsers} created`);
+      await Effect.runPromise(
+        Effect.logDebug(`Context ${i + 1}/${numBrowsers} created`)
+          .pipe(Logger.withMinimumLogLevel(logLevel))
+          .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+      );
       return context;
     })
   );
-  console.log('✅ All contexts created\n');
+  await Effect.runPromise(
+    Effect.logInfo(`All ${numBrowsers} contexts created`)
+      .pipe(Logger.withMinimumLogLevel(logLevel))
+      .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+  );
 
   try {
-    // Step 4: Create context pool for dynamic work distribution
-    const contextPool = new ContextPool(contexts, concurrencyPerBrowser);
-    console.log('📦 Work distribution: Dynamic (context pool with true load balancing)\n');
-    console.log(`   Each browser can handle up to ${concurrencyPerBrowser} concurrent tasks`);
-    console.log('   Workers acquire contexts dynamically as they become available\n');
+    // Step 4: Create Effect Pool for dynamic work distribution
+    await Effect.runPromise(
+      Effect.logInfo(
+        `Work distribution: Dynamic Effect Pool (${concurrencyPerBrowser} per browser, ${totalConcurrency} total)`
+      )
+        .pipe(Logger.withMinimumLogLevel(logLevel))
+        .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+    );
 
-    const scrapeStartTime = Date.now();
+    // Create pool of contexts - each context becomes a pool item
+    const contextsWithIndex: ContextWithIndex[] = contexts.map((context, index) => ({ context, index }));
+
+    const scrapeProgram = Effect.scoped(
+      Effect.gen(function* () {
+        // Create a pool where each context is a separate pool item
+        // The pool will manage concurrency per context (20 pages per context)
+        const contextPool = yield* Pool.makeWithTTL({
+          acquire: (() => {
+            let nextIndex = 0;
+            return Effect.sync(() => {
+              // Round-robin through contexts for initial pool population
+              const contextWithIndex = contextsWithIndex[nextIndex];
+              nextIndex = (nextIndex + 1) % numBrowsers;
+              return contextWithIndex;
+            });
+          })(),
+          min: numBrowsers,
+          max: numBrowsers,
+          timeToLive: Duration.infinity,
+          concurrency: concurrencyPerBrowser
+        });
+
+        const scrapeStartTime = Date.now();
+        const results = yield* scrapeInBatches(
+          contextPool,
+          typesToScrape,
+          isVisible,
+          totalConcurrency,
+          numBrowsers,
+          logLevel
+        );
+        const scrapeEndTime = Date.now();
+
+        return { results, scrapeStartTime, scrapeEndTime };
+      })
+    )
+      .pipe(Logger.withMinimumLogLevel(logLevel))
+      .pipe(
+        Effect.withSpan('scrapeAll', {
+          kind: 'internal',
+          attributes: {
+            num_browsers: String(numBrowsers),
+            concurrency_per_browser: String(concurrencyPerBrowser),
+            total_concurrency: String(totalConcurrency),
+            total_types: String(typesToScrape.length),
+            is_visible: String(isVisible)
+          }
+        })
+      )
+      .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer));
+
+    const scrapeResult = await Effect.runPromise(scrapeProgram);
     const {
-      results: mergedResults,
-      successCount: totalSuccess,
-      failCount: totalFail,
-      slowestType: globalSlowestType,
-      fastestType: globalFastestType,
-      averageDuration: globalAverageDuration,
-      perBrowserStats
-    } = await scrapeInBatches(contextPool, typesToScrape, isVisible, totalConcurrency);
-
-    const scrapeEndTime = Date.now();
+      results: {
+        results: mergedResults,
+        successCount: totalSuccess,
+        failCount: totalFail,
+        slowestType: globalSlowestType,
+        fastestType: globalFastestType,
+        averageDuration: globalAverageDuration,
+        perBrowserStats
+      },
+      scrapeStartTime,
+      scrapeEndTime
+    } = scrapeResult;
 
     // Display per-browser statistics
-    console.log('\n📊 Per-browser statistics (dynamic distribution):');
-    perBrowserStats.forEach((stats, browserIndex) => {
-      const totalForBrowser = stats.successCount + stats.failCount;
-      const percentage = ((totalForBrowser / typesToScrape.length) * 100).toFixed(1);
-      console.log(
-        `   Browser ${browserIndex + 1}: ${totalForBrowser} types (${percentage}%) - ✅ ${stats.successCount} success, ❌ ${stats.failCount} failed`
-      );
-    });
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const statsSummary = perBrowserStats
+          .map((stats, idx) => `Browser ${idx + 1}: ${stats.successCount} success, ${stats.failCount} failed`)
+          .join('; ');
+        yield* Effect.logInfo(`Per-browser statistics: ${statsSummary}`);
+      })
+        .pipe(Logger.withMinimumLogLevel(logLevel))
+        .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+    );
 
     // Save results
     const outputPath =
@@ -565,40 +794,42 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
     const totalElapsedTime = formatElapsedTime(startTime, endTime);
     const scrapeElapsedTime = formatElapsedTime(scrapeStartTime, scrapeEndTime);
 
-    console.log('\n=== Summary ===');
-    console.log(
-      `🌐 Worker pool: ${numBrowsers} browsers × ${concurrencyPerBrowser} tabs = ${totalConcurrency} total workers`
+    await Effect.runPromise(
+      Effect.logInfo(
+        `Scraping summary: ${metadataTypes.length} discovered, ${typesToScrape.length} attempted, ${totalSuccess} success, ${totalFail} failed, ${scrapeElapsedTime} scraping time, ${totalElapsedTime} total time`
+      )
+        .pipe(Logger.withMinimumLogLevel(logLevel))
+        .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
     );
-    console.log(`📋 Discovered: ${metadataTypes.length} metadata types`);
-    console.log(`🎯 Attempted: ${typesToScrape.length}`);
-    console.log(`✅ Success: ${totalSuccess}`);
-    console.log(`❌ Failed: ${totalFail}`);
-    console.log(`⏱️  Scraping time: ${scrapeElapsedTime}`);
-    console.log(`⏱️  Total time: ${totalElapsedTime}`);
-    if (globalSlowestType !== null) {
-      const slowestTime = formatElapsedTime(0, globalSlowestType.duration);
-      console.log(`🐌 Slowest type: ${globalSlowestType.name} (${slowestTime})`);
-    }
-    if (globalFastestType !== null) {
-      const fastestTime = formatElapsedTime(0, globalFastestType.duration);
-      console.log(`⚡ Fastest type: ${globalFastestType.name} (${fastestTime})`);
-    }
-    const avgTime = formatElapsedTime(0, globalAverageDuration);
-    console.log(`📊 Average time per type: ${avgTime}`);
-    console.log(`\n💾 Writing results to: ${outputPath}`);
 
     fs.writeFileSync(outputPath, JSON.stringify(mergedResults, null, 2));
-    console.log('✅ Done!');
+    await Effect.runPromise(
+      Effect.logInfo(`Scraping completed, output: ${outputPath}`)
+        .pipe(Logger.withMinimumLogLevel(logLevel))
+        .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+    );
   } finally {
     // Clean up all browsers
-    console.log('\n🧹 Closing all browsers...');
+    await Effect.runPromise(
+      Effect.logInfo(`Closing all ${numBrowsers} browsers`)
+        .pipe(Logger.withMinimumLogLevel(logLevel))
+        .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+    );
     await Promise.all(
       browsers.map(async (browser, i) => {
         await browser.close();
-        console.log(`   ✓ Browser ${i + 1}/${numBrowsers} closed`);
+        await Effect.runPromise(
+          Effect.logDebug(`Browser ${i + 1}/${numBrowsers} closed`)
+            .pipe(Logger.withMinimumLogLevel(logLevel))
+            .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+        );
       })
     );
-    console.log('✅ All browsers closed');
+    await Effect.runPromise(
+      Effect.logInfo('All browsers closed')
+        .pipe(Logger.withMinimumLogLevel(logLevel))
+        .pipe(Effect.provide(MetricsLayer), Effect.provide(NodeSdkLayer))
+    );
   }
 };
 
@@ -616,10 +847,12 @@ Usage:
   npm run scrape:all:pages                          # Headless mode
   npm run scrape:all:pages -- --visible             # Visible browser (for debugging)
   npm run scrape:all:pages -- --output file.json    # Custom output
+  npm run scrape:all:pages -- --log-level INFO      # Show only INFO and above (hide DEBUG)
 
 Options:
   --visible        Run with visible browser (useful for debugging)
   --output <file>  Custom output file path
+  --log-level <level>  Minimum log level: ALL, TRACE, DEBUG, INFO, WARNING, ERROR, FATAL, NONE (default: DEBUG)
   --help           Show this help
 
 Environment Variables:
@@ -651,7 +884,11 @@ Examples:
   const outputFile = outputIndex >= 0 ? args[outputIndex + 1] : undefined;
   const isVisible = args.includes('--visible');
 
-  await scrapeAll(outputFile, isVisible);
+  const logLevelIndex = args.indexOf('--log-level');
+  const logLevelArg = logLevelIndex >= 0 ? args[logLevelIndex + 1] : undefined;
+  const logLevel = parseLogLevel(logLevelArg || process.env.LOG_LEVEL);
+
+  await scrapeAll(outputFile, isVisible, logLevel);
 };
 
 main().catch(error => {

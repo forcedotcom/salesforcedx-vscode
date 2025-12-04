@@ -5,6 +5,7 @@
     "noEmit": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "lib": ["es2021", "dom"]
+    "lib": ["es2021", "dom"],
+    "downlevelIteration": true
   }
 }
