@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Indexer, TagInfo, extractJsonFromImport } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { Indexer, TagInfo, extractJsonFromImport, Logger } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as LineColumnFinderModule from 'line-column';
 
 import { EventEmitter as EventsEmitter } from 'node:events';
@@ -85,7 +85,7 @@ export default class AuraIndexer implements Indexer {
       return;
     }
     if (!tagInfo.name) {
-      console.warn(`File ${file} has malformed tagname, ignoring`);
+      Logger.warn(`File ${file} has malformed tagname, ignoring`);
       return;
     }
 
@@ -140,10 +140,10 @@ export default class AuraIndexer implements Indexer {
       try {
         await this.indexFile(file, this.context.type === 'SFDX');
       } catch (e) {
-        console.log(`Error parsing markup from ${file}:`, e);
+        Logger.log(`Error parsing markup from ${file}:`, e);
       }
     }
-    console.info(`Indexed ${markupfiles.length} custom components in ${elapsedMillis(startTime)} ms`);
+    Logger.info(`Indexed ${markupfiles.length} custom components in ${elapsedMillis(startTime)} ms`);
   }
 
   private clearTagsforFile(file: string, sfdxProject: boolean): void {

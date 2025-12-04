@@ -73,13 +73,8 @@ export const activate = async (extensionContext: ExtensionContext) => {
   const client = createLanguageClient(serverModule);
 
   // Start the client and add it to subscriptions
-  try {
-    await client.start();
-    extensionContext.subscriptions.push(client);
-  } catch (error) {
-    log(`Failed to start LWC Language Server: ${String(error)}`);
-    throw error;
-  }
+  await client.start();
+  extensionContext.subscriptions.push(client);
 
   // Trigger loading of workspace files into document cache after server initialization
   // This runs asynchronously and does not block extension activation

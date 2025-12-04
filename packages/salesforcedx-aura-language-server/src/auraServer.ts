@@ -6,7 +6,7 @@
  */
 import {
   toResolvedPath,
-  interceptConsoleLogger,
+  Logger,
   TagInfo,
   FileSystemDataProvider,
   FileStat,
@@ -83,7 +83,6 @@ export default class Server {
   private hasDetectedAuraFiles = false;
 
   constructor() {
-    interceptConsoleLogger(this.connection);
     this.fileSystemProvider = new FileSystemDataProvider();
     this.connection.onInitialize(params => this.onInitialize(params));
     this.connection.onCompletion(params => this.onCompletion(params));
@@ -107,7 +106,7 @@ export default class Server {
 
     try {
       if (this.workspaceRoots.length === 0) {
-        console.warn('No workspace found');
+        Logger.warn('No workspace found');
         return { capabilities: {} };
       }
 
@@ -128,7 +127,7 @@ export default class Server {
       this.htmlLS = getLanguageService();
       this.htmlLS.setDataProviders(true, [getAuraTagProvider()]);
 
-      console.info(`... language server started in ${globalThis.performance.now() - startTime}ms`);
+      Logger.info(`... language server started in ${globalThis.performance.now() - startTime}ms`);
 
       const capabilities = {
         textDocumentSync: {
@@ -160,8 +159,8 @@ export default class Server {
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : String(e);
       const errorStack = e instanceof Error ? e.stack : '';
-      console.error('FULL ERROR in onInitialize catch:', errorMessage);
-      console.error('FULL ERROR STACK:', errorStack);
+      Logger.error('FULL ERROR in onInitialize catch:', errorMessage);
+      Logger.error('FULL ERROR STACK:', errorStack);
       throw new Error(`Aura Language Server initialization unsuccessful. Error message: ${errorMessage}`);
     }
   }
@@ -541,7 +540,7 @@ export default class Server {
   /**
    * Initializes the indexer when workspace Aura files are available
    */
-  private async initializeIndexer(): Promise<void> {
+  private initializeIndexer(): void {
     if (this.isIndexerInitialized) {
       return;
     }
@@ -557,7 +556,7 @@ export default class Server {
       this.isIndexerInitialized = true;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`AuraServer initializeIndexer: Error: ${errorMessage}`);
+      Logger.error(`AuraServer initializeIndexer: Error: ${errorMessage}`);
       throw error;
     }
   }
@@ -614,13 +613,13 @@ export default class Server {
 
       // If we already detected Aura files before delayed init completed, initialize indexer now
       if (this.hasDetectedAuraFiles && !this.isIndexerInitialized) {
-        void this.initializeIndexer();
+        this.initializeIndexer();
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const errorStack = error instanceof Error ? error.stack : '';
-      this.connection.console.error(`AuraServer performDelayedInitialization: Error: ${errorMessage}`);
-      this.connection.console.error(`Stack: ${errorStack}`);
+      Logger.error(`AuraServer performDelayedInitialization: Error: ${errorMessage}`);
+      Logger.error(`Stack: ${errorStack}`);
       throw error;
     }
 
@@ -632,6 +631,7 @@ export default class Server {
   }
 
   public listen(): void {
+    Logger.initialize(this.connection);
     this.connection.listen();
   }
 }

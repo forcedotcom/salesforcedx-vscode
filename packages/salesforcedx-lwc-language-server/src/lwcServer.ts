@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  interceptConsoleLogger,
+  Logger,
   isLWCRootDirectoryCreated,
   toResolvedPath,
   getBasename,
@@ -644,7 +644,7 @@ export default class Server {
   }
 
   public listen(): void {
-    interceptConsoleLogger(this.connection);
+    Logger.initialize(this.connection);
     this.connection.listen();
   }
 

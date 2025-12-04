@@ -34,7 +34,7 @@ const mockJsonFromCommon = (relativePath: string) => {
 // Create the mock implementation function
 const createReadJsonSyncMockImplementation = (actualUtils: any) => async (file: string, fileSystemProvider: any) => {
   try {
-    const normalizedFile = actualUtils.normalizePath?.(file) ?? actualUtils.unixify?.(file) ?? file;
+    const normalizedFile = actualUtils.normalizePath?.(file);
     const content = fileSystemProvider?.getFileContent?.(normalizedFile);
     if (!content) {
       const fallbackContent = fileSystemProvider?.getFileContent?.(file);

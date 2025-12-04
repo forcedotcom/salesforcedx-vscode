@@ -18,7 +18,6 @@ export {
   extractJsonFromImport,
   SfdxTsConfig,
   TsConfigPaths,
-  unixify,
   normalizePath
 } from './utils';
 
@@ -40,7 +39,7 @@ export { TagInfo, getHover } from './indexer/tagInfo';
 export { AttributeInfo, DecoratorType, MemberType } from './indexer/attributeInfo';
 
 // Re-export from other modules
-export { interceptConsoleLogger } from './logger';
+export { Logger } from './logger';
 export { findNamespaceRoots } from './namespaceUtils';
 
 // Re-export from decorators

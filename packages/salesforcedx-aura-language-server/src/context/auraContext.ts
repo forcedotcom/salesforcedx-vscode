@@ -9,7 +9,8 @@ import {
   BaseWorkspaceContext,
   Indexer,
   AURA_EXTENSIONS,
-  findNamespaceRoots
+  findNamespaceRoots,
+  Logger
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -154,7 +155,7 @@ const findAuraMarkupIn = async (namespaceRoot: string, context: AuraWorkspaceCon
       }
     }
   } catch (error) {
-    console.error(`findAuraMarkupIn: Error accessing ${namespaceRoot}:`, error);
+    Logger.error(`findAuraMarkupIn: Error accessing ${namespaceRoot}:`, error);
   }
 
   return files;

@@ -47,7 +47,7 @@ export const isLWCRootDirectoryCreated = (context: BaseWorkspaceContext, changes
   return false;
 };
 
-export const unixify = (filePath: string): string => filePath.replace(/\\/g, '/');
+const unixify = (filePath: string): string => filePath.replace(/\\/g, '/');
 
 /**
  * Normalizes a path for consistent storage and matching in FileSystemDataProvider.

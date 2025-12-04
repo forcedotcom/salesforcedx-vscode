@@ -41,15 +41,13 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Run our auto detection routine before we activate
   // 1) If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
-    const message = 'Aura Language Server activationMode set to off, exiting...';
-    console.log(message);
+    log('Aura Language Server activationMode set to off, exiting...');
     return;
   }
 
   // 2) if we have no workspace folders, exit
   if (!workspace.workspaceFolders) {
-    const message = 'No workspace, exiting extension';
-    console.log(message);
+    log('No workspace, exiting extension');
     return;
   }
 
@@ -68,12 +66,11 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
-    const message = `Aura LSP - autodetect did not find a valid project structure, exiting.... WorkspaceType detected: ${workspaceType}`;
-    log(message);
+    log(
+      `Aura LSP - autodetect did not find a valid project structure, exiting.... WorkspaceType detected: ${workspaceType}`
+    );
     return;
   }
-
-  console.log('Starting Aura Language Server...');
 
   // Initialize telemetry service
   await TelemetryService.getInstance().initializeService(extensionContext);

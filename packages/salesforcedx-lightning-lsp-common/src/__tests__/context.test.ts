@@ -353,22 +353,6 @@ describe('WorkspaceContext', () => {
     expect(apexContents).not.toContain('declare type');
   });
 
-  /*
-function verifyCodeWorkspace(path: string) {
-    const content = Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.file(path))).toString('utf8');
-    const workspace = JSON.parse(content);
-    const folders = workspace.folders;
-    expect(folders.length).toBe(1);
-    const folderPath = folders[0].path;
-    expect(folderPath).toBeAbsolutePath();
-    expect(folderPath).toEndWith(utils.unixify(CORE_ALL_ROOT));
-    const settings = workspace.settings;
-    expect(settings['java.home']).toBe('path_to_java_home');
-    expect(settings['extensions.ignoreRecommendations']).toBeTruthy();
-    verifyCoreSettings(settings);
-}
-*/
-
   it('configureCoreProject()', async () => {
     const context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemProvider);
     await context.initialize();

@@ -12,7 +12,8 @@ import {
   SfdxTsConfig,
   TsConfigPaths,
   IFileSystemProvider,
-  normalizePath
+  normalizePath,
+  Logger
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { snakeCase, camelCase } from 'change-case';
 // glob-to-regexp is correctly listed in this package's package.json dependencies,
@@ -252,7 +253,7 @@ export default class ComponentIndexer {
         }
       }
     } catch (err) {
-      console.error('[ComponentIndexer.loadTagsFromIndex] Error loading tags from index:', err);
+      Logger.error('[ComponentIndexer.loadTagsFromIndex] Error loading tags from index:', err);
     }
   }
 
@@ -288,7 +289,7 @@ export default class ComponentIndexer {
         }
         writeJsonSync(sfdxTsConfigPath, sfdxTsConfig, this.fileSystemProvider);
       } catch (err) {
-        console.error(err);
+        Logger.error(err);
       }
     }
   }
@@ -317,7 +318,7 @@ export default class ComponentIndexer {
           this.fileSystemProvider.updateFileContent(sfdxTsConfigPath, JSON.stringify(sfdxTsConfig, null, 2));
         }
       } catch (err) {
-        console.error(err);
+        Logger.error(err);
       }
     }
   }

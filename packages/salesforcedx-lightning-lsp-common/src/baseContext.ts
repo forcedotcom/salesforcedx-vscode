@@ -132,19 +132,17 @@ export const getModulesDirs = (
         const oldPkgDir = path.join(normalizedWorkspaceRoots[0], pkg.path, 'meta');
 
         // Check for LWC components in new structure
-        const newLwcDir = path.join(newPkgDir, 'lwc');
+        const newLwcDir = utils.normalizePath(path.join(newPkgDir, 'lwc'));
         const newLwcDirStat = fileSystemProvider.getFileStat(newLwcDir);
         if (newLwcDirStat?.type === 'directory') {
           // Add the LWC directory itself, not individual components
-          // Normalize path to ensure consistent format (especially Windows drive letter casing)
-          modulesDirs.push(utils.normalizePath(newLwcDir));
+          modulesDirs.push(newLwcDir);
         } else {
           // New structure doesn't exist, check for LWC components in old structure
-          const oldLwcDir = path.join(oldPkgDir, 'lwc');
+          const oldLwcDir = utils.normalizePath(path.join(oldPkgDir, 'lwc'));
           const oldLwcDirStat = fileSystemProvider.getFileStat(oldLwcDir);
           if (oldLwcDirStat?.type === 'directory') {
-            // Normalize path to ensure consistent format (especially Windows drive letter casing)
-            modulesDirs.push(utils.normalizePath(oldLwcDir));
+            modulesDirs.push(oldLwcDir);
           }
         }
 

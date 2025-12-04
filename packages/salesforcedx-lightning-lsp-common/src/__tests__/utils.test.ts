@@ -52,8 +52,8 @@ describe('utils', () => {
     const canonical = resolve(join('tmp', '.', 'a', 'b', '..'));
     const expected = join('tmp', 'a');
     // Normalize paths for cross-platform compatibility
-    const normalizedCanonical = utils.unixify(canonical);
-    const normalizedExpected = utils.unixify(expected);
+    const normalizedCanonical = utils.normalizePath(canonical);
+    const normalizedExpected = utils.normalizePath(expected);
     expect(normalizedCanonical.endsWith(normalizedExpected)).toBe(true);
   });
 

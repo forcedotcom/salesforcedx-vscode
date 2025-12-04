@@ -18,7 +18,8 @@ import {
   getExtension,
   toResolvedPath,
   pathStartsWith,
-  normalizePath
+  normalizePath,
+  Logger
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import baseTsConfigJsonImport from '@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.base.json';
 import tsConfigTemplateJsonImport from '@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.json';
@@ -150,7 +151,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
       // TODO: This should be moved into configureProject after dev preview
       await this.writeTsconfigJson();
     } catch (error) {
-      console.error('configureProjectForTs: Error occurred:', error);
+      Logger.error('configureProjectForTs: Error occurred:', error);
       throw error;
     }
   }
@@ -168,7 +169,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
           const baseTsConfig = JSON.stringify(baseTsConfigJson, null, 4);
           updateConfigFile(baseTsConfigPath, baseTsConfig, this.fileSystemProvider);
         } catch (error) {
-          console.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);
+          Logger.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);
           throw error;
         }
 

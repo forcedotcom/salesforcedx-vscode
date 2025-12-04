@@ -8,7 +8,8 @@ import {
   ClassMember,
   AttributeInfo,
   IFileSystemProvider,
-  normalizePath
+  normalizePath,
+  Logger
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { camelCase, paramCase } from 'change-case';
 
@@ -337,12 +338,12 @@ export const createTagFromFile = async (
   } catch (e) {
     const errorMessage = e instanceof Error ? e.message : String(e);
     const errorStack = e instanceof Error ? e.stack : 'No stack trace available';
-    console.error(`[createTagFromFile] Error creating tag from file ${file}:`);
-    console.error(`[createTagFromFile] Error message: ${errorMessage}`);
-    console.error(`[createTagFromFile] Error stack: ${errorStack}`);
+    Logger.error(`[createTagFromFile] Error creating tag from file ${file}:`);
+    Logger.error(`[createTagFromFile] Error message: ${errorMessage}`);
+    Logger.error(`[createTagFromFile] Error stack: ${errorStack}`);
     if (e instanceof Error && e.cause) {
       const causeMessage = e.cause instanceof Error ? e.cause.message : String(e.cause);
-      console.error(`[createTagFromFile] Error cause: ${causeMessage}`);
+      Logger.error(`[createTagFromFile] Error cause: ${causeMessage}`);
     }
     return null;
   }

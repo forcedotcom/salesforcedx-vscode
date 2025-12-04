@@ -104,16 +104,7 @@ if (existsSync(monorepoPackages)) {
     const dest = `${extensionNodeModules}/${pkg.name}`;
     if (existsSync(src)) {
       logger(`Copying ${pkg.name} from ${src} to ${dest}`);
-
       cpSync(src, dest, { recursive: true, dereference: true });
-      // Verify that the out directory was copied successfully
-      const destOutDir = `${dest}/out`;
-      if (!existsSync(destOutDir)) {
-        console.error(`ERROR: Failed to copy 'out' directory for ${pkg.name} to ${destOutDir}`);
-        process.exit(1);
-      }
-
-      logger(`Successfully copied ${pkg.name} including out directory`);
     }
   }
 }

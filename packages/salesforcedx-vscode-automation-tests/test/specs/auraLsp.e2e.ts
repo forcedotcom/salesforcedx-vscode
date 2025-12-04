@@ -6,7 +6,10 @@
  */
 import { Duration, TestReqConfig, ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { log, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
-import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import {
+  retryOperation,
+  verifyNotificationWithRetry
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createAura } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
@@ -48,7 +51,7 @@ describe('Aura LSP', () => {
     auraFolderPath = getFolderPath(testSetup.projectFolderPath!, 'aura');
 
     // Create Aura Component
-    await createAura('aura1', auraFolderPath);
+    await retryOperation(() => createAura('aura1', auraFolderPath), 2, 'AuraLsp - Error creating Aura Component');
 
     // Reload the VSCode window to allow the Aura Component to be indexed by the Aura Language Server
     await reloadWindow(Duration.seconds(20));

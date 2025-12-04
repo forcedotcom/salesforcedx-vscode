@@ -4,37 +4,127 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from 'vscode-languageserver';
+import { Connection, MessageType } from 'vscode-languageserver';
+import { LogMessageNotification } from 'vscode-languageserver-protocol';
 
 /**
- * Intercepts global console logging methods and redirects them to the LSP connection.
- * This allows language server log messages to appear in the client's output panel
- * (e.g., VS Code's Output view) instead of the server's local console.
- *
- * This provides a centralized logging solution - once called, any code in the language
- * server can use console.log(), console.error(), etc., and the messages will automatically
- * appear in the client's output channel without needing to pass the connection object around.
- *
- * @param connection - The LSP connection to redirect console output to
+ * Formats console arguments into a single message string.
  */
-export const interceptConsoleLogger = (connection: Connection): void => {
-  const console: any = global.console;
-  if (!console) {
-    return;
-  }
-  const intercept = (method: string): void => {
-    const original = console[method];
-    console[method] = (...args: any[]): void => {
-      if (connection) {
-        const remote: any = connection.console;
-        remote[method].apply(connection.console, args);
-      } else {
-        original.apply(console, args);
+const formatMessage = (...args: unknown[]): string =>
+  args
+    .map(arg => {
+      if (typeof arg === 'string') {
+        return arg;
       }
-    };
-  };
-  const methods = ['log', 'info', 'warn', 'error'];
-  for (const method of methods) {
-    intercept(method);
+      if (arg instanceof Error) {
+        return `${arg.message}${arg.stack ? `\n${arg.stack}` : ''}`;
+      }
+      try {
+        return JSON.stringify(arg, null, 2);
+      } catch {
+        return String(arg);
+      }
+    })
+    .join(' ');
+
+/**
+ * Static singleton logger for language servers.
+ * Provides a centralized logging solution that sends messages to the LSP client
+ * via the window/logMessage notification.
+ *
+ * Usage:
+ * ```typescript
+ * Logger.initialize(connection);
+ * Logger.log('Log message');
+ * Logger.info('Info message');
+ * Logger.warn('Warning message');
+ * Logger.error('Error message');
+ * Logger.debug('Debug message');
+ * ```
+ */
+export class Logger {
+  private static connection: Connection | null = null;
+
+  /**
+   * Initialize the logger with an LSP connection.
+   * Must be called before using any logging methods.
+   *
+   * @param connection - The LSP connection to send log messages to
+   */
+  public static initialize(connection: Connection): void {
+    Logger.connection = connection;
   }
-};
+
+  /**
+   * Internal method that handles the actual logging logic.
+   */
+  private static logIt(args: unknown[], level: MessageType): void {
+    if (!Logger.connection) {
+      // Fallback to console if logger not initialized
+      const consoleMethod =
+        level === MessageType.Error
+          ? 'error'
+          : level === MessageType.Warning
+            ? 'warn'
+            : level === MessageType.Info
+              ? 'info'
+              : level === MessageType.Debug
+                ? 'debug'
+                : 'log';
+
+      console[consoleMethod](...args);
+      return;
+    }
+
+    const formattedMessage = formatMessage(...args);
+    void Logger.connection.sendNotification(LogMessageNotification.type, {
+      type: level,
+      message: formattedMessage
+    });
+  }
+
+  /**
+   * Log a message. Supports multiple arguments like console.log().
+   *
+   * @param args - The message(s) to log
+   */
+  public static log(...args: unknown[]): void {
+    Logger.logIt(args, MessageType.Log);
+  }
+
+  /**
+   * Log an info message. Supports multiple arguments like console.info().
+   *
+   * @param args - The message(s) to log
+   */
+  public static info(...args: unknown[]): void {
+    Logger.logIt(args, MessageType.Info);
+  }
+
+  /**
+   * Log a warning message. Supports multiple arguments like console.warn().
+   *
+   * @param args - The message(s) to log
+   */
+  public static warn(...args: unknown[]): void {
+    Logger.logIt(args, MessageType.Warning);
+  }
+
+  /**
+   * Log an error message. Supports multiple arguments like console.error().
+   *
+   * @param args - The message(s) to log
+   */
+  public static error(...args: unknown[]): void {
+    Logger.logIt(args, MessageType.Error);
+  }
+
+  /**
+   * Log a debug message. Supports multiple arguments like console.debug().
+   *
+   * @param args - The message(s) to log
+   */
+  public static debug(...args: unknown[]): void {
+    Logger.logIt(args, MessageType.Debug);
+  }
+}

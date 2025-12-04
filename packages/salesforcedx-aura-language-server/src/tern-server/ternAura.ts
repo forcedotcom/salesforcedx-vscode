@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 // @ts-nocheck as this is a third party library
-import { FileSystemDataProvider, extractJsonFromImport } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { FileSystemDataProvider, extractJsonFromImport, Logger } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as walk from 'acorn-walk';
 import * as infer from '../tern/lib/infer';
 import * as tern from '../tern/lib/tern';
@@ -207,11 +207,11 @@ const connectModule = async (file: any, out: any): Promise<void> => {
   server.startAsyncAction();
   const modules = infer.cx().parent.mod.modules;
   const cx = infer.cx();
-  console.log(`Starting... ${file.name}`);
+  Logger.log(`Starting... ${file.name}`);
   if (/Helper.js$/.test(file.name)) {
     // need to reestablish server context after awaits
     infer.withContext(server.cx, () => {
-      console.log(`Process helper exports ${file.name}`);
+      Logger.log(`Process helper exports ${file.name}`);
       let outObj;
       if (!out.getType()) {
         const type = baseName(file.name).replace(/.js$/, '');
@@ -255,7 +255,7 @@ const connectModule = async (file: any, out: any): Promise<void> => {
                     // @ts-expect-error - objType is a custom tern property
                     node.objType.propagate(target);
                   } catch (err) {
-                    console.error(err);
+                    Logger.error(err);
                   }
                 }
                 //outObj.defProp(baseName(file.name).replace(/.js$/, ''))
@@ -268,7 +268,7 @@ const connectModule = async (file: any, out: any): Promise<void> => {
         );
       } catch (stop) {
         if (stop !== 'stop') {
-          console.error(stop);
+          Logger.error(stop);
           throw stop;
         }
       }
@@ -293,7 +293,7 @@ const connectModule = async (file: any, out: any): Promise<void> => {
   }
   // reestablish scope after awaits
   infer.withContext(server.cx, () => {
-    console.log(`Fixing scopes...${file.name}`);
+    Logger.log(`Fixing scopes...${file.name}`);
     walk.simple(file.ast, {
       ObjectExpression: (node, _state) => {
         const parent = infer.parentNode(node, file.ast);
@@ -345,7 +345,7 @@ const connectModule = async (file: any, out: any): Promise<void> => {
         }
       }
     });
-    console.log(`All done ${file.name}`);
+    Logger.log(`All done ${file.name}`);
   });
 
   server.finishAsyncAction();
@@ -378,7 +378,7 @@ tern.registerPlugin('aura', (s, _options) => {
       },
       (err: any, result: any) => {
         if (err) {
-          console.log(err);
+          Logger.log(err);
         }
         if (shouldFilter) {
           result.completions = result.completions.filter((completion, _index, _array) => {
@@ -403,14 +403,14 @@ tern.registerPlugin('aura', (s, _options) => {
   const defs = extractJsonFromImport(auraTypesJsonImport);
   server.addDefs(defs);
 
-  console.log(`${new Date().toISOString()} Done loading!`);
+  Logger.log(`${new Date().toISOString()} Done loading!`);
 });
 
 tern.defineQueryType('ideInit', {
   run: (_server: any, query: any) => {
     if (query.unloadDefs) {
       unloadDefs();
-      console.log('Unloaded default Aura defs');
+      Logger.log('Unloaded default Aura defs');
     }
 
     if (query.shouldFilter === true || query.shouldFilter === false) {

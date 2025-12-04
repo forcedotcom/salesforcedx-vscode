@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { IFileSystemProvider, normalizePath, unixify } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { IFileSystemProvider, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 
 /** Package directory configuration in sfdx-project.json */
@@ -47,7 +47,7 @@ const getSfdxConfig = (root: string, fileSystemProvider: IFileSystemProvider): S
 
   if (fileSystemProvider) {
     // Try with file:// prefix first
-    const normalizedFilename = unixify(filename);
+    const normalizedFilename = normalizePath(filename);
     const content =
       fileSystemProvider.getFileContent(`file://${normalizedFilename}`) ??
       fileSystemProvider.getFileContent(normalizedFilename);
