@@ -1,13 +1,11 @@
-# 65.6.0 - November 26, 2025
+# 65.7.0 - December 3, 2025
 
 ## Added
 
-#### salesforcedx-vscode-apex-oas
+#### salesforcedx-utils-vscode
 
-- We adapted the External Service Registration (ESR) generation logic to meet General Availability (GA) requirements. The key change is that for org API version 66.0 and above, the operations section is completely removed from the ESR metadata, rather than being included with `active=false`. ([PR #6664](https://github.com/forcedotcom/salesforcedx-vscode/pull/6664))
+- [W-20175089] [W-20175097 ] user setting for switching between api and ls for apex tests discovery ([PR #6653](https://github.com/forcedotcom/salesforcedx-vscode/pull/6653))
 
-## Fixed
+#### salesforcedx-vscode-apex
 
-#### salesforcedx-vscode-org
-
-- We fixed the ordering of the status bar entries so that the "Open Default Org in Browser" button is returned to its original location next to the org picker. ([PR #6652](https://github.com/forcedotcom/salesforcedx-vscode/pull/6652))
+- [W-20175089] [W-20175097 ] user setting for switching between api and ls for apex tests discovery ([PR #6653](https://github.com/forcedotcom/salesforcedx-vscode/pull/6653))

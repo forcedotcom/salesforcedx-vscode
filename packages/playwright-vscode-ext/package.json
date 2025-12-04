@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/playwright-vscode-ext",
-  "version": "65.6.0",
+  "version": "65.7.0",
   "private": true,
   "main": "./out/src/index.js",
   "dependencies": {
