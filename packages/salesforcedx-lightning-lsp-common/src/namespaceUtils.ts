@@ -67,8 +67,8 @@ const traverse = async (
     (await isModuleRoot(dirs, fileSystemProvider)) ||
     (!path.parse(normalizedCandidate).ext && path.parse(normalizedCandidate).name === 'lwc');
   if (isDirLWC) {
-    // Normalize the resolved path to ensure consistent format (especially Windows drive letter casing)
-    roots.lwc.push(normalizePath(path.resolve(normalizedCandidate)));
+    // normalizedCandidate is already normalized and absolute, so we can use it directly
+    roots.lwc.push(normalizedCandidate);
   } else {
     for (const subdir of dirs) {
       await traverse(subdir, depth - 1, roots, fileSystemProvider);
