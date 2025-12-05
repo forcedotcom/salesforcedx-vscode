@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  targetNamespace="http://soap.sforce.com/2006/04/metadata"
+  xmlns:tns="http://soap.sforce.com/2006/04/metadata"
+  elementFormDefault="qualified">
+  <xs:include schemaLocation="salesforce_metadata_api_common.xsd"/>
+</xs:schema>
