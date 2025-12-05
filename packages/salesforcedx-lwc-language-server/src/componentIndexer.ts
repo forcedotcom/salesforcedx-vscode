@@ -329,7 +329,10 @@ export default class ComponentIndexer {
       // workspaceRoot is already normalized by getWorkspaceRoot()
       const packageDirsPattern = this.getSfdxPackageDirsPattern();
       // Use **/* after lwc to match any depth (e.g., utils/meta/lwc/todo_util/todo_util.js)
-      const sfdxPattern = path.join(packageDirsPattern, '**', '*', 'lwc', '**', '*.{js,ts}');
+      // Construct glob pattern with forward slashes (path.join uses backslashes on Windows)
+      // Normalize packageDirsPattern to ensure forward slashes
+      const normalizedPackageDirs = normalizePath(packageDirsPattern);
+      const sfdxPattern = `${normalizedPackageDirs}/**/*/lwc/**/*.{js,ts}`;
       const filePaths = findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot);
       for (const filePath of filePaths) {
         const { dir, name: fileName } = path.parse(filePath.path);
