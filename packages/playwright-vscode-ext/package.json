@@ -15,7 +15,7 @@
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out",
+    "clean": "shx rm -rf node_modules .wireit out .eslintcache tsconfig.tsbuildinfo",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix"
   }

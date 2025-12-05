@@ -24,6 +24,9 @@
     },
     {
       "path": "../salesforcedx-vscode-services"
+    },
+    {
+      "path": "../salesforcedx-vscode-i18n"
     }
   ]
 }
