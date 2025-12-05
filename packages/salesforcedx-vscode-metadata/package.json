@@ -138,7 +138,6 @@
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
-        "../salesforcedx-vscode-org-browser:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -153,7 +152,6 @@
       "dependencies": [
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
-        "../salesforcedx-vscode-org-browser:vscode:bundle",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
