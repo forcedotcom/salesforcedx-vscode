@@ -1,3 +1,12 @@
+## [8.4.1](https://github.com/forcedotcom/salesforcedx-apex/compare/8.4.0...8.4.1) (2025-12-05)
+
+
+### Bug Fixes
+
+* **deps:** bump jws from 3.2.2 to 3.2.3 ([063faf2](https://github.com/forcedotcom/salesforcedx-apex/commit/063faf2a26255ada318ff4628d9290329ca271e7))
+
+
+
 # [8.4.0](https://github.com/forcedotcom/salesforcedx-apex/compare/8.3.8...8.4.0) (2025-12-03)
 
 
