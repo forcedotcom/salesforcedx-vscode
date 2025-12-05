@@ -25,14 +25,6 @@
       "import": "./out/src/providers/fileSystemDataProvider.js",
       "require": "./out/src/providers/fileSystemDataProvider.js",
       "types": "./out/src/providers/fileSystemDataProvider.d.ts"
-    },
-    "./resources/sfdx/tsconfig-sfdx.base.json": {
-      "import": "./out/src/resources/sfdx/tsconfig-sfdx.base.json",
-      "require": "./out/src/resources/sfdx/tsconfig-sfdx.base.json"
-    },
-    "./resources/sfdx/tsconfig-sfdx.json": {
-      "import": "./out/src/resources/sfdx/tsconfig-sfdx.json",
-      "require": "./out/src/resources/sfdx/tsconfig-sfdx.json"
     }
   },
   "license": "BSD-3-Clause",
@@ -52,6 +44,7 @@
     "ejs": "^3.1.10",
     "tiny-jsonc": "^1.0.2",
     "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-protocol": "^3.17.5",
     "vscode-languageserver-textdocument": "^1.0.12",
     "vscode-uri": "^2.1.2"
   },

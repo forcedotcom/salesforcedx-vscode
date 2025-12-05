@@ -11,7 +11,10 @@ import {
   log,
   pause
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { retryOperation } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import {
+  retryOperation,
+  verifyNotificationWithRetry
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { installJestUTToolsForLwc } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/system-operations';
 import {
@@ -72,6 +75,9 @@ describe('Debug LWC Tests', () => {
     // Install Jest unit testing tools for LWC
     await installJestUTToolsForLwc(testSetup.projectFolderPath);
     await reloadWindow(Duration.seconds(30));
+
+    // wait for server initialization to complete
+    await verifyNotificationWithRetry(/LWC Language Server is ready/, Duration.seconds(10));
   });
 
   it('Debug All Tests on a LWC via the Test Sidebar', async () => {

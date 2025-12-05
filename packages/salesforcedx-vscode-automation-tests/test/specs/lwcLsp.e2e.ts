@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { retryOperation, verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src';
 import {
   Duration,
   pause,
@@ -18,13 +19,14 @@ import {
   getWorkbench,
   getTextEditor,
   reloadWindow,
-  moveCursorWithFallback
+  moveCursorWithFallback,
+  closeAllEditors
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
 import { getFolderPath } from '../utils/buildFilePathHelper';
-import { tryToHideCopilot } from '../utils/copilotHidingHelper';
+// import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('LWC LSP', () => {
@@ -36,7 +38,14 @@ describe('LWC LSP', () => {
     },
     isOrgRequired: false,
     testSuiteSuffixName: 'LwcLsp',
-    extensionConfigs: defaultExtensionConfigs
+    extensionConfigs: [
+      ...defaultExtensionConfigs,
+      {
+        extensionId: 'salesforcedx-vscode-lwc',
+        shouldVerifyActivation: false, // We don't activate until we have an LWC
+        shouldInstall: 'always'
+      }
+    ]
   };
 
   before('Set up the testing environment', async () => {
@@ -44,14 +53,18 @@ describe('LWC LSP', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
     lwcFolderPath = getFolderPath(testSetup.projectFolderPath!, 'lwc');
 
-    // Hide copilot
-    await tryToHideCopilot();
+    // Close all editors to ensure a clean state before creating LWC
+    await closeAllEditors();
 
     // Create Lightning Web Component
-    await createLwc('lwc1', lwcFolderPath);
+    // Retry creating the LWC if it fails
+    await retryOperation(() => createLwc('lwc1', lwcFolderPath), 2, 'LwcLsp - Error creating LWC');
 
     // Reload the VSCode window to allow the LWC to be indexed by the LWC Language Server
     await reloadWindow(Duration.seconds(20));
+
+    // wait for server initialization to complete
+    await verifyNotificationWithRetry(/LWC Language Server is ready/, Duration.seconds(10));
   });
 
   it('Go to Definition (JavaScript)', async () => {
@@ -70,7 +83,7 @@ describe('LWC LSP', () => {
     const editorView = workbench.getEditorView();
     const activeTab = await editorView.getActiveTab();
     const title = await activeTab?.getTitle();
-    expect(title).to.equal('engine.d.ts');
+    expect(title).to.equal('types.d.ts');
   });
 
   it('Go to Definition (HTML)', async () => {

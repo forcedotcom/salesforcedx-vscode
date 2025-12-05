@@ -399,7 +399,7 @@ export const onHover = async (
 
     return { contents: out };
   } catch (e: any) {
-    if (e.message?.startsWith('No type found')) {
+    if (e?.message?.startsWith('No type found')) {
       return { contents: [] };
     }
     return { contents: [] };

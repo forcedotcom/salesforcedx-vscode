@@ -63,6 +63,34 @@
       }
     },
     {
+      "label": "Compile and Bundle",
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "dependsOn": ["Compile"],
+      "command": "npm",
+      "type": "shell",
+      "presentation": {
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "args": ["run", "vscode:bundle:extension"],
+      "isBackground": false,
+      "problemMatcher": {
+        "owner": "typescript",
+        "fileLocation": "relative",
+        "pattern": {
+          "regexp": "^(@salesforce\\/)(.*)\\((\\d+)\\,(\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
+          "file": 2,
+          "line": 3,
+          "severity": 5,
+          "code": 6,
+          "message": 7
+        }
+      }
+    },
+    {
       "label": "Lint",
       "command": "npm",
       "type": "shell",
