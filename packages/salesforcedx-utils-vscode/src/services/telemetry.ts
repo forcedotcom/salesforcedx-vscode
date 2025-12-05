@@ -368,8 +368,8 @@ export class TelemetryService implements TelemetryServiceInterface {
 }
 
 const extensionPackageJsonSchema = z.object({
-  name: z.string({ message: 'Extension name is not defined in package.json' }),
-  version: z.string({ message: 'Extension version is not defined in package.json' }),
+  name: z.string({ error: 'Extension name is not defined in package.json' }),
+  version: z.string({ error: 'Extension version is not defined in package.json' }),
   aiKey: z.string().optional(),
   o11yUploadEndpoint: z.string().optional(),
   enableO11y: z.string().optional()
