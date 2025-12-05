@@ -29,24 +29,102 @@
     "vscode-languageserver-protocol": "^3.17.5"
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-visualforce-language-server": "65.7.0",
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "65.7.0",
-    "salesforcedx-vscode-core": "65.7.0"
+    "@salesforce/salesforcedx-visualforce-language-server": "*",
+    "@salesforce/salesforcedx-visualforce-markup-language-server": "*",
+    "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
-    "bundle:extension": "node ./esbuild.config.mjs",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "compile": "tsc -p ./",
-    "lint": "eslint .",
-    "lint:fix": "npm run lint -- --fix",
-    "test": "jest --coverage --passWithNoTests",
-    "vscode:package": "vsce package --allow-package-all-secrets",
+    "vscode:bundle": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
+    "compile": "wireit",
+    "lint": "wireit",
+    "test": "wireit",
+    "vscode:package": "wireit",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "watch": "tsc -watch -p ."
+    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-visualforce-language-server:compile",
+        "../salesforcedx-visualforce-markup-language-server:compile",
+        "../salesforcedx-vscode-core:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "vscode:bundle": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "out/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "test": {
+      "command": "jest --coverage --passWithNoTests",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    },
+    "vscode:package": {
+      "command": "vsce package --allow-package-all-secrets",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**",
+        "syntaxes/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
+    }
   },
   "main": "./dist/index.js",
   "contributes": {

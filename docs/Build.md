@@ -11,9 +11,9 @@ follow the code structure of this repo
 /out (compiled source, will be .js and .d.ts)
 /dist (bundled source)
 
-## Lerna
+## Monorepo Management
 
-This repo uses lerna/nx. It's ok, you don't have to use it if it's not necessary
+This repo uses npm workspaces with wireit for task orchestration. You don't have to use the same setup if it's not necessary for your project
 
 ## Versioning
 

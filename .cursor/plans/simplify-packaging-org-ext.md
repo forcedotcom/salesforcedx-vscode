@@ -63,10 +63,10 @@ Note: Excludes org-browser-specific items (.vscode-web, dist/_-metafile.json, pl
 
 ### 4. Verify build chain
 
-Workflow: compile → bundle:extension → vscode:package
+Workflow: compile → vscode:bundle → vscode:package
 
 - `npm run compile` produces `out/src/index.js`
-- `npm run bundle:extension` bundles to `dist/index.js`
+- `npm run vscode:bundle` bundles to `dist/index.js`
 - `npm run vscode:package` packages with vsce using `dist/` as entrypoint
 
 ### To-dos
@@ -74,4 +74,4 @@ Workflow: compile → bundle:extension → vscode:package
 - [ ] Change esbuild entry point from ./src/index.ts to ./out/src/index.js
 - [ ] Update package.json: change main to ./dist/index.js, remove packaging section, simplify vscode:package script
 - [ ] Replace .vscodeignore with org-browser pattern (excluding org-browser-specific items)
-- [ ] Run compile, bundle:extension, and test the simplified packaging workflow
+- [ ] Run compile, vscode:bundle, and test the simplified packaging workflow
