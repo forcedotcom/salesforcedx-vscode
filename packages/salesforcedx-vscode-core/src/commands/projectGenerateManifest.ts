@@ -10,6 +10,7 @@ import {
   createDirectory,
   fileOrFolderExists,
   LibraryCommandletExecutor,
+  SfCommandlet,
   SfWorkspaceChecker,
   workspaceUtils,
   writeFile
@@ -20,7 +21,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { nls } from '../messages';
-import { FilePathGatherer, SfCommandlet } from './util';
+import { FilePathGatherer } from './util';
 
 const GENERATE_MANIFEST_EXECUTOR = 'project_generate_manifest';
 const DEFAULT_MANIFEST = 'package.xml';

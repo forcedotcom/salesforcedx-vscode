@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { OverwriteComponentPrompt } from '../../../src/commands/util';
-import { notificationService } from '../../../src/notifications';
 
 describe('Postcondition Checkers', () => {
   describe('OverwriteComponentPrompt', () => {

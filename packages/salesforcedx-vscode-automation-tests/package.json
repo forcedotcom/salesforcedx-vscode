@@ -4,14 +4,52 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "npx eslint ./test **/*.ts",
-    "copy:files": "shx mkdir -p lib/test/testData/files && shx cp ./test/testData/files/* lib/test/testData/files",
-    "compile": "tsc --project ./tsconfig.json && npm run copy:files",
+    "lint": "wireit",
+    "copy:files": "wireit",
+    "compile": "wireit",
     "extester": "extest --help",
     "reinstall": "git checkout -- package-lock.json && git clean -xfd && npm install"
   },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "copy:files"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "lib/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "copy:files": {
+      "command": "shx mkdir -p lib/test/testData/files && shx cp ./test/testData/files/* lib/test/testData/files",
+      "files": [
+        "test/testData/files/*"
+      ],
+      "output": [
+        "lib/test/testData/files/*"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache ./test **/*.ts",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    }
+  },
   "devDependencies": {
-    "@salesforce/salesforcedx-vscode-test-tools": "1.2.3",
+    "@salesforce/salesforcedx-vscode-test-tools": "1.2.4",
     "@types/chai": "^4.3.17",
     "@types/mocha": "^10.0.9",
     "@typescript-eslint/eslint-plugin": "^8.46.4",

@@ -6,16 +6,14 @@
  */
 
 import * as vscode from 'vscode';
-import { fetchFromApi, fetchFromLs, getApexTests } from '../../../src/languageUtils';
+import { fetchFromLs, getApexTests } from '../../../src/languageUtils';
 import { languageClientManager } from '../../../src/languageUtils/languageClientManager';
 import { setTelemetryService } from '../../../src/telemetry/telemetry';
-import { discoverTests } from '../../../src/testDiscovery/testDiscovery';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
 import { MockTelemetryService } from '../telemetry/mockTelemetryService';
 
 // Mock dependencies
 jest.mock('../../../src/languageUtils/languageClientManager');
-jest.mock('../../../src/testDiscovery/testDiscovery');
 
 describe('languageUtils/index', () => {
   let mockTelemetryService: MockTelemetryService;
@@ -102,169 +100,45 @@ describe('languageUtils/index', () => {
     });
   });
 
-  describe('fetchFromApi', () => {
-    beforeEach(() => {
-      // Mock workspace.findFiles to return empty by default
-      (vscode.workspace.findFiles as unknown) = jest.fn().mockResolvedValue([]);
-    });
-
-    it('should fetch tests from Tooling API and measure duration', async () => {
+  describe('getApexTests', () => {
+    it('should fetch tests from Language Server', async () => {
       // Arrange
-      const mockApiResult = {
-        classes: [
-          {
-            id: '01p000000000001',
-            name: 'TestClass1',
-            namespacePrefix: '',
-            testMethods: [{ name: 'testMethod1' }, { name: 'testMethod2' }]
-          }
-        ]
-      };
+      const mockTests: ApexTestMethod[] = [
+        {
+          methodName: 'testMethod1',
+          definingType: 'TestClass1',
+          location: {} as vscode.Location
+        }
+      ];
 
-      (discoverTests as jest.Mock).mockResolvedValue(mockApiResult);
-
-      // Mock workspace.findFiles to return a matching URI
-      const mockUri = vscode.Uri.file('/workspace/force-app/main/default/classes/TestClass1.cls');
-      (vscode.workspace.findFiles as unknown) = jest.fn().mockResolvedValue([mockUri]);
+      (languageClientManager.getApexTests as jest.Mock).mockResolvedValue(mockTests);
 
       // Act
-      const result = await fetchFromApi();
+      const result = await getApexTests();
 
       // Assert
-      expect(result.durationMs).toBeGreaterThanOrEqual(0);
-      expect(discoverTests).toHaveBeenCalledTimes(1);
-      // We know convertApiToApexTestMethods was called, which validates the conversion
-      expect(result.tests).toBeDefined();
+      expect(result).toEqual(mockTests);
+      expect(languageClientManager.getApexTests).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle empty API results', async () => {
+    it('should handle empty test results', async () => {
       // Arrange
-      (discoverTests as jest.Mock).mockResolvedValue({ classes: [] });
+      (languageClientManager.getApexTests as jest.Mock).mockResolvedValue([]);
 
       // Act
-      const result = await fetchFromApi();
+      const result = await getApexTests();
 
       // Assert
-      expect(result.tests).toEqual([]);
-      expect(result.durationMs).toBeGreaterThanOrEqual(0);
+      expect(result).toEqual([]);
     });
 
-    it('should propagate errors from Tooling API', async () => {
+    it('should propagate errors from language server', async () => {
       // Arrange
-      const error = new Error('Tooling API error');
-      (discoverTests as jest.Mock).mockRejectedValue(error);
+      const error = new Error('Language server error');
+      (languageClientManager.getApexTests as jest.Mock).mockRejectedValue(error);
 
       // Act & Assert
-      await expect(fetchFromApi()).rejects.toThrow('Tooling API error');
-    });
-  });
-
-  describe('getApexTests', () => {
-    beforeEach(() => {
-      // Mock workspace.findFiles to return empty by default
-      (vscode.workspace.findFiles as unknown) = jest.fn().mockResolvedValue([]);
-    });
-
-    it('should use Language Server when source is "ls"', async () => {
-      // Arrange
-      const mockTests: ApexTestMethod[] = [
-        {
-          methodName: 'testMethod1',
-          definingType: 'TestClass1',
-          location: {} as vscode.Location
-        }
-      ];
-
-      const mockGetConfig = jest.fn().mockReturnValue({
-        get: jest.fn().mockReturnValue('ls')
-      });
-      (vscode.workspace.getConfiguration as unknown) = mockGetConfig;
-      (languageClientManager.getApexTests as jest.Mock).mockResolvedValue(mockTests);
-
-      // Act
-      const result = await getApexTests();
-
-      // Assert
-      expect(result).toEqual(mockTests);
-      expect(languageClientManager.getApexTests).toHaveBeenCalledTimes(1);
-      expect(discoverTests).not.toHaveBeenCalled();
-    });
-
-    it('should use Tooling API when source is "api"', async () => {
-      // Arrange
-      const mockApiResult = {
-        classes: [
-          {
-            id: '01p000000000001',
-            name: 'TestClass1',
-            namespacePrefix: '',
-            testMethods: [{ name: 'testMethod1' }]
-          }
-        ]
-      };
-
-      const mockUri = vscode.Uri.file('/workspace/force-app/main/default/classes/TestClass1.cls');
-
-      const mockGetConfig = jest.fn().mockReturnValue({
-        get: jest.fn().mockReturnValue('api')
-      });
-      (vscode.workspace.getConfiguration as unknown) = mockGetConfig;
-      (discoverTests as jest.Mock).mockResolvedValue(mockApiResult);
-      (vscode.workspace.findFiles as unknown) = jest.fn().mockResolvedValue([mockUri]);
-
-      // Act
-      const result = await getApexTests();
-
-      // Assert
-      expect(result).toBeDefined();
-      expect(discoverTests).toHaveBeenCalledTimes(1);
-      expect(languageClientManager.getApexTests).not.toHaveBeenCalled();
-    });
-
-    it('should default to Language Server when source is not specified', async () => {
-      // Arrange
-      const mockTests: ApexTestMethod[] = [
-        {
-          methodName: 'testMethod1',
-          definingType: 'TestClass1',
-          location: {} as vscode.Location
-        }
-      ];
-
-      // Mock config.get to simulate returning the default value
-      const getFunc = jest.fn().mockImplementation((key: string, defaultValue?: string) => defaultValue ?? 'ls');
-      const mockGetConfig = jest.fn().mockReturnValue({
-        get: getFunc
-      });
-      (vscode.workspace.getConfiguration as unknown) = mockGetConfig;
-      (languageClientManager.getApexTests as jest.Mock).mockResolvedValue(mockTests);
-
-      // Act
-      const result = await getApexTests();
-
-      // Assert
-      expect(result).toEqual(mockTests);
-      expect(languageClientManager.getApexTests).toHaveBeenCalledTimes(1);
-      expect(discoverTests).not.toHaveBeenCalled();
-      // Verify the config was called correctly with the right key
-      expect(getFunc).toHaveBeenCalledWith('testing.discoverySource', 'ls');
-    });
-
-    it('should read configuration from correct workspace setting', async () => {
-      // Arrange
-      const mockGetConfig = jest.fn().mockReturnValue({
-        get: jest.fn().mockReturnValue('api')
-      });
-      (vscode.workspace.getConfiguration as unknown) = mockGetConfig;
-      (vscode.workspace.findFiles as unknown) = jest.fn().mockResolvedValue([]);
-
-      (discoverTests as jest.Mock).mockResolvedValue({ classes: [] });
-
-      // Act
-      await getApexTests();
-
-      // Assert
-      expect(mockGetConfig).toHaveBeenCalledWith('salesforcedx-vscode-apex');
+      await expect(getApexTests()).rejects.toThrow('Language server error');
     });
   });
 });
