@@ -145,14 +145,6 @@ jest.mock(
   }
 );
 
-// Mock JSON imports for tsconfig files used by lwcContext.ts
-jest.mock('@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.base.json', () =>
-  mockJsonFromCommon('resources/sfdx/tsconfig-sfdx.base.json')
-);
-jest.mock('@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.json', () =>
-  mockJsonFromCommon('resources/sfdx/tsconfig-sfdx.json')
-);
-
 import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';

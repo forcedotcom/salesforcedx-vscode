@@ -6,7 +6,6 @@
  */
 import { Indexer, TagInfo, extractJsonFromImport, Logger } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as LineColumnFinderModule from 'line-column';
-
 import { EventEmitter as EventsEmitter } from 'node:events';
 import { Node } from 'vscode-html-languageservice';
 import { Location } from 'vscode-languageserver';
@@ -17,7 +16,12 @@ import * as auraStandardImport from '../resources/aura-standard.json';
 import * as transformedAuraSystemImport from '../resources/transformed-aura-system.json';
 import { componentFromFile, componentFromDirectory } from '../util/componentUtil';
 
+// Handle both ES module (default export) and CommonJS (namespace export) module resolution.
+// This is needed because Jest resolves modules differently than TypeScript's runtime,
+// and line-column may export differently depending on the module system.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const LineColumnFinder = LineColumnFinderModule.default ?? LineColumnFinderModule;
+
 export default class AuraIndexer implements Indexer {
   public readonly eventEmitter = new EventsEmitter();
 

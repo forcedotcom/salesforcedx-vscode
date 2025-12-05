@@ -73,8 +73,9 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
           }
           const auraDir = path.join(this.workspaceRoots[0], project.name, 'components');
           if (this.fileSystemProvider.directoryExists(auraDir)) {
-            const subroots = await findNamespaceRoots(auraDir, this.fileSystemProvider, 2);
-            roots.aura.push(...subroots.aura);
+            // The components directory itself is the Aura namespace root
+            // (findNamespaceRoots only detects LWC, not Aura)
+            roots.aura.push(auraDir);
           }
         }
         return roots;
@@ -88,8 +89,9 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
           }
           const auraDir = path.join(ws, 'components');
           if (this.fileSystemProvider.directoryExists(auraDir)) {
-            const subroots = await findNamespaceRoots(path.join(ws, 'components'), this.fileSystemProvider, 2);
-            roots.aura.push(...subroots.aura);
+            // The components directory itself is the Aura namespace root
+            // (findNamespaceRoots only detects LWC, not Aura)
+            roots.aura.push(auraDir);
           }
         }
         return roots;
@@ -103,7 +105,6 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
         }
         const unknownroots = await findNamespaceRoots(this.workspaceRoots[0], this.fileSystemProvider, depth);
         roots.lwc.push(...unknownroots.lwc);
-        roots.aura.push(...unknownroots.aura);
         return roots;
       }
     }

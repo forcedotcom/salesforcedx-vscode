@@ -14,6 +14,7 @@ import * as settingsCoreTemplateJson from './resources/core/settings-core.json';
 import * as jsconfigSfdxTemplateJson from './resources/sfdx/jsconfig-sfdx.json';
 import { WorkspaceType, detectWorkspaceType, getSfdxProjectFile } from './shared';
 import * as utils from './utils';
+import { NormalizedPath } from './utils';
 
 // Handle namespace JSON imports - extract actual JSON content (may be in .default or directly on namespace)
 const jsconfigCoreTemplate = utils.extractJsonFromImport(jsconfigCoreTemplateJson);
@@ -64,7 +65,8 @@ const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProv
       sfdxPackageDirsPattern: `{${sfdxPackageDirsPattern}}`
     };
   } catch (e) {
-    throw new Error(`Sfdx project file seems invalid. Unable to parse ${getSfdxProjectFile(root)}. ${e.message}`);
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    throw new Error(`Sfdx project file seems invalid. Unable to parse ${getSfdxProjectFile(root)}. ${errorMessage}`);
   }
 };
 
@@ -118,11 +120,11 @@ export const getModulesDirs = (
   workspaceRoots: string[],
   fileSystemProvider: IFileSystemProvider,
   getSfdxProjectConfig: () => SfdxProjectConfig
-): string[] => {
+): NormalizedPath[] => {
   // Normalize workspaceRoots at the start to ensure consistent path format
   // This ensures all path operations use normalized paths
   const normalizedWorkspaceRoots = workspaceRoots.map(root => utils.normalizePath(root));
-  const modulesDirs: string[] = [];
+  const modulesDirs: NormalizedPath[] = [];
   switch (workspaceType) {
     case 'SFDX':
       const { packageDirectories } = getSfdxProjectConfig();
@@ -206,7 +208,7 @@ export const getModulesDirs = (
  */
 export abstract class BaseWorkspaceContext {
   public type!: WorkspaceType;
-  public workspaceRoots: string[];
+  public workspaceRoots: NormalizedPath[];
 
   protected findNamespaceRootsUsingTypeCache: () => Promise<{ lwc: string[]; aura: string[] }>;
   public initSfdxProjectConfigCache: () => SfdxProjectConfig;
@@ -215,12 +217,9 @@ export abstract class BaseWorkspaceContext {
    * @param workspaceRoots
    * @return BaseWorkspaceContext representing the workspace with workspaceRoots
    */
-  constructor(workspaceRoots: string[] | string, fileSystemProvider: FileSystemDataProvider) {
+  constructor(workspaceRoots: NormalizedPath[] | NormalizedPath, fileSystemProvider: FileSystemDataProvider) {
     // Normalize workspaceRoots to ensure consistent path format (especially Windows drive letter casing)
-    this.workspaceRoots =
-      typeof workspaceRoots === 'string'
-        ? [utils.normalizePath(path.resolve(workspaceRoots))]
-        : workspaceRoots.map(root => utils.normalizePath(root));
+    this.workspaceRoots = Array.isArray(workspaceRoots) ? workspaceRoots : [workspaceRoots];
 
     this.findNamespaceRootsUsingTypeCache = utils.memoize(() => this.findNamespaceRootsUsingType());
     this.initSfdxProjectConfigCache = utils.memoize(() => this.initSfdxProject());

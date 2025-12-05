@@ -30,8 +30,7 @@ describe('TypingIndexer', () => {
   describe('new', () => {
     it('initializes with the root of a workspace', async () => {
       // workspaceRoot is normalized by getWorkspaceRoot, so normalize the expected path for comparison
-      const expectedPath: string = normalizePath(SFDX_WORKSPACE_ROOT);
-      expect(typingIndexer.workspaceRoot).toEqual(expectedPath);
+      expect(typingIndexer.workspaceRoot).toEqual(SFDX_WORKSPACE_ROOT);
       expect(await getSfdxPackageDirsPattern(typingIndexer.workspaceRoot, sfdxFileSystemProvider)).toEqual(
         '{force-app,utils,registered-empty-folder}'
       );

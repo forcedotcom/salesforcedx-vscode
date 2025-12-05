@@ -15,10 +15,8 @@ import { Tag, createTag, getTagName } from '../tag';
 const createMockStats = (mtime: Date) => ({ mtime });
 const createMockDirent = () => ({});
 
-const workspaceRoot: string = SFDX_WORKSPACE_ROOT;
-
 const componentIndexer: ComponentIndexer = new ComponentIndexer({
-  workspaceRoot,
+  workspaceRoot: SFDX_WORKSPACE_ROOT,
   fileSystemProvider: sfdxFileSystemProvider
 });
 
@@ -34,8 +32,7 @@ describe('ComponentIndexer', () => {
   describe('new', () => {
     it('initializes with the root of a workspace', () => {
       // workspaceRoot is normalized by getWorkspaceRoot, so normalize the expected path for comparison
-      const expectedPath: string = normalizePath(SFDX_WORKSPACE_ROOT);
-      expect(componentIndexer.workspaceRoot).toEqual(expectedPath);
+      expect(componentIndexer.workspaceRoot).toEqual(SFDX_WORKSPACE_ROOT);
       expect(componentIndexer.workspaceType).toEqual('SFDX');
     });
   });
@@ -173,7 +170,14 @@ describe('ComponentIndexer', () => {
         it('updates tsconfig.sfdx.json path mapping', async () => {
           // Clean up any files created by other tests (e.g., newlyAddedFile from lwcServer.test.ts)
           // This ensures the test only sees the expected components
-          const newlyAddedFileDir = path.join(workspaceRoot, 'force-app', 'main', 'default', 'lwc', 'newlyAddedFile');
+          const newlyAddedFileDir = path.join(
+            SFDX_WORKSPACE_ROOT,
+            'force-app',
+            'main',
+            'default',
+            'lwc',
+            'newlyAddedFile'
+          );
           const possibleFiles = [
             path.join(newlyAddedFileDir, 'newlyAddedFile.js'),
             path.join(newlyAddedFileDir, 'newlyAddedFile.ts'),

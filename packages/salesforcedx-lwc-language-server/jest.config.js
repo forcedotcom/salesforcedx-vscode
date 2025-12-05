@@ -18,10 +18,6 @@ module.exports = {
       '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/__tests__/testUtils',
     '^@salesforce/salesforcedx-lightning-lsp-common/providers/fileSystemDataProvider$':
       '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/providers/fileSystemDataProvider',
-    '^@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.base.json$':
-      '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/resources/sfdx/tsconfig-sfdx.base.json',
-    '^@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.json$':
-      '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/resources/sfdx/tsconfig-sfdx.json',
     '^@salesforce/salesforcedx-lightning-lsp-common$': '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/index'
   },
   // Add common package's out/src to moduleDirectories so relative imports from baseContext.js resolve correctly

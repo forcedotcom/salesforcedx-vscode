@@ -8,6 +8,7 @@
 import { basename, dirname } from 'node:path';
 import { FileSystemDataProvider } from './providers/fileSystemDataProvider';
 import { DirectoryEntry } from './types/fileSystemTypes';
+import { NormalizedPath, normalizePath } from './utils';
 
 /**
  * Ensures parent directories are tracked in FileSystemDataProvider.
@@ -15,7 +16,7 @@ import { DirectoryEntry } from './types/fileSystemTypes';
  * Expects dirPath to be in fsPath format (already normalized).
  */
 const ensureDirectoryTracked = async (
-  dirPath: string,
+  dirPath: NormalizedPath,
   provider: FileSystemDataProvider,
   workspaceRoots: string[]
 ): Promise<void> => {
@@ -34,13 +35,13 @@ const ensureDirectoryTracked = async (
   });
 
   // Get or create directory listing
-  const entries = provider.getDirectoryListing(dirPath) ?? [];
+  const entries = provider.getDirectoryListing(dirPath);
 
   // Update directory listing (will be populated as files are added)
   provider.updateDirectoryListing(dirPath, entries);
 
   // Recursively ensure parent directory is tracked
-  const parentDir = dirname(dirPath);
+  const parentDir = normalizePath(dirname(dirPath));
   if (parentDir && parentDir !== dirPath && parentDir !== '.') {
     // Check if parent is within workspace roots
     // workspaceRoots are already normalized, so we can compare directly
@@ -56,25 +57,22 @@ const ensureDirectoryTracked = async (
  * Expects filePath to be in fsPath format (already normalized).
  */
 const addFileToDirectoryListing = async (
-  filePath: string,
+  filePath: NormalizedPath,
   provider: FileSystemDataProvider,
   workspaceRoots: string[]
 ): Promise<void> => {
-  // filePath is already normalized to fsPath format
-  const parentDir = dirname(filePath);
+  const parentDir = normalizePath(dirname(filePath));
   const fileName = basename(filePath);
 
   // Ensure parent directory is tracked
   await ensureDirectoryTracked(parentDir, provider, workspaceRoots);
 
   // Get current directory listing
-  const entries = provider.getDirectoryListing(parentDir) ?? [];
+  const entries = provider.getDirectoryListing(parentDir);
 
   // Check if file already exists in listing
   const existingEntry = entries.find(entry => entry.name === fileName);
   if (!existingEntry) {
-    // Add file entry to directory listing
-    // Store in fsPath format for consistency
     const updatedEntries: DirectoryEntry[] = [
       ...entries,
       {
@@ -93,7 +91,7 @@ const addFileToDirectoryListing = async (
  * Callers should normalize URIs before calling this function.
  */
 export const syncDocumentToTextDocumentsProvider = async (
-  filePath: string,
+  filePath: NormalizedPath,
   content: string,
   provider: FileSystemDataProvider,
   workspaceRoots: string[]

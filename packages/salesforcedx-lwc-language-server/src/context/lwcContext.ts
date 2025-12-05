@@ -14,21 +14,16 @@ import {
   relativePath,
   updateForceIgnoreFile,
   FileSystemDataProvider,
-  extractJsonFromImport,
   getExtension,
   toResolvedPath,
   pathStartsWith,
   normalizePath,
-  Logger
+  Logger,
+  baseTsConfigJson,
+  tsConfigTemplateJson
 } from '@salesforce/salesforcedx-lightning-lsp-common';
-import baseTsConfigJsonImport from '@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.base.json';
-import tsConfigTemplateJsonImport from '@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.json';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-
-// Handle JSON imports - extract actual JSON content (may be in .default or directly on import)
-const baseTsConfigJson = extractJsonFromImport(baseTsConfigJsonImport);
-const tsConfigTemplateJson = extractJsonFromImport(tsConfigTemplateJsonImport);
 
 const updateConfigFile = (filePath: string, content: string, fileSystemProvider: FileSystemDataProvider): void => {
   // FileSystemDataProvider.normalizePath() handles all normalization (unixify + drive letter case)
@@ -105,7 +100,6 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
           if (this.fileSystemProvider.directoryExists(modulesDir)) {
             const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
             roots.lwc.push(...subroots.lwc.map(root => normalizePath(root)));
-            roots.aura.push(...subroots.aura.map(root => normalizePath(root)));
           }
         }
         return roots;
@@ -129,7 +123,6 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
         }
         const unknownroots = await findNamespaceRoots(this.workspaceRoots[0], this.fileSystemProvider, depth);
         roots.lwc.push(...unknownroots.lwc.map(root => normalizePath(root)));
-        roots.aura.push(...unknownroots.aura.map(root => normalizePath(root)));
         return roots;
       }
     }
@@ -210,8 +203,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
     for (const ws of this.workspaceRoots) {
       const startsWith = pathStartsWith(file, ws);
       if (startsWith) {
-        const isInside = await this.isFileInsideModulesRoots(file);
-        return isInside;
+        return await this.isFileInsideModulesRoots(file);
       }
     }
     return false;

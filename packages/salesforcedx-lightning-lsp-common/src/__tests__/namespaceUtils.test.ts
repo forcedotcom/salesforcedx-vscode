@@ -39,14 +39,14 @@ describe('findNamespaceRoots', () => {
   describe('when directory does not exist', () => {
     it('should return empty arrays', async () => {
       const result = await findNamespaceRoots('/non/existent/path', fileSystemProvider);
-      expect(result).toEqual({ lwc: [], aura: [] });
+      expect(result).toEqual({ lwc: [] });
     });
   });
 
   describe('when directory is empty', () => {
     it('should return empty arrays', async () => {
       const result = await findNamespaceRoots(tempDir, fileSystemProvider);
-      expect(result).toEqual({ lwc: [], aura: [] });
+      expect(result).toEqual({ lwc: [] });
     });
   });
 
@@ -89,7 +89,6 @@ describe('findNamespaceRoots', () => {
 
       const result = await findNamespaceRoots(tempDir, fileSystemProvider);
       expect(result.lwc).toContain(normalizePath(path.resolve(tempDir)));
-      expect(result.aura).toEqual([]);
     });
 
     it('should find multiple LWC module roots', async () => {
@@ -155,7 +154,6 @@ describe('findNamespaceRoots', () => {
 
       const result = await findNamespaceRoots(tempDir, fileSystemProvider);
       expect(result.lwc).toContain(normalizePath(path.resolve(tempDir)));
-      expect(result.aura).toEqual([]);
     });
 
     it('should find LWC roots in nested directories', async () => {
@@ -227,7 +225,6 @@ describe('findNamespaceRoots', () => {
 
       const result = await findNamespaceRoots(tempDir, fileSystemProvider, 3);
       expect(result.lwc).toContain(normalizePath(path.resolve(lwcDir)));
-      expect(result.aura).toEqual([]);
     });
   });
 
@@ -252,7 +249,6 @@ describe('findNamespaceRoots', () => {
 
       const result = await findNamespaceRoots(tempDir, fileSystemProvider);
       expect(result.lwc).toContain(normalizePath(path.resolve(lwcDir)));
-      expect(result.aura).toEqual([]);
     });
   });
 
@@ -303,7 +299,6 @@ describe('findNamespaceRoots', () => {
 
       const result = await findNamespaceRoots(tempDir, fileSystemProvider);
       expect(result.lwc).toEqual([]);
-      expect(result.aura).toEqual([]);
     });
 
     it('should skip bin, target, jest-modules, repository, git folders', async () => {
@@ -336,7 +331,6 @@ describe('findNamespaceRoots', () => {
 
       const result = await findNamespaceRoots(tempDir, fileSystemProvider);
       expect(result.lwc).toEqual([]);
-      expect(result.aura).toEqual([]);
     });
   });
 
@@ -375,7 +369,6 @@ describe('findNamespaceRoots', () => {
       // With default maxDepth of 5, should not find the component
       const result = await findNamespaceRoots(tempDir, fileSystemProvider);
       expect(result.lwc).toEqual([]);
-      expect(result.aura).toEqual([]);
     });
 
     it('should find components within maxDepth', async () => {
@@ -424,7 +417,6 @@ describe('findNamespaceRoots', () => {
 
       const result = await findNamespaceRoots(tempDir, fileSystemProvider, 5);
       expect(result.lwc).toContain(normalizePath(path.resolve(currentPath)));
-      expect(result.aura).toEqual([]);
     });
   });
 
@@ -440,7 +432,6 @@ describe('findNamespaceRoots', () => {
 
       const result = await findNamespaceRoots(tempDir, fileSystemProvider);
       expect(result.lwc).toEqual([]);
-      expect(result.aura).toEqual([]);
     });
 
     it('should not treat directories with only non-JS files as module roots', async () => {
@@ -458,7 +449,6 @@ describe('findNamespaceRoots', () => {
 
       const result = await findNamespaceRoots(tempDir, fileSystemProvider);
       expect(result.lwc).toEqual([]);
-      expect(result.aura).toEqual([]);
     });
   });
 
@@ -537,7 +527,6 @@ describe('findNamespaceRoots', () => {
 
       const result = await findNamespaceRoots(tempDir, fileSystemProvider);
       expect(result.lwc).toEqual([]);
-      expect(result.aura).toEqual([]);
     });
 
     it('should handle symlinks gracefully', async () => {

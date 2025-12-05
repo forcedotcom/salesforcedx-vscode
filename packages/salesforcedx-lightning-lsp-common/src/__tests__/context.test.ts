@@ -24,27 +24,14 @@ import {
 import { WorkspaceContext } from './workspaceContext';
 
 // Test workspace paths - use absolute paths that work regardless of where code is run from
-const SFDX_WORKSPACE_PATH = path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'sfdx-workspace');
-const STANDARD_WORKSPACE_PATH = path.resolve(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  '..',
-  'test-workspaces',
-  'standard-workspace'
+const SFDX_WORKSPACE_PATH = normalizePath(
+  path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'sfdx-workspace')
 );
-const CORE_WORKSPACE_PATH = path.resolve(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  '..',
-  'test-workspaces',
-  'core-like-workspace',
-  'app',
-  'main',
-  'core'
+const STANDARD_WORKSPACE_PATH = normalizePath(
+  path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'standard-workspace')
+);
+const CORE_WORKSPACE_PATH = normalizePath(
+  path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'core-like-workspace', 'app', 'main', 'core')
 );
 
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files

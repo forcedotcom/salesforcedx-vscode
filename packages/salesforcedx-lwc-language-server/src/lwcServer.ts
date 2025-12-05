@@ -14,7 +14,8 @@ import {
   BaseWorkspaceContext,
   syncDocumentToTextDocumentsProvider,
   scheduleReinitialization,
-  normalizePath
+  normalizePath,
+  NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { basename, dirname, parse } from 'node:path';
 import {
@@ -126,7 +127,7 @@ export default class Server {
   public readonly documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
   private context!: LWCWorkspaceContext;
   private workspaceFolders!: WorkspaceFolder[];
-  private workspaceRoots!: string[];
+  private workspaceRoots!: NormalizedPath[];
   public componentIndexer!: ComponentIndexer;
   public languageService!: LanguageService;
   public auraDataProvider!: AuraDataProvider;
@@ -231,11 +232,7 @@ export default class Server {
 
     const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
 
-    const isLWCTemplate = await this.context.isLWCTemplate(doc);
-    const isLWCJavascript = await this.context.isLWCJavascript(doc);
-    const isAuraMarkup = await this.context.isAuraMarkup(doc);
-
-    if (isLWCTemplate) {
+    if (await this.context.isLWCTemplate(doc)) {
       this.auraDataProvider.activated = false; // provide completions for lwc components in an Aura template
       this.lwcDataProvider.activated = true; // provide completions for lwc components in an LWC template
       const shouldProvideBindings = this.shouldProvideBindingsInHTML(params);
@@ -247,7 +244,7 @@ export default class Server {
           items: customTags
         };
       }
-    } else if (isLWCJavascript) {
+    } else if (await this.context.isLWCJavascript(doc)) {
       const shouldComplete = this.shouldCompleteJavascript(params);
       if (shouldComplete) {
         const customData = this.componentIndexer.getCustomData();
@@ -262,7 +259,7 @@ export default class Server {
       } else {
         return;
       }
-    } else if (isAuraMarkup) {
+    } else if (await this.context.isAuraMarkup(doc)) {
       this.auraDataProvider.activated = true;
       this.lwcDataProvider.activated = false;
     } else {
@@ -468,7 +465,7 @@ export default class Server {
 
     // Normalize URI to fsPath before syncing (entry point for path normalization)
     const normalizedPath = normalizePath(URI.parse(uri).fsPath);
-    void syncDocumentToTextDocumentsProvider(
+    await syncDocumentToTextDocumentsProvider(
       normalizedPath,
       content,
       this.textDocumentsFileSystemProvider,
@@ -486,21 +483,21 @@ export default class Server {
     }
   }
 
-  public onShutdown(): void {
+  public async onShutdown(): Promise<void> {
     // Persist custom components for faster startup on next session
     this.componentIndexer.persistCustomComponents();
 
-    void this.connection.sendNotification(ShowMessageNotification.type, {
+    await this.connection.sendNotification(ShowMessageNotification.type, {
       type: MessageType.Info,
       message: 'LWC Language Server shutting down'
     });
   }
 
-  public onExit(): void {
+  public async onExit(): Promise<void> {
     // Persist custom components for faster startup on next session
     this.componentIndexer.persistCustomComponents();
 
-    void this.connection.sendNotification(ShowMessageNotification.type, {
+    await this.connection.sendNotification(ShowMessageNotification.type, {
       type: MessageType.Info,
       message: 'LWC Language Server exiting'
     });

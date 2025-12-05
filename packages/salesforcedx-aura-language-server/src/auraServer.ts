@@ -12,7 +12,8 @@ import {
   FileStat,
   syncDocumentToTextDocumentsProvider,
   scheduleReinitialization,
-  normalizePath
+  normalizePath,
+  NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 
@@ -74,7 +75,7 @@ export default class Server {
   public readonly connection: Connection = createConnection();
   public readonly documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
   private context!: AuraWorkspaceContext;
-  private workspaceRoots!: string[];
+  private workspaceRoots!: NormalizedPath[];
   private htmlLS!: LanguageService;
   private auraIndexer!: AuraIndexer;
   public fileSystemProvider: FileSystemDataProvider;
@@ -96,7 +97,7 @@ export default class Server {
     this.documents.listen(this.connection);
   }
 
-  public async onInitialize(params: InitializeParams): Promise<InitializeResult> {
+  public onInitialize(params: InitializeParams): InitializeResult {
     const { workspaceFolders } = params;
     // Normalize workspaceRoots at entry point to ensure all paths are consistent
     // This ensures all downstream code receives normalized paths

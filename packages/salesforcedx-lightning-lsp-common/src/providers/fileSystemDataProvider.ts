@@ -6,7 +6,7 @@
  */
 
 import { FileStat, DirectoryEntry, WorkspaceConfig } from '../types/fileSystemTypes';
-import { normalizePath } from '../utils';
+import { NormalizedPath, normalizePath } from '../utils';
 
 /**
  * Interface for file system operations
@@ -21,7 +21,7 @@ export interface IFileSystemProvider {
   updateDirectoryListing(uri: string, entries: DirectoryEntry[]): void;
   updateFileStat(uri: string, stat: FileStat): void;
   updateWorkspaceConfig(config: WorkspaceConfig): void;
-  getAllFileUris(): string[];
+  getAllFileUris(): NormalizedPath[];
 }
 
 /**
@@ -29,9 +29,9 @@ export interface IFileSystemProvider {
  * This replaces direct file system access in the language server
  */
 export class FileSystemDataProvider implements IFileSystemProvider {
-  private fileContents: Map<string, string> = new Map();
-  private directoryListings: Map<string, DirectoryEntry[]> = new Map();
-  private fileStats: Map<string, FileStat> = new Map();
+  private fileContents: Map<NormalizedPath, string> = new Map();
+  private directoryListings: Map<NormalizedPath, DirectoryEntry[]> = new Map();
+  private fileStats: Map<NormalizedPath, FileStat> = new Map();
   private workspaceConfig: WorkspaceConfig | null = null;
 
   /**
@@ -72,10 +72,11 @@ export class FileSystemDataProvider implements IFileSystemProvider {
       return explicitListing;
     }
 
+    const entries: DirectoryEntry[] = [];
+
     // If no explicit listing, but directory exists (inferred from files), build listing
-    if (this.directoryExists(normalizedUri)) {
+    if (this.directoryExists(uri)) {
       const dirPathWithSlash = normalizedUri.endsWith('/') ? normalizedUri : `${normalizedUri}/`;
-      const entries: DirectoryEntry[] = [];
       const seenNames = new Set<string>();
 
       // Find all files that are direct children of this directory
@@ -98,13 +99,9 @@ export class FileSystemDataProvider implements IFileSystemProvider {
           }
         }
       }
-
-      if (entries.length > 0) {
-        return entries;
-      }
     }
 
-    return [];
+    return entries;
   }
 
   /**
@@ -151,12 +148,8 @@ export class FileSystemDataProvider implements IFileSystemProvider {
     // Infer directory existence from files: if any file path starts with this directory path,
     // the directory must exist. Ensure we check with a trailing slash to avoid partial matches.
     const dirPathWithSlash = normalizedUri.endsWith('/') ? normalizedUri : `${normalizedUri}/`;
-    for (const fileUri of this.fileStats.keys()) {
-      if (fileUri.startsWith(dirPathWithSlash)) {
-        return true;
-      }
-    }
-    return false;
+
+    return Array.from(this.fileStats.keys()).some(fileUri => fileUri.startsWith(dirPathWithSlash));
   }
 
   /**
@@ -180,7 +173,7 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   /**
    * Get all directory URIs that have listings
    */
-  public getAllDirectoryUris(): string[] {
+  public getAllDirectoryUris(): NormalizedPath[] {
     // Keys are already normalized since we normalize on set
     return Array.from(this.directoryListings.keys());
   }
@@ -188,7 +181,7 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   /**
    * Get all file URIs
    */
-  public getAllFileUris(): string[] {
+  public getAllFileUris(): NormalizedPath[] {
     const allKeys = Array.from(this.fileStats.keys());
 
     const existingFiles = allKeys.filter(uri => {

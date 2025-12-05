@@ -10,6 +10,7 @@ import { FileEvent, FileChangeType } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { FileSystemDataProvider } from '../providers/fileSystemDataProvider';
 import * as utils from '../utils';
+import { NormalizedPath } from '../utils';
 import { WorkspaceContext } from './workspaceContext';
 
 describe('utils', () => {
@@ -30,7 +31,7 @@ describe('utils', () => {
       type: FileChangeType.Deleted,
       uri: 'file:///Users/user/test/dir/lwc'
     };
-    const ctxt = new WorkspaceContext('', new FileSystemDataProvider());
+    const ctxt = new WorkspaceContext('' as NormalizedPath, new FileSystemDataProvider());
     ctxt.type = 'SFDX';
     expect(utils.isLWCRootDirectoryCreated(ctxt, [noLwcFolderCreated, noLwcFolderDeleted])).toBeFalsy();
     expect(utils.isLWCRootDirectoryCreated(ctxt, [noLwcFolderCreated])).toBeFalsy();

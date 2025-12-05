@@ -18,7 +18,8 @@ export {
   extractJsonFromImport,
   SfdxTsConfig,
   TsConfigPaths,
-  normalizePath
+  normalizePath,
+  type NormalizedPath
 } from './utils';
 
 // Re-export from base-context
@@ -62,3 +63,6 @@ export { syncDocumentToTextDocumentsProvider } from './documentSync';
 
 // Re-export from reinitialization scheduler
 export { scheduleReinitialization } from './reinitializationScheduler';
+
+// Re-export TypeScript configuration templates
+export { baseTsConfigJson, tsConfigTemplateJson } from './resources/sfdx/tsconfig';
