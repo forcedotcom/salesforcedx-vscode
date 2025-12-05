@@ -52,7 +52,7 @@ export const discoverTests = async (
 
     const classes: ToolingTestClass[] = [];
     let nextUrl: string | undefined = baseUrl;
-    while (nextUrl) {
+    do {
       let page: ToolingTestsPage | undefined;
       try {
         page = await connection.request<ToolingTestsPage>({ method: 'GET', url: nextUrl });
@@ -63,7 +63,7 @@ export const discoverTests = async (
         classes.push(...page.apexTestClasses);
       }
       nextUrl = page?.nextRecordsUrl ?? undefined;
-    }
+    } while (nextUrl);
 
     const durationMs = Date.now() - startTime;
     telemetryService.sendEventData(

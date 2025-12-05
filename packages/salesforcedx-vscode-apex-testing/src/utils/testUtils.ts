@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ToolingTestClass } from '../testDiscovery/schemas';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { getApexExtension } from '../coreExtensionUtils';
@@ -119,19 +120,115 @@ const buildMeasuresFromTests = (tests: ApexTestMethod[], durationMs: number) => 
 };
 
 /**
- * Convert API test discovery results to ApexTestMethod format with file locations.
- * Note: The Tooling API does not provide line/column info, so all locations point to the start of the file (0,0).
- * For precise method locations, the Language Server discovery should be used instead.
+ * Recursively search for a method in document symbols.
+ * Returns the location of the method if found, undefined otherwise.
  */
-const convertApiToApexTestMethods = async (
-  classes: { name: string; namespacePrefix?: string | null; testMethods?: { name: string }[] }[]
-): Promise<ApexTestMethod[]> => {
-  const classNameToUri = await buildClassToUriIndex();
-  const apiByClassName = new Map<string, { namespacePrefix?: string | null; testMethods?: { name: string }[] }[]>();
+/**
+ * Extract the method name from a symbol name that may include return type and parentheses.
+ * Examples:
+ * - "methodName() : void" -> "methodName"
+ * - "methodName(Integer) : void" -> "methodName"
+ * - "methodName" -> "methodName"
+ */
+const extractMethodName = (symbolName: string): string => {
+  // Remove return type (everything after " : ")
+  const withoutReturnType = symbolName.split(' : ')[0];
+  // Remove parentheses and parameters (everything after "(")
+  const methodName = withoutReturnType.split('(')[0];
+  return methodName.trim();
+};
+
+export const findMethodInSymbols = (
+  symbols: vscode.DocumentSymbol[],
+  methodName: string,
+  uri: vscode.Uri
+): vscode.Location | undefined => {
+  for (const symbol of symbols) {
+    if (symbol.kind === vscode.SymbolKind.Method) {
+      // Extract the base method name from the symbol (remove return type and parameters)
+      const symbolMethodName = extractMethodName(symbol.name);
+      if (symbolMethodName === methodName) {
+        return new vscode.Location(uri, symbol.range);
+      }
+    }
+    // Recursively search in children (nested classes)
+    if (symbol.children?.length > 0) {
+      const found = findMethodInSymbols(symbol.children, methodName, uri);
+      if (found) return found;
+    }
+  }
+  return undefined;
+};
+
+/**
+ * Get method locations from document symbols for a given URI and method names.
+ * Returns a map of method names to their locations, or undefined if symbols are not available.
+ */
+export const getMethodLocationsFromSymbols = async (
+  uri: vscode.Uri,
+  methodNames: string[]
+): Promise<Map<string, vscode.Location> | undefined> => {
+  let documentSymbols: vscode.DocumentSymbol[] | undefined;
+  try {
+    // Ensure the document is accessible - try to open it if needed
+    let document = vscode.workspace.textDocuments.find(doc => doc.uri.toString() === uri.toString());
+    if (!document) {
+      // Document might not be open, try to open it
+      try {
+        document = await vscode.workspace.openTextDocument(uri);
+      } catch {
+        // If we can't open the document, document symbols won't be available
+        return undefined;
+      }
+    }
+
+    const symbolResult = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
+      'vscode.executeDocumentSymbolProvider',
+      uri
+    );
+    documentSymbols = symbolResult;
+  } catch {
+    // If document symbols are not available, return undefined
+    return undefined;
+  }
+
+  if (!documentSymbols || documentSymbols.length === 0) {
+    return undefined;
+  }
+
+  const methodLocationMap = new Map<string, vscode.Location>();
+  for (const methodName of methodNames) {
+    if (!methodLocationMap.has(methodName)) {
+      const methodLocation = findMethodInSymbols(documentSymbols, methodName, uri);
+      if (methodLocation) {
+        methodLocationMap.set(methodName, methodLocation);
+      }
+    }
+  }
+
+  // If we found at least one method, return the map (even if some methods weren't found)
+  // This allows partial success rather than complete failure
+  return methodLocationMap.size > 0 ? methodLocationMap : undefined;
+};
+
+/**
+ * Convert API test discovery results to ApexTestMethod format with file locations.
+ * Uses document symbols from the Language Server to get precise method positions.
+ * Falls back to (0,0) if document symbols are not available.
+ */
+const convertApiToApexTestMethods = async (classes: ToolingTestClass[]): Promise<ApexTestMethod[]> => {
+  // Extract class names from discovery results to drive file lookup
+  const classNames = classes
+    .filter(cls => cls.testMethods?.length > 0)
+    .filter(cls => !cls.namespacePrefix || cls.namespacePrefix.trim() === '')
+    .map(cls => cls.name);
+
+  const classNameToUri = await buildClassToUriIndex(classNames);
+  const apiByClassName = new Map<string, ToolingTestClass[]>();
   for (const cls of classes) {
-    if (!cls.testMethods || cls.testMethods.length === 0) continue;
+    if (cls.testMethods?.length === 0) continue;
     // Only consider tests in the local (default) namespace; workspace index maps local files only
-    if (cls.namespacePrefix && cls.namespacePrefix.trim() !== '') continue;
+    if (cls.namespacePrefix?.trim() !== '') continue;
     const list = apiByClassName.get(cls.name) ?? [];
     list.push(cls);
     apiByClassName.set(cls.name, list);
@@ -142,12 +239,37 @@ const convertApiToApexTestMethods = async (
     const apiEntries = apiByClassName.get(className);
     if (!apiEntries) continue;
 
+    // Collect all method names for this class
+    const methodNames = new Set<string>();
+    for (const entry of apiEntries) {
+      for (const testMethod of entry.testMethods ?? []) {
+        methodNames.add(testMethod.name);
+      }
+    }
+
+    // Get method locations from document symbols only
+    const methodLocationMap = await getMethodLocationsFromSymbols(uri, Array.from(methodNames));
+    const symbolsFound = methodLocationMap?.size ?? 0;
+    const totalMethods = methodNames.size;
+
+    // Log only if document symbols failed completely
+    if (symbolsFound === 0 && totalMethods > 0) {
+      console.log(`[TEST LOCATION] ${className}: Document symbols failed - found 0 of ${totalMethods} methods`);
+    }
+
+    // Use (0,0) as default for methods not found in document symbols
+    const defaultLocation = new vscode.Location(
+      uri,
+      new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0))
+    );
+
     const emitted = new Set<string>();
-    const location = new vscode.Location(uri, new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)));
     for (const entry of apiEntries) {
       const definingType = entry.namespacePrefix ? `${entry.namespacePrefix}.${className}` : className;
       for (const testMethod of entry.testMethods ?? []) {
         if (emitted.has(testMethod.name)) continue;
+        const location = methodLocationMap?.get(testMethod.name) ?? defaultLocation;
+
         tests.push({
           methodName: testMethod.name,
           definingType,
@@ -160,25 +282,36 @@ const convertApiToApexTestMethods = async (
   return tests;
 };
 
-/** Build an index of class baseName -> file URI with a single pass per workspace folder */
-const buildClassToUriIndex = async (): Promise<Map<string, vscode.Uri>> => {
-  const map = new Map<string, vscode.Uri>();
+/** Build an index of class baseName -> file URI by searching for specific class names */
+export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<string, vscode.Uri>> => {
   const folder = vscode.workspace.workspaceFolders?.[0];
-  if (!folder) {
-    return map;
+  if (!folder || classNames.length === 0) {
+    return new Map<string, vscode.Uri>();
   }
   try {
-    // Only look under classes folders for Apex test files
-    const pattern = new vscode.RelativePattern(folder, '**/classes/**/*[Tt]est*.cls');
     const exclude = '{**/.sfdx/**,**/.sf/**,**/node_modules/**}';
+    // Search for .cls files matching the discovered class names
+    const pattern = new vscode.RelativePattern(folder, '**/*.cls');
     const files = await vscode.workspace.findFiles(pattern, exclude);
-    files.sort((a, b) => a.fsPath.length - b.fsPath.length);
-    for (const file of files) {
-      const base = path.parse(file.fsPath).name;
-      map.set(base, file);
-    }
+
+    // Filter to only files whose base name matches one of the discovered class names
+    const matchingFiles = files.filter(f => {
+      const base = path.parse(f.fsPath).name;
+      return classNames.includes(base);
+    });
+
+    // Sort by path length (shorter paths first) to prefer files closer to workspace root
+    // Then create map, handling potential duplicates by keeping the first (shortest path)
+    return new Map(
+      matchingFiles
+        .toSorted((a, b) => a.fsPath.length - b.fsPath.length)
+        .map(f => {
+          const base = path.parse(f.fsPath).name;
+          return [base, f];
+        })
+    );
   } catch {
     console.error('Error building class to URI index');
+    return new Map<string, vscode.Uri>();
   }
-  return map;
 };

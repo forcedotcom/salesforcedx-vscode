@@ -8,12 +8,12 @@ import { CommandBuilder, Command } from '@salesforce/salesforcedx-utils';
 import {
   EmptyParametersGatherer,
   fileExtensionsMatch,
-  fileUtils,
   notificationService,
   SfCommandlet,
   SfCommandletExecutor,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
+import { basename } from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
@@ -61,33 +61,7 @@ const launchReplayDebuggerLogFile = async (sourceUri: URI) => {
   });
 };
 
-/** Local type definition matching ApexTestingVSCodeApi to avoid circular dependency */
-type ApexTestingVSCodeApi = {
-  getTestClassName: (uri: vscode.Uri) => Promise<string | undefined>;
-};
-
-const getApexTestClassName = async (sourceUri: URI): Promise<string | undefined> => {
-  if (!sourceUri) {
-    return undefined;
-  }
-
-  try {
-    const testingExtension = vscode.extensions.getExtension<ApexTestingVSCodeApi>(
-      'salesforce.salesforcedx-vscode-apex-testing'
-    );
-    if (!testingExtension) {
-      return undefined;
-    }
-    if (!testingExtension.isActive) {
-      await testingExtension.activate();
-    }
-    const api = testingExtension.exports;
-    const flushedUri = URI.file(fileUtils.flushFilePath(sourceUri.fsPath));
-    return await api.getTestClassName(vscode.Uri.parse(flushedUri.toString()));
-  } catch {
-    return undefined;
-  }
-};
+const getApexTestClassName = (sourceUri: URI): string => basename(sourceUri.fsPath, '.cls');
 
 const launchAnonymousApexReplayDebugger = async () => {
   const commandlet = new SfCommandlet(
