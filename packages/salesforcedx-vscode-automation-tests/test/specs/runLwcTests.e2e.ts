@@ -72,6 +72,9 @@ describe('Run LWC Tests', () => {
     // Install Jest unit testing tools for LWC
     await installJestUTToolsForLwc(testSetup.projectFolderPath);
 
+    // Reload the VSCode window to allow the LWC to be indexed by the LWC Language Server
+    await reloadWindow(Duration.seconds(20));
+
     // wait for server initialization to complete
     await verifyNotificationWithRetry(/LWC Language Server is ready/, Duration.seconds(10));
   });
