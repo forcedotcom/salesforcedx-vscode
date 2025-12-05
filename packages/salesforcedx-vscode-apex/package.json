@@ -166,64 +166,9 @@
   "types": "./out/src/index.d.ts",
   "languageServerDir": "dist",
   "contributes": {
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "test",
-          "title": "%test_view_container_title%",
-          "icon": "media/dep.svg"
-        }
-      ]
-    },
-    "views": {
-      "test": [
-        {
-          "id": "sf.test.view",
-          "name": "%test_view_name%",
-          "when": "sf:project_opened"
-        }
-      ]
-    },
     "menus": {
       "editor/context": [],
       "explorer/context": [],
-      "view/title": [
-        {
-          "command": "sf.test.view.run",
-          "when": "view == sf.test.view",
-          "group": "navigation@1"
-        },
-        {
-          "command": "sf.test.view.refresh",
-          "when": "view == sf.test.view",
-          "group": "navigation@2"
-        },
-        {
-          "command": "sf.test.view.collapseAll",
-          "when": "view == sf.test.view",
-          "group": "navigation@3"
-        }
-      ],
-      "view/item/context": [
-        {
-          "command": "sf.test.view.showError",
-          "when": "view == sf.test.view && viewItem =~ /(apexTest|apexTestGroup)_Fail/"
-        },
-        {
-          "command": "sf.test.view.goToDefinition",
-          "when": "view == sf.test.view && viewItem =~ /(apexTest|apexTestGroup)(_Pass|_Skip|\\b)/"
-        },
-        {
-          "command": "sf.test.view.runClassTests",
-          "when": "view == sf.test.view && viewItem =~ /apexTestGroup/",
-          "group": "inline"
-        },
-        {
-          "command": "sf.test.view.runSingleTest",
-          "when": "view == sf.test.view && viewItem =~ /(apexTest)(_.*|\\b)/",
-          "group": "inline"
-        }
-      ],
       "commandPalette": [
         {
           "command": "sf.apex.languageServer.restart",
@@ -240,66 +185,6 @@
         {
           "command": "sf.apex.log.get",
           "when": "sf:project_opened && sf:has_target_org"
-        },
-        {
-          "command": "sf.apex.test.last.class.run",
-          "when": "sf:project_opened && sf:has_cached_test_class && sf:has_target_org"
-        },
-        {
-          "command": "sf.apex.test.class.run",
-          "when": "false"
-        },
-        {
-          "command": "sf.apex.test.method.run",
-          "when": "false"
-        },
-        {
-          "command": "sf.apex.test.last.method.run",
-          "when": "sf:project_opened && sf:has_cached_test_method && sf:has_target_org"
-        },
-        {
-          "command": "sf.apex.test.run",
-          "when": "sf:project_opened && sf:has_target_org"
-        },
-        {
-          "command": "sf.apex.test.suite.run",
-          "when": "sf:project_opened && sf:has_target_org"
-        },
-        {
-          "command": "sf.apex.test.suite.create",
-          "when": "sf:project_opened && sf:has_target_org"
-        },
-        {
-          "command": "sf.apex.test.suite.add",
-          "when": "sf:project_opened && sf:has_target_org"
-        },
-        {
-          "command": "sf.test.view.runClassTests",
-          "when": "false"
-        },
-        {
-          "command": "sf.test.view.runSingleTest",
-          "when": "false"
-        },
-        {
-          "command": "sf.test.view.goToDefinition",
-          "when": "false"
-        },
-        {
-          "command": "sf.test.view.showError",
-          "when": "false"
-        },
-        {
-          "command": "sf.test.view.run",
-          "when": "false"
-        },
-        {
-          "command": "sf.test.view.refresh",
-          "when": "false"
-        },
-        {
-          "command": "sf.test.view.collapseAll",
-          "when": "sf:project_opened"
         }
       ]
     },
@@ -319,94 +204,6 @@
       {
         "command": "sf.apex.log.get",
         "title": "%apex_log_get_text%"
-      },
-      {
-        "command": "sf.apex.test.run",
-        "title": "%apex_test_run_text%"
-      },
-      {
-        "command": "sf.apex.test.suite.run",
-        "title": "%apex_test_suite_run_text%"
-      },
-      {
-        "command": "sf.apex.test.suite.create",
-        "title": "%apex_test_suite_create_text%"
-      },
-      {
-        "command": "sf.apex.test.suite.add",
-        "title": "%apex_test_suite_build_text%"
-      },
-      {
-        "command": "sf.test.view.run",
-        "title": "%run_tests_title%",
-        "icon": {
-          "light": "resources/light/play-button.svg",
-          "dark": "resources/dark/play-button.svg"
-        }
-      },
-      {
-        "command": "sf.test.view.collapseAll",
-        "title": "%collapse_tests_title%",
-        "icon": {
-          "light": "resources/light/collapse-all.svg",
-          "dark": "resources/dark/collapse-all.svg"
-        }
-      },
-      {
-        "command": "sf.test.view.refresh",
-        "title": "%refresh_test_title%",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
-      },
-      {
-        "command": "sf.test.view.showError",
-        "title": "%show_error_title%",
-        "icon": {
-          "light": "resources/light/document/notRun.svg",
-          "dark": "resources/dark/document/notRun.svg"
-        }
-      },
-      {
-        "command": "sf.test.view.goToDefinition",
-        "title": "%go_to_definition_title%",
-        "icon": {
-          "light": "resources/light/document/notRun.svg",
-          "dark": "resources/dark/document/notRun.svg"
-        }
-      },
-      {
-        "command": "sf.test.view.runClassTests",
-        "title": "%run_tests_title%",
-        "icon": {
-          "light": "resources/light/play-button.svg",
-          "dark": "resources/dark/play-button.svg"
-        }
-      },
-      {
-        "command": "sf.test.view.runSingleTest",
-        "title": "%run_single_test_title%",
-        "icon": {
-          "light": "resources/light/play-button.svg",
-          "dark": "resources/dark/play-button.svg"
-        }
-      },
-      {
-        "command": "sf.apex.test.last.class.run",
-        "title": "%apex_test_last_class_run_text%"
-      },
-      {
-        "command": "sf.apex.test.class.run",
-        "title": "%apex_test_class_run_text%"
-      },
-      {
-        "command": "sf.apex.test.method.run",
-        "title": "%apex_test_method_run_text%"
-      },
-      {
-        "command": "sf.apex.test.last.method.run",
-        "title": "%apex_test_last_method_run_text%"
       }
     ],
     "configuration": {
@@ -442,19 +239,6 @@
           "default": true,
           "description": "%apex_lsp_parity_capabilities_description%"
         },
-        "salesforcedx-vscode-apex.testing.discoverySource": {
-          "type": "string",
-          "enum": [
-            "ls",
-            "api"
-          ],
-          "default": "ls",
-          "description": "%apex_testing_discovery_source_description%",
-          "enumDescriptions": [
-            "%apex_testing_discovery_source_ls_description%",
-            "%apex_testing_discovery_source_api_description%"
-          ]
-        },
         "apex.trace.server": {
           "type": "string",
           "enum": [
@@ -479,11 +263,6 @@
           "type": "boolean",
           "default": false,
           "description": "%enable-apex-ls-error-to-telemetry%"
-        },
-        "salesforcedx-vscode-apex.test-run-concise": {
-          "type": "boolean",
-          "default": false,
-          "description": "%apex_test_run_concise%"
         },
         "salesforcedx-vscode-apex.languageServer.restartBehavior": {
           "type": "string",

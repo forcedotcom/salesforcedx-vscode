@@ -49,7 +49,7 @@
     }
   },
   "devDependencies": {
-    "@salesforce/salesforcedx-vscode-test-tools": "1.2.3",
+    "@salesforce/salesforcedx-vscode-test-tools": "1.2.4",
     "@types/chai": "^4.3.17",
     "@types/mocha": "^10.0.9",
     "@typescript-eslint/eslint-plugin": "^8.46.4",
