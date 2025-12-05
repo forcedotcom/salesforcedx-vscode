@@ -32,12 +32,16 @@ const cleanXsdName = (name: string): string => {
  * Map Salesforce field types to XSD types.
  */
 const mapFieldTypeToXsd = (fieldType: string): string => {
-  const lowerFieldType = fieldType.toLowerCase().trim();
+  const lowerFieldType = fieldType.toLowerCase();
+
+  // Handle arrays - strip [] and recurse to get base type
+  if (fieldType.endsWith('[]')) {
+    const baseType = fieldType.slice(0, -2);
+    return mapFieldTypeToXsd(baseType);
+  }
 
   // Basic types
-  if (lowerFieldType.endsWith('[]')) {
-    return 'xsd:anyType'; // Arrays - treated as anyType
-  } else if (lowerFieldType.includes('string') || lowerFieldType.includes('text')) {
+  if (lowerFieldType.includes('string') || lowerFieldType.includes('text')) {
     return 'xsd:string';
   } else if (lowerFieldType.includes('boolean')) {
     return 'xsd:boolean';
@@ -70,7 +74,9 @@ const mapFieldTypeToXsd = (fieldType: string): string => {
   } else if (lowerFieldType.includes('phone')) {
     return 'xsd:string';
   } else {
-    return 'xsd:anyType'; // Default to anyType for unknown types
+    // For unknown types, assume they're custom metadata types and return as-is
+    // This allows types like "AIScoringStep" to be referenced directly
+    return fieldType;
   }
 };
 
