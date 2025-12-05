@@ -25,32 +25,112 @@
   ],
   "dependencies": {
     "@salesforce/apex-node": "^8.3.7",
-    "@salesforce/salesforcedx-utils": "65.7.0",
-    "@salesforce/salesforcedx-utils-vscode": "65.7.0",
-    "@salesforce/vscode-i18n": "65.7.0",
+    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/salesforcedx-utils-vscode": "*",
+    "@salesforce/vscode-i18n": "*",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
     "esbuild": "0.25.10",
-    "salesforcedx-vscode-apex": "65.7.0",
-    "salesforcedx-vscode-core": "65.7.0"
+    "salesforcedx-vscode-apex": "*",
+    "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core",
     "salesforce.salesforcedx-vscode-apex"
   ],
   "scripts": {
-    "bundle:extension": "node ./esbuild.config.mjs",
-    "vscode:package": "npm run bundle:extension && vsce package --allow-package-all-secrets",
+    "vscode:bundle": "wireit",
+    "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "compile": "tsc -p ./",
-    "lint": "eslint .",
+    "compile": "wireit",
+    "lint": "wireit",
     "lint:fix": "npm run lint -- --fix",
-    "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "jest --coverage"
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
+    "test": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-utils:compile",
+        "../salesforcedx-utils-vscode:compile",
+        "../salesforcedx-vscode-i18n:compile",
+        "../salesforcedx-vscode-core:compile",
+        "../salesforcedx-vscode-apex:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "vscode:bundle": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "out/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "test": {
+      "command": "jest --coverage",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    },
+    "vscode:package": {
+      "command": "vsce package --allow-package-all-secrets",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "package.json",
+        "package.nls.json",
+        "README.md",
+        "LICENSE.txt",
+        "images/**",
+        "resources/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
+    }
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",

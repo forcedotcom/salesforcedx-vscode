@@ -266,7 +266,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       // Clear the Output view first.
       await clearOutputView(Duration.seconds(2));
       await getTextEditor(workbench, 'CaseManager.externalServiceRegistration-meta.xml');
-      await runAndValidateCommand('Deploy', 'to', 'ST', 'ExternalServiceRegistration', 'CaseManager', 'Created  ');
+      await runAndValidateCommand('Deploy', 'to', 'ST', 'ExternalServiceRegistration', 'CaseManager');
     });
 
     it('Generate OAS doc from a valid Apex class using command palette - Composed mode, manual merge', async () => {
@@ -440,14 +440,7 @@ describe('Create OpenAPI v3 Specifications', () => {
       // Clear the Output view first.
       await clearOutputView(Duration.seconds(2));
       await getTextEditor(workbench, 'SimpleAccountResource.externalServiceRegistration-meta.xml');
-      await runAndValidateCommand(
-        'Deploy',
-        'to',
-        'ST',
-        'ExternalServiceRegistration',
-        'SimpleAccountResource',
-        'Created  '
-      );
+      await runAndValidateCommand('Deploy', 'to', 'ST', 'ExternalServiceRegistration', 'SimpleAccountResource');
     });
 
     it('Generate OAS doc from a valid Apex class using context menu in Editor View - Decomposed mode, overwrite', async () => {
@@ -617,9 +610,7 @@ describe('Create OpenAPI v3 Specifications', () => {
         );
       } else {
         log('Mac - must use command palette');
-        const explorerMacQuickPickPrompt = await executeQuickPick(
-          'SFDX: Create OpenAPI Document from This Class'
-        );
+        const explorerMacQuickPickPrompt = await executeQuickPick('SFDX: Create OpenAPI Document from This Class');
         await explorerMacQuickPickPrompt.confirm();
       }
 

@@ -26,15 +26,15 @@
   "dependencies": {
     "@salesforce/core": "^8.23.3",
     "@salesforce/o11y-reporter": "1.6.0",
-    "@salesforce/salesforcedx-sobjects-faux-generator": "65.7.0",
-    "@salesforce/salesforcedx-utils": "65.7.0",
-    "@salesforce/salesforcedx-utils-vscode": "65.7.0",
+    "@salesforce/salesforcedx-sobjects-faux-generator": "*",
+    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/schemas": "1.10.3",
-    "@salesforce/source-deploy-retrieve": "^12.25.0",
-    "@salesforce/source-tracking": "^7.5.0",
+    "@salesforce/source-deploy-retrieve": "^12.29.1",
+    "@salesforce/source-tracking": "^7.7.0",
     "@salesforce/templates": "^65.1.1",
     "@salesforce/ts-types": "2.0.12",
-    "@salesforce/vscode-i18n": "65.7.0",
+    "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "applicationinsights": "1.0.7",
     "fast-xml-parser": "^4.3.2",
@@ -75,17 +75,84 @@
     }
   },
   "scripts": {
-    "bundle:extension": "node ./esbuild.config.mjs",
+    "vscode:bundle": "wireit",
     "vscode:prepublish": "npm prune --production",
-    "vscode:package:legacy": "ts-node  ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package:legacy": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "compile": "tsc -p ./",
-    "lint": "eslint .",
-    "lint:fix": "npm run lint -- --fix",
-    "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf .nyc_output",
-    "test": "jest --coverage"
+    "compile": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
+    "test": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-sobjects-faux-generator:compile",
+        "../salesforcedx-utils:compile",
+        "../salesforcedx-utils-vscode:compile",
+        "../salesforcedx-vscode-i18n:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "vscode:bundle": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "out/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "test": {
+      "command": "jest --coverage",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    },
+    "vscode:package:legacy": {
+      "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
+      "dependencies": [
+        "vscode:bundle"
+      ]
+    }
   },
   "nyc": {
     "reporter": [
