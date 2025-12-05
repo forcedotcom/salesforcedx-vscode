@@ -60,9 +60,9 @@ describe('syncDocumentToTextDocumentsProvider', () => {
     expect(provider.getFileContent(fsPath)).toBe(content);
 
     // Check that parent directories are created
-    expect(provider.directoryExists('/workspace')).toBe(true);
-    expect(provider.directoryExists('/workspace/src')).toBe(true);
-    expect(provider.directoryExists('/workspace/src/components')).toBe(true);
+    expect(provider.directoryExists(normalizePath('/workspace'))).toBe(true);
+    expect(provider.directoryExists(normalizePath('/workspace/src'))).toBe(true);
+    expect(provider.directoryExists(normalizePath('/workspace/src/components'))).toBe(true);
   });
 
   it('should add file to parent directory listing', async () => {
@@ -74,7 +74,7 @@ describe('syncDocumentToTextDocumentsProvider', () => {
 
     const fsPath = '/workspace/src/file.js';
     const parentDir = '/workspace/src';
-    const entries = provider.getDirectoryListing(parentDir);
+    const entries = provider.getDirectoryListing(normalizePath(parentDir));
 
     expect(entries).toHaveLength(1);
     expect(entries[0].name).toBe('file.js');
@@ -96,7 +96,7 @@ describe('syncDocumentToTextDocumentsProvider', () => {
     expect(provider.getFileContent('/workspace/src/file1.js')).toBe(content1);
     expect(provider.getFileContent('/workspace/src/file2.js')).toBe(content2);
 
-    const entries = provider.getDirectoryListing('/workspace/src');
+    const entries = provider.getDirectoryListing(normalizePath('/workspace/src'));
     expect(entries).toHaveLength(2);
     expect(entries.map(e => e.name)).toContain('file1.js');
     expect(entries.map(e => e.name)).toContain('file2.js');
@@ -115,7 +115,7 @@ describe('syncDocumentToTextDocumentsProvider', () => {
     expect(provider.getFileContent('/workspace/src/file.js')).toBe(content2);
 
     // Directory listing should only have one entry
-    const entries = provider.getDirectoryListing('/workspace/src');
+    const entries = provider.getDirectoryListing(normalizePath('/workspace/src'));
     expect(entries).toHaveLength(1);
     expect(entries[0].name).toBe('file.js');
   });
@@ -148,7 +148,7 @@ describe('syncDocumentToTextDocumentsProvider', () => {
     await syncDocumentToTextDocumentsProvider(normalizedPath, content, provider, workspaceRoots);
 
     expect(provider.getFileContent('/workspace/root.js')).toBe(content);
-    expect(provider.directoryExists('/workspace')).toBe(true);
+    expect(provider.directoryExists(normalizePath('/workspace'))).toBe(true);
   });
 
   it('should handle empty content', async () => {
@@ -174,11 +174,11 @@ describe('syncDocumentToTextDocumentsProvider', () => {
     expect(provider.getFileContent(fsPath)).toBe(content);
 
     // All parent directories should exist
-    expect(provider.directoryExists('/workspace')).toBe(true);
-    expect(provider.directoryExists('/workspace/src')).toBe(true);
-    expect(provider.directoryExists('/workspace/src/components')).toBe(true);
-    expect(provider.directoryExists('/workspace/src/components/ui')).toBe(true);
-    expect(provider.directoryExists('/workspace/src/components/ui/buttons')).toBe(true);
+    expect(provider.directoryExists(normalizePath('/workspace'))).toBe(true);
+    expect(provider.directoryExists(normalizePath('/workspace/src'))).toBe(true);
+    expect(provider.directoryExists(normalizePath('/workspace/src/components'))).toBe(true);
+    expect(provider.directoryExists(normalizePath('/workspace/src/components/ui'))).toBe(true);
+    expect(provider.directoryExists(normalizePath('/workspace/src/components/ui/buttons'))).toBe(true);
   });
 
   it('should handle Windows-style paths in URI', async () => {
@@ -225,7 +225,7 @@ describe('syncDocumentToTextDocumentsProvider', () => {
     await syncDocumentToTextDocumentsProvider(normalizedPath, content, provider, workspaceRoots);
 
     expect(provider.getFileContent('/workspace/src/file-name_123.js')).toBe(content);
-    const entries = provider.getDirectoryListing('/workspace/src');
+    const entries = provider.getDirectoryListing(normalizePath('/workspace/src'));
     expect(entries[0].name).toBe('file-name_123.js');
   });
 });

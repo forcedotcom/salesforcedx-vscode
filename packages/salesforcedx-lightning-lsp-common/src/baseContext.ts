@@ -566,7 +566,9 @@ export abstract class BaseWorkspaceContext {
       } catch {
         // ignore
       }
-      const dirs = this.fileSystemProvider.getDirectoryListing(path.join(resourceTypingsDir, 'copied'));
+      const dirs = this.fileSystemProvider.getDirectoryListing(
+        utils.normalizePath(path.join(resourceTypingsDir, 'copied'))
+      );
       for (const file of dirs) {
         try {
           const sourcePath = path.join(resourceTypingsDir, 'copied', file.name);

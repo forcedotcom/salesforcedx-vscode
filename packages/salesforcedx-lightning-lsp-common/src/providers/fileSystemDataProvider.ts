@@ -13,10 +13,10 @@ import { NormalizedPath, normalizePath } from '../utils';
  */
 export interface IFileSystemProvider {
   getFileContent(uri: string): string | undefined;
-  getDirectoryListing(uri: string): DirectoryEntry[];
+  getDirectoryListing(uri: NormalizedPath): DirectoryEntry[];
   getFileStat(uri: string): FileStat | undefined;
   fileExists(uri: string): boolean;
-  directoryExists(uri: string): boolean;
+  directoryExists(uri: NormalizedPath): boolean;
   updateFileContent(uri: string, content: string): void;
   updateDirectoryListing(uri: string, entries: DirectoryEntry[]): void;
   updateFileStat(uri: string, stat: FileStat): void;
@@ -65,9 +65,8 @@ export class FileSystemDataProvider implements IFileSystemProvider {
    * If no explicit listing exists but the directory exists (inferred from files),
    * build a listing from files that are direct children of this directory.
    */
-  public getDirectoryListing(uri: string): DirectoryEntry[] {
-    const normalizedUri = normalizePath(uri);
-    const explicitListing = this.directoryListings.get(normalizedUri);
+  public getDirectoryListing(uri: NormalizedPath): DirectoryEntry[] {
+    const explicitListing = this.directoryListings.get(uri);
     if (explicitListing) {
       return explicitListing;
     }
@@ -76,7 +75,7 @@ export class FileSystemDataProvider implements IFileSystemProvider {
 
     // If no explicit listing, but directory exists (inferred from files), build listing
     if (this.directoryExists(uri)) {
-      const dirPathWithSlash = normalizedUri.endsWith('/') ? normalizedUri : `${normalizedUri}/`;
+      const dirPathWithSlash = uri.endsWith('/') ? uri : `${uri}/`;
       const seenNames = new Set<string>();
 
       // Find all files that are direct children of this directory
@@ -133,21 +132,20 @@ export class FileSystemDataProvider implements IFileSystemProvider {
    * 2. It has a directory listing (even if no explicit stat was created), OR
    * 3. Any files exist with paths that start with this directory path (inferred existence)
    */
-  public directoryExists(uri: string): boolean {
-    const normalizedUri = normalizePath(uri);
-    const stat = this.fileStats.get(normalizedUri);
+  public directoryExists(uri: NormalizedPath): boolean {
+    const stat = this.fileStats.get(uri);
     if (stat?.exists && stat.type === 'directory') {
       return true;
     }
 
     // Check if there's a directory listing (directory might exist without explicit stat)
-    if (this.directoryListings.has(normalizedUri)) {
+    if (this.directoryListings.has(uri)) {
       return true;
     }
 
     // Infer directory existence from files: if any file path starts with this directory path,
     // the directory must exist. Ensure we check with a trailing slash to avoid partial matches.
-    const dirPathWithSlash = normalizedUri.endsWith('/') ? normalizedUri : `${normalizedUri}/`;
+    const dirPathWithSlash = uri.endsWith('/') ? uri : `${uri}/`;
 
     return Array.from(this.fileStats.keys()).some(fileUri => fileUri.startsWith(dirPathWithSlash));
   }

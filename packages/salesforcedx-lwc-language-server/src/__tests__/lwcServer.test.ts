@@ -793,7 +793,7 @@ describe('lwcServer', () => {
             deleteFromProvider(server.fileSystemProvider, tsconfigPath);
           }
         }
-        if (server.fileSystemProvider.directoryExists(watchedFileDir)) {
+        if (server.fileSystemProvider.directoryExists(normalizePath(watchedFileDir))) {
           deleteFromProvider(server.fileSystemProvider, watchedFileDir, true);
         }
         mockTypeScriptSupportConfig = false;
@@ -870,7 +870,7 @@ describe('lwcServer', () => {
           // Remove from provider's directory listing and file stats
           const parentDir = path.dirname(watchedFilePath);
           const fileName = path.basename(watchedFilePath);
-          const entries = testServer.fileSystemProvider.getDirectoryListing(parentDir) ?? [];
+          const entries = testServer.fileSystemProvider.getDirectoryListing(normalizePath(parentDir)) ?? [];
           const updatedEntries = entries.filter((entry: any) => entry.name !== fileName);
           testServer.fileSystemProvider.updateDirectoryListing(parentDir, updatedEntries);
           // Also update provider to reflect deletion

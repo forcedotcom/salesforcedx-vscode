@@ -583,11 +583,8 @@ export default class Server {
 
       // Initialize Tern server with original fileSystemProvider (contains Aura resources)
       if (this.context.type === 'CORE_PARTIAL') {
-        await startServer(
-          path.join(this.workspaceRoots[0], '..'),
-          path.join(this.workspaceRoots[0], '..'),
-          this.fileSystemProvider
-        );
+        const corePartialRoot = normalizePath(path.join(this.workspaceRoots[0], '..'));
+        await startServer(corePartialRoot, corePartialRoot, this.fileSystemProvider);
       } else {
         await startServer(this.workspaceRoots[0], this.workspaceRoots[0], this.fileSystemProvider);
       }
