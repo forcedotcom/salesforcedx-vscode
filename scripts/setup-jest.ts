@@ -92,15 +92,40 @@ const getMockVSCode = () => {
     Uri: {
       file: jest.fn(),
       joinPath: jest.fn(),
-      parse: jest.fn()
+      parse: jest.fn(),
+      toString: jest.fn()
     },
-    Position: jest.fn(),
+    Position: class {
+      public constructor(
+        public line: number,
+        public character: number
+      ) {}
+    },
     ProgressLocation: {
       SourceControl: 1,
       Window: 10,
       Notification: 15
     },
-    Range: jest.fn(),
+    Range: class {
+      public start: any;
+      public end: any;
+      public constructor(start: any, end: any) {
+        this.start = start;
+        this.end = end;
+      }
+    },
+    RelativePattern: class {
+      public constructor(
+        public base: any,
+        public pattern: string
+      ) {}
+    },
+    Location: class {
+      public constructor(
+        public uri: Uri,
+        public range: Range
+      ) {}
+    },
     StatusBarAlignment: {
       Left: 1,
       Right: 2
@@ -136,6 +161,7 @@ const getMockVSCode = () => {
         };
       },
       onDidChangeConfiguration: jest.fn(),
+      findFiles: jest.fn().mockResolvedValue([]),
       createFileSystemWatcher: jest.fn().mockReturnValue({
         onDidChange: jest.fn().mockReturnValue({ dispose: jest.fn() }),
         onDidCreate: jest.fn().mockReturnValue({ dispose: jest.fn() }),
@@ -143,6 +169,12 @@ const getMockVSCode = () => {
         dispose: jest.fn()
       }),
       workspaceFolders: [],
+      textDocuments: [],
+      openTextDocument: jest.fn().mockResolvedValue({
+        getText: jest.fn().mockReturnValue(''),
+        positionAt: jest.fn().mockReturnValue({ line: 0, character: 0 }),
+        uri: { toString: jest.fn().mockReturnValue('file:///test') }
+      }),
       fs: {
         writeFile: jest.fn(),
         stat: jest.fn(),
@@ -190,7 +222,35 @@ const getMockVSCode = () => {
       public constructor() {}
     },
     LanguageStatusSeverity,
-    TreeItemCollapsibleState
+    TreeItemCollapsibleState,
+    SymbolKind: {
+      File: 0,
+      Module: 1,
+      Namespace: 2,
+      Package: 3,
+      Class: 5,
+      Method: 6,
+      Property: 7,
+      Field: 8,
+      Constructor: 9,
+      Enum: 10,
+      Interface: 11,
+      Function: 12,
+      Variable: 13,
+      Constant: 14,
+      String: 15,
+      Number: 16,
+      Boolean: 17,
+      Array: 18,
+      Object: 19,
+      Key: 20,
+      Null: 21,
+      EnumMember: 22,
+      Struct: 23,
+      Event: 24,
+      Operator: 25,
+      TypeParameter: 26
+    }
   };
 };
 

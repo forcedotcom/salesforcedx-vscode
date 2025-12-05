@@ -50,11 +50,13 @@ After everyone is satisfied with the changelog updates, use the [PreRelease](htt
 The PreRelease job will verify if the version of the branch to be merged is newer than what is currently in the `main` branch and update `main` with the release branch.
 
 ### Potential Errors
+
 If you get `error: failed to push some refs to 'https://github.com/forcedotcom/salesforcedx-vscode'` on the merge step
+
 1. check out the merge branch locally
 2. `git merge` main into it
 3. push
-4. run `PreRelease` workflow again 
+4. run `PreRelease` workflow again
 
 ## Publishing Main
 
@@ -80,8 +82,8 @@ After completing your release testing following our internal template, approve t
 
 ## Troubleshooting
 
-- 401 errors on publish?  You probably need to update the VSCE PAT.  https://salesforce.quip.com/E8GWA5TuI8jp
-  
+- 401 errors on publish? You probably need to update the VSCE PAT. https://salesforce.quip.com/E8GWA5TuI8jp
+
 ## Post-Publishing the .vsix
 
 1. Update the Salesforce Extension Pack to the version you just published. Either go to the Extensions tab, select Salesforce Extension pack, and update... or go to https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode, download the version you published, and install. The publish may take a few minutes to register in the marketplace.
@@ -97,7 +99,7 @@ If there is a release with high-risk or large-scale changes, we can publish a pr
 
 ## Steps
 
-1. Create a release branch, and increment the version using Lerna, as shown in the `create-release-branch.js` file, starting at the creation of the release branch.
+1. Create a release branch, and increment the version as shown in the `create-release-branch.js` file, starting at the creation of the release branch.
 2. For the version number, keep the minor version the same and set the patch to use the following format: year month day hour minute. For example, v55.11.202208260522.
 3. Push the branch to remote.
 4. From the Actions tab in GitHub select the workflow 'Publish Beta Release to GitHub Only'.
