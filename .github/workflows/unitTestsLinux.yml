@@ -20,6 +20,7 @@ jobs:
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           cache: npm
+      - uses: google/wireit@setup-github-actions-caching/v2
       - run: npm ci
       - run: npm run compile
       - run: npm run test

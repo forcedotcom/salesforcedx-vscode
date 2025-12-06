@@ -75,7 +75,7 @@
         "focus": false,
         "panel": "dedicated"
       },
-      "args": ["run", "vscode:bundle:extension"],
+      "args": ["run", "vscode:bundle"],
       "isBackground": false,
       "problemMatcher": {
         "owner": "typescript",

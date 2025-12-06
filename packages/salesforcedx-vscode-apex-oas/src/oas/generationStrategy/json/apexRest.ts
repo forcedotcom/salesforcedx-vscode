@@ -29,7 +29,7 @@ import {
   updateOperationIds
 } from '../formatUtils';
 import { GenerationStrategy } from '../generationStrategy';
-import { openAPISchema_v3_0_guided } from '../openapi3.schema';
+import { openAPISchemaV3Guided } from '../openapi3.schema';
 
 const gil = GenerationInteractionLogger.getInstance();
 
@@ -55,7 +55,7 @@ export class ApexRestStrategy extends GenerationStrategy {
       retrieveAAClassRestAnnotations().includes(a.name)
     );
     this.urlMapping = restResourceAnnotation?.parameters.urlMapping ?? `/${this.context.classDetail.name}/`;
-    this.oasSchema = JSON.stringify(openAPISchema_v3_0_guided);
+    this.oasSchema = JSON.stringify(openAPISchemaV3Guided);
   }
 
   public static async initialize(

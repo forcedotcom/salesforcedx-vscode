@@ -1,0 +1,74 @@
+{
+  "name": "@salesforce/eslint-plugin-vscode-extensions",
+  "version": "65.7.0",
+  "description": "Custom ESLint rules for Salesforce VSCode extensions",
+  "main": "out/index.js",
+  "files": [
+    "out/**/*.js",
+    "out/**/*.d.ts",
+    "README.md"
+  ],
+  "scripts": {
+    "compile": "wireit",
+    "test": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf out dist .wireit .eslintcache"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty",
+      "clean": "if-file-deleted",
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "test": {
+      "command": "jest",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": []
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    }
+  },
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "salesforce"
+  ],
+  "author": "Salesforce",
+  "license": "BSD-3-Clause",
+  "peerDependencies": {
+    "eslint": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@types/eslint": "^9.0.0",
+    "@types/estree": "^1.0.0",
+    "@typescript-eslint/rule-tester": "^8.47.0",
+    "@typescript-eslint/utils": "^8.47.0"
+  }
+}

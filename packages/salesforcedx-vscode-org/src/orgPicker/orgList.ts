@@ -21,7 +21,7 @@ export class OrgList implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;
 
   constructor() {
-    this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 49);
+    this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 48);
     this.statusBarItem.command = 'sf.set.default.org';
     this.statusBarItem.tooltip = nls.localize('status_bar_org_picker_tooltip');
     this.statusBarItem.show();
@@ -40,11 +40,7 @@ export class OrgList implements vscode.Disposable {
     if (targetOrgOrAlias) {
       try {
         const isExpired = await this.isOrgExpired(targetOrgOrAlias);
-        if (isExpired) {
-          this.statusBarItem.text = `$(warning) ${targetOrgOrAlias}`;
-        } else {
-          this.statusBarItem.text = `$(plug) ${targetOrgOrAlias}`;
-        }
+        this.statusBarItem.text = isExpired ? `$(warning) ${targetOrgOrAlias}` : `$(plug) ${targetOrgOrAlias}`;
       } catch (error: unknown) {
         if (error instanceof Error && error.name === 'NamedOrgNotFoundError') {
           this.statusBarItem.text = `$(plug) ${targetOrgOrAlias}`;

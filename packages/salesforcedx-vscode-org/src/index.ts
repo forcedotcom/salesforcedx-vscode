@@ -21,8 +21,8 @@ import {
   orgOpen
 } from './commands';
 import { ORG_OPEN_COMMAND } from './constants';
-import { showOrg } from './decorators/orgDecorator';
-import { OrgList } from './orgPicker';
+import { OrgDecorator } from './decorators/orgDecorator';
+import { OrgList } from './orgPicker/orgList';
 import { setUpOrgExpirationWatcher } from './util/orgUtil';
 
 /** Register all org/auth commands */
@@ -56,23 +56,18 @@ const registerOrgPickerCommands = (orgListParam: OrgList): vscode.Disposable => 
 /** Initialize org picker and org status bar */
 const initializeOrgPicker = (extensionContext: vscode.ExtensionContext): void => {
   const orgListParam = new OrgList();
-  extensionContext.subscriptions.push(orgListParam, registerOrgPickerCommands(orgListParam));
+  const orgDecorator = new OrgDecorator();
+  extensionContext.subscriptions.push(orgListParam, orgDecorator, registerOrgPickerCommands(orgListParam));
 
   // Set up org expiration watcher
   void setUpOrgExpirationWatcher(orgListParam);
-
-  // Show org decorator in status bar
-  void showOrg();
 };
 
 export const activate = (extensionContext: vscode.ExtensionContext): void => {
   console.log('Salesforce Org Management extension activated');
 
   // Register output channel
-  extensionContext.subscriptions.push(OUTPUT_CHANNEL);
-
-  // Register all commands
-  extensionContext.subscriptions.push(registerCommands());
+  extensionContext.subscriptions.push(OUTPUT_CHANNEL, registerCommands());
 
   // Initialize org picker and status bar
   initializeOrgPicker(extensionContext);

@@ -20,7 +20,9 @@ export {
   SelectOutputDir,
   SimpleGatherer
 } from './parameterGatherers';
-export { SfCommandlet } from './sfCommandlet';
 export { SfCommandletExecutor } from './sfCommandletExecutor';
 export { PathStrategyFactory, SourcePathStrategy } from './sourcePathStrategies';
-export * from './lwcAuraDuplicateComponentCheckers';
+export {
+  LwcAuraDuplicateComponentCheckerForCreate,
+  LwcAuraDuplicateComponentCheckerForRename
+} from './lwcAuraDuplicateComponentCheckers';

@@ -8,16 +8,15 @@ import { CommandBuilder, Command } from '@salesforce/salesforcedx-utils';
 import {
   EmptyParametersGatherer,
   fileExtensionsMatch,
-  fileUtils,
   notificationService,
   SfCommandlet,
   SfCommandletExecutor,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
+import { basename } from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { getTestOutlineProvider } from '../views/testOutlineProvider';
 import { anonApexDebug } from './anonApexExecute';
 
 export const launchApexReplayDebuggerWithCurrentFile = async () => {
@@ -62,17 +61,7 @@ const launchReplayDebuggerLogFile = async (sourceUri: URI) => {
   });
 };
 
-const getApexTestClassName = async (sourceUri: URI): Promise<string | undefined> => {
-  if (!sourceUri) {
-    return undefined;
-  }
-
-  const testOutlineProvider = getTestOutlineProvider();
-  await testOutlineProvider.refresh();
-  const flushedUri = URI.file(fileUtils.flushFilePath(sourceUri.fsPath));
-
-  return testOutlineProvider.getTestClassName(flushedUri);
-};
+const getApexTestClassName = (sourceUri: URI): string => basename(sourceUri.fsPath, '.cls');
 
 const launchAnonymousApexReplayDebugger = async () => {
   const commandlet = new SfCommandlet(

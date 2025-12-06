@@ -5,18 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { DirFileNameSelection } from '../../util/types';
 import {
   CancelResponse,
   CompositeParametersGatherer,
   ContinueResponse,
-  DirFileNameSelection,
   ParametersGatherer,
+  SfCommandlet,
   SfWorkspaceChecker
 } from '@salesforce/salesforcedx-utils-vscode';
 import { AnalyticsTemplateOptions, TemplateType } from '@salesforce/templates';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { PathStrategyFactory, SelectOutputDir, SfCommandlet, SourcePathStrategy } from '../util';
+import { PathStrategyFactory, SelectOutputDir, SourcePathStrategy } from '../util';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';
 import { ANALYTICS_TEMPLATE_DIRECTORY, ANALYTICS_TEMPLATE_TYPE } from './metadataTypeConstants';
 

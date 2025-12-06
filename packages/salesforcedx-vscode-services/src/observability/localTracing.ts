@@ -18,7 +18,7 @@ export const getLocalTracesEnabled = (): boolean =>
 export const getConsoleTracesEnabled = (): boolean =>
   getOptionalBooleanConfiguration(SALESFORCE_DX_SECTION)('enableConsoleTraces');
 
-export const getOptionalBooleanConfiguration =
+const getOptionalBooleanConfiguration =
   (section: string) =>
   (configName: string): boolean => {
     // eslint-disable-next-line functional/no-try-statements

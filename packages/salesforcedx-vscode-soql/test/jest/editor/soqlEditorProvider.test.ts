@@ -114,8 +114,8 @@ describe('SOQLEditorProvider', () => {
       expect(mockWebviewPanel.webview.options.localResourceRoots).toHaveLength(1);
       const uri = mockWebviewPanel.webview.options.localResourceRoots![0];
       expect(uri.scheme).toBe('file');
-      expect(uri.path.replace(/\\/g, '/')).toBe(expectedPath.replace(/\\/g, '/'));
-      expect(uri.fsPath.replace(/\\/g, '/')).toBe(expectedPath.replace(/\\/g, '/'));
+      expect(uri.path.replaceAll('\\', '/')).toBe(expectedPath.replaceAll('\\', '/'));
+      expect(uri.fsPath.replaceAll('\\', '/')).toBe(expectedPath.replaceAll('\\', '/'));
       expect(mockWebviewPanel.webview.html).toBe(mockTransformedHtml);
     });
 

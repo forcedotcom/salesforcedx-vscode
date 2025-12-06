@@ -124,13 +124,7 @@ export const lightningLwcPreview = async (sourceUri: URI) => {
   await preview(sourceUri);
 };
 
-export const getPreview = () => {
-  if (isSFContainerMode()) {
-    return lwcPreviewContainerMode;
-  } else {
-    return lwcPreview;
-  }
-};
+export const getPreview = () => (isSFContainerMode() ? lwcPreviewContainerMode : lwcPreview);
 
 const lwcPreviewContainerMode = () => {
   const message = nls.localize('lightning_lwc_preview_container_mode');

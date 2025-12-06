@@ -8,7 +8,6 @@
 import {
   CUSTOMOBJECTS_DIR,
   type SObject,
-  type SObjectField,
   SOQLMETADATA_DIR,
   STANDARDOBJECTS_DIR,
   toMinimalSObject
@@ -17,8 +16,6 @@ import { projectPaths, readDirectory, readFile } from '@salesforce/salesforcedx-
 import * as path from 'node:path';
 import { nls } from '../messages';
 import { channelService, retrieveSObject, retrieveSObjects } from '../sf';
-
-export { SObject, SObjectField };
 
 export type OrgDataSource = {
   retrieveSObjectsList(): Promise<string[]>;
@@ -112,3 +109,5 @@ export class JsforceOrgDataSource implements OrgDataSource {
     }
   }
 }
+
+export { type SObjectField, type SObject } from '@salesforce/salesforcedx-sobjects-faux-generator';
