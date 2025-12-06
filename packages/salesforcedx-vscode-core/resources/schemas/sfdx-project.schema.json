@@ -1,0 +1,909 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "name": {
+      "description": "The name of your Salesforce project.",
+      "type": "string"
+    },
+    "packageDirectories": {
+      "title": "Package Directories",
+      "description": "Package directories indicate which directories to target when syncing source to and from the scratch org. These directories can contain source from your managed package, unmanaged package, or unpackaged source, for example, ant tool or change set.",
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "default": {
+                "description": "If you have specified more than one path, include this parameter for the default path to indicate which is the default package directory.",
+                "default": true,
+                "type": "boolean"
+              },
+              "path": {
+                "title": "Path",
+                "description": "If you don't specify a path, the Salesforce CLI uses a placeholder when you create a package.",
+                "type": "string"
+              }
+            },
+            "required": [
+              "path"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "default": {
+                "description": "If you have specified more than one path, include this parameter for the default path to indicate which is the default package directory.",
+                "default": true,
+                "type": "boolean"
+              },
+              "path": {
+                "title": "Path",
+                "description": "If you don't specify a path, the Salesforce CLI uses a placeholder when you create a package.",
+                "type": "string"
+              },
+              "ancestorId": {
+                "title": "Ancestor ID",
+                "description": "The ancestor that's the immediate parent of the version that you're creating. The package version ID to supply starts with '05i'.",
+                "type": "string"
+              },
+              "ancestorVersion": {
+                "title": "Ancestor Version",
+                "description": "The ancestor that's the immediate parent of the version that you're creating. The ancestor version uses the format major.minor.patch.build.",
+                "type": "string"
+              },
+              "apexTestAccess": {
+                "description": "Additional access that should be granted to the user when running package Apex tests",
+                "type": "object",
+                "properties": {
+                  "permissionSets": {
+                    "title": "Permission Sets",
+                    "description": "The list of permission sets to enable while running Apex tests",
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "permissionSetLicenses": {
+                    "title": "Permission Set Licenses",
+                    "description": "The list of permission sets licenses to enable while running Apex tests",
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "permissionSets",
+                  "permissionSetLicenses"
+                ],
+                "additionalProperties": false
+              },
+              "definitionFile": {
+                "title": "Definition File",
+                "description": "Reference an external .json file to specify the features and org preferences required for the metadata of your package, such as the scratch org definition.",
+                "type": "string"
+              },
+              "dependencies": {
+                "description": "To specify dependencies for 2GP within the same Dev Hub, use either the package version alias or a combination of the package name and the version number.",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "package": {
+                      "type": "string"
+                    },
+                    "versionNumber": {
+                      "type": "string"
+                    },
+                    "branch": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "package"
+                  ],
+                  "additionalProperties": {}
+                }
+              },
+              "includeProfileUserLicenses": {
+                "title": "Include Profile User Licenses",
+                "description": "Whether to include <userLicense> elements in profile metadata. Defaults to false.",
+                "default": false,
+                "type": "boolean"
+              },
+              "package": {
+                "title": "Package Identifier",
+                "description": "The package name you specified when creating the package.",
+                "type": "string"
+              },
+              "packageMetadataAccess": {
+                "title": "Package Metadata Access",
+                "description": "Additional access that should be granted to the user while deploying package metadata, available in Salesforce API version 61.0 and above",
+                "type": "object",
+                "properties": {
+                  "permissionSets": {
+                    "title": "Permission Sets",
+                    "description": "The list of permission sets to enable while deploying package metadata",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  },
+                  "permissionSetLicenses": {
+                    "title": "Permission Set Licenses",
+                    "description": "The list of permission set licenses to enable while deploying package metadata",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "permissionSets",
+                  "permissionSetLicenses"
+                ],
+                "additionalProperties": false
+              },
+              "postInstallScript": {
+                "title": "Post Install Script",
+                "description": "The post install script.",
+                "type": "string"
+              },
+              "postInstallUrl": {
+                "title": "Post Install Url",
+                "description": "The post install url.",
+                "type": "string"
+              },
+              "releaseNotesUrl": {
+                "title": "Release Notes Url",
+                "description": "The release notes url.",
+                "type": "string"
+              },
+              "scopeProfiles": {
+                "title": "Scope Profiles",
+                "description": "Determines whether to include profile settings from only the directory being packaged (true), or whether to include profile settings from all package directories (false). If not specified, the default is false.",
+                "default": false,
+                "type": "boolean"
+              },
+              "uninstallScript": {
+                "title": "Uninstall Script",
+                "description": "The uninstall script.",
+                "type": "string"
+              },
+              "calculateTransitiveDependencies": {
+                "title": "Calculate Transitive Dependencies",
+                "description": "Set to true if only specifing direct package dependencies and the transitive (i.e., indirect) dependencies should be calculated by Salesforce.",
+                "default": false,
+                "type": "boolean"
+              },
+              "versionDescription": {
+                "title": "Version Description",
+                "description": "Human readable version information, format not specified.",
+                "type": "string"
+              },
+              "versionName": {
+                "title": "Version Name",
+                "description": "If not specified, the CLI uses versionNumber as the version name.",
+                "type": "string"
+              },
+              "versionNumber": {
+                "title": "Version Number",
+                "description": "Version numbers are formatted as major.minor.patch.build. For example, 1.2.1.8. Required when package is specified.",
+                "type": "string"
+              },
+              "unpackagedMetadata": {
+                "title": "Unpackaged Metadata",
+                "description": "Metadata not meant to be packaged, but deployed when testing packaged metadata",
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "title": "Path",
+                    "description": "The path name of the package directory containing the unpackaged metadata",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ],
+                "additionalProperties": false
+              },
+              "seedMetadata": {
+                "title": "Seed Metadata",
+                "description": "Metadata not meant to be packaged, but deployed before deploying packaged metadata",
+                "type": "object",
+                "properties": {
+                  "path": {
+                    "title": "Path",
+                    "description": "The path name of the package directory containing the seed metadata",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "path"
+                ],
+                "additionalProperties": false
+              },
+              "functions": {
+                "description": "@deprecated",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "path",
+              "package",
+              "versionNumber"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "namespace": {
+      "description": "A namespace is an alphanumeric identifier that distinguishes your package and its contents from other packages in your customer's org. For steps on how to register a namespace and link it to your Dev Hub org, see Create and Register Your Namespace for Second-Generation Managed Packages on developer.salesforce.com. If you're creating an unlocked package, you can create it without a namespace.",
+      "type": "string"
+    },
+    "sourceApiVersion": {
+      "title": "Source API Version",
+      "description": "The API version that the source is compatible with. By default it matches the API version.",
+      "default": "48.0",
+      "type": "string"
+    },
+    "sfdcLoginUrl": {
+      "title": "SFDC Login URL",
+      "description": "The login URL that the force:auth commands use. If not specified, the default is login.salesforce.com. Override the default value if you want users to authorize to a specific Salesforce instance. For example, if you want to authorize into a sandbox org, set this parameter to test.salesforce.com.",
+      "type": "string"
+    },
+    "signupTargetLoginUrl": {
+      "description": "The url that is used when creating new scratch orgs. This is typically only used for testing prerelease environments.",
+      "type": "string"
+    },
+    "oauthLocalPort": {
+      "description": "By default, the OAuth port is 1717. However, change this port if this port is already in use, and you plan to create a connected app in your Dev Hub org to support JWT-based authorization.",
+      "default": 1717,
+      "type": "number"
+    },
+    "plugins": {
+      "title": "CLI Plugins custom settings",
+      "description": "Salesforce CLI plugin configurations used with this project.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {}
+    },
+    "packageAliases": {
+      "title": "Aliases for packaging ids",
+      "description": "The Salesforce CLI updates this file with the aliases when you create a package or package version. You can also manually update this section for existing packages or package versions. You can use the alias instead of the cryptic package ID when running CLI force:package commands.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "packageBundles": {
+      "title": "Package Bundles",
+      "description": "Package bundle entries for managing package bundles.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Bundle Name",
+            "description": "The name of the bundle.",
+            "type": "string"
+          },
+          "versionName": {
+            "title": "Version Name",
+            "description": "Human readable name for the version.",
+            "type": "string"
+          },
+          "versionNumber": {
+            "title": "Version Number",
+            "description": "The version number in the format major.minor (e.g., 1.0).",
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+$"
+          },
+          "versionDescription": {
+            "title": "Version Description",
+            "description": "Human readable version information, format not specified.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "versionName",
+          "versionNumber"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "packageBundleAliases": {
+      "title": "Package Bundle Aliases",
+      "description": "Aliases for package bundles.",
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "registryPresets": {
+      "title": "Custom predefined presets for decomposing metadata types",
+      "description": "@deprecated use `sourceBehaviorOptions`. Filenames from https://github.com/forcedotcom/source-deploy-retrieve/tree/main/src/registry/presets",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sourceBehaviorOptions": {
+      "title": "Custom predefined presets for decomposing metadata types",
+      "description": "Filenames from https://github.com/forcedotcom/source-deploy-retrieve/tree/main/src/registry/presets",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "registryCustomizations": {
+      "type": "object",
+      "properties": {
+        "types": {
+          "$ref": "#/definitions/__schema0"
+        },
+        "suffixes": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "strictDirectoryNames": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "childTypes": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "types",
+        "suffixes",
+        "strictDirectoryNames",
+        "childTypes"
+      ],
+      "additionalProperties": false
+    },
+    "replacements": {
+      "title": "Replacements for metadata that are executed during deployments",
+      "description": "The Salesforce CLI will conditionally replace portions of your metadata during a deployment",
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "replaceWhenEnv": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "env": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "env",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "filename": {
+                "type": "string"
+              },
+              "stringToReplace": {
+                "type": "string"
+              },
+              "replaceWithFile": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "filename",
+              "stringToReplace",
+              "replaceWithFile"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "replaceWhenEnv": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "env": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "env",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "filename": {
+                "type": "string"
+              },
+              "stringToReplace": {
+                "type": "string"
+              },
+              "replaceWithEnv": {
+                "type": "string"
+              },
+              "allowUnsetEnvVariable": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "filename",
+              "stringToReplace",
+              "replaceWithEnv"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "replaceWhenEnv": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "env": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "env",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "filename": {
+                "type": "string"
+              },
+              "regexToReplace": {
+                "type": "string"
+              },
+              "replaceWithFile": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "filename",
+              "regexToReplace",
+              "replaceWithFile"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "replaceWhenEnv": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "env": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "env",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "filename": {
+                "type": "string"
+              },
+              "regexToReplace": {
+                "type": "string"
+              },
+              "replaceWithEnv": {
+                "type": "string"
+              },
+              "allowUnsetEnvVariable": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "filename",
+              "regexToReplace",
+              "replaceWithEnv"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "replaceWhenEnv": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "env": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "env",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "glob": {
+                "type": "string"
+              },
+              "stringToReplace": {
+                "type": "string"
+              },
+              "replaceWithFile": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "glob",
+              "stringToReplace",
+              "replaceWithFile"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "replaceWhenEnv": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "env": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "env",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "glob": {
+                "type": "string"
+              },
+              "stringToReplace": {
+                "type": "string"
+              },
+              "replaceWithEnv": {
+                "type": "string"
+              },
+              "allowUnsetEnvVariable": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "glob",
+              "stringToReplace",
+              "replaceWithEnv"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "replaceWhenEnv": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "env": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "env",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "glob": {
+                "type": "string"
+              },
+              "regexToReplace": {
+                "type": "string"
+              },
+              "replaceWithFile": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "glob",
+              "regexToReplace",
+              "replaceWithFile"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "replaceWhenEnv": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "env": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "env",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "glob": {
+                "type": "string"
+              },
+              "regexToReplace": {
+                "type": "string"
+              },
+              "replaceWithEnv": {
+                "type": "string"
+              },
+              "allowUnsetEnvVariable": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "glob",
+              "regexToReplace",
+              "replaceWithEnv"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "pushPackageDirectoriesSequentially": {
+      "description": "@deprecated only works with deprecated commands. See https://github.com/forcedotcom/cli/discussions/2402",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "packageDirectories"
+  ],
+  "additionalProperties": false,
+  "$id": "http://schemas.salesforce.com/sfdx-project.json",
+  "title": "Salesforce DX Project File",
+  "definitions": {
+    "__schema0": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "directoryName": {
+            "type": "string"
+          },
+          "suffix": {
+            "type": "string"
+          },
+          "strictDirectoryName": {
+            "type": "boolean"
+          },
+          "ignoreParsedFullName": {
+            "type": "boolean"
+          },
+          "folderContentType": {
+            "type": "string"
+          },
+          "folderType": {
+            "type": "string"
+          },
+          "xmlElementName": {
+            "type": "string"
+          },
+          "uniqueIdElement": {
+            "type": "string"
+          },
+          "isAddressable": {
+            "type": "boolean"
+          },
+          "unaddressableWithoutParent": {
+            "type": "boolean"
+          },
+          "supportsWildcardAndName": {
+            "type": "boolean"
+          },
+          "supportsPartialDelete": {
+            "type": "boolean"
+          },
+          "aliasFor": {
+            "type": "string"
+          },
+          "children": {
+            "type": "object",
+            "properties": {
+              "types": {
+                "$ref": "#/definitions/__schema0"
+              },
+              "suffixes": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "directories": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "types",
+              "suffixes"
+            ],
+            "additionalProperties": false
+          },
+          "strategies": {
+            "type": "object",
+            "properties": {
+              "adapter": {
+                "type": "string",
+                "enum": [
+                  "mixedContent",
+                  "matchingContentFile",
+                  "decomposed",
+                  "bundle",
+                  "default"
+                ]
+              },
+              "transformer": {
+                "type": "string",
+                "enum": [
+                  "decomposed",
+                  "staticResource",
+                  "standard"
+                ]
+              },
+              "decomposition": {
+                "type": "string",
+                "enum": [
+                  "topLevel",
+                  "folderPerType"
+                ]
+              }
+            },
+            "required": [
+              "adapter"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "directoryName"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

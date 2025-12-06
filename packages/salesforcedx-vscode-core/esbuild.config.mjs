@@ -29,7 +29,7 @@ await build({
   ...nodeConfig,
   entryPoints: ['./src/index.ts'],
   outdir: 'dist/src',
-  external: [...nodeConfig.external, 'applicationinsights', '@salesforce/schemas'],
+  external: [...nodeConfig.external, 'applicationinsights'],
   minify: true
 });
 
