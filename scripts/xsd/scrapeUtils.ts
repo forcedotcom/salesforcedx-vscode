@@ -45,13 +45,10 @@ export const loadMetadataPage = async (
   try {
     console.log(`${indent.slice(0, -2)}📄 Loading: ${url}`);
 
-    // Strategy 1: Load page with domcontentloaded
+    // Step 1: Load page with domcontentloaded
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60_000 });
 
-    // Strategy 3: Wait for network to settle
-    await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
-
-    // Strategy 4: Wait for the main content frame to appear
+    // Step 2: Wait for the main content frame to appear
     console.log(`${indent}⏳ Waiting for content frame...`);
 
     // Extract the expected page name from the URL (e.g., "meta_classes.htm")
