@@ -257,7 +257,40 @@ export const extractMetadataFromPage = async (
   try {
     // Extract fields from ALL tables (each table is a separate metadata type)
     // We'll extract descriptions per-table instead of one for the whole page
-    const allTableFields = await contentFrame.evaluate(() => {
+    const extractionResult = await contentFrame.evaluate(() => {
+      // First, collect all headings on the page to identify which types have sections
+      const pageHeadings = new Set<string>();
+
+      // Search for h2 headings inside <div class="section" id="..."> and h1 with class "helpHead1"
+      const headingElements = Array.from(document.querySelectorAll('div.section[id] h2, h1.helpHead1'));
+      for (const heading of headingElements) {
+        const text = heading.textContent?.trim();
+        if (text && text.length > 0 && text.length < 200) {
+          pageHeadings.add(text);
+        }
+      }
+
+      // Also check shadow DOMs for headings
+      const checkShadowDOMForHeadings = (root: Document | ShadowRoot | Element): void => {
+        // Search for h2 headings inside <div class="section" id="..."> and h1 with class "helpHead1"
+        const shadowHeadings = root.querySelectorAll('div.section[id] h2, h1.helpHead1');
+        for (const heading of Array.from(shadowHeadings)) {
+          const text = heading.textContent?.trim();
+          if (text && text.length > 0 && text.length < 200) {
+            pageHeadings.add(text);
+          }
+        }
+
+        const elements = root.querySelectorAll('*');
+        for (const el of Array.from(elements)) {
+          if (el.shadowRoot) {
+            checkShadowDOMForHeadings(el.shadowRoot);
+          }
+        }
+      };
+
+      checkShadowDOMForHeadings(document);
+
       const tablesData: {
         fields: {
           Description: string;
@@ -714,11 +747,16 @@ export const extractMetadataFromPage = async (
         }
       }
 
-      return tablesData;
+      return { tablesData, pageHeadings: Array.from(pageHeadings) };
     });
 
     // Create a separate metadata type entry for each table
     const results: { name: string; data: MetadataType }[] = [];
+    const allTableFields = extractionResult.tablesData;
+    const pageHeadingsSet = new Set<string>(extractionResult.pageHeadings as string[]);
+
+    console.log('All table fields:', JSON.stringify(allTableFields, null, 2));
+    console.log('Page headings set:', JSON.stringify(Array.from(pageHeadingsSet), null, 2));
 
     if (allTableFields.length === 0) {
       return [];
@@ -838,6 +876,55 @@ export const extractMetadataFromPage = async (
         });
         console.log('Newest entry MULTIPLE TABLES:', JSON.stringify(results.at(-1), null, 2));
       }
+    }
+
+    // After extracting all tables, identify referenced types that don't have their own tables
+    // BUT only if they have a heading on the page (indicating they have their own section)
+    const extractedTypeNames = new Set(results.map(r => r.name));
+    const referencedTypes = new Set<string>();
+
+    // Helper function to check if a type name matches any heading on the page
+    const hasHeadingOnPage = (typeName: string): boolean => {
+      const lowerTypeName = typeName.toLowerCase();
+      for (const heading of Array.from(pageHeadingsSet)) {
+        if (heading.toLowerCase() === lowerTypeName) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    // Collect all referenced types from field types
+    for (const result of results) {
+      for (const field of result.data.fields) {
+        const fieldType = field['Field Type'];
+
+        // Check for array types (e.g., "SharingTerritoryRule[]")
+        const arrayType = extractArrayTypeName(fieldType);
+        if (arrayType && !extractedTypeNames.has(arrayType) && hasHeadingOnPage(arrayType)) {
+          referencedTypes.add(arrayType);
+        }
+
+        // Check for complex types (e.g., "SharedTo")
+        const complexType = extractComplexTypeName(fieldType);
+        if (complexType && !extractedTypeNames.has(complexType) && hasHeadingOnPage(complexType)) {
+          referencedTypes.add(complexType);
+        }
+      }
+    }
+
+    // Add entries for referenced types with empty fields arrays
+    // These are types that have a heading/section on the page but no field table
+    for (const referencedType of Array.from(referencedTypes)) {
+      console.log(`     ℹ️  Adding referenced type without fields: ${referencedType}`);
+      results.push({
+        name: referencedType,
+        data: {
+          fields: [],
+          short_description: `Referenced type from ${url}`,
+          url: url.split('#')[0]
+        }
+      });
     }
 
     return results;

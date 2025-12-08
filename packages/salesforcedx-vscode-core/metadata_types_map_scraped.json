@@ -1395,9 +1395,9 @@
   "MktDataTranField": {
     "fields": [
       {
-        "Description": "Optional: Was this object added as a result of the Customer, part of a Standard Taxonomy. Valid values available in API version 62.0 and later are: ADG Calculated_Insight CG_Audience Chunk Directory_Table External Semantic Transform Vector_Embedding",
+        "Description": "Required. Describes whether this object was added by the Customer or as part of a Standard Taxonomy or by the System. Valid values are: Segment_Membership Custom Standard System Derived Bridge Curated Valid values available in API version 62.0 and later are: ADG Calculated_Insight CG_Audience Chunk Directory_Table External Semantic Transform Vector_Embedding",
         "Field Name": "creationType",
-        "Field Type": "DefinitionCreationType"
+        "Field Type": "DefinitionCreationType (enumeration of type string)."
       },
       {
         "Description": "Required. Phone, currency, number, or other assigned type.",
@@ -1405,7 +1405,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Optional: The Date format of date, time, date/time fields in this Transport field.",
+        "Description": "Optional. The Date format of date, time, date/time fields in this Transport field.",
         "Field Name": "dateFormat",
         "Field Type": "string"
       },
@@ -1420,14 +1420,9 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Optional. Length of a string column",
+        "Description": "Optional. Length of a string column.",
         "Field Name": "length",
         "Field Type": "int"
-      },
-      {
-        "Description": "Optional? Field label.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
       },
       {
         "Description": "Optional. Used for currency and numeric accuracy.",
@@ -1435,12 +1430,12 @@
         "Field Type": "int"
       },
       {
-        "Description": "Optional. If supplied, indicates this field is part of the primary key where the number value (starting at 1) indicates the order of attributes if this happens to be a compound primary key. Missing value means this field is not part of the primary key.",
+        "Description": "Optional. If supplied, indicates this field is part of the primary key where the number value (starting at 1) indicates the order of attributes if it's a compound primary key. Missing value means this field isn’t part of the primary key.",
         "Field Name": "primaryIndexOrder",
         "Field Type": "int"
       },
       {
-        "Description": "Optional. Used for currency and numeric accuracy.",
+        "Description": "Optional. Used for currency and numbers.",
         "Field Name": "scale",
         "Field Type": "int"
       },
@@ -1450,8 +1445,8 @@
         "Field Type": "int"
       }
     ],
-    "short_description": "This is a sub-type to MktDataTranObject.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mktdatatranobject.htm"
+    "short_description": "Stores fields related to MktDataTranObject.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatatranobject.htm"
   },
   "FieldSrcTrgtRelationship": {
     "fields": [
@@ -2275,44 +2270,79 @@
   "Table 1. Fields": {
     "fields": [
       {
-        "Description": "Represents the details of how information from a form field is mapped to fields in an object.",
-        "Field Name": "ocrTargetObjectFieldMappings",
-        "Field Type": "OcrTargetObjFieldMapping[]"
+        "Description": "The data domain that is mapped to the data type of the dataset column. Possible values are: Dates Dimensions Measures",
+        "Field Name": "dataDomain",
+        "Field Type": "DatasetColumnDataType (enumeration of type string)"
       },
       {
-        "Description": "Required. The object to which information from a form is mapped.",
-        "Field Name": "targetObject",
+        "Description": "The data type of the dataset column in the actionable list. Available in API version 58.0 and later. Possible values are: Boolean Currency Date DateTime Email Location Number Percent Phone Text Url",
+        "Field Name": "dataType",
+        "Field Type": "DatatableDataType (enumeration of type string)"
+      },
+      {
+        "Description": "The order in which the actionable list dataset columns are displayed. Available in API version 58.0 and later.",
+        "Field Name": "displayOrder",
+        "Field Type": "int"
+      },
+      {
+        "Description": "Indicates whether the dataset column is added to the actionable list by default (true) or not (false). The default value is false.",
+        "Field Name": "isDefault",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the dataset column is grouped by the object defined in the actionable list definition (true) or not (false). Available in API version 59.0 and later.",
+        "Field Name": "isGroupedByListDefObj",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the type-ahead search for filters is enabled (true) or not (false). Available in API version 60.0 and later.",
+        "Field Name": "IsTypeAheadSearchEnabled",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "The name of the object that's associated with the dataset column. Possible values are: API version 60.0 and later: PersonLifeEventAPI version 60.0 and later with Insurance Managed Package: Claim InsurancePolicy Quote API version 59.0 and later with Health Cloud: CareFacilityBed CareRequest CareRequestItem CareServiceVisit CareServiceVisitPlan ClinicalServiceRequest API version 59.0 and later with Loyalty Cloud: LoyaltyProgramMember API version 59.0 and later: Case API version 58.0 and later with Automotive Cloud: Vehicle API version 58.0 and later: Asset Lead Opportunity API version 57.0 and later: Account Contact",
+        "Field Name": "objectName",
         "Field Type": "string"
       },
       {
-        "Description": "The developer name of the record type of the target object. Available in API version 56.0 and later.",
-        "Field Name": "targetObjectRecordType",
+        "Description": "The API name of the column in the source dataset.",
+        "Field Name": "sourceColumnApiName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The name of the field in the object for which the actionable list dataset is created.",
+        "Field Name": "sourceFieldName",
         "Field Type": "string"
       }
     ],
     "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrtemplate.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm"
   },
   "Table 2. Fields": {
     "fields": [
       {
-        "Description": "The details of the field in a form whose value is extracted and mapped to a Salesforce object field.",
-        "Field Name": "ocrSampleDocField",
-        "Field Type": "OcrSampleDocumentField[]"
-      },
-      {
-        "Description": "Required. The field to which information is mapped.",
-        "Field Name": "targetField",
+        "Description": "The name of the icon that's mapped to the status.",
+        "Field Name": "iconName",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Specifies the type of mapping. Available in API version 56.0 and later.Valid values are: FormField TableColumn The default value is FormField.",
-        "Field Name": "type",
-        "Field Type": "OcrMappingType (enumeration of type string)"
+        "Description": "The status of the actionable list member.",
+        "Field Name": "status",
+        "Field Type": "string"
       }
     ],
     "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrtemplate.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm"
+  },
+  "ActionableListDatasetColumn": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm"
+  },
+  "ActionableListMemberStatus": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm"
   },
   "AdvAccountForecastSet": {
     "fields": [
@@ -2511,95 +2541,95 @@
   "AdvAcctForecastMeasureDef": {
     "fields": [
       {
-        "Description": "Required. Name for the measure.",
+        "Description": "Required. The name of the definition for the advanced account forecast measure.",
         "Field Name": "advAcctForecastMeasureDefName",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Type of aggregation used for calculating advanced account forecast values.Possible values are: AVERAGE MAXIMUM MINIMUM SUM",
+        "Description": "Required. The type of aggregation that’s used for calculating the advanced account forecast values.Possible values are: AVERAGE MAXIMUM MINIMUM SUM The default value is SUM.",
         "Field Name": "aggregationType",
-        "Field Type": "AdvAcctFcstAggregationType(enumeration of type string)"
+        "Field Type": "AdvAcctFcstAggregationType (enumeration of type string)"
       },
       {
-        "Description": "Required. Method used for calculating advanced account forecast values.Possible values are: CUSTOM DATA_PROCESSING_ENGINE_DEFINITION FORMULA",
+        "Description": "Required. The method that’s used for calculating the advanced account forecast values.Values are: CUSTOM DATA_PROCESSING_ENGINE_DEFINITION FORMULA The default value is DATA_PROCESSING_ENGINE_DEFINITION.",
         "Field Name": "computationMethod",
-        "Field Type": "AdvAcctFcstComputationMethodenumeration of type string)"
+        "Field Type": "AdvAcctFcstComputationMethod (enumeration of type string)"
       },
       {
-        "Description": "Required. Field of the facts object used for this measure.",
+        "Description": "Required. The field of the facts object used for the advanced account forecast measure.",
         "Field Name": "forecastDataMeasureName",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Name for the measure to show on UI.",
+        "Description": "Required. The name for the advanced account forecast measure to show on UI.",
         "Field Name": "forecastMeasureName",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Measure type used for the generated advanced forecast values.Possible values are: QUANTITY REVENUE",
+        "Description": "Required. The measure type that’s used for the generated advanced forecast values.Possible values are: QUANTITY REVENUE The default value is QUANTITY.",
         "Field Name": "forecastMeasureType",
-        "Field Type": "AdvAcctFcstMeasureType(enumeration of type string)"
+        "Field Type": "AdvAcctFcstMeasureType (enumeration of type string)"
       },
       {
-        "Description": "Indicates whether the adjustments made to the advanced account forecast values for this metric are tracked (true) or not (false). The default value is false.",
+        "Description": "Indicates whether the adjustments made to the advanced account forecast values for this metric are tracked (true) or not (false).",
         "Field Name": "isAdjustmentTracked",
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents information about the measures to be displayed in the advanced account forecasts grid for the forecast set. Available in API version 56.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_salesagreementsettings_metadata_api.htm"
+    "short_description": "Represents information about the measures to display in the advanced account forecasts grid for the forecast set.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_advaccountforecastset.htm"
   },
   "AdvAcctFrcstDisplayGroup": {
     "fields": [
       {
-        "Description": "Required. Name of the advanced account forecast display group.",
+        "Description": "Required. The name of the advanced account forecast display group.",
         "Field Name": "advAcctFrcstDisplayGroupName",
         "Field Type": "string"
       },
       {
-        "Description": "Represents information about the items associated with a display group for an advanced account forecast set.",
+        "Description": "The items associated with a display group for an advanced account forecast set.",
         "Field Name": "displayGroupItems",
-        "Field Type": "AdvAcctFrcstDplyGroupItem"
+        "Field Type": "AdvAcctFrcstDplyGroupItem[]"
       },
       {
-        "Description": "Category for the display group.Possible values are: MEASURE",
+        "Description": "The category of the display group.Possible value is: MEASURE",
         "Field Name": "displayGroupType",
-        "Field Type": "AdvAcctFrcstDisplayGroupType(enumeration of type string)"
+        "Field Type": "AdvAcctFrcstDisplayGroupType (enumeration of type string)"
       },
       {
-        "Description": "Indicates whether the display group is the default group (true) or not (false). The default value is false.",
+        "Description": "Indicates whether the display group is the default group (true) or not (false).",
         "Field Name": "isDefault",
         "Field Type": "boolean"
       },
       {
-        "Description": "Profile for which the display group is applicable.",
+        "Description": "The name of the profile for which the display group is applicable.",
         "Field Name": "userProfileName",
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents information about the groups for the advanced account forecast set measures or dimensions. Available in API version 56.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_salesagreementsettings_metadata_api.htm"
+    "short_description": "Represents information about the groups for the advanced account forecast set measures or dimensions.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_advaccountforecastset.htm"
   },
   "AdvAcctFrcstDplyGroupItem": {
     "fields": [
       {
-        "Description": "Required. Name of the advanced account forecast display group item.",
+        "Description": "Required. The name of the advanced account forecast display group that’s associated with the group item.",
         "Field Name": "advAcctFrcstDplyGroupItemName",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Display order of the display group item.",
+        "Description": "Required. The display order of the display group item.",
         "Field Name": "displayOrder",
-        "Field Type": "string"
+        "Field Type": "int"
       },
       {
-        "Description": "Name of the measure associated with the display group item.",
+        "Description": "The ID of the measure associated with the display group item.",
         "Field Name": "measureReferenceName",
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents information about the items associated with a display group for an advanced account forecast set. Available in API version 56.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_salesagreementsettings_metadata_api.htm"
+    "short_description": "Represents information about the items associated with a display group for an advanced account forecast set.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_advaccountforecastset.htm"
   },
   "AffinityScoreDefinition": {
     "fields": [
@@ -3956,18 +3986,8 @@
   "LayoutSection": {
     "fields": [
       {
-        "Description": "Indicates if this section’s label is custom or standard (built-in). Custom labels can be any text, but must be translated. Standard labels have a predefined set of valid values, for example System Information, which are automatically translated.",
+        "Description": "Indicates if this section's label is custom or standard (built-in). Custom labels can be any text, but must be translated. Standard labels have a predefined set of valid values, for example 'System Information', which are automatically translated.",
         "Field Name": "customLabel",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Controls if this section appears in the detail page. In the UI, this setting corresponds to the checkbox in the section details dialog.",
-        "Field Name": "detailHeading",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Controls if this section appears in the edit page.",
-        "Field Name": "editHeading",
         "Field Type": "boolean"
       },
       {
@@ -3976,18 +3996,18 @@
         "Field Type": "string"
       },
       {
-        "Description": "The columns of the layout, depending on the style. 1, 2, or 3 columns, ordered left to right, are possible.",
+        "Description": "The columns of the layout, depending on the style. Salesforce Knowledge only supports one column in article type layouts.",
         "Field Name": "layoutColumns",
         "Field Type": "LayoutColumn[]"
       },
       {
-        "Description": "The style of the layout: TwoColumnsTopToBottom - Two columns, tab goes top to bottom TwoColumnsLeftToRight - Two columns, tab goes left to right OneColumn - One column CustomLinks - Contains custom links only",
+        "Description": "The style of the layout. Salesforce Knowledge only supports the value OneColumn, which displays a one-column page.",
         "Field Name": "style",
         "Field Type": "LayoutSectionStyle (enumeration of type string)"
       }
     ],
-    "short_description": "LayoutSection represents a section of a page layout, such as the Custom Links section.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_layouts.htm"
+    "short_description": "LayoutSection represents a section of an ArticleType layout.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_articletype_layout.htm"
   },
   "LayoutColumn": {
     "fields": [
@@ -3995,91 +4015,21 @@
         "Description": "The individual items within a column (ordered from top to bottom).",
         "Field Name": "layoutItems",
         "Field Type": "LayoutItem[]"
-      },
-      {
-        "Description": "This field is reserved for Salesforce. The field resolves an issue with some SOAP libraries. Any value entered in the field is ignored.",
-        "Field Name": "reserved",
-        "Field Type": "string"
       }
     ],
     "short_description": "LayoutColumn represents the items in a column within a layout section.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_layouts.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_articletype_layout.htm"
   },
   "LayoutItem": {
     "fields": [
       {
-        "Description": "Determines the field behavior. Valid string values: Edit—The layout field can be edited but isn’t required. Required—The layout field can be edited and is required. Readonly—The layout field is read-only. Explicitly specifying UiBehavior for Knowledge articles results in an exception.",
-        "Field Name": "behavior",
-        "Field Type": "UiBehavior (enumeration of type string)"
-      },
-      {
-        "Description": "Reference to a canvas app.This field is available in API version 31.0 and later.",
-        "Field Name": "canvas",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Reference to a component. Value must be sfa:socialCard.This field is available in API version 30.0 and later. This field is allowed only inside a RelatedContentItem. sfa:socialCard is supported only on page layouts for contacts, accounts, and leads.",
-        "Field Name": "component",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The customLink reference. This field is allowed only inside a CustomLink layoutSection.",
-        "Field Name": "customLink",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Controls if this layout item is a blank space.",
-        "Field Name": "emptySpace",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "The field name reference, relative to the layout object, for example Description or MyField__c.",
+        "Description": "The field name reference, for example MyField__c.",
         "Field Name": "field",
-        "Field Type": "string"
-      },
-      {
-        "Description": "For s-control and pages only, the height in pixels.",
-        "Field Name": "height",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Reference to a Visualforce page.",
-        "Field Name": "page",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Refers to a CRM Analytics dashboard that you can add to a standard or custom object page.This field is available in API version 34.0 and later.",
-        "Field Name": "analyticsCloudComponent",
-        "Field Type": "AnalyticsCloudComponentLayoutItem"
-      },
-      {
-        "Description": "Refers to a report chart that you can add to a standard or custom object page.",
-        "Field Name": "reportChartComponent",
-        "Field Type": "ReportChartComponentLayoutItem"
-      },
-      {
-        "Description": "Reference to an s-control.",
-        "Field Name": "scontrol",
-        "Field Type": "string"
-      },
-      {
-        "Description": "For s-control and pages only, whether to show the label.",
-        "Field Name": "showLabel",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "For s-control and pages only, whether to show scrollbars.",
-        "Field Name": "showScrollbars",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "For s-control and pages only, the width in pixels or percent. Pixel values are simply the number of pixels, for example, 500. Percentage values must include the percent sign, for example, 20%.",
-        "Field Name": "width",
         "Field Type": "string"
       }
     ],
-    "short_description": "LayoutItem represents the valid values that define a layout item. An item must have only one of the following values set: component, customLink, field, s-control, page, analyticsCloudComponent, or reportChartComponent.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_layouts.htm"
+    "short_description": "LayoutItem represents the valid values that define a layout item.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_articletype_layout.htm"
   },
   "ChannelLayout": {
     "fields": [
@@ -4839,48 +4789,53 @@
   "RuleEntry": {
     "fields": [
       {
+        "Description": "The name of the user or queue the item is assigned to.",
+        "Field Name": "assignedTo",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Valid values are: User Queue",
+        "Field Name": "assignedToType",
+        "Field Type": "AssignToLookupValueType (enumeration of type string)"
+      },
+      {
         "Description": "Advanced filter conditions that were specified for the rule.",
         "Field Name": "booleanFilter",
         "Field Type": "string"
       },
       {
-        "Description": "The hours when escalation actions are performed. Specify only if businessHoursSource is set to Static.",
-        "Field Name": "businessHours",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Valid values are: None Case Static",
-        "Field Name": "businessHoursSource",
-        "Field Type": "BusinessHoursSourceType (enumerations of type string)"
-      },
-      {
         "Description": "The items in the list that define the assignment criteria.",
         "Field Name": "criteriaItems",
-        "Field Type": "FilterItem"
-      },
-      {
-        "Description": "Indicates whether the escalation is disabled when the record is modified true) or not (false).",
-        "Field Name": "disableEscalationWhenModified",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "The actions to perform when the escalation criteria are met.",
-        "Field Name": "escalationAction",
-        "Field Type": "EscalationAction[]"
-      },
-      {
-        "Description": "Indicates the start time for the escalation. Valid values are: CaseCreation CaseLastModified",
-        "Field Name": "escalationStartTime",
-        "Field Type": "EscalationStartTimeType (enumeration of type string)"
+        "Field Type": "FilterItem[]"
       },
       {
         "Description": "The validation formula. Specify either formula or criteriaItems, but not both fields.",
         "Field Name": "formula",
         "Field Type": "string"
+      },
+      {
+        "Description": "Specifies whether email addresses included on the Cc line of an incoming Email-to-Case or Web-to-Lead message are included on the Cc line of the auto-response to that message (true) or not (false). Available in API version 32.0 and later.",
+        "Field Name": "notifyCcRecipients",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Specifies whether the case team resets when the assignment is done true) or if the current team is added to the case instead of replacing the previous team (false).",
+        "Field Name": "overrideExistingTeams",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "The name of the case team. It can occur 0 or more times.",
+        "Field Name": "team",
+        "Field Type": "string[]"
+      },
+      {
+        "Description": "Specifies the template to use for the email that is automatically sent to the designated recipient. Lightning email templates aren’t packageable. We recommend using a Classic email template.",
+        "Field Name": "template",
+        "Field Type": "string"
       }
     ],
     "short_description": "Represents the fields used by the rule.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_escalationrules.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_assignmentrule.htm"
   },
   "AssessmentQuestion": {
     "fields": [
@@ -5620,38 +5575,38 @@
   "Fields": {
     "fields": [
       {
-        "Description": "Required. Field that this attribute applies to.",
-        "Field Name": "field",
+        "Description": "Description of an aggregate node.",
+        "Field Name": "description",
         "Field Type": "string"
       },
       {
-        "Description": "After a designated timeout period, additional skills are dropped from Omni-Channel routing. The case is then routed to the best-matched agent even if they don’t have all the skills.",
-        "Field Name": "isAdditionalSkill",
-        "Field Type": "boolean"
+        "Description": "Required. Collection of aggregation fields.",
+        "Field Name": "fields",
+        "Field Type": "BatchCalcJob​AggregateField[]"
       },
       {
-        "Description": "Required. Skill used to route the work item when the attribute maps to the value selected.",
-        "Field Name": "skill",
+        "Description": "Required. Collections of fields used to group data in an aggregate node.",
+        "Field Name": "groupBy",
+        "Field Type": "string[]"
+      },
+      {
+        "Description": "Required. Label of an aggregate node.",
+        "Field Name": "label",
         "Field Type": "string"
       },
       {
-        "Description": "Level of the skill required. This value can range from 0 to 10.",
-        "Field Name": "skillLevel",
-        "Field Type": "int"
+        "Description": "Required. Name of an aggregate node.",
+        "Field Name": "name",
+        "Field Type": "string"
       },
       {
-        "Description": "For additional skills, specify the order in which a skill is dropped if after the Drop Additional Skills Timeout on the routing configuration, no agent with that skill is available. Skills with a lower priority rank (9 or 10) are dropped first. Skills with a higher priority rank (0 or 1) are dropped last. Skills with the same priority value are dropped as a group. You can set skill priority using attribute setup for skills-based routing or Apex code. Available in API version 49.0 and later.",
-        "Field Name": "skillPriority",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Attribute value that is assigned to the selected skill.",
-        "Field Name": "value",
+        "Description": "Required. Name of the source node.",
+        "Field Name": "sourceName",
         "Field Type": "string"
       }
     ],
     "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_workskillrouting.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm"
   },
   "BatchCalcJobAtomicWriteback": {
     "fields": [
@@ -5755,6 +5710,46 @@
       }
     ],
     "short_description": "Represents source fields for grouping the data to be processed by the forecast node.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm"
+  },
+  "BatchCalcJobUnion": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm"
+  },
+  "BatchCalcJobAtomicWriteBack": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm"
+  },
+  "BatchCalcJobFilter": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm"
+  },
+  "BatchCalcJobForecast": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm"
+  },
+  "BatchCalcJobHierarchyPath": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm"
+  },
+  "BatchCalcJobParameter": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm"
+  },
+  "BatchCalcJobTransform": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm"
+  },
+  "BatchCalcJobOrderByField": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm"
   },
   "BatchProcessJobDefinition": {
@@ -8992,22 +8987,112 @@
   "ConnectedAppOauthPolicy": {
     "fields": [
       {
-        "Description": "Required. Specifies whether a user’s access to the connected app is restricted by IP ranges. Valid options are: ENFORCE (default)—Enforces the IP restrictions configured for the org, such as the IP ranges assigned to a user profile. BYPASS_2FACTOR—Allows a user running the app to bypass the org’s IP restrictions when either of these conditions is true. The app has a list of allowed IP ranges and is using the web server OAuth authorization flow. Requests coming from only these IPs are allowed. The app doesn’t have a list of allowed IP ranges, but it uses the web server authentication flow. And the user successfully completes identity verification if accessing Salesforce from a new browser or device. BYPASS—Allows a user to run this app without org IP restrictions. ENFORCE_RELAXREFRESH—Enforces the IP restrictions configured for the org, such as the IP ranges assigned to a user profile. However, this option bypasses these restrictions when the connected app uses refresh tokens to get access tokens.",
-        "Field Name": "ipRelaxation",
+        "Description": "The OAuth asset token configuration for the connected app OAuth settings. Available in API version 49.0 and later.",
+        "Field Name": "assetTokenConfig",
+        "Field Type": "connectedAppOauthAssetToken"
+      },
+      {
+        "Description": "Required. The endpoint that Salesforce calls back to your connected app during OAuth. It’s the OAuth redirect_uri.",
+        "Field Name": "callbackUrl",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Specifies how long a refresh token is valid for. If refresh tokens are provided, users can continue to access the OAuth-enabled connected app without having to reauthorize when the access token expires, as defined by the session timeout value. The connected app exchanges the refresh token with an access token to start a new session. The Refresh Token policy is evaluated only during usage of the issued refresh token and doesn’t affect a user’s current session. Refresh tokens are required only when a user’s session has expired or isn’t available. For example, you set a refresh token policy to expire the token after 1 hour. If a user uses the app for 2 hours, the user isn’t forced to reauthenticate after 1 hour. However, the user is required to authenticate again when the session expires and the client attempts to exchange its refresh token for a new session. Valid options are: zero—The refresh token is invalid immediately. The user can use the current session (access token) already issued, but can’t obtain a new session when the access token expires. infinite—The refresh token is used indefinitely, unless revoked by the user or Salesforce admin. Default setting. specific_lifetime:number:HOURS, DAYS, MONTHS—The refresh token is valid for a fixed amount of time. For example, if the policy states specific_lifetime:1:DAYS, the user can obtain new sessions for only 24 hours. specific_inactivity:number:HOURS, DAYS, MONTHS—The refresh token is valid as long as it’s been used within the specified amount of time. For example, if set to specific_inactivity:7:DAYS, and the refresh token isn’t exchanged for a new session within seven days, the next attempt to use the token fails. The expired token can’t generate new sessions. If the refresh token is exchanged within seven days, the token is valid for another seven days. The monitoring period of inactivity also resets.",
-        "Field Name": "refreshTokenPolicy",
+        "Description": "The PEM-encoded certificate string, if the app uses a certificate.",
+        "Field Name": "certificate",
         "Field Type": "string"
       },
       {
-        "Description": "If single logout is enabled, specify the single logout URL. Salesforce sends logout requests to this URL when users log out of Salesforce. The single logout URL must be an absolute URL starting with https://.",
+        "Description": "A value used by the consumer for identification to Salesforce. Referred to as client_id in OAuth 2.0.In API version 32.0 and later, you can set this field’s value only during creation. After you define and save the value, it can’t be edited. The value must be alphanumeric, can’t contain special characters or spaces, and must be between 8–256 characters. Consumer keys must be globally unique.",
+        "Field Name": "consumerKey",
+        "Field Type": "string"
+      },
+      {
+        "Description": "A value that is combined with the consumerKey and used by the consumer for identification to Salesforce. Referred to as client_secret in OAuth 2.0. Typically, Salesforce generates this value when you create the connected app. However, you can customize the shared secret value during creation. After you save the value, it can’t be edited. When set, the value isn’t returned in Metadata API requests.The value must be alphanumeric (no special characters and no spaces) and a minimum of 8 characters (maximum of 256 characters). If you specify a secret already in use for another connected app in the organization, an error occurs. Available in API version 32.0 and later.",
+        "Field Name": "consumerSecret",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Specifies the ID token configuration for the connected app OAuth settings. Available in API version 43.0 and later.",
+        "Field Name": "idTokenConfig",
+        "Field Type": "ConnectedAppOauthIdToken"
+      },
+      {
+        "Description": "If set to false (default), anyone in the org can authorize the app. Users must approve the app the first time they access it.If set to true, only users with the appropriate profile or permission set can access the app. These users don’t have to approve the app before they can access it. Manage profiles for the app by editing each profile’s Connected App Access list. Manage permission sets for the app by editing each permission set’s Assigned Connected App list. This setting isn’t available in Group Edition. Available in API version 46.0 and later. Connected app consumers can edit this setting when deploying a connected app in their org.",
+        "Field Name": "isAdminApproved",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "If set to true, the connected app can use the OAuth 2.0 client credentials flow. To use the client credentials flow, you must also specify a user for oauthClientCredentialUser.If set to false (default), the connected app can’t use the client credentials flow. Available in API version 56.0 and later.",
+        "Field Name": "isClientCredentialEnabled",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Determines whether the app can use the Authorization Code and Credentials Flow to provide identity services to headless, off-platform apps. The Authorization Code and Credentials Flow is the foundation of headless login, headless registration, headless passwordless login, and headless guest identity. If set to true, the connected app can use the Authorization Code and Credentials Flow and all associated Headless Identity features. The default value is false. This field is available in API version 57.0 and later.",
+        "Field Name": "isCodeCredentialEnabled",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "For the Authorization Code and Credentials Flow, determines whether the user’s credentials must be sent in the body of the initial HTTPS POST request to the Salesforce authorization endpoint. Requiring the credentials in the POST body instead of in the header improves security.If set to true, the user’s credentials must be included in the POST body. The default value is false. This field is available in API version 57.0 and later.",
+        "Field Name": "isCodeCredentialPostOnly",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "If set to false (default), the connected app’s client secret is required in exchange for an access token in the OAuth 2.0 web server flow.If the client app can’t keep the client secret confidential and it must use the web server flow, set to true. A client secret is still generated for the connected app, but this setting instructs the web server flow not to require the client_secret parameter in the access token request. We recommend the user agent flow as a more secure option than web server flow without the secret. Available in API version 49.0 and later.",
+        "Field Name": "isConsumerSecretOptional",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "If set to true, authorizes the connected app to introspect all access and refresh tokens within the entire org.If set to false (default), the connected app can introspect its own tokens. In addition, an OAuth client that directly registers OAuth 2.0 connected apps through the dynamic client registration endpoint can check the tokens for itself and its registered apps. Available in API version 49.0 and later.",
+        "Field Name": "isIntrospectAllTokens",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "If set to true, the connected app is enabled to issue JSON Web Token (JWT)-based access tokens.This field is generally available in API version 59.0 and later.",
+        "Field Name": "isNamedUserJwtEnabled",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Determines whether the Proof Key for Code Exchange (PKCE) extension is required for variations of the OAuth 2.0 authorization code flow configured for the connected app, including the web server flow and Authorization Code and Credentials Flow. For public client apps that can’t keep the consumer secret confidential, such as mobile apps, the PKCE extension helps ensure that the client that initiates an authorization flow is the same client that completes it. For this reason, we always recommend implementing PKCE for public clients. We also strongly recommend that you implement PKCE for private clients.If set to true, the PKCE extension is required and any authorization code flow variations that don’t implement it fail. If set to false, you can still implement PKCE but it isn’t required. The default value is false. This field is available in API version 59.0 and later.",
+        "Field Name": "isPkceRequired",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "If set to true, the connected app issues a new refresh token each time the OAuth refresh token flow is invoked. The old refresh token is automatically invalidated. If a user tries to use a previous refresh token that’s been invalidated, the current refresh token and its associated access tokens get deleted. If set to false, the refresh token can be used to obtain multiple access tokens.This field is available in API version 60.0 and later.",
+        "Field Name": "isRefreshTokenRotationEnabled",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "If set to true (default), the app’s client secret is required in the authorization request of a refresh token and hybrid refresh token flow. If set to false and an app sends the client secret in the authorization request, Salesforce still validates it. Select this option for web-server based apps that can protect client secrets. For apps that can’t protect client secrets, such as mobile apps or apps installed on a user’s computer, we recommend against selecting this option. Available in API version 51.0 and later.",
+        "Field Name": "isSecretRequiredForRefreshToken",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "If set to true, the connected app must include its consumer secret (client_secret) in the token request during the OAuth 2.0 token exchange flow. For security, set this field to true only if your app has a private client backend where it can keep the secret safe. For public client apps, such as single-page apps and mobile apps, set this field to false and don’t include the consumer secret.This field is available in API version 60.0 and later.",
+        "Field Name": "isSecretRequiredForTokenExchange",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "If set to true, the connected app can use the OAuth 2.0 token exchange flow to exchange tokens from an external identity provider for Salesforce tokens.This field is available in API version 60.0 and later.",
+        "Field Name": "isTokenExchangeEnabled",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "The execution user for the OAuth 2.0 client credentials flow. Salesforce returns access tokens on behalf of this user. This user must have the API Only permission.To use this field, set isClientCredentialEnabled to true and specify a consumerKey. Available in API version 56.0 and later.",
+        "Field Name": "oauthClientCredentialUser",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The permissions given by the user running the connected app. When deploying metadata, valid values are: Basic—Allows access to your identity URL service (the same behavior as deploying Address, Email, Phone, and Profile). Api—Allows access to the logged-in user's account over the APIs. Web—Allows use of the access_token on the web. This usage also includes visualforce, allowing access to Visualforce pages. Full—Allows access to all data accessible by the logged-in user. Chatter—Allows access to only the Connect REST API resources. CustomApplications—Provides access to custom applications, such as those using Visualforce. RefreshToken—Allows a refresh token to be returned if you’re eligible to receive one (the same behavior as deploying OfflineAccess). OpenID—Allows access to the logged-in user's unique identifier for OpenID Connect apps. Profile—Allows access to the logged-in user's profile (the same behavior as deploying Basic). Email—Allows access to the logged-in user's email address (the same behavior as deploying Basic). Address—Allows access to the logged-in user's street address (the same behavior as deploying Basic). Phone—Allows access to the logged-in user's phone number value (the same behavior as deploying Basic). OfflineAccess—Allows the app to interact with the user's data while the user is offline and get a refresh token (the same behavior as deploying RefreshToken). CustomPermissions—Allows access to the custom permissions in an organization associated with the connected app and shows whether the current user has each permission enabled. Wave—Allows access to the Analytics REST API resources. Available in API version 35.0 and later. Eclair—Allows access to the Analytics REST API Charts Geodata resource. Available in API version 35.0 and later. Pardot—Allows access to Pardot API services on behalf of the user. The full extent of accessible services is managed by the Pardot account. Available in API version 49.0 and later. Lightning—Allows hybrid apps to directly obtain Lightning child sessions through the OAuth 2.0 hybrid app token flow and hybrid app refresh token flow. Available in API version 51.0 and later. Content—Allows hybrid apps to directly obtain content child sessions through the OAuth 2.0 hybrid app token flow and hybrid app refresh token flow. Available in API version 51.0 and later. CDPIngest—Allows access to Data Cloud ingest API services. Customers use these API services to upload and maintain external datasets in the Data 360. Available in API version 52.0 and later. Chatbot—Allows access to Einstein Bot API services. Available in API version 54.0 and later. ForgotPassword—Allows access to Headless Forgot Password API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 57.0 and later. UserRegistration—Allows access to Headless Registration API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 58.0 and later. PwdlessLogin—Allows access to Headless Passwordless Login API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 59.0 and later. When retrieving metadata, valid values are: Api—Allows access to the logged-in user’s account over the APIs. Basic—Allows access to the user’s identity URL service, and includes Address, Email, Phone, and Profile. Chatter—Allows access to only the Connect REST API resources. CustomApplications—Allows access to custom applications, such as those using Visualforce. Full—Allows access to all data accessible by the logged-in user. OpenID—Allows access to the logged-in user's unique identifier for OpenID Connect apps. CDPIngest—Allows access to Data Cloud ingest API services. Customers use these API services to upload and maintain external datasets in the Data 360. Available in API version 52.0 and later. Pardot—Allows access to Pardot API services on behalf of the user. The full extent of accessible services is managed by the Pardot account. Available in API version 49.0 and later. Lightning—Allows hybrid apps to directly obtain Lightning child sessions through the OAuth 2.0 hybrid app token flow and hybrid app refresh token flow. Available in API version 51.0 and later. Content—Allows hybrid apps to directly obtain content child sessions through the OAuth 2.0 hybrid app token flow and hybrid app refresh token flow. Available in API version 51.0 and later. RefreshToken—Allows a refresh token to be returned if you’re eligible to receive one and is synonymous with allowing OfflineAccess. Wave—Allows access to the Analytics REST API resources. Available in API version 35.0 and later. Eclair—Allows access to the Analytics REST API Charts Geodata resource. Available in API version 35.0 and later. Web—Allows usage of the access_token on the web. This usage also includes visualforce, allowing access to Visualforce pages. Chatbot—Allows access to Einstein Bot API services. Available in API version 54.0 and later. ForgotPassword—Allows access to Headless Forgot Password API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 57.0 and later. UserRegistration—Allows access to Headless Registration API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 58.0 and later. PwdlessLogin—Allows access to Headless Passwordless Login API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 59.0 and later.",
+        "Field Name": "scopes",
+        "Field Type": "ConnectedAppOauthAccessScope (enumeration of type string)[]"
+      },
+      {
+        "Description": "The single logout endpoint. This URL is the endpoint where Salesforce sends a logout request when users log out of Salesforce.",
         "Field Name": "singleLogoutUrl",
         "Field Type": "string"
       }
     ],
-    "short_description": "Specifies OAuth access policies for the connected app. Available in API version 49.0 and later.",
+    "short_description": "",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm"
   },
   "ConnectedAppOauthAssetToken": {
@@ -11112,6 +11197,11 @@
     "short_description": "Represents the maximum number of primary tabs and subtabs allowed in one Salesforce console session. Required if enableTabLimits is true. Available in API version 36.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customapplication.htm"
   },
+  "LiveAgentConfig": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customapplication.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customapplication.htm"
+  },
   "CustomApplicationComponent": {
     "fields": [
       {
@@ -11805,38 +11895,23 @@
   "ActionOverride": {
     "fields": [
       {
-        "Description": "Required. The possible values are the same as the actions you can override: accept clone delete edit list new tab view",
-        "Field Name": "actionName",
-        "Field Type": "string"
+        "Description": "Indicates how this object is added.Values are: Activation_Audience Bridge Curated Custom Derived Ml_Prediction Segment_Membership Standard System Valid values availble in API version 62.0 and later are: Activation_Audience Ad_Audience_Insights ADG Calculated_Insight CG_Audience Chunk Directory_Table External Problem_Records Segment_Membership Semantic Transform Vector_Embedding",
+        "Field Name": "creationType",
+        "Field Type": "DefinitionCreationType enumeration of type string"
       },
       {
-        "Description": "Any comments you want associated with the override.",
-        "Field Name": "comment",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Set this field if type is set to flexipage, lightningcomponent, scontrol, or visualforce. It refers to the name of the Lightning page, Lightning component, s-control, or Visualforce page to use as the override. To reference installed components, use this format: Component_namespace__Component_name.",
-        "Field Name": "content",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The size of the page being overridden.If the type field is set to flexipage, set this field to Large to override the View action with a Lightning page in Lightning Experience. The Large value represents the Lightning Experience desktop environment and is valid only for the flexipage and lightningcomponent types. The Small value represents the Salesforce mobile app on a phone or tablet. The Medium value is reserved for future use. The null value (which is the same as specifying no value) represents Salesforce Classic. This field is available in API version 37.0 and later and is part of the feature for creating and editing record pages in Lightning Experience. Lightning component overrides return different FormFactor values depending on the API version used. In API version 41.0 and earlier, Lightning component overrides return only the null value (no value), representing the Salesforce Classic environment. In API version 42.0, if you specify different Lightning component overrides for Lightning Experience and mobile, one component is selected randomly for both overrides and its FormFactor value is returned. If there’s a conflict between Lightning components, and a Visualforce page override is also specified for Salesforce Classic, the Visualforce page takes precedence. In API version 43.0 and later, a Lightning component override for Lightning Experience returns the Large value and a Lightning component override for mobile returns the Small value, as expected.",
-        "Field Name": "formFactor",
-        "Field Type": "FormFactor (enumeration of type string)"
-      },
-      {
-        "Description": "Set this field to true if you prefer that any new records created by this action override aren’t forwarded to the record type selection page. This field is only valid if the actionName is a “create” type (like new), and type is set to visualforce. This field is available in API version 21.0 and later.",
-        "Field Name": "skipRecordTypeSelect",
+        "Description": "Indicates whether the Landing Object is enabled.",
+        "Field Name": "isEnabled",
         "Field Type": "boolean"
       },
       {
-        "Description": "Required. Represents the type of action override. Valid values are described in ActionOverrideType.",
-        "Field Name": "type",
-        "Field Type": "ActionOverrideType (enumeration of type string)"
+        "Description": "Reference to the Object Category. For landing object, these would be Profile, Behavioral, Other.",
+        "Field Name": "objectCategory",
+        "Field Type": "string"
       }
     ],
-    "short_description": "Represents an action override on a standard or custom object. Use it to create, update, edit, or delete action overrides. You can access ActionOverride only by accessing its encompassing CustomObject.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/actionoverride.htm"
+    "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm"
   },
   "BusinessProcess": {
     "fields": [
@@ -13267,18 +13342,18 @@
   "PicklistValueTranslation": {
     "fields": [
       {
-        "Description": "Required. The translated Pipeline Inspection metric configuration name.",
-        "Field Name": "label",
+        "Description": "Required. The picklist value defined on the setup page in the application. Displayed wherever a translated label isn't available.",
+        "Field Name": "masterLabel",
         "Field Type": "string"
       },
       {
-        "Description": "Required. The name of the Pipeline Inspection metric configuration.",
-        "Field Name": "name",
+        "Description": "Required. Translation for the value.",
+        "Field Name": "translation",
         "Field Type": "string"
       }
     ],
-    "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm"
+    "short_description": "PicklistValueTranslation contains details for translation of a picklist value from a local, custom picklist field. For more details, see Picklist (Including Dependent Picklist).",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customobjecttranslation.htm"
   },
   "QuickActionTranslation": {
     "fields": [
@@ -16688,23 +16763,18 @@
   "ObjectMapping": {
     "fields": [
       {
-        "Description": "Required. The input object for the SalesAgreementSettings. SalesAgreementProductSchedule is the input object for the SalesAgreementSettings.",
-        "Field Name": "inputObject",
+        "Description": "Required. A string of boolean operators that establishes the filter logic for the filter items specified in duplicateRuleFilterItems.",
+        "Field Name": "booleanFilter",
         "Field Type": "string"
       },
       {
-        "Description": "The mapping of source object fields to target object fields for SalesAgreementSettings.",
-        "Field Name": "mappingFields",
-        "Field Type": "ObjectMappingField"
-      },
-      {
-        "Description": "Required. The output object for the SalesAgreementSettings. SalesAgreementProduct is the output object for the SalesAgreementSettings.",
-        "Field Name": "outputObject",
-        "Field Type": "string"
+        "Description": "Required. A list of DuplicateRuleFilterItem components.",
+        "Field Name": "duplicateRuleFilterItems",
+        "Field Type": "DuplicateRuleFilterItem[]"
       }
     ],
-    "short_description": "Represents a map of fields in the input object of SalesAgreementSettings to fields in the output object of SalesAgreementSettings. The input object is SalesAgreementProductSchedule. The output object is SalesAgreementProduct.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_salesagreementsettings_metadata_api.htm"
+    "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_duplicaterule.htm"
   },
   "DuplicateRuleFilterItem": {
     "fields": [
@@ -16746,18 +16816,18 @@
   "ObjectMappingField": {
     "fields": [
       {
-        "Description": "Required. Field in the object specified by the inputObject field in ObjectMapping. This field is mapped to the field in outputField, which is a field in the object specified by the outputObject field in ObjectMapping.",
+        "Description": "Required. Field in the object specified by the inputObject field in ObjectMapping. This field is mapped to the field in outputField, which is assumed to be a field in the object specified by the outputObject field in ObjectMapping.",
         "Field Name": "inputField",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Field in the object specified by the outputObject field in ObjectMapping. This field is mapped to the field name in inputField, which is a field in the object specified by the inputObject field in ObjectMapping.",
+        "Description": "Required. Field in the object specified by the outputObject field in ObjectMapping. The field is mapped to the field name in inputField, which is assumed to be a field in the object specified by the inputObject in ObjectMapping.",
         "Field Name": "outputField",
         "Field Type": "string"
       }
     ],
-    "short_description": "A field name in the SalesAgreementProductSchedule object and the corresponding field name in the SalesAgreementProduct object.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_salesagreementsettings_metadata_api.htm"
+    "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_duplicaterule.htm"
   },
   "EclairGeoData": {
     "fields": [
@@ -17257,12 +17327,12 @@
   "EmbeddedServiceCustomLabel": {
     "fields": [
       {
-        "Description": "The customized label that appears in the channel menu.",
+        "Description": "The customized label that appears in the embedded component.",
         "Field Name": "customLabel",
         "Field Type": "string"
       },
       {
-        "Description": "The feature using the custom label. For channel menu deployments, the value is ChannelMenu.",
+        "Description": "The feature that this embedded component uses. Valid values are: Base ChannelMenu EmbeddedMessaging—Messaging for In-App and Messaging for Web deployments FieldService Flows LiveAgent NotInUse",
         "Field Name": "feature",
         "Field Type": "EmbeddedServiceFeature (enumeration of type string)"
       },
@@ -17272,8 +17342,8 @@
         "Field Type": "EmbeddedServiceLabelKey (enumeration of type string)"
       }
     ],
-    "short_description": "Represents the custom labels used in your channel menu deployment.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedservicemenusettings.htm"
+    "short_description": "Returns a custom label that’s associated with an EmbeddedServiceConfig setup.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm"
   },
   "EmbeddedServiceCustomization": {
     "fields": [
@@ -17294,54 +17364,114 @@
       }
     ],
     "short_description": "Returns the customization associated with the Embedded Service feature. Available in API version 50.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedservicemenusettings.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm"
   },
   "EmbeddedServiceResource": {
     "fields": [
       {
-        "Description": "Required. The ID of the static resource that contains the javascript file of the customization.",
-        "Field Name": "resource",
-        "Field Type": "string"
+        "Description": "Required. Indicates when we display this form. Values are: Session- The pre-chat form is displayed every session. Conversation- Tthe pre-chat form is displayed every conversation. None- Don’t select this option.",
+        "Field Name": "displayContext",
+        "Field Type": "EmbeddedServiceFormDisplayContext (enumeration of type string)"
       },
       {
-        "Description": "Required. The embedded service feature to customize. Only the Chat feature is supported. Valid values are: ChatInvitation",
-        "Field Name": "resourceType",
-        "Field Type": "EmbeddedServiceResourceType (enumeration of type string)"
+        "Description": "Indicates whether the form is active. The default value is false.",
+        "Field Name": "isActive",
+        "Field Type": "Boolean"
       }
     ],
-    "short_description": "Returns the static resource associated with the Embedded Service Chat feature customization. Available in API version 50.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedservicemenusettings.htm"
+    "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm"
   },
   "EmbeddedServiceFlowConfig": {
     "fields": [
       {
-        "Description": "Indicates whether the embedded flow is enabled (true) or not (false). Defaults to false.",
-        "Field Name": "enabled",
-        "Field Type": "boolean"
+        "Description": "Required. Maps to either a StandardMessingChannelParameter or a CustomMessagingChannelParameter",
+        "Field Name": "formField",
+        "Field Type": "string or enum"
+      },
+      {
+        "Description": "Required. Indicates whether formField points to a StandardMessagingChannelParameter or a CustomMessagingChannelParameter. Please match the Enum value here to the formField passed in. Valid values for MessagingChannelParameterType are: Standard - select this field when you want to reference a StandardMessagingChannelParameter Custom - select this field when you want to reference a CustomMessagingChannelParameter Valid values for StandardMessagingChannelParameter are: FirstName LastName Email Subject",
+        "Field Name": "messagingChannelParameterType",
+        "Field Type": "MessagingChannelParameterType (enumeration of type string) OR StandardMessagingChannelParameter (enumeration of type string)"
+      },
+      {
+        "Description": "Required. Indicates the type of data is passed by the End User when filling out the Prechat form. Valid values are: Text Email Phone Number Checkbox Choicelist",
+        "Field Name": "formFieldType",
+        "Field Type": "EmbeddedServiceFormFieldType (enumeration of type string)"
+      },
+      {
+        "Description": "Indicates the relative order of the form field in the prechat form. For Prechat fields where isHidden is set to true displayOrder must be set to -1. For Prechat fields where isHidden is set to false, this value must be greater than or equal to 0.",
+        "Field Name": "displayOrder",
+        "Field Type": "Integer"
+      },
+      {
+        "Description": "Indicates whether a Prechat form field is required. If isHidden is set to true, isRequired must be set to false.",
+        "Field Name": "isRequired",
+        "Field Type": "Boolean"
+      },
+      {
+        "Description": "Indicates whether a Prechat form field is displayed in the UI. isHidden can only be set to true if the formField field is set to CustomMessagingChannelParameter and messagingChannelParameterType is set to Custom.",
+        "Field Name": "isHidden",
+        "Field Type": "Boolean"
+      },
+      {
+        "Description": "The choice list that's associated with EmbeddedServiceFormField. ChoiceList can only be associated if the formField is set to CustomMessagingChannelParameter and messagingChannelParameterType is set to Custom.",
+        "Field Name": "choiceList",
+        "Field Type": "ChoiceList"
+      },
+      {
+        "Description": "The custom label for this field.",
+        "Field Name": "embeddedServiceCustomLabels",
+        "Field Type": "EmbeddedServiceCustomLabel[]"
       }
     ],
-    "short_description": "Represents a setup node for creating an embedded flow. This type extends the Metadata metadata type and inherits its fullName field.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceflowconfig.htm"
+    "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm"
   },
   "EmbeddedServiceFlow": {
     "fields": [
       {
-        "Description": "The developer name of the flow.",
-        "Field Name": "flow",
-        "Field Type": "string"
+        "Description": "The Business Hours record that’s associated with this specific embedded service deployment.",
+        "Field Name": "businessHours",
+        "Field Type": "String"
       },
       {
-        "Description": "The type of flow. Valid values are: FS_CancelAppointment FS_Flow FS_ModifyAppointment FS_NewAppointment LA_Survey",
-        "Field Name": "flowType",
-        "Field Type": "EmbeddedServiceFlowType(enumeration of type string)"
+        "Description": "Required. Indicates whether this embedded service deployment is enabled.",
+        "Field Name": "isEnabled",
+        "Field Type": "Boolean"
       },
       {
-        "Description": "Indicates whether users are required to log in to access the Embedded Service component. The value can’t be true for the FS_Flow value and must be true for all other values.",
-        "Field Name": "isAuthenticationRequired",
-        "Field Type": "boolean"
+        "Description": "Required. The MessagingChannel record that’s associated with this specific embedded service deployment.",
+        "Field Name": "messagingChannel",
+        "Field Type": "String"
+      },
+      {
+        "Description": "Required. Indicates whether delivery receipts are shown in the UI.",
+        "Field Name": "shouldShowDeliveryReceipts",
+        "Field Type": "Boolean"
+      },
+      {
+        "Description": "Required. Indicates whether emoji selection is shown in the UI.",
+        "Field Name": "shouldShowEmojiSelection",
+        "Field Type": "Boolean"
+      },
+      {
+        "Description": "Required. Indicates whether read reciepts are shown in the UI.",
+        "Field Name": "shouldShowReadReceipts",
+        "Field Type": "Boolean"
+      },
+      {
+        "Description": "Required. Indicates whether typing indicators are shown in the UI.",
+        "Field Name": "shouldShowTypingIndicators",
+        "Field Type": "Boolean"
+      },
+      {
+        "Description": "Required. Indicates whether pressing Enter starts a new line of text in the UI.",
+        "Field Name": "shouldStartNewLineOnEnter",
+        "Field Type": "Boolean"
       }
     ],
-    "short_description": "Returns an embedded flow that’s associated with an EmbeddedServiceConfig setup.",
+    "short_description": "",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm"
   },
   "EmbeddedServiceLayout": {
@@ -18207,6 +18337,16 @@
     "short_description": "Represents the settings for an entitlement process.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_entitlementprocess.htm"
   },
+  "EntitlementProcessMilestoneItem": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_entitlementprocess.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_entitlementprocess.htm"
+  },
+  "EntitlementProcessMilestoneTimeTrigger": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_entitlementprocess.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_entitlementprocess.htm"
+  },
   "EntitlementTemplate": {
     "fields": [
       {
@@ -18350,18 +18490,18 @@
   "EventParameterMap": {
     "fields": [
       {
-        "Description": "Required. The published event’s field name.",
+        "Description": "The parameter name.",
         "Field Name": "parameterName",
         "Field Type": "string"
       },
       {
-        "Description": "The value that must be true.",
+        "Description": "The parameter value.",
         "Field Name": "parameterValue",
         "Field Type": "string"
       }
     ],
-    "short_description": "An array of parameters that must be true for published events. For example, subscribe to Vendor Response events only if Status__c is Shipped.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_eventsubscription.htm"
+    "short_description": "Parameters to deliver in addition to the published event’s data.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_eventdelivery.htm"
   },
   "EventRelayConfig": {
     "fields": [
@@ -20349,7 +20489,7 @@
       }
     ],
     "short_description": "Represents the direction of the data flow between your License Management Org (LMO) and the customer’s org.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_featureparameterinteger.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_featureparameterboolean.htm"
   },
   "FeatureParameterDate": {
     "fields": [
@@ -20502,7 +20642,7 @@
         "Field Type": "FlexiPageTemplateInstance"
       },
       {
-        "Description": "Required. The type of a page. In API versions 32.0 through 36.0, this field can only have a value of AppPage.Valid values are: CdpRecordPage—A Lightning page that is used to override a CDPNearCoreObject record page in Lightning Experience. This value is available in API version 54.0 and later for orgs that have Data Cloud enabled. AppPage—A Lightning page that is used as the home page for a custom app. CommAppPage—A Lightning page that is used to represent a custom page, as created in the Experience Builder. This value is available in API version 37.0 and later. CommContractDetailViewPage—This value is available in API version 64.0 and later. CommCheckoutPage—A Lightning page that is used to create a B2B Commerce checkout, as created in the Experience Builder. This value is available in API version 46.0 and later. CommFlowPage A Lightning page used to override a flow page, as created in the Experience Builder. This value is available in API version 45.0 and later. CommForgotPasswordPage—A Lightning page that’s used to override a forgot-password page, as created in Experience Builder. This value is available in API version 39.0 and later. CommFlowPage—An out-of-the-box flow page, as created in Experience Builder. This value is available in API version 45.0 and later. CommGlobalSearchResultPage A Lightning page used to override the global search result page, as created in Experience Builder. This value is available in API version 41.0 and later. CommLoginPage—A Lightning page that’s used to override the login page, as created in Experience Builder. This value is available in API version 39.0 and later. CommNoSearchResultsPage—An Experience Builder site page for B2B searches that return no results. The URL for this page is no-results/:term. The page starts out empty. You can add any component to it that accepts parameters to achieve the desired “no results” experience. For example, you can place an HTML Editor component or CMS components for recommendations, banners, help, and support. This value is available in API version 48.0 and later. CommObjectPage—A Lightning page used to override an object page, as created in Experience Builder. This value is available in API version 38.0 and later. CommOrderComfirmationPage—A Lightning page that is used to create a B2B Commerce order confirmation page in checkout, as created in the Experience Builder. This value is available in API version 46.0 and later. CommQuickActionCreatePage—A Lightning page used to override the create record page, as created in Experience Builder. This value is available in API version 38.0 and later. CommRecordPage—A Lightning page used to override a record page, as created in the Experience Builder. This value is available in API version 38.0 and later. CommRelatedListPage—A Lightning page used to override a related list page, as created in the Experience Builder. This value is available in API version 38.0 and later. CommSearchResultPage—A Lightning page used to override the search result page, as created in Experience Builder. This value is available in API version 38.0 and later. CommSelfRegisterPage—A Lightning page used to override the self-registration page, as created in Experience Builder. This value is available in API version 39.0 and later. CommThemeLayoutPage—A Lightning page used to override a theme layout page, as created in the Experience Builder. This value is available in API version 38.0 and later. EmbeddedServicePage This value is available in API version 45.0 and later. EmailContentPage — A page that contains the builder markup for your email content. When you edit email content in the builder, the FlexiPage object remembers where you put the components. Because they include builder markup, you can't retrieve or deploy FlexiPages when type is EmailContentPage. EmailTemplatePage — A page that contains the builder markup for your email template. When you edit an email template in the builder, the FlexiPage object remembers where you put the components. Because they include builder markup, you can't retrieve or deploy FlexiPages when type is EmailTemplatePage or EmailContentPage. ForecastingPage —A Lightning page that is used to override the default forecasts page in Lightning Experience. This value is available in API version 57.0 and later. HomePage—A Lightning page that is used to override the Home page in Lightning Experience. This value is available in API version 37.0 and later. MailAppAppPage—An email application pane used to override the default layout in the Outlook and Gmail integrations. This value is available in API version 38.0 and later. OmniSupervisorPageType—A Lightning page used to customize the user interface on the Omni-Channel Supervisor page. This value is available in API version 60.0 and later. RecordPage—A Lightning page used to override an object record page in Lightning Experience. This value is available in API version 37.0 and later. RecordPreview A Lightning page used to override standard lookup previews when hovering over previewable records in Lightning Experience.This value is available in API version 45.0 and later. UtilityBar—A Lightning page used as the utility bar in Lightning Experience apps. This value is available in API version 38.0 and later. VoiceExtension—A Lightning page used to customize user interfaces and agent actions in the Omni-Channel widget for Service Cloud Voice. This value is available in API version 57.0 and later. This field is available in API version 32.0 and later.",
+        "Description": "Required. The type of a page. In API versions 32.0 through 36.0, this field can only have a value of AppPage.Valid values are: CdpRecordPage—A Lightning page that is used to override a CDPNearCoreObject record page in Lightning Experience. This value is available in API version 54.0 and later for orgs that have Data 360 enabled. AppPage—A Lightning page that is used as the home page for a custom app. CommAppPage—A Lightning page that is used to represent a custom page, as created in the Experience Builder. This value is available in API version 37.0 and later. CommContractDetailViewPage—This value is available in API version 64.0 and later. CommCheckoutPage—A Lightning page that is used to create a B2B Commerce checkout, as created in the Experience Builder. This value is available in API version 46.0 and later. CommFlowPage A Lightning page used to override a flow page, as created in the Experience Builder. This value is available in API version 45.0 and later. CommForgotPasswordPage—A Lightning page that’s used to override a forgot-password page, as created in Experience Builder. This value is available in API version 39.0 and later. CommFlowPage—An out-of-the-box flow page, as created in Experience Builder. This value is available in API version 45.0 and later. CommGlobalSearchResultPage A Lightning page used to override the global search result page, as created in Experience Builder. This value is available in API version 41.0 and later. CommLoginPage—A Lightning page that’s used to override the login page, as created in Experience Builder. This value is available in API version 39.0 and later. CommNoSearchResultsPage—An Experience Builder site page for B2B searches that return no results. The URL for this page is no-results/:term. The page starts out empty. You can add any component to it that accepts parameters to achieve the desired “no results” experience. For example, you can place an HTML Editor component or CMS components for recommendations, banners, help, and support. This value is available in API version 48.0 and later. CommObjectPage—A Lightning page used to override an object page, as created in Experience Builder. This value is available in API version 38.0 and later. CommOrderComfirmationPage—A Lightning page that is used to create a B2B Commerce order confirmation page in checkout, as created in the Experience Builder. This value is available in API version 46.0 and later. CommQuickActionCreatePage—A Lightning page used to override the create record page, as created in Experience Builder. This value is available in API version 38.0 and later. CommRecordPage—A Lightning page used to override a record page, as created in the Experience Builder. This value is available in API version 38.0 and later. CommRelatedListPage—A Lightning page used to override a related list page, as created in the Experience Builder. This value is available in API version 38.0 and later. CommSearchResultPage—A Lightning page used to override the search result page, as created in Experience Builder. This value is available in API version 38.0 and later. CommSelfRegisterPage—A Lightning page used to override the self-registration page, as created in Experience Builder. This value is available in API version 39.0 and later. CommThemeLayoutPage—A Lightning page used to override a theme layout page, as created in the Experience Builder. This value is available in API version 38.0 and later. EmbeddedServicePage This value is available in API version 45.0 and later. EmailContentPage — A page that contains the builder markup for your email content. When you edit email content in the builder, the FlexiPage object remembers where you put the components. Because they include builder markup, you can't retrieve or deploy FlexiPages when type is EmailContentPage. EmailTemplatePage — A page that contains the builder markup for your email template. When you edit an email template in the builder, the FlexiPage object remembers where you put the components. Because they include builder markup, you can't retrieve or deploy FlexiPages when type is EmailTemplatePage or EmailContentPage. ForecastingPage —A Lightning page that is used to override the default forecasts page in Lightning Experience. This value is available in API version 57.0 and later. HomePage—A Lightning page that is used to override the Home page in Lightning Experience. This value is available in API version 37.0 and later. MailAppAppPage—An email application pane used to override the default layout in the Outlook and Gmail integrations. This value is available in API version 38.0 and later. OmniSupervisorPageType—A Lightning page used to customize the user interface on the Omni-Channel Supervisor page. This value is available in API version 60.0 and later. RecordPage—A Lightning page used to override an object record page in Lightning Experience. This value is available in API version 37.0 and later. RecordPreview A Lightning page used to override standard lookup previews when hovering over previewable records in Lightning Experience.This value is available in API version 45.0 and later. UtilityBar—A Lightning page used as the utility bar in Lightning Experience apps. This value is available in API version 38.0 and later. VoiceExtension—A Lightning page used to customize user interfaces and agent actions in the Omni-Channel widget for Service Cloud Voice. This value is available in API version 57.0 and later. This field is available in API version 32.0 and later.",
         "Field Name": "type",
         "Field Type": "FlexiPageType (enumeration of type string)"
       }
@@ -20759,13 +20899,13 @@
         "Field Type": "string"
       },
       {
-        "Description": "List of one or more filters that, when evaluated, determine conditional field formatting visibility.",
+        "Description": "List of one or more filters that, when evaluated, determine component visibility.",
         "Field Name": "criteria",
         "Field Type": "UiFormulaCriterion[]"
       }
     ],
-    "short_description": "A set of one or more filters that define the conditions under which conditional field formatting displays on a Dynamic Forms-enabled Lightning page field instance. For example, you could construct a filter that causes conditional formatting to display only when the Amount field is greater than $1,000,000.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_uiformatspecificationset.htm"
+    "short_description": "A set of one or more filters that define the conditions under which a component displays on a Lightning page. For example, you could construct a filter that causes a rich text component on an opportunity page to display only when the Amount is greater than $1,000,000. Available in API version 41.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flexipage.htm"
   },
   "UiFormulaCriterion": {
     "fields": [
@@ -20780,13 +20920,13 @@
         "Field Type": "string"
       },
       {
-        "Description": "The value by which you want to evaluate the formatting visibility. For example, 1000000.",
+        "Description": "The value by which you want to evaluate the component’s visibility. For example, 1000000.",
         "Field Name": "rightValue",
         "Field Type": "string"
       }
     ],
-    "short_description": "A single filter that when evaluated, helps define conditional formatting visibility on a Dynamic Forms-enabled Lightning page field instance.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_uiformatspecificationset.htm"
+    "short_description": "A single filter that when evaluated, helps define component visibility on a Lightning page. Available in API version 41.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flexipage.htm"
   },
   "FieldInstance": {
     "fields": [
@@ -20864,23 +21004,23 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "PlatformActionList represents the list of actions and their order that appear in the Salesforce mobile app action bar for the layout. Available in API version 34.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_layouts.htm"
+    "short_description": "PlatformActionList represents the list of actions, and their order, that display on a Lightning app page. Available in API version 34.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flexipage.htm"
   },
   "PlatformActionListItem": {
     "fields": [
       {
-        "Description": "The API name for the action in the list.",
+        "Description": "Required. The API name for the action in the list.",
         "Field Name": "actionName",
         "Field Type": "string"
       },
       {
-        "Description": "The type of action. Valid values are: ActionLink—An indicator on a feed element that targets an API, a web page, or a file, represented by a button in the Salesforce Chatter feed UI. CustomButton—When clicked, opens a URL or a Visualforce page in a window or executes JavaScript. InvocableAction ProductivityAction—Productivity actions are predefined and attached to a limited set of objects. Productivity actions include Send Email, Call, Map, View Website, and Read News. Except for the Call action, you can’t edit productivity actions. QuickAction—A global or object-specific action. StandardButton—A predefined Salesforce button such as New, Edit, and Delete.",
+        "Description": "Required. The type of action. Valid values are: ActionLink—An indicator on a feed element that targets an API, a web page, or a file, represented by a button in the Salesforce Chatter feed UI. CustomButton—When clicked, opens a URL or a Visualforce page in a window or executes JavaScript. InvocableAction ProductivityAction—Productivity actions are predefined and attached to a limited set of objects. Productivity actions include Send Email, Call, Map, View Website, and Read News. Except for the Call action, you can’t edit productivity actions. QuickAction—A global or object-specific action. StandardButton—A predefined Salesforce button such as New, Edit, and Delete.",
         "Field Name": "actionType",
         "Field Type": "PlatformActionType (enumeration of type string)"
       },
       {
-        "Description": "The placement of the action in the list.",
+        "Description": "Required. The placement of the action in the list.",
         "Field Name": "sortOrder",
         "Field Type": "int"
       },
@@ -20891,7 +21031,7 @@
       }
     ],
     "short_description": "PlatformActionListItem represents an action in the PlatformActionList. Available in API version 34.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_layouts.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flexipage.htm"
   },
   "Flow": {
     "fields": [
@@ -23901,6 +24041,16 @@
     "short_description": "An output parameter for FlowWaitEvent. The parameter’s value is assigned to a variable in the flow so that it can be referenced in another part of the flow. It extends FlowBaseElement and inherits all its fields. FlowWaitEventOutputParameter is available in API version 32.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm"
   },
+  "FlowScreenActionInputParameter": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm"
+  },
+  "FlowStageStepOutputConfigParam": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm"
+  },
   "FlowCategory": {
     "fields": [
       {
@@ -24108,6 +24258,11 @@
       }
     ],
     "short_description": "Defines parameters for the triggering record in the Start test point.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm"
+  },
+  "FlowTestFlowVersion": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm"
   },
   "Folder": {
@@ -24851,7 +25006,7 @@
       }
     ],
     "short_description": "Represents an attribute mapping, which enables you to map the output of one action attribute to the input of another attribute. This mapping enables you to propagate sensitive data safely without relying on untrusted user input.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplannerbundle.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplanner.htm"
   },
   "GenAiPlannerFunctionDef": {
     "fields": [
@@ -24872,7 +25027,7 @@
       }
     ],
     "short_description": "Represents an agent topic or action definition.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplannerbundle.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplanner.htm"
   },
   "GenAiLocalPlugin": {
     "fields": [
@@ -24882,12 +25037,7 @@
         "Field Type": "AiPluginUtteranceDef[]"
       },
       {
-        "Description": "Determines whether this topic is applicable for escalation to a rep.",
-        "Field Name": "canEscalate",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Required. The description of the topic.",
+        "Description": "The description of the topic.",
         "Field Name": "description",
         "Field Type": "string"
       },
@@ -24917,7 +25067,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. Values are: Topic APICustomTopic",
+        "Description": "Required. Values are: Topic",
         "Field Name": "pluginType",
         "Field Type": "PluginType (enumeration of type string)"
       },
@@ -24928,7 +25078,7 @@
       }
     ],
     "short_description": "Represents a custom agent topic.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplannerbundle.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplanner.htm"
   },
   "GenAiPlannerRuleExprAsgn": {
     "fields": [
@@ -24949,7 +25099,7 @@
       }
     ],
     "short_description": "Represents a rule-expression assignment to either a topic or an action.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplannerbundle.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplanner.htm"
   },
   "GenAiPlannerRuleExprDef": {
     "fields": [
@@ -24980,7 +25130,7 @@
       }
     ],
     "short_description": "Represents a rule expression, which conditionally locks or unlocks topics and actions based on defined security criteria.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplannerbundle.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplanner.htm"
   },
   "GenAiPlannerRuleExprCondition": {
     "fields": [
@@ -25006,7 +25156,7 @@
       }
     ],
     "short_description": "Represents a condition for a rule expression.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplannerbundle.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplanner.htm"
   },
   "GenAiPlannerBundle": {
     "fields": [
@@ -25677,14 +25827,24 @@
   "IdentityVerificationProcDtl": {
     "fields": [
       {
-        "Description": "Reserved for future use.",
+        "Description": "The Apex class that is used to search and verify data in an external system.",
         "Field Name": "apexClass",
         "Field Type": "string"
       },
       {
-        "Description": "Required. The source type of the data. Valid values are: External—Reserved for future use. Salesforce",
+        "Description": "Required. The source type of the data.Valid values are: External Salesforce",
         "Field Name": "dataSourceType",
         "Field Type": "IdentityVerificationDataSourceType (enumeration of type string)"
+      },
+      {
+        "Description": "Required. The developer name of Identity verification process detail. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.",
+        "Field Name": "developerName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The name of the field that contains information about the record that's shown to the user after identity verification is successful. Available in API version 58.0 and later.",
+        "Field Name": "displayRecordFieldName",
+        "Field Type": "string"
       },
       {
         "Description": "A list of Identity Verification Process Field elements.",
@@ -25692,9 +25852,19 @@
         "Field Type": "IdentityVerificationProcFld[]"
       },
       {
-        "Description": "Indicates whether the record is active (true) or not (false). The default value is false.",
+        "Description": "Indicates whether the record is active (true) or not (false).",
         "Field Name": "isActive",
         "Field Type": "boolean"
+      },
+      {
+        "Description": "For internal use only.",
+        "Field Name": "isRetryAllowedAfterLimit",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "The record containing the details of the linked identity verification process. Available in API version 58.0 and later.",
+        "Field Name": "linkedIdVerfProcessDet",
+        "Field Type": "string"
       },
       {
         "Description": "Required. The label of the Identity Verification Process Detail record.",
@@ -25707,83 +25877,93 @@
         "Field Type": "string"
       },
       {
-        "Description": "The minimum number of optional verifiers that must be checked.",
+        "Description": "The number of optional verifiers that must be checked.",
         "Field Name": "optionalVerifiersMinVerfCount",
         "Field Type": "int"
       },
       {
-        "Description": "Conditions on which to filter the search results. For example, if you want to perform the search only on Person Account records, enter isPersonAccount = true.",
+        "Description": "For internal use only.",
+        "Field Name": "retryLimit",
+        "Field Type": "int"
+      },
+      {
+        "Description": "A comma-separated list of predefined filter conditions that are used to refine the scope of the search.",
         "Field Name": "searchFilter",
         "Field Type": "string"
       },
       {
-        "Description": "The field that stores the unique identifier of the records that are displayed in the search results.",
+        "Description": "The field storing the unique identifier of a record displayed in the search results.",
         "Field Name": "searchRecordUniqueIdField",
         "Field Type": "string"
       },
       {
-        "Description": "The values that are used to sort the search results. For example, if you want to sort the results by policy date, enter PolicyDate__c Desc.",
+        "Description": "The values that are used to sort the search results.",
         "Field Name": "searchResultSortBy",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Enter 1 as the search sequence number.In API version 54.0 and later, this field is reserved for future use, and the value you enter doesn't affect sequencing.",
+        "Description": "Required. The sequence in which the search is performed and the search result is displayed.",
         "Field Name": "searchSequenceNumber",
         "Field Type": "int"
       },
       {
-        "Description": "Required. The type of search being performed. Valid values are: Object-Based—Reserved for future use. Text-Based",
+        "Description": "Required. The type of search being performed. Valid values are: Object-Based Text-Based",
         "Field Name": "searchType",
         "Field Type": "IdentityVerificationSearchType (enumeration of type string)"
       }
     ],
-    "short_description": "Represents the search functionality configuration and the minimum number of optional verifiers for identity verification. This type extends the Metadata metadata type and inherits its fullName field.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_identityverificationprocdtl.htm"
+    "short_description": "Represents the verification-related details such as search criteria, verification criteria, or the custom apex class.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_identityverificationprocdef.htm"
   },
   "IdentityVerificationProcFld": {
     "fields": [
       {
-        "Description": "The custom label for the field that contains the verification data.Translation of custom field labels isn't supported in API version 54.0.",
+        "Description": "The custom label for the field that contains the verification data.",
         "Field Name": "customFieldLabel",
         "Field Type": "string"
       },
       {
-        "Description": "Required. The source type of the data. Valid values are: ExternalAn external data source isn’t supported in API version 54.0. Salesforce",
+        "Description": "Required. The source type of the data. Valid values are: External Salesforce",
         "Field Name": "dataSourceType",
         "Field Type": "IdentityVerificationProcFldDataSourceType (enumeration of type string)"
       },
       {
-        "Description": "The type of data stored in an external data source field. Possible values are: address checkbox currency dateonly datetime email number other percent phone picklist reference text timeonly url",
-        "Field Name": "fieldDataType",
-        "Field Type": "picklist"
+        "Description": "Required. The developer name of Identity Verification Process Field. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores. Available in API version 58.0 and later.",
+        "Field Name": "developerName",
+        "Field Type": "string"
       },
       {
-        "Description": "Required. The label of the field that contains the verification data based on the selected field type.",
+        "Description": "The data type of the field in the external data source that's defined in the identity verification process detail. Available in API version 58.0 and later. Valid values are: address checkbox currency dateonly datetime email number other percent phone picklist reference text timeonly url",
+        "Field Name": "fieldDataType",
+        "Field Type": "IdentityVerificationProcFldFieldDataType (enumeration of type string)"
+      },
+      {
+        "Description": "Required. The label of the field that contains the verification data based on the selected field type. Available in API version 58.0 and later.",
         "Field Name": "fieldName",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Indicates the type of field. Possible values are: additionalResultField—Fetches data as part of the search query, but the data isn’t displayed in search results. Use this value if, for example, you want to fetch the policy number and the age of the policy owner as a result of the search, but the agent isn’t supposed to see this data. You can write custom logic to process this additional data. optionalVerifier—Optional verifier. requiredVerifier—Required verifier. resultField—Displays field type in search results. Use this value if, for example, when an agent searches for a caller, you’d like the search results to include the account name, phone number, and email ID. searchField—Reserved for future use. searchFilter—A comma-separated list of predefined filter conditions that are used to refine the scope of the search.",
+        "Description": "Required. Indicates the type of field. Valid values are: additionalResultField optionalVerifier requiredVerifier resultField searchField searchFilter",
         "Field Name": "fieldType",
         "Field Type": "IdentityVerificationProcFldFieldType (enumeration of type string)"
       },
       {
-        "Description": "Reserved for future use.",
+        "Description": "Stores the formula that is applied to the field value.",
         "Field Name": "fieldValueFormula",
         "Field Type": "string"
       },
       {
-        "Description": "Indicates whether the record is active (true) or not (false). The default value is false.",
+        "Description": "Indicates whether the record is active (true) or not (false).",
         "Field Name": "isActive",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the user can manually enter the identity verification details (true) or not (false). The default value is false. This field is available in API version 58.0 and later.",
+        "Description": "Indicates whether the user can manually enter the identity verification details (true) or not (false). The default value of this field is false. Available in API version 58.0 and later.",
         "Field Name": "isManualInput",
         "Field Type": "boolean"
       },
       {
-        "Description": "Required. The label of the Identity Verification Process Field record.",
+        "Description": "Required. A user-friendly name for Identity Verification Process Field.",
         "Field Name": "masterLabel",
         "Field Type": "string"
       },
@@ -25793,8 +25973,8 @@
         "Field Type": "int"
       }
     ],
-    "short_description": "Represents the search and verification fields used in identity verification. This type extends the Metadata metadata type and inherits its fullName field.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_identityverificationprocfld.htm"
+    "short_description": "Represents a set of fields necessary to configure the questions that CCA asks the caller before providing them with the information they need.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_identityverificationprocdef.htm"
   },
   "InboundCertificate": {
     "fields": [
@@ -27885,6 +28065,16 @@
     "short_description": "Represents a Chat deployment’s settings for the button that customers click to chat with an agent and the chat window, such as the label that appears on the button and the pre-chat form that appears before a chat begins. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatbutton.htm"
   },
+  "LiveChatButtonDeployments": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatbutton.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatbutton.htm"
+  },
+  "LiveChatButtonSkills": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatbutton.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatbutton.htm"
+  },
   "LiveChatDeployment": {
     "fields": [
       {
@@ -27944,6 +28134,11 @@
       }
     ],
     "short_description": "Represents the configuration settings for a specific Chat deployment, such as the branding image for the deployment and whether or not chat transcripts are automatically saved.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatdeployment.htm"
+  },
+  "LiveChatDeploymentDomainWhiteList": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatdeployment.htm",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatdeployment.htm"
   },
   "LiveChatSensitiveDataRule": {
@@ -28771,37 +28966,32 @@
   "MessagingAutoResponse": {
     "fields": [
       {
-        "Description": "The content type of the auto-response: TextResponse or MessageDefinition.",
-        "Field Name": "autoResponseContentType",
-        "Field Type": "string"
+        "Description": "Required. Represents an identifier for the MessagingAuthorization entity. The value must begin with a letter. Only alphanumeric characters and _ are allowed.",
+        "Field Name": "authIdentifier",
+        "Field Type": "String"
       },
       {
-        "Description": "The language of the auto response.",
-        "Field Name": "language",
-        "Field Type": "string"
+        "Description": "This field should never be set. Although this field is exposed, it isn't supported. The field represents the name of the AuthProvider that’s referenced in the MessagingAuthorization. It’s a required field if authorizationType is set to AuthProvider.",
+        "Field Name": "authProviderName",
+        "Field Type": "String"
       },
       {
-        "Description": "The name of the messaging component.",
-        "Field Name": "messageDefinitionName",
-        "Field Type": "string"
+        "Description": "Required. Indicates whether MessagingAuthorization has been configured to reference a PublicKeyCertificateSet or an AuthProvider. Valid values are: PublicKeyCertificateSet - Indicates that a PublicKeyCertificateSet is referenced in the MessagingAuthorization entity. This is the only option that will lead to a fully functional User Verification setup. AuthProvider - This option should never be selected. It indicates that an AuthProvider is referenced in the MessagingAuthorization, but we don’t support it.",
+        "Field Name": "authorizationType",
+        "Field Type": "MessagingAuthorizationType (enumeration of type string)"
       },
       {
-        "Description": "The text of the auto response.",
-        "Field Name": "response",
-        "Field Type": "string"
+        "Description": "Indicates whether messaging authorization is enabled. Defaults to false.",
+        "Field Name": "enabled",
+        "Field Type": "Boolean"
       },
       {
-        "Description": "The number of minutes after which a response can no longer be sent. The value can range from 5 to 60.",
-        "Field Name": "responseTimeoutInMins",
-        "Field Type": "integer"
-      },
-      {
-        "Description": "Required. The type of response, which determines when it’s used in a messaging session. Values are: AgentEndEngagementResponse AgentEngagedResponse CustomResponse (Available in API version 65.0 and later.) DoubleOptInPrompt (Available in API version 65.0 and later.) EndUserIdleResponse (Available in API version 65.0 and later.) EndUserInactiveResponse (Available in API version 65.0 and later.) HelpResponse (Available in API version 65.0 and later.) InitialResponse OptInConfirmation (Available in API version 65.0 and later.) OptInPrompt (Available in API version 65.0 and later.) OptOutConfirmation (Available in API version 65.0 and later.)",
-        "Field Name": "type",
-        "Field Type": "MessagingAutoResponseType (enumeration of type string)"
+        "Description": "Name of the public key certificate set that's referenced in the MessagingAuthorization entity. This is a required field if authorizationType is set to PublicKeyCertificateSet.",
+        "Field Name": "publicKeyCertificateSetName",
+        "Field Type": "String"
       }
     ],
-    "short_description": "Represents an automated response used in a channel.",
+    "short_description": "",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_messagingchannel.htm"
   },
   "MessagingChannelCustomParameter": {
@@ -29173,18 +29363,18 @@
   "SynonymGroup": {
     "fields": [
       {
-        "Description": "Required. Specifies the languages the synonym group applies to. If synonyms are specific to a single language, specify only that language. If the synonyms apply to multiple languages, specify multiple languages for one synonym group.",
+        "Description": "Required. Specifies the languages the value list applies to. If value list items are specific to a single language, specify only that language. If the value list items apply to multiple languages, specify multiple languages for one value list.",
         "Field Name": "languages",
-        "Field Type": "Language"
+        "Field Type": "Language (enumeration of type string)"
       },
       {
-        "Description": "Required. A word or phrase synonymous with other terms in the group. Maximum of 50 characters. Minimum of two terms per group.Synonym groups are symmetric, which means that if oranges and apples are defined in a synonym group, a search for oranges will return a match for apples, and vice versa for a search for apples.",
+        "Description": "Required. A word or phrase synonymous with other terms in the value list.",
         "Field Name": "terms",
         "Field Type": "string"
       }
     ],
     "short_description": "Represents a group of synonymous words or phrases.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_synonymdictionary.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mldomain.htm"
   },
   "MLDataDefinition": {
     "fields": [
@@ -30026,8 +30216,8 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents a single menu item in the NavigationLinkSet subtype (API version 37.0 to 46.0) or in the NavigationMenu type (API version 47.0 and later). Use this subtype to create, delete, or update menu items in your site’s navigation menu.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_network.htm"
+    "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_navigationmenu.htm"
   },
   "NavigationMenuItemBranding": {
     "fields": [
@@ -30049,7 +30239,7 @@
       }
     ],
     "short_description": "A list of child menu items. Only NavigationMenuItem items of type MenuLabel can have items in a NavigationSubMenu. Available in API 39.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_network.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_navigationmenu.htm"
   },
   "Network": {
     "fields": [
@@ -31238,78 +31428,38 @@
   "Table 3. Fields": {
     "fields": [
       {
-        "Description": "The column number in the item with the cell storing this field’s value. Available in API version 56.0 and later.",
-        "Field Name": "cellColumnNumber",
-        "Field Type": "int"
-      },
-      {
-        "Description": "The number of columns that span the cell storing this field’s value. Available in API version 56.0 and later.",
-        "Field Name": "cellColumnSpanValue",
-        "Field Type": "int"
-      },
-      {
-        "Description": "The row number in the item with the cell storing this field’s value. Available in API version 56.0 and later.",
-        "Field Name": "cellRowNumber",
-        "Field Type": "int"
-      },
-      {
-        "Description": "The number of rows that span the cell storing this field’s value. Available in API version 56.0 and later.",
-        "Field Name": "cellRowSpanValue",
-        "Field Type": "int"
-      },
-      {
-        "Description": "A normalized coordinate representing the right edge of the bounding box of the key.",
-        "Field Name": "fieldLabelMaxX",
-        "Field Type": "double"
-      },
-      {
-        "Description": "A normalized coordinate representing the bottom edge of the bounding box of the key.",
-        "Field Name": "fieldLabelMaxY",
-        "Field Type": "double"
-      },
-      {
-        "Description": "A normalized coordinate representing the left edge of the bounding box of the key.",
-        "Field Name": "fieldLabelMinX",
-        "Field Type": "double"
-      },
-      {
-        "Description": "A normalized coordinate representing the top edge of the bounding box of the key.",
-        "Field Name": "fieldLabelMinY",
-        "Field Type": "double"
-      },
-      {
-        "Description": "The name of the referred field value. Available in API version 56.0 and later.",
-        "Field Name": "fieldValueName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Indicates whether the key is automatically extracted (true) or not (false). Available in API version 57.0 and later.This field helps to distinguish auto-extracted keys from manual ones.",
-        "Field Name": "isAutoExtractedValue",
+        "Description": "Indicates whether the OCR sample document page item has a header (true) or not (false). The default value is false. Available in API version 56.0 and later.",
+        "Field Name": "hasHeader",
         "Field Type": "boolean"
       },
       {
-        "Description": "The content in a particular area of the form, representing the field that is extracted by OCR.",
-        "Field Name": "keyContent",
+        "Description": "Required. The sequence number of the item on an OCR sample document page with multiple items. Available in API version 56.0 and later.",
+        "Field Name": "sequenceNumber",
+        "Field Type": "int"
+      },
+      {
+        "Description": "The title of the OCR sample document page item. Available in API version 56.0 and later.",
+        "Field Name": "title",
         "Field Type": "string"
       },
       {
-        "Description": "Required. The associated OCR sample document is used as a reference while extracting and mapping information from a customer form.",
-        "Field Name": "ocrSampleDocument",
-        "Field Type": "string"
-      },
-      {
-        "Description": "A collection of fields that define a page in the OCR sample document.",
-        "Field Name": "ocrSampleDocumentPage",
-        "Field Type": "string"
-      },
-      {
-        "Description": "A reference to the item on the sample document page containing this field's value. Available in API version 56.0 and later.",
-        "Field Name": "ocrSampleDocumentPageItem",
-        "Field Type": "OcrSampleDocumentPageItem"
+        "Description": "Required. Specifies the type of OCR sample document page item. Available in API version 56.0 and later.Valid value is TABLE.",
+        "Field Name": "type",
+        "Field Type": "ItemType (enumeration of type string)"
       }
     ],
     "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrtemplate.htm"
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm"
+  },
+  "OcrSampleDocumentField": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm"
+  },
+  "OcrSampleDocumentPage": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm"
   },
   "OcrTemplate": {
     "fields": [
@@ -33055,38 +33205,38 @@
   "ProfileActionOverride": {
     "fields": [
       {
-        "Description": "The name of the action. The only valid values are Tab and View.If pageOrSobjectType is standard-home, this field must be Tab. The Tab action is supported only when ProfileActionOverride is being specified as part of a Profile in API version 39.0 to 44.0. In API version 45.0 and later, this action is supported only when ProfileActionOverride is being specified as part of a CustomApplication, pageOrSobjectType is standard-home, and this field is Tab. If pageOrSobjectType is record-home, this field must be View. The View action is supported only when ProfileActionOverride is being specified as part of a CustomApplication.",
+        "Description": "Required. The possible values are the same as the actions you can override: accept clone delete edit list new tab view",
         "Field Name": "actionName",
         "Field Type": "string"
       },
       {
-        "Description": "Read-only. Represents the name of the Lightning page being used as the override.",
+        "Description": "Set this field if type is set to flexipage, lightningcomponent, scontrol, or visualforce. It refers to the name of the Lightning page, Lightning component, s-control, or Visualforce page to use as the override. To reference installed components, use this format: Component_namespace__Component_name.",
         "Field Name": "content",
         "Field Type": "string"
       },
       {
-        "Description": "The size of the page being overridden. The Large value represents the Lightning Experience desktop environment.",
+        "Description": "The size of the page being overridden.The Large value represents the Lightning Experience desktop environment and is valid only for the flexipage and lightningcomponent types. The Small value represents the Salesforce mobile app on a phone or tablet. The Medium value is reserved for future use. The null value (which is the same as specifying no value) represents Salesforce Classic.",
         "Field Name": "formFactor",
         "Field Type": "FormFactor (enumeration of type string)"
       },
       {
-        "Description": "The name of the page being overridden. The only valid values are record-home and standard-home. If the actionName is Tab, this field must be standard-home",
+        "Description": "The name of the sObject type being overridden. Valid values are standard and custom.This value must be standard-home when actionName is tab.",
         "Field Name": "pageOrSobjectType",
         "Field Type": "string"
       },
       {
-        "Description": "The record type associated with the override. If pageOrSobjectType is standard-home, this field must be null. This field is required when actionName is set to View.",
+        "Description": "The record type assigned to the ProfileActionOverride. If the PageOrSobjectType is standard-home, this field is null.",
         "Field Name": "recordType",
         "Field Type": "string"
       },
       {
-        "Description": "Read-only. The type of action override. The only valid value is flexipage.",
+        "Description": "Required. Represents the type of action override. Valid values are described in ActionOverrideType.",
         "Field Name": "type",
         "Field Type": "ActionOverrideType (enumeration of type string)"
       }
     ],
-    "short_description": "Represents an override of an ActionOverride by a user profile. You can use it to override an ActionOverride on a standard Home tab or object record page in Lightning Experience. When a user logs in with a profile, a matching ProfileActionOverride assignment takes precedence over existing overrides for the Home tab or record page specified in ActionOverride. In API versions 39.0 to 44.0, you can access ProfileActionOverride by accessing its encompassing CustomApplication or Profile metadata types. In API version 45.0 and later, you can access ProfileActionOverride only by accessing its encompassing CustomApplication.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_profileactionoverride.htm"
+    "short_description": "ProfileActionOverride represents a user profile-based override of an ActionOverride on a standard Home tab in Lightning Experience.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_profile.htm"
   },
   "ProfileAgentAccess": {
     "fields": [
@@ -34079,6 +34229,11 @@
     "short_description": "Represents the settings that determine how work items are routed to agents.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_queueroutingconfig.htm"
   },
+  "QueueRoutingConfigSkill": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_queueroutingconfig.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_queueroutingconfig.htm"
+  },
   "QuickAction": {
     "fields": [
       {
@@ -34687,6 +34842,16 @@
       }
     ],
     "short_description": "Sets the value for a recommendation field used by the strategy.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recommendationstrategy.htm"
+  },
+  "StrategyNodeExclusive": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recommendationstrategy.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recommendationstrategy.htm"
+  },
+  "StrategyNodeUnion": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recommendationstrategy.htm",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recommendationstrategy.htm"
   },
   "RecordActionDeployment": {
@@ -36115,6 +36280,21 @@
       }
     ],
     "short_description": "ReportCrossFilter represents the cross filter functionality in reports.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
+  },
+  "SortOrder": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
+  },
+  "ReportSummaryType": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
+  },
+  "ChartAxis": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
   },
   "ReportType": {
@@ -38913,6 +39093,21 @@
     "short_description": "",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm"
   },
+  "FeedItemSettings": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm"
+  },
+  "EmailToCaseSettings": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm"
+  },
+  "WebToCaseSettings": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm"
+  },
   "ChatterAnswersSettings": {
     "fields": [
       {
@@ -39771,6 +39966,16 @@
       {
         "Description": "(Deprecated) Indicates whether DevOps Center beta is enabled: true or false. When enabled, you can install and use the DevOps Center beta package in the org.",
         "Field Name": "enableDevOpsCenter",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether configuration data migration to a target org is enabled: true or false. When enabled, you can migrate configuration data from a Salesforce org to a target org.To enable enableALMSimpleDeployDataPref, first enable enableALMSimpleDeployPref. Available in API version 65.0 and later. enableALMSimpleDeployDataPref is available as a developer preview. Feature isn’t generally available unless or until Salesforce announces its general availability in documentation or in press releases or public statements. All commands, parameters, and other features are subject to change or deprecation at any time, with or without notice. Don't implement functionality developed with these commands or tools.",
+        "Field Name": "enableALMSimpleDeployDataPref",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether metadata deployment to a target org is enabled: true or false. When enabled, you can deploy the metadata from a Salesforce org to a target org.Available in API version 65.0 and later. enableALMSimpleDeployPref is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer's sole discretion.",
+        "Field Name": "enableALMSimpleDeployPref",
         "Field Type": "boolean"
       },
       {
@@ -45388,6 +45593,11 @@
     "short_description": "Represents your org’s single sign-on (SSO) settings. These settings are available API version 47.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_securitysettings.htm"
   },
+  "PasswordPolicies": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_securitysettings.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_securitysettings.htm"
+  },
   "ServiceCloudVoiceSettings": {
     "fields": [
       {
@@ -46790,6 +47000,11 @@
     "short_description": "Represents the sharing rules for users. With user sharing rules, you can share members of a group with members of another group. It extends the SharingRules metadata type and inherits its fullName field. Only available in API version 32.0 and earlier.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sharingrules.htm"
   },
+  "SharingTerritoryRule": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sharingrules.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sharingrules.htm"
+  },
   "BaseSharingRule": {
     "fields": [
       {
@@ -47372,6 +47587,21 @@
       }
     ],
     "short_description": "Represents the settings for a skill used for field service or to route chats to agents in Chat, such as the name of the skill and which agents the skills are assigned to.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_skills.htm"
+  },
+  "SkillAssignments": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_skills.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_skills.htm"
+  },
+  "SkillProfileAssignments": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_skills.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_skills.htm"
+  },
+  "SkillUserAssignments": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_skills.htm",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_skills.htm"
   },
   "StandardValueSet": {
@@ -49596,6 +49826,11 @@
       }
     ],
     "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm"
+  },
+  "PipelineInspMetricConfigTranslation": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm"
   },
   "UiFormatSpecificationSet": {

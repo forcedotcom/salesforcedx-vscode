@@ -403,7 +403,14 @@ const scrapeInBatches = async (
       for (const { type, result } of allResults) {
         if (result.success && result.results.length > 0) {
           for (const { name, data } of result.results) {
-            results[name] = data;
+            // Only overwrite existing entries if:
+            // 1. No existing entry, OR
+            // 2. Existing entry has no fields but new one has fields
+            // This ensures types with fields take precedence over referenced types without fields
+            const existing = results[name];
+            if (!existing || (existing.fields.length === 0 && data.fields.length > 0)) {
+              results[name] = data;
+            }
           }
           successCount++;
         } else {
