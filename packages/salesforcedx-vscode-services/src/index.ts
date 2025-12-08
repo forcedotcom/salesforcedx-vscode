@@ -18,6 +18,7 @@ import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
+import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { closeExtensionScope, getExtensionScope } from './extensionScope';
 import { SdkLayer } from './observability/spans';
@@ -67,6 +68,10 @@ const activationEffect = (
   | ConnectionService
   | ConfigService
   | FileWatcherService
+  | MetadataRetrieveService
+  | ProjectService
+  | MetadataRegistryService
+  | SourceTrackingService
   | Scope.CloseableScope
 > =>
   Effect.gen(function* () {
@@ -75,6 +80,7 @@ const activationEffect = (
     if (process.env.ESBUILD_PLATFORM === 'web') {
       yield* fileSystemSetup(context);
       yield* Effect.forkIn(watchSettingsService(), yield* getExtensionScope());
+      yield* Effect.forkIn(retrieveOnLoadEffect(), yield* getExtensionScope());
     }
 
     // watch the config files for changes, which various serices use to invalidate caches
@@ -110,7 +116,11 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     ChannelService.Default,
     ConnectionService.Default,
     ConfigService.Default,
-    FileWatcherService.Default
+    FileWatcherService.Default,
+    MetadataRetrieveService.Default,
+    ProjectService.Default,
+    MetadataRegistryService.Default,
+    SourceTrackingService.Default
   );
   await Effect.runPromise(
     Effect.provide(
