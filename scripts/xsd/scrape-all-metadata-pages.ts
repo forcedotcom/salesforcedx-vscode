@@ -95,8 +95,8 @@ const discoverMetadataTypes = async (page: Page): Promise<{ name: string; url: s
       throw new Error('Could not find "Metadata Types" section in TOC');
     }
 
-    // Sections to exclude (intro pages, overview pages, etc.)
-    const excludedPages = [
+    // Pages to exclude completely (skip both the page AND its children - no recursion)
+    const excludedPagesAndChildren = [
       'metadata components and types',
       'metadata coverage report',
       'unsupported metadata types',
@@ -108,6 +108,24 @@ const discoverMetadataTypes = async (page: Page): Promise<{ name: string; url: s
       '_intro',
       '_overview',
       '_calls'
+    ];
+
+    // Pages to exclude but still process their children (skip page only, continue recursion)
+    const excludedPagesOnly = [
+      'meta_data_cloud_types',
+      'meta_activationplatformactvattr',
+      'meta_datasourcetenant',
+      'meta_externaldatatransportfieldtemplate',
+      'meta_externaldatatransportobjecttemplate',
+      'meta_internaldataconnector',
+      'meta_appmenu',
+      'meta_digitalexperiencebundle_marketing',
+      'meta_digitalexperiencebundle_site',
+      'meta_flowvaluemap',
+      'meta_rparobotpoolmetadata',
+      'meta_settings',
+      'meta_userprofilesearchscope',
+      'meta_webstorebundle'
     ];
 
     // Recursively extract metadata type entries (including nested subtypes)
@@ -122,18 +140,28 @@ const discoverMetadataTypes = async (page: Page): Promise<{ name: string; url: s
         return;
       }
 
-      // Filter out excluded pages
       const nameLower = name.toLowerCase();
       const hrefLower = href.toLowerCase();
       const idLower = id?.toLowerCase() ?? '';
 
-      const isExcluded = excludedPages.some(
-        excluded => nameLower.includes(excluded) ?? hrefLower.includes(excluded) ?? idLower.includes(excluded)
+      // Check if this page AND its children should be excluded
+      const isExcludedWithChildren = excludedPagesAndChildren.some(
+        excluded => nameLower.includes(excluded) || hrefLower.includes(excluded) || idLower.includes(excluded)
       );
 
-      // Only include if it looks like a valid metadata type page
+      if (isExcludedWithChildren) {
+        // Skip this page and all its children (don't recurse)
+        return;
+      }
+
+      // Check if ONLY this page should be excluded (still process children)
+      const isExcludedPageOnly = excludedPagesOnly.some(
+        excluded => nameLower.includes(excluded) || hrefLower.includes(excluded) || idLower.includes(excluded)
+      );
+
+      // Only include if it looks like a valid metadata type page and not excluded
       const isValidMetadataType =
-        !isExcluded && name.length > 0 && name.length < 200 && href.endsWith('.htm') && !href.includes('#');
+        !isExcludedPageOnly && name.length > 0 && name.length < 200 && href.endsWith('.htm') && !href.includes('#');
 
       if (isValidMetadataType) {
         // Construct full URL
@@ -142,6 +170,7 @@ const discoverMetadataTypes = async (page: Page): Promise<{ name: string; url: s
       }
 
       // Recursively process children (subtypes like CustomField, HistoryRetentionPolicy, etc.)
+      // This happens for both included pages and excludedPagesOnly (but not excludedPagesAndChildren)
       if (entry.children && Array.isArray(entry.children)) {
         for (const child of entry.children) {
           extractMetadataType(child, depth + 1);
