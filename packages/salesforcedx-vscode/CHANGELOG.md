@@ -1,12 +1,34 @@
-# 65.7.0 - December 3, 2025
+# 65.8.0 - December 10, 2025
 
 ## Added
 
-#### salesforcedx-utils-vscode
-
-- [W-20175089] [W-20175097 ]  user setting for switching between api and ls for apex tests discovery ([PR #6653](https://github.com/forcedotcom/salesforcedx-vscode/pull/6653))
-
 #### salesforcedx-vscode-apex
 
-- [W-20175089] [W-20175097 ]  user setting for switching between api and ls for apex tests discovery ([PR #6653](https://github.com/forcedotcom/salesforcedx-vscode/pull/6653))
+- [W-20175122]  apex testing extension ([PR #6676](https://github.com/forcedotcom/salesforcedx-vscode/pull/6676))
+
+#### salesforcedx-vscode-apex-testing
+
+- [W-20175122]  apex testing extension ([PR #6676](https://github.com/forcedotcom/salesforcedx-vscode/pull/6676))
+
+#### salesforcedx-vscode-automation-tests
+
+- [W-20175122]  apex testing extension ([PR #6676](https://github.com/forcedotcom/salesforcedx-vscode/pull/6676))
+
+#### salesforcedx-vscode-core
+
+- Schemas from core W-20329918 ([PR #6697](https://github.com/forcedotcom/salesforcedx-vscode/pull/6697))
+
+#### salesforcedx-vscode-services
+
+- [W-20175122]  apex testing extension ([PR #6676](https://github.com/forcedotcom/salesforcedx-vscode/pull/6676))
+
+## Fixed
+
+#### docs
+
+- Ci: wireit W-20391187  (#6682) ([PR #6681](https://github.com/forcedotcom/salesforcedx-vscode/pull/6681))
+
+#### salesforcedx-vscode-core
+
+- Ci: wireit W-20391187  (#6682) ([PR #6681](https://github.com/forcedotcom/salesforcedx-vscode/pull/6681))
 
