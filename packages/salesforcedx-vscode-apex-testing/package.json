@@ -367,7 +367,7 @@
       "type": "object",
       "title": "%configuration_title%",
       "properties": {
-        "salesforcedx-vscode-apex.testing.discoverySource": {
+        "salesforcedx-vscode-apex-testing.testing.discoverySource": {
           "type": "string",
           "enum": [
             "ls",
@@ -380,7 +380,7 @@
             "%apex_testing_discovery_source_api_description%"
           ]
         },
-        "salesforcedx-vscode-apex.test-run-concise": {
+        "salesforcedx-vscode-apex-testing.test-run-concise": {
           "type": "boolean",
           "default": false,
           "description": "%apex_test_run_concise%"

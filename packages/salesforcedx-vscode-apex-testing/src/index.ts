@@ -64,7 +64,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
   // Register settings change handler for test discovery source
   const testDiscoverySettingsWatcher = vscode.workspace.onDidChangeConfiguration(async event => {
-    if (event.affectsConfiguration('salesforcedx-vscode-apex.testing.discoverySource')) {
+    if (event.affectsConfiguration('salesforcedx-vscode-apex-testing.testing.discoverySource')) {
       try {
         await getTestOutlineProvider().refresh();
         await getTestController().refresh();
@@ -175,7 +175,7 @@ const registerTestView = (): vscode.Disposable => {
     ),
     // Refresh Test View command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.refresh`, async () => {
-      const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
+      const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing');
       const source = config.get<'ls' | 'api'>('testing.discoverySource', 'ls');
       if (source === 'ls') {
         const { getLanguageClientStatus } = await import('./utils/testUtils.js');

@@ -45,6 +45,7 @@ export const messages = {
   refresh_test_title: 'Refresh Tests',
   run_single_test_title: 'Run Single Test',
   run_tests_title: 'Run Tests',
+  debug_tests_title: 'Debug Tests',
   show_error_title: 'Display Error',
   test_view_container_title: 'Test Viewer',
   test_view_loading_message: 'Loading Apex tests ...',
@@ -56,7 +57,11 @@ export const messages = {
   apex_test_run_concise: 'Display only failed test results.',
   apex_testing_discovery_source_description: 'Select the source for Apex test discovery.',
   apex_testing_discovery_source_ls_description: 'Use the Language Server (LS) for discovery.',
-  apex_testing_discovery_source_api_description: 'Use the Tooling API Test Discovery endpoint for discovery.'
+  apex_testing_discovery_source_api_description: 'Use the Tooling API Test Discovery endpoint for discovery.',
+  apex_test_suite_debug_not_supported_message:
+    'Test suites cannot be debugged. Please debug individual test classes or methods.',
+  apex_test_payload_build_failed_message: 'Failed to build test payload',
+  apex_test_suite_name_not_determined_message: 'Suite name could not be determined for suite execution'
 } as const;
 
 export type MessageKey = keyof typeof messages;

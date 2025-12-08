@@ -65,7 +65,7 @@ const fetchFromApi = async (options?: {
  * Also emits timing metrics and telemetry.
  */
 export const getApexTests = async (): Promise<ApexTestMethod[]> => {
-  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
+  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing');
   const source = config.get<'ls' | 'api'>('testing.discoverySource', 'ls');
 
   // Fetch according to user selection

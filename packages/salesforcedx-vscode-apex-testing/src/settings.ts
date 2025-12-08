@@ -12,4 +12,4 @@ export const retrieveTestCodeCoverage = (): boolean =>
   vscode.workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME).get<boolean>('retrieve-test-code-coverage', false);
 
 export const retrieveTestRunConcise = (): boolean =>
-  vscode.workspace.getConfiguration('salesforcedx-vscode-apex').get<boolean>('test-run-concise', false);
+  vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing').get<boolean>('test-run-concise', false);
