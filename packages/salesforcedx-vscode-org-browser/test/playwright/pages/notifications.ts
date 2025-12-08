@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Page, Locator, expect } from '@playwright/test';
-import { saveScreenshot } from '@salesforce/playwright-vscode-ext';
+import { NOTIFICATION_LIST_ITEM, saveScreenshot } from '@salesforce/playwright-vscode-ext';
 
 /**
  * Wait for progress notification to appear
  */
 export const waitForRetrieveProgressNotificationToAppear = async (page: Page, timeout: number): Promise<Locator> => {
   const retrieving = page
-    .locator('.monaco-workbench .notification-list-item')
+    .locator(NOTIFICATION_LIST_ITEM)
     .filter({ hasText: /Retrieving\s+/i })
     .first();
   await expect(retrieving, 'Retrieving progress notification should be visible').toBeVisible({ timeout });

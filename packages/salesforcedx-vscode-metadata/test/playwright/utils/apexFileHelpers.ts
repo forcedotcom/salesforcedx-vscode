@@ -11,7 +11,8 @@ import {
   QUICK_INPUT_WIDGET,
   QUICK_INPUT_LIST_ROW,
   EDITOR_WITH_URI,
-  DIRTY_EDITOR
+  DIRTY_EDITOR,
+  executeCommandWithCommandPalette
 } from '@salesforce/playwright-vscode-ext';
 
 /** Open a file using Quick Open (Ctrl+P) */
@@ -76,12 +77,12 @@ export const editOpenFile = async (page: Page, comment: string): Promise<void> =
   await page.keyboard.type(`// ${comment}`);
   await page.keyboard.press('Enter');
 
-  // Save file
-  await page.keyboard.press('Control+s');
+  // Save file via command palette (more reliable than keyboard shortcut across OSes)
+  await executeCommandWithCommandPalette(page, 'File: Save');
 
   // Wait for save indicator to disappear (file tab loses "dirty" state)
   await page.waitForSelector(DIRTY_EDITOR, { state: 'detached', timeout: 5000 }).catch(() => {
-    // Ignore timeout - file might save instantly
+    // File might save instantly
   });
 };
 

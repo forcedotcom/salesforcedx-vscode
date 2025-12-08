@@ -9,7 +9,7 @@ import * as Effect from 'effect/Effect';
 import * as PubSub from 'effect/PubSub';
 import * as vscode from 'vscode';
 
-export type FileChangeEvent = {
+type FileChangeEvent = {
   readonly type: 'create' | 'change' | 'delete';
   readonly uri: vscode.Uri;
 };

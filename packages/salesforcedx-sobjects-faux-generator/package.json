@@ -2,7 +2,7 @@
   "name": "@salesforce/salesforcedx-sobjects-faux-generator",
   "displayName": "Salesforce SObject Faux Generator",
   "description": "Fetches sobjects and generates their faux apex class to be used for Apex Language Server",
-  "version": "65.6.0",
+  "version": "65.7.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -10,23 +10,69 @@
   },
   "main": "out/src",
   "dependencies": {
-    "@salesforce/salesforcedx-utils-vscode": "65.6.0",
-    "@salesforce/vscode-i18n": "65.6.0"
+    "@salesforce/salesforcedx-utils-vscode": "*",
+    "@salesforce/vscode-i18n": "*"
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
-    "@salesforce/salesforcedx-utils": "65.6.0",
+    "@salesforce/salesforcedx-utils": "*",
     "@types/jest": "^29.5.5",
     "jest": "^29.7.0",
     "jest-junit": "14.0.1",
     "ts-jest": "^29.4.1"
   },
   "scripts": {
-    "compile": "tsc -p ./",
-    "lint": "eslint .",
-    "lint:fix": "npm run lint -- --fix",
-    "watch": "tsc -watch -p .",
-    "clean": "shx rm -rf node_modules && shx rm -rf out",
-    "test": "jest --coverage"
+    "compile": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules out dist .wireit .eslintcache",
+    "test": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-utils-vscode:compile",
+        "../salesforcedx-vscode-i18n:compile",
+        "../salesforcedx-utils:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "test": {
+      "command": "jest --coverage",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    }
   }
 }

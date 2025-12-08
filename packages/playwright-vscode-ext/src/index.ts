@@ -38,6 +38,14 @@ export { upsertScratchOrgAuthFieldsToSettings } from './pages/settings';
 
 export { executeCommandWithCommandPalette, openCommandPalette, executeCommand } from './pages/commands';
 
+export {
+  ensureOutputPanelOpen,
+  selectOutputChannel,
+  clearOutputChannel,
+  waitForOutputChannelText,
+  outputChannelContains
+} from './pages/outputChannel';
+
 // Shared
 export { saveScreenshot } from './shared/screenshotUtils';
 

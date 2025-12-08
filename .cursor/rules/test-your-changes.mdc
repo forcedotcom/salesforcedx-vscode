@@ -12,11 +12,12 @@ After ANY code change, run these in order from repo root. Avoid responding while
 4. `npx knip` - check for dead code related to your changes
    - **Fix ALL unused exports** - if knip shows unused exports, remove them immediately unless they're used for tests
    - Don't leave any exports that are only used within the same file
-5. `npx lerna run bundle:extension` to make sure the extensions still bundle
-6. if working in [vscode-services, org-browser extensions or metadata] extension , run the org-browser's headless tests
+5. `npm run vscode:bundle` to make sure the extensions still bundle
+6. if working in [vscode-services, org-browser extensions or metadata] extension , run the e2e tests (if you encounter auth or org setup issues, ask the user to set up an org like the CI does)
    - Run with `--retries 0` to get quicker feedback
    - If there are failures, be sure to look at the screenshots produced
    - unzip traces.zip for more screenshots and json results
+7. check for dupes `npm run check:dupes` and then look in `jscpd-report` to make sure none of your changes are flagged.
 
 Rules:
 

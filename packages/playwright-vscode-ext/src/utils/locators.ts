@@ -12,10 +12,10 @@ export const WORKBENCH = '.monaco-workbench';
 export const EDITOR = '.monaco-editor';
 
 /** Monaco editor with a file URI data attribute */
-export const EDITOR_WITH_URI = '.monaco-editor[data-uri]';
+export const EDITOR_WITH_URI = `${EDITOR}[data-uri]`;
 
 /** Editor with unsaved changes */
-export const DIRTY_EDITOR = '.monaco-editor.dirty';
+export const DIRTY_EDITOR = `${EDITOR}.dirty`;
 
 /** Quick Open/Quick Pick widget (Ctrl+P, F1, etc) */
 export const QUICK_INPUT_WIDGET = '.quick-input-widget';
@@ -24,7 +24,7 @@ export const QUICK_INPUT_WIDGET = '.quick-input-widget';
 export const QUICK_INPUT_LIST_ROW = '.quick-input-list .monaco-list-row';
 
 /** File tab in the editor tab bar */
-export const TAB = '.tab';
+export const TAB = `${WORKBENCH} .tabs-container .tab`;
 
 /** Close button icon on tabs */
 export const TAB_CLOSE_BUTTON = '.codicon-close';
@@ -33,10 +33,10 @@ export const TAB_CLOSE_BUTTON = '.codicon-close';
 export const STATUS_BAR_ITEM_LABEL = '.statusbar-item-label';
 
 /** Notification list items in the notification center */
-export const NOTIFICATION_LIST_ITEM = '.monaco-workbench .notification-list-item';
+export const NOTIFICATION_LIST_ITEM = `${WORKBENCH} .notification-list-item`;
 
 /** Settings editor search input */
 export const SETTINGS_SEARCH_INPUT = [
-  '#workbench\\.parts\\.editor .settings-header .search-container .monaco-editor',
-  '[aria-label="Settings"] .settings-header .search-container .monaco-editor'
+  `${WORKBENCH} .settings-header .search-container ${EDITOR}`,
+  `${WORKBENCH} [aria-label="Settings"] .settings-header .search-container ${EDITOR}`
 ] as const;

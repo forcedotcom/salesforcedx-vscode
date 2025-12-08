@@ -74,6 +74,29 @@ export default [
       effect: effectPlugin
     },
     rules: {
+      'local/command-must-be-in-package-json': [
+        'error',
+        {
+          ignorePatterns: [
+            // Internal commands not shown in command palette
+            '\\.internal\\.',
+            // Telemetry API exposed for other extensions
+            '\\.get\\.telemetry$',
+            // Called programmatically by pushOrDeployOnSave, not user-facing
+            '^sf\\.deploy\\.multiple\\.source\\.paths$',
+            // Delegate commands invoked by code lens, not command palette
+            '\\.delegate$',
+            // Debug adapter protocol commands
+            '^extension\\.replay-debugger\\.',
+            // Programmatic launch commands
+            '^sf\\.launch\\.',
+            // Internal toggle/config commands
+            '^sf\\.apex\\.toggle\\.',
+            '^sf\\.apex\\.debug\\.document$',
+            '^sf\\.config\\.set$'
+          ]
+        }
+      ],
       'local/no-duplicate-i18n-values': 'error',
       'local/no-vscode-message-literals': 'error',
       'workspaces/no-relative-imports': 'error',

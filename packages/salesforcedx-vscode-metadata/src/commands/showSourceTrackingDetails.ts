@@ -7,57 +7,75 @@
 
 import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as Effect from 'effect/Effect';
+import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 
-const formatChanges = (changes: StatusOutputRow[], sectionTitle: string): string => {
-  const lines = [`\n${sectionTitle} (${changes.length}):\n${'='.repeat(sectionTitle.length + 5)}`];
-  changes.forEach(row => {
-    const pathInfo = row.filePath ? ` (${String(row.filePath)})` : '';
-    lines.push(`  ${String(row.type)}: ${String(row.fullName)}${pathInfo}`);
-  });
-  return lines.join('\n');
-};
+type ViewChangesOptions = { local: boolean; remote: boolean };
+
+const getTitle = (changes: StatusOutputRow[], sectionTitle: string): string[] => [
+  '',
+  `${sectionTitle} (${changes.length}):`
+];
+
+const rowToLine = (row: StatusOutputRow): string =>
+  `  ${String(row.type)}: ${String(row.fullName)}${row.filePath ? ` (${String(row.filePath)})` : ''}`;
+
+/** Format section: returns empty string when undefined (not requested), otherwise always shows header */
+const formatChanges = (changes: StatusOutputRow[] | undefined, sectionTitle: string): string =>
+  changes !== undefined ? [...getTitle(changes, sectionTitle), ...changes.map(rowToLine)].join('\n') : '';
+
+const viewChangesEffect = Effect.fn('viewChanges')(function* (options: ViewChangesOptions) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const channelService = yield* api.services.ChannelService;
+  const channel = yield* channelService.getChannel;
+  const tracking = yield* Effect.flatMap(api.services.SourceTrackingService, svc => svc.getSourceTracking());
+
+  if (!tracking) {
+    yield* channelService.appendToChannel('No source tracking available for this org');
+    return;
+  }
+
+  // Re-read both remote and local tracking to ensure fresh data
+  yield* Effect.all(
+    [
+      ...(options.remote ? [Effect.promise(() => tracking.reReadRemoteTracking())] : []),
+      ...(options.local ? [Effect.promise(() => tracking.reReadLocalTrackingCache())] : [])
+    ],
+    { concurrency: 'unbounded' }
+  );
+  const status = (yield* Effect.tryPromise(() => tracking.getStatus(options))).filter(row => !row.ignored);
+
+  const remoteChanges = options.remote ? status.filter(row => row.origin === 'remote' && !row.conflict) : undefined;
+  const localChanges = options.local ? status.filter(row => row.origin === 'local' && !row.conflict) : undefined;
+  const conflicts = status.filter(row => row.conflict);
+
+  const title =
+    options.local && options.remote
+      ? nls.localize('source_tracking_title_all_changes')
+      : options.local
+        ? nls.localize('source_tracking_title_local_changes')
+        : nls.localize('source_tracking_title_remote_changes');
+
+  const output = [
+    '',
+    `${title}:`,
+    formatChanges(remoteChanges, nls.localize('source_tracking_section_remote_changes')),
+    formatChanges(localChanges, nls.localize('source_tracking_section_local_changes')),
+    formatChanges(conflicts, nls.localize('source_tracking_section_conflicts'))
+  ].join('\n');
+
+  yield* channelService.appendToChannel(output);
+  yield* Effect.sync(() => channel.show());
+});
 
 /** Show detailed source tracking changes in the output channel */
-export const showSourceTrackingDetails = async (): Promise<void> =>
-  Effect.runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const channelService = yield* api.services.ChannelService;
-      const channel = yield* channelService.getChannel;
-      const tracking = yield* Effect.flatMap(api.services.SourceTrackingService, svc => svc.getSourceTracking());
+export const viewAllChanges = async (): Promise<void> =>
+  Effect.runPromise(viewChangesEffect({ local: true, remote: true }).pipe(Effect.provide(AllServicesLayer)));
 
-      if (!tracking) {
-        yield* channelService.appendToChannel('No source tracking available for this org');
-        return;
-      }
+/** Show local changes only in the output channel */
+export const viewLocalChanges = async (): Promise<void> =>
+  Effect.runPromise(viewChangesEffect({ local: true, remote: false }).pipe(Effect.provide(AllServicesLayer)));
 
-      yield* Effect.promise(() => tracking.reReadLocalTrackingCache());
-      const status = yield* Effect.tryPromise(() => tracking.getStatus({ local: true, remote: true }));
-
-      const remoteChanges = status.filter(row => row.origin === 'remote' && !row.conflict && !row.ignored);
-      const localChanges = status.filter(row => row.origin === 'local' && !row.conflict && !row.ignored);
-      const conflicts = status.filter(row => row.conflict && !row.ignored);
-
-      const output: string[] = [`\n\nSource Tracking Details\n${'='.repeat(23)}`];
-
-      if (remoteChanges.length > 0) {
-        output.push(formatChanges(remoteChanges, 'Remote Changes'));
-      }
-
-      if (localChanges.length > 0) {
-        output.push(formatChanges(localChanges, 'Local Changes'));
-      }
-
-      if (conflicts.length > 0) {
-        output.push(formatChanges(conflicts, 'Conflicts'));
-      }
-
-      if (remoteChanges.length === 0 && localChanges.length === 0 && conflicts.length === 0) {
-        output.push('\nNo changes detected');
-      }
-
-      yield* channelService.appendToChannel(output.join('\n'));
-      yield* Effect.sync(() => channel.show());
-    }).pipe(Effect.withSpan('showSourceTrackingDetails'), Effect.provide(AllServicesLayer))
-  );
+/** Show remote changes only in the output channel */
+export const viewRemoteChanges = async (): Promise<void> =>
+  Effect.runPromise(viewChangesEffect({ local: false, remote: true }).pipe(Effect.provide(AllServicesLayer)));
