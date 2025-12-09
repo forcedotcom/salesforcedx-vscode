@@ -143,7 +143,7 @@ export default class AuraIndexer implements Indexer {
         console.log(`Error parsing markup from ${file}:`, e);
       }
     }
-    console.info(`Indexed ${markupfiles.length} files in ${elapsedMillis(startTime)} ms`);
+    console.info(`Indexed ${markupfiles.length} custom components in ${elapsedMillis(startTime)} ms`);
   }
 
   private clearTagsforFile(file: string, sfdxProject: boolean): void {

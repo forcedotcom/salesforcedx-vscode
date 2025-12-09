@@ -9,7 +9,9 @@ import {
   interceptConsoleLogger,
   TagInfo,
   FileSystemDataProvider,
-  FileStat
+  FileStat,
+  syncDocumentToTextDocumentsProvider,
+  scheduleReinitialization
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 
@@ -18,6 +20,7 @@ import {
   createConnection,
   Connection,
   TextDocuments,
+  TextDocumentChangeEvent,
   InitializeParams,
   InitializeResult,
   TextDocumentPositionParams,
@@ -45,6 +48,7 @@ import {
 } from './auraUtils';
 import { AuraWorkspaceContext } from './context/auraContext';
 import { setIndexer, getAuraTagProvider } from './markup/auraTags';
+import { nls } from './messages';
 import {
   startServer,
   addFile,
@@ -74,6 +78,9 @@ export default class Server {
   private htmlLS!: LanguageService;
   private auraIndexer!: AuraIndexer;
   public fileSystemProvider: FileSystemDataProvider;
+  private isDelayedInitializationComplete = false;
+  private isIndexerInitialized = false;
+  private hasDetectedAuraFiles = false;
 
   constructor() {
     interceptConsoleLogger(this.connection);
@@ -96,66 +103,24 @@ export default class Server {
 
     try {
       if (this.workspaceRoots.length === 0) {
-        console.warn('No workspace found');
+        console.warn(nls.localize('no_workspace_found_message'));
         return { capabilities: {} };
       }
 
-      const startTime = globalThis.performance.now();
+      // Set up document event handlers
+      this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
+      this.documents.onDidChangeContent(changeEvent => this.onDidChangeContent(changeEvent));
+      this.documents.onDidSave(changeEvent => this.onDidSave(changeEvent));
 
-      // Use provided fileSystemProvider from initializationOptions if available
+      // Populate FileSystemDataProvider with static resources from initializationOptions
+      // These are static framework files needed for Tern server initialization
       this.populateFileSystemProvider(params);
 
-      // Register event handlers that depend on fileSystemProvider after reconstruction
-      this.connection.onReferences(reference => onReferences(reference, this.fileSystemProvider));
-      this.connection.onSignatureHelp(signatureParams => onSignatureHelp(signatureParams, this.fileSystemProvider));
-
-      // Register tern server document event handlers after fileSystemProvider reconstruction
-      this.documents.onDidOpen(addFile);
-      this.documents.onDidChangeContent(addFile);
-      this.documents.onDidClose(delFile);
-      this.documents.onDidClose(event => this.onDidClose(event));
-
-      this.context = new AuraWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
-      // Initialize the workspace context to detect workspace type
-      await this.context.initialize();
-      try {
-        if (this.context.type === 'CORE_PARTIAL') {
-          await startServer(
-            path.join(this.workspaceRoots[0], '..'),
-            path.join(this.workspaceRoots[0], '..'),
-            this.fileSystemProvider
-          );
-        } else {
-          await startServer(this.workspaceRoots[0], this.workspaceRoots[0], this.fileSystemProvider);
-        }
-      } catch (error) {
-        this.connection.console.error(`AuraServer onInitialize: Error in startServer: ${error}`);
-        throw error;
-      }
-
-      // Initialize tern server now that startServer has been called and asyncTernRequest is available
-      await init(this.fileSystemProvider);
-
-      try {
-        this.context.configureProject();
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        const errorStack = error instanceof Error ? error.stack : '';
-        this.connection.console.error(`AuraServer onInitialize: Error in configureProject: ${errorMessage}`);
-        this.connection.console.error(`Stack: ${errorStack}`);
-        throw error;
-      }
-
-      this.auraIndexer = new AuraIndexer(this.context);
-      setIndexer(this.auraIndexer);
-
-      this.setupIndexerEvents();
-      this.startIndexing();
+      // Note: Workspace context initialization is delayed until performDelayedInitialization()
+      // to ensure all essential files (like sfdx-project.json) are loaded via onDidOpen events
 
       this.htmlLS = getLanguageService();
       this.htmlLS.setDataProviders(true, [getAuraTagProvider()]);
-
-      console.info(`... language server started in ${globalThis.performance.now() - startTime}ms`);
 
       const capabilities = {
         textDocumentSync: {
@@ -184,12 +149,9 @@ export default class Server {
       return {
         capabilities
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : String(e);
-      const errorStack = e instanceof Error ? e.stack : '';
-      console.error('FULL ERROR in onInitialize catch:', errorMessage);
-      console.error('FULL ERROR STACK:', errorStack);
-      throw new Error(`Aura Language Server initialization unsuccessful. Error message: ${errorMessage}`);
+      throw new Error(nls.localize('initialization_unsuccessful_message', errorMessage));
     }
   }
 
@@ -205,9 +167,8 @@ export default class Server {
       const serializedProvider = params.initializationOptions.fileSystemProvider;
 
       if (typeof serializedProvider !== 'object' || serializedProvider === null) {
-        throw new Error('Invalid fileSystemProvider in initializationOptions');
+        throw new Error(nls.localize('invalid_filesystem_provider_message'));
       }
-      this.fileSystemProvider = new FileSystemDataProvider();
 
       // Restore the data from the serialized object
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -244,11 +205,8 @@ export default class Server {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
         this.fileSystemProvider.updateWorkspaceConfig(serializedProvider.workspaceConfig);
       }
-
-      // Verify that the fileSystemProvider has all required methods
-      if (typeof this.fileSystemProvider.updateDirectoryListing !== 'function') {
-        throw new Error('FileSystemDataProvider reconstruction failed - updateDirectoryListing method missing');
-      }
+    } else {
+      throw new Error(nls.localize('no_filesystem_provider_message'));
     }
   }
 
@@ -277,7 +235,7 @@ export default class Server {
   }
 
   public async onCompletion(completionParams: CompletionParams): Promise<CompletionList> {
-    const document = this.documents.get(completionParams.textDocument.uri);
+    const document = this.getDocumentIfReady(completionParams.textDocument.uri);
     if (!document) {
       return { isIncomplete: false, items: [] };
     }
@@ -318,7 +276,7 @@ export default class Server {
     }
 
     const documentUri = textDocumentPosition.textDocument.uri;
-    const document = this.documents.get(documentUri);
+    const document = this.getDocumentIfReady(documentUri);
     if (!document) {
       return null;
     }
@@ -401,7 +359,7 @@ export default class Server {
   }
 
   public async onDefinition(textDocumentPosition: TextDocumentPositionParams): Promise<Location | null> {
-    const document = this.documents.get(textDocumentPosition.textDocument.uri);
+    const document = this.getDocumentIfReady(textDocumentPosition.textDocument.uri);
     if (!document) {
       return null;
     }
@@ -442,7 +400,6 @@ export default class Server {
   }
 
   public async onDidChangeWatchedFiles(change: DidChangeWatchedFilesParams): Promise<void> {
-    console.info('aura onDidChangeWatchedFiles...');
     const changes = change.changes;
 
     try {
@@ -450,11 +407,6 @@ export default class Server {
         this.context.getIndexingProvider('aura')?.resetIndex();
         await this.context.getIndexingProvider('aura')?.configureAndIndex();
         // re-index everything on directory deletions as no events are reported for contents of deleted directories
-        const startTime = globalThis.performance.now();
-        console.info(
-          `reindexed workspace in ${globalThis.performance.now() - startTime}ms, directory was deleted:`,
-          changes
-        );
       } else {
         for (const event of changes) {
           const isWatchedDir = await isAuraWatchedDirectory(this.context, event.uri);
@@ -497,6 +449,159 @@ export default class Server {
 
   public onDidClose(event: { document: { uri: string } }): void {
     void this.connection.sendDiagnostics({ uri: event.document.uri, diagnostics: [] });
+  }
+
+  private async onDidOpen(changeEvent: { document: TextDocument }): Promise<void> {
+    const { document } = changeEvent;
+    const uri = document.uri;
+    const content = document.getText();
+
+    // Sync to TextDocuments FileSystemDataProvider
+    await syncDocumentToTextDocumentsProvider(uri, content, this.fileSystemProvider, this.workspaceRoots);
+
+    // Perform delayed initialization once we have documents
+    if (!this.isDelayedInitializationComplete) {
+      void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
+    }
+
+    // Check if this is an Aura component file and initialize indexer if needed
+    const fileName = path.basename(URI.parse(uri).fsPath);
+    if (fileName && this.isAuraComponentFile(fileName)) {
+      this.hasDetectedAuraFiles = true;
+
+      if (!this.isIndexerInitialized && this.isDelayedInitializationComplete) {
+        void this.initializeIndexer();
+      }
+    }
+
+    // Check if this is sfdx-project.json and re-detect workspace type if needed
+    if (fileName === 'sfdx-project.json' && this.context?.type === 'UNKNOWN') {
+      // Update context to use the populated TextDocuments provider
+      this.context.fileSystemProvider = this.fileSystemProvider;
+      void this.context.initialize();
+    }
+  }
+
+  public async onDidChangeContent(changeEvent: TextDocumentChangeEvent<TextDocument>): Promise<void> {
+    const { document } = changeEvent;
+    const { uri } = document;
+    const content = document.getText();
+
+    // Sync to TextDocuments FileSystemDataProvider
+    await syncDocumentToTextDocumentsProvider(uri, content, this.fileSystemProvider, this.workspaceRoots);
+  }
+
+  public async onDidSave(change: TextDocumentChangeEvent<TextDocument>): Promise<void> {
+    const { document } = change;
+    const uri = document.uri;
+    const content = document.getText();
+
+    // Sync to TextDocuments FileSystemDataProvider
+    await syncDocumentToTextDocumentsProvider(uri, content, this.fileSystemProvider, this.workspaceRoots);
+  }
+
+  /**
+   * Checks if a filename represents an Aura component file
+   */
+  private isAuraComponentFile(fileName: string): boolean {
+    const auraExtensions = ['.cmp', '.app', '.intf', '.evt', '.lib', '.auradoc', '.design', '.tokens'];
+    return auraExtensions.some(ext => fileName.endsWith(ext));
+  }
+
+  /**
+   * Checks if the workspace context is initialized and ready to use
+   */
+  private isContextReady(): boolean {
+    return this.context !== undefined;
+  }
+
+  /** Get document if it exists and context is ready for processing */
+  private getDocumentIfReady(uri: string): TextDocument | undefined {
+    const document = this.documents.get(uri);
+    return document !== undefined && this.isContextReady() ? document : undefined;
+  }
+
+  /**
+   * Initializes the indexer when workspace Aura files are available
+   */
+  private async initializeIndexer(): Promise<void> {
+    if (this.isIndexerInitialized) {
+      return;
+    }
+
+    try {
+      // Initialize indexer and related components
+      this.auraIndexer = new AuraIndexer(this.context);
+      setIndexer(this.auraIndexer);
+
+      this.setupIndexerEvents();
+      this.startIndexing();
+
+      this.isIndexerInitialized = true;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(nls.localize('indexer_initialization_error_message', errorMessage));
+    }
+  }
+
+  /**
+   * Performs delayed initialization of Tern server and indexer components
+   * using the populated fileSystemProvider
+   */
+  private async performDelayedInitialization(): Promise<void> {
+    if (this.isDelayedInitializationComplete) {
+      return;
+    }
+
+    try {
+      // Initialize workspace context now that essential files are loaded via onDidOpen
+      if (!this.context) {
+        this.context = new AuraWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
+        await this.context.initialize();
+      } else {
+        // Update context to use fileSystemProvider for better file access
+        this.context.fileSystemProvider = this.fileSystemProvider;
+      }
+
+      // Initialize Tern server with original fileSystemProvider (contains Aura resources)
+      if (this.context.type === 'CORE_PARTIAL') {
+        await startServer(
+          path.join(this.workspaceRoots[0], '..'),
+          path.join(this.workspaceRoots[0], '..'),
+          this.fileSystemProvider
+        );
+      } else {
+        await startServer(this.workspaceRoots[0], this.workspaceRoots[0], this.fileSystemProvider);
+      }
+
+      // Initialize tern server with original fileSystemProvider (has Aura resources)
+      await init(this.fileSystemProvider);
+
+      // Register event handlers that depend on fileSystemProvider
+      this.connection.onReferences(reference => onReferences(reference, this.fileSystemProvider));
+      this.connection.onSignatureHelp(signatureParams => onSignatureHelp(signatureParams, this.fileSystemProvider));
+
+      // Register tern server document event handlers
+      this.documents.onDidOpen(addFile);
+      this.documents.onDidChangeContent(addFile);
+      this.documents.onDidClose(delFile);
+      this.documents.onDidClose(event => this.onDidClose(event));
+
+      // Configure project with updated context
+      this.context.configureProject();
+
+      // Don't initialize indexer yet - wait for workspace files to be loaded
+      // The indexer will be initialized when the first workspace Aura file is opened
+      this.isDelayedInitializationComplete = true;
+
+      // If we already detected Aura files before delayed init completed, initialize indexer now
+      if (this.hasDetectedAuraFiles && !this.isIndexerInitialized) {
+        void this.initializeIndexer();
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(nls.localize('delayed_initialization_error_message', errorMessage));
+    }
   }
 
   public listen(): void {

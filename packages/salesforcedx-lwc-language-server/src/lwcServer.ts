@@ -11,8 +11,9 @@ import {
   getBasename,
   AttributeInfo,
   FileSystemDataProvider,
-  FileStat,
-  BaseWorkspaceContext
+  BaseWorkspaceContext,
+  syncDocumentToTextDocumentsProvider,
+  scheduleReinitialization
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { basename, dirname, parse } from 'node:path';
 import {
@@ -130,9 +131,11 @@ export default class Server {
   public auraDataProvider!: AuraDataProvider;
   public lwcDataProvider!: LWCDataProvider;
   public fileSystemProvider: FileSystemDataProvider;
+  private textDocumentsFileSystemProvider: FileSystemDataProvider;
 
   constructor() {
     this.fileSystemProvider = new FileSystemDataProvider();
+    this.textDocumentsFileSystemProvider = new FileSystemDataProvider();
 
     this.connection.onInitialize(params => this.onInitialize(params));
     this.connection.onInitialized(() => void this.onInitialized());
@@ -144,15 +147,16 @@ export default class Server {
     this.connection.onDidChangeWatchedFiles(params => void this.onDidChangeWatchedFiles(params));
 
     this.documents.listen(this.connection);
-    this.documents.onDidChangeContent(changeEvent => this.onDidChangeContent(changeEvent));
-    this.documents.onDidSave(changeEvent => this.onDidSave(changeEvent));
   }
 
   public async onInitialize(params: InitializeParams): Promise<InitializeResult> {
     this.workspaceFolders = params.workspaceFolders ?? [];
     this.workspaceRoots = this.workspaceFolders.map(folder => URI.parse(folder.uri).fsPath);
 
-    this.populateFileSystemProvider(params);
+    // Set up document event handlers
+    this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
+    this.documents.onDidChangeContent(changeEvent => this.onDidChangeContent(changeEvent));
+    this.documents.onDidSave(changeEvent => this.onDidSave(changeEvent));
 
     this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
     this.componentIndexer = new ComponentIndexer({
@@ -169,6 +173,8 @@ export default class Server {
 
     await this.context.initialize();
     this.context.configureProject();
+
+    // Initialize componentIndexer to get workspace structure
     await this.componentIndexer.init();
 
     return this.capabilities;
@@ -324,9 +330,39 @@ export default class Server {
     return this.languageService.doHover(doc, position, htmlDoc);
   }
 
+  /**
+   * Syncs FileSystemDataProvider from TextDocuments when a document is opened.
+   * This avoids duplicate reads - TextDocuments is the source of truth for open files.
+   */
+  private async onDidOpen(changeEvent: { document: TextDocument }): Promise<void> {
+    const { document } = changeEvent;
+    const uri = document.uri;
+    const content = document.getText();
+
+    // Sync to TextDocuments FileSystemDataProvider
+    await syncDocumentToTextDocumentsProvider(uri, content, this.textDocumentsFileSystemProvider, this.workspaceRoots);
+
+    // Check if this is sfdx-project.json and re-detect workspace type if needed
+    const fileName = uri.split('/').pop();
+    if (fileName === 'sfdx-project.json' && this.context.type === 'UNKNOWN') {
+      // Update context to use the populated TextDocuments provider
+      this.context.fileSystemProvider = this.textDocumentsFileSystemProvider;
+
+      // Wait for files to be processed before re-initializing
+      void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performReinitialization());
+
+      void this.context.initialize();
+    }
+  }
+
   public async onDidChangeContent(changeEvent: TextDocumentChangeEvent<TextDocument>): Promise<void> {
     const { document } = changeEvent;
     const { uri } = document;
+    const content = document.getText();
+
+    // Sync to TextDocuments FileSystemDataProvider
+    await syncDocumentToTextDocumentsProvider(uri, content, this.textDocumentsFileSystemProvider, this.workspaceRoots);
+
     if (await this.context.isLWCTemplate(document)) {
       const diagnostics = templateLinter(document);
       await this.connection.sendDiagnostics({ uri, diagnostics });
@@ -394,6 +430,12 @@ export default class Server {
 
   public async onDidSave(change: TextDocumentChangeEvent<TextDocument>): Promise<void> {
     const { document } = change;
+    const uri = document.uri;
+    const content = document.getText();
+
+    // Sync to TextDocuments FileSystemDataProvider
+    await syncDocumentToTextDocumentsProvider(uri, content, this.textDocumentsFileSystemProvider, this.workspaceRoots);
+
     if (await this.context.isLWCJavascript(document)) {
       const { metadata } = await javascriptCompileDocument(document);
       if (metadata) {
@@ -567,62 +609,26 @@ export default class Server {
     this.connection.listen();
   }
 
-  private isFileStat(obj: unknown): obj is FileStat {
-    return typeof obj === 'object' && obj !== null && 'type' in obj && 'exists' in obj;
-  }
+  /**
+   * Performs the actual re-initialization of component indexer and data providers
+   */
+  private async performReinitialization(): Promise<void> {
+    await this.context.clearNamespaceCache();
 
-  private populateFileSystemProvider(params: InitializeParams) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (params.initializationOptions?.fileSystemProvider) {
-      // Reconstruct the FileSystemDataProvider from serialized data
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-      const serializedProvider = params.initializationOptions.fileSystemProvider;
+    // Re-initialize component indexer with updated FileSystemProvider
+    this.componentIndexer = new ComponentIndexer({
+      workspaceRoot: this.workspaceRoots[0],
+      fileSystemProvider: this.textDocumentsFileSystemProvider
+    });
+    await this.componentIndexer.init();
 
-      if (typeof serializedProvider !== 'object' || serializedProvider === null) {
-        throw new Error('Invalid fileSystemProvider in initializationOptions');
-      }
-      this.fileSystemProvider = new FileSystemDataProvider();
-
-      // Restore the data from the serialized object
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (serializedProvider.fileContents && typeof serializedProvider.fileContents === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-        for (const [uri, content] of Object.entries(serializedProvider.fileContents)) {
-          if (typeof content === 'string') {
-            this.fileSystemProvider.updateFileContent(uri, content);
-          }
-        }
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (serializedProvider.directoryListings && typeof serializedProvider.directoryListings === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-        for (const [uri, entries] of Object.entries(serializedProvider.directoryListings)) {
-          if (Array.isArray(entries)) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            this.fileSystemProvider.updateDirectoryListing(uri, entries);
-          }
-        }
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (serializedProvider.fileStats && typeof serializedProvider.fileStats === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-        for (const [uri, stat] of Object.entries(serializedProvider.fileStats)) {
-          if (this.isFileStat(stat)) {
-            this.fileSystemProvider.updateFileStat(uri, stat);
-          }
-        }
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (serializedProvider.workspaceConfig && typeof serializedProvider.workspaceConfig === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-        this.fileSystemProvider.updateWorkspaceConfig(serializedProvider.workspaceConfig);
-      }
-
-      // Verify that the fileSystemProvider has all required methods
-      if (typeof this.fileSystemProvider.updateDirectoryListing !== 'function') {
-        throw new Error('FileSystemDataProvider reconstruction failed - updateDirectoryListing method missing');
-      }
-    }
+    // Update data providers to use the new indexer
+    this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
+    this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
+    await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.textDocumentsFileSystemProvider);
+    this.languageService = getLanguageService({
+      customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
+      useDefaultDataProvider: false
+    });
   }
 }

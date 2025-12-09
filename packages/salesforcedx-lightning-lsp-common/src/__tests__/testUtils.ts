@@ -131,7 +131,7 @@ const languageId = (path: string): string => {
     case 'cmp':
       return 'html'; // aura cmps
   }
-  throw new Error(`todo: ${path}`);
+  return '';
 };
 
 export const readAsTextDocument = (path: string, fileSystemProvider: FileSystemDataProvider): TextDocument => {

@@ -5,6 +5,24 @@
     "strictNullChecks": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "src/**/*.json", "typings/*.d.ts", "jest/*.js", "jest/*.ts"],
-  "exclude": ["out", "node_modules", "**/__tests__/fixtures/*.js"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.json",
+    "typings/*.d.ts",
+    "jest/*.js",
+    "jest/*.ts"
+  ],
+  "exclude": [
+    "out",
+    "node_modules",
+    "**/__tests__/fixtures/*.js"
+  ],
+  "references": [
+    {
+      "path": "../salesforcedx-utils"
+    },
+    {
+      "path": "../salesforcedx-vscode-i18n"
+    }
+  ]
 }
