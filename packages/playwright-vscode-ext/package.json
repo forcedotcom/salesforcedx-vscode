@@ -6,17 +6,40 @@
   "dependencies": {
     "@playwright/test": "^1.54.1",
     "@vscode/test-electron": "2.5.2",
-    "@vscode/test-web": "^0.0.71",
-    "cross-env": "^7.0.3"
+    "@vscode/test-web": "^0.0.71"
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.3"
   },
   "scripts": {
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p .",
+    "compile": "wireit",
     "clean": "shx rm -rf node_modules .wireit out .eslintcache tsconfig.tsbuildinfo",
-    "lint": "eslint .",
-    "lint:fix": "npm run lint -- --fix"
+    "lint": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty",
+      "clean": "if-file-deleted",
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    }
   }
 }
