@@ -258,6 +258,120 @@ export const extractMetadataFromPage = async (
     // Extract fields from ALL tables (each table is a separate metadata type)
     // We'll extract descriptions per-table instead of one for the whole page
     const extractionResult = await contentFrame.evaluate(() => {
+      // Helper to check if text is a valid description (not navigation or too short)
+      const isValidDescription = (text: string): boolean => {
+        const textLower = text.toLowerCase();
+        const isSubstantial = text.length > 20;
+        const isNotNavigation =
+          !textLower.includes('cookie') &&
+          !textLower.includes('in this section') &&
+          !textLower.includes('©') &&
+          !textLower.includes('skip navigation') &&
+          !textLower.includes('related topics') &&
+          !textLower.includes('see also') &&
+          !textLower.startsWith('note:') &&
+          !textLower.startsWith('tip:') &&
+          !textLower.startsWith('important:');
+        return isSubstantial && isNotNavigation;
+      };
+
+      // Helper to search for elements in regular DOM and shadow DOMs
+      const searchInShadowDOM = <T extends Element>(
+        root: Document | ShadowRoot | Element,
+        selector: string,
+        predicate?: (el: Element) => boolean
+      ): T | null => {
+        // Try regular DOM first
+        const elements = root.querySelectorAll(selector);
+        for (const el of Array.from(elements)) {
+          if (!predicate || predicate(el)) {
+            return el as T;
+          }
+        }
+
+        // Search shadow DOMs recursively
+        const allElements = root.querySelectorAll('*');
+        for (const el of Array.from(allElements)) {
+          if (el.shadowRoot) {
+            const found = searchInShadowDOM<T>(el.shadowRoot, selector, predicate);
+            if (found) return found;
+          }
+        }
+
+        return null;
+      };
+
+      // Helper to collect all elements matching selector including those in shadow DOMs
+      const collectFromShadowDOM = <T extends Element>(
+        root: Document | ShadowRoot | Element,
+        selector: string
+      ): T[] => {
+        const results: T[] = Array.from(root.querySelectorAll(selector)) as T[];
+
+        const elements = root.querySelectorAll('*');
+        for (const el of Array.from(elements)) {
+          if (el.shadowRoot) {
+            results.push(...collectFromShadowDOM<T>(el.shadowRoot, selector));
+          }
+        }
+
+        return results;
+      };
+
+      // Helper to find description paragraph after a heading element
+      const findDescriptionAfterHeading = (headingElement: Element, stopAtTable: boolean = true): string => {
+        let description = '';
+        let nextElement = headingElement.nextElementSibling;
+        let searchAttempts = 0;
+
+        while (nextElement && searchAttempts < 10) {
+          // Stop if we hit a table (when specified)
+          if (stopAtTable && nextElement.tagName === 'TABLE') {
+            break;
+          }
+
+          // Stop if we hit another heading
+          if (nextElement.tagName?.match(/^H[1-6]$/)) {
+            break;
+          }
+
+          // Look for a paragraph with meaningful content
+          if (nextElement.tagName === 'P') {
+            const text = nextElement.textContent?.trim() ?? '';
+            if (isValidDescription(text)) {
+              description = text;
+              break;
+            }
+          }
+
+          // Also check for DD (definition description) after DT
+          if (nextElement.tagName === 'DD') {
+            const text = nextElement.textContent?.trim() ?? '';
+            if (text.length > 20) {
+              description = text;
+              break;
+            }
+          }
+
+          // Check inside DIVs for paragraphs
+          if (nextElement.tagName === 'DIV') {
+            const paragraph = nextElement.querySelector('p');
+            if (paragraph) {
+              const text = paragraph.textContent?.trim() ?? '';
+              if (isValidDescription(text)) {
+                description = text;
+                break;
+              }
+            }
+          }
+
+          nextElement = nextElement.nextElementSibling;
+          searchAttempts++;
+        }
+
+        return description;
+      };
+
       // First, collect all headings on the page to identify which types have sections
       const pageHeadings = new Set<string>();
 
@@ -271,25 +385,13 @@ export const extractMetadataFromPage = async (
       }
 
       // Also check shadow DOMs for headings
-      const checkShadowDOMForHeadings = (root: Document | ShadowRoot | Element): void => {
-        // Search for h2 headings inside <div class="section" id="..."> and h1 with class "helpHead1"
-        const shadowHeadings = root.querySelectorAll('div.section[id] h2, h1.helpHead1');
-        for (const heading of Array.from(shadowHeadings)) {
-          const text = heading.textContent?.trim();
-          if (text && text.length > 0 && text.length < 200) {
-            pageHeadings.add(text);
-          }
+      const allHeadings = collectFromShadowDOM(document, 'div.section[id] h2, h1.helpHead1');
+      for (const heading of allHeadings) {
+        const text = heading.textContent?.trim();
+        if (text && text.length > 0 && text.length < 200) {
+          pageHeadings.add(text);
         }
-
-        const elements = root.querySelectorAll('*');
-        for (const el of Array.from(elements)) {
-          if (el.shadowRoot) {
-            checkShadowDOMForHeadings(el.shadowRoot);
-          }
-        }
-      };
-
-      checkShadowDOMForHeadings(document);
+      }
 
       const tablesData: {
         fields: {
@@ -340,55 +442,14 @@ export const extractMetadataFromPage = async (
       // This is typically the first substantial paragraph after the main H1/H2 but before any tables
       let pageLevelDescription = '';
 
-      // Helper to search including shadow DOMs
-      const findInShadowDOM = (selector: string): Element | null => {
-        // Try regular DOM first
-        const found = document.querySelector(selector);
-        if (found) return found;
-
-        // Search shadow DOMs
-        const searchShadow = (root: Document | ShadowRoot | Element): Element | null => {
-          const result = root.querySelector(selector);
-          if (result) return result;
-
-          const elements = root.querySelectorAll('*');
-          for (const el of Array.from(elements)) {
-            if (el.shadowRoot) {
-              const shadowResult = searchShadow(el.shadowRoot);
-              if (shadowResult) return shadowResult;
-            }
-          }
-          return null;
-        };
-
-        return searchShadow(document);
-      };
-
       // Strategy 1: Look for Salesforce's standard shortdesc div (including in shadow DOM)
-      const shortdescDiv = findInShadowDOM('div.shortdesc');
+      const shortdescDiv = searchInShadowDOM(document, 'div.shortdesc');
       if (shortdescDiv) {
         const text = shortdescDiv.textContent?.trim();
         if (text.length > 20) {
           pageLevelDescription = text;
         }
       }
-
-      // Helper to check if text is a valid description
-      const isValidDescription = (text: string): boolean => {
-        const textLower = text.toLowerCase();
-        const isSubstantial = text.length > 50;
-        const isNotNavigation =
-          !textLower.includes('cookie') &&
-          !textLower.includes('in this section') &&
-          !textLower.includes('©') &&
-          !textLower.includes('skip navigation') &&
-          !textLower.includes('related topics') &&
-          !textLower.includes('see also') &&
-          !textLower.startsWith('note:') &&
-          !textLower.startsWith('tip:') &&
-          !textLower.startsWith('important:');
-        return isSubstantial && isNotNavigation;
-      };
 
       // Strategy 2: Look for direct paragraph siblings after heading
       const mainHeading = document.querySelector('h1') ?? document.querySelector('h2');
@@ -458,22 +519,8 @@ export const extractMetadataFromPage = async (
         }
       }
 
-      // Helper to collect all tables including those in shadow DOMs
-      const getAllTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): Element[] => {
-        const tables: Element[] = Array.from(root.querySelectorAll('table'));
-
-        const elements = root.querySelectorAll('*');
-        elements.forEach(el => {
-          if (el.shadowRoot) {
-            tables.push(...getAllTablesIncludingShadowDOM(el.shadowRoot));
-          }
-        });
-
-        return tables;
-      };
-
       // Find all tables (including in shadow DOMs)
-      const tables = getAllTablesIncludingShadowDOM(document);
+      const tables = collectFromShadowDOM(document, 'table');
 
       for (const table of tables) {
         // Get headers
@@ -556,44 +603,7 @@ export const extractMetadataFromPage = async (
 
           if (foundHeading) {
             tableName = foundHeading.textContent?.trim() ?? '';
-
-            // Look for a description paragraph right after the heading
-            let nextElement = foundHeading.nextElementSibling;
-            let searchAttempts = 0;
-
-            while (nextElement && searchAttempts < 10) {
-              // Stop if we reach the table itself
-              if (nextElement === table) {
-                break;
-              }
-
-              // Look for a paragraph with meaningful content
-              if (nextElement.tagName === 'P') {
-                const text = nextElement.textContent?.trim();
-                // Make sure it's a substantial description
-                if (
-                  text.length > 20 &&
-                  !text.toLowerCase().includes('cookie') &&
-                  !text.toLowerCase().includes('in this section') &&
-                  !text.toLowerCase().includes('©')
-                ) {
-                  tableDescription = text;
-                  break;
-                }
-              }
-
-              // Also check for DD (definition description) after DT
-              if (nextElement.tagName === 'DD') {
-                const text = nextElement.textContent?.trim();
-                if (text.length > 20) {
-                  tableDescription = text;
-                  break;
-                }
-              }
-
-              nextElement = nextElement.nextElementSibling;
-              searchAttempts++;
-            }
+            tableDescription = findDescriptionAfterHeading(foundHeading, true);
           }
         }
 
@@ -761,53 +771,6 @@ export const extractMetadataFromPage = async (
         description: string;
       }[] = [];
 
-      // Helper to check if text is a valid description
-      const isValidHeadingDescription = (text: string): boolean => {
-        const textLower = text.toLowerCase();
-        const isSubstantial = text.length > 20;
-        const isNotNavigation =
-          !textLower.includes('cookie') &&
-          !textLower.includes('in this section') &&
-          !textLower.includes('©') &&
-          !textLower.includes('skip navigation') &&
-          !textLower.includes('related topics') &&
-          !textLower.includes('see also');
-        return isSubstantial && isNotNavigation;
-      };
-
-      // Helper to search for heading elements including shadow DOMs
-      const findHeadingElement = (headingText: string): Element | null => {
-        // Search regular DOM
-        const headingElements = Array.from(document.querySelectorAll('div.section[id] h2, h1.helpHead1, h2, h3, h4'));
-
-        for (const el of headingElements) {
-          if (el.textContent?.trim() === headingText) {
-            return el;
-          }
-        }
-
-        // Search shadow DOMs
-        const searchShadow = (root: Document | ShadowRoot | Element): Element | null => {
-          const shadowHeadings = root.querySelectorAll('div.section[id] h2, h1.helpHead1, h2, h3, h4');
-          for (const el of Array.from(shadowHeadings)) {
-            if (el.textContent?.trim() === headingText) {
-              return el;
-            }
-          }
-
-          const elements = root.querySelectorAll('*');
-          for (const el of Array.from(elements)) {
-            if (el.shadowRoot) {
-              const found = searchShadow(el.shadowRoot);
-              if (found) return found;
-            }
-          }
-          return null;
-        };
-
-        return searchShadow(document);
-      };
-
       // Process all headings that don't have tables
       for (const headingText of Array.from(pageHeadings)) {
         // Skip if this heading already has a table
@@ -826,56 +789,18 @@ export const extractMetadataFromPage = async (
         }
 
         // Find the heading element in the DOM (including shadow DOMs)
-        const headingElement = findHeadingElement(headingText);
+        const headingElement = searchInShadowDOM(
+          document,
+          'div.section[id] h2, h1.helpHead1, h2, h3, h4',
+          el => el.textContent?.trim() === headingText
+        );
 
         if (!headingElement) {
           continue;
         }
 
         // Look for a description paragraph right after the heading
-        let description = '';
-        let nextElement = headingElement.nextElementSibling;
-        let searchAttempts = 0;
-
-        while (nextElement && searchAttempts < 10) {
-          // Stop if we hit a table or another heading
-          if (nextElement.tagName === 'TABLE' || nextElement.tagName?.match(/^H[1-6]$/)) {
-            break;
-          }
-
-          // Look for a paragraph with meaningful content
-          if (nextElement.tagName === 'P') {
-            const text = nextElement.textContent?.trim();
-            if (text && isValidHeadingDescription(text)) {
-              description = text;
-              break;
-            }
-          }
-
-          // Also check for DD (definition description) after DT
-          if (nextElement.tagName === 'DD') {
-            const text = nextElement.textContent?.trim();
-            if (text && text.length > 20) {
-              description = text;
-              break;
-            }
-          }
-
-          // Check inside DIVs for paragraphs
-          if (nextElement.tagName === 'DIV') {
-            const paragraph = nextElement.querySelector('p');
-            if (paragraph) {
-              const text = paragraph.textContent?.trim();
-              if (text && isValidHeadingDescription(text)) {
-                description = text;
-                break;
-              }
-            }
-          }
-
-          nextElement = nextElement.nextElementSibling;
-          searchAttempts++;
-        }
+        const description = findDescriptionAfterHeading(headingElement, false);
 
         if (description) {
           headingsWithoutTables.push({

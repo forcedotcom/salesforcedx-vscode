@@ -7357,7 +7357,7 @@
         "Field Type": "int"
       }
     ],
-    "short_description": "",
+    "short_description": "Only users with View DeveloperName OR View Setup and Configuration permission can view, group, sort, and filter this field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_businessprocessgroup.htm"
   },
   "BusinessProcessFeedback": {
@@ -8667,7 +8667,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "This field is available in API version 39.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_communitytemplatedefinition.htm"
   },
   "CommunityThemeDefinition": {
@@ -8791,7 +8791,7 @@
         "Field Type": "CommunityTheme​LayoutType (enumeration of type string)"
       }
     ],
-    "short_description": "",
+    "short_description": "Required. Specifies the type of the site page for which the default theme layout type is overridden. The only valid value is comm__standardPage.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_communitythemedefinition.htm"
   },
   "CommunityTheme Setting": {
@@ -13923,7 +13923,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Where possible, we changed noninclusive terms to align with our company value of Equality. Because changing terms in our code can break current implementations, we maintained this metadata type’s name.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sites.htm"
   },
   "SiteRedirectMapping": {
@@ -18447,7 +18447,7 @@
         "Field Type": "RuleEntry[]"
       }
     ],
-    "short_description": "",
+    "short_description": "This value can't be null.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_escalationrules.htm"
   },
   "EscalationAction": {
@@ -22452,7 +22452,7 @@
         "Field Type": "SortOrder (enumeration of type string)"
       }
     ],
-    "short_description": "Finds records in the database that are related to the records specified in FlowRecordLookup and stores their field values in the flow. Corresponds to a Get Records element in Flow Builder. It extends FlowBaseElement and inherits all its fields.",
+    "short_description": "This feature is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer's sole discretion.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm"
   },
   "FlowRecordCreate": {
@@ -22954,7 +22954,7 @@
         "Field Type": "FlowElementReferenceOrValue"
       }
     ],
-    "short_description": "",
+    "short_description": "Defines an action that can be triggered by one or more flow screen components.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm"
   },
   "FlowScreenField": {
@@ -24861,7 +24861,7 @@
         "Field Type": "PlannerAttrMappingType (enumeration of type string)"
       }
     ],
-    "short_description": "",
+    "short_description": "Required. Label for the planner attribute.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaifunction.htm"
   },
   "Input Folder": {
@@ -28713,7 +28713,7 @@
         "Field Type": "int"
       }
     ],
-    "short_description": "",
+    "short_description": "Only navigational topics support parent-child relationships.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_managedtopics.htm"
   },
   "MarketingAppExtension": {
@@ -32476,7 +32476,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "This field type is removed in API version 47.0 and later and is available only in API versions 45.0 and 46.0.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_platformeventchannel.htm"
   },
   "PlatformEventChannelMember": {
@@ -40733,11 +40733,6 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Enables (true) or disables (false) event log objects. Default value is false.",
-        "Field Name": "enableEventLogObjectFeature",
-        "Field Type": "boolean"
-      },
-      {
         "Description": "Enables (true) or disables (false) the integration of event monitoring log files and Analytics apps. Analytics apps help you visualize your user’s activity. Default value is false.",
         "Field Name": "enableEventLogWaveIntegration",
         "Field Type": "boolean"
@@ -42922,7 +42917,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "",
+    "short_description": "This setting is used in Financial Services Cloud.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_industriessettings.htm"
   },
   "Fields for Education Cloud": {
@@ -45383,7 +45378,7 @@
         "Field Type": "QuestionRestriction (enumeration of type string)"
       }
     ],
-    "short_description": "",
+    "short_description": "The types of characters that must be used in a user’s password. Valid values are:",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_securitysettings.htm"
   },
   "SessionSettings": {
@@ -49738,7 +49733,7 @@
         "Field Type": "PicklistValueTranslation[]"
       }
     ],
-    "short_description": "GlobalPicklistTranslation contains details for a global picklist translation.",
+    "short_description": "GlobalPicklistTranslation is available in API version 37.0 only and is removed from later versions.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm"
   },
   "GlobalQuickActionTranslation": {
@@ -49930,7 +49925,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Visualforce pages supersede s-controls. Organizations that haven't previously used s-controls can’t create them. Existing s-controls are unaffected and can still be edited.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm"
   },
   "PipelineInspMetricConfigTranslation": {
