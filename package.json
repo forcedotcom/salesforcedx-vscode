@@ -81,7 +81,6 @@
     "jscpd": "^4.0.5",
     "jsonwebtoken-esm": "^2.0.1",
     "junit-report-merger": "7.0.0",
-    "lerna": "8.2.4",
     "markdown-link-check": "^3.9.3",
     "mocha": "^11.7.1",
     "mocha-multi-reporters": "^1.1.7",
@@ -102,6 +101,7 @@
     "typescript": "5.9.3",
     "typescript-eslint": "^8.41.0",
     "util": "0.12.5",
+    "wireit": "^0.14.12",
     "vscode-extension-tester": "^8.16.0",
     "yaml": "2.6.0"
   },
@@ -110,36 +110,33 @@
     "postinstall": "npm run check:peer-deps && npm run check:typescript-project-references",
     "bootstrap": "npm install",
     "changelog": "ts-node ./scripts/create-release-notes.ts",
-    "clean": "lerna run clean && git clean -xfd",
+    "clean": "npm run clean -ws --if-present && git clean -xfd",
     "reinstall": "git checkout -- package-lock.json && npm run clean && npm install",
-    "compile": "lerna run compile",
-    "postcompile": "lerna run copy:files",
+    "compile": "wireit",
     "compile:clean": "tsc  --build --clean && npm run compile",
     "compile:watch": "npm run compile && tsc --build --watch",
-    "lint": "lerna run lint",
-    "lint:fix": "lerna run lint:fix",
-    "test": "lerna run test",
+    "lint": "wireit",
+    "test": "wireit",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
     "coverage:report": "shx mkdir -p ./test-results && npm run coverage:merge && nyc report --reporter=html --report-dir=./test-results/coverage-report --temp-dir=coverage",
     "coverage:merge": "node scripts/mergeCoverageJson.mjs",
     "junit:report": "shx mkdir -p ./test-results && jrm ./test-results/all-junit-custom-unitTests.xml \"packages/**/junit-custom-unitTests.xml\"",
     "capture:results": "shx mkdir -p ./test-results && npm run junit:report && npm run coverage:report",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
-    "check:deps": "lerna exec --no-bail --stream depcheck",
     "check:dupes": "npx jscpd",
     "check:peer-deps": "check-peer-dependencies --ignore picomatch",
     "check:typescript-project-references": "workspaces-to-typescript-project-references --check",
-    "vscode:bundle": "npm run compile && npm run vscode:bundle:debugger && npm run vscode:bundle:extension",
-    "vscode:bundle:debugger": "lerna run bundle:debugger",
-    "vscode:bundle:extension": "lerna run bundle:extension",
-    "vscode:package": "npm run compile && npm run vscode:bundle && node ./scripts/capture-esbuild-warnings.js && lerna run vscode:package && lerna run vscode:package:legacy --concurrency 1",
+    "vscode:bundle": "wireit",
+    "vscode:package": "wireit",
+    "vscode:package:modern": "wireit",
+    "vscode:package:legacy": "wireit",
     "vsix:install": "find ./packages -name '*.vsix' -exec code --install-extension {} --force \\;",
     "vsix:install-insiders": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} --force \\;",
     "vscode:sha256": "node ./scripts/generate-sha256.js >> ./SHA256",
-    "vscode:publish": "lerna run vscode:publish --concurrency 1",
-    "watch": "lerna run --parallel watch",
-    "link-lsp": "yarn link @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common && lerna exec yarn link @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn link @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc",
-    "unlink-lsp": "yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common && lerna exec yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lightning && lerna exec yarn unlink @salesforce/lwc-language-server @salesforce/lightning-lsp-common --scope salesforcedx-vscode-lwc",
+    "vscode:publish": "npm run vscode:publish -ws --if-present",
+    "watch": "npm run compile --watch",
+    "link-lsp": "yarn link @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common",
+    "unlink-lsp": "yarn unlink @salesforce/aura-language-server @salesforce/lwc-language-server @salesforce/lightning-lsp-common",
     "report:installs": "ts-node scripts/reportInstalls.ts",
     "scrape:all:pages": "ts-node scripts/xsd/scrape-all-metadata-pages.ts",
     "scrape:single:page": "ts-node scripts/xsd/scrape-single-page.ts",
@@ -147,11 +144,142 @@
     "gha-automation-tests": "node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec",
     "setup": "node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec ./packages/salesforcedx-vscode-automation-tests/lib/test/setup/anInitialSetUp.e2e.js"
   },
+  "wireit": {
+    "compile": {
+      "dependencies": [
+        "./packages/eslint-local-rules:compile",
+        "./packages/salesforcedx-utils:compile",
+        "./packages/salesforcedx-vscode-i18n:compile",
+        "./packages/salesforcedx-utils-vscode:compile",
+        "./packages/salesforcedx-sobjects-faux-generator:compile",
+        "./packages/salesforcedx-apex-debugger:compile",
+        "./packages/salesforcedx-apex-replay-debugger:compile",
+        "./packages/salesforcedx-visualforce-markup-language-server:compile",
+        "./packages/salesforcedx-visualforce-language-server:compile",
+        "./packages/salesforcedx-vscode-core:compile",
+        "./packages/salesforcedx-vscode-apex:compile",
+        "./packages/salesforcedx-vscode-apex-debugger:compile",
+        "./packages/salesforcedx-vscode-apex-replay-debugger:compile",
+        "./packages/salesforcedx-vscode-apex-oas:compile",
+        "./packages/salesforcedx-vscode-lwc:compile",
+        "./packages/salesforcedx-vscode-lightning:compile",
+        "./packages/salesforcedx-vscode-soql:compile",
+        "./packages/salesforcedx-vscode-visualforce:compile",
+        "./packages/salesforcedx-vscode-services:compile",
+        "./packages/salesforcedx-vscode-services-types:compile",
+        "./packages/salesforcedx-vscode-org:compile",
+        "./packages/salesforcedx-vscode-org-browser:compile",
+        "./packages/salesforcedx-vscode-automation-tests:compile"
+      ]
+    },
+    "lint": {
+      "dependencies": [
+        "./packages/eslint-local-rules:lint",
+        "./packages/salesforcedx-utils:lint",
+        "./packages/salesforcedx-vscode-i18n:lint",
+        "./packages/salesforcedx-utils-vscode:lint",
+        "./packages/salesforcedx-sobjects-faux-generator:lint",
+        "./packages/salesforcedx-apex-debugger:lint",
+        "./packages/salesforcedx-apex-replay-debugger:lint",
+        "./packages/salesforcedx-visualforce-markup-language-server:lint",
+        "./packages/salesforcedx-visualforce-language-server:lint",
+        "./packages/salesforcedx-vscode-core:lint",
+        "./packages/salesforcedx-vscode-apex:lint",
+        "./packages/salesforcedx-vscode-apex-debugger:lint",
+        "./packages/salesforcedx-vscode-apex-replay-debugger:lint",
+        "./packages/salesforcedx-vscode-apex-oas:lint",
+        "./packages/salesforcedx-vscode-apex-testing:lint",
+        "./packages/salesforcedx-vscode-lwc:lint",
+        "./packages/salesforcedx-vscode-lightning:lint",
+        "./packages/salesforcedx-vscode-soql:lint",
+        "./packages/salesforcedx-vscode-visualforce:lint",
+        "./packages/salesforcedx-vscode-services:lint",
+        "./packages/salesforcedx-vscode-org:lint",
+        "./packages/salesforcedx-vscode-org-browser:lint",
+        "./packages/salesforcedx-vscode-automation-tests:lint"
+      ]
+    },
+    "test": {
+      "dependencies": [
+        "./packages/eslint-local-rules:test",
+        "./packages/salesforcedx-utils:test",
+        "./packages/salesforcedx-vscode-i18n:test",
+        "./packages/salesforcedx-utils-vscode:test",
+        "./packages/salesforcedx-sobjects-faux-generator:test",
+        "./packages/salesforcedx-apex-debugger:test",
+        "./packages/salesforcedx-apex-replay-debugger:test",
+        "./packages/salesforcedx-visualforce-markup-language-server:test",
+        "./packages/salesforcedx-visualforce-language-server:test",
+        "./packages/salesforcedx-vscode-core:test",
+        "./packages/salesforcedx-vscode-apex:test",
+        "./packages/salesforcedx-vscode-apex-debugger:test",
+        "./packages/salesforcedx-vscode-apex-replay-debugger:test",
+        "./packages/salesforcedx-vscode-apex-oas:test",
+        "./packages/salesforcedx-vscode-apex-testing:test",
+        "./packages/salesforcedx-vscode-lwc:test",
+        "./packages/salesforcedx-vscode-lightning:test",
+        "./packages/salesforcedx-vscode-soql:test",
+        "./packages/salesforcedx-vscode-visualforce:test",
+        "./packages/salesforcedx-vscode-services:test",
+        "./packages/salesforcedx-vscode-org:test",
+        "./packages/salesforcedx-vscode-org-browser:test"
+      ]
+    },
+    "vscode:bundle": {
+      "dependencies": [
+        "./packages/salesforcedx-vscode-core:vscode:bundle",
+        "./packages/salesforcedx-vscode-apex:vscode:bundle",
+        "./packages/salesforcedx-vscode-apex-debugger:vscode:bundle",
+        "./packages/salesforcedx-vscode-apex-replay-debugger:vscode:bundle",
+        "./packages/salesforcedx-vscode-apex-oas:vscode:bundle",
+        "./packages/salesforcedx-vscode-lwc:vscode:bundle",
+        "./packages/salesforcedx-vscode-lightning:vscode:bundle",
+        "./packages/salesforcedx-vscode-soql:vscode:bundle",
+        "./packages/salesforcedx-vscode-visualforce:vscode:bundle",
+        "./packages/salesforcedx-vscode-services:vscode:bundle",
+        "./packages/salesforcedx-vscode-org:vscode:bundle",
+        "./packages/salesforcedx-vscode-org-browser:vscode:bundle",
+        "./packages/salesforcedx-vscode-apex-testing:vscode:bundle"
+      ]
+    },
+    "vscode:package:legacy": {
+      "dependencies": [
+        "./packages/salesforcedx-vscode-core:vscode:package:legacy",
+        "./packages/salesforcedx-vscode-lwc:vscode:package:legacy",
+        "./packages/salesforcedx-vscode-lightning:vscode:package:legacy",
+        "./packages/salesforcedx-vscode-apex-debugger:vscode:package:legacy",
+        "./packages/salesforcedx-vscode-apex-oas:vscode:package:legacy"
+      ]
+    },
+    "vscode:package:modern": {
+      "dependencies": [
+        "./packages/salesforcedx-vscode:vscode:package",
+        "./packages/salesforcedx-vscode-expanded:vscode:package",
+        "./packages/salesforcedx-vscode-apex:vscode:package",
+        "./packages/salesforcedx-vscode-apex-replay-debugger:vscode:package",
+        "./packages/salesforcedx-vscode-apex-testing:vscode:package",
+        "./packages/salesforcedx-vscode-visualforce:vscode:package",
+        "./packages/salesforcedx-vscode-soql:vscode:package",
+        "./packages/salesforcedx-vscode-org:vscode:package",
+        "./packages/salesforcedx-vscode-services:vscode:package",
+        "./packages/salesforcedx-vscode-org-browser:vscode:package"
+      ]
+    },
+    "vscode:package": {
+      "command": "npm run vscode:package:legacy",
+      "env": {
+        "WIREIT_PARALLEL": "1"
+      },
+      "dependencies": [
+        "vscode:package:modern"
+      ]
+    }
+  },
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "lerna run compile,lint && npm run check:peer-deps && npm run check:typescript-project-references && ts-node scripts/package-lock.validation.ts",
-      "pre-push": "lerna run compile,lint,test"
+      "pre-commit": "npm run compile && npm run lint && npm run check:peer-deps && npm run check:typescript-project-references && ts-node scripts/package-lock.validation.ts",
+      "pre-push": "npm run compile && npm run lint && npm run test"
     }
   }
 }
