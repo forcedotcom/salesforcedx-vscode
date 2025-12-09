@@ -348,6 +348,9 @@ describe('ExternalServiceRegistrationManager', () => {
     expect(result.ExternalServiceRegistration).toHaveProperty('label', className);
     expect(result.ExternalServiceRegistration).toHaveProperty('schema', safeOasSpec);
     expect(result.ExternalServiceRegistration).toHaveProperty('operations', operations);
+    // For orgs < 66.0, status should be 'Complete' and namedCredential should be 'null'
+    expect(result.ExternalServiceRegistration).toHaveProperty('status', 'Complete');
+    expect(result.ExternalServiceRegistration).toHaveProperty('namedCredential', 'null');
   });
 
   it('createESRObject should not include operations for orgs >= 66.0', async () => {
@@ -366,6 +369,25 @@ describe('ExternalServiceRegistrationManager', () => {
     expect(result.ExternalServiceRegistration).toHaveProperty('schema', safeOasSpec);
     // For orgs >= 66.0, operations should be undefined (not included in the object)
     expect(result.ExternalServiceRegistration.operations).toBeUndefined();
+    // For orgs >= 66.0, status and namedCredential should be undefined
+    expect(result.ExternalServiceRegistration.status).toBeUndefined();
+    expect(result.ExternalServiceRegistration.namedCredential).toBeUndefined();
+  });
+
+  it('createESRObject should not include status and namedCredential when orgApiVersion is undefined', async () => {
+    const description = 'Test Description';
+    const className = 'TestClass';
+    const safeOasSpec = 'safeOasSpec';
+    const operations: any = [{ active: true, name: 'getPets' }];
+
+    // Test with undefined orgApiVersion - treated as GA (>= 66.0)
+    await esrHandler['initialize'](false, processedOasResult, fullPath);
+    const result = esrHandler.createESRObject(description, className, safeOasSpec, operations);
+
+    expect(result).toHaveProperty('ExternalServiceRegistration');
+    // When orgApiVersion is undefined, status and namedCredential should be undefined
+    expect(result.ExternalServiceRegistration.status).toBeUndefined();
+    expect(result.ExternalServiceRegistration.namedCredential).toBeUndefined();
   });
 
   it('extractInfoProperties', async () => {

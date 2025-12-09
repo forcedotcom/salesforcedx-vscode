@@ -234,11 +234,11 @@ export class ExternalServiceRegistrationManager {
         schemaType: 'OpenApi3',
         schemaUploadFileExtension: 'yaml',
         schemaUploadFileName: `${className.toLowerCase()}_openapi`,
-        status: 'Complete',
+        status: isGa ? undefined : 'Complete',
         operations: isGa ? undefined : operations,
         ...(isGa ? { registrationProviderAsset: className } : { registrationProvider: className }),
         registrationProviderType: this.providerType,
-        namedCredential: 'null'
+        namedCredential: isGa ? undefined : 'null'
       }
     };
   }
