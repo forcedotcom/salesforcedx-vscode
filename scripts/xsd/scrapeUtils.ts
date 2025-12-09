@@ -820,6 +820,11 @@ export const extractMetadataFromPage = async (
           continue;
         }
 
+        // Skip headings that contain spaces (these are typically section headers, not metadata types)
+        if (headingText.includes(' ')) {
+          continue;
+        }
+
         // Find the heading element in the DOM (including shadow DOMs)
         const headingElement = findHeadingElement(headingText);
 
