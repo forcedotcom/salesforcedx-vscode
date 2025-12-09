@@ -61,7 +61,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-web
-          path: packages/salesforcedx-vscode-metadata/playwright-report
+          path: packages/salesforcedx-vscode-services/playwright-report
           if-no-files-found: ignore
 
       - name: Upload Playwright Test Results
