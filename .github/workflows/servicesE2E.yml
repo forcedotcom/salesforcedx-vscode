@@ -47,7 +47,7 @@ jobs:
         run: |
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
           sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json
-        working-directory: dreamhouse-lwc
+        working-directory: minimal-project
 
       - name: Run Services headless tests (headless config)
         env:
@@ -76,4 +76,4 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          sf org delete scratch -o "$DREAMHOUSE_ORG_ALIAS" --no-prompt || true
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
