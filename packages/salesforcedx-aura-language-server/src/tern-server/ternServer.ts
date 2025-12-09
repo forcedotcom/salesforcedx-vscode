@@ -30,6 +30,8 @@ import URI from 'vscode-uri';
 import * as infer from '../tern/lib/infer';
 import * as tern from '../tern/lib/tern';
 import { findPreviousWord, findPreviousLeftParan, countPreviousCommas } from './stringUtil';
+// Import ternAura to ensure it executes and registers the 'aura' plugin
+import './ternAura';
 
 interface TernServer extends tern.Server {
   files: TernFile[];
@@ -113,13 +115,33 @@ const getJsFilesRecursively = async (
 };
 
 const loadPlugins = async (): Promise<{ aura: true; modules: true; doc_comment: true }> => {
+  // Use require() to load plugins from file system (they're not bundled)
+  // The plugins register themselves via tern.registerPlugin() when required
+  // Note: ternAura is imported at the top of this file, so it's already registered
+  // When bundled, __dirname is 'dist/', so '../tern/plugin/modules.js' resolves to 'tern/plugin/modules.js' at extension root
+  // IMPORTANT: The plugins use require("../lib/tern") which must resolve to the same tern instance
+  // that we import at the top of this file. Node's module caching ensures the same instance is returned
+  // when the plugins require("../lib/tern"), since we're using the same file system paths.
+  const modulesPluginPath = path.resolve(__dirname, '../tern/plugin/modules.js');
+  const docCommentPluginPath = path.resolve(__dirname, '../tern/plugin/doc_comment.js');
+
   try {
-    await import('./ternAura.js');
-    await import('../tern/plugin/modules.js');
-    await import('../tern/plugin/doc_comment.js');
-  } catch {
-    // In test environment, dynamic imports might fail, but we can still return the expected structure
+    require(modulesPluginPath);
+  } catch (error) {
+    console.error(`Failed to load modules plugin from ${modulesPluginPath}:`, error);
+    throw error;
   }
+
+  try {
+    require(docCommentPluginPath);
+  } catch (error) {
+    console.error(`Failed to load doc_comment plugin from ${docCommentPluginPath}:`, error);
+    throw error;
+  }
+
+  // Note: tern.plugins is not exported, so we can't verify registration here
+  // The plugins register themselves internally via tern.registerPlugin()
+  // If registration fails, it will be caught when loadPlugin('modules') is called
 
   return {
     aura: true,
@@ -242,7 +264,10 @@ export const startServer = async (
   }
 
   const defs = [browser, ecmascript];
-  const plugins = await loadPlugins();
+  // Load plugins BEFORE creating the tern server to ensure they're registered
+  // This must happen synchronously to ensure the tern instance is shared
+  await loadPlugins();
+  const plugins = { aura: true, modules: true, doc_comment: true };
   const config: tern.ConstructorOptions = {
     ...defaultConfig,
     defs,
@@ -278,13 +303,8 @@ const lsp2ternPos = ({ line, character }: { line: number; character: number }): 
 
 const tern2lspPos = ({ line, ch }: { line: number; ch: number }): Position => ({ line, character: ch });
 
-const fileToUri = (file: string): string => {
-  if (path.isAbsolute(file)) {
-    return URI.file(file).toString();
-  } else {
-    return URI.file(path.join(theRootPath, file)).toString();
-  }
-};
+const fileToUri = (file: string): string =>
+  path.isAbsolute(file) ? URI.file(file).toString() : URI.file(path.join(theRootPath, file)).toString();
 
 const uriToFile = (uri: string): string => {
   const parsedUri = URI.parse(uri);
@@ -388,8 +408,7 @@ export const onHover = async (
     await asyncFlush();
     const info = await ternRequest(textDocumentPosition, 'type');
 
-    const out: string[] = [];
-    out.push(`${info.exprName ?? info.name}: ${info.type}`);
+    const out: string[] = [`${info.exprName ?? info.name}: ${info.type}`];
     if (info.doc) {
       out.push(info.doc);
     }

@@ -26,11 +26,30 @@
   },
   "scripts": {
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf src/resources/sfdx/typings/copied",
-    "compile": "tsc -p . && node scripts/convert.js && node scripts/build.js",
+    "compile": "wireit",
     "watch": "tsc -watch -p .",
     "test": "jest --coverage",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc -p . && node scripts/convert.js && node scripts/build.js",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-lightning-lsp-common:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "scripts/**/*.js",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    }
   },
   "dependencies": {
     "@lwc/compiler": "8.16.0",

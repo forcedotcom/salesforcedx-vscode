@@ -42,6 +42,7 @@
   "dependencies": {
     "@types/vscode": "^1.90.0",
     "ejs": "^3.1.10",
+    "is-posix-bracket": "0.1.1",
     "tiny-jsonc": "^1.0.2",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",

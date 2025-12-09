@@ -357,7 +357,15 @@ tern.registerPlugin('aura', (s, _options) => {
     throw Error('Server must be async');
   }
   server.options.getFile = readFileAsync;
+  // Ensure server.mod exists before loading modules plugin (modules plugin assumes it exists)
+  if (!server.mod) {
+    server.mod = {};
+  }
   server.loadPlugin('modules');
+  // Verify modules plugin initialized correctly
+  if (!server.mod.modules) {
+    throw new Error('Modules plugin failed to initialize: server.mod.modules is undefined');
+  }
   server.mod.modules.on('wrapScope', initScope);
   server.mod.modules.on('getExports', connectModule);
   server.mod.modules.resolvers.push(resolver);

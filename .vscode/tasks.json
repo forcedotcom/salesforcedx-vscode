@@ -68,7 +68,6 @@
         "kind": "build",
         "isDefault": false
       },
-      "dependsOn": ["Compile"],
       "command": "npm",
       "type": "shell",
       "presentation": {
