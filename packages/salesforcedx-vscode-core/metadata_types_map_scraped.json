@@ -13923,7 +13923,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Where possible, we changed noninclusive terms to align with our company value of Equality. Because changing terms in our code can break current implementations, we maintained this metadata type’s name.",
+    "short_description": "",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sites.htm"
   },
   "SiteRedirectMapping": {
@@ -22452,7 +22452,7 @@
         "Field Type": "SortOrder (enumeration of type string)"
       }
     ],
-    "short_description": "This feature is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer's sole discretion.",
+    "short_description": "Finds records in the database that are related to the records specified in FlowRecordLookup and stores their field values in the flow. Corresponds to a Get Records element in Flow Builder. It extends FlowBaseElement and inherits all its fields.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm"
   },
   "FlowRecordCreate": {
@@ -32476,7 +32476,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "This field type is removed in API version 47.0 and later and is available only in API versions 45.0 and 46.0.",
+    "short_description": "",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_platformeventchannel.htm"
   },
   "PlatformEventChannelMember": {
@@ -49733,7 +49733,7 @@
         "Field Type": "PicklistValueTranslation[]"
       }
     ],
-    "short_description": "GlobalPicklistTranslation is available in API version 37.0 only and is removed from later versions.",
+    "short_description": "GlobalPicklistTranslation contains details for a global picklist translation.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm"
   },
   "GlobalQuickActionTranslation": {
@@ -49925,7 +49925,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Visualforce pages supersede s-controls. Organizations that haven't previously used s-controls can’t create them. Existing s-controls are unaffected and can still be edited.",
+    "short_description": "",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm"
   },
   "PipelineInspMetricConfigTranslation": {

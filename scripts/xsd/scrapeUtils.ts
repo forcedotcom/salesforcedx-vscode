@@ -258,21 +258,76 @@ export const extractMetadataFromPage = async (
     // Extract fields from ALL tables (each table is a separate metadata type)
     // We'll extract descriptions per-table instead of one for the whole page
     const extractionResult = await contentFrame.evaluate(() => {
+      // Helper to check if an element is a callout/note container
+      const isCalloutElement = (el: Element): boolean => {
+        if (!el) return false;
+
+        // Check tag name for custom elements like doc-content-callout
+        if (el.tagName && el.tagName.toLowerCase().includes('callout')) {
+          return true;
+        }
+
+        if (!el.classList) return false;
+
+        const calloutClasses = [
+          'dx-callout-body',
+          'note',
+          'warning',
+          'tip',
+          'important',
+          'caution',
+          'box-note',
+          'box-warning',
+          'box-tip',
+          'box-important',
+          'slds-notify',
+          'slds-notify_alert'
+        ];
+
+        for (const cls of calloutClasses) {
+          if (el.classList.contains(cls)) return true;
+        }
+
+        if (typeof el.className === 'string') {
+          const cls = el.className.toLowerCase();
+          if (cls.includes('dx-callout')) return true;
+          if (cls.includes('messagebox')) return true;
+          // Check for "box message info" pattern and similar
+          if (cls.includes('box') && (cls.includes('message') || cls.includes('info'))) return true;
+        }
+
+        return false;
+      };
+
+      // Helper to check if an element is inside a note/callout div
+      const isInsideCallout = (el: Element): boolean => {
+        let current = el.parentElement;
+        while (current) {
+          if (isCalloutElement(current)) {
+            return true;
+          }
+          current = current.parentElement;
+        }
+        return false;
+      };
+
       // Helper to check if text is a valid description (not navigation or too short)
       const isValidDescription = (text: string): boolean => {
         const textLower = text.toLowerCase();
         const isSubstantial = text.length > 20;
+
+        // Reject text that starts with note/tip/important labels
+        const startsWithNoteLabel = /^(note|tip|important|warning|caution)[:\s]/i.test(text);
+
         const isNotNavigation =
           !textLower.includes('cookie') &&
           !textLower.includes('in this section') &&
           !textLower.includes('©') &&
           !textLower.includes('skip navigation') &&
           !textLower.includes('related topics') &&
-          !textLower.includes('see also') &&
-          !textLower.startsWith('note:') &&
-          !textLower.startsWith('tip:') &&
-          !textLower.startsWith('important:');
-        return isSubstantial && isNotNavigation;
+          !textLower.includes('see also');
+
+        return isSubstantial && isNotNavigation && !startsWithNoteLabel;
       };
 
       // Helper to search for elements in regular DOM and shadow DOMs
@@ -337,26 +392,37 @@ export const extractMetadataFromPage = async (
 
           // Look for a paragraph with meaningful content
           if (nextElement.tagName === 'P') {
-            const text = nextElement.textContent?.trim() ?? '';
-            if (isValidDescription(text)) {
-              description = text;
-              break;
+            if (!isInsideCallout(nextElement)) {
+              const text = nextElement.textContent?.trim() ?? '';
+              if (isValidDescription(text)) {
+                description = text;
+                break;
+              }
             }
           }
 
           // Also check for DD (definition description) after DT
           if (nextElement.tagName === 'DD') {
-            const text = nextElement.textContent?.trim() ?? '';
-            if (text.length > 20) {
-              description = text;
-              break;
+            if (!isInsideCallout(nextElement)) {
+              const text = nextElement.textContent?.trim() ?? '';
+              if (text.length > 20) {
+                description = text;
+                break;
+              }
             }
           }
 
-          // Check inside DIVs for paragraphs
-          if (nextElement.tagName === 'DIV') {
+          // Check inside DIVs for paragraphs (but skip callout divs)
+          if (nextElement.tagName === 'DIV' && !isInsideCallout(nextElement)) {
+            // Skip if the DIV itself is a callout
+            if (isCalloutElement(nextElement)) {
+              nextElement = nextElement.nextElementSibling;
+              searchAttempts++;
+              continue;
+            }
+
             const paragraph = nextElement.querySelector('p');
-            if (paragraph) {
+            if (paragraph && !isInsideCallout(paragraph)) {
               const text = paragraph.textContent?.trim() ?? '';
               if (isValidDescription(text)) {
                 description = text;
@@ -473,6 +539,7 @@ export const extractMetadataFromPage = async (
 
           // Check if this element or its children have the description
           const checkElement = (el: Element) => {
+            if (isInsideCallout(el)) return '';
             const text = el.textContent?.trim() ?? '';
             return isValidDescription(text) ? text : '';
           };
@@ -486,8 +553,8 @@ export const extractMetadataFromPage = async (
             }
           }
 
-          // If it's a DIV, look for P or DD children
-          if (current.tagName === 'DIV') {
+          // If it's a DIV, look for P or DD children (but skip callout divs)
+          if (current.tagName === 'DIV' && !isInsideCallout(current)) {
             const paragraphs = current.querySelectorAll('p, dd');
             for (const p of Array.from(paragraphs)) {
               const desc = checkElement(p);
@@ -508,8 +575,8 @@ export const extractMetadataFromPage = async (
       if (!pageLevelDescription && mainHeading) {
         const allParagraphs = Array.from(document.querySelectorAll('p, dd'));
         for (const p of allParagraphs) {
-          // Only consider paragraphs that come after the heading in DOM order
-          if (mainHeading.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_FOLLOWING) {
+          // Only consider paragraphs that come after the heading in DOM order and are not in callouts
+          if (!isInsideCallout(p) && mainHeading.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_FOLLOWING) {
             const text = p.textContent?.trim() ?? '';
             if (isValidDescription(text)) {
               pageLevelDescription = text;
