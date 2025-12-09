@@ -303,6 +303,9 @@ export const extractMetadataFromPage = async (
         pageLevelDescription: string;
       }[] = [];
 
+      // Track which headings have tables associated with them
+      const headingsWithTables = new Set<string>();
+
       // Get the page title (from h1, or from title element, or from first h2)
       let pageTitle = '';
 
@@ -744,10 +747,144 @@ export const extractMetadataFromPage = async (
             pageTitle,
             pageLevelDescription
           });
+
+          // Track that this heading has a table
+          if (tableName) {
+            headingsWithTables.add(tableName);
+          }
         }
       }
 
-      return { tablesData, pageHeadings: Array.from(pageHeadings) };
+      // Now process headings that don't have tables but have descriptions
+      const headingsWithoutTables: {
+        headingName: string;
+        description: string;
+      }[] = [];
+
+      // Helper to check if text is a valid description
+      const isValidHeadingDescription = (text: string): boolean => {
+        const textLower = text.toLowerCase();
+        const isSubstantial = text.length > 20;
+        const isNotNavigation =
+          !textLower.includes('cookie') &&
+          !textLower.includes('in this section') &&
+          !textLower.includes('©') &&
+          !textLower.includes('skip navigation') &&
+          !textLower.includes('related topics') &&
+          !textLower.includes('see also');
+        return isSubstantial && isNotNavigation;
+      };
+
+      // Helper to search for heading elements including shadow DOMs
+      const findHeadingElement = (headingText: string): Element | null => {
+        // Search regular DOM
+        const headingElements = Array.from(document.querySelectorAll('div.section[id] h2, h1.helpHead1, h2, h3, h4'));
+
+        for (const el of headingElements) {
+          if (el.textContent?.trim() === headingText) {
+            return el;
+          }
+        }
+
+        // Search shadow DOMs
+        const searchShadow = (root: Document | ShadowRoot | Element): Element | null => {
+          const shadowHeadings = root.querySelectorAll('div.section[id] h2, h1.helpHead1, h2, h3, h4');
+          for (const el of Array.from(shadowHeadings)) {
+            if (el.textContent?.trim() === headingText) {
+              return el;
+            }
+          }
+
+          const elements = root.querySelectorAll('*');
+          for (const el of Array.from(elements)) {
+            if (el.shadowRoot) {
+              const found = searchShadow(el.shadowRoot);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+
+        return searchShadow(document);
+      };
+
+      // Process all headings that don't have tables
+      for (const headingText of Array.from(pageHeadings)) {
+        // Skip if this heading already has a table
+        if (headingsWithTables.has(headingText)) {
+          continue;
+        }
+
+        // Skip the main H1 page title heading
+        if (headingText === pageTitle) {
+          continue;
+        }
+
+        // Find the heading element in the DOM (including shadow DOMs)
+        const headingElement = findHeadingElement(headingText);
+
+        if (!headingElement) {
+          continue;
+        }
+
+        // Look for a description paragraph right after the heading
+        let description = '';
+        let nextElement = headingElement.nextElementSibling;
+        let searchAttempts = 0;
+
+        while (nextElement && searchAttempts < 10) {
+          // Stop if we hit a table or another heading
+          if (nextElement.tagName === 'TABLE' || nextElement.tagName?.match(/^H[1-6]$/)) {
+            break;
+          }
+
+          // Look for a paragraph with meaningful content
+          if (nextElement.tagName === 'P') {
+            const text = nextElement.textContent?.trim();
+            if (text && isValidHeadingDescription(text)) {
+              description = text;
+              break;
+            }
+          }
+
+          // Also check for DD (definition description) after DT
+          if (nextElement.tagName === 'DD') {
+            const text = nextElement.textContent?.trim();
+            if (text && text.length > 20) {
+              description = text;
+              break;
+            }
+          }
+
+          // Check inside DIVs for paragraphs
+          if (nextElement.tagName === 'DIV') {
+            const paragraph = nextElement.querySelector('p');
+            if (paragraph) {
+              const text = paragraph.textContent?.trim();
+              if (text && isValidHeadingDescription(text)) {
+                description = text;
+                break;
+              }
+            }
+          }
+
+          nextElement = nextElement.nextElementSibling;
+          searchAttempts++;
+        }
+
+        if (description) {
+          headingsWithoutTables.push({
+            headingName: headingText,
+            description
+          });
+        }
+      }
+
+      return {
+        tablesData,
+        pageHeadings: Array.from(pageHeadings),
+        headingsWithoutTables
+      };
     });
 
     // Create a separate metadata type entry for each table
@@ -757,8 +894,13 @@ export const extractMetadataFromPage = async (
 
     console.log('All table fields:', JSON.stringify(allTableFields, null, 2));
     console.log('Page headings set:', JSON.stringify(Array.from(pageHeadingsSet), null, 2));
+    console.log('Headings without tables:', JSON.stringify(extractionResult.headingsWithoutTables, null, 2));
 
-    if (allTableFields.length === 0) {
+    // If no tables and no headings without tables, return empty
+    if (
+      allTableFields.length === 0 &&
+      (!extractionResult.headingsWithoutTables || extractionResult.headingsWithoutTables.length === 0)
+    ) {
       return [];
     }
 
@@ -925,6 +1067,33 @@ export const extractMetadataFromPage = async (
           url: url.split('#')[0]
         }
       });
+    }
+
+    // Process headings without tables
+    if (extractionResult.headingsWithoutTables && extractionResult.headingsWithoutTables.length > 0) {
+      for (const heading of extractionResult.headingsWithoutTables) {
+        // Check if we already have an entry for this heading name
+        const existingEntry = results.find(r => r.name === heading.headingName);
+        if (existingEntry) {
+          // Update the existing entry if it only has a generic "Referenced type" description
+          if (existingEntry.data.short_description.startsWith('Referenced type from')) {
+            existingEntry.data.short_description = cleanDescription(heading.description);
+            console.log('Updated entry HEADING WITHOUT TABLE:', JSON.stringify(existingEntry, null, 2));
+          }
+          continue;
+        }
+
+        // Create a new entry with no fields but with the description
+        results.push({
+          name: heading.headingName,
+          data: {
+            fields: [],
+            short_description: cleanDescription(heading.description),
+            url: url.split('#')[0] // Strip hash fragment if present
+          }
+        });
+        console.log('Newest entry HEADING WITHOUT TABLE:', JSON.stringify(results.at(-1), null, 2));
+      }
     }
 
     return results;

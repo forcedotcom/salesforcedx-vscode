@@ -651,6 +651,11 @@
     "short_description": "Represents the bundle of streams that a user adds to a data kit.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datasourcebundledefinition.htm"
   },
+  "Declarative Metadata Sample Definition": {
+    "fields": [],
+    "short_description": "The following is an example of a DataSourceBundleDefinition component.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datasourcebundledefinition.htm"
+  },
   "DataSourceField": {
     "fields": [
       {
@@ -1278,6 +1283,21 @@
       }
     ],
     "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatasource.htm"
+  },
+  "customConfiguration for Salesforce\n        Connect—OData 2.0 or 4.0 Adapter": {
+    "fields": [],
+    "short_description": "The following is the definition of an external data source for Salesforce Connect—OData 2.0 or 4.0 adapter.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatasource.htm"
+  },
+  "customConfiguration for Salesforce\n        Connect—Custom Adapter": {
+    "fields": [],
+    "short_description": "The noIdMapping parameter corresponds to the High Data Volume field in the user interface.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatasource.htm"
+  },
+  "ExternalDataSrcDescriptors\n        for Salesforce Connect Adapter for Amazon DynamoDB and for Amazon\n        Athena": {
+    "fields": [],
+    "short_description": "Represents schema descriptors for an external data source used with Salesforce Connect adapter for Amazon DynamoDB (available in API version 55.0 or later) or Amazon Athena (available in API version 56.0 or later).",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatasource.htm"
   },
   "ExternalDataTranObject": {
@@ -2336,12 +2356,12 @@
   },
   "ActionableListDatasetColumn": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm",
+    "short_description": "Represents the information about the columns in a dataset associated with an actionable list.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm"
   },
   "ActionableListMemberStatus": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm",
+    "short_description": "Represents the status and the corresponding status icon details of an individual actionable list member.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm"
   },
   "AdvAccountForecastSet": {
@@ -5422,6 +5442,11 @@
       }
     ],
     "short_description": "Represents an allowlisted URL parameter that can be forwarded from authentication provider client configuration URLs to the authorization URL. Use this type to add custom functionality to authentication providers. For example, allowlist a ui_locales parameter and use it to send a user's language preference from Salesforce to the third-party provider's login page.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_authproviders.htm"
+  },
+  "Usage": {
+    "fields": [],
+    "short_description": "Salesforce provides default authentication providers, called Salesforce-managed auth providers, to simplify setting up these service providers for authentication.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_authproviders.htm"
   },
   "AutoResponseRules": {
@@ -9244,6 +9269,11 @@
     "short_description": "Specifies the configuration options for a connected app’s session policies. Use these policies to define how long a user’s session can last before reauthenticating, to block user access to the connected app, or to require multi-factor authentication (MFA) to access the app. Available in API version 49.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm"
   },
+  "ConnectedAppOauthConfig": {
+    "fields": [],
+    "short_description": "Represents the field names that configure how your connected app communicates with Salesforce.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm"
+  },
   "ContentAsset": {
     "fields": [
       {
@@ -10316,6 +10346,21 @@
     "short_description": "Represents a translated constant value for conversation message definitions. Available in API version 61.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_conversationmessagedefinitiontranslation.htm"
   },
+  "Parent Type": {
+    "fields": [],
+    "short_description": "This type is used as a nested complex type within the ConversationMessageDefinition metadata type.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_conversationmessagedefinitiontranslation.htm"
+  },
+  "Version": {
+    "fields": [],
+    "short_description": "ConversationMessageDefinitionTranslation is available in API version 61.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_conversationmessagedefinitiontranslation.htm"
+  },
+  "Usage Example": {
+    "fields": [],
+    "short_description": "This complex type is used within ConversationMessageDefinition to provide translations. Here's an example context:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_conversationmessagedefinitiontranslation.htm"
+  },
   "ConversationVendorInfo": {
     "fields": [
       {
@@ -11202,6 +11247,11 @@
     "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customapplication.htm",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customapplication.htm"
   },
+  "Declarative Metadata Sample Definition—Salesforce Console": {
+    "fields": [],
+    "short_description": "The following is the definition of a custom app where isServiceCloudConsole is true:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customapplication.htm"
+  },
   "CustomApplicationComponent": {
     "fields": [
       {
@@ -11913,6 +11963,16 @@
     "short_description": "",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm"
   },
+  "ActionOverrideType": {
+    "fields": [],
+    "short_description": "ActionOverrideType is an enumeration of type string that defines which kind of action override to use. The valid values are:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/actionoverride.htm"
+  },
+  "Declarative Metadata Sample\n                Definitions": {
+    "fields": [],
+    "short_description": "You can define action overrides, as in these examples for the Edit action.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/actionoverride.htm"
+  },
   "BusinessProcess": {
     "fields": [
       {
@@ -12498,6 +12558,11 @@
     "short_description": "Represents the policy for archiving field history data. When you set a policy, you specify the number of months that you want to keep field history in Salesforce before archiving it. By default, when Field Audit Trail is enabled, all field history is retained.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_historyretentionpolicy.htm"
   },
+  "Declarative Metadata File Suffix and Directory Location": {
+    "fields": [],
+    "short_description": "Field history retention policies are defined as part of a standard or custom object. You can set field history retention policies for objects individually. See CustomObject for more information.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_historyretentionpolicy.htm"
+  },
   "Index": {
     "fields": [
       {
@@ -12607,6 +12672,11 @@
     "short_description": "ListViewFilter represents a filter line item.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_listview.htm"
   },
+  "FilterScope": {
+    "fields": [],
+    "short_description": "The FilterScope is an enumeration of type string that represents the filtering criteria for the records. The valid values are listed in the table:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_listview.htm"
+  },
   "NamedFilter": {
     "fields": [
       {
@@ -12689,6 +12759,11 @@
     "short_description": "FilterItems contains the following properties:",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/namedfilter.htm"
   },
+  "FilterOperation": {
+    "fields": [],
+    "short_description": "Here’s an enumeration of type string that lists different filter operations. Valid values are:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/namedfilter.htm"
+  },
   "Picklist (Including Dependent Picklist)": {
     "fields": [
       {
@@ -12713,6 +12788,11 @@
       }
     ],
     "short_description": "Deprecated. Represents a picklist (or dependent picklist) definition for a custom field in a custom object or a custom or standard field in a standard object, such as an account.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_picklist.htm"
+  },
+  "Java Sample": {
+    "fields": [],
+    "short_description": "The following sample uses a picklist. For a complete sample of using a picklist with record types and profiles, see Profile.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_picklist.htm"
   },
   "ProfileSearchLayouts": {
@@ -13464,6 +13544,11 @@
       }
     ],
     "short_description": "WorkflowTaskTranslation contains details for a workflow task translation. For more details, see Workflow.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customobjecttranslation.htm"
+  },
+  "Declarative Metadata Sample Definitions": {
+    "fields": [],
+    "short_description": "This sample XML definition shows a CustomObjectTranslation for the Description__c object in German, with one custom field, Summary__c. The name and location of the file containing this definition would be objectTranslations/Description__c-de.objectTranslation.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customobjecttranslation.htm"
   },
   "CustomPageWebLink": {
@@ -14817,6 +14902,26 @@
     "short_description": "DashboardComponentSection represents one of the sections or columns in a dashboard.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dashboard.htm"
   },
+  "DashboardComponentFilter": {
+    "fields": [],
+    "short_description": "DashboardComponentFilter is an enumeration of type string that lists the sort values for dashboard components. The valid values are:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dashboard.htm"
+  },
+  "Declarative Metadata Sample Definition — Filtered Dashboard": {
+    "fields": [],
+    "short_description": "A sample XML definition of a filtered dashboard is shown below. Note that this example is supported in API version 24.0 and later. The file name matches the dashboard title and the extension is .dashboard.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dashboard.htm"
+  },
+  "Declarative Metadata Sample Definition — Unfiltered Dashboard": {
+    "fields": [],
+    "short_description": "A sample XML definition of a dashboard is shown below. The file name matches the dashboard title and the extension is .dashboard.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dashboard.htm"
+  },
+  "Declarative Metadata Sample Definition — Lightning Experience Dashboard\n                with isGridLayout Equals true": {
+    "fields": [],
+    "short_description": "A sample XML definition of a Lightning Experience dashboard with isGridLayout equals true is shown below. Note that this example is supported in API version 35.0 and later. The file name matches the dashboard title and the extension is .dashboard.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dashboard.htm"
+  },
   "DataCategoryGroup": {
     "fields": [
       {
@@ -15173,6 +15278,16 @@
       }
     ],
     "short_description": "Represents the fields and values from a data source that are used to define the condition logic of the data that's used in a decision table.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_decisiontable.htm"
+  },
+  "File Suffix and Directory Location": {
+    "fields": [],
+    "short_description": "DecisionTable components have the suffix .decisionTable and are stored in the decisionTables folder.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_decisiontable.htm"
+  },
+  "Special Access Rules": {
+    "fields": [],
+    "short_description": "To use this metadata type, your Salesforce org must have the Loyalty Management or the Rebate Management license.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_decisiontable.htm"
   },
   "DecisionTableDatasetLink": {
@@ -17103,6 +17218,11 @@
       }
     ],
     "short_description": "Attachment represents an email attachment.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailtemplate.htm"
+  },
+  "Declarative Metadata Sample\n                Definition": {
+    "fields": [],
+    "short_description": "Here's a sample XML definition of an email template.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailtemplate.htm"
   },
   "EmbeddedServiceBranding": {
@@ -24043,12 +24163,27 @@
   },
   "FlowScreenActionInputParameter": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
+    "short_description": "Defines an iput parameter for a flow screen action. It extends FlowScreenFieldInputParameter and inherits all its fields.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm"
   },
   "FlowStageStepOutputConfigParam": {
     "fields": [],
     "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm"
+  },
+  "InvocableActionType": {
+    "fields": [],
+    "short_description": "The valid values in the required actionType on FlowActionCall.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm"
+  },
+  "FlowAssignmentOperator": {
+    "fields": [],
+    "short_description": "An enumeration of type string that specifies the operation to apply to the variable in the assignToReference field. See “Flow Operators in Assignment Elements” in Salesforce Help.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm"
+  },
+  "Upgrade Flow Files to API Version 44.0 or Later": {
+    "fields": [],
+    "short_description": "In API version 43.0 and earlier, the Flow object’s fullName field included the flow’s version number. Starting in API version 44, the field no longer includes the version number. Before you deploy using API version 44.0 via Metadata API or Salesforce CLI, make sure that:",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm"
   },
   "FlowCategory": {
@@ -24262,7 +24397,7 @@
   },
   "FlowTestFlowVersion": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm",
+    "short_description": "Reserved for future use.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm"
   },
   "Folder": {
@@ -28067,7 +28202,7 @@
   },
   "LiveChatButtonDeployments": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatbutton.htm",
+    "short_description": "Represents the deployments associated with a chat button or invitation.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatbutton.htm"
   },
   "LiveChatButtonSkills": {
@@ -31453,12 +31588,17 @@
   },
   "OcrSampleDocumentField": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm",
+    "short_description": "Represents the details of the field in a form whose value is extracted and mapped to a Salesforce object field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm"
   },
   "OcrSampleDocumentPage": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm",
+    "short_description": "Represents a collection of fields that define a page in the OCR sample document. This type exists only if the OcrSampleDocument is a real sample document and not an abstract document representing the DocumentType.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm"
+  },
+  "OcrSampleDocumentPageItem": {
+    "fields": [],
+    "short_description": "Represents a foreign key reference to the item on the sample document page containing a value for the page item.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm"
   },
   "OcrTemplate": {
@@ -33947,6 +34087,11 @@
     "short_description": "A list of in-app guidance entries. Each entry represents a different prompt or walkthrough.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_prompt.htm"
   },
+  "Prompts and Walkthroughs in Managed Packages": {
+    "fields": [],
+    "short_description": "For considerations about including in-app guidance in a managed package, see Guidelines for In-App Guidance in Managed Packages in Salesforce Help.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_prompt.htm"
+  },
   "PublicKeyCertificate": {
     "fields": [
       {
@@ -34231,7 +34376,7 @@
   },
   "QueueRoutingConfigSkill": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_queueroutingconfig.htm",
+    "short_description": "Represents default skills associated with the routing configuration.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_queueroutingconfig.htm"
   },
   "QuickAction": {
@@ -34428,6 +34573,11 @@
       }
     ],
     "short_description": "Represents the input and output of the associated quick action. Available in API version 63.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_quickaction.htm"
+  },
+  "Wildcard Support in the Manifest File": {
+    "fields": [],
+    "short_description": "This metadata type supports the wildcard character * (asterisk) in the package.xml manifest file. For information about using the manifest file, see Deploying and Retrieving Metadata with the Zip File.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_quickaction.htm"
   },
   "RedirectWhitelistUrl": {
@@ -34846,12 +34996,12 @@
   },
   "StrategyNodeExclusive": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recommendationstrategy.htm",
+    "short_description": "Returns results from the first child node that has results and no other. Extends StrategyNodeUnionBase and inherits all its fields.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recommendationstrategy.htm"
   },
   "StrategyNodeUnion": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recommendationstrategy.htm",
+    "short_description": "StrategyNodeUnion combines the output of all its child nodes. StrategyNodeUnion is a concrete implementation of StrategtNodeUnionBase and inherits all its fields.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recommendationstrategy.htm"
   },
   "RecordActionDeployment": {
@@ -36284,17 +36434,72 @@
   },
   "SortOrder": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm",
+    "short_description": "An enumeration of type string that defines the order in which data is sorted in the report fields. Valid values:",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
   },
   "ReportSummaryType": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm",
+    "short_description": "An enumeration of type string that defines how report fields are summarized. Valid values:",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
   },
   "ChartAxis": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm",
+    "short_description": "An enumeration of type string that specifies the axis or axes to be used in charts. Valid values:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
+  },
+  "ReportCustomDetailFormulaDatatype": {
+    "fields": [],
+    "short_description": "An enumeration of type string that specifies the data type for formatting and display of row-level formula results. Valid values:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
+  },
+  "UserDateGranularity": {
+    "fields": [],
+    "short_description": "An enumeration of type string that defines the time period by which to group data. Valid values:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
+  },
+  "ReportFormat": {
+    "fields": [],
+    "short_description": "An enumeration of type string that defines the report format. Valid values:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
+  },
+  "ReportFormattingSummaryType": {
+    "fields": [],
+    "short_description": "An enumeration of type string that defines how report fields are summarized. Valid values:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
+  },
+  "ReportAggregateDatatype": {
+    "fields": [],
+    "short_description": "An enumeration of type string that specifies the data type for formatting and display of custom summary formula results. Valid values:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
+  },
+  "ChartType": {
+    "fields": [],
+    "short_description": "An enumeration of type string that defines the chart type. For information on each of these chart types, see Chart Types in Salesforce Help. Valid values:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
+  },
+  "ChartPosition": {
+    "fields": [],
+    "short_description": "An enumeration of type string that specifies the position of the chart in the report. Valid values:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
+  },
+  "ReportChartSize": {
+    "fields": [],
+    "short_description": "An enumeration of type string that specifies the chart size. Valid values:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
+  },
+  "ChartRangeType": {
+    "fields": [],
+    "short_description": "An enumeration of type string that defines the report format. Valid values:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
+  },
+  "UserDateInterval": {
+    "fields": [],
+    "short_description": "An enumeration of type string that defines the period. Valid values:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
+  },
+  "Declarative Metadata Sample Definition for a Joined Report": {
+    "fields": [],
+    "short_description": "A sample XML report definition:",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm"
   },
   "ReportType": {
@@ -37389,6 +37594,11 @@
       }
     ],
     "short_description": "A group of related ServiceProcessAttribute records.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_serviceprocess.htm"
+  },
+  "Usage Type": {
+    "fields": [],
+    "short_description": "We recommend that you review these considerations before you retrieve or deploy service process metadata.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_serviceprocess.htm"
   },
   "AccountPlanSettings": {
@@ -41525,6 +41735,11 @@
     "short_description": "This field can occur more than one time when specifying more than one forecast category to include in the rollup type. Each occurrence contains two subfields that specify a forecast category to include in the forecast rollup type and its weight. Some rollup types include more than one forecast category. This table shows the forecast categories that are included in each rollup type.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_forecastingsettings.htm"
   },
+  "OpportunityListFields​SelectedSettings": {
+    "fields": [],
+    "short_description": "The fields selected to appear in the opportunity pane of the forecast page for the forecast type. One of the selected fields must be Opportunity Name. You can select up to 15 fields.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_forecastingsettings.htm"
+  },
   "HighVelocitySalesSettings": {
     "fields": [
       {
@@ -44815,6 +45030,11 @@
     "short_description": "Represents an org’s record page settings. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recordpagesettings.htm"
   },
+  "Example Package Manifest": {
+    "fields": [],
+    "short_description": "The following is an example package manifest used to deploy or retrieve the Record Page settings metadata for an organization",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recordpagesettings.htm"
+  },
   "RetailExecutionSettings": {
     "fields": [
       {
@@ -45595,7 +45815,7 @@
   },
   "PasswordPolicies": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_securitysettings.htm",
+    "short_description": "Represents your org’s password and login policies, which show up under Security Controls | Password Policies.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_securitysettings.htm"
   },
   "ServiceCloudVoiceSettings": {
@@ -47002,7 +47222,7 @@
   },
   "SharingTerritoryRule": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sharingrules.htm",
+    "short_description": "Defines a territory-based sharing rule. It extends SharingOwnerRule and inherits all its fields. Available in API version 33.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sharingrules.htm"
   },
   "BaseSharingRule": {
@@ -49833,6 +50053,11 @@
     "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm"
   },
+  "Language": {
+    "fields": [],
+    "short_description": "A two-character language code identifies each language, such as en. A five-character code is used for languages that differ depending on location. For example, en_AU.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm"
+  },
   "UiFormatSpecificationSet": {
     "fields": [
       {
@@ -50011,6 +50236,11 @@
       }
     ],
     "short_description": "Represents the registration of a custom Marketing Cloud Preview and Test modal tab, created using custom Lightning web components. You can register and show multiple tabs in the Preview and Test experience.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_uipreviewmessagetabdef.htm"
+  },
+  "Declarative Metadata Sample\n\t\t\t\tDefinition": {
+    "fields": [],
+    "short_description": "This example is a custom Lightning web component’s HTML file.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_uipreviewmessagetabdef.htm"
   },
   "UserAccessPolicy": {
@@ -50627,6 +50857,11 @@
       }
     ],
     "short_description": "Represents the WaveRecipe type in an Analytics application. A recipe is a saved set of steps to perform on a specific source dataset or connected data. This type extends the MetadataWithContent metadata type and inherits its content and fullName fields.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_waverecipe.htm"
+  },
+  "Deleting a WaveRecipe Component": {
+    "fields": [],
+    "short_description": "Use a simple destructiveChanges.xml file with only the WaveRecipe component declared. This deletes the WaveRecipe and any related WaveDataflow components. For more information, see Delete Components from an Organization.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_waverecipe.htm"
   },
   "WaveTemplateBundle": {
