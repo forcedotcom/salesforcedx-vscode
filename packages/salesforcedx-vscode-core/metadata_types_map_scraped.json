@@ -13923,7 +13923,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Represents the external domains that you allow to frame your site or experience pages.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sites.htm"
   },
   "SiteRedirectMapping": {
@@ -49925,7 +49925,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "ScontrolTranslation contains details for a translation of an s-control. For more information, see “About S-Controls” in Salesforce Help.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm"
   },
   "PipelineInspMetricConfigTranslation": {

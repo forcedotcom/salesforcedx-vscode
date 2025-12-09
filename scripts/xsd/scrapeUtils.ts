@@ -293,7 +293,17 @@ export const extractMetadataFromPage = async (
           if (cls.includes('dx-callout')) return true;
           if (cls.includes('messagebox')) return true;
           // Check for "box message info" pattern and similar
-          if (cls.includes('box') && (cls.includes('message') || cls.includes('info'))) return true;
+          if (
+            cls.includes('box') &&
+            (cls.includes('message') ||
+              cls.includes('info') ||
+              cls.includes('important') ||
+              cls.includes('warning') ||
+              cls.includes('tip') ||
+              cls.includes('note') ||
+              cls.includes('caution'))
+          )
+            return true;
         }
 
         return false;
@@ -301,6 +311,7 @@ export const extractMetadataFromPage = async (
 
       // Helper to check if an element is inside a note/callout div
       const isInsideCallout = (el: Element): boolean => {
+        if (isCalloutElement(el)) return true;
         let current = el.parentElement;
         while (current) {
           if (isCalloutElement(current)) {
@@ -379,30 +390,43 @@ export const extractMetadataFromPage = async (
         let nextElement = headingElement.nextElementSibling;
         let searchAttempts = 0;
 
-        while (nextElement && searchAttempts < 10) {
+        console.log(`Looking for description after heading: ${headingElement.textContent?.trim()}`);
+
+        while (nextElement && searchAttempts < 15) {
+          const tagName = nextElement.tagName;
+          console.log(`  Attempt ${searchAttempts}: Found tag ${tagName}, class: ${nextElement.className}`);
+
           // Stop if we hit a table (when specified)
-          if (stopAtTable && nextElement.tagName === 'TABLE') {
+          if (stopAtTable && tagName === 'TABLE') {
+            console.log('    Stopped at TABLE');
             break;
           }
 
           // Stop if we hit another heading
-          if (nextElement.tagName?.match(/^H[1-6]$/)) {
+          if (tagName?.match(/^H[1-6]$/)) {
+            console.log('    Stopped at next heading');
             break;
           }
 
           // Look for a paragraph with meaningful content
-          if (nextElement.tagName === 'P') {
+          if (tagName === 'P') {
             if (!isInsideCallout(nextElement)) {
               const text = nextElement.textContent?.trim() ?? '';
+              console.log(`    Checking P content: "${text.substring(0, 50)}..."`);
               if (isValidDescription(text)) {
                 description = text;
+                console.log('    ✅ Found valid description');
                 break;
+              } else {
+                console.log('    ❌ Invalid description');
               }
+            } else {
+              console.log('    Skipping P inside callout');
             }
           }
 
           // Also check for DD (definition description) after DT
-          if (nextElement.tagName === 'DD') {
+          if (tagName === 'DD') {
             if (!isInsideCallout(nextElement)) {
               const text = nextElement.textContent?.trim() ?? '';
               if (text.length > 20) {
@@ -413,19 +437,49 @@ export const extractMetadataFromPage = async (
           }
 
           // Check inside DIVs for paragraphs (but skip callout divs)
-          if (nextElement.tagName === 'DIV' && !isInsideCallout(nextElement)) {
+          if (tagName === 'DIV' && !isInsideCallout(nextElement)) {
             // Skip if the DIV itself is a callout
             if (isCalloutElement(nextElement)) {
+              console.log('    Skipping Callout DIV');
               nextElement = nextElement.nextElementSibling;
               searchAttempts++;
               continue;
             }
 
-            const paragraph = nextElement.querySelector('p');
-            if (paragraph && !isInsideCallout(paragraph)) {
-              const text = paragraph.textContent?.trim() ?? '';
+            // Iterate all paragraphs in the DIV
+            const paragraphs = Array.from(nextElement.querySelectorAll('p'));
+            let foundInDiv = false;
+            for (const p of paragraphs) {
+              if (!isInsideCallout(p)) {
+                const text = p.textContent?.trim() ?? '';
+                console.log(`    Checking P inside DIV: "${text.substring(0, 50)}..."`);
+                if (isValidDescription(text)) {
+                  description = text;
+                  console.log('    ✅ Found valid description inside DIV');
+                  foundInDiv = true;
+                  break;
+                }
+              }
+            }
+            if (foundInDiv) break;
+
+            // Fallback: Check direct text content if no valid P found
+            const hasComplexChildren = nextElement.querySelector('table, h1, h2, h3, h4, h5, h6');
+            if (!hasComplexChildren) {
+              // Clone to verify text without callouts (avoids "combined text" issue)
+              const clone = nextElement.cloneNode(true) as Element;
+              const allElements = Array.from(clone.querySelectorAll('*'));
+              for (const el of allElements) {
+                if (isCalloutElement(el)) {
+                  el.remove();
+                }
+              }
+
+              const text = clone.textContent?.trim() ?? '';
+              console.log(`    Checking DIV text content: "${text.substring(0, 50)}..."`);
               if (isValidDescription(text)) {
                 description = text;
+                console.log('    ✅ Found valid description from DIV text');
                 break;
               }
             }
