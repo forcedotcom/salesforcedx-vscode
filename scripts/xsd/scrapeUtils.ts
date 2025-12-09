@@ -270,6 +270,27 @@ export const extractMetadataFromPage = async (
         }
       }
 
+      // Also check shadow DOMs for headings
+      const checkShadowDOMForHeadings = (root: Document | ShadowRoot | Element): void => {
+        // Search for h2 headings inside <div class="section" id="..."> and h1 with class "helpHead1"
+        const shadowHeadings = root.querySelectorAll('div.section[id] h2, h1.helpHead1');
+        for (const heading of Array.from(shadowHeadings)) {
+          const text = heading.textContent?.trim();
+          if (text && text.length > 0 && text.length < 200) {
+            pageHeadings.add(text);
+          }
+        }
+
+        const elements = root.querySelectorAll('*');
+        for (const el of Array.from(elements)) {
+          if (el.shadowRoot) {
+            checkShadowDOMForHeadings(el.shadowRoot);
+          }
+        }
+      };
+
+      checkShadowDOMForHeadings(document);
+
       const tablesData: {
         fields: {
           Description: string;
