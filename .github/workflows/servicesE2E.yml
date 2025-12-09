@@ -42,7 +42,7 @@ jobs:
         run: sf project generate -n minimal-project
 
       - name: create scratch org
-        # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
+        # the tests expect a scratch org with a certain alias but don't use the directory directly
         shell: bash
         run: |
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
