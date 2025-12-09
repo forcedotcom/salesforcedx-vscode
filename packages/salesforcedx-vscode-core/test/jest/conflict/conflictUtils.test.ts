@@ -37,14 +37,14 @@ describe('conflictUtils', () => {
       expect(workspaceFsReadFileMock).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
-          path: file1.replace(/\\/g, '/'),
+          path: file1.replaceAll('\\', '/'),
           scheme: 'file'
         })
       );
       expect(workspaceFsReadFileMock).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
-          path: file2.replace(/\\/g, '/'),
+          path: file2.replaceAll('\\', '/'),
           scheme: 'file'
         })
       );
@@ -62,14 +62,14 @@ describe('conflictUtils', () => {
       expect(workspaceFsReadFileMock).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
-          path: file1.replace(/\\/g, '/'),
+          path: file1.replaceAll('\\', '/'),
           scheme: 'file'
         })
       );
       expect(workspaceFsReadFileMock).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
-          path: file2.replace(/\\/g, '/'),
+          path: file2.replaceAll('\\', '/'),
           scheme: 'file'
         })
       );
@@ -143,14 +143,14 @@ describe('conflictUtils', () => {
       expect(workspaceFsReadFileMock).toHaveBeenNthCalledWith(
         1,
         expect.objectContaining({
-          path: file1.replace(/\\/g, '/'),
+          path: file1.replaceAll('\\', '/'),
           scheme: 'file'
         })
       );
       expect(workspaceFsReadFileMock).toHaveBeenNthCalledWith(
         2,
         expect.objectContaining({
-          path: file2.replace(/\\/g, '/'),
+          path: file2.replaceAll('\\', '/'),
           scheme: 'file'
         })
       );

@@ -85,7 +85,9 @@ class QuickLaunch {
       const payload = await testService.buildSyncPayload(
         TestLevel.RunSpecifiedTests,
         testMethod ? `${testClass}.${testMethod}` : undefined,
-        testClass
+        testClass,
+        undefined,
+        !retrieveTestCodeCoverage() // the setting enables code coverage, so we need to pass false to disable it
       );
       // W-18453221
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions

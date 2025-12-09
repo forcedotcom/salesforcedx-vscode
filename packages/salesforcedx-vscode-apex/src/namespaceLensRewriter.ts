@@ -6,8 +6,8 @@
  */
 import * as vscode from 'vscode';
 
-const singleTest = ['Run Test', 'Debug Test'];
-const allTests = ['Run All Tests', 'Debug All Tests'];
+const singleTest = new Set(['Run Test', 'Debug Test']);
+const allTests = new Set(['Run All Tests', 'Debug All Tests']);
 
 // Jorje sticks the namespace from sfdx-project.json (namespaceFromProject) on the arguments, like ns.class.method
 // org may or may not actually use the namespace (ex: scratch org with --no-namespace)
@@ -20,7 +20,7 @@ export const rewriteNamespaceLens =
       return lens;
     }
 
-    if (singleTest.includes(lens.command.title)) {
+    if (singleTest.has(lens.command.title)) {
       // namespace.class.method => class.method
       console.debug(`provideCodeLenses Middleware > Single test originally: ${lens.command.arguments}`);
       lens.command.arguments = lens.command.arguments?.map((arg: string) =>
@@ -29,7 +29,7 @@ export const rewriteNamespaceLens =
           : arg
       );
       console.debug(`provideCodeLenses Middleware > Single test modified: ${lens.command.arguments}`);
-    } else if (allTests.includes(lens.command.title)) {
+    } else if (allTests.has(lens.command.title)) {
       // namespace.class => class
       console.debug(`provideCodeLenses Middleware > All tests originally: ${lens.command.arguments}`);
       lens.command.arguments = lens.command.arguments?.map((arg: string) =>

@@ -7,13 +7,38 @@
 import * as vscode from 'vscode';
 import { ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
+import { getTelemetryService } from '../telemetry/telemetry';
+import { ApexTestMethod } from '../views/lspConverter';
 import { ProcessDetail, languageClientManager } from './languageClientManager';
-
-export { languageClientManager };
 
 export const getLineBreakpointInfo = async () => languageClientManager.getLineBreakpointInfo();
 
-export const getApexTests = async () => languageClientManager.getApexTests();
+/** Fetch tests from the Language Server and emit telemetry */
+export const fetchFromLs = async (): Promise<{ tests: ApexTestMethod[]; durationMs: number }> => {
+  const telemetry = getTelemetryService();
+  const start = Date.now();
+  telemetry.sendEventData('apexTestDiscoveryStart', { source: 'ls' });
+  const tests = await languageClientManager.getApexTests();
+  const durationMs = Date.now() - start;
+  telemetry.sendEventData('apexTestDiscoveryEnd', { source: 'ls' }, buildMeasuresFromTests(tests, durationMs));
+  return { tests, durationMs };
+};
+
+/**
+ * Returns Apex tests from the Language Server.
+ * For API-based test discovery, use the testing extension.
+ * Also emits timing metrics and telemetry.
+ */
+export const getApexTests = async (): Promise<ApexTestMethod[]> => {
+  const result = await fetchFromLs();
+  return result.tests;
+};
+
+const buildMeasuresFromTests = (tests: ApexTestMethod[], durationMs: number) => {
+  const numClasses = new Set(tests.map(t => t.definingType)).size;
+  const numMethods = tests.length;
+  return { durationMs, numClasses, numMethods };
+};
 
 export const getExceptionBreakpointInfo = async () => languageClientManager.getExceptionBreakpointInfo();
 
@@ -44,3 +69,4 @@ export const terminateProcess = (pid: number): void => {
 };
 
 export { configureApexLanguage } from './apexLanguageConfiguration';
+export { languageClientManager } from './languageClientManager';

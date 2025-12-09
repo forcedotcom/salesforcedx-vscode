@@ -35,8 +35,9 @@
     "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
-    "@salesforce/salesforcedx-lightning-lsp-common": "64.16.1",
-    "@salesforce/salesforcedx-utils": "65.3.1",
+    "@salesforce/salesforcedx-lightning-lsp-common": "*",
+    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/vscode-i18n": "*",
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",
     "line-column": "^1.0.2",

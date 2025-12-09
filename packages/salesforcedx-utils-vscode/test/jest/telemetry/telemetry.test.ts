@@ -8,9 +8,8 @@
 
 import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { workspace } from 'vscode';
-import { TelemetryService } from '../../../src';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
-import { TelemetryServiceProvider } from '../../../src/services/telemetry';
+import { TelemetryService, TelemetryServiceProvider } from '../../../src/services/telemetry';
 
 describe('Telemetry', () => {
   describe('Telemetry Service Provider', () => {

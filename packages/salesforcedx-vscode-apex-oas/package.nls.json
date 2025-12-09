@@ -6,6 +6,6 @@
   "apex_oas_generation_schema": "Include OpenAPI Schema in generation.",
   "apex_generation_output_token_limit": "The maximum number of tokens to generate in the output.",
   "configuration_title": "Salesforce Apex OAS Configuration",
-  "create_openapi_doc_class": "SFDX: Create OpenAPI Document from This Class (Beta)",
-  "validate_oas_document": "SFDX: Validate OpenAPI Document (Beta)"
+  "create_openapi_doc_class": "SFDX: Create OpenAPI Document from This Class",
+  "validate_oas_document": "SFDX: Validate OpenAPI Document"
 }
