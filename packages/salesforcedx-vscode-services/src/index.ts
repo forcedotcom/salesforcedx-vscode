@@ -11,7 +11,7 @@ import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { sampleProjectName } from './constants';
 import { ConfigService } from './core/configService';
-import { ConnectionService, watchSettingsService } from './core/connectionService';
+import { ConnectionService } from './core/connectionService';
 import { defaultOrgRef, watchConfigFiles } from './core/defaultOrgService';
 import { MetadataDeployService } from './core/metadataDeployService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
@@ -28,10 +28,12 @@ import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './virtua
 import { startWatch } from './virtualFsProvider/memfsWatcher';
 import { projectFiles } from './virtualFsProvider/projectInit';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
+import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
 import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { SettingsService } from './vscode/settingsService';
+import { SettingsWatcherService } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
 
 export type SalesforceVSCodeServicesApi = {
@@ -63,6 +65,7 @@ const activationEffect = (
   Error,
   | WorkspaceService
   | SettingsService
+  | SettingsWatcherService
   | IndexedDBStorageService
   | ChannelService
   | ConnectionService
@@ -79,8 +82,8 @@ const activationEffect = (
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
       yield* fileSystemSetup(context);
+      yield* retrieveOnLoadEffect();
       yield* Effect.forkIn(watchSettingsService(), yield* getExtensionScope());
-      yield* Effect.forkIn(retrieveOnLoadEffect(), yield* getExtensionScope());
     }
 
     // watch the config files for changes, which various serices use to invalidate caches
@@ -111,17 +114,20 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   const requirements = Layer.mergeAll(
     WorkspaceService.Default,
     SettingsService.Default,
+    SettingsWatcherService.Default,
     IndexedDBStorageServiceShared,
     SdkLayer,
-    ChannelService.Default,
     ConnectionService.Default,
     ConfigService.Default,
     FileWatcherService.Default,
     MetadataRetrieveService.Default,
     ProjectService.Default,
     MetadataRegistryService.Default,
-    SourceTrackingService.Default
+    SourceTrackingService.Default,
+    ChannelService.Default
   );
+
+  // Build the layer with extensionScope - scoped services live until extension deactivates
   await Effect.runPromise(
     Effect.provide(
       activationEffect(context).pipe(
@@ -129,7 +135,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
           attributes: { isWeb: process.env.ESBUILD_PLATFORM === 'web' }
         })
       ),
-      requirements
+      await Effect.runPromise(Layer.buildWithScope(requirements, extensionScope).pipe(Scope.extend(extensionScope)))
     ).pipe(Scope.extend(extensionScope))
   );
 

@@ -23,3 +23,10 @@ export const executeCommandWithCommandPalette = async (page: Page, command: stri
   await openCommandPalette(page);
   await executeCommand(page, command);
 };
+
+/** Reload VS Code window and wait for it to be ready */
+export const reloadWindow = async (page: Page): Promise<void> => {
+  await executeCommandWithCommandPalette(page, 'Developer: Reload Window');
+  // Wait for workbench to be visible again after reload
+  await page.locator('.monaco-workbench').waitFor({ state: 'visible', timeout: 60_000 });
+};

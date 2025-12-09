@@ -3,6 +3,10 @@ globs: *.spec.ts,**/test/web/**,**/test/playwright/**,**/playwright-vscode-ext/*
 alwaysApply: false
 ---
 
+## Reuse
+
+before creating new utilities or PageObjects, look in the playwright ext for reuse opportunities
+
 ## Waiting and Timing
 
 Never use `waitForTimeout`. Always wait for something specific on the page:

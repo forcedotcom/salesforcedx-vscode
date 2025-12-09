@@ -8,6 +8,7 @@
 import * as Effect from 'effect/Effect';
 import * as PubSub from 'effect/PubSub';
 import * as vscode from 'vscode';
+import { ChannelService } from './channelService';
 
 type FileChangeEvent = {
   readonly type: 'create' | 'change' | 'delete';
@@ -38,7 +39,9 @@ export class FileWatcherService extends Effect.Service<FileWatcherService>()('Fi
       }).pipe(Effect.withSpan('disposing file watcher'))
     );
 
+    yield* (yield* ChannelService).appendToChannel('FileWatcherService started successfully');
+
     return { pubsub } as const;
   }),
-  dependencies: []
+  dependencies: [ChannelService.Default]
 }) {}

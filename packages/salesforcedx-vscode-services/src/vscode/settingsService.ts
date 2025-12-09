@@ -5,9 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
-import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import {
   CODE_BUILDER_WEB_SECTION,
@@ -26,8 +24,9 @@ const isNonEmptyString =
       ? Effect.fail(new Error(`Value for ${key} is empty`))
       : Effect.succeed(value);
 
+/** Static service for reading and writing VS Code settings */
 export class SettingsService extends Effect.Service<SettingsService>()('SettingsService', {
-  succeed: {
+  effect: Effect.succeed({
     /**
      * Get a value from settings
      * @param section The settings section
@@ -129,19 +128,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
         return config.get<string>(RETRIEVE_ON_LOAD_KEY)?.trim() ?? '';
       },
       catch: error => new Error(`Failed to get retrieveOnLoad: ${String(error)}`)
-    }),
-
-    /** Stream of configuration change events */
-    configurationChangeStream: Stream.async<vscode.ConfigurationChangeEvent>(emit => {
-      const disposable = vscode.workspace.onDidChangeConfiguration(event => {
-        emit(Effect.succeed(Chunk.of(event))).catch(() => {
-          // Ignore emission errors
-        });
-      });
-      return Effect.sync(() => {
-        console.log('Disposing of configuration change stream');
-        disposable.dispose();
-      });
     })
-  } as const
+  } as const),
+  dependencies: []
 }) {}

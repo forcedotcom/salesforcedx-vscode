@@ -38,7 +38,7 @@ export const parseRetrieveOnLoad = (value: string): MetadataMember[] =>
   value
     .split(',')
     .map(item => item.trim())
-    .filter(item => item.length > 0)
+    .filter(isString)
     .map(item => {
       const parts = item.split(':');
       const type = parts[0]?.trim() ?? '';
