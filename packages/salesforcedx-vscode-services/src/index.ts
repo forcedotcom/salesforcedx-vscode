@@ -9,7 +9,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
-import { sampleProjectName } from './constants';
+import { SERVICES_CHANNEL_NAME } from './constants';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
 import { defaultOrgRef, watchConfigFiles } from './core/defaultOrgService';
@@ -22,11 +22,8 @@ import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { closeExtensionScope, getExtensionScope } from './extensionScope';
 import { SdkLayer } from './observability/spans';
-import { fsPrefix } from './virtualFsProvider/constants';
-import { FsProvider } from './virtualFsProvider/fileSystemProvider';
+import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
-import { startWatch } from './virtualFsProvider/memfsWatcher';
-import { projectFiles } from './virtualFsProvider/projectInit';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
@@ -78,7 +75,7 @@ const activationEffect = (
   | Scope.CloseableScope
 > =>
   Effect.gen(function* () {
-    yield* (yield* ChannelService).appendToChannel('Salesforce Services extension is activating!');
+    yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
       yield* fileSystemSetup(context);
@@ -178,30 +175,3 @@ const deactivateEffect = Effect.gen(function* () {
   Effect.withSpan('deactivation:salesforcedx-vscode-services'),
   Effect.provide(Layer.mergeAll(ChannelService.Default, SdkLayer))
 );
-
-/** Sets up the virtual file system for the extension */
-const fileSystemSetup = (
-  context: vscode.ExtensionContext
-): Effect.Effect<void, Error, WorkspaceService | ChannelService | SettingsService | IndexedDBStorageService> =>
-  Effect.gen(function* () {
-    const fsProvider = new FsProvider();
-
-    // Load state from IndexedDB first
-    yield* (yield* IndexedDBStorageService).loadState();
-
-    // Register the file system provider
-    context.subscriptions.push(
-      vscode.workspace.registerFileSystemProvider(fsPrefix, fsProvider, {
-        isCaseSensitive: true
-      })
-    );
-
-    // Replace the existing workspace with ours
-    vscode.workspace.updateWorkspaceFolders(0, 0, {
-      name: 'Code Builder',
-      uri: vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}`)
-    });
-
-    yield* startWatch();
-    yield* projectFiles(fsProvider);
-  }).pipe(Effect.withSpan('fileSystemSetup'));

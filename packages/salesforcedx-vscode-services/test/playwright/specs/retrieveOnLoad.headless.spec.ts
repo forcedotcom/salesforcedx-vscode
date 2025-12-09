@@ -19,12 +19,11 @@ import {
   selectOutputChannel,
   waitForOutputChannelText,
   outputChannelContains,
-  EDITOR_WITH_URI
+  EDITOR_WITH_URI,
+  createMinimalOrg
 } from '@salesforce/playwright-vscode-ext';
 import { upsertRetrieveOnLoadSetting } from '../pages/settingsPage';
-import { RETRIEVE_ON_LOAD_KEY } from '../../../src/constants';
-
-const SERVICES_CHANNEL_NAME = 'Salesforce Services';
+import { RETRIEVE_ON_LOAD_KEY, SERVICES_CHANNEL_NAME } from '../../../src/constants';
 
 test.describe('retrieveOnLoad', () => {
   test('retrieves metadata on load for CustomObject:Activity and Workflow:Case', async ({ page }) => {
@@ -34,7 +33,7 @@ test.describe('retrieveOnLoad', () => {
     const networkErrors = setupNetworkMonitoring(page);
 
     await test.step('setup org auth and configure retrieveOnLoad setting', async () => {
-      const orgAuth = await create();
+      const orgAuth = await createMinimalOrg();
       await upsertScratchOrgAuthFieldsToSettings(page, orgAuth);
 
       // Set the retrieveOnLoad setting
