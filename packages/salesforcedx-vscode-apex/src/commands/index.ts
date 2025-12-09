@@ -6,15 +6,4 @@
  */
 export { anonApexDebug, anonApexExecute } from './anonApexExecute';
 export { apexLogGet } from './apexLogGet';
-export { apexTestRun } from './apexTestRun';
-export {
-  apexDebugClassRunCodeActionDelegate,
-  apexDebugMethodRunCodeActionDelegate,
-  ApexLibraryTestRunExecutor,
-  apexTestClassRunCodeAction,
-  apexTestClassRunCodeActionDelegate,
-  apexTestMethodRunCodeAction,
-  apexTestMethodRunCodeActionDelegate
-} from './apexTestRunCodeAction';
-export { apexTestSuiteAdd, apexTestSuiteCreate, apexTestSuiteRun } from './apexTestSuite';
 export { launchApexReplayDebuggerWithCurrentFile } from './launchApexReplayDebuggerWithCurrentFile';

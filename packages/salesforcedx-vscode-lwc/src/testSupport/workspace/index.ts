@@ -7,7 +7,6 @@
 import { getCliArgsFromJestArgs } from './getCliArgsFromJestArgs';
 import { getLwcTestRunnerExecutable } from './getLwcTestRunnerExecutable';
 import { getTestWorkspaceFolder } from './getTestWorkspaceFolder';
-import { workspaceService } from './workspaceService';
 
 const workspace = {
   getCliArgsFromJestArgs,
@@ -15,4 +14,6 @@ const workspace = {
   getTestWorkspaceFolder
 };
 
-export { workspace, workspaceService };
+export { workspace };
+
+export { workspaceService } from './workspaceService';

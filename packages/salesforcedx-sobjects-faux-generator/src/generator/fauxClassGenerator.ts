@@ -52,14 +52,14 @@ const fieldDeclToString = (decl: FieldDeclaration): string =>
 // VisibleForTesting
 export const commentToString = (comment?: string): string =>
   // for some reasons if the comment is on a single line the help context shows the last '*/'
-  comment ? `${INDENT}/* ${comment.replace(/(\/\*+\/)|(\/\*+)|(\*+\/)/g, '')}${EOL}${INDENT}*/${EOL}` : '';
+  comment ? `${INDENT}/* ${comment.replaceAll(/(\/\*+\/)|(\/\*+)|(\*+\/)/g, '')}${EOL}${INDENT}*/${EOL}` : '';
 
 // VisibleForTesting
 export const generateFauxClassText = (definition: SObjectDefinition): string => {
   // sort, but filter out duplicates
   // which can happen due to childRelationships w/o a relationshipName
   const declarations = Array.from(definition.fields ?? [])
-    .sort((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1))
+    .toSorted((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1))
     .filter((value, index, array): boolean => !index || value.name !== array[index - 1].name);
 
   const className = definition.name;

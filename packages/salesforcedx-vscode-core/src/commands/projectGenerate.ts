@@ -9,8 +9,10 @@ import {
   CancelResponse,
   CompositeParametersGatherer,
   ContinueResponse,
+  notificationService,
   ParametersGatherer,
   PostconditionChecker,
+  SfCommandlet,
   fileOrFolderExists
 } from '@salesforce/salesforcedx-utils-vscode';
 import { ProjectOptions, TemplateType } from '@salesforce/templates';
@@ -18,12 +20,11 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { coerceMessageKey, nls } from '../messages';
-import { notificationService } from '../notifications';
-import { InputUtils } from '../util/inputUtils';
+import { getFormattedString } from '../util/inputUtils';
 import { LibraryBaseTemplateCommand } from './templates/libraryBaseTemplateCommand';
-import { EmptyPreChecker, SfCommandlet } from './util';
+import { EmptyPreChecker } from './util';
 
-type projectGenerateOptions = {
+type ProjectGenerateOptions = {
   isProjectWithManifest: boolean;
 };
 
@@ -37,7 +38,7 @@ class ProjectTemplateItem implements vscode.QuickPickItem {
 }
 
 class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectNameAndPathAndTemplate> {
-  private readonly options: projectGenerateOptions;
+  private readonly options: ProjectGenerateOptions;
 
   constructor(options = { isProjectWithManifest: false }) {
     super();
@@ -117,7 +118,7 @@ export class SelectProjectName implements ParametersGatherer<ProjectName> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ProjectName>> {
     const prompt = nls.localize('parameter_gatherer_enter_project_name');
     const prefillValue = this.prefillValueProvider ? this.prefillValueProvider() : '';
-    const projectName = await InputUtils.getFormattedString(prompt, prefillValue);
+    const projectName = await getFormattedString(prompt, prefillValue);
     return projectName ? { type: 'CONTINUE', data: { projectName } } : { type: 'CANCEL' };
   }
 }

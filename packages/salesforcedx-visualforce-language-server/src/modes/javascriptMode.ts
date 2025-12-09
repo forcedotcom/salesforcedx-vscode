@@ -485,10 +485,5 @@ const computeInitialIndent = (document: TextDocument, range: Range, options: For
   return Math.floor(nChars / tabSize);
 };
 
-const generateIndent = (level: number, options: FormattingOptions) => {
-  if (options.insertSpaces) {
-    return repeat(' ', level * options.tabSize);
-  } else {
-    return repeat('\t', level);
-  }
-};
+const generateIndent = (level: number, options: FormattingOptions) =>
+  options.insertSpaces ? repeat(' ', level * options.tabSize) : repeat('\t', level);

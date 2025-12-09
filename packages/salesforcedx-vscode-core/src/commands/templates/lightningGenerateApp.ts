@@ -5,17 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  CompositeParametersGatherer,
-  DirFileNameSelection,
-  LocalComponent,
-  SfWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode';
+import type { DirFileNameSelection, LocalComponent } from '../../util/types';
+import { CompositeParametersGatherer, SfCommandlet, SfWorkspaceChecker } from '@salesforce/salesforcedx-utils-vscode';
 import { LightningAppOptions, TemplateType } from '@salesforce/templates';
 import { Uri } from 'vscode';
 import { nls } from '../../messages';
 import { salesforceCoreSettings } from '../../settings';
-import { MetadataTypeGatherer, SelectFileName, SelectOutputDir, SfCommandlet } from '../util';
+import { MetadataTypeGatherer, SelectFileName, SelectOutputDir } from '../util';
 import { OverwriteComponentPrompt } from '../util/overwriteComponentPrompt';
 import { FileInternalPathGatherer, InternalDevWorkspaceChecker } from './internalCommandUtils';
 import { LibraryBaseTemplateCommand } from './libraryBaseTemplateCommand';

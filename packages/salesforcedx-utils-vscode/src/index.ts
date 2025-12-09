@@ -5,51 +5,99 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export * from './commands';
+export { ChannelService } from './commands/channelService';
+export { notificationService } from './commands/notificationService';
+export { ProgressNotification } from './commands/progressNotification';
 export {
   CompositeParametersGatherer,
   EmptyParametersGatherer,
-  PromptConfirmGatherer,
-  SelectUsername
+  type FlagParameter
 } from './commands/parameterGatherers';
-export type { FlagParameter } from './commands/parameterGatherers';
-export { EmptyPostChecker } from './commands/postconditionCheckers';
 export { SfWorkspaceChecker, isSalesforceProjectOpened } from './commands/preconditionCheckers';
 export { SfCommandletExecutor, LibraryCommandletExecutor } from './commands/commandletExecutors';
 export { SfCommandlet } from './commands/sfCommandlet';
-export { CompositePreconditionChecker } from './commands/preconditionCheckers';
-export { DevUsernameChecker } from './commands/devUsernameChecker';
-export { FileSelector } from './commands/parameterGatherers';
-export type { FileSelection } from './commands/parameterGatherers';
-export { ConfigSource, ConfigUtil } from './config/configUtil';
+export { ConfigUtil } from './config/configUtil';
 export {
-  APEX_CODE_DEBUG_LEVEL,
   SETTING_CLEAR_OUTPUT_TAB,
   SFDX_CORE_CONFIGURATION_NAME,
-  SFDX_CORE_EXTENSION_NAME,
   SFDX_LWC_EXTENSION_NAME,
   TELEMETRY_GLOBAL_USER_ID,
-  TELEMETRY_GLOBAL_WEB_USER_ID,
-  TRACE_FLAG_EXPIRATION_KEY,
-  VISUALFORCE_DEBUG_LEVEL
+  TELEMETRY_GLOBAL_WEB_USER_ID
 } from './constants';
 export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspaceContextUtil';
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
-export * from './helpers';
-export { TraceFlags, handleTraceFlagCleanup } from './helpers/traceFlags';
 export { TimingUtils } from './helpers/timingUtils';
-export { AppInsights } from './telemetry/reporters/appInsights';
-export { hasRootWorkspace, getRootWorkspace, getRootWorkspacePath, workspaceUtils } from './workspaces';
-export * from './cli';
-export * from './cli/commandExecutor';
-export * from './i18n';
-export * from './types';
-export * from './date';
-export * from './output';
-export * from './providers';
-export * from './services';
-export * from './settings';
-export * from './languageClients/conversion';
-export * from './messages';
-export * from './util/authInfo';
+export { ActivationTracker } from './helpers/activationTracker';
+export { isSFContainerMode } from './helpers/env';
+export { extensionUris } from './helpers/extensionUris';
+export {
+  createDirectory,
+  deleteFile,
+  ensureCurrentWorkingDirIsProjectPath,
+  fileOrFolderExists,
+  isEmptyDirectory,
+  isDirectory,
+  isFile,
+  readDirectory,
+  readFile,
+  rename,
+  safeDelete,
+  stat,
+  writeFile
+} from './helpers/fs';
+export {
+  fileExtensionsMatch,
+  getRelativeProjectPath,
+  getTestResultsFolder,
+  projectPaths,
+  TOOLS
+} from './helpers/paths';
+export {
+  TraceFlags,
+  showTraceFlagExpiration,
+  disposeTraceFlagExpiration,
+  getTraceFlagExpirationKey,
+  handleTraceFlagCleanup
+} from './helpers/traceFlags';
+export {
+  difference,
+  extractJson,
+  fileUtils,
+  fixupError,
+  getJsonCandidate,
+  getMessageFromError,
+  identifyJsonTypeInString,
+  isNullOrUndefined
+} from './helpers/utils';
+export { isAlphaNumSpaceString, isIntegerInRange, isRecordIdFormat } from './helpers/validations';
+export { errorToString } from './helpers/errorUtils';
+export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
+export {
+  getDevHubIdFromScratchOrg,
+  getTargetOrgOrAlias,
+  isASandboxOrg,
+  isAScratchOrg,
+  getDevHubUsername,
+  getTargetDevHubOrAlias,
+  getUsername,
+  getOrgApiVersion,
+  getConnection,
+  getAuthFields
+} from './util/authInfo';
+export { hasRootWorkspace, getRootWorkspacePath, workspaceUtils } from './workspaces/workspaceUtils';
+export { CliCommandExecutor } from './cli/commandExecutor';
+export { LocalCommandExecution } from './cli/localCommandExecutor';
+export { SFDX_FOLDER } from './constants';
+
+export type { ContinueResponse, CancelResponse, ParametersGatherer } from './commands/parameterGatherers';
+export type { PreconditionChecker } from './commands/preconditionCheckers';
+export type { PostconditionChecker } from './commands/postconditionCheckers';
+export { getYYYYMMddHHmmssDateFormat, optionYYYYMMddHHmmss } from './date/format';
+export { Column, createTable, Row } from './output/table';
+export { ConfigAggregatorProvider } from './providers/configAggregatorProvider';
+export { SourceTrackingType, SourceTrackingService } from './services/sourceTrackingService';
+export { UserService } from './services/userService';
+export { SettingsService } from './settings/settingsService';
+export { code2ProtocolConverter } from './languageClients/conversion';
+export { nls } from './messages/messages';

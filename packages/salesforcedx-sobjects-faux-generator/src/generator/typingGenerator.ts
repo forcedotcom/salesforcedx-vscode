@@ -63,7 +63,7 @@ const convertDeclarations = (definition: SObjectDefinition): string =>
     .filter(decl => !isCollectionType(decl.type))
     // sort, but filter out duplicates
     // which can happen due to childRelationships w/o a relationshipName
-    .sort((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1))
+    .toSorted((first, second): number => (first.name || first.type > second.name || second.type ? 1 : -1))
     .filter((value, index, array): boolean => !index || value.name !== array[index - 1].name)
     .map(decl => convertDeclaration(definition.name, decl))
     .join(`${EOL}`)

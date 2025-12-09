@@ -4,18 +4,25 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { ContinueResponse } from './parameterGatherers';
 import { Command, CommandExecution } from '@salesforce/salesforcedx-utils';
 import { Properties, Measurements, TelemetryData } from '@salesforce/vscode-service-provider';
 import * as vscode from 'vscode';
-import { CliCommandExecutor } from '../cli';
+import type { Event } from 'vscode';
+import { CliCommandExecutor } from '../cli/commandExecutor';
 import { TimingUtils } from '../helpers/timingUtils';
-import { TelemetryService } from '../index';
-import { nls } from '../messages';
-import { SettingsService } from '../settings';
-import { CommandletExecutor, ContinueResponse } from '../types';
-import { getRootWorkspacePath } from '../workspaces';
+import { nls } from '../messages/messages';
+import { TelemetryService } from '../services/telemetry';
+import { SettingsService } from '../settings/settingsService';
+import { getRootWorkspacePath } from '../workspaces/workspaceUtils';
 import { ChannelService } from './channelService';
-import { ProgressNotification, notificationService } from './index';
+import { notificationService } from './notificationService';
+import { ProgressNotification } from './progressNotification';
+
+export type CommandletExecutor<T> = {
+  execute(response: ContinueResponse<T>): void | Promise<void>;
+  readonly onDidFinishExecution?: Event<number>;
+};
 
 export abstract class SfCommandletExecutor<T> implements CommandletExecutor<T> {
   private outputChannel?: vscode.OutputChannel;

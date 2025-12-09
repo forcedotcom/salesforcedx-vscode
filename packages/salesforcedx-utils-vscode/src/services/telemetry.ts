@@ -20,7 +20,7 @@ import {
   SFDX_CORE_EXTENSION_NAME,
   SFDX_EXTENSION_PACK_NAME
 } from '../constants';
-import { errorToString } from '../helpers';
+import { errorToString } from '../helpers/errorUtils';
 import { TimingUtils } from '../helpers/timingUtils';
 import { disableCLITelemetry, isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
 import { AppInsights } from '../telemetry/reporters/appInsights';
@@ -368,8 +368,8 @@ export class TelemetryService implements TelemetryServiceInterface {
 }
 
 const extensionPackageJsonSchema = z.object({
-  name: z.string({ message: 'Extension name is not defined in package.json' }),
-  version: z.string({ message: 'Extension version is not defined in package.json' }),
+  name: z.string({ error: 'Extension name is not defined in package.json' }),
+  version: z.string({ error: 'Extension version is not defined in package.json' }),
   aiKey: z.string().optional(),
   o11yUploadEndpoint: z.string().optional(),
   enableO11y: z.string().optional()
@@ -379,3 +379,5 @@ const stripEmptyValues = (obj: Record<string, string | undefined | null>): Recor
   Object.fromEntries(Object.entries(obj).filter(isStringEntry));
 
 const isStringEntry = (entry: [string, unknown]): entry is [string, string] => typeof entry[1] === 'string';
+
+export const telemetryService = TelemetryServiceProvider.getInstance();

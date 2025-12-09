@@ -11,27 +11,12 @@ export { CommandExecution } from './types/commandExecution';
 export { Command } from './types/command';
 export { OrgInfo } from './types/orgInfo';
 export { LineBreakpointInfo } from './types/debugger';
-export { Locale } from './types/localization/config';
-export { MessageArgs } from './types/localization/messageArgs';
-
-// i18n
-export { LocalizationService } from './i18n/advancedLocalization';
 
 // Constants
-export {
-  LOCALE_JA,
-  MISSING_LABEL_MSG,
-  SF_CONFIG_ISV_DEBUGGER_SID,
-  SF_CONFIG_ISV_DEBUGGER_URL,
-  TELEMETRY_HEADER
-} from './constants';
-
-// Helpers
-export { getConnectionStatusFromError, shouldRemoveOrg } from './helpers/utils';
+export { TELEMETRY_HEADER } from './constants';
 
 // CLI
 export { CommandBuilder } from './cli/commandBuilder';
 export { CommandOutput } from './cli/commandOutput';
 export { GlobalCliEnvironment } from './cli/globalCliEnvironment';
-export { OrgDisplay } from './cli/orgDisplay';
 export { SfCommandBuilder } from './cli/sfCommandBuilder';

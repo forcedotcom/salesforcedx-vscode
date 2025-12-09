@@ -7,7 +7,7 @@
   "compilerOptions": {
     "composite": true,
     "target": "ES2023",
-    "lib": ["es2023", "dom"],
+    "lib": ["es2023", "dom", "es2024.collection", "es2024.object"],
     "module": "node16",
     "moduleResolution": "Node16",
     "esModuleInterop": false,

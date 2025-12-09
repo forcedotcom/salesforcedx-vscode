@@ -9,6 +9,7 @@ import { workspace } from 'vscode';
 import { WorkspaceContextUtil } from '../../../../src';
 import { AppInsights } from '../../../../src/telemetry/reporters/appInsights';
 import { CommonProperties, InternalProperties } from '../../../../src/telemetry/reporters/loggingProperties';
+import { getCommonProperties, getInternalProperties } from '../../../../src/telemetry/reporters/telemetryUtils';
 
 describe('AppInsights', () => {
   const fakeExtensionId = 'anExtensionId';
@@ -103,12 +104,10 @@ describe('AppInsights', () => {
   });
 
   describe('AppInsights - getCommonProperties', () => {
-    let appInsights: AppInsights;
     let commonProperties: CommonProperties;
 
     beforeEach(() => {
-      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, fakeKey, fakeUserId, 'test-webUser', false);
-      commonProperties = appInsights['getCommonProperties']();
+      commonProperties = getCommonProperties(fakeExtensionId, fakeExtensionVersion);
     });
 
     it('should return common system properties', () => {
@@ -125,7 +124,6 @@ describe('AppInsights', () => {
   });
 
   describe('AppInsights - getInternalProperties', () => {
-    let appInsights: AppInsights;
     let internalProperties: InternalProperties;
 
     beforeEach(() => {
@@ -137,8 +135,7 @@ describe('AppInsights', () => {
         shell: '/bin/bash',
         homedir: '/home/testuser'
       });
-      appInsights = new AppInsights(fakeExtensionId, fakeExtensionVersion, fakeKey, fakeUserId, 'test-webUser', false);
-      internalProperties = appInsights['getInternalProperties']();
+      internalProperties = getInternalProperties();
     });
 
     afterEach(() => {
@@ -195,15 +192,15 @@ describe('AppInsights', () => {
     });
 
     it('should return common and internal properties when is internal user', () => {
-      const commonProps = appInsights['getCommonProperties']();
-      const internalProps = appInsights['getInternalProperties']();
+      const commonProps = getCommonProperties(fakeExtensionId, fakeExtensionVersion);
+      const internalProps = getInternalProperties();
       const result = appInsights['aggregateLoggingProperties']();
       expect(result).toEqual({ ...commonProps, ...internalProps, webUserId: 'test-webUser' });
     });
 
     it('should return common properties when is not internal user', () => {
       jest.spyOn(os, 'hostname').mockReturnValue('test.salesforce.com');
-      const commonProps = appInsights['getCommonProperties']();
+      const commonProps = getCommonProperties(fakeExtensionId, fakeExtensionVersion);
       const result = appInsights['aggregateLoggingProperties']();
       expect(result).toEqual({ ...commonProps, webUserId: 'test-webUser' });
     });
