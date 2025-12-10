@@ -124,7 +124,6 @@ e2e-temp/
 test-resources/
 .nx/cache
 .wireit
+**/.wireit
 **/playwright-report/
 jscpd-report/
-
-**/.wireit
