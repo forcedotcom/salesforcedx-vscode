@@ -5,7 +5,7 @@ on:
   pull_request:
     paths:
       - 'packages/salesforcedx-vscode-services/**'
-      - 'packages/salesforcedx-vscode-playwright/**'
+      - 'packages/playwright-vscode-ext/**'
       - '.github/workflows/servicesE2E.yml'
 
 jobs:
