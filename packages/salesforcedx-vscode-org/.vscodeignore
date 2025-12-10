@@ -1,21 +1,19 @@
 .vscode/**
 .vscode-test/**
+.wireit/**
+out/**
+test/**
+src/**
 **/*.map
+.gitignore
+tsconfig.json
+jest.config.js
+esbuild.config.mjs
+junit*
+node_modules
+dist/*-metafile.json
+coverage
 
-# ignore unused rxjs code
-node_modules/rxjs/src/**
-node_modules/rxjs/bundles/**
-node_modules/rxjs/_esm5/**
-node_modules/rxjs/_esm2015/**
-node_modules/inquirer/node_modules/rxjs/src/**
-node_modules/inquirer/node_modules/rxjs/bundles/**
-node_modules/inquirer/node_modules/rxjs/_esm5/**
-node_modules/inquirer/node_modules/rxjs/_esm2015/**
-node_modules/**/rxjs/src/**
-node_modules/**/rxjs/bundles/**
-node_modules/**/rxjs/_esm5/**
-node_modules/**/rxjs/_esm2015/**
-
-# ignore unused jsforce code
-node_modules/jsforce/test/**
-node_modules/jsforce/build/**
+# do not reach outside the package
+../../**
+../**

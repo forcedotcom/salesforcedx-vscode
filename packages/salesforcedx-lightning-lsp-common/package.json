@@ -48,6 +48,8 @@
     "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/vscode-i18n": "*",
     "@types/vscode": "^1.90.0",
     "ejs": "^3.1.10",
     "tiny-jsonc": "^1.0.2",

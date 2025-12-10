@@ -21,15 +21,11 @@ export const setupConflictView = async (extensionContext: ExtensionContext): Pro
   await view.init(extensionContext);
 };
 
-export const registerConflictView = (): Disposable => {
-  const viewItems: Disposable[] = [];
-
-  viewItems.push(commands.registerCommand('sf.conflict.diff', (entry: ConflictFile) => conflictDiff(entry)));
-
-  viewItems.push(commands.registerCommand('sf.conflict.open', (entry: ConflictNode) => openResource(entry)));
-
-  return Disposable.from(...viewItems);
-};
+export const registerConflictView = (): Disposable =>
+  Disposable.from(
+    commands.registerCommand('sf.conflict.diff', (entry: ConflictFile) => conflictDiff(entry)),
+    commands.registerCommand('sf.conflict.open', (entry: ConflictNode) => openResource(entry))
+  );
 
 const conflictDiff = (file: ConflictFile) => {
   const local = Uri.file(path.join(file.localPath, file.localRelPath));

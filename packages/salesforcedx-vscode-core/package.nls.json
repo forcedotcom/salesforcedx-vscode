@@ -66,7 +66,6 @@
   "view_remote_changes_text": "SFDX: View Changes in Default Org",
   "visualforce_generate_component_text": "SFDX: Create Visualforce Component",
   "visualforce_generate_page_text": "SFDX: Create Visualforce Page",
-  "vscode_core_services_get_logger": "Get salesforcedx-vscode-core logger service",
   "org_browser_walkthrough_title": "Org Browser",
   "org_browser_walkthrough_description": "Browse and retrieve your org's metadata types and components using the Org Browser.",
   "org_browser_walkthrough_open_title": "Open Org Browser",

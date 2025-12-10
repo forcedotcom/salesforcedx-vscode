@@ -1,0 +1,23 @@
+name: Publish i18n Package to npm
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      githubTag:
+        description: release tag to publish (e.g., v65.4.0)
+        required: true
+        type: string
+
+jobs:
+  publish:
+    uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@main
+    with:
+      githubTag: ${{ github.event.release.tag_name || inputs.githubTag }}
+      packageManager: npm
+      nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
+      packagePath: ./packages/salesforcedx-vscode-i18n
+      prerelease: false
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

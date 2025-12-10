@@ -7,15 +7,11 @@
 
 import type { MetadataComponent } from '@salesforce/source-deploy-retrieve';
 
-export const createComponentCount = (components: Iterable<MetadataComponent>) => {
-  const quantities: { [type: string]: number } = {};
-  for (const component of components) {
-    const { name: typeName } = component.type;
-    const typeCount = quantities[typeName];
-    quantities[typeName] = typeCount ? typeCount + 1 : 1;
-  }
-  return Object.keys(quantities).map(type => ({
+export const createComponentCount = (components: Iterable<MetadataComponent>): { type: string; quantity: number }[] => {
+  const grouped = Object.groupBy(components, (component: MetadataComponent) => component.type.name);
+
+  return Object.entries(grouped).map(([type, items]) => ({
     type,
-    quantity: quantities[type]
+    quantity: items?.length ?? 0
   }));
 };

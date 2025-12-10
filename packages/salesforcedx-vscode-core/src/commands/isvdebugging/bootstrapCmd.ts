@@ -11,11 +11,13 @@ import {
   CompositeParametersGatherer,
   ContinueResponse,
   createDirectory,
+  notificationService,
   ParametersGatherer,
   ProgressNotification,
   projectPaths,
   readFile,
   safeDelete,
+  SfCommandlet,
   TimingUtils,
   writeFile
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -27,15 +29,14 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { channelService } from '../../channels';
 import { nls } from '../../messages';
-import { notificationService } from '../../notifications';
-import { taskViewService } from '../../statuses';
+import { taskViewService } from '../../statuses/taskView';
 import {
   PathExistsChecker,
   ProjectNameAndPathAndTemplate,
   SelectProjectFolder,
   SelectProjectName
 } from '../projectGenerate';
-import { EmptyPreChecker, SfCommandlet, SfCommandletExecutor } from '../util';
+import { EmptyPreChecker, SfCommandletExecutor } from '../util';
 
 type InstalledPackageInfo = {
   id: string;
@@ -348,7 +349,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
   ) {
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
-    notificationService.reportCommandExecutionStatus(execution, cancellationToken);
+    notificationService.reportCommandExecutionStatus(execution, channelService, cancellationToken);
     ProgressNotification.show(execution, cancellationTokenSource);
     taskViewService.addCommandExecution(execution, cancellationTokenSource);
   }
@@ -420,7 +421,7 @@ export const isvDebugBootstrap = async (): Promise<void> => {
     forceIdeUrlGatherer,
     new SelectProjectName(() => {
       if (forceIdeUrlGatherer.forceIdUrl?.orgName) {
-        return sanitize(forceIdeUrlGatherer.forceIdUrl.orgName.replace(/[+]/g, '_'));
+        return sanitize(forceIdeUrlGatherer.forceIdUrl.orgName.replaceAll(/[+]/g, '_'));
       }
       return '';
     }),

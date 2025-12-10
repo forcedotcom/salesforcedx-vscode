@@ -6,7 +6,7 @@
  */
 import * as vscode from 'vscode';
 
-export type fsProvider = vscode.FileSystemProvider & {
+export type FsProvider = vscode.FileSystemProvider & {
   /** does not exist in the vscode.FileSystemProvider but super handy so I added it*/
   exists: (uri: vscode.Uri) => boolean;
 };

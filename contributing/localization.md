@@ -56,54 +56,36 @@ Here is a more concrete example:
 ## TypeScript Files
 
 1. Create a messages folder.
-2. Create an index.ts file in there with the following contents. Yes, we could
-   write some tool that does this but for now, just copy the contents into the
-   folder.
+2. Create an index.ts file using the `LocalizationService` pattern:
 
    ```typescript
-   import {
-     BASE_FILE_EXTENSION,
-     BASE_FILE_NAME,
-     Config,
-     DEFAULT_LOCALE,
-     Localization,
-     Message
-   } from '@salesforce/salesforcedx-utils-vscode';
+   import { LOCALE_JA, LocalizationService, type MessageArgs } from '@salesforce/vscode-i18n';
+   import { messages as enMessages, MessageKey } from './i18n';
+   import { messages as jaMessages } from './i18n.ja';
 
-   function loadMessageBundle(config?: Config): Message {
-     function resolveFileName(locale: string): string {
-       return locale === DEFAULT_LOCALE
-         ? `${BASE_FILE_NAME}.${BASE_FILE_EXTENSION}`
-         : `${BASE_FILE_NAME}.${locale}.${BASE_FILE_EXTENSION}`;
-     }
+   // Create a unique instance name for your extension
+   const DEFAULT_INSTANCE = 'your-extension-name';
 
-     const base = new Message(
-       require(`./${resolveFileName(DEFAULT_LOCALE)}`).messages
-     );
+   // Get the localization service instance
+   const localizationService = LocalizationService.getInstance(DEFAULT_INSTANCE);
 
-     if (config && config.locale && config.locale !== DEFAULT_LOCALE) {
-       try {
-         const layer = new Message(
-           require(`./${resolveFileName(config.locale)}`).messages,
-           base
-         );
-         return layer;
-       } catch (e) {
-         console.error(`Cannot find ${config.locale}, defaulting to en`);
-         return base;
-       }
-     } else {
-       return base;
-     }
-   }
+   // Register the English (base) message bundle
+   localizationService.messageBundleManager.registerMessageBundle(DEFAULT_INSTANCE, {
+     messages: enMessages,
+     type: 'base'
+   });
 
-   export const nls = new Localization(
-     loadMessageBundle(
-       process.env.VSCODE_NLS_CONFIG
-         ? JSON.parse(process.env.VSCODE_NLS_CONFIG!)
-         : undefined
-     )
-   );
+   // Register the Japanese localized message bundle
+   localizationService.messageBundleManager.registerMessageBundle(DEFAULT_INSTANCE, {
+     messages: { ...jaMessages, _locale: LOCALE_JA },
+     type: 'locale'
+   });
+
+   // Export a type-safe localize function
+   export const nls = {
+     localize: <K extends MessageKey>(key: K, ...args: MessageArgs<K, typeof enMessages>): string =>
+       localizationService.localize(key, ...args)
+   };
    ```
 
 3. In the same folder (this is important), create files that follow the
@@ -118,15 +100,19 @@ Here is a more concrete example:
      key_1: 'Hello',
      key_2: 'Bye',
      key_3_with_args: 'Hello %s'
-   };
+   } as const;
+
+   export type MessageKey = keyof typeof messages;
    ```
 
    #### i18n.ja.ts
 
    ```typescript
-   export const messages = {
+   import { MessageKey } from './i18n';
+
+   export const messages: Record<MessageKey, string> = {
      key_1: 'こんにちは',
-     key_2: 'さようなら';
+     key_2: 'さようなら',
      key_3_with_args: 'こんにちは %sさん'
    };
    ```
@@ -136,12 +122,18 @@ Here is a more concrete example:
    ```typescript
    import { nls } from '../../src/messages';
 
-   nls.localize('some_key');
+   // Type-safe localization with autocompletion
+   nls.localize('key_1'); // Returns 'Hello'
+   nls.localize('key_3_with_args', 'World'); // Returns 'Hello World'
    ```
 
-5. You can have as many folders as you want for localization. Just ensure that
-   you copy the loader snippet to each one. It's customary to put all of them in
-   one folder for smaller extensions though.
+   The `MessageArgs` type will automatically infer the correct argument types
+   from format specifiers in your messages (%s for string, %d for number, etc.).
+
+5. You can have as many message folders as you want for localization. Each
+   extension should use a unique instance name when calling
+   `LocalizationService.getInstance()`. It's customary to put all messages in
+   one folder for smaller extensions.
 
 6. To test your localization changes, you _cannot_ just launch VS Code in
    development mode. You need to package up a .vsix, install that .vsix and be

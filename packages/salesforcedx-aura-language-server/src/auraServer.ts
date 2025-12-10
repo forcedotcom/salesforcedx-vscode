@@ -48,6 +48,7 @@ import {
 } from './auraUtils';
 import { AuraWorkspaceContext } from './context/auraContext';
 import { setIndexer, getAuraTagProvider } from './markup/auraTags';
+import { nls } from './messages';
 import {
   startServer,
   addFile,
@@ -102,11 +103,9 @@ export default class Server {
 
     try {
       if (this.workspaceRoots.length === 0) {
-        console.warn('No workspace found');
+        console.warn(nls.localize('no_workspace_found_message'));
         return { capabilities: {} };
       }
-
-      const startTime = globalThis.performance.now();
 
       // Set up document event handlers
       this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
@@ -122,8 +121,6 @@ export default class Server {
 
       this.htmlLS = getLanguageService();
       this.htmlLS.setDataProviders(true, [getAuraTagProvider()]);
-
-      console.info(`... language server started in ${globalThis.performance.now() - startTime}ms`);
 
       const capabilities = {
         textDocumentSync: {
@@ -154,10 +151,7 @@ export default class Server {
       };
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : String(e);
-      const errorStack = e instanceof Error ? e.stack : '';
-      console.error('FULL ERROR in onInitialize catch:', errorMessage);
-      console.error('FULL ERROR STACK:', errorStack);
-      throw new Error(`Aura Language Server initialization unsuccessful. Error message: ${errorMessage}`);
+      throw new Error(nls.localize('initialization_unsuccessful_message', errorMessage));
     }
   }
 
@@ -173,7 +167,7 @@ export default class Server {
       const serializedProvider = params.initializationOptions.fileSystemProvider;
 
       if (typeof serializedProvider !== 'object' || serializedProvider === null) {
-        throw new Error('Invalid fileSystemProvider in initializationOptions');
+        throw new Error(nls.localize('invalid_filesystem_provider_message'));
       }
 
       // Restore the data from the serialized object
@@ -212,9 +206,7 @@ export default class Server {
         this.fileSystemProvider.updateWorkspaceConfig(serializedProvider.workspaceConfig);
       }
     } else {
-      throw new Error(
-        'No fileSystemProvider provided in initializationOptions. Static Aura resources will not be available for the language server.'
-      );
+      throw new Error(nls.localize('no_filesystem_provider_message'));
     }
   }
 
@@ -473,7 +465,7 @@ export default class Server {
     }
 
     // Check if this is an Aura component file and initialize indexer if needed
-    const fileName = uri.split('/').pop();
+    const fileName = path.basename(URI.parse(uri).fsPath);
     if (fileName && this.isAuraComponentFile(fileName)) {
       this.hasDetectedAuraFiles = true;
 
@@ -483,7 +475,7 @@ export default class Server {
     }
 
     // Check if this is sfdx-project.json and re-detect workspace type if needed
-    if (fileName === 'sfdx-project.json' && this.context && this.context.type === 'UNKNOWN') {
+    if (fileName === 'sfdx-project.json' && this.context?.type === 'UNKNOWN') {
       // Update context to use the populated TextDocuments provider
       this.context.fileSystemProvider = this.fileSystemProvider;
       void this.context.initialize();
@@ -548,8 +540,7 @@ export default class Server {
       this.isIndexerInitialized = true;
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`AuraServer initializeIndexer: Error: ${errorMessage}`);
-      throw error;
+      throw new Error(nls.localize('indexer_initialization_error_message', errorMessage));
     }
   }
 
@@ -609,10 +600,7 @@ export default class Server {
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorStack = error instanceof Error ? error.stack : '';
-      this.connection.console.error(`AuraServer performDelayedInitialization: Error: ${errorMessage}`);
-      this.connection.console.error(`Stack: ${errorStack}`);
-      throw error;
+      throw new Error(nls.localize('delayed_initialization_error_message', errorMessage));
     }
   }
 

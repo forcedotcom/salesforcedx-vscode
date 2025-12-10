@@ -9,8 +9,8 @@ import * as vscode from 'vscode';
 import { StatusBarAlignment, StatusBarItem, window } from 'vscode';
 import { APEX_CODE_DEBUG_LEVEL, TRACE_FLAG_EXPIRATION_KEY, VISUALFORCE_DEBUG_LEVEL } from '../constants';
 import { WorkspaceContextUtil } from '../context/workspaceContextUtil';
-import { optionHHmm, optionMMddYYYY } from '../date';
-import { nls } from '../messages';
+import { optionHHmm, optionMMddYYYY } from '../date/format';
+import { nls } from '../messages/messages';
 
 type DebugLevelRecord = {
   ApexCode: string;
@@ -30,9 +30,32 @@ type TraceFlagRecord = {
 /** Generate user-specific key for storing trace flag expiration */
 export const getTraceFlagExpirationKey = (userId: string): string => `${TRACE_FLAG_EXPIRATION_KEY}_${userId}`;
 
+/** Update debug level with standard settings */
+const updateDebugLevel = async (connection: Connection, id: string): Promise<boolean> => {
+  const debugLevel = {
+    Id: id,
+    ApexCode: APEX_CODE_DEBUG_LEVEL,
+    Visualforce: VISUALFORCE_DEBUG_LEVEL
+  };
+  const result = await connection.tooling.update('DebugLevel', debugLevel);
+  return result.success;
+};
+
+const LOG_TIMER_LENGTH_MINUTES = 30;
+const MILLISECONDS_PER_MINUTE = 60_000;
+
+/** Update trace flag with new start and expiration dates */
+const updateTraceFlag = async (connection: Connection, id: string, expirationDate: Date): Promise<boolean> => {
+  const traceFlag = {
+    Id: id,
+    StartDate: new Date().toUTCString(),
+    ExpirationDate: expirationDate.toUTCString()
+  };
+  const result = await connection.tooling.update('TraceFlag', traceFlag);
+  return result.success;
+};
+
 export class TraceFlags {
-  private readonly LOG_TIMER_LENGTH_MINUTES = 30;
-  private readonly MILLISECONDS_PER_MINUTE = 60_000;
   private connection: Connection;
 
   constructor(connection: Connection) {
@@ -43,14 +66,14 @@ export class TraceFlags {
     const traceFlag = await this.getTraceFlagForUser(await this.getUserIdOrThrow());
     if (traceFlag) {
       // update existing debug level and trace flag
-      if (!(await this.updateDebugLevel(traceFlag.DebugLevelId))) {
+      if (!(await updateDebugLevel(this.connection, traceFlag.DebugLevelId))) {
         return false;
       }
 
       const expirationDate = this.calculateExpirationDate(
         traceFlag.ExpirationDate ? new Date(traceFlag.ExpirationDate) : new Date()
       );
-      return await this.updateTraceFlag(traceFlag.Id, expirationDate);
+      return await updateTraceFlag(this.connection, traceFlag.Id, expirationDate);
     } else {
       // create a debug level
       const debugLevelId = await this.getOrCreateDebugLevel();
@@ -63,16 +86,6 @@ export class TraceFlags {
     }
 
     return true;
-  }
-
-  private async updateDebugLevel(id: string): Promise<boolean> {
-    const debugLevel = {
-      Id: id,
-      ApexCode: APEX_CODE_DEBUG_LEVEL,
-      Visualforce: VISUALFORCE_DEBUG_LEVEL
-    };
-    const result = await this.connection.tooling.update('DebugLevel', debugLevel);
-    return result.success;
   }
 
   public async getOrCreateDebugLevel(): Promise<string> {
@@ -99,48 +112,28 @@ export class TraceFlags {
     return debugLevelResult.id;
   }
 
-  private async updateTraceFlag(id: string, expirationDate: Date): Promise<boolean> {
-    const traceFlag = {
-      Id: id,
-      StartDate: new Date().toUTCString(),
-      ExpirationDate: expirationDate.toUTCString()
-    };
-    const result = await this.connection.tooling.update('TraceFlag', traceFlag);
-    return result.success;
-  }
-
   public async createTraceFlag(
     userId: string,
     debugLevelId: string,
-    expirationDate: Date
+    expirationDate?: Date
   ): Promise<string | undefined> {
     const traceFlag = {
       tracedentityid: userId,
       logtype: 'developer_log',
       debuglevelid: debugLevelId,
       StartDate: new Date().toUTCString(),
-      ExpirationDate: expirationDate.toUTCString()
+      ExpirationDate: expirationDate?.toUTCString() ?? this.calculateExpirationDate(new Date()).toUTCString()
     };
 
     const result = await this.connection.tooling.create('TraceFlag', traceFlag);
 
-    if (result.success && result.id) {
-      return result.id;
-    } else {
-      return undefined;
-    }
-  }
-
-  private isValidDateLength(expirationDate: Date) {
-    const currDate = new Date().valueOf();
-    return expirationDate.getTime() - currDate > this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_MINUTE;
+    return result.success && result.id ? result.id : undefined;
   }
 
   public calculateExpirationDate(expirationDate: Date): Date {
-    if (!this.isValidDateLength(expirationDate)) {
-      return new Date(Date.now() + this.LOG_TIMER_LENGTH_MINUTES * this.MILLISECONDS_PER_MINUTE);
-    }
-    return expirationDate;
+    const currDate = Date.now();
+    const isValidLength = expirationDate.getTime() - currDate > LOG_TIMER_LENGTH_MINUTES * MILLISECONDS_PER_MINUTE;
+    return !isValidLength ? new Date(Date.now() + LOG_TIMER_LENGTH_MINUTES * MILLISECONDS_PER_MINUTE) : expirationDate;
   }
 
   public async getUserIdOrThrow(): Promise<string> {

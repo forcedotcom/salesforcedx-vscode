@@ -8,8 +8,8 @@ import type { CommandExecution } from '@salesforce/salesforcedx-utils';
 import { Observable } from 'rxjs/Observable';
 import * as vscode from 'vscode';
 import { SFDX_CORE_CONFIGURATION_NAME } from '../constants';
-import { nls } from '../messages';
-import { ChannelService } from './index';
+import { nls } from '../messages/messages';
+import { ChannelService } from './channelService';
 
 const STATUS_BAR_MSG_TIMEOUT_MS = 5000;
 
@@ -60,6 +60,7 @@ export class NotificationService {
     );
     this.reportExecutionError(
       execution.command.toString(),
+      channelService,
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       execution.processErrorSubject as any as Observable<Error | undefined>
     );
@@ -75,22 +76,24 @@ export class NotificationService {
       if (data !== undefined && String(data) === '0') {
         await this.showSuccessfulExecution(executionName, channelService);
       } else if (data !== null) {
-        this.showFailedExecution(executionName);
+        this.showFailedExecution(executionName, channelService);
       }
     });
     if (cancellationToken) {
       cancellationToken.onCancellationRequested(() => {
-        this.showCanceledExecution(executionName);
+        this.showCanceledExecution(executionName, channelService);
       });
     }
   }
 
-  public showFailedExecution(executionName: string) {
+  public showFailedExecution(executionName: string, channelService?: ChannelService) {
     this.showErrorMessage(nls.localize('notification_unsuccessful_execution_text', executionName));
+    channelService?.showChannelOutput();
   }
 
-  public showCanceledExecution(executionName: string) {
+  public showCanceledExecution(executionName: string, channelService?: ChannelService) {
     this.showWarningMessage(nls.localize('notification_canceled_execution_text', executionName));
+    channelService?.showChannelOutput();
   }
 
   public async showSuccessfulExecution(executionName: string, channelService: ChannelService | undefined) {
@@ -113,9 +116,16 @@ export class NotificationService {
     }
   }
 
-  public reportExecutionError(executionName: string, observable: Observable<Error | undefined>) {
-    observable.subscribe(async () => {
+  public reportExecutionError(
+    executionName: string,
+    channelService: ChannelService | undefined,
+    observable: Observable<Error | undefined>
+  ) {
+    observable.subscribe(() => {
       this.showErrorMessage(nls.localize('notification_unsuccessful_execution_text', executionName));
+      channelService?.showChannelOutput();
     });
   }
 }
+
+export const notificationService = NotificationService.getInstance();

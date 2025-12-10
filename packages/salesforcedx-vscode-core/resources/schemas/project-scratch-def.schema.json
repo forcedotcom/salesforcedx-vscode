@@ -1,0 +1,1789 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "orgName": {
+      "description": "The name of the scratch org.",
+      "title": "Organization Name",
+      "type": "string"
+    },
+    "edition": {
+      "description": "The Salesforce edition of the scratch org.",
+      "type": "string",
+      "enum": [
+        "Developer",
+        "Enterprise",
+        "Group",
+        "Partner Developer",
+        "Partner Enterprise",
+        "Partner Group",
+        "Partner Professional",
+        "Professional"
+      ]
+    },
+    "country": {
+      "description": "Dev Hub's country. If you want to override this value, enter the two-character, upper-case ISO-3166 country code (Alpha-2 code). You can find a full list of these codes at several sites, such as: https://www.iso.org/obp/ui/#search. This value sets the locale of the scratch org.",
+      "type": "string",
+      "maxLength": 2
+    },
+    "username": {
+      "description": "A user name formatted like test-unique_identifier@orgName.net.",
+      "type": "string"
+    },
+    "adminEmail": {
+      "description": "Email address of the Dev Hub user making the scratch org creation request.",
+      "title": "Administrator Email Address",
+      "type": "string"
+    },
+    "description": {
+      "description": "The description is a good way to document the scratch org's purpose. You can view or edit the description in the Dev Hub. From App Launcher, select Scratch Org Info or Active Scratch Orgs, then click the scratch org number.",
+      "title": "Description of the Org",
+      "type": "string"
+    },
+    "hasSampleData": {
+      "description": "Valid values are true and false. False is the default, which creates an org without sample data.",
+      "title": "Include Sample Data",
+      "default": false,
+      "type": "boolean"
+    },
+    "language": {
+      "description": "Default language for the country. To override the language set by the Dev Hub locale, see Supported Languages (https://help.salesforce.com/articleView?id=faq_getstart_what_languages_does.htm&type=5&language=en_US) for the codes to use in this field.",
+      "title": "Default Language",
+      "type": "string",
+      "maxLength": 5
+    },
+    "features": {
+      "description": "Features to enable in the scratch org.",
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "title": "AddCustomApps:<value>",
+                "type": "string",
+                "pattern": "^AddCustomApps:[0-9]+$"
+              },
+              {
+                "title": "AddCustomObjects:<value>",
+                "type": "string",
+                "pattern": "^AddCustomObjects:[0-9]+$"
+              },
+              {
+                "title": "AddCustomRelationships:<value>",
+                "type": "string",
+                "pattern": "^AddCustomRelationships:[0-9]+$"
+              },
+              {
+                "title": "AddCustomTabs:<value>",
+                "type": "string",
+                "pattern": "^AddCustomTabs:[0-9]+$"
+              },
+              {
+                "title": "AddDataComCRMRecordCredit:<value>",
+                "type": "string",
+                "pattern": "^AddDataComCRMRecordCredit:[0-9]+$"
+              },
+              {
+                "title": "AddInsightsQueryLimit:<value>",
+                "type": "string",
+                "pattern": "^AddInsightsQueryLimit:[0-9]+$"
+              },
+              {
+                "title": "AdditionalFieldHistory:<value>",
+                "type": "string",
+                "pattern": "^AdditionalFieldHistory:[0-9]+$"
+              },
+              {
+                "title": "AssetScheduling:<value>",
+                "type": "string",
+                "pattern": "^AssetScheduling:[0-9]+$"
+              },
+              {
+                "title": "CalloutSizeMB:<value>",
+                "type": "string",
+                "pattern": "^CalloutSizeMB:[0-9]+$"
+              },
+              {
+                "title": "ConcStreamingClients:<value>",
+                "type": "string",
+                "pattern": "^ConcStreamingClients:[0-9]+$"
+              },
+              {
+                "title": "ConsolePersistenceInterval:<value>",
+                "type": "string",
+                "pattern": "^ConsolePersistenceInterval:[0-9]+$"
+              },
+              {
+                "title": "EducationCloud:<value>",
+                "type": "string",
+                "pattern": "^EducationCloud:[0-9]+$"
+              },
+              {
+                "title": "EmpPublishRateLimit:<value>",
+                "type": "string",
+                "pattern": "^EmpPublishRateLimit:[0-9]+$"
+              },
+              {
+                "title": "EncryptionStatisticsInterval:<value>",
+                "type": "string",
+                "pattern": "^EncryptionStatisticsInterval:[0-9]+$"
+              },
+              {
+                "title": "EncryptionSyncInterval:<value>",
+                "type": "string",
+                "pattern": "^EncryptionSyncInterval:[0-9]+$"
+              },
+              {
+                "title": "FieldService:<value>",
+                "type": "string",
+                "pattern": "^FieldService:[0-9]+$"
+              },
+              {
+                "title": "FieldServiceAppointmentAssistantUser:<value>",
+                "type": "string",
+                "pattern": "^FieldServiceAppointmentAssistantUser:[0-9]+$"
+              },
+              {
+                "title": "FieldServiceDispatcherUser:<value>",
+                "type": "string",
+                "pattern": "^FieldServiceDispatcherUser:[0-9]+$"
+              },
+              {
+                "title": "FieldServiceLastMileUser:<value>",
+                "type": "string",
+                "pattern": "^FieldServiceLastMileUser:[0-9]+$"
+              },
+              {
+                "title": "FieldServiceMobileUser:<value>",
+                "type": "string",
+                "pattern": "^FieldServiceMobileUser:[0-9]+$"
+              },
+              {
+                "title": "FieldServiceSchedulingUser:<value>",
+                "type": "string",
+                "pattern": "^FieldServiceSchedulingUser:[0-9]+$"
+              },
+              {
+                "title": "FinancialServicesCommunityUser:<value>",
+                "type": "string",
+                "pattern": "^FinancialServicesCommunityUser:[0-9]+$"
+              },
+              {
+                "title": "FinancialServicesUser:<value>",
+                "type": "string",
+                "pattern": "^FinancialServicesUser:[0-9]+$"
+              },
+              {
+                "title": "GenStreamingEventsPerDay:<value>",
+                "type": "string",
+                "pattern": "^GenStreamingEventsPerDay:[0-9]+$"
+              },
+              {
+                "title": "HoursBetweenCoverageJob:<value>",
+                "type": "string",
+                "pattern": "^HoursBetweenCoverageJob:[0-9]+$"
+              },
+              {
+                "title": "LoyaltyMaxOrderLinePerHour:<value>",
+                "type": "string",
+                "pattern": "^LoyaltyMaxOrderLinePerHour:[0-9]+$"
+              },
+              {
+                "title": "LoyaltyMaxProcExecPerHour:<value>",
+                "type": "string",
+                "pattern": "^LoyaltyMaxProcExecPerHour:[0-9]+$"
+              },
+              {
+                "title": "LoyaltyMaxTransactions:<value>",
+                "type": "string",
+                "pattern": "^LoyaltyMaxTransactions:[0-9]+$"
+              },
+              {
+                "title": "LoyaltyMaxTrxnJournals:<value>",
+                "type": "string",
+                "pattern": "^LoyaltyMaxTrxnJournals:[0-9]+$"
+              },
+              {
+                "title": "LoyaltyMaximumPartners:<value>",
+                "type": "string",
+                "pattern": "^LoyaltyMaximumPartners:[0-9]+$"
+              },
+              {
+                "title": "LoyaltyMaximumPrograms:<value>",
+                "type": "string",
+                "pattern": "^LoyaltyMaximumPrograms:[0-9]+$"
+              },
+              {
+                "title": "MaxActiveDPEDefs:<value>",
+                "type": "string",
+                "pattern": "^MaxActiveDPEDefs:[0-9]+$"
+              },
+              {
+                "title": "MaxApexCodeSize:<value>",
+                "type": "string",
+                "pattern": "^MaxApexCodeSize:[0-9]+$"
+              },
+              {
+                "title": "MaxCustomLabels:<value>",
+                "type": "string",
+                "pattern": "^MaxCustomLabels:[0-9]+$"
+              },
+              {
+                "title": "MaxDataSourcesPerDPE:<value>",
+                "type": "string",
+                "pattern": "^MaxDataSourcesPerDPE:[0-9]+$"
+              },
+              {
+                "title": "MaxDatasetLinksPerDT:<value>",
+                "type": "string",
+                "pattern": "^MaxDatasetLinksPerDT:[0-9]+$"
+              },
+              {
+                "title": "MaxDecisionTableAllowed:<value>",
+                "type": "string",
+                "pattern": "^MaxDecisionTableAllowed:[0-9]+$"
+              },
+              {
+                "title": "MaxFavoritesAllowed:<value>",
+                "type": "string",
+                "pattern": "^MaxFavoritesAllowed:[0-9]+$"
+              },
+              {
+                "title": "MaxFieldsPerNode:<value>",
+                "type": "string",
+                "pattern": "^MaxFieldsPerNode:[0-9]+$"
+              },
+              {
+                "title": "MaxInputColumnsPerDT:<value>",
+                "type": "string",
+                "pattern": "^MaxInputColumnsPerDT:[0-9]+$"
+              },
+              {
+                "title": "MaxLoyaltyProcessRules:<value>",
+                "type": "string",
+                "pattern": "^MaxLoyaltyProcessRules:[0-9]+$"
+              },
+              {
+                "title": "MaxNoOfLexThemesAllowed:<value>",
+                "type": "string",
+                "pattern": "^MaxNoOfLexThemesAllowed:[0-9]+$"
+              },
+              {
+                "title": "MaxNodesPerDPE:<value>",
+                "type": "string",
+                "pattern": "^MaxNodesPerDPE:[0-9]+$"
+              },
+              {
+                "title": "MaxOutputColumnsPerDT:<value>",
+                "type": "string",
+                "pattern": "^MaxOutputColumnsPerDT:[0-9]+$"
+              },
+              {
+                "title": "MaxSourceObjectPerDSL:<value>",
+                "type": "string",
+                "pattern": "^MaxSourceObjectPerDSL:[0-9]+$"
+              },
+              {
+                "title": "MaxStreamingTopics:<value>",
+                "type": "string",
+                "pattern": "^MaxStreamingTopics:[0-9]+$"
+              },
+              {
+                "title": "MaxUserNavItemsAllowed:<value>",
+                "type": "string",
+                "pattern": "^MaxUserNavItemsAllowed:[0-9]+$"
+              },
+              {
+                "title": "MaxUserStreamingChannels:<value>",
+                "type": "string",
+                "pattern": "^MaxUserStreamingChannels:[0-9]+$"
+              },
+              {
+                "title": "MaxWritebacksPerDPE:<value>",
+                "type": "string",
+                "pattern": "^MaxWritebacksPerDPE:[0-9]+$"
+              },
+              {
+                "title": "MedVisDescriptorLimit:<value>",
+                "type": "string",
+                "pattern": "^MedVisDescriptorLimit:[0-9]+$"
+              },
+              {
+                "title": "MobileExtMaxFileSizeMB:<value>",
+                "type": "string",
+                "pattern": "^MobileExtMaxFileSizeMB:[0-9]+$"
+              },
+              {
+                "title": "NumPlatformEvents:<value>",
+                "type": "string",
+                "pattern": "^NumPlatformEvents:[0-9]+$"
+              },
+              {
+                "title": "PlatformConnect:<value>",
+                "type": "string",
+                "pattern": "^PlatformConnect:[0-9]+$"
+              },
+              {
+                "title": "PlatformEventsPerDay:<value>",
+                "type": "string",
+                "pattern": "^PlatformEventsPerDay:[0-9]+$"
+              },
+              {
+                "title": "StreamingEventsPerDay:<value>",
+                "type": "string",
+                "pattern": "^StreamingEventsPerDay:[0-9]+$"
+              },
+              {
+                "title": "SubPerStreamingChannel:<value>",
+                "type": "string",
+                "pattern": "^SubPerStreamingChannel:[0-9]+$"
+              },
+              {
+                "title": "SubPerStreamingTopic:<value>",
+                "type": "string",
+                "pattern": "^SubPerStreamingTopic:[0-9]+$"
+              }
+            ]
+          },
+          {
+            "enum": [
+              "AIAttribution",
+              "API",
+              "AccountInspection",
+              "AccountingSubledgerGrowthEdition",
+              "AccountingSubledgerStarterEdition",
+              "AccountingSubledgerUser",
+              "AdmissionsConnectUser",
+              "AdvisorLinkFeature",
+              "AdvisorLinkPathwaysFeature",
+              "AllUserIdServiceAccess",
+              "AnalyticsAdminPerms",
+              "AnalyticsAppEmbedded",
+              "ApexGuruCodeAnalyzer",
+              "ArcGraphCommunity",
+              "Assessments",
+              "AssociationEngine",
+              "AuthorApex",
+              "B2BCommerce",
+              "B2BLoyaltyManagement",
+              "B2CCommerceGMV",
+              "B2CLoyaltyManagement",
+              "B2CLoyaltyManagementPlus",
+              "BYOCCaaS",
+              "BYOOTT",
+              "BatchManagement",
+              "BenefitManagement",
+              "BigObjectsBulkAPI",
+              "BillingAdvanced",
+              "Briefcase",
+              "BudgetManagement",
+              "BusinessRulesEngine",
+              "CGAnalytics",
+              "CMSMaxContType",
+              "CMSMaxNodesPerContType",
+              "CMSUnlimitedUse",
+              "CPQ",
+              "CacheOnlyKeys",
+              "CampaignInfluence2",
+              "CascadeDelete",
+              "CaseClassification",
+              "CaseWrapUp",
+              "ChangeDataCapture",
+              "Chatbot",
+              "ChatterEmailFooterLogo",
+              "ChatterEmailFooterText",
+              "ChatterEmailSenderName",
+              "CloneApplication",
+              "Communities",
+              "CompareReportsOrgPerm",
+              "ConAppPluginExecuteAsUser",
+              "ConnectedAppCustomNotifSubscription",
+              "ConnectedAppToolingAPI",
+              "ConsentEventStream",
+              "ContactsToMultipleAccounts",
+              "ContractApprovals",
+              "ContractManagement",
+              "ContractMgmtInd",
+              "CoreCpq",
+              "CustomFieldDataTranslation",
+              "CustomNotificationType",
+              "CustomerDataPlatform",
+              "CustomerDataPlatformLite",
+              "CustomerExperienceAnalytics",
+              "DSARPortability",
+              "DataComDnbAccounts",
+              "DataComFullClean",
+              "DataMaskUser",
+              "DataProcessingEngine",
+              "DebugApex",
+              "DecisionTable",
+              "DefaultWorkflowUser",
+              "DeferSharingCalc",
+              "DevOpsCenter",
+              "DevelopmentWave",
+              "DeviceTrackingEnabled",
+              "DisableManageIdConfAPI",
+              "DisclosureFramework",
+              "Division",
+              "DocGen",
+              "DocGenDesigner",
+              "DocGenInd",
+              "DocumentChecklist",
+              "DocumentReaderPageLimit",
+              "DurableClassicStreamingAPI",
+              "DurableGenericStreamingAPI",
+              "DynamicClientCreationLimit",
+              "EAOutputConnectors",
+              "EASyncOut",
+              "EAndUDigitalSales",
+              "EAndUSelfServicePortal",
+              "ERMAnalytics",
+              "EdPredictionM3Threshold",
+              "EdPredictionTimeout",
+              "EdPredictionTimeoutBulk",
+              "EdPredictionTimeoutByomBulk",
+              "Einstein1AIPlatform",
+              "EinsteinAnalyticsPlus",
+              "EinsteinArticleRecommendations",
+              "EinsteinBuilderFree",
+              "EinsteinDocReader",
+              "EinsteinRecommendationBuilder",
+              "EinsteinRecommendationBuilderMetadata",
+              "EinsteinSearch",
+              "EinsteinVisits",
+              "EinsteinVisitsED",
+              "EmbeddedLoginForIE",
+              "EnableManageIdConfUI",
+              "EnablePRM",
+              "EnableSetPasswordInApi",
+              "Enablement",
+              "EnergyAndUtilitiesCloud",
+              "Entitlements",
+              "EntityTranslation",
+              "EventLogFile",
+              "ExcludeSAMLSessionIndex",
+              "Explainability",
+              "ExpressionSetMaxExecPerHour",
+              "ExternalIdentityLogin",
+              "FSCAlertFramework",
+              "FSCServiceProcess",
+              "FieldAuditTrail",
+              "FieldServiceMobileExtension",
+              "FinanceLogging",
+              "FinancialServicesInsuranceUser",
+              "FlowSites",
+              "ForceComPlatform",
+              "ForecastEnableCustomField",
+              "Functions",
+              "Fundraising",
+              "GenericStreaming",
+              "Grantmaking",
+              "GuidanceHubAllowed",
+              "HLSAnalytics",
+              "HealthCloudAddOn",
+              "HealthCloudEOLOverride",
+              "HealthCloudForCmty",
+              "HealthCloudMedicationReconciliation",
+              "HealthCloudPNMAddOn",
+              "HealthCloudUser",
+              "HighVelocitySales",
+              "HighVolumePlatformEventAddOn",
+              "IdentityProvisioningFeatures",
+              "IgnoreQueryParamWhitelist",
+              "IndustriesActionPlan",
+              "IndustriesBranchManagement",
+              "IndustriesCompliantDataSharing",
+              "IndustriesManufacturingCmty",
+              "IndustriesMfgAccountForecast",
+              "IndustriesMfgAdvncdAccFrcs",
+              "IndustriesMfgPartnerVisitMgmt",
+              "IndustriesMfgProgram",
+              "IndustriesMfgRebates",
+              "IndustriesMfgTargets",
+              "InsightsPlatform",
+              "InsuranceCalculationUser",
+              "InsuranceClaimMgmt",
+              "InsurancePolicyAdmin",
+              "IntelligentDocumentReader",
+              "Interaction",
+              "InvestigativeCaseManagement",
+              "InvoiceManagement",
+              "IoT",
+              "JigsawUser",
+              "Knowledge",
+              "LegacyLiveAgentRouting",
+              "LightningSalesConsole",
+              "LightningScheduler",
+              "LightningServiceConsole",
+              "LiveAgent",
+              "LiveMessage",
+              "LongLayoutSectionTitles",
+              "LoyaltyAnalytics",
+              "LoyaltyEngine",
+              "LoyaltyManagementStarter",
+              "Macros",
+              "MarketingCloud",
+              "MarketingUser",
+              "MaterialityAssessment",
+              "MaxAudTypeCriterionPerAud",
+              "MaxWishlistsItemsPerWishlist",
+              "MaxWishlistsPerStoreAccUsr",
+              "MinKeyRotationInterval",
+              "MobileSecurity",
+              "MobileVoiceAndLLM",
+              "MultiCurrency",
+              "MultiLevelMasterDetail",
+              "MutualAuthentication",
+              "MyTrailhead",
+              "NonprofitCloudCaseManagementUser",
+              "ObjectLinking",
+              "OmnistudioDesigner",
+              "OmnistudioMetadata",
+              "OmnistudioRuntime",
+              "OrderManagement",
+              "OrderSaveBehaviorBoth",
+              "OrderSaveLogicEnabled",
+              "OutboundMessageHTTPSession",
+              "OutcomeManagement",
+              "PSSAssetManagement",
+              "PardotScFeaturesCampaignInfluence",
+              "PersonAccounts",
+              "PipelineInspection",
+              "PlatformCache",
+              "PlatformEncryption",
+              "ProcessBuilder",
+              "ProductCatalogManagementAddOn",
+              "ProductCatalogManagementPCAddOn",
+              "ProductCatalogManagementViewerAddOn",
+              "ProductsAndSchedules",
+              "ProgramManagement",
+              "ProviderFreePlatformCache",
+              "ProviderManagement",
+              "PublicSectorAccess",
+              "PublicSectorApplicationUsageCreditsAddOn",
+              "PublicSectorSiteTemplate",
+              "RateManagement",
+              "RecordTypes",
+              "RefreshOnInvalidSession",
+              "RevSubscriptionManagement",
+              "S1ClientComponentCacheSize",
+              "SAML20SingleLogout",
+              "SCIMProtocol",
+              "SFDOInsightsDataIntegrityUser",
+              "SalesCloudEinstein",
+              "SalesUser",
+              "SalesforceContentUser",
+              "SalesforceFeedbackManagementStarter",
+              "SalesforceHostedMCP",
+              "SalesforceIdentityForCommunities",
+              "SalesforcePricing",
+              "ScvMultipartyAndConsult",
+              "SecurityEventEnabled",
+              "SentimentInsightsFeature",
+              "ServiceCatalog",
+              "ServiceCloud",
+              "ServiceCloudVoicePartnerTelephony",
+              "ServiceUser",
+              "SessionIdInLogEnabled",
+              "SharedActivities",
+              "Sites",
+              "SocialCustomerService",
+              "StateAndCountryPicklist",
+              "StreamingAPI",
+              "SurveyAdvancedFeatures",
+              "SustainabilityApp",
+              "SustainabilityCloud",
+              "TCRMforSustainability",
+              "TalentRecruitmentManagement",
+              "TimeSheetTemplateSettings",
+              "TimelineConditionsLimit",
+              "TimelineEventLimit",
+              "TimelineRecordTypeLimit",
+              "TransactionFinalizers",
+              "UsageManagement",
+              "WaveMaxCurrency",
+              "WavePlatform",
+              "WorkThanksPref",
+              "Workflow",
+              "WorkflowFlowActionFeature",
+              "WorkplaceCommandCenterUser"
+            ],
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "template": {
+      "description": "The template id for the scratch org shape. (Pilot)",
+      "title": "Template ID",
+      "type": "string"
+    },
+    "settings": {
+      "description": "Settings for the scratch org.",
+      "type": "object",
+      "properties": {
+        "accountingSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_accountingsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "accountInsightsSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_accountinsightssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "accountIntelligenceSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_accountintelligencesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "accountPlanSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_accountplansettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "accountSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_accountsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "actionsSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "activitiesSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_activitiessettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "addressSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_addresssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "agentforceForDevelopersSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_agentforcefordeveloperssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "agentPlatformSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_agentplatformsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "aIReplyRecommendationsSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_aireplyrecommendationssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "analyticsSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_analyticssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "apexSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_apexsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "appAnalyticsSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_appanalyticssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "appExperienceSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_appexperiencesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "associationEngineSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_associationenginesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "automatedContactsSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_automatedcontactssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "botSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_botsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "branchManagementSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_branchmanagementsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "businessHoursSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_businesshourssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "campaignSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_campaignsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "caseSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "chatterAnswersSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_chatteranswerssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "chatterEmailsMDSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_chatteremailmdsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "chatterSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_chattersettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "codeBuilderSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_codebuildersettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "collectionsDashboardSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_collectionsdashboardsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "communitiesSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_communitiessettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "companySettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_companyprofilesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "connectedAppSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedappsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "contentSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_contentsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "contractSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_contractsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "conversationalIntelligenceSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_conversationalintelligencesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "conversationChannelDefinition": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_conversationchanneldefinition.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "currencySettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_currencysettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "customAddressFieldSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customaddressfieldsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "dataDotComSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datadotcomsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "dataImportManagementSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dataimportmanagementsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "deploymentSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_deploymentsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "devHubSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_devhubsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "documentGenerationSetting": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_documentgenerationsetting.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "dynamicFormsSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dynamicformssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "eACSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_eacsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "einsteinAgentSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_einsteinagentsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "einsteinAISettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_einsteinaisettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "einsteinGptSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_einsteingptsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "emailAdministrationSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailadministrationsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "emailIntegrationSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailintegrationsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "emailTemplateSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailtemplatesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "employeeUserSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_employeeusersettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "encryptionKeySettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_encryptionkeysettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "enhancedNotesSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_enhancednotessettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "entitlementSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_entitlementsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "eventSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_eventsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "experienceBundleSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_experiencebundlesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "externalClientAppSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externalclientappsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "externalServicesSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externalservicessettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "fieldServiceSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_fieldservicesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "filesConnectSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_filesconnectsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "fileUploadAndDownloadSecuritySettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_fileuploadanddownloadsecuritysettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "flowSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "forecastingObjectListSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_forecastingobjectlistsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "forecastingSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_forecastingsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "highVelocitySalesSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_highvelocitysalessettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "ideasSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ideassettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "identityProviderSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_identityprovidersettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "iframeWhiteListUrlSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_iframewhitelisturlsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "incidentMgmtSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_incidentmgmtsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "industriesEinsteinFeatureSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/industrieseinsteinfeaturesettings_metadata_api.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "industriesLoyaltySettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/industriesloyaltysettings_metadata_api.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "industriesSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_industriessettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "interestTaggingSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_interesttaggingsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "inventorySettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_inventorysettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "invLatePymntRiskCalcSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_invlatepymntriskcalcsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "invocableActionSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_invocableactionsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "ioTSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_iotsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "knowledgeSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_knowledgesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "languageSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_languagesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "leadConfigSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_leadconfigsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "leadConvertSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_leadconvertsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "lightningExperienceSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_lightningexperiencesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "liveAgentSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_liveagentsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "liveMessageSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livemessagesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "macroSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_macrosettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "mailMergeSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mailmergesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "mapAndLocationSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mapandlocationsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "meetingsSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_meetingssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "mfgServiceConsoleSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_mfgserviceconsolesettings_metadata_api.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "mobileSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mobilesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "myDomainSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mydomainsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "nameSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_namesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "notificationsSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_notificationssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "oauthOidcSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_oauthoidcsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "objectHierarchyRelationship": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_objecthierarchyrelationshipsettings_metadata_api.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "objectLinkingSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_objectlinkingsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "omniChannelSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_omnichannelsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "opportunityInsightsSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_opportunityinsightssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "opportunityScoreSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_opportunityscoresettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "opportunitySettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_opportunityssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "orderManagementSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ordermanagementsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "orderSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ordersettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "orgPreferenceSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_orgpreferencesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "orgSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_orgsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "pardotEinsteinSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_pardoteinsteinsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "pardotSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_pardotsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "partyDataModelSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_partydatamodelsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "pathAssistantSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_pathassistantsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "paymentsSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_paymentssettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "picklistSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_picklistsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "platformEncryptionSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_platformencryptionsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "platformEventSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_platformeventsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "predictionBuilderSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_predictionbuildersettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "privacySettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_privacysettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "processFlowMigration": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_processflowmigration.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "productSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_productsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "quoteSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_quotessettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "realTimeEventSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_realtimeeventsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "recordPageSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recordpagesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "retailExecutionSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/metadata_api_retexset.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "salesAgreementSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_salesagreementsettings_metadata_api.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "sandboxSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sandboxsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "schemaSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_schemasettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "searchSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_searchsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "securitySettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_securitysettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "serviceCloudVoiceSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_servicecloudvoicesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "serviceSetupAssistantSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_servicesetupassistantsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "sharingSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sharingsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "siteSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sitesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "socialCustomerServiceSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_socialcustomerservicesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "socialProfileSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_socialprofilesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "sourceTrackingSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sourcetrackingsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "subscriptionManagementSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_subscriptionmanagementsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "surveySettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_surveysettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "territory2Settings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_territory2settings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "trailheadSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_trailheadsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "trialOrgSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_trialorgsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "userEngagementSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_userengagementsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "userInterfaceSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_userinterfacesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "userManagementSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_usermanagementsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "voiceSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_voicesettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "warrantyLifeCycleMgmtSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mfg_warrantylifecyclemgmtsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "workDotComSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_WorkDotComSettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "workforceEngagementSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_workforceengagementsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        }
+      },
+      "additionalProperties": {}
+    },
+    "release": {
+      "description": "Same Salesforce release as the Dev Hub org. Options are preview or previous. Can use only during Salesforce release transition periods.",
+      "type": "string",
+      "enum": [
+        "preview",
+        "previous"
+      ]
+    }
+  },
+  "required": [
+    "edition"
+  ],
+  "additionalProperties": {},
+  "$id": "https://schemas.salesforce.com/project-scratch-def.json",
+  "title": "Scratch Org Definition Configuration",
+  "description": "The scratch org definition file contains the configuration values that determine the shape of the scratch org."
+}
