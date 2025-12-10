@@ -832,6 +832,59 @@ export const extractMetadataFromPage = async (
           }
         }
 
+        /** Helper to extract value from DT/DD structure */
+        const extractFromDtDd = (
+          container: Element,
+          labelMatches: string[],
+          collectMultiple: boolean = false
+        ): string => {
+          const dtElements = Array.from(container.querySelectorAll('dt'));
+          for (const dt of dtElements) {
+            const dtText = dt.textContent?.trim().toLowerCase() ?? '';
+
+            // Check if this DT matches any of the label patterns
+            const isMatch = labelMatches.some(
+              label => dtText.includes(label.toLowerCase()) || dtText === label.toLowerCase()
+            );
+
+            if (isMatch) {
+              if (collectMultiple) {
+                // Get ALL consecutive DD siblings until the next DT
+                const parts: string[] = [];
+                let current = dt.nextElementSibling;
+
+                while (current) {
+                  if (current.tagName === 'DT') {
+                    // Stop at next DT
+                    break;
+                  }
+                  if (current.tagName === 'DD') {
+                    const ddText = current.textContent?.trim();
+                    if (ddText) {
+                      parts.push(ddText);
+                    }
+                  }
+                  current = current.nextElementSibling;
+                }
+
+                if (parts.length > 0) {
+                  return parts.join('\n\n');
+                }
+              } else {
+                // Get the next DD sibling
+                let nextSibling = dt.nextElementSibling;
+                while (nextSibling && nextSibling.tagName !== 'DD' && nextSibling.tagName !== 'DT') {
+                  nextSibling = nextSibling.nextElementSibling;
+                }
+                if (nextSibling?.tagName === 'DD') {
+                  return nextSibling.textContent?.trim() ?? '';
+                }
+              }
+            }
+          }
+          return '';
+        };
+
         // Extract rows for this table
         const rows = Array.from(table.querySelectorAll('tbody tr, tr:not(:first-child)'));
         const tableFields: {
@@ -862,21 +915,7 @@ export const extractMetadataFromPage = async (
               const secondCell = cells[1];
 
               // Strategy 1: Look for <dt>Field Type</dt><dd>TYPE</dd> structure
-              const dtElements = Array.from(secondCell.querySelectorAll('dt'));
-              for (const dt of dtElements) {
-                const dtText = dt.textContent?.trim().toLowerCase() ?? '';
-                if (dtText.includes('field type') || dtText === 'type') {
-                  // Get the next dd sibling
-                  let nextSibling = dt.nextElementSibling;
-                  while (nextSibling && nextSibling.tagName !== 'DD' && nextSibling.tagName !== 'DT') {
-                    nextSibling = nextSibling.nextElementSibling;
-                  }
-                  if (nextSibling?.tagName === 'DD') {
-                    fieldType = nextSibling.textContent?.trim();
-                    break;
-                  }
-                }
-              }
+              fieldType = extractFromDtDd(secondCell, ['field type', 'type'], false);
 
               // Strategy 2: Look for links to other metadata types
               if (!fieldType) {
@@ -897,34 +936,7 @@ export const extractMetadataFromPage = async (
 
               // Try to find Description
               // Strategy 1: Look for <dt>Description</dt><dd>DESC</dd> structure
-              const dtElementsForDesc = Array.from(secondCell.querySelectorAll('dt'));
-              for (const dt of dtElementsForDesc) {
-                const dtText = dt.textContent?.trim().toLowerCase();
-                if (dtText.includes('description') || dtText === 'desc') {
-                  // Get ALL consecutive DD siblings until the next DT
-                  const descriptionParts: string[] = [];
-                  let current = dt.nextElementSibling;
-
-                  while (current) {
-                    if (current.tagName === 'DT') {
-                      // Stop at next DT
-                      break;
-                    }
-                    if (current.tagName === 'DD') {
-                      const ddText = current.textContent?.trim();
-                      if (ddText) {
-                        descriptionParts.push(ddText);
-                      }
-                    }
-                    current = current.nextElementSibling;
-                  }
-
-                  if (descriptionParts.length > 0) {
-                    description = descriptionParts.join('\n\n');
-                    break;
-                  }
-                }
-              }
+              description = extractFromDtDd(secondCell, ['description', 'desc'], true);
 
               // Strategy 2: Look for text after "Description" label
               if (!description) {
