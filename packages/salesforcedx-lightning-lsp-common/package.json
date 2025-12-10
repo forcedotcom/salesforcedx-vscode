@@ -32,12 +32,60 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
   "scripts": {
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf src/resources/sfdx/typings/copied",
-    "compile": "tsc -p . && node scripts/build.js",
+    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf src/resources/sfdx/typings/copied .wireit .eslintcache",
+    "compile": "wireit",
     "watch": "tsc -watch -p .",
-    "test": "jest --coverage",
-    "lint": "eslint .",
+    "test": "wireit",
+    "lint": "wireit",
     "lint:fix": "npm run lint -- --fix"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty && node scripts/build.js",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-utils:compile",
+        "../salesforcedx-vscode-i18n:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "scripts/**/*.js",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "test": {
+      "command": "jest --coverage",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "jest/**/*.ts",
+        "jest.config.js",
+        "jest.setup.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "jest/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    }
   },
   "dependencies": {
     "@salesforce/salesforcedx-utils": "*",
