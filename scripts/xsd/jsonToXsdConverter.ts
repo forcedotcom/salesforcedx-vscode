@@ -129,10 +129,22 @@ const createXsdFromJson = (jsonFilePath: string, outputFilePath: string): number
     ' </xsd:complexType>'
   );
 
+  // Collect all unique parent types to ensure they're defined
+  const allParentTypes = new Set<string>();
+  Object.values(metadataTypes).forEach(typeData => {
+    if (typeData.parent && typeData.parent !== 'Metadata') {
+      allParentTypes.add(typeData.parent);
+    }
+  });
+
+  // Process parent types first (those that are used as base types but aren't 'Metadata')
+  const sortedParentTypes = Array.from(allParentTypes).sort();
+
   // Process each metadata type (sorted alphabetically)
-  const sortedTypes = Object.keys(metadataTypes)
-    .filter(typeName => typeName !== 'Metadata')
-    .sort();
+  // First process types that are used as parents, then the rest
+  const allTypeNames = Object.keys(metadataTypes).filter(typeName => typeName !== 'Metadata');
+  const nonParentTypes = allTypeNames.filter(name => !allParentTypes.has(name));
+  const sortedTypes = [...sortedParentTypes.filter(name => allTypeNames.includes(name)), ...nonParentTypes.sort()];
 
   for (const typeName of sortedTypes) {
     const typeData = metadataTypes[typeName];
@@ -142,6 +154,7 @@ const createXsdFromJson = (jsonFilePath: string, outputFilePath: string): number
     // Create complex type
     const shortDesc = typeData.short_description ?? '';
     const url = typeData.url ?? '';
+    const parentType = typeData.parent ?? 'Metadata'; // Default to Metadata if not specified
 
     xsdLines.push(` <xsd:complexType name="${cleanTypeName}">`);
 
@@ -160,7 +173,7 @@ const createXsdFromJson = (jsonFilePath: string, outputFilePath: string): number
     }
 
     xsdLines.push('  <xsd:complexContent>');
-    xsdLines.push('   <xsd:extension base="Metadata">');
+    xsdLines.push(`   <xsd:extension base="${parentType}">`);
 
     if (fields.length > 0) {
       xsdLines.push('    <xsd:choice maxOccurs="unbounded">');
