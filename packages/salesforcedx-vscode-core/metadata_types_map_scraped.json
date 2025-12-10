@@ -12249,23 +12249,38 @@
   "ActionOverride": {
     "fields": [
       {
-        "Description": "Indicates how this object is added.Values are: Activation_Audience Bridge Curated Custom Derived Ml_Prediction Segment_Membership Standard System Valid values availble in API version 62.0 and later are: Activation_Audience Ad_Audience_Insights ADG Calculated_Insight CG_Audience Chunk Directory_Table External Problem_Records Segment_Membership Semantic Transform Vector_Embedding",
-        "Field Name": "creationType",
-        "Field Type": "DefinitionCreationType enumeration of type string"
+        "Description": "Required. The possible values are the same as the actions you can override: accept clone delete edit list new tab view",
+        "Field Name": "actionName",
+        "Field Type": "string"
       },
       {
-        "Description": "Indicates whether the Landing Object is enabled.",
-        "Field Name": "isEnabled",
+        "Description": "Any comments you want associated with the override.",
+        "Field Name": "comment",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Set this field if type is set to flexipage, lightningcomponent, scontrol, or visualforce. It refers to the name of the Lightning page, Lightning component, s-control, or Visualforce page to use as the override. To reference installed components, use this format: Component_namespace__Component_name.",
+        "Field Name": "content",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The size of the page being overridden.If the type field is set to flexipage, set this field to Large to override the View action with a Lightning page in Lightning Experience. The Large value represents the Lightning Experience desktop environment and is valid only for the flexipage and lightningcomponent types. The Small value represents the Salesforce mobile app on a phone or tablet. The Medium value is reserved for future use. The null value (which is the same as specifying no value) represents Salesforce Classic. This field is available in API version 37.0 and later and is part of the feature for creating and editing record pages in Lightning Experience. Lightning component overrides return different FormFactor values depending on the API version used. In API version 41.0 and earlier, Lightning component overrides return only the null value (no value), representing the Salesforce Classic environment. In API version 42.0, if you specify different Lightning component overrides for Lightning Experience and mobile, one component is selected randomly for both overrides and its FormFactor value is returned. If there’s a conflict between Lightning components, and a Visualforce page override is also specified for Salesforce Classic, the Visualforce page takes precedence. In API version 43.0 and later, a Lightning component override for Lightning Experience returns the Large value and a Lightning component override for mobile returns the Small value, as expected.",
+        "Field Name": "formFactor",
+        "Field Type": "FormFactor (enumeration of type string)"
+      },
+      {
+        "Description": "Set this field to true if you prefer that any new records created by this action override aren’t forwarded to the record type selection page. This field is only valid if the actionName is a “create” type (like new), and type is set to visualforce. This field is available in API version 21.0 and later.",
+        "Field Name": "skipRecordTypeSelect",
         "Field Type": "boolean"
       },
       {
-        "Description": "Reference to the Object Category. For landing object, these would be Profile, Behavioral, Other.",
-        "Field Name": "objectCategory",
-        "Field Type": "string"
+        "Description": "Required. Represents the type of action override. Valid values are described in ActionOverrideType.",
+        "Field Name": "type",
+        "Field Type": "ActionOverrideType (enumeration of type string)"
       }
     ],
-    "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm",
+    "short_description": "Represents an action override on a standard or custom object. Use it to create, update, edit, or delete action overrides. You can access ActionOverride only by accessing its encompassing CustomObject.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/actionoverride.htm",
     "parent": "Metadata"
   },
   "ActionOverrideType": {
@@ -17913,48 +17928,13 @@
   "EmbeddedServiceFlowConfig": {
     "fields": [
       {
-        "Description": "Required. Maps to either a StandardMessingChannelParameter or a CustomMessagingChannelParameter",
-        "Field Name": "formField",
-        "Field Type": "string or enum"
-      },
-      {
-        "Description": "Required. Indicates whether formField points to a StandardMessagingChannelParameter or a CustomMessagingChannelParameter. Please match the Enum value here to the formField passed in. Valid values for MessagingChannelParameterType are: Standard - select this field when you want to reference a StandardMessagingChannelParameter Custom - select this field when you want to reference a CustomMessagingChannelParameter Valid values for StandardMessagingChannelParameter are: FirstName LastName Email Subject",
-        "Field Name": "messagingChannelParameterType",
-        "Field Type": "MessagingChannelParameterType (enumeration of type string) OR StandardMessagingChannelParameter (enumeration of type string)"
-      },
-      {
-        "Description": "Required. Indicates the type of data is passed by the End User when filling out the Prechat form. Valid values are: Text Email Phone Number Checkbox Choicelist",
-        "Field Name": "formFieldType",
-        "Field Type": "EmbeddedServiceFormFieldType (enumeration of type string)"
-      },
-      {
-        "Description": "Indicates the relative order of the form field in the prechat form. For Prechat fields where isHidden is set to true displayOrder must be set to -1. For Prechat fields where isHidden is set to false, this value must be greater than or equal to 0.",
-        "Field Name": "displayOrder",
-        "Field Type": "Integer"
-      },
-      {
-        "Description": "Indicates whether a Prechat form field is required. If isHidden is set to true, isRequired must be set to false.",
-        "Field Name": "isRequired",
-        "Field Type": "Boolean"
-      },
-      {
-        "Description": "Indicates whether a Prechat form field is displayed in the UI. isHidden can only be set to true if the formField field is set to CustomMessagingChannelParameter and messagingChannelParameterType is set to Custom.",
-        "Field Name": "isHidden",
-        "Field Type": "Boolean"
-      },
-      {
-        "Description": "The choice list that's associated with EmbeddedServiceFormField. ChoiceList can only be associated if the formField is set to CustomMessagingChannelParameter and messagingChannelParameterType is set to Custom.",
-        "Field Name": "choiceList",
-        "Field Type": "ChoiceList"
-      },
-      {
-        "Description": "The custom label for this field.",
-        "Field Name": "embeddedServiceCustomLabels",
-        "Field Type": "EmbeddedServiceCustomLabel[]"
+        "Description": "Indicates whether the embedded flow is enabled (true) or not (false). Defaults to false.",
+        "Field Name": "enabled",
+        "Field Type": "boolean"
       }
     ],
-    "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm",
+    "short_description": "Represents a setup node for creating an embedded flow. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceflowconfig.htm",
     "parent": "Metadata"
   },
   "EmbeddedServiceFlow": {
@@ -26619,24 +26599,14 @@
   "IdentityVerificationProcDtl": {
     "fields": [
       {
-        "Description": "The Apex class that is used to search and verify data in an external system.",
+        "Description": "Reserved for future use.",
         "Field Name": "apexClass",
         "Field Type": "string"
       },
       {
-        "Description": "Required. The source type of the data.Valid values are: External Salesforce",
+        "Description": "Required. The source type of the data. Valid values are: External—Reserved for future use. Salesforce",
         "Field Name": "dataSourceType",
         "Field Type": "IdentityVerificationDataSourceType (enumeration of type string)"
-      },
-      {
-        "Description": "Required. The developer name of Identity verification process detail. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.",
-        "Field Name": "developerName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The name of the field that contains information about the record that's shown to the user after identity verification is successful. Available in API version 58.0 and later.",
-        "Field Name": "displayRecordFieldName",
-        "Field Type": "string"
       },
       {
         "Description": "A list of Identity Verification Process Field elements.",
@@ -26644,19 +26614,9 @@
         "Field Type": "IdentityVerificationProcFld[]"
       },
       {
-        "Description": "Indicates whether the record is active (true) or not (false).",
+        "Description": "Indicates whether the record is active (true) or not (false). The default value is false.",
         "Field Name": "isActive",
         "Field Type": "boolean"
-      },
-      {
-        "Description": "For internal use only.",
-        "Field Name": "isRetryAllowedAfterLimit",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "The record containing the details of the linked identity verification process. Available in API version 58.0 and later.",
-        "Field Name": "linkedIdVerfProcessDet",
-        "Field Type": "string"
       },
       {
         "Description": "Required. The label of the Identity Verification Process Detail record.",
@@ -26669,94 +26629,84 @@
         "Field Type": "string"
       },
       {
-        "Description": "The number of optional verifiers that must be checked.",
+        "Description": "The minimum number of optional verifiers that must be checked.",
         "Field Name": "optionalVerifiersMinVerfCount",
         "Field Type": "int"
       },
       {
-        "Description": "For internal use only.",
-        "Field Name": "retryLimit",
-        "Field Type": "int"
-      },
-      {
-        "Description": "A comma-separated list of predefined filter conditions that are used to refine the scope of the search.",
+        "Description": "Conditions on which to filter the search results. For example, if you want to perform the search only on Person Account records, enter isPersonAccount = true.",
         "Field Name": "searchFilter",
         "Field Type": "string"
       },
       {
-        "Description": "The field storing the unique identifier of a record displayed in the search results.",
+        "Description": "The field that stores the unique identifier of the records that are displayed in the search results.",
         "Field Name": "searchRecordUniqueIdField",
         "Field Type": "string"
       },
       {
-        "Description": "The values that are used to sort the search results.",
+        "Description": "The values that are used to sort the search results. For example, if you want to sort the results by policy date, enter PolicyDate__c Desc.",
         "Field Name": "searchResultSortBy",
         "Field Type": "string"
       },
       {
-        "Description": "Required. The sequence in which the search is performed and the search result is displayed.",
+        "Description": "Required. Enter 1 as the search sequence number.In API version 54.0 and later, this field is reserved for future use, and the value you enter doesn't affect sequencing.",
         "Field Name": "searchSequenceNumber",
         "Field Type": "int"
       },
       {
-        "Description": "Required. The type of search being performed. Valid values are: Object-Based Text-Based",
+        "Description": "Required. The type of search being performed. Valid values are: Object-Based—Reserved for future use. Text-Based",
         "Field Name": "searchType",
         "Field Type": "IdentityVerificationSearchType (enumeration of type string)"
       }
     ],
-    "short_description": "Represents the verification-related details such as search criteria, verification criteria, or the custom apex class.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_identityverificationprocdef.htm",
+    "short_description": "Represents the search functionality configuration and the minimum number of optional verifiers for identity verification. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_identityverificationprocdtl.htm",
     "parent": "Metadata"
   },
   "IdentityVerificationProcFld": {
     "fields": [
       {
-        "Description": "The custom label for the field that contains the verification data.",
+        "Description": "The custom label for the field that contains the verification data.Translation of custom field labels isn't supported in API version 54.0.",
         "Field Name": "customFieldLabel",
         "Field Type": "string"
       },
       {
-        "Description": "Required. The source type of the data. Valid values are: External Salesforce",
+        "Description": "Required. The source type of the data. Valid values are: ExternalAn external data source isn’t supported in API version 54.0. Salesforce",
         "Field Name": "dataSourceType",
         "Field Type": "IdentityVerificationProcFldDataSourceType (enumeration of type string)"
       },
       {
-        "Description": "Required. The developer name of Identity Verification Process Field. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores. Available in API version 58.0 and later.",
-        "Field Name": "developerName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The data type of the field in the external data source that's defined in the identity verification process detail. Available in API version 58.0 and later. Valid values are: address checkbox currency dateonly datetime email number other percent phone picklist reference text timeonly url",
+        "Description": "The type of data stored in an external data source field. Possible values are: address checkbox currency dateonly datetime email number other percent phone picklist reference text timeonly url",
         "Field Name": "fieldDataType",
-        "Field Type": "IdentityVerificationProcFldFieldDataType (enumeration of type string)"
+        "Field Type": "picklist"
       },
       {
-        "Description": "Required. The label of the field that contains the verification data based on the selected field type. Available in API version 58.0 and later.",
+        "Description": "Required. The label of the field that contains the verification data based on the selected field type.",
         "Field Name": "fieldName",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Indicates the type of field. Valid values are: additionalResultField optionalVerifier requiredVerifier resultField searchField searchFilter",
+        "Description": "Required. Indicates the type of field. Possible values are: additionalResultField—Fetches data as part of the search query, but the data isn’t displayed in search results. Use this value if, for example, you want to fetch the policy number and the age of the policy owner as a result of the search, but the agent isn’t supposed to see this data. You can write custom logic to process this additional data. optionalVerifier—Optional verifier. requiredVerifier—Required verifier. resultField—Displays field type in search results. Use this value if, for example, when an agent searches for a caller, you’d like the search results to include the account name, phone number, and email ID. searchField—Reserved for future use. searchFilter—A comma-separated list of predefined filter conditions that are used to refine the scope of the search.",
         "Field Name": "fieldType",
         "Field Type": "IdentityVerificationProcFldFieldType (enumeration of type string)"
       },
       {
-        "Description": "Stores the formula that is applied to the field value.",
+        "Description": "Reserved for future use.",
         "Field Name": "fieldValueFormula",
         "Field Type": "string"
       },
       {
-        "Description": "Indicates whether the record is active (true) or not (false).",
+        "Description": "Indicates whether the record is active (true) or not (false). The default value is false.",
         "Field Name": "isActive",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the user can manually enter the identity verification details (true) or not (false). The default value of this field is false. Available in API version 58.0 and later.",
+        "Description": "Indicates whether the user can manually enter the identity verification details (true) or not (false). The default value is false. This field is available in API version 58.0 and later.",
         "Field Name": "isManualInput",
         "Field Type": "boolean"
       },
       {
-        "Description": "Required. A user-friendly name for Identity Verification Process Field.",
+        "Description": "Required. The label of the Identity Verification Process Field record.",
         "Field Name": "masterLabel",
         "Field Type": "string"
       },
@@ -26766,8 +26716,8 @@
         "Field Type": "int"
       }
     ],
-    "short_description": "Represents a set of fields necessary to configure the questions that CCA asks the caller before providing them with the information they need.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_identityverificationprocdef.htm",
+    "short_description": "Represents the search and verification fields used in identity verification. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_identityverificationprocfld.htm",
     "parent": "Metadata"
   },
   "InboundCertificate": {
@@ -34221,38 +34171,38 @@
   "ProfileActionOverride": {
     "fields": [
       {
-        "Description": "Required. The possible values are the same as the actions you can override: accept clone delete edit list new tab view",
+        "Description": "The name of the action. The only valid values are Tab and View.If pageOrSobjectType is standard-home, this field must be Tab. The Tab action is supported only when ProfileActionOverride is being specified as part of a Profile in API version 39.0 to 44.0. In API version 45.0 and later, this action is supported only when ProfileActionOverride is being specified as part of a CustomApplication, pageOrSobjectType is standard-home, and this field is Tab. If pageOrSobjectType is record-home, this field must be View. The View action is supported only when ProfileActionOverride is being specified as part of a CustomApplication.",
         "Field Name": "actionName",
         "Field Type": "string"
       },
       {
-        "Description": "Set this field if type is set to flexipage, lightningcomponent, scontrol, or visualforce. It refers to the name of the Lightning page, Lightning component, s-control, or Visualforce page to use as the override. To reference installed components, use this format: Component_namespace__Component_name.",
+        "Description": "Read-only. Represents the name of the Lightning page being used as the override.",
         "Field Name": "content",
         "Field Type": "string"
       },
       {
-        "Description": "The size of the page being overridden.The Large value represents the Lightning Experience desktop environment and is valid only for the flexipage and lightningcomponent types. The Small value represents the Salesforce mobile app on a phone or tablet. The Medium value is reserved for future use. The null value (which is the same as specifying no value) represents Salesforce Classic.",
+        "Description": "The size of the page being overridden. The Large value represents the Lightning Experience desktop environment.",
         "Field Name": "formFactor",
         "Field Type": "FormFactor (enumeration of type string)"
       },
       {
-        "Description": "The name of the sObject type being overridden. Valid values are standard and custom.This value must be standard-home when actionName is tab.",
+        "Description": "The name of the page being overridden. The only valid values are record-home and standard-home. If the actionName is Tab, this field must be standard-home",
         "Field Name": "pageOrSobjectType",
         "Field Type": "string"
       },
       {
-        "Description": "The record type assigned to the ProfileActionOverride. If the PageOrSobjectType is standard-home, this field is null.",
+        "Description": "The record type associated with the override. If pageOrSobjectType is standard-home, this field must be null. This field is required when actionName is set to View.",
         "Field Name": "recordType",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Represents the type of action override. Valid values are described in ActionOverrideType.",
+        "Description": "Read-only. The type of action override. The only valid value is flexipage.",
         "Field Name": "type",
         "Field Type": "ActionOverrideType (enumeration of type string)"
       }
     ],
-    "short_description": "ProfileActionOverride represents a user profile-based override of an ActionOverride on a standard Home tab in Lightning Experience.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_profile.htm",
+    "short_description": "Represents an override of an ActionOverride by a user profile. You can use it to override an ActionOverride on a standard Home tab or object record page in Lightning Experience. When a user logs in with a profile, a matching ProfileActionOverride assignment takes precedence over existing overrides for the Home tab or record page specified in ActionOverride. In API versions 39.0 to 44.0, you can access ProfileActionOverride by accessing its encompassing CustomApplication or Profile metadata types. In API version 45.0 and later, you can access ProfileActionOverride only by accessing its encompassing CustomApplication.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_profileactionoverride.htm",
     "parent": "Metadata"
   },
   "ProfileAgentAccess": {

@@ -403,12 +403,31 @@ const scrapeInBatches = async (
       for (const { type, result } of allResults) {
         if (result.success && result.results.length > 0) {
           for (const { name, data } of result.results) {
-            // Only overwrite existing entries if:
-            // 1. No existing entry, OR
-            // 2. Existing entry has no fields but new one has fields
-            // This ensures types with fields take precedence over referenced types without fields
+            // Helper to check if a type is on its own dedicated page
+            const isOnOwnPage = (typeName: string, url: string): boolean => {
+              const urlPath = url.toLowerCase();
+              const typeNameLower = typeName.toLowerCase().replace(/\s+/g, '');
+              // Extract the page filename without extension
+              const pageMatch = urlPath.match(/\/([^\/]+)\.htm/);
+              if (!pageMatch) return false;
+              const pageName = pageMatch[1].replace(/^meta_/, '').replace(/_/g, '');
+              return pageName === typeNameLower;
+            };
+
             const existing = results[name];
-            if (!existing || (existing.fields.length === 0 && data.fields.length > 0)) {
+            const dataIsOnOwnPage = isOnOwnPage(name, data.url);
+            const existingIsOnOwnPage = existing ? isOnOwnPage(name, existing.url) : false;
+
+            // Overwrite existing entries if:
+            // 1. No existing entry, OR
+            // 2. Existing entry has no fields but new one has fields, OR
+            // 3. New entry is from its own dedicated page but existing entry is not
+            // This ensures types from dedicated pages take precedence over nested types extracted from other pages
+            if (
+              !existing ||
+              (existing.fields.length === 0 && data.fields.length > 0) ||
+              (dataIsOnOwnPage && !existingIsOnOwnPage)
+            ) {
               results[name] = data;
             }
           }
