@@ -10,12 +10,9 @@ import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import { Scope } from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { CODE_BUILDER_WEB_SECTION } from '../constants';
 import { SettingsService } from '../vscode/settingsService';
-import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
 import { DefaultOrgInfoSchema, defaultOrgRef } from './defaultOrgService';
 import { getOrgFromConnection } from './shared';
@@ -131,7 +128,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       )
     } as const;
   }),
-  dependencies: [SettingsService.Default, ConfigService.Default]
+  dependencies: [ConfigService.Default]
 }) {}
 
 const getTracksSourceFromOrg = (conn: Connection): Effect.Effect<boolean, Error> =>
@@ -192,24 +189,3 @@ const createAuthInfoFromUsername = (username: string): Effect.Effect<AuthInfo, E
     try: () => AuthInfo.create({ username }),
     catch: error => new Error('Failed to create AuthInfo', { cause: error })
   }).pipe(Effect.withSpan('createAuthInfoFromUsername', { attributes: { username } }));
-
-/** this supports automatic reauth when the configs change.  That should NOT happen in production, but is
- * useful for development and automated testing where browser loads with credentials from the org
- * TODO: disable invocation of this in production
- */
-export const watchSettingsService = (): Effect.Effect<
-  void,
-  Error,
-  SettingsService | ConnectionService | ConfigService | WorkspaceService | Scope.Closeable
-> =>
-  Effect.gen(function* () {
-    const [settingsService, connectionService] = yield* Effect.all([SettingsService, ConnectionService], {
-      concurrency: 'unbounded'
-    });
-    yield* settingsService.configurationChangeStream.pipe(
-      Stream.filter(event => event.affectsConfiguration(CODE_BUILDER_WEB_SECTION)),
-      Stream.debounce(Duration.millis(5)),
-      Stream.tap(() => Effect.sync(() => console.log('Web Auth Settings changed'))),
-      Stream.runForEach(() => connectionService.getConnection.pipe(Effect.catchAll(() => Effect.void))) // it's possible for the connection to fail and that's ok.  Some other event will try to get a connection and display a real error
-    );
-  });

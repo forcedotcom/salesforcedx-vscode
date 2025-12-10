@@ -6,7 +6,6 @@
  */
 
 import { Org, Connection, ConfigAggregator } from '@salesforce/core';
-
 import * as Effect from 'effect/Effect';
 
 /** passing in a configAggregator is highly recommended to avoid sfdx-core creating a new one  */

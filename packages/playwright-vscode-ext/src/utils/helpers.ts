@@ -127,4 +127,13 @@ export const closeSettingsTab = async (page: Page): Promise<void> => {
   }
 };
 
+/** Wait for workspace file system to be ready by checking for sfdx-project.json in Explorer */
+export const waitForWorkspaceReady = async (page: Page, timeout = 30_000): Promise<void> => {
+  // Wait for sfdx-project.json file to appear in file tree (indicates workspace is loaded)
+  const projectFile = page.getByRole('treeitem', { name: /sfdx-project\.json/ });
+  await projectFile.waitFor({ state: 'visible', timeout }).catch(() => {
+    throw new Error('sfdx-project.json not found - Salesforce project may not be loaded');
+  });
+};
+
 export const typingSpeed = 50; // ms

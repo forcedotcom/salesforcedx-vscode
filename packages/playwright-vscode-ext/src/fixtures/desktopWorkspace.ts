@@ -9,7 +9,7 @@ import { Global } from '@salesforce/core/global';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { DREAMHOUSE_ORG_ALIAS } from '../utils/dreamhouseScratchOrgSetup';
+import { DREAMHOUSE_ORG_ALIAS } from '../orgs/dreamhouseScratchOrgSetup';
 
 /** Create a temporary workspace directory with sfdx-project.json for desktop tests */
 export const createTestWorkspace = async (orgAlias = DREAMHOUSE_ORG_ALIAS): Promise<string> => {

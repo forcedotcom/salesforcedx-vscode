@@ -46,11 +46,12 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
 };
 
 /** Selects a specific output channel from the dropdown */
-export const selectOutputChannel = async (page: Page, channelName: string): Promise<void> => {
-  await page
-    .getByRole('combobox')
-    .filter({ has: page.getByRole('option', { name: channelName }) })
-    .selectOption({ label: channelName });
+export const selectOutputChannel = async (page: Page, channelName: string, timeout = 30_000): Promise<void> => {
+  const combobox = page.getByRole('combobox').filter({ has: page.getByRole('option', { name: channelName }) });
+
+  // Wait for the channel to be available in the dropdown
+  await combobox.waitFor({ state: 'visible', timeout });
+  await combobox.selectOption({ label: channelName });
 };
 
 /** Checks if the output channel contains specific text using the filter input */
