@@ -138,8 +138,16 @@ export class DeployQueue {
 
 export const registerPushOrDeployOnSave = () => {
   vscode.workspace.onDidSaveTextDocument(async (textDocument: vscode.TextDocument) => {
+    // Skip if not configured
+    if (
+      salesforceCoreSettings.getUseMetadataExtensionCommands() ||
+      !salesforceCoreSettings.getPushOrDeployOnSaveEnabled()
+    ) {
+      return;
+    }
     const documentUri = textDocument.uri;
-    if (salesforceCoreSettings.getPushOrDeployOnSaveEnabled() && !(await ignorePath(documentUri.fsPath))) {
+
+    if (!(await ignorePath(documentUri.fsPath))) {
       await DeployQueue.get().enqueue(documentUri);
     }
   });

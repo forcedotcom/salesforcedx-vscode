@@ -9,13 +9,13 @@ import type { SfProject } from '@salesforce/core/project';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { Utils } from 'vscode-uri';
+import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 
 type CreateApexClassParams = {
   readonly name?: string;
-  readonly outputDir?: vscode.Uri;
+  readonly outputDir?: URI;
 };
 class UserCancelledOverwriteError extends Data.TaggedError('UserCancelledOverwriteError')<{}> {}
 
@@ -85,10 +85,7 @@ const promptForClassName = async (): Promise<string | undefined> => {
 };
 
 /** Check if files exist and prompt for overwrite if needed */
-const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (
-  clsUri: vscode.Uri,
-  metaUri: vscode.Uri
-) {
+const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (clsUri: URI, metaUri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fsService = yield* api.services.FsService;
 
@@ -111,7 +108,7 @@ const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (
 
 // this really should use the template library, but I need an apex class create for testing purposes and don't have the real one yet
 /** Create Apex class files */
-const createFiles = Effect.fn('createFiles')(function* (className: string, outputDir: vscode.Uri, apiVersion: string) {
+const createFiles = Effect.fn('createFiles')(function* (className: string, outputDir: URI, apiVersion: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fsService = yield* api.services.FsService;
   const channelService = yield* api.services.ChannelService;

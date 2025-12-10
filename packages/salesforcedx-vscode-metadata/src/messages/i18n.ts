@@ -39,7 +39,12 @@ export const messages = {
   apex_generate_class_success: 'Apex class created successfully',
   deploy_no_local_changes_message: 'No local changes to deploy',
   deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.',
-  failed_to_create_apex_class: 'Failed to create Apex class: %s'
+  failed_to_create_apex_class: 'Failed to create Apex class: %s',
+
+  // Deploy on save
+  deploy_on_save_error_no_target_org:
+    'Error running deploy on save: No default org is set. Run "SFDX: Authorize an Org", then deploy the changes that you just saved.',
+  deploy_on_save_error_generic: 'Deploy on save failed: %s'
 } as const;
 
 export type MessageKey = keyof typeof messages;

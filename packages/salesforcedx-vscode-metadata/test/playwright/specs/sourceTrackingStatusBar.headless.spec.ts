@@ -18,6 +18,7 @@ import {
   create,
   upsertScratchOrgAuthFieldsToSettings,
   executeCommandWithCommandPalette,
+  upsertSettings,
   NOTIFICATION_LIST_ITEM,
   EDITOR_WITH_URI,
   QUICK_INPUT_LIST_ROW,
@@ -37,6 +38,9 @@ test.describe('Source Tracking Status Bar', () => {
       const createResult = await create();
       await waitForVSCodeWorkbench(page);
       await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+
+      // Disable deploy-on-save so test can control when deploys happen
+      await upsertSettings(page, { 'salesforcedx-vscode-metadata.deployOnSave.enabled': 'false' });
 
       const statusBar = new SourceTrackingStatusBarPage(page);
       await statusBar.waitForVisible(120_000);

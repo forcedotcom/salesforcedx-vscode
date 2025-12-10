@@ -40,7 +40,7 @@
   ],
   "scripts": {
     "vscode:bundle": "wireit",
-    "run:web": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-org-browser --open-devtools --port 3001",
+    "run:web": "wireit",
     "test:web": "wireit",
     "test:web:ui": "npm run test:web -- --headed",
     "test:web:debug": "npm run test:web -- --debug",
@@ -163,6 +163,18 @@
         "test:web",
         "test:desktop"
       ]
+    },
+    "run:web": {
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-org-browser --open-devtools --port 3001",
+      "service": true,
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-org-browser:vscode:bundle"
+      ],
+      "files": [
+        "test/playwright/**/*.ts"
+      ]
     }
   },
   "activationEvents": [
@@ -172,6 +184,21 @@
   "main": "./dist/index.js",
   "browser": "./dist/web/index.js",
   "contributes": {
+    "configuration": {
+      "title": "Salesforce Metadata Configuration",
+      "properties": {
+        "salesforcedx-vscode-metadata.deployOnSave.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "%deploy_on_save_enabled_description%"
+        },
+        "salesforcedx-vscode-metadata.deployOnSave.ignoreConflicts": {
+          "type": "boolean",
+          "default": true,
+          "description": "%deploy_on_save_ignore_conflicts_description%"
+        }
+      }
+    },
     "menus": {
       "commandPalette": [
         {

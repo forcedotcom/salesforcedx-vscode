@@ -52,7 +52,7 @@ export const upsertScratchOrgAuthFieldsToSettings = async (
 };
 
 /** Upsert settings using Settings (UI) search and fill of each id.
- * Assumes that you've already opened the Settings (UI) via openSettingsUI.
+ * For checkbox settings, pass "true" or "false" as the value.
  */
 export const upsertSettings = async (page: Page, settings: Record<string, string>): Promise<void> => {
   await openSettingsUI(page);
@@ -86,15 +86,14 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
 
     // Deterministic locator: target the element that actually contains the `data-id` attribute
     const searchResultId = `searchResultModel_${id.replaceAll('.', '_')}`;
-    const rowById = page.locator(`[data-id="${searchResultId}"]`).first();
+    const row = page.locator(`[data-id="${searchResultId}"]`).first();
 
     if (debugAria) {
       console.log(`[upsertSettings] using deterministic locator for ${id}: data-id="${searchResultId}"`);
     }
 
     // Fail fast if the deterministic row isn't found — do not fall back to label-based heuristics
-    await rowById.waitFor({ state: 'attached', timeout: 15_000 });
-    const row = rowById;
+    await row.waitFor({ state: 'attached', timeout: 15_000 });
 
     await row.waitFor({ state: 'visible', timeout: 30_000 });
     if (debugAria) {
@@ -104,13 +103,27 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       } catch {}
     }
 
-    // Always fill via the row role textbox
-    const roleTextbox = row.getByRole('textbox').first();
-    await roleTextbox.waitFor({ timeout: 30_000 });
-    await roleTextbox.click({ timeout: 5000 });
-    await roleTextbox.fill(value);
-    await expect(roleTextbox).toHaveValue(value, { timeout: 10_000 });
-    await roleTextbox.blur();
+    // Check if this is a checkbox setting (value is "true" or "false")
+    const checkbox = row.getByRole('checkbox').first();
+    const isCheckboxSetting = (value === 'true' || value === 'false') && (await checkbox.count()) > 0;
+
+    if (isCheckboxSetting) {
+      // Handle checkbox setting
+      await checkbox.waitFor({ timeout: 30_000 });
+      const isChecked = await checkbox.isChecked();
+      const desiredChecked = value === 'true';
+      if (isChecked !== desiredChecked) {
+        await checkbox.click();
+      }
+    } else {
+      // Handle textbox setting
+      const roleTextbox = row.getByRole('textbox').first();
+      await roleTextbox.waitFor({ timeout: 30_000 });
+      await roleTextbox.click({ timeout: 5000 });
+      await roleTextbox.fill(value);
+      await expect(roleTextbox).toHaveValue(value, { timeout: 10_000 });
+      await roleTextbox.blur();
+    }
 
     // Capture after state
     await saveScreenshot(page, `settings.afterSet.${id}.png`, false);

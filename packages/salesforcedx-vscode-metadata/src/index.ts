@@ -13,6 +13,7 @@ import { projectDeployStart } from './commands/deployStart/projectDeployStart';
 import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
 import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './commands/showSourceTrackingDetails';
 import { EXTENSION_NAME } from './constants';
+import { createDeployOnSaveService } from './services/deployOnSaveService';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
 import { closeExtensionScope, getExtensionScope } from './services/extensionScope';
 import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
@@ -53,11 +54,13 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
       vscode.commands.registerCommand('sf.apex.generate.class', createApexClass)
     );
+
+    // Start deploy on save service only if this extension handles shared commands
+    yield* Effect.forkIn(createDeployOnSaveService(), yield* getExtensionScope());
   }
 
   // Register source tracking status bar
   yield* Effect.forkIn(createSourceTrackingStatusBar(), yield* getExtensionScope());
-
   yield* svc.appendToChannel('Salesforce Metadata activation complete.');
 });
 
