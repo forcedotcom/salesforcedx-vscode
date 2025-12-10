@@ -17,6 +17,7 @@ export type MetadataType = {
   fields: MetadataField[];
   short_description: string;
   url: string;
+  parent: string;
 };
 
 export type MetadataTypesMap = {
@@ -210,6 +211,58 @@ const cleanDescription = (text: string): string => {
     .replaceAll(/\n[\s\t]+/g, ' ')
     .replaceAll(/\s+/g, ' ') // Also normalize multiple spaces to single space
     .trim();
+};
+
+/** Extract parent metadata type from description and fields (defaults to "Metadata" if not found) */
+const extractParentType = (description: string, fields?: MetadataField[]): string => {
+  if (!description && (!fields || fields.length === 0)) return 'Metadata';
+
+  // Look for patterns in description like:
+  // - "extends SharingBaseRule"
+  // - "It extends MetadataWithContent"
+  // - "This type extends the MetadataWithContent metadata type"
+  if (description) {
+    const extendsMatch = description.match(/\bextends\s+(?:the\s+)?([A-Z][a-zA-Z0-9_]+)(?:\s+metadata\s+type)?/);
+
+    if (extendsMatch && extendsMatch[1]) {
+      const parentType = extendsMatch[1];
+      // Filter out generic words that aren't actual types
+      const notActualTypes = ['Component', 'Type', 'Object'];
+      if (parentType === 'Metadata') {
+        return 'Metadata';
+      }
+      // Return the parent type if it's not in the exclusion list
+      if (!notActualTypes.includes(parentType)) {
+        return parentType;
+      }
+    }
+  }
+
+  // Check field descriptions for inheritance information
+  // Look for patterns like "inherited from the MetadataWithContent component"
+  if (fields && fields.length > 0) {
+    for (const field of fields) {
+      if (field.Description) {
+        const inheritedMatch = field.Description.match(
+          /inherited from (?:the\s+)?([A-Z][a-zA-Z0-9_]+)(?:\s+component|\s+metadata\s+type)?/i
+        );
+        if (inheritedMatch && inheritedMatch[1]) {
+          const parentType = inheritedMatch[1];
+          // MetadataWithContent is a valid parent type
+          if (parentType === 'MetadataWithContent') {
+            return 'MetadataWithContent';
+          }
+          // Only return if it's not "Metadata" (which is the base type for most fields anyway)
+          if (parentType !== 'Metadata') {
+            return parentType;
+          }
+        }
+      }
+    }
+  }
+
+  // Default to base Metadata type
+  return 'Metadata';
 };
 
 /** Extract type name from array notation (e.g., "AssignmentRule[]" -> "AssignmentRule") */
@@ -559,36 +612,42 @@ export const extractMetadataFromPage = async (
       }
 
       // Extract page-level description (for the first table)
-      // This is typically the first substantial paragraph after the main H1/H2 but before any tables
+      // This is typically the first substantial paragraph(s) after the main H1/H2 but before any tables
+      // We collect multiple paragraphs to capture "extends" information that may be in a second paragraph
       let pageLevelDescription = '';
+      const collectedParagraphs: string[] = [];
 
       // Strategy 1: Look for Salesforce's standard shortdesc div (including in shadow DOM)
       const shortdescDiv = searchInShadowDOM(document, 'div.shortdesc');
       if (shortdescDiv) {
         const text = shortdescDiv.textContent?.trim();
         if (text.length > 20) {
-          pageLevelDescription = text;
+          collectedParagraphs.push(text);
         }
       }
 
-      // Strategy 2: Look for direct paragraph siblings after heading
+      // Strategy 2: Look for direct paragraph siblings after heading OR after shortdesc
+      // Collect additional paragraphs until we find one with "extends" (inheritance info)
       const mainHeading = document.querySelector('h1') ?? document.querySelector('h2');
-      if (mainHeading && !pageLevelDescription) {
-        let current = mainHeading.nextElementSibling;
-        let attempts = 0;
+      // Start from shortdescDiv's next sibling if it exists, otherwise from heading's next sibling
+      const startElement = shortdescDiv?.nextElementSibling ?? mainHeading?.nextElementSibling;
 
-        while (current && attempts < 15 && !pageLevelDescription) {
+      if (startElement) {
+        let current = startElement;
+        let attempts = 0;
+        const maxParagraphs = 3; // Safety limit: collect up to 3 paragraphs total
+        let foundExtends = false; // Track if we found the "extends" paragraph
+
+        while (current && attempts < 15 && collectedParagraphs.length < maxParagraphs && !foundExtends) {
           // Stop if we hit a table
           if (current.tagName === 'TABLE') {
             break;
           }
 
-          // Stop if we hit another major heading (H2 for a specific table)
+          // Stop if we hit another heading (H2-H6)
+          // This prevents collecting paragraphs from subsequent sections like "Retrieving Documents"
           if (current.tagName && current.tagName.match(/^H[2-6]$/)) {
-            const headingText = current.textContent?.trim().toLowerCase() ?? '';
-            if (headingText.includes('field') || headingText.length < 100) {
-              break;
-            }
+            break;
           }
 
           // Check if this element or its children have the description
@@ -602,27 +661,69 @@ export const extractMetadataFromPage = async (
           if (current.tagName === 'P' || current.tagName === 'DD') {
             const desc = checkElement(current);
             if (desc) {
-              pageLevelDescription = desc;
-              break;
-            }
-          }
-
-          // If it's a DIV, look for P or DD children (but skip callout divs)
-          if (current.tagName === 'DIV' && !isInsideCallout(current)) {
-            const paragraphs = current.querySelectorAll('p, dd');
-            for (const p of Array.from(paragraphs)) {
-              const desc = checkElement(p);
-              if (desc) {
-                pageLevelDescription = desc;
+              collectedParagraphs.push(desc);
+              // Stop collecting if this paragraph contains "extends"
+              if (desc.toLowerCase().includes('extends')) {
+                foundExtends = true;
                 break;
               }
             }
-            if (pageLevelDescription) break;
+          }
+
+          // If it's a DIV, iterate through its children in order (but skip callout divs)
+          // Stop if we encounter a heading inside the DIV
+          if (current.tagName === 'DIV' && !isInsideCallout(current)) {
+            for (const child of Array.from(current.children)) {
+              if (foundExtends) break; // Stop if we already found extends
+
+              // Stop if we hit a heading inside the DIV
+              if (child.tagName && child.tagName.match(/^H[2-6]$/)) {
+                break;
+              }
+
+              // Check paragraphs directly
+              if (child.tagName === 'P' || child.tagName === 'DD') {
+                const desc = checkElement(child);
+                if (desc && collectedParagraphs.length < maxParagraphs) {
+                  collectedParagraphs.push(desc);
+                  // Stop collecting if this paragraph contains "extends"
+                  if (desc.toLowerCase().includes('extends')) {
+                    foundExtends = true;
+                    break;
+                  }
+                }
+              }
+
+              // Also check for nested P/DD in non-heading containers
+              if (child.tagName === 'DIV' && !isInsideCallout(child) && !child.tagName.match(/^H[2-6]$/)) {
+                const nestedParagraphs = child.querySelectorAll('p, dd');
+                for (const p of Array.from(nestedParagraphs)) {
+                  if (foundExtends) break; // Stop if we already found extends
+                  const desc = checkElement(p);
+                  if (desc && collectedParagraphs.length < maxParagraphs) {
+                    collectedParagraphs.push(desc);
+                    // Stop collecting if this paragraph contains "extends"
+                    if (desc.toLowerCase().includes('extends')) {
+                      foundExtends = true;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
           }
 
           current = current.nextElementSibling;
           attempts++;
         }
+
+        // Join collected paragraphs with space separator
+        if (collectedParagraphs.length > 0) {
+          pageLevelDescription = collectedParagraphs.join(' ');
+        }
+      } else if (collectedParagraphs.length > 0) {
+        // Use what we collected from shortdesc even if we didn't find additional paragraphs
+        pageLevelDescription = collectedParagraphs.join(' ');
       }
 
       // Strategy 3: If still not found, do a broader search for the first P after the heading
@@ -970,12 +1071,14 @@ export const extractMetadataFromPage = async (
         'Field Type': cleanDescription(field['Field Type'])
       }));
 
+      const cleanedDescription = cleanDescription(description);
       results.push({
         name: finalName,
         data: {
           fields: cleanedFields,
-          short_description: cleanDescription(description),
-          url: url.split('#')[0] // Strip hash fragment if present
+          short_description: cleanedDescription,
+          url: url.split('#')[0], // Strip hash fragment if present
+          parent: extractParentType(cleanedDescription, cleanedFields)
         }
       });
       console.log('Newest entry ONE TABLE:', JSON.stringify(results.at(-1), null, 2));
@@ -1059,12 +1162,14 @@ export const extractMetadataFromPage = async (
           'Field Type': cleanDescription(field['Field Type'])
         }));
 
+        const cleanedDescription = cleanDescription(description);
         results.push({
           name: finalName,
           data: {
             fields: cleanedFields,
-            short_description: cleanDescription(description),
-            url: url.split('#')[0] // Strip hash fragment if present (all tables share the same base URL)
+            short_description: cleanedDescription,
+            url: url.split('#')[0], // Strip hash fragment if present (all tables share the same base URL)
+            parent: extractParentType(cleanedDescription, cleanedFields)
           }
         });
         console.log('Newest entry MULTIPLE TABLES:', JSON.stringify(results.at(-1), null, 2));
@@ -1110,12 +1215,14 @@ export const extractMetadataFromPage = async (
     // These are types that have a heading/section on the page but no field table
     for (const referencedType of Array.from(referencedTypes)) {
       console.log(`     ℹ️  Adding referenced type without fields: ${referencedType}`);
+      const refDescription = `Referenced type from ${url}`;
       results.push({
         name: referencedType,
         data: {
           fields: [],
-          short_description: `Referenced type from ${url}`,
-          url: url.split('#')[0]
+          short_description: refDescription,
+          url: url.split('#')[0],
+          parent: extractParentType(refDescription, [])
         }
       });
     }
@@ -1128,19 +1235,23 @@ export const extractMetadataFromPage = async (
         if (existingEntry) {
           // Update the existing entry if it only has a generic "Referenced type" description
           if (existingEntry.data.short_description.startsWith('Referenced type from')) {
-            existingEntry.data.short_description = cleanDescription(heading.description);
+            const cleanedDesc = cleanDescription(heading.description);
+            existingEntry.data.short_description = cleanedDesc;
+            existingEntry.data.parent = extractParentType(cleanedDesc, existingEntry.data.fields);
             console.log('Updated entry HEADING WITHOUT TABLE:', JSON.stringify(existingEntry, null, 2));
           }
           continue;
         }
 
         // Create a new entry with no fields but with the description
+        const cleanedHeadingDesc = cleanDescription(heading.description);
         results.push({
           name: heading.headingName,
           data: {
             fields: [],
-            short_description: cleanDescription(heading.description),
-            url: url.split('#')[0] // Strip hash fragment if present
+            short_description: cleanedHeadingDesc,
+            url: url.split('#')[0], // Strip hash fragment if present
+            parent: extractParentType(cleanedHeadingDesc, [])
           }
         });
         console.log('Newest entry HEADING WITHOUT TABLE:', JSON.stringify(results.at(-1), null, 2));
