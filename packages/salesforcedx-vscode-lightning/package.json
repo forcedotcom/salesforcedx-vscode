@@ -28,6 +28,9 @@
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
+    "acorn": "^6.0.0",
+    "acorn-loose": "^6.0.0",
+    "acorn-walk": "^6.0.0",
     "applicationinsights": "1.0.7",
     "effect": "^3.10.3",
     "vscode-html-languageservice": "^5.5.1",
@@ -124,11 +127,8 @@
   ],
   "main": "./out/src",
   "serverPath": [
-    "..",
-    "salesforcedx-aura-language-server",
-    "out",
-    "src",
-    "server.js"
+    "dist",
+    "auraServer.js"
   ],
   "packaging": {
     "assets": [
@@ -141,20 +141,21 @@
       "images",
       "syntaxes",
       "images",
-      "dist"
+      "dist",
+      "tern"
     ],
     "packageUpdates": {
       "main": "dist/index.js",
       "serverPath": [
-        "node_modules",
-        "@salesforce",
-        "salesforcedx-aura-language-server",
-        "out",
-        "src",
-        "server.js"
+        "dist",
+        "auraServer.js"
       ],
       "dependencies": {
-        "applicationinsights": "1.0.7"
+        "acorn": "^6.0.0",
+        "acorn-loose": "^6.0.0",
+        "acorn-walk": "^6.0.0",
+        "applicationinsights": "1.0.7",
+        "vscode-html-languageservice": "^5.5.1"
       },
       "devDependencies": {}
     }

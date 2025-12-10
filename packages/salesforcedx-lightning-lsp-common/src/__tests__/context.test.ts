@@ -8,6 +8,7 @@ import * as path from 'node:path';
 import { processTemplate, getModulesDirs } from '../baseContext';
 import '../../jest/matchers';
 import { FileSystemDataProvider } from '../providers/fileSystemDataProvider';
+import { normalizePath } from '../utils';
 import {
   CORE_ALL_ROOT,
   CORE_PROJECT_ROOT,
@@ -23,27 +24,14 @@ import {
 import { WorkspaceContext } from './workspaceContext';
 
 // Test workspace paths - use absolute paths that work regardless of where code is run from
-const SFDX_WORKSPACE_PATH = path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'sfdx-workspace');
-const STANDARD_WORKSPACE_PATH = path.resolve(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  '..',
-  'test-workspaces',
-  'standard-workspace'
+const SFDX_WORKSPACE_PATH = normalizePath(
+  path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'sfdx-workspace')
 );
-const CORE_WORKSPACE_PATH = path.resolve(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  '..',
-  'test-workspaces',
-  'core-like-workspace',
-  'app',
-  'main',
-  'core'
+const STANDARD_WORKSPACE_PATH = normalizePath(
+  path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'standard-workspace')
+);
+const CORE_WORKSPACE_PATH = normalizePath(
+  path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'core-like-workspace', 'app', 'main', 'core')
 );
 
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
@@ -197,7 +185,7 @@ describe('WorkspaceContext', () => {
       await getModulesDirs(context.type, context.workspaceRoots, coreProjectFileSystemProvider, () =>
         context.initSfdxProjectConfigCache()
       )
-    ).toEqual([path.join(context.workspaceRoots[0], 'modules')]);
+    ).toEqual([normalizePath(path.join(context.workspaceRoots[0], 'modules'))]);
 
     context = new WorkspaceContext(CORE_MULTI_ROOT, coreMultiFileSystemProvider);
     await context.initialize();
@@ -207,7 +195,9 @@ describe('WorkspaceContext', () => {
       context.initSfdxProjectConfigCache()
     );
     for (let i = 0; i < context.workspaceRoots.length; i = i + 1) {
-      expect(modulesDirs[i]).toMatch(context.workspaceRoots[i]);
+      // modulesDirs[i] should be a path like "workspaceRoot/modules", so it should start with workspaceRoot
+      // Normalize both paths to ensure consistent comparison (especially Windows drive letter casing)
+      expect(normalizePath(modulesDirs[i])).toContain(normalizePath(context.workspaceRoots[i]));
     }
   });
 
@@ -349,22 +339,6 @@ describe('WorkspaceContext', () => {
     ).toString('utf8');
     expect(apexContents).not.toContain('declare type');
   });
-
-  /*
-function verifyCodeWorkspace(path: string) {
-    const content = Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.file(path))).toString('utf8');
-    const workspace = JSON.parse(content);
-    const folders = workspace.folders;
-    expect(folders.length).toBe(1);
-    const folderPath = folders[0].path;
-    expect(folderPath).toBeAbsolutePath();
-    expect(folderPath).toEndWith(utils.unixify(CORE_ALL_ROOT));
-    const settings = workspace.settings;
-    expect(settings['java.home']).toBe('path_to_java_home');
-    expect(settings['extensions.ignoreRecommendations']).toBeTruthy();
-    verifyCoreSettings(settings);
-}
-*/
 
   it('configureCoreProject()', async () => {
     const context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemProvider);

@@ -6,12 +6,14 @@
  */
 import {
   toResolvedPath,
-  interceptConsoleLogger,
+  Logger,
   TagInfo,
   FileSystemDataProvider,
   FileStat,
   syncDocumentToTextDocumentsProvider,
-  scheduleReinitialization
+  scheduleReinitialization,
+  normalizePath,
+  NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 
@@ -74,7 +76,7 @@ export default class Server {
   public readonly connection: Connection = createConnection();
   public readonly documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
   private context!: AuraWorkspaceContext;
-  private workspaceRoots!: string[];
+  private workspaceRoots!: NormalizedPath[];
   private htmlLS!: LanguageService;
   private auraIndexer!: AuraIndexer;
   public fileSystemProvider: FileSystemDataProvider;
@@ -83,7 +85,6 @@ export default class Server {
   private hasDetectedAuraFiles = false;
 
   constructor() {
-    interceptConsoleLogger(this.connection);
     this.fileSystemProvider = new FileSystemDataProvider();
     this.connection.onInitialize(params => this.onInitialize(params));
     this.connection.onCompletion(params => this.onCompletion(params));
@@ -97,13 +98,17 @@ export default class Server {
     this.documents.listen(this.connection);
   }
 
-  public async onInitialize(params: InitializeParams): Promise<InitializeResult> {
+  public onInitialize(params: InitializeParams): InitializeResult {
     const { workspaceFolders } = params;
-    this.workspaceRoots = (workspaceFolders ?? []).map(folder => path.resolve(URI.parse(folder.uri).fsPath));
+    // Normalize workspaceRoots at entry point to ensure all paths are consistent
+    // This ensures all downstream code receives normalized paths
+    this.workspaceRoots = (workspaceFolders ?? []).map(folder =>
+      normalizePath(path.resolve(URI.parse(folder.uri).fsPath))
+    );
 
     try {
       if (this.workspaceRoots.length === 0) {
-        console.warn(nls.localize('no_workspace_found_message'));
+        Logger.warn(nls.localize('no_workspace_found_message'));
         return { capabilities: {} };
       }
 
@@ -456,8 +461,9 @@ export default class Server {
     const uri = document.uri;
     const content = document.getText();
 
-    // Sync to TextDocuments FileSystemDataProvider
-    await syncDocumentToTextDocumentsProvider(uri, content, this.fileSystemProvider, this.workspaceRoots);
+    // Normalize URI to fsPath before syncing (entry point for path normalization)
+    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
+    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
 
     // Perform delayed initialization once we have documents
     if (!this.isDelayedInitializationComplete) {
@@ -465,6 +471,7 @@ export default class Server {
     }
 
     // Check if this is an Aura component file and initialize indexer if needed
+    // Parse URI to get filename in a cross-platform way (URIs use forward slashes, but path.basename handles both)
     const fileName = path.basename(URI.parse(uri).fsPath);
     if (fileName && this.isAuraComponentFile(fileName)) {
       this.hasDetectedAuraFiles = true;
@@ -487,8 +494,9 @@ export default class Server {
     const { uri } = document;
     const content = document.getText();
 
-    // Sync to TextDocuments FileSystemDataProvider
-    await syncDocumentToTextDocumentsProvider(uri, content, this.fileSystemProvider, this.workspaceRoots);
+    // Normalize URI to fsPath before syncing (entry point for path normalization)
+    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
+    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
   }
 
   public async onDidSave(change: TextDocumentChangeEvent<TextDocument>): Promise<void> {
@@ -496,8 +504,9 @@ export default class Server {
     const uri = document.uri;
     const content = document.getText();
 
-    // Sync to TextDocuments FileSystemDataProvider
-    await syncDocumentToTextDocumentsProvider(uri, content, this.fileSystemProvider, this.workspaceRoots);
+    // Normalize URI to fsPath before syncing (entry point for path normalization)
+    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
+    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
   }
 
   /**
@@ -524,7 +533,7 @@ export default class Server {
   /**
    * Initializes the indexer when workspace Aura files are available
    */
-  private async initializeIndexer(): Promise<void> {
+  private initializeIndexer(): void {
     if (this.isIndexerInitialized) {
       return;
     }
@@ -565,11 +574,8 @@ export default class Server {
 
       // Initialize Tern server with original fileSystemProvider (contains Aura resources)
       if (this.context.type === 'CORE_PARTIAL') {
-        await startServer(
-          path.join(this.workspaceRoots[0], '..'),
-          path.join(this.workspaceRoots[0], '..'),
-          this.fileSystemProvider
-        );
+        const corePartialRoot = normalizePath(path.join(this.workspaceRoots[0], '..'));
+        await startServer(corePartialRoot, corePartialRoot, this.fileSystemProvider);
       } else {
         await startServer(this.workspaceRoots[0], this.workspaceRoots[0], this.fileSystemProvider);
       }
@@ -596,15 +602,22 @@ export default class Server {
 
       // If we already detected Aura files before delayed init completed, initialize indexer now
       if (this.hasDetectedAuraFiles && !this.isIndexerInitialized) {
-        void this.initializeIndexer();
+        this.initializeIndexer();
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(nls.localize('delayed_initialization_error_message', errorMessage));
     }
+
+    // send notification that delayed initialization is complete
+    void this.connection.sendNotification(ShowMessageNotification.type, {
+      type: MessageType.Info,
+      message: 'Aura Language Server is ready'
+    });
   }
 
   public listen(): void {
+    Logger.initialize(this.connection);
     this.connection.listen();
   }
 }

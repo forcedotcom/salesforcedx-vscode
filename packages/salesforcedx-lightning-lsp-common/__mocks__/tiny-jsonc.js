@@ -18,7 +18,8 @@ module.exports = {
       try {
         return JSON.parse(cleaned);
       } catch (e) {
-        throw new Error(`Failed to parse JSON: ${e.message}`);
+        // Return empty object on parse error to match readJsonSync behavior
+        return {};
       }
     }
   }

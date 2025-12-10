@@ -26,11 +26,30 @@
   },
   "scripts": {
     "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf src/resources/sfdx/typings/copied",
-    "compile": "tsc -p . && node scripts/convert.js && node scripts/build.js",
+    "compile": "wireit",
     "watch": "tsc -watch -p .",
     "test": "jest --coverage",
     "lint": "eslint .",
     "lint:fix": "npm run lint -- --fix"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc -p . && node scripts/convert.js && node scripts/build.js",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-lightning-lsp-common:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "scripts/**/*.js",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    }
   },
   "dependencies": {
     "@lwc/compiler": "8.16.0",
@@ -41,11 +60,11 @@
     "@salesforce/label": "0.0.21",
     "@salesforce/salesforcedx-lightning-lsp-common": "64.16.1",
     "@salesforce/schema": "0.0.21",
+    "@types/vscode": "^1.90.0",
     "babel-types": "^6.26.0",
     "change-case": "^4.1.1",
     "comment-parser": "^0.7.6",
-    "fast-glob": "^3.3.3",
-    "@types/vscode": "^1.90.0",
+    "minimatch": "^10.0.1",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12",

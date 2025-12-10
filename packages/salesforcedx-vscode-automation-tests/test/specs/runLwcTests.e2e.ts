@@ -10,9 +10,10 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
+import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import {
-  installJestUTToolsForLwc,
-  createLwc
+  createLwc,
+  installJestUTToolsForLwc
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import {
   getTestsSection,
@@ -70,6 +71,12 @@ describe('Run LWC Tests', () => {
 
     // Install Jest unit testing tools for LWC
     await installJestUTToolsForLwc(testSetup.projectFolderPath);
+
+    // Reload the VSCode window to allow the LWC to be indexed by the LWC Language Server
+    await reloadWindow(Duration.seconds(20));
+
+    // wait for server initialization to complete
+    await verifyNotificationWithRetry(/LWC Language Server is ready/, Duration.seconds(10));
   });
 
   it('SFDX: Run All Lightning Web Component Tests from Command Palette', async () => {
@@ -251,7 +258,7 @@ describe('Run LWC Tests', () => {
     // Verify test results are listed on vscode's Output section
     // Also verify that all tests pass
     const workbench = getWorkbench();
-    const terminalText = await getTerminalViewText(workbench, 10);
+    const terminalText = await getTerminalViewText(workbench, 20);
     const expectedTexts = [
       'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
       'Test Suites: 1 passed, 1 total',
