@@ -437,6 +437,24 @@ export const extractMetadataFromPage = async (
         return results;
       };
 
+      /** Helper to check element and add to collected paragraphs if valid, returns true if "extends" was found */
+      const checkAndCollectParagraph = (
+        element: Element,
+        checkElement: (el: Element) => string,
+        collectedParagraphs: string[],
+        maxParagraphs: number
+      ): boolean => {
+        const desc = checkElement(element);
+        if (desc && collectedParagraphs.length < maxParagraphs) {
+          collectedParagraphs.push(desc);
+          // Stop collecting if this paragraph contains "extends"
+          if (desc.toLowerCase().includes('extends')) {
+            return true;
+          }
+        }
+        return false;
+      };
+
       // Helper to find description paragraph after a heading element
       const findDescriptionAfterHeading = (headingElement: Element, stopAtTable: boolean = true): string => {
         let description = '';
@@ -659,14 +677,9 @@ export const extractMetadataFromPage = async (
 
           // Try the element itself if it's P or DD
           if (current.tagName === 'P' || current.tagName === 'DD') {
-            const desc = checkElement(current);
-            if (desc) {
-              collectedParagraphs.push(desc);
-              // Stop collecting if this paragraph contains "extends"
-              if (desc.toLowerCase().includes('extends')) {
-                foundExtends = true;
-                break;
-              }
+            if (checkAndCollectParagraph(current, checkElement, collectedParagraphs, maxParagraphs)) {
+              foundExtends = true;
+              break;
             }
           }
 
@@ -683,14 +696,9 @@ export const extractMetadataFromPage = async (
 
               // Check paragraphs directly
               if (child.tagName === 'P' || child.tagName === 'DD') {
-                const desc = checkElement(child);
-                if (desc && collectedParagraphs.length < maxParagraphs) {
-                  collectedParagraphs.push(desc);
-                  // Stop collecting if this paragraph contains "extends"
-                  if (desc.toLowerCase().includes('extends')) {
-                    foundExtends = true;
-                    break;
-                  }
+                if (checkAndCollectParagraph(child, checkElement, collectedParagraphs, maxParagraphs)) {
+                  foundExtends = true;
+                  break;
                 }
               }
 
@@ -699,14 +707,9 @@ export const extractMetadataFromPage = async (
                 const nestedParagraphs = child.querySelectorAll('p, dd');
                 for (const p of Array.from(nestedParagraphs)) {
                   if (foundExtends) break; // Stop if we already found extends
-                  const desc = checkElement(p);
-                  if (desc && collectedParagraphs.length < maxParagraphs) {
-                    collectedParagraphs.push(desc);
-                    // Stop collecting if this paragraph contains "extends"
-                    if (desc.toLowerCase().includes('extends')) {
-                      foundExtends = true;
-                      break;
-                    }
+                  if (checkAndCollectParagraph(p, checkElement, collectedParagraphs, maxParagraphs)) {
+                    foundExtends = true;
+                    break;
                   }
                 }
               }
