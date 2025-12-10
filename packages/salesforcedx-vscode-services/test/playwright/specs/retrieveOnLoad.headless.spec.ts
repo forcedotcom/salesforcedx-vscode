@@ -12,14 +12,12 @@ import {
   setupNetworkMonitoring,
   filterErrors,
   filterNetworkErrors,
-  create,
   upsertScratchOrgAuthFieldsToSettings,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   selectOutputChannel,
   waitForOutputChannelText,
   outputChannelContains,
-  EDITOR_WITH_URI,
   createMinimalOrg
 } from '@salesforce/playwright-vscode-ext';
 import { upsertRetrieveOnLoadSetting } from '../pages/settingsPage';
@@ -55,13 +53,10 @@ test.describe('retrieveOnLoad', () => {
       expect(hasWorkflow, 'Should show Workflow:Case in retrieval message').toBe(true);
     });
 
-    await test.step('wait for files to open in editor', async () => {
-      // Wait for at least one editor to open
-      const editorLocator = page.locator(EDITOR_WITH_URI).first();
-      await expect(editorLocator).toBeVisible({ timeout: 300_000 });
-
-      // Give it a moment for all files to open
-      await page.waitForTimeout(5000);
+    await test.step('verify success message in output channel', async () => {
+      await waitForOutputChannelText(page, { expectedText: 'Retrieve on load completed', timeout: 300_000 });
+      const hasFileCount = await outputChannelContains(page, 'files retrieved successfully');
+      expect(hasFileCount, 'Should show file count in success message').toBe(true);
     });
 
     await test.step('verify editor tabs contain retrieved files', async () => {
@@ -78,16 +73,6 @@ test.describe('retrieveOnLoad', () => {
       expect(hasActivityOrCase, `Expected Activity or Case related files, got: ${tabTexts.join(', ')}`).toBe(true);
     });
 
-    await test.step('verify success message in output channel', async () => {
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, SERVICES_CHANNEL_NAME);
-      const hasSuccess = await outputChannelContains(page, 'Retrieve on load completed');
-      expect(hasSuccess, 'Should show success message').toBe(true);
-
-      const hasFileCount = await outputChannelContains(page, 'files retrieved successfully');
-      expect(hasFileCount, 'Should show file count in success message').toBe(true);
-    });
-
     await test.step('validate no critical errors', async () => {
       const criticalConsole = filterErrors(consoleErrors);
       const criticalNetwork = filterNetworkErrors(networkErrors);
@@ -101,7 +86,7 @@ test.describe('retrieveOnLoad', () => {
     const consoleErrors = setupConsoleMonitoring(page);
 
     await test.step('setup org auth without retrieveOnLoad setting', async () => {
-      const orgAuth = await create();
+      const orgAuth = await createMinimalOrg();
       await upsertScratchOrgAuthFieldsToSettings(page, orgAuth);
       await closeWelcomeTabs(page);
     });
@@ -110,8 +95,8 @@ test.describe('retrieveOnLoad', () => {
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, SERVICES_CHANNEL_NAME);
 
-      // Give it time to potentially try to retrieve
-      await page.waitForTimeout(5000);
+      // Wait for the extension to activate and process settings
+      await waitForOutputChannelText(page, { expectedText: SERVICES_CHANNEL_NAME, timeout: 30_000 });
 
       const hasRetrieving = await outputChannelContains(page, 'Retrieving metadata on load');
       expect(hasRetrieving, 'Should not attempt retrieval with empty setting').toBe(false);
