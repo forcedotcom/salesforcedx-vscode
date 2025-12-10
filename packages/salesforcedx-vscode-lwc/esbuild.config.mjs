@@ -31,8 +31,7 @@ await build({
     '@salesforce/lightning-lsp-common',
     '@babel/preset-typescript/package.json',
     'jest-editor-support',
-    '@babel/core',
-    'jsonc-parser'
+    '@babel/core'
   ],
   entryPoints: ['../salesforcedx-lwc-language-server/out/src/lwcServer.js'],
   outfile: './dist/lwcServer.js',

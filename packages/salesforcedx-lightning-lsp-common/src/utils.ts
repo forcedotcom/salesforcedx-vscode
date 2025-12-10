@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as jsonc from 'jsonc-parser';
 import { basename, extname, join, relative, resolve } from 'node:path';
 import { FileEvent, FileChangeType } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -83,16 +82,19 @@ export const memoize = <T>(fn: () => T): (() => T) => {
   };
 };
 
-export const readJsonSync = (file: string, fileSystemProvider: IFileSystemProvider): SfdxTsConfig => {
+export const readJsonSync = async (file: string, fileSystemProvider: IFileSystemProvider): Promise<SfdxTsConfig> => {
   try {
     const content = fileSystemProvider.getFileContent(`${file}`);
     if (!content) {
       return {};
     }
-    // jsonc.parse will return an object without comments.
+    // Dynamically import tiny-jsonc (ES module) and parse JSONC content
     // Comments will be lost if this object is written back to file.
     // Individual properties should be updated directly via VS Code API to preserve comments.
-    const parsed = jsonc.parse(content);
+    // eslint-disable-next-line import/no-extraneous-dependencies
+    const { parse } = (await import('tiny-jsonc')).default;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const parsed = parse(content);
     return isRecord(parsed) ? parsed : {};
   } catch (err) {
     console.log(`onIndexCustomComponents(LOTS): Error reading jsconfig ${file}`, err);
