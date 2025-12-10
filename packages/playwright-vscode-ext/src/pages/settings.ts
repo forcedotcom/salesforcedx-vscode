@@ -14,7 +14,7 @@ import { executeCommandWithCommandPalette } from './commands';
 
 const settingsLocator = (page: Page): Locator => page.locator(SETTINGS_SEARCH_INPUT.join(','));
 
-const openSettingsUI = async (page: Page): Promise<void> => {
+export const openSettingsUI = async (page: Page): Promise<void> => {
   await page.locator(WORKBENCH).click({ timeout: 60_000 });
   await page.waitForTimeout(2000);
   await executeCommandWithCommandPalette(page, 'Preferences: Open Settings (UI)');
@@ -54,7 +54,7 @@ export const upsertScratchOrgAuthFieldsToSettings = async (
 /** Upsert settings using Settings (UI) search and fill of each id.
  * Assumes that you've already opened the Settings (UI) via openSettingsUI.
  */
-const upsertSettings = async (page: Page, settings: Record<string, string>): Promise<void> => {
+export const upsertSettings = async (page: Page, settings: Record<string, string>): Promise<void> => {
   await openSettingsUI(page);
   const debugAria = process.env.E2E_ARIA_DEBUG === '1';
 

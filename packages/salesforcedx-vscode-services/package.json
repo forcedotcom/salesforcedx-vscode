@@ -45,6 +45,7 @@
   },
   "devDependencies": {
     "@effect/platform": "0.92.1",
+    "@salesforce/playwright-vscode-ext": "*",
     "browserify-zlib": "^0.2.0",
     "esbuild": "0.25.0",
     "https-browserify": "^1.0.0",
@@ -63,7 +64,12 @@
     "generate-types": "wireit",
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
-    "test": "wireit"
+    "test": "wireit",
+    "run:web": "wireit",
+    "test:web": "wireit",
+    "test:web:ui": "npm run test:web -- --headed",
+    "test:web:debug": "npm run test:web -- --debug",
+    "test:e2e": "wireit"
   },
   "wireit": {
     "compile": {
@@ -149,6 +155,31 @@
       "output": [
         "*.vsix"
       ]
+    },
+    "test:web": {
+      "command": "playwright test --config=playwright.config.web.ts",
+      "dependencies": [
+        "vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.web.ts"
+      ]
+    },
+    "test:e2e": {
+      "dependencies": [
+        "test:web"
+      ]
+    },
+    "run:web": {
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --open-devtools --port 3001",
+      "service": true,
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "test/playwright/**/*.ts"
+      ]
     }
   },
   "activationEvents": [
@@ -175,6 +206,11 @@
           "type": "string",
           "default": "64.0",
           "description": "Salesforce api version (example: 65.0).  Only valid in browser"
+        },
+        "salesforcedx-vscode-code-builder-web.retrieveOnLoad": {
+          "type": "string",
+          "default": "",
+          "description": "Comma-separated list of metadata to retrieve on load (format: MetadataType:FullName, e.g. ApexClass:Foo,CustomObject:Account). Web only."
         },
         "salesforcedx-vscode-salesforcedx.enableLocalTraces": {
           "type": "boolean",

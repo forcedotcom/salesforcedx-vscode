@@ -9,11 +9,12 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
+import { SERVICES_CHANNEL_NAME } from '../constants';
 
 export class ChannelService extends Effect.Service<ChannelService>()('ChannelService', {
   sync: () => {
     // Default implementation with a generic channel name
-    const channel = Effect.runSync(cache.get('Salesforce Services'));
+    const channel = Effect.runSync(cache.get(SERVICES_CHANNEL_NAME));
     return {
       /** Get the OutputChannel for this ChannelService */
       getChannel: Effect.sync(() => channel),

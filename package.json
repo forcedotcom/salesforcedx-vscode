@@ -189,9 +189,11 @@
         "./packages/salesforcedx-vscode-soql:lint",
         "./packages/salesforcedx-vscode-visualforce:lint",
         "./packages/salesforcedx-vscode-services:lint",
+        "./packages/salesforcedx-vscode-metadata:lint",
         "./packages/salesforcedx-vscode-org:lint",
         "./packages/salesforcedx-vscode-org-browser:lint",
-        "./packages/salesforcedx-vscode-automation-tests:lint"
+        "./packages/salesforcedx-vscode-automation-tests:lint",
+        "./packages/playwright-vscode-ext:lint"
       ]
     },
     "test": {

@@ -12,6 +12,7 @@ export {
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
   closeSettingsTab,
+  waitForWorkspaceReady,
   typingSpeed
 } from './utils/helpers';
 
@@ -31,12 +32,15 @@ export {
   SETTINGS_SEARCH_INPUT
 } from './utils/locators';
 
-export { create, DREAMHOUSE_ORG_ALIAS } from './utils/dreamhouseScratchOrgSetup';
+export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSION_KEY } from './constants';
+
+export { create, DREAMHOUSE_ORG_ALIAS } from './orgs/dreamhouseScratchOrgSetup';
+export { createMinimalOrg, MINIMAL_ORG_ALIAS } from './orgs/minimalScratchOrgSetup';
 
 // Pages
-export { upsertScratchOrgAuthFieldsToSettings } from './pages/settings';
+export { upsertScratchOrgAuthFieldsToSettings, openSettingsUI, upsertSettings } from './pages/settings';
 
-export { executeCommandWithCommandPalette, openCommandPalette, executeCommand } from './pages/commands';
+export { executeCommandWithCommandPalette, openCommandPalette, executeCommand, reloadWindow } from './pages/commands';
 
 export {
   ensureOutputPanelOpen,

@@ -12,3 +12,5 @@ prefer `undefined` over empty string
 
 prefer map/filter over loops and conditionals
 avoid array and object mutation
+
+never create an enum or a namespace

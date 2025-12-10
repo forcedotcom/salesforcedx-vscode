@@ -126,3 +126,5 @@ test-resources/
 .wireit
 **/playwright-report/
 jscpd-report/
+
+**/.wireit

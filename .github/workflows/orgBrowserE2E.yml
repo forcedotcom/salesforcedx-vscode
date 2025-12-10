@@ -6,6 +6,7 @@ on:
     paths:
       - 'packages/salesforcedx-vscode-org-browser/**'
       - 'packages/salesforcedx-vscode-services/**'
+      - 'packages/playwright-vscode-ext/**'
       - '.github/workflows/orgBrowserE2E.yml'
 
 jobs:
