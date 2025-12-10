@@ -6,7 +6,7 @@
  */
 
 jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
-  const actual = jest.requireActual('@salesforcedx-utils-vscode');
+  const actual = jest.requireActual('@salesforce/salesforcedx-utils-vscode');
   return {
     ...actual,
     getTestResultsFolder: jest.fn().mockResolvedValue('/tmp/test-results')
@@ -32,11 +32,35 @@ jest.mock('../../../src/settings', () => ({
   retrieveTestCodeCoverage: jest.fn().mockReturnValue(false)
 }));
 
+// Mock TestService before imports
+const mockTestServiceMethods = {
+  retrieveAllSuites: jest.fn().mockResolvedValue([]),
+  buildAsyncPayload: jest.fn().mockResolvedValue({}),
+  runTestAsynchronous: jest.fn().mockResolvedValue({
+    tests: [],
+    summary: { outcome: 'Passed', testsRan: 0 }
+  }),
+  writeResultFiles: jest.fn().mockResolvedValue(undefined),
+  getTestsInSuite: jest.fn().mockResolvedValue([])
+};
+
+jest.mock('@salesforce/apex-node', () => ({
+  TestService: jest.fn().mockImplementation(() => mockTestServiceMethods),
+  TestLevel: {
+    RunSpecifiedTests: 'RunSpecifiedTests'
+  },
+  ResultFormat: {
+    json: 'json'
+  }
+}));
+
+import { TestResult, TestService } from '@salesforce/apex-node';
+import type { Connection } from '@salesforce/core';
 import * as vscode from 'vscode';
 import * as coreExtensionUtils from '../../../src/coreExtensionUtils';
 import * as testUtils from '../../../src/utils/testUtils';
 import { ApexTestMethod } from '../../../src/views/lspConverter';
-import { ApexTestController } from '../../../src/views/testController';
+import { ApexTestController, getTestController } from '../../../src/views/testController';
 
 // Mock vscode.tests API
 const mockTestController = {
@@ -44,41 +68,40 @@ const mockTestController = {
     add: jest.fn(),
     replace: jest.fn(),
     values: jest.fn().mockReturnValue([])
-  },
+  } as unknown as vscode.TestItemCollection,
   createTestItem: jest.fn(),
   createTestRun: jest.fn(),
   createRunProfile: jest.fn(),
   refreshHandler: undefined as (() => Promise<void>) | undefined,
   dispose: jest.fn()
-};
+} as unknown as vscode.TestController;
 
 const mockTestItem = {
   id: 'test-item',
   label: 'Test Item',
-  uri: undefined as vscode.Uri | undefined,
-  range: undefined as vscode.Range | undefined,
+  uri: undefined,
+  range: undefined,
   canResolveChildren: false,
   children: {
     add: jest.fn(),
     values: jest.fn().mockReturnValue([]),
     size: 0
-  }
-};
+  } as unknown as vscode.TestItemCollection
+} as unknown as vscode.TestItem;
 
 const mockTestRun = {
   started: jest.fn(),
   passed: jest.fn(),
   failed: jest.fn(),
   skipped: jest.fn(),
-  erred: jest.fn(),
-  end: jest.fn()
-};
-
+  errored: jest.fn(),
+  end: jest.fn(),
+  appendOutput: jest.fn()
+} as unknown as vscode.TestRun;
 
 describe('ApexTestController', () => {
   let controller: ApexTestController;
-  let mockConnection: any;
-  let mockTestService: any;
+  let mockConnection: Partial<Connection>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -90,7 +113,9 @@ describe('ApexTestController', () => {
     (vscode.workspace.getConfiguration as jest.Mock) = jest.fn().mockReturnValue({
       get: jest.fn().mockReturnValue('ls')
     });
-    (vscode.workspace.workspaceFolders as any) = [{ uri: { fsPath: '/workspace' } }];
+    (vscode.workspace.workspaceFolders as vscode.WorkspaceFolder[] | undefined) = [
+      { uri: vscode.Uri.file('/workspace'), name: 'workspace', index: 0 }
+    ];
     (vscode.workspace.fs.readFile as jest.Mock) = jest.fn();
     (vscode.workspace.createFileSystemWatcher as jest.Mock) = jest.fn().mockReturnValue({
       onDidCreate: jest.fn(),
@@ -101,20 +126,10 @@ describe('ApexTestController', () => {
     // Mock commands
     (vscode.commands.executeCommand as jest.Mock) = jest.fn().mockResolvedValue(undefined);
 
-    // Mock connection and test service
+    // Mock connection
     mockConnection = {
       getApiVersion: jest.fn().mockReturnValue('65.0'),
       request: jest.fn()
-    };
-
-    mockTestService = {
-      retrieveAllSuites: jest.fn().mockResolvedValue([]),
-      buildAsyncPayload: jest.fn().mockResolvedValue({}),
-      runTestAsynchronous: jest.fn().mockResolvedValue({
-        tests: [],
-        summary: { outcome: 'Passed', testsRan: 0 }
-      }),
-      writeResultFiles: jest.fn().mockResolvedValue(undefined)
     };
 
     (coreExtensionUtils.getVscodeCoreExtension as jest.Mock) = jest.fn().mockResolvedValue({
@@ -134,16 +149,12 @@ describe('ApexTestController', () => {
       getStatusMessage: jest.fn().mockReturnValue('')
     });
 
-    // Mock TestService constructor
-    jest.doMock('@salesforce/apex-node', () => ({
-      TestService: jest.fn().mockImplementation(() => mockTestService),
-      TestLevel: {
-        RunSpecifiedTests: 'RunSpecifiedTests'
-      },
-      ResultFormat: {
-        json: 'json'
-      }
-    }));
+    // Reset TestService mock
+    (TestService as jest.Mock).mockImplementation(() => mockTestServiceMethods);
+    // Reset all mock methods
+    jest.clearAllMocks();
+    mockTestServiceMethods.retrieveAllSuites.mockResolvedValue([]);
+    mockTestServiceMethods.getTestsInSuite.mockResolvedValue([]);
 
     controller = new ApexTestController();
   });
@@ -169,37 +180,34 @@ describe('ApexTestController', () => {
         {
           methodName: 'testMethod1',
           definingType: 'TestClass1',
-          location: new vscode.Location(
-            vscode.Uri.file('/workspace/TestClass1.cls'),
-            new vscode.Range(0, 0, 0, 0)
-          )
+          location: new vscode.Location(vscode.Uri.file('/workspace/TestClass1.cls'), new vscode.Range(0, 0, 0, 0))
         },
         {
           methodName: 'testMethod2',
           definingType: 'TestClass1',
-          location: new vscode.Location(
-            vscode.Uri.file('/workspace/TestClass1.cls'),
-            new vscode.Range(1, 0, 1, 0)
-          )
+          location: new vscode.Location(vscode.Uri.file('/workspace/TestClass1.cls'), new vscode.Range(1, 0, 1, 0))
         },
         {
           methodName: 'testMethod3',
           definingType: 'TestClass2',
-          location: new vscode.Location(
-            vscode.Uri.file('/workspace/TestClass2.cls'),
-            new vscode.Range(0, 0, 0, 0)
-          )
+          location: new vscode.Location(vscode.Uri.file('/workspace/TestClass2.cls'), new vscode.Range(0, 0, 0, 0))
         }
       ];
 
       (testUtils.getApexTests as jest.Mock).mockResolvedValue(mockTests);
-      (mockTestController.createTestItem as jest.Mock).mockImplementation((id, label, uri) => ({
-        id,
-        label,
-        uri,
-        canResolveChildren: false,
-        children: { add: jest.fn(), values: jest.fn().mockReturnValue([]), size: 0 }
-      }));
+      (mockTestController.createTestItem as jest.Mock).mockImplementation(
+        (id: string, label: string, uri?: vscode.Uri): Partial<vscode.TestItem> => ({
+          id,
+          label,
+          uri,
+          canResolveChildren: false,
+          children: {
+            add: jest.fn(),
+            values: jest.fn().mockReturnValue([]),
+            size: 0
+          } as unknown as vscode.TestItemCollection
+        })
+      );
 
       await controller.discoverTests();
 
@@ -208,16 +216,12 @@ describe('ApexTestController', () => {
       expect(mockTestController.items.add).toHaveBeenCalled();
     });
 
-    it('should handle language server not ready', async () => {
-      (testUtils.getLanguageClientStatus as jest.Mock).mockResolvedValue({
-        isReady: jest.fn().mockReturnValue(false),
-        failedToInitialize: jest.fn().mockReturnValue(true),
-        getStatusMessage: jest.fn().mockReturnValue('LS not ready')
-      });
+    it('should handle errors during discovery', async () => {
+      // Mock getApexTests to throw an error
+      (testUtils.getApexTests as jest.Mock).mockRejectedValue(new Error('Discovery failed'));
 
-      await controller.discoverTests();
-
-      expect(vscode.window.showInformationMessage).toHaveBeenCalled();
+      // discoverTests catches errors and logs them, so it should not throw
+      await expect(controller.discoverTests()).resolves.not.toThrow();
     });
   });
 
@@ -240,12 +244,11 @@ describe('ApexTestController', () => {
             outcome: 'Pass',
             runTime: 100
           }
-        ]
-      };
+        ],
+        summary: { testsRan: 1, passing: 1, failing: 0 }
+      } as unknown as TestResult;
 
-      (vscode.workspace.fs.readFile as jest.Mock).mockResolvedValue(
-        Buffer.from(JSON.stringify(testResult))
-      );
+      (vscode.workspace.fs.readFile as jest.Mock).mockResolvedValue(Buffer.from(JSON.stringify(testResult)));
 
       (mockTestController.createTestRun as jest.Mock).mockReturnValue(mockTestRun);
       (mockTestController.createTestItem as jest.Mock).mockReturnValue(mockTestItem);
@@ -276,10 +279,10 @@ describe('ApexTestController', () => {
             runTime: 100
           }
         ],
-        summary: { outcome: 'Passed', testsRan: 1 }
-      };
+        summary: { testsRan: 1, passing: 1, failing: 0 }
+      } as unknown as TestResult;
 
-      mockTestService.runTestAsynchronous.mockResolvedValue(testResult);
+      mockTestServiceMethods.runTestAsynchronous.mockResolvedValue(testResult);
 
       // We need to mock the internal methods, so let's test through the public API
       await controller.refresh();
@@ -305,8 +308,9 @@ describe('ApexTestController', () => {
 
 describe('getTestController', () => {
   it('should return singleton instance', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { getTestController } = require('../../../src/views/testController');
+    // Mock vscode.tests.createTestController for this test
+    (vscode.tests.createTestController as jest.Mock) = jest.fn().mockReturnValue(mockTestController);
+
     const instance1 = getTestController();
     const instance2 = getTestController();
     expect(instance1).toBe(instance2);

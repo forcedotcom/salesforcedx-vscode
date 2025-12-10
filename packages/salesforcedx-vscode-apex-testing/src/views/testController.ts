@@ -4,17 +4,30 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { HumanReporter, ResultFormat, TestLevel, TestResult, TestService } from '@salesforce/apex-node';
+import { ResultFormat, TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
 import { getTestResultsFolder, notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { telemetryService } from '../telemetry/telemetry';
+import { buildTestPayload } from '../utils/payloadBuilder';
+import {
+  createClassId,
+  createMethodId,
+  createSuiteClassId,
+  createSuiteId,
+  extractSuiteName,
+  getTestName,
+  isClass,
+  isMethod,
+  isSuite,
+  gatherTests
+} from '../utils/testItemUtils';
+import { updateTestRunResults } from '../utils/testResultProcessor';
 import { getApexTests } from '../utils/testUtils';
 import { ApexTestMethod } from './lspConverter';
 
@@ -33,6 +46,7 @@ export class ApexTestController {
   private lastProcessedResultFile: string | null = null;
   private connection: Connection | undefined;
   private testService: TestService | undefined;
+  private suiteToClasses: Map<string, Set<string>> = new Map();
 
   constructor() {
     this.controller = vscode.tests.createTestController(TEST_CONTROLLER_ID, nls.localize('test_view_name'));
@@ -61,6 +75,7 @@ export class ApexTestController {
 
   /**
    * Ensures connection and testService are initialized
+   * @throws Error if initialization fails
    */
   private async ensureInitialized(): Promise<void> {
     if (this.connection && this.testService) {
@@ -69,7 +84,30 @@ export class ApexTestController {
 
     const vscodeCoreExtension = await getVscodeCoreExtension();
     this.connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
+    if (!this.connection) {
+      throw new Error(nls.localize('apex_test_connection_failed_message'));
+    }
     this.testService = new TestService(this.connection);
+  }
+
+  /**
+   * Gets the test service, throwing if not initialized
+   */
+  private getTestService(): TestService {
+    if (!this.testService) {
+      throw new Error(nls.localize('apex_test_service_not_initialized_message'));
+    }
+    return this.testService;
+  }
+
+  /**
+   * Gets the connection, throwing if not initialized
+   */
+  private getConnection(): Connection {
+    if (!this.connection) {
+      throw new Error(nls.localize('apex_test_connection_not_initialized_message'));
+    }
+    return this.connection;
   }
 
   public async discoverTests(): Promise<void> {
@@ -119,6 +157,7 @@ export class ApexTestController {
     this.classItems.clear();
     this.methodItems.clear();
     this.suiteParentItem = undefined;
+    this.suiteToClasses.clear();
   }
 
   private populateTestItems(tests: ApexTestMethod[]): void {
@@ -130,19 +169,26 @@ export class ApexTestController {
       if (!classMap.has(className)) {
         classMap.set(className, { tests: [], uri: test.location.uri });
       }
-      classMap.get(className)!.tests.push(test);
+      const classData = classMap.get(className);
+      if (classData) {
+        classData.tests.push(test);
+      }
     }
 
     // Create test items for classes and methods
     for (const [className, classData] of classMap) {
-      const classItem = this.controller.createTestItem(`class:${className}`, className, classData.uri);
+      const classItem = this.controller.createTestItem(createClassId(className), className, classData.uri);
       classItem.canResolveChildren = false;
       this.classItems.set(className, classItem);
 
       for (const test of classData.tests) {
         const methodName = test.methodName;
         const methodId = `${className}.${methodName}`;
-        const methodItem = this.controller.createTestItem(`method:${methodId}`, methodName, test.location.uri);
+        const methodItem = this.controller.createTestItem(
+          createMethodId(className, methodName),
+          methodName,
+          test.location.uri
+        );
         methodItem.range = test.location.range;
         methodItem.canResolveChildren = false;
         this.methodItems.set(methodId, methodItem);
@@ -150,7 +196,7 @@ export class ApexTestController {
       }
 
       this.controller.items.add(classItem);
-      this.testItems.set(className, classItem);
+      this.testItems.set(createClassId(className), classItem);
     }
   }
 
@@ -158,7 +204,7 @@ export class ApexTestController {
     try {
       // Ensure connection and testService are initialized
       await this.ensureInitialized();
-      const suites = await this.testService!.retrieveAllSuites();
+      const suites = await this.getTestService().retrieveAllSuites();
 
       if (suites.length === 0) {
         return;
@@ -170,21 +216,18 @@ export class ApexTestController {
 
       // Add all suites as children of the parent
       for (const suite of suites) {
-        const suiteItem = this.controller.createTestItem(
-          `suite:${suite.TestSuiteName}`,
-          suite.TestSuiteName,
-          undefined
-        );
+        const suiteId = createSuiteId(suite.TestSuiteName);
+        const suiteItem = this.controller.createTestItem(suiteId, suite.TestSuiteName, undefined);
         suiteItem.canResolveChildren = true;
         this.suiteItems.set(suite.TestSuiteName, suiteItem);
         this.suiteParentItem.children.add(suiteItem);
-        this.testItems.set(`suite:${suite.TestSuiteName}`, suiteItem);
+        this.testItems.set(suiteId, suiteItem);
       }
 
       // Add the parent item first so it appears at the top
       this.controller.items.add(this.suiteParentItem);
     } catch (error) {
-      throw new Error(`Failed to populate suite items: ${String(error)}`);
+      throw new Error(nls.localize('apex_test_populate_suite_items_failed_message', String(error)));
     }
   }
 
@@ -217,7 +260,7 @@ export class ApexTestController {
       }
 
       // If it's a suite, resolve its children (test classes)
-      if (test.id.startsWith('suite:')) {
+      if (isSuite(test.id)) {
         await this.resolveSuiteChildren(test);
       }
     };
@@ -229,7 +272,11 @@ export class ApexTestController {
       return;
     }
 
-    const suiteName = suiteItem.id.replace('suite:', '');
+    const suiteName = extractSuiteName(suiteItem.id);
+    if (!suiteName) {
+      return;
+    }
+
     let classNames: string[] = [];
 
     try {
@@ -237,7 +284,7 @@ export class ApexTestController {
       await this.ensureInitialized();
 
       // Get test suite membership records (contains ApexClassId)
-      const classesInSuite = await this.testService!.getTestsInSuite(suiteName);
+      const classesInSuite = await this.getTestService().getTestsInSuite(suiteName);
 
       if (classesInSuite.length === 0) {
         console.debug(`No test classes found for suite: ${suiteName}`);
@@ -247,34 +294,27 @@ export class ApexTestController {
       // Extract class IDs and query for class names
       const classIds = classesInSuite.map(record => record.ApexClassId);
       const classNamesQuery = `SELECT Id, Name FROM ApexClass WHERE Id IN (${classIds.map(id => `'${id}'`).join(',')})`;
-      const queryResult = await this.connection!.tooling.query<{ Name: string }>(classNamesQuery);
+      const queryResult = await this.getConnection().tooling.query<{ Name: string }>(classNamesQuery);
 
       classNames = queryResult.records.map(record => record.Name);
 
+      // Store the mapping of suite to classes
+      this.suiteToClasses.set(suiteName, new Set(classNames));
+
       // Add class items as children of the suite
-      // Note: We create items with unique IDs for suite children since TestItems can only have one parent
+      // These are just for display - the actual class items remain at root level
       for (const className of classNames) {
         const existingClassItem = this.classItems.get(className);
-        let classItem: vscode.TestItem;
-
-        if (existingClassItem) {
-          // Class exists - create a reference item with a unique ID (TestItems can only have one parent)
-          classItem = this.controller.createTestItem(
-            `suite:${suiteName}:class:${className}`,
-            className,
-            existingClassItem.uri
-          );
-          classItem.canResolveChildren = false;
-        } else {
-          // Class not discovered yet - create a placeholder
-          classItem = this.controller.createTestItem(`suite:${suiteName}:class:${className}`, className, undefined);
-          classItem.canResolveChildren = false;
-        }
-
+        // Create a simple placeholder item for display under the suite
+        const classItem = this.controller.createTestItem(
+          createSuiteClassId(suiteName, className),
+          className,
+          existingClassItem?.uri
+        );
         suiteItem.children.add(classItem);
       }
     } catch (error) {
-      throw new Error(`Failed to resolve suite children for ${suiteName}: ${String(error)}`);
+      throw new Error(nls.localize('apex_test_resolve_suite_children_failed_message', suiteName, String(error)));
     }
   }
 
@@ -285,7 +325,7 @@ export class ApexTestController {
   ): Promise<void> {
     const startTime = Date.now();
     const run = this.controller.createTestRun(request);
-    const testsToRun = this.gatherTests(request);
+    const testsToRun = gatherTests(request, this.controller.items, this.suiteItems);
 
     if (testsToRun.length === 0) {
       run.end();
@@ -303,26 +343,10 @@ export class ApexTestController {
         await this.debugTests(testsToRun, run);
       } else {
         // For run, execute tests using existing Apex test execution
-        // Check if original request was for classes/suites (not expanded methods)
-        const originalItems = request.include ? Array.from(request.include) : [];
-        // Check if any original items are suite child items (suite:SuiteName:class:ClassName)
-        const hasSuiteChildItems = originalItems.some(item => item.id.includes(':class:'));
-        // Check if we have suite items (either the suite itself or suite children)
-        const hasSuiteItems =
-          originalItems.some(item => item.id.startsWith('suite:') && !item.id.includes(':class:')) ||
-          testsToRun.some(item => item.id.startsWith('suite:') && !item.id.includes(':class:')) ||
-          hasSuiteChildItems; // If suite child items are selected, treat as suite run
-        // Check for regular class items (not suite children)
-        const hasClassItems = originalItems.some(item => item.id.startsWith('class:') && !item.id.includes(':class:'));
-
-        const testNames = testsToRun.map(test => this.getTestName(test));
+        const testNames = testsToRun.map(test => getTestName(test));
         const tmpFolder = await this.getTempFolder();
         const codeCoverage = settings.retrieveTestCodeCoverage();
-        await this.executeTests(testNames, tmpFolder, codeCoverage, token, run, testsToRun, {
-          hasClassItems,
-          hasSuiteItems,
-          originalItems
-        });
+        await this.executeTests(testNames, tmpFolder, codeCoverage, token, run, testsToRun);
       }
 
       const durationMs = Date.now() - startTime;
@@ -348,101 +372,22 @@ export class ApexTestController {
     // Group tests by type (class vs method)
     for (const test of testsToRun) {
       try {
-        if (test.id.startsWith('method:')) {
+        if (isMethod(test.id)) {
           // Debug single method
-          const testName = test.id.replace('method:', '');
+          const testName = getTestName(test);
           await vscode.commands.executeCommand('sf.test.view.debugSingleTest', { name: testName });
-        } else if (test.id.startsWith('class:')) {
+        } else if (isClass(test.id)) {
           // Debug class (all methods in class)
-          const className = test.id.replace('class:', '');
+          const className = getTestName(test);
           await vscode.commands.executeCommand('sf.test.view.debugTests', { name: className });
-        } else if (test.id.startsWith('suite:')) {
+        } else if (isSuite(test.id)) {
           // Suites cannot be debugged - only individual classes or methods can be debugged
           run.errored(test, new vscode.TestMessage(nls.localize('apex_test_suite_debug_not_supported_message')));
         }
       } catch (error) {
-        run.errored(test, new vscode.TestMessage(`Debug failed: ${String(error)}`));
+        run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', String(error))));
       }
     }
-  }
-
-  private gatherTests(request: vscode.TestRunRequest): vscode.TestItem[] {
-    const tests: vscode.TestItem[] = [];
-
-    const include = (test: vscode.TestItem): void => {
-      // Skip the suite parent node - it's just a container
-      if (test.id === 'apex-test-suites-parent') {
-        // Expand parent to get its children (suites)
-        test.children.forEach(child => include(child));
-        return;
-      }
-      // Don't expand suites - they should be run as-is
-      // Also skip suite child class items (suite:SuiteName:class:ClassName) - they're just for display
-      if (test.id.startsWith('suite:')) {
-        // Check if it's a suite child (has :class: in the ID) - find parent suite instead
-        if (test.id.includes(':class:')) {
-          // Extract suite name from child item ID: suite:SuiteName:class:ClassName
-          const parts = test.id.split(':class:');
-          if (parts.length > 0 && parts[0].startsWith('suite:')) {
-            const suiteName = parts[0].replace('suite:', '');
-            // Find the parent suite using the suiteItems Map
-            const parentSuite = this.suiteItems.get(suiteName);
-            if (parentSuite) {
-              tests.push(parentSuite);
-              return;
-            }
-          }
-          return; // Skip suite child items if parent not found
-        }
-        tests.push(test);
-      } else if (test.children.size > 0) {
-        // Expand classes to their methods
-        test.children.forEach(child => include(child));
-      } else {
-        // Leaf node (method)
-        tests.push(test);
-      }
-    };
-
-    if (request.include) {
-      for (const test of request.include) {
-        include(test);
-      }
-    } else {
-      this.controller.items.forEach(test => include(test));
-    }
-
-    if (request.exclude) {
-      const excludeSet = new Set(request.exclude);
-      return tests.filter(test => !excludeSet.has(test));
-    }
-
-    return tests;
-  }
-
-  private getTestName(test: vscode.TestItem): string {
-    // For method items, return full name (Class.Method)
-    if (test.id.startsWith('method:')) {
-      return test.id.replace('method:', '');
-    }
-    // For class items, return class name
-    if (test.id.startsWith('class:')) {
-      return test.id.replace('class:', '');
-    }
-    // For suite child items (suite:SuiteName:class:ClassName), extract just the class name
-    if (test.id.includes(':class:')) {
-      const parts = test.id.split(':class:');
-      if (parts.length > 1) {
-        return parts[1]; // Return just the class name
-      }
-    }
-    // For suite items, we need to collect all methods from children
-    if (test.id.startsWith('suite:')) {
-      const suiteName = test.id.replace('suite:', '');
-      // For suites, we'll use the suite name and let the test service handle it
-      return suiteName;
-    }
-    return test.label;
   }
 
   private async executeTests(
@@ -451,120 +396,13 @@ export class ApexTestController {
     codeCoverage: boolean,
     token: vscode.CancellationToken,
     run: vscode.TestRun,
-    testsToRun: vscode.TestItem[],
-    context?: { hasClassItems: boolean; hasSuiteItems: boolean; originalItems: vscode.TestItem[] }
+    testsToRun: vscode.TestItem[]
   ): Promise<void> {
     // Ensure connection and testService are initialized
     await this.ensureInitialized();
 
-    let payload;
-
-    // Check if we're running a suite (from original request or in testsToRun)
-    if (context?.hasSuiteItems) {
-      let suiteName: string | undefined;
-
-      // First try to find the suite item itself in testsToRun (most common case)
-      let suiteItem = testsToRun.find(item => item.id.startsWith('suite:') && !item.id.includes(':class:'));
-      // If not found, check originalItems
-      suiteItem ??= context.originalItems.find(item => item.id.startsWith('suite:') && !item.id.includes(':class:'));
-
-      if (suiteItem) {
-        suiteName = suiteItem.id.replace('suite:', '');
-      } else {
-        // If not found, check if we have suite child items - extract suite name from them
-        // Check both originalItems and testsToRun for suite child items
-        const suiteChildItem =
-          context.originalItems.find(item => item.id.includes(':class:')) ??
-          testsToRun.find(item => item.id.includes(':class:'));
-
-        if (suiteChildItem) {
-          // Extract suite name from child item ID: suite:SuiteName:class:ClassName
-          const parts = suiteChildItem.id.split(':class:');
-          if (parts.length > 0 && parts[0].startsWith('suite:')) {
-            suiteName = parts[0].replace('suite:', '');
-          }
-        }
-      }
-
-      if (suiteName) {
-        // Running a suite - use the 4th parameter for suite name
-        payload = await this.testService!.buildAsyncPayload(
-          TestLevel.RunSpecifiedTests,
-          undefined,
-          undefined,
-          suiteName, // Suite name goes in 4th parameter
-          undefined,
-          !codeCoverage
-        );
-      } else {
-        console.debug(
-          'Suite detection failed. originalItems:',
-          context.originalItems.map(i => i.id)
-        );
-        console.debug(
-          'Suite detection failed. testsToRun:',
-          testsToRun.map(i => i.id)
-        );
-        throw new Error(nls.localize('apex_test_suite_name_not_determined_message'));
-      }
-    } else if (context?.hasClassItems) {
-      // Class was selected - get class name from original item
-      const classItem = context.originalItems.find(item => item.id.startsWith('class:'));
-      if (classItem) {
-        const className = classItem.id.replace('class:', '');
-        // Running entire class - use class name parameter
-        payload = await this.testService!.buildAsyncPayload(
-          TestLevel.RunSpecifiedTests,
-          undefined,
-          className, // Class name in 3rd parameter
-          undefined,
-          undefined,
-          !codeCoverage
-        );
-      }
-    } else {
-      // Running individual methods or mixed
-      const methodNames = testNames.filter(name => name.includes('.'));
-      const classNames = testNames.filter(name => !name.includes('.'));
-
-      if (classNames.length > 0) {
-        // Running entire classes - use class name parameter
-        // Note: buildAsyncPayload only supports one class at a time
-        payload = await this.testService!.buildAsyncPayload(
-          TestLevel.RunSpecifiedTests,
-          undefined,
-          classNames[0], // Class name in 3rd parameter
-          undefined,
-          undefined,
-          !codeCoverage
-        );
-      } else if (methodNames.length > 0) {
-        // Check if all methods belong to the same class
-        const classes = new Set(methodNames.map(name => name.split('.')[0]));
-        if (classes.size === 1) {
-          // All methods from same class - use class name parameter for efficiency
-          const className = Array.from(classes)[0];
-          payload = await this.testService!.buildAsyncPayload(
-            TestLevel.RunSpecifiedTests,
-            undefined,
-            className, // Class name in 3rd parameter
-            undefined,
-            undefined,
-            !codeCoverage
-          );
-        } else {
-          // Multiple classes - use method names
-          payload = await this.testService!.buildAsyncPayload(
-            TestLevel.RunSpecifiedTests,
-            methodNames.join(','), // Method names in 2nd parameter
-            undefined,
-            undefined,
-            undefined,
-            !codeCoverage
-          );
-        }
-      }
-    }
+    const testService = this.getTestService();
+    const { payload, hasSuite, hasClass } = await buildTestPayload(testService, testsToRun, testNames, codeCoverage);
 
     if (!payload) {
       throw new Error(nls.localize('apex_test_payload_build_failed_message'));
@@ -572,7 +410,7 @@ export class ApexTestController {
 
     // TODO: fix in apex-node W-18453221
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    const result = (await this.testService!.runTestAsynchronous(
+    const result = (await testService.runTestAsynchronous(
       payload,
       codeCoverage,
       false,
@@ -591,29 +429,24 @@ export class ApexTestController {
       return;
     }
 
-    await this.testService!.writeResultFiles(
+    await testService.writeResultFiles(
       result,
       { resultFormats: [ResultFormat.json], dirPath: outputDir },
       codeCoverage
     );
 
-    // Format and display test results in output channel (like the old view)
-    const humanOutput = new HumanReporter().format(result, codeCoverage, false);
-    channelService.appendLine(humanOutput);
-    channelService.showChannelOutput(); // Show the output channel automatically
-
     // Update test results in Test Explorer
-    this.updateTestRunResults(result, run, testsToRun);
+    updateTestRunResults(result, run, testsToRun, this.methodItems, this.classItems, codeCoverage);
 
     // Show success notification
     const totalCount = result.summary.testsRan ?? 0;
     const failures = result.summary.failing ?? 0;
 
-    // Determine execution name based on what was run
+    // Determine execution name based on what was run (hasSuite and hasClass set above)
     let executionName: string;
-    if (context?.hasSuiteItems) {
+    if (hasSuite) {
       executionName = nls.localize('apex_test_suite_run_text');
-    } else if (context?.hasClassItems) {
+    } else if (hasClass) {
       executionName = nls.localize('apex_test_class_run_text');
     } else {
       executionName = nls.localize('apex_test_run_text');
@@ -623,74 +456,6 @@ export class ApexTestController {
     } else if (totalCount > 0) {
       notificationService.showFailedExecution(executionName);
     }
-  }
-
-  private updateTestRunResults(result: TestResult, run: vscode.TestRun, testsToRun: vscode.TestItem[]): void {
-    // Build a map of test names to test items from all available items
-    // This ensures we can match results even if the suite wasn't expanded
-    const testMap = new Map<string, vscode.TestItem>();
-
-    // Add all method items to the map (keyed by full name: Class.Method)
-    for (const [methodName, methodItem] of this.methodItems) {
-      testMap.set(methodName, methodItem);
-    }
-
-    // Also add items from testsToRun (for methods that might not be in methodItems yet)
-    for (const test of testsToRun) {
-      if (test.id.startsWith('method:')) {
-        const testName = test.id.replace('method:', '');
-        testMap.set(testName, test);
-      }
-    }
-
-    // Track which items we've updated so we can handle suites/classes
-    const updatedItems = new Set<vscode.TestItem>();
-
-    // Update results from TestResult
-    for (const testResult of result.tests) {
-      const { name, namespacePrefix } = testResult.apexClass;
-      const apexClassName = namespacePrefix ? `${namespacePrefix}.${name}` : name;
-      const fullTestName = `${apexClassName}.${testResult.methodName}`;
-
-      const testItem = testMap.get(fullTestName);
-      if (testItem) {
-        const outcomeStr = testResult.outcome.toString();
-        if (outcomeStr === PASS_RESULT) {
-          run.passed(testItem, testResult.runTime);
-        } else if (outcomeStr === FAIL_RESULT) {
-          const message = new vscode.TestMessage(testResult.message ?? testResult.stackTrace ?? 'Test failed');
-          if (testResult.stackTrace) {
-            message.location = this.parseStackTrace(testResult.stackTrace);
-          }
-          run.failed(testItem, message, testResult.runTime);
-        } else if (outcomeStr === SKIP_RESULT) {
-          run.skipped(testItem);
-        }
-        updatedItems.add(testItem);
-      } else {
-        // Test result doesn't match any known test item
-        // This can happen if the test was run as part of a suite but isn't in our tree
-        console.debug(`Test result for ${fullTestName} doesn't match any test item. Available items: ${testMap.size}`);
-      }
-    }
-  }
-
-  private parseStackTrace(stackTrace: string): vscode.Location | undefined {
-    // Try to parse line number from stack trace
-    const lineMatch = stackTrace.match(/line (\d+)/);
-    if (lineMatch) {
-      const lineNumber = parseInt(lineMatch[1], 10) - 1; // Convert to 0-based
-      // Try to find the file from the stack trace
-      const fileMatch = stackTrace.match(/Class\.([^.]+)\./);
-      if (fileMatch) {
-        const className = fileMatch[1];
-        const classItem = Array.from(this.classItems.values()).find(item => item.label === className);
-        if (classItem) {
-          return new vscode.Location(classItem.uri!, new vscode.Range(lineNumber, 0, lineNumber, 0));
-        }
-      }
-    }
-    return undefined;
   }
 
   private async updateTestResults(testResultFilePath: string): Promise<void> {
@@ -703,30 +468,14 @@ export class ApexTestController {
       // Create a test run to update results
       const run = this.controller.createTestRun(new vscode.TestRunRequest());
 
-      for (const test of resultContent.tests) {
-        const { name, namespacePrefix } = test.apexClass;
-        const apexClassName = namespacePrefix ? `${namespacePrefix}.${name}` : name;
-        const methodItem = this.methodItems.get(`${apexClassName}.${test.methodName}`);
-
-        if (methodItem) {
-          const outcomeStr = test.outcome.toString();
-          if (outcomeStr === PASS_RESULT) {
-            run.passed(methodItem, test.runTime);
-          } else if (outcomeStr === FAIL_RESULT) {
-            const message = new vscode.TestMessage(test.message ?? test.stackTrace ?? 'Test failed');
-            if (test.stackTrace) {
-              message.location = this.parseStackTrace(test.stackTrace);
-            }
-            run.failed(methodItem, message, test.runTime);
-          } else if (outcomeStr === SKIP_RESULT) {
-            run.skipped(methodItem);
-          }
-        }
-      }
+      // Reuse updateTestRunResults - pass empty array for testsToRun since we're loading from file
+      // Use the code coverage setting to determine if coverage should be shown
+      const codeCoverage = settings.retrieveTestCodeCoverage();
+      updateTestRunResults(resultContent, run, [], this.methodItems, this.classItems, codeCoverage);
 
       run.end();
     } catch (error) {
-      throw new Error(`Failed to update test results: ${String(error)}`);
+      throw new Error(nls.localize('apex_test_update_results_failed_message', String(error)));
     }
   }
 

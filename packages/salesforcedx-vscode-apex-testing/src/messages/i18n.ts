@@ -61,7 +61,14 @@ export const messages = {
   apex_test_suite_debug_not_supported_message:
     'Test suites cannot be debugged. Please debug individual test classes or methods.',
   apex_test_payload_build_failed_message: 'Failed to build test payload',
-  apex_test_suite_name_not_determined_message: 'Suite name could not be determined for suite execution'
+  apex_test_suite_name_not_determined_message: 'Suite name could not be determined for suite execution',
+  apex_test_resolve_suite_children_failed_message: 'Failed to resolve suite children for suite: %s. Error: %s',
+  apex_test_connection_failed_message: 'Failed to get connection',
+  apex_test_service_not_initialized_message: 'TestService not initialized. Call ensureInitialized() first.',
+  apex_test_connection_not_initialized_message: 'Connection not initialized. Call ensureInitialized() first.',
+  apex_test_populate_suite_items_failed_message: 'Failed to populate suite items: %s',
+  apex_test_debug_failed_message: 'Debug failed: %s',
+  apex_test_update_results_failed_message: 'Failed to update test results: %s'
 } as const;
 
 export type MessageKey = keyof typeof messages;

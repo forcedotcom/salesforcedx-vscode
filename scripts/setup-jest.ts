@@ -109,9 +109,17 @@ const getMockVSCode = () => {
     Range: class {
       public start: any;
       public end: any;
-      public constructor(start: any, end: any) {
-        this.start = start;
-        this.end = end;
+      public constructor(startOrLine: any, startCharOrEnd?: any, endLine?: any, endChar?: any) {
+        // Support both forms: Range(start, end) and Range(startLine, startChar, endLine, endChar)
+        if (endLine !== undefined && endChar !== undefined) {
+          // 4-parameter form: Range(startLine, startChar, endLine, endChar)
+          this.start = new (getMockVSCode().Position)(startOrLine, startCharOrEnd);
+          this.end = new (getMockVSCode().Position)(endLine, endChar);
+        } else {
+          // 2-parameter form: Range(start, end)
+          this.start = startOrLine;
+          this.end = startCharOrEnd;
+        }
       }
     },
     RelativePattern: class {
@@ -125,6 +133,22 @@ const getMockVSCode = () => {
         public uri: Uri,
         public range: Range
       ) {}
+    },
+    TestMessage: class {
+      public message: string;
+      public location?: Location;
+      public constructor(message: string) {
+        this.message = message;
+        this.location = undefined;
+      }
+    },
+    TestItem: class {
+      public label: string;
+      public uri?: Uri;
+      public constructor(label: string, uri?: Uri) {
+        this.label = label;
+        this.uri = uri;
+      }
     },
     StatusBarAlignment: {
       Left: 1,
@@ -249,6 +273,14 @@ const getMockVSCode = () => {
       Event: 24,
       Operator: 25,
       TypeParameter: 26
+    },
+    tests: {
+      createTestController: jest.fn()
+    },
+    TestRunProfileKind: {
+      Run: 1,
+      Debug: 2,
+      Coverage: 3
     }
   };
 };
