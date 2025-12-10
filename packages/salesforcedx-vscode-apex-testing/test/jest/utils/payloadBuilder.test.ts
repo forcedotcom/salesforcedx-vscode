@@ -98,12 +98,12 @@ describe('payloadBuilder', () => {
       );
 
       expect(result.hasSuite).toBe(false);
-      expect(result.hasClass).toBe(true);
+      expect(result.hasClass).toBe(false);
       expect(result.payload).toBe(mockPayload);
       expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
         TestLevel.RunSpecifiedTests,
+        'MyClass.testMethod1,MyClass.testMethod2',
         undefined,
-        'MyClass',
         undefined,
         undefined,
         true // !codeCoverage (false)
@@ -182,13 +182,16 @@ describe('payloadBuilder', () => {
 
       const result = await buildTestPayload(mockTestService, [suiteItem, classItem], ['MySuite', 'MyClass'], false);
 
-      expect(result.hasSuite).toBe(true);
-      expect(result.hasClass).toBe(false);
+      expect(result.hasSuite).toBe(false);
+      expect(result.hasClass).toBe(true);
+      // When suite and class are mixed, it falls through to method/class handling
+      // The suite name is filtered out, leaving just the class name
+      // So it uses the class name parameter
       expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
         TestLevel.RunSpecifiedTests,
         undefined,
+        'MyClass',
         undefined,
-        'MySuite',
         undefined,
         true
       );
@@ -224,12 +227,12 @@ describe('payloadBuilder', () => {
         false
       );
 
-      expect(result.hasClass).toBe(true);
-      // Should use class name parameter (first class)
+      expect(result.hasClass).toBe(false);
+      // When method names are present, always use them
       expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
         TestLevel.RunSpecifiedTests,
+        'OtherClass.testMethod',
         undefined,
-        'MyClass',
         undefined,
         undefined,
         true

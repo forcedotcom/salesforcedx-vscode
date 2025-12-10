@@ -68,7 +68,11 @@ export const messages = {
   apex_test_connection_not_initialized_message: 'Connection not initialized. Call ensureInitialized() first.',
   apex_test_populate_suite_items_failed_message: 'Failed to populate suite items: %s',
   apex_test_debug_failed_message: 'Debug failed: %s',
-  apex_test_update_results_failed_message: 'Failed to update test results: %s'
+  apex_test_update_results_failed_message: 'Failed to update test results: %s',
+  apex_test_local_only_tag: 'Local Only (Not in Org)',
+  apex_test_local_only_warning_message: 'The following test(s) are not deployed to the org and cannot be run: %s',
+  apex_test_local_only_warning_deploy_text: 'Please deploy them first.',
+  apex_test_org_only_tag: 'Org Only (Not in Project)'
 } as const;
 
 export type MessageKey = keyof typeof messages;

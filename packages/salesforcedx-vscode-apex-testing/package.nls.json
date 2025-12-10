@@ -22,5 +22,6 @@
   "apex_test_suite_debug_not_supported_message": "Test suites cannot be debugged. Please debug individual test classes or methods.",
   "apex_testing_discovery_source_description": "Select the source for Apex test discovery.",
   "apex_testing_discovery_source_ls_description": "Use the Language Server (LS) for discovery.",
-  "apex_testing_discovery_source_api_description": "Use the Tooling API Test Discovery endpoint for discovery."
+  "apex_testing_discovery_source_api_description": "Use the Tooling API Test Discovery endpoint for discovery.",
+  "apex_testing_use_test_explorer_description": "Use the VS Code Test Explorer for Apex tests. When enabled, the new Test Explorer UI will be shown instead of the traditional Apex Test View."
 }

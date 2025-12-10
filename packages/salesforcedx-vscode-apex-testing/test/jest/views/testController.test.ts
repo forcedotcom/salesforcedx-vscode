@@ -17,9 +17,20 @@ jest.mock('../../../src/coreExtensionUtils', () => ({
   getVscodeCoreExtension: jest.fn()
 }));
 
-jest.mock('../../../src/utils/testUtils', () => ({
-  getApexTests: jest.fn(),
-  getLanguageClientStatus: jest.fn()
+jest.mock('../../../src/utils/testUtils', () => {
+  const actual = jest.requireActual('../../../src/utils/testUtils');
+  return {
+    ...actual,
+    getApexTests: jest.fn(),
+    getLanguageClientStatus: jest.fn(),
+    buildClassToUriIndex: jest.fn().mockResolvedValue(new Map()),
+    fetchFromLs: jest.fn().mockResolvedValue({ tests: [], durationMs: 0 })
+  };
+});
+
+jest.mock('../../../src/testDiscovery/testDiscovery', () => ({
+  discoverTests: jest.fn(),
+  sourceIsLS: jest.fn().mockReturnValue(false)
 }));
 
 jest.mock('../../../src/telemetry/telemetry', () => ({
@@ -58,8 +69,8 @@ import { TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
 import * as vscode from 'vscode';
 import * as coreExtensionUtils from '../../../src/coreExtensionUtils';
+import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
 import * as testUtils from '../../../src/utils/testUtils';
-import { ApexTestMethod } from '../../../src/views/lspConverter';
 import { ApexTestController, getTestController } from '../../../src/views/testController';
 
 // Mock vscode.tests API
@@ -148,6 +159,9 @@ describe('ApexTestController', () => {
       failedToInitialize: jest.fn().mockReturnValue(false),
       getStatusMessage: jest.fn().mockReturnValue('')
     });
+    (testUtils.buildClassToUriIndex as jest.Mock) = jest.fn().mockResolvedValue(new Map());
+    (testDiscovery.discoverTests as jest.Mock) = jest.fn().mockResolvedValue({ classes: [] });
+    (testDiscovery.sourceIsLS as jest.Mock) = jest.fn().mockReturnValue(false);
 
     // Reset TestService mock
     (TestService as jest.Mock).mockImplementation(() => mockTestServiceMethods);
@@ -155,6 +169,8 @@ describe('ApexTestController', () => {
     jest.clearAllMocks();
     mockTestServiceMethods.retrieveAllSuites.mockResolvedValue([]);
     mockTestServiceMethods.getTestsInSuite.mockResolvedValue([]);
+    // Restore buildClassToUriIndex default after clearing
+    (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(new Map());
 
     controller = new ApexTestController();
   });
@@ -176,25 +192,31 @@ describe('ApexTestController', () => {
 
   describe('discoverTests', () => {
     it('should discover tests and populate test items', async () => {
-      const mockTests: ApexTestMethod[] = [
+      const mockClasses = [
         {
-          methodName: 'testMethod1',
-          definingType: 'TestClass1',
-          location: new vscode.Location(vscode.Uri.file('/workspace/TestClass1.cls'), new vscode.Range(0, 0, 0, 0))
+          id: '01p000000000001AAA',
+          name: 'TestClass1',
+          namespacePrefix: '',
+          testMethods: [
+            { name: 'testMethod1', line: 1, column: 0 },
+            { name: 'testMethod2', line: 2, column: 0 }
+          ]
         },
         {
-          methodName: 'testMethod2',
-          definingType: 'TestClass1',
-          location: new vscode.Location(vscode.Uri.file('/workspace/TestClass1.cls'), new vscode.Range(1, 0, 1, 0))
-        },
-        {
-          methodName: 'testMethod3',
-          definingType: 'TestClass2',
-          location: new vscode.Location(vscode.Uri.file('/workspace/TestClass2.cls'), new vscode.Range(0, 0, 0, 0))
+          id: '01p000000000002AAA',
+          name: 'TestClass2',
+          namespacePrefix: '',
+          testMethods: [{ name: 'testMethod3', line: 1, column: 0 }]
         }
       ];
 
-      (testUtils.getApexTests as jest.Mock).mockResolvedValue(mockTests);
+      (testDiscovery.discoverTests as jest.Mock).mockResolvedValue({ classes: mockClasses });
+      (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(
+        new Map([
+          ['TestClass1', vscode.Uri.file('/workspace/TestClass1.cls')],
+          ['TestClass2', vscode.Uri.file('/workspace/TestClass2.cls')]
+        ])
+      );
       (mockTestController.createTestItem as jest.Mock).mockImplementation(
         (id: string, label: string, uri?: vscode.Uri): Partial<vscode.TestItem> => ({
           id,
@@ -211,26 +233,84 @@ describe('ApexTestController', () => {
 
       await controller.discoverTests();
 
-      expect(testUtils.getApexTests).toHaveBeenCalled();
+      expect(testDiscovery.discoverTests).toHaveBeenCalledWith({ showAllMethods: true });
       expect(mockTestController.createTestItem).toHaveBeenCalled();
       expect(mockTestController.items.add).toHaveBeenCalled();
     });
 
     it('should handle errors during discovery', async () => {
-      // Mock getApexTests to throw an error
-      (testUtils.getApexTests as jest.Mock).mockRejectedValue(new Error('Discovery failed'));
+      // Mock discoverTests to throw an error
+      (testDiscovery.discoverTests as jest.Mock).mockRejectedValue(new Error('Discovery failed'));
 
       // discoverTests catches errors and logs them, so it should not throw
       await expect(controller.discoverTests()).resolves.not.toThrow();
+    });
+
+    it('should tag tests that exist in org but not in local workspace', async () => {
+      const mockClasses = [
+        {
+          id: '01p000000000001AAA',
+          name: 'OrgOnlyClass',
+          namespacePrefix: '',
+          testMethods: [{ name: 'testMethod1', line: 1, column: 0 }]
+        }
+      ];
+
+      (testDiscovery.discoverTests as jest.Mock).mockResolvedValue({ classes: mockClasses });
+      // OrgOnlyClass does not exist locally, so buildClassToUriIndex returns empty map
+      (testUtils.buildClassToUriIndex as jest.Mock).mockReset();
+      (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(new Map());
+
+      const createdItemsMap = new Map<string, any>();
+      (mockTestController.createTestItem as jest.Mock).mockImplementation(
+        (id: string, label: string, uri?: vscode.Uri): vscode.TestItem => {
+          const item: any = {
+            id,
+            label,
+            uri,
+            tags: undefined,
+            canResolveChildren: false,
+            children: {
+              add: jest.fn(),
+              values: jest.fn().mockReturnValue([]),
+              size: 0
+            } as unknown as vscode.TestItemCollection
+          };
+          createdItemsMap.set(id, item);
+          return item as unknown as vscode.TestItem;
+        }
+      );
+
+      await controller.discoverTests();
+
+      // Find the org-only class item (no URI)
+      const orgOnlyClassItem = createdItemsMap.get('class:OrgOnlyClass');
+      const orgOnlyMethodItem = createdItemsMap.get('method:OrgOnlyClass.testMethod1');
+
+      // Verify org-only class item exists, has no URI, and has the org-only tag
+      expect(orgOnlyClassItem).toBeDefined();
+      expect(orgOnlyClassItem?.uri).toBeUndefined();
+      expect(orgOnlyClassItem?.tags).toBeDefined();
+      expect(orgOnlyClassItem?.tags?.length).toBe(1);
+      expect(orgOnlyClassItem?.tags?.[0].id).toBe('org-only');
+
+      // Verify org-only method item exists, has no URI, and has the org-only tag
+      expect(orgOnlyMethodItem).toBeDefined();
+      expect(orgOnlyMethodItem?.uri).toBeUndefined();
+      expect(orgOnlyMethodItem?.tags).toBeDefined();
+      expect(orgOnlyMethodItem?.tags?.length).toBe(1);
+      expect(orgOnlyMethodItem?.tags?.[0].id).toBe('org-only');
     });
   });
 
   describe('refresh', () => {
     it('should clear and rediscover tests', async () => {
+      (testDiscovery.discoverTests as jest.Mock).mockResolvedValue({ classes: [] });
+
       await controller.refresh();
 
       expect(mockTestController.items.replace).toHaveBeenCalledWith([]);
-      expect(testUtils.getApexTests).toHaveBeenCalled();
+      expect(testDiscovery.discoverTests).toHaveBeenCalled();
     });
   });
 

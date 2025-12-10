@@ -168,7 +168,7 @@
         {
           "id": "sf.test.view",
           "name": "%test_view_name%",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && !config.salesforcedx-vscode-apex-testing.testing.useTestExplorer"
         }
       ]
     },
@@ -379,6 +379,12 @@
             "%apex_testing_discovery_source_ls_description%",
             "%apex_testing_discovery_source_api_description%"
           ]
+        },
+        "salesforcedx-vscode-apex-testing.testing.useTestExplorer": {
+          "type": "boolean",
+          "default": false,
+          "description": "%apex_testing_use_test_explorer_description%",
+          "markdownDescription": "%apex_testing_use_test_explorer_description%"
         },
         "salesforcedx-vscode-apex-testing.test-run-concise": {
           "type": "boolean",

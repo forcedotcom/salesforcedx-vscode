@@ -142,6 +142,12 @@ const getMockVSCode = () => {
         this.location = undefined;
       }
     },
+    TestTag: class {
+      public id: string;
+      public constructor(id: string) {
+        this.id = id;
+      }
+    },
     TestItem: class {
       public label: string;
       public uri?: Uri;
