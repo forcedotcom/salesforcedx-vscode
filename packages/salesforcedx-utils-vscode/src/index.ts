@@ -28,7 +28,6 @@ export { OrgUserInfo, OrgShape, WorkspaceContextUtil } from './context/workspace
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
 export { TimingUtils } from './helpers/timingUtils';
-
 export { ActivationTracker } from './helpers/activationTracker';
 export { isSFContainerMode } from './helpers/env';
 export { extensionUris } from './helpers/extensionUris';

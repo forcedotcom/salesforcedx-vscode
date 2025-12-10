@@ -40,9 +40,10 @@
     "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/vscode-i18n": "*",
     "@types/vscode": "^1.90.0",
     "ejs": "^3.1.10",
-    "is-posix-bracket": "0.1.1",
     "tiny-jsonc": "^1.0.2",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-protocol": "^3.17.5",
@@ -52,7 +53,7 @@
   "devDependencies": {
     "@lwc/engine-dom": "8.16.0",
     "@types/ejs": "^3.1.5",
-    "find-node-modules": "^1.0.4",
+    "find-node-modules": "^2.1.3",
     "jest-extended": "^0.11.5",
     "lwc": "2.37.3"
   }

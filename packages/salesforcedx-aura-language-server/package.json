@@ -54,7 +54,9 @@
     }
   },
   "dependencies": {
-    "@salesforce/salesforcedx-lightning-lsp-common": "64.16.1",
+    "@salesforce/salesforcedx-lightning-lsp-common": "*",
+    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/vscode-i18n": "*",
     "acorn": "^6.0.0",
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",

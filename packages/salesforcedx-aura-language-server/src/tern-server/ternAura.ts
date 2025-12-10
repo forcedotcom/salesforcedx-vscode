@@ -5,20 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 // @ts-nocheck as this is a third party library
-import { FileSystemDataProvider, extractJsonFromImport, Logger } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { extractJsonFromImport, Logger } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as walk from 'acorn-walk';
 import * as infer from '../tern/lib/infer';
 import * as tern from '../tern/lib/tern';
 import * as auraTypesJsonImport from './aura_types.json';
 
 const WG_DEFAULT_EXPORT = 95;
-let server: any = {};
+let server: Server = {};
 
 let shouldFilter = false;
 /* this is necessary to inform the parameter types of the controller when
     the helper method is deleted */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-const ForAllProps_Purgeable = infer.constraint({
+const forAllPropsPurgeable = infer.constraint({
   construct(c) {
     this.c = c;
   },
@@ -65,8 +65,7 @@ const readFile = async (filename: string): Promise<string> => {
   }
 
   try {
-    const fileSystem = new FileSystemDataProvider();
-    const content = fileSystem.getFileContent(`file://${normalized}`);
+    const content = server.fileSystemProvider.getFileContent(`file://${normalized}`);
     return content ?? '';
   } catch {
     // Handle file not found or other errors
@@ -76,20 +75,12 @@ const readFile = async (filename: string): Promise<string> => {
 
 const baseName = (path: string): string => {
   const lastSlash = path.lastIndexOf('/');
-  if (lastSlash === -1) {
-    return path;
-  } else {
-    return path.slice(lastSlash + 1);
-  }
+  return lastSlash === -1 ? path : path.slice(lastSlash + 1);
 };
 
 const trimExt = (path: string): string => {
   const lastDot = path.lastIndexOf('.');
-  if (lastDot === -1) {
-    return path;
-  } else {
-    return path.slice(0, lastDot);
-  }
+  return lastDot === -1 ? path : path.slice(0, lastDot);
 };
 
 const initScope = (scope: any): void => {
@@ -155,7 +146,7 @@ const findAndBindHelper = (type: any, servr: any, modules: any, file: any): void
   if (!hp.getType()) {
     // this handles new props added to the helper...
     helper.on('addType', (helperType, _val) => {
-      const p = new ForAllProps_Purgeable((prop, val, _local) => {
+      const p = new forAllPropsPurgeable((prop, val, _local) => {
         if (bn === prop) {
           val.propagate(type);
         }
