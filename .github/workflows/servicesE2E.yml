@@ -6,7 +6,7 @@ on:
     paths:
       - 'packages/salesforcedx-vscode-services/**'
       - 'packages/salesforcedx-vscode-playwright/**'
-      - '.github/workflows/metadataE2E.yml'
+      - '.github/workflows/servicesE2E.yml'
 
 jobs:
   e2e-web:
