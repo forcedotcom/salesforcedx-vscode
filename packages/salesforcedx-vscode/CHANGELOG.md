@@ -1,18 +1,12 @@
-# 65.8.1 - December 11, 2025
+# 65.8.2 - December 13, 2025
 
-## New
+## Added
 
-#### salesforcedx-vscode-apex-testing
+#### salesforcedx-vscode
 
-We've created a new extension that contains the features for apex testing [W-20175122] ([PR #6676](https://github.com/forcedotcom/salesforcedx-vscode/pull/6676))
+- Add new apex testing extension to extension packs ([PR #6708](https://github.com/forcedotcom/salesforcedx-vscode/pull/6708))
 
-#### salesforcedx-vscode-core
-- Schemas for sfdx-project and scratch org definition files now come from the salesforce/core library. [W-20329918] ([PR #6697](https://github.com/forcedotcom/salesforcedx-vscode/pull/6697))
+#### salesforcedx-vscode-expanded
 
-## Fixed
-
-#### salesforcedx-vscode-apex-oas
-
-- We've made a few changes to the schema of ExternalServiceRegistration that are generated from Apex ([PR #6701](https://github.com/forcedotcom/salesforcedx-vscode/pull/6701))
-
+- Add new apex testing extension to extension packs ([PR #6708](https://github.com/forcedotcom/salesforcedx-vscode/pull/6708))
 
