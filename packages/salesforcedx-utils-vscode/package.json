@@ -47,7 +47,8 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-utils:compile",
-        "../salesforcedx-vscode-i18n:compile"
+        "../salesforcedx-vscode-i18n:compile",
+        "../salesforcedx-lightning-lsp-common:compile"
       ],
       "files": [
         "src/**/*.ts",
