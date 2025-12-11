@@ -96,7 +96,7 @@
     "ts-jest": "^29.4.1",
     "ts-node": "10.9.2",
     "typescript": "5.9.3",
-    "typescript-eslint": "^8.41.0",
+    "typescript-eslint": "^8.49.0",
     "util": "0.12.5",
     "wireit": "^0.14.12",
     "vscode-extension-tester": "^8.16.0",
