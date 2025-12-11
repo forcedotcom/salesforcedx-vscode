@@ -21,111 +21,64 @@ class Uri {
     this.fragment = fragment;
   }
 
-  public static parse(value: string): Uri {
+  public static parse = jest.fn((value: string): Uri => {
     // Simplified parsing for testing purposes
-    // Handles both Unix and Windows paths, as well as custom schemes like sf-org-apex
-    // Examples:
-    // - file:///C:/Users/path (Windows file URI with three slashes)
-    // - file:///home/path (Unix file URI)
-    // - sf-org-apex:ClassName (custom scheme)
-
-    // Handle file:/// URIs (both Windows and Unix)
-    if (value.startsWith('file:///')) {
-      const path = value.substring(7); // Remove 'file:///'
-      const queryIndex = path.indexOf('?');
-      const fragmentIndex = path.indexOf('#');
-      const endIndex =
-        queryIndex >= 0 && fragmentIndex >= 0
-          ? Math.min(queryIndex, fragmentIndex)
-          : queryIndex >= 0
-            ? queryIndex
-            : fragmentIndex >= 0
-              ? fragmentIndex
-              : path.length;
-      const filePath = path.substring(0, endIndex);
-      const query =
-        queryIndex >= 0 ? path.substring(queryIndex + 1, fragmentIndex >= 0 ? fragmentIndex : path.length) : '';
-      const fragment = fragmentIndex >= 0 ? path.substring(fragmentIndex + 1) : '';
-      return new Uri('file', '', filePath, query, fragment);
-    }
-
-    // Handle file:// URIs (with authority)
-    if (value.startsWith('file://')) {
-      const afterScheme = value.substring(7); // Remove 'file://'
-      const slashIndex = afterScheme.indexOf('/');
-      if (slashIndex >= 0) {
-        const authority = afterScheme.substring(0, slashIndex);
-        const pathAndRest = afterScheme.substring(slashIndex);
-        const queryIndex = pathAndRest.indexOf('?');
-        const fragmentIndex = pathAndRest.indexOf('#');
-        const endIndex =
-          queryIndex >= 0 && fragmentIndex >= 0
-            ? Math.min(queryIndex, fragmentIndex)
-            : queryIndex >= 0
-              ? queryIndex
-              : fragmentIndex >= 0
-                ? fragmentIndex
-                : pathAndRest.length;
-        const path = pathAndRest.substring(0, endIndex);
-        const query =
-          queryIndex >= 0
-            ? pathAndRest.substring(queryIndex + 1, fragmentIndex >= 0 ? fragmentIndex : pathAndRest.length)
-            : '';
-        const fragment = fragmentIndex >= 0 ? pathAndRest.substring(fragmentIndex + 1) : '';
-        return new Uri('file', authority, path, query, fragment);
-      }
-    }
-
-    // Match scheme:path or scheme://authority/path
-    const parts = value.match(/^([^:]+):(\/\/)?([^/?#]*)([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/);
+    const parts = value.match(/^([^:]+):(\/\/)?([^/]*)([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/);
     if (parts) {
-      const scheme = parts[1];
-      const hasSlashes = parts[2]; // '//' or undefined
-      const authorityOrPath = parts[3] || '';
-      const restOfPath = parts[4] || '';
-
-      // For schemes with //, authority is before first /
-      if (hasSlashes) {
-        const authority = authorityOrPath;
-        const path = restOfPath || '/';
-        return new Uri(scheme, authority, path, parts[5] || '', parts[6] || '');
-      }
-
-      // Simple scheme:path format (e.g., sf-org-apex:ClassName)
       return new Uri(
-        scheme,
-        '', // no authority
-        authorityOrPath + restOfPath, // path is everything after the colon
+        parts[1], // scheme
+        parts[3] || '', // authority
+        parts[4] || '', // path
         parts[5] || '', // query
         parts[6] || '' // fragment
       );
     }
     return new Uri('', '', value, '', ''); // Fallback for simple paths
-  }
+  }) as jest.MockedFunction<(value: string) => Uri>;
 
-  public static file(path: string): Uri {
-    // Normalize Windows backslashes to forward slashes for URI compatibility
-    // This matches VS Code's behavior where file URIs always use forward slashes
-    const normalizedPath = path.replace(/\\/g, '/');
-    // Ensure path starts with / for absolute paths
-    const uriPath = normalizedPath.match(/^[A-Z]:/i)
-      ? `/${normalizedPath}` // Windows drive letter: C:/path -> /C:/path
-      : normalizedPath.startsWith('/')
-        ? normalizedPath
-        : `/${normalizedPath}`; // Ensure leading slash for absolute paths
-    return new Uri('file', '', uriPath, '', '');
-  }
+  public static file = jest.fn((path: string): Uri => {
+    return new Uri('file', '', path, '', '');
+  }) as jest.MockedFunction<(path: string) => Uri>;
 
-  public static joinPath(...paths: string[]): Uri {
+  public static joinPath = jest.fn((...paths: string[]): Uri => {
     const joined = paths.join('/');
     return new Uri('file', '', joined, '', '');
-  }
+  }) as jest.MockedFunction<(...paths: string[]) => Uri>;
 
   public toString(skipEncoding?: boolean): string {
     const auth = this.authority ? `//${this.authority}` : '';
     const query = this.query ? `?${this.query}` : '';
     const fragment = this.fragment ? `#${this.fragment}` : '';
     return `${this.scheme}:${auth}${this.path}${query}${fragment}`;
+  }
+
+  // Add fsPath property for compatibility with VS Code Uri
+  public get fsPath(): string {
+    if (this.scheme === 'file') {
+      // For file URIs, return the path (handles both Unix and Windows)
+      return this.path;
+    }
+    return this.path;
+  }
+
+  public with(change: { scheme?: string; authority?: string; path?: string; query?: string; fragment?: string }): Uri {
+    return new Uri(
+      change.scheme ?? this.scheme,
+      change.authority ?? this.authority,
+      change.path ?? this.path,
+      change.query ?? this.query,
+      change.fragment ?? this.fragment
+    );
+  }
+
+  public toJSON(): any {
+    return {
+      scheme: this.scheme,
+      authority: this.authority,
+      path: this.path,
+      query: this.query,
+      fragment: this.fragment
+    };
   }
 }
 
@@ -206,7 +159,12 @@ const getMockVSCode = () => {
       createDiagnosticCollection: jest.fn(),
       createLanguageStatusItem: mockCreateLanguageStatusItem
     },
-    Uri,
+    Uri: {
+      ...Uri,
+      parse: Uri.parse,
+      file: Uri.file,
+      joinPath: Uri.joinPath
+    },
     Position: class {
       public constructor(
         public line: number,
