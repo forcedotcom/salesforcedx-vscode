@@ -83,7 +83,7 @@ export const loadMetadataPage = async (
     const frames = page.frames();
     console.log(`${indent}🔍 Found ${frames.length} frames${iframePresent ? ' (iframes detected)' : ''}`);
 
-    // Strategy 1: Find the frame matching our target URL (most specific)
+    // Find the frame matching our target URL
     contentFrame = frames.find(f => f.url().includes(expectedPage));
 
     const frameInfo = contentFrame === page.mainFrame() ? 'main frame' : contentFrame.url() || 'unnamed frame';
@@ -148,102 +148,6 @@ export const loadMetadataPage = async (
     console.error(`${indent}Error loading page: ${error}`);
     return { success: false, contentFrame: null };
   }
-};
-
-/** Clean up description text by normalizing whitespace */
-const cleanDescription = (text: string): string => {
-  if (!text) return text;
-
-  // Replace \n followed by any number of spaces or tabs with a single space
-  return text
-    .replaceAll(/\n[\s\t]+/g, ' ')
-    .replaceAll(/\s+/g, ' ') // Also normalize multiple spaces to single space
-    .trim();
-};
-
-/** Extract parent metadata type from description and fields (defaults to "Metadata" if not found) */
-const extractParentType = (description: string, fields?: MetadataField[]): string => {
-  if (!description && (!fields || fields.length === 0)) return 'Metadata';
-
-  // Look for patterns in description like:
-  // - "extends SharingBaseRule"
-  // - "It extends MetadataWithContent"
-  // - "This type extends the MetadataWithContent metadata type"
-  if (description) {
-    const extendsMatch = description.match(/\bextends\s+(?:the\s+)?([A-Z][a-zA-Z0-9_]+)(?:\s+metadata\s+type)?/);
-
-    if (extendsMatch && extendsMatch[1]) {
-      const parentType = extendsMatch[1];
-      // Filter out generic words that aren't actual types
-      const notActualTypes = ['Component', 'Type', 'Object'];
-      if (parentType === 'Metadata') {
-        return 'Metadata';
-      }
-      // Return the parent type if it's not in the exclusion list
-      if (!notActualTypes.includes(parentType)) {
-        return parentType;
-      }
-    }
-  }
-
-  // Check field descriptions for inheritance information
-  // Look for patterns like "inherited from the MetadataWithContent component"
-  if (fields && fields.length > 0) {
-    for (const field of fields) {
-      if (field.Description) {
-        const inheritedMatch = field.Description.match(
-          /inherited from (?:the\s+)?([A-Z][a-zA-Z0-9_]+)(?:\s+component|\s+metadata\s+type)?/i
-        );
-        if (inheritedMatch && inheritedMatch[1]) {
-          const parentType = inheritedMatch[1];
-          // MetadataWithContent is a valid parent type
-          if (parentType === 'MetadataWithContent') {
-            return 'MetadataWithContent';
-          }
-          // Only return if it's not "Metadata" (which is the base type for most fields anyway)
-          if (parentType !== 'Metadata') {
-            return parentType;
-          }
-        }
-      }
-    }
-  }
-
-  // Default to base Metadata type
-  return 'Metadata';
-};
-
-/** Extract type name from array notation (e.g., "AssignmentRule[]" -> "AssignmentRule") */
-const extractArrayTypeName = (fieldType: string): string | null => {
-  // Remove zero-width characters that might be in the type name
-  const cleanType = fieldType.replaceAll(/[\u200B-\u200D\uFEFF]/g, '');
-  const match = cleanType.match(/^([A-Z][a-zA-Z0-9_]+)\[\]$/);
-  return match ? match[1] : null;
-};
-
-/** Extract complex type names (non-primitive types without []) */
-const extractComplexTypeName = (fieldType: string): string | null => {
-  // Skip enumeration types entirely - they don't represent table structures
-  if (fieldType.toLowerCase().includes('enumeration')) {
-    return null;
-  }
-
-  // Clean up the field type - remove enumeration info and extra spaces
-  let cleanType = fieldType.split('(')[0].trim();
-
-  // Remove any zero-width or special Unicode characters
-  cleanType = cleanType.replaceAll(/[\u200B-\u200D\uFEFF]/g, '');
-
-  // Match types that start with capital letter and are not primitives
-  const primitives = ['string', 'boolean', 'int', 'double', 'date', 'datetime', 'long'];
-  if (primitives.includes(cleanType.toLowerCase())) {
-    return null;
-  }
-
-  // Match capitalized type names (but not array notation)
-  // Allow underscores and be more flexible with the pattern
-  const match = cleanType.match(/^([A-Z][a-zA-Z0-9_]+)$/);
-  return match ? match[1] : null;
 };
 
 /**
@@ -1240,4 +1144,104 @@ export const extractMetadataFromPage = async (
     console.error(`    Error extracting data: ${error}`);
     return [];
   }
+};
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/** Clean up description text by normalizing whitespace */
+const cleanDescription = (text: string): string => {
+  if (!text) return text;
+
+  // Replace \n followed by any number of spaces or tabs with a single space
+  return text
+    .replaceAll(/\n[\s\t]+/g, ' ')
+    .replaceAll(/\s+/g, ' ') // Also normalize multiple spaces to single space
+    .trim();
+};
+
+/** Extract parent metadata type from description and fields (defaults to "Metadata" if not found) */
+const extractParentType = (description: string, fields?: MetadataField[]): string => {
+  if (!description && (!fields || fields.length === 0)) return 'Metadata';
+
+  // Look for patterns in description like:
+  // - "extends SharingBaseRule"
+  // - "It extends MetadataWithContent"
+  // - "This type extends the MetadataWithContent metadata type"
+  if (description) {
+    const extendsMatch = description.match(/\bextends\s+(?:the\s+)?([A-Z][a-zA-Z0-9_]+)(?:\s+metadata\s+type)?/);
+
+    if (extendsMatch && extendsMatch[1]) {
+      const parentType = extendsMatch[1];
+      // Filter out generic words that aren't actual types
+      const notActualTypes = ['Component', 'Type', 'Object'];
+      if (parentType === 'Metadata') {
+        return 'Metadata';
+      }
+      // Return the parent type if it's not in the exclusion list
+      if (!notActualTypes.includes(parentType)) {
+        return parentType;
+      }
+    }
+  }
+
+  // Check field descriptions for inheritance information
+  // Look for patterns like "inherited from the MetadataWithContent component"
+  if (fields && fields.length > 0) {
+    for (const field of fields) {
+      if (field.Description) {
+        const inheritedMatch = field.Description.match(
+          /inherited from (?:the\s+)?([A-Z][a-zA-Z0-9_]+)(?:\s+component|\s+metadata\s+type)?/i
+        );
+        if (inheritedMatch && inheritedMatch[1]) {
+          const parentType = inheritedMatch[1];
+          // MetadataWithContent is a valid parent type
+          if (parentType === 'MetadataWithContent') {
+            return 'MetadataWithContent';
+          }
+          // Only return if it's not "Metadata" (which is the base type for most fields anyway)
+          if (parentType !== 'Metadata') {
+            return parentType;
+          }
+        }
+      }
+    }
+  }
+
+  // Default to base Metadata type
+  return 'Metadata';
+};
+
+/** Extract type name from array notation (e.g., "AssignmentRule[]" -> "AssignmentRule") */
+const extractArrayTypeName = (fieldType: string): string | null => {
+  // Remove zero-width characters that might be in the type name
+  const cleanType = fieldType.replaceAll(/[\u200B-\u200D\uFEFF]/g, '');
+  const match = cleanType.match(/^([A-Z][a-zA-Z0-9_]+)\[\]$/);
+  return match ? match[1] : null;
+};
+
+/** Extract complex type names (non-primitive types without []) */
+const extractComplexTypeName = (fieldType: string): string | null => {
+  // Skip enumeration types entirely - they don't represent table structures
+  if (fieldType.toLowerCase().includes('enumeration')) {
+    return null;
+  }
+
+  // Clean up the field type - remove enumeration info and extra spaces
+  let cleanType = fieldType.split('(')[0].trim();
+
+  // Remove any zero-width or special Unicode characters
+  cleanType = cleanType.replaceAll(/[\u200B-\u200D\uFEFF]/g, '');
+
+  // Match types that start with capital letter and are not primitives
+  const primitives = ['string', 'boolean', 'int', 'double', 'date', 'datetime', 'long'];
+  if (primitives.includes(cleanType.toLowerCase())) {
+    return null;
+  }
+
+  // Match capitalized type names (but not array notation)
+  // Allow underscores and be more flexible with the pattern
+  const match = cleanType.match(/^([A-Z][a-zA-Z0-9_]+)$/);
+  return match ? match[1] : null;
 };
