@@ -32,12 +32,10 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
   "scripts": {
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf src/resources/sfdx/typings/copied .wireit .eslintcache",
+    "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache",
     "compile": "wireit",
-    "watch": "tsc -watch -p .",
     "test": "wireit",
-    "lint": "wireit",
-    "lint:fix": "npm run lint -- --fix"
+    "lint": "wireit"
   },
   "wireit": {
     "compile": {
@@ -90,7 +88,6 @@
   "dependencies": {
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
-    "@types/vscode": "^1.90.0",
     "ejs": "^3.1.10",
     "tiny-jsonc": "^1.0.2",
     "vscode-languageserver": "^9.0.1",

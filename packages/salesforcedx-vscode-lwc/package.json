@@ -71,7 +71,9 @@
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-core:compile"
+        "../salesforcedx-vscode-core:compile",
+        "../salesforcedx-lwc-language-server:compile",
+        "../salesforcedx-lightning-lsp-common:compile"
       ],
       "files": [
         "src/**/*.ts",
