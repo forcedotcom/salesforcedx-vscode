@@ -96,23 +96,6 @@ export const loadMetadataPage = async (
     // Note: We still need to use the frame object for evaluate() later, but we can use locators for waiting
     const frameLocator = contentFrame === page.mainFrame() ? page : page.frameLocator('iframe').first();
 
-    /** Returns a function that counts tables including those in shadow DOMs when evaluated in browser context */
-    const getTableCountEvaluator = () => {
-      return () => {
-        const countTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): number => {
-          let count = root.querySelectorAll('table').length;
-          const elements = root.querySelectorAll('*');
-          elements.forEach(el => {
-            if (el.shadowRoot) {
-              count += countTablesIncludingShadowDOM(el.shadowRoot);
-            }
-          });
-          return count;
-        };
-        return countTablesIncludingShadowDOM(document);
-      };
-    };
-
     try {
       // Wait for at least one table to be visible
       await frameLocator.locator('table').first().waitFor({ state: 'attached', timeout: 20_000 });
@@ -148,6 +131,23 @@ export const loadMetadataPage = async (
     console.error(`${indent}Error loading page: ${error}`);
     return { success: false, contentFrame: null };
   }
+
+  /** Returns a function that counts tables including those in shadow DOMs when evaluated in browser context */
+  function getTableCountEvaluator() {
+    return () => {
+      const countTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): number => {
+        let count = root.querySelectorAll('table').length;
+        const elements = root.querySelectorAll('*');
+        elements.forEach(el => {
+          if (el.shadowRoot) {
+            count += countTablesIncludingShadowDOM(el.shadowRoot);
+          }
+        });
+        return count;
+      };
+      return countTablesIncludingShadowDOM(document);
+    };
+  }
 };
 
 /**
@@ -162,257 +162,6 @@ export const extractMetadataFromPage = async (
   try {
     // Extract fields from ALL tables in a single browser execution (each table is a separate metadata type)
     const extractionResult = await contentFrame.evaluate(() => {
-      // Helper to check if an element is a callout/note container
-      const isCalloutElement = (el: Element): boolean => {
-        if (!el) return false;
-
-        // Check tag name for custom elements like doc-content-callout
-        if (el.tagName && el.tagName.toLowerCase().includes('callout')) {
-          return true;
-        }
-
-        if (!el.classList) return false;
-
-        const calloutClasses = [
-          'dx-callout-body',
-          'note',
-          'warning',
-          'tip',
-          'important',
-          'caution',
-          'box-note',
-          'box-warning',
-          'box-tip',
-          'box-important',
-          'slds-notify',
-          'slds-notify_alert'
-        ];
-
-        for (const cls of calloutClasses) {
-          if (el.classList.contains(cls)) return true;
-        }
-
-        if (typeof el.className === 'string') {
-          const cls = el.className.toLowerCase();
-          if (cls.includes('dx-callout')) return true;
-          if (cls.includes('messagebox')) return true;
-          // Check for "box message info" pattern and similar
-          if (
-            cls.includes('box') &&
-            (cls.includes('message') ||
-              cls.includes('info') ||
-              cls.includes('important') ||
-              cls.includes('warning') ||
-              cls.includes('tip') ||
-              cls.includes('note') ||
-              cls.includes('caution'))
-          )
-            return true;
-        }
-
-        return false;
-      };
-
-      // Helper to check if an element is inside a note/callout div
-      const isInsideCallout = (el: Element): boolean => {
-        if (isCalloutElement(el)) return true;
-        let current = el.parentElement;
-        while (current) {
-          if (isCalloutElement(current)) {
-            return true;
-          }
-          current = current.parentElement;
-        }
-        return false;
-      };
-
-      // Helper to check if text is a valid description (not navigation or too short)
-      const isValidDescription = (text: string): boolean => {
-        const textLower = text.toLowerCase();
-        const isSubstantial = text.length > 20;
-
-        // Reject text that starts with note/tip/important labels
-        const startsWithNoteLabel = /^(note|tip|important|warning|caution)[:\s]/i.test(text);
-
-        const isNotNavigation =
-          !textLower.includes('cookie') &&
-          !textLower.includes('in this section') &&
-          !textLower.includes('©') &&
-          !textLower.includes('skip navigation') &&
-          !textLower.includes('related topics') &&
-          !textLower.includes('see also');
-
-        return isSubstantial && isNotNavigation && !startsWithNoteLabel;
-      };
-
-      /** Search for elements in regular DOM and shadow DOMs with optional filter predicate */
-      const searchInShadowDOM = <T extends Element>(
-        root: Document | ShadowRoot | Element,
-        selector: string,
-        filterPredicate?: (el: Element) => boolean
-      ): T | null => {
-        // Try regular DOM first - filter matching elements
-        const elements = Array.from(root.querySelectorAll(selector));
-        const filtered = filterPredicate ? elements.filter(filterPredicate) : elements;
-        if (filtered.length > 0) {
-          return filtered[0] as T;
-        }
-
-        // Search shadow DOMs recursively
-        const allElements = root.querySelectorAll('*');
-        for (const el of Array.from(allElements)) {
-          if (el.shadowRoot) {
-            const found = searchInShadowDOM<T>(el.shadowRoot, selector, filterPredicate);
-            if (found) return found;
-          }
-        }
-
-        return null;
-      };
-
-      // Helper to collect all elements matching selector including those in shadow DOMs
-      const collectFromShadowDOM = <T extends Element>(
-        root: Document | ShadowRoot | Element,
-        selector: string
-      ): T[] => {
-        const results: T[] = Array.from(root.querySelectorAll(selector)) as T[];
-
-        const elements = root.querySelectorAll('*');
-        for (const el of Array.from(elements)) {
-          if (el.shadowRoot) {
-            results.push(...collectFromShadowDOM<T>(el.shadowRoot, selector));
-          }
-        }
-
-        return results;
-      };
-
-      /** Helper to check element and add to collected paragraphs if valid, returns true if "extends" was found */
-      const checkAndCollectParagraph = (
-        element: Element,
-        checkElement: (el: Element) => string,
-        collectedParagraphs: string[],
-        maxParagraphs: number
-      ): boolean => {
-        const desc = checkElement(element);
-        if (desc && collectedParagraphs.length < maxParagraphs) {
-          collectedParagraphs.push(desc);
-          // Stop collecting if this paragraph contains "extends"
-          if (desc.toLowerCase().includes('extends')) {
-            return true;
-          }
-        }
-        return false;
-      };
-
-      // Helper to find description paragraph after a heading element
-      const findDescriptionAfterHeading = (headingElement: Element, stopAtTable: boolean = true): string => {
-        let description = '';
-        let nextElement = headingElement.nextElementSibling;
-        let searchAttempts = 0;
-
-        console.log(`Looking for description after heading: ${headingElement.textContent?.trim()}`);
-
-        while (nextElement && searchAttempts < 15) {
-          const tagName = nextElement.tagName;
-          console.log(`  Attempt ${searchAttempts}: Found tag ${tagName}, class: ${nextElement.className}`);
-
-          // Stop if we hit a table (when specified)
-          if (stopAtTable && tagName === 'TABLE') {
-            console.log('    Stopped at TABLE');
-            break;
-          }
-
-          // Stop if we hit another heading
-          if (tagName?.match(/^H[1-6]$/)) {
-            console.log('    Stopped at next heading');
-            break;
-          }
-
-          // Look for a paragraph with meaningful content
-          if (tagName === 'P') {
-            if (!isInsideCallout(nextElement)) {
-              const text = nextElement.textContent?.trim() ?? '';
-              console.log(`    Checking P content: "${text.substring(0, 50)}..."`);
-              if (isValidDescription(text)) {
-                description = text;
-                console.log('    ✅ Found valid description');
-                break;
-              } else {
-                console.log('    ❌ Invalid description');
-              }
-            } else {
-              console.log('    Skipping P inside callout');
-            }
-          }
-
-          // Also check for DD (definition description) after DT
-          if (tagName === 'DD') {
-            if (!isInsideCallout(nextElement)) {
-              const text = nextElement.textContent?.trim() ?? '';
-              if (text.length > 20) {
-                description = text;
-                break;
-              }
-            }
-          }
-
-          // Check inside DIVs for paragraphs (but skip callout divs)
-          if (tagName === 'DIV' && !isInsideCallout(nextElement)) {
-            // Skip if the DIV itself is a callout
-            if (isCalloutElement(nextElement)) {
-              console.log('    Skipping Callout DIV');
-              nextElement = nextElement.nextElementSibling;
-              searchAttempts++;
-              continue;
-            }
-
-            // Iterate all paragraphs in the DIV
-            const paragraphs = Array.from(nextElement.querySelectorAll('p'));
-            let foundInDiv = false;
-            for (const p of paragraphs) {
-              if (!isInsideCallout(p)) {
-                const text = p.textContent?.trim() ?? '';
-                console.log(`    Checking P inside DIV: "${text.substring(0, 50)}..."`);
-                if (isValidDescription(text)) {
-                  description = text;
-                  console.log('    ✅ Found valid description inside DIV');
-                  foundInDiv = true;
-                  break;
-                }
-              }
-            }
-            if (foundInDiv) break;
-
-            // Fallback: Check direct text content if no valid P found
-            const hasComplexChildren = nextElement.querySelector('table, h1, h2, h3, h4, h5, h6');
-            if (!hasComplexChildren) {
-              // Clone to verify text without callouts (avoids "combined text" issue)
-              const clone = nextElement.cloneNode(true) as Element;
-              const allElements = Array.from(clone.querySelectorAll('*'));
-              for (const el of allElements) {
-                if (isCalloutElement(el)) {
-                  el.remove();
-                }
-              }
-
-              const text = clone.textContent?.trim() ?? '';
-              console.log(`    Checking DIV text content: "${text.substring(0, 50)}..."`);
-              if (isValidDescription(text)) {
-                description = text;
-                console.log('    ✅ Found valid description from DIV text');
-                break;
-              }
-            }
-          }
-
-          nextElement = nextElement.nextElementSibling;
-          searchAttempts++;
-        }
-
-        return description;
-      };
-
       // Collect all headings on the page to identify which types have sections
       const pageHeadings = new Set<string>();
 
@@ -635,44 +384,6 @@ export const extractMetadataFromPage = async (
         const typeIdx = headers.findIndex(h => h.includes('type'));
         const descIdx = headers.findIndex(h => h.includes('description') || h.includes('detail'));
 
-        // Helper to find heading element before a given element
-        const findHeadingBefore = (startElement: Element | null): Element | null => {
-          if (!startElement) return null;
-
-          let current = startElement.previousElementSibling;
-          let attempts = 0;
-
-          while (current && attempts < 10) {
-            const tagName = current.tagName;
-
-            // Check for H1-H6 headings
-            if (tagName?.match(/^H[1-6]$/)) {
-              return current;
-            }
-
-            // Check for DT (definition term) which Salesforce docs sometimes use
-            if (tagName === 'DT') {
-              return current;
-            }
-
-            // Check for DIV or P with bold/strong text that looks like a heading
-            if (tagName === 'DIV' || tagName === 'P') {
-              const strong = current.querySelector('strong, b');
-              if (strong) {
-                const text = strong.textContent?.trim();
-                if (text && text.length > 2 && text.length < 100) {
-                  return current;
-                }
-              }
-            }
-
-            current = current.previousElementSibling;
-            attempts++;
-          }
-
-          return null;
-        };
-
         // Try to find a table name/caption and description
         let tableName = '';
         let tableDescription = '';
@@ -694,59 +405,6 @@ export const extractMetadataFromPage = async (
             tableDescription = findDescriptionAfterHeading(foundHeading, true);
           }
         }
-
-        /** Helper to extract value from DT/DD structure */
-        const extractFromDtDd = (
-          container: Element,
-          labelMatches: string[],
-          collectMultiple: boolean = false
-        ): string => {
-          const dtElements = Array.from(container.querySelectorAll('dt'));
-          for (const dt of dtElements) {
-            const dtText = dt.textContent?.trim().toLowerCase() ?? '';
-
-            // Check if this DT matches any of the label patterns
-            const isMatch = labelMatches.some(
-              label => dtText.includes(label.toLowerCase()) || dtText === label.toLowerCase()
-            );
-
-            if (isMatch) {
-              if (collectMultiple) {
-                // Get ALL consecutive DD siblings until the next DT
-                const parts: string[] = [];
-                let current = dt.nextElementSibling;
-
-                while (current) {
-                  if (current.tagName === 'DT') {
-                    // Stop at next DT
-                    break;
-                  }
-                  if (current.tagName === 'DD') {
-                    const ddText = current.textContent?.trim();
-                    if (ddText) {
-                      parts.push(ddText);
-                    }
-                  }
-                  current = current.nextElementSibling;
-                }
-
-                if (parts.length > 0) {
-                  return parts.join('\n\n');
-                }
-              } else {
-                // Get the next DD sibling
-                let nextSibling = dt.nextElementSibling;
-                while (nextSibling && nextSibling.tagName !== 'DD' && nextSibling.tagName !== 'DT') {
-                  nextSibling = nextSibling.nextElementSibling;
-                }
-                if (nextSibling?.tagName === 'DD') {
-                  return nextSibling.textContent?.trim() ?? '';
-                }
-              }
-            }
-          }
-          return '';
-        };
 
         // Extract rows for this table
         const allRows = Array.from(table.querySelectorAll('tbody tr, tr:not(:first-child)'));
@@ -918,6 +576,345 @@ export const extractMetadataFromPage = async (
         pageHeadings: Array.from(pageHeadings),
         headingsWithoutTables
       };
+
+      // ============================================================================
+      // Helper Functions (defined at bottom for hoisting with function declarations)
+      // ============================================================================
+
+      /** Helper to check if an element is a callout/note container */
+      function isCalloutElement(el: Element): boolean {
+        if (!el) return false;
+
+        // Check tag name for custom elements like doc-content-callout
+        if (el.tagName && el.tagName.toLowerCase().includes('callout')) {
+          return true;
+        }
+
+        if (!el.classList) return false;
+
+        const calloutClasses = [
+          'dx-callout-body',
+          'note',
+          'warning',
+          'tip',
+          'important',
+          'caution',
+          'box-note',
+          'box-warning',
+          'box-tip',
+          'box-important',
+          'slds-notify',
+          'slds-notify_alert'
+        ];
+
+        for (const cls of calloutClasses) {
+          if (el.classList.contains(cls)) return true;
+        }
+
+        if (typeof el.className === 'string') {
+          const cls = el.className.toLowerCase();
+          if (cls.includes('dx-callout')) return true;
+          if (cls.includes('messagebox')) return true;
+          // Check for "box message info" pattern and similar
+          if (
+            cls.includes('box') &&
+            (cls.includes('message') ||
+              cls.includes('info') ||
+              cls.includes('important') ||
+              cls.includes('warning') ||
+              cls.includes('tip') ||
+              cls.includes('note') ||
+              cls.includes('caution'))
+          )
+            return true;
+        }
+
+        return false;
+      }
+
+      /** Helper to check if an element is inside a note/callout div */
+      function isInsideCallout(el: Element): boolean {
+        if (isCalloutElement(el)) return true;
+        let current = el.parentElement;
+        while (current) {
+          if (isCalloutElement(current)) {
+            return true;
+          }
+          current = current.parentElement;
+        }
+        return false;
+      }
+
+      /** Helper to check if text is a valid description (not navigation or too short) */
+      function isValidDescription(text: string): boolean {
+        const textLower = text.toLowerCase();
+        const isSubstantial = text.length > 20;
+
+        // Reject text that starts with note/tip/important labels
+        const startsWithNoteLabel = /^(note|tip|important|warning|caution)[:\s]/i.test(text);
+
+        const isNotNavigation =
+          !textLower.includes('cookie') &&
+          !textLower.includes('in this section') &&
+          !textLower.includes('©') &&
+          !textLower.includes('skip navigation') &&
+          !textLower.includes('related topics') &&
+          !textLower.includes('see also');
+
+        return isSubstantial && isNotNavigation && !startsWithNoteLabel;
+      }
+
+      /** Search for elements in regular DOM and shadow DOMs with optional filter predicate */
+      function searchInShadowDOM<T extends Element>(
+        root: Document | ShadowRoot | Element,
+        selector: string,
+        filterPredicate?: (el: Element) => boolean
+      ): T | null {
+        // Try regular DOM first - filter matching elements
+        const elements = Array.from(root.querySelectorAll(selector));
+        const filtered = filterPredicate ? elements.filter(filterPredicate) : elements;
+        if (filtered.length > 0) {
+          return filtered[0] as T;
+        }
+
+        // Search shadow DOMs recursively
+        const allElements = root.querySelectorAll('*');
+        for (const el of Array.from(allElements)) {
+          if (el.shadowRoot) {
+            const found = searchInShadowDOM<T>(el.shadowRoot, selector, filterPredicate);
+            if (found) return found;
+          }
+        }
+
+        return null;
+      }
+
+      /** Helper to collect all elements matching selector including those in shadow DOMs */
+      function collectFromShadowDOM<T extends Element>(root: Document | ShadowRoot | Element, selector: string): T[] {
+        const results: T[] = Array.from(root.querySelectorAll(selector)) as T[];
+
+        const elements = root.querySelectorAll('*');
+        for (const el of Array.from(elements)) {
+          if (el.shadowRoot) {
+            results.push(...collectFromShadowDOM<T>(el.shadowRoot, selector));
+          }
+        }
+
+        return results;
+      }
+
+      /** Helper to check element and add to collected paragraphs if valid, returns true if "extends" was found */
+      function checkAndCollectParagraph(
+        element: Element,
+        checkElement: (el: Element) => string,
+        collectedParagraphs: string[],
+        maxParagraphs: number
+      ): boolean {
+        const desc = checkElement(element);
+        if (desc && collectedParagraphs.length < maxParagraphs) {
+          collectedParagraphs.push(desc);
+          // Stop collecting if this paragraph contains "extends"
+          if (desc.toLowerCase().includes('extends')) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      /** Helper to find description paragraph after a heading element */
+      function findDescriptionAfterHeading(headingElement: Element, stopAtTable: boolean = true): string {
+        let description = '';
+        let nextElement = headingElement.nextElementSibling;
+        let searchAttempts = 0;
+
+        console.log(`Looking for description after heading: ${headingElement.textContent?.trim()}`);
+
+        while (nextElement && searchAttempts < 15) {
+          const tagName = nextElement.tagName;
+          console.log(`  Attempt ${searchAttempts}: Found tag ${tagName}, class: ${nextElement.className}`);
+
+          // Stop if we hit a table (when specified)
+          if (stopAtTable && tagName === 'TABLE') {
+            console.log('    Stopped at TABLE');
+            break;
+          }
+
+          // Stop if we hit another heading
+          if (tagName?.match(/^H[1-6]$/)) {
+            console.log('    Stopped at next heading');
+            break;
+          }
+
+          // Look for a paragraph with meaningful content
+          if (tagName === 'P') {
+            if (!isInsideCallout(nextElement)) {
+              const text = nextElement.textContent?.trim() ?? '';
+              console.log(`    Checking P content: "${text.substring(0, 50)}..."`);
+              if (isValidDescription(text)) {
+                description = text;
+                console.log('    ✅ Found valid description');
+                break;
+              } else {
+                console.log('    ❌ Invalid description');
+              }
+            } else {
+              console.log('    Skipping P inside callout');
+            }
+          }
+
+          // Also check for DD (definition description) after DT
+          if (tagName === 'DD') {
+            if (!isInsideCallout(nextElement)) {
+              const text = nextElement.textContent?.trim() ?? '';
+              if (text.length > 20) {
+                description = text;
+                break;
+              }
+            }
+          }
+
+          // Check inside DIVs for paragraphs (but skip callout divs)
+          if (tagName === 'DIV' && !isInsideCallout(nextElement)) {
+            // Skip if the DIV itself is a callout
+            if (isCalloutElement(nextElement)) {
+              console.log('    Skipping Callout DIV');
+              nextElement = nextElement.nextElementSibling;
+              searchAttempts++;
+              continue;
+            }
+
+            // Iterate all paragraphs in the DIV
+            const paragraphs = Array.from(nextElement.querySelectorAll('p'));
+            let foundInDiv = false;
+            for (const p of paragraphs) {
+              if (!isInsideCallout(p)) {
+                const text = p.textContent?.trim() ?? '';
+                console.log(`    Checking P inside DIV: "${text.substring(0, 50)}..."`);
+                if (isValidDescription(text)) {
+                  description = text;
+                  console.log('    ✅ Found valid description inside DIV');
+                  foundInDiv = true;
+                  break;
+                }
+              }
+            }
+            if (foundInDiv) break;
+
+            // Fallback: Check direct text content if no valid P found
+            const hasComplexChildren = nextElement.querySelector('table, h1, h2, h3, h4, h5, h6');
+            if (!hasComplexChildren) {
+              // Clone to verify text without callouts (avoids "combined text" issue)
+              const clone = nextElement.cloneNode(true) as Element;
+              const allElements = Array.from(clone.querySelectorAll('*'));
+              for (const el of allElements) {
+                if (isCalloutElement(el)) {
+                  el.remove();
+                }
+              }
+
+              const text = clone.textContent?.trim() ?? '';
+              console.log(`    Checking DIV text content: "${text.substring(0, 50)}..."`);
+              if (isValidDescription(text)) {
+                description = text;
+                console.log('    ✅ Found valid description from DIV text');
+                break;
+              }
+            }
+          }
+
+          nextElement = nextElement.nextElementSibling;
+          searchAttempts++;
+        }
+
+        return description;
+      }
+
+      /** Helper to find heading element before a given element */
+      function findHeadingBefore(startElement: Element | null): Element | null {
+        if (!startElement) return null;
+
+        let current = startElement.previousElementSibling;
+        let attempts = 0;
+
+        while (current && attempts < 10) {
+          const tagName = current.tagName;
+
+          // Check for H1-H6 headings
+          if (tagName?.match(/^H[1-6]$/)) {
+            return current;
+          }
+
+          // Check for DT (definition term) which Salesforce docs sometimes use
+          if (tagName === 'DT') {
+            return current;
+          }
+
+          // Check for DIV or P with bold/strong text that looks like a heading
+          if (tagName === 'DIV' || tagName === 'P') {
+            const strong = current.querySelector('strong, b');
+            if (strong) {
+              const text = strong.textContent?.trim();
+              if (text && text.length > 2 && text.length < 100) {
+                return current;
+              }
+            }
+          }
+
+          current = current.previousElementSibling;
+          attempts++;
+        }
+
+        return null;
+      }
+
+      /** Helper to extract value from DT/DD structure */
+      function extractFromDtDd(container: Element, labelMatches: string[], collectMultiple: boolean = false): string {
+        const dtElements = Array.from(container.querySelectorAll('dt'));
+        for (const dt of dtElements) {
+          const dtText = dt.textContent?.trim().toLowerCase() ?? '';
+
+          // Check if this DT matches any of the label patterns
+          const isMatch = labelMatches.some(
+            label => dtText.includes(label.toLowerCase()) || dtText === label.toLowerCase()
+          );
+
+          if (isMatch) {
+            if (collectMultiple) {
+              // Get ALL consecutive DD siblings until the next DT
+              const parts: string[] = [];
+              let current = dt.nextElementSibling;
+
+              while (current) {
+                if (current.tagName === 'DT') {
+                  // Stop at next DT
+                  break;
+                }
+                if (current.tagName === 'DD') {
+                  const ddText = current.textContent?.trim();
+                  if (ddText) {
+                    parts.push(ddText);
+                  }
+                }
+                current = current.nextElementSibling;
+              }
+
+              if (parts.length > 0) {
+                return parts.join('\n\n');
+              }
+            } else {
+              // Get the next DD sibling
+              let nextSibling = dt.nextElementSibling;
+              while (nextSibling && nextSibling.tagName !== 'DD' && nextSibling.tagName !== 'DT') {
+                nextSibling = nextSibling.nextElementSibling;
+              }
+              if (nextSibling?.tagName === 'DD') {
+                return nextSibling.textContent?.trim() ?? '';
+              }
+            }
+          }
+        }
+        return '';
+      }
     });
 
     // Create a separate metadata type entry for each table
