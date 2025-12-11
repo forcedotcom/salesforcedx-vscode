@@ -35,8 +35,12 @@ export const BROWSER_LAUNCH_ARGS = [
 ];
 
 /**
- * Improved page loading with multiple strategies
- * Returns the frame containing the actual content (might be an iframe)
+ * Improved page loading with multiple strategies.
+ * Returns the frame containing the actual content (might be an iframe).
+ *
+ * Note: This function returns a Frame object for use with frame.evaluate() and frame.waitForFunction().
+ * For direct element interactions within iframes, consider using page.frameLocator('selector').locator('element')
+ * which provides stricter typing and better error handling for interactive operations.
  */
 export const loadMetadataPage = async (
   page: Page,
@@ -56,53 +60,53 @@ export const loadMetadataPage = async (
     const urlParts = url.split('/');
     const expectedPage = urlParts.at(-1)!;
 
-    // Wait for iframe with expected URL to load
+    // Wait for iframe elements to be present and loaded in the page
     let contentFrame: any = null;
+    let iframePresent = false;
+
     try {
-      await page
-        .waitForFunction(
-          expectedUrl => {
-            const frames = window.frames;
-            for (let i = 0; i < frames.length; i++) {
-              try {
-                if (frames[i].location.href.includes(expectedUrl)) {
-                  return true;
-                }
-              } catch {
-                // Cross-origin frame, skip
-              }
-            }
-            return false;
-          },
-          expectedPage,
-          { timeout: 10_000 }
-        )
-        .catch(() => {});
+      // Wait for any iframe to be attached to the DOM
+      await page.waitForSelector('iframe', { state: 'attached', timeout: 10_000 });
+      iframePresent = true;
+
+      // Wait for the expected iframe to finish loading by monitoring frame navigation
+      // Note: We use the frame lifecycle events which are more reliable than fixed timeouts
+      const framePromise = page
+        .waitForEvent('framenavigated', {
+          predicate: frame => frame.url().includes(expectedPage) || frame.url().includes('atlas.en-us.api_meta'),
+          timeout: 10_000
+        })
+        .catch(() => null);
+
+      await framePromise;
     } catch {
-      // Iframe might not load, we'll check frames manually
+      // No iframes or navigation event timeout, will proceed with frame search
     }
 
-    // Get the iframe's content
+    // Get all frames and find the content frame
     const frames = page.frames();
-    console.log(`${indent}🔍 Found ${frames.length} frames`);
+    console.log(`${indent}🔍 Found ${frames.length} frames${iframePresent ? ' (iframes detected)' : ''}`);
 
-    // Find the frame matching our target URL
+    // Strategy 1: Find the frame matching our target URL (most specific)
     contentFrame = frames.find(f => f.url().includes(expectedPage));
 
+    // Strategy 2: Find any frame with the base path (excluding main frame)
     if (!contentFrame) {
-      // Fallback: find any frame with the base path
       contentFrame = frames.find(f => f.url().includes('atlas.en-us.api_meta') && f !== page.mainFrame());
     }
 
+    // Strategy 3: For multi-frame pages, use the second frame (often the content)
     if (!contentFrame && frames.length > 1) {
-      contentFrame = frames[1]; // Often the second frame is the content
+      contentFrame = frames[1];
     }
 
+    // Strategy 4: Fallback to main frame
     if (!contentFrame) {
-      contentFrame = page.mainFrame(); // Fallback to main frame
+      contentFrame = page.mainFrame();
     }
 
-    console.log(`${indent}✓ Using frame: ${contentFrame.url() ?? 'main'}`);
+    const frameInfo = contentFrame === page.mainFrame() ? 'main frame' : contentFrame.url() || 'unnamed frame';
+    console.log(`${indent}✓ Using frame: ${frameInfo}`);
 
     // Strategy 5: Wait for tables to appear in the content frame
     console.log(`${indent}⏳ Waiting for tables to appear...`);
