@@ -164,6 +164,16 @@
   ],
   "main": "./dist/index.js",
   "types": "./out/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./out/src/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./src/coreExtensionUtils": {
+      "types": "./out/src/coreExtensionUtils.d.ts",
+      "default": "./out/src/coreExtensionUtils.js"
+    }
+  },
   "languageServerDir": "dist",
   "contributes": {
     "menus": {
