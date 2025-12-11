@@ -2,7 +2,8 @@
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
     "rootDir": ".",
-    "outDir": "out"
+    "outDir": "out",
+    "types": ["jest", "node", "vscode"]
   },
   "exclude": [
     "node_modules",
@@ -10,6 +11,12 @@
     "out"
   ],
   "references": [
+    {
+      "path": "../salesforcedx-aura-language-server"
+    },
+    {
+      "path": "../salesforcedx-lightning-lsp-common"
+    },
     {
       "path": "../salesforcedx-utils-vscode"
     },

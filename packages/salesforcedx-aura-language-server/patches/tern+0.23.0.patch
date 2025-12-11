@@ -1,0 +1,13 @@
+diff --git a/node_modules/tern/lib/tern.js b/node_modules/tern/lib/tern.js
+index 176a4f9..c9e85df 100644
+--- a/node_modules/tern/lib/tern.js
++++ b/node_modules/tern/lib/tern.js
+@@ -260,7 +260,7 @@
+     var queryType = queryTypes[query.type];
+     if (queryType.takesFile) {
+       if (typeof query.file != "string") return c(".query.file must be a string");
+-      if (!/^#/.test(query.file)) ensureFile(srv, query.file, null);
++      if (!/^#/.test(query.file)) ensureFile(srv, srv.normalizeFilename(query.file), null);
+     }
+ 
+     analyzeAll(srv, timeBudget, function(err) {

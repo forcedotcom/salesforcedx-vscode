@@ -1,0 +1,35 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/core/build/repository/**": true,
+        "**/core/ext/**": true,
+        "**/target/**": true,
+        "**/bin/**": true,
+        "META-INF/": true
+    },
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/**": true,
+        "**/core/build/repository/**": true,
+        "**/core/ext/**": true,
+        "**/target/**": true,
+        "**/bin/**": true
+    },
+    "perforce.maxBuffer": 10485760,
+    "perforce.editOnFileSave": true,
+    "perforce.editOnFileModified": true,
+    "perforce.addOnFileCreate": true,
+    "perforce.deleteOnFileDelete": true,
+    "perforce.client": "${p4_client}",
+    "perforce.user": "${p4_user}",
+    "perforce.port": "${p4_port}",
+    "extensions.ignoreRecommendations": true,
+    "salesforcedx-vscode-lightning.activationMode": "always",
+    "salesforcedx-vscode-lightning.showLightningExplorer": true,
+    "salesforcedx-vscode-core.internal-development": false
+}

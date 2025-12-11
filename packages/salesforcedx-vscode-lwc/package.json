@@ -25,8 +25,8 @@
   ],
   "dependencies": {
     "@salesforce/core": "^8.23.3",
-    "@salesforce/lightning-lsp-common": "4.12.7",
-    "@salesforce/lwc-language-server": "4.12.7",
+    "@salesforce/salesforcedx-lightning-lsp-common": "*",
+    "@salesforce/salesforcedx-lwc-language-server": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
@@ -148,15 +148,13 @@
       "serverPath": [
         "node_modules",
         "@salesforce",
-        "lwc-language-server",
-        "lib",
+        "salesforcedx-lwc-language-server",
+        "out",
+        "src",
         "server.js"
       ],
       "dependencies": {
-        "@salesforce/lightning-lsp-common": "4.12.7",
-        "@salesforce/lwc-language-server": "4.12.7",
-        "applicationinsights": "1.0.7",
-        "jest-editor-support": "31.1.2"
+        "applicationinsights": "1.0.7"
       },
       "devDependencies": {}
     }
@@ -172,8 +170,9 @@
     "..",
     "node_modules",
     "@salesforce",
-    "lwc-language-server",
-    "lib",
+    "salesforcedx-lwc-language-server",
+    "out",
+    "src",
     "server.js"
   ],
   "contributes": {

@@ -8,7 +8,7 @@
 // leaving as is because this extension is being replaced
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { componentUtil } from '@salesforce/lightning-lsp-common';
+import { nameFromDirectory, nameFromFile } from '@salesforce/salesforcedx-aura-language-server/utils/componentUtil';
 import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   notificationService,
@@ -111,6 +111,13 @@ const commandName = nls.localize('lightning_lwc_preview_text');
 const sfDeviceListCommand = 'force:lightning:local:device:list';
 const sfMobilePreviewCommand = 'force:lightning:lwc:preview';
 const androidSuccessString = 'Launching... Opening Browser';
+const componentNameConverter = (namespace: string, tag: string): string => `${namespace}:${tag}`;
+
+const componentFromFile = (file: string, sfdxProject: boolean): string | null =>
+  nameFromFile(file, sfdxProject, componentNameConverter);
+
+const componentFromDirectory = (file: string, sfdxProject: boolean): string =>
+  nameFromDirectory(file, sfdxProject, componentNameConverter);
 
 export const lightningLwcPreview = async (sourceUri: URI) => {
   const preview = getPreview();
@@ -147,8 +154,8 @@ const lwcPreview = async (sourceUri: URI) => {
     const isSFDX = true; // TODO support non SFDX Projects
     const isDirectory = fileStats.type === vscode.FileType.Directory;
     const componentName = isDirectory
-      ? componentUtil.moduleFromDirectory(resourcePath, isSFDX)
-      : componentUtil.moduleFromFile(resourcePath, isSFDX);
+      ? componentFromDirectory(resourcePath, isSFDX)
+      : componentFromFile(resourcePath, isSFDX);
     if (!componentName) {
       const message = nls.localize('lightning_lwc_preview_unsupported', resourcePath);
       showError(new Error(message), logName, commandName);

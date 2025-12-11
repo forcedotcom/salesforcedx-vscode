@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "skipLibCheck": true,
+        "target": "ESNext",
+        "module": "NodeNext",
+        "paths": {
+            "c/*": []
+        }
+    }
+}

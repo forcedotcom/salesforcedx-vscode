@@ -112,7 +112,7 @@ export const removeExpiredAndDeletedOrgs = async (): Promise<string[]> => {
 
   try {
     const orgAuthorizations = await AuthInfo.listAllAuthorizations();
-    if (!orgAuthorizations || orgAuthorizations.length === 0) {
+    if (!orgAuthorizations?.length) {
       return removedOrgs;
     }
 
@@ -286,7 +286,7 @@ const createAndDisplayOrgTable = (orgData: Row[]): void => {
 export const displayRemainingOrgs = async (): Promise<void> => {
   try {
     const orgAuthorizations = await AuthInfo.listAllAuthorizations();
-    if (!orgAuthorizations || orgAuthorizations.length === 0) {
+    if (orgAuthorizations?.length === 0) {
       channelService.appendLine(`\n${nls.localize('org_list_no_orgs_found')}`);
       return;
     }
