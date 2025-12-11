@@ -30,5 +30,3 @@ export const messages = {
   invalid_browser_definition_message: 'Invalid browser definition: type=%s, isNull=%s, isUndefined=%s, keys=%s',
   invalid_ecmascript_definition_message: 'Invalid ecmascript definition: type=%s, isNull=%s, isUndefined=%s, keys=%s'
 } as const;
-
-export type MessageKey = keyof typeof messages;

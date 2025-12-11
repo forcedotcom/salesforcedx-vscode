@@ -53,7 +53,7 @@ const PACKAGE_CORE_ALL_ROOT = resolve(
 
 // Export the appropriate paths based on whether we're running from source or compiled code
 // Check for 'out' directory in path (cross-platform: Windows uses '\', Unix uses '/')
-const normalizedDirname = __dirname.replace(/\\/g, '/');
+const normalizedDirname = __dirname.replaceAll('\\', '/');
 const isCommonPackage = __dirname.includes('salesforcedx-lightning-lsp-common') && !normalizedDirname.includes('/out/');
 
 // Normalize workspace roots to ensure consistent path format (especially Windows drive letter casing)
@@ -554,31 +554,6 @@ export const populateFileSystemProvider = (
     );
   }
 
-  // Add template files for SFDX configuration
-  const jsconfigSfdxTemplate = JSON.stringify({
-    compilerOptions: {
-      experimentalDecorators: true,
-      baseUrl: '.',
-      paths: {
-        'c/*': ['*']
-      }
-    },
-    include: ['**/*', '<%= project_root %>/.sfdx/typings/lwc/**/*.d.ts'],
-    typeAcquisition: {
-      include: ['jest']
-    }
-  });
-
-  const jsconfigSfdxPath = normalizePath(join(__dirname, '..', 'resources', 'sfdx', 'jsconfig-sfdx.json'));
-  fileSystemProvider.updateFileStat(jsconfigSfdxPath, {
-    type: 'file',
-    exists: true,
-    ctime: 0,
-    mtime: 0,
-    size: jsconfigSfdxTemplate.length
-  });
-  fileSystemProvider.updateFileContent(jsconfigSfdxPath, jsconfigSfdxTemplate);
-
   // Add typings files that the test expects to be created
   const ldsTypingsPath = normalizePath(join(__dirname, '..', 'resources', 'sfdx', 'lds.d.ts'));
   const ldsTypingsContent = 'declare module "@salesforce/lds" { /* LDS types */ }';
@@ -623,53 +598,6 @@ export const populateFileSystemProvider = (
     size: apexTypingsContent.length
   });
   fileSystemProvider.updateFileContent(apexTypingsPath, apexTypingsContent);
-
-  // Add Core template files
-  const jsconfigCoreTemplate = JSON.stringify({
-    compilerOptions: {
-      experimentalDecorators: true,
-      baseUrl: '.',
-      paths: {
-        'c/*': ['*']
-      }
-    },
-    include: ['**/*', '<%= project_root %>/.vscode/typings/lwc/**/*.d.ts'],
-    typeAcquisition: {
-      include: ['jest']
-    }
-  });
-
-  const jsconfigCorePath = normalizePath(join(__dirname, '..', 'resources', 'core', 'jsconfig-core.json'));
-  fileSystemProvider.updateFileStat(jsconfigCorePath, {
-    type: 'file',
-    exists: true,
-    ctime: 0,
-    mtime: 0,
-    size: jsconfigCoreTemplate.length
-  });
-  fileSystemProvider.updateFileContent(jsconfigCorePath, jsconfigCoreTemplate);
-
-  // Add Core settings template
-  const settingsCoreTemplate = JSON.stringify({
-    'files.watcherExclude': {
-      '**/.git/objects/**': true,
-      '**/.git/subtree-cache/**': true,
-      '**/node_modules/**': true
-    },
-    'perforce.client': 'username-localhost-blt',
-    'perforce.user': 'username',
-    'perforce.port': 'ssl:host:port'
-  });
-
-  const settingsCorePath = normalizePath(join(__dirname, '..', 'resources', 'core', 'settings-core.json'));
-  fileSystemProvider.updateFileStat(settingsCorePath, {
-    type: 'file',
-    exists: true,
-    ctime: 0,
-    mtime: 0,
-    size: settingsCoreTemplate.length
-  });
-  fileSystemProvider.updateFileContent(settingsCorePath, settingsCoreTemplate);
 
   // Add Core typings files for Core workspaces
   // For CORE_PARTIAL, the typings should be in the parent directory (CORE_ALL_ROOT)
