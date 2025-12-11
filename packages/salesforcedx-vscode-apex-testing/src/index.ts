@@ -25,6 +25,7 @@ import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { nls } from './messages';
 import { telemetryService } from './telemetry/telemetry';
 import { useTestExplorer } from './testDiscovery/testDiscovery';
+import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
 import { disposeTestController, getTestController } from './views/testController';
 import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
@@ -141,6 +142,22 @@ export const activate = async (context: vscode.ExtensionContext) => {
     }
   });
   context.subscriptions.push(testDiscoverySettingsWatcher);
+
+  // Register virtual document provider for org-only Apex classes
+  if (useTestExplorerMode) {
+    const orgApexClassProvider = getOrgApexClassProvider();
+    const providerRegistration = vscode.workspace.registerTextDocumentContentProvider(
+      'sf-org-apex',
+      orgApexClassProvider
+    );
+    context.subscriptions.push(providerRegistration);
+
+    // Register command to open org-only tests
+    const openOrgOnlyTestCmd = vscode.commands.registerCommand('sf.apex.test.openOrgOnlyTest', async (test: vscode.TestItem) => {
+      await getTestController().openOrgOnlyTest(test);
+    });
+    context.subscriptions.push(openOrgOnlyTestCmd);
+  }
 
   // Commands
   const commands = registerCommands(context);

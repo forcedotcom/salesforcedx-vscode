@@ -7,9 +7,126 @@ class EventEmitter {
 }
 
 class Uri {
-  public static parse = jest.fn();
-  public static file = jest.fn();
-  public static joinPath = jest.fn();
+  public scheme: string;
+  public authority: string;
+  public path: string;
+  public query: string;
+  public fragment: string;
+
+  public constructor(scheme: string, authority: string, path: string, query: string, fragment: string) {
+    this.scheme = scheme;
+    this.authority = authority;
+    this.path = path;
+    this.query = query;
+    this.fragment = fragment;
+  }
+
+  public static parse(value: string): Uri {
+    // Simplified parsing for testing purposes
+    // Handles both Unix and Windows paths, as well as custom schemes like sf-org-apex
+    // Examples:
+    // - file:///C:/Users/path (Windows file URI with three slashes)
+    // - file:///home/path (Unix file URI)
+    // - sf-org-apex:ClassName (custom scheme)
+
+    // Handle file:/// URIs (both Windows and Unix)
+    if (value.startsWith('file:///')) {
+      const path = value.substring(7); // Remove 'file:///'
+      const queryIndex = path.indexOf('?');
+      const fragmentIndex = path.indexOf('#');
+      const endIndex =
+        queryIndex >= 0 && fragmentIndex >= 0
+          ? Math.min(queryIndex, fragmentIndex)
+          : queryIndex >= 0
+            ? queryIndex
+            : fragmentIndex >= 0
+              ? fragmentIndex
+              : path.length;
+      const filePath = path.substring(0, endIndex);
+      const query =
+        queryIndex >= 0 ? path.substring(queryIndex + 1, fragmentIndex >= 0 ? fragmentIndex : path.length) : '';
+      const fragment = fragmentIndex >= 0 ? path.substring(fragmentIndex + 1) : '';
+      return new Uri('file', '', filePath, query, fragment);
+    }
+
+    // Handle file:// URIs (with authority)
+    if (value.startsWith('file://')) {
+      const afterScheme = value.substring(7); // Remove 'file://'
+      const slashIndex = afterScheme.indexOf('/');
+      if (slashIndex >= 0) {
+        const authority = afterScheme.substring(0, slashIndex);
+        const pathAndRest = afterScheme.substring(slashIndex);
+        const queryIndex = pathAndRest.indexOf('?');
+        const fragmentIndex = pathAndRest.indexOf('#');
+        const endIndex =
+          queryIndex >= 0 && fragmentIndex >= 0
+            ? Math.min(queryIndex, fragmentIndex)
+            : queryIndex >= 0
+              ? queryIndex
+              : fragmentIndex >= 0
+                ? fragmentIndex
+                : pathAndRest.length;
+        const path = pathAndRest.substring(0, endIndex);
+        const query =
+          queryIndex >= 0
+            ? pathAndRest.substring(queryIndex + 1, fragmentIndex >= 0 ? fragmentIndex : pathAndRest.length)
+            : '';
+        const fragment = fragmentIndex >= 0 ? pathAndRest.substring(fragmentIndex + 1) : '';
+        return new Uri('file', authority, path, query, fragment);
+      }
+    }
+
+    // Match scheme:path or scheme://authority/path
+    const parts = value.match(/^([^:]+):(\/\/)?([^/?#]*)([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/);
+    if (parts) {
+      const scheme = parts[1];
+      const hasSlashes = parts[2]; // '//' or undefined
+      const authorityOrPath = parts[3] || '';
+      const restOfPath = parts[4] || '';
+
+      // For schemes with //, authority is before first /
+      if (hasSlashes) {
+        const authority = authorityOrPath;
+        const path = restOfPath || '/';
+        return new Uri(scheme, authority, path, parts[5] || '', parts[6] || '');
+      }
+
+      // Simple scheme:path format (e.g., sf-org-apex:ClassName)
+      return new Uri(
+        scheme,
+        '', // no authority
+        authorityOrPath + restOfPath, // path is everything after the colon
+        parts[5] || '', // query
+        parts[6] || '' // fragment
+      );
+    }
+    return new Uri('', '', value, '', ''); // Fallback for simple paths
+  }
+
+  public static file(path: string): Uri {
+    // Normalize Windows backslashes to forward slashes for URI compatibility
+    // This matches VS Code's behavior where file URIs always use forward slashes
+    const normalizedPath = path.replace(/\\/g, '/');
+    // Ensure path starts with / for absolute paths
+    const uriPath = normalizedPath.match(/^[A-Z]:/i)
+      ? `/${normalizedPath}` // Windows drive letter: C:/path -> /C:/path
+      : normalizedPath.startsWith('/')
+        ? normalizedPath
+        : `/${normalizedPath}`; // Ensure leading slash for absolute paths
+    return new Uri('file', '', uriPath, '', '');
+  }
+
+  public static joinPath(...paths: string[]): Uri {
+    const joined = paths.join('/');
+    return new Uri('file', '', joined, '', '');
+  }
+
+  public toString(skipEncoding?: boolean): string {
+    const auth = this.authority ? `//${this.authority}` : '';
+    const query = this.query ? `?${this.query}` : '';
+    const fragment = this.fragment ? `#${this.fragment}` : '';
+    return `${this.scheme}:${auth}${this.path}${query}${fragment}`;
+  }
 }
 
 const mockLanguageStatusItem = {
@@ -89,12 +206,7 @@ const getMockVSCode = () => {
       createDiagnosticCollection: jest.fn(),
       createLanguageStatusItem: mockCreateLanguageStatusItem
     },
-    Uri: {
-      file: jest.fn(),
-      joinPath: jest.fn(),
-      parse: jest.fn(),
-      toString: jest.fn()
-    },
+    Uri,
     Position: class {
       public constructor(
         public line: number,
@@ -177,11 +289,39 @@ const getMockVSCode = () => {
         show: jest.fn()
       })),
       showSaveDialog: jest.fn(),
+      showTextDocument: jest.fn(),
       OutputChannel: {
         show: jest.fn()
       },
       createStatusBarItem: jest.fn(),
       createTextEditorDecorationType: jest.fn()
+    },
+    ViewColumn: {
+      Active: -1,
+      One: 1,
+      Two: 2,
+      Three: 3,
+      Four: 4,
+      Five: 5,
+      Six: 6,
+      Seven: 7,
+      Eight: 8,
+      Nine: 9,
+      Beside: -2
+    },
+    TextEditorRevealType: {
+      Default: 0,
+      InCenter: 1,
+      InCenterIfOutsideViewport: 2,
+      AtTop: 3
+    },
+    Selection: class {
+      public anchor: any;
+      public active: any;
+      public constructor(anchor: any, active: any) {
+        this.anchor = anchor;
+        this.active = active;
+      }
     },
     workspace: {
       getConfiguration: () => {

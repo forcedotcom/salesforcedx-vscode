@@ -33,6 +33,33 @@ jest.mock('../../../src/testDiscovery/testDiscovery', () => ({
   sourceIsLS: jest.fn().mockReturnValue(false)
 }));
 
+const mockCreateOrgApexClassUri = jest.fn((className: string) => {
+  // Extract base class name if it includes namespace
+  const baseClassName = className.includes('.') ? className.split('.').pop()! : className;
+  return vscode.Uri.parse(`sf-org-apex:${baseClassName}`);
+});
+
+const mockOpenOrgApexClass = jest.fn().mockImplementation(async (className: string, position?: any) => {
+  // Extract base class name if it includes namespace
+  const baseClassName = className.includes('.') ? className.split('.').pop()! : className;
+  const uri = vscode.Uri.parse(`sf-org-apex:${baseClassName}`);
+  const document = await vscode.workspace.openTextDocument(uri);
+  const editor = await vscode.window.showTextDocument(document, {
+    preview: false,
+    viewColumn: vscode.ViewColumn.Active
+  });
+  if (position) {
+    editor.selection = new vscode.Selection(position, position);
+    editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+  }
+});
+
+jest.mock('../../../src/utils/orgApexClassProvider', () => ({
+  createOrgApexClassUri: (className: string) => mockCreateOrgApexClassUri(className),
+  openOrgApexClass: (className: string, position?: any) => mockOpenOrgApexClass(className, position),
+  getOrgApexClassProvider: jest.fn()
+}));
+
 jest.mock('../../../src/telemetry/telemetry', () => ({
   telemetryService: {
     sendEventData: jest.fn()
@@ -67,6 +94,7 @@ jest.mock('@salesforce/apex-node', () => ({
 
 import { TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
+import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import * as coreExtensionUtils from '../../../src/coreExtensionUtils';
 import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
@@ -171,6 +199,24 @@ describe('ApexTestController', () => {
     mockTestServiceMethods.getTestsInSuite.mockResolvedValue([]);
     // Restore buildClassToUriIndex default after clearing
     (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(new Map());
+    // Restore orgApexClassProvider mocks after clearing (jest.clearAllMocks clears implementations)
+    mockCreateOrgApexClassUri.mockImplementation((className: string) => {
+      const baseClassName = className.includes('.') ? className.split('.').pop()! : className;
+      return vscode.Uri.parse(`sf-org-apex:${baseClassName}`);
+    });
+    mockOpenOrgApexClass.mockImplementation(async (className: string, position?: any) => {
+      const baseClassName = className.includes('.') ? className.split('.').pop()! : className;
+      const uri = vscode.Uri.parse(`sf-org-apex:${baseClassName}`);
+      const document = await vscode.workspace.openTextDocument(uri);
+      const editor = await vscode.window.showTextDocument(document, {
+        preview: false,
+        viewColumn: vscode.ViewColumn.Active
+      });
+      if (position) {
+        editor.selection = new vscode.Selection(position, position);
+        editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+      }
+    });
 
     controller = new ApexTestController();
   });
@@ -260,6 +306,12 @@ describe('ApexTestController', () => {
       // OrgOnlyClass does not exist locally, so buildClassToUriIndex returns empty map
       (testUtils.buildClassToUriIndex as jest.Mock).mockReset();
       (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(new Map());
+      // Ensure createOrgApexClassUri mock is set up for this test
+      mockCreateOrgApexClassUri.mockClear();
+      mockCreateOrgApexClassUri.mockImplementation((className: string) => {
+        const baseClassName = className.includes('.') ? className.split('.').pop()! : className;
+        return vscode.Uri.parse(`sf-org-apex:${baseClassName}`);
+      });
 
       const createdItemsMap = new Map<string, any>();
       (mockTestController.createTestItem as jest.Mock).mockImplementation(
@@ -276,30 +328,287 @@ describe('ApexTestController', () => {
               size: 0
             } as unknown as vscode.TestItemCollection
           };
+          // Store the item so we can update tags later
           createdItemsMap.set(id, item);
-          return item as unknown as vscode.TestItem;
+          // Return a proxy that allows setting tags and preserves uri
+          return new Proxy(item, {
+            set(target, prop, value) {
+              target[prop] = value;
+              return true;
+            },
+            get(target, prop) {
+              // Ensure uri is always returned correctly
+              if (prop === 'uri') {
+                return target.uri;
+              }
+              return target[prop];
+            }
+          }) as unknown as vscode.TestItem;
         }
       );
 
       await controller.discoverTests();
 
-      // Find the org-only class item (no URI)
+      // Verify createOrgApexClassUri was called
+      expect(mockCreateOrgApexClassUri).toHaveBeenCalledWith('OrgOnlyClass');
+
+      // Find the org-only class item - use the full class name format
       const orgOnlyClassItem = createdItemsMap.get('class:OrgOnlyClass');
       const orgOnlyMethodItem = createdItemsMap.get('method:OrgOnlyClass.testMethod1');
 
-      // Verify org-only class item exists, has no URI, and has the org-only tag
+      // Verify org-only class item exists and has the org-only tag
       expect(orgOnlyClassItem).toBeDefined();
-      expect(orgOnlyClassItem?.uri).toBeUndefined();
+      // The URI should be set (virtual document URI) - check the actual item, not through proxy
+      const actualUri = createdItemsMap.get('class:OrgOnlyClass')?.uri;
+      expect(actualUri).toBeDefined();
+      if (actualUri) {
+        expect(actualUri.toString()).toContain('sf-org-apex');
+      }
       expect(orgOnlyClassItem?.tags).toBeDefined();
       expect(orgOnlyClassItem?.tags?.length).toBe(1);
       expect(orgOnlyClassItem?.tags?.[0].id).toBe('org-only');
 
-      // Verify org-only method item exists, has no URI, and has the org-only tag
+      // Verify org-only method item exists and has the org-only tag
       expect(orgOnlyMethodItem).toBeDefined();
-      expect(orgOnlyMethodItem?.uri).toBeUndefined();
+      // The URI should be set (virtual document URI) - check the actual item, not through proxy
+      const actualMethodUri = createdItemsMap.get('method:OrgOnlyClass.testMethod1')?.uri;
+      expect(actualMethodUri).toBeDefined();
+      if (actualMethodUri) {
+        expect(actualMethodUri.toString()).toContain('sf-org-apex');
+      }
       expect(orgOnlyMethodItem?.tags).toBeDefined();
       expect(orgOnlyMethodItem?.tags?.length).toBe(1);
       expect(orgOnlyMethodItem?.tags?.[0].id).toBe('org-only');
+    });
+  });
+
+  describe('debugTests with org-only tests', () => {
+    it('should prevent debugging org-only tests and show error notification', async () => {
+      // Get the controller's orgOnlyTag instance (same reference used in debugTests)
+      const orgOnlyTag = (controller as any).orgOnlyTag;
+      const orgOnlyTestItem = {
+        id: 'method:OrgOnlyClass.testMethod',
+        label: 'testMethod',
+        uri: vscode.Uri.parse('sf-org-apex:OrgOnlyClass'),
+        tags: [orgOnlyTag],
+        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
+        canResolveChildren: false,
+        children: {
+          add: jest.fn(),
+          values: jest.fn().mockReturnValue([]),
+          size: 0
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      const localTestItem = {
+        id: 'method:LocalClass.testMethod',
+        label: 'testMethod',
+        uri: vscode.Uri.file('/workspace/LocalClass.cls'),
+        tags: [],
+        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
+        canResolveChildren: false,
+        children: {
+          add: jest.fn(),
+          values: jest.fn().mockReturnValue([]),
+          size: 0
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      const mockRun = {
+        started: jest.fn(),
+        passed: jest.fn(),
+        failed: jest.fn(),
+        skipped: jest.fn(),
+        errored: jest.fn(),
+        end: jest.fn(),
+        appendOutput: jest.fn()
+      } as unknown as vscode.TestRun;
+
+      (mockTestController.createTestRun as jest.Mock).mockReturnValue(mockRun);
+
+      // Mock notificationService
+      notificationService.showErrorMessage = jest.fn();
+
+      // Call debugTests directly
+      await (controller as any).debugTests([orgOnlyTestItem, localTestItem], mockRun);
+
+      // Verify org-only test was marked as errored
+      expect(mockRun.errored).toHaveBeenCalledWith(
+        orgOnlyTestItem,
+        expect.objectContaining({
+          message: expect.stringContaining('Debugging is not supported for tests that exist only in the org')
+        })
+      );
+
+      // Verify error notification was shown
+      expect(notificationService.showErrorMessage).toHaveBeenCalledWith(
+        expect.stringContaining('Debugging is not supported for tests that exist only in the org')
+      );
+
+      // Verify local test was not marked as errored (only org-only tests should be)
+      expect(mockRun.errored).not.toHaveBeenCalledWith(localTestItem, expect.anything());
+    });
+
+    it('should filter out org-only tests from debug run', async () => {
+      // Get the controller's orgOnlyTag instance (same reference used in debugTests)
+      const orgOnlyTag = (controller as any).orgOnlyTag;
+      const orgOnlyTestItem = {
+        id: 'method:OrgOnlyClass.testMethod',
+        label: 'testMethod',
+        uri: vscode.Uri.parse('sf-org-apex:OrgOnlyClass'),
+        tags: [orgOnlyTag],
+        range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
+        canResolveChildren: false,
+        children: {
+          add: jest.fn(),
+          values: jest.fn().mockReturnValue([]),
+          size: 0
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      const mockRun = {
+        started: jest.fn(),
+        passed: jest.fn(),
+        failed: jest.fn(),
+        skipped: jest.fn(),
+        errored: jest.fn(),
+        end: jest.fn(),
+        appendOutput: jest.fn()
+      } as unknown as vscode.TestRun;
+
+      (mockTestController.createTestRun as jest.Mock).mockReturnValue(mockRun);
+
+      // Mock notificationService
+      notificationService.showErrorMessage = jest.fn();
+
+      // Mock commands.executeCommand to track if debug was called
+      (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
+
+      // Call debugTests directly with only org-only test
+      await (controller as any).debugTests([orgOnlyTestItem], mockRun);
+
+      // Verify org-only test was marked as errored
+      expect(mockRun.errored).toHaveBeenCalled();
+
+      // Verify debug command was NOT called (org-only tests were filtered out)
+      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith('sf.test.view.debugTests', expect.anything());
+      expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith(
+        'sf.test.view.debugSingleTest',
+        expect.anything()
+      );
+    });
+  });
+
+  describe('openOrgOnlyTest', () => {
+    it('should open org-only class test', async () => {
+      // Clear previous mocks but keep implementations
+      (vscode.workspace.openTextDocument as jest.Mock).mockClear();
+      (vscode.window.showTextDocument as jest.Mock).mockClear();
+      mockOpenOrgApexClass.mockClear();
+
+      const classTestItem = {
+        id: 'class:OrgOnlyClass',
+        label: 'OrgOnlyClass',
+        uri: vscode.Uri.parse('sf-org-apex:OrgOnlyClass'),
+        tags: [{ id: 'org-only' } as vscode.TestTag],
+        canResolveChildren: false,
+        children: {
+          add: jest.fn(),
+          values: jest.fn().mockReturnValue([]),
+          size: 0
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      const mockDocument = {
+        getText: jest.fn().mockReturnValue('public class OrgOnlyClass {}'),
+        uri: vscode.Uri.parse('sf-org-apex:OrgOnlyClass')
+      };
+
+      const mockEditor = {
+        selection: {} as vscode.Selection,
+        revealRange: jest.fn()
+      };
+
+      (vscode.workspace.openTextDocument as jest.Mock).mockResolvedValue(mockDocument);
+      (vscode.window.showTextDocument as jest.Mock).mockResolvedValue(mockEditor);
+
+      await controller.openOrgOnlyTest(classTestItem);
+
+      // Verify openOrgApexClass was called
+      expect(mockOpenOrgApexClass).toHaveBeenCalledWith('OrgOnlyClass', undefined);
+      // Verify the underlying VS Code APIs were called
+      expect(vscode.workspace.openTextDocument).toHaveBeenCalled();
+      const openDocCall = (vscode.workspace.openTextDocument as jest.Mock).mock.calls[0][0];
+      expect(openDocCall).toBeDefined();
+      expect(openDocCall.toString()).toContain('sf-org-apex');
+      expect(openDocCall.toString()).toContain('OrgOnlyClass');
+      expect(vscode.window.showTextDocument).toHaveBeenCalled();
+    });
+
+    it('should open org-only method test and navigate to position', async () => {
+      // Clear previous mocks but restore implementation
+      (vscode.workspace.openTextDocument as jest.Mock).mockClear();
+      (vscode.window.showTextDocument as jest.Mock).mockClear();
+      mockOpenOrgApexClass.mockClear();
+      // Restore the implementation after clearing
+      mockOpenOrgApexClass.mockImplementation(async (className: string, position?: any) => {
+        const baseClassName = className.includes('.') ? className.split('.').pop()! : className;
+        const uri = vscode.Uri.parse(`sf-org-apex:${baseClassName}`);
+        const document = await vscode.workspace.openTextDocument(uri);
+        const editor = await vscode.window.showTextDocument(document, {
+          preview: false,
+          viewColumn: vscode.ViewColumn.Active
+        });
+        if (position) {
+          editor.selection = new vscode.Selection(position, position);
+          editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+        }
+      });
+
+      const methodTestItem = {
+        id: 'method:OrgOnlyClass.testMethod',
+        label: 'testMethod',
+        uri: vscode.Uri.parse('sf-org-apex:OrgOnlyClass'),
+        tags: [{ id: 'org-only' } as vscode.TestTag],
+        range: new vscode.Range(new vscode.Position(5, 10), new vscode.Position(5, 10)),
+        canResolveChildren: false,
+        children: {
+          add: jest.fn(),
+          values: jest.fn().mockReturnValue([]),
+          size: 0
+        } as unknown as vscode.TestItemCollection
+      } as unknown as vscode.TestItem;
+
+      const mockDocument = {
+        getText: jest.fn().mockReturnValue('public class OrgOnlyClass {}'),
+        uri: vscode.Uri.parse('sf-org-apex:OrgOnlyClass')
+      };
+
+      const mockEditor = {
+        selection: {} as vscode.Selection,
+        revealRange: jest.fn()
+      };
+
+      (vscode.workspace.openTextDocument as jest.Mock).mockResolvedValue(mockDocument);
+      (vscode.window.showTextDocument as jest.Mock).mockResolvedValue(mockEditor);
+
+      await controller.openOrgOnlyTest(methodTestItem);
+
+      // Verify openOrgApexClass was called with the class name and position
+      expect(mockOpenOrgApexClass).toHaveBeenCalledWith(
+        'OrgOnlyClass',
+        expect.objectContaining({ line: 5, character: 10 })
+      );
+      // Verify the underlying VS Code APIs were called
+      expect(vscode.workspace.openTextDocument).toHaveBeenCalled();
+      expect(vscode.window.showTextDocument).toHaveBeenCalled();
+      expect(mockEditor.revealRange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          start: expect.objectContaining({ line: 5, character: 10 }),
+          end: expect.objectContaining({ line: 5, character: 10 })
+        }),
+        vscode.TextEditorRevealType.InCenter
+      );
     });
   });
 

@@ -133,23 +133,7 @@
     }
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json",
-    "onView:sf.test.view",
-    "onCommand:sf.apex.test.run",
-    "onCommand:sf.apex.test.class.run",
-    "onCommand:sf.apex.test.method.run",
-    "onCommand:sf.apex.test.last.class.run",
-    "onCommand:sf.apex.test.last.method.run",
-    "onCommand:sf.apex.test.suite.run",
-    "onCommand:sf.apex.test.suite.create",
-    "onCommand:sf.apex.test.suite.add",
-    "onCommand:sf.test.view.run",
-    "onCommand:sf.test.view.runClassTests",
-    "onCommand:sf.test.view.runSingleTest",
-    "onCommand:sf.test.view.refresh",
-    "onCommand:sf.test.view.collapseAll",
-    "onCommand:sf.test.view.showError",
-    "onCommand:sf.test.view.goToDefinition"
+    "workspaceContains:sfdx-project.json"
   ],
   "main": "./dist/index.js",
   "types": "./out/src/index.d.ts",
@@ -270,6 +254,10 @@
         {
           "command": "sf.test.view.collapseAll",
           "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.apex.test.openOrgOnlyTest",
+          "when": "false"
         }
       ]
     },
@@ -361,6 +349,10 @@
       {
         "command": "sf.apex.test.last.method.run",
         "title": "%apex_test_last_method_run_text%"
+      },
+      {
+        "command": "sf.apex.test.openOrgOnlyTest",
+        "title": "%apex_test_open_org_class_command_title%"
       }
     ],
     "configuration": {

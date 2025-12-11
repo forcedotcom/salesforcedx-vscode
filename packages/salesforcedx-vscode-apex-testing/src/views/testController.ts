@@ -16,6 +16,7 @@ import { nls } from '../messages';
 import * as settings from '../settings';
 import { telemetryService } from '../telemetry/telemetry';
 import { discoverTests, sourceIsLS } from '../testDiscovery/testDiscovery';
+import { createOrgApexClassUri, openOrgApexClass } from '../utils/orgApexClassProvider';
 import { buildTestPayload } from '../utils/payloadBuilder';
 import {
   createClassId,
@@ -207,15 +208,17 @@ export class ApexTestController {
       // Use the first entry's name as the base class name
       const baseClassName = classEntries[0].name;
       // Try to find a local URI for this class
-      // If the class doesn't exist locally, uri will be undefined, making the test item unopenable
-      const uri = classNameToUri.get(baseClassName);
+      // If the class doesn't exist locally, use a virtual document URI for org-only classes
+      const localUri = classNameToUri.get(baseClassName);
+      const uri = localUri ?? createOrgApexClassUri(baseClassName);
+      const isOrgOnly = !localUri;
 
-      // Create class item (URI may be undefined if class is not in local workspace)
-      // When URI is undefined, VS Code automatically makes the test item unopenable
+      // Create class item
+      // For org-only classes, use virtual document URI so they can be opened
       const classItem = this.controller.createTestItem(createClassId(fullClassName), fullClassName, uri);
       classItem.canResolveChildren = false;
       // Tag tests that exist in org but not in local workspace
-      if (!uri && this.orgOnlyTag) {
+      if (isOrgOnly && this.orgOnlyTag) {
         classItem.tags = [this.orgOnlyTag];
       }
       this.classItems.set(fullClassName, classItem);
@@ -235,18 +238,16 @@ export class ApexTestController {
         const line = classEntries[0].testMethods?.find(m => m.name === methodName)?.line ?? 0;
         const column = classEntries[0].testMethods?.find(m => m.name === methodName)?.column ?? 0;
         const position = new vscode.Position(Math.max(0, line - 1), Math.max(0, column - 1));
-        // Only set range if URI exists (class is in local workspace)
-        const range = uri ? new vscode.Range(position, position) : undefined;
+        // Set range for both local and org-only classes (virtual documents support ranges)
+        const range = new vscode.Range(position, position);
 
-        // Create method item (URI may be undefined if class is not in local workspace)
-        // When URI is undefined, VS Code automatically makes the test item unopenable
+        // Create method item
+        // For org-only classes, use virtual document URI so they can be opened
         const methodItem = this.controller.createTestItem(createMethodId(fullClassName, methodName), methodName, uri);
-        if (range) {
-          methodItem.range = range;
-        }
+        methodItem.range = range;
         methodItem.canResolveChildren = false;
         // Tag tests that exist in org but not in local workspace
-        if (!uri && this.orgOnlyTag) {
+        if (isOrgOnly && this.orgOnlyTag) {
           methodItem.tags = [this.orgOnlyTag];
         }
         this.methodItems.set(methodId, methodItem);
@@ -406,6 +407,28 @@ export class ApexTestController {
         await this.resolveSuiteChildren(test);
       }
     };
+  }
+
+  /**
+   * Opens an org-only test class in a virtual editor
+   */
+  public async openOrgOnlyTest(test: vscode.TestItem): Promise<void> {
+    const className = getTestName(test);
+
+    if (isMethod(test.id)) {
+      // For methods, extract class name and navigate to the method position
+      const classNameFromMethod = extractClassName(test.id);
+      if (classNameFromMethod) {
+        // Get the line number from the test item's range if available
+        const position = test.range?.start ?? new vscode.Position(0, 0);
+        await openOrgApexClass(classNameFromMethod, position);
+      } else {
+        await openOrgApexClass(className);
+      }
+    } else if (isClass(test.id)) {
+      // For classes, just open the class
+      await openOrgApexClass(className);
+    }
   }
 
   private async resolveSuiteChildren(suiteItem: vscode.TestItem): Promise<void> {
@@ -572,11 +595,31 @@ export class ApexTestController {
   }
 
   private async debugTests(testsToRun: vscode.TestItem[], run: vscode.TestRun): Promise<void> {
+    // Check for org-only tests - debugging is not supported for these
+    let testsToDebug = testsToRun;
+    if (this.orgOnlyTag) {
+      const orgOnlyTests = testsToRun.filter(test => test.tags?.includes(this.orgOnlyTag!));
+      if (orgOnlyTests.length > 0) {
+        const errorMessage = nls.localize('apex_test_debug_org_only_warning_message');
+        for (const test of orgOnlyTests) {
+          run.errored(test, new vscode.TestMessage(errorMessage));
+        }
+        // Show failure notification
+        void notificationService.showErrorMessage(errorMessage);
+        // Filter out org-only tests
+        testsToDebug = testsToRun.filter(test => !test.tags?.includes(this.orgOnlyTag!));
+      }
+    }
+
+    if (testsToDebug.length === 0) {
+      return;
+    }
+
     // Group methods by their parent class to avoid calling debug command multiple times for the same class
     const classesToDebug = new Set<string>();
     const methodsToDebug = new Map<string, string[]>();
 
-    for (const test of testsToRun) {
+    for (const test of testsToDebug) {
       try {
         if (isMethod(test.id)) {
           // Extract class name from method ID (format: ClassName.MethodName)
@@ -612,7 +655,7 @@ export class ApexTestController {
         await vscode.commands.executeCommand('sf.test.view.debugTests', { name: className });
       } catch (error) {
         // Find all tests from this class and mark them as errored
-        for (const test of testsToRun) {
+        for (const test of testsToDebug) {
           if (isClass(test.id) && getTestName(test) === className) {
             run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', String(error))));
           } else if (isMethod(test.id) && extractClassName(test.id) === className) {
