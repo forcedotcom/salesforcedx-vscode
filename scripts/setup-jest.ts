@@ -21,20 +21,7 @@ class Uri {
     this.fragment = fragment;
   }
 
-  public static parse = jest.fn((value: string): Uri => {
-    // Simplified parsing for testing purposes
-    const parts = value.match(/^([^:]+):(\/\/)?([^/]*)([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/);
-    if (parts) {
-      return new Uri(
-        parts[1], // scheme
-        parts[3] || '', // authority
-        parts[4] || '', // path
-        parts[5] || '', // query
-        parts[6] || '' // fragment
-      );
-    }
-    return new Uri('', '', value, '', ''); // Fallback for simple paths
-  }) as jest.MockedFunction<(value: string) => Uri>;
+  public static parse = jest.fn() as jest.MockedFunction<(value: string) => Uri>;
 
   public static file = jest.fn((path: string): Uri => {
     return new Uri('file', '', path, '', '');
