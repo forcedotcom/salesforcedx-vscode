@@ -111,12 +111,9 @@ export const loadMetadataPage = async (
     // Note: We still need to use the frame object for evaluate() later, but we can use locators for waiting
     const frameLocator = contentFrame === page.mainFrame() ? page : page.frameLocator('iframe').first();
 
-    try {
-      // Wait for at least one table to be visible
-      await frameLocator.locator('table').first().waitFor({ state: 'attached', timeout: 20_000 });
-
-      // Count tables in the frame (including shadow DOM)
-      const tableCount = await contentFrame.evaluate(() => {
+    /** Returns a function that counts tables including those in shadow DOMs when evaluated in browser context */
+    const getTableCountEvaluator = () => {
+      return () => {
         const countTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): number => {
           let count = root.querySelectorAll('table').length;
           const elements = root.querySelectorAll('*');
@@ -128,7 +125,15 @@ export const loadMetadataPage = async (
           return count;
         };
         return countTablesIncludingShadowDOM(document);
-      });
+      };
+    };
+
+    try {
+      // Wait for at least one table to be visible
+      await frameLocator.locator('table').first().waitFor({ state: 'attached', timeout: 20_000 });
+
+      // Count tables in the frame (including shadow DOM)
+      const tableCount = await contentFrame.evaluate(getTableCountEvaluator());
 
       console.log(`${indent}✅ Ready to extract (${tableCount} tables found)`);
     } catch {
@@ -144,19 +149,7 @@ export const loadMetadataPage = async (
         // Still no tables
       }
 
-      const tableCount = await contentFrame.evaluate(() => {
-        const countTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): number => {
-          let count = root.querySelectorAll('table').length;
-          const elements = root.querySelectorAll('*');
-          elements.forEach(el => {
-            if (el.shadowRoot) {
-              count += countTablesIncludingShadowDOM(el.shadowRoot);
-            }
-          });
-          return count;
-        };
-        return countTablesIncludingShadowDOM(document);
-      });
+      const tableCount = await contentFrame.evaluate(getTableCountEvaluator());
 
       if (tableCount === 0) {
         console.log(`${indent}❌ No tables found after all strategies`);
