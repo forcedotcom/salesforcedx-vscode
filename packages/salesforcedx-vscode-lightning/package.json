@@ -6,9 +6,6 @@
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
   },
-  "categories": [
-    "Programming Languages"
-  ],
   "contributes": {
     "configuration": {
       "properties": {
@@ -135,7 +132,7 @@
     "dist",
     "auraServer.js"
   ],
-  "version": "65.8.1",
+  "version": "65.8.2",
   "wireit": {
     "compile": {
       "clean": "if-file-deleted",
