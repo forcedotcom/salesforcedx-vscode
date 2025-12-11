@@ -13,53 +13,11 @@ import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import {
-  CORE_CONFIG_SECTION,
-  CORE_PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
-  CORE_PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
-  DEPLOY_ON_SAVE_ENABLED,
-  DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
-  METADATA_CONFIG_SECTION
-} from '../constants';
 import { nls } from '../messages';
+import { getDeployOnSaveEnabled, getIgnoreConflicts } from '../settings/deployOnSaveSettings';
 import { AllServicesLayer, ExtensionProviderService } from './extensionProvider';
 
 const ENQUEUE_DELAY_MS = 500;
-
-/** Get explicit value from inspect result, respecting VS Code precedence (folder > workspace > global) */
-const getExplicitValue = (
-  inspect: { workspaceFolderValue?: boolean; workspaceValue?: boolean; globalValue?: boolean } | undefined
-): boolean | undefined => inspect?.workspaceFolderValue ?? inspect?.workspaceValue ?? inspect?.globalValue;
-
-/** Check if deploy on save is enabled, respecting both core and metadata extension settings */
-const getDeployOnSaveEnabled = (): boolean => {
-  if (process.env.ESBUILD_PLATFORM === 'web') return true;
-  // Check vscode-core setting first
-  const coreConfig = vscode.workspace.getConfiguration(CORE_CONFIG_SECTION);
-  const coreInspect = coreConfig.inspect<boolean>(CORE_PUSH_OR_DEPLOY_ON_SAVE_ENABLED);
-  const coreValue = getExplicitValue(coreInspect);
-  if (coreValue !== undefined) return coreValue;
-
-  // Check metadata extension setting
-  const metadataConfig = vscode.workspace.getConfiguration(METADATA_CONFIG_SECTION);
-  const metadataInspect = metadataConfig.inspect<boolean>(DEPLOY_ON_SAVE_ENABLED);
-  const metadataValue = getExplicitValue(metadataInspect);
-  if (metadataValue !== undefined) return metadataValue;
-
-  return false;
-};
-
-/** Check if conflicts should be ignored during deploy on save */
-const getIgnoreConflicts = (): boolean => {
-  // Check vscode-core setting first
-  const coreConfig = vscode.workspace.getConfiguration(CORE_CONFIG_SECTION);
-  const coreSetting = coreConfig.get<boolean>(CORE_PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS);
-  if (coreSetting !== undefined) return coreSetting;
-
-  // Fall back to metadata extension setting
-  const metadataConfig = vscode.workspace.getConfiguration(METADATA_CONFIG_SECTION);
-  return metadataConfig.get<boolean>(DEPLOY_ON_SAVE_IGNORE_CONFLICTS, true);
-};
 
 /** File filtering - exclude files that shouldn't be deployed */
 export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (uri: URI) {
