@@ -37,10 +37,6 @@ export const BROWSER_LAUNCH_ARGS = [
 /**
  * Improved page loading with multiple strategies.
  * Returns the frame containing the actual content (might be an iframe).
- *
- * Note: This function returns a Frame object for use with frame.evaluate() and frame.waitForFunction().
- * For direct element interactions within iframes, consider using page.frameLocator('selector').locator('element')
- * which provides stricter typing and better error handling for interactive operations.
  */
 export const loadMetadataPage = async (
   page: Page,
@@ -108,12 +104,19 @@ export const loadMetadataPage = async (
     const frameInfo = contentFrame === page.mainFrame() ? 'main frame' : contentFrame.url() || 'unnamed frame';
     console.log(`${indent}✓ Using frame: ${frameInfo}`);
 
-    // Strategy 5: Wait for tables to appear in the content frame
+    // Step 3: Wait for tables to appear in the content frame using locators
     console.log(`${indent}⏳ Waiting for tables to appear...`);
 
-    // Helper function to count tables including those in shadow DOMs
-    const countTables = async (frame: any): Promise<number> =>
-      frame.evaluate(() => {
+    // Create a frame locator for the content frame
+    // Note: We still need to use the frame object for evaluate() later, but we can use locators for waiting
+    const frameLocator = contentFrame === page.mainFrame() ? page : page.frameLocator('iframe').first();
+
+    try {
+      // Wait for at least one table to be visible
+      await frameLocator.locator('table').first().waitFor({ state: 'attached', timeout: 20_000 });
+
+      // Count tables in the frame (including shadow DOM)
+      const tableCount = await contentFrame.evaluate(() => {
         const countTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): number => {
           let count = root.querySelectorAll('table').length;
           const elements = root.querySelectorAll('*');
@@ -127,50 +130,6 @@ export const loadMetadataPage = async (
         return countTablesIncludingShadowDOM(document);
       });
 
-    // Wait for at least one table with the expected structure to appear
-    try {
-      await contentFrame.waitForFunction(
-        () => {
-          const checkForMetadataTables = (root: Document | ShadowRoot | Element): boolean => {
-            const tables = root.querySelectorAll('table');
-            for (const table of Array.from(tables)) {
-              const headers = Array.from(table.querySelectorAll('th, thead td')).map(
-                cell => cell.textContent?.trim().toLowerCase() ?? ''
-              );
-
-              if (headers.length === 0) continue;
-
-              const hasField = headers.some(h => h.includes('field') || h === 'name');
-              const hasType = headers.some(h => h.includes('type'));
-              const hasDesc = headers.some(h => h.includes('description') || h.includes('detail'));
-
-              // Accept tables with all 3 columns OR 2-column format
-              if ((hasField && hasType && hasDesc) || (headers.length === 2 && hasField && hasDesc)) {
-                // Also check if there's at least one data row
-                const rows = table.querySelectorAll('tbody tr, tr:not(:first-child)');
-                if (rows.length > 0) {
-                  return true;
-                }
-              }
-            }
-
-            // Check shadow DOMs
-            const elements = root.querySelectorAll('*');
-            for (const el of Array.from(elements)) {
-              if (el.shadowRoot && checkForMetadataTables(el.shadowRoot)) {
-                return true;
-              }
-            }
-
-            return false;
-          };
-
-          return checkForMetadataTables(document);
-        },
-        { timeout: 20_000 }
-      );
-
-      const tableCount = await countTables(contentFrame);
       console.log(`${indent}✅ Ready to extract (${tableCount} tables found)`);
     } catch {
       // If waiting for tables times out, try scrolling to trigger lazy loading
@@ -180,18 +139,25 @@ export const loadMetadataPage = async (
 
       // Wait a bit for lazy-loaded content
       try {
-        await contentFrame.waitForFunction(
-          () => {
-            const tables = document.querySelectorAll('table');
-            return tables.length > 0;
-          },
-          { timeout: 5000 }
-        );
+        await frameLocator.locator('table').first().waitFor({ state: 'attached', timeout: 5_000 });
       } catch {
         // Still no tables
       }
 
-      const tableCount = await countTables(contentFrame);
+      const tableCount = await contentFrame.evaluate(() => {
+        const countTablesIncludingShadowDOM = (root: Document | ShadowRoot | Element): number => {
+          let count = root.querySelectorAll('table').length;
+          const elements = root.querySelectorAll('*');
+          elements.forEach(el => {
+            if (el.shadowRoot) {
+              count += countTablesIncludingShadowDOM(el.shadowRoot);
+            }
+          });
+          return count;
+        };
+        return countTablesIncludingShadowDOM(document);
+      });
+
       if (tableCount === 0) {
         console.log(`${indent}❌ No tables found after all strategies`);
         return { success: false, contentFrame: null };
@@ -312,8 +278,7 @@ export const extractMetadataFromPage = async (
   typeName: string
 ): Promise<{ name: string; data: MetadataType }[]> => {
   try {
-    // Extract fields from ALL tables (each table is a separate metadata type)
-    // We'll extract descriptions per-table instead of one for the whole page
+    // Extract fields from ALL tables in a single browser execution (each table is a separate metadata type)
     const extractionResult = await contentFrame.evaluate(() => {
       // Helper to check if an element is a callout/note container
       const isCalloutElement = (el: Element): boolean => {
@@ -398,25 +363,24 @@ export const extractMetadataFromPage = async (
         return isSubstantial && isNotNavigation && !startsWithNoteLabel;
       };
 
-      // Helper to search for elements in regular DOM and shadow DOMs
+      /** Search for elements in regular DOM and shadow DOMs with optional filter predicate */
       const searchInShadowDOM = <T extends Element>(
         root: Document | ShadowRoot | Element,
         selector: string,
-        predicate?: (el: Element) => boolean
+        filterPredicate?: (el: Element) => boolean
       ): T | null => {
-        // Try regular DOM first
-        const elements = root.querySelectorAll(selector);
-        for (const el of Array.from(elements)) {
-          if (!predicate || predicate(el)) {
-            return el as T;
-          }
+        // Try regular DOM first - filter matching elements
+        const elements = Array.from(root.querySelectorAll(selector));
+        const filtered = filterPredicate ? elements.filter(filterPredicate) : elements;
+        if (filtered.length > 0) {
+          return filtered[0] as T;
         }
 
         // Search shadow DOMs recursively
         const allElements = root.querySelectorAll('*');
         for (const el of Array.from(allElements)) {
           if (el.shadowRoot) {
-            const found = searchInShadowDOM<T>(el.shadowRoot, selector, predicate);
+            const found = searchInShadowDOM<T>(el.shadowRoot, selector, filterPredicate);
             if (found) return found;
           }
         }
@@ -567,26 +531,31 @@ export const extractMetadataFromPage = async (
         return description;
       };
 
-      // First, collect all headings on the page to identify which types have sections
+      // Collect all headings on the page to identify which types have sections
       const pageHeadings = new Set<string>();
 
       // Search for h2 headings inside <div class="section" id="..."> and h1 with class "helpHead1"
       const headingElements = Array.from(document.querySelectorAll('div.section[id] h2, h1.helpHead1'));
-      for (const heading of headingElements) {
+      // Filter headings by text length (similar to Playwright's filter({ hasText: ... }))
+      const validHeadings = headingElements.filter(heading => {
         const text = heading.textContent?.trim();
-        if (text && text.length > 0 && text.length < 200) {
-          pageHeadings.add(text);
-        }
-      }
+        return text && text.length > 0 && text.length < 200;
+      });
+      validHeadings.forEach(heading => {
+        const text = heading.textContent?.trim();
+        if (text) pageHeadings.add(text);
+      });
 
       // Also check shadow DOMs for headings
       const allHeadings = collectFromShadowDOM(document, 'div.section[id] h2, h1.helpHead1');
-      for (const heading of allHeadings) {
+      const validShadowHeadings = allHeadings.filter(heading => {
         const text = heading.textContent?.trim();
-        if (text && text.length > 0 && text.length < 200) {
-          pageHeadings.add(text);
-        }
-      }
+        return text && text.length > 0 && text.length < 200;
+      });
+      validShadowHeadings.forEach(heading => {
+        const text = heading.textContent?.trim();
+        if (text) pageHeadings.add(text);
+      });
 
       const tablesData: {
         fields: {
@@ -655,7 +624,7 @@ export const extractMetadataFromPage = async (
       const startElement = shortdescDiv?.nextElementSibling ?? mainHeading?.nextElementSibling;
 
       if (startElement) {
-        let current = startElement;
+        let current: Element | null = startElement;
         let attempts = 0;
         const maxParagraphs = 3; // Safety limit: collect up to 3 paragraphs total
         let foundExtends = false; // Track if we found the "extends" paragraph
@@ -749,14 +718,14 @@ export const extractMetadataFromPage = async (
       }
 
       // Find all tables (including in shadow DOMs)
-      const tables = collectFromShadowDOM(document, 'table');
+      const allTables = collectFromShadowDOM(document, 'table');
 
-      for (const table of tables) {
-        // Get headers
+      // Filter tables to only process metadata field tables (similar to Playwright's filter())
+      const isMetadataFieldTable = (table: Element): boolean => {
         const headerCells = Array.from(table.querySelectorAll('th, thead td'));
         const headers = headerCells.map(cell => cell.textContent?.trim().toLowerCase() ?? '');
 
-        if (headers.length === 0) continue;
+        if (headers.length === 0) return false;
 
         // Check if this is a fields table
         const hasField = headers.some(h => h.includes('field') || h === 'name');
@@ -767,7 +736,15 @@ export const extractMetadataFromPage = async (
         const isTraditionalFormat = hasField && hasType && hasDesc;
         const isNestedFormat = headers.length === 2 && hasField && hasDesc;
 
-        if (!isTraditionalFormat && !isNestedFormat) continue;
+        return isTraditionalFormat || isNestedFormat;
+      };
+
+      const tables = allTables.filter(isMetadataFieldTable) as HTMLTableElement[];
+
+      for (const table of tables) {
+        // Get headers
+        const headerCells = Array.from(table.querySelectorAll('th, thead td'));
+        const headers = headerCells.map(cell => cell.textContent?.trim().toLowerCase() ?? '');
 
         // Find column indices
         const fieldIdx = headers.findIndex(
@@ -890,17 +867,21 @@ export const extractMetadataFromPage = async (
         };
 
         // Extract rows for this table
-        const rows = Array.from(table.querySelectorAll('tbody tr, tr:not(:first-child)'));
+        const allRows = Array.from(table.querySelectorAll('tbody tr, tr:not(:first-child)'));
+        // Filter rows to only process those with sufficient cells (similar to Playwright's filter())
+        const validRows = allRows.filter(row => {
+          const cells = row.querySelectorAll('td, th');
+          return cells.length >= 2;
+        });
+
         const tableFields: {
           Description: string;
           'Field Name': string;
           'Field Type': string;
         }[] = [];
 
-        for (const row of rows) {
+        for (const row of validRows) {
           const cells = Array.from(row.querySelectorAll('td, th'));
-
-          if (cells.length < 2) continue;
 
           let fieldName = '';
           let fieldType = '';
@@ -1012,23 +993,22 @@ export const extractMetadataFromPage = async (
         description: string;
       }[] = [];
 
-      // Process all headings that don't have tables
-      for (const headingText of Array.from(pageHeadings)) {
+      // Filter headings to find those without tables (similar to Playwright's filter())
+      const headingsWithoutTablesFiltered = Array.from(pageHeadings).filter(headingText => {
         // Skip if this heading already has a table
-        if (headingsWithTables.has(headingText)) {
-          continue;
-        }
+        if (headingsWithTables.has(headingText)) return false;
 
         // Skip the main H1 page title heading
-        if (headingText === pageTitle) {
-          continue;
-        }
+        if (headingText === pageTitle) return false;
 
         // Skip headings that contain spaces (these are typically section headers, not metadata types)
-        if (headingText.includes(' ')) {
-          continue;
-        }
+        if (headingText.includes(' ')) return false;
 
+        return true;
+      });
+
+      // Process all headings that don't have tables
+      for (const headingText of headingsWithoutTablesFiltered) {
         // Find the heading element in the DOM (including shadow DOMs)
         const headingElement = searchInShadowDOM(
           document,
