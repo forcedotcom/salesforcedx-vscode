@@ -86,21 +86,6 @@ export const loadMetadataPage = async (
     // Strategy 1: Find the frame matching our target URL (most specific)
     contentFrame = frames.find(f => f.url().includes(expectedPage));
 
-    // Strategy 2: Find any frame with the base path (excluding main frame)
-    if (!contentFrame) {
-      contentFrame = frames.find(f => f.url().includes('atlas.en-us.api_meta') && f !== page.mainFrame());
-    }
-
-    // Strategy 3: For multi-frame pages, use the second frame (often the content)
-    if (!contentFrame && frames.length > 1) {
-      contentFrame = frames[1];
-    }
-
-    // Strategy 4: Fallback to main frame
-    if (!contentFrame) {
-      contentFrame = page.mainFrame();
-    }
-
     const frameInfo = contentFrame === page.mainFrame() ? 'main frame' : contentFrame.url() || 'unnamed frame';
     console.log(`${indent}✓ Using frame: ${frameInfo}`);
 
