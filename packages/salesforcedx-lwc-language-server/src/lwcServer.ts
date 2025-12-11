@@ -581,7 +581,7 @@ export default class Server {
       }
       if (token === TokenType.AttributeValue && attributeName === 'for:item') {
         iterators.unshift({
-          name: scanner.getTokenText().replace(/"|'/g, ''),
+          name: scanner.getTokenText().replaceAll(/"|'/g, ''),
           range: {
             start: doc?.positionAt(scanner.getTokenOffset()),
             end: doc?.positionAt(scanner.getTokenEnd())

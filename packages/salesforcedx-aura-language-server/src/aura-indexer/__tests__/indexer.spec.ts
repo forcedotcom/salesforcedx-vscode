@@ -6,23 +6,6 @@
  */
 
 // Mock JSON imports from baseContext.ts - these are runtime require() calls in compiled code
-const mockJsonFromCommon = (relativePath: string) => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const pathModule = require('node:path');
-  let current = __dirname;
-  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-    const parent = pathModule.resolve(current, '..');
-    if (parent === current) break;
-    current = parent;
-  }
-  const packagesDir = pathModule.resolve(current, '..');
-  const filePath = pathModule.join(packagesDir, 'salesforcedx-lightning-lsp-common', 'src', relativePath);
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  return { default: content, ...content };
-};
-
 // Mock JSON imports from indexer.ts
 const mockJsonFromAuraServer = (relativePath: string) => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -43,27 +26,6 @@ const mockJsonFromAuraServer = (relativePath: string) => {
 // Mock relative imports from baseContext.js - these need to match the exact paths Jest resolves when baseContext.js
 // executes require("./resources/..."). Since baseContext.js is in out/src/, the relative path
 // resolves to out/src/resources/... which we mock using paths relative to the test file.
-jest.mock(
-  '../../../../salesforcedx-lightning-lsp-common/out/src/resources/core/jsconfig-core.json',
-  () => mockJsonFromCommon('resources/core/jsconfig-core.json'),
-  {
-    virtual: true
-  }
-);
-jest.mock(
-  '../../../../salesforcedx-lightning-lsp-common/out/src/resources/core/settings-core.json',
-  () => mockJsonFromCommon('resources/core/settings-core.json'),
-  {
-    virtual: true
-  }
-);
-jest.mock(
-  '../../../../salesforcedx-lightning-lsp-common/out/src/resources/sfdx/jsconfig-sfdx.json',
-  () => mockJsonFromCommon('resources/sfdx/jsconfig-sfdx.json'),
-  {
-    virtual: true
-  }
-);
 
 // Mock JSON imports for aura indexer - from indexer.ts which is in src/aura-indexer/
 // So the relative path from indexer.ts is ../resources/, but from test file (src/aura-indexer/__tests__/) it's ../../resources/
@@ -82,8 +44,8 @@ import AuraIndexer from '../indexer';
 // Normalize paths for cross-platform test consistency
 const normalize = (start: string, p: string): string => {
   // Convert backslashes to forward slashes and normalize to POSIX format
-  const normalizedStart = path.posix.normalize(start.replace(/\\/g, '/'));
-  const normalizedP = path.posix.normalize(p.replace(/\\/g, '/'));
+  const normalizedStart = path.posix.normalize(start.replaceAll('\\', '/'));
+  const normalizedP = path.posix.normalize(p.replaceAll('\\', '/'));
 
   // Handle Windows case-insensitive paths by comparing lowercase
   if (normalizedP.toLowerCase().startsWith(normalizedStart.toLowerCase())) {
@@ -104,8 +66,7 @@ describe('indexer parsing content', () => {
     await auraIndexer.configureAndIndex();
     context.addIndexingProvider({ name: 'aura', indexer: auraIndexer });
 
-    let markup = await context.findAllAuraMarkup();
-    markup = markup.map(p => normalize(SFDX_WORKSPACE_ROOT, p)).sort();
+    const markup = (await context.findAllAuraMarkup()).map(p => normalize(SFDX_WORKSPACE_ROOT, p)).toSorted();
     expect(markup).toMatchSnapshot();
     const tags = auraIndexer.getAuraTags();
     tags.forEach(taginfo => {
@@ -116,7 +77,7 @@ describe('indexer parsing content', () => {
         taginfo.location.uri = normalize(SFDX_WORKSPACE_ROOT, uriToFile(taginfo.location.uri));
       }
       if (taginfo.attributes) {
-        taginfo.attributes = taginfo.attributes.sort((a, b) => a.name.localeCompare(b.name));
+        taginfo.attributes = taginfo.attributes.toSorted((a, b) => a.name.localeCompare(b.name));
         for (const attribute of taginfo.attributes) {
           if (attribute.location?.uri) {
             attribute.location.uri = normalize(SFDX_WORKSPACE_ROOT, uriToFile(attribute.location.uri));
@@ -124,10 +85,10 @@ describe('indexer parsing content', () => {
         }
       }
     });
-    const sortedTags = new Map([...tags.entries()].sort());
+    const sortedTags = new Map([...tags.entries()].toSorted());
     expect(sortedTags).toMatchSnapshot();
 
-    const namespaces = auraIndexer.getAuraNamespaces().sort();
+    const namespaces = auraIndexer.getAuraNamespaces().toSorted();
     expect(namespaces).toMatchSnapshot();
   });
 
