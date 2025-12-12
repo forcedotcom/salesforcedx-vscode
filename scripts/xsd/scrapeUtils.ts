@@ -165,14 +165,9 @@ export const extractMetadataFromPage = async (
       // Collect all headings on the page to identify which types have sections
       const pageHeadings = new Set<string>();
 
-      // Search for h2 headings inside <div class="section" id="..."> and h1 with class "helpHead1"
+      // headingElements is the list of headings that represent metadata types
       const headingElements = Array.from(document.querySelectorAll('div.section[id] h2, h1.helpHead1'));
-      // Filter headings by text length (similar to Playwright's filter({ hasText: ... }))
-      const validHeadings = headingElements.filter(heading => {
-        const text = heading.textContent?.trim();
-        return text && text.length > 0 && text.length < 200;
-      });
-      validHeadings.forEach(heading => {
+      headingElements.forEach(heading => {
         const text = heading.textContent?.trim();
         if (text) pageHeadings.add(text);
       });
