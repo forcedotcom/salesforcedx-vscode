@@ -214,7 +214,7 @@ export const extractMetadataFromPage = async (
 
       // Strategy 2: Look for direct paragraph siblings after heading OR after shortdesc
       // Collect additional paragraphs until we find one with "extends" (inheritance info)
-      const mainHeading = document.querySelector('h1') ?? document.querySelector('h2');
+      const mainHeading = document.querySelector('h1');
       // Start from shortdescDiv's next sibling if it exists, otherwise from heading's next sibling
       const startElement = shortdescDiv?.nextElementSibling ?? mainHeading?.nextElementSibling;
 
