@@ -5,33 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ValueNode, StringNode } from '@humanwhocodes/momoa';
+import type { StringNode, ValueNode } from '@humanwhocodes/momoa';
 import type { Rule } from 'eslint';
 
-const findNodeAtPath = (node: ValueNode, pathSegments: string[]): ValueNode[] => {
-  if (pathSegments.length === 0) {
-    return [node];
-  }
-
-  const [key, ...rest] = pathSegments;
-
-  if (node.type === 'Object') {
-    const member = node.members.find(m => m.name.type === 'String' && m.name.value === key);
-    return member ? findNodeAtPath(member.value, rest) : [];
-  }
-
-  if (node.type === 'Array' && key === '*') {
-    return node.elements.flatMap(el => findNodeAtPath(el.value, rest));
-  }
-
-  if (node.type === 'Array' && /^\d+$/.test(key)) {
-    const index = parseInt(key, 10);
-    const element = node.elements[index];
-    return element ? findNodeAtPath(element.value, rest) : [];
-  }
-
-  return [];
-};
+import { findNodeAtPath } from './jsonAstUtils';
 
 const extractViewIds = (ast: ValueNode): Set<string> => {
   const viewContainerNodes = findNodeAtPath(ast, ['contributes', 'views', '*', '*']);
@@ -78,7 +55,6 @@ export const packageJsonViewRefs: Rule.RuleModule = {
     },
     schema: [],
     messages: {
-      undefinedView: 'View ID "{{viewId}}" referenced but not defined in contributes.views',
       orphanedView: 'View ID "{{viewId}}" is defined but never referenced in any menu or viewsWelcome'
     }
   },
@@ -89,7 +65,8 @@ export const packageJsonViewRefs: Rule.RuleModule = {
     }
 
     return {
-      'Program:exit': (node: any) => {
+      // @eslint/json provides JSON AST with Document as root node
+      'Document:exit': (node: any) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         const ast = node?.body as ValueNode | undefined;
         if (ast?.type !== 'Object') {
@@ -99,15 +76,8 @@ export const packageJsonViewRefs: Rule.RuleModule = {
         const definedViews = extractViewIds(ast);
         const referencedViews = extractReferencedViewIds(ast);
 
-        Array.from(referencedViews.entries())
-          .filter(([viewId]) => !definedViews.has(viewId))
-          .map(([viewId, viewNode]) => {
-            context.report({
-              node: viewNode as unknown as Rule.Node,
-              messageId: 'undefinedView',
-              data: { viewId }
-            });
-          });
+        // Note: We don't report undefinedView errors because views can be defined in other packages
+        // and referenced via 'when' clauses across extensions
 
         Array.from(definedViews)
           .filter(viewId => !referencedViews.has(viewId))

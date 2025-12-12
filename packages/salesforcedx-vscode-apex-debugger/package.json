@@ -181,7 +181,7 @@
     "debuggers": [
       {
         "type": "apex",
-        "label": "Apex Debugger",
+        "label": "%debugger_label%",
         "program": "./dist/apexDebug.js",
         "runtime": "node",
         "languages": [

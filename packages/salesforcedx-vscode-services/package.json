@@ -165,27 +165,27 @@
         "salesforcedx-vscode-code-builder-web.instanceUrl": {
           "type": "string",
           "default": "",
-          "description": "Salesforce instance URL for web extensions.  Only valid in browser"
+          "description": "%configuration.instanceUrl.description%"
         },
         "salesforcedx-vscode-code-builder-web.accessToken": {
           "type": "string",
           "default": "",
-          "description": "Salesforce access token for web extensions.  Only valid in browser"
+          "description": "%configuration.accessToken.description%"
         },
         "salesforcedx-vscode-code-builder-web.apiVersion": {
           "type": "string",
           "default": "64.0",
-          "description": "Salesforce api version (example: 65.0).  Only valid in browser"
+          "description": "%configuration.apiVersion.description%"
         },
         "salesforcedx-vscode-salesforcedx.enableLocalTraces": {
           "type": "boolean",
           "default": false,
-          "description": "Enable local OpenTelemetry traces for debugging and performance monitoring.  Start the trace viewer using docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm"
+          "description": "%configuration.otelLocal.description%"
         },
         "salesforcedx-vscode-salesforcedx.enableConsoleTraces": {
           "type": "boolean",
           "default": false,
-          "description": "Send OpenTelemetry traces for debugging and performance monitoring to the console (browser or electron)."
+          "description": "%configuration.otelConsole.description%"
         }
       }
     },

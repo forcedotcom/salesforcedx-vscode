@@ -4,20 +4,20 @@ overview: "Create three new ESLint rules for VS Code extension package.json vali
 todos:
   - id: icon-paths-rule
     content: Create packageJsonIconPaths rule (light/dark pairs, file existence)
-    status: pending
+    status: completed
   - id: command-refs-rule
     content: Create packageJsonCommandRefs rule (menu refs, orphan detection)
-    status: pending
+    status: completed
     dependencies:
       - icon-paths-rule
   - id: view-refs-rule
     content: Create packageJsonViewRefs rule (when clause view IDs)
-    status: pending
+    status: completed
     dependencies:
       - command-refs-rule
   - id: wire-up
     content: Export rules in index.ts and enable in eslint.config.mjs
-    status: pending
+    status: completed
     dependencies:
       - view-refs-rule
 ---

@@ -197,14 +197,14 @@
       "metadata": [
         {
           "id": "metadata",
-          "name": "Metadata",
+          "name": "%metadata_view_title_text%",
           "when": "sf:project_opened && config.salesforcedx-vscode-core.useLegacyOrgBrowser"
         }
       ],
       "conflicts": [
         {
           "id": "conflicts",
-          "name": "Conflicts",
+          "name": "%conflicts_view_title_text%",
           "when": "sf:project_opened"
         }
       ]

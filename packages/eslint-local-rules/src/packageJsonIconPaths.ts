@@ -5,38 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ValueNode, ObjectNode } from '@humanwhocodes/momoa';
+import type { ObjectNode, ValueNode } from '@humanwhocodes/momoa';
 import type { Rule } from 'eslint';
 import * as fs from 'node:fs';
 import * as pathModule from 'node:path';
 
-const findNodeAtPath = (node: ValueNode, pathSegments: string[]): ValueNode[] => {
-  if (pathSegments.length === 0) {
-    return [node];
-  }
-
-  const [key, ...rest] = pathSegments;
-
-  if (node.type === 'Object') {
-    const member = node.members.find(m => {
-      const nameNode = m.name;
-      return nameNode.type === 'String' && nameNode.value === key;
-    });
-    return member ? findNodeAtPath(member.value, rest) : [];
-  }
-
-  if (node.type === 'Array' && key === '*') {
-    return node.elements.flatMap(el => findNodeAtPath(el.value, rest));
-  }
-
-  if (node.type === 'Array' && /^\d+$/.test(key)) {
-    const index = parseInt(key, 10);
-    const element = node.elements[index];
-    return element ? findNodeAtPath(element.value, rest) : [];
-  }
-
-  return [];
-};
+import { findNodeAtPath } from './jsonAstUtils';
 
 const checkIconObject = (
   node: ObjectNode,
@@ -119,7 +93,8 @@ export const packageJsonIconPaths: Rule.RuleModule = {
     }
 
     return {
-      'Program:exit': (node: any) => {
+      // @eslint/json provides JSON AST with Document as root node
+      'Document:exit': (node: any) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         const ast = node?.body as ValueNode | undefined;
         if (ast?.type !== 'Object') {
@@ -127,15 +102,17 @@ export const packageJsonIconPaths: Rule.RuleModule = {
         }
 
         const iconPaths = [
-          ['contributes', 'commands', '*', 'icon'],
-          ['contributes', 'viewsContainers', 'activitybar', '*', 'icon']
+          { path: ['contributes', 'commands', '*', 'icon'], pathStr: 'contributes.commands[*].icon' },
+          {
+            path: ['contributes', 'viewsContainers', 'activitybar', '*', 'icon'],
+            pathStr: 'contributes.viewsContainers.activitybar[*].icon'
+          }
         ];
 
-        for (const path of iconPaths) {
+        for (const { path, pathStr } of iconPaths) {
           const nodes = findNodeAtPath(ast, path);
           for (const foundNode of nodes) {
             if (foundNode.type === 'Object') {
-              const pathStr = path.join('.');
               checkIconObject(foundNode, context, filename, pathStr);
             }
           }
