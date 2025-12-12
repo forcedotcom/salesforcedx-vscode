@@ -6,17 +6,13 @@
  */
 
 import * as fs from 'node:fs';
-import { Linter } from 'eslint';
 import { packageJsonI18nDescriptions } from '../src/packageJsonI18nDescriptions';
-
-// CJS require needed: Jest/ts-jest runs in CJS mode. ESM `import` would resolve to
-// `{ default: plugin }` but CJS require gives us `plugin` directly. With esModuleInterop: false,
-// `import json from '@eslint/json'` yields undefined at runtime.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const json = require('@eslint/json') as (typeof import('@eslint/json'))['default'];
+import { createJsonLinter, filterByRule } from './jsonLintHelper';
 
 jest.mock('node:fs');
 const mockFs = fs as jest.Mocked<typeof fs>;
+
+const RULE_NAME = 'package-json-i18n-descriptions';
 
 describe('package-json-i18n-descriptions', () => {
   beforeEach(() => {
@@ -30,28 +26,11 @@ describe('package-json-i18n-descriptions', () => {
   });
 
   describe('with Linter', () => {
-    const linter = new Linter({ configType: 'flat' });
+    const lintJson = createJsonLinter(RULE_NAME, packageJsonI18nDescriptions);
 
-    const lintJson = (code: string, nlsContent: Record<string, string>, filename = 'packages/test/package.json') => {
+    const lintWithNls = (code: string, nlsContent: Record<string, string>, filename = 'packages/test/package.json') => {
       mockFs.readFileSync.mockReturnValue(JSON.stringify(nlsContent));
-
-      const config = [
-        {
-          files: ['**/*.json'],
-          plugins: {
-            json: { rules: json.rules, languages: json.languages },
-            local: { rules: { 'package-json-i18n-descriptions': packageJsonI18nDescriptions } }
-          },
-          language: 'json/json',
-          rules: {
-            'local/package-json-i18n-descriptions': 'error'
-          }
-        }
-        // Type assertion needed: @eslint/json's .d.ts emits `meta.type: string` instead of
-        // the literal union `"problem" | "suggestion" | "layout"` that ESLint's Plugin type expects.
-        // Runtime types are correct; only the upstream type declarations are imprecise.
-      ] as Linter.Config[];
-      return linter.verify(code, config, { filename });
+      return lintJson(code, filename);
     };
 
     it('should pass when command title uses valid i18n placeholder', () => {
@@ -66,8 +45,7 @@ describe('package-json-i18n-descriptions', () => {
         2
       );
 
-      const messages = lintJson(code, { 'command.title': 'My Command' });
-      const errors = messages.filter(m => m.ruleId === 'local/package-json-i18n-descriptions');
+      const errors = filterByRule(lintWithNls(code, { 'command.title': 'My Command' }), RULE_NAME);
       expect(errors).toHaveLength(0);
     });
 
@@ -83,8 +61,7 @@ describe('package-json-i18n-descriptions', () => {
         2
       );
 
-      const messages = lintJson(code, {});
-      const errors = messages.filter(m => m.ruleId === 'local/package-json-i18n-descriptions');
+      const errors = filterByRule(lintWithNls(code, {}), RULE_NAME);
       expect(errors).toHaveLength(1);
       expect(errors[0].messageId).toBe('hardcodedString');
     });
@@ -101,8 +78,7 @@ describe('package-json-i18n-descriptions', () => {
         2
       );
 
-      const messages = lintJson(code, { 'other.key': 'Other Value' });
-      const errors = messages.filter(m => m.ruleId === 'local/package-json-i18n-descriptions');
+      const errors = filterByRule(lintWithNls(code, { 'other.key': 'Other Value' }), RULE_NAME);
       expect(errors).toHaveLength(1);
       expect(errors[0].messageId).toBe('missingKey');
     });
@@ -121,8 +97,7 @@ describe('package-json-i18n-descriptions', () => {
         2
       );
 
-      const messages = lintJson(code, {});
-      const errors = messages.filter(m => m.ruleId === 'local/package-json-i18n-descriptions');
+      const errors = filterByRule(lintWithNls(code, {}), RULE_NAME);
       expect(errors).toHaveLength(1);
       expect(errors[0].messageId).toBe('hardcodedString');
     });
@@ -147,8 +122,7 @@ describe('package-json-i18n-descriptions', () => {
         2
       );
 
-      const messages = lintJson(code, { 'config.title': 'Config' });
-      const errors = messages.filter(m => m.ruleId === 'local/package-json-i18n-descriptions');
+      const errors = filterByRule(lintWithNls(code, { 'config.title': 'Config' }), RULE_NAME);
       expect(errors).toHaveLength(1);
       expect(errors[0].messageId).toBe('hardcodedString');
     });
@@ -167,8 +141,7 @@ describe('package-json-i18n-descriptions', () => {
         2
       );
 
-      const messages = lintJson(code, {});
-      const errors = messages.filter(m => m.ruleId === 'local/package-json-i18n-descriptions');
+      const errors = filterByRule(lintWithNls(code, {}), RULE_NAME);
       expect(errors).toHaveLength(1);
       expect(errors[0].messageId).toBe('hardcodedString');
     });
@@ -187,8 +160,7 @@ describe('package-json-i18n-descriptions', () => {
         2
       );
 
-      const messages = lintJson(code, {});
-      const errors = messages.filter(m => m.ruleId === 'local/package-json-i18n-descriptions');
+      const errors = filterByRule(lintWithNls(code, {}), RULE_NAME);
       expect(errors).toHaveLength(1);
       expect(errors[0].messageId).toBe('hardcodedString');
     });
@@ -205,8 +177,7 @@ describe('package-json-i18n-descriptions', () => {
         2
       );
 
-      const messages = lintJson(code, {}, 'some/other/file.json');
-      const errors = messages.filter(m => m.ruleId === 'local/package-json-i18n-descriptions');
+      const errors = filterByRule(lintWithNls(code, {}, 'some/other/file.json'), RULE_NAME);
       expect(errors).toHaveLength(0);
     });
 
@@ -234,13 +205,15 @@ describe('package-json-i18n-descriptions', () => {
         2
       );
 
-      const messages = lintJson(code, {
-        'cmd.title': 'Command',
-        'config.title': 'Configuration',
-        'setting.desc': 'Description',
-        'view.name': 'View'
-      });
-      const errors = messages.filter(m => m.ruleId === 'local/package-json-i18n-descriptions');
+      const errors = filterByRule(
+        lintWithNls(code, {
+          'cmd.title': 'Command',
+          'config.title': 'Configuration',
+          'setting.desc': 'Description',
+          'view.name': 'View'
+        }),
+        RULE_NAME
+      );
       expect(errors).toHaveLength(0);
     });
 
@@ -260,22 +233,7 @@ describe('package-json-i18n-descriptions', () => {
         2
       );
 
-      const config = [
-        {
-          files: ['**/*.json'],
-          plugins: {
-            json: { rules: json.rules, languages: json.languages },
-            local: { rules: { 'package-json-i18n-descriptions': packageJsonI18nDescriptions } }
-          },
-          language: 'json/json',
-          rules: {
-            'local/package-json-i18n-descriptions': 'error'
-          }
-        }
-      ] as Linter.Config[];
-
-      const messages = linter.verify(code, config, { filename: 'packages/test/package.json' });
-      const errors = messages.filter(m => m.ruleId === 'local/package-json-i18n-descriptions');
+      const errors = filterByRule(lintJson(code), RULE_NAME);
       // Should report missingKey since nls file couldn't be loaded
       expect(errors).toHaveLength(1);
       expect(errors[0].messageId).toBe('missingKey');

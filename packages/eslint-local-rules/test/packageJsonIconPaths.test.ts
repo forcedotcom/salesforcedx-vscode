@@ -5,14 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Linter } from 'eslint';
 import { packageJsonIconPaths } from '../src/packageJsonIconPaths';
+import { createJsonLinter, filterByRule } from './jsonLintHelper';
 
-// CJS require needed: Jest/ts-jest runs in CJS mode. ESM `import` would resolve to
-// `{ default: plugin }` but CJS require gives us `plugin` directly. With esModuleInterop: false,
-// `import json from '@eslint/json'` yields undefined at runtime.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const json = require('@eslint/json') as (typeof import('@eslint/json'))['default'];
+const RULE_NAME = 'package-json-icon-paths';
 
 describe('package-json-icon-paths', () => {
   it('should be exported', () => {
@@ -22,27 +18,7 @@ describe('package-json-icon-paths', () => {
   });
 
   describe('with Linter', () => {
-    const linter = new Linter({ configType: 'flat' });
-
-    const lintJson = (code: string, filename = 'packages/test/package.json') => {
-      const config = [
-        {
-          files: ['**/*.json'],
-          plugins: {
-            json: { rules: json.rules, languages: json.languages },
-            local: { rules: { 'package-json-icon-paths': packageJsonIconPaths } }
-          },
-          language: 'json/json',
-          rules: {
-            'local/package-json-icon-paths': 'error'
-          }
-        }
-        // Type assertion needed: @eslint/json's .d.ts emits `meta.type: string` instead of
-        // the literal union `"problem" | "suggestion" | "layout"` that ESLint's Plugin type expects.
-        // Runtime types are correct; only the upstream type declarations are imprecise.
-      ] as Linter.Config[];
-      return linter.verify(code, config, { filename });
-    };
+    const lintJson = createJsonLinter(RULE_NAME, packageJsonIconPaths);
 
     it('should pass when icon has both light and dark (no missing pair errors)', () => {
       const code = JSON.stringify(
@@ -84,10 +60,9 @@ describe('package-json-icon-paths', () => {
         2
       );
 
-      const messages = lintJson(code);
-      const iconErrors = messages.filter(m => m.ruleId === 'local/package-json-icon-paths');
-      expect(iconErrors).toHaveLength(1);
-      expect(iconErrors[0].messageId).toBe('missingLight');
+      const errors = filterByRule(lintJson(code), RULE_NAME);
+      expect(errors).toHaveLength(1);
+      expect(errors[0].messageId).toBe('missingLight');
     });
 
     it('should error when icon has light but missing dark', () => {
@@ -107,10 +82,9 @@ describe('package-json-icon-paths', () => {
         2
       );
 
-      const messages = lintJson(code);
-      const iconErrors = messages.filter(m => m.ruleId === 'local/package-json-icon-paths');
-      expect(iconErrors).toHaveLength(1);
-      expect(iconErrors[0].messageId).toBe('missingDark');
+      const errors = filterByRule(lintJson(code), RULE_NAME);
+      expect(errors).toHaveLength(1);
+      expect(errors[0].messageId).toBe('missingDark');
     });
 
     it('should pass when no icon property exists', () => {
@@ -125,9 +99,8 @@ describe('package-json-icon-paths', () => {
         2
       );
 
-      const messages = lintJson(code);
-      const iconErrors = messages.filter(m => m.ruleId === 'local/package-json-icon-paths');
-      expect(iconErrors).toHaveLength(0);
+      const errors = filterByRule(lintJson(code), RULE_NAME);
+      expect(errors).toHaveLength(0);
     });
 
     it('should skip files not matching packages/*/package.json', () => {
@@ -147,9 +120,8 @@ describe('package-json-icon-paths', () => {
         2
       );
 
-      const messages = lintJson(code, 'some/other/file.json');
-      const iconErrors = messages.filter(m => m.ruleId === 'local/package-json-icon-paths');
-      expect(iconErrors).toHaveLength(0);
+      const errors = filterByRule(lintJson(code, 'some/other/file.json'), RULE_NAME);
+      expect(errors).toHaveLength(0);
     });
   });
 });
