@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.32",
-    "@effect/opentelemetry": "0.58.0",
+    "@effect/opentelemetry": "0.59.2",
     "@opentelemetry/api": "1.9.0",
     "@opentelemetry/core": "2.0.1",
     "@opentelemetry/exporter-trace-otlp-http": "0.208.0",
@@ -39,12 +39,12 @@
     "@salesforce/source-deploy-retrieve": "^12.25.0",
     "@salesforce/source-tracking": "^7.5.0",
     "@vscode/extension-telemetry": "^1.0.0",
-    "effect": "^3.18.4",
+    "effect": "^3.19.11",
     "jsforce": "^3.10.2",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@effect/platform": "0.92.1",
+    "@effect/platform": "0.93.7",
     "@types/node": "^20.0.0",
     "browserify-zlib": "^0.2.0",
     "esbuild": "0.25.0",
