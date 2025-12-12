@@ -112,7 +112,9 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "../../eslint.config.mjs"
+        "../../eslint.config.mjs",
+        "package.json",
+        "package.nls.json"
       ],
       "output": []
     },
@@ -259,7 +261,7 @@
     "debuggers": [
       {
         "type": "apex-replay",
-        "label": "Apex Replay Debugger",
+        "label": "%debugger_label%",
         "program": "./dist/apexReplayDebug.js",
         "runtime": "node",
         "languages": [

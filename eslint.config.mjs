@@ -22,6 +22,7 @@ import functional from 'eslint-plugin-functional';
 import eslintPluginWorkspaces from 'eslint-plugin-workspaces';
 import effectPlugin from '@effect/eslint-plugin';
 import eslintPluginEslintPlugin from 'eslint-plugin-eslint-plugin';
+import jsonPlugin from '@eslint/json';
 
 import localRulesPlugin from './packages/eslint-local-rules/out/index.js';
 
@@ -572,6 +573,28 @@ export default [
   // Ignore test files for eslint-local-rules
   {
     ignores: ['packages/eslint-local-rules/test/**']
+  },
+  // Register JSON plugin
+  {
+    plugins: {
+      json: jsonPlugin
+    }
+  },
+  // JSON linting for package.json files
+  {
+    files: ['packages/*/package.json'],
+    language: 'json/json',
+    plugins: {
+      json: jsonPlugin,
+      local: { rules: localRules }
+    },
+    rules: {
+      ...jsonPlugin.configs.recommended.rules,
+      'local/package-json-i18n-descriptions': 'error',
+      'local/package-json-icon-paths': 'error',
+      'local/package-json-command-refs': 'error',
+      'local/package-json-view-refs': 'error'
+    }
   },
   eslintConfigPrettier
 ];

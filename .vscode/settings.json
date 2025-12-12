@@ -23,11 +23,10 @@
   "eslint.enable": true,
   "eslint.run": "onSave",
   "eslint.experimental.useFlatConfig": true,
-  "eslint.validate": ["typescript", "javascript"],
+  "eslint.validate": ["javascript", "typescript", "json"],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
-  "eslint.validate": ["javascript", "typescript"],
   "prettier.singleQuote": true,
   "prettier.trailingComma": "none",
   "prettier.tabWidth": 2,
