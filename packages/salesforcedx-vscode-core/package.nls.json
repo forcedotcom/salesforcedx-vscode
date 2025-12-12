@@ -68,6 +68,7 @@
   "visualforce_generate_page_text": "SFDX: Create Visualforce Page",
   "org_browser_walkthrough_title": "Org Browser",
   "org_browser_walkthrough_description": "Browse and retrieve your org's metadata types and components using the Org Browser.",
+  "orgBrowser.activitybar.title": "Org Browser",
   "org_browser_walkthrough_open_title": "Open Org Browser",
   "org_browser_walkthrough_open_description": "Access the Org Browser by clicking the **cloud icon** in the VS Code Primary Sidebar. When you open the Org Browser, all metadata for your default org is cached locally under the '.sfdx' directory to minimize API calls.\n\n[Open Org Browser](command:workbench.view.extension.metadata)\n\n*Learn more: [Org Browser Documentation](https://developer.salesforce.com/docs/platform/sfvscode-extensions/guide/org-browser.html)*",
   "org_browser_walkthrough_open_alt": "org browser interface",

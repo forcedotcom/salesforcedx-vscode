@@ -177,7 +177,7 @@
       "activitybar": [
         {
           "id": "metadata",
-          "title": "Org Browser",
+          "title": "%orgBrowser.activitybar.title%",
           "icon": "resources/orgBrowserIcon.svg"
         },
         {

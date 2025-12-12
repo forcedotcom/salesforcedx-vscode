@@ -1,4 +1,5 @@
 {
   "displayName": "Salesforce VSCode Services",
-  "description": "Core services and APIs for Salesforce VS Code extensions."
+  "description": "Core services and APIs for Salesforce VS Code extensions.",
+  "configuration.title": "Salesforce Services Configuration"
 }

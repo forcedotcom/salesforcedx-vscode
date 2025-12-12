@@ -160,7 +160,7 @@
   "browser": "./dist/web/index.js",
   "contributes": {
     "configuration": {
-      "title": "Salesforce Services Configuration",
+      "title": "%configuration.title%",
       "properties": {
         "salesforcedx-vscode-code-builder-web.instanceUrl": {
           "type": "string",
