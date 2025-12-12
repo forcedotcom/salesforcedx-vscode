@@ -174,11 +174,7 @@ export const extractMetadataFromPage = async (
 
       // Also check shadow DOMs for headings
       const allHeadings = collectFromShadowDOM(document, 'div.section[id] h2, h1.helpHead1');
-      const validShadowHeadings = allHeadings.filter(heading => {
-        const text = heading.textContent?.trim();
-        return text && text.length > 0 && text.length < 200;
-      });
-      validShadowHeadings.forEach(heading => {
+      allHeadings.forEach(heading => {
         const text = heading.textContent?.trim();
         if (text) pageHeadings.add(text);
       });
