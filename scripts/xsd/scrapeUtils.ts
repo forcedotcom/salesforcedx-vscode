@@ -203,13 +203,12 @@ export const extractMetadataFromPage = async (
       let pageLevelDescription = '';
       const collectedParagraphs: string[] = [];
 
-      // Strategy 1: Look for Salesforce's standard shortdesc div (including in shadow DOM)
+      // Step 1: Look for Salesforce's standard shortdesc div (including in shadow DOM)
       const shortdescDiv = searchInShadowDOM(document, 'div.shortdesc');
       collectedParagraphs.push(shortdescDiv?.textContent?.trim() ?? '');
 
-      // Strategy 2: Look for direct paragraph siblings after heading OR after shortdesc
+      // Step 2: Look for direct paragraph siblings after heading OR after shortdesc
       // Collect additional paragraphs until we find one with "extends" (inheritance info)
-      const mainHeading = document.querySelector('h1');
       // Start from shortdescDiv's next sibling
       const startElement = shortdescDiv?.nextElementSibling;
 
@@ -290,21 +289,6 @@ export const extractMetadataFromPage = async (
       } else if (collectedParagraphs.length > 0) {
         // Use what we collected from shortdesc even if we didn't find additional paragraphs
         pageLevelDescription = collectedParagraphs.join(' ');
-      }
-
-      // Strategy 3: If still not found, do a broader search for the first P after the heading
-      if (!pageLevelDescription && mainHeading) {
-        const allParagraphs = Array.from(document.querySelectorAll('p, dd'));
-        for (const p of allParagraphs) {
-          // Only consider paragraphs that come after the heading in DOM order and are not in callouts
-          if (!isInsideCallout(p) && mainHeading.compareDocumentPosition(p) & Node.DOCUMENT_POSITION_FOLLOWING) {
-            const text = p.textContent?.trim() ?? '';
-            if (isValidDescription(text)) {
-              pageLevelDescription = text;
-              break;
-            }
-          }
-        }
       }
 
       // Find all tables (including in shadow DOMs)
