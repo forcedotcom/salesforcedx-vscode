@@ -194,35 +194,8 @@ export const extractMetadataFromPage = async (
       // Track which headings have tables associated with them
       const headingsWithTables = new Set<string>();
 
-      // Get the page title (from h1, or from title element, or from first h2)
-      let pageTitle = '';
-
-      // Try h1 first
-      const h1 = document.querySelector('h1');
-      if (h1) {
-        pageTitle = h1.textContent?.trim();
-      }
-
-      // If no h1 or h1 looks like it has navigation cruft, try first h2
-      if (!pageTitle || pageTitle.includes('|') || pageTitle.includes('Developers')) {
-        const h2 = document.querySelector('h2');
-        if (h2) {
-          const h2Text = h2.textContent?.trim();
-          if (h2Text?.length < 100 && !h2Text.includes('|')) {
-            pageTitle = h2Text;
-          }
-        }
-      }
-
-      // Last resort: title element, but clean it up
-      if (!pageTitle) {
-        const titleElement = document.querySelector('title');
-        if (titleElement) {
-          const titleText = titleElement.textContent;
-          // Try to extract just the first part before any separator
-          pageTitle = titleText.split('|')[0].split('-')[0].trim();
-        }
-      }
+      // Get the page title
+      const pageTitle = Array.from(pageHeadings).at(0);
 
       // Extract page-level description (for the first table)
       // This is typically the first substantial paragraph(s) after the main H1/H2 but before any tables
