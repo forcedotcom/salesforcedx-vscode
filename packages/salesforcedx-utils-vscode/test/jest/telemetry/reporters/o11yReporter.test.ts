@@ -19,6 +19,8 @@ describe('O11yReporter', () => {
 
   let sendMock: jest.Mock;
   let uploadMock: jest.Mock;
+  let forceFlushMock: jest.Mock;
+  let enableAutoBatchingMock: jest.Mock;
   let o11yReporter: O11yReporter;
 
   beforeEach(() => {
@@ -32,10 +34,17 @@ describe('O11yReporter', () => {
     // Mock O11yService
     sendMock = jest.fn();
     uploadMock = jest.fn();
+    forceFlushMock = jest.fn().mockResolvedValue(undefined);
+    enableAutoBatchingMock = jest.fn().mockReturnValue(() => {
+      // Return a cleanup function
+    });
 
     jest.spyOn(O11yService, 'getInstance').mockReturnValue({
-      logEvent: sendMock, // Now mocks logEvent correctly
-      upload: uploadMock // Also mocks upload to prevent dispose failure
+      logEvent: sendMock,
+      upload: uploadMock,
+      forceFlush: forceFlushMock,
+      enableAutoBatching: enableAutoBatchingMock,
+      initialize: jest.fn().mockResolvedValue(undefined)
     } as any);
 
     // Mock workspace config for telemetry tag
