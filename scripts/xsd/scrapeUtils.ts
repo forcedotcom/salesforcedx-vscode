@@ -205,10 +205,7 @@ export const extractMetadataFromPage = async (
 
       // Strategy 1: Look for Salesforce's standard shortdesc div (including in shadow DOM)
       const shortdescDiv = searchInShadowDOM(document, 'div.shortdesc');
-      if (shortdescDiv) {
-        const text = shortdescDiv.textContent?.trim();
-        collectedParagraphs.push(text);
-      }
+      collectedParagraphs.push(shortdescDiv?.textContent?.trim() ?? '');
 
       // Strategy 2: Look for direct paragraph siblings after heading OR after shortdesc
       // Collect additional paragraphs until we find one with "extends" (inheritance info)
