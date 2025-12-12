@@ -207,9 +207,7 @@ export const extractMetadataFromPage = async (
       const shortdescDiv = searchInShadowDOM(document, 'div.shortdesc');
       if (shortdescDiv) {
         const text = shortdescDiv.textContent?.trim();
-        if (text.length > 20) {
-          collectedParagraphs.push(text);
-        }
+        collectedParagraphs.push(text);
       }
 
       // Strategy 2: Look for direct paragraph siblings after heading OR after shortdesc
