@@ -94,7 +94,7 @@ export const loadMetadataPage = async (
 
     // Create a frame locator for the content frame
     // Note: We still need to use the frame object for evaluate() later, but we can use locators for waiting
-    const frameLocator = contentFrame === page.mainFrame() ? page : page.frameLocator('iframe').first();
+    const frameLocator = contentFrame === page.mainFrame() ? page : page.locator('iframe').first().contentFrame();
 
     try {
       // Wait for at least one table to be visible
