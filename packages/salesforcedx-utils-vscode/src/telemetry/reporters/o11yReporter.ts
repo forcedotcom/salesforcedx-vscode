@@ -21,6 +21,7 @@ export class O11yReporter
   private o11yUploadEndpoint: string;
   private toDispose: Disposable[] = [];
   private readonly o11yService: O11yService;
+  private batchingCleanup: (() => void) | null = null;
 
   // user defined tag to add to properties that is defined via setting
   private telemetryTag: string | undefined;
@@ -45,6 +46,12 @@ export class O11yReporter
 
   public async initialize(extensionName: string): Promise<void> {
     await this.o11yService.initialize(extensionName, this.o11yUploadEndpoint);
+
+    // Enable automatic batching with 30-second periodic flush
+    this.batchingCleanup = this.o11yService.enableAutoBatching({
+      flushInterval: 30_000, // 30 seconds
+      enableShutdownHook: true, // Ensure events are flushed on shutdown
+    });
   }
 
   private getUserProperties(): Record<string, string> {
@@ -88,7 +95,8 @@ export class O11yReporter
         measurements
       });
 
-      void this.o11yService.upload();
+      // Batching is enabled - no need to upload after each event
+      // Events will be automatically batched and uploaded based on threshold (50KB) or periodic flush (30s)
     }
   }
 
@@ -121,12 +129,20 @@ export class O11yReporter
         measurements
       });
 
-      void this.o11yService.upload();
+      // Batching is enabled - no need to upload after each event
+      // Events will be automatically batched and uploaded based on threshold (50KB) or periodic flush (30s)
     }
   }
 
   public async dispose(): Promise<void> {
-    await this.o11yService.upload();
+    // Cleanup batching (removes timers and shutdown hooks)
+    if (this.batchingCleanup) {
+      this.batchingCleanup();
+      this.batchingCleanup = null;
+    }
+
+    // Force final flush of any remaining events
+    await this.o11yService.forceFlush();
   }
 
   /**
