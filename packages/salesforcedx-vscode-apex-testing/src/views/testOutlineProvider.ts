@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { APEX_GROUP_RANGE, APEX_TESTS, FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
 import { nls } from '../messages';
+import { sourceIsLS } from '../testDiscovery/testDiscovery';
 import { getApexTests, getLanguageClientStatus } from '../utils/testUtils';
 import { iconHelpers } from './icons';
 import { ApexTestMethod } from './lspConverter';
@@ -69,9 +70,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
         const message = NO_TESTS_MESSAGE;
         const description = NO_TESTS_DESCRIPTION;
         // Check language client status only if using LS discovery
-        const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
-        const source = config.get<'ls' | 'api'>('testing.discoverySource', 'ls');
-        if (source === 'ls') {
+        if (sourceIsLS()) {
           void getLanguageClientStatus()
             .then(languageClientStatus => {
               if (!languageClientStatus.isReady()) {

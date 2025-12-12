@@ -21,6 +21,7 @@ import { APEX_CLASS_EXT } from '../constants';
 import { getVscodeCoreExtension } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { MessageKey } from '../messages/i18n';
+import { getTestController } from '../views/testController';
 import { ApexLibraryTestRunExecutor, ApexTestQuickPickItem, TestType } from './apexTestRun';
 import { getTestInfo } from './readTestFile';
 
@@ -130,6 +131,11 @@ export const apexTestSuiteAdd = async () => {
     new ApexLibraryTestSuiteBuilder('apex_test_suite_add_text')
   );
   await commandlet.run();
+  // Clear all suite children so they re-query from org instead of using stale local files
+  const testController = getTestController();
+  testController.clearAllSuiteChildren();
+  // Refresh to update the tree with latest suite data from org
+  void testController.refresh();
 };
 
 export const apexTestSuiteCreate = async () => {
@@ -139,6 +145,11 @@ export const apexTestSuiteCreate = async () => {
     new ApexLibraryTestSuiteBuilder('apex_test_suite_create_text')
   );
   await commandlet.run();
+  // Clear all suite children so they re-query from org instead of using stale local files
+  const testController = getTestController();
+  testController.clearAllSuiteChildren();
+  // Refresh to update the tree with the newly created suite
+  void testController.refresh();
 };
 
 export const apexTestSuiteRun = async () => {

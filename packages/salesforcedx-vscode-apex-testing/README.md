@@ -28,5 +28,5 @@ This extension provides Apex test execution and management features for VS Code.
 
 ## Extension Settings
 
-- `salesforcedx-vscode-apex.testing.discoverySource`: Select the source for Apex test discovery (ls or api)
-- `salesforcedx-vscode-apex.test-run-concise`: Display only failed test results
+- `salesforcedx-vscode-apex-testing.testing.discoverySource`: Select the source for Apex test discovery (ls or api)
+- `salesforcedx-vscode-apex-testing.test-run-concise`: Display only failed test results
