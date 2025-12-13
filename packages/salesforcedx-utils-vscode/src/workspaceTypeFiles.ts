@@ -4,81 +4,151 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { FileSystemDataProvider, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
-import { Uri, workspace } from 'vscode';
+import { FileType, Uri, workspace } from 'vscode';
+
+// utility methods shared with the vscode extension
+
+const SFDX_PROJECT = 'sfdx-project.json';
+
+export type WorkspaceType =
+  | 'STANDARD'
+  | 'STANDARD_LWC'
+  | 'MONOREPO'
+  | 'MONOREPO_LWC'
+  | 'SFDX'
+  | 'CORE_ALL'
+  | 'CORE_PARTIAL'
+  | 'UNKNOWN';
+
+export const isLWC = (type: WorkspaceType): boolean =>
+  type === 'SFDX' || type === 'STANDARD_LWC' || type === 'CORE_ALL' || type === 'CORE_PARTIAL';
+
+export const getSfdxProjectFile = (root: string): string => path.join(root, SFDX_PROJECT);
 
 /**
- * Populates only the files needed for workspace type detection
- * @param provider FileSystemDataProvider to populate
- * @param workspaceRoot Path to the workspace root
- * @param logger Optional logger function for error messages
+ * Checks if a file exists using VS Code workspace API
  */
-export const populateWorkspaceTypeFiles = async (
-  provider: FileSystemDataProvider,
-  workspaceRoot: string,
-  logger?: (message: string) => void
-): Promise<void> => {
-  // Files that detectWorkspaceType checks for, in order of priority
-  const workspaceTypeFiles = [
-    'sfdx-project.json',
-    'workspace-user.xml',
-    'lwc.config.json',
-    'package.json',
-    'lerna.json'
-  ];
-
-  // Also check parent directory for workspace-user.xml (for CORE_PARTIAL detection)
-  const parentWorkspaceUserPath = path.join(workspaceRoot, '..', 'workspace-user.xml');
-
-  // Try to read each workspace type detection file
-  for (const fileName of workspaceTypeFiles) {
-    const filePath = path.join(workspaceRoot, fileName);
-    await tryReadFile(provider, filePath, logger);
+const fileExists = async (filePath: string): Promise<boolean> => {
+  try {
+    const fileUri = Uri.file(filePath);
+    const stat = await workspace.fs.stat(fileUri);
+    return stat.type === FileType.File;
+  } catch {
+    return false;
   }
-
-  // Also try parent workspace-user.xml
-  await tryReadFile(provider, parentWorkspaceUserPath, logger);
 };
 
 /**
- * Attempts to read a file and add it to the provider if it exists
- * Uses fsPath format (no file:// prefix) to match LWC server behavior
- * @param provider FileSystemDataProvider to update
- * @param filePath Path to the file to read
- * @param logger Optional logger function for error messages
+ * Reads file content as string using VS Code workspace API
  */
-const tryReadFile = async (
-  provider: FileSystemDataProvider,
-  filePath: string,
-  logger?: (message: string) => void
-): Promise<void> => {
+const readFileContent = async (filePath: string): Promise<string | null> => {
   try {
     const fileUri = Uri.file(filePath);
     const fileContent = await workspace.fs.readFile(fileUri);
-    const content = Buffer.from(fileContent).toString('utf8');
+    return Buffer.from(fileContent).toString('utf8');
+  } catch {
+    return null;
+  }
+};
 
-    // Normalize path before storing to ensure consistency with FileSystemDataProvider
-    // This is a key entry point - paths from path.join() may have backslashes on Windows
-    const normalizedFilePath = normalizePath(filePath);
-    provider.updateFileContent(normalizedFilePath, content);
-    provider.updateFileStat(normalizedFilePath, {
-      type: 'file',
-      exists: true,
-      ctime: Date.now(),
-      mtime: Date.now(),
-      size: content.length
-    });
-  } catch (error: unknown) {
-    // File doesn't exist or can't be read - this is expected for most files
-    // Only log if it's an unexpected error
-    if (!(error instanceof Error) || !error.message.includes('ENOENT')) {
-      const logMessage = `Unexpected error reading file ${filePath}: ${String(error)}`;
-      if (logger) {
-        logger(logMessage);
-      } else {
-        console.log(logMessage);
+/**
+ * @param root
+ * @returns WorkspaceType for singular root
+ */
+const detectWorkspaceTypeHelper = async (root: string): Promise<WorkspaceType> => {
+  if (await fileExists(getSfdxProjectFile(root))) {
+    return 'SFDX';
+  }
+  if (await fileExists(path.join(root, 'workspace-user.xml'))) {
+    return 'CORE_ALL';
+  }
+  if (await fileExists(path.join(root, '..', 'workspace-user.xml'))) {
+    return 'CORE_PARTIAL';
+  }
+
+  if (await fileExists(path.join(root, 'lwc.config.json'))) {
+    return 'STANDARD_LWC';
+  }
+
+  const packageJson = path.join(root, 'package.json');
+  const packageJsonContent = await readFileContent(packageJson);
+  if (packageJsonContent) {
+    try {
+      const packageInfo: unknown = JSON.parse(packageJsonContent);
+      if (packageInfo && typeof packageInfo === 'object' && packageInfo !== null) {
+        // Safely access properties without type assertions
+        let dependenciesObj: unknown;
+        let devDependenciesObj: unknown;
+        let lwc: unknown;
+        let workspaces: unknown;
+
+        for (const [key, value] of Object.entries(packageInfo)) {
+          if (key === 'dependencies') {
+            dependenciesObj = value;
+          } else if (key === 'devDependencies') {
+            devDependenciesObj = value;
+          } else if (key === 'lwc') {
+            lwc = value;
+          } else if (key === 'workspaces') {
+            workspaces = value;
+          }
+        }
+
+        const dependencies =
+          dependenciesObj && typeof dependenciesObj === 'object' && dependenciesObj !== null
+            ? Object.keys(dependenciesObj)
+            : [];
+        const devDependencies =
+          devDependenciesObj && typeof devDependenciesObj === 'object' && devDependenciesObj !== null
+            ? Object.keys(devDependenciesObj)
+            : [];
+        const allDependencies = [...dependencies, ...devDependencies];
+        const hasLWCdependencies = allDependencies.some(key => key.startsWith('@lwc/') || key === 'lwc');
+
+        // any type of @lwc is a dependency
+        if (hasLWCdependencies) {
+          return 'STANDARD_LWC';
+        }
+
+        // has any type of lwc configuration
+        if (lwc) {
+          return 'STANDARD_LWC';
+        }
+
+        if (workspaces) {
+          return 'MONOREPO';
+        }
+
+        if (await fileExists(path.join(root, 'lerna.json'))) {
+          return 'MONOREPO';
+        }
+
+        return 'STANDARD';
       }
+    } catch (e) {
+      // Log error and fallback to setting workspace type to Unknown
+      const errorMessage = e instanceof Error ? e.message : String(e);
+      console.error(`Error encountered while trying to detect workspace type ${errorMessage}`);
     }
   }
+
+  return 'UNKNOWN';
+};
+
+/**
+ * @param workspaceRoots
+ * @returns WorkspaceType, actively not supporting workspaces of mixed type
+ */
+export const detectWorkspaceType = async (workspaceRoots: string[]): Promise<WorkspaceType> => {
+  if (workspaceRoots.length === 1) {
+    return await detectWorkspaceTypeHelper(workspaceRoots[0]);
+  }
+  for (const root of workspaceRoots) {
+    const type = await detectWorkspaceTypeHelper(root);
+    if (type !== 'CORE_PARTIAL') {
+      return 'UNKNOWN';
+    }
+  }
+  return 'CORE_PARTIAL';
 };
