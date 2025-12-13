@@ -58,7 +58,12 @@ export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.E
     }
 
     logger(`📁 Bootstrapping ${uris.length} files into document cache...`);
-    logger(`Files found: ${uris.slice(0, 10).map(uri => uri.fsPath).join(', ')}${uris.length > 10 ? '...' : ''}`);
+    logger(
+      `Files found: ${uris
+        .slice(0, 10)
+        .map(uri => uri.fsPath)
+        .join(', ')}${uris.length > 10 ? '...' : ''}`
+    );
     yield* Effect.log(`📁 Bootstrapping ${uris.length} files`);
 
     // 2. Open all files in bounded parallel fashion

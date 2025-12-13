@@ -95,10 +95,7 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
       case 'STANDARD_LWC':
       case 'MONOREPO':
       case 'UNKNOWN': {
-        let depth = 6;
-        if (this.type === 'MONOREPO') {
-          depth += 2;
-        }
+        const depth = this.type === 'MONOREPO' ? 8 : 6;
         const unknownroots = await findNamespaceRoots(this.workspaceRoots[0], this.fileSystemProvider, depth);
         roots.lwc.push(...unknownroots.lwc);
         return roots;

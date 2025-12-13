@@ -25,12 +25,10 @@
     "lwc-language-server": "./bin/lwc-language-server.js"
   },
   "scripts": {
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf src/resources/sfdx/typings/copied",
+    "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache",
     "compile": "wireit",
-    "watch": "tsc -watch -p .",
     "test": "jest --coverage",
-    "lint": "eslint .",
-    "lint:fix": "npm run lint -- --fix"
+    "lint": "wireit"
   },
   "wireit": {
     "compile": {
@@ -49,6 +47,17 @@
         "out/**",
         "tsconfig.tsbuildinfo"
       ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
     }
   },
   "dependencies": {
@@ -60,7 +69,6 @@
     "@salesforce/label": "0.0.21",
     "@salesforce/salesforcedx-lightning-lsp-common": "64.16.1",
     "@salesforce/schema": "0.0.21",
-    "@types/vscode": "^1.90.0",
     "babel-types": "^6.26.0",
     "change-case": "^4.1.1",
     "comment-parser": "^0.7.6",

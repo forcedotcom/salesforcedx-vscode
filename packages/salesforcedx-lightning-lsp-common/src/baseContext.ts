@@ -13,7 +13,7 @@ import { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSys
 import * as jsconfigCoreTemplateJson from './resources/core/jsconfig-core.json';
 import * as settingsCoreTemplateJson from './resources/core/settings-core.json';
 import * as jsconfigSfdxTemplateJson from './resources/sfdx/jsconfig-sfdx.json';
-import { WorkspaceType, detectWorkspaceType, getSfdxProjectFile } from './shared';
+import { WorkspaceType, getSfdxProjectFile } from './shared';
 import * as utils from './utils';
 import { NormalizedPath } from './utils';
 
@@ -230,8 +230,8 @@ export abstract class BaseWorkspaceContext {
   /**
    * Initialize the workspace context asynchronously
    */
-  public async initialize(): Promise<void> {
-    this.type = await detectWorkspaceType(this.workspaceRoots, this.fileSystemProvider);
+  public initialize(workspaceType: WorkspaceType): void {
+    this.type = workspaceType;
     if (this.type === 'SFDX') {
       void this.initSfdxProjectConfigCache();
     }
@@ -508,11 +508,11 @@ export abstract class BaseWorkspaceContext {
 
         updateConfigFile(jsconfigPath, jsconfigContent, this.fileSystemProvider);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        const errorStack = error instanceof Error ? error.stack : '';
-        console.error(`writeSfdxJsconfig: Error reading/writing jsconfig: ${errorMessage}`);
-        if (errorStack) {
-          console.error(`Stack: ${errorStack}`);
+        console.error(
+          `writeSfdxJsconfig: Error reading/writing jsconfig: ${error instanceof Error ? error.message : String(error)}`
+        );
+        if (error instanceof Error) {
+          console.error(`Stack: ${error.stack}`);
         }
         throw error;
       }

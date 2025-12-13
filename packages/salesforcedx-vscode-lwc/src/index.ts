@@ -6,11 +6,10 @@
  */
 
 import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
-import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   ActivationTracker,
   bootstrapWorkspaceAwareness,
-  populateWorkspaceTypeFiles
+  detectWorkspaceType
 } from '@salesforce/salesforcedx-utils-vscode';
 import { Effect } from 'effect';
 import * as path from 'node:path';
@@ -52,8 +51,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // For workspace type detection, we still need to check the file system
   // Create a temporary provider just for detection
-  const tempFileSystemProvider = await createFileSystemProvider(workspaceUris);
-  const workspaceType = await lspCommon.detectWorkspaceType(workspaceUris, tempFileSystemProvider);
+  const workspaceType = await detectWorkspaceType(workspaceUris);
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
@@ -70,7 +68,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Start the LWC Language Server
   const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
-  const client = createLanguageClient(serverModule);
+  const client = createLanguageClient(serverModule, { workspaceType });
 
   // Start the client and add it to subscriptions
   await client.start();
@@ -78,6 +76,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // Trigger loading of workspace files into document cache after server initialization
   // This runs asynchronously and does not block extension activation
+  // The language server uses scheduleReinitialization to wait for file loading to stabilize
   void Effect.runPromise(
     bootstrapWorkspaceAwareness({
       fileGlob: '**/lwc/**/*.{js,ts,html}',
@@ -91,7 +90,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Also load essential JSON files for workspace type detection
   void Effect.runPromise(
     bootstrapWorkspaceAwareness({
-      fileGlob: '*.{json,xml}',
+      fileGlob: '**/*.{json,xml}',
       excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
       logger: log
     })
@@ -134,23 +133,3 @@ const registerCommands = (_extensionContext: ExtensionContext): Disposable =>
     commands.registerCommand('sf.lightning.lwc.open', lightningLwcOpen),
     commands.registerCommand('sf.lightning.lwc.preview', lightningLwcPreview)
   );
-
-/**
- * Creates a minimal FileSystemDataProvider with only files needed for workspace type detection
- * @param workspaceUris Array of workspace folder paths
- * @returns FileSystemDataProvider with only workspace type detection files
- */
-const createFileSystemProvider = async (workspaceUris: string[]): Promise<FileSystemDataProvider> => {
-  const fileSystemProvider = new FileSystemDataProvider();
-
-  for (const workspaceUri of workspaceUris) {
-    try {
-      await populateWorkspaceTypeFiles(fileSystemProvider, workspaceUri, log);
-    } catch (error) {
-      log(`Error populating workspace type files for workspace ${workspaceUri}: ${String(error)}`);
-      throw error;
-    }
-  }
-
-  return fileSystemProvider;
-};

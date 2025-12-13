@@ -16,9 +16,6 @@
   ],
   "references": [
     {
-      "path": "../salesforcedx-lightning-lsp-common"
-    },
-    {
       "path": "../salesforcedx-utils"
     },
     {

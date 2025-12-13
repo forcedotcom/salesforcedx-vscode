@@ -82,8 +82,8 @@ import AuraIndexer from '../indexer';
 // Normalize paths for cross-platform test consistency
 const normalize = (start: string, p: string): string => {
   // Convert backslashes to forward slashes and normalize to POSIX format
-  const normalizedStart = path.posix.normalize(start.replace(/\\/g, '/'));
-  const normalizedP = path.posix.normalize(p.replace(/\\/g, '/'));
+  const normalizedStart = path.posix.normalize(start.replaceAll('\\', '/'));
+  const normalizedP = path.posix.normalize(p.replaceAll('\\', '/'));
 
   // Handle Windows case-insensitive paths by comparing lowercase
   if (normalizedP.toLowerCase().startsWith(normalizedStart.toLowerCase())) {
@@ -97,7 +97,7 @@ const uriToFile = (uri: string): string => URI.parse(uri).fsPath;
 describe('indexer parsing content', () => {
   it('aura indexer', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new FileSystemDataProvider());
-    await context.initialize();
+    context.initialize('SFDX');
     await context.configureProject();
 
     const auraIndexer = new AuraIndexer(context);
@@ -105,7 +105,7 @@ describe('indexer parsing content', () => {
     context.addIndexingProvider({ name: 'aura', indexer: auraIndexer });
 
     let markup = await context.findAllAuraMarkup();
-    markup = markup.map(p => normalize(SFDX_WORKSPACE_ROOT, p)).sort();
+    markup = markup.map(p => normalize(SFDX_WORKSPACE_ROOT, p)).toSorted();
     expect(markup).toMatchSnapshot();
     const tags = auraIndexer.getAuraTags();
     tags.forEach(taginfo => {
@@ -116,7 +116,7 @@ describe('indexer parsing content', () => {
         taginfo.location.uri = normalize(SFDX_WORKSPACE_ROOT, uriToFile(taginfo.location.uri));
       }
       if (taginfo.attributes) {
-        taginfo.attributes = taginfo.attributes.sort((a, b) => a.name.localeCompare(b.name));
+        taginfo.attributes = taginfo.attributes.toSorted((a, b) => a.name.localeCompare(b.name));
         for (const attribute of taginfo.attributes) {
           if (attribute.location?.uri) {
             attribute.location.uri = normalize(SFDX_WORKSPACE_ROOT, uriToFile(attribute.location.uri));
@@ -124,16 +124,16 @@ describe('indexer parsing content', () => {
         }
       }
     });
-    const sortedTags = new Map([...tags.entries()].sort());
+    const sortedTags = new Map([...tags.entries()].toSorted());
     expect(sortedTags).toMatchSnapshot();
 
-    const namespaces = auraIndexer.getAuraNamespaces().sort();
+    const namespaces = auraIndexer.getAuraNamespaces().toSorted();
     expect(namespaces).toMatchSnapshot();
   });
 
   it('should index a valid aura component', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider);
-    await context.initialize();
+    context.initialize('SFDX');
     await context.configureProject();
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();
@@ -154,7 +154,7 @@ describe('indexer parsing content', () => {
 
   xit('should handle indexing an invalid aura component', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new FileSystemDataProvider());
-    await context.initialize();
+    context.initialize('SFDX');
     await context.configureProject();
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();

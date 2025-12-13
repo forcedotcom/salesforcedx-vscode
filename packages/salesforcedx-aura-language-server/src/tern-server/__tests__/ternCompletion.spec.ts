@@ -10,27 +10,27 @@
 // Use require() inside jest.mock() factories since they execute during hoisting before ES module imports initialize
 
 const createMockJsonFromTernDefs = (relativePath: string) => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fs = require('node:fs');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const pathModule = require('node:path');
-    let current = __dirname;
-    while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-        const parent = pathModule.resolve(current, '..');
-        if (parent === current) break;
-        current = parent;
-    }
-    const filePath = pathModule.join(current, 'src', 'tern', 'defs', relativePath);
-    if (!fs.existsSync(filePath)) {
-        throw new Error(`Mock file not found: ${filePath}`);
-    }
-    const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    if (!content || typeof content !== 'object' || !content['!name']) {
-        throw new Error(`Invalid JSON content for ${relativePath}: missing !name`);
-    }
-    // Return as default export (TypeScript JSON imports are default exports)
-    // Also spread content to allow direct property access
-    return { default: content, ...content };
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const fs = require('node:fs');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const pathModule = require('node:path');
+  let current = __dirname;
+  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
+    const parent = pathModule.resolve(current, '..');
+    if (parent === current) break;
+    current = parent;
+  }
+  const filePath = pathModule.join(current, 'src', 'tern', 'defs', relativePath);
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Mock file not found: ${filePath}`);
+  }
+  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  if (!content || typeof content !== 'object' || !content['!name']) {
+    throw new Error(`Invalid JSON content for ${relativePath}: missing !name`);
+  }
+  // Return as default export (TypeScript JSON imports are default exports)
+  // Also spread content to allow direct property access
+  return { default: content, ...content };
 };
 
 // Use paths relative to test file to match the resolved paths from ternServer.ts
@@ -50,75 +50,75 @@ import { onCompletion, onHover, onDefinition, onReferences } from '../ternServer
 const LIGHTNING_EXAMPLES_APP_PATH = `${SFDX_WORKSPACE_ROOT}/force-app/main/default/aura/lightningExamplesApp/`;
 
 describe('tern completion', () => {
-    it('tern completions', async () => {
-        const ws = SFDX_WORKSPACE_ROOT;
-        const context = new AuraWorkspaceContext(ws, new FileSystemDataProvider());
-        await context.initialize();
-        await context.configureProject();
+  it('tern completions', async () => {
+    const ws = SFDX_WORKSPACE_ROOT;
+    const context = new AuraWorkspaceContext(ws, new FileSystemDataProvider());
+    context.initialize('SFDX');
+    context.configureProject();
 
-        const completions = await onCompletion(
-            {
-                textDocument: {
-                    uri: `${LIGHTNING_EXAMPLES_APP_PATH}lightningExamplesAppController.js`,
-                },
-                position: {
-                    line: 0,
-                    character: 0,
-                },
-            },
-            sfdxFileSystemProvider,
-        );
-        expect(completions).toMatchSnapshot();
-    });
+    const completions = await onCompletion(
+      {
+        textDocument: {
+          uri: `${LIGHTNING_EXAMPLES_APP_PATH}lightningExamplesAppController.js`
+        },
+        position: {
+          line: 0,
+          character: 0
+        }
+      },
+      sfdxFileSystemProvider
+    );
+    expect(completions).toMatchSnapshot();
+  });
 
-    it('tern hover', async () => {
-        const hover = await onHover(
-            {
-                textDocument: {
-                    uri: `${LIGHTNING_EXAMPLES_APP_PATH}lightningExamplesAppController.js`,
-                },
-                position: {
-                    line: 2,
-                    character: 10,
-                },
-            },
-            sfdxFileSystemProvider,
-        );
-        expect(hover).toMatchSnapshot();
-    });
+  it('tern hover', async () => {
+    const hover = await onHover(
+      {
+        textDocument: {
+          uri: `${LIGHTNING_EXAMPLES_APP_PATH}lightningExamplesAppController.js`
+        },
+        position: {
+          line: 2,
+          character: 10
+        }
+      },
+      sfdxFileSystemProvider
+    );
+    expect(hover).toMatchSnapshot();
+  });
 
-    it('tern definition, same file', async () => {
-        const helper = await onDefinition(
-            {
-                textDocument: {
-                    uri: `${LIGHTNING_EXAMPLES_APP_PATH}lightningExamplesAppController.js`,
-                },
-                position: {
-                    line: 2,
-                    character: 10,
-                },
-            },
-            sfdxFileSystemProvider,
-        );
-        expect(helper).toMatchSnapshot();
-    });
+  it('tern definition, same file', async () => {
+    const helper = await onDefinition(
+      {
+        textDocument: {
+          uri: `${LIGHTNING_EXAMPLES_APP_PATH}lightningExamplesAppController.js`
+        },
+        position: {
+          line: 2,
+          character: 10
+        }
+      },
+      sfdxFileSystemProvider
+    );
+    expect(helper).toMatchSnapshot();
+  });
 
-    it.skip('tern references', async () => {
-        const functionInsideHelper = await onReferences(
-            {
-                textDocument: {
-                    uri: `${LIGHTNING_EXAMPLES_APP_PATH}lightningExamplesAppHelper.js`,
-                },
-                position: {
-                    line: 1,
-                    character: 11,
-                },
-                context: {
-                    includeDeclaration: false,
-                },
-            },
-            sfdxFileSystemProvider,
-        );
-        expect(functionInsideHelper).toMatchSnapshot();
-    });
+  it.skip('tern references', async () => {
+    const functionInsideHelper = await onReferences(
+      {
+        textDocument: {
+          uri: `${LIGHTNING_EXAMPLES_APP_PATH}lightningExamplesAppHelper.js`
+        },
+        position: {
+          line: 1,
+          character: 11
+        },
+        context: {
+          includeDeclaration: false
+        }
+      },
+      sfdxFileSystemProvider
+    );
+    expect(functionInsideHelper).toMatchSnapshot();
+  });
 });

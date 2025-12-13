@@ -5,15 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  detectWorkspaceType,
-  DirectoryEntry,
-  FileSystemDataProvider,
-  isLWC
-} from '@salesforce/salesforcedx-lightning-lsp-common';
+import { DirectoryEntry, FileSystemDataProvider, isLWC } from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
   bootstrapWorkspaceAwareness,
-  populateWorkspaceTypeFiles,
+  detectWorkspaceType,
   TelemetryService,
   TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
@@ -58,10 +53,10 @@ export const activate = async (extensionContext: ExtensionContext) => {
   });
 
   // Create FileSystemDataProvider with Aura resources and essential workspace files for the language server
-  const fileSystemProvider = await createAuraResourcesProvider(extensionContext, workspaceUris);
+  const fileSystemProvider = await createAuraResourcesProvider(extensionContext);
 
   // 3) If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = await detectWorkspaceType(workspaceUris, await createWorkspaceTypeProvider(workspaceUris));
+  const workspaceType = await detectWorkspaceType(workspaceUris);
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !isLWC(workspaceType)) {
@@ -107,11 +102,15 @@ export const activate = async (extensionContext: ExtensionContext) => {
         scheme: 'untitled'
       },
       { language: 'javascript', scheme: 'file' },
-      { language: 'javascript', scheme: 'untitled' }
+      { language: 'javascript', scheme: 'untitled' },
+      // Include json and xml to receive onDidOpen events for workspace configuration files
+      { language: 'json', scheme: 'file' },
+      { language: 'xml', scheme: 'file' }
     ],
     initializationOptions: {
       // static Aura resources for the language server, not the entire workspace
-      fileSystemProvider: fileSystemProvider.serialize()
+      fileSystemProvider: fileSystemProvider.serialize(),
+      workspaceType
     },
     revealOutputChannelOn: RevealOutputChannelOn.Error,
     synchronize: {
@@ -163,10 +162,11 @@ export const activate = async (extensionContext: ExtensionContext) => {
   });
 
   // Also load essential JSON files for workspace type detection
+  // Use **/*.{json,xml} to match root-level files like sfdx-project.json
   log('Starting to load essential JSON/XML files...');
   void Effect.runPromise(
     bootstrapWorkspaceAwareness({
-      fileGlob: '*.{json,xml}',
+      fileGlob: '**/*.{json,xml}',
       excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
       logger: log
     })
@@ -177,6 +177,9 @@ export const activate = async (extensionContext: ExtensionContext) => {
     .catch((error: unknown) => {
       log(`Failed to bootstrap essential files: ${String(error)}`);
     });
+
+  // finising up with workspace awareness
+  log('Finished with workspace awareness');
 
   // Notify telemetry that our extension is now active
   TelemetryService.getInstance().sendExtensionActivationEvent(extensionStartTime);
@@ -190,10 +193,7 @@ export const deactivate = () => {
 /**
  * Creates a FileSystemDataProvider with Aura framework resources and essential workspace files
  */
-const createAuraResourcesProvider = async (
-  extensionContext: ExtensionContext,
-  workspaceUris: string[]
-): Promise<FileSystemDataProvider> => {
+const createAuraResourcesProvider = async (extensionContext: ExtensionContext): Promise<FileSystemDataProvider> => {
   const provider = new FileSystemDataProvider();
 
   // Load Aura framework resources from extension
@@ -215,31 +215,7 @@ const createAuraResourcesProvider = async (
 
   await loadAuraResourcesRecursively(provider, auraResourcesPath);
 
-  // Also load essential workspace files (like sfdx-project.json) for workspace type detection
-  for (const workspaceUri of workspaceUris) {
-    await populateWorkspaceTypeFiles(provider, workspaceUri, log);
-  }
-
   return provider;
-};
-
-/**
- * Creates a minimal FileSystemDataProvider for workspace type detection
- */
-const createWorkspaceTypeProvider = async (workspaceUris: string[]): Promise<FileSystemDataProvider> => {
-  const fileSystemProvider = new FileSystemDataProvider();
-
-  for (const workspaceUri of workspaceUris) {
-    try {
-      await populateWorkspaceTypeFiles(fileSystemProvider, workspaceUri, log);
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      log(`Error populating workspace type files for workspace ${workspaceUri}: ${errorMessage}`);
-      throw error;
-    }
-  }
-
-  return fileSystemProvider;
 };
 
 /**

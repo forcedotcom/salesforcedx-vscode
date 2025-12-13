@@ -102,4 +102,4 @@ export { SettingsService } from './settings/settingsService';
 export { code2ProtocolConverter } from './languageClients/conversion';
 export { nls } from './messages/messages';
 export { bootstrapWorkspaceAwareness, BootstrapOptions } from './workspaceLoader';
-export { populateWorkspaceTypeFiles } from './workspaceTypeFiles';
+export { detectWorkspaceType } from './workspaceTypeFiles';
