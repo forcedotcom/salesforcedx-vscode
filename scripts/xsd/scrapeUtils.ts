@@ -162,16 +162,13 @@ export const extractMetadataFromPage = async (
   try {
     // Extract fields from ALL tables in a single browser execution (each table is a separate metadata type)
     const extractionResult = await contentFrame.evaluate(() => {
-      // Collect all headings on the page to identify which types have sections
+      // Collect all headings on the page from both regular DOM and shadow DOM to identify which types have sections
       const pageHeadings = new Set<string>();
-
-      // Collect headings from both regular DOM and shadow DOM
-      const allHeadings = Array.from(document.querySelectorAll('div.section[id] h2, h1.helpHead1')).concat(
-        collectFromShadowDOM(document, 'div.section[id] h2, h1.helpHead1')
-      );
-      allHeadings.forEach(heading => {
-        pageHeadings.add(heading.textContent?.trim());
-      });
+      Array.from(document.querySelectorAll('div.section[id] h2, h1.helpHead1'))
+        .concat(collectFromShadowDOM(document, 'div.section[id] h2, h1.helpHead1'))
+        .forEach(heading => {
+          pageHeadings.add(heading.textContent?.trim());
+        });
 
       const tablesData: {
         fields: {
