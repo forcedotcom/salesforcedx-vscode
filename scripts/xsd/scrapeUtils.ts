@@ -195,7 +195,7 @@ export const extractMetadataFromPage = async (
       const headingsWithTables = new Set<string>();
 
       // Get the page title
-      const pageTitle = Array.from(pageHeadings).at(0);
+      const pageTitle = Array.from(pageHeadings).at(0) ?? '';
 
       // Extract page-level description (for the first table)
       // This is typically the first substantial paragraph(s) after the main H1/H2 but before any tables
@@ -205,20 +205,50 @@ export const extractMetadataFromPage = async (
 
       // Step 1: Look for Salesforce's standard shortdesc div (including in shadow DOM)
       const shortdescDiv = searchInShadowDOM(document, 'div.shortdesc');
-      collectedParagraphs.push(shortdescDiv?.textContent?.trim() ?? '');
+      let foundExtendsInShortdesc = false;
 
-      // Step 2: Look for direct paragraph siblings after heading OR after shortdesc
+      // Collect paragraphs from shortdesc, stopping when we find "extends"
+      if (shortdescDiv) {
+        const shortdescParagraphs = Array.from(shortdescDiv.querySelectorAll('p'));
+
+        if (shortdescParagraphs.length > 0) {
+          // If shortdesc has <p> tags, process them individually to stop at "extends"
+          for (const p of shortdescParagraphs) {
+            if (isInsideCallout(p)) continue;
+            const text = p.textContent?.trim() ?? '';
+            if (isValidDescription(text)) {
+              collectedParagraphs.push(text);
+              // Stop if this paragraph contains "extends"
+              if (text.toLowerCase().includes('extends')) {
+                foundExtendsInShortdesc = true;
+                break;
+              }
+            }
+          }
+        } else {
+          // Fallback: if no <p> tags, use the entire shortdesc text content
+          const text = shortdescDiv.textContent?.trim() ?? '';
+          if (text) {
+            collectedParagraphs.push(text);
+            // Check if it contains "extends"
+            if (text.toLowerCase().includes('extends')) {
+              foundExtendsInShortdesc = true;
+            }
+          }
+        }
+      }
+
+      // Step 2: Look for direct paragraph siblings after shortdesc
       // Collect additional paragraphs until we find one with "extends" (inheritance info)
-      // Start from shortdescDiv's next sibling
+      // Start from shortdescDiv's next sibling (but skip if we already found "extends")
       const startElement = shortdescDiv?.nextElementSibling;
 
-      if (startElement) {
+      if (startElement && !foundExtendsInShortdesc) {
         let current: Element | null = startElement;
-        let attempts = 0;
         const maxParagraphs = 3; // Safety limit: collect up to 3 paragraphs total
         let foundExtends = false; // Track if we found the "extends" paragraph
 
-        while (current && attempts < 15 && collectedParagraphs.length < maxParagraphs && !foundExtends) {
+        while (current && collectedParagraphs.length < maxParagraphs && !foundExtends) {
           // Stop if we hit a table
           if (current.tagName === 'TABLE') {
             break;
@@ -278,8 +308,10 @@ export const extractMetadataFromPage = async (
             }
           }
 
+          // If we found "extends" while processing the DIV, stop the main loop
+          if (foundExtends) break;
+
           current = current.nextElementSibling;
-          attempts++;
         }
 
         // Join collected paragraphs with space separator

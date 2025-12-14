@@ -5986,7 +5986,7 @@
         "Field Type": "string (enumeration of type string)"
       }
     ],
-    "short_description": "Represents the details of a Batch Management job definition. This type extends the Metadata metadata type and inherits its fullName field. Represents the source of information whose records must be processed by the Batch Management job. Represents the filter conditions that decide which records must be processed by the Batch Management job.",
+    "short_description": "Represents the details of a Batch Management job definition. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchprocessjobdefinition.htm",
     "parent": "Metadata"
   },
@@ -12334,7 +12334,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents the metadata associated with a compact layout. This type extends the Metadata metadata type and inherits its fullName field. A compact layout displays a record’s key fields at a glance in the Salesforce mobile app, Lightning Experience, and in the Outlook and Gmail integrations. For more information on compact layouts, see Compact Layouts in the Salesforce Help.",
+    "short_description": "Represents the metadata associated with a compact layout. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_compactlayout.htm",
     "parent": "Metadata"
   },
@@ -14501,7 +14501,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents the definition of a value used in a global value set or local custom picklist. Custom picklist fields can be local and unique, or can inherit their values from a global picklist (called a global value set in API version 38.0). This type extends the Metadata metadata type and inherits its fullName field. To deactivate a global picklist value, you can invoke an update() call on GlobalPicklist (API version 37.0) or GlobalValueSet (API version 38.0 and later) with the value omitted, or with the value’s isActive field set to false. Or, you can invoke an update() call directly on GlobalPicklistValue (API version 37.0) or CustomValue (API version 38.0 and later) with the isActive field set to false. CustomValue doesn’t support file-based operations and only supports CRUD-based calls. CustomValue is retrieved or deployed together with a GlobalValueSet or CustomObject component.",
+    "short_description": "Represents the definition of a value used in a global value set or local custom picklist. Custom picklist fields can be local and unique, or can inherit their values from a global picklist (called a global value set in API version 38.0). This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customvalue.htm",
     "parent": "Metadata"
   },
@@ -15684,7 +15684,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents the information about a dataset link associated with a decision table. In a dataset link, select an object for whose records, the decision table must provide an outcome.This type extends the Metadata metadata type and inherits its fullName field. Represents the mapping between a decision table parameter and a field of the object selected in the dataset link. The mapping allows the decision table to know which object fields must be compared to the input-output fields of the decision table.",
+    "short_description": "Represents the information about a dataset link associated with a decision table. In a dataset link, select an object for whose records, the decision table must provide an outcome.This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_decisiontabledatasetlink.htm",
     "parent": "Metadata"
   },
@@ -17171,7 +17171,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s DocumentChecklistItem settings. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for more details.",
+    "short_description": "Represents an org’s DocumentChecklistItem settings. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_documentchecklistsettings.htm",
     "parent": "Metadata"
   },
@@ -17704,7 +17704,7 @@
         "Field Type": "int"
       }
     ],
-    "short_description": "Represents the branding for each Embedded Service deployment. This type extends the Metadata metadata type and inherits its fullName field. This object works only with the legacy chat products. For Messaging for In-app and Web, use the BrandingSet object.",
+    "short_description": "Represents the branding for each Embedded Service deployment. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedservicebranding.htm",
     "parent": "Metadata"
   },
@@ -25021,7 +25021,7 @@
         "Field Type": "SharedTo"
       }
     ],
-    "short_description": "Represents a folder. This type extends the Metadata metadata type and inherits its fullName field. Five folder types currently exist in Salesforce: Folder type names end with the “Folder” suffix. For example, the type name of a document folder is “DocumentFolder”.",
+    "short_description": "Represents a folder. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_folder.htm",
     "parent": "Metadata"
   },
@@ -26440,7 +26440,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents the metadata for a global picklist value set, which is the set of shared values that custom picklist fields can use. A global value set isn’t a field itself. In contrast, the custom picklist fields that are based on a global picklist are of type ValueSet. This type extends the Metadata metadata type and inherits its fullName field. Any global value set created in API version 57.0 or later automatically has the __gvs suffix appended to the developer name. When you make any CRUD-based call with the GlobalValueSet type, you must append the suffix to the fullName field when you reference the type.",
+    "short_description": "Represents the metadata for a global picklist value set, which is the set of shared values that custom picklist fields can use. A global value set isn’t a field itself. In contrast, the custom picklist fields that are based on a global picklist are of type ValueSet. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_globalvalueset.htm",
     "parent": "Metadata"
   },
@@ -28869,7 +28869,7 @@
         "Field Type": "Language"
       }
     ],
-    "short_description": "Represents a Chat deployment’s settings for the button that customers click to chat with an agent and the chat window, such as the label that appears on the button and the pre-chat form that appears before a chat begins. This type extends the Metadata metadata type and inherits its fullName field. Chats routed with Omni-Channel aren’t supported in the Metadata API. Represents the skills associated with a chat button or invitation.",
+    "short_description": "Represents a Chat deployment’s settings for the button that customers click to chat with an agent and the chat window, such as the label that appears on the button and the pre-chat form that appears before a chat begins. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatbutton.htm",
     "parent": "Metadata"
   },
@@ -31033,7 +31033,7 @@
         "Field Type": "NavigationMenuItem[]"
       }
     ],
-    "short_description": "Represents the navigation menu in an Experience Builder site. A navigation menu consists of items that users can click to go to other parts of the site. This type replaces the NavigationLinkSet subtype on Network. NavigationMenu is available in API version 47.0 and later. This type extends the Metadata metadata type and inherits its fullName field. The Help Center and LWR templates (Build Your Own and Microsites) don’t include generic record pages. So if you create an object or global action type menu item that links to a Salesforce object, make sure that you also create the corresponding object pages. If you don't create the associated object pages, end users won't see anything if they click on the menu item.",
+    "short_description": "Represents the navigation menu in an Experience Builder site. A navigation menu consists of items that users can click to go to other parts of the site. This type replaces the NavigationLinkSet subtype on Network. NavigationMenu is available in API version 47.0 and later. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_navigationmenu.htm",
     "parent": "Metadata"
   },
@@ -32322,7 +32322,7 @@
         "Field Type": "OcrSampleDocumentPage[]"
       }
     ],
-    "short_description": "Represents the details of a sample document or a document type that's used as a reference while extracting and mapping information from a customer form. This type extends the Metadata metadata type and inherits its fullName field. The OcrSampleDocument type doesn’t need to represent a real sample document. It can also be an abstract document that represents all documents of the same DocumentType. In such cases, the contentAsset and documentHeight fields are null.",
+    "short_description": "Represents the details of a sample document or a document type that's used as a reference while extracting and mapping information from a customer form. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm",
     "parent": "Metadata"
   },
@@ -34122,7 +34122,7 @@
         "Field Type": "ProfileUserPermission[]"
       }
     ],
-    "short_description": "Represents a user profile. A profile defines a user’s permission to perform different functions within Salesforce. This type extends the Metadata metadata type and inherits its fullName field. In API version 29.0 and later, you can retrieve and deploy access settings for these managed components in profiles and permission sets: In API version 51.0 and later, you can retrieve and deploy access settings for login flows. For more information, see Managed Component Access in the Components in a Module section of Sample package.xml Manifest Files.",
+    "short_description": "Represents a user profile. A profile defines a user’s permission to perform different functions within Salesforce. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_profile.htm",
     "parent": "Metadata"
   },
@@ -38651,7 +38651,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s Account Intelligence settings. These settings control features that make it easy for sales reps to create accounts, see relevant news articles, and add logos to account records. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org’s Account Intelligence settings. These settings control features that make it easy for sales reps to create accounts, see relevant news articles, and add logos to account records. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_accountintelligencesettings.htm",
     "parent": "Metadata"
   },
@@ -38710,7 +38710,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s actions settings for default quick actions, multi-dimensional publisher, and third-party actions. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org’s actions settings for default quick actions, multi-dimensional publisher, and third-party actions. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionssettings.htm",
     "parent": "Metadata"
   },
@@ -38852,7 +38852,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org's activity settings, and its user interface settings for the calendar. This type extends the Metadata metadata type and inherits its fullName field. Use the ActivitiesSettings component type to control the following activity settings: Also use the ActivitiesSettings component type to control user interface settings for the calendar, including hover links and drag-and-drop editing.",
+    "short_description": "Represents an org's activity settings, and its user interface settings for the calendar. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_activitiessettings.htm",
     "parent": "Metadata"
   },
@@ -38970,7 +38970,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents the metadata used to manage settings for Einstein Reply Recommendations. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents the metadata used to manage settings for Einstein Reply Recommendations. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_aireplyrecommendationssettings.htm",
     "parent": "Metadata"
   },
@@ -39643,7 +39643,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents Apex-related org settings. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents Apex-related org settings. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_apexsettings.htm",
     "parent": "Metadata"
   },
@@ -39672,7 +39672,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents settings for the app experience.This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents settings for the app experience.This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_appexperiencesettings.htm",
     "parent": "Metadata"
   },
@@ -39711,7 +39711,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s Einstein Automated Contacts settings. These settings let you find new contacts and opportunity contact roles. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org’s Einstein Automated Contacts settings. These settings let you find new contacts and opportunity contact roles. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_automatedcontactssettings.htm",
     "parent": "Metadata"
   },
@@ -39752,7 +39752,7 @@
         "Field Type": "Holidays[]"
       }
     ],
-    "short_description": "Represents the metadata used to manage settings for business hours and holidays in entitlements, entitlement templates, campaigns, and cases. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents the metadata used to manage settings for business hours and holidays in entitlements, entitlement templates, campaigns, and cases. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_businesshourssettings.htm",
     "parent": "Metadata"
   },
@@ -40255,7 +40255,7 @@
         "Field Type": "WebToCaseSettings"
       }
     ],
-    "short_description": "Represents an organization’s case settings, such as the default case owner, which case-related features are enabled, and which Classic email templates are used for various case activities. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details. Represents an organization's Email-to-Case settings.",
+    "short_description": "Represents an organization’s case settings, such as the default case owner, which case-related features are enabled, and which Classic email templates are used for various case activities. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
     "parent": "Metadata"
   },
@@ -40424,7 +40424,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s settings for Chatter email when Chatter is enabled. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org’s settings for Chatter email when Chatter is enabled. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_chatteremailmdsettings.htm",
     "parent": "Metadata"
   },
@@ -40511,7 +40511,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s settings for their Chatter instance when Chatter is enabled for the org. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details. The following is an example package.xml manifest that references the ChatterSettings definitions:",
+    "short_description": "Represents an org’s settings for their Chatter instance when Chatter is enabled for the org. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_chattersettings.htm",
     "parent": "Metadata"
   },
@@ -40523,7 +40523,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents Code Builder settings. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents Code Builder settings. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_codebuildersettings.htm",
     "parent": "Metadata"
   },
@@ -40652,7 +40652,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents community settings for an org. Enable digital experiences and workspaces. Manage moderation, guest user and partner settings, and more. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents community settings for an org. Enable digital experiences and workspaces. Manage moderation, guest user and partner settings, and more. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_communitiessettings.htm",
     "parent": "Metadata"
   },
@@ -40669,7 +40669,7 @@
         "Field Type": "FiscalYearSetting"
       }
     ],
-    "short_description": "Represents global settings that affect multiple features in your organization. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents global settings that affect multiple features in your organization. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_companyprofilesettings.htm",
     "parent": "Metadata"
   },
@@ -40820,7 +40820,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents content settings for an org. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents content settings for an org. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_contentsettings.htm",
     "parent": "Metadata"
   },
@@ -41088,7 +41088,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an organization’s currency settings, including supporting multiple currencies and currency effective dates. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an organization’s currency settings, including supporting multiple currencies and currency effective dates. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_currencysettings.htm",
     "parent": "Metadata"
   },
@@ -41166,7 +41166,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents the settings affecting how deployments behave in the org. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents the settings affecting how deployments behave in the org. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_deploymentsettings.htm",
     "parent": "Metadata"
   },
@@ -41260,7 +41260,7 @@
         "Field Type": "PreviewType (enumeration of type string)"
       }
     ],
-    "short_description": "Represents an org's settings for automatic document generation from templates. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org's settings for automatic document generation from templates. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_documentgenerationsetting.htm",
     "parent": "Metadata"
   },
@@ -41379,7 +41379,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents the Einstein Activity Capture metadata type. Use Einstein Activity Capture to add emails and events from your Microsoft or Google account to the activity timeline of related Salesforce records. Automatically sync contact and event data between your Microsoft or Google account and Salesforce. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents the Einstein Activity Capture metadata type. Use Einstein Activity Capture to add emails and events from your Microsoft or Google account to the activity timeline of related Salesforce records. Automatically sync contact and event data between your Microsoft or Google account and Salesforce. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_eacsettings.htm",
     "parent": "Metadata"
   },
@@ -41418,7 +41418,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents settings for Einstein classification apps, Einstein Case Classification and Einstein Case Wrap-Up, in an org. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents settings for Einstein classification apps, Einstein Case Classification and Einstein Case Wrap-Up, in an org. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_einsteinagentsettings.htm",
     "parent": "Metadata"
   },
@@ -41470,7 +41470,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents settings for Einstein Generative AI features in an org. This type extends the Metadata metadata type and inherits its fullName field In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents settings for Einstein Generative AI features in an org. This type extends the Metadata metadata type and inherits its fullName field",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_einsteingptsettings.htm",
     "parent": "Metadata"
   },
@@ -41572,7 +41572,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an organization’s email administration settings, including email deliverability, security compliance, relay configurations, and system notifications. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an organization’s email administration settings, including email deliverability, security compliance, relay configurations, and system notifications. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailadministrationsettings.htm",
     "parent": "Metadata"
   },
@@ -41659,7 +41659,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s settings for the Outlook integration, Gmail integration, and Salesforce Inbox. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org’s settings for the Outlook integration, Gmail integration, and Salesforce Inbox. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailintegrationsettings.htm",
     "parent": "Metadata"
   },
@@ -41671,7 +41671,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s email template settings. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org’s email template settings. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_emailtemplatesettings.htm",
     "parent": "Metadata"
   },
@@ -41762,7 +41762,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s encryption key settings, such as customer-supplied keys options and key derivation settings. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org’s encryption key settings, such as customer-supplied keys options and key derivation settings. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_encryptionkeysettings.htm",
     "parent": "Metadata"
   },
@@ -42160,7 +42160,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents the settings that modify the Files Connect feature.This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents the settings that modify the Files Connect feature.This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_filesconnectsettings.htm",
     "parent": "Metadata"
   },
@@ -42338,7 +42338,7 @@
         "Field Type": "ForecastingTypeObjectListSettings"
       }
     ],
-    "short_description": "Represents an org’s forecasting object list settings. Use these settings to control which object types and field types appear in the list of object details on the forecasts page. For example, pipeline forecasts use the Opportunity object, and the object list settings specify which fields from that object are available in the opportunity list section of the forecasts page. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org’s forecasting object list settings. Use these settings to control which object types and field types appear in the list of object details on the forecasts page. For example, pipeline forecasts use the Opportunity object, and the object list settings specify which fields from that object are available in the opportunity list section of the forecasts page. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_forecastingobjectlistsettings.htm",
     "parent": "Metadata"
   },
@@ -42463,7 +42463,7 @@
         "Field Type": "QuotasSettings[]"
       }
     ],
-    "short_description": "Represents the Forecasts settings options. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents the Forecasts settings options. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_forecastingsettings.htm",
     "parent": "Metadata"
   },
@@ -44151,7 +44151,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents options for the Salesforce Omnichannel Inventory product.This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents options for the Salesforce Omnichannel Inventory product.This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_inventorysettings.htm",
     "parent": "Metadata"
   },
@@ -44175,7 +44175,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents the org’s invocable action settings, such as whether partial save is allowed.This type extends the Metadata metadata type and inherits its fullName field. InvocableActionSettings values are stored in the InvocableAction.settings file in the settings directory. The .settings files are different from other named components because there’s only one settings file for each settings component.",
+    "short_description": "Represents the org’s invocable action settings, such as whether partial save is allowed.This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_invocableactionsettings.htm",
     "parent": "Metadata"
   },
@@ -44603,7 +44603,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an organization’s language settings. Language settings control end-user language selection, locale formats, and translation options. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an organization’s language settings. Language settings control end-user language selection, locale formats, and translation options. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_languagesettings.htm",
     "parent": "Metadata"
   },
@@ -44655,7 +44655,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents configuration settings for Leads that control how they are converted and displayed, and what actions are available. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents configuration settings for Leads that control how they are converted and displayed, and what actions are available. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_leadconfigsettings.htm",
     "parent": "Metadata"
   },
@@ -44677,7 +44677,7 @@
         "Field Type": "VisibleOrRequired (enumeration of type string)"
       }
     ],
-    "short_description": "Represents an organization’s custom field mappings for lead conversion. Custom fields can be mapped from Leads to Accounts, Contacts, and Opportunities. Options for creating opportunities during lead conversion can also be specified. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an organization’s custom field mappings for lead conversion. Custom fields can be mapped from Leads to Accounts, Contacts, and Opportunities. Options for creating opportunities during lead conversion can also be specified. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_leadconvertsettings.htm",
     "parent": "Metadata"
   },
@@ -44911,7 +44911,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents the settings that modify an org’s Lightning Experience configuration. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents the settings that modify an org’s Lightning Experience configuration. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_lightningexperiencesettings.htm",
     "parent": "Metadata"
   },
@@ -45063,7 +45063,7 @@
         "Field Type": "TouchMobileSettings"
       }
     ],
-    "short_description": "Represents an organization’s mobile settings. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an organization’s mobile settings. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mobilesettings.htm",
     "parent": "Metadata"
   },
@@ -45315,7 +45315,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Enables or disables the formal name, middle name, and suffix attributes for these person objects: Contact, Lead, Person Account, and User. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details. You can’t enable local name fields programmatically via the Metadata API. For more information about enabling local fields, see Local Name Fields and Enable ‘Local Name’ Fields.",
+    "short_description": "Enables or disables the formal name, middle name, and suffix attributes for these person objects: Contact, Lead, Person Account, and User. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_namesettings.htm",
     "parent": "Metadata"
   },
@@ -45453,7 +45453,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents the channel-object linking settings for an org. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents the channel-object linking settings for an org. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_objectlinkingsettings.htm",
     "parent": "Metadata"
   },
@@ -45611,7 +45611,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s Einstein Opportunity Scoring settings, such as whether or not Einstein Opportunity Scoring is enabled. Einstein Opportunity Scoring helps determine the likelihood of an opportunity being won. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org’s Einstein Opportunity Scoring settings, such as whether or not Einstein Opportunity Scoring is enabled. Einstein Opportunity Scoring helps determine the likelihood of an opportunity being won. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_opportunityscoresettings.htm",
     "parent": "Metadata"
   },
@@ -45648,7 +45648,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents options for the Salesforce Order Management product. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents options for the Salesforce Order Management product. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ordermanagementsettings.htm",
     "parent": "Metadata"
   },
@@ -45746,7 +45746,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents the settings for org-wide functionality that isn’t associated with any specific feature.This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents the settings for org-wide functionality that isn’t associated with any specific feature.This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_orgsettings.htm",
     "parent": "Metadata"
   },
@@ -45768,7 +45768,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an organization’s party data model settings, including options around the Individual object and consent enablement. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an organization’s party data model settings, including options around the Individual object and consent enablement. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_partydatamodelsettings.htm",
     "parent": "Metadata"
   },
@@ -45847,7 +45847,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents PardotEinsteinSettings. Use these settings to learn what factors drive your campaign performance, and get the best possible engagement score for your prospects. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details. The default value is false.",
+    "short_description": "Represents PardotEinsteinSettings. Use these settings to learn what factors drive your campaign performance, and get the best possible engagement score for your prospects. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_pardoteinsteinsettings.htm",
     "parent": "Metadata"
   },
@@ -45869,7 +45869,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents the Path preference setting. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents the Path preference setting. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_pathassistantsettings.htm",
     "parent": "Metadata"
   },
@@ -45893,7 +45893,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s picklist settings. These settings control the behavior of a picklist. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org’s picklist settings. These settings control the behavior of a picklist. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_picklistsettings.htm",
     "parent": "Metadata"
   },
@@ -45930,7 +45930,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s Platform Encryption settings, such as settings for available encryption schemes, permissions, encryption policy access, and which fields can be encrypted. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org’s Platform Encryption settings, such as settings for available encryption schemes, permissions, encryption policy access, and which fields can be encrypted. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_platformencryptionsettings.htm",
     "parent": "Metadata"
   },
@@ -45959,7 +45959,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents the settings that determine how a user can interact with Einstein Prediction Builder. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents the settings that determine how a user can interact with Einstein Prediction Builder. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_predictionbuildersettings.htm",
     "parent": "Metadata"
   },
@@ -45986,7 +45986,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an organization’s settings for data privacy and consent management. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an organization’s settings for data privacy and consent management. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_privacysettings.htm",
     "parent": "Metadata"
   },
@@ -46072,7 +46072,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s quotes settings, such as enabling quotes or creating quotes without an associated opportunity. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org’s quotes settings, such as enabling quotes or creating quotes without an associated opportunity. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_quotessettings.htm",
     "parent": "Metadata"
   },
@@ -46084,7 +46084,7 @@
         "Field Type": "RealTimeEvent[]"
       }
     ],
-    "short_description": "Represents the list of Real-Time Event entities that you want to enable or disable. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents the list of Real-Time Event entities that you want to enable or disable. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_realtimeeventsettings.htm",
     "parent": "Metadata"
   },
@@ -46123,7 +46123,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s record page settings. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org’s record page settings. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recordpagesettings.htm",
     "parent": "Metadata"
   },
@@ -46214,7 +46214,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents Sandbox settings. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents Sandbox settings. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sandboxsettings.htm",
     "parent": "Metadata"
   },
@@ -46241,7 +46241,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an org’s schema settings, which manage the availability of custom settings and custom metadata type values. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an org’s schema settings, which manage the availability of custom settings and custom metadata type values. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_schemasettings.htm",
     "parent": "Metadata"
   },
@@ -47101,7 +47101,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents an organization’s sharing, visibility, and data access settings. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents an organization’s sharing, visibility, and data access settings. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sharingsettings.htm",
     "parent": "Metadata"
   },
@@ -47195,7 +47195,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents Social Customer Service settings such as how to format inbound content from social posts to cases. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents Social Customer Service settings such as how to format inbound content from social posts to cases. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_socialcustomerservicesettings.htm",
     "parent": "Metadata"
   },
@@ -47227,7 +47227,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents org preferences for social media features such as enabling Twitter and Facebook.Represents org preferences for social media features such as enabling Twitter and Facebook. This type extends the Metadata metadata type and inherits the fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details. SocialProfileSettings values are stored in a single file named SocialProfile.settings in the settings directory of the corresponding package directory. The .settings files are different from other named components because there’s only one settings file for each settings component.",
+    "short_description": "Represents org preferences for social media features such as enabling Twitter and Facebook.Represents org preferences for social media features such as enabling Twitter and Facebook. This type extends the Metadata metadata type and inherits the fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_socialprofilesettings.htm",
     "parent": "Metadata"
   },
@@ -47239,7 +47239,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents settings for source tracking, so that changes you make in your Developer and Developer Pro sandboxes or local workspace can be tracked. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents settings for source tracking, so that changes you make in your Developer and Developer Pro sandboxes or local workspace can be tracked. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sourcetrackingsettings.htm",
     "parent": "Metadata"
   },
@@ -47453,7 +47453,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents the settings in a trial user’s org. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents the settings in a trial user’s org. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_trialorgsettings.htm",
     "parent": "Metadata"
   },
@@ -47779,7 +47779,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents a selection of user management options that appear on the User Management Settings Setup page. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for details.",
+    "short_description": "Represents a selection of user management options that appear on the User Management Settings Setup page. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_usermanagementsettings.htm",
     "parent": "Metadata"
   },
