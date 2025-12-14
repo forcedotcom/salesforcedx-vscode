@@ -165,16 +165,11 @@ export const extractMetadataFromPage = async (
       // Collect all headings on the page to identify which types have sections
       const pageHeadings = new Set<string>();
 
-      // regularDOMHeadings is the list of headings that represent metadata types in regular DOMs
-      const regularDOMHeadings = Array.from(document.querySelectorAll('div.section[id] h2, h1.helpHead1'));
-      regularDOMHeadings.forEach(heading => {
-        const text = heading.textContent?.trim();
-        if (text) pageHeadings.add(text);
-      });
-
-      // shadowDOMHeadings is the list of headings that represent metadata types in shadow DOMs
-      const shadowDOMHeadings = collectFromShadowDOM(document, 'div.section[id] h2, h1.helpHead1');
-      shadowDOMHeadings.forEach(heading => {
+      // Collect headings from both regular DOM and shadow DOM
+      const allHeadings = Array.from(document.querySelectorAll('div.section[id] h2, h1.helpHead1')).concat(
+        collectFromShadowDOM(document, 'div.section[id] h2, h1.helpHead1')
+      );
+      allHeadings.forEach(heading => {
         const text = heading.textContent?.trim();
         if (text) pageHeadings.add(text);
       });
