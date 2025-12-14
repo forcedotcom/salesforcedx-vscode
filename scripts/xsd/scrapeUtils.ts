@@ -170,8 +170,7 @@ export const extractMetadataFromPage = async (
         collectFromShadowDOM(document, 'div.section[id] h2, h1.helpHead1')
       );
       allHeadings.forEach(heading => {
-        const text = heading.textContent?.trim();
-        if (text) pageHeadings.add(text);
+        pageHeadings.add(heading.textContent?.trim());
       });
 
       const tablesData: {
