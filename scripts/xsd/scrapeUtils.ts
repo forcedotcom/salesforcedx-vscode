@@ -256,7 +256,7 @@ export const extractMetadataFromPage = async (
 
           // Stop if we hit another heading (H2-H6)
           // This prevents collecting paragraphs from subsequent sections like "Retrieving Documents"
-          if (current.tagName && current.tagName.match(/^H[2-6]$/)) {
+          if (current.tagName.match(/^H[2-6]$/)) {
             break;
           }
 
@@ -282,7 +282,7 @@ export const extractMetadataFromPage = async (
               if (foundExtends) break; // Stop if we already found extends
 
               // Stop if we hit a heading inside the DIV
-              if (child.tagName && child.tagName.match(/^H[2-6]$/)) {
+              if (child.tagName.match(/^H[2-6]$/)) {
                 break;
               }
 
