@@ -313,15 +313,10 @@ export const extractMetadataFromPage = async (
 
           current = current.nextElementSibling;
         }
-
-        // Join collected paragraphs with space separator
-        if (collectedParagraphs.length > 0) {
-          pageLevelDescription = collectedParagraphs.join(' ');
-        }
-      } else if (collectedParagraphs.length > 0) {
-        // Use what we collected from shortdesc even if we didn't find additional paragraphs
-        pageLevelDescription = collectedParagraphs.join(' ');
       }
+
+      // Join collected paragraphs with space separator
+      pageLevelDescription = collectedParagraphs.join(' ');
 
       // Find all tables (including in shadow DOMs)
       const allTables = collectFromShadowDOM(document, 'table');
