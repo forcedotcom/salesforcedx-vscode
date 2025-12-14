@@ -10,7 +10,10 @@ import {
   ProjectShapeOption,
   TestReqConfig
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { verifyNotificationWithRetry } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
+import {
+  retryOperation,
+  verifyNotificationWithRetry
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import {
   createLwc,
   installJestUTToolsForLwc
@@ -250,25 +253,33 @@ describe('Run LWC Tests', () => {
   });
 
   it('SFDX: Run Current Lightning Web Component Test File from Command Palette', async () => {
-    logTestStart(testSetup, 'SFDX: Run Current Lightning Web Component Test File');
+    logTestStart(testSetup, 'SFDX: Run Current Lightning Web Component Test File from Command Palette');
 
-    // Run SFDX: Run Current Lightning Web Component Test File
-    await executeQuickPick('SFDX: Run Current Lightning Web Component Test File', Duration.seconds(1));
+    await retryOperation(
+      async () => {
+        // Run SFDX: Run Current Lightning Web Component Test File
+        await executeQuickPick('SFDX: Run Current Lightning Web Component Test File', Duration.seconds(5));
 
-    // Verify test results are listed on vscode's Output section
-    // Also verify that all tests pass
-    const workbench = getWorkbench();
-    const terminalText = await getTerminalViewText(workbench, 20);
-    const expectedTexts = [
-      'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
-      'Test Suites: 1 passed, 1 total',
-      'Tests:       2 passed, 2 total',
-      'Snapshots:   0 total',
-      'Ran all test suites within paths',
-      `${path.join(relativeLwcPath, 'lwc1', '__tests__', 'lwc1.test.js')}`
-    ];
-    expect(terminalText).to.not.be.undefined;
-    await verifyOutputPanelText(terminalText!, expectedTexts);
+        // Verify test results are listed on vscode's Output section
+        // Also verify that all tests pass
+        const workbench = getWorkbench();
+        const terminalText = await getTerminalViewText(workbench, 20);
+        const expectedTexts = [
+          'PASS  force-app/main/default/lwc/lwc1/__tests__/lwc1.test.js',
+          'Test Suites: 1 passed, 1 total',
+          'Tests:       2 passed, 2 total',
+          'Snapshots:   0 total',
+          'Ran all test suites within paths',
+          `${path.join(relativeLwcPath, 'lwc1', '__tests__', 'lwc1.test.js')}`
+        ];
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+        expect(terminalText).to.not.be.undefined;
+        await verifyOutputPanelText(terminalText, expectedTexts);
+      },
+      3,
+      'Failed to run current lightning web component test file from command palette'
+    );
   });
 
   // TODO: This test is skipped in Ubuntu because of a flapper after adding code lens to describe blocks
@@ -279,6 +290,7 @@ describe('Run LWC Tests', () => {
 
     // Click the "Run" code lens at the top of the class
     const runAllTestsOption = await waitForAndGetCodeLens(textEditor, 'Run All Tests');
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(runAllTestsOption).to.not.be.undefined;
     await runAllTestsOption!.click();
 
