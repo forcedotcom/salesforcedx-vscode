@@ -195,7 +195,8 @@
         "out/**"
       ],
       "output": [
-        "dist"
+        "dist",
+        "tern"
       ]
     },
     "vscode:package:legacy": {
