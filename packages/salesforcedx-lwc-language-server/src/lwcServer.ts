@@ -335,30 +335,19 @@ export default class Server {
       return null;
     }
 
-    try {
-      const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
+    const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
 
-      const isLWCTemplate = await this.context.isLWCTemplate(doc);
-      const isAuraMarkup = await this.context.isAuraMarkup(doc);
-
-      if (isLWCTemplate) {
-        this.auraDataProvider.activated = false;
-        this.lwcDataProvider.activated = true;
-        const hover = this.languageService.doHover(doc, position, htmlDoc);
-        return hover;
-      } else if (isAuraMarkup) {
-        this.auraDataProvider.activated = true;
-        this.lwcDataProvider.activated = false;
-        const hover = this.languageService.doHover(doc, position, htmlDoc);
-        return hover;
-      } else {
-        return null;
-      }
-    } catch (error: unknown) {
-      Logger.error(
-        `Error in onHover: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error : undefined
-      );
+    if (await this.context.isLWCTemplate(doc)) {
+      this.auraDataProvider.activated = false;
+      this.lwcDataProvider.activated = true;
+      const hover = this.languageService.doHover(doc, position, htmlDoc);
+      return hover;
+    } else if (await this.context.isAuraMarkup(doc)) {
+      this.auraDataProvider.activated = true;
+      this.lwcDataProvider.activated = false;
+      const hover = this.languageService.doHover(doc, position, htmlDoc);
+      return hover;
+    } else {
       return null;
     }
   }

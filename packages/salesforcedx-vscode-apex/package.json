@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.8.1",
+  "version": "65.8.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -164,16 +164,6 @@
   ],
   "main": "./dist/index.js",
   "types": "./out/src/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./out/src/index.d.ts",
-      "default": "./dist/index.js"
-    },
-    "./src/coreExtensionUtils": {
-      "types": "./out/src/coreExtensionUtils.d.ts",
-      "default": "./out/src/coreExtensionUtils.js"
-    }
-  },
   "languageServerDir": "dist",
   "contributes": {
     "menus": {
