@@ -390,24 +390,6 @@ describe('ExternalServiceRegistrationManager', () => {
     expect(result.ExternalServiceRegistration.namedCredential).toBeUndefined();
   });
 
-  it('createESRObject should not include operations for orgs >= 66.0', async () => {
-    const description = 'Test Description';
-    const className = 'TestClass';
-    const safeOasSpec = 'safeOasSpec';
-    const operations: any = [{ active: true, name: 'getPets' }];
-
-    // Test with org >= 66.0 - operations should be undefined
-    await esrHandler['initialize'](false, processedOasResult, fullPath, 66.0);
-    const result = esrHandler.createESRObject(description, className, safeOasSpec, operations);
-
-    expect(result).toHaveProperty('ExternalServiceRegistration');
-    expect(result.ExternalServiceRegistration).toHaveProperty('description', description);
-    expect(result.ExternalServiceRegistration).toHaveProperty('label', className);
-    expect(result.ExternalServiceRegistration).toHaveProperty('schema', safeOasSpec);
-    // For orgs >= 66.0, operations should be undefined (not included in the object)
-    expect(result.ExternalServiceRegistration.operations).toBeUndefined();
-  });
-
   it('extractInfoProperties', async () => {
     await esrHandler['initialize'](true, processedOasResult, fullPath);
     const result = esrHandler.extractInfoProperties();

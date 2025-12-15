@@ -6,8 +6,10 @@
  */
 
 import { AuthInfo, Connection, StateAggregator } from '@salesforce/core';
+import * as util from 'node:util';
 import * as vscode from 'vscode';
 import { ConfigAggregatorProvider, TelemetryService } from '..';
+import { ChannelService } from '../commands/channelService';
 import { ConfigUtil } from '../config/configUtil';
 import { projectPaths } from '../helpers/paths';
 import { nls } from '../messages/messages';
@@ -94,7 +96,11 @@ export class WorkspaceContextUtil {
           });
           return connectionDetails.connection;
         }
-      } catch {
+      } catch (e) {
+        const channel = ChannelService.getInstance('Salesforce Org Management');
+        channel.appendLine(`Error refreshing access token: ${util.inspect(e, { depth: null, showHidden: true })}`);
+        channel.showChannelOutput();
+
         this.sessionConnections.delete(this._username);
         // we only want to display one message per username, even though many consumers are requesting connections.
         if (!this.knownBadConnections.has(this._username)) {

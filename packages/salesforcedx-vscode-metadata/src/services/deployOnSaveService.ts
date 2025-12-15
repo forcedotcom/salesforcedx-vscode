@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Queue from 'effect/Queue';
@@ -17,7 +16,7 @@ import { nls } from '../messages';
 import { getDeployOnSaveEnabled, getIgnoreConflicts } from '../settings/deployOnSaveSettings';
 import { AllServicesLayer, ExtensionProviderService } from './extensionProvider';
 
-const ENQUEUE_DELAY_MS = 500;
+const ENQUEUE_DELAY_MS = 1000;
 
 /** File filtering - exclude files that shouldn't be deployed */
 export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (uri: URI) {
@@ -40,6 +39,7 @@ export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (ur
 });
 
 /** Deploy queued files using MetadataDeployService */
+
 const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
@@ -51,8 +51,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
   const componentSet = yield* deployService.getComponentSetForDeploy({ ignoreConflicts });
 
   if (componentSet.size === 0) {
-    yield* channelService.appendToChannel('Deploy on save: No changes to deploy');
-    return;
+    return yield* channelService.appendToChannel('Deploy on save: No changes to deploy');
   }
 
   yield* channelService.appendToChannel(
@@ -63,8 +62,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
 
   // Handle cancellation
   if (typeof result === 'string') {
-    yield* channelService.appendToChannel('Deploy on save cancelled');
-    return;
+    return yield* channelService.appendToChannel('Deploy on save cancelled');
   }
 
   const failedCount = result.getFileResponses().filter(r => String(r.state) === 'Failed').length;
@@ -73,6 +71,12 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
   yield* channelService.appendToChannel(
     `Deploy on save complete: ${successCount} succeeded${failedCount > 0 ? `, ${failedCount} failed` : ''}`
   );
+});
+
+const isInPackageDirectories = Effect.fn('deployOnSave:isInPackageDirectories')(function* (uri: URI) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const packageDirs = (yield* (yield* api.services.ProjectService).getSfProject).getPackageDirectories();
+  return packageDirs.some(dir => uri.fsPath.startsWith(dir.fullPath));
 });
 
 /** Handle errors from deploy on save */
@@ -111,9 +115,11 @@ export const createDeployOnSaveService = (): Effect.Effect<vscode.Disposable, Er
       Stream.tap(uri => channelService.appendToChannel(`Deploy on save service received URI: ${uri.fsPath}`)),
       Stream.filter(() => getDeployOnSaveEnabled()),
       Stream.filterEffect(shouldDeploy),
-      Stream.tap(uri => channelService.appendToChannel(`Passed shouldDeploy: ${uri.fsPath}`)),
+      Stream.filterEffect(isInPackageDirectories),
+      Stream.tap(uri =>
+        channelService.appendToChannel(`Passed shouldDeploy and isInPackageDirectories: ${uri.fsPath}`)
+      ),
       Stream.groupedWithin(10_000, Duration.millis(ENQUEUE_DELAY_MS)),
-      Stream.filter(chunk => Chunk.size(chunk) > 0),
       Stream.runForEach(() =>
         deployQueuedFiles().pipe(Effect.provide(AllServicesLayer), Effect.catchAll(handleDeployError))
       ),
@@ -123,9 +129,6 @@ export const createDeployOnSaveService = (): Effect.Effect<vscode.Disposable, Er
 
     // Register the save handler
     const disposable = vscode.workspace.onDidSaveTextDocument(async (document: vscode.TextDocument) => {
-      await Effect.runPromise(
-        channelService.appendToChannel(`Deploy on save service received document: ${document.uri.fsPath}`)
-      );
       await Effect.runPromise(Queue.offer(saveQueue, URI.parse(document.uri.toString())));
     });
 
