@@ -2315,7 +2315,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm",
     "parent": "Metadata"
   },
-  "Table 1. Fields": {
+  "ActionableListDatasetColumn": {
     "fields": [
       {
         "Description": "The data domain that is mapped to the data type of the dataset column. Possible values are: Dates Dimensions Measures",
@@ -2363,11 +2363,11 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Represents the information about the columns in a dataset associated with an actionable list.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm",
     "parent": "Metadata"
   },
-  "Table 2. Fields": {
+  "ActionableListMemberStatus": {
     "fields": [
       {
         "Description": "The name of the icon that's mapped to the status.",
@@ -2380,18 +2380,6 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm",
-    "parent": "Metadata"
-  },
-  "ActionableListDatasetColumn": {
-    "fields": [],
-    "short_description": "Represents the information about the columns in a dataset associated with an actionable list.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm",
-    "parent": "Metadata"
-  },
-  "ActionableListMemberStatus": {
-    "fields": [],
     "short_description": "Represents the status and the corresponding status icon details of an individual actionable list member.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actionablelistdefinition.htm",
     "parent": "Metadata"
@@ -32326,7 +32314,111 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm",
     "parent": "Metadata"
   },
-  "Table 3. Fields": {
+  "OcrSampleDocumentField": {
+    "fields": [
+      {
+        "Description": "The column number in the item with the cell storing this field’s value. Available in API version 56.0 and later.",
+        "Field Name": "cellColumnNumber",
+        "Field Type": "int"
+      },
+      {
+        "Description": "The number of columns that span the cell storing this field’s value. Available in API version 56.0 and later.",
+        "Field Name": "cellColumnSpanValue",
+        "Field Type": "int"
+      },
+      {
+        "Description": "The row number in the item with the cell storing this field’s value. Available in API version 56.0 and later.",
+        "Field Name": "cellRowNumber",
+        "Field Type": "int"
+      },
+      {
+        "Description": "The number of rows that span the cell storing this field’s value. Available in API version 56.0 and later.",
+        "Field Name": "cellRowSpanValue",
+        "Field Type": "int"
+      },
+      {
+        "Description": "A normalized coordinate representing the right edge of the bounding box of the key.",
+        "Field Name": "fieldLabelMaxX",
+        "Field Type": "double"
+      },
+      {
+        "Description": "A normalized coordinate representing the bottom edge of the bounding box of the key.",
+        "Field Name": "fieldLabelMaxY",
+        "Field Type": "double"
+      },
+      {
+        "Description": "A normalized coordinate representing the left edge of the bounding box of the key.",
+        "Field Name": "fieldLabelMinX",
+        "Field Type": "double"
+      },
+      {
+        "Description": "A normalized coordinate representing the top edge of the bounding box of the key.",
+        "Field Name": "fieldLabelMinY",
+        "Field Type": "double"
+      },
+      {
+        "Description": "Name of the referred field value. Available in API version 56.0 and later.",
+        "Field Name": "fieldValueName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Indicates whether the key is automatically extracted (true) or not (false). Available in API version 57.0 and later. This field helps to distinguish auto-extracted keys from manual ones.",
+        "Field Name": "isAutoExtractedValue",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "The content in a particular area of the form, representing the field that is extracted by OCR.",
+        "Field Name": "keyContent",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The associated OCR sample document used as a reference while extracting and mapping information from a customer form.",
+        "Field Name": "ocrSampleDocument",
+        "Field Type": "string"
+      },
+      {
+        "Description": "A reference to a page of the OCR sample document that contains the key. This field is null if the OcrSampleDocument is an abstract document representing the DocumentType.",
+        "Field Name": "ocrSampleDocumentPage",
+        "Field Type": "string"
+      },
+      {
+        "Description": "A reference to the item on the sample document page containing this field's value. Available in API version 56.0 and later.",
+        "Field Name": "ocrSampleDocumentPageItem",
+        "Field Type": "OcrTemplate"
+      }
+    ],
+    "short_description": "Represents the details of the field in a form whose value is extracted and mapped to a Salesforce object field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm",
+    "parent": "Metadata"
+  },
+  "OcrSampleDocumentPage": {
+    "fields": [
+      {
+        "Description": "Required. The associated OCR sample document used as a reference while extracting and mapping information from a customer form.",
+        "Field Name": "ocrSampleDocument",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The collection of page items with the associated OCR sample document page. Available in API version 56.0 and later.",
+        "Field Name": "ocr​Sample​Document​Page​Items",
+        "Field Type": "OcrSampleDocument"
+      },
+      {
+        "Description": "The normalized height of the OCR sample document page.",
+        "Field Name": "pageHeight",
+        "Field Type": "double"
+      },
+      {
+        "Description": "Required. The page number of the page in the associated OCR sample document.",
+        "Field Name": "pageNumber",
+        "Field Type": "integer"
+      }
+    ],
+    "short_description": "Represents a collection of fields that define a page in the OCR sample document. This type exists only if the OcrSampleDocument is a real sample document and not an abstract document representing the DocumentType.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm",
+    "parent": "Metadata"
+  },
+  "OcrSampleDocumentPageItem": {
     "fields": [
       {
         "Description": "Indicates whether the OCR sample document page item has a header (true) or not (false). The default value is false. Available in API version 56.0 and later.",
@@ -32349,24 +32441,6 @@
         "Field Type": "ItemType (enumeration of type string)"
       }
     ],
-    "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm",
-    "parent": "Metadata"
-  },
-  "OcrSampleDocumentField": {
-    "fields": [],
-    "short_description": "Represents the details of the field in a form whose value is extracted and mapped to a Salesforce object field.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm",
-    "parent": "Metadata"
-  },
-  "OcrSampleDocumentPage": {
-    "fields": [],
-    "short_description": "Represents a collection of fields that define a page in the OCR sample document. This type exists only if the OcrSampleDocument is a real sample document and not an abstract document representing the DocumentType.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm",
-    "parent": "Metadata"
-  },
-  "OcrSampleDocumentPageItem": {
-    "fields": [],
     "short_description": "Represents a foreign key reference to the item on the sample document page containing a value for the page item.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrsampledocument.htm",
     "parent": "Metadata"
@@ -32418,34 +32492,51 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrtemplate.htm",
     "parent": "Metadata"
   },
-  "Table 4. Fields": {
+  "OcrTargetObject": {
     "fields": [
       {
-        "Description": "Indicates whether the OCR sample document page item has a header (true) or not (false). The default value is false. Available in API version 56.0 and later.",
-        "Field Name": "hasHeader",
-        "Field Type": "boolean"
+        "Description": "Represents the details of how information from a form field is mapped to fields in an object.",
+        "Field Name": "ocrTargetObjectFieldMappings",
+        "Field Type": "OcrTargetObjFieldMapping[]"
       },
       {
-        "Description": "Required. The sequence number of the item on an OCR sample document page with multiple items. Available in API version 56.0 and later.",
-        "Field Name": "sequenceNumber",
-        "Field Type": "int"
-      },
-      {
-        "Description": "The title of the OCR sample document page item. Available in API version 56.0 and later.",
-        "Field Name": "title",
+        "Description": "Required. The object to which information from a form is mapped.",
+        "Field Name": "targetObject",
         "Field Type": "string"
       },
       {
-        "Description": "Required. Specifies the type of OCR sample document page item. Valid value is TABLE. Available in API version 56.0 and later.",
-        "Field Name": "type",
-        "Field Type": "ItemType (enumeration of type string)"
+        "Description": "The developer name of the record type of the target object. Available in API version 56.0 and later.",
+        "Field Name": "targetObjectRecordType",
+        "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Represents the details of the object to which information from a form is extracted and mapped.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrtemplate.htm",
     "parent": "Metadata"
   },
-  "Table 5. Fields": {
+  "OcrTargetObjFieldMapping": {
+    "fields": [
+      {
+        "Description": "The details of the field in a form whose value is extracted and mapped to a Salesforce object field.",
+        "Field Name": "ocrSampleDocField",
+        "Field Type": "OcrSampleDocumentField[]"
+      },
+      {
+        "Description": "Required. The field to which information is mapped.",
+        "Field Name": "targetField",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Specifies the type of mapping. Available in API version 56.0 and later.Valid values are: FormField TableColumn The default value is FormField.",
+        "Field Name": "type",
+        "Field Type": "OcrMappingType (enumeration of type string)"
+      }
+    ],
+    "short_description": "Represents the details of how information from a form field is mapped to fields in an object.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrtemplate.htm",
+    "parent": "Metadata"
+  },
+  "OcrTemplateSampleDocument": {
     "fields": [
       {
         "Description": "The associated OCR sample document is used as a reference while extracting and mapping information from a customer form.",
@@ -32453,7 +32544,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Represents the details of a sample document or a document type that's used as a reference while extracting and mapping information from a customer form.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_ocrtemplate.htm",
     "parent": "Metadata"
   },

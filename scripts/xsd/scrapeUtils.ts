@@ -342,26 +342,15 @@ export const extractMetadataFromPage = async (
         const typeIdx = headers.findIndex(h => h === 'field type' || h === 'type');
         const descIdx = headers.findIndex(h => h === 'description' || h === 'descriptions' || h === 'details');
 
-        // Try to find a table name/caption and description
+        // Try to find a table name and description
         let tableName = '';
         let tableDescription = '';
-        const caption = table.querySelector('caption');
-        if (caption) {
-          tableName = caption.textContent?.trim() ?? '';
-        } else {
-          // Look for heading before the table
-          let foundHeading = findHeadingBefore(table);
 
-          // If no heading found as direct sibling, check parent's siblings
-          // (common in Salesforce docs where table is wrapped in a div)
-          if (!foundHeading && table.parentElement) {
-            foundHeading = findHeadingBefore(table.parentElement);
-          }
-
-          if (foundHeading) {
-            tableName = foundHeading.textContent?.trim() ?? '';
-            tableDescription = findDescriptionAfterHeading(foundHeading, true);
-          }
+        // Look for heading before the table
+        const heading = findHeadingBefore(table.parentElement);
+        if (heading) {
+          tableName = heading.textContent?.trim() ?? '';
+          tableDescription = findDescriptionAfterHeading(heading, true);
         }
 
         // Extract rows for this table
