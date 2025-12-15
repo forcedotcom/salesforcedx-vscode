@@ -24981,7 +24981,135 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm",
     "parent": "Metadata"
   },
-  "Folder": {
+  "DocumentFolder": {
+    "fields": [
+      {
+        "Description": "Required. The type of access for this folder. Valid values are: Shared. This folder is accessible only by the specified set of users. Public. This folder is accessible by all users, including portal users. PublicInternal. This folder is accessible by all users, excluding portal users. This setting is available for report and dashboard folders in organizations with a partner portal or Customer Portal enabled. Hidden. This folder is hidden from all users.",
+        "Field Name": "accessType",
+        "Field Type": "FolderAccessTypes (enumeration of type string)"
+      },
+      {
+        "Description": "The name used as a unique identifier for API access. The fullName can contain only underscores and alphanumeric characters. It must be unique, begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores. This field is inherited from the Metadata component.",
+        "Field Name": "fullName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the document folder.",
+        "Field Name": "name",
+        "Field Type": "string"
+      },
+      {
+        "Description": "If Public is the value for accessType, this field indicates the type of access all users have to the contents of the folder. Valid values include: ReadOnly. All users can read the contents of the folder, but no user can change the contents. ReadWrite. All users can read or change the contents of the folder.",
+        "Field Name": "publicFolderAccess",
+        "Field Type": "PublicFolderAccess (enumeration of type string)"
+      },
+      {
+        "Description": "Sharing access for the folder. See Sharing Considerations in Salesforce Help.",
+        "Field Name": "sharedTo",
+        "Field Type": "SharedTo"
+      }
+    ],
+    "short_description": "Represents a folder. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_folder.htm",
+    "parent": "Metadata"
+  },
+  "EmailFolder": {
+    "fields": [
+      {
+        "Description": "Required. The type of access for this folder. Valid values are: Shared. This folder is accessible only by the specified set of users. Public. This folder is accessible by all users, including portal users. PublicInternal. This folder is accessible by all users, excluding portal users. This setting is available for report and dashboard folders in organizations with a partner portal or Customer Portal enabled. Hidden. This folder is hidden from all users.",
+        "Field Name": "accessType",
+        "Field Type": "FolderAccessTypes (enumeration of type string)"
+      },
+      {
+        "Description": "The name used as a unique identifier for API access. The fullName can contain only underscores and alphanumeric characters. It must be unique, begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores. This field is inherited from the Metadata component.",
+        "Field Name": "fullName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the document folder.",
+        "Field Name": "name",
+        "Field Type": "string"
+      },
+      {
+        "Description": "If Public is the value for accessType, this field indicates the type of access all users have to the contents of the folder. Valid values include: ReadOnly. All users can read the contents of the folder, but no user can change the contents. ReadWrite. All users can read or change the contents of the folder.",
+        "Field Name": "publicFolderAccess",
+        "Field Type": "PublicFolderAccess (enumeration of type string)"
+      },
+      {
+        "Description": "Sharing access for the folder. See Sharing Considerations in Salesforce Help.",
+        "Field Name": "sharedTo",
+        "Field Type": "SharedTo"
+      }
+    ],
+    "short_description": "Represents a folder. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_folder.htm",
+    "parent": "Metadata"
+  },
+  "EmailTemplateFolder": {
+    "fields": [
+      {
+        "Description": "Required. The type of access for this folder. Valid values are: Shared. This folder is accessible only by the specified set of users. Public. This folder is accessible by all users, including portal users. PublicInternal. This folder is accessible by all users, excluding portal users. This setting is available for report and dashboard folders in organizations with a partner portal or Customer Portal enabled. Hidden. This folder is hidden from all users.",
+        "Field Name": "accessType",
+        "Field Type": "FolderAccessTypes (enumeration of type string)"
+      },
+      {
+        "Description": "The name used as a unique identifier for API access. The fullName can contain only underscores and alphanumeric characters. It must be unique, begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores. This field is inherited from the Metadata component.",
+        "Field Name": "fullName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the document folder.",
+        "Field Name": "name",
+        "Field Type": "string"
+      },
+      {
+        "Description": "If Public is the value for accessType, this field indicates the type of access all users have to the contents of the folder. Valid values include: ReadOnly. All users can read the contents of the folder, but no user can change the contents. ReadWrite. All users can read or change the contents of the folder.",
+        "Field Name": "publicFolderAccess",
+        "Field Type": "PublicFolderAccess (enumeration of type string)"
+      },
+      {
+        "Description": "Sharing access for the folder. See Sharing Considerations in Salesforce Help.",
+        "Field Name": "sharedTo",
+        "Field Type": "SharedTo"
+      }
+    ],
+    "short_description": "Represents a folder. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_folder.htm",
+    "parent": "Metadata"
+  },
+  "ReportFolder": {
+    "fields": [
+      {
+        "Description": "Required. The type of access for this folder. Valid values are: Shared. This folder is accessible only by the specified set of users. Public. This folder is accessible by all users, including portal users. PublicInternal. This folder is accessible by all users, excluding portal users. This setting is available for report and dashboard folders in organizations with a partner portal or Customer Portal enabled. Hidden. This folder is hidden from all users.",
+        "Field Name": "accessType",
+        "Field Type": "FolderAccessTypes (enumeration of type string)"
+      },
+      {
+        "Description": "The name used as a unique identifier for API access. The fullName can contain only underscores and alphanumeric characters. It must be unique, begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores. This field is inherited from the Metadata component.",
+        "Field Name": "fullName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the document folder.",
+        "Field Name": "name",
+        "Field Type": "string"
+      },
+      {
+        "Description": "If Public is the value for accessType, this field indicates the type of access all users have to the contents of the folder. Valid values include: ReadOnly. All users can read the contents of the folder, but no user can change the contents. ReadWrite. All users can read or change the contents of the folder.",
+        "Field Name": "publicFolderAccess",
+        "Field Type": "PublicFolderAccess (enumeration of type string)"
+      },
+      {
+        "Description": "Sharing access for the folder. See Sharing Considerations in Salesforce Help.",
+        "Field Name": "sharedTo",
+        "Field Type": "SharedTo"
+      }
+    ],
+    "short_description": "Represents a folder. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_folder.htm",
+    "parent": "Metadata"
+  },
+  "DashboardFolder": {
     "fields": [
       {
         "Description": "Required. The type of access for this folder. Valid values are: Shared. This folder is accessible only by the specified set of users. Public. This folder is accessible by all users, including portal users. PublicInternal. This folder is accessible by all users, excluding portal users. This setting is available for report and dashboard folders in organizations with a partner portal or Customer Portal enabled. Hidden. This folder is hidden from all users.",

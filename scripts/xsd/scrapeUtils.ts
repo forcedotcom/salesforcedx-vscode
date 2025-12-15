@@ -1083,6 +1083,33 @@ export const extractMetadataFromPage = async (
       }
     }
 
+    // Special handling for Folder metadata type
+    // Replace the generic "Folder" entry with 5 specific folder types
+    if (url.includes('meta_folder.htm')) {
+      const folderIndex = results.findIndex(r => r.name === 'Folder');
+      if (folderIndex !== -1) {
+        const folderEntry = results[folderIndex];
+        const folderTypes = ['DocumentFolder', 'EmailFolder', 'EmailTemplateFolder', 'ReportFolder', 'DashboardFolder'];
+
+        // Remove the original Folder entry
+        results.splice(folderIndex, 1);
+
+        // Add 5 specific folder type entries with the same description and fields
+        for (const folderType of folderTypes) {
+          results.push({
+            name: folderType,
+            data: {
+              fields: folderEntry.data.fields,
+              short_description: folderEntry.data.short_description,
+              url: folderEntry.data.url,
+              parent: folderEntry.data.parent
+            }
+          });
+          console.log(`Added specific folder type: ${folderType}`);
+        }
+      }
+    }
+
     return results;
   } catch (error) {
     console.error(`    Error extracting data: ${error}`);
