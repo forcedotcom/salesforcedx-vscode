@@ -14,22 +14,21 @@ import {
   relativePath,
   updateForceIgnoreFile,
   FileSystemDataProvider,
-  extractJsonFromImport,
   getExtension,
   toResolvedPath,
   pathStartsWith,
-  unixify
+  normalizePath,
+  Logger,
+  baseTsConfigJson,
+  tsConfigTemplateJson
 } from '@salesforce/salesforcedx-lightning-lsp-common';
-import baseTsConfigJsonImport from '@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.base.json';
-import tsConfigTemplateJsonImport from '@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.json';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-// Handle JSON imports - extract actual JSON content (may be in .default or directly on import)
-const baseTsConfigJson = extractJsonFromImport(baseTsConfigJsonImport);
-const tsConfigTemplateJson = extractJsonFromImport(tsConfigTemplateJsonImport);
-
 const updateConfigFile = (filePath: string, content: string, fileSystemProvider: FileSystemDataProvider): void => {
+  // FileSystemDataProvider.normalizePath() handles all normalization (unixify + drive letter case)
+  // So we can just pass the path directly - it will be normalized internally
+
   // Create the file stat first
   fileSystemProvider.updateFileStat(filePath, {
     type: 'file',
@@ -48,6 +47,16 @@ const updateConfigFile = (filePath: string, content: string, fileSystemProvider:
  */
 export class LWCWorkspaceContext extends BaseWorkspaceContext {
   /**
+   * Clear the memoized namespace cache to force re-detection
+   */
+  public clearNamespaceCache(): void {
+    this.findNamespaceRootsUsingTypeCache = memoize(() => this.findNamespaceRootsUsingType());
+
+    // Immediately call the new memoized function to populate the cache
+    void this.findNamespaceRootsUsingTypeCache();
+  }
+
+  /**
    * @returns string list of all lwc and aura namespace roots
    */
   protected async findNamespaceRootsUsingType(): Promise<{ lwc: string[]; aura: string[] }> {
@@ -59,49 +68,48 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
       case 'SFDX':
         // For SFDX workspaces, check for both lwc and aura directories
         for (const root of this.workspaceRoots) {
-          const forceAppPath = path.join(root, 'force-app', 'main', 'default');
-          const utilsPath = path.join(root, 'utils', 'meta');
-          const registeredEmptyPath = path.join(root, 'registered-empty-folder', 'meta');
+          const forceAppPath = normalizePath(path.join(root, 'force-app', 'main', 'default'));
+          const utilsPath = normalizePath(path.join(root, 'utils', 'meta'));
+          const registeredEmptyPath = normalizePath(path.join(root, 'registered-empty-folder', 'meta'));
 
-          const lwcPath = path.join(forceAppPath, 'lwc');
-          const auraPath = path.join(forceAppPath, 'aura');
-          const utilsLwcPath = path.join(utilsPath, 'lwc');
-          const registeredLwcPath = path.join(registeredEmptyPath, 'lwc');
+          const lwcPath = normalizePath(path.join(forceAppPath, 'lwc'));
+          const auraPath = normalizePath(path.join(forceAppPath, 'aura'));
+          const utilsLwcPath = normalizePath(path.join(utilsPath, 'lwc'));
+          const registeredLwcPath = normalizePath(path.join(registeredEmptyPath, 'lwc'));
 
-          if (this.fileSystemProvider.fileExists(unixify(lwcPath))) {
+          if (this.fileSystemProvider.directoryExists(lwcPath)) {
             roots.lwc.push(lwcPath);
           }
-          if (this.fileSystemProvider.fileExists(unixify(utilsLwcPath))) {
+          if (this.fileSystemProvider.directoryExists(utilsLwcPath)) {
             roots.lwc.push(utilsLwcPath);
           }
-          if (this.fileSystemProvider.fileExists(unixify(registeredLwcPath))) {
+          if (this.fileSystemProvider.directoryExists(registeredLwcPath)) {
             roots.lwc.push(registeredLwcPath);
           }
-          if (this.fileSystemProvider.fileExists(unixify(auraPath))) {
+          if (this.fileSystemProvider.directoryExists(auraPath)) {
             roots.aura.push(auraPath);
           }
         }
         return roots;
       case 'CORE_ALL':
         // optimization: search only inside project/modules/
-        const projectDirs = this.fileSystemProvider.getDirectoryListing(unixify(this.workspaceRoots[0]));
+        const projectDirs = this.fileSystemProvider.getDirectoryListing(normalizePath(this.workspaceRoots[0]));
         for (const entry of projectDirs) {
           const project = entry.name;
-          const modulesDir = path.join(this.workspaceRoots[0], project, 'modules');
-          if (this.fileSystemProvider.fileExists(unixify(modulesDir))) {
+          const modulesDir = normalizePath(path.join(this.workspaceRoots[0], project, 'modules'));
+          if (this.fileSystemProvider.directoryExists(modulesDir)) {
             const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
-            roots.lwc.push(...subroots.lwc);
-            roots.aura.push(...subroots.aura);
+            roots.lwc.push(...subroots.lwc.map(root => normalizePath(root)));
           }
         }
         return roots;
       case 'CORE_PARTIAL':
         // optimization: search only inside modules/
         for (const ws of this.workspaceRoots) {
-          const modulesDir = path.join(ws, 'modules');
-          if (this.fileSystemProvider.fileExists(unixify(modulesDir))) {
-            const subroots = await findNamespaceRoots(path.join(ws, 'modules'), this.fileSystemProvider, 2);
-            roots.lwc.push(...subroots.lwc);
+          const modulesDir = normalizePath(path.join(ws, 'modules'));
+          if (this.fileSystemProvider.directoryExists(modulesDir)) {
+            const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
+            roots.lwc.push(...subroots.lwc.map(root => normalizePath(root)));
           }
         }
         return roots;
@@ -114,8 +122,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
           depth += 2;
         }
         const unknownroots = await findNamespaceRoots(this.workspaceRoots[0], this.fileSystemProvider, depth);
-        roots.lwc.push(...unknownroots.lwc);
-        roots.aura.push(...unknownroots.aura);
+        roots.lwc.push(...unknownroots.lwc.map(root => normalizePath(root)));
         return roots;
       }
     }
@@ -137,7 +144,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
       // TODO: This should be moved into configureProject after dev preview
       await this.writeTsconfigJson();
     } catch (error) {
-      console.error('configureProjectForTs: Error occurred:', error);
+      Logger.error('configureProjectForTs: Error occurred:', error);
       throw error;
     }
   }
@@ -155,7 +162,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
           const baseTsConfig = JSON.stringify(baseTsConfigJson, null, 4);
           updateConfigFile(baseTsConfigPath, baseTsConfig, this.fileSystemProvider);
         } catch (error) {
-          console.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);
+          Logger.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);
           throw error;
         }
 
@@ -182,18 +189,21 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
   }
 
   public async isLWCTemplate(document: TextDocument): Promise<boolean> {
-    return (
-      document.languageId === 'html' &&
-      getExtension(document) === '.html' &&
-      (await this.isInsideModulesRoots(document))
-    );
+    const languageIdMatch = document.languageId === 'html';
+    const extensionMatch = getExtension(document) === '.html';
+    const isInsideModules = await this.isInsideModulesRoots(document);
+
+    return languageIdMatch && extensionMatch && isInsideModules;
   }
 
   public async isInsideModulesRoots(document: TextDocument): Promise<boolean> {
-    const file = toResolvedPath(document.uri);
+    // Normalize file path to ensure consistent format (especially Windows drive letter casing and path separators)
+    const file = normalizePath(toResolvedPath(document.uri));
+
     for (const ws of this.workspaceRoots) {
-      if (pathStartsWith(file, ws)) {
-        return this.isFileInsideModulesRoots(file);
+      const startsWith = pathStartsWith(file, ws);
+      if (startsWith) {
+        return await this.isFileInsideModulesRoots(file);
       }
     }
     return false;

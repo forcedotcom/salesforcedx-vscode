@@ -6,10 +6,14 @@
  */
 
 import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
-import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
+import {
+  ActivationTracker,
+  bootstrapWorkspaceAwareness,
+  detectWorkspaceType
+} from '@salesforce/salesforcedx-utils-vscode';
+import { Effect } from 'effect';
 import * as path from 'node:path';
-import { commands, Disposable, ExtensionContext, workspace, Uri, FileType } from 'vscode';
+import { commands, Disposable, ExtensionContext, workspace } from 'vscode';
 import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
 import { log } from './constants';
 import { createLanguageClient } from './languageClient';
@@ -45,10 +49,9 @@ export const activate = async (extensionContext: ExtensionContext) => {
     workspaceUris.push(folder.uri.fsPath);
   });
 
-  const fileSystemProvider = await createFileSystemProvider(workspaceUris);
-
-  // If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = await lspCommon.detectWorkspaceType(workspaceUris, fileSystemProvider);
+  // For workspace type detection, we still need to check the file system
+  // Create a temporary provider just for detection
+  const workspaceType = await detectWorkspaceType(workspaceUris);
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
@@ -65,11 +68,35 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Start the LWC Language Server
   const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
-  const client = createLanguageClient(serverModule, fileSystemProvider);
+  const client = createLanguageClient(serverModule, { workspaceType });
 
   // Start the client and add it to subscriptions
   await client.start();
   extensionContext.subscriptions.push(client);
+
+  // Trigger loading of workspace files into document cache after server initialization
+  // This runs asynchronously and does not block extension activation
+  // The language server uses scheduleReinitialization to wait for file loading to stabilize
+  void Effect.runPromise(
+    bootstrapWorkspaceAwareness({
+      fileGlob: '**/lwc/**/*.{js,ts,html}',
+      excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
+      logger: log
+    })
+  ).catch((error: unknown) => {
+    log(`Failed to bootstrap workspace awareness: ${String(error)}`);
+  });
+
+  // Also load essential JSON files for workspace type detection
+  void Effect.runPromise(
+    bootstrapWorkspaceAwareness({
+      fileGlob: '**/*.{json,xml}',
+      excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
+      logger: log
+    })
+  ).catch((error: unknown) => {
+    log(`Failed to bootstrap essential files: ${String(error)}`);
+  });
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
@@ -106,125 +133,3 @@ const registerCommands = (_extensionContext: ExtensionContext): Disposable =>
     commands.registerCommand('sf.lightning.lwc.open', lightningLwcOpen),
     commands.registerCommand('sf.lightning.lwc.preview', lightningLwcPreview)
   );
-
-/**
- * Creates a FileSystemDataProvider that reads all workspace files and directories
- * @param workspaceUris Array of workspace folder paths
- * @returns FileSystemDataProvider with workspace files and directories
- */
-const createFileSystemProvider = async (workspaceUris: string[]): Promise<FileSystemDataProvider> => {
-  const fileSystemProvider = new FileSystemDataProvider();
-
-  for (const workspaceUri of workspaceUris) {
-    try {
-      await populateWorkspaceRecursively(fileSystemProvider, workspaceUri);
-    } catch (error) {
-      log(`Error populating workspace files for workspace ${workspaceUri}: ${String(error)}`);
-      throw error;
-    }
-  }
-
-  return fileSystemProvider;
-};
-
-/**
- * Recursively populates all files and directories in the workspace
- * @param provider FileSystemDataProvider to populate
- * @param dirPath Path to the directory to populate
- */
-const populateWorkspaceRecursively = async (provider: FileSystemDataProvider, dirPath: string): Promise<void> => {
-  try {
-    const dirUri = Uri.parse(dirPath);
-    const entries = await workspace.fs.readDirectory(dirUri);
-
-    // Update directory listing
-    const directoryEntries = entries.map(
-      ([name, type]: [string, number]): lspCommon.DirectoryEntry => ({
-        name,
-        type: type === 1 ? 'file' : 'directory', // FileType.File = 1, FileType.Directory = 2
-        uri: path.join(dirPath, name)
-      })
-    );
-    provider.updateDirectoryListing(dirPath, directoryEntries);
-
-    // Update directory stat
-    provider.updateFileStat(dirPath, {
-      type: 'directory',
-      exists: true,
-      ctime: Date.now(),
-      mtime: Date.now(),
-      size: 0 // Directories don't have a meaningful size
-    });
-
-    // Process each entry
-    for (const [name, type] of entries) {
-      const entryPath = path.join(dirPath, name);
-
-      if (type === FileType.File) {
-        await tryReadFile(provider, entryPath);
-      } else if (type === FileType.Directory) {
-        // Skip common directories that don't need to be populated
-        if (shouldSkipDirectory(name)) {
-          continue;
-        }
-        await populateWorkspaceRecursively(provider, entryPath);
-      }
-    }
-  } catch (error: any) {
-    // Directory doesn't exist or can't be read
-    if (!(error instanceof Error) || !error.message.includes('ENOENT')) {
-      log(`Unexpected error reading directory ${dirPath}: ${String(error)}`);
-    }
-  }
-};
-
-/**
- * Determines if a directory should be skipped during workspace population
- * @param dirName Name of the directory
- * @returns true if directory should be skipped
- */
-const shouldSkipDirectory = (dirName: string): boolean => {
-  const skipDirs = [
-    'node_modules',
-    '.git',
-    '.vscode',
-    '.sfdx',
-    'coverage',
-    'dist',
-    'out',
-    'lib',
-    '.nyc_output',
-    'temp',
-    'tmp',
-    '.DS_Store'
-  ];
-  return skipDirs.includes(dirName) || dirName.startsWith('.');
-};
-
-/**
- * Attempts to read a file and add it to the provider if it exists
- * @param provider FileSystemDataProvider to update
- * @param filePath Path to the file to read
- */
-const tryReadFile = async (provider: FileSystemDataProvider, filePath: string): Promise<void> => {
-  try {
-    const fileUri = Uri.parse(filePath);
-    const fileContent = await workspace.fs.readFile(fileUri);
-    const content = Buffer.from(fileContent).toString('utf8');
-
-    provider.updateFileContent(filePath, content);
-    provider.updateFileStat(filePath, {
-      type: 'file',
-      exists: true,
-      ctime: Date.now(),
-      mtime: Date.now(),
-      size: content.length
-    });
-  } catch (error: any) {
-    // File doesn't exist or can't be read - this is expected for most files
-    // Only log if it's an unexpected error
-    if (!(error instanceof Error) || !error.message.includes('ENOENT')) {
-      log(`Unexpected error reading file ${filePath}: ${String(error)}`);
-    }
-  }
-};

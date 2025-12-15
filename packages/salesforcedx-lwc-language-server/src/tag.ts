@@ -8,10 +8,10 @@ import {
   ClassMember,
   AttributeInfo,
   IFileSystemProvider,
-  unixify
+  normalizePath,
+  Logger
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { camelCase, paramCase } from 'change-case';
-import * as glob from 'fast-glob';
 
 import * as path from 'node:path';
 import { Location, Position, Range } from 'vscode-languageserver';
@@ -80,7 +80,8 @@ export const createTag = async (attributes: TagAttrs, fileSystemProvider?: IFile
     updatedAt = new Date(attributes.updatedAt);
   } else if (file && fileSystemProvider) {
     try {
-      const stat = fileSystemProvider.getFileStat(`file://${unixify(file)}`);
+      // file is already normalized, and getFileStat normalizes internally
+      const stat = fileSystemProvider.getFileStat(`file://${file}`);
       if (stat) {
         updatedAt = new Date(stat.mtime);
       } else {
@@ -164,22 +165,53 @@ export const getTagRange = (tag: Tag): Range => {
 // Utility function to get tag location
 export const getTagLocation = (tag: Tag): Location => Location.create(getTagUri(tag), getTagRange(tag));
 
+/**
+ * Finds files matching a pattern in a directory using FileSystemDataProvider
+ * This replaces fast-glob for web compatibility
+ */
+const findFilesInDirectory = (dirPath: string, pattern: RegExp, fileSystemProvider: IFileSystemProvider): string[] => {
+  const results: string[] = [];
+  // Normalize path the same way FileSystemDataProvider normalizes paths
+  const normalizedDirPath = normalizePath(dirPath);
+
+  if (!fileSystemProvider.directoryExists(normalizedDirPath)) {
+    return results;
+  }
+
+  const entries = fileSystemProvider.getDirectoryListing(normalizedDirPath);
+  for (const entry of entries) {
+    if (entry.type === 'file') {
+      // Use entry.name directly instead of parsing entry.uri to avoid path parsing issues on Windows
+      const matches = pattern.test(entry.name);
+      if (matches) {
+        results.push(entry.uri);
+      }
+    }
+  }
+
+  return results;
+};
+
 // Utility function to get all locations
-export const getAllLocations = (tag: Tag): Location[] => {
+export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvider): Location[] => {
+  // tag.file is already normalized (comes from entry.path which is normalized by FileSystemDataProvider)
   const { dir, name } = path.parse(tag.file);
-  // Normalize dir for cross-platform compatibility (glob expects forward slashes)
-  const normalizedDir = unixify(dir);
+  // Normalize dir because path.parse() returns backslashes on Windows
+  const normalizedDir = normalizePath(dir);
 
   const convertFileToLocation = (file: string): Location => {
-    const uri = URI.file(path.resolve(file)).toString();
+    const uri = URI.file(file).toString();
     const position = Position.create(0, 0);
     const range = Range.create(position, position);
     return Location.create(uri, range);
   };
 
-  const filteredFiles = glob.sync(`${normalizedDir}/${name}.+(html|css)`);
+  // Match files like name.html or name.css
+  const pattern = new RegExp(`^${name.replace(/[.+^${}()|[\]\\]/g, '\\$&')}\\.(html|css)$`);
+  const filteredFiles = findFilesInDirectory(normalizedDir, pattern, fileSystemProvider);
   const locations = filteredFiles.map(convertFileToLocation);
-  locations.unshift(getTagLocation(tag));
+  const tagLocation = getTagLocation(tag);
+  locations.unshift(tagLocation);
 
   return locations;
 };
@@ -247,7 +279,8 @@ export const updateTagMetadata = async (
   tag._properties = null;
   if (fileSystemProvider) {
     try {
-      const stat = fileSystemProvider.getFileStat(`file://${unixify(tag.file)}`);
+      // tag.file is already normalized, and getFileStat normalizes internally
+      const stat = fileSystemProvider.getFileStat(`file://${tag.file}`);
       if (stat) {
         tag.updatedAt = new Date(stat.mtime);
       } else {
@@ -275,7 +308,13 @@ export const createTagFromFile = async (
   const fileName = filePath.base;
 
   try {
-    const content = fileSystemProvider.getFileContent(unixify(file));
+    // file is already normalized (comes from entry.path), and getFileContent normalizes internally
+    // Try both with and without file:// prefix
+    let content = fileSystemProvider.getFileContent(file);
+    if (!content) {
+      const fileWithPrefix = file.startsWith('file://') ? file : `file://${file}`;
+      content = fileSystemProvider.getFileContent(fileWithPrefix);
+    }
     if (!content) {
       return null;
     }
@@ -294,9 +333,18 @@ export const createTagFromFile = async (
       return null;
     }
 
-    return await createTag({ file, metadata, updatedAt });
+    const tag = await createTag({ file, metadata, updatedAt });
+    return tag;
   } catch (e) {
-    console.error(e);
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    const errorStack = e instanceof Error ? e.stack : 'No stack trace available';
+    Logger.error(`[createTagFromFile] Error creating tag from file ${file}:`);
+    Logger.error(`[createTagFromFile] Error message: ${errorMessage}`);
+    Logger.error(`[createTagFromFile] Error stack: ${errorStack}`);
+    if (e instanceof Error && e.cause) {
+      const causeMessage = e.cause instanceof Error ? e.cause.message : String(e.cause);
+      Logger.error(`[createTagFromFile] Error cause: ${causeMessage}`);
+    }
     return null;
   }
 };

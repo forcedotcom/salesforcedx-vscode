@@ -5,20 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 // @ts-nocheck as this is a third party library
-import { FileSystemDataProvider, extractJsonFromImport } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { extractJsonFromImport, Logger } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as walk from 'acorn-walk';
 import * as infer from '../tern/lib/infer';
 import * as tern from '../tern/lib/tern';
 import * as auraTypesJsonImport from './aura_types.json';
 
 const WG_DEFAULT_EXPORT = 95;
-let server: any = {};
+let server: Server = {};
 
 let shouldFilter = false;
 /* this is necessary to inform the parameter types of the controller when
     the helper method is deleted */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-const ForAllProps_Purgeable = infer.constraint({
+const forAllPropsPurgeable = infer.constraint({
   construct(c) {
     this.c = c;
   },
@@ -65,8 +65,7 @@ const readFile = async (filename: string): Promise<string> => {
   }
 
   try {
-    const fileSystem = new FileSystemDataProvider();
-    const content = fileSystem.getFileContent(`file://${normalized}`);
+    const content = server.fileSystemProvider.getFileContent(`file://${normalized}`);
     return content ?? '';
   } catch {
     // Handle file not found or other errors
@@ -76,20 +75,12 @@ const readFile = async (filename: string): Promise<string> => {
 
 const baseName = (path: string): string => {
   const lastSlash = path.lastIndexOf('/');
-  if (lastSlash === -1) {
-    return path;
-  } else {
-    return path.slice(lastSlash + 1);
-  }
+  return lastSlash === -1 ? path : path.slice(lastSlash + 1);
 };
 
 const trimExt = (path: string): string => {
   const lastDot = path.lastIndexOf('.');
-  if (lastDot === -1) {
-    return path;
-  } else {
-    return path.slice(0, lastDot);
-  }
+  return lastDot === -1 ? path : path.slice(0, lastDot);
 };
 
 const initScope = (scope: any): void => {
@@ -155,7 +146,7 @@ const findAndBindHelper = (type: any, servr: any, modules: any, file: any): void
   if (!hp.getType()) {
     // this handles new props added to the helper...
     helper.on('addType', (helperType, _val) => {
-      const p = new ForAllProps_Purgeable((prop, val, _local) => {
+      const p = new forAllPropsPurgeable((prop, val, _local) => {
         if (bn === prop) {
           val.propagate(type);
         }
@@ -207,11 +198,11 @@ const connectModule = async (file: any, out: any): Promise<void> => {
   server.startAsyncAction();
   const modules = infer.cx().parent.mod.modules;
   const cx = infer.cx();
-  console.log(`Starting... ${file.name}`);
+  Logger.log(`Starting... ${file.name}`);
   if (/Helper.js$/.test(file.name)) {
     // need to reestablish server context after awaits
     infer.withContext(server.cx, () => {
-      console.log(`Process helper exports ${file.name}`);
+      Logger.log(`Process helper exports ${file.name}`);
       let outObj;
       if (!out.getType()) {
         const type = baseName(file.name).replace(/.js$/, '');
@@ -255,7 +246,7 @@ const connectModule = async (file: any, out: any): Promise<void> => {
                     // @ts-expect-error - objType is a custom tern property
                     node.objType.propagate(target);
                   } catch (err) {
-                    console.error(err);
+                    Logger.error(err);
                   }
                 }
                 //outObj.defProp(baseName(file.name).replace(/.js$/, ''))
@@ -268,7 +259,7 @@ const connectModule = async (file: any, out: any): Promise<void> => {
         );
       } catch (stop) {
         if (stop !== 'stop') {
-          console.error(stop);
+          Logger.error(stop);
           throw stop;
         }
       }
@@ -293,7 +284,7 @@ const connectModule = async (file: any, out: any): Promise<void> => {
   }
   // reestablish scope after awaits
   infer.withContext(server.cx, () => {
-    console.log(`Fixing scopes...${file.name}`);
+    Logger.log(`Fixing scopes...${file.name}`);
     walk.simple(file.ast, {
       ObjectExpression: (node, _state) => {
         const parent = infer.parentNode(node, file.ast);
@@ -345,7 +336,7 @@ const connectModule = async (file: any, out: any): Promise<void> => {
         }
       }
     });
-    console.log(`All done ${file.name}`);
+    Logger.log(`All done ${file.name}`);
   });
 
   server.finishAsyncAction();
@@ -357,7 +348,13 @@ tern.registerPlugin('aura', (s, _options) => {
     throw Error('Server must be async');
   }
   server.options.getFile = readFileAsync;
+  // Ensure server.mod exists before loading modules plugin (modules plugin assumes it exists)
+  server.mod ??= {};
   server.loadPlugin('modules');
+  // Verify modules plugin initialized correctly
+  if (!server.mod.modules) {
+    throw new Error('Modules plugin failed to initialize: server.mod.modules is undefined');
+  }
   server.mod.modules.on('wrapScope', initScope);
   server.mod.modules.on('getExports', connectModule);
   server.mod.modules.resolvers.push(resolver);
@@ -378,7 +375,7 @@ tern.registerPlugin('aura', (s, _options) => {
       },
       (err: any, result: any) => {
         if (err) {
-          console.log(err);
+          Logger.log(err);
         }
         if (shouldFilter) {
           result.completions = result.completions.filter((completion, _index, _array) => {
@@ -399,19 +396,18 @@ tern.registerPlugin('aura', (s, _options) => {
     return filteredResult;
   });
 
-  console.log('IDE mode');
   // Extract JSON content from import - may be wrapped in .default or spread
   const defs = extractJsonFromImport(auraTypesJsonImport);
   server.addDefs(defs);
 
-  console.log(`${new Date().toISOString()} Done loading!`);
+  Logger.log(`${new Date().toISOString()} Done loading!`);
 });
 
 tern.defineQueryType('ideInit', {
   run: (_server: any, query: any) => {
     if (query.unloadDefs) {
       unloadDefs();
-      console.log('Unloaded default Aura defs');
+      Logger.log('Unloaded default Aura defs');
     }
 
     if (query.shouldFilter === true || query.shouldFilter === false) {

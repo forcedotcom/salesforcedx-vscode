@@ -27,9 +27,12 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import URI from 'vscode-uri';
+import { nls } from '../messages';
 import * as infer from '../tern/lib/infer';
 import * as tern from '../tern/lib/tern';
 import { findPreviousWord, findPreviousLeftParan, countPreviousCommas } from './stringUtil';
+// Import ternAura to ensure it executes and registers the 'aura' plugin
+import './ternAura';
 
 interface TernServer extends tern.Server {
   files: TernFile[];
@@ -83,7 +86,7 @@ const defaultConfig = {
 const auraInstanceLastSort = (a: string, b: string): number =>
   a.endsWith('AuraInstance.js') === b.endsWith('AuraInstance.js') ? 0 : a.endsWith('AuraInstance.js') ? 1 : -1;
 
-/** Recursively get all .js files from a directory using VS Code APIs */
+/** Recursively get all .js files from a directory using FileSystemDataProvider */
 const getJsFilesRecursively = async (
   dirPath: string,
   fileSystemProvider: FileSystemDataProvider
@@ -96,9 +99,11 @@ const getJsFilesRecursively = async (
 
       for (const entry of entries) {
         if (entry.type === 'directory') {
-          await processDirectory(path.join(currentPath, entry.name));
+          // entry.uri is already the full URI for the subdirectory
+          await processDirectory(entry.uri);
         } else if (entry.type === 'file' && entry.name.endsWith('.js')) {
-          files.push(path.join(currentPath, entry.name));
+          // entry.uri is already the full URI for the file
+          files.push(entry.uri);
         }
       }
     } catch {
@@ -111,13 +116,33 @@ const getJsFilesRecursively = async (
 };
 
 const loadPlugins = async (): Promise<{ aura: true; modules: true; doc_comment: true }> => {
+  // Use require() to load plugins from file system (they're not bundled)
+  // The plugins register themselves via tern.registerPlugin() when required
+  // Note: ternAura is imported at the top of this file, so it's already registered
+  // When bundled, __dirname is 'dist/', so '../tern/plugin/modules.js' resolves to 'tern/plugin/modules.js' at extension root
+  // IMPORTANT: The plugins use require("../lib/tern") which must resolve to the same tern instance
+  // that we import at the top of this file. Node's module caching ensures the same instance is returned
+  // when the plugins require("../lib/tern"), since we're using the same file system paths.
+  const modulesPluginPath = path.resolve(__dirname, '../tern/plugin/modules.js');
+  const docCommentPluginPath = path.resolve(__dirname, '../tern/plugin/doc_comment.js');
+
   try {
-    await import('./ternAura.js');
-    await import('../tern/plugin/modules.js');
-    await import('../tern/plugin/doc_comment.js');
-  } catch {
-    // In test environment, dynamic imports might fail, but we can still return the expected structure
+    require(modulesPluginPath);
+  } catch (error) {
+    console.error(`Failed to load modules plugin from ${modulesPluginPath}:`, error);
+    throw error;
   }
+
+  try {
+    require(docCommentPluginPath);
+  } catch (error) {
+    console.error(`Failed to load doc_comment plugin from ${docCommentPluginPath}:`, error);
+    throw error;
+  }
+
+  // Note: tern.plugins is not exported, so we can't verify registration here
+  // The plugins register themselves internally via tern.registerPlugin()
+  // If registration fails, it will be caught when loadPlugin('modules') is called
 
   return {
     aura: true,
@@ -189,7 +214,7 @@ const ternInit = async (fileSystemProvider: FileSystemDataProvider): Promise<voi
   for (const file of files) {
     const content = fileSystemProvider.getFileContent(file);
     if (!content) {
-      throw new Error('File not found');
+      throw new Error(nls.localize('file_not_found_message'));
     }
 
     const contents = file.endsWith('AuraInstance.js')
@@ -201,9 +226,7 @@ const ternInit = async (fileSystemProvider: FileSystemDataProvider): Promise<voi
   }
 };
 
-const init = (fileSystemProvider: FileSystemDataProvider) => ternInit(fileSystemProvider);
-
-export { init };
+export const init = (fileSystemProvider: FileSystemDataProvider) => ternInit(fileSystemProvider);
 
 export const startServer = async (
   rootPath: string,
@@ -217,13 +240,13 @@ export const startServer = async (
   try {
     browserJsonImport = require(BROWSER_JSON_PATH);
   } catch (e) {
-    throw new Error(`Failed to load browser.json from ${BROWSER_JSON_PATH}: ${e}`);
+    throw new Error(nls.localize('failed_to_load_browser_json_message', BROWSER_JSON_PATH, e));
   }
 
   try {
     ecmascriptJsonImport = require(ECMASCRIPT_JSON_PATH);
   } catch (e) {
-    throw new Error(`Failed to load ecmascript.json from ${ECMASCRIPT_JSON_PATH}: ${e}`);
+    throw new Error(nls.localize('failed_to_load_ecmascript_json_message', ECMASCRIPT_JSON_PATH, e));
   }
 
   // Extract JSON content from imports - may be wrapped in .default or spread
@@ -232,17 +255,32 @@ export const startServer = async (
 
   if (!browser || typeof browser !== 'object' || !('!name' in browser)) {
     throw new Error(
-      `Invalid browser definition: type=${typeof browser}, isNull=${browser === null}, isUndefined=${browser === undefined}, keys=${browser && typeof browser === 'object' ? Object.keys(browser).join(',') : 'none'}`
+      nls.localize(
+        'invalid_browser_definition_message',
+        typeof browser,
+        browser === null,
+        browser === undefined,
+        browser && typeof browser === 'object' ? Object.keys(browser).join(',') : 'none'
+      )
     );
   }
   if (!ecmascript || typeof ecmascript !== 'object' || !('!name' in ecmascript)) {
     throw new Error(
-      `Invalid ecmascript definition: type=${typeof ecmascript}, isNull=${ecmascript === null}, isUndefined=${ecmascript === undefined}, keys=${ecmascript && typeof ecmascript === 'object' ? Object.keys(ecmascript).join(',') : 'none'}`
+      nls.localize(
+        'invalid_ecmascript_definition_message',
+        typeof ecmascript,
+        ecmascript === null,
+        ecmascript === undefined,
+        ecmascript && typeof ecmascript === 'object' ? Object.keys(ecmascript).join(',') : 'none'
+      )
     );
   }
 
   const defs = [browser, ecmascript];
-  const plugins = await loadPlugins();
+  // Load plugins BEFORE creating the tern server to ensure they're registered
+  // This must happen synchronously to ensure the tern instance is shared
+  await loadPlugins();
+  const plugins = { aura: true, modules: true, doc_comment: true };
   const config: tern.ConstructorOptions = {
     ...defaultConfig,
     defs,
@@ -278,13 +316,8 @@ const lsp2ternPos = ({ line, character }: { line: number; character: number }): 
 
 const tern2lspPos = ({ line, ch }: { line: number; ch: number }): Position => ({ line, character: ch });
 
-const fileToUri = (file: string): string => {
-  if (path.isAbsolute(file)) {
-    return URI.file(file).toString();
-  } else {
-    return URI.file(path.join(theRootPath, file)).toString();
-  }
-};
+const fileToUri = (file: string): string =>
+  path.isAbsolute(file) ? URI.file(file).toString() : URI.file(path.join(theRootPath, file)).toString();
 
 const uriToFile = (uri: string): string => {
   const parsedUri = URI.parse(uri);
@@ -388,8 +421,7 @@ export const onHover = async (
     await asyncFlush();
     const info = await ternRequest(textDocumentPosition, 'type');
 
-    const out: string[] = [];
-    out.push(`${info.exprName ?? info.name}: ${info.type}`);
+    const out: string[] = [`${info.exprName ?? info.name}: ${info.type}`];
     if (info.doc) {
       out.push(info.doc);
     }
@@ -399,7 +431,7 @@ export const onHover = async (
 
     return { contents: out };
   } catch (e: any) {
-    if (e.message?.startsWith('No type found')) {
+    if (e?.message?.startsWith('No type found')) {
       return { contents: [] };
     }
     return { contents: [] };

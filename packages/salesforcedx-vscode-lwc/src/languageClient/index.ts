@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { code2ProtocolConverter } from '@salesforce/salesforcedx-utils-vscode';
 import { Uri, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
@@ -14,7 +14,7 @@ const protocol2CodeConverter = (value: string) => Uri.parse(value);
 
 export const createLanguageClient = (
   serverPath: string,
-  fileSystemProvider: FileSystemDataProvider
+  initializationOptions: { workspaceType: WorkspaceType }
 ): LanguageClient => {
   // Setup the language server
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6030'] };
@@ -33,11 +33,10 @@ export const createLanguageClient = (
     documentSelector: [
       { language: 'html', scheme: 'file' },
       { language: 'javascript', scheme: 'file' },
-      { language: 'typescript', scheme: 'file' }
+      { language: 'typescript', scheme: 'file' },
+      { language: 'json', scheme: 'file' },
+      { language: 'xml', scheme: 'file' }
     ],
-    initializationOptions: {
-      fileSystemProvider: fileSystemProvider.serialize()
-    },
     synchronize: {
       fileEvents: [
         workspace.createFileSystemWatcher('**/*.resource'),
@@ -51,6 +50,7 @@ export const createLanguageClient = (
         workspace.createFileSystemWatcher('**/', false, true, false)
       ]
     },
+    initializationOptions,
     uriConverters: {
       code2Protocol: code2ProtocolConverter,
       protocol2Code: protocol2CodeConverter

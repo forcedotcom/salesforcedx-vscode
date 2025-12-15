@@ -8,12 +8,14 @@
 import * as ejs from 'ejs';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { nls } from './messages';
 import { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
 import * as jsconfigCoreTemplateJson from './resources/core/jsconfig-core.json';
 import * as settingsCoreTemplateJson from './resources/core/settings-core.json';
 import * as jsconfigSfdxTemplateJson from './resources/sfdx/jsconfig-sfdx.json';
-import { WorkspaceType, detectWorkspaceType, getSfdxProjectFile } from './shared';
+import { WorkspaceType, getSfdxProjectFile } from './shared';
 import * as utils from './utils';
+import { NormalizedPath } from './utils';
 
 // Handle namespace JSON imports - extract actual JSON content (may be in .default or directly on namespace)
 const jsconfigCoreTemplate = utils.extractJsonFromImport(jsconfigCoreTemplateJson);
@@ -48,11 +50,11 @@ const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProv
   try {
     const configText = fileSystemProvider.getFileContent(getSfdxProjectFile(root));
     if (!configText) {
-      throw new Error('Config file not found');
+      throw new Error(nls.localize('config_file_not_found_message'));
     }
     const config: unknown = JSON.parse(configText);
     if (!isRecord(config)) {
-      throw new Error('Invalid config format');
+      throw new Error(nls.localize('invalid_config_format_message'));
     }
     const packageDirectories = Array.isArray(config.packageDirectories)
       ? config.packageDirectories.filter(isSfdxPackageDirectoryConfig)
@@ -64,7 +66,8 @@ const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProv
       sfdxPackageDirsPattern: `{${sfdxPackageDirsPattern}}`
     };
   } catch (e) {
-    throw new Error(`Sfdx project file seems invalid. Unable to parse ${getSfdxProjectFile(root)}. ${e.message}`);
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    throw new Error(nls.localize('sfdx_project_file_invalid_message', getSfdxProjectFile(root), errorMessage));
   }
 };
 
@@ -83,7 +86,7 @@ export const updateForceIgnoreFile = (
   try {
     const data = fileSystemProvider.getFileContent(forceignorePath);
     if (!data) {
-      throw new Error('Forceignore file not found');
+      throw new Error(nls.localize('forceignore_file_not_found_message'));
     }
     forceignoreContent = Buffer.from(data).toString('utf8');
   } catch {
@@ -118,25 +121,28 @@ export const getModulesDirs = (
   workspaceRoots: string[],
   fileSystemProvider: IFileSystemProvider,
   getSfdxProjectConfig: () => SfdxProjectConfig
-): string[] => {
-  const modulesDirs: string[] = [];
+): NormalizedPath[] => {
+  // Normalize workspaceRoots at the start to ensure consistent path format
+  // This ensures all path operations use normalized paths
+  const normalizedWorkspaceRoots = workspaceRoots.map(root => utils.normalizePath(root));
+  const modulesDirs: NormalizedPath[] = [];
   switch (workspaceType) {
     case 'SFDX':
       const { packageDirectories } = getSfdxProjectConfig();
       for (const pkg of packageDirectories) {
         // Check both new SFDX structure (main/default) and old structure (meta)
-        const newPkgDir = path.join(workspaceRoots[0], pkg.path, 'main', 'default');
-        const oldPkgDir = path.join(workspaceRoots[0], pkg.path, 'meta');
+        const newPkgDir = path.join(normalizedWorkspaceRoots[0], pkg.path, 'main', 'default');
+        const oldPkgDir = path.join(normalizedWorkspaceRoots[0], pkg.path, 'meta');
 
         // Check for LWC components in new structure
-        const newLwcDir = path.join(newPkgDir, 'lwc');
+        const newLwcDir = utils.normalizePath(path.join(newPkgDir, 'lwc'));
         const newLwcDirStat = fileSystemProvider.getFileStat(newLwcDir);
         if (newLwcDirStat?.type === 'directory') {
           // Add the LWC directory itself, not individual components
           modulesDirs.push(newLwcDir);
         } else {
           // New structure doesn't exist, check for LWC components in old structure
-          const oldLwcDir = path.join(oldPkgDir, 'lwc');
+          const oldLwcDir = utils.normalizePath(path.join(oldPkgDir, 'lwc'));
           const oldLwcDirStat = fileSystemProvider.getFileStat(oldLwcDir);
           if (oldLwcDirStat?.type === 'directory') {
             modulesDirs.push(oldLwcDir);
@@ -149,9 +155,11 @@ export const getModulesDirs = (
       break;
     case 'CORE_ALL':
       // For CORE_ALL, return the modules directories for each project
-      const projects = fileSystemProvider.getDirectoryListing(workspaceRoots[0]);
+      const projects = fileSystemProvider.getDirectoryListing(normalizedWorkspaceRoots[0]);
       for (const project of projects) {
-        const modulesDir = path.resolve(workspaceRoots[0], project.name, 'modules');
+        // Use path.join instead of path.resolve since normalizedWorkspaceRoots[0] is already absolute
+        // This prevents path.resolve from potentially duplicating path segments on Windows
+        const modulesDir = path.join(normalizedWorkspaceRoots[0], project.name, 'modules');
         let pathExists = false;
         try {
           const fileStat = fileSystemProvider.getFileStat(modulesDir);
@@ -162,13 +170,14 @@ export const getModulesDirs = (
           // path doesn't exist, skip
         }
         if (pathExists) {
-          modulesDirs.push(modulesDir);
+          // Normalize path to ensure consistent format (especially Windows drive letter casing)
+          modulesDirs.push(utils.normalizePath(modulesDir));
         }
       }
       break;
     case 'CORE_PARTIAL':
       // For CORE_PARTIAL, return the modules directory for each workspace root
-      for (const ws of workspaceRoots) {
+      for (const ws of normalizedWorkspaceRoots) {
         const modulesDir = path.join(ws, 'modules');
         let pathExists = false;
         try {
@@ -180,7 +189,8 @@ export const getModulesDirs = (
           // path doesn't exist, skip
         }
         if (pathExists) {
-          modulesDirs.push(modulesDir);
+          // Normalize path to ensure consistent format (especially Windows drive letter casing)
+          modulesDirs.push(utils.normalizePath(modulesDir));
         }
       }
       break;
@@ -199,7 +209,7 @@ export const getModulesDirs = (
  */
 export abstract class BaseWorkspaceContext {
   public type!: WorkspaceType;
-  public workspaceRoots: string[];
+  public workspaceRoots: NormalizedPath[];
 
   protected findNamespaceRootsUsingTypeCache: () => Promise<{ lwc: string[]; aura: string[] }>;
   public initSfdxProjectConfigCache: () => SfdxProjectConfig;
@@ -208,8 +218,9 @@ export abstract class BaseWorkspaceContext {
    * @param workspaceRoots
    * @return BaseWorkspaceContext representing the workspace with workspaceRoots
    */
-  constructor(workspaceRoots: string[] | string, fileSystemProvider: FileSystemDataProvider) {
-    this.workspaceRoots = typeof workspaceRoots === 'string' ? [path.resolve(workspaceRoots)] : workspaceRoots;
+  constructor(workspaceRoots: NormalizedPath[] | NormalizedPath, fileSystemProvider: FileSystemDataProvider) {
+    // Normalize workspaceRoots to ensure consistent path format (especially Windows drive letter casing)
+    this.workspaceRoots = Array.isArray(workspaceRoots) ? workspaceRoots : [workspaceRoots];
 
     this.findNamespaceRootsUsingTypeCache = utils.memoize(() => this.findNamespaceRootsUsingType());
     this.initSfdxProjectConfigCache = utils.memoize(() => this.initSfdxProject());
@@ -219,8 +230,8 @@ export abstract class BaseWorkspaceContext {
   /**
    * Initialize the workspace context asynchronously
    */
-  public async initialize(): Promise<void> {
-    this.type = await detectWorkspaceType(this.workspaceRoots, this.fileSystemProvider);
+  public initialize(workspaceType: WorkspaceType): void {
+    this.type = workspaceType;
     if (this.type === 'SFDX') {
       void this.initSfdxProjectConfigCache();
     }
@@ -234,7 +245,8 @@ export abstract class BaseWorkspaceContext {
   }
 
   public async isInsideAuraRoots(document: TextDocument): Promise<boolean> {
-    const file = utils.toResolvedPath(document.uri);
+    // Normalize file path to ensure consistent format (especially Windows drive letter casing and path separators)
+    const file = utils.normalizePath(utils.toResolvedPath(document.uri));
     for (const ws of this.workspaceRoots) {
       if (utils.pathStartsWith(file, ws)) {
         const isInsideAuraRoots = await this.isFileInsideAuraRoots(file);
@@ -245,11 +257,17 @@ export abstract class BaseWorkspaceContext {
   }
 
   public async isFileInsideModulesRoots(file: string): Promise<boolean> {
-    return (await this.findNamespaceRootsUsingTypeCache()).lwc.some(root => utils.pathStartsWith(file, root));
+    // Normalize file path to ensure consistent format (especially Windows drive letter casing and path separators)
+    const normalizedFile = utils.normalizePath(file);
+    return (await this.findNamespaceRootsUsingTypeCache()).lwc.some(root => utils.pathStartsWith(normalizedFile, root));
   }
 
   public async isFileInsideAuraRoots(file: string): Promise<boolean> {
-    return (await this.findNamespaceRootsUsingTypeCache()).aura.some(root => utils.pathStartsWith(file, root));
+    // Normalize file path to ensure consistent format (especially Windows drive letter casing and path separators)
+    const normalizedFile = utils.normalizePath(file);
+    return (await this.findNamespaceRootsUsingTypeCache()).aura.some(root =>
+      utils.pathStartsWith(normalizedFile, root)
+    );
   }
 
   /**
@@ -334,11 +352,11 @@ export abstract class BaseWorkspaceContext {
         if (jsconfigExists) {
           const existingConfigContent = this.fileSystemProvider.getFileContent(jsconfigPath);
           if (!existingConfigContent) {
-            throw new Error('Existing config content is not found');
+            throw new Error(nls.localize('existing_config_content_not_found_message'));
           }
           const existingConfig: unknown = JSON.parse(existingConfigContent);
           if (!isRecord(existingConfig)) {
-            throw new Error('Invalid existing config format');
+            throw new Error(nls.localize('invalid_existing_config_format_message'));
           }
           let templateConfig: unknown = jsconfigSfdxTemplate;
           // Double-check extraction - if it's still wrapped, extract again
@@ -367,13 +385,26 @@ export abstract class BaseWorkspaceContext {
                   : []
             };
             // Use a shorter error message that's less likely to be truncated
-            const errorMsg = `Invalid template config (existing): type=${errorDetails.templateConfigType}, isArray=${errorDetails.templateConfigIsArray}, keys=${errorDetails.templateConfigKeys.join(',')}, jsconfigKeys=${errorDetails.jsconfigSfdxTemplateKeys.join(',')}`;
-            throw new Error(errorMsg);
+            throw new Error(
+              nls.localize(
+                'invalid_template_config_message',
+                errorDetails.templateConfigType,
+                String(errorDetails.templateConfigIsArray),
+                errorDetails.templateConfigKeys.join(','),
+                errorDetails.jsconfigSfdxTemplateKeys.join(',')
+              )
+            );
           }
 
           // Merge existing config with template config
           if (!this.workspaceRoots[0]) {
-            throw new Error('workspaceRoots[0] is required but was undefined');
+            throw new Error(
+              nls.localize(
+                'workspaceRoots_0_required_message',
+                this.workspaceRoots?.[0] ?? 'undefined',
+                String(this.workspaceRoots?.[0] === undefined)
+              )
+            );
           }
           const relativeWorkspaceRoot = utils.relativePath(path.dirname(jsconfigPath), this.workspaceRoots[0]) || '.';
           const templateInclude = templateConfig.include;
@@ -406,10 +437,16 @@ export abstract class BaseWorkspaceContext {
         } else {
           // Create new jsconfig from template
           if (this.workspaceRoots?.length === 0 || !this.workspaceRoots[0]) {
-            throw new Error(`workspaceRoots[0] is required but was ${this.workspaceRoots?.[0] ?? 'undefined'}`);
+            throw new Error(
+              nls.localize(
+                'workspaceRoots_0_required_message',
+                this.workspaceRoots?.[0] ?? 'undefined',
+                String(this.workspaceRoots?.[0] === undefined)
+              )
+            );
           }
           if (!jsconfigSfdxTemplate) {
-            throw new Error('jsconfigSfdxTemplate is required but was undefined');
+            throw new Error(nls.localize('jsconfigSfdxTemplate_not_found_message'));
           }
           // Ensure we have a valid object (handle case where extraction might need to happen again)
           let templateToUse = jsconfigSfdxTemplate;
@@ -437,22 +474,33 @@ export abstract class BaseWorkspaceContext {
                   : []
             };
             // Use a shorter error message that's less likely to be truncated
-            const errorMsg = `Invalid template config (new): type=${errorDetails.templateToUseType}, isArray=${errorDetails.templateToUseIsArray}, keys=${errorDetails.templateToUseKeys.join(',')}, jsconfigKeys=${errorDetails.jsconfigSfdxTemplateKeys.join(',')}`;
-            throw new Error(errorMsg);
+            throw new Error(
+              nls.localize(
+                'invalid_template_config_message',
+                errorDetails.templateToUseType,
+                String(errorDetails.templateToUseIsArray),
+                errorDetails.templateToUseKeys.join(','),
+                errorDetails.jsconfigSfdxTemplateKeys.join(',')
+              )
+            );
           }
           const jsconfigTemplate = JSON.stringify(templateToUse);
           if (!jsconfigTemplate || typeof jsconfigTemplate !== 'string') {
-            throw new Error(`jsconfigTemplate must be a string but was ${typeof jsconfigTemplate}`);
+            throw new Error(nls.localize('jsconfigTemplate_must_be_a_string_message', typeof jsconfigTemplate));
           }
           const fromPath = path.dirname(jsconfigPath);
           const toPath = this.workspaceRoots[0];
           if (!fromPath || !toPath) {
-            throw new Error(`Invalid paths: fromPath=${fromPath}, toPath=${toPath}`);
+            throw new Error(nls.localize('invalid_paths_message', fromPath, toPath));
           }
           const relativeWorkspaceRoot = utils.relativePath(fromPath, toPath) || '.';
           if (typeof relativeWorkspaceRoot !== 'string') {
             throw new Error(
-              `relativeWorkspaceRoot must be a string but was ${typeof relativeWorkspaceRoot}: ${relativeWorkspaceRoot}`
+              nls.localize(
+                'relativeWorkspaceRoot_must_be_a_string_message',
+                typeof relativeWorkspaceRoot,
+                relativeWorkspaceRoot
+              )
             );
           }
           jsconfigContent = processTemplate(jsconfigTemplate, { project_root: relativeWorkspaceRoot });
@@ -460,11 +508,11 @@ export abstract class BaseWorkspaceContext {
 
         updateConfigFile(jsconfigPath, jsconfigContent, this.fileSystemProvider);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        const errorStack = error instanceof Error ? error.stack : '';
-        console.error(`writeSfdxJsconfig: Error reading/writing jsconfig: ${errorMessage}`);
-        if (errorStack) {
-          console.error(`Stack: ${errorStack}`);
+        console.error(
+          `writeSfdxJsconfig: Error reading/writing jsconfig: ${error instanceof Error ? error.message : String(error)}`
+        );
+        if (error instanceof Error) {
+          console.error(`Stack: ${error.stack}`);
         }
         throw error;
       }
@@ -498,7 +546,7 @@ export abstract class BaseWorkspaceContext {
         const coreDir = this.type === 'CORE_ALL' ? this.workspaceRoots[0] : path.dirname(this.workspaceRoots[0]);
         const relativeCoreRoot = utils.relativePath(modulesDir, coreDir);
         if (!jsconfigTemplate) {
-          throw new Error('Template config not found');
+          throw new Error(nls.localize('jsconfigTemplate_not_found_message'));
         }
         const jsconfigContent = processTemplate(jsconfigTemplate, { project_root: relativeCoreRoot });
         updateConfigFile(jsconfigPath, jsconfigContent, this.fileSystemProvider);
@@ -549,7 +597,9 @@ export abstract class BaseWorkspaceContext {
       } catch {
         // ignore
       }
-      const dirs = this.fileSystemProvider.getDirectoryListing(path.join(resourceTypingsDir, 'copied'));
+      const dirs = this.fileSystemProvider.getDirectoryListing(
+        utils.normalizePath(path.join(resourceTypingsDir, 'copied'))
+      );
       for (const file of dirs) {
         try {
           const sourcePath = path.join(resourceTypingsDir, 'copied', file.name);

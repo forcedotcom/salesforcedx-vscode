@@ -18,7 +18,8 @@ export {
   extractJsonFromImport,
   SfdxTsConfig,
   TsConfigPaths,
-  unixify
+  normalizePath,
+  type NormalizedPath
 } from './utils';
 
 // Re-export from base-context
@@ -39,7 +40,7 @@ export { TagInfo, getHover } from './indexer/tagInfo';
 export { AttributeInfo, DecoratorType, MemberType } from './indexer/attributeInfo';
 
 // Re-export from other modules
-export { interceptConsoleLogger } from './logger';
+export { Logger } from './logger';
 export { findNamespaceRoots } from './namespaceUtils';
 
 // Re-export from decorators
@@ -56,3 +57,12 @@ export {
 // Re-export from file system providers
 export { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
 export { DirectoryEntry, FileStat, WorkspaceConfig } from './types/fileSystemTypes';
+
+// Re-export from document sync
+export { syncDocumentToTextDocumentsProvider } from './documentSync';
+
+// Re-export from reinitialization scheduler
+export { scheduleReinitialization } from './reinitializationScheduler';
+
+// Re-export TypeScript configuration templates
+export { baseTsConfigJson, tsConfigTemplateJson } from './resources/sfdx/tsconfig';

@@ -5,14 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  interceptConsoleLogger,
+  Logger,
   isLWCRootDirectoryCreated,
   toResolvedPath,
   getBasename,
   AttributeInfo,
   FileSystemDataProvider,
-  FileStat,
-  BaseWorkspaceContext
+  BaseWorkspaceContext,
+  syncDocumentToTextDocumentsProvider,
+  scheduleReinitialization,
+  normalizePath,
+  NormalizedPath,
+  WorkspaceType
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { basename, dirname, parse } from 'node:path';
 import {
@@ -124,15 +128,19 @@ export default class Server {
   public readonly documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
   private context!: LWCWorkspaceContext;
   private workspaceFolders!: WorkspaceFolder[];
-  private workspaceRoots!: string[];
+  private workspaceRoots!: NormalizedPath[];
   public componentIndexer!: ComponentIndexer;
   public languageService!: LanguageService;
   public auraDataProvider!: AuraDataProvider;
   public lwcDataProvider!: LWCDataProvider;
   public fileSystemProvider: FileSystemDataProvider;
+  private textDocumentsFileSystemProvider: FileSystemDataProvider;
+  private workspaceType: WorkspaceType;
+  private isDelayedInitializationComplete = false;
 
   constructor() {
     this.fileSystemProvider = new FileSystemDataProvider();
+    this.textDocumentsFileSystemProvider = new FileSystemDataProvider();
 
     this.connection.onInitialize(params => this.onInitialize(params));
     this.connection.onInitialized(() => void this.onInitialized());
@@ -142,23 +150,33 @@ export default class Server {
     this.connection.onShutdown(() => this.onShutdown());
     this.connection.onDefinition(params => this.onDefinition(params));
     this.connection.onDidChangeWatchedFiles(params => void this.onDidChangeWatchedFiles(params));
-
+    this.workspaceType = 'UNKNOWN';
     this.documents.listen(this.connection);
-    this.documents.onDidChangeContent(changeEvent => this.onDidChangeContent(changeEvent));
-    this.documents.onDidSave(changeEvent => this.onDidSave(changeEvent));
   }
 
   public async onInitialize(params: InitializeParams): Promise<InitializeResult> {
     this.workspaceFolders = params.workspaceFolders ?? [];
-    this.workspaceRoots = this.workspaceFolders.map(folder => URI.parse(folder.uri).fsPath);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    this.workspaceType = params.initializationOptions?.workspaceType ?? 'UNKNOWN';
+    // Normalize workspaceRoots at entry point to ensure all paths are consistent
+    // This ensures all downstream code receives normalized paths
+    this.workspaceRoots = this.workspaceFolders.map(folder => normalizePath(URI.parse(folder.uri).fsPath));
 
-    this.populateFileSystemProvider(params);
+    // Set up document event handlers
+    this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
+    this.documents.onDidChangeContent(changeEvent => this.onDidChangeContent(changeEvent));
+    this.documents.onDidSave(changeEvent => this.onDidSave(changeEvent));
 
+    // Create context but don't initialize yet - wait for files to be loaded via onDidOpen
     this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
+
+    // Create component indexer with fileSystemProvider (will be re-initialized after delayed init)
     this.componentIndexer = new ComponentIndexer({
       workspaceRoot: this.workspaceRoots[0],
       fileSystemProvider: this.fileSystemProvider
     });
+
+    // Create data providers (will be re-initialized after delayed init)
     this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
     this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
     await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemProvider);
@@ -166,10 +184,6 @@ export default class Server {
       customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
       useDefaultDataProvider: false
     });
-
-    await this.context.initialize();
-    this.context.configureProject();
-    await this.componentIndexer.init();
 
     return this.capabilities;
   }
@@ -200,7 +214,7 @@ export default class Server {
     const hasTsEnabled = await this.isTsSupportEnabled();
     if (hasTsEnabled) {
       await this.context.configureProjectForTs();
-      await this.componentIndexer.updateSfdxTsConfigPath();
+      this.componentIndexer.updateSfdxTsConfigPath();
     }
   }
 
@@ -223,7 +237,8 @@ export default class Server {
     if (await this.context.isLWCTemplate(doc)) {
       this.auraDataProvider.activated = false; // provide completions for lwc components in an Aura template
       this.lwcDataProvider.activated = true; // provide completions for lwc components in an LWC template
-      if (this.shouldProvideBindingsInHTML(params)) {
+      const shouldProvideBindings = this.shouldProvideBindingsInHTML(params);
+      if (shouldProvideBindings) {
         const docBasename = getBasename(doc);
         const customTags: CompletionItem[] = this.findBindItems(docBasename);
         return {
@@ -232,8 +247,10 @@ export default class Server {
         };
       }
     } else if (await this.context.isLWCJavascript(doc)) {
-      if (this.shouldCompleteJavascript(params)) {
-        const customTags = this.componentIndexer.getCustomData().map(tag => ({
+      const shouldComplete = this.shouldCompleteJavascript(params);
+      if (shouldComplete) {
+        const customData = this.componentIndexer.getCustomData();
+        const customTags = customData.map(tag => ({
           label: getLwcTypingsName(tag),
           kind: CompletionItemKind.Folder
         }));
@@ -251,7 +268,8 @@ export default class Server {
       return;
     }
 
-    return this.languageService.doComplete(doc, position, htmlDoc);
+    const languageServiceResult = this.languageService.doComplete(doc, position, htmlDoc);
+    return languageServiceResult;
   }
 
   public shouldProvideBindingsInHTML(params: CompletionParams): boolean {
@@ -282,9 +300,12 @@ export default class Server {
 
   public findBindItems(docBasename: string): CompletionItem[] {
     const customTags: CompletionItem[] = [];
-    this.componentIndexer.getCustomData().forEach(tag => {
-      if (getTagName(tag) === docBasename) {
-        getClassMembers(tag).forEach(cm => {
+    const allTags = this.componentIndexer.getCustomData();
+    allTags.forEach(tag => {
+      const tagName = getTagName(tag);
+      if (tagName === docBasename) {
+        const classMembers = getClassMembers(tag);
+        classMembers.forEach(cm => {
           const bindName = `${getTagName(tag)}.${cm.name}`;
           const kind = cm.type === 'method' ? CompletionItemKind.Function : CompletionItemKind.Property;
           const detail = cm.decorator ? `@${cm.decorator}` : '';
@@ -300,10 +321,15 @@ export default class Server {
   }
 
   public async onHover(params: TextDocumentPositionParams): Promise<Hover | null> {
+    if (!params?.textDocument || !params.position) {
+      return null;
+    }
+
     const {
       position,
       textDocument: { uri }
     } = params;
+
     const doc = this.documents.get(uri);
     if (!doc) {
       return null;
@@ -314,19 +340,58 @@ export default class Server {
     if (await this.context.isLWCTemplate(doc)) {
       this.auraDataProvider.activated = false;
       this.lwcDataProvider.activated = true;
+      const hover = this.languageService.doHover(doc, position, htmlDoc);
+      return hover;
     } else if (await this.context.isAuraMarkup(doc)) {
       this.auraDataProvider.activated = true;
       this.lwcDataProvider.activated = false;
+      const hover = this.languageService.doHover(doc, position, htmlDoc);
+      return hover;
     } else {
       return null;
     }
+  }
 
-    return this.languageService.doHover(doc, position, htmlDoc);
+  /**
+   * Syncs FileSystemDataProvider from TextDocuments when a document is opened.
+   * This avoids duplicate reads - TextDocuments is the source of truth for open files.
+   */
+  private async onDidOpen(changeEvent: { document: TextDocument }): Promise<void> {
+    const { document } = changeEvent;
+    const uri = document.uri;
+    const content = document.getText();
+
+    // Normalize URI to fsPath before syncing (entry point for path normalization)
+    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
+    await syncDocumentToTextDocumentsProvider(
+      normalizedPath,
+      content,
+      this.textDocumentsFileSystemProvider,
+      this.workspaceRoots
+    );
+
+    // Perform delayed initialization once file loading has stabilized
+    // scheduleReinitialization waits for file count to stabilize (no changes for 1.5 seconds)
+    // This ensures all files from bootstrapWorkspaceAwareness are loaded before initialization
+    if (!this.isDelayedInitializationComplete) {
+      void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performDelayedInitialization());
+    }
   }
 
   public async onDidChangeContent(changeEvent: TextDocumentChangeEvent<TextDocument>): Promise<void> {
     const { document } = changeEvent;
     const { uri } = document;
+    const content = document.getText();
+
+    // Normalize URI to fsPath before syncing (entry point for path normalization)
+    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
+    await syncDocumentToTextDocumentsProvider(
+      normalizedPath,
+      content,
+      this.textDocumentsFileSystemProvider,
+      this.workspaceRoots
+    );
+
     if (await this.context.isLWCTemplate(document)) {
       const diagnostics = templateLinter(document);
       await this.connection.sendDiagnostics({ uri, diagnostics });
@@ -394,12 +459,24 @@ export default class Server {
 
   public async onDidSave(change: TextDocumentChangeEvent<TextDocument>): Promise<void> {
     const { document } = change;
+    const uri = document.uri;
+    const content = document.getText();
+
+    // Normalize URI to fsPath before syncing (entry point for path normalization)
+    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
+    await syncDocumentToTextDocumentsProvider(
+      normalizedPath,
+      content,
+      this.textDocumentsFileSystemProvider,
+      this.workspaceRoots
+    );
+
     if (await this.context.isLWCJavascript(document)) {
-      const { metadata } = await javascriptCompileDocument(document);
+      const { metadata } = javascriptCompileDocument(document);
       if (metadata) {
         const tag: Tag | null = this.componentIndexer.findTagByURI(document.uri);
         if (tag) {
-          await updateTagMetadata(tag, metadata);
+          void updateTagMetadata(tag, metadata);
         }
       }
     }
@@ -407,7 +484,7 @@ export default class Server {
 
   public async onShutdown(): Promise<void> {
     // Persist custom components for faster startup on next session
-    await this.componentIndexer.persistCustomComponents();
+    this.componentIndexer.persistCustomComponents();
 
     await this.connection.sendNotification(ShowMessageNotification.type, {
       type: MessageType.Info,
@@ -417,7 +494,7 @@ export default class Server {
 
   public async onExit(): Promise<void> {
     // Persist custom components for faster startup on next session
-    await this.componentIndexer.persistCustomComponents();
+    this.componentIndexer.persistCustomComponents();
 
     await this.connection.sendNotification(ShowMessageNotification.type, {
       type: MessageType.Info,
@@ -436,7 +513,7 @@ export default class Server {
     let result: Location[] = [];
     switch (cursorInfo.type) {
       case 'tag':
-        result = tag ? getAllLocations(tag) : [];
+        result = tag ? getAllLocations(tag, this.fileSystemProvider) : [];
         break;
 
       case 'attributeKey':
@@ -503,7 +580,7 @@ export default class Server {
       }
       if (token === TokenType.AttributeValue && attributeName === 'for:item') {
         iterators.unshift({
-          name: scanner.getTokenText().replace(/"|'/g, ''),
+          name: scanner.getTokenText().replaceAll(/"|'/g, ''),
           range: {
             start: doc?.positionAt(scanner.getTokenOffset()),
             end: doc?.positionAt(scanner.getTokenEnd())
@@ -563,66 +640,58 @@ export default class Server {
   }
 
   public listen(): void {
-    interceptConsoleLogger(this.connection);
+    Logger.initialize(this.connection);
     this.connection.listen();
   }
 
-  private isFileStat(obj: unknown): obj is FileStat {
-    return typeof obj === 'object' && obj !== null && 'type' in obj && 'exists' in obj;
-  }
+  /**
+   * Performs delayed initialization of context and component indexer
+   * using the populated textDocumentsFileSystemProvider
+   */
+  private async performDelayedInitialization(): Promise<void> {
+    if (this.isDelayedInitializationComplete) {
+      return;
+    }
 
-  private populateFileSystemProvider(params: InitializeParams) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    if (params.initializationOptions?.fileSystemProvider) {
-      // Reconstruct the FileSystemDataProvider from serialized data
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-      const serializedProvider = params.initializationOptions.fileSystemProvider;
+    try {
+      // Initialize workspace context now that essential files are loaded via onDidOpen
+      // scheduleReinitialization waits for file loading to stabilize, so all files should be available
+      this.context.fileSystemProvider = this.textDocumentsFileSystemProvider;
+      this.context.initialize(this.workspaceType);
 
-      if (typeof serializedProvider !== 'object' || serializedProvider === null) {
-        throw new Error('Invalid fileSystemProvider in initializationOptions');
-      }
-      this.fileSystemProvider = new FileSystemDataProvider();
+      // Clear namespace cache to force re-detection now that files are synced
+      // This ensures directoryExists can infer directory existence from file paths
+      this.context.clearNamespaceCache();
 
-      // Restore the data from the serialized object
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (serializedProvider.fileContents && typeof serializedProvider.fileContents === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-        for (const [uri, content] of Object.entries(serializedProvider.fileContents)) {
-          if (typeof content === 'string') {
-            this.fileSystemProvider.updateFileContent(uri, content);
-          }
-        }
-      }
+      // Re-initialize component indexer with updated FileSystemProvider
+      this.componentIndexer = new ComponentIndexer({
+        workspaceRoot: this.workspaceRoots[0],
+        fileSystemProvider: this.textDocumentsFileSystemProvider
+      });
+      await this.componentIndexer.init();
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (serializedProvider.directoryListings && typeof serializedProvider.directoryListings === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-        for (const [uri, entries] of Object.entries(serializedProvider.directoryListings)) {
-          if (Array.isArray(entries)) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            this.fileSystemProvider.updateDirectoryListing(uri, entries);
-          }
-        }
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (serializedProvider.fileStats && typeof serializedProvider.fileStats === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-        for (const [uri, stat] of Object.entries(serializedProvider.fileStats)) {
-          if (this.isFileStat(stat)) {
-            this.fileSystemProvider.updateFileStat(uri, stat);
-          }
-        }
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (serializedProvider.workspaceConfig && typeof serializedProvider.workspaceConfig === 'object') {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
-        this.fileSystemProvider.updateWorkspaceConfig(serializedProvider.workspaceConfig);
-      }
+      // Update data providers to use the new indexer
+      this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
+      this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
+      await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.textDocumentsFileSystemProvider);
+      this.languageService = getLanguageService({
+        customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
+        useDefaultDataProvider: false
+      });
 
-      // Verify that the fileSystemProvider has all required methods
-      if (typeof this.fileSystemProvider.updateDirectoryListing !== 'function') {
-        throw new Error('FileSystemDataProvider reconstruction failed - updateDirectoryListing method missing');
-      }
+      this.isDelayedInitializationComplete = true;
+
+      // send notification that delayed initialization is complete
+      void this.connection.sendNotification(ShowMessageNotification.type, {
+        type: MessageType.Info,
+        message: 'LWC Language Server is ready'
+      });
+    } catch (error: unknown) {
+      Logger.error(
+        `Error during delayed initialization: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error : undefined
+      );
+      throw error;
     }
   }
 }

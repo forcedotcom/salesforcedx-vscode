@@ -41,8 +41,12 @@ if (!packagingConfig) {
 for (let i = 0; i < packagingConfig.assets.length; i++) {
   const asset = packagingConfig.assets[i];
   const from = `${extensionDirectory}/${asset}`;
-  logger(`copying ${from}`);
-  cpSync(from, `${directoryToConstruct}/${asset}`, { recursive: true });
+  if (existsSync(from)) {
+    logger(`copying ${from}`);
+    cpSync(from, `${directoryToConstruct}/${asset}`, { recursive: true });
+  } else {
+    logger(`skipping ${from} (does not exist - may be generated during build)`);
+  }
 }
 
 const newPackage = {

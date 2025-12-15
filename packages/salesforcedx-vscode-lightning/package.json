@@ -1,63 +1,150 @@
 {
-  "name": "salesforcedx-vscode-lightning",
-  "displayName": "Aura Components",
-  "description": "Provides code-editing features for Aura Components",
-  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "activationEvents": [
+    "workspaceContains:**/aura/**",
+    "workspaceContains:**/workspace-user.xml"
+  ],
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
-  },
-  "repository": {
-    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
-  },
-  "icon": "images/VSCodeLightning.png",
-  "galleryBanner": {
-    "color": "#ECECEC",
-    "theme": "light"
-  },
-  "version": "65.8.1",
-  "publisher": "salesforce",
-  "license": "BSD-3-Clause",
-  "engines": {
-    "vscode": "^1.90.0"
   },
   "categories": [
     "Programming Languages"
   ],
+  "contributes": {
+    "configuration": {
+      "properties": {
+        "salesforcedx-vscode-lightning.activationMode": {
+          "default": "autodetect",
+          "description": "%activation_mode_description%",
+          "enum": [
+            "always",
+            "autodetect",
+            "off"
+          ],
+          "enumDescriptions": [
+            "%activation_mode_always_on%",
+            "%activation_mode_autodetect%",
+            "%activation_mode_off%"
+          ],
+          "type": "string"
+        }
+      },
+      "title": "%lightning_preferences%",
+      "type": "object"
+    },
+    "grammars": [
+      {
+        "language": "html",
+        "path": "./syntaxes/html.tmLanguage.json",
+        "scopeName": "aura.html"
+      }
+    ],
+    "languages": [
+      {
+        "extensions": [
+          ".app",
+          ".cmp",
+          ".design",
+          ".evt",
+          ".intf",
+          ".auradoc",
+          ".tokens"
+        ],
+        "id": "html"
+      }
+    ]
+  },
   "dependencies": {
     "@salesforce/salesforcedx-aura-language-server": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
+    "acorn": "^6.0.0",
+    "acorn-loose": "^6.0.0",
+    "acorn-walk": "^6.0.0",
     "applicationinsights": "1.0.7",
+    "effect": "^3.10.3",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageclient": "^9.0.1"
   },
+  "description": "Provides code-editing features for Aura Components",
   "devDependencies": {
-    "@types/which": "^1.3.1",
-    "@types/vscode": "1.90.0",
     "esbuild": "0.25.10"
+  },
+  "displayName": "Aura Components",
+  "engines": {
+    "vscode": "^1.90.0"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
   ],
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "icon": "images/VSCodeLightning.png",
+  "license": "BSD-3-Clause",
+  "main": "./out/src",
+  "name": "salesforcedx-vscode-lightning",
+  "packaging": {
+    "assets": [
+      "LICENSE.txt",
+      "package.nls.ja.json",
+      "package.nls.json",
+      "README.md",
+      ".vscodeignore",
+      "OSSREADME.json",
+      "images",
+      "syntaxes",
+      "images",
+      "dist",
+      "tern"
+    ],
+    "packageUpdates": {
+      "dependencies": {
+        "acorn": "^6.0.0",
+        "acorn-loose": "^6.0.0",
+        "acorn-walk": "^6.0.0",
+        "applicationinsights": "1.0.7",
+        "vscode-html-languageservice": "^5.5.1"
+      },
+      "devDependencies": {},
+      "main": "dist/index.js",
+      "serverPath": [
+        "dist",
+        "auraServer.js"
+      ]
+    }
+  },
+  "publisher": "salesforce",
+  "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
   "scripts": {
-    "vscode:bundle": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "compile": "wireit",
     "lint": "wireit",
     "test": "wireit",
+    "vscode:bundle": "wireit",
     "vscode:package:legacy": "wireit",
     "vscode:prepublish": "npm prune --production",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256"
   },
+  "serverPath": [
+    "dist",
+    "auraServer.js"
+  ],
+  "version": "65.8.1",
   "wireit": {
     "compile": {
-      "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
+      "command": "tsc --build --pretty",
       "dependencies": [
         "../salesforcedx-utils-vscode:compile",
-        "../salesforcedx-vscode-i18n:compile"
+        "../salesforcedx-vscode-i18n:compile",
+        "../salesforcedx-aura-language-server:compile",
+        "../salesforcedx-lightning-lsp-common:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -70,19 +157,17 @@
         "tsconfig.tsbuildinfo"
       ]
     },
-    "vscode:bundle": {
-      "command": "node ./esbuild.config.mjs",
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "compile"
+        "../eslint-local-rules:compile"
       ],
       "files": [
-        "esbuild.config.mjs",
-        "../../scripts/bundling/node.mjs",
-        "out/**"
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs"
       ],
-      "output": [
-        "dist"
-      ]
+      "output": []
     },
     "test": {
       "command": "jest --coverage",
@@ -99,108 +184,26 @@
         "coverage"
       ]
     },
-    "lint": {
-      "command": "eslint --color --cache --cache-location .eslintcache .",
+    "vscode:bundle": {
+      "command": "node ./esbuild.config.mjs",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "compile"
       ],
       "files": [
-        "src/**/*.ts",
-        "test/**/*.ts",
-        "../../eslint.config.mjs"
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "out/**"
       ],
-      "output": []
+      "output": [
+        "dist",
+        "tern"
+      ]
     },
     "vscode:package:legacy": {
       "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
       "dependencies": [
         "vscode:bundle"
       ]
-    }
-  },
-  "activationEvents": [
-    "workspaceContains:**/aura/**",
-    "workspaceContains:**/workspace-user.xml"
-  ],
-  "main": "./out/src",
-  "serverPath": [
-    "..",
-    "salesforcedx-aura-language-server",
-    "out",
-    "src",
-    "server.js"
-  ],
-  "packaging": {
-    "assets": [
-      "LICENSE.txt",
-      "package.nls.ja.json",
-      "package.nls.json",
-      "README.md",
-      ".vscodeignore",
-      "OSSREADME.json",
-      "images",
-      "syntaxes",
-      "images",
-      "dist"
-    ],
-    "packageUpdates": {
-      "main": "dist/index.js",
-      "serverPath": [
-        "node_modules",
-        "@salesforce",
-        "salesforcedx-aura-language-server",
-        "out",
-        "src",
-        "server.js"
-      ],
-      "dependencies": {
-        "applicationinsights": "1.0.7"
-      },
-      "devDependencies": {}
-    }
-  },
-  "contributes": {
-    "languages": [
-      {
-        "id": "html",
-        "extensions": [
-          ".app",
-          ".cmp",
-          ".design",
-          ".evt",
-          ".intf",
-          ".auradoc",
-          ".tokens"
-        ]
-      }
-    ],
-    "grammars": [
-      {
-        "language": "html",
-        "scopeName": "aura.html",
-        "path": "./syntaxes/html.tmLanguage.json"
-      }
-    ],
-    "configuration": {
-      "type": "object",
-      "title": "%lightning_preferences%",
-      "properties": {
-        "salesforcedx-vscode-lightning.activationMode": {
-          "type": "string",
-          "description": "%activation_mode_description%",
-          "enum": [
-            "always",
-            "autodetect",
-            "off"
-          ],
-          "enumDescriptions": [
-            "%activation_mode_always_on%",
-            "%activation_mode_autodetect%",
-            "%activation_mode_off%"
-          ],
-          "default": "autodetect"
-        }
-      }
     }
   }
 }
