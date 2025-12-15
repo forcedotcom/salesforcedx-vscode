@@ -17,10 +17,6 @@ import {
   NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { snakeCase, camelCase } from 'change-case';
-// minimatch is correctly listed in this package's package.json dependencies,
-// but eslint-plugin-import's no-extraneous-dependencies rule doesn't properly detect
-// dependencies in monorepo setups (it checks the root package.json instead of the package's own)
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { minimatch as minimatchFn } from 'minimatch';
 import * as path from 'node:path';
 
@@ -137,12 +133,10 @@ const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvi
       }
     }
 
-    // Check if file matches any of the patterns using minimatch
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const matchesRelative = patterns.some(p => minimatchFn(relativePath, p, { dot: true }));
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    const matchesAbsolute = patterns.some(p => minimatchFn(fileUri, p, { dot: true }));
-    const matches = matchesRelative || matchesAbsolute;
+    // Check if file matches any of the patterns using minimatc
+    const matches = patterns.some(
+      p => minimatchFn(relativePath, p, { dot: true }) || minimatchFn(fileUri, p, { dot: true })
+    );
 
     if (matches) {
       const fileStat = fileSystemProvider.getFileStat(fileUri);

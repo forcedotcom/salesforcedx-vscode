@@ -349,9 +349,7 @@ tern.registerPlugin('aura', (s, _options) => {
   }
   server.options.getFile = readFileAsync;
   // Ensure server.mod exists before loading modules plugin (modules plugin assumes it exists)
-  if (!server.mod) {
-    server.mod = {};
-  }
+  server.mod ??= {};
   server.loadPlugin('modules');
   // Verify modules plugin initialized correctly
   if (!server.mod.modules) {

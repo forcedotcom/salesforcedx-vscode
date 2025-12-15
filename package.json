@@ -133,7 +133,7 @@
     "vscode:publish": "npm run vscode:publish -ws --if-present",
     "watch": "npm run compile --watch",
     "report:installs": "ts-node scripts/reportInstalls.ts",
-    "automation-test": "rm -rf ./e2e-temp && npm install && npm run compile && npm run vscode:package && rm -rf ./extensions && mkdir -p ./extensions && find ./packages -name '*.vsix' -exec cp {} ./extensions/ \\; || true && VSIX_TO_INSTALL=./extensions node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec ./packages/salesforcedx-vscode-automation-tests/lib/test/specs/lwcLsp.e2e.js",
+    "automation-test": "rm -rf ./e2e-temp && npm install && npm run compile && npm run vscode:package && rm -rf ./extensions && mkdir -p ./extensions && find ./packages -name '*.vsix' -exec cp {} ./extensions/ \\; || true && VSIX_TO_INSTALL=./extensions node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec ./packages/salesforcedx-vscode-automation-tests/lib/test/specs/runLwcTests.e2e.js",
     "gha-automation-tests": "node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec",
     "setup": "node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec ./packages/salesforcedx-vscode-automation-tests/lib/test/setup/anInitialSetUp.e2e.js"
   },
