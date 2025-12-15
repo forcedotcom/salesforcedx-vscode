@@ -335,8 +335,9 @@ export const extractMetadataFromPage = async (
 
       for (const table of tables) {
         // Get headers
-        const headerCells = Array.from(table.querySelectorAll('th'));
-        const headers = headerCells.map(cell => cell.textContent?.trim().toLowerCase() ?? '');
+        const headers = Array.from(table.querySelectorAll('th')).map(
+          cell => cell.textContent?.trim().toLowerCase() ?? ''
+        );
 
         // Find column indices
         const fieldIdx = headers.findIndex(
