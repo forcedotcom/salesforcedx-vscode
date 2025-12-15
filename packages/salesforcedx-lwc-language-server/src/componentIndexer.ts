@@ -12,15 +12,16 @@ import {
   SfdxTsConfig,
   TsConfigPaths,
   IFileSystemProvider,
-  unixify
+  normalizePath,
+  Logger,
+  NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { snakeCase, camelCase } from 'change-case';
-import { Entry, sync } from 'fast-glob';
+import { minimatch as minimatchFn } from 'minimatch';
 import * as path from 'node:path';
-/** Normalizes paths for glob patterns by converting backslashes to forward slashes and normalizing */
-const normalize = (p: string): string => path.posix.normalize(p.replace(/\\/g, '/'));
 
 import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
+
 import { Tag, TagAttrs, createTag, createTagFromFile, getTagName, getTagUri } from './tag';
 
 const CUSTOM_COMPONENT_INDEX_PATH = path.join('.sfdx', 'indexes', 'lwc');
@@ -28,21 +29,133 @@ const CUSTOM_COMPONENT_INDEX_FILE = path.join(CUSTOM_COMPONENT_INDEX_PATH, 'cust
 const componentPrefixRegex = new RegExp(/^(?<type>c|lightning|interop){0,1}(?<delimiter>:|-{0,1})(?<name>[\w-]+)$/);
 
 type ComponentIndexerAttributes = {
-  workspaceRoot: string;
+  workspaceRoot: NormalizedPath;
   fileSystemProvider: IFileSystemProvider;
 };
 
 const AURA_DELIMITER = ':';
 const LWC_DELIMITER = '-';
 
-const tagEqualsFile = (tag: Tag, entry: Entry): boolean =>
-  tag.file === entry.path && tag.updatedAt?.getTime() === entry.stats?.mtime.getTime();
+// Entry type matching fast-glob's Entry interface
+export type Entry = {
+  path: string;
+  stats?: {
+    mtime: Date;
+  };
+  dirent?: unknown; // Optional dirent for test compatibility
+  name?: string; // Optional name for test compatibility
+};
 
-export const unIndexedFiles = (entries: Entry[], tags: Tag[]): Entry[] =>
-  entries.filter(entry => !tags.some(tag => tagEqualsFile(tag, entry)));
+const tagEqualsFile = (tag: Tag, entry: Entry): boolean => {
+  const fileMatch = tag.file === entry.path;
+  const timeMatch = tag.updatedAt?.getTime() === entry.stats?.mtime.getTime();
+  return fileMatch && timeMatch;
+};
+
+export const unIndexedFiles = (entries: Entry[], tags: Tag[]): Entry[] => {
+  const unIndexed = entries.filter(entry => {
+    const hasMatchingTag = tags.some(tag => tagEqualsFile(tag, entry));
+    return !hasMatchingTag;
+  });
+  return unIndexed;
+};
+
+/**
+ * Expands brace patterns like {a,b} into multiple patterns
+ */
+const expandBraces = (pattern: string): string[] => {
+  const braceMatch = pattern.match(/\{([^}]+)\}/);
+  if (!braceMatch) {
+    return [pattern];
+  }
+
+  const [fullMatch, alternatives] = braceMatch;
+  const options = alternatives.split(',').map((opt: string) => opt.trim());
+  const results: string[] = [];
+
+  for (const option of options) {
+    const expanded = pattern.replace(fullMatch, option);
+    // Recursively expand any remaining braces
+    results.push(...expandBraces(expanded));
+  }
+
+  return results;
+};
+
+/**
+ * Traverses directories using FileSystemDataProvider and matches files against a glob pattern
+ * This replaces fast-glob for web compatibility
+ */
+const findFilesWithGlob = (pattern: string, fileSystemProvider: IFileSystemProvider, basePath: string): Entry[] => {
+  const results: Entry[] = [];
+  // Normalize basePath the same way FileSystemDataProvider normalizes paths
+  const normalizedBasePath = normalizePath(basePath);
+
+  // Expand brace patterns like {force-app,utils} into multiple patterns
+  const patterns = expandBraces(pattern);
+
+  // Use getAllFileUris as a reliable source of all files in the provider
+  // This ensures we don't miss files even if directory listings are incomplete
+  const allFileUris = fileSystemProvider.getAllFileUris();
+
+  for (const fileUri of allFileUris) {
+    // fileUri is already normalized by FileSystemDataProvider (normalized when stored via updateFileContent/updateFileStat)
+    // Skip files outside the workspace by checking if the file path starts with the base path
+    // This is more reliable than path.posix.relative on Windows where drive letter case mismatches
+    // can cause path.posix.relative to return paths starting with ../ even for files in the workspace
+    // Use case-insensitive comparison on Windows for drive letters
+    const basePathLower = normalizedBasePath.toLowerCase();
+    const fileUriLower = fileUri.toLowerCase();
+    const basePathWithSlash = `${basePathLower}/`;
+    const startsWithCheck = fileUriLower.startsWith(basePathWithSlash) || fileUriLower === basePathLower;
+
+    if (!startsWithCheck) {
+      continue;
+    }
+
+    // Calculate relative path - if path.posix.relative fails (returns absolute path),
+    // manually compute it by removing the base path prefix
+    let relativePath = path.posix.relative(normalizedBasePath, fileUri);
+    const isAbsoluteRelative = path.posix.isAbsolute(relativePath);
+
+    if (isAbsoluteRelative) {
+      // path.posix.relative failed (e.g., drive letter mismatch on Windows)
+      // Since we've already verified the file is in the workspace via startsWith,
+      // manually compute the relative path by removing the base path prefix
+      if (fileUriLower.startsWith(basePathWithSlash)) {
+        relativePath = fileUri.substring(normalizedBasePath.length + 1);
+      } else if (fileUriLower === basePathLower) {
+        // File is the workspace root itself
+        relativePath = '.';
+      } else {
+        // Should not happen given the startsWith check above, but skip to be safe
+        continue;
+      }
+    }
+
+    // Check if file matches any of the patterns using minimatc
+    const matches = patterns.some(
+      p => minimatchFn(relativePath, p, { dot: true }) || minimatchFn(fileUri, p, { dot: true })
+    );
+
+    if (matches) {
+      const fileStat = fileSystemProvider.getFileStat(fileUri);
+      results.push({
+        path: fileUri,
+        stats: fileStat
+          ? {
+              mtime: new Date(fileStat.mtime)
+            }
+          : undefined
+      });
+    }
+  }
+
+  return results;
+};
 
 export default class ComponentIndexer {
-  public readonly workspaceRoot: string;
+  public readonly workspaceRoot: NormalizedPath;
   public workspaceType: WorkspaceType = 'UNKNOWN';
   public readonly tags: Map<string, Tag> = new Map();
   public readonly fileSystemProvider: IFileSystemProvider;
@@ -52,36 +165,39 @@ export default class ComponentIndexer {
     this.fileSystemProvider = attributes.fileSystemProvider;
   }
 
-  private async getSfdxPackageDirsPattern(): Promise<string> {
-    return await getSfdxPackageDirsPattern(this.attributes.workspaceRoot, this.fileSystemProvider);
+  private getSfdxPackageDirsPattern(): string {
+    return getSfdxPackageDirsPattern(this.attributes.workspaceRoot, this.fileSystemProvider);
   }
 
   // visible for testing
-  public async getComponentEntries(): Promise<Entry[]> {
+  public getComponentEntries(): Entry[] {
     let files: Entry[] = [];
 
     switch (this.workspaceType) {
       case 'SFDX':
-        const sfdxSource = normalize(
-          `${this.workspaceRoot}/${await this.getSfdxPackageDirsPattern()}/**/*/lwc/**/*.js`
-        );
-        files = sync(sfdxSource, {
-          stats: true
-        });
-        return files.filter((item: Entry): boolean => {
+        // workspaceRoot is already normalized by getWorkspaceRoot()
+        const packageDirsPattern = this.getSfdxPackageDirsPattern();
+        // Pattern matches: {packageDir}/**/*/lwc/**/*.js
+        // The **/* before lwc requires at least one directory level (e.g., main/default/lwc or meta/lwc)
+        const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.js`;
+        files = findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot);
+        const filteredFiles = files.filter((item: Entry): boolean => {
           const data = path.parse(item.path);
-          return data.dir.endsWith(data.name);
+          const dirEndsWithName = data.dir.endsWith(data.name);
+          return dirEndsWithName;
         });
+        return filteredFiles;
       default:
         // For CORE_ALL and CORE_PARTIAL
-        const defaultSource = normalize(`${this.workspaceRoot}/**/*/modules/**/*.js`);
-        files = sync(defaultSource, {
-          stats: true
-        });
-        return files.filter((item: Entry): boolean => {
+        // workspaceRoot is already normalized by getWorkspaceRoot()
+        const defaultPattern = '**/*/modules/**/*.js';
+        files = findFilesWithGlob(defaultPattern, this.fileSystemProvider, this.workspaceRoot);
+        const filteredFilesDefault = files.filter((item: Entry): boolean => {
           const data = path.parse(item.path);
-          return data.dir.endsWith(data.name);
+          const dirEndsWithName = data.dir.endsWith(data.name);
+          return dirEndsWithName;
         });
+        return filteredFilesDefault;
     }
   }
 
@@ -116,21 +232,21 @@ export default class ComponentIndexer {
   private async loadTagsFromIndex(): Promise<void> {
     try {
       const indexPath: string = path.join(this.workspaceRoot, CUSTOM_COMPONENT_INDEX_FILE);
-      const uri = `file://${unixify(indexPath)}`;
 
-      if (this.fileSystemProvider.fileExists(uri)) {
-        const content = this.fileSystemProvider.getFileContent(uri);
+      if (this.fileSystemProvider.fileExists(indexPath)) {
+        const content = this.fileSystemProvider.getFileContent(indexPath);
         if (content) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const index: TagAttrs[] = JSON.parse(content);
           for (const data of index) {
             const info = await createTag(data);
-            this.tags.set(getTagName(info), info);
+            const tagName = getTagName(info);
+            this.tags.set(tagName, info);
           }
         }
       }
     } catch (err) {
-      console.error(err);
+      Logger.error('[ComponentIndexer.loadTagsFromIndex] Error loading tags from index:', err);
     }
   }
 
@@ -142,10 +258,10 @@ export default class ComponentIndexer {
   }
 
   public async insertSfdxTsConfigPath(filePaths: string[]): Promise<void> {
-    const sfdxTsConfigPath = normalize(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
-    const normalizedPath = unixify(sfdxTsConfigPath);
+    // FileSystemDataProvider.normalizePath() handles all normalization (unixify + drive letter case)
+    const sfdxTsConfigPath = path.join(this.workspaceRoot, '.sfdx', 'tsconfig.sfdx.json');
 
-    const fileExists = this.fileSystemProvider.fileExists(normalizedPath);
+    const fileExists = this.fileSystemProvider.fileExists(sfdxTsConfigPath);
 
     if (fileExists) {
       try {
@@ -166,7 +282,7 @@ export default class ComponentIndexer {
         }
         writeJsonSync(sfdxTsConfigPath, sfdxTsConfig, this.fileSystemProvider);
       } catch (err) {
-        console.error(err);
+        Logger.error(err);
       }
     }
   }
@@ -175,47 +291,50 @@ export default class ComponentIndexer {
   // It is intended to update the path mapping in the .sfdx/tsconfig.sfdx.json file.
   // TODO: Once the LWC custom module resolution plugin has been developed in the language server
   // this can be removed.
-  public async updateSfdxTsConfigPath(): Promise<void> {
-    const sfdxTsConfigPath = normalize(`${this.workspaceRoot}/.sfdx/tsconfig.sfdx.json`);
-    const normalizedPath = unixify(sfdxTsConfigPath);
+  public updateSfdxTsConfigPath(): void {
+    const sfdxTsConfigPath = path.join(this.workspaceRoot, '.sfdx', 'tsconfig.sfdx.json');
 
-    const fileExists = this.fileSystemProvider.fileExists(normalizedPath);
+    const fileExists = this.fileSystemProvider.fileExists(sfdxTsConfigPath);
 
     if (fileExists) {
       try {
-        const content = this.fileSystemProvider.getFileContent(normalizedPath);
+        const content = this.fileSystemProvider.getFileContent(sfdxTsConfigPath);
         if (content) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           const sfdxTsConfig: SfdxTsConfig = JSON.parse(content);
           // The assumption here is that sfdxTsConfig will not be modified by the user as
           // it is located in the .sfdx directory.
           sfdxTsConfig.compilerOptions = sfdxTsConfig.compilerOptions ?? { paths: {} };
-          sfdxTsConfig.compilerOptions.paths = await this.getTsConfigPathMapping();
+          sfdxTsConfig.compilerOptions.paths = this.getTsConfigPathMapping();
 
           // Update the actual tsconfig file
-          this.fileSystemProvider.updateFileContent(normalizedPath, JSON.stringify(sfdxTsConfig, null, 2));
+          this.fileSystemProvider.updateFileContent(sfdxTsConfigPath, JSON.stringify(sfdxTsConfig, null, 2));
         }
       } catch (err) {
-        console.error(err);
+        Logger.error(err);
       }
     }
   }
 
   // visible for testing
-  public async getTsConfigPathMapping(): Promise<TsConfigPaths> {
+  public getTsConfigPathMapping(): TsConfigPaths {
     const files: TsConfigPaths = {};
     if (this.workspaceType === 'SFDX') {
-      const sfdxSource = normalize(
-        `${this.workspaceRoot}/${await this.getSfdxPackageDirsPattern()}/**/*/lwc/*/*.{js,ts}`
-      );
-      const filePaths = sync(sfdxSource, {
-        stats: true
-      });
+      // workspaceRoot is already normalized by getWorkspaceRoot()
+      const packageDirsPattern = this.getSfdxPackageDirsPattern();
+      // Use **/* after lwc to match any depth (e.g., utils/meta/lwc/todo_util/todo_util.js)
+      // Construct glob pattern with forward slashes (path.join uses backslashes on Windows)
+      // Normalize packageDirsPattern to ensure forward slashes
+      const normalizedPackageDirs = normalizePath(packageDirsPattern);
+      const sfdxPattern = `${normalizedPackageDirs}/**/*/lwc/**/*.{js,ts}`;
+      const filePaths = findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot);
       for (const filePath of filePaths) {
         const { dir, name: fileName } = path.parse(filePath.path);
         const folderName = path.basename(dir);
         if (folderName === fileName) {
           const componentName = `c/${fileName}`;
-          const componentFilePath = path.join(dir, fileName);
+          // Normalize path to ensure consistent forward slashes (path.join uses backslashes on Windows)
+          const componentFilePath = normalizePath(path.join(dir, fileName));
           files[componentName] = files[componentName] ?? [];
           if (!files[componentName].includes(componentFilePath)) {
             files[componentName].push(componentFilePath);
@@ -226,12 +345,15 @@ export default class ComponentIndexer {
     return files;
   }
 
-  private async getUnIndexedFiles(): Promise<Entry[]> {
-    return unIndexedFiles(await this.getComponentEntries(), this.getCustomData());
+  private getUnIndexedFiles(): Entry[] {
+    const componentEntries = this.getComponentEntries();
+    const customData = this.getCustomData();
+    const unIndexed = unIndexedFiles(componentEntries, customData);
+    return unIndexed;
   }
 
-  public async getStaleTags(): Promise<Tag[]> {
-    const componentEntries = await this.getComponentEntries();
+  public getStaleTags(): Tag[] {
+    const componentEntries = this.getComponentEntries();
 
     return this.getCustomData().filter(tag => !componentEntries.some(entry => entry.path === tag.file));
   }
@@ -241,21 +363,25 @@ export default class ComponentIndexer {
 
     await this.loadTagsFromIndex();
 
-    const unIndexedFilesResult = await this.getUnIndexedFiles();
-
-    const promises = unIndexedFilesResult.map(entry =>
-      createTagFromFile(entry.path, this.fileSystemProvider, entry.stats?.mtime)
-    );
+    const unIndexedFilesResult = this.getUnIndexedFiles();
+    const promises = unIndexedFilesResult.map(async entry => {
+      const tag = await createTagFromFile(entry.path, this.fileSystemProvider, entry.stats?.mtime);
+      return tag;
+    });
     const tags = await Promise.all(promises);
 
-    tags.filter(Boolean).forEach(tag => {
+    const validTags: Tag[] = [];
+    tags.forEach(tag => {
       if (tag) {
-        this.tags.set(getTagName(tag), tag);
+        validTags.push(tag);
       }
     });
+    validTags.forEach(tag => {
+      const tagName = getTagName(tag);
+      this.tags.set(tagName, tag);
+    });
 
-    const staleTags = await this.getStaleTags();
-
+    const staleTags = this.getStaleTags();
     staleTags.forEach(tag => {
       if (tag) {
         this.tags.delete(getTagName(tag));

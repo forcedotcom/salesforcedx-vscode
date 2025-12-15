@@ -47,7 +47,28 @@ export const isLWCRootDirectoryCreated = (context: BaseWorkspaceContext, changes
   return false;
 };
 
-export const unixify = (filePath: string): string => filePath.replace(/\\/g, '/');
+const unixify = (filePath: string): string => filePath.replaceAll('\\', '/');
+
+/**
+ * Branded type for normalized paths.
+ * This ensures type safety by preventing mixing normalized and non-normalized paths.
+ */
+export type NormalizedPath = string & { readonly __brand: 'NormalizedPath' };
+
+/**
+ * Normalizes a path for consistent storage and matching in FileSystemDataProvider.
+ * Converts backslashes to forward slashes (unixify) and normalizes Windows drive letters to lowercase.
+ * This ensures paths match regardless of drive letter casing (Windows file system is case-insensitive,
+ * but JavaScript Map keys are case-sensitive).
+ *
+ * @returns A branded NormalizedPath type to prevent mixing with non-normalized paths
+ */
+export const normalizePath = (filePath: string): NormalizedPath => {
+  const unixified = unixify(filePath);
+  // Normalize Windows drive letter to lowercase (e.g., "D:/path" -> "d:/path")
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  return unixified.replace(/^([A-Z]):/, (_match: string, drive: string) => `${drive.toLowerCase()}:`) as NormalizedPath;
+};
 
 export const relativePath = (from: string, to: string): string => unixify(relative(from, to));
 
@@ -91,7 +112,7 @@ export const readJsonSync = async (file: string, fileSystemProvider: IFileSystem
     // Dynamically import tiny-jsonc (ES module) and parse JSONC content
     // Comments will be lost if this object is written back to file.
     // Individual properties should be updated directly via VS Code API to preserve comments.
-    // eslint-disable-next-line import/no-extraneous-dependencies
+
     const { parse } = (await import('tiny-jsonc')).default;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const parsed = parse(content);

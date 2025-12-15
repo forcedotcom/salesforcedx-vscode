@@ -4,9 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Indexer, TagInfo, extractJsonFromImport } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { Indexer, TagInfo, extractJsonFromImport, Logger } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as LineColumnFinderModule from 'line-column';
-
 import { EventEmitter as EventsEmitter } from 'node:events';
 import { Node } from 'vscode-html-languageservice';
 import { Location } from 'vscode-languageserver';
@@ -17,7 +16,12 @@ import * as auraStandardImport from '../resources/aura-standard.json';
 import * as transformedAuraSystemImport from '../resources/transformed-aura-system.json';
 import { componentFromFile, componentFromDirectory } from '../util/componentUtil';
 
+// Handle both ES module (default export) and CommonJS (namespace export) module resolution.
+// This is needed because Jest resolves modules differently than TypeScript's runtime,
+// and line-column may export differently depending on the module system.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const LineColumnFinder = LineColumnFinderModule.default ?? LineColumnFinderModule;
+
 export default class AuraIndexer implements Indexer {
   public readonly eventEmitter = new EventsEmitter();
 
@@ -85,7 +89,7 @@ export default class AuraIndexer implements Indexer {
       return;
     }
     if (!tagInfo.name) {
-      console.warn(`File ${file} has malformed tagname, ignoring`);
+      Logger.warn(`File ${file} has malformed tagname, ignoring`);
       return;
     }
 
@@ -140,10 +144,10 @@ export default class AuraIndexer implements Indexer {
       try {
         await this.indexFile(file, this.context.type === 'SFDX');
       } catch (e) {
-        console.log(`Error parsing markup from ${file}:`, e);
+        Logger.log(`Error parsing markup from ${file}:`, e);
       }
     }
-    console.info(`Indexed ${markupfiles.length} custom components in ${elapsedMillis(startTime)} ms`);
+    Logger.info(`Indexed ${markupfiles.length} custom components in ${elapsedMillis(startTime)} ms`);
   }
 
   private clearTagsforFile(file: string, sfdxProject: boolean): void {

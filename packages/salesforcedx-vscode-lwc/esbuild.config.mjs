@@ -21,19 +21,23 @@ await build({
   outdir: 'dist'
 });
 
-// Bundle the external LWC language server package
+// Bundle the LWC language server to ensure consistency between dev and packaged versions
+// This matches the pattern used by Visualforce and SOQL extensions
+// Note: vscode-html-languageservice must be external because it uses dynamic requires
+// that esbuild cannot resolve (e.g., './parser/htmlScanner')
 await build({
   ...nodeConfig,
-  loader: { '.node': 'file' },
+  loader: { '.node': 'file', '.json': 'json' },
   external: [
     'vscode',
     'applicationinsights',
     '@salesforce/lightning-lsp-common',
     '@babel/preset-typescript/package.json',
     'jest-editor-support',
-    '@babel/core'
+    '@babel/core',
+    'vscode-html-languageservice'
   ],
-  entryPoints: ['../salesforcedx-lwc-language-server/out/src/lwcServer.js'],
+  entryPoints: ['../salesforcedx-lwc-language-server/out/src/server.js'],
   outfile: './dist/lwcServer.js',
   bundle: true,
   platform: 'node',
