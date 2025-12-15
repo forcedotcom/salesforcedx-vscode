@@ -22,10 +22,7 @@ export const findNodeAtPath = (node: ValueNode, pathSegments: string[]): ValueNo
     if (key === '*') {
       return node.members.flatMap(m => findNodeAtPath(m.value, rest));
     }
-    const member = node.members.find(m => {
-      const nameNode = m.name;
-      return nameNode.type === 'String' && nameNode.value === key;
-    });
+    const member = node.members.find(m => m.name.type === 'String' && m.name.value === key);
     return member ? findNodeAtPath(member.value, rest) : [];
   }
 
@@ -34,8 +31,7 @@ export const findNodeAtPath = (node: ValueNode, pathSegments: string[]): ValueNo
   }
 
   if (node.type === 'Array' && /^\d+$/.test(key)) {
-    const index = parseInt(key, 10);
-    const element = node.elements[index];
+    const element = node.elements[parseInt(key, 10)];
     return element ? findNodeAtPath(element.value, rest) : [];
   }
 
