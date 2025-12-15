@@ -7,11 +7,19 @@
 
 import { noDuplicateI18nValues } from './noDuplicateI18nValues';
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
+import { packageJsonCommandRefs } from './packageJsonCommandRefs';
+import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
+import { packageJsonIconPaths } from './packageJsonIconPaths';
+import { packageJsonViewRefs } from './packageJsonViewRefs';
 
 const plugin = {
   rules: {
     'no-duplicate-i18n-values': noDuplicateI18nValues,
-    'no-vscode-message-literals': noVscodeMessageLiterals
+    'no-vscode-message-literals': noVscodeMessageLiterals,
+    'package-json-i18n-descriptions': packageJsonI18nDescriptions,
+    'package-json-icon-paths': packageJsonIconPaths,
+    'package-json-command-refs': packageJsonCommandRefs,
+    'package-json-view-refs': packageJsonViewRefs
   }
 };
 
