@@ -8,11 +8,29 @@ import * as path from 'path';
 import { MetadataTypesMap } from './scrapeUtils';
 
 /**
+ * Remove zero-width characters that cause XSD validation errors.
+ * These invisible characters are sometimes scraped from documentation pages.
+ */
+const removeZeroWidthCharacters = (text: string): string => {
+  if (!text) return text;
+
+  // Remove all zero-width characters:
+  // U+200B: Zero Width Space
+  // U+200C: Zero Width Non-Joiner
+  // U+200D: Zero Width Joiner
+  // U+FEFF: Zero Width No-Break Space (BOM)
+  return text.replaceAll(/[\u200B-\u200D\uFEFF]/g, '');
+};
+
+/**
  * Clean a name to be valid for XSD element names.
  */
 const cleanXsdName = (name: string): string => {
+  // First remove zero-width characters
+  let cleaned = removeZeroWidthCharacters(name);
+
   // Replace spaces and special characters with underscores
-  let cleaned = name.replace(/[^\w]/g, '_');
+  cleaned = cleaned.replace(/[^\w]/g, '_');
 
   // Ensure it starts with a letter or underscore
   if (cleaned && !/^[a-zA-Z_]/.test(cleaned[0])) {
@@ -32,11 +50,13 @@ const cleanXsdName = (name: string): string => {
  * Map Salesforce field types to XSD types.
  */
 const mapFieldTypeToXsd = (fieldType: string): string => {
-  const lowerFieldType = fieldType.toLowerCase();
+  // First remove zero-width characters
+  const cleanedFieldType = removeZeroWidthCharacters(fieldType);
+  const lowerFieldType = cleanedFieldType.toLowerCase();
 
   // Handle arrays - strip [] and recurse to get base type
-  if (fieldType.endsWith('[]')) {
-    const baseType = fieldType.slice(0, -2);
+  if (cleanedFieldType.endsWith('[]')) {
+    const baseType = cleanedFieldType.slice(0, -2);
     return mapFieldTypeToXsd(baseType);
   }
 
@@ -76,17 +96,18 @@ const mapFieldTypeToXsd = (fieldType: string): string => {
   } else {
     // For unknown types, assume they're custom metadata types and return as-is
     // This allows types like "AIScoringStep" to be referenced directly
-    return fieldType;
+    return cleanedFieldType;
   }
 };
 
 /**
- * Escape XML special characters.
+ * Escape XML special characters and remove zero-width characters.
  */
 const escapeXml = (text: string): string => {
   if (!text) return '';
 
-  return text
+  // First remove zero-width characters, then escape XML special characters
+  return removeZeroWidthCharacters(text)
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
@@ -283,4 +304,4 @@ if (require.main === module) {
   main();
 }
 
-export { createXsdFromJson, mapFieldTypeToXsd, escapeXml, cleanXsdName };
+export { createXsdFromJson, mapFieldTypeToXsd, escapeXml, cleanXsdName, removeZeroWidthCharacters };
