@@ -1,10 +1,8 @@
-# 65.8.2 - December 13, 2025
+# 65.9.0 - December 17, 2025
 
 ## Added
 
-#### salesforcedx-vscode
+#### salesforcedx-utils-vscode
 
-#### salesforcedx-vscode-expanded
-
-- Apex Testing Extension is now part of both of the extension packs. This was missed in previous release and is the fix for [issue #6705](https://github.com/forcedotcom/salesforcedx-vscode/issues/6705). ([PR #6708](https://github.com/forcedotcom/salesforcedx-vscode/pull/6708))
+- Logging-auth-errors-for-CB W-20509584 ([PR #6712](https://github.com/forcedotcom/salesforcedx-vscode/pull/6712))
 
