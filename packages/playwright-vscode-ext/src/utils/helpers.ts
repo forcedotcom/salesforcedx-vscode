@@ -35,7 +35,9 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'theme-defaults/themes', // VS Code theme loading failures
   'light_modern.json', // VS Code theme file loading
   'Failed to fetch', // Generic fetch failures (often for optional resources)
-  'NO_COLOR' // Node.js color env var warnings
+  'NO_COLOR', // Node.js color env var warnings
+  'Content Security Policy', // CSP violations from VS Code webviews (non-critical UI errors)
+  'Applying inline style violates' // CSP inline style errors from VS Code UI
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [

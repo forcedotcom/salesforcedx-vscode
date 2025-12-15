@@ -84,12 +84,27 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
     // First try an exact search by full id (section.key)
     await performSearch(id);
 
+    // Wait for search results to appear - wait for any search result element to indicate search completed
+    await page.locator('[data-id^="searchResultModel_"]').first().waitFor({ state: 'attached', timeout: 15_000 });
+
     // Deterministic locator: target the element that actually contains the `data-id` attribute
-    const searchResultId = `searchResultModel_${id.replaceAll('.', '_')}`;
+    // VS Code only replaces the FIRST dot with underscore in data-id
+    // e.g., "salesforcedx-vscode-metadata.deployOnSave.enabled" -> "searchResultModel_salesforcedx-vscode-metadata_deployOnSave.enabled"
+    const searchResultId = `searchResultModel_${id.replace(/\./, '_')}`;
     const row = page.locator(`[data-id="${searchResultId}"]`).first();
 
     if (debugAria) {
       console.log(`[upsertSettings] using deterministic locator for ${id}: data-id="${searchResultId}"`);
+      // Capture HTML to debug selector issues - look for settings results
+      try {
+        const settingsBody = page.locator('.settings-body, .settings-tree-container, [class*="settings"]').first();
+        const html = await settingsBody.innerHTML();
+        console.log(`[upsertSettings] Settings results HTML:\n${html.slice(0, 12_000)}`);
+        // Also try to find any element with data-id containing our search term
+        const allDataIds = await page.locator('[data-id]').all();
+        const dataIds = await Promise.all(allDataIds.map(el => el.getAttribute('data-id')));
+        console.log(`[upsertSettings] All data-id attributes found: ${dataIds.filter(Boolean).join(', ')}`);
+      } catch {}
     }
 
     // Fail fast if the deterministic row isn't found — do not fall back to label-based heuristics
