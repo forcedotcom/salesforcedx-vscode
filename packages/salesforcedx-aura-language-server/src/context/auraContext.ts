@@ -9,7 +9,9 @@ import {
   BaseWorkspaceContext,
   Indexer,
   AURA_EXTENSIONS,
-  findNamespaceRoots
+  findNamespaceRoots,
+  Logger,
+  normalizePath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -32,30 +34,26 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
       case 'SFDX':
         // For SFDX workspaces, check for both lwc and aura directories
         for (const root of this.workspaceRoots) {
-          const forceAppPath = path.join(root, 'force-app', 'main', 'default');
-          const utilsPath = path.join(root, 'utils', 'meta');
-          const registeredEmptyPath = path.join(root, 'registered-empty-folder', 'meta');
+          const forceAppPath = normalizePath(path.join(root, 'force-app', 'main', 'default'));
+          const utilsPath = normalizePath(path.join(root, 'utils', 'meta'));
+          const registeredEmptyPath = normalizePath(path.join(root, 'registered-empty-folder', 'meta'));
 
-          const lwcPath = path.join(forceAppPath, 'lwc');
-          const auraPath = path.join(forceAppPath, 'aura');
+          const lwcPath = normalizePath(path.join(forceAppPath, 'lwc'));
+          const auraPath = normalizePath(path.join(forceAppPath, 'aura'));
 
-          const utilsLwcPath = path.join(utilsPath, 'lwc');
-          const registeredLwcPath = path.join(registeredEmptyPath, 'lwc');
-          const lwcPathExists = this.fileSystemProvider.fileExists(lwcPath);
-          const utilsLwcPathExists = this.fileSystemProvider.fileExists(utilsLwcPath);
-          const registeredLwcPathExists = this.fileSystemProvider.fileExists(registeredLwcPath);
-          const auraPathExists = this.fileSystemProvider.fileExists(auraPath);
+          const utilsLwcPath = normalizePath(path.join(utilsPath, 'lwc'));
+          const registeredLwcPath = normalizePath(path.join(registeredEmptyPath, 'lwc'));
 
-          if (lwcPathExists) {
+          if (this.fileSystemProvider.directoryExists(lwcPath)) {
             roots.lwc.push(lwcPath);
           }
-          if (utilsLwcPathExists) {
-            roots.lwc.push(path.join(utilsPath, 'lwc'));
+          if (this.fileSystemProvider.directoryExists(utilsLwcPath)) {
+            roots.lwc.push(utilsLwcPath);
           }
-          if (registeredLwcPathExists) {
-            roots.lwc.push(path.join(registeredEmptyPath, 'lwc'));
+          if (this.fileSystemProvider.directoryExists(registeredLwcPath)) {
+            roots.lwc.push(registeredLwcPath);
           }
-          if (auraPathExists) {
+          if (this.fileSystemProvider.directoryExists(auraPath)) {
             roots.aura.push(auraPath);
           }
         }
@@ -64,30 +62,32 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
         // optimization: search only inside project/modules/
         const projects = this.fileSystemProvider.getDirectoryListing(this.workspaceRoots[0]);
         for (const project of projects) {
-          const modulesDir = path.join(this.workspaceRoots[0], project.name, 'modules');
-          if (this.fileSystemProvider.fileExists(modulesDir)) {
+          const modulesDir = normalizePath(path.join(this.workspaceRoots[0], project.name, 'modules'));
+          if (this.fileSystemProvider.directoryExists(modulesDir)) {
             const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
             roots.lwc.push(...subroots.lwc);
           }
-          const auraDir = path.join(this.workspaceRoots[0], project.name, 'components');
-          if (this.fileSystemProvider.fileExists(auraDir)) {
-            const subroots = await findNamespaceRoots(auraDir, this.fileSystemProvider, 2);
-            roots.aura.push(...subroots.lwc);
+          const auraDir = normalizePath(path.join(this.workspaceRoots[0], project.name, 'components'));
+          if (this.fileSystemProvider.directoryExists(auraDir)) {
+            // The components directory itself is the Aura namespace root
+            // (findNamespaceRoots only detects LWC, not Aura)
+            roots.aura.push(auraDir);
           }
         }
         return roots;
       case 'CORE_PARTIAL':
         // optimization: search only inside modules/
         for (const ws of this.workspaceRoots) {
-          const modulesDir = path.join(ws, 'modules');
-          if (this.fileSystemProvider.fileExists(modulesDir)) {
-            const subroots = await findNamespaceRoots(path.join(ws, 'modules'), this.fileSystemProvider, 2);
+          const modulesDir = normalizePath(path.join(ws, 'modules'));
+          if (this.fileSystemProvider.directoryExists(modulesDir)) {
+            const subroots = await findNamespaceRoots(modulesDir, this.fileSystemProvider, 2);
             roots.lwc.push(...subroots.lwc);
           }
-          const auraDir = path.join(ws, 'components');
-          if (this.fileSystemProvider.fileExists(auraDir)) {
-            const subroots = await findNamespaceRoots(path.join(ws, 'components'), this.fileSystemProvider, 2);
-            roots.aura.push(...subroots.lwc);
+          const auraDir = normalizePath(path.join(ws, 'components'));
+          if (this.fileSystemProvider.directoryExists(auraDir)) {
+            // The components directory itself is the Aura namespace root
+            // (findNamespaceRoots only detects LWC, not Aura)
+            roots.aura.push(auraDir);
           }
         }
         return roots;
@@ -95,13 +95,9 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
       case 'STANDARD_LWC':
       case 'MONOREPO':
       case 'UNKNOWN': {
-        let depth = 6;
-        if (this.type === 'MONOREPO') {
-          depth += 2;
-        }
+        const depth = this.type === 'MONOREPO' ? 8 : 6;
         const unknownroots = await findNamespaceRoots(this.workspaceRoots[0], this.fileSystemProvider, depth);
         roots.lwc.push(...unknownroots.lwc);
-        roots.aura.push(...unknownroots.aura);
         return roots;
       }
     }
@@ -136,15 +132,15 @@ const findAuraMarkupIn = async (namespaceRoot: string, context: AuraWorkspaceCon
   const files: string[] = [];
 
   try {
-    const dirs = context.fileSystemProvider.getDirectoryListing(namespaceRoot);
+    const dirs = context.fileSystemProvider.getDirectoryListing(normalizePath(namespaceRoot));
 
     for (const dir of dirs) {
-      const componentDir = path.join(namespaceRoot, dir.name);
+      const componentDir = normalizePath(path.join(namespaceRoot, dir.name));
       const isDir = context.fileSystemProvider.directoryExists(componentDir);
 
       if (isDir) {
         for (const ext of AURA_EXTENSIONS) {
-          const markupFile = path.join(componentDir, dir.name + ext);
+          const markupFile = normalizePath(path.join(componentDir, dir.name + ext));
           const exists = context.fileSystemProvider.fileExists(markupFile);
           if (exists) {
             files.push(markupFile);
@@ -153,7 +149,7 @@ const findAuraMarkupIn = async (namespaceRoot: string, context: AuraWorkspaceCon
       }
     }
   } catch (error) {
-    console.error(`findAuraMarkupIn: Error accessing ${namespaceRoot}:`, error);
+    Logger.error(`findAuraMarkupIn: Error accessing ${namespaceRoot}:`, error);
   }
 
   return files;

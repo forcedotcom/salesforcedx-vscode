@@ -27,21 +27,49 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
   "scripts": {
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage",
-    "compile": "tsc -p . && node scripts/build.js",
-    "watch": "tsc -watch -p .",
+    "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache",
+    "compile": "wireit",
     "test": "jest --coverage",
-    "lint": "eslint .",
-    "lint:fix": "npm run lint -- --fix"
+    "lint": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc -p . && node scripts/build.js",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-lightning-lsp-common:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "scripts/**/*.js",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    }
   },
   "dependencies": {
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
+    "acorn": "^6.0.0",
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",
     "line-column": "^1.0.2",
-    "@types/vscode": "^1.90.0",
     "vscode-html-languageservice": "^5.0.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12",

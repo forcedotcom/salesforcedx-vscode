@@ -25,14 +25,6 @@
       "import": "./out/src/providers/fileSystemDataProvider.js",
       "require": "./out/src/providers/fileSystemDataProvider.js",
       "types": "./out/src/providers/fileSystemDataProvider.d.ts"
-    },
-    "./resources/sfdx/tsconfig-sfdx.base.json": {
-      "import": "./out/src/resources/sfdx/tsconfig-sfdx.base.json",
-      "require": "./out/src/resources/sfdx/tsconfig-sfdx.base.json"
-    },
-    "./resources/sfdx/tsconfig-sfdx.json": {
-      "import": "./out/src/resources/sfdx/tsconfig-sfdx.json",
-      "require": "./out/src/resources/sfdx/tsconfig-sfdx.json"
     }
   },
   "license": "BSD-3-Clause",
@@ -40,27 +32,73 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
   "scripts": {
-    "clean": "shx rm -rf node_modules && shx rm -rf out && shx rm -rf coverage && shx rm -rf src/resources/sfdx/typings/copied",
-    "compile": "tsc -p . && node scripts/build.js",
-    "watch": "tsc -watch -p .",
-    "test": "jest --coverage",
-    "lint": "eslint .",
-    "lint:fix": "npm run lint -- --fix"
+    "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache",
+    "compile": "wireit",
+    "test": "wireit",
+    "lint": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty && node scripts/build.js",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-utils:compile",
+        "../salesforcedx-vscode-i18n:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "scripts/**/*.js",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "test": {
+      "command": "jest --coverage",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "jest/**/*.ts",
+        "jest.config.js",
+        "jest.setup.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "jest/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    }
   },
   "dependencies": {
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "ejs": "^3.1.10",
-    "jsonc-parser": "^2.2.1",
-    "@types/vscode": "^1.90.0",
+    "tiny-jsonc": "^1.0.2",
     "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-protocol": "^3.17.5",
     "vscode-languageserver-textdocument": "^1.0.12",
     "vscode-uri": "^2.1.2"
   },
   "devDependencies": {
     "@lwc/engine-dom": "8.16.0",
     "@types/ejs": "^3.1.5",
-    "find-node-modules": "^1.0.4",
+    "find-node-modules": "^2.1.3",
     "jest-extended": "^0.11.5",
     "lwc": "2.37.3"
   }

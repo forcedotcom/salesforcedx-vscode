@@ -16,66 +16,10 @@ import {
 import { join, resolve } from 'node:path';
 import { LWCWorkspaceContext } from '../context/lwcContext';
 
-// Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
-// Mock JSON imports from lwcContext.ts
-jest.mock('@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.base.json', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-  const pathModule = require('node:path');
-  // Find package root (lwc-language-server)
-  let current = __dirname;
-  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-    const parent = pathModule.resolve(current, '..');
-    if (parent === current) break;
-    current = parent;
-  }
-  // Go up to packages directory, then to common package
-  const packagesDir = pathModule.resolve(current, '..');
-  const filePath = pathModule.join(
-    packagesDir,
-    'salesforcedx-lightning-lsp-common',
-    'src',
-    'resources',
-    'sfdx',
-    'tsconfig-sfdx.base.json'
-  );
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return { default: content, ...content };
-});
-
-jest.mock('@salesforce/salesforcedx-lightning-lsp-common/resources/sfdx/tsconfig-sfdx.json', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-  const pathModule = require('node:path');
-  // Find package root (lwc-language-server)
-  let current = __dirname;
-  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-    const parent = pathModule.resolve(current, '..');
-    if (parent === current) break;
-    current = parent;
-  }
-  // Go up to packages directory, then to common package
-  const packagesDir = pathModule.resolve(current, '..');
-  const filePath = pathModule.join(
-    packagesDir,
-    'salesforcedx-lightning-lsp-common',
-    'src',
-    'resources',
-    'sfdx',
-    'tsconfig-sfdx.json'
-  );
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return { default: content, ...content };
-});
-
 describe('LWCWorkspaceContext', () => {
   it('isLWCJavascript()', async () => {
     const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemProvider);
-    await context.initialize();
+    context.initialize('SFDX');
 
     // lwc .js
     let document = readAsTextDocument(
@@ -112,7 +56,7 @@ describe('LWCWorkspaceContext', () => {
 
   it('isInsideModulesRoots()', async () => {
     const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemProvider);
-    await context.initialize();
+    context.initialize('SFDX');
 
     let document = readAsTextDocument(
       join(FORCE_APP_ROOT, 'lwc', 'hello_world', 'hello_world.js'),
@@ -132,7 +76,7 @@ describe('LWCWorkspaceContext', () => {
 
   it('isLWCTemplate()', async () => {
     const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemProvider);
-    await context.initialize();
+    context.initialize('SFDX');
 
     // .js is not a template
     let document = readAsTextDocument(
@@ -169,7 +113,7 @@ describe('LWCWorkspaceContext', () => {
 
   it('configureProjectForTs()', async () => {
     const context = new LWCWorkspaceContext([SFDX_WORKSPACE_ROOT], sfdxFileSystemProvider);
-    await context.initialize();
+    context.initialize('SFDX');
     const baseTsconfigPathForceApp = resolve(join(SFDX_WORKSPACE_ROOT, '.sfdx', 'tsconfig.sfdx.json'));
     const tsconfigPathForceApp = resolve(join(FORCE_APP_ROOT, 'lwc', 'tsconfig.json'));
     const tsconfigPathUtils = resolve(join(UTILS_ROOT, 'lwc', 'tsconfig.json'));

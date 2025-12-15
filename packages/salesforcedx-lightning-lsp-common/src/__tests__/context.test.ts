@@ -8,6 +8,7 @@ import * as path from 'node:path';
 import { processTemplate, getModulesDirs } from '../baseContext';
 import '../../jest/matchers';
 import { FileSystemDataProvider } from '../providers/fileSystemDataProvider';
+import { normalizePath } from '../utils';
 import {
   CORE_ALL_ROOT,
   CORE_PROJECT_ROOT,
@@ -23,27 +24,14 @@ import {
 import { WorkspaceContext } from './workspaceContext';
 
 // Test workspace paths - use absolute paths that work regardless of where code is run from
-const SFDX_WORKSPACE_PATH = path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'sfdx-workspace');
-const STANDARD_WORKSPACE_PATH = path.resolve(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  '..',
-  'test-workspaces',
-  'standard-workspace'
+const SFDX_WORKSPACE_PATH = normalizePath(
+  path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'sfdx-workspace')
 );
-const CORE_WORKSPACE_PATH = path.resolve(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  '..',
-  'test-workspaces',
-  'core-like-workspace',
-  'app',
-  'main',
-  'core'
+const STANDARD_WORKSPACE_PATH = normalizePath(
+  path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'standard-workspace')
+);
+const CORE_WORKSPACE_PATH = normalizePath(
+  path.resolve(__dirname, '..', '..', '..', '..', 'test-workspaces', 'core-like-workspace', 'app', 'main', 'core')
 );
 
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
@@ -155,7 +143,7 @@ const verifyCoreSettings = (settings: any): void => {
 describe('WorkspaceContext', () => {
   it('WorkspaceContext', async () => {
     let context = new WorkspaceContext(SFDX_WORKSPACE_PATH, sfdxFileSystemProvider);
-    await context.initialize();
+    context.initialize('SFDX');
     expect(context.type).toBe('SFDX');
     expect(context.workspaceRoots[0]).toBeAbsolutePath();
 
@@ -168,7 +156,7 @@ describe('WorkspaceContext', () => {
     ).toBe(3);
 
     context = new WorkspaceContext(STANDARD_WORKSPACE_PATH, standardFileSystemProvider);
-    await context.initialize();
+    context.initialize('STANDARD_LWC');
     expect(context.type).toBe('STANDARD_LWC');
 
     expect(
@@ -178,7 +166,7 @@ describe('WorkspaceContext', () => {
     ).toEqual([]);
 
     context = new WorkspaceContext(CORE_WORKSPACE_PATH, coreFileSystemProvider);
-    await context.initialize();
+    context.initialize('CORE_ALL');
     expect(context.type).toBe('CORE_ALL');
 
     expect(
@@ -190,24 +178,26 @@ describe('WorkspaceContext', () => {
     ).toBe(3);
 
     context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemProvider);
-    await context.initialize();
+    context.initialize('CORE_PARTIAL');
     expect(context.type).toBe('CORE_PARTIAL');
 
     expect(
       await getModulesDirs(context.type, context.workspaceRoots, coreProjectFileSystemProvider, () =>
         context.initSfdxProjectConfigCache()
       )
-    ).toEqual([path.join(context.workspaceRoots[0], 'modules')]);
+    ).toEqual([normalizePath(path.join(context.workspaceRoots[0], 'modules'))]);
 
     context = new WorkspaceContext(CORE_MULTI_ROOT, coreMultiFileSystemProvider);
-    await context.initialize();
+    context.initialize('CORE_ALL');
     expect(context.workspaceRoots.length).toBe(2);
 
     const modulesDirs = await getModulesDirs(context.type, context.workspaceRoots, coreMultiFileSystemProvider, () =>
       context.initSfdxProjectConfigCache()
     );
     for (let i = 0; i < context.workspaceRoots.length; i = i + 1) {
-      expect(modulesDirs[i]).toMatch(context.workspaceRoots[i]);
+      // modulesDirs[i] should be a path like "workspaceRoot/modules", so it should start with workspaceRoot
+      // Normalize both paths to ensure consistent comparison (especially Windows drive letter casing)
+      expect(normalizePath(modulesDirs[i])).toContain(normalizePath(context.workspaceRoots[i]));
     }
   });
 
@@ -236,7 +226,7 @@ describe('WorkspaceContext', () => {
 
   it('configureSfdxProject()', async () => {
     const context = new WorkspaceContext(SFDX_WORKSPACE_PATH, sfdxFileSystemProvider);
-    await context.initialize();
+    context.initialize('SFDX');
     const jsconfigPathForceApp = path.resolve(FORCE_APP_ROOT, 'lwc', 'jsconfig.json');
     const jsconfigPathUtilsOrig = path.resolve(UTILS_ROOT, 'lwc', 'jsconfig-orig.json');
     const jsconfigPathUtils = path.resolve(UTILS_ROOT, 'lwc', 'jsconfig.json');
@@ -350,25 +340,9 @@ describe('WorkspaceContext', () => {
     expect(apexContents).not.toContain('declare type');
   });
 
-  /*
-function verifyCodeWorkspace(path: string) {
-    const content = Buffer.from(await vscode.workspace.fs.readFile(vscode.Uri.file(path))).toString('utf8');
-    const workspace = JSON.parse(content);
-    const folders = workspace.folders;
-    expect(folders.length).toBe(1);
-    const folderPath = folders[0].path;
-    expect(folderPath).toBeAbsolutePath();
-    expect(folderPath).toEndWith(utils.unixify(CORE_ALL_ROOT));
-    const settings = workspace.settings;
-    expect(settings['java.home']).toBe('path_to_java_home');
-    expect(settings['extensions.ignoreRecommendations']).toBeTruthy();
-    verifyCoreSettings(settings);
-}
-*/
-
   it('configureCoreProject()', async () => {
     const context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemProvider);
-    await context.initialize();
+    context.initialize('CORE_PARTIAL');
     const jsconfigPath = path.join(CORE_PROJECT_ROOT, 'modules', 'jsconfig.json');
     const typingsPath = path.join(CORE_ALL_ROOT, '.vscode', 'typings', 'lwc');
     const settingsPath = path.join(CORE_PROJECT_ROOT, '.vscode', 'settings.json');
@@ -422,7 +396,7 @@ function verifyCodeWorkspace(path: string) {
 
   it('configureCoreMulti()', async () => {
     const context = new WorkspaceContext(CORE_MULTI_ROOT, coreMultiFileSystemProvider);
-    await context.initialize();
+    context.initialize('CORE_ALL');
 
     const jsconfigPathGlobal = `${context.workspaceRoots[1]}/modules/jsconfig.json`;
     const tsconfigPathForce = `${context.workspaceRoots[0]}/tsconfig.json`;
@@ -449,7 +423,7 @@ function verifyCodeWorkspace(path: string) {
 
   it('configureCoreAll()', async () => {
     const context = new WorkspaceContext(CORE_ALL_ROOT, coreFileSystemProvider);
-    await context.initialize();
+    context.initialize('CORE_ALL');
     const jsconfigPathGlobal = path.join(CORE_ALL_ROOT, 'ui-global-components', 'modules', 'jsconfig.json');
     const jsconfigPathForce = path.join(CORE_ALL_ROOT, 'ui-force-components', 'modules', 'jsconfig.json');
 
