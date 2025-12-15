@@ -335,16 +335,12 @@ export const extractMetadataFromPage = async (
 
       for (const table of tables) {
         // Get headers
-        const headers = Array.from(table.querySelectorAll('th')).map(
-          cell => cell.textContent?.trim().toLowerCase() ?? ''
-        );
+        const headers = Array.from(table.querySelectorAll('th')).map(cell => cell.textContent?.trim().toLowerCase());
 
         // Find column indices
-        const fieldIdx = headers.findIndex(
-          h => (h.includes('field') && h.includes('name')) || h === 'field' || h === 'name'
-        );
-        const typeIdx = headers.findIndex(h => h.includes('type'));
-        const descIdx = headers.findIndex(h => h.includes('description') || h.includes('detail'));
+        const fieldIdx = headers.findIndex(h => h === 'field name' || h === 'field');
+        const typeIdx = headers.findIndex(h => h === 'field type' || h === 'type');
+        const descIdx = headers.findIndex(h => h === 'description' || h === 'descriptions' || h === 'details');
 
         // Try to find a table name/caption and description
         let tableName = '';
