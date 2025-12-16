@@ -56,7 +56,9 @@ export const messages = {
   apex_test_run_concise: 'Display only failed test results.',
   apex_testing_discovery_source_description: 'Select the source for Apex test discovery.',
   apex_testing_discovery_source_ls_description: 'Use the Language Server (LS) for discovery.',
-  apex_testing_discovery_source_api_description: 'Use the Tooling API Test Discovery endpoint for discovery.'
+  apex_testing_discovery_source_api_description: 'Use the Tooling API Test Discovery endpoint for discovery.',
+  test_view_refresh_failed_message:
+    'Failed to refresh test view, please make sure the Apex Language Server is running and try again. Apex LS status: %s'
 } as const;
 
 export type MessageKey = keyof typeof messages;

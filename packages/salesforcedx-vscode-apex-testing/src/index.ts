@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getTestResultsFolder, ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
+import { ActivationTracker, getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -24,8 +24,28 @@ import {
 import { getVscodeCoreExtension } from './coreExtensionUtils';
 import { nls } from './messages';
 import { telemetryService } from './telemetry/telemetry';
+import { getLanguageClientStatus } from './utils/testUtils';
 import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
+
+/** Refresh the test view, checking language client status if using LS discovery */
+const refreshTestView = async (): Promise<void> => {
+  const testOutlineProvider = getTestOutlineProvider();
+  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing');
+  const source = config.get<'ls' | 'api'>('discoverySource', 'ls');
+  if (source === 'ls') {
+    const languageClientStatus = await getLanguageClientStatus();
+    if (languageClientStatus.isReady()) {
+      await testOutlineProvider.refresh();
+    } else {
+      vscode.window.showErrorMessage(
+        nls.localize('test_view_refresh_failed_message', languageClientStatus.getStatusMessage())
+      );
+    }
+  } else {
+    await testOutlineProvider.refresh();
+  }
+};
 
 export const activate = async (context: vscode.ExtensionContext) => {
   const vscodeCoreExtension = await getVscodeCoreExtension();
@@ -52,9 +72,9 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
   // Register settings change handler for test discovery source
   const testDiscoverySettingsWatcher = vscode.workspace.onDidChangeConfiguration(async event => {
-    if (event.affectsConfiguration('salesforcedx-vscode-apex.testing.discoverySource')) {
+    if (event.affectsConfiguration('salesforcedx-vscode-apex-testing.discoverySource')) {
       try {
-        await getTestOutlineProvider().refresh();
+        await refreshTestView();
       } catch (error) {
         // Ignore errors if Apex extension isn't ready yet
         console.debug('Failed to refresh test outline after settings change:', error);
@@ -66,6 +86,9 @@ export const activate = async (context: vscode.ExtensionContext) => {
   // Commands
   const commands = registerCommands(context);
   context.subscriptions.push(commands, registerTestView());
+
+  // Initial refresh of test view to populate tests when extension activates
+  void refreshTestViewOnActivation();
 
   void activationTracker.markActivationStop();
 
@@ -162,16 +185,10 @@ const registerTestView = (): vscode.Disposable => {
     ),
     // Refresh Test View command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.refresh`, async () => {
-      const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
-      const source = config.get<'ls' | 'api'>('testing.discoverySource', 'ls');
-      if (source === 'ls') {
-        const { getLanguageClientStatus } = await import('./utils/testUtils.js');
-        const languageClientStatus = await getLanguageClientStatus();
-        if (languageClientStatus.isReady()) {
-          return testOutlineProvider.refresh();
-        }
-      } else {
-        return testOutlineProvider.refresh();
+      try {
+        await refreshTestView();
+      } catch (error) {
+        console.debug('Failed to refresh test view:', error);
       }
     }),
     // Collapse All Apex Tests command
@@ -181,6 +198,15 @@ const registerTestView = (): vscode.Disposable => {
   ];
 
   return vscode.Disposable.from(...testViewItems);
+};
+
+const refreshTestViewOnActivation = async (): Promise<void> => {
+  try {
+    await refreshTestView();
+  } catch (error) {
+    // Ignore errors if Apex extension isn't ready yet
+    console.debug('Failed to refresh test outline on activation:', error);
+  }
 };
 
 export const deactivate = () => {
