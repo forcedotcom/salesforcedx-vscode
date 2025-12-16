@@ -15,12 +15,16 @@ import {
   SfCommandlet,
   SfCommandletExecutor,
   SfWorkspaceChecker,
-  notificationService
+  notificationService,
+  CliCommandExecutor,
+  TimingUtils,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
 import { telemetryService } from '../../telemetry';
-import { getTargetOrgOrAlias, getUsername, isAScratchOrg, unsetTargetOrg } from '../../util';
+import { getTargetOrgOrAlias, getUsername, isAScratchOrg, unsetTargetOrg, updateConfigAndStateAggregators } from '../../util';
 import { ScratchOrgLogoutParamsGatherer } from './authParamsGatherer';
 // SimpleGatherer - need to inline this small utility
 class SimpleGatherer<T> implements ParametersGatherer<T> {
@@ -48,6 +52,28 @@ export class OrgLogoutAll extends SfCommandletExecutor<{}> {
       .withArg('--no-prompt')
       .withLogName('org_logout')
       .build();
+  }
+
+  public execute(response: ContinueResponse<{}>): void {
+    const startTime = TimingUtils.getCurrentTime();
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: workspaceUtils.getRootWorkspacePath(),
+      env: { SF_JSON_TO_STDOUT: 'true' }
+    }).execute(cancellationToken);
+
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+
+    // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    execution.processExitSubject.subscribe(async exitCode => {
+      this.logMetric(execution.command.logName, startTime);
+      // Only update state aggregators on successful completion (exit code 0)
+      if (exitCode === 0) {
+        await updateConfigAndStateAggregators();
+      }
+    });
   }
 }
 

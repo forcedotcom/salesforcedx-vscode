@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/vscode-i18n",
-  "version": "65.8.2",
+  "version": "65.9.0",
   "description": "Internationalization (i18n) library for Salesforce VS Code extensions",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
@@ -66,7 +66,9 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "../../eslint.config.mjs"
+        "../../eslint.config.mjs",
+        "package.json",
+        "package.nls.json"
       ],
       "output": []
     }
