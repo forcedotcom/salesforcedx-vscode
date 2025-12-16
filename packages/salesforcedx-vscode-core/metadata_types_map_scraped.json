@@ -39252,6 +39252,12 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_addresssettings.htm",
     "parent": "Metadata"
   },
+  "AddressSettings": {
+    "fields": [],
+    "short_description": "This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_addresssettings.htm",
+    "parent": "Metadata"
+  },
   "AIReplyRecommendationsSettings": {
     "fields": [
       {
@@ -44453,6 +44459,12 @@
       }
     ],
     "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_industriessettings.htm",
+    "parent": "Metadata"
+  },
+  "IndustriesSettings": {
+    "fields": [],
+    "short_description": "In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for more details.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_industriessettings.htm",
     "parent": "Metadata"
   },

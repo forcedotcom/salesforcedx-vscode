@@ -472,9 +472,6 @@ export const extractMetadataFromPage = async (
         // Skip if this heading already has a table
         if (headingsWithTables.has(headingText)) return false;
 
-        // Skip the main H1 page title heading
-        if (headingText === pageTitle) return false;
-
         // Skip headings that contain spaces (these are typically section headers, not metadata types)
         if (headingText.includes(' ')) return false;
 
