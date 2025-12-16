@@ -314,15 +314,14 @@ export const extractMetadataFromPage = async (
 
       // Filter tables to only process metadata field tables (similar to Playwright's filter())
       const isMetadataFieldTable = (table: Element): boolean => {
-        const headerCells = Array.from(table.querySelectorAll('th, thead td'));
-        const headers = headerCells.map(cell => cell.textContent?.trim().toLowerCase() ?? '');
+        const headers = Array.from(table.querySelectorAll('th')).map(cell => cell.textContent?.trim().toLowerCase());
 
         if (headers.length === 0) return false;
 
         // Check if this is a fields table
-        const hasField = headers.some(h => h.includes('field') || h === 'name');
-        const hasType = headers.some(h => h.includes('type'));
-        const hasDesc = headers.some(h => h.includes('description') || h.includes('detail'));
+        const hasField = headers.some(h => h === 'field name' || h === 'field' || h === 'filed name' || h === 'name');
+        const hasType = headers.some(h => h === 'field type' || h === 'type');
+        const hasDesc = headers.some(h => h === 'description' || h === 'descriptions' || h === 'details');
 
         // Accept tables with all 3 columns OR 2-column format (field name + description)
         const isTraditionalFormat = hasField && hasType && hasDesc;
@@ -338,7 +337,9 @@ export const extractMetadataFromPage = async (
         const headers = Array.from(table.querySelectorAll('th')).map(cell => cell.textContent?.trim().toLowerCase());
 
         // Find column indices
-        const fieldIdx = headers.findIndex(h => h === 'field name' || h === 'field');
+        const fieldIdx = headers.findIndex(
+          h => h === 'field name' || h === 'field' || h === 'filed name' || h === 'name'
+        );
         const typeIdx = headers.findIndex(h => h === 'field type' || h === 'type');
         const descIdx = headers.findIndex(h => h === 'description' || h === 'descriptions' || h === 'details');
 
