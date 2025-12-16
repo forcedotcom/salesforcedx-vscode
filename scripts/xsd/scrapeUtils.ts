@@ -185,6 +185,10 @@ export const extractMetadataFromPage = async (
       // Track which headings have tables associated with them
       const headingsWithTables = new Set<string>();
 
+      // ------------------------------------------------------------
+      // EXTRACT PAGE TITLE AND DESCRIPTION
+      // ------------------------------------------------------------
+
       // Get the page title
       const pageTitle = Array.from(pageHeadings).at(0) ?? '';
 
@@ -308,6 +312,10 @@ export const extractMetadataFromPage = async (
 
       // Join collected paragraphs with space separator
       pageLevelDescription = collectedParagraphs.join(' ');
+
+      // ------------------------------------------------------------
+      // EXTRACT TABLES
+      // ------------------------------------------------------------
 
       // Find all tables (including in shadow DOMs)
       const allTables = collectFromShadowDOM(document, 'table');
