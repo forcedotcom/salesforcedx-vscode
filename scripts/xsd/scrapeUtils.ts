@@ -312,16 +312,36 @@ export const extractMetadataFromPage = async (
       // Find all tables (including in shadow DOMs)
       const allTables = collectFromShadowDOM(document, 'table');
 
+      /** Extract headers from a table */
+      const extractHeaders = (table: Element): string[] => {
+        return Array.from(table.querySelectorAll('th')).map(cell => cell.textContent?.trim().toLowerCase());
+      };
+
+      /** Check if header matches field name column */
+      const isFieldNameColumn = (h: string): boolean => {
+        return h === 'field name' || h === 'field' || h === 'filed name' || h === 'name';
+      };
+
+      /** Check if header matches field type column */
+      const isFieldTypeColumn = (h: string): boolean => {
+        return h === 'field type' || h === 'type';
+      };
+
+      /** Check if header matches description column */
+      const isDescriptionColumn = (h: string): boolean => {
+        return h === 'description' || h === 'descriptions' || h === 'details';
+      };
+
       // Filter tables to only process metadata field tables (similar to Playwright's filter())
       const isMetadataFieldTable = (table: Element): boolean => {
-        const headers = Array.from(table.querySelectorAll('th')).map(cell => cell.textContent?.trim().toLowerCase());
+        const headers = extractHeaders(table);
 
         if (headers.length === 0) return false;
 
         // Check if this is a fields table
-        const hasField = headers.some(h => h === 'field name' || h === 'field' || h === 'filed name' || h === 'name');
-        const hasType = headers.some(h => h === 'field type' || h === 'type');
-        const hasDesc = headers.some(h => h === 'description' || h === 'descriptions' || h === 'details');
+        const hasField = headers.some(isFieldNameColumn);
+        const hasType = headers.some(isFieldTypeColumn);
+        const hasDesc = headers.some(isDescriptionColumn);
 
         // Accept tables with all 3 columns OR 2-column format (field name + description)
         const isTraditionalFormat = hasField && hasType && hasDesc;
@@ -334,14 +354,12 @@ export const extractMetadataFromPage = async (
 
       for (const table of tables) {
         // Get headers
-        const headers = Array.from(table.querySelectorAll('th')).map(cell => cell.textContent?.trim().toLowerCase());
+        const headers = extractHeaders(table);
 
         // Find column indices
-        const fieldIdx = headers.findIndex(
-          h => h === 'field name' || h === 'field' || h === 'filed name' || h === 'name'
-        );
-        const typeIdx = headers.findIndex(h => h === 'field type' || h === 'type');
-        const descIdx = headers.findIndex(h => h === 'description' || h === 'descriptions' || h === 'details');
+        const fieldIdx = headers.findIndex(isFieldNameColumn);
+        const typeIdx = headers.findIndex(isFieldTypeColumn);
+        const descIdx = headers.findIndex(isDescriptionColumn);
 
         // Try to find a table name and description
         let tableName = '';
