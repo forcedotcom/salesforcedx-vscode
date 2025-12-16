@@ -312,11 +312,6 @@ export const extractMetadataFromPage = async (
       // Find all tables (including in shadow DOMs)
       const allTables = collectFromShadowDOM(document, 'table');
 
-      /** Extract headers from a table */
-      const extractHeaders = (table: Element): string[] => {
-        return Array.from(table.querySelectorAll('th')).map(cell => cell.textContent?.trim().toLowerCase());
-      };
-
       /** Check if header matches field name column */
       const isFieldNameColumn = (h: string): boolean => {
         return h === 'field name' || h === 'field' || h === 'filed name' || h === 'name';
@@ -336,7 +331,7 @@ export const extractMetadataFromPage = async (
       const analyzeTable = (
         table: Element
       ): { headers: string[]; fieldIdx: number; typeIdx: number; descIdx: number } | null => {
-        const headers = extractHeaders(table);
+        const headers = Array.from(table.querySelectorAll('th')).map(cell => cell.textContent?.trim().toLowerCase());
 
         if (headers.length === 0) return null;
 
