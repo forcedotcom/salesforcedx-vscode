@@ -73,7 +73,7 @@ export class CodeCoverageHandler {
   public uncoveredLines: Range[] = [];
 
   constructor(private statusBar: StatusBarToggle) {
-    window.onDidChangeActiveTextEditor(async () => await this.onDidChangeActiveTextEditor(), this);
+    window.onDidChangeActiveTextEditor(async (editor) => await this.onDidChangeActiveTextEditor(editor), this);
     void this.onDidChangeActiveTextEditor(window.activeTextEditor);
   }
 
