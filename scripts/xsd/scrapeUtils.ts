@@ -312,21 +312,6 @@ export const extractMetadataFromPage = async (
       // Find all tables (including in shadow DOMs)
       const allTables = collectFromShadowDOM(document, 'table');
 
-      /** Check if header matches field name column */
-      const isFieldNameColumn = (h: string): boolean => {
-        return h === 'field name' || h === 'field' || h === 'filed name' || h === 'name';
-      };
-
-      /** Check if header matches field type column */
-      const isFieldTypeColumn = (h: string): boolean => {
-        return h === 'field type' || h === 'type';
-      };
-
-      /** Check if header matches description column */
-      const isDescriptionColumn = (h: string): boolean => {
-        return h === 'description' || h === 'descriptions' || h === 'details';
-      };
-
       /** Analyze a table and return its headers and column indices, or null if not a metadata field table */
       const analyzeTable = (
         table: Element
@@ -352,6 +337,21 @@ export const extractMetadataFromPage = async (
         const descIdx = headers.findIndex(isDescriptionColumn);
 
         return { headers, fieldIdx, typeIdx, descIdx };
+
+        /** Check if header matches field name column */
+        function isFieldNameColumn(h: string): boolean {
+          return h === 'field name' || h === 'field' || h === 'filed name' || h === 'name';
+        }
+
+        /** Check if header matches field type column */
+        function isFieldTypeColumn(h: string): boolean {
+          return h === 'field type' || h === 'type';
+        }
+
+        /** Check if header matches description column */
+        function isDescriptionColumn(h: string): boolean {
+          return h === 'description' || h === 'descriptions' || h === 'details';
+        }
       };
 
       // Analyze all tables and filter out invalid ones
