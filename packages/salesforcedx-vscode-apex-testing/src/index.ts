@@ -31,8 +31,8 @@ import { ApexTestRunner, TestRunType } from './views/testRunner';
 /** Refresh the test view, checking language client status if using LS discovery */
 const refreshTestView = async (): Promise<void> => {
   const testOutlineProvider = getTestOutlineProvider();
-  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
-  const source = config.get<'ls' | 'api'>('testing.discoverySource', 'ls');
+  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing');
+  const source = config.get<'ls' | 'api'>('discoverySource', 'ls');
   if (source === 'ls') {
     const languageClientStatus = await getLanguageClientStatus();
     if (languageClientStatus.isReady()) {
@@ -72,7 +72,7 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
   // Register settings change handler for test discovery source
   const testDiscoverySettingsWatcher = vscode.workspace.onDidChangeConfiguration(async event => {
-    if (event.affectsConfiguration('salesforcedx-vscode-apex.testing.discoverySource')) {
+    if (event.affectsConfiguration('salesforcedx-vscode-apex-testing.discoverySource')) {
       try {
         await refreshTestView();
       } catch (error) {
