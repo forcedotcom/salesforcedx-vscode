@@ -106,6 +106,7 @@ jobs:
 
     env:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+      MINIMAL_ORG_ALIAS: minimalTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
     steps:
       - name: Checkout repository
@@ -143,9 +144,20 @@ jobs:
           sf org assign permset -n dreamhouse
         working-directory: dreamhouse-lwc
 
+      - name: Generate minimal project
+        shell: bash
+        run: sf project generate -n minimal-project
+
+      - name: create scratch org
+        # the tests expect a scratch org with a certain alias but don't use the directory directly
+        shell: bash
+        run: |
+          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json
+        working-directory: minimal-project
+
       - name: Run Metadata headless tests (headless config)
         env:
-          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
         # compile the entire project to
         run: |

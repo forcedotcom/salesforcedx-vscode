@@ -71,10 +71,11 @@ test.describe('Deploy On Save', () => {
       await executeCommandWithCommandPalette(page, packageNls.apex_generate_class_text);
 
       // First prompt: "Enter Apex class name"
-      await page
-        .locator(QUICK_INPUT_WIDGET)
-        .getByText(/Enter Apex class name/i)
-        .waitFor({ state: 'visible', timeout: 5000 });
+      // Wait for widget to appear first (command palette closes, new prompt opens)
+      // Then wait for text to render (CI can be slower)
+      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+      await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 10_000 });
       await page.keyboard.type(className);
       await page.keyboard.press('Enter');
 
