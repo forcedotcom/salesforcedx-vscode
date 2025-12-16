@@ -1,4 +1,9 @@
 {
   "displayName": "Salesforce Org Browser",
-  "description": "Browse Salesforce org metadata directly from VS Code."
+  "description": "Browse Salesforce org metadata directly from VS Code.",
+  "orgBrowser.activitybar.title": "Salesforce Org Browser",
+  "orgBrowser.view.name": "Salesforce Org Browser",
+  "orgBrowser.command.refreshType": "Refresh Type",
+  "orgBrowser.command.retrieveMetadata": "Retrieve Metadata",
+  "orgBrowser.command.collapseAll": "Collapse All"
 }

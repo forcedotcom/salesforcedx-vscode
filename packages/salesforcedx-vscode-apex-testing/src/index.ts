@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getTestResultsFolder, ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
+import { ActivationTracker, getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -26,9 +26,29 @@ import { nls } from './messages';
 import { telemetryService } from './telemetry/telemetry';
 import { useTestExplorer } from './testDiscovery/testDiscovery';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
+import { getLanguageClientStatus } from './utils/testUtils';
 import { disposeTestController, getTestController } from './views/testController';
 import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
 import { ApexTestRunner, TestRunType } from './views/testRunner';
+
+/** Refresh the test view, checking language client status if using LS discovery */
+const refreshTestView = async (): Promise<void> => {
+  const testOutlineProvider = getTestOutlineProvider();
+  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing');
+  const source = config.get<'ls' | 'api'>('discoverySource', 'ls');
+  if (source === 'ls') {
+    const languageClientStatus = await getLanguageClientStatus();
+    if (languageClientStatus.isReady()) {
+      await testOutlineProvider.refresh();
+    } else {
+      vscode.window.showErrorMessage(
+        nls.localize('test_view_refresh_failed_message', languageClientStatus.getStatusMessage())
+      );
+    }
+  } else {
+    await testOutlineProvider.refresh();
+  }
+};
 
 export const activate = async (context: vscode.ExtensionContext) => {
   const vscodeCoreExtension = await getVscodeCoreExtension();
@@ -102,18 +122,15 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
   // Register settings change handler for test discovery source and test UI mode
   const testDiscoverySettingsWatcher = vscode.workspace.onDidChangeConfiguration(async event => {
-    if (event.affectsConfiguration('salesforcedx-vscode-apex-testing.testing.discoverySource')) {
+    if (event.affectsConfiguration('salesforcedx-vscode-apex-testing.discoverySource')) {
       try {
-        await getTestOutlineProvider().refresh();
-        if (useTestExplorer()) {
-          await getTestController().refresh();
-        }
+        await (useTestExplorer() ? getTestController().refresh() : refreshTestView());
       } catch (error) {
         // Ignore errors if Apex extension isn't ready yet
         console.debug('Failed to refresh test outline after settings change:', error);
       }
     }
-    if (event.affectsConfiguration('salesforcedx-vscode-apex-testing.testing.useTestExplorer')) {
+    if (event.affectsConfiguration('salesforcedx-vscode-apex-testing.useTestExplorer')) {
       // When switching modes, dispose old controller and initialize the new one
       const newUseTestExplorerMode = useTestExplorer();
       try {
@@ -153,9 +170,12 @@ export const activate = async (context: vscode.ExtensionContext) => {
     context.subscriptions.push(providerRegistration);
 
     // Register command to open org-only tests
-    const openOrgOnlyTestCmd = vscode.commands.registerCommand('sf.apex.test.openOrgOnlyTest', async (test: vscode.TestItem) => {
-      await getTestController().openOrgOnlyTest(test);
-    });
+    const openOrgOnlyTestCmd = vscode.commands.registerCommand(
+      'sf.apex.test.openOrgOnlyTest',
+      async (test: vscode.TestItem) => {
+        await getTestController().openOrgOnlyTest(test);
+      }
+    );
     context.subscriptions.push(openOrgOnlyTestCmd);
   }
 
@@ -167,6 +187,9 @@ export const activate = async (context: vscode.ExtensionContext) => {
     context.subscriptions.push(testViewDisposable);
   }
   context.subscriptions.push(commands);
+
+  // Initial refresh of test view to populate tests when extension activates
+  void refreshTestViewOnActivation();
 
   void activationTracker.markActivationStop();
 
@@ -263,16 +286,10 @@ const registerTestView = (): vscode.Disposable => {
     ),
     // Refresh Test View command
     vscode.commands.registerCommand(`${testOutlineProvider.getId()}.refresh`, async () => {
-      const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing');
-      const source = config.get<'ls' | 'api'>('testing.discoverySource', 'ls');
-      if (source === 'ls') {
-        const { getLanguageClientStatus } = await import('./utils/testUtils.js');
-        const languageClientStatus = await getLanguageClientStatus();
-        if (languageClientStatus.isReady()) {
-          return testOutlineProvider.refresh();
-        }
-      } else {
-        return testOutlineProvider.refresh();
+      try {
+        await refreshTestView();
+      } catch (error) {
+        console.debug('Failed to refresh test view:', error);
       }
     }),
     // Collapse All Apex Tests command
@@ -282,6 +299,15 @@ const registerTestView = (): vscode.Disposable => {
   ];
 
   return vscode.Disposable.from(...testViewItems);
+};
+
+const refreshTestViewOnActivation = async (): Promise<void> => {
+  try {
+    await refreshTestView();
+  } catch (error) {
+    // Ignore errors if Apex extension isn't ready yet
+    console.debug('Failed to refresh test outline on activation:', error);
+  }
 };
 
 export const deactivate = () => {

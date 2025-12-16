@@ -75,7 +75,9 @@ export const messages = {
   apex_test_org_only_tag: 'Org Only (Not in Project)',
   apex_test_open_org_class_failed_message: 'Failed to open class %s from org: %s',
   apex_test_debug_org_only_warning_message:
-    'Debugging is not supported for tests that exist only in the org and not in your local workspace. Please retrieve the class to your local project first.'
+    'Debugging is not supported for tests that exist only in the org and not in your local workspace. Please retrieve the class to your local project first.',
+  test_view_refresh_failed_message:
+    'Failed to refresh test view, please make sure the Apex Language Server is running and try again. Apex LS status: %s'
 } as const;
 
 export type MessageKey = keyof typeof messages;

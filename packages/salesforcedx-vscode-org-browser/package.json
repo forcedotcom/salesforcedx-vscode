@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.8.1",
+  "version": "65.9.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -119,7 +119,9 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "../../eslint.config.mjs"
+        "../../eslint.config.mjs",
+        "package.json",
+        "package.nls.json"
       ],
       "output": []
     },
@@ -155,7 +157,7 @@
       "activitybar": [
         {
           "id": "metadata",
-          "title": "Salesforce Org Browser",
+          "title": "%orgBrowser.activitybar.title%",
           "icon": "resources/orgBrowserIcon.svg"
         }
       ]
@@ -164,7 +166,7 @@
       "metadata": [
         {
           "id": "sfdxOrgBrowser",
-          "name": "Salesforce Org Browser",
+          "name": "%orgBrowser.view.name%",
           "when": "!config.salesforcedx-vscode-core.useLegacyOrgBrowser"
         }
       ]
@@ -172,7 +174,7 @@
     "commands": [
       {
         "command": "sfdxOrgBrowser.refreshType",
-        "title": "Refresh Type",
+        "title": "%orgBrowser.command.refreshType%",
         "category": "Org Browser",
         "icon": {
           "light": "resources/light/refresh.svg",
@@ -181,7 +183,7 @@
       },
       {
         "command": "sfdxOrgBrowser.retrieveMetadata",
-        "title": "Retrieve Metadata",
+        "title": "%orgBrowser.command.retrieveMetadata%",
         "icon": {
           "dark": "resources/dark/retrieve.svg",
           "light": "resources/light/retrieve.svg"
@@ -189,7 +191,7 @@
       },
       {
         "command": "sfdxOrgBrowser.collapseAll",
-        "title": "Collapse All",
+        "title": "%orgBrowser.command.collapseAll%",
         "category": "Org Browser",
         "icon": "$(collapse-all)"
       }

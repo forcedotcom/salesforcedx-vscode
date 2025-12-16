@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.8.1",
+  "version": "65.9.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -110,7 +110,9 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "../../eslint.config.mjs"
+        "../../eslint.config.mjs",
+        "package.json",
+        "package.nls.json"
       ],
       "output": []
     },
@@ -359,7 +361,7 @@
       "type": "object",
       "title": "%configuration_title%",
       "properties": {
-        "salesforcedx-vscode-apex-testing.testing.discoverySource": {
+        "salesforcedx-vscode-apex-testing.discoverySource": {
           "type": "string",
           "enum": [
             "ls",
