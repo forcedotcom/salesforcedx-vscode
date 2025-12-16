@@ -60,16 +60,22 @@ const queryAppInsights = async (kqlQuery: string): Promise<QueryResult> => {
       body: JSON.stringify({ query: kqlQuery })
     });
 
-    const data = (await response.json()) as AppInsightsQueryResponse;
-
     if (!response.ok) {
-      const errorMsg =
-        data.error?.message || data.error?.innererror?.message || `HTTP ${response.status}: ${response.statusText}`;
+      let errorMsg = `HTTP ${response.status}: ${response.statusText}`;
+      try {
+        const errorData = (await response.json()) as AppInsightsQueryResponse;
+        errorMsg =
+          errorData.error?.message || errorData.error?.innererror?.message || errorMsg;
+      } catch {
+        // If response body is not JSON, use the status text
+      }
       return {
         success: false,
         error: errorMsg
       };
     }
+
+    const data = (await response.json()) as AppInsightsQueryResponse;
 
     if (data.error) {
       return {
