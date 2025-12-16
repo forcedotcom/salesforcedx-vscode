@@ -11,9 +11,15 @@ import {
   CompositeParametersGatherer,
   SfCommandlet,
   SfCommandletExecutor,
-  SfWorkspaceChecker
+  SfWorkspaceChecker,
+  CliCommandExecutor,
+  TimingUtils,
+  workspaceUtils,
+  ContinueResponse
 } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { updateConfigAndStateAggregators } from '../util';
 import { PromptConfirmGatherer } from '../parameterGatherers/promptConfirmGatherer';
 import { SelectUsername } from '../parameterGatherers/selectUsername';
 
@@ -39,6 +45,28 @@ class OrgDeleteExecutor extends SfCommandletExecutor<{}> {
         .withFlag(this.flag, data.username);
     }
     return builder.build();
+  }
+
+  public execute(response: ContinueResponse<{ choice?: string; username?: string }>): void {
+    const startTime = TimingUtils.getCurrentTime();
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: workspaceUtils.getRootWorkspacePath(),
+      env: { SF_JSON_TO_STDOUT: 'true' }
+    }).execute(cancellationToken);
+
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+
+    // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    execution.processExitSubject.subscribe(async exitCode => {
+      this.logMetric(execution.command.logName, startTime);
+      // Only update state aggregators on successful completion (exit code 0)
+      if (exitCode === 0) {
+        await updateConfigAndStateAggregators();
+      }
+    });
   }
 }
 
