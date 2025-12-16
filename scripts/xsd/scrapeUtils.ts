@@ -332,11 +332,13 @@ export const extractMetadataFromPage = async (
         return h === 'description' || h === 'descriptions' || h === 'details';
       };
 
-      // Filter tables to only process metadata field tables (similar to Playwright's filter())
-      const isMetadataFieldTable = (table: Element): boolean => {
+      /** Analyze a table and return its headers and column indices, or null if not a metadata field table */
+      const analyzeTable = (
+        table: Element
+      ): { headers: string[]; fieldIdx: number; typeIdx: number; descIdx: number } | null => {
         const headers = extractHeaders(table);
 
-        if (headers.length === 0) return false;
+        if (headers.length === 0) return null;
 
         // Check if this is a fields table
         const hasField = headers.some(isFieldNameColumn);
@@ -347,19 +349,26 @@ export const extractMetadataFromPage = async (
         const isTraditionalFormat = hasField && hasType && hasDesc;
         const isNestedFormat = headers.length === 2 && hasField && hasDesc;
 
-        return isTraditionalFormat || isNestedFormat;
-      };
-
-      const tables = allTables.filter(isMetadataFieldTable) as HTMLTableElement[];
-
-      for (const table of tables) {
-        // Get headers
-        const headers = extractHeaders(table);
+        if (!isTraditionalFormat && !isNestedFormat) return null;
 
         // Find column indices
         const fieldIdx = headers.findIndex(isFieldNameColumn);
         const typeIdx = headers.findIndex(isFieldTypeColumn);
         const descIdx = headers.findIndex(isDescriptionColumn);
+
+        return { headers, fieldIdx, typeIdx, descIdx };
+      };
+
+      // Analyze all tables and filter out invalid ones
+      const analyzedTables = allTables
+        .map(table => ({ table: table as HTMLTableElement, analysis: analyzeTable(table) }))
+        .filter(({ analysis }) => analysis !== null) as {
+        table: HTMLTableElement;
+        analysis: { headers: string[]; fieldIdx: number; typeIdx: number; descIdx: number };
+      }[];
+
+      for (const { table, analysis } of analyzedTables) {
+        const { fieldIdx, typeIdx, descIdx } = analysis;
 
         // Try to find a table name and description
         let tableName = '';
