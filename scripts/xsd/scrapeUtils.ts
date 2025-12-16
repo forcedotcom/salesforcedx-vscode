@@ -382,19 +382,17 @@ export const extractMetadataFromPage = async (
         for (const row of allRows) {
           const cells = Array.from(row.querySelectorAll('td'));
 
-          let fieldName = '';
+          const fieldName = cells[fieldIdx]?.textContent?.trim();
           let fieldType = '';
           let description = '';
 
           // Try traditional 3-column format first
           if (cells.length >= 3 && typeIdx >= 0 && descIdx >= 0) {
-            fieldName = cells[fieldIdx]?.textContent?.trim();
             fieldType = cells[typeIdx]?.textContent?.trim();
             description = cells[descIdx]?.textContent?.trim();
-          } else {
-            // Try nested format (2 columns: Field Name, then nested Field Type + Description)
-            fieldName = cells[0]?.textContent?.trim();
-
+          }
+          // Try nested format (2 columns: Field Name, then nested Field Type + Description)
+          else {
             if (cells.length >= 2) {
               const secondCell = cells[1];
 
