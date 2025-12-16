@@ -29,11 +29,14 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
-    "@vscode/debugprotocol": "1.68.0"
+    "@vscode/debugprotocol": "1.68.0",
+    "sanitize-filename": "^1.6.1",
+    "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "esbuild": "0.25.10",
-    "salesforcedx-vscode-apex": "*"
+    "salesforcedx-vscode-apex": "*",
+    "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
@@ -281,6 +284,10 @@
         {
           "command": "sf.debug.exception.breakpoint",
           "when": "sf:project_opened && !isWeb"
+        },
+        {
+          "command": "sf.debug.isv.bootstrap",
+          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         }
       ]
     },
@@ -288,6 +295,10 @@
       {
         "command": "sf.debug.exception.breakpoint",
         "title": "%exception_breakpoint_command_text%"
+      },
+      {
+        "command": "sf.debug.isv.bootstrap",
+        "title": "%isv_bootstrap_command_text%"
       }
     ]
   }

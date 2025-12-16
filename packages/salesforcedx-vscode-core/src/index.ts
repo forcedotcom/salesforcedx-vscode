@@ -71,7 +71,6 @@ import {
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './commands';
-import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
 import { SelectFileName, SelectOutputDir, SfCommandletExecutor } from './commands/util';
 
@@ -143,7 +142,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.apex.generate.trigger', apexGenerateTrigger),
     vscode.commands.registerCommand('sf.start.apex.debug.logging', () => turnOnLogging(extensionContext)),
     vscode.commands.registerCommand('sf.stop.apex.debug.logging', () => turnOffLogging(extensionContext)),
-    vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap),
     registerGetTelemetryServiceCommand()
   );
 const registerInternalDevCommands = (): vscode.Disposable =>

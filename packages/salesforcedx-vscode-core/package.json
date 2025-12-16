@@ -39,7 +39,6 @@
     "fast-xml-parser": "^4.3.2",
     "glob": "^11.1.0",
     "rxjs": "^5.4.1",
-    "sanitize-filename": "^1.6.1",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
@@ -487,10 +486,6 @@
           "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
-          "command": "sf.debug.isv.bootstrap",
-          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
           "command": "sf.retrieve.component",
           "when": "false"
         },
@@ -732,10 +727,6 @@
       {
         "command": "sf.stop.apex.debug.logging",
         "title": "%stop_apex_debug_logging%"
-      },
-      {
-        "command": "sf.debug.isv.bootstrap",
-        "title": "%isv_bootstrap_command_text%"
       },
       {
         "command": "sf.retrieve.source.path",

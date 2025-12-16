@@ -47,10 +47,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   parameter_gatherer_enter_alias_name: '組織のエイリアスを入力またはデフォルトのエイリアスを使用',
   parameter_gatherer_enter_custom_url: 'カスタムのログイン URL を入力またはデフォルトの URL を使用',
   parameter_gatherer_enter_project_name: 'プロジェクト名を入力',
-  parameter_gatherer_paste_forceide_url: '設定から forceide:// の URL をペースト',
-  parameter_gatherer_paste_forceide_url_placeholder: '設定の forceide:// URL',
-  parameter_gatherer_invalid_forceide_url:
-    'forceide:// 形式の URL が無効です。登録者の組織から、設定の Apex デバッガのページに表示される forceide:// 形式の URL をコピー・ペーストしてください。',
 
   project_retrieve_start_default_org_text: 'SFDX: デフォルトのスクラッチ組織からソースをプル',
 
@@ -123,25 +119,9 @@ export const messages: Partial<Record<MessageKey, string>> = {
   apex_generate_trigger_text: 'SFDX: Apex トリガを作成',
   start_apex_debug_logging: 'SFDX: Replay Debugger 用に Apex デバッグログを有効化',
   stop_apex_debug_logging: 'SFDX: Replay Debugger 用の Apex デバッグログを無効化',
-  isv_debug_bootstrap_create_project: 'SFDX: ISV デバッガ 設定 ステップ 1/7: プロジェクトを作成しています',
-  isv_debug_bootstrap_configure_project: 'SFDX: ISV デバッガ 設定 ステップ 2/7: プロジェクトを設定しています',
-  isv_debug_bootstrap_configure_project_retrieve_namespace:
-    'SFDX: ISV デバッガ 設定 ステップ 2/7: プロジェクトを設定しています: 名前空間を取得しています',
-  isv_debug_bootstrap_retrieve_org_source:
-    'SFDX: ISV デバッガ 設定 ステップ 3/7: パッケージ化されていない Apex コードを取得しています',
-  isv_debug_bootstrap_list_installed_packages:
-    'SFDX: ISV デバッガ 設定 ステップ 5/7: インストール済みパッケージをクエリしています',
-  isv_debug_bootstrap_retrieve_package_source: 'SFDX: ISV デバッガ 設定 ステップ 6/7: パッケージを取得しています',
-  isv_debug_bootstrap_processing_package: 'パッケージを処理しています: %s',
-  isv_debug_bootstrap_generate_launchjson: '起動構成ファイルを作成しています',
-  isv_debug_bootstrap_open_project: 'プロジェクトを新しい Visual Studio Code のウィンドウで開いています',
 
-  error_creating_packagexml: 'package.xml の作成中にエラー: %s',
   error_extracting_org_source: 'ダウンロードされたApex ソースの抽出中にエラー: %s',
   error_extracting_packages: 'パッケージの抽出中にエラー: %s',
-  error_updating_salesforce_project: 'sfdx-project.json の更新中にエラー: %s',
-  error_writing_installed_package_info: 'installed-package.json の書き込み中にエラー: %s',
-  error_cleanup_temp_files: '一時ファイルのクリーンアップ中にエラー: %s',
 
   manifest_editor_title_message: 'マニフェストエディタ',
 

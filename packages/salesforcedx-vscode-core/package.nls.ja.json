@@ -20,7 +20,6 @@
   "diff_folder_against_org": "SFDX: フォルダと組織の差分を表示",
   "enable_sobject_refresh_on_startup_description": "プロジェクトに sObject 定義がない場合、拡張機能が有効化される際に自動的に sObject 定義を更新するかどうかを指定します。",
   "ignore_conflicts_on_push_description": "保存時の project:deploy:start コマンド実行時に、常に --ignore-conflicts オプションを使用するかどうかを指定します。",
-  "isv_bootstrap_command_text": "SFDX: ISV デバッグ用のプロジェクトを新規作成し設定",
   "lightning_generate_app_text": "SFDX: Aura アプリケーションを作成",
   "lightning_generate_aura_component_text": "SFDX: Aura コンポーネントを作成",
   "lightning_generate_event_text": "SFDX: Aura イベントを作成",

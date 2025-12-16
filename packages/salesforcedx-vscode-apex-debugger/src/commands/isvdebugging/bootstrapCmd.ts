@@ -13,30 +13,56 @@ import {
   createDirectory,
   notificationService,
   ParametersGatherer,
+  PostconditionChecker,
+  PreconditionChecker,
   ProgressNotification,
   projectPaths,
   readFile,
   safeDelete,
-  SfCommandlet,
   TimingUtils,
-  writeFile
+  writeFile,
+  fileOrFolderExists
 } from '@salesforce/salesforcedx-utils-vscode';
 import { SpawnOptions } from 'node:child_process';
 import * as path from 'node:path';
 import { URL } from 'node:url';
+import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instructions in the Quick Fix to use the default import because that causes an error popup when you use Launch Extensions
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { channelService } from '../../channels';
 import { nls } from '../../messages';
-import { taskViewService } from '../../statuses/taskView';
-import {
-  PathExistsChecker,
-  ProjectNameAndPathAndTemplate,
-  SelectProjectFolder,
-  SelectProjectName
-} from '../projectGenerate';
-import { EmptyPreChecker, SfCommandletExecutor } from '../util';
+
+const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
+  'salesforce.salesforcedx-vscode-core'
+);
+
+const getChannelService = () => {
+  if (!salesforceCoreExtension?.exports) {
+    throw new Error('Salesforce Core Extension not available');
+  }
+  return salesforceCoreExtension.exports.channelService;
+};
+
+const getTaskViewService = () => {
+  if (!salesforceCoreExtension?.exports) {
+    throw new Error('Salesforce Core Extension not available');
+  }
+  return salesforceCoreExtension.exports.taskViewService;
+};
+
+const getSfCommandlet = () => {
+  if (!salesforceCoreExtension?.exports) {
+    throw new Error('Salesforce Core Extension not available');
+  }
+  return salesforceCoreExtension.exports.SfCommandlet;
+};
+
+const getSfCommandletExecutorClass = () => {
+  if (!salesforceCoreExtension?.exports) {
+    throw new Error('Salesforce Core Extension not available');
+  }
+  return salesforceCoreExtension.exports.SfCommandletExecutor;
+};
 
 type InstalledPackageInfo = {
   id: string;
@@ -51,7 +77,83 @@ export const ISVDEBUGGER = 'isvdebuggermdapitmp';
 export const INSTALLED_PACKAGES = 'installed-packages';
 export const PACKAGE_XML = 'package.xml';
 
-export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
+type ProjectURI = {
+  projectUri: string;
+};
+
+type ProjectName = {
+  projectName: string;
+};
+
+type ProjectNameAndPathAndTemplate = ProjectName & ProjectURI & { projectTemplate?: string };
+
+/** Prompts user for input and returns trimmed value */
+const getFormattedString = async (prompt: string, value?: string) => {
+  const input = await vscode.window.showInputBox({
+    prompt,
+    value
+  });
+  return input ? input.trim() : input;
+};
+
+class SelectProjectName implements ParametersGatherer<ProjectName> {
+  private readonly prefillValueProvider?: () => string;
+
+  constructor(prefillValueProvider?: () => string) {
+    this.prefillValueProvider = prefillValueProvider;
+  }
+
+  public async gather(): Promise<CancelResponse | ContinueResponse<ProjectName>> {
+    const prompt = nls.localize('parameter_gatherer_enter_project_name');
+    const prefillValue = this.prefillValueProvider ? this.prefillValueProvider() : '';
+    const projectName = await getFormattedString(prompt, prefillValue);
+    return projectName ? { type: 'CONTINUE', data: { projectName } } : { type: 'CANCEL' };
+  }
+}
+
+class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
+  public async gather(): Promise<CancelResponse | ContinueResponse<ProjectURI>> {
+    const projectUri = await vscode.window.showOpenDialog({
+      canSelectFiles: false,
+      canSelectFolders: true,
+      canSelectMany: false,
+      openLabel: nls.localize('project_generate_open_dialog_create_label')
+    });
+    return projectUri?.length === 1
+      ? { type: 'CONTINUE', data: { projectUri: projectUri[0].fsPath } }
+      : { type: 'CANCEL' };
+  }
+}
+
+class PathExistsChecker implements PostconditionChecker<ProjectNameAndPathAndTemplate> {
+  public async check(
+    inputs: ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse
+  ): Promise<ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse> {
+    if (inputs.type === 'CONTINUE') {
+      if (!(await fileOrFolderExists(path.join(inputs.data.projectUri, `${inputs.data.projectName}/`)))) {
+        return inputs;
+      } else {
+        const overwrite = await notificationService.showWarningMessage(
+          nls.localize('warning_prompt_dir_overwrite'),
+          nls.localize('warning_prompt_overwrite'),
+          nls.localize('warning_prompt_overwrite_cancel')
+        );
+        if (overwrite === nls.localize('warning_prompt_overwrite')) {
+          return inputs;
+        }
+      }
+    }
+    return { type: 'CANCEL' };
+  }
+}
+
+class EmptyPreChecker implements PreconditionChecker {
+  public check(): boolean {
+    return true;
+  }
+}
+
+export class IsvDebugBootstrapExecutor extends getSfCommandletExecutorClass()<{}> {
   public readonly relativeMetadataTempPath = path.join(projectPaths.relativeToolsFolder(), ISVDEBUGGER);
   public readonly relativeApexPackageXmlPath = path.join(this.relativeMetadataTempPath, PACKAGE_XML);
   public readonly relativeInstalledPackagesPath = path.join(projectPaths.relativeToolsFolder(), INSTALLED_PACKAGES);
@@ -154,6 +256,7 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
   }
 
   public async execute(response: ContinueResponse<IsvDebugBootstrapConfig>): Promise<void> {
+    const channelService = getChannelService();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -347,6 +450,8 @@ export class IsvDebugBootstrapExecutor extends SfCommandletExecutor<{}> {
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
+    const channelService = getChannelService();
+    const taskViewService = getTaskViewService();
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
     notificationService.reportCommandExecutionStatus(execution, channelService, cancellationToken);
@@ -415,6 +520,7 @@ class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
 }
 
 export const isvDebugBootstrap = async (): Promise<void> => {
+  const SfCommandlet = getSfCommandlet();
   const forceIdeUrlGatherer = new EnterForceIdeUri();
   const workspaceChecker = new EmptyPreChecker();
   const parameterGatherer = new CompositeParametersGatherer(
