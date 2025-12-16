@@ -388,7 +388,7 @@ export const extractMetadataFromPage = async (
 
           // Try traditional 3-column format first
           if (cells.length >= 3 && typeIdx >= 0 && descIdx >= 0) {
-            fieldName = cells[fieldIdx >= 0 ? fieldIdx : 0]?.textContent?.trim();
+            fieldName = cells[fieldIdx]?.textContent?.trim();
             fieldType = cells[typeIdx]?.textContent?.trim();
             description = cells[descIdx]?.textContent?.trim();
           } else {
