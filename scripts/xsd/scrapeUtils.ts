@@ -393,66 +393,64 @@ export const extractMetadataFromPage = async (
           }
           // Try nested format (2 columns: Field Name, then nested Field Type + Description)
           else {
-            if (cells.length >= 2) {
-              const secondCell = cells[1];
+            const secondCell = cells[1];
 
-              // Strategy 1: Look for <dt>Field Type</dt><dd>TYPE</dd> structure
-              fieldType = extractFromDtDd(secondCell, ['field type', 'type'], false);
+            // Strategy 1: Look for <dt>Field Type</dt><dd>TYPE</dd> structure
+            fieldType = extractFromDtDd(secondCell, ['field type', 'type'], false);
 
-              // Strategy 2: Look for links to other metadata types
-              if (!fieldType) {
-                const typeLink = secondCell.querySelector('a[href*="meta_"]');
-                if (typeLink) {
-                  fieldType = typeLink.textContent?.trim();
+            // Strategy 2: Look for links to other metadata types
+            if (!fieldType) {
+              const typeLink = secondCell.querySelector('a[href*="meta_"]');
+              if (typeLink) {
+                fieldType = typeLink.textContent?.trim();
+              }
+            }
+
+            // Strategy 3: Look for text that looks like a type (capitalized words, array notation)
+            if (!fieldType) {
+              const allText = secondCell.textContent;
+              const typeMatch = allText.match(/Field Type\s*([A-Z][\w\[\]]+)/);
+              if (typeMatch) {
+                fieldType = typeMatch[1];
+              }
+            }
+
+            // Try to find Description
+            // Strategy 1: Look for <dt>Description</dt><dd>DESC</dd> structure
+            description = extractFromDtDd(secondCell, ['description', 'desc'], true);
+
+            // Strategy 2: Look for text after "Description" label
+            if (!description) {
+              const descElements = Array.from(secondCell.querySelectorAll('*'));
+              let foundDescLabel = false;
+              for (const elem of descElements) {
+                const text = elem.textContent?.trim();
+                if (text.toLowerCase() === 'description') {
+                  foundDescLabel = true;
+                } else if (foundDescLabel && text && text.length > 10) {
+                  description = text;
+                  break;
                 }
               }
+            }
 
-              // Strategy 3: Look for text that looks like a type (capitalized words, array notation)
-              if (!fieldType) {
-                const allText = secondCell.textContent;
-                const typeMatch = allText.match(/Field Type\s*([A-Z][\w\[\]]+)/);
-                if (typeMatch) {
-                  fieldType = typeMatch[1];
-                }
-              }
-
-              // Try to find Description
-              // Strategy 1: Look for <dt>Description</dt><dd>DESC</dd> structure
-              description = extractFromDtDd(secondCell, ['description', 'desc'], true);
-
-              // Strategy 2: Look for text after "Description" label
-              if (!description) {
-                const descElements = Array.from(secondCell.querySelectorAll('*'));
-                let foundDescLabel = false;
-                for (const elem of descElements) {
-                  const text = elem.textContent?.trim();
-                  if (text.toLowerCase() === 'description') {
-                    foundDescLabel = true;
-                  } else if (foundDescLabel && text && text.length > 10) {
-                    description = text;
-                    break;
-                  }
-                }
-              }
-
-              // Strategy 3: Fallback - get all text after type
-              if (!description) {
-                const fullText = secondCell.textContent;
-                const lines = fullText
-                  .split('\n')
-                  .map(l => l.trim())
-                  .filter(l => l);
-                // Description is usually the last substantial line
-                for (let i = lines.length - 1; i >= 0; i--) {
-                  if (
-                    lines[i].length > 20 &&
-                    !lines[i].toLowerCase().includes('field type') &&
-                    !lines[i].toLowerCase().includes('description') &&
-                    lines[i] !== fieldType
-                  ) {
-                    description = lines[i];
-                    break;
-                  }
+            // Strategy 3: Fallback - get all text after type
+            if (!description) {
+              const fullText = secondCell.textContent;
+              const lines = fullText
+                .split('\n')
+                .map(l => l.trim())
+                .filter(l => l);
+              // Description is usually the last substantial line
+              for (let i = lines.length - 1; i >= 0; i--) {
+                if (
+                  lines[i].length > 20 &&
+                  !lines[i].toLowerCase().includes('field type') &&
+                  !lines[i].toLowerCase().includes('description') &&
+                  lines[i] !== fieldType
+                ) {
+                  description = lines[i];
+                  break;
                 }
               }
             }
