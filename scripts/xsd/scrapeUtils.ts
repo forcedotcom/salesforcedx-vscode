@@ -314,7 +314,7 @@ export const extractMetadataFromPage = async (
       pageLevelDescription = collectedParagraphs.join(' ');
 
       // ------------------------------------------------------------
-      // EXTRACT TABLES
+      // EXTRACT METADATA TYPES WITH TABLES
       // ------------------------------------------------------------
 
       // Find all tables (including in shadow DOMs)
@@ -458,6 +458,10 @@ export const extractMetadataFromPage = async (
           headingsWithTables.add(tableName);
         }
       }
+
+      // ------------------------------------------------------------
+      // EXTRACT METADATA TYPES WITHOUT TABLES
+      // ------------------------------------------------------------
 
       // Now process headings that don't have tables but have descriptions
       const headingsWithoutTables: {
