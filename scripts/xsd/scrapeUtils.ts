@@ -445,19 +445,17 @@ export const extractMetadataFromPage = async (
         }
 
         // Only add this table if it has fields
-        if (tableFields.length > 0) {
-          tablesData.push({
-            fields: tableFields,
-            tableName,
-            tableDescription,
-            pageTitle,
-            pageLevelDescription
-          });
+        tablesData.push({
+          fields: tableFields,
+          tableName,
+          tableDescription,
+          pageTitle,
+          pageLevelDescription
+        });
 
-          // Track that this heading has a table
-          if (tableName) {
-            headingsWithTables.add(tableName);
-          }
+        // Track that this heading has a table
+        if (tableName) {
+          headingsWithTables.add(tableName);
         }
       }
 
