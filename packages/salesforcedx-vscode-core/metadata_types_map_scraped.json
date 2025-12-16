@@ -1391,6 +1391,11 @@
         "Field Type": "int"
       },
       {
+        "Description": "Optional. Field label.",
+        "Field Name": "masterLabel",
+        "Field Type": ""
+      },
+      {
         "Description": "Optional.",
         "Field Name": "mktDataTranField",
         "Field Type": "mktDataTranFieldType"
@@ -1451,6 +1456,11 @@
         "Description": "Optional. Length of a string column.",
         "Field Name": "length",
         "Field Type": "int"
+      },
+      {
+        "Description": "Optional. Field label.",
+        "Field Name": "masterLabel",
+        "Field Type": ""
       },
       {
         "Description": "Optional. Used for currency and numeric accuracy.",
@@ -2807,6 +2817,33 @@
     ],
     "short_description": "Additional prediction information related to an AI application. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_aiapplicationconfig.htm",
+    "parent": "Metadata"
+  },
+  "AiAuthoringBundle": {
+    "fields": [
+      {
+        "Description": "Specifies the type or category of the AI authoring bundle, indicating the kind of AI authoring content contained within the bundle. Currently, this value must be AGENT, which represents an Agent Script agent. See Agent Script in the Agentforce Developer Guide for details.",
+        "Field Name": "bundleType",
+        "Field Type": ""
+      },
+      {
+        "Description": "Specifies the context or destination for the AI authoring bundle, defining how the bundle content should be applied or deployed. To commit an agent version, Agentforce agents must specify the developerName for the Bot and BotVersion components, separated by a period: {Bot}.{BotVersion}. For example, Agentforce_Service_Agent.v2. These two components tie the AI authoring bundle to a specific agent and a specific agent version. This field is automatically populated when you publish an agent with Agentforce DX. Publishing an agent with this field present is the equivalent to committing the agent in Agentforce Builder with the Commit Version button. If you want to deploy an agent to your org in draft state, omit this field.",
+        "Field Name": "target",
+        "Field Type": ""
+      },
+      {
+        "Description": "Provides a human-readable description of the bundle version, documenting what changes or features are included in this version of the AI authoring bundle.",
+        "Field Name": "versionDescription",
+        "Field Type": ""
+      },
+      {
+        "Description": "Defines a version identifier or tag for the AI authoring bundle. This value can be used for version tracking and management of different bundle iterations.",
+        "Field Name": "versionTag",
+        "Field Type": ""
+      }
+    ],
+    "short_description": "Represents an AI authoring bundle, which is a container for AI-related authoring content. For example, an AI authoring bundle for an Agentforce agent contains an Agent Script file and the associated metadata content. AiAuthoringBundle packages and manages AI authoring artifacts with version control features. This metadata type provides a structured way to organize, version, and target AI-related content within your Salesforce org.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_aiauthoringbundle.htm",
     "parent": "Metadata"
   },
   "AIScoringModelDefinition": {
@@ -7987,6 +8024,16 @@
         "Description": "Indicates whether the care request is active (true) or not (false).",
         "Field Name": "isActive",
         "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the record type of the care request is default (true) or not (false).",
+        "Field Name": "",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Required. A user-friendly name for CareRequestConfiguration, which is defined when the CareRequestConfiguration is created.",
+        "Field Name": "",
+        "Field Type": "string"
       }
     ],
     "short_description": "Represents the details for a record type such as service request, drug request, or admission request. One or more record types can be associated with a care request.",
@@ -9058,6 +9105,11 @@
         "Field Type": "canvasConfig"
       },
       {
+        "Description": "The configuration options of the connected app if it's exposed as a canvas app.",
+        "Field Name": "",
+        "Field Type": "AppCanvasConfig"
+      },
+      {
         "Description": "Required. The email address that Salesforce uses to contact you or your support team.",
         "Field Name": "contactEmail",
         "Field Type": "string"
@@ -9228,7 +9280,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm",
     "parent": "Metadata"
   },
-  "ConnectedAppOauthPolicy": {
+  "AppCanvasConfig": {
     "fields": [
       {
         "Description": "The OAuth asset token configuration for the connected app OAuth settings. Available in API version 49.0 and later.",
@@ -9401,6 +9453,28 @@
       }
     ],
     "short_description": "Specifies the ID token configuration for the connected app OAuth settings. Available in API version 43.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm",
+    "parent": "Metadata"
+  },
+  "ConnectedAppOauthPolicy": {
+    "fields": [
+      {
+        "Description": "Required. Specifies whether a user’s access to the connected app is restricted by IP ranges. Valid options are: ENFORCE (default)—Enforces the IP restrictions configured for the org, such as the IP ranges assigned to a user profile. BYPASS_2FACTOR—Allows a user running the app to bypass the org’s IP restrictions when either of these conditions is true. The app has a list of allowed IP ranges and is using the web server OAuth authorization flow. Requests coming from only these IPs are allowed. The app doesn’t have a list of allowed IP ranges, but it uses the web server authentication flow. And the user successfully completes identity verification if accessing Salesforce from a new browser or device. BYPASS—Allows a user to run this app without org IP restrictions. ENFORCE_RELAXREFRESH—Enforces the IP restrictions configured for the org, such as the IP ranges assigned to a user profile. However, this option bypasses these restrictions when the connected app uses refresh tokens to get access tokens.",
+        "Field Name": "ipRelaxation",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Specifies how long a refresh token is valid for. If refresh tokens are provided, users can continue to access the OAuth-enabled connected app without having to reauthorize when the access token expires, as defined by the session timeout value. The connected app exchanges the refresh token with an access token to start a new session. The Refresh Token policy is evaluated only during usage of the issued refresh token and doesn’t affect a user’s current session. Refresh tokens are required only when a user’s session has expired or isn’t available. For example, you set a refresh token policy to expire the token after 1 hour. If a user uses the app for 2 hours, the user isn’t forced to reauthenticate after 1 hour. However, the user is required to authenticate again when the session expires and the client attempts to exchange its refresh token for a new session. Valid options are: zero—The refresh token is invalid immediately. The user can use the current session (access token) already issued, but can’t obtain a new session when the access token expires. infinite—The refresh token is used indefinitely, unless revoked by the user or Salesforce admin. Default setting. specific_lifetime:number:HOURS, DAYS, MONTHS—The refresh token is valid for a fixed amount of time. For example, if the policy states specific_lifetime:1:DAYS, the user can obtain new sessions for only 24 hours. specific_inactivity:number:HOURS, DAYS, MONTHS—The refresh token is valid as long as it’s been used within the specified amount of time. For example, if set to specific_inactivity:7:DAYS, and the refresh token isn’t exchanged for a new session within seven days, the next attempt to use the token fails. The expired token can’t generate new sessions. If the refresh token is exchanged within seven days, the token is valid for another seven days. The monitoring period of inactivity also resets.",
+        "Field Name": "refreshTokenPolicy",
+        "Field Type": "string"
+      },
+      {
+        "Description": "If single logout is enabled, specify the single logout URL. Salesforce sends logout requests to this URL when users log out of Salesforce. The single logout URL must be an absolute URL starting with https://.",
+        "Field Name": "singleLogoutUrl",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Specifies OAuth access policies for the connected app. Available in API version 49.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm",
     "parent": "Metadata"
   },
@@ -13615,6 +13689,11 @@
         "Field Type": "string"
       },
       {
+        "Description": "",
+        "Field Name": "layoutType",
+        "Field Type": "string"
+      },
+      {
         "Description": "An array of layout section translations.",
         "Field Name": "sections",
         "Field Type": "LayoutSectionTranslation[]"
@@ -16059,6 +16138,11 @@
         "Description": "Required. A user-friendly name for DisclosureDefinitionVersion, which is defined when the DisclosureDefinitionVersion is created.",
         "Field Name": "masterLabel",
         "Field Type": "string"
+      },
+      {
+        "Description": "The API name of the Omniscript configuration that's associated with the disclosure definition version. This field is required only when authoringModeisn’t Microsoft 365 Word.",
+        "Field Name": "omniScriptCnfgApiName",
+        "Field Type": ""
       },
       {
         "Description": "The ID of the Omniscript configuration record.The value of this field is automatically populated using the API name of the OmniScript configuration specified in the omniScriptCnfgApiName field.",
@@ -23463,6 +23547,11 @@
         "Field Type": "string"
       },
       {
+        "Description": "Reserved for future use.",
+        "Field Name": "rules",
+        "Field Type": ""
+      },
+      {
         "Description": "Indicates whether to show (true) or hide (false) the screen’s footer at Lightning runtime. Classic runtime isn’t supported. The default value is true. The footer includes navigation actions for the screen. If showFooter is hidden, use Lightning components on the screen to show navigation actions. This field is available in API version 42.0 and later.",
         "Field Name": "showFooter",
         "Field Type": "boolean"
@@ -23606,6 +23695,11 @@
       {
         "Description": "Indicates whether the user must select a choice or provide input. Not supported for DisplayText or boolean inputField.",
         "Field Name": "isRequired",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "",
+        "Field Name": "isVisible",
         "Field Type": "boolean"
       },
       {
@@ -29588,6 +29682,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "",
+        "Field Name": "isProtected",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "This field is a related list of associated external actions.",
         "Field Name": "marketingAppExtActions",
         "Field Type": "MarketingAppExtAction[]"
@@ -29622,6 +29721,11 @@
       {
         "Description": "This field makes data for the Activity Type available to use in Account Engagement automations. Label is Active in Automations. The default value is false. Appears in the UI.",
         "Field Name": "isActive",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "",
+        "Field Name": "isProtected",
         "Field Type": "boolean"
       },
       {
@@ -29674,6 +29778,11 @@
       {
         "Description": "This field makes data for the Action Type available to use in Engagement Studio Label is Active in Automations. The default value is false. Appears in the UI.",
         "Field Name": "isActive",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "",
+        "Field Name": "isProtected",
         "Field Type": "boolean"
       },
       {
@@ -37129,6 +37238,23 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm",
     "parent": "Metadata"
   },
+  "SortOrder": {
+    "fields": [
+      {
+        "Description": "Sorts data in ascending alphabetical and numerical order.",
+        "Field Name": "Asc",
+        "Field Type": ""
+      },
+      {
+        "Description": "Sorts data in descending alphabetical and numerical order.",
+        "Field Name": "Desc",
+        "Field Type": ""
+      }
+    ],
+    "short_description": "An enumeration of type string that defines the order in which data is sorted in the report fields. Valid values:",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm",
+    "parent": "Metadata"
+  },
   "ReportColorRange": {
     "fields": [
       {
@@ -37528,12 +37654,6 @@
       }
     ],
     "short_description": "ReportCrossFilter represents the cross filter functionality in reports.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm",
-    "parent": "Metadata"
-  },
-  "SortOrder": {
-    "fields": [],
-    "short_description": "An enumeration of type string that defines the order in which data is sorted in the report fields. Valid values:",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_report.htm",
     "parent": "Metadata"
   },
@@ -40163,6 +40283,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether Opportunity Influence campaign attribution is enabled (true) or not (false). When enabled, Opportunity Influence connects opportunity revenue to specific campaigns. The default value is false. Available with Marketing Cloud Growth and Advanced editions in API version 63.0 and higher.",
+        "Field Name": "enableOpportunityInfluence",
+        "Field Type": ""
+      },
+      {
         "Description": "This read-only field is reserved for system use.",
         "Field Name": "enableSuppressNoValueCI2",
         "Field Type": "boolean"
@@ -41569,6 +41694,26 @@
         "Description": "Indicates whether AI feedback integration with Data 360 is enabled (true) or not (false). Available in API version 60.0 and later.",
         "Field Name": "enableAIFeedbackWithDC",
         "Field Type": "boolean"
+      },
+      {
+        "Description": "Reserved for internal use.",
+        "Field Name": "enableAITrustInputToxicityDetection",
+        "Field Type": ""
+      },
+      {
+        "Description": "Reserved for internal use.",
+        "Field Name": "enableAITrustPromptInjectionDetection",
+        "Field Type": ""
+      },
+      {
+        "Description": "Reserved for internal use.",
+        "Field Name": "enablePBHideScopedNotif",
+        "Field Type": ""
+      },
+      {
+        "Description": "Reserved for internal use.",
+        "Field Name": "enablePBPromptPerformanceMetrics",
+        "Field Type": ""
       },
       {
         "Description": "Indicates whether PII (Personally Identifiable Information) masking for AI trust features is enabled (true) or not (false). Available in API version 60.0 and later.",
@@ -44176,6 +44321,11 @@
         "Description": "Indicates whether the care plan feature is enabled for your org. The care plan feature lets you create and edit care plans. The default is false. Available in editions where Public Sector Solutions is enabled.This field is available in API version 58.0 and later.",
         "Field Name": "enableCarePlansPreference",
         "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the enhanced interaction note interface feature is enabled for your org. The enhanced interaction note interface is a single guided flow that enables you to seamlessly create meeting notes; add interaction details, attendees, and interest tags; and share the notes with other users. The default is false. Available in editions where Public Sector Solutions is enabled.This field is available in API version 61.0 and later.",
+        "Field Name": "enableEnhancedUIForISPref",
+        "Field Type": ""
       }
     ],
     "short_description": "Industries settings for Public Sector Solutions features are available in API version 57.0 and later.",
@@ -45665,6 +45815,11 @@
         "Description": "Enforces standard validation and triggers for opportunity products and opportunity product schedules. Default value is true. Can't be set to false. Available in API version 47.0 and later.",
         "Field Name": "doesEnforceStandardOpportunitySaveLogic",
         "Field Type": "boolean"
+      },
+      {
+        "Description": "Displays a Pipeline Inspection setup page to Salesforce admins with all setup steps for enabling and configuring the feature. The set up also includes historical trending. The default value is false.Available in API version 52.0 and later.",
+        "Field Name": "enableExpandedPipelineInspectionSetup",
+        "Field Type": ""
       },
       {
         "Description": "Lets users see related or similar existing opportunities.",
@@ -47160,6 +47315,11 @@
         "Description": "Indicates whether to link related voice calls, specifically the partner telephony/rep call and the voice-enabled agent (PSTN Voice) call. Available in API version 65.0 and later. This field is optional.",
         "Field Name": "enableSCVASAContextLinkingEnabled",
         "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether to enable Service Cloud Voice with Partner Telephony. The default value is false. This field is optional. For API version 52.0 and later, we recommend using enableSCVExternalTelephony instead.",
+        "Field Name": "enableSCVBYOT",
+        "Field Type": ""
       },
       {
         "Description": "Indicates whether to enable a third-party telephony service to work with Service Cloud Voice with Partner Telephony. The default value is false. This field is optional.",

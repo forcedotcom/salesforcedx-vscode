@@ -427,7 +427,7 @@ export const extractMetadataFromPage = async (
             }
           }
 
-          if (fieldName && fieldType && description) {
+          if (fieldName || fieldType || description) {
             tableFields.push({
               Description: description,
               'Field Name': fieldName,
