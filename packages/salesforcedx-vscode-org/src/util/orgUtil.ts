@@ -110,7 +110,7 @@ export const getAuthFieldsFor = async (username: string): Promise<AuthFields> =>
   return authInfo.getFields();
 };
 
-const updateConfigAndStateAggregators = async (): Promise<void> => {
+export const updateConfigAndStateAggregators = async (): Promise<void> => {
   const { StateAggregator } = await import('@salesforce/core');
 
   // Force the ConfigAggregatorProvider to reload its stored
