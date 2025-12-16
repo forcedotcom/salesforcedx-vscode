@@ -467,16 +467,10 @@ export const extractMetadataFromPage = async (
         description: string;
       }[] = [];
 
-      // Filter headings to find those without tables (similar to Playwright's filter())
-      const headingsWithoutTablesFiltered = Array.from(pageHeadings).filter(headingText => {
-        // Skip if this heading already has a table
-        if (headingsWithTables.has(headingText)) return false;
-
-        // Skip headings that contain spaces (these are typically section headers, not metadata types)
-        if (headingText.includes(' ')) return false;
-
-        return true;
-      });
+      // Skip headings that have tables or contain spaces (those are typically section headers, not metadata types)
+      const headingsWithoutTablesFiltered = Array.from(pageHeadings).filter(
+        headingText => !headingsWithTables.has(headingText) && !headingText.includes(' ')
+      );
 
       // Process all headings that don't have tables
       for (const headingText of headingsWithoutTablesFiltered) {
