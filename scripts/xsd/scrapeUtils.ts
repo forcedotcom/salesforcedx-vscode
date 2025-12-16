@@ -395,25 +395,8 @@ export const extractMetadataFromPage = async (
           else {
             const secondCell = cells[1];
 
-            // Strategy 1: Look for <dt>Field Type</dt><dd>TYPE</dd> structure
+            // Find fieldType: Look for <dt>Field Type</dt><dd>TYPE</dd> structure
             fieldType = extractFromDtDd(secondCell, ['field type', 'type'], false);
-
-            // Strategy 2: Look for links to other metadata types
-            if (!fieldType) {
-              const typeLink = secondCell.querySelector('a[href*="meta_"]');
-              if (typeLink) {
-                fieldType = typeLink.textContent?.trim();
-              }
-            }
-
-            // Strategy 3: Look for text that looks like a type (capitalized words, array notation)
-            if (!fieldType) {
-              const allText = secondCell.textContent;
-              const typeMatch = allText.match(/Field Type\s*([A-Z][\w\[\]]+)/);
-              if (typeMatch) {
-                fieldType = typeMatch[1];
-              }
-            }
 
             // Try to find Description
             // Strategy 1: Look for <dt>Description</dt><dd>DESC</dd> structure
