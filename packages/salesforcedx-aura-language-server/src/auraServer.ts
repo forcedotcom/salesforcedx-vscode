@@ -284,6 +284,12 @@ export default class Server {
       return null;
     }
 
+    if (!this.isDelayedInitializationComplete) {
+      return {
+        contents: nls.localize('server_initializing_message')
+      };
+    }
+
     const document = this.getDocumentIfReady(textDocumentPosition.textDocument.uri);
     if (!document) {
       return null;

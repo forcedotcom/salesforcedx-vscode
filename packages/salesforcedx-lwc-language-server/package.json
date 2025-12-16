@@ -35,7 +35,8 @@
       "command": "tsc -p . && node scripts/convert.js && node scripts/build.js",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-lightning-lsp-common:compile"
+        "../salesforcedx-lightning-lsp-common:compile",
+        "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -69,6 +70,7 @@
     "@salesforce/label": "0.0.21",
     "@salesforce/salesforcedx-lightning-lsp-common": "64.16.1",
     "@salesforce/schema": "0.0.21",
+    "@salesforce/vscode-i18n": "*",
     "babel-types": "^6.26.0",
     "change-case": "^4.1.1",
     "comment-parser": "^0.7.6",
