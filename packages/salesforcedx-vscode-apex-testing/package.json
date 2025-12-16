@@ -135,23 +135,7 @@
     }
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json",
-    "onView:sf.test.view",
-    "onCommand:sf.apex.test.run",
-    "onCommand:sf.apex.test.class.run",
-    "onCommand:sf.apex.test.method.run",
-    "onCommand:sf.apex.test.last.class.run",
-    "onCommand:sf.apex.test.last.method.run",
-    "onCommand:sf.apex.test.suite.run",
-    "onCommand:sf.apex.test.suite.create",
-    "onCommand:sf.apex.test.suite.add",
-    "onCommand:sf.test.view.run",
-    "onCommand:sf.test.view.runClassTests",
-    "onCommand:sf.test.view.runSingleTest",
-    "onCommand:sf.test.view.refresh",
-    "onCommand:sf.test.view.collapseAll",
-    "onCommand:sf.test.view.showError",
-    "onCommand:sf.test.view.goToDefinition"
+    "workspaceContains:sfdx-project.json"
   ],
   "main": "./dist/index.js",
   "types": "./out/src/index.d.ts",
@@ -369,7 +353,7 @@
       "type": "object",
       "title": "%configuration_title%",
       "properties": {
-        "salesforcedx-vscode-apex.testing.discoverySource": {
+        "salesforcedx-vscode-apex-testing.discoverySource": {
           "type": "string",
           "enum": [
             "ls",
@@ -382,7 +366,7 @@
             "%apex_testing_discovery_source_api_description%"
           ]
         },
-        "salesforcedx-vscode-apex.test-run-concise": {
+        "salesforcedx-vscode-apex-testing.test-run-concise": {
           "type": "boolean",
           "default": false,
           "description": "%apex_test_run_concise%"
