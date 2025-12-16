@@ -14,15 +14,12 @@ import {
   filterNetworkErrors,
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
-  closeSettingsTab,
   create,
   upsertScratchOrgAuthFieldsToSettings,
   executeCommandWithCommandPalette,
   upsertSettings,
   NOTIFICATION_LIST_ITEM,
-  EDITOR_WITH_URI,
-  QUICK_INPUT_LIST_ROW,
-  QUICK_INPUT_WIDGET
+  createApexClass
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -60,28 +57,7 @@ test.describe('Source Tracking Status Bar', () => {
 
     await test.step('create new apex class', async () => {
       const className = `TestClass${Date.now()}`;
-
-      // Close Settings tab to avoid focus issues
-      await closeSettingsTab(page);
-      await closeWelcomeTabs(page);
-
-      await executeCommandWithCommandPalette(page, packageNls.apex_generate_class_text);
-
-      // First prompt: "Enter Apex class name"
-      // Wait for widget to appear first (command palette closes, new prompt opens)
-      // Then wait for text to render (CI can be slower)
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-      await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 10_000 });
-      await page.keyboard.type(className);
-      await page.keyboard.press('Enter');
-
-      // Second prompt: Quick Pick to select output directory - just press Enter to accept default
-      await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
-      await page.keyboard.press('Enter');
-
-      // Wait for the editor to open with the new class
-      await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 15_000 });
+      await createApexClass(page, className);
     });
 
     await test.step('verify local count increments to 1', async () => {

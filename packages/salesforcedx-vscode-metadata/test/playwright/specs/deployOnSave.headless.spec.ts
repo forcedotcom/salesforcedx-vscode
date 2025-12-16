@@ -14,22 +14,17 @@ import {
   filterNetworkErrors,
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
-  closeSettingsTab,
   createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
   upsertSettings,
-  executeCommandWithCommandPalette,
   ensureOutputPanelOpen,
   selectOutputChannel,
   waitForOutputChannelText,
-  EDITOR_WITH_URI,
-  QUICK_INPUT_LIST_ROW,
-  QUICK_INPUT_WIDGET
+  createApexClass
 } from '@salesforce/playwright-vscode-ext';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { editOpenFile } from '../utils/apexFileHelpers';
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
-import packageNls from '../../../package.nls.json';
 
 test.describe('Deploy On Save', () => {
   test('automatically deploys when file is saved', async ({ page }) => {
@@ -63,28 +58,7 @@ test.describe('Deploy On Save', () => {
 
     await test.step('create apex class', async () => {
       const className = `DeployOnSaveTest${Date.now()}`;
-
-      // Close Settings tab to avoid focus issues
-      await closeSettingsTab(page);
-      await closeWelcomeTabs(page);
-
-      await executeCommandWithCommandPalette(page, packageNls.apex_generate_class_text);
-
-      // First prompt: "Enter Apex class name"
-      // Wait for widget to appear first (command palette closes, new prompt opens)
-      // Then wait for text to render (CI can be slower)
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-      await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 10_000 });
-      await page.keyboard.type(className);
-      await page.keyboard.press('Enter');
-
-      // Second prompt: Quick Pick to select output directory - just press Enter to accept default
-      await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 5000 });
-      await page.keyboard.press('Enter');
-
-      // Wait for the editor to open with the new class
-      await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 15_000 });
+      await createApexClass(page, className);
     });
 
     await test.step('edit class and save to trigger deploy', async () => {

@@ -16,7 +16,7 @@ export {
   typingSpeed
 } from './utils/helpers';
 
-export { createFileWithContents } from './utils/fileHelpers';
+export { createFileWithContents, createApexClass } from './utils/fileHelpers';
 
 export {
   WORKBENCH,
