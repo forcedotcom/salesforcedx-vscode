@@ -371,15 +371,9 @@ export const extractMetadataFromPage = async (
         const { fieldIdx, typeIdx, descIdx } = analysis;
 
         // Try to find a table name and description
-        let tableName = '';
-        let tableDescription = '';
-
-        // Look for heading before the table
         const heading = findHeadingBefore(table.parentElement);
-        if (heading) {
-          tableName = heading.textContent?.trim() ?? '';
-          tableDescription = findDescriptionAfterHeading(heading, true);
-        }
+        const tableName = heading?.textContent?.trim() ?? '';
+        const tableDescription = heading ? findDescriptionAfterHeading(heading, true) : '';
 
         // Extract rows for this table
         const allRows = Array.from(table.querySelectorAll('tbody tr, tr:not(:first-child)'));
