@@ -8,10 +8,10 @@
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { nls } from '../messages';
-import { ExtensionProviderService } from '../services/extensionProvider';
-import { COMPONENT_STATUS_FAILED } from './deployStart/constants';
-import { formatDeployOutput } from './deployStart/formatDeployOutput';
+import { nls } from '../../messages';
+import { ExtensionProviderService } from '../../services/extensionProvider';
+import { COMPONENT_STATUS_FAILED } from '../constants';
+import { formatDeployOutput } from './formatDeployOutput';
 
 /** Deploy a ComponentSet, handling empty sets, cancellation, and output formatting */
 export const deployComponentSet = Effect.fn('deployComponentSet')(function* (options: {

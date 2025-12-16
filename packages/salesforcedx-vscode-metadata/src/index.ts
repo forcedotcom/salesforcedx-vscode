@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import { createApexClass } from './commands/createApexClass';
 import { deployManifest } from './commands/deployManifest';
 import { deploySourcePaths } from './commands/deploySourcePath';
-import { projectDeployStart } from './commands/deployStart/projectDeployStart';
+import { projectDeployStart } from './commands/projectDeployStart';
 import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
 import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './commands/showSourceTrackingDetails';
 import { EXTENSION_NAME } from './constants';

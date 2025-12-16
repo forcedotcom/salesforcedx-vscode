@@ -10,8 +10,8 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
-import { getActiveEditorUri } from './activeEditorUri';
-import { deployComponentSet } from './deployComponentSet';
+import { getActiveEditorUri } from '../shared/activeEditorUri';
+import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
 /** Deploy manifest to the default org */
 const deployManifestEffect = Effect.fn('deployManifest')(function* (manifestUri?: URI) {

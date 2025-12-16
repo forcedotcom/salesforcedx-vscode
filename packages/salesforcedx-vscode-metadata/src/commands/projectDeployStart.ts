@@ -6,9 +6,9 @@
  */
 
 import * as Effect from 'effect/Effect';
-import { nls } from '../../messages';
-import { AllServicesLayer, ExtensionProviderService } from '../../services/extensionProvider';
-import { deployComponentSet } from '../deployComponentSet';
+import { nls } from '../messages';
+import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
 /** Deploy local changes to the default org */
 export const projectDeployStart = async (ignoreConflicts = false): Promise<void> =>
