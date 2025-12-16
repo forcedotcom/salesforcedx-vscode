@@ -10,5 +10,7 @@
   "source_tracking_status_bar_remote_changes": "Remote Changes",
   "source_tracking_status_bar_conflicts": "Conflicts",
   "source_tracking_status_bar_click_to_push": "Click to push local changes to org",
-  "source_tracking_status_bar_no_changes": "No source tracking changes"
+  "source_tracking_status_bar_no_changes": "No source tracking changes",
+  "deploy_on_save_enabled_description": "Automatically deploy metadata when files are saved (used when vscode-core is not installed)",
+  "deploy_on_save_ignore_conflicts_description": "When deploy on save is enabled, ignore conflicts (used when vscode-core is not installed)"
 }

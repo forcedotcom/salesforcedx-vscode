@@ -52,7 +52,7 @@ export const upsertScratchOrgAuthFieldsToSettings = async (
 };
 
 /** Upsert settings using Settings (UI) search and fill of each id.
- * Assumes that you've already opened the Settings (UI) via openSettingsUI.
+ * For checkbox settings, pass "true" or "false" as the value.
  */
 export const upsertSettings = async (page: Page, settings: Record<string, string>): Promise<void> => {
   await openSettingsUI(page);
@@ -84,17 +84,31 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
     // First try an exact search by full id (section.key)
     await performSearch(id);
 
+    // Wait for search results to appear - wait for any search result element to indicate search completed
+    await page.locator('[data-id^="searchResultModel_"]').first().waitFor({ state: 'attached', timeout: 15_000 });
+
     // Deterministic locator: target the element that actually contains the `data-id` attribute
-    const searchResultId = `searchResultModel_${id.replaceAll('.', '_')}`;
-    const rowById = page.locator(`[data-id="${searchResultId}"]`).first();
+    // VS Code only replaces the FIRST dot with underscore in data-id
+    // e.g., "salesforcedx-vscode-metadata.deployOnSave.enabled" -> "searchResultModel_salesforcedx-vscode-metadata_deployOnSave.enabled"
+    const searchResultId = `searchResultModel_${id.replace(/\./, '_')}`;
+    const row = page.locator(`[data-id="${searchResultId}"]`).first();
 
     if (debugAria) {
       console.log(`[upsertSettings] using deterministic locator for ${id}: data-id="${searchResultId}"`);
+      // Capture HTML to debug selector issues - look for settings results
+      try {
+        const settingsBody = page.locator('.settings-body, .settings-tree-container, [class*="settings"]').first();
+        const html = await settingsBody.innerHTML();
+        console.log(`[upsertSettings] Settings results HTML:\n${html.slice(0, 12_000)}`);
+        // Also try to find any element with data-id containing our search term
+        const allDataIds = await page.locator('[data-id]').all();
+        const dataIds = await Promise.all(allDataIds.map(el => el.getAttribute('data-id')));
+        console.log(`[upsertSettings] All data-id attributes found: ${dataIds.filter(Boolean).join(', ')}`);
+      } catch {}
     }
 
     // Fail fast if the deterministic row isn't found — do not fall back to label-based heuristics
-    await rowById.waitFor({ state: 'attached', timeout: 15_000 });
-    const row = rowById;
+    await row.waitFor({ state: 'attached', timeout: 15_000 });
 
     await row.waitFor({ state: 'visible', timeout: 30_000 });
     if (debugAria) {
@@ -104,13 +118,27 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       } catch {}
     }
 
-    // Always fill via the row role textbox
-    const roleTextbox = row.getByRole('textbox').first();
-    await roleTextbox.waitFor({ timeout: 30_000 });
-    await roleTextbox.click({ timeout: 5000 });
-    await roleTextbox.fill(value);
-    await expect(roleTextbox).toHaveValue(value, { timeout: 10_000 });
-    await roleTextbox.blur();
+    // Check if this is a checkbox setting (value is "true" or "false")
+    const checkbox = row.getByRole('checkbox').first();
+    const isCheckboxSetting = (value === 'true' || value === 'false') && (await checkbox.count()) > 0;
+
+    if (isCheckboxSetting) {
+      // Handle checkbox setting
+      await checkbox.waitFor({ timeout: 30_000 });
+      const isChecked = await checkbox.isChecked();
+      const desiredChecked = value === 'true';
+      if (isChecked !== desiredChecked) {
+        await checkbox.click();
+      }
+    } else {
+      // Handle textbox setting
+      const roleTextbox = row.getByRole('textbox').first();
+      await roleTextbox.waitFor({ timeout: 30_000 });
+      await roleTextbox.click({ timeout: 5000 });
+      await roleTextbox.fill(value);
+      await expect(roleTextbox).toHaveValue(value, { timeout: 10_000 });
+      await roleTextbox.blur();
+    }
 
     // Capture after state
     await saveScreenshot(page, `settings.afterSet.${id}.png`, false);

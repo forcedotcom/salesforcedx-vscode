@@ -15,51 +15,54 @@ import {
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
   closeSettingsTab,
-  create,
+  createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
-  executeCommandWithCommandPalette,
   upsertSettings,
-  NOTIFICATION_LIST_ITEM,
+  executeCommandWithCommandPalette,
+  ensureOutputPanelOpen,
+  selectOutputChannel,
+  waitForOutputChannelText,
   EDITOR_WITH_URI,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET
 } from '@salesforce/playwright-vscode-ext';
-import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { editOpenFile } from '../utils/apexFileHelpers';
+import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import packageNls from '../../../package.nls.json';
 
-test.describe('Source Tracking Status Bar', () => {
-  test('tracks remote and local changes through full deploy cycle', async ({ page }) => {
+test.describe('Deploy On Save', () => {
+  test('automatically deploys when file is saved', async ({ page }) => {
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
 
-    const statusBarPage = await test.step('setup scratch org and wait for status bar', async () => {
-      const createResult = await create();
+    await test.step('setup minimal org and enable deploy-on-save', async () => {
+      const createResult = await createMinimalOrg();
       await waitForVSCodeWorkbench(page);
       await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
-      // Disable deploy-on-save so test can control when deploys happen
-      await upsertSettings(page, { 'salesforcedx-vscode-metadata.deployOnSave.enabled': 'false' });
+      // Wait for extension to fully activate (needed for desktop settings to be available)
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, 'Salesforce Metadata');
+      await waitForOutputChannelText(page, {
+        expectedText: 'Salesforce Metadata activation complete',
+        timeout: 30_000
+      });
 
-      const statusBar = new SourceTrackingStatusBarPage(page);
-      await statusBar.waitForVisible(120_000);
+      // Enable deploy-on-save (web already enabled by default, desktop needs this)
+      const isDesktop = process.env.VSCODE_DESKTOP === '1';
+      if (isDesktop) {
+        await upsertSettings(page, { [`${METADATA_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'true' });
+      }
+
+      // Verify deploy-on-save service is initialized by checking output channel
+      await waitForOutputChannelText(page, { expectedText: 'Deploy on save service initialized', timeout: 30_000 });
+
       await closeWelcomeTabs(page);
-      return statusBar;
     });
 
-    await test.step('verify initial state shows remote changes', async () => {
-      const initialCounts = await statusBarPage.getCounts();
-      expect(initialCounts.remote, 'Remote changes should be > 0 after dreamhouse deployment').toBeGreaterThan(0);
-      expect(initialCounts.local, 'Local changes should be 0 initially').toBe(0);
-      expect(initialCounts.conflicts, 'Conflicts should be 0 initially').toBe(0);
-
-      const hasError = await statusBarPage.hasErrorBackground();
-      expect(hasError, 'Status bar should not have error background when conflicts = 0').toBe(false);
-    });
-
-    await test.step('create new apex class', async () => {
-      const className = `TestClass${Date.now()}`;
+    await test.step('create apex class', async () => {
+      const className = `DeployOnSaveTest${Date.now()}`;
 
       // Close Settings tab to avoid focus issues
       await closeSettingsTab(page);
@@ -84,27 +87,26 @@ test.describe('Source Tracking Status Bar', () => {
       await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 15_000 });
     });
 
-    await test.step('verify local count increments to 1', async () => {
-      await statusBarPage.waitForCounts({ local: 1 }, 60_000);
+    await test.step('edit class and save to trigger deploy', async () => {
+      await editOpenFile(page, 'Deploy on save test comment');
     });
 
-    await test.step('edit class and verify count stays at 1', async () => {
-      await editOpenFile(page, 'Modified for testing');
-      const afterEditCounts = await statusBarPage.getCounts();
-      expect(afterEditCounts.local, 'Local count should stay at 1 after editing existing change').toBe(1);
+    await test.step('verify deploying notification appears and disappears', async () => {
+      // Wait for deploy-on-save to trigger (service has 1s delay, then deploy starts)
+      // Check output channel first to verify deploy-on-save is working
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, 'Salesforce Metadata');
+      await waitForOutputChannelText(page, { expectedText: 'Deploy on save triggered', timeout: 30_000 });
+
+      // Now wait for the deploying notification
+      const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
+      await expect(deployingNotification).not.toBeVisible({ timeout: 600_000 });
     });
 
-    await test.step('deploy changes and verify local count returns to 0', async () => {
-      await executeCommandWithCommandPalette(page, packageNls.project_deploy_start_ignore_conflicts_default_org_text);
-      await waitForDeployProgressNotificationToAppear(page, 30_000);
-
-      const deployingNotification = page
-        .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: /Deploying/i })
-        .first();
-      await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
-
-      await statusBarPage.waitForCounts({ local: 0 }, 60_000);
+    await test.step('verify output channel shows deploy success', async () => {
+      // Output channel already open from previous step
+      // Check for completion message
+      await waitForOutputChannelText(page, { expectedText: 'Deploy on save complete', timeout: 240_000 });
     });
 
     await test.step('validate no critical errors', async () => {
