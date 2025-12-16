@@ -66,7 +66,8 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
-        "../../tsconfig.common.json"
+        "../../tsconfig.common.json",
+        "package.json"
       ],
       "output": [
         "out/**",
@@ -165,7 +166,7 @@
       ]
     },
     "run:web": {
-      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-org-browser --open-devtools --port 3001",
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-org-browser --open-devtools --port 3001 --extensionId salesforce.apex-language-server-extension-web",
       "service": true,
       "dependencies": [
         "vscode:bundle",
@@ -184,6 +185,19 @@
   "main": "./dist/index.js",
   "browser": "./dist/web/index.js",
   "contributes": {
+    "languages": [
+      {
+        "id": "forcesourcemanifest",
+        "aliases": [
+          "ForceSourceManifest",
+          "forcesourcemanifest"
+        ],
+        "filenamePatterns": [
+          "**/manifest/**/*.xml",
+          "package.xml"
+        ]
+      }
+    ],
     "configuration": {
       "title": "Salesforce Metadata Configuration",
       "properties": {
@@ -228,6 +242,38 @@
         {
           "command": "sf.apex.generate.class",
           "when": "salesforcedx-vscode-metadata.showSharedCommands"
+        },
+        {
+          "command": "sf.deploy.source.path",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands"
+        },
+        {
+          "command": "sf.deploy.current.source.file",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands"
+        },
+        {
+          "command": "sf.deploy.in.manifest",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "sf.deploy.current.source.file",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.deploy.in.manifest",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "sf.deploy.source.path",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.deploy.in.manifest",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         }
       ]
     },
@@ -259,6 +305,18 @@
       {
         "command": "sf.apex.generate.class",
         "title": "%apex_generate_class_text%"
+      },
+      {
+        "command": "sf.deploy.source.path",
+        "title": "%deploy_this_source_text%"
+      },
+      {
+        "command": "sf.deploy.current.source.file",
+        "title": "%deploy_this_source_text%"
+      },
+      {
+        "command": "sf.deploy.in.manifest",
+        "title": "%deploy_in_manifest_text%"
       }
     ]
   }

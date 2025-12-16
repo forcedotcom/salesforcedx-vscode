@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type DeployResult, ComponentSet } from '@salesforce/source-deploy-retrieve';
+import type { ConfigAggregator } from '@salesforce/core/configAggregator';
+import type { SfProject } from '@salesforce/core/project';
+import { type DeployResult, ComponentSet, RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import { type SourceTracking } from '@salesforce/source-tracking';
 import * as Brand from 'effect/Brand';
 import * as Cause from 'effect/Cause';
@@ -171,14 +173,92 @@ const deploy = (
     return deployOutcome;
   }).pipe(Effect.withSpan('deploy', { attributes: { componentCount: components.size } }));
 
+/** Get required services for building ComponentSets */
+const getComponentSetServices = (): Effect.Effect<
+  readonly [RegistryAccess, SfProject, ConfigAggregator],
+  Error,
+  MetadataRegistryService | ProjectService | ConfigService | WorkspaceService
+> =>
+  Effect.all(
+    [
+      Effect.flatMap(MetadataRegistryService, svc => svc.getRegistryAccess()),
+      Effect.flatMap(ProjectService, svc => svc.getSfProject),
+      Effect.flatMap(ConfigService, svc => svc.getConfigAggregator)
+    ],
+    { concurrency: 'unbounded' }
+  );
+
+/** Set project directory, API version, and source API version on ComponentSet */
+const setComponentSetProperties = (
+  componentSet: ComponentSet,
+  project: SfProject,
+  configAggregator: ConfigAggregator
+): Effect.Effect<void, Error, never> =>
+  Effect.gen(function* () {
+    componentSet.projectDirectory = project.getPath();
+    const apiVersion = configAggregator.getPropertyValue<string>('apiVersion');
+    if (apiVersion) {
+      componentSet.apiVersion = apiVersion;
+    }
+    const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
+    const sourceApiVersion = projectJson.get<string>('sourceApiVersion');
+    if (sourceApiVersion) {
+      componentSet.sourceApiVersion = String(sourceApiVersion);
+    }
+  });
+
+/** Get ComponentSet from source paths (files/directories) */
+const getComponentSetFromPaths = (
+  paths: string[]
+): Effect.Effect<ComponentSet, Error, MetadataRegistryService | ProjectService | ConfigService | WorkspaceService> =>
+  Effect.gen(function* () {
+    yield* Effect.annotateCurrentSpan({ paths });
+    const [registryAccess, project, configAggregator] = yield* getComponentSetServices();
+
+    const componentSet = yield* Effect.try({
+      try: () => ComponentSet.fromSource({ fsPaths: paths, registry: registryAccess }),
+      catch: e => new Error('Failed to build ComponentSet from source paths', { cause: e })
+    });
+
+    yield* setComponentSetProperties(componentSet, project, configAggregator);
+
+    yield* Effect.annotateCurrentSpan({ size: componentSet.size });
+    return componentSet;
+  }).pipe(Effect.withSpan('getComponentSetFromPaths'));
+
+/** Get ComponentSet from manifest file */
+const getComponentSetFromManifest = (
+  manifestPath: string
+): Effect.Effect<ComponentSet, Error, MetadataRegistryService | ProjectService | ConfigService | WorkspaceService> =>
+  Effect.gen(function* () {
+    yield* Effect.annotateCurrentSpan({ manifestPath });
+    const [registryAccess, project, configAggregator] = yield* getComponentSetServices();
+
+    const componentSet = yield* Effect.tryPromise({
+      try: async () =>
+        await ComponentSet.fromManifest({
+          manifestPath,
+          // Get package directories as full paths
+          resolveSourcePaths: project.getPackageDirectories().map(pkgDir => pkgDir.fullPath),
+          forceAddWildcards: true,
+          registry: registryAccess
+        }),
+      catch: e => new Error('Failed to build ComponentSet from manifest', { cause: e })
+    });
+
+    yield* setComponentSetProperties(componentSet, project, configAggregator);
+
+    yield* Effect.annotateCurrentSpan({ size: componentSet.size });
+    return componentSet;
+  }).pipe(Effect.withSpan('getComponentSetFromManifest'));
+
 export class MetadataDeployService extends Effect.Service<MetadataDeployService>()('MetadataDeployService', {
   succeed: {
-    /**
-     * Deploy metadata to the default org.
-     * @param components - ComponentSet to deploy
-     * @returns Effect that resolves to SDR's DeployResult
-     */
+    /** Deploy metadata to the default org */
     deploy,
-    getComponentSetForDeploy
+    getComponentSetForDeploy,
+    /** Build a ComponentSet from source paths (files/directories) */
+    getComponentSetFromPaths,
+    getComponentSetFromManifest
   } as const
 }) {}

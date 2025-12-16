@@ -6,11 +6,9 @@
  */
 
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../../services/extensionProvider';
-import { COMPONENT_STATUS_FAILED } from './constants';
-import { formatDeployOutput } from './formatDeployOutput';
+import { deployComponentSet } from '../deployComponentSet';
 
 /** Deploy local changes to the default org */
 export const projectDeployStart = async (ignoreConflicts = false): Promise<void> =>
@@ -18,41 +16,10 @@ export const projectDeployStart = async (ignoreConflicts = false): Promise<void>
 
 const projectDeployStartEffect = Effect.fn('projectDeployStart')(function* (ignoreConflicts: boolean) {
   yield* Effect.annotateCurrentSpan({ ignoreConflicts });
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
-  const deployService = yield* api.services.MetadataDeployService;
 
-  // Get ComponentSet of local changes
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const deployService = yield* api.services.MetadataDeployService;
   const componentSet = yield* deployService.getComponentSetForDeploy({ ignoreConflicts });
 
-  if (componentSet.size === 0) {
-    const noChangesMessage = nls.localize('deploy_no_local_changes_message');
-    yield* Effect.all(
-      [
-        channelService.appendToChannel(noChangesMessage),
-        Effect.promise(() => vscode.window.showInformationMessage(noChangesMessage))
-      ],
-      { concurrency: 'unbounded' }
-    );
-    return;
-  }
-
-  yield* channelService.appendToChannel(
-    `Deploying ${componentSet.size} component${componentSet.size === 1 ? '' : 's'}...`
-  );
-
-  // Deploy the components
-  const result = yield* deployService.deploy(componentSet);
-
-  // Handle cancellation
-  if (typeof result === 'string') {
-    yield* channelService.appendToChannel('Deploy cancelled by user');
-    return;
-  }
-
-  yield* channelService.appendToChannel(formatDeployOutput(result));
-
-  if (result.getFileResponses().some(r => String(r.state) === COMPONENT_STATUS_FAILED)) {
-    void vscode.window.showErrorMessage(nls.localize('deploy_completed_with_errors_message'));
-  }
+  yield* deployComponentSet({ componentSet, emptyMessage: nls.localize('deploy_no_local_changes_message') });
 });
