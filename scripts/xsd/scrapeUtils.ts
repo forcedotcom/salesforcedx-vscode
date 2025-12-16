@@ -454,9 +454,7 @@ export const extractMetadataFromPage = async (
         });
 
         // Track that this heading has a table
-        if (tableName) {
-          headingsWithTables.add(tableName);
-        }
+        if (tableName) headingsWithTables.add(tableName);
       }
 
       // ------------------------------------------------------------
