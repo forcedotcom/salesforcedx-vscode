@@ -371,10 +371,10 @@ export const extractMetadataFromPage = async (
         const tableDescription = heading ? findDescriptionAfterHeading(heading, true) : '';
 
         // Extract rows for this table
-        const allRows = Array.from(table.querySelectorAll('tbody tr, tr:not(:first-child)'));
+        const allRows = Array.from(table.querySelectorAll('tbody tr'));
         // Filter rows to only process those with sufficient cells (similar to Playwright's filter())
         const validRows = allRows.filter(row => {
-          const cells = row.querySelectorAll('td, th');
+          const cells = row.querySelectorAll('td');
           return cells.length >= 2;
         });
 
@@ -385,7 +385,7 @@ export const extractMetadataFromPage = async (
         }[] = [];
 
         for (const row of validRows) {
-          const cells = Array.from(row.querySelectorAll('td, th'));
+          const cells = Array.from(row.querySelectorAll('td'));
 
           let fieldName = '';
           let fieldType = '';
