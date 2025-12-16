@@ -2731,7 +2731,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "API name of the target object where the calculated",
+        "Description": "API name of the target object where the calculated scores are added.",
         "Field Name": "targetObjectApiName",
         "Field Type": "string"
       }

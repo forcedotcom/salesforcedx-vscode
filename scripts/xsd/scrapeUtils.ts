@@ -398,44 +398,32 @@ export const extractMetadataFromPage = async (
             // Find fieldType: Look for <dt>Field Type</dt><dd>TYPE</dd> structure
             fieldType = extractFromDtDd(secondCell, ['field type', 'type'], false);
 
-            // Try to find Description
-            // Strategy 1: Look for <dt>Description</dt><dd>DESC</dd> structure
+            // Find description: Look for <dt>Description</dt><dd>DESC</dd> structure
             description = extractFromDtDd(secondCell, ['description', 'desc'], true);
 
-            // Strategy 2: Look for text after "Description" label
-            if (!description) {
-              const descElements = Array.from(secondCell.querySelectorAll('*'));
-              let foundDescLabel = false;
-              for (const elem of descElements) {
-                const text = elem.textContent?.trim();
-                if (text.toLowerCase() === 'description') {
-                  foundDescLabel = true;
-                } else if (foundDescLabel && text && text.length > 10) {
-                  description = text;
-                  break;
-                }
-              }
-            }
-
-            // Strategy 3: Fallback - get all text after type
+            // Fallback - get all text that looks like description content
             if (!description) {
               const fullText = secondCell.textContent;
               const lines = fullText
                 .split('\n')
                 .map(l => l.trim())
                 .filter(l => l);
-              // Description is usually the last substantial line
-              for (let i = lines.length - 1; i >= 0; i--) {
+              // Collect all lines that look like description content (not headers)
+              const descriptionLines: string[] = [];
+              for (const line of lines) {
+                const lowerLine = line.toLowerCase();
+                // Skip header-like lines and the field type itself
                 if (
-                  lines[i].length > 20 &&
-                  !lines[i].toLowerCase().includes('field type') &&
-                  !lines[i].toLowerCase().includes('description') &&
-                  lines[i] !== fieldType
+                  line.length > 0 &&
+                  !lowerLine.includes('field type') &&
+                  !lowerLine.includes('description') &&
+                  line !== fieldType
                 ) {
-                  description = lines[i];
-                  break;
+                  descriptionLines.push(line);
                 }
               }
+              // Join all description lines with a space
+              description = descriptionLines.join(' ');
             }
           }
 
