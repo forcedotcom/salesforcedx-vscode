@@ -609,17 +609,6 @@ export const extractMetadataFromPage = async (
             }
           }
 
-          // Also check for DD (definition description) after DT
-          if (tagName === 'DD') {
-            if (!isInsideCallout(nextElement)) {
-              const text = nextElement.textContent?.trim() ?? '';
-              if (text.length > 20) {
-                description = text;
-                break;
-              }
-            }
-          }
-
           // Check inside DIVs for paragraphs (but skip callout divs)
           if (tagName === 'DIV' && !isInsideCallout(nextElement)) {
             // Skip if the DIV itself is a callout
