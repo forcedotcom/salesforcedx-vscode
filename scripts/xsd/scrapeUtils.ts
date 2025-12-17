@@ -565,9 +565,7 @@ export const extractMetadataFromPage = async (
         if (desc && collectedParagraphs.length < maxParagraphs) {
           collectedParagraphs.push(desc);
           // Stop collecting if this paragraph contains "extends"
-          if (desc.toLowerCase().includes('extends')) {
-            return true;
-          }
+          if (desc.toLowerCase().includes('extends')) return true;
         }
         return false;
       }
