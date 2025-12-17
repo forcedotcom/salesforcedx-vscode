@@ -675,25 +675,7 @@ export const extractMetadataFromPage = async (
           const tagName = current.tagName;
 
           // Check for H1-H6 headings
-          if (tagName?.match(/^H[1-6]$/)) {
-            return current;
-          }
-
-          // Check for DT (definition term) which Salesforce docs sometimes use
-          if (tagName === 'DT') {
-            return current;
-          }
-
-          // Check for DIV or P with bold/strong text that looks like a heading
-          if (tagName === 'DIV' || tagName === 'P') {
-            const strong = current.querySelector('strong, b');
-            if (strong) {
-              const text = strong.textContent?.trim();
-              if (text && text.length > 2 && text.length < 100) {
-                return current;
-              }
-            }
-          }
+          if (tagName?.match(/^H[1-6]$/)) return current;
 
           current = current.previousElementSibling;
         }

@@ -23613,7 +23613,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
     "parent": "Metadata"
   },
-  "FlowScreen\n\n            \n            Screens capture information from users and display information to users. It extends\n                    FlowNode and inherits all its fields.\n\n            \n\n                    \n                    \n                    \n                    \n                        \n                            Field Name\n\n                            Field Type\n\n                            Description\n\n                        \n\n                    \n\n                    \n                        \n                            actions\n\n                            \nFlowScreenAction[]\n\n                            An array of screen actions.This field is available in API\n                                    version 59.0 and later.\n\n\n                        \n\n                        \n                            allowBack\n\n                            boolean\n\n                            Indicates whether to show (true) or hide (false) the Previous button on\n                                the screen at runtime. When true, the\n                                    Previous button appears only if the user\n                                visited a previous screen in the flow path and if\n                                    showFooter for the screen is set to true. Set this field to false when\n                                revisiting the previous screen triggers an action that you don’t\n                                want repeated, such as a credit card transaction.This field is\n                                    available in API version 26.0 and later.\nDefault: true\n\n                                You can set either\n                                            allowBack or\n                                            allowFinish to false, but not\n                                        both.\n\n\n                        \n\n                        \n                            allowFinish\n\n                            boolean\n\n                            Indicates whether to show (true) or hide (false) the Finish button on the\n                                screen at runtime. When true,\n                                the Finish button appears only if the screen\n                                element is the end of a flow path, and if\n                                    showFooter for the screen is set to true. The default value is true. Set to false if user is required to go\n                                    back to a previous screen to continue or complete the flow. For\n                                    example, don’t include a Finish button on\n                                    a screen that tells the user to go back and make corrections on\n                                    a previous screen.\n\n                                You can set allowBack or\n                                        allowFinish to false, but not both.\n\n                                This field is available in API version 26.0 and\n                                later.\n\n\n                        \n\n                        \n                            allowPause\n\n                            boolean\n\n                            \nIndicates whether to show (true) or hide (false) the\n                                        Pause button on the screen at\n                                    runtime. The default value is true.\n                                A flow screen displays the Pause button if\n                                    all these conditions are true.\n\n                                    \nLet users pause flows is enabled in\n                                        the organization’s process automation settings.\n\n                                    \nallowPause for the screen is set to\n                                            true.\n\n                                    If the flow is embedded in a Visualforce page, the\n                                        <flow:interview> component has its\n                                            showAllowPause attribute set to\n                                            true.\n\n                                    The showFooter field for the screen is\n                                        set to true.\n\n                                \nThis field is available in API version 33.0 and\n                                later.\n\n\n                        \n\n                        \n                            backButtonLabel\n\n                            string\n\n                            A label for the Back button.\n\n                        \n\n                        \n                            connector\n\n                            FlowConnector\n\n                            Specifies which node to execute after the screen node.\n\n                        \n\n                        \n                            fields\n\n                            \nFlowScreenField[]\n\n                            An array of fields to display on the screen.\n\n                        \n\n                        \n                            helpText\n\n                            string\n\n                            Text that appears if the end user clicks a link for help\n                                    text. Supports merge fields in API version\n                                    26.0 and later.\n\n\n                        \n\n                        \n                            nextOrFinishButtonLabel\n\n                            string\n\n                            A label for the Next or Finish button.\n\n                        \n\n                        \n                            pauseButtonLabel\n\n                            string\n\n                            A label for the Pause button.\n\n                        \n\n                        \n                            pausedText\n\n                            string\n\n                            \nA confirmation message that appears\n                                    when an end user clicks\n                                    Pause.This field is available in\n                                    API version 33.0 and later.\n\n\n                        \n\n                        \n                            rules\n\n                            \n\n                            Reserved for future use. \n\n                        \n\n                        \n                            showFooter\n\n                            boolean\n\n                            \nIndicates whether to show (true) or hide (false) the screen’s footer at\n                                    Lightning runtime. Classic runtime isn’t supported. The default\n                                    value is true.\n                                The footer includes navigation actions for the screen. If\n                                        showFooter is hidden, use Lightning\n                                    components on the screen to show navigation actions.\n\n                                This field is available in API version 42.0 and\n                                later.\n\n\n                        \n\n                        \n                            showHeader\n\n                            boolean\n\n                            \nIndicates whether to show (true) or hide (false) the screen’s header at\n                                    Lightning runtime. Classic runtime isn’t supported. The\n                                default value is true. The\n                                    header includes access to help text for the screen. If\n                                        showHeader is hidden, use Lightning\n                                    components on the screen to show help text.\n\n                                This field is available in API version 42.0 and\n                                later.\n\n\n                        \n\n                        \n                            stageReference\n\n                            FlowElementReferenceOrValue\n\n                            The API name of the stage resource that’s associated with the\n                                screen.\n\n                        \n\n                        \n                            triggers\n\n                            \nFlowScreenTrigger[]\n\n                            An array of triggers configured for a flow screen field or a flow\n                                screen field attribute.This field is available in API version\n                                    59.0 and later.": {
+  "FlowScreenActionInputParameter": {
     "fields": [
       {
         "Description": "Required. Unique name of the input parameter of a flow screen action.",
@@ -23626,7 +23626,7 @@
         "Field Type": "FlowElementReferenceOrValue"
       }
     ],
-    "short_description": "Defines an action that can be triggered by one or more flow screen components.",
+    "short_description": "",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
     "parent": "Metadata"
   },
@@ -24787,12 +24787,6 @@
     "short_description": "An output parameter for FlowWaitEvent. The parameter’s value is assigned to a variable in the flow so that it can be referenced in another part of the flow. It extends FlowBaseElement and inherits all its fields. FlowWaitEventOutputParameter is available in API version 32.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
     "parent": "FlowBaseElement"
-  },
-  "FlowScreenActionInputParameter": {
-    "fields": [],
-    "short_description": "Defines an iput parameter for a flow screen action. It extends FlowScreenFieldInputParameter and inherits all its fields.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
-    "parent": "FlowScreenFieldInputParameter"
   },
   "FlowStageStepOutputConfigParam": {
     "fields": [],
@@ -43056,7 +43050,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_forecastingsettings.htm",
     "parent": "Metadata"
   },
-  "The fields selected to appear in the opportunity pane of\n                    the forecast page for the forecast type. One of the selected fields must be\n                        Opportunity Name. You can select up to 15\n                    fields.": {
+  "OpportunityListFields​SelectedSettings": {
     "fields": [
       {
         "Description": "Specifies names of fields to display in the opportunity pane.",
@@ -43064,7 +43058,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "The fields selected to appear in the opportunity pane of the forecast page for the forecast type. One of the selected fields must be Opportunity Name. You can select up to 15 fields.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_forecastingsettings.htm",
     "parent": "Metadata"
   },
@@ -43106,12 +43100,6 @@
       }
     ],
     "short_description": "This field can occur more than one time when specifying more than one forecast category to include in the rollup type. Each occurrence contains two subfields that specify a forecast category to include in the forecast rollup type and its weight. Some rollup types include more than one forecast category. This table shows the forecast categories that are included in each rollup type.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_forecastingsettings.htm",
-    "parent": "Metadata"
-  },
-  "OpportunityListFields​SelectedSettings": {
-    "fields": [],
-    "short_description": "The fields selected to appear in the opportunity pane of the forecast page for the forecast type. One of the selected fields must be Opportunity Name. You can select up to 15 fields.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_forecastingsettings.htm",
     "parent": "Metadata"
   },
@@ -46879,7 +46867,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_securitysettings.htm",
     "parent": "Metadata"
   },
-  "Represents your org’s password and login policies, which show up under Security Controls | Password Policies.": {
+  "PasswordPolicies": {
     "fields": [
       {
         "Description": "The URL to which users with the API Only User permission are redirected instead of the login page.",
@@ -46947,7 +46935,7 @@
         "Field Type": "QuestionRestriction (enumeration of type string)"
       }
     ],
-    "short_description": "The types of characters that must be used in a user’s password. Valid values are:",
+    "short_description": "Represents your org’s password and login policies, which show up under Security Controls | Password Policies.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_securitysettings.htm",
     "parent": "Metadata"
   },
@@ -47267,12 +47255,6 @@
       }
     ],
     "short_description": "Represents your org’s single sign-on (SSO) settings. These settings are available API version 47.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_securitysettings.htm",
-    "parent": "Metadata"
-  },
-  "PasswordPolicies": {
-    "fields": [],
-    "short_description": "Represents your org’s password and login policies, which show up under Security Controls | Password Policies.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_securitysettings.htm",
     "parent": "Metadata"
   },
