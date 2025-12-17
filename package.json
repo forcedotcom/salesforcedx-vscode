@@ -24,7 +24,7 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@effect/eslint-plugin": "0.3.2",
-    "@effect/language-service": "0.62.1",
+    "@effect/language-service": "0.62.4",
     "@eslint/json": "^0.3.0",
     "@monorepo-utils/workspaces-to-typescript-project-references": "2.11.0",
     "@octokit/core": "^5",
