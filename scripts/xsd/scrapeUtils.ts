@@ -1123,12 +1123,10 @@ const extractParentType = (description: string, fields?: MetadataField[]): strin
   // Look for patterns like "inherited from the MetadataWithContent component"
   if (fields && fields.length > 0) {
     for (const field of fields) {
-      if (field.Description) {
-        const inheritedMatch = field.Description.match(
-          /inherited from (?:the\s+)?([A-Z][a-zA-Z0-9_]+)(?:\s+component|\s+metadata\s+type)?/i
-        );
-        if (inheritedMatch && inheritedMatch[1]) return inheritedMatch[1];
-      }
+      const inheritedMatch = field.Description?.match(
+        /inherited from (?:the\s+)?([A-Z][a-zA-Z0-9_]+)(?:\s+component|\s+metadata\s+type)?/i
+      );
+      if (inheritedMatch && inheritedMatch[1]) return inheritedMatch[1];
     }
   }
 
