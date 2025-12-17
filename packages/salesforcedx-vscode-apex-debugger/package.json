@@ -39,7 +39,6 @@
     "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
@@ -84,7 +83,8 @@
       "files": [
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
-        "out/**"
+        "out/**",
+        "package.json"
       ],
       "output": [
         "dist"
