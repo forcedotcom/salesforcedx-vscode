@@ -610,54 +610,54 @@ export const extractMetadataFromPage = async (
           }
 
           // Check inside DIVs for paragraphs (but skip callout divs)
-          if (tagName === 'DIV' && !isInsideCallout(nextElement)) {
-            // Skip if the DIV itself is a callout
-            if (isCalloutElement(nextElement)) {
-              console.log('    Skipping Callout DIV');
-              nextElement = nextElement.nextElementSibling;
-              continue;
-            }
+          // if (tagName === 'DIV' && !isInsideCallout(nextElement)) {
+          //   // Skip if the DIV itself is a callout
+          //   if (isCalloutElement(nextElement)) {
+          //     console.log('    Skipping Callout DIV');
+          //     nextElement = nextElement.nextElementSibling;
+          //     continue;
+          //   }
 
-            // Iterate all paragraphs in the DIV
-            const paragraphs = Array.from(nextElement.querySelectorAll('p'));
-            let foundInDiv = false;
-            for (const p of paragraphs) {
-              if (!isInsideCallout(p)) {
-                const text = p.textContent?.trim() ?? '';
-                console.log(`    Checking P inside DIV: "${text.substring(0, 50)}..."`);
-                // Only accept non-empty descriptions
-                if (text.length > 0) {
-                  description = text;
-                  console.log('    ✅ Found valid description inside DIV');
-                  foundInDiv = true;
-                  break;
-                }
-              }
-            }
-            if (foundInDiv) break;
+          //   // Iterate all paragraphs in the DIV
+          //   const paragraphs = Array.from(nextElement.querySelectorAll('p'));
+          //   let foundInDiv = false;
+          //   for (const p of paragraphs) {
+          //     if (!isInsideCallout(p)) {
+          //       const text = p.textContent?.trim() ?? '';
+          //       console.log(`    Checking P inside DIV: "${text.substring(0, 50)}..."`);
+          //       // Only accept non-empty descriptions
+          //       if (text.length > 0) {
+          //         description = text;
+          //         console.log('    ✅ Found valid description inside DIV');
+          //         foundInDiv = true;
+          //         break;
+          //       }
+          //     }
+          //   }
+          //   if (foundInDiv) break;
 
-            // Fallback: Check direct text content if no valid P found
-            const hasComplexChildren = nextElement.querySelector('table, h1, h2, h3, h4, h5, h6');
-            if (!hasComplexChildren) {
-              // Clone to verify text without callouts (avoids "combined text" issue)
-              const clone = nextElement.cloneNode(true) as Element;
-              const allElements = Array.from(clone.querySelectorAll('*'));
-              for (const el of allElements) {
-                if (isCalloutElement(el)) {
-                  el.remove();
-                }
-              }
+          //   // Fallback: Check direct text content if no valid P found
+          //   const hasComplexChildren = nextElement.querySelector('table, h1, h2, h3, h4, h5, h6');
+          //   if (!hasComplexChildren) {
+          //     // Clone to verify text without callouts (avoids "combined text" issue)
+          //     const clone = nextElement.cloneNode(true) as Element;
+          //     const allElements = Array.from(clone.querySelectorAll('*'));
+          //     for (const el of allElements) {
+          //       if (isCalloutElement(el)) {
+          //         el.remove();
+          //       }
+          //     }
 
-              const text = clone.textContent?.trim() ?? '';
-              console.log(`    Checking DIV text content: "${text.substring(0, 50)}..."`);
-              // Only accept non-empty descriptions
-              if (text.length > 0) {
-                description = text;
-                console.log('    ✅ Found valid description from DIV text');
-                break;
-              }
-            }
-          }
+          //     const text = clone.textContent?.trim() ?? '';
+          //     console.log(`    Checking DIV text content: "${text.substring(0, 50)}..."`);
+          //     // Only accept non-empty descriptions
+          //     if (text.length > 0) {
+          //       description = text;
+          //       console.log('    ✅ Found valid description from DIV text');
+          //       break;
+          //     }
+          //   }
+          // }
 
           nextElement = nextElement.nextElementSibling;
         }
