@@ -506,53 +506,7 @@ export const extractMetadataFromPage = async (
 
       /** Helper to check if an element is a callout/note container */
       function isCalloutElement(el: Element): boolean {
-        if (!el) return false;
-
-        // Check tag name for custom elements like doc-content-callout
-        if (el.tagName && el.tagName.toLowerCase().includes('callout')) {
-          return true;
-        }
-
-        if (!el.classList) return false;
-
-        const calloutClasses = [
-          'dx-callout-body',
-          'note',
-          'warning',
-          'tip',
-          'important',
-          'caution',
-          'box-note',
-          'box-warning',
-          'box-tip',
-          'box-important',
-          'slds-notify',
-          'slds-notify_alert'
-        ];
-
-        for (const cls of calloutClasses) {
-          if (el.classList.contains(cls)) return true;
-        }
-
-        if (typeof el.className === 'string') {
-          const cls = el.className.toLowerCase();
-          if (cls.includes('dx-callout')) return true;
-          if (cls.includes('messagebox')) return true;
-          // Check for "box message info" pattern and similar
-          if (
-            cls.includes('box') &&
-            (cls.includes('message') ||
-              cls.includes('info') ||
-              cls.includes('important') ||
-              cls.includes('warning') ||
-              cls.includes('tip') ||
-              cls.includes('note') ||
-              cls.includes('caution'))
-          )
-            return true;
-        }
-
-        return false;
+        return el.tagName?.toLowerCase().includes('callout') ?? false;
       }
 
       /** Helper to check if an element is inside a note/callout div */
