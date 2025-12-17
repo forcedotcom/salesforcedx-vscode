@@ -670,9 +670,8 @@ export const extractMetadataFromPage = async (
         if (!startElement) return null;
 
         let current = startElement.previousElementSibling;
-        let attempts = 0;
 
-        while (current && attempts < 10) {
+        while (current) {
           const tagName = current.tagName;
 
           // Check for H1-H6 headings
@@ -697,7 +696,6 @@ export const extractMetadataFromPage = async (
           }
 
           current = current.previousElementSibling;
-          attempts++;
         }
 
         return null;
