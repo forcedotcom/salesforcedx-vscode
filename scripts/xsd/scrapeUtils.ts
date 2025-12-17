@@ -511,14 +511,11 @@ export const extractMetadataFromPage = async (
 
       /** Helper to check if an element is inside a note/callout div */
       function isInsideCallout(el: Element): boolean {
-        if (isCalloutElement(el)) return true;
-        let current = el.parentElement;
-        while (current) {
-          if (isCalloutElement(current)) {
-            return true;
-          }
+        let current: Element | null = el;
+        do {
+          if (isCalloutElement(current)) return true;
           current = current.parentElement;
-        }
+        } while (current);
         return false;
       }
 
