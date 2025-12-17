@@ -55,7 +55,7 @@ describe('orgApexClassProvider', () => {
 
     (vscode.workspace.openTextDocument as jest.Mock) = jest.fn().mockResolvedValue({
       getText: jest.fn().mockReturnValue('class TestClass {}'),
-      uri: { scheme: 'sf-org-apex', path: 'TestClass', toString: () => 'sf-org-apex:TestClass' } as vscode.Uri
+      uri: { scheme: 'sf-org-apex', path: 'TestClass.cls', toString: () => 'sf-org-apex:TestClass.cls' } as vscode.Uri
     });
 
     (vscode.window.showTextDocument as jest.Mock) = jest.fn().mockResolvedValue({
@@ -69,22 +69,22 @@ describe('orgApexClassProvider', () => {
   });
 
   describe('createOrgApexClassUri', () => {
-    it('should create URI for simple class name', () => {
+    it('should create URI for simple class name with .cls extension', () => {
       const uri = createOrgApexClassUri('TestClass');
       expect(uri).toBeDefined();
-      // The URI should be created via vscode.Uri.parse, which we've mocked
-      expect(vscode.Uri.parse).toHaveBeenCalledWith('sf-org-apex:TestClass');
+      // The URI should be created via vscode.Uri.parse with .cls extension for syntax highlighting
+      expect(vscode.Uri.parse).toHaveBeenCalledWith('sf-org-apex:TestClass.cls');
       expect(uri.scheme).toBe('sf-org-apex');
-      expect(uri.path).toBe('TestClass');
+      expect(uri.path).toBe('TestClass.cls');
     });
 
-    it('should extract base class name from namespaced class', () => {
+    it('should extract base class name from namespaced class and add .cls extension', () => {
       const uri = createOrgApexClassUri('ns.TestClass');
       expect(uri).toBeDefined();
-      // Should extract base class name (TestClass) from namespaced class (ns.TestClass)
-      expect(vscode.Uri.parse).toHaveBeenCalledWith('sf-org-apex:TestClass');
+      // Should extract base class name (TestClass) from namespaced class (ns.TestClass) and add .cls
+      expect(vscode.Uri.parse).toHaveBeenCalledWith('sf-org-apex:TestClass.cls');
       expect(uri.scheme).toBe('sf-org-apex');
-      expect(uri.path).toBe('TestClass');
+      expect(uri.path).toBe('TestClass.cls');
       expect(uri.path).not.toContain('ns.');
     });
   });
@@ -105,11 +105,11 @@ describe('orgApexClassProvider', () => {
 
       (mockConnection.tooling!.query as jest.Mock).mockResolvedValue(mockQueryResult);
 
-      // Create URI - the path property should contain the class name
+      // Create URI - the path property should contain the class name with .cls extension
       const uri = {
         scheme: 'sf-org-apex',
-        path: 'TestClass',
-        toString: () => 'sf-org-apex:TestClass'
+        path: 'TestClass.cls',
+        toString: () => 'sf-org-apex:TestClass.cls'
       } as vscode.Uri;
       const content = await provider.provideTextDocumentContent(uri);
 
@@ -129,8 +129,8 @@ describe('orgApexClassProvider', () => {
 
       const uri = {
         scheme: 'sf-org-apex',
-        path: 'NonExistentClass',
-        toString: () => 'sf-org-apex:NonExistentClass'
+        path: 'NonExistentClass.cls',
+        toString: () => 'sf-org-apex:NonExistentClass.cls'
       } as vscode.Uri;
       const content = await provider.provideTextDocumentContent(uri);
 
@@ -154,8 +154,8 @@ describe('orgApexClassProvider', () => {
 
       const uri = {
         scheme: 'sf-org-apex',
-        path: 'EmptyClass',
-        toString: () => 'sf-org-apex:EmptyClass'
+        path: 'EmptyClass.cls',
+        toString: () => 'sf-org-apex:EmptyClass.cls'
       } as vscode.Uri;
       const content = await provider.provideTextDocumentContent(uri);
 
@@ -174,8 +174,8 @@ describe('orgApexClassProvider', () => {
 
       const uri = {
         scheme: 'sf-org-apex',
-        path: uniqueClassName,
-        toString: () => `sf-org-apex:${uniqueClassName}`
+        path: `${uniqueClassName}.cls`,
+        toString: () => `sf-org-apex:${uniqueClassName}.cls`
       } as vscode.Uri;
       const content = await provider.provideTextDocumentContent(uri);
 
@@ -200,8 +200,8 @@ describe('orgApexClassProvider', () => {
 
       const uri = {
         scheme: 'sf-org-apex',
-        path: 'CachedClass',
-        toString: () => 'sf-org-apex:CachedClass'
+        path: 'CachedClass.cls',
+        toString: () => 'sf-org-apex:CachedClass.cls'
       } as vscode.Uri;
 
       // First call
@@ -234,7 +234,7 @@ describe('orgApexClassProvider', () => {
 
       const mockDocument = {
         getText: jest.fn().mockReturnValue('class TestClass {}'),
-        uri: { scheme: 'sf-org-apex', path: 'TestClass', toString: () => 'sf-org-apex:TestClass' } as vscode.Uri
+        uri: { scheme: 'sf-org-apex', path: 'TestClass.cls', toString: () => 'sf-org-apex:TestClass.cls' } as vscode.Uri
       };
       (vscode.workspace.openTextDocument as jest.Mock).mockResolvedValue(mockDocument);
       const mockEditor = {
@@ -249,7 +249,7 @@ describe('orgApexClassProvider', () => {
       const openDocCall = (vscode.workspace.openTextDocument as jest.Mock).mock.calls[0][0];
       expect(openDocCall).toBeDefined();
       expect(openDocCall.scheme).toBe('sf-org-apex');
-      expect(openDocCall.path).toBe('TestClass');
+      expect(openDocCall.path).toBe('TestClass.cls');
       expect(vscode.window.showTextDocument).toHaveBeenCalled();
     });
 
@@ -261,7 +261,7 @@ describe('orgApexClassProvider', () => {
       const position = new vscode.Position(5, 10);
       const mockDocument = {
         getText: jest.fn().mockReturnValue('class TestClass {}'),
-        uri: { scheme: 'sf-org-apex', path: 'TestClass', toString: () => 'sf-org-apex:TestClass' } as vscode.Uri
+        uri: { scheme: 'sf-org-apex', path: 'TestClass.cls', toString: () => 'sf-org-apex:TestClass.cls' } as vscode.Uri
       };
       (vscode.workspace.openTextDocument as jest.Mock).mockResolvedValue(mockDocument);
       const mockEditor = {

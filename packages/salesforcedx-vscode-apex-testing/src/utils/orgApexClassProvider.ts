@@ -23,9 +23,14 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
   public readonly onDidChange = this._onDidChange.event;
 
   public async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
-    const className = uri.path;
+    // Extract class name from path, removing .cls extension if present
+    let className = uri.path;
     if (!className) {
       return '// Error: Class name not found in URI';
+    }
+    // Remove .cls extension if present (added for syntax highlighting)
+    if (className.endsWith('.cls')) {
+      className = className.slice(0, -4);
     }
 
     // Check cache first
@@ -39,7 +44,7 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
       const connection = await core.exports.services.WorkspaceContext.getInstance().getConnection();
 
       // Query for the Apex class body using Tooling API
-      const query = `SELECT Id, Name, Body, NamespacePrefix FROM ApexClass WHERE Name = '${className.replaceAll('\'', "''")}' LIMIT 1`;
+      const query = `SELECT Id, Name, Body, NamespacePrefix FROM ApexClass WHERE Name = '${className.replaceAll("'", "''")}' LIMIT 1`;
       const result = await connection.tooling.query<{ Body: string; Name: string; NamespacePrefix?: string }>(query);
 
       if (result.records.length === 0) {
@@ -61,7 +66,9 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
 
   public invalidateCache(className: string): void {
     CLASS_BODY_CACHE.delete(className);
-    const uri = vscode.Uri.parse(`${SCHEME}:${className}`);
+    // Create URI with .cls extension for consistency
+    const baseClassName = className.includes('.') ? className.split('.').pop()! : className;
+    const uri = vscode.Uri.parse(`${SCHEME}:${baseClassName}.cls`);
     this._onDidChange.fire(uri);
   }
 }
@@ -78,12 +85,14 @@ export const getOrgApexClassProvider = (): OrgApexClassProvider => {
 
 /**
  * Creates a URI for an org-only Apex class
- * The URI format is: sf-org-apex:ClassName
+ * The URI format is: sf-org-apex:ClassName.cls
+ * The .cls extension enables syntax highlighting from the LSP
  */
 export const createOrgApexClassUri = (className: string): vscode.Uri => {
   // Extract base class name if it includes namespace (e.g., "ns.ClassName" -> "ClassName")
   const baseClassName = className.includes('.') ? className.split('.').pop()! : className;
-  return vscode.Uri.parse(`${SCHEME}:${baseClassName}`);
+  // Add .cls extension for syntax highlighting
+  return vscode.Uri.parse(`${SCHEME}:${baseClassName}.cls`);
 };
 
 /**
