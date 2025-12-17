@@ -1116,20 +1116,18 @@ const extractParentType = (description: string, fields?: MetadataField[]): strin
   // - "extends SharingBaseRule"
   // - "It extends MetadataWithContent"
   // - "This type extends the MetadataWithContent metadata type"
-  if (description) {
-    const extendsMatch = description.match(/\bextends\s+(?:the\s+)?([A-Z][a-zA-Z0-9_]+)(?:\s+metadata\s+type)?/);
+  const extendsMatch = description.match(/\bextends\s+(?:the\s+)?([A-Z][a-zA-Z0-9_]+)(?:\s+metadata\s+type)?/);
 
-    if (extendsMatch && extendsMatch[1]) {
-      const parentType = extendsMatch[1];
-      // Filter out generic words that aren't actual types
-      const notActualTypes = ['Component', 'Type', 'Object'];
-      if (parentType === 'Metadata') {
-        return 'Metadata';
-      }
-      // Return the parent type if it's not in the exclusion list
-      if (!notActualTypes.includes(parentType)) {
-        return parentType;
-      }
+  if (extendsMatch && extendsMatch[1]) {
+    const parentType = extendsMatch[1];
+    // Filter out generic words that aren't actual types
+    const notActualTypes = ['Component', 'Type', 'Object'];
+    if (parentType === 'Metadata') {
+      return 'Metadata';
+    }
+    // Return the parent type if it's not in the exclusion list
+    if (!notActualTypes.includes(parentType)) {
+      return parentType;
     }
   }
 
