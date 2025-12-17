@@ -423,7 +423,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Values are:",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dataconnector.htm",
     "parent": "Metadata"
   },
@@ -460,7 +460,7 @@
         "Field Type": "LocalizedValue[]"
       }
     ],
-    "short_description": "",
+    "short_description": "Values are:",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dataconnector.htm",
     "parent": "Metadata"
   },
@@ -482,7 +482,7 @@
         "Field Type": "LocalizedValue[]"
       }
     ],
-    "short_description": "",
+    "short_description": "Required.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dataconnector.htm",
     "parent": "Metadata"
   },
@@ -7583,7 +7583,7 @@
         "Field Type": "int"
       }
     ],
-    "short_description": "",
+    "short_description": "Only users with View DeveloperName OR View Setup and Configuration permission can view, group, sort, and filter this field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_businessprocessgroup.htm",
     "parent": "Metadata"
   },
@@ -7669,7 +7669,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Required.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_callcenter.htm",
     "parent": "Metadata"
   },
@@ -7691,7 +7691,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Required.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_callcenter.htm",
     "parent": "Metadata"
   },
@@ -8943,7 +8943,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "This field is available in API version 39.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_communitytemplatedefinition.htm",
     "parent": "Metadata"
   },
@@ -9071,7 +9071,7 @@
         "Field Type": "CommunityTheme​LayoutType (enumeration of type string)"
       }
     ],
-    "short_description": "",
+    "short_description": "Required. Specifies the type of the site page for which the default theme layout type is overridden. The only valid value is comm__standardPage.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_communitythemedefinition.htm",
     "parent": "Metadata"
   },
@@ -14356,7 +14356,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Represents the external domains that you allow to frame your site or experience pages.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_sites.htm",
     "parent": "Metadata"
   },
@@ -18982,7 +18982,7 @@
         "Field Type": "RuleEntry[]"
       }
     ],
-    "short_description": "",
+    "short_description": "This value can't be null.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_escalationrules.htm",
     "parent": "Metadata"
   },
@@ -23626,7 +23626,7 @@
         "Field Type": "FlowElementReferenceOrValue"
       }
     ],
-    "short_description": "",
+    "short_description": "Defines an action that can be triggered by one or more flow screen components.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
     "parent": "Metadata"
   },
@@ -25728,7 +25728,7 @@
         "Field Type": "PlannerAttrMappingType (enumeration of type string)"
       }
     ],
-    "short_description": "",
+    "short_description": "Required. Label for the planner attribute.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaifunction.htm",
     "parent": "Metadata"
   },
@@ -29665,7 +29665,7 @@
         "Field Type": "int"
       }
     ],
-    "short_description": "",
+    "short_description": "Only navigational topics support parent-child relationships.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_managedtopics.htm",
     "parent": "Metadata"
   },
@@ -39252,6 +39252,12 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_addresssettings.htm",
     "parent": "Metadata"
   },
+  "AddressSettings": {
+    "fields": [],
+    "short_description": "This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_addresssettings.htm",
+    "parent": "Metadata"
+  },
   "AIReplyRecommendationsSettings": {
     "fields": [
       {
@@ -44420,7 +44426,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "",
+    "short_description": "This setting is used in Financial Services Cloud.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_industriessettings.htm",
     "parent": "Metadata"
   },
@@ -44453,6 +44459,12 @@
       }
     ],
     "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_industriessettings.htm",
+    "parent": "Metadata"
+  },
+  "IndustriesSettings": {
+    "fields": [],
+    "short_description": "In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for more details.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_industriessettings.htm",
     "parent": "Metadata"
   },
@@ -46935,7 +46947,7 @@
         "Field Type": "QuestionRestriction (enumeration of type string)"
       }
     ],
-    "short_description": "",
+    "short_description": "The types of characters that must be used in a user’s password. Valid values are:",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_securitysettings.htm",
     "parent": "Metadata"
   },
@@ -51639,7 +51651,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "ScontrolTranslation contains details for a translation of an s-control. For more information, see “About S-Controls” in Salesforce Help.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
     "parent": "Metadata"
   },
