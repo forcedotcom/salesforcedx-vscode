@@ -477,7 +477,7 @@ export const extractMetadataFromPage = async (
         // Find the heading element in the DOM (including shadow DOMs)
         const headingElement = searchInShadowDOM(
           document,
-          'div.section[id] h2, h1.helpHead1, h2, h3, h4',
+          'div.section[id] h2, h1.helpHead1',
           el => el.textContent?.trim() === headingText
         );
 
