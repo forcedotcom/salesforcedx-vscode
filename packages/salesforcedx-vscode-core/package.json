@@ -438,10 +438,6 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.debugger.stop",
-          "when": "sf:project_opened"
-        },
-        {
           "command": "sf.config.list",
           "when": "sf:project_opened"
         },
@@ -687,10 +683,6 @@
       {
         "command": "sf.internal.lightning.generate.interface",
         "title": "%lightning_generate_interface_text%"
-      },
-      {
-        "command": "sf.debugger.stop",
-        "title": "%debugger_stop_text%"
       },
       {
         "command": "sf.config.list",

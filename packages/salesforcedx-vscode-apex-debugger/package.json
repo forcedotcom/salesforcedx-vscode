@@ -288,6 +288,10 @@
         {
           "command": "sf.debug.isv.bootstrap",
           "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
+        },
+        {
+          "command": "sf.debugger.stop",
+          "when": "sf:project_opened"
         }
       ]
     },
@@ -299,6 +303,10 @@
       {
         "command": "sf.debug.isv.bootstrap",
         "title": "%isv_bootstrap_command_text%"
+      },
+      {
+        "command": "sf.debugger.stop",
+        "title": "%debugger_stop_text%"
       }
     ]
   }

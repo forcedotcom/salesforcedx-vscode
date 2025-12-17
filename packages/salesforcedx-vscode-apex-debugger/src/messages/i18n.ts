@@ -48,7 +48,10 @@ export const messages = {
     'A folder with the specified project name already exists in the selected directory. Do you want to overwrite it?',
   warning_prompt_overwrite: 'Overwrite',
   warning_prompt_overwrite_cancel: 'Cancel',
-  project_generate_open_dialog_create_label: 'Create Project'
+  project_generate_open_dialog_create_label: 'Create Project',
+  debugger_query_session_text: 'query for Apex Debugger session',
+  debugger_stop_text: 'SFDX: Stop Apex Debugger Session',
+  debugger_stop_none_found_text: 'No Apex Debugger session found.'
 } as const;
 
 export type MessageKey = keyof typeof messages;

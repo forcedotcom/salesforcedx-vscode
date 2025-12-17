@@ -29,6 +29,7 @@ import { DebugProtocol } from '@vscode/debugprotocol';
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
+import { debuggerStop } from './commands/debuggerStop';
 import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { getActiveApexExtension } from './context/apexExtension';
 import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context/isvContext';
@@ -77,6 +78,7 @@ const registerCommands = (): vscode.Disposable => {
     configureExceptionBreakpoint
   );
   const isvBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
+  const debuggerStopCmd = vscode.commands.registerCommand('sf.debugger.stop', debuggerStop);
   const startSessionHandler = vscode.debug.onDidStartDebugSession(session => {
     cachedExceptionBreakpoints.forEach(breakpoint => {
       const args: SetExceptionBreakpointsArguments = {
@@ -86,7 +88,13 @@ const registerCommands = (): vscode.Disposable => {
     });
   });
 
-  return vscode.Disposable.from(customEventHandler, exceptionBreakpointCmd, isvBootstrapCmd, startSessionHandler);
+  return vscode.Disposable.from(
+    customEventHandler,
+    exceptionBreakpointCmd,
+    isvBootstrapCmd,
+    debuggerStopCmd,
+    startSessionHandler
+  );
 };
 
 export type ExceptionBreakpointItem = vscode.QuickPickItem & {

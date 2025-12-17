@@ -26,43 +26,16 @@ import {
 import { SpawnOptions } from 'node:child_process';
 import * as path from 'node:path';
 import { URL } from 'node:url';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import sanitize = require('sanitize-filename'); // NOTE: Do not follow the instructions in the Quick Fix to use the default import because that causes an error popup when you use Launch Extensions
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../../messages';
-
-const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
-  'salesforce.salesforcedx-vscode-core'
-);
-
-const getChannelService = () => {
-  if (!salesforceCoreExtension?.exports) {
-    throw new Error('Salesforce Core Extension not available');
-  }
-  return salesforceCoreExtension.exports.channelService;
-};
-
-const getTaskViewService = () => {
-  if (!salesforceCoreExtension?.exports) {
-    throw new Error('Salesforce Core Extension not available');
-  }
-  return salesforceCoreExtension.exports.taskViewService;
-};
-
-const getSfCommandlet = () => {
-  if (!salesforceCoreExtension?.exports) {
-    throw new Error('Salesforce Core Extension not available');
-  }
-  return salesforceCoreExtension.exports.SfCommandlet;
-};
-
-const getSfCommandletExecutorClass = () => {
-  if (!salesforceCoreExtension?.exports) {
-    throw new Error('Salesforce Core Extension not available');
-  }
-  return salesforceCoreExtension.exports.SfCommandletExecutor;
-};
+import {
+  getChannelService,
+  getSfCommandlet,
+  getSfCommandletExecutorClass,
+  getTaskViewService
+} from '../../utils/coreExtensionUtils';
 
 type InstalledPackageInfo = {
   id: string;
@@ -256,7 +229,7 @@ export class IsvDebugBootstrapExecutor extends getSfCommandletExecutorClass()<{}
   }
 
   public async execute(response: ContinueResponse<IsvDebugBootstrapConfig>): Promise<void> {
-    const channelService = getChannelService();
+    const channelService = await getChannelService();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
 
@@ -438,20 +411,20 @@ export class IsvDebugBootstrapExecutor extends getSfCommandletExecutorClass()<{}
 
     const result = new CommandOutput().getCmdResult(execution);
 
-    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+    await this.attachExecution(execution, cancellationTokenSource, cancellationToken);
     execution.processExitSubject.subscribe(() => {
       this.logMetric(execution.command.logName, startTime);
     });
     return result;
   }
 
-  protected attachExecution(
+  protected async attachExecution(
     execution: CommandExecution,
     cancellationTokenSource: vscode.CancellationTokenSource,
     cancellationToken: vscode.CancellationToken
   ) {
-    const channelService = getChannelService();
-    const taskViewService = getTaskViewService();
+    const channelService = await getChannelService();
+    const taskViewService = await getTaskViewService();
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
     notificationService.reportCommandExecutionStatus(execution, channelService, cancellationToken);
@@ -520,7 +493,7 @@ class EnterForceIdeUri implements ParametersGatherer<ForceIdeUri> {
 }
 
 export const isvDebugBootstrap = async (): Promise<void> => {
-  const SfCommandlet = getSfCommandlet();
+  const SfCommandlet = await getSfCommandlet();
   const forceIdeUrlGatherer = new EnterForceIdeUri();
   const workspaceChecker = new EmptyPreChecker();
   const parameterGatherer = new CompositeParametersGatherer(

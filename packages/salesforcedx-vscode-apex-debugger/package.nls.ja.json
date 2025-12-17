@@ -11,5 +11,6 @@
   "connection_timeout_ms_description": "Apex Debugger API 要求の接続タイムアウト時間 (ミリ秒で指定)",
   "exception_breakpoint_command_text": "Apex Debug: Configure Exceptions",
   "connect_type_text": "接続タイプ",
-  "isv_bootstrap_command_text": "SFDX: ISV デバッグ用のプロジェクトを新規作成し設定"
+  "isv_bootstrap_command_text": "SFDX: ISV デバッグ用のプロジェクトを新規作成し設定",
+  "debugger_stop_text": "SFDX: Apex デバッガセッションを停止"
 }

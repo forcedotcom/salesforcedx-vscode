@@ -53,5 +53,8 @@ export const messages: Partial<Record<MessageKey, string>> = {
     '指定したプロジェクト名のフォルダが選択したディレクトリに既に存在します。上書きしますか?',
   warning_prompt_overwrite: '上書き',
   warning_prompt_overwrite_cancel: 'キャンセル',
-  project_generate_open_dialog_create_label: 'プロジェクトを作成'
+  project_generate_open_dialog_create_label: 'プロジェクトを作成',
+  debugger_query_session_text: 'Apex デバッガセッションをクエリ',
+  debugger_stop_text: 'SFDX: Apex デバッガセッションを停止',
+  debugger_stop_none_found_text: 'Apex デバッガセッションが見つかりませんでした。'
 };
