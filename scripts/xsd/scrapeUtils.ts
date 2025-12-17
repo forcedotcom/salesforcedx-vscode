@@ -574,13 +574,12 @@ export const extractMetadataFromPage = async (
       function findDescriptionAfterHeading(headingElement: Element, stopAtTable: boolean = true): string {
         let description = '';
         let nextElement = headingElement.nextElementSibling;
-        let searchAttempts = 0;
 
         console.log(`Looking for description after heading: ${headingElement.textContent?.trim()}`);
 
-        while (nextElement && searchAttempts < 15) {
+        while (nextElement) {
           const tagName = nextElement.tagName;
-          console.log(`  Attempt ${searchAttempts}: Found tag ${tagName}, class: ${nextElement.className}`);
+          console.log(`  Found tag ${tagName}, class: ${nextElement.className}`);
 
           // Stop if we hit a table (when specified)
           if (stopAtTable && tagName === 'TABLE') {
@@ -627,7 +626,6 @@ export const extractMetadataFromPage = async (
             if (isCalloutElement(nextElement)) {
               console.log('    Skipping Callout DIV');
               nextElement = nextElement.nextElementSibling;
-              searchAttempts++;
               continue;
             }
 
@@ -673,7 +671,6 @@ export const extractMetadataFromPage = async (
           }
 
           nextElement = nextElement.nextElementSibling;
-          searchAttempts++;
         }
 
         return description;
