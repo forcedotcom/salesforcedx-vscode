@@ -7,7 +7,6 @@
 import {
   ApexTestProgressValue,
   AsyncTestConfiguration,
-  HumanReporter,
   Progress,
   ResultFormat,
   TestResult,
@@ -15,8 +14,9 @@ import {
 } from '@salesforce/apex-node';
 import { getVscodeCoreExtension } from 'salesforcedx-vscode-apex/src/coreExtensionUtils';
 import { CancellationToken } from 'vscode';
-import { channelService } from '../channels';
+import * as settings from '../settings';
 import { telemetryService } from '../telemetry/telemetry';
+import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 
 type ApexTestRunOptions = {
   payload: AsyncTestConfiguration;
@@ -65,8 +65,21 @@ export const runApexTests = async (
     options.codeCoverage
   );
 
-  const humanOutput = new HumanReporter().format(result, options.codeCoverage, options.concise);
-  channelService.appendLine(humanOutput);
+  // Generate and open test report
+  const reportStartTime = Date.now();
+  const outputFormat = settings.retrieveOutputFormat();
+  try {
+    await writeAndOpenTestReport(result, options.outputDir, outputFormat);
+    const reportDurationMs = Date.now() - reportStartTime;
+    telemetryService.sendEventData(
+      'apexTestReportGenerated',
+      { outputFormat, trigger: options.telemetryTrigger },
+      { reportDurationMs }
+    );
+  } catch (error) {
+    console.error('Failed to generate test report:', error);
+    // Continue even if report generation fails
+  }
 
   const durationMs = Date.now() - startTime;
   const summary = result.summary;

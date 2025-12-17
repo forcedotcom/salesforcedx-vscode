@@ -384,6 +384,19 @@
           "type": "boolean",
           "default": false,
           "description": "%apex_test_run_concise%"
+        },
+        "salesforcedx-vscode-apex-testing.outputFormat": {
+          "type": "string",
+          "enum": [
+            "markdown",
+            "text"
+          ],
+          "default": "markdown",
+          "description": "%apex_test_output_format_description%",
+          "enumDescriptions": [
+            "%apex_test_output_format_markdown_description%",
+            "%apex_test_output_format_text_description%"
+          ]
         }
       }
     }

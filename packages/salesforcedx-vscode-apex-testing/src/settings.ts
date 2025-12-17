@@ -13,3 +13,8 @@ export const retrieveTestCodeCoverage = (): boolean =>
 
 export const retrieveTestRunConcise = (): boolean =>
   vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing').get<boolean>('test-run-concise', false);
+
+export const retrieveOutputFormat = (): 'markdown' | 'text' =>
+  vscode.workspace
+    .getConfiguration('salesforcedx-vscode-apex-testing')
+    .get<'markdown' | 'text'>('outputFormat', 'markdown');

@@ -24,5 +24,8 @@
   "apex_testing_discovery_source_ls_description": "Use the Language Server (LS) for discovery.",
   "apex_testing_discovery_source_api_description": "Use the Tooling API Test Discovery endpoint for discovery.",
   "apex_testing_use_test_explorer_description": "Use the VS Code Test Explorer for Apex tests. When enabled, the new Test Explorer UI will be shown instead of the traditional Apex Test View.",
-  "apex_test_open_org_class_command_title": "Open in Virtual Editor"
+  "apex_test_open_org_class_command_title": "Open in Virtual Editor",
+  "apex_test_output_format_description": "Format for test result reports. Markdown provides rich formatting with tables and code blocks. Text provides plain text output for minimal environments.",
+  "apex_test_output_format_markdown_description": "Markdown format with tables, code blocks, and rich formatting (default)",
+  "apex_test_output_format_text_description": "Plain text format for minimal environments"
 }
