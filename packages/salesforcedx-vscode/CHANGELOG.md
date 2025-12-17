@@ -14,3 +14,6 @@
 
 - [W-20592081]  ensure auth changes are propagated ([PR #6720](https://github.com/forcedotcom/salesforcedx-vscode/pull/6720))
 
+#### salesforcedx-utils-vscode
+
+- Under the cover changes ([PR #6712](https://github.com/forcedotcom/salesforcedx-vscode/pull/6712))
