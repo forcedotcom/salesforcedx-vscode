@@ -481,9 +481,7 @@ export const extractMetadataFromPage = async (
           el => el.textContent?.trim() === headingText
         );
 
-        if (!headingElement) {
-          continue;
-        }
+        if (!headingElement) continue;
 
         // Look for a description paragraph right after the heading
         const description = findDescriptionAfterHeading(headingElement, false);
