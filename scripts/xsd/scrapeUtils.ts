@@ -528,9 +528,7 @@ export const extractMetadataFromPage = async (
         // Try regular DOM first - filter matching elements
         const elements = Array.from(root.querySelectorAll(selector));
         const filtered = filterPredicate ? elements.filter(filterPredicate) : elements;
-        if (filtered.length > 0) {
-          return filtered[0] as T;
-        }
+        if (filtered.length > 0) return filtered[0] as T;
 
         // Search shadow DOMs recursively
         const allElements = root.querySelectorAll('*');
