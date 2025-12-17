@@ -1145,9 +1145,7 @@ const extractArrayTypeName = (fieldType: string): string | null => {
 /** Extract complex type names (non-primitive types without []) */
 const extractComplexTypeName = (fieldType: string): string | null => {
   // Skip enumeration types entirely - they don't represent table structures
-  if (fieldType.toLowerCase().includes('enumeration')) {
-    return null;
-  }
+  if (fieldType.toLowerCase().includes('enumeration')) return null;
 
   // Clean up the field type - remove enumeration info and extra spaces
   let cleanType = fieldType.split('(')[0].trim();
@@ -1157,9 +1155,7 @@ const extractComplexTypeName = (fieldType: string): string | null => {
 
   // Match types that start with capital letter and are not primitives
   const primitives = ['string', 'boolean', 'int', 'double', 'date', 'datetime', 'long'];
-  if (primitives.includes(cleanType.toLowerCase())) {
-    return null;
-  }
+  if (primitives.includes(cleanType.toLowerCase())) return null;
 
   // Match capitalized type names (but not array notation)
   // Allow underscores and be more flexible with the pattern
