@@ -17,6 +17,7 @@ import { channelService } from '../channels';
 import { ApexLibraryTestRunExecutor } from '../commands';
 import { nls } from '../messages';
 import * as settings from '../settings';
+import { sourceIsLS } from '../testDiscovery/testDiscovery';
 import { apexTestRunCacheService } from '../testRunCache';
 import { getLanguageClientStatus } from '../utils/testUtils';
 import { ApexTestGroupNode, ApexTestNode, ApexTestOutlineProvider, TestNode } from './testOutlineProvider';
@@ -113,10 +114,7 @@ export class ApexTestRunner {
 
   public async runApexTests(tests: string[], testRunType: TestRunType) {
     // Only gate on Language Server when using LS discovery; API discovery should not be blocked by LS status
-    const discoverySource = vscode.workspace
-      .getConfiguration('salesforcedx-vscode-apex-testing')
-      .get<'ls' | 'api'>('discoverySource', 'ls');
-    if (discoverySource === 'ls') {
+    if (sourceIsLS()) {
       const languageClientStatus = await getLanguageClientStatus();
       if (!languageClientStatus.isReady()) {
         if (languageClientStatus.failedToInitialize()) {
