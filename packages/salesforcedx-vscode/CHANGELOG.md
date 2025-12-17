@@ -8,11 +8,11 @@
 
 #### salesforcedx-vscode-apex-testing
 
-- [W-20592119]  apex tests show up on startup ([PR #6722](https://github.com/forcedotcom/salesforcedx-vscode/pull/6722))
+- Apex tests show up on startup ([PR #6722](https://github.com/forcedotcom/salesforcedx-vscode/pull/6722))
 
 #### salesforcedx-vscode-org
 
-- [W-20592081]  ensure auth changes are propagated ([PR #6720](https://github.com/forcedotcom/salesforcedx-vscode/pull/6720))
+- Ensure auth changes are propagated ([PR #6720](https://github.com/forcedotcom/salesforcedx-vscode/pull/6720))
 
 #### salesforcedx-utils-vscode
 
