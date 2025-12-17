@@ -199,7 +199,7 @@ export const extractMetadataFromPage = async (
       const collectedParagraphs: string[] = [];
 
       // Step 1: Look for Salesforce's standard shortdesc div (including in shadow DOM)
-      const shortdescDiv = searchInShadowDOM(document, 'div.shortdesc');
+      const shortdescDiv = searchInRegularAndShadowDOMs(document, 'div.shortdesc');
       let foundExtendsInShortdesc = false;
 
       // Collect paragraphs from shortdesc, stopping when we find "extends"
@@ -475,7 +475,7 @@ export const extractMetadataFromPage = async (
       // Process all headings that don't have tables
       for (const headingText of headingsWithoutTablesFiltered) {
         // Find the heading element in the DOM (including shadow DOMs)
-        const headingElement = searchInShadowDOM(
+        const headingElement = searchInRegularAndShadowDOMs(
           document,
           'div.section[id] h2, h1.helpHead1',
           el => el.textContent?.trim() === headingText
@@ -520,7 +520,7 @@ export const extractMetadataFromPage = async (
       }
 
       /** Search for elements in regular DOM and shadow DOMs with optional filter predicate */
-      function searchInShadowDOM<T extends Element>(
+      function searchInRegularAndShadowDOMs<T extends Element>(
         root: Document | ShadowRoot | Element,
         selector: string,
         filterPredicate?: (el: Element) => boolean
@@ -536,7 +536,7 @@ export const extractMetadataFromPage = async (
         const allElements = root.querySelectorAll('*');
         for (const el of Array.from(allElements)) {
           if (el.shadowRoot) {
-            const found = searchInShadowDOM<T>(el.shadowRoot, selector, filterPredicate);
+            const found = searchInRegularAndShadowDOMs<T>(el.shadowRoot, selector, filterPredicate);
             if (found) return found;
           }
         }
