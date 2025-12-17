@@ -211,7 +211,8 @@ export const extractMetadataFromPage = async (
           for (const p of shortdescParagraphs) {
             if (isInsideCallout(p)) continue;
             const text = p.textContent?.trim() ?? '';
-            if (isValidDescription(text)) {
+            // Only collect non-empty paragraphs
+            if (text.length > 0) {
               collectedParagraphs.push(text);
               // Stop if this paragraph contains "extends"
               if (text.toLowerCase().includes('extends')) {
@@ -223,7 +224,7 @@ export const extractMetadataFromPage = async (
         } else {
           // Fallback: if no <p> tags, use the entire shortdesc text content
           const text = shortdescDiv.textContent?.trim() ?? '';
-          if (text) {
+          if (text.length > 0) {
             collectedParagraphs.push(text);
             // Check if it contains "extends"
             if (text.toLowerCase().includes('extends')) {
@@ -258,8 +259,7 @@ export const extractMetadataFromPage = async (
           // Check if this element or its children have the description
           const checkElement = (el: Element) => {
             if (isInsideCallout(el)) return '';
-            const text = el.textContent?.trim() ?? '';
-            return isValidDescription(text) ? text : '';
+            return el.textContent?.trim() ?? '';
           };
 
           // Try the element itself if it's P or DD
@@ -519,25 +519,6 @@ export const extractMetadataFromPage = async (
         return false;
       }
 
-      /** Helper to check if text is a valid description (not navigation or too short) */
-      function isValidDescription(text: string): boolean {
-        const textLower = text.toLowerCase();
-        const isSubstantial = text.length > 20;
-
-        // Reject text that starts with note/tip/important labels
-        const startsWithNoteLabel = /^(note|tip|important|warning|caution)[:\s]/i.test(text);
-
-        const isNotNavigation =
-          !textLower.includes('cookie') &&
-          !textLower.includes('in this section') &&
-          !textLower.includes('©') &&
-          !textLower.includes('skip navigation') &&
-          !textLower.includes('related topics') &&
-          !textLower.includes('see also');
-
-        return isSubstantial && isNotNavigation && !startsWithNoteLabel;
-      }
-
       /** Search for elements in regular DOM and shadow DOMs with optional filter predicate */
       function searchInShadowDOM<T extends Element>(
         root: Document | ShadowRoot | Element,
@@ -624,12 +605,11 @@ export const extractMetadataFromPage = async (
             if (!isInsideCallout(nextElement)) {
               const text = nextElement.textContent?.trim() ?? '';
               console.log(`    Checking P content: "${text.substring(0, 50)}..."`);
-              if (isValidDescription(text)) {
+              // Only accept non-empty descriptions
+              if (text.length > 0) {
                 description = text;
                 console.log('    ✅ Found valid description');
                 break;
-              } else {
-                console.log('    ❌ Invalid description');
               }
             } else {
               console.log('    Skipping P inside callout');
@@ -664,7 +644,8 @@ export const extractMetadataFromPage = async (
               if (!isInsideCallout(p)) {
                 const text = p.textContent?.trim() ?? '';
                 console.log(`    Checking P inside DIV: "${text.substring(0, 50)}..."`);
-                if (isValidDescription(text)) {
+                // Only accept non-empty descriptions
+                if (text.length > 0) {
                   description = text;
                   console.log('    ✅ Found valid description inside DIV');
                   foundInDiv = true;
@@ -688,7 +669,8 @@ export const extractMetadataFromPage = async (
 
               const text = clone.textContent?.trim() ?? '';
               console.log(`    Checking DIV text content: "${text.substring(0, 50)}..."`);
-              if (isValidDescription(text)) {
+              // Only accept non-empty descriptions
+              if (text.length > 0) {
                 description = text;
                 console.log('    ✅ Found valid description from DIV text');
                 break;

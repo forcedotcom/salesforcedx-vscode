@@ -423,7 +423,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Values are:",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dataconnector.htm",
     "parent": "Metadata"
   },
@@ -460,7 +460,7 @@
         "Field Type": "LocalizedValue[]"
       }
     ],
-    "short_description": "",
+    "short_description": "Values are:",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dataconnector.htm",
     "parent": "Metadata"
   },
@@ -482,7 +482,7 @@
         "Field Type": "LocalizedValue[]"
       }
     ],
-    "short_description": "",
+    "short_description": "Required.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dataconnector.htm",
     "parent": "Metadata"
   },
@@ -7669,7 +7669,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Required.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_callcenter.htm",
     "parent": "Metadata"
   },
@@ -7691,7 +7691,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Required.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_callcenter.htm",
     "parent": "Metadata"
   },
