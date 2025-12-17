@@ -1127,17 +1127,7 @@ const extractParentType = (description: string, fields?: MetadataField[]): strin
         const inheritedMatch = field.Description.match(
           /inherited from (?:the\s+)?([A-Z][a-zA-Z0-9_]+)(?:\s+component|\s+metadata\s+type)?/i
         );
-        if (inheritedMatch && inheritedMatch[1]) {
-          const parentType = inheritedMatch[1];
-          // MetadataWithContent is a valid parent type
-          if (parentType === 'MetadataWithContent') {
-            return 'MetadataWithContent';
-          }
-          // Only return if it's not "Metadata" (which is the base type for most fields anyway)
-          if (parentType !== 'Metadata') {
-            return parentType;
-          }
-        }
+        if (inheritedMatch && inheritedMatch[1]) return inheritedMatch[1];
       }
     }
   }
