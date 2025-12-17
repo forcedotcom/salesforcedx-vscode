@@ -376,7 +376,7 @@ export const extractMetadataFromPage = async (
         // Try to find a table name and description
         const heading = findHeadingBefore(table.parentElement);
         const tableName = heading?.textContent?.trim() ?? '';
-        const tableDescription = heading ? findDescriptionAfterHeading(heading, true) : '';
+        const tableDescription = heading ? findDescriptionAfterHeading(heading) : '';
 
         // Extract rows for this table
         const allRows = Array.from(table.querySelectorAll('tbody tr'));
@@ -484,7 +484,7 @@ export const extractMetadataFromPage = async (
         if (!headingElement) continue;
 
         // Look for a description paragraph right after the heading
-        const description = findDescriptionAfterHeading(headingElement, false);
+        const description = findDescriptionAfterHeading(headingElement);
 
         if (description) {
           headingsWithoutTables.push({
@@ -571,7 +571,7 @@ export const extractMetadataFromPage = async (
       }
 
       /** Helper to find description paragraph after a heading element */
-      function findDescriptionAfterHeading(headingElement: Element, stopAtTable: boolean = true): string {
+      function findDescriptionAfterHeading(headingElement: Element): string {
         let description = '';
         let nextElement = headingElement.nextElementSibling;
 
@@ -582,7 +582,7 @@ export const extractMetadataFromPage = async (
           console.log(`  Found tag ${tagName}, class: ${nextElement.className}`);
 
           // Stop if we hit a table (when specified)
-          if (stopAtTable && tagName === 'TABLE') {
+          if (tagName === 'TABLE') {
             console.log('    Stopped at TABLE');
             break;
           }
