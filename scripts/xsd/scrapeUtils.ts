@@ -672,11 +672,7 @@ export const extractMetadataFromPage = async (
         let current = startElement.previousElementSibling;
 
         while (current) {
-          const tagName = current.tagName;
-
-          // Check for H1-H6 headings
-          if (tagName?.match(/^H[1-6]$/)) return current;
-
+          if (current.tagName.match(/^H[1-6]$/)) return current;
           current = current.previousElementSibling;
         }
 
