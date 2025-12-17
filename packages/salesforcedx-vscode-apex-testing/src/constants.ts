@@ -19,3 +19,13 @@ export const APEX_TESTS = 'ApexTests';
 export const APEX_CLASS_EXT = '.cls';
 export const APEX_TESTSUITE_EXT = '.testSuite-meta.xml';
 export const IS_TEST_REG_EXP = /@isTest/i;
+
+// Test item ID prefixes
+export const TEST_ID_PREFIXES = {
+  SUITE: 'suite:',
+  CLASS: 'class:',
+  METHOD: 'method:',
+  SUITE_CLASS: 'suite-class:'
+} as const;
+
+export const SUITE_PARENT_ID = 'apex-test-suites-parent';

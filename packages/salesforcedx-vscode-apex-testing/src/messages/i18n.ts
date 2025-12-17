@@ -45,6 +45,7 @@ export const messages = {
   refresh_test_title: 'Refresh Tests',
   run_single_test_title: 'Run Single Test',
   run_tests_title: 'Run Tests',
+  debug_tests_title: 'Debug Tests',
   show_error_title: 'Display Error',
   test_view_container_title: 'Test Viewer',
   test_view_loading_message: 'Loading Apex tests ...',
@@ -57,6 +58,24 @@ export const messages = {
   apex_testing_discovery_source_description: 'Select the source for Apex test discovery.',
   apex_testing_discovery_source_ls_description: 'Use the Language Server (LS) for discovery.',
   apex_testing_discovery_source_api_description: 'Use the Tooling API Test Discovery endpoint for discovery.',
+  apex_test_suite_debug_not_supported_message:
+    'Test suites cannot be debugged. Please debug individual test classes or methods.',
+  apex_test_payload_build_failed_message: 'Failed to build test payload',
+  apex_test_suite_name_not_determined_message: 'Suite name could not be determined for suite execution',
+  apex_test_resolve_suite_children_failed_message: 'Failed to resolve suite children for suite: %s. Error: %s',
+  apex_test_connection_failed_message: 'Failed to get connection',
+  apex_test_service_not_initialized_message: 'TestService not initialized. Call ensureInitialized() first.',
+  apex_test_connection_not_initialized_message: 'Connection not initialized. Call ensureInitialized() first.',
+  apex_test_populate_suite_items_failed_message: 'Failed to populate suite items: %s',
+  apex_test_debug_failed_message: 'Debug failed: %s',
+  apex_test_update_results_failed_message: 'Failed to update test results: %s',
+  apex_test_local_only_tag: 'Local Only (Not in Org)',
+  apex_test_local_only_warning_message: 'The following test(s) are not deployed to the org and cannot be run: %s',
+  apex_test_local_only_warning_deploy_text: 'Please deploy them first.',
+  apex_test_org_only_tag: 'Org Only (Not in Project)',
+  apex_test_open_org_class_failed_message: 'Failed to open class %s from org: %s',
+  apex_test_debug_org_only_warning_message:
+    'Debugging is not supported for tests that exist only in the org and not in your local workspace. Please retrieve the class to your local project first.',
   test_view_refresh_failed_message:
     'Failed to refresh test view, please make sure the Apex Language Server is running and try again. Apex LS status: %s'
 } as const;
