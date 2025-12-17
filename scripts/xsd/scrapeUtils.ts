@@ -548,9 +548,7 @@ export const extractMetadataFromPage = async (
 
         const elements = root.querySelectorAll('*');
         for (const el of Array.from(elements)) {
-          if (el.shadowRoot) {
-            results.push(...collectFromShadowDOM<T>(el.shadowRoot, selector));
-          }
+          if (el.shadowRoot) results.push(...collectFromShadowDOM<T>(el.shadowRoot, selector));
         }
 
         return results;
