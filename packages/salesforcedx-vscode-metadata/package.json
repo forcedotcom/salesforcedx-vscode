@@ -42,7 +42,7 @@
     "vscode:bundle": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
-    "test:web:ui": "npm run test:web -- --headed",
+    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
     "test:web:debug": "npm run test:web -- --debug",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
@@ -84,7 +84,8 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "out/**"
+        "out/**",
+        "package.json"
       ],
       "output": [
         "dist"
@@ -245,20 +246,20 @@
         },
         {
           "command": "sf.deploy.source.path",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands"
+          "when": "never"
         },
         {
-          "command": "sf.deploy.current.source.file",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands"
+          "command": "sf.deploy.active.editor",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands&& sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
         {
           "command": "sf.deploy.in.manifest",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands"
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         }
       ],
       "editor/context": [
         {
-          "command": "sf.deploy.current.source.file",
+          "command": "sf.deploy.source.path",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
         {
@@ -317,6 +318,10 @@
       {
         "command": "sf.deploy.in.manifest",
         "title": "%deploy_in_manifest_text%"
+      },
+      {
+        "command": "sf.deploy.active.editor",
+        "title": "%deploy_this_source_text%"
       }
     ]
   }

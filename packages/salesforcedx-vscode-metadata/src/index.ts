@@ -10,7 +10,7 @@ import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { createApexClass } from './commands/createApexClass';
 import { deployManifest } from './commands/deployManifest';
-import { deploySourcePaths } from './commands/deploySourcePath';
+import { deployActiveEditor, deploySourcePaths } from './commands/deploySourcePath';
 import { projectDeployStart } from './commands/projectDeployStart';
 import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
 import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './commands/showSourceTrackingDetails';
@@ -44,9 +44,6 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   // Register shared commands only if core extension is not installed or config enables it
   if (shouldRegisterSharedCommands()) {
-    if (process.env.ESBUILD_PLATFORM === 'web') {
-      vscode.workspace.getConfiguration(METADATA_CONFIG_SECTION).update(DEPLOY_ON_SAVE_ENABLED, true);
-    }
     vscode.commands.executeCommand('setContext', 'salesforcedx-vscode-metadata.showSharedCommands', true);
 
     yield* svc.appendToChannel('Registering shared commands (core extension not present or config enabled)');
@@ -59,11 +56,13 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
       vscode.commands.registerCommand('sf.apex.generate.class', createApexClass),
       vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
-      vscode.commands.registerCommand('sf.deploy.current.source.file', deploySourcePaths),
-      vscode.commands.registerCommand('sf.deploy.multiple.source.paths', deploySourcePaths),
+      vscode.commands.registerCommand('sf.deploy.active.editor', deployActiveEditor),
       vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest)
     );
 
+    if (process.env.ESBUILD_PLATFORM === 'web') {
+      vscode.workspace.getConfiguration(METADATA_CONFIG_SECTION).update(DEPLOY_ON_SAVE_ENABLED, true);
+    }
     // Start deploy on save service only if this extension handles shared commands
     yield* Effect.forkIn(createDeployOnSaveService(), yield* getExtensionScope());
   }

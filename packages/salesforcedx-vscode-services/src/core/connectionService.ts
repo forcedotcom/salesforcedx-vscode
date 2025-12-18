@@ -31,7 +31,10 @@ const createWebAuthInfo = (instanceUrl: string, accessToken: string): Effect.Eff
       AuthInfo.create({
         accessTokenOptions: { accessToken, loginUrl: instanceUrl, instanceUrl }
       }),
-    catch: error => new Error('Failed to create AuthInfo', { cause: error })
+    catch: error =>
+      new Error(`Failed to create AuthInfo: ${error instanceof Error ? error.message : String(error)}`, {
+        cause: error
+      })
   }).pipe(
     Effect.tap(authInfo => Effect.annotateCurrentSpan(authInfo.getFields())),
     Effect.tap(authInfo =>
@@ -187,5 +190,8 @@ const getDevHubId = (scratchOrgUsername?: string): Effect.Effect<string | undefi
 const createAuthInfoFromUsername = (username: string): Effect.Effect<AuthInfo, Error> =>
   Effect.tryPromise({
     try: () => AuthInfo.create({ username }),
-    catch: error => new Error('Failed to create AuthInfo', { cause: error })
+    catch: error =>
+      new Error(`Failed to create AuthInfo: ${error instanceof Error ? error.message : String(error)}`, {
+        cause: error
+      })
   }).pipe(Effect.withSpan('createAuthInfoFromUsername', { attributes: { username } }));
