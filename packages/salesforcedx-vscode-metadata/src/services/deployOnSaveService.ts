@@ -113,7 +113,7 @@ export const createDeployOnSaveService = (): Effect.Effect<vscode.Disposable, Er
     // Start the stream processor that batches and deploys
     yield* Stream.fromQueue(saveQueue).pipe(
       Stream.tap(uri => channelService.appendToChannel(`Deploy on save service received URI: ${uri.fsPath}`)),
-      Stream.filter(() => getDeployOnSaveEnabled()),
+      Stream.filterEffect(() => getDeployOnSaveEnabled()),
       Stream.filterEffect(shouldDeploy),
       Stream.filterEffect(isInPackageDirectories),
       Stream.tap(uri =>

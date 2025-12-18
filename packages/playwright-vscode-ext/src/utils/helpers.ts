@@ -44,6 +44,7 @@ const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
   'webPackagePaths.js',
   'workbench.web.main.nls.js',
   'marketplace.visualstudio.com',
+  'vscode-unpkg.net', // VS Code extension marketplace CDN
   'scratchOrgInfo' // asking the org if it's a devhub during auth ?
 ] as const;
 

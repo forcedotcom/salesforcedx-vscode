@@ -17,12 +17,21 @@ import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 const deployManifestEffect = Effect.fn('deployManifest')(function* (manifestUri?: URI) {
   yield* Effect.annotateCurrentSpan({ manifestUri });
 
-  const resolved = manifestUri ?? (yield* getActiveEditorUri);
+  const resolved =
+    manifestUri ??
+    (yield* getActiveEditorUri.pipe(
+      Effect.catchTag('NoActiveEditorError', () => Effect.fail(new Error(nls.localize('deploy_select_manifest'))))
+    ));
+  // Use path instead of fsPath for memfs URIs (web environments) to avoid backslash conversion issues
+  // For file:// URIs, path and fsPath are equivalent
+  const manifestPath = process.env.ESBUILD_PLATFORM === 'web' ? resolved.path : resolved.fsPath;
 
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const deployService = yield* api.services.MetadataDeployService;
-  const componentSet = yield* deployService.getComponentSetFromManifest(resolved.fsPath);
+  const deployService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.MetadataDeployService;
+  const componentSet = yield* deployService.getComponentSetFromManifest(manifestPath);
 
+  if (Array.from(componentSet.getSourceComponents()).length === 0) {
+    return yield* Effect.fail(new Error(nls.localize('deploy_no_components_message')));
+  }
   yield* deployComponentSet({ componentSet, emptyMessage: nls.localize('deploy_no_components_message') });
 });
 
@@ -30,11 +39,11 @@ const deployManifestEffect = Effect.fn('deployManifest')(function* (manifestUri?
 export const deployManifest = async (manifestUri?: URI): Promise<void> =>
   Effect.runPromise(
     deployManifestEffect(manifestUri).pipe(
-      Effect.catchTag('NoActiveEditorError', () =>
-        Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_select_manifest'))).pipe(
-          Effect.as(undefined)
-        )
+      // handle all other errors generically
+      Effect.catchAll(error =>
+        Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_failed', error.message)))
       ),
+      Effect.as(undefined),
       Effect.provide(AllServicesLayer)
     )
   );

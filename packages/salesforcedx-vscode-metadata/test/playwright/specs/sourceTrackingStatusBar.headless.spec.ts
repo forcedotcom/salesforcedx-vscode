@@ -19,11 +19,11 @@ import {
   executeCommandWithCommandPalette,
   upsertSettings,
   NOTIFICATION_LIST_ITEM,
-  createApexClass
+  createApexClass,
+  editOpenFile
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
-import { editOpenFile } from '../utils/apexFileHelpers';
 import packageNls from '../../../package.nls.json';
 
 test.describe('Source Tracking Status Bar', () => {

@@ -20,10 +20,10 @@ import {
   ensureOutputPanelOpen,
   selectOutputChannel,
   waitForOutputChannelText,
-  createApexClass
+  createApexClass,
+  editOpenFile
 } from '@salesforce/playwright-vscode-ext';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
-import { editOpenFile } from '../utils/apexFileHelpers';
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 
 test.describe('Deploy On Save', () => {

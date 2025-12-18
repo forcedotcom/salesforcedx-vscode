@@ -14,7 +14,7 @@ import { deploySourcePaths } from './commands/deploySourcePath';
 import { projectDeployStart } from './commands/projectDeployStart';
 import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
 import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './commands/showSourceTrackingDetails';
-import { EXTENSION_NAME } from './constants';
+import { DEPLOY_ON_SAVE_ENABLED, EXTENSION_NAME, METADATA_CONFIG_SECTION } from './constants';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
 import { closeExtensionScope, getExtensionScope } from './services/extensionScope';
@@ -44,6 +44,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   // Register shared commands only if core extension is not installed or config enables it
   if (shouldRegisterSharedCommands()) {
+    if (process.env.ESBUILD_PLATFORM === 'web') {
+      vscode.workspace.getConfiguration(METADATA_CONFIG_SECTION).update(DEPLOY_ON_SAVE_ENABLED, true);
+    }
     vscode.commands.executeCommand('setContext', 'salesforcedx-vscode-metadata.showSharedCommands', true);
 
     yield* svc.appendToChannel('Registering shared commands (core extension not present or config enabled)');

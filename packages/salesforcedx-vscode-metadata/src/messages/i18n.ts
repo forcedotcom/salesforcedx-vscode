@@ -49,7 +49,8 @@ export const messages = {
   // Deploy on save
   deploy_on_save_error_no_target_org:
     'Error running deploy on save: No default org is set. Run "SFDX: Authorize an Org", then deploy the changes that you just saved.',
-  deploy_on_save_error_generic: 'Deploy on save failed: %s'
+  deploy_on_save_error_generic: 'Deploy on save failed: %s',
+  deploy_failed: 'Failed to deploy: %s'
 } as const;
 
 export type MessageKey = keyof typeof messages;

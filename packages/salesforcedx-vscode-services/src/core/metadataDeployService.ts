@@ -236,14 +236,17 @@ const getComponentSetFromManifest = (
 
     const componentSet = yield* Effect.tryPromise({
       try: async () =>
-        await ComponentSet.fromManifest({
+        ComponentSet.fromManifest({
           manifestPath,
           // Get package directories as full paths
           resolveSourcePaths: project.getPackageDirectories().map(pkgDir => pkgDir.fullPath),
           forceAddWildcards: true,
           registry: registryAccess
         }),
-      catch: e => new Error('Failed to build ComponentSet from manifest', { cause: e })
+      catch: e =>
+        new Error(`Failed to build ComponentSet from manifest: ${e instanceof Error ? e.message : String(e)}`, {
+          cause: e
+        })
     });
 
     yield* setComponentSetProperties(componentSet, project, configAggregator);

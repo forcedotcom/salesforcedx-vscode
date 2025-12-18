@@ -1,27 +1,3 @@
----
-name: Deploy E2E Tests
-overview: Create comprehensive e2e tests for deploySourcePath and deployManifest commands covering all entry points (command palette, editor context menu, explorer context menu on file/directory). Shared helpers in playwright-vscode-ext.
-todos:
-  - id: create-context-menu-helpers
-    content: Create context menu helpers (editor + explorer) in playwright-vscode-ext
-    status: pending
-  - id: move-file-helpers
-    content: Move openFileByName, editOpenFile to playwright-vscode-ext and add createManifestFile
-    status: pending
-  - id: update-exports
-    content: Export new helpers from playwright-vscode-ext/src/index.ts
-    status: pending
-  - id: update-apex-helpers
-    content: Update metadata's apexFileHelpers to import from playwright-vscode-ext
-    status: pending
-  - id: create-deploy-source-test
-    content: Create deploySourcePath.headless.spec.ts with 4 scenarios
-    status: pending
-  - id: create-deploy-manifest-test
-    content: Create deployManifest.headless.spec.ts with 2 scenarios
-    status: pending
----
-
 # Deploy Source Path and Deploy Manifest E2E Tests
 
 ## Overview

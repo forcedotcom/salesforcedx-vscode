@@ -35,15 +35,16 @@ Tests must work identically in web and desktop.
 
 ## Virtualized DOM
 
-Many things in the vscode API (tree views, editors, output panels) only contain the visible lines in the DOM (the remainder are not present until they scroll into view).
+the vscode API (tree views, editors, output panels) often only contain the visible lines in the DOM (the rest are not present until they scroll into view).
 
-You can't rely on scrollTo because the target element doesn't exist.
+Don't rely on scrollTo because the target element won't exist.
+`scrollIntoViewIfNeeded` probably won't help
 
 ## Selectors and Assertions
 
 Prefer `aria` (getByRole) over css selectors
 
-`expect` assertions need clear error messages. Import `expect` from playwright
+give `expect` assertions clear error messages. Import `expect` from playwright. Fail early, avoid fallbacks/retries
 
 Locators that might be reused by other tests in other packages belong in `locators.ts`. Check this file before creating new locator selectors.
 
@@ -54,19 +55,3 @@ Use f1 for commands, not meta-shift-P. Use `Control` for all. No ControlOrMeta
 ## Things to ignore
 
 All installed extensions are temporarily disabled (this refers to other extensions, not the ones installed as part of our e2e)
-
-## Debugging
-
-LLMs should not run `debug` mode playwright tests unless instructed to. Those pause and requier the human to step through.
-
-Use @https://playwright.dev/docs/api/class-locator#locator-inner-html on a known-good locator and use the result to get more accurate locators for stuff inside it.
-
-Take screenshots and review them (tool call `read_file`) for additional context.
-
-Capture html "parent" levels up from where you are having a problem and study it to make sure you are using correct locators.
-
-Fail early, avoid creating fallbacks.
-
-Use emojis infrequently.
-
-Read the playwright docs

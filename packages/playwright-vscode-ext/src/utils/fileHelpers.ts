@@ -10,36 +10,85 @@ import { executeCommandWithCommandPalette } from '../pages/commands';
 import { closeSettingsTab, closeWelcomeTabs } from './helpers';
 import { WORKBENCH, QUICK_INPUT_WIDGET, EDITOR_WITH_URI, DIRTY_EDITOR, QUICK_INPUT_LIST_ROW } from './locators';
 
-/** Creates a new file with contents using VS Code Quick Open */
+/** Creates a new file with contents using the "Create: New File..." command */
 export const createFileWithContents = async (page: Page, filePath: string, contents: string): Promise<void> => {
-  // Ensure the workbench is focused first
   await page.locator(WORKBENCH).click();
 
-  // Open Quick Open (Ctrl+P)
-  await page.keyboard.press('Control+p');
+  // Close all open editors so the "Create: New File..." command defaults to project root
+  await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+
+  // Focus the explorer and click on workspace root
+  await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+  const workspaceRoot = page.locator('.monaco-list-row[aria-level="1"]').first();
+  await workspaceRoot.click();
+
+  // Parse the file path to get the filename for the first dialog
+  const lastSlash = filePath.lastIndexOf('/');
+  const fileName = lastSlash > 0 ? filePath.substring(lastSlash + 1) : filePath;
+
+  // Now create the new file
+  await executeCommandWithCommandPalette(page, 'Create: New File...');
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
   await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
 
-  // Type the file path directly - VS Code will create it if it doesn't exist
-  await page.keyboard.type(filePath);
+  // First dialog: "Select File Type or Enter File Name..."
+  // Type just the filename (e.g., "package.xml")
+  await page.keyboard.type(fileName);
   await page.keyboard.press('Enter');
 
-  // Wait for Quick Open to disappear
-  await quickInput.waitFor({ state: 'hidden', timeout: 10_000 });
+  // Second dialog: "Create File" asks for folder path
+  // Wait for the folder path textbox to appear, then find the OK button
+  const folderPathInput = page.getByRole('textbox', { name: /Folder path/i });
+  await folderPathInput.waitFor({ state: 'visible', timeout: 5000 });
 
-  // Wait for editor to open - use a more general selector first
-  await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });
+  // The OK button should be next to the input - use exact match to avoid status bar conflicts
+  const okButton = page.getByRole('button', { name: 'OK', exact: true });
+
+  // Clear the path and type the full file path
+  // Use absolute path from workspace root (workspace name is typically "MyProject" in test environments)
+  await page.keyboard.press('Control+a');
+  // Build full path: if filePath doesn't start with /, prepend /MyProject/
+  const fullPath = filePath.startsWith('/') ? filePath : `/MyProject/${filePath}`;
+  await page.keyboard.type(fullPath);
+
+  await okButton.click();
+
+  // Handle any additional OK confirmations (folder creation, file exists, etc.)
+  // Wait for the dialog to potentially change, then check for another OK button
+  for (let i = 0; i < 3; i++) {
+    // Wait a moment for the dialog to update
+    await quickInput.waitFor({ state: 'visible', timeout: 1000 }).catch(() => {});
+
+    const confirmOk = page.getByRole('button', { name: 'OK', exact: true });
+    // Use a short timeout to check if button is clickable
+    const clicked = await confirmOk
+      .click({ timeout: 1000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!clicked) {
+      break;
+    }
+  }
+
+  // Wait for the dialog to close
+  await quickInput.waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {
+    // Dialog might already be hidden
+  });
+
+  // Wait for an editor to be visible and click into it to focus
+  const editor = page.locator(EDITOR_WITH_URI).first();
+  await editor.waitFor({ state: 'visible', timeout: 10_000 });
+  await editor.click();
 
   // Type the file contents
   await page.keyboard.type(contents);
 
-  // Save file (Ctrl+S)
+  // Save the file
   await page.keyboard.press('Control+s');
 
-  // Wait for save to complete - file might save instantly so detached state is acceptable
   const dirtyEditor = page.locator(DIRTY_EDITOR);
-  const isDirty = await dirtyEditor.count();
-  if (isDirty > 0) {
+  const dirtyCount = await dirtyEditor.count();
+  if (dirtyCount > 0) {
     await dirtyEditor.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {
       // File saved instantly without showing dirty state
     });
@@ -74,4 +123,112 @@ export const createApexClass = async (page: Page, className: string, content?: s
   if (content !== undefined) {
     await page.keyboard.type(content);
   }
+};
+
+/** Open a file using Quick Open (Ctrl+P) */
+export const openFileByName = async (page: Page, fileName: string): Promise<void> => {
+  // Ensure workbench is focused first
+  await page.locator(WORKBENCH).click();
+
+  // Open Quick Open with Ctrl+P
+  await page.keyboard.press('Control+p');
+
+  // Wait for Quick Open to appear
+  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10_000 });
+
+  // Type the filename
+  await page.keyboard.type(fileName);
+
+  // Wait for search results to populate and stabilize
+  await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 10_000 });
+  // Wait for results to be stable (no new results appearing)
+  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 1000 });
+
+  // Find the result that matches the filename
+  const results = page.locator(QUICK_INPUT_LIST_ROW);
+  const resultCount = await results.count();
+  let foundMatch = false;
+  let matchIndex = 0;
+  for (let i = 0; i < resultCount; i++) {
+    const resultText = await results.nth(i).textContent();
+    // Check if the result contains the filename (Quick Open results include path info)
+    // Match if filename appears as a complete word (not part of another filename)
+    if (
+      resultText &&
+      (resultText.includes(`/${fileName}`) || resultText.includes(`\\${fileName}`) || resultText.startsWith(fileName))
+    ) {
+      matchIndex = i;
+      foundMatch = true;
+      break;
+    }
+  }
+
+  if (!foundMatch) {
+    // Log all available results for debugging
+    const allResults: string[] = [];
+    for (let i = 0; i < Math.min(resultCount, 10); i++) {
+      const text = await results.nth(i).textContent();
+      if (text) allResults.push(text.trim());
+    }
+    throw new Error(
+      `No exact match found for "${fileName}" in Quick Open. Found ${resultCount} results. First few: ${allResults.join(' | ')}`
+    );
+  }
+
+  // Navigate to the matching result using arrow keys
+  for (let i = 0; i < matchIndex; i++) {
+    await page.keyboard.press('ArrowDown');
+  }
+
+  // Press Enter to open the selected result
+  await page.keyboard.press('Enter');
+
+  // Wait for editor to open with the file
+  await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });
+};
+
+/** Edit the currently open file by adding a comment at the top */
+export const editOpenFile = async (page: Page, comment: string): Promise<void> => {
+  // Wait for editor to be ready
+  const editor = page.locator(EDITOR_WITH_URI).first();
+  await editor.waitFor({ state: 'visible' });
+
+  // Click into the editor to focus it
+  await editor.click();
+
+  // Move cursor to start of file
+  await page.keyboard.press('Control+Home');
+
+  // Find the first non-comment, non-blank line by reading visible text
+  // Move down past header comments
+  for (let i = 0; i < 50; i++) {
+    // Get current line via Monaco API
+    const lineText = await page.evaluate(() => {
+      const monacoEditor = (window as any).monaco?.editor?.getEditors?.()?.[0];
+      if (!monacoEditor) return '';
+      const position = monacoEditor.getPosition();
+      const model = monacoEditor.getModel();
+      return model?.getLineContent(position.lineNumber) ?? '';
+    });
+
+    const trimmed = lineText.trim();
+    if (trimmed === '' || trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) {
+      await page.keyboard.press('ArrowDown');
+    } else {
+      break;
+    }
+  }
+
+  // Add the comment line
+  await page.keyboard.press('Home');
+  await page.keyboard.type(`// ${comment}`);
+  await page.keyboard.press('Enter');
+
+  // Save file via command palette (more reliable than keyboard shortcut across OSes)
+  await executeCommandWithCommandPalette(page, 'File: Save');
+
+  // Wait for save indicator to disappear (file tab loses "dirty" state)
+  await page.waitForSelector(DIRTY_EDITOR, { state: 'detached', timeout: 5000 }).catch(() => {
+    // File might save instantly
+  });
 };

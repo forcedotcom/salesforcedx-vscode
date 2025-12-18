@@ -16,7 +16,7 @@ export {
   typingSpeed
 } from './utils/helpers';
 
-export { createFileWithContents, createApexClass } from './utils/fileHelpers';
+export { createFileWithContents, createApexClass, openFileByName, editOpenFile } from './utils/fileHelpers';
 
 export {
   WORKBENCH,
@@ -29,7 +29,8 @@ export {
   TAB_CLOSE_BUTTON,
   STATUS_BAR_ITEM_LABEL,
   NOTIFICATION_LIST_ITEM,
-  SETTINGS_SEARCH_INPUT
+  SETTINGS_SEARCH_INPUT,
+  CONTEXT_MENU
 } from './utils/locators';
 
 export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSION_KEY } from './constants';
@@ -41,6 +42,14 @@ export { createMinimalOrg, MINIMAL_ORG_ALIAS } from './orgs/minimalScratchOrgSet
 export { upsertScratchOrgAuthFieldsToSettings, openSettingsUI, upsertSettings } from './pages/settings';
 
 export { executeCommandWithCommandPalette, openCommandPalette, executeCommand, reloadWindow } from './pages/commands';
+
+export {
+  openEditorContextMenu,
+  openExplorerContextMenu,
+  selectContextMenuItem,
+  executeEditorContextMenuCommand,
+  executeExplorerContextMenuCommand
+} from './pages/contextMenu';
 
 export {
   ensureOutputPanelOpen,
