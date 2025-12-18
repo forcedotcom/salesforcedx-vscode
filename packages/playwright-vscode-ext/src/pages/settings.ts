@@ -8,13 +8,14 @@ import { Locator, Page, expect } from '@playwright/test';
 import type { AuthFields } from '@salesforce/core';
 import { ACCESS_TOKEN_KEY, API_VERSION_KEY, CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY } from '../constants';
 import { saveScreenshot } from '../shared/screenshotUtils';
-import { waitForVSCodeWorkbench } from '../utils/helpers';
+import { waitForVSCodeWorkbench, closeWelcomeTabs } from '../utils/helpers';
 import { WORKBENCH, SETTINGS_SEARCH_INPUT } from '../utils/locators';
 import { executeCommandWithCommandPalette } from './commands';
 
 const settingsLocator = (page: Page): Locator => page.locator(SETTINGS_SEARCH_INPUT.join(','));
 
 export const openSettingsUI = async (page: Page): Promise<void> => {
+  await closeWelcomeTabs(page);
   await page.locator(WORKBENCH).click({ timeout: 60_000 });
   await executeCommandWithCommandPalette(page, 'Preferences: Open Workspace Settings');
   await settingsLocator(page).first().waitFor({ timeout: 3000 });
