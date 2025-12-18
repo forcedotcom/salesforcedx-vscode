@@ -169,6 +169,7 @@
     },
     "lint": {
       "dependencies": [
+        "./packages/eslint-local-rules:compile",
         "./packages/eslint-local-rules:lint",
         "./packages/salesforcedx-utils:lint",
         "./packages/salesforcedx-vscode-i18n:lint",
