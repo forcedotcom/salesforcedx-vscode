@@ -37,7 +37,8 @@ import {
   FileChangeType,
   NotificationType,
   Definition,
-  TextDocumentSyncKind
+  TextDocumentSyncKind,
+  ReferenceParams
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
@@ -408,6 +409,14 @@ export default class Server {
     }
   }
 
+  public async onReferences(reference: ReferenceParams): Promise<Location[] | null> {
+    const document = this.getDocumentIfReady(reference.textDocument.uri);
+
+    return document && (await this.context.isAuraJavascript(document))
+      ? ((await onReferences(reference, this.fileSystemProvider)) ?? null)
+      : null;
+  }
+
   public async onDidChangeWatchedFiles(change: DidChangeWatchedFilesParams): Promise<void> {
     const changes = change.changes;
 
@@ -574,7 +583,7 @@ export default class Server {
       await init(this.fileSystemProvider);
 
       // Register event handlers that depend on fileSystemProvider
-      this.connection.onReferences(reference => onReferences(reference, this.fileSystemProvider));
+      this.connection.onReferences(reference => this.onReferences(reference));
       this.connection.onSignatureHelp(signatureParams => onSignatureHelp(signatureParams, this.fileSystemProvider));
 
       // Register tern server document event handlers
