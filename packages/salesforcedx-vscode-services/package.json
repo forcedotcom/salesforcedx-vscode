@@ -67,7 +67,7 @@
     "test": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
-    "test:web:ui": "npm run test:web -- --headed",
+    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
     "test:web:debug": "npm run test:web -- --debug",
     "test:e2e": "wireit"
   },
