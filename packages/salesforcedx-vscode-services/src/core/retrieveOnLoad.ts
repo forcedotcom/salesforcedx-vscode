@@ -6,8 +6,10 @@
  */
 
 import { FileResponse, type MetadataMember } from '@salesforce/source-deploy-retrieve';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
+import * as Schedule from 'effect/Schedule';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ChannelService } from '../vscode/channelService';
@@ -83,6 +85,26 @@ export const retrieveOnLoadEffect = (): Effect.Effect<
       concurrency: 'unbounded'
     });
 
+    // Wait for workspace folders to be available before resolving the project (prevents web race condition).
+    const checkWorkspaceFolders = (): Effect.Effect<readonly vscode.WorkspaceFolder[], Error, never> =>
+      Effect.tryPromise({
+        try: async () => {
+          const folders = vscode.workspace.workspaceFolders;
+          return folders && folders.length > 0
+            ? folders
+            : Promise.reject(new Error('Workspace folders not yet available'));
+        },
+        catch: () => new Error('Workspace folders not yet available')
+      });
+
+    yield* checkWorkspaceFolders().pipe(
+      Effect.retry({
+        schedule: Schedule.fixed(Duration.millis(500)).pipe(Schedule.compose(Schedule.recurs(60))),
+        while: error => error instanceof Error && error.message === 'Workspace folders not yet available'
+      }),
+      Effect.catchAll(() => Effect.fail(new Error('Workspace folders never loaded after 30 seconds')))
+    );
+
     const retrieveOnLoadValue = yield* settingsService.getRetrieveOnLoad;
 
     if (retrieveOnLoadValue.length === 0) {
@@ -95,6 +117,29 @@ export const retrieveOnLoadEffect = (): Effect.Effect<
       return yield* channelService.appendToChannel('No valid metadata members found in retrieveOnLoad setting');
     }
 
+    // Get project (workspace folders are now ready)
+    const waitForProject = ProjectService.pipe(
+      Effect.flatMap(service => service.getSfProject),
+      Effect.retry({
+        schedule: Schedule.exponential(Duration.millis(300)).pipe(
+          Schedule.compose(Schedule.recurs(20)),
+          Schedule.whileOutput((delay: number) => delay < Duration.toMillis(Duration.seconds(10)))
+        ),
+        while: (error: unknown) => error instanceof Error && error.message === 'Project Resolution Error'
+      }),
+      Effect.catchAll(error =>
+        error instanceof Error && error.message === 'Project Resolution Error'
+          ? Effect.gen(function* () {
+              yield* channelService.appendToChannel('Project resolution failed. Aborting retrieve.');
+              return yield* Effect.fail(error);
+            })
+          : Effect.fail(error)
+      )
+    );
+
+    yield* waitForProject;
+
+    // Now log that we're retrieving (after project is confirmed ready)
     yield* channelService.appendToChannel(
       `Retrieving metadata on load: ${members.map(m => `${m.type}:${m.fullName}`).join(', ')}`
     );
