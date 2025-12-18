@@ -16,8 +16,7 @@ const settingsLocator = (page: Page): Locator => page.locator(SETTINGS_SEARCH_IN
 
 export const openSettingsUI = async (page: Page): Promise<void> => {
   await page.locator(WORKBENCH).click({ timeout: 60_000 });
-  await page.waitForTimeout(2000);
-  await executeCommandWithCommandPalette(page, 'Preferences: Open Settings (UI)');
+  await executeCommandWithCommandPalette(page, 'Preferences: Open Workspace Settings');
   await settingsLocator(page).first().waitFor({ timeout: 3000 });
 };
 
@@ -81,6 +80,8 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       } catch {}
     }
 
+    await settingsLocator(page).first().waitFor({ timeout: 3000 });
+
     // First try an exact search by full id (section.key)
     await performSearch(id);
 
@@ -107,7 +108,6 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       } catch {}
     }
 
-    // Fail fast if the deterministic row isn't found — do not fall back to label-based heuristics
     await row.waitFor({ state: 'attached', timeout: 15_000 });
 
     await row.waitFor({ state: 'visible', timeout: 30_000 });
