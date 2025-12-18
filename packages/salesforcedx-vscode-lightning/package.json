@@ -6,6 +6,17 @@
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
   },
+  "icon": "images/VSCodeLightning.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "65.9.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
   "categories": [
     "Programming Languages"
   ],
@@ -71,18 +82,9 @@
     "esbuild": "0.25.10"
   },
   "displayName": "Aura Components",
-  "engines": {
-    "vscode": "^1.90.0"
-  },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
   ],
-  "galleryBanner": {
-    "color": "#ECECEC",
-    "theme": "light"
-  },
-  "icon": "images/VSCodeLightning.png",
-  "license": "BSD-3-Clause",
   "main": "./out/src",
   "name": "salesforcedx-vscode-lightning",
   "packaging": {
@@ -95,7 +97,6 @@
       "OSSREADME.json",
       "images",
       "syntaxes",
-      "images",
       "dist",
       "tern"
     ],
@@ -115,7 +116,6 @@
       ]
     }
   },
-  "publisher": "salesforce",
   "qna": "https://github.com/forcedotcom/salesforcedx-vscode/issues",
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
@@ -135,7 +135,6 @@
     "dist",
     "auraServer.js"
   ],
-  "version": "65.8.1",
   "wireit": {
     "compile": {
       "clean": "if-file-deleted",
@@ -195,7 +194,8 @@
         "out/**"
       ],
       "output": [
-        "dist"
+        "dist",
+        "tern"
       ]
     },
     "vscode:package:legacy": {

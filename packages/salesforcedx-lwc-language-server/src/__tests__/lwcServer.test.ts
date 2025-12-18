@@ -5,6 +5,36 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Mock the internal utils module (used by baseContext.ts via './utils')
+jest.mock(
+  '../../../salesforcedx-lightning-lsp-common/out/src/utils',
+  () => {
+    const actual = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
+
+    return {
+      ...actual,
+      readJsonSync: jest.fn(createReadJsonSyncMockImplementation(actual))
+    };
+  },
+  { virtual: true }
+);
+
+// Also mock the package-level export (for direct imports from the package)
+// This is used by componentIndexer.ts which imports readJsonSync from the package
+jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
+  const actual = jest.requireActual('@salesforce/salesforcedx-lightning-lsp-common');
+  const actualUtils = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
+
+  const mockFn = jest.fn(createReadJsonSyncMockImplementation(actualUtils));
+
+  const mocked = {
+    ...actual,
+    readJsonSync: mockFn
+  };
+
+  return mocked;
+});
+
 // Mock readJsonSync from the common package to avoid dynamic import issues with tiny-jsonc
 // jest.mock() doesn't intercept dynamic imports, so we need to mock readJsonSync directly
 // We need to mock both the package-level export AND the internal utils module

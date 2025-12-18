@@ -13,7 +13,8 @@ import {
   syncDocumentToTextDocumentsProvider,
   scheduleReinitialization,
   normalizePath,
-  NormalizedPath
+  NormalizedPath,
+  WorkspaceType
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 
@@ -83,6 +84,7 @@ export default class Server {
   private isDelayedInitializationComplete = false;
   private isIndexerInitialized = false;
   private hasDetectedAuraFiles = false;
+  private workspaceType: WorkspaceType;
 
   constructor() {
     this.fileSystemProvider = new FileSystemDataProvider();
@@ -95,6 +97,7 @@ export default class Server {
     this.connection.onDidChangeWatchedFiles(params => void this.onDidChangeWatchedFiles(params));
     this.connection.onRequest('salesforce/listComponents', () => this.onListComponents());
     this.connection.onRequest('salesforce/listNamespaces', () => this.onListNamespaces());
+    this.workspaceType = 'UNKNOWN';
     this.documents.listen(this.connection);
   }
 
@@ -105,7 +108,8 @@ export default class Server {
     this.workspaceRoots = (workspaceFolders ?? []).map(folder =>
       normalizePath(path.resolve(URI.parse(folder.uri).fsPath))
     );
-
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    this.workspaceType = params.initializationOptions?.workspaceType ?? 'UNKNOWN';
     try {
       if (this.workspaceRoots.length === 0) {
         Logger.warn(nls.localize('no_workspace_found_message'));
@@ -280,8 +284,7 @@ export default class Server {
       return null;
     }
 
-    const documentUri = textDocumentPosition.textDocument.uri;
-    const document = this.getDocumentIfReady(documentUri);
+    const document = this.getDocumentIfReady(textDocumentPosition.textDocument.uri);
     if (!document) {
       return null;
     }
@@ -303,7 +306,8 @@ export default class Server {
       }
 
       return null;
-    } catch {
+    } catch (error: unknown) {
+      Logger.error(`Error in onHover: ${error instanceof Error ? error.message : String(error)}`);
       return null;
     }
   }
@@ -480,13 +484,6 @@ export default class Server {
         void this.initializeIndexer();
       }
     }
-
-    // Check if this is sfdx-project.json and re-detect workspace type if needed
-    if (fileName === 'sfdx-project.json' && this.context?.type === 'UNKNOWN') {
-      // Update context to use the populated TextDocuments provider
-      this.context.fileSystemProvider = this.fileSystemProvider;
-      void this.context.initialize();
-    }
   }
 
   public async onDidChangeContent(changeEvent: TextDocumentChangeEvent<TextDocument>): Promise<void> {
@@ -517,17 +514,10 @@ export default class Server {
     return auraExtensions.some(ext => fileName.endsWith(ext));
   }
 
-  /**
-   * Checks if the workspace context is initialized and ready to use
-   */
-  private isContextReady(): boolean {
-    return this.context !== undefined;
-  }
-
   /** Get document if it exists and context is ready for processing */
   private getDocumentIfReady(uri: string): TextDocument | undefined {
     const document = this.documents.get(uri);
-    return document !== undefined && this.isContextReady() ? document : undefined;
+    return document !== undefined && this.context !== undefined ? document : undefined;
   }
 
   /**
@@ -548,8 +538,9 @@ export default class Server {
 
       this.isIndexerInitialized = true;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new Error(nls.localize('indexer_initialization_error_message', errorMessage));
+      throw new Error(
+        nls.localize('indexer_initialization_error_message', error instanceof Error ? error.message : String(error))
+      );
     }
   }
 
@@ -566,7 +557,7 @@ export default class Server {
       // Initialize workspace context now that essential files are loaded via onDidOpen
       if (!this.context) {
         this.context = new AuraWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
-        await this.context.initialize();
+        this.context.initialize(this.workspaceType);
       } else {
         // Update context to use fileSystemProvider for better file access
         this.context.fileSystemProvider = this.fileSystemProvider;
@@ -605,8 +596,9 @@ export default class Server {
         this.initializeIndexer();
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new Error(nls.localize('delayed_initialization_error_message', errorMessage));
+      throw new Error(
+        nls.localize('delayed_initialization_error_message', error instanceof Error ? error.message : String(error))
+      );
     }
 
     // send notification that delayed initialization is complete

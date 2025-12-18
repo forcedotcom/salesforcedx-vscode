@@ -87,7 +87,7 @@ const verifyCoreSettings = (settings: any): void => {
 describe('WorkspaceContext', () => {
   it('WorkspaceContext', async () => {
     let context = new WorkspaceContext(SFDX_WORKSPACE_PATH, sfdxFileSystemProvider);
-    await context.initialize();
+    context.initialize('SFDX');
     expect(context.type).toBe('SFDX');
     expect(context.workspaceRoots[0]).toBeAbsolutePath();
 
@@ -100,7 +100,7 @@ describe('WorkspaceContext', () => {
     ).toBe(3);
 
     context = new WorkspaceContext(STANDARD_WORKSPACE_PATH, standardFileSystemProvider);
-    await context.initialize();
+    context.initialize('STANDARD_LWC');
     expect(context.type).toBe('STANDARD_LWC');
 
     expect(
@@ -110,7 +110,7 @@ describe('WorkspaceContext', () => {
     ).toEqual([]);
 
     context = new WorkspaceContext(CORE_WORKSPACE_PATH, coreFileSystemProvider);
-    await context.initialize();
+    context.initialize('CORE_ALL');
     expect(context.type).toBe('CORE_ALL');
 
     expect(
@@ -122,7 +122,7 @@ describe('WorkspaceContext', () => {
     ).toBe(3);
 
     context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemProvider);
-    await context.initialize();
+    context.initialize('CORE_PARTIAL');
     expect(context.type).toBe('CORE_PARTIAL');
 
     expect(
@@ -132,7 +132,7 @@ describe('WorkspaceContext', () => {
     ).toEqual([normalizePath(path.join(context.workspaceRoots[0], 'modules'))]);
 
     context = new WorkspaceContext(CORE_MULTI_ROOT, coreMultiFileSystemProvider);
-    await context.initialize();
+    context.initialize('CORE_ALL');
     expect(context.workspaceRoots.length).toBe(2);
 
     const modulesDirs = await getModulesDirs(context.type, context.workspaceRoots, coreMultiFileSystemProvider, () =>
@@ -147,7 +147,7 @@ describe('WorkspaceContext', () => {
 
   it('configureSfdxProject()', async () => {
     const context = new WorkspaceContext(SFDX_WORKSPACE_PATH, sfdxFileSystemProvider);
-    await context.initialize();
+    context.initialize('SFDX');
     const jsconfigPathForceApp = path.resolve(FORCE_APP_ROOT, 'lwc', 'jsconfig.json');
     const jsconfigPathUtilsOrig = path.resolve(UTILS_ROOT, 'lwc', 'jsconfig-orig.json');
     const jsconfigPathUtils = path.resolve(UTILS_ROOT, 'lwc', 'jsconfig.json');
@@ -263,7 +263,7 @@ describe('WorkspaceContext', () => {
 
   it('configureCoreProject()', async () => {
     const context = new WorkspaceContext(CORE_PROJECT_ROOT, coreProjectFileSystemProvider);
-    await context.initialize();
+    context.initialize('CORE_PARTIAL');
     const jsconfigPath = path.join(CORE_PROJECT_ROOT, 'modules', 'jsconfig.json');
     const typingsPath = path.join(CORE_ALL_ROOT, '.vscode', 'typings', 'lwc');
     const settingsPath = path.join(CORE_PROJECT_ROOT, '.vscode', 'settings.json');
@@ -317,7 +317,7 @@ describe('WorkspaceContext', () => {
 
   it('configureCoreMulti()', async () => {
     const context = new WorkspaceContext(CORE_MULTI_ROOT, coreMultiFileSystemProvider);
-    await context.initialize();
+    context.initialize('CORE_ALL');
 
     const jsconfigPathGlobal = `${context.workspaceRoots[1]}/modules/jsconfig.json`;
     const tsconfigPathForce = `${context.workspaceRoots[0]}/tsconfig.json`;
@@ -344,7 +344,7 @@ describe('WorkspaceContext', () => {
 
   it('configureCoreAll()', async () => {
     const context = new WorkspaceContext(CORE_ALL_ROOT, coreFileSystemProvider);
-    await context.initialize();
+    context.initialize('CORE_ALL');
     const jsconfigPathGlobal = path.join(CORE_ALL_ROOT, 'ui-global-components', 'modules', 'jsconfig.json');
     const jsconfigPathForce = path.join(CORE_ALL_ROOT, 'ui-force-components', 'modules', 'jsconfig.json');
 

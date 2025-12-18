@@ -59,7 +59,7 @@ const uriToFile = (uri: string): string => URI.parse(uri).fsPath;
 describe('indexer parsing content', () => {
   it('aura indexer', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new FileSystemDataProvider());
-    await context.initialize();
+    context.initialize('SFDX');
     await context.configureProject();
 
     const auraIndexer = new AuraIndexer(context);
@@ -94,7 +94,7 @@ describe('indexer parsing content', () => {
 
   it('should index a valid aura component', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider);
-    await context.initialize();
+    context.initialize('SFDX');
     await context.configureProject();
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();
@@ -115,7 +115,7 @@ describe('indexer parsing content', () => {
 
   xit('should handle indexing an invalid aura component', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new FileSystemDataProvider());
-    await context.initialize();
+    context.initialize('SFDX');
     await context.configureProject();
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();

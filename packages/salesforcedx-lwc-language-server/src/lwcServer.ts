@@ -15,7 +15,8 @@ import {
   syncDocumentToTextDocumentsProvider,
   scheduleReinitialization,
   normalizePath,
-  NormalizedPath
+  NormalizedPath,
+  WorkspaceType
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { basename, dirname, parse } from 'node:path';
 import {
@@ -134,6 +135,8 @@ export default class Server {
   public lwcDataProvider!: LWCDataProvider;
   public fileSystemProvider: FileSystemDataProvider;
   private textDocumentsFileSystemProvider: FileSystemDataProvider;
+  private workspaceType: WorkspaceType;
+  private isDelayedInitializationComplete = false;
 
   constructor() {
     this.fileSystemProvider = new FileSystemDataProvider();
@@ -147,12 +150,14 @@ export default class Server {
     this.connection.onShutdown(() => this.onShutdown());
     this.connection.onDefinition(params => this.onDefinition(params));
     this.connection.onDidChangeWatchedFiles(params => void this.onDidChangeWatchedFiles(params));
-
+    this.workspaceType = 'UNKNOWN';
     this.documents.listen(this.connection);
   }
 
   public async onInitialize(params: InitializeParams): Promise<InitializeResult> {
     this.workspaceFolders = params.workspaceFolders ?? [];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    this.workspaceType = params.initializationOptions?.workspaceType ?? 'UNKNOWN';
     // Normalize workspaceRoots at entry point to ensure all paths are consistent
     // This ensures all downstream code receives normalized paths
     this.workspaceRoots = this.workspaceFolders.map(folder => normalizePath(URI.parse(folder.uri).fsPath));
@@ -162,13 +167,16 @@ export default class Server {
     this.documents.onDidChangeContent(changeEvent => this.onDidChangeContent(changeEvent));
     this.documents.onDidSave(changeEvent => this.onDidSave(changeEvent));
 
+    // Create context but don't initialize yet - wait for files to be loaded via onDidOpen
     this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
 
+    // Create component indexer with fileSystemProvider (will be re-initialized after delayed init)
     this.componentIndexer = new ComponentIndexer({
       workspaceRoot: this.workspaceRoots[0],
       fileSystemProvider: this.fileSystemProvider
     });
 
+    // Create data providers (will be re-initialized after delayed init)
     this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
     this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
     await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemProvider);
@@ -176,12 +184,6 @@ export default class Server {
       customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
       useDefaultDataProvider: false
     });
-
-    await this.context.initialize();
-    this.context.configureProject();
-
-    // Initialize componentIndexer to get workspace structure
-    await this.componentIndexer.init();
 
     return this.capabilities;
   }
@@ -212,7 +214,7 @@ export default class Server {
     const hasTsEnabled = await this.isTsSupportEnabled();
     if (hasTsEnabled) {
       await this.context.configureProjectForTs();
-      await this.componentIndexer.updateSfdxTsConfigPath();
+      this.componentIndexer.updateSfdxTsConfigPath();
     }
   }
 
@@ -319,6 +321,10 @@ export default class Server {
   }
 
   public async onHover(params: TextDocumentPositionParams): Promise<Hover | null> {
+    if (!params?.textDocument || !params.position) {
+      return null;
+    }
+
     const {
       position,
       textDocument: { uri }
@@ -331,21 +337,17 @@ export default class Server {
 
     const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
 
-    const isLWCTemplate = await this.context.isLWCTemplate(doc);
-    const isAuraMarkup = await this.context.isAuraMarkup(doc);
-
-    if (isLWCTemplate) {
+    if (await this.context.isLWCTemplate(doc)) {
       this.auraDataProvider.activated = false;
       this.lwcDataProvider.activated = true;
-    } else if (isAuraMarkup) {
+      return this.languageService.doHover(doc, position, htmlDoc);
+    } else if (await this.context.isAuraMarkup(doc)) {
       this.auraDataProvider.activated = true;
       this.lwcDataProvider.activated = false;
+      return this.languageService.doHover(doc, position, htmlDoc);
     } else {
       return null;
     }
-
-    const hover = this.languageService.doHover(doc, position, htmlDoc);
-    return hover;
   }
 
   /**
@@ -366,16 +368,11 @@ export default class Server {
       this.workspaceRoots
     );
 
-    // Check if this is sfdx-project.json and re-detect workspace type if needed
-    const fileName = normalizedPath.split('/').pop();
-    if (fileName === 'sfdx-project.json' && this.context.type === 'UNKNOWN') {
-      // Update context to use the populated TextDocuments provider
-      this.context.fileSystemProvider = this.textDocumentsFileSystemProvider;
-
-      // Wait for files to be processed before re-initializing
-      void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performReinitialization());
-
-      void this.context.initialize();
+    // Perform delayed initialization once file loading has stabilized
+    // scheduleReinitialization waits for file count to stabilize (no changes for 1.5 seconds)
+    // This ensures all files from bootstrapWorkspaceAwareness are loaded before initialization
+    if (!this.isDelayedInitializationComplete) {
+      void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performDelayedInitialization());
     }
   }
 
@@ -646,31 +643,53 @@ export default class Server {
   }
 
   /**
-   * Performs the actual re-initialization of component indexer and data providers
+   * Performs delayed initialization of context and component indexer
+   * using the populated textDocumentsFileSystemProvider
    */
-  private async performReinitialization(): Promise<void> {
-    this.context.clearNamespaceCache();
+  private async performDelayedInitialization(): Promise<void> {
+    if (this.isDelayedInitializationComplete) {
+      return;
+    }
 
-    // Re-initialize component indexer with updated FileSystemProvider
-    this.componentIndexer = new ComponentIndexer({
-      workspaceRoot: this.workspaceRoots[0],
-      fileSystemProvider: this.textDocumentsFileSystemProvider
-    });
-    await this.componentIndexer.init();
+    try {
+      // Initialize workspace context now that essential files are loaded via onDidOpen
+      // scheduleReinitialization waits for file loading to stabilize, so all files should be available
+      this.context.fileSystemProvider = this.textDocumentsFileSystemProvider;
+      this.context.initialize(this.workspaceType);
 
-    // Update data providers to use the new indexer
-    this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
-    this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-    await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.textDocumentsFileSystemProvider);
-    this.languageService = getLanguageService({
-      customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
-      useDefaultDataProvider: false
-    });
+      // Clear namespace cache to force re-detection now that files are synced
+      // This ensures directoryExists can infer directory existence from file paths
+      this.context.clearNamespaceCache();
 
-    // send notification that re-initialization is complete with new FileSystemProvider
-    void this.connection.sendNotification(ShowMessageNotification.type, {
-      type: MessageType.Info,
-      message: 'LWC Language Server is ready'
-    });
+      // Re-initialize component indexer with updated FileSystemProvider
+      this.componentIndexer = new ComponentIndexer({
+        workspaceRoot: this.workspaceRoots[0],
+        fileSystemProvider: this.textDocumentsFileSystemProvider
+      });
+      await this.componentIndexer.init();
+
+      // Update data providers to use the new indexer
+      this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
+      this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
+      await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.textDocumentsFileSystemProvider);
+      this.languageService = getLanguageService({
+        customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
+        useDefaultDataProvider: false
+      });
+
+      this.isDelayedInitializationComplete = true;
+
+      // send notification that delayed initialization is complete
+      void this.connection.sendNotification(ShowMessageNotification.type, {
+        type: MessageType.Info,
+        message: 'LWC Language Server is ready'
+      });
+    } catch (error: unknown) {
+      Logger.error(
+        `Error during delayed initialization: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error : undefined
+      );
+      throw error;
+    }
   }
 }
