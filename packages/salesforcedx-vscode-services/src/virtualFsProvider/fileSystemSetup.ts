@@ -58,9 +58,8 @@ export const fileSystemSetup = (
       uri: vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}`)
     });
 
-    // Wait for workspace folders to be available before returning
-    yield* waitForWorkspaceFolders();
-
     yield* startWatch();
     yield* projectFiles(fsProvider);
+    // Wait for workspace folders to be available before returning
+    yield* waitForWorkspaceFolders();
   }).pipe(Effect.withSpan('fileSystemSetup'));
