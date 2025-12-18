@@ -572,6 +572,11 @@ export default [
       'packages/salesforcedx-vscode-org-browser/playwright*.ts',
       'packages/salesforcedx-vscode-metadata/playwright*.ts'
     ],
+    languageOptions: {
+      parserOptions: {
+        allowDefaultProject: true
+      }
+    },
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import
       'effect/no-import-from-barrel-package': ['off'],
