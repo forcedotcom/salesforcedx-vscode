@@ -16,6 +16,7 @@ Once everything is pasing, let's clean up while keeping it that way by running t
 2. very carefully aligning with `coding-playwright-tests.mdc` rules
 3. consolidating locators and increasing DRY/code reuse
 4. make sure everything exported from playwright-ext is used by some other ext.
+5. making sure compile,lint,etc still pass (follow `test-your-changes.mdc`)
 
 ## Debugging
 
@@ -23,7 +24,7 @@ LLMs should not run `debug` mode playwright tests unless instructed to. Those pa
 
 Use @https://playwright.dev/docs/api/class-locator#locator-inner-html on a known-good locator and use the result to get more accurate locators for stuff inside it.
 
-Take screenshots and review them (tool call `read_file`) for additional context. If an step is unclear (why it's failing) take lots of screenshots. Always review the screenshots.
+Take screenshots and review them (tool call `read_file`) for additional context. If an step is unclear (why it's failing) take lots of screenshots. Always review the screenshots. They show up in `test-results` folder of the extension under test.
 
 Capture html "parent" levels up from where you are having a problem and study it to make sure you are using correct locators.
 
