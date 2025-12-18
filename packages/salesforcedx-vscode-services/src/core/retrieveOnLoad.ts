@@ -95,9 +95,6 @@ export const retrieveOnLoadEffect = (): Effect.Effect<
       return yield* channelService.appendToChannel('No valid metadata members found in retrieveOnLoad setting');
     }
 
-    // Get project (workspace folders are guaranteed ready from fileSystemSetup)
-    yield* (yield* ProjectService).getSfProject;
-
     yield* channelService.appendToChannel(
       `Retrieving metadata on load: ${members.map(m => `${m.type}:${m.fullName}`).join(', ')}`
     );
