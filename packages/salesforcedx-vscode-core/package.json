@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.9.0",
+  "version": "65.9.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -151,7 +151,9 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "../../eslint.config.mjs"
+        "../../eslint.config.mjs",
+        "package.json",
+        "package.nls.json"
       ],
       "output": []
     },
@@ -177,7 +179,7 @@
       "activitybar": [
         {
           "id": "metadata",
-          "title": "Org Browser",
+          "title": "%orgBrowser.activitybar.title%",
           "icon": "resources/orgBrowserIcon.svg"
         },
         {
@@ -197,14 +199,14 @@
       "metadata": [
         {
           "id": "metadata",
-          "name": "Metadata",
+          "name": "%metadata_view_title_text%",
           "when": "sf:project_opened && config.salesforcedx-vscode-core.useLegacyOrgBrowser"
         }
       ],
       "conflicts": [
         {
           "id": "conflicts",
-          "name": "Conflicts",
+          "name": "%conflicts_view_title_text%",
           "when": "sf:project_opened"
         }
       ]
