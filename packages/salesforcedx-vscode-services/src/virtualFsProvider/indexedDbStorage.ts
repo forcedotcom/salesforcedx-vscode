@@ -92,13 +92,13 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
         }
       });
 
-    const loadState = (): Effect.Effect<void, Error> =>
+    const loadState = (): Effect.Effect<string[], Error> =>
       withStore('readonly', store => store.getAll()).pipe(
-        Effect.tap((entries: SerializedEntryWithPath[]) => {
-          entries.filter(isSerializedDirectoryWithPath).forEach(entry => {
+        Effect.map((entries: SerializedEntryWithPath[]): string[] => {
+          entries.filter(isSerializedDirectoryWithPath).map(entry => {
             fs.mkdirSync(entry.path, { recursive: true });
           });
-          entries.filter(isSerializedFileWithPath).forEach(writeFileWithOrWithoutDir);
+          return entries.filter(isSerializedFileWithPath).map(writeFileWithOrWithoutDir);
         }),
         Effect.tap(entries => Effect.annotateCurrentSpan({ entries })),
         Effect.withSpan('loadState')
@@ -128,7 +128,7 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
         Effect.withSpan('loadFile', { attributes: { path } })
       );
     return {
-      /** Load state from IndexedDB into memfs */
+      /** Load state from IndexedDB into memfs.  Returns the paths of the files created */
       loadState,
       /** Save a file to IndexedDB */
       saveFile,
@@ -144,7 +144,7 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
 const IndexedDBStorageServicesNoop: Layer.Layer<IndexedDBStorageService, never> = Layer.succeed(
   IndexedDBStorageService,
   new IndexedDBStorageService({
-    loadState: () => Effect.succeed(undefined),
+    loadState: () => Effect.succeed([]),
     saveFile: () => Effect.succeed(undefined),
     deleteFile: () => Effect.succeed(undefined),
     loadFile: () => Effect.succeed(undefined)
@@ -157,10 +157,11 @@ export const IndexedDBStorageServiceShared =
     ? Layer.unwrapEffect(Layer.memoize(IndexedDBStorageService.Default))
     : IndexedDBStorageServicesNoop;
 
-const writeFileWithOrWithoutDir = (entry: SerializedFileWithPath): void => {
+const writeFileWithOrWithoutDir = (entry: SerializedFileWithPath): string => {
   fs.mkdirSync(dirname(entry.path), { recursive: true });
   // Use base64 to preserve binary data (e.g., git objects)
   fs.writeFileSync(entry.path, Buffer.from(entry.data, 'base64'));
+  return entry.path;
 };
 
 const buildFileEntry = (path: string): SerializedEntryWithPath => {

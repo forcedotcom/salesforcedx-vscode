@@ -7,6 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { sampleProjectName } from '../constants';
 import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
@@ -14,7 +15,7 @@ import { WorkspaceService } from '../vscode/workspaceService';
 import { fsPrefix } from './constants';
 import { FsProvider } from './fileSystemProvider';
 import { IndexedDBStorageService } from './indexedDbStorage';
-import { startWatch } from './memfsWatcher';
+import { emitter, startWatch } from './memfsWatcher';
 import { projectFiles } from './projectInit';
 
 /** Sets up the virtual file system for the extension */
@@ -25,7 +26,7 @@ export const fileSystemSetup = (
     const fsProvider = new FsProvider();
 
     // Load state from IndexedDB first
-    yield* (yield* IndexedDBStorageService).loadState();
+    const filePaths = yield* (yield* IndexedDBStorageService).loadState();
 
     // Register the file system provider
     context.subscriptions.push(
@@ -39,6 +40,16 @@ export const fileSystemSetup = (
       name: 'Code Builder',
       uri: vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}`)
     });
+
+    // for each filePath, notify the file system provider that the file has changed
+    yield* Effect.forEach(
+      filePaths,
+      filePath =>
+        Effect.sync(() => {
+          emitter.fire([{ type: vscode.FileChangeType.Changed, uri: URI.parse(`${fsPrefix}:${filePath}`) }]);
+        }),
+      { concurrency: 'unbounded' }
+    );
 
     yield* startWatch();
     yield* projectFiles(fsProvider);
