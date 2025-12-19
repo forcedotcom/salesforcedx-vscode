@@ -6,21 +6,23 @@
  */
 import { Duration, TestReqConfig, ProjectShapeOption } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { log, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core/miscellaneous';
+import {
+  retryOperation,
+  verifyNotificationWithRetry
+} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createAura } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   executeQuickPick,
-  getOutputViewText,
   getTextEditor,
   getWorkbench,
-  reloadWindow,
-  moveCursorWithFallback
+  moveCursorWithFallback,
+  reloadWindow
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
 import { getFolderPath } from '../utils/buildFilePathHelper';
-import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Aura LSP', () => {
@@ -33,7 +35,14 @@ describe('Aura LSP', () => {
     },
     isOrgRequired: false,
     testSuiteSuffixName: 'AuraLsp',
-    extensionConfigs: defaultExtensionConfigs
+    extensionConfigs: [
+      ...defaultExtensionConfigs,
+      {
+        extensionId: 'salesforcedx-vscode-lightning',
+        shouldVerifyActivation: false, // We don't activate until we have an Aura Component
+        shouldInstall: 'always'
+      }
+    ]
   };
 
   before('Set up the testing environment', async () => {
@@ -41,24 +50,14 @@ describe('Aura LSP', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
     auraFolderPath = getFolderPath(testSetup.projectFolderPath!, 'aura');
 
-    // Hide copilot
-    await tryToHideCopilot();
-
     // Create Aura Component
-    await createAura('aura1', auraFolderPath);
+    await retryOperation(() => createAura('aura1', auraFolderPath), 2, 'AuraLsp - Error creating Aura Component');
 
     // Reload the VSCode window to allow the Aura Component to be indexed by the Aura Language Server
     await reloadWindow(Duration.seconds(20));
-  });
 
-  it('Verify LSP finished indexing', async () => {
-    logTestStart(testSetup, 'Verify LSP finished indexing');
-
-    // Get output text from the LSP
-    const outputViewText = await getOutputViewText('Aura Language Server');
-    log('Output view text');
-    log(outputViewText);
-    expect(outputViewText).to.contain('language server started');
+    // wait for server initialization to complete
+    await verifyNotificationWithRetry(/Aura Language Server is ready/, Duration.seconds(10));
   });
 
   it('Go to Definition', async () => {

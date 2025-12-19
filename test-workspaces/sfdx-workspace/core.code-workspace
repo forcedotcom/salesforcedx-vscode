@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "path": "/Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/sfdx-workspace"
+    }
+  ],
+  "settings": {
+    "eslint.workingDirectories": [
+      "/Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/sfdx-workspace"
+    ],
+    "eslint.validate": [
+      "javascript",
+      "typescript"
+    ],
+    "eslint.options": {
+      "overrideConfigFile": "/Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/sfdx-workspace/.eslintrc.json"
+    }
+  }
+}
