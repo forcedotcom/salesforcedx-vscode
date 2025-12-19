@@ -13,7 +13,8 @@ export {
   closeWelcomeTabs,
   closeSettingsTab,
   waitForWorkspaceReady,
-  typingSpeed
+  typingSpeed,
+  isMacDesktop
 } from './utils/helpers';
 
 export { createFileWithContents, createApexClass, openFileByName, editOpenFile } from './utils/fileHelpers';
@@ -43,13 +44,7 @@ export { upsertScratchOrgAuthFieldsToSettings, openSettingsUI, upsertSettings } 
 
 export { executeCommandWithCommandPalette, openCommandPalette, executeCommand, reloadWindow } from './pages/commands';
 
-export {
-  openEditorContextMenu,
-  openExplorerContextMenu,
-  selectContextMenuItem,
-  executeEditorContextMenuCommand,
-  executeExplorerContextMenuCommand
-} from './pages/contextMenu';
+export { executeEditorContextMenuCommand, executeExplorerContextMenuCommand } from './pages/contextMenu';
 
 export {
   ensureOutputPanelOpen,

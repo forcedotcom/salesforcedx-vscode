@@ -42,7 +42,8 @@ export default [
       'scripts/vsce-bundled-extension.ts',
       'scripts/reportInstalls.ts',
       '**/.vscode-test-web/**',
-      '**/.vscode-test/**'
+      '**/.vscode-test/**',
+      '**/playwright-report/**'
     ]
   },
   {

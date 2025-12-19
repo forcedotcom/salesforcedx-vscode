@@ -23,7 +23,8 @@ import {
   openFileByName,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
-  executeCommandWithCommandPalette
+  executeCommandWithCommandPalette,
+  isMacDesktop
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -40,7 +41,8 @@ const manifestContent = `<?xml version="1.0" encoding="UTF-8"?>
 </Package>`;
 
 test.describe('Deploy Manifest', () => {
-  test('deploys via all entry points', async ({ page }) => {
+  // eslint-disable-next-line jest/unbound-method
+  (isMacDesktop() ? test.skip : test)('deploys via all entry points', async ({ page }) => {
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
 

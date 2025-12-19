@@ -40,6 +40,10 @@ the vscode API (tree views, editors, output panels) often only contain the visib
 Don't rely on scrollTo because the target element won't exist.
 `scrollIntoViewIfNeeded` probably won't help
 
+## ContextMenus and Mac
+
+There is no way to read or interact with context menus (right click) on mac+Desktop+electron. Those tests/steps will need to skip themselves. Windows and Web are fine
+
 ## Selectors and Assertions
 
 Prefer `aria` (getByRole) over css selectors

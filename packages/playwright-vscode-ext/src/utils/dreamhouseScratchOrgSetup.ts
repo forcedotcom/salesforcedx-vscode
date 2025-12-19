@@ -17,7 +17,7 @@ export const DREAMHOUSE_ORG_ALIAS = 'orgBrowserDreamhouseTestOrg';
 
 const execAsync = promisify(exec);
 
-const env = { ...process.env, NO_COLOR: '1' };
+const env = { ...process.env } as Record<string, string>;
 /** this, if running all your tests locally, could create a lot of scratch orgs in parallel.  It's definitely better to run the steps once, or run just one test to get things going */
 export const create = async (): Promise<
   Required<Pick<AuthFields, 'instanceUrl' | 'accessToken' | 'instanceApiVersion'>>

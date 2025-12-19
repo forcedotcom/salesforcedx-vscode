@@ -10,7 +10,7 @@ import { EDITOR_WITH_URI, CONTEXT_MENU } from '../utils/locators';
 import { executeCommandWithCommandPalette } from './commands';
 
 /** Opens context menu on an editor. If fileName is provided, matches editor by URI/name (partial match). */
-export const openEditorContextMenu = async (page: Page, fileName?: string): Promise<Locator> => {
+const openEditorContextMenu = async (page: Page, fileName?: string): Promise<Locator> => {
   let editor: Locator;
   if (fileName) {
     // Wait for at least one editor to be visible first
@@ -50,7 +50,7 @@ export const openEditorContextMenu = async (page: Page, fileName?: string): Prom
 };
 
 /** Opens context menu on a file/folder in the explorer sidebar */
-export const openExplorerContextMenu = async (page: Page, itemName: string | RegExp): Promise<Locator> => {
+const openExplorerContextMenu = async (page: Page, itemName: string | RegExp): Promise<Locator> => {
   await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
   const treeItem = page.getByRole('treeitem', { name: itemName });
   await treeItem.waitFor({ state: 'visible', timeout: 10_000 });
@@ -67,7 +67,7 @@ export const openExplorerContextMenu = async (page: Page, itemName: string | Reg
 };
 
 /** Selects an item from an open context menu by name */
-export const selectContextMenuItem = async (page: Page, itemName: string | RegExp): Promise<void> => {
+const selectContextMenuItem = async (page: Page, itemName: string | RegExp): Promise<void> => {
   const contextMenu = page.locator(CONTEXT_MENU);
   // Wait for menu to be fully rendered
   await contextMenu.waitFor({ state: 'visible', timeout: 5000 });
