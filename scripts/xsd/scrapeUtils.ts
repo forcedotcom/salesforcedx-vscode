@@ -686,9 +686,7 @@ export const extractMetadataFromPage = async (
           const dtText = dt.textContent?.trim().toLowerCase() ?? '';
 
           // Check if this DT matches any of the label patterns
-          const isMatch = labelMatches.some(
-            label => dtText.includes(label.toLowerCase()) || dtText === label.toLowerCase()
-          );
+          const isMatch = labelMatches.some(label => dtText.includes(label.toLowerCase()));
 
           if (isMatch) {
             if (collectMultiple) {
