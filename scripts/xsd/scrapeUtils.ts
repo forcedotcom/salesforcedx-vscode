@@ -682,34 +682,31 @@ export const extractMetadataFromPage = async (
       /** Helper to extract value from DT/DD structure */
       function extractFromDtDd(container: Element, labelMatches: string[], collectMultiple: boolean = false): string {
         const dtElements = Array.from(container.querySelectorAll('dt'));
+
         for (const dt of dtElements) {
           const dtText = dt.textContent?.trim().toLowerCase() ?? '';
 
           // Check if this DT matches any of the label patterns
-          const isMatch = labelMatches.some(label => dtText.includes(label.toLowerCase()));
+          if (!labelMatches.some(label => dtText.includes(label.toLowerCase()))) continue;
 
-          if (isMatch) {
-            // Collect DD siblings until the next DT
-            const parts: string[] = [];
-            let current = dt.nextElementSibling;
+          // Collect DD siblings until the next DT
+          const parts: string[] = [];
+          let current = dt.nextElementSibling;
 
-            while (current) {
-              if (current.tagName === 'DT') break;
-              if (current.tagName === 'DD') {
-                const ddText = current.textContent?.trim();
-                if (ddText) {
-                  parts.push(ddText);
-                  if (!collectMultiple) break; // Stop after first DD if not collecting multiple
-                }
+          while (current && current.tagName !== 'DT') {
+            if (current.tagName === 'DD') {
+              const ddText = current.textContent?.trim();
+              if (ddText) {
+                parts.push(ddText);
+                if (!collectMultiple) return ddText; // Early return for single value
               }
-              current = current.nextElementSibling;
             }
-
-            if (parts.length > 0) {
-              return collectMultiple ? parts.join('\n\n') : parts[0];
-            }
+            current = current.nextElementSibling;
           }
+
+          if (parts.length > 0) return collectMultiple ? parts.join('\n\n') : parts[0];
         }
+
         return '';
       }
     });
