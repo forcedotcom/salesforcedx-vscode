@@ -52,7 +52,7 @@
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
-      "preLaunchTask": "Compile"
+      "preLaunchTask": "Compile and Bundle"
     },
     {
       "name": "Launch Extensions without compile",
@@ -104,7 +104,7 @@
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
-      "preLaunchTask": "Compile"
+      "preLaunchTask": "Compile and Bundle"
     },
     {
       "name": "Launch Replay Debugger adapter",
@@ -121,7 +121,7 @@
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
-      "preLaunchTask": "Compile"
+      "preLaunchTask": "Compile and Bundle"
     },
 
     {
@@ -139,7 +139,7 @@
       ],
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}/packages/salesforcedx-vscode-soql",
-      "preLaunchTask": "Compile",
+      "preLaunchTask": "Compile and Bundle",
       "internalConsoleOptions": "openOnSessionStart"
     },
 
@@ -163,7 +163,7 @@
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///*": "*"
       },
-      "preLaunchTask": "Compile",
+      "preLaunchTask": "Compile and Bundle",
       "internalConsoleOptions": "openOnSessionStart"
     },
 
@@ -187,7 +187,7 @@
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///*": "*"
       },
-      "preLaunchTask": "Compile",
+      "preLaunchTask": "Compile and Bundle",
       "internalConsoleOptions": "openOnSessionStart"
     },
 
@@ -211,7 +211,7 @@
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///*": "*"
       },
-      "preLaunchTask": "Compile",
+      "preLaunchTask": "Compile and Bundle",
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
@@ -234,7 +234,7 @@
         "webpack:///salesforcedx-utils-vscode/./*": "${workspaceFolder}/packages/salesforcedx-utils-vscode/*",
         "webpack:///*": "*"
       },
-      "preLaunchTask": "Compile",
+      "preLaunchTask": "Compile and Bundle",
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
@@ -261,7 +261,7 @@
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
-      "preLaunchTask": "Compile",
+      "preLaunchTask": "Compile and Bundle",
       "internalConsoleOptions": "openOnSessionStart",
       "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },
@@ -289,7 +289,7 @@
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
-      "preLaunchTask": "Compile",
+      "preLaunchTask": "Compile and Bundle",
       "internalConsoleOptions": "openOnSessionStart"
     },
     {
@@ -316,7 +316,7 @@
         "webpack:///salesforcedx-sobjects-faux-generator/./*": "${workspaceFolder}/packages/salesforcedx-sobjects-faux-generator/*",
         "webpack:///*": "*"
       },
-      "preLaunchTask": "Compile",
+      "preLaunchTask": "Compile and Bundle",
       "internalConsoleOptions": "openOnSessionStart",
       "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
     },

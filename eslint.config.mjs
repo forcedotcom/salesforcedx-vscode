@@ -34,14 +34,19 @@ export default [
       '**/out/**',
       '**/dist/**',
       '**/packages/**/coverage',
+      '**/test-workspaces/**',
       '**/*.d.ts',
       '**/jest.config.js',
       '**/jest.integration.config.js',
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
+      'packages/salesforcedx-aura-language-server/src/tern/**',
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'scripts/vsce-bundled-extension.ts',
       'scripts/reportInstalls.ts',
+      'packages/salesforcedx-lwc-language-server/src/javascript/__tests__/fixtures/**',
+      'packages/salesforcedx-lightning-lsp-common/src/resources/**',
+      'packages/salesforcedx-lightning-lsp-common/src/html-language-service/**',
       '**/.vscode-test-web/**',
       '**/.vscode-test/**'
     ]
@@ -422,6 +427,9 @@ export default [
     files: [
       'packages/salesforcedx**/test/jest/**/*',
       'packages/salesforcedx**/test/unit/**/*',
+      'packages/salesforcedx**/src/**/__tests__/**/*',
+      'packages/salesforcedx**/src/**/*.spec.ts',
+      'packages/salesforcedx**/src/**/*.test.ts',
       'packages/salesforcedx**/test/web/**/*',
       'packages/salesforcedx**/test/playwright/**/*',
       'packages/salesforcedx-vscode-automation-tests/**/*'
@@ -439,7 +447,7 @@ export default [
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'warn',
-      '@typescript-eslint/no-unused-expressions': 'warn',
+      '@typescript-eslint/no-unused-expressions': ['warn', {}],
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -461,6 +469,7 @@ export default [
   {
     // these have extensive copy-paste from an old version of msft language server
     // this rule requires strict null checks to be enabled and that code does not support it
+    // Also disable for packages that don't have strictNullChecks enabled
     files: [
       'packages/salesforcedx-visualforce-markup-language-server/**',
       'packages/salesforcedx-visualforce-language-server/**',

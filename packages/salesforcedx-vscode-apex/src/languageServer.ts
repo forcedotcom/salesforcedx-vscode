@@ -94,7 +94,7 @@ const createServer = async (extensionContext: vscode.ExtensionContext): Promise<
       '-Dlwc.typegeneration.disabled=true'
     ];
 
-    if (jvmMaxHeap) {
+    if (jvmMaxHeap && typeof jvmMaxHeap === 'number') {
       args.push(`-Xmx${jvmMaxHeap}M`);
     }
     telemetryService.sendEventData('apexLSPSettings', undefined, {

@@ -8,6 +8,12 @@
   "include": ["src/**/*.ts", "test/**/*.ts"],
   "references": [
     {
+      "path": "../salesforcedx-lightning-lsp-common"
+    },
+    {
+      "path": "../salesforcedx-lwc-language-server"
+    },
+    {
       "path": "../salesforcedx-utils"
     },
     {

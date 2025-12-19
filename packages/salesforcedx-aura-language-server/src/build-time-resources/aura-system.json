@@ -1,0 +1,466 @@
+{
+   "aura:application":{
+      "type": "system",
+      "description":"An app is a special top-level component whose markup is in a .app file. The markup looks similar to HTML and can contain components as well as a set of supported HTML tags. The .app file is a standalone entry point for the app and enables you to define the overall application layout, style sheets, and global JavaScript includes. It starts with the top-level <aura:application> tag, which contains optional system attributes. These system attributes tell the framework how to configure the app.",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/ref_aura_application.htm",
+      "attributes":{
+         "abstract":{
+            "type":"Boolean",
+            "description":"Set to true if the component is abstract. The default is false."
+         },
+         "access":{
+            "type":"String",
+            "description":"Indicates whether the app can be extended by another app outside of a namespace. Possible values are internal (default), public, and global."
+         },
+         "additionalAppCacheURLs":{
+            "type":"String",
+            "description":"Addtional app cache urls"
+         },
+         "controller":{
+            "type":"String",
+            "description":"The server-side controller class for the app. The format is java://<package.class> or serviceComponent://<package.class>."
+         },
+         "defaultFlavor":{
+            "type":"String",
+            "description":"The comma-separated list of flavor names in the component bundle, defined in the <componentName>Flavors.css file."
+        },
+         "description":{
+            "type":"String",
+            "description":"A brief description of the app."
+         },
+         "extends":{
+            "type":"Component",
+            "description":"The app to be extended, if applicable. For example, extends='namespace:yourApp'."
+         },
+         "extensible":{
+            "type":"Boolean",
+            "description":"Indicates whether the app is extensible by another app. Defaults to false."
+         },
+         "helper":{
+            "type":"String",
+            "description":"The external JavaScript helper file to use. If you use an external helper file, the helper methods in your component bundle will not be accessible. The format is js://namespace.component."
+         },
+         "implements":{
+            "type":"String",
+            "description":"A comma-separated list of interfaces that the app implements."
+        },
+         "locationChangeEvent":{
+            "type":"Event",
+            "description":"The framework monitors the location of the current window for changes. If the # value in a URL changes, the framework fires an application event. The locationChangeEvent defines this event. The default value is aura:locationChange. The locationChange event has a single attribute called token, which is set with everything after the # value in the URL."
+         },
+         "model":{
+            "type":"String",
+            "description":"The model class used to initialize data for the app. The format is java://<package.class> or serviceComponent://<package.class>.."
+         },
+         "preload":{
+            "type":"String",
+            "description":"Not sure what this does"
+        },
+         "render":{
+            "type":"String",
+            "description":"Renders the component using client-side or server-side renderers. If not provided, the framework determines any dependencies and whether the application should be rendered client-side or server-side. Valid options are client or server. The default is auto. For example, specify render='client' if you want to inspect the application on the client-side during testing."
+         },
+         "renderer":{
+            "type":"String",
+            "description":"Only use this system attribute if you want to use a custom client-side or server-side renderer. If you don't set a renderer, the framework uses its default rendering, which is sufficient for most use cases. If you don't define this system attribute, your application is autowired to a client-side renderer named <appName>Renderer.js, if it exists in your application bundle."
+        },
+         "support":{
+            "type":"String",
+            "description":"The support level for the component. Valid options are PROTO, DEPRECATED, BETA, or GA."
+         },
+         "template":{
+            "type":"Component",
+            "description":"The name of the template used to bootstrap the loading of the framework and the app. The default value is aura:template. You can customize the template by creating your own component that extends the default template. For example: <aura:component extends='aura:template' ... >"
+         },
+         "useAppcache":{
+            "type":"Boolean",
+            "description":"Specifies whether to use the application cache. Valid options are true or false. Defaults to false."
+         },
+         "whitespace":{
+            "type":"String",
+            "description":"Preserves or removes unnecessary whitespace in the component markup. Valid options are preserve or optimize. The default is optimize."
+         }
+      }
+   },
+   "aura:attribute":{
+      "type": "system",
+      "description":"aura:attribute describes an attribute available on an app, interface, component, or event.",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/ref_aura_attribute.htm",
+      "attributes":{
+         "access":{
+            "type":"String",
+            "description":"Indicates whether the attribute can be used outside of its own namespace. Possible values are internal (default), private, public, and global."
+         },
+         "default":{
+            "type":"String",
+            "description":"The default value for the attribute, which can be overwritten as needed. When setting a default value, expressions using the $Label, $Locale, and $Browser global value providers are supported. Alternatively, to set a dynamic default, use an init event. See <a href='http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/js_cb_init_handler.htm'>Invoking Actions on Component Initialization</a>"
+         },
+         "description":{
+            "type":"String",
+            "description":"A summary of the attribute and its usage."
+         },
+         "name":{
+            "type":"String",
+            "description":"Required. The name of the attribute. For example, if you set<aura:attribute name='isTrue' type='Boolean' /> on a component called aura:newCmp, you can set this attribute when you instantiate the component; for example,<aura:newCmp isTrue='false' />.",
+            "required": "true"
+         },
+         "required":{
+            "type":"Boolean",
+            "description":"Determines if the attribute is required. The default is false."
+         },
+         "type":{
+            "type":"String",
+            "description":"Required. The type of the attribute. For a list of basic types supported, see <a href='http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/ref_attr_types_basic.htm'>Basic Types</a>",
+            "required": "true"
+         }
+      }
+   },
+   "aura:component":{
+      "type": "system",
+      "description":"A component is represented by the aura:component tag, which has the following optional attributes.",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/components_overview.htm",
+      "attributes":{
+         "abstract":{
+            "type":"Boolean",
+            "description":"Set to true if the component is abstract. The default is false."
+         },
+         "access":{
+            "type":"String",
+            "description":"Indicates whether the component can be used outside of its own namespace. Possible values are internal (default), public, and global."
+         },
+         "controller":{
+            "type":"String",
+            "description":"The server-side controller class for the component. The format is java://<package.class> or serviceComponent://<package.class>.."
+         },
+         "defaultFlavor":{
+            "type":"String",
+            "description":"The comma-separated list of flavor names in the component bundle, defined in the <componentName>Flavors.css file."
+         },
+         "description":{
+            "type":"String",
+            "description":"A description of the component."
+         },
+         "extends":{
+            "type":"Component",
+            "description":"The component to be extended, if applicable. For example, extends='ui:input'."
+         },
+         "extensible":{
+            "type":"Boolean",
+            "description":"Set to true if the component can be extended. The default is false."
+         },
+         "helper":{
+            "type":"String",
+            "description":"The external JavaScript helper file to use. If you use an external helper file, the helper methods in your component bundle will not be accessible. The format is js://namespace.component."
+         },
+         "implements":{
+            "type":"String",
+            "description":"A comma-separated list of interfaces that the component implements."
+         },
+         "isTemplate":{
+            "type":"Boolean",
+            "description":"Set to true if the component is a template. The default is false."
+         },
+         "model":{
+            "type":"String",
+            "description":"The model class used to initialize data for the component. The format is java://<package.class> or serviceComponent://<package.class>.."
+         },
+         "provider":{
+            "type":"String",
+            "description":"The JavaScript or Java provider, in the format java://<package.class> or js://namespace.component. A provider enables you to use an abstract component in markup. Defining a server-side provider overrides any client-side provider in the component bundle."
+         },
+         "render":{
+            "type":"String",
+            "description":"Renders the component using client-side or server-side renderers. If not provided, the framework determines any dependencies and whether the component should be rendered client- or server-side. Valid options are client or server. The default is auto. Specify this attribute in the top-level component. For example, specify render='client' if you want to inspect the component on the client-side during testing."
+         },
+         "renderer":{
+            "type":"String",
+            "description":"Only use this system attribute if you want to use a custom client-side or server-side renderer. If you don't set a renderer, the framework uses its default rendering, which is sufficient for most use cases. If you don't define this system attribute, your component is autowired to a client-side renderer named <appName>Renderer.js, if it exists in your component bundle."
+         },
+         "support":{
+            "type":"String",
+            "description":"The support level for the component. Valid options are PROTO, DEPRECATED, BETA, or GA."
+         },
+         "template":{
+            "type":"Component",
+            "description":"The template for this component. A template bootstraps loading of the framework and app. The default template is aura:template. You can customize the template by creating your own component that extends the default template."
+         },
+         "whitespace":{
+            "type":"String",
+            "description":"Preserves or removes unnecessary whitespace in the component markup. Valid options are preserve or optimize. The default is optimize."
+         }
+      }
+   },
+   "aura:event":{
+      "type": "system",
+      "description":"An event is represented by the aura:event tag, which has the following attributes.",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/events_intro.htm",
+      "attributes":{
+         "access":{
+            "type":"String",
+            "description":"Indicates whether the event can be extended or used outside of its own namespace. Possible values are internal (default), public, and global."
+         },
+         "description":{
+            "type":"String",
+            "description":"A description of the event."
+         },
+         "extends":{
+            "type":"Component",
+            "description":"The event to be extended. For example, extends='namespace:myEvent'."
+         },
+         "support":{
+            "type":"String",
+            "description":"The support level for the event. Valid options are PROTO, DEPRECATED, BETA, or GA."
+         },
+         "type":{
+            "type":"String",
+            "description":"Required. Possible values are COMPONENT or APPLICATION.",
+            "required": "true"
+         }
+      }
+   },
+   "aura:handler":{
+      "type": "system",
+      "description":"A client-side controller handles events within a component. It’s a JavaScript file that defines the functions for all of the component's actions.",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/js_client_side_controller.htm",
+      "attributes":{
+         "action":{
+            "type":"String",
+            "description":"The client-side controller action that handles the value change. Example: action='{!c.handleApplicationEvent}'",
+            "required": "true"
+         },
+         "description":{
+            "type":"String",
+            "description":"The description of the handler"
+         },
+         "event":{
+            "type":"String",
+            "description":"The event name to be handled. Example: event='namespace:MyEvent'"
+         },
+         "name":{
+            "type":"String",
+            "description":"The name of the handler. Example: name='init'."
+         },
+         "value":{
+            "type":"String",
+            "description":"The value that is initialized, for example {!this}."
+         }
+      }
+   },
+   "aura:import":{
+      "type": "system",
+      "description":"Import an aura:library to be used within this component.",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/components_overview.htm",
+      "attributes":{
+         "description":{
+            "type":"String",
+            "description":"The description of this import"
+         },
+         "library":{
+            "type":"String",
+            "description":"The library name to import. Example: library='namespace:MyLib'",
+            "required":"true"
+         },
+         "property":{
+            "type":"String",
+            "description":"The property name this library will be referenced by in your component. For example: property='myLib'. The library can now be accessed at 'helper.myLib'.",
+            "required":"true"
+         }
+      }
+   },
+   "aura:interface":{
+      "type": "system",
+      "description":"Object-oriented languages, such as Java, support the concept of an interface that defines a set of method signatures. A class that implements the interface must provide the method implementations. An interface in Java can't be instantiated directly, but a class that implements the interface can. Similarly, Aura supports the concept of interfaces that define a component's shape by defining its attributes.",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/oo_interfaces.htm",
+      "attributes":{
+         "access":{
+            "type":"String",
+            "description":"Indicates whether the interface can be extended or used outside of its own namespace. Possible values are internal (default), public, and global."
+         },
+         "description":{
+            "type":"String",
+            "description":"A description of the interface."
+         },
+         "extends":{
+            "type":"Component",
+            "description":"The comma-seperated list of interfaces to be extended. For example, extends='namespace:intfB'"
+         },
+         "provider":{
+            "type":"String",
+            "description":"The provider for the interface."
+         },
+         "support":{
+            "type":"String",
+            "description":"The support level for the interface. Valid options are PROTO, DEPRECATED, BETA, or GA."
+         }
+      }
+   },
+   "aura:library":{
+      "type": "system",
+      "description":"A collection of javascript functions that can be reused accross components.",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/components_overview.htm",
+      "attributes":{
+         "description":{
+            "type":"String",
+            "description":"The description of this library"
+         },
+         "support":{
+            "type":"String",
+            "description":"The support level for the library. Valid options are PROTO, DEPRECATED, BETA, or GA."
+         }
+      }
+   },
+   "aura:clientLibrary":{
+      "type": "system",
+      "description":"The <aura:clientLibrary> tag enables you to specify JavaScript or CSS libraries that you want to use. Use the tag in a .cmp or .app resource. Here is some example markup for including client libraries in a component.",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/ref_tag_clientlibrary.htm",
+      "attributes":{
+          "combine":{
+             "type":"String",
+             "description":"If set to true, the library is added to resources.js or resources.css. This option is only available for resources that are available on the local server, for example under the aura-resources folder. Combining libraries into one file can improve performance by reducing the number of requests, instead of a separate request for each library."
+          },
+          "modes":{
+             "type":"String",
+             "description":"A comma-separated list of modes that use the client library. If no value is set, the library is available for all modes."
+          },
+          "name":{
+             "type":"String",
+             "description":"The name of a ClientLibraryResolver that provides the URL. The name attribute is useful if the location or URL of the library needs to be dynamically generated. The name attribute is required if the url attribute is not specified; otherwise, it’s ignored. See <a href='http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/ref_tag_clientlibrary.htm#add_resolver_title'>Add a Client Library Resolver</a>",
+             "required": "true"
+         },
+         "type":{
+            "type":"String",
+            "description":"The type of library. Values are CSS, or JS for JavaScript."
+         },
+         "url":{
+             "type":"String",
+             "description":"The external URL or path to the file on the server for the library. Examples are: https://jquery.org/latest/jquery.js || /absolute/path/to/file.js || relative/path/to/file.css"
+         },
+         "description":{
+             "type":"String",
+             "description":"The description of this library"
+         }
+      }
+   },
+   "aura:method":{
+      "type": "system",
+      "description":"Use <aura:method> to define a method as part of a component's API. This enables you to directly call a method in a component’s client-side controller instead of firing and handling a component event. Using <aura:method> simplifies the code needed for a parent component to call a method on a child component that it contains.",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/js_cmp_methods.htm",
+      "attributes":{
+         "access":{
+            "type":"String",
+            "description":"The access control for the method. Valid values are: internal (system namespaces), public (same namespace), global (any namespace)"
+         },
+         "action":{
+            "type":"String",
+            "description":"The client-side controller action to execute. For example: action='{!c.sampleAction}''. sampleAction is an action in the client-side controller. If you don’t specify an action value, the controller action defaults to the value of the method name."
+         },
+         "description":{
+            "type":"String",
+            "description":"The method description."
+         },
+         "name":{
+            "type":"String",
+            "description":"The method name. Use the method name to call the method in JavaScript code. For example: cmp.sampleMethod(param1);",
+            "required": "true"
+         }
+      }
+   },
+   "aura:registerEvent":{
+      "type": "system",
+      "description":"Registers an event that your component will fire as part of its lifecycle.",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/events_intro.htm",
+      "attributes":{
+         "description":{
+            "type":"String",
+            "description":"The description of this registered event"
+         },
+         "name":{
+            "type":"String",
+            "description":"The name this registered event will be referred to by. Example: type='myEvent'. You can now access this event by calling component.get('e.myEvent')",
+            "required": "true"
+         },
+         "type":{
+            "type":"String",
+            "description":"The event that this component may fire. Example: type='force:showQuickAction'",
+            "required": "true"
+         }
+      }
+   },
+   "aura:dependency":{
+      "type": "system",
+      "description":"The <aura:dependency> tag enables you to declare dependencies that can't easily be discovered by the framework. The framework automatically tracks dependencies between definitions, such as components. This enables the framework to automatically reload when it detects that you've changed a definition during development. However, if a component uses a client- or server-side provider that instantiates components that are not directly referenced in the component’s markup, use <aura:dependency> in the component’s markup to explicitly tell the framework about the dependency. Adding the <aura:dependency> tag ensures that a component and its dependencies are sent to the client, when needed. For example, adding this tag to a component marks the aura:placeholder component as a dependency.",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/ref_tag_dependency.htm",
+      "attributes":{
+         "description":{
+            "type":"String",
+            "description":"The description of this dependency."
+         },
+         "resource":{
+            "type":"String",
+            "description":"The resource that the component depends on. For example, resource='markup://sampleNamespace:sampleComponent' refers to the sampleComponent in the sampleNamespace namespace. Use an asterisk (*) in the resource name for wildcard matching. For example, resource='markup://sampleNamespace:*' matches everything in the namespace; resource='markup://sampleNamespace:input*' matches everything in the namespace that starts with input. Don’t use an asterisk (*) in the namespace portion of the resource name. For example, resource='markup://sample*:sampleComponent' is not supported.",
+            "required": "true"
+         },
+         "type":{
+            "type":"String",
+            "description":"The type of resource that the component depends on. The default value is COMPONENT. Use type='*' to match all types of resources. The most commonly used values are: COMPONENT, APPLICATION, EVENT. Use a comma-separated list for multiple types; for example: COMPONENT,APPLICATION."
+         }
+      }
+   },
+   "aura:set":{
+      "type": "system",
+      "description":"Use <aura:set> in markup to set the value of an attribute inherited from a super component, event, or interface.",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/ref_set_intro.htm",
+      "attributes":{
+         "attribute":{
+            "type":"String",
+            "description":"The attribute name to set",
+            "required": "true"
+         },
+         "value":{
+            "type":"String",
+            "description":"The value to set on this attribute"
+         }
+      }
+   },
+   "aura:theme":{
+      "type": "system",
+      "description":"",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/components_overview.htm",
+      "attributes":{
+         "access":{
+            "type":"String",
+            "description":""
+         },
+         "description":{
+            "type":"String",
+            "description":""
+         },
+         "extends":{
+            "type":"Component"
+         },
+         "mapProvider":{
+            "type":"String",
+            "description":""
+         },
+         "provider":{
+            "type":"String",
+            "description":""
+         },
+         "support":{
+            "type":"String",
+            "description":""
+         }
+      }
+   },
+   "design:component":{
+      "type": "system",
+      "description":"",
+      "url":"http://aura-oss-dev.herokuapp.com/en-us/main/aura-oss/components_overview.htm",
+      "attributes":{
+         "label":{
+            "type":"String",
+            "description":""
+         }
+      }
+   }
+}

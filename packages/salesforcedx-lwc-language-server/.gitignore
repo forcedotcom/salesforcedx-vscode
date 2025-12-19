@@ -1,0 +1,9 @@
+node_modules
+lib
+.DS_Store
+.sfdx
+.project
+coverage/
+src/resources/sfdx/typings/copied/
+yarn-error.log
+test-workspaces

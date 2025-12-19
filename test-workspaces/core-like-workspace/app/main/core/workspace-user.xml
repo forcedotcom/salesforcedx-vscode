@@ -1,0 +1,14 @@
+<?xml version="1.0" ?><workspace>
+  <username>un</username>
+  <password>pw</password>
+  <source>
+    <revision>15062234</revision>
+    <branch>main</branch>
+  </source>
+
+  <modules>
+    <module>:core</module>
+    <module>shared-app</module>
+  </modules>
+
+</workspace>

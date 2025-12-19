@@ -101,3 +101,5 @@ export { UserService } from './services/userService';
 export { SettingsService } from './settings/settingsService';
 export { code2ProtocolConverter } from './languageClients/conversion';
 export { nls } from './messages/messages';
+export { bootstrapWorkspaceAwareness, BootstrapOptions } from './workspaceLoader';
+export { detectWorkspaceType } from './workspaceTypeFiles';

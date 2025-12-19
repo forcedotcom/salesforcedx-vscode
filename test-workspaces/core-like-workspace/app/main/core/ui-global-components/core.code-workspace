@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "path": "/Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/core-like-workspace/app/main/core/ui-global-components"
+    }
+  ],
+  "settings": {
+    "eslint.workingDirectories": [
+      "/Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/core-like-workspace/app/main/core/ui-global-components"
+    ],
+    "eslint.validate": [
+      "javascript",
+      "typescript"
+    ],
+    "eslint.options": {
+      "overrideConfigFile": "/Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/core-like-workspace/app/main/core/ui-global-components/.eslintrc.json"
+    }
+  }
+}

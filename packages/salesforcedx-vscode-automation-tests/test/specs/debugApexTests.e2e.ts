@@ -173,7 +173,13 @@ describe('Debug Apex Tests', () => {
     );
     const expectedItems = ['ExampleApexClass1Test', 'ExampleApexClass2Test'];
 
-    await verifyTestItemsInSideBar(apexTestsSection, 'Refresh Tests', expectedItems, 4, 2);
+    await retryOperation(
+      async () => {
+        await verifyTestItemsInSideBar(apexTestsSection, 'Refresh Tests', expectedItems, 4, 2);
+      },
+      3,
+      'DebugApexTests - Error verifying test items in sidebar'
+    );
 
     // Click the debug tests button that is shown to the right when you hover a test class name on the Test sidebar
     let apexTestItem: TreeItem;
@@ -198,6 +204,7 @@ describe('Debug Apex Tests', () => {
     );
 
     const debugTestsAction = await apexTestItem!.getActionButton('Debug Tests');
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(debugTestsAction).to.not.be.undefined;
     await retryOperation(
       async () => {
