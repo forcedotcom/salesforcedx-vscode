@@ -6,6 +6,29 @@
  */
 import { projectPaths } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
+import * as vscode from 'vscode';
+
+// Mock vscode.extensions.getExtension before importing bootstrapCmd
+jest.spyOn(vscode.extensions, 'getExtension').mockReturnValue({
+  exports: {
+    SfCommandletExecutor: class MockSfCommandletExecutor {
+      // Mock implementation
+    },
+    SfCommandlet: class MockSfCommandlet {
+      // Mock implementation
+    },
+    channelService: {
+      appendLine: jest.fn(),
+      streamCommandOutput: jest.fn(),
+      showChannelOutput: jest.fn()
+    },
+    taskViewService: {
+      addCommandExecution: jest.fn()
+    }
+  },
+  isActive: true
+} as unknown as vscode.Extension<any>);
+
 import {
   INSTALLED_PACKAGES,
   IsvDebugBootstrapExecutor,
