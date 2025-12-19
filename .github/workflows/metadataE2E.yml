@@ -90,11 +90,12 @@ jobs:
           path: packages/salesforcedx-vscode-metadata/test-results
           if-no-files-found: ignore
 
-      - name: Cleanup scratch org
+      - name: Cleanup scratch orgs
         if: always()
         continue-on-error: true
         run: |
           sf org delete scratch -o "$DREAMHOUSE_ORG_ALIAS" --no-prompt || true
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
 
   e2e-desktop:
     runs-on: ${{ matrix.os }}
@@ -179,9 +180,10 @@ jobs:
           path: packages/salesforcedx-vscode-metadata/test-results
           if-no-files-found: ignore
 
-      - name: Cleanup scratch org
+      - name: Cleanup scratch orgs
         if: always()
         continue-on-error: true
         shell: bash
         run: |
           sf org delete scratch -o "$DREAMHOUSE_ORG_ALIAS" --no-prompt || true
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
