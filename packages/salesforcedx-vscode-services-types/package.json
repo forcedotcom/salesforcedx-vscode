@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/vscode-services",
-  "version": "65.9.0",
+  "version": "65.9.1",
   "description": "TypeScript type definitions for Salesforce VS Code Services extension API",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.32",
-    "@effect/opentelemetry": "0.58.0",
+    "@effect/opentelemetry": "0.59.2",
     "@opentelemetry/api": "1.9.0",
     "@opentelemetry/core": "2.0.1",
     "@opentelemetry/exporter-trace-otlp-http": "0.208.0",
@@ -65,7 +65,7 @@
     "@salesforce/source-deploy-retrieve": "^12.25.0",
     "@salesforce/source-tracking": "^7.5.0",
     "@types/vscode": "^1.90.0",
-    "effect": "^3.18.4",
+    "effect": "^3.19.11",
     "jsforce": "^3.10.2",
     "vscode-uri": "^3.1.0"
   },

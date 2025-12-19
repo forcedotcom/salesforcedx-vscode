@@ -10,13 +10,29 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { getApexExtension } from '../coreExtensionUtils';
 import { telemetryService } from '../telemetry/telemetry';
-import { discoverTests } from '../testDiscovery/testDiscovery';
+import { discoverTests, sourceIsLS } from '../testDiscovery/testDiscovery';
 import { ApexTestMethod } from '../views/lspConverter';
+
+/**
+ * Builds a full class name from a ToolingTestClass, including namespace prefix if present
+ */
+export const getFullClassName = (cls: ToolingTestClass): string =>
+  cls.namespacePrefix ? `${cls.namespacePrefix}.${cls.name}` : cls.name;
+
+/**
+ * Checks if a ToolingTestClass is a Flow test (Flow tests have namespacePrefix starting with 'FlowTesting')
+ */
+export const isFlowTest = (cls: ToolingTestClass): boolean => cls.namespacePrefix?.startsWith('FlowTesting') ?? false;
+
+/**
+ * Checks if a ToolingTestClass has a non-empty namespace prefix
+ */
+export const hasNamespace = (cls: ToolingTestClass): boolean => (cls.namespacePrefix?.trim() ?? '') !== '';
 
 /**
  * Fetch tests from the Language Server via the Apex extension
  */
-const fetchFromLs = async (): Promise<{ tests: ApexTestMethod[]; durationMs: number }> => {
+export const fetchFromLs = async (): Promise<{ tests: ApexTestMethod[]; durationMs: number }> => {
   const start = Date.now();
   telemetryService.sendEventData('apexTestDiscoveryStart', { source: 'ls' });
 
@@ -65,11 +81,8 @@ const fetchFromApi = async (options?: {
  * Also emits timing metrics and telemetry.
  */
 export const getApexTests = async (): Promise<ApexTestMethod[]> => {
-  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
-  const source = config.get<'ls' | 'api'>('testing.discoverySource', 'ls');
-
   // Fetch according to user selection
-  const selected = source === 'ls' ? await fetchFromLs() : await fetchFromApi();
+  const selected = sourceIsLS() ? await fetchFromLs() : await fetchFromApi();
   return selected.tests;
 };
 
@@ -220,7 +233,7 @@ const convertApiToApexTestMethods = async (classes: ToolingTestClass[]): Promise
   // Extract class names from discovery results to drive file lookup
   const classNames = classes
     .filter(cls => cls.testMethods?.length > 0)
-    .filter(cls => !cls.namespacePrefix || cls.namespacePrefix.trim() === '')
+    .filter(cls => !hasNamespace(cls))
     .map(cls => cls.name);
 
   const classNameToUri = await buildClassToUriIndex(classNames);
@@ -228,7 +241,7 @@ const convertApiToApexTestMethods = async (classes: ToolingTestClass[]): Promise
   for (const cls of classes) {
     if (cls.testMethods?.length === 0) continue;
     // Only consider tests in the local (default) namespace; workspace index maps local files only
-    if (cls.namespacePrefix?.trim() !== '') continue;
+    if (hasNamespace(cls)) continue;
     const list = apiByClassName.get(cls.name) ?? [];
     list.push(cls);
     apiByClassName.set(cls.name, list);
@@ -265,7 +278,7 @@ const convertApiToApexTestMethods = async (classes: ToolingTestClass[]): Promise
 
     const emitted = new Set<string>();
     for (const entry of apiEntries) {
-      const definingType = entry.namespacePrefix ? `${entry.namespacePrefix}.${className}` : className;
+      const definingType = getFullClassName(entry);
       for (const testMethod of entry.testMethods ?? []) {
         if (emitted.has(testMethod.name)) continue;
         const location = methodLocationMap?.get(testMethod.name) ?? defaultLocation;

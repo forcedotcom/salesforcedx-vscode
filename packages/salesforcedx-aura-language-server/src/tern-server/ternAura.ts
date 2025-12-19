@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 // @ts-nocheck as this is a third party library
-import { extractJsonFromImport, Logger } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { extractJsonFromImport, Logger, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as walk from 'acorn-walk';
+import * as path from 'node:path';
 import * as infer from '../tern/lib/infer';
 import * as tern from '../tern/lib/tern';
 import * as auraTypesJsonImport from './aura_types.json';
@@ -41,22 +42,19 @@ const forAllPropsPurgeable = infer.constraint({
   }
 });
 
-const getFilename = (filename: string): string => {
-  if (server.options.projectDir.endsWith('/')) {
-    return server.options.projectDir + filename;
-  }
-  return `${server.options.projectDir}/${filename}`;
-};
+const getFilename = (filename: string): string => path.join(server.options.projectDir, filename);
 
 const isBlocklisted = (filename: string): boolean => {
-  let ret = filename.endsWith('/scrollerLib/bootstrap.js');
-  ret = ret ?? filename.endsWith('ExportSymbolsHelper.js');
+  // Normalize path separators for cross-platform compatibility
+  const normalized = normalizePath(filename);
+  let ret = normalized.endsWith('/scrollerLib/bootstrap.js');
+  ret = ret ?? normalized.endsWith('ExportSymbolsHelper.js');
   return ret;
 };
 
 const readFile = async (filename: string): Promise<string> => {
   let normalized = filename;
-  if (!normalized.startsWith('/')) {
+  if (!path.isAbsolute(normalized)) {
     normalized = getFilename(normalized);
   }
 
@@ -73,14 +71,9 @@ const readFile = async (filename: string): Promise<string> => {
   }
 };
 
-const baseName = (path: string): string => {
-  const lastSlash = path.lastIndexOf('/');
-  return lastSlash === -1 ? path : path.slice(lastSlash + 1);
-};
-
-const trimExt = (path: string): string => {
-  const lastDot = path.lastIndexOf('.');
-  return lastDot === -1 ? path : path.slice(0, lastDot);
+const trimExt = (p: string): string => {
+  const lastDot = p.lastIndexOf('.');
+  return lastDot === -1 ? p : p.slice(0, lastDot);
 };
 
 const initScope = (scope: any): void => {
@@ -134,7 +127,7 @@ const findAndBindComponent = (type: any, _server: any, cx: any, infr: any): void
 const findAndBindHelper = (type: any, servr: any, modules: any, file: any): void => {
   const helperFile = getHelper(file.name);
 
-  const bn = trimExt(baseName(helperFile));
+  const bn = trimExt(path.basename(helperFile));
   const r = servr.findFile(helperFile);
   if (!r) {
     servr.addFile(helperFile);
@@ -205,7 +198,7 @@ const connectModule = async (file: any, out: any): Promise<void> => {
       Logger.log(`Process helper exports ${file.name}`);
       let outObj;
       if (!out.getType()) {
-        const type = baseName(file.name).replace(/.js$/, '');
+        const type = path.basename(file.name).replace(/.js$/, '');
         outObj = new infer.Obj(true);
         outObj.origin = file.name;
         outObj.originNode = file.ast;
@@ -234,7 +227,7 @@ const connectModule = async (file: any, out: any): Promise<void> => {
                 //    });
                 // -- would have worked, but didnt'
                 // delete all types, and re-add...
-                const target = outObj.defProp(baseName(file.name).replace(/.js$/, ''));
+                const target = outObj.defProp(path.basename(file.name).replace(/.js$/, ''));
                 const types = target.types;
                 types.length = 0;
                 //note: propogate calls addType on the target
@@ -421,7 +414,8 @@ tern.defineQueryType('cleanup-file', {
   run: (_server: any, query: any) => {
     const files = query.files;
     files.forEach(f => {
-      let ff = f;
+      let ff = normalizePath(f);
+      // Remove leading slash to normalize absolute paths
       if (ff.startsWith('/')) {
         ff = ff.slice(1);
       }

@@ -258,8 +258,7 @@ export abstract class BaseWorkspaceContext {
     const file = utils.normalizePath(utils.toResolvedPath(document.uri));
     for (const ws of this.workspaceRoots) {
       if (utils.pathStartsWith(file, ws)) {
-        const isInsideAuraRoots = await this.isFileInsideAuraRoots(file);
-        return isInsideAuraRoots;
+        return await this.isFileInsideAuraRoots(file);
       }
     }
     return false;

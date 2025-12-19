@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.9.0",
+  "version": "65.9.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -29,14 +29,16 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
-    "@vscode/debugprotocol": "1.68.0"
+    "@vscode/debugprotocol": "1.68.0",
+    "sanitize-filename": "^1.6.1",
+    "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "esbuild": "0.25.10",
-    "salesforcedx-vscode-apex": "*"
+    "salesforcedx-vscode-apex": "*",
+    "salesforcedx-vscode-core": "*"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-core"
   ],
   "scripts": {
@@ -81,7 +83,8 @@
       "files": [
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
-        "out/**"
+        "out/**",
+        "package.json"
       ],
       "output": [
         "dist"
@@ -123,7 +126,9 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "../../eslint.config.mjs"
+        "../../eslint.config.mjs",
+        "package.json",
+        "package.nls.json"
       ],
       "output": []
     },
@@ -181,7 +186,7 @@
     "debuggers": [
       {
         "type": "apex",
-        "label": "Apex Debugger",
+        "label": "%debugger_label%",
         "program": "./dist/apexDebug.js",
         "runtime": "node",
         "languages": [
@@ -279,6 +284,14 @@
         {
           "command": "sf.debug.exception.breakpoint",
           "when": "sf:project_opened && !isWeb"
+        },
+        {
+          "command": "sf.debug.isv.bootstrap",
+          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
+        },
+        {
+          "command": "sf.debugger.stop",
+          "when": "sf:project_opened"
         }
       ]
     },
@@ -286,6 +299,14 @@
       {
         "command": "sf.debug.exception.breakpoint",
         "title": "%exception_breakpoint_command_text%"
+      },
+      {
+        "command": "sf.debug.isv.bootstrap",
+        "title": "%isv_bootstrap_command_text%"
+      },
+      {
+        "command": "sf.debugger.stop",
+        "title": "%debugger_stop_text%"
       }
     ]
   }
