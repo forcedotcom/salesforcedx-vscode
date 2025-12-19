@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { OrgConfigProperties } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';
 import type { SfProject } from '@salesforce/core/project';
 import { type DeployResult, ComponentSet, RegistryAccess } from '@salesforce/source-deploy-retrieve';
@@ -196,7 +197,7 @@ const setComponentSetProperties = (
 ): Effect.Effect<void, Error, never> =>
   Effect.gen(function* () {
     componentSet.projectDirectory = project.getPath();
-    const apiVersion = configAggregator.getPropertyValue<string>('apiVersion');
+    const apiVersion = configAggregator.getPropertyValue<string>(OrgConfigProperties.ORG_API_VERSION);
     if (apiVersion) {
       componentSet.apiVersion = apiVersion;
     }
