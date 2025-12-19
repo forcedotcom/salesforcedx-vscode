@@ -695,22 +695,15 @@ export const extractMetadataFromPage = async (
               let current = dt.nextElementSibling;
 
               while (current) {
-                if (current.tagName === 'DT') {
-                  // Stop at next DT
-                  break;
-                }
+                if (current.tagName === 'DT') break;
                 if (current.tagName === 'DD') {
                   const ddText = current.textContent?.trim();
-                  if (ddText) {
-                    parts.push(ddText);
-                  }
+                  if (ddText) parts.push(ddText);
                 }
                 current = current.nextElementSibling;
               }
 
-              if (parts.length > 0) {
-                return parts.join('\n\n');
-              }
+              if (parts.length > 0) return parts.join('\n\n');
             } else {
               // Get the next DD sibling
               let nextSibling = dt.nextElementSibling;
