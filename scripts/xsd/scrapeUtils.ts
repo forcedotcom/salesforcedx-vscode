@@ -689,30 +689,24 @@ export const extractMetadataFromPage = async (
           const isMatch = labelMatches.some(label => dtText.includes(label.toLowerCase()));
 
           if (isMatch) {
-            if (collectMultiple) {
-              // Get ALL consecutive DD siblings until the next DT
-              const parts: string[] = [];
-              let current = dt.nextElementSibling;
+            // Collect DD siblings until the next DT
+            const parts: string[] = [];
+            let current = dt.nextElementSibling;
 
-              while (current) {
-                if (current.tagName === 'DT') break;
-                if (current.tagName === 'DD') {
-                  const ddText = current.textContent?.trim();
-                  if (ddText) parts.push(ddText);
+            while (current) {
+              if (current.tagName === 'DT') break;
+              if (current.tagName === 'DD') {
+                const ddText = current.textContent?.trim();
+                if (ddText) {
+                  parts.push(ddText);
+                  if (!collectMultiple) break; // Stop after first DD if not collecting multiple
                 }
-                current = current.nextElementSibling;
               }
+              current = current.nextElementSibling;
+            }
 
-              if (parts.length > 0) return parts.join('\n\n');
-            } else {
-              // Get the next DD sibling
-              let nextSibling = dt.nextElementSibling;
-              while (nextSibling && nextSibling.tagName !== 'DD' && nextSibling.tagName !== 'DT') {
-                nextSibling = nextSibling.nextElementSibling;
-              }
-              if (nextSibling?.tagName === 'DD') {
-                return nextSibling.textContent?.trim() ?? '';
-              }
+            if (parts.length > 0) {
+              return collectMultiple ? parts.join('\n\n') : parts[0];
             }
           }
         }
