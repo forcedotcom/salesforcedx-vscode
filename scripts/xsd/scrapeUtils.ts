@@ -724,8 +724,8 @@ export const extractMetadataFromPage = async (
       const tableData = allTableFields[0];
       const finalName = tableData.pageTitle ?? typeName;
 
-      // For the only table, always use page-level description first (just like we always use page title)
-      const description = tableData.pageLevelDescription ?? tableData.tableDescription;
+      // For the only table, always use page-level description
+      const description = tableData.pageLevelDescription;
 
       // Clean up all field descriptions and types
       const cleanedFields = tableData.fields.map(field => ({
