@@ -719,10 +719,10 @@ export const extractMetadataFromPage = async (
     // If no tables and no headings without tables, return empty
     if (allTableFields.length === 0 && !extractionResult.headingsWithoutTables?.length) return [];
 
-    // If only one table, always use the page title or typeName (the table represents the main type)
+    // If only one table, always use the page title (the table represents the main type)
     if (allTableFields.length === 1) {
       const tableData = allTableFields[0];
-      const tableName = tableData.pageTitle ?? typeName;
+      const tableName = tableData.pageTitle;
 
       // For the only table, always use page-level description
       const tableDescription = tableData.pageLevelDescription;
