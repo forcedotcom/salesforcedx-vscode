@@ -758,11 +758,10 @@ export const extractMetadataFromPage = async (
 
         if (i === 0) {
           // Handle the first table - use page title if table name is 'Fields' or empty
-          if (!tableData.tableName || tableData.tableName.toLowerCase() === 'fields') {
-            finalName = tableData.pageTitle;
-          } else {
-            finalName = tableData.tableName;
-          }
+          finalName =
+            !tableData.tableName || tableData.tableName.toLowerCase() === 'fields'
+              ? tableData.pageTitle
+              : tableData.tableName;
         } else if (tableData.tableName) {
           // For subsequent tables, use the found table name
           finalName = tableData.tableName;
