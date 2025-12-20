@@ -6,7 +6,7 @@
  */
 import * as vscode from 'vscode';
 
-export const isEmpty = (value: string): boolean => !value || value.length === 0;
+export const isEmpty = (value: string): boolean => value?.length === 0;
 
 const isNotEmpty = (value: string): boolean => !isEmpty(value);
 

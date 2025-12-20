@@ -1,0 +1,29 @@
+{
+  "extends": "../../tsconfig.common.json",
+  "compilerOptions": {
+    "outDir": "./out",
+    "strictNullChecks": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.json", "src/**/*.js", "resources/**/*.js", "typings/*.d.ts", "jest/*.js"],
+  "exclude": [
+    "node_modules",
+    "src/tern/**/*.js",
+    "src/tern/test/**/*",
+    "src/tern/doc/**/*",
+    "src/tern/emacs/**/*",
+    "src/tern/bin/**/*",
+    "**/__tests__/fixtures/*.js"
+  ],
+  "references": [
+    {
+      "path": "../salesforcedx-lightning-lsp-common"
+    },
+    {
+      "path": "../salesforcedx-utils"
+    },
+    {
+      "path": "../salesforcedx-vscode-i18n"
+    }
+  ]
+}

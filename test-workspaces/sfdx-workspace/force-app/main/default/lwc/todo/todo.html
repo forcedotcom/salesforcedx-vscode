@@ -1,0 +1,46 @@
+<template>
+    <div>
+        <section class="todoapp">
+            <header class="header">
+                <h1>todos</h1>
+                <input class="new-todo"
+                    autofocus
+                    autocomplete="off"
+                    placeholder="What needs to be done?"
+                    onkeydown={handleKeyDown}
+                />
+            </header>
+            <section if:true={hasTodos} class="main">
+                <input class="toggle-all" type="checkbox" checked={isAllTodosCompleted} onclick={handleToggleAll} />
+                <div class="todo-list">
+                <template for:each={filteredTodos} for:item="todo">
+                    <c-todo_item
+                        key={todo.key}
+                        todo={todo}
+                        onremove={handleTodoRemove}
+                        onupdate={handleTodoUpdate}
+                        class="li"></c-todo_item>
+                </template>
+                </div>
+            </section>
+            <footer if:true={hasTodos} class="footer">
+                <span class="todo-count">
+                    <strong>{countTodos}</strong> {remainingItemsLabel} left
+                </span>
+                <ul class="filters">
+                    <li><a href="#/all" class={allFilterStyle}>All</a></li>
+                    <li><a href="#/active" class={activeFilterStyle}>Active</a></li>
+                    <li><a href="#/completed" class={completedFilterStyle}>Completed</a></li>
+                </ul>
+                <button if:true={completedTodos.length} class="clear-completed" onclick={handleClearCompleted}>
+                    Clear completed
+                </button>
+            </footer>
+        </section>
+        <footer class="info">
+            <p>Double-click to edit a todo</p>
+            <p><s>Part of <a href="http://todomvc.com">TodoMVC</a></s></p>
+        </footer>
+    </div>
+    <div if:true={$has5Todos_today}></div>
+</template>
