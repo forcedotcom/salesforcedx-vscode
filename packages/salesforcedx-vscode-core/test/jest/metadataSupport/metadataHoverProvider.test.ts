@@ -423,7 +423,8 @@ describe('MetadataHoverProvider', () => {
       expect(result?.contents).toBeDefined();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'CustomObject',
-        'fullName'
+        'fullName',
+        []
       );
     });
 
@@ -452,7 +453,8 @@ describe('MetadataHoverProvider', () => {
       expect(result?.contents).toBeDefined();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'CustomObject',
-        'enableActivities'
+        'enableActivities',
+        []
       );
     });
 
@@ -482,7 +484,8 @@ describe('MetadataHoverProvider', () => {
       expect(result?.contents).toBeDefined();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'ApexClass',
-        'status'
+        'status',
+        []
       );
     });
 
@@ -512,7 +515,8 @@ describe('MetadataHoverProvider', () => {
       expect(result?.contents).toBeDefined();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'Flow',
-        'processType'
+        'processType',
+        []
       );
     });
 
@@ -544,7 +548,8 @@ describe('MetadataHoverProvider', () => {
       expect(result?.contents).toBeDefined();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'Prompt',
-        'isPublished'
+        'isPublished',
+        ['promptVersions']
       );
     });
 
@@ -564,7 +569,8 @@ describe('MetadataHoverProvider', () => {
       expect(result).toBeNull();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'CustomObject',
-        'unknownField'
+        'unknownField',
+        []
       );
     });
 
@@ -592,7 +598,8 @@ describe('MetadataHoverProvider', () => {
       expect(result).not.toBeNull();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'CustomObject',
-        'enableActivities'
+        'enableActivities',
+        []
       );
     });
 
@@ -620,7 +627,8 @@ describe('MetadataHoverProvider', () => {
       expect(result?.contents).toBeDefined();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'CustomObject',
-        'enableFeeds'
+        'enableFeeds',
+        []
       );
     });
 
@@ -648,7 +656,8 @@ describe('MetadataHoverProvider', () => {
       expect(result?.contents).toBeDefined();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'PromptVersion',
-        'isPublished'
+        'isPublished',
+        []
       );
     });
 
@@ -676,7 +685,8 @@ describe('MetadataHoverProvider', () => {
       expect(result?.contents).toBeDefined();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'CustomObject',
-        'recordTypeName'
+        'recordTypeName',
+        []
       );
     });
 
@@ -704,7 +714,8 @@ describe('MetadataHoverProvider', () => {
       expect(result?.contents).toBeDefined();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'CustomObject',
-        'recordTypeLabel'
+        'recordTypeLabel',
+        []
       );
     });
   });
@@ -752,12 +763,12 @@ describe('MetadataHoverProvider', () => {
 </Flow>`;
 
       const document = createMockDocument('TestFlow.flow-meta.xml', content);
-      const position = { line: 8, character: 20 } as vscode.Position; // Position inside '<elementReference>' tag
+      const position = { line: 6, character: 15 } as vscode.Position; // Position inside '<value>' tag
 
       const mockFieldDoc = {
-        name: 'elementReference',
-        type: 'string',
-        description: 'Reference to a flow element.'
+        name: 'value',
+        type: 'FlowElementReferenceOrValue',
+        description: 'The value to assign.'
       };
 
       (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
@@ -765,7 +776,10 @@ describe('MetadataHoverProvider', () => {
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
       expect(result).not.toBeNull();
-      expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith('Flow', 'value');
+      expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith('Flow', 'value', [
+        'assignments',
+        'assignmentItems'
+      ]);
     });
 
     it('should handle mixed-case field names', async () => {
@@ -791,7 +805,8 @@ describe('MetadataHoverProvider', () => {
       expect(result).not.toBeNull();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'CustomObject',
-        'enableBulkApi'
+        'enableBulkApi',
+        []
       );
     });
 
@@ -818,7 +833,8 @@ describe('MetadataHoverProvider', () => {
       expect(result).not.toBeNull();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'CustomObject',
-        'description'
+        'description',
+        []
       );
     });
 
@@ -845,7 +861,8 @@ describe('MetadataHoverProvider', () => {
       expect(result).not.toBeNull();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'CustomObject',
-        'enableSharing'
+        'enableSharing',
+        []
       );
     });
 
@@ -891,7 +908,8 @@ describe('MetadataHoverProvider', () => {
       expect(result2).not.toBeNull();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'CustomObject',
-        'enableActivities'
+        'enableActivities',
+        []
       );
     });
   });
