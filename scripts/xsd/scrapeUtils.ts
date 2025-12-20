@@ -716,10 +716,6 @@ export const extractMetadataFromPage = async (
     const allTableFields = extractionResult.tablesData;
     const pageHeadingsSet = new Set<string>(extractionResult.pageHeadings as string[]);
 
-    console.log('All table fields:', JSON.stringify(allTableFields, null, 2));
-    console.log('Page headings set:', JSON.stringify(Array.from(pageHeadingsSet), null, 2));
-    console.log('Headings without tables:', JSON.stringify(extractionResult.headingsWithoutTables, null, 2));
-
     // If no tables and no headings without tables, return empty
     if (allTableFields.length === 0 && !extractionResult.headingsWithoutTables?.length) return [];
 
