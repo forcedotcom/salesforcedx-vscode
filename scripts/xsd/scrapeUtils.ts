@@ -730,11 +730,11 @@ export const extractMetadataFromPage = async (
       // Clean up all field descriptions and types
       const cleanedFields = tableData.fields.map(field => ({
         ...field,
-        Description: cleanDescription(field.Description),
-        'Field Type': cleanDescription(field['Field Type'])
+        Description: normalizeWhitespace(field.Description),
+        'Field Type': normalizeWhitespace(field['Field Type'])
       }));
 
-      const cleanedDescription = cleanDescription(description);
+      const cleanedDescription = normalizeWhitespace(description);
       results.push({
         name: finalName,
         data: {
@@ -821,11 +821,11 @@ export const extractMetadataFromPage = async (
         // Clean up all field descriptions and types
         const cleanedFields = tableData.fields.map(field => ({
           ...field,
-          Description: cleanDescription(field.Description),
-          'Field Type': cleanDescription(field['Field Type'])
+          Description: normalizeWhitespace(field.Description),
+          'Field Type': normalizeWhitespace(field['Field Type'])
         }));
 
-        const cleanedDescription = cleanDescription(description);
+        const cleanedDescription = normalizeWhitespace(description);
         results.push({
           name: finalName,
           data: {
@@ -898,7 +898,7 @@ export const extractMetadataFromPage = async (
         if (existingEntry) {
           // Update the existing entry if it only has a generic "Referenced type" description
           if (existingEntry.data.short_description.startsWith('Referenced type from')) {
-            const cleanedDesc = cleanDescription(heading.description);
+            const cleanedDesc = normalizeWhitespace(heading.description);
             existingEntry.data.short_description = cleanedDesc;
             existingEntry.data.parent = extractParentType(cleanedDesc, existingEntry.data.fields);
             console.log('Updated entry HEADING WITHOUT TABLE:', JSON.stringify(existingEntry, null, 2));
@@ -907,7 +907,7 @@ export const extractMetadataFromPage = async (
         }
 
         // Create a new entry with no fields but with the description
-        const cleanedHeadingDesc = cleanDescription(heading.description);
+        const cleanedHeadingDesc = normalizeWhitespace(heading.description);
         results.push({
           name: heading.headingName,
           data: {
@@ -959,8 +959,8 @@ export const extractMetadataFromPage = async (
 // Helper Functions
 // ============================================================================
 
-/** Clean up description text by normalizing whitespace */
-const cleanDescription = (text: string): string => {
+/** Clean up text by normalizing whitespace */
+const normalizeWhitespace = (text: string): string => {
   if (!text) return text;
 
   // Replace \n followed by any number of spaces or tabs with a single space
