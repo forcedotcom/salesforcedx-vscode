@@ -759,7 +759,7 @@ export const extractMetadataFromPage = async (
         // For the first table, ignore generic headings and use the page title/typeName
         if (i === 0) {
           // Generic headings that should be ignored for the first table
-          const genericHeadings = ['fields', 'field name', 'properties', 'attributes'];
+          const genericHeadings = ['fields'];
           const isGenericHeading = tableData.tableName && genericHeadings.includes(tableData.tableName.toLowerCase());
 
           if (isGenericHeading || !tableData.tableName) {
