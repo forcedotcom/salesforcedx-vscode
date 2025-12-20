@@ -722,10 +722,10 @@ export const extractMetadataFromPage = async (
     // If only one table, always use the page title or typeName (the table represents the main type)
     if (allTableFields.length === 1) {
       const tableData = allTableFields[0];
-      const finalName = tableData.pageTitle ?? typeName;
+      const tableName = tableData.pageTitle ?? typeName;
 
       // For the only table, always use page-level description
-      const description = tableData.pageLevelDescription;
+      const tableDescription = tableData.pageLevelDescription;
 
       // Clean up all field descriptions and types
       const cleanedFields = tableData.fields.map(field => ({
@@ -734,9 +734,9 @@ export const extractMetadataFromPage = async (
         'Field Type': normalizeWhitespace(field['Field Type'])
       }));
 
-      const cleanedDescription = normalizeWhitespace(description);
+      const cleanedDescription = normalizeWhitespace(tableDescription);
       results.push({
-        name: finalName,
+        name: tableName,
         data: {
           fields: cleanedFields,
           short_description: cleanedDescription,
