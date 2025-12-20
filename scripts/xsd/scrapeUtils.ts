@@ -762,8 +762,8 @@ export const extractMetadataFromPage = async (
           const isGenericHeading = tableData.tableName?.toLowerCase() === 'fields';
 
           if (isGenericHeading || !tableData.tableName) {
-            // Use page title or fall back to typeName
-            finalName = tableData.pageTitle ?? typeName;
+            // Use page title
+            finalName = tableData.pageTitle;
           } else {
             // Use the specific table name if it's not generic
             finalName = tableData.tableName;
