@@ -728,7 +728,7 @@ export const extractMetadataFromPage = async (
       const tableDescription = tableData.pageLevelDescription;
 
       // Clean up all field descriptions and types
-      const cleanedFields = tableData.fields.map(field => ({
+      const cleanedFields = tableData.fields.map((field: MetadataField) => ({
         ...field,
         Description: normalizeWhitespace(field.Description),
         'Field Type': normalizeWhitespace(field['Field Type'])
@@ -819,7 +819,7 @@ export const extractMetadataFromPage = async (
           i === 0 ? (tableData.pageLevelDescription ?? tableData.tableDescription) : tableData.tableDescription;
 
         // Clean up all field descriptions and types
-        const cleanedFields = tableData.fields.map(field => ({
+        const cleanedFields = tableData.fields.map((field: MetadataField) => ({
           ...field,
           Description: normalizeWhitespace(field.Description),
           'Field Type': normalizeWhitespace(field['Field Type'])
