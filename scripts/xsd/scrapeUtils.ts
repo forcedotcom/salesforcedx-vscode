@@ -719,32 +719,36 @@ export const extractMetadataFromPage = async (
     // If no tables and no headings without tables, return empty
     if (allTableFields.length === 0 && !extractionResult.headingsWithoutTables?.length) return [];
 
-    // If only one table, always use the page title (the table represents the main type)
-    if (allTableFields.length === 1) {
-      const tableData = allTableFields[0];
-      const tableName = tableData.pageTitle;
-
-      // For the only table, always use page-level description
-      const tableDescription = tableData.pageLevelDescription;
-
-      // Clean up all field descriptions and types
-      const cleanedFields = tableData.fields.map((field: MetadataField) => ({
+    /** Helper to create a result entry with cleaned fields and normalized description */
+    const createResultEntry = (name: string, description: string, fields: MetadataField[], logPrefix: string) => {
+      const cleanedFields = fields.map((field: MetadataField) => ({
         ...field,
         Description: normalizeWhitespace(field.Description),
         'Field Type': normalizeWhitespace(field['Field Type'])
       }));
 
-      const cleanedDescription = normalizeWhitespace(tableDescription);
-      results.push({
-        name: tableName,
+      const cleanedDescription = normalizeWhitespace(description);
+      const entry = {
+        name,
         data: {
           fields: cleanedFields,
           short_description: cleanedDescription,
           url: url.split('#')[0], // Strip hash fragment if present
           parent: extractParentType(cleanedDescription, cleanedFields)
         }
-      });
-      console.log('Newest entry ONE TABLE:', JSON.stringify(results.at(-1), null, 2));
+      };
+      results.push(entry);
+      console.log(`Newest entry ${logPrefix}:`, JSON.stringify(entry, null, 2));
+    };
+
+    // If only one table, always use the page title (the table represents the main type)
+    if (allTableFields.length === 1) {
+      const tableData = allTableFields[0];
+      const tableName = tableData.pageTitle;
+      // For the only table, always use page-level description
+      const tableDescription = tableData.pageLevelDescription;
+
+      createResultEntry(tableName, tableDescription, tableData.fields, 'ONE TABLE');
     } else {
       // Multiple tables - use actual table names or infer from field types
       for (let i = 0; i < allTableFields.length; i++) {
@@ -818,24 +822,7 @@ export const extractMetadataFromPage = async (
         const description =
           i === 0 ? (tableData.pageLevelDescription ?? tableData.tableDescription) : tableData.tableDescription;
 
-        // Clean up all field descriptions and types
-        const cleanedFields = tableData.fields.map((field: MetadataField) => ({
-          ...field,
-          Description: normalizeWhitespace(field.Description),
-          'Field Type': normalizeWhitespace(field['Field Type'])
-        }));
-
-        const cleanedDescription = normalizeWhitespace(description);
-        results.push({
-          name: finalName,
-          data: {
-            fields: cleanedFields,
-            short_description: cleanedDescription,
-            url: url.split('#')[0], // Strip hash fragment if present (all tables share the same base URL)
-            parent: extractParentType(cleanedDescription, cleanedFields)
-          }
-        });
-        console.log('Newest entry MULTIPLE TABLES:', JSON.stringify(results.at(-1), null, 2));
+        createResultEntry(finalName, description, tableData.fields, 'MULTIPLE TABLES');
       }
     }
 
