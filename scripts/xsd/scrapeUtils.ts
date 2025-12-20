@@ -721,12 +721,7 @@ export const extractMetadataFromPage = async (
     console.log('Headings without tables:', JSON.stringify(extractionResult.headingsWithoutTables, null, 2));
 
     // If no tables and no headings without tables, return empty
-    if (
-      allTableFields.length === 0 &&
-      (!extractionResult.headingsWithoutTables || extractionResult.headingsWithoutTables.length === 0)
-    ) {
-      return [];
-    }
+    if (allTableFields.length === 0 && !extractionResult.headingsWithoutTables?.length) return [];
 
     // If only one table, always use the page title or typeName (the table represents the main type)
     if (allTableFields.length === 1) {
