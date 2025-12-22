@@ -760,64 +760,11 @@ export const extractMetadataFromPage = async (
     // Process all tables
     for (let i = 0; i < allTableFields.length; i++) {
       const tableData = allTableFields[i];
-      let finalName: string;
 
-      if (i === 0) {
-        // Handle the first table
-        if (allTableFields.length === 1) {
-          // For single table, always use page title (the table represents the main type)
-          finalName = tableData.pageTitle;
-        } else {
-          // For multiple tables, use page title if table name is 'Fields' or empty
-          finalName =
-            !tableData.tableName || tableData.tableName.toLowerCase() === 'fields'
-              ? tableData.pageTitle
-              : tableData.tableName;
-        }
-      } else if (tableData.tableName) {
-        // For subsequent tables, use the found table name
-        finalName = tableData.tableName;
-      } else {
-        // Try to infer name from types in previous tables (both arrays and complex types)
-        let inferredName: string | null = null;
-
-        // Collect candidate type names from previous tables
-        // Process tables in REVERSE order to prioritize more recent types
-        const arrayTypes: string[] = [];
-        const complexTypes: string[] = [];
-
-        for (let j = i - 1; j >= 0; j--) {
-          const prevTable = allTableFields[j];
-          for (const field of prevTable.fields) {
-            const fieldType = field['Field Type'];
-
-            // Collect array types (higher priority)
-            const arrayType = extractArrayTypeName(fieldType);
-            if (arrayType) arrayTypes.push(arrayType);
-
-            // Collect complex types (lower priority)
-            const complexType = extractComplexTypeName(fieldType);
-            if (complexType) complexTypes.push(complexType);
-          }
-        }
-
-        // Prioritize: arrays from recent tables, then complex types from recent tables
-        const candidateTypes = [...arrayTypes, ...complexTypes];
-
-        // Find the first unused candidate type
-        for (const candidate of candidateTypes) {
-          const alreadyUsed = results.some(r => r.name === candidate);
-          if (!alreadyUsed) {
-            inferredName = candidate;
-            break;
-          }
-        }
-
-        finalName = inferredName ?? `${typeName} (Table ${i + 1})`;
-      }
+      // Determine the appropriate name for this table
+      const finalName = determineTableName(tableData, i, allTableFields.length, allTableFields, results, typeName);
 
       // For the first table, prefer page-level description
-      // For single table, always use page-level description
       // For subsequent tables, only use table-specific descriptions
       const description =
         i === 0 ? (tableData.pageLevelDescription ?? tableData.tableDescription) : tableData.tableDescription;
@@ -827,112 +774,16 @@ export const extractMetadataFromPage = async (
 
     // After extracting all tables, identify referenced types that don't have their own tables
     // BUT only if they have a heading on the page (indicating they have their own section)
-    const extractedTypeNames = new Set(results.map(r => r.name));
-    const referencedTypes = new Set<string>();
-
-    // Helper function to check if a type name matches any heading on the page
-    const hasHeadingOnPage = (typeName: string): boolean => {
-      const lowerTypeName = typeName.toLowerCase();
-      for (const heading of Array.from(pageHeadingsSet)) {
-        if (heading.toLowerCase() === lowerTypeName) {
-          return true;
-        }
-      }
-      return false;
-    };
-
-    // Collect all referenced types from field types
-    for (const result of results) {
-      for (const field of result.data.fields) {
-        const fieldType = field['Field Type'];
-
-        // Check for array types (e.g., "SharingTerritoryRule[]")
-        const arrayType = extractArrayTypeName(fieldType);
-        if (arrayType && !extractedTypeNames.has(arrayType) && hasHeadingOnPage(arrayType)) {
-          referencedTypes.add(arrayType);
-        }
-
-        // Check for complex types (e.g., "SharedTo")
-        const complexType = extractComplexTypeName(fieldType);
-        if (complexType && !extractedTypeNames.has(complexType) && hasHeadingOnPage(complexType)) {
-          referencedTypes.add(complexType);
-        }
-      }
-    }
-
-    // Add entries for referenced types with empty fields arrays
-    // These are types that have a heading/section on the page but no field table
-    for (const referencedType of Array.from(referencedTypes)) {
-      console.log(`     ℹ️  Adding referenced type without fields: ${referencedType}`);
-      const refDescription = `Referenced type from ${url}`;
-      results.push({
-        name: referencedType,
-        data: {
-          fields: [],
-          short_description: refDescription,
-          url: url.split('#')[0],
-          parent: extractParentType(refDescription, [])
-        }
-      });
-    }
+    processReferencedTypes(results, pageHeadingsSet, url);
 
     // Process headings without tables
     if (extractionResult.headingsWithoutTables && extractionResult.headingsWithoutTables.length > 0) {
-      for (const heading of extractionResult.headingsWithoutTables) {
-        // Check if we already have an entry for this heading name
-        const existingEntry = results.find(r => r.name === heading.headingName);
-        if (existingEntry) {
-          // Update the existing entry if it only has a generic "Referenced type" description
-          if (existingEntry.data.short_description.startsWith('Referenced type from')) {
-            const cleanedDesc = normalizeWhitespace(heading.description);
-            existingEntry.data.short_description = cleanedDesc;
-            existingEntry.data.parent = extractParentType(cleanedDesc, existingEntry.data.fields);
-            console.log('Updated entry HEADING WITHOUT TABLE:', JSON.stringify(existingEntry, null, 2));
-          }
-          continue;
-        }
-
-        // Create a new entry with no fields but with the description
-        const cleanedHeadingDesc = normalizeWhitespace(heading.description);
-        results.push({
-          name: heading.headingName,
-          data: {
-            fields: [],
-            short_description: cleanedHeadingDesc,
-            url: url.split('#')[0], // Strip hash fragment if present
-            parent: extractParentType(cleanedHeadingDesc, [])
-          }
-        });
-        console.log('Newest entry HEADING WITHOUT TABLE:', JSON.stringify(results.at(-1), null, 2));
-      }
+      processHeadingsWithoutTables(results, extractionResult.headingsWithoutTables, url);
     }
 
     // Special handling for Folder metadata type
     // Replace the generic "Folder" entry with 5 specific folder types
-    if (url.includes('meta_folder.htm')) {
-      const folderIndex = results.findIndex(r => r.name === 'Folder');
-      if (folderIndex !== -1) {
-        const folderEntry = results[folderIndex];
-        const folderTypes = ['DocumentFolder', 'EmailFolder', 'EmailTemplateFolder', 'ReportFolder', 'DashboardFolder'];
-
-        // Remove the original Folder entry
-        results.splice(folderIndex, 1);
-
-        // Add 5 specific folder type entries with the same description and fields
-        for (const folderType of folderTypes) {
-          results.push({
-            name: folderType,
-            data: {
-              fields: folderEntry.data.fields,
-              short_description: folderEntry.data.short_description,
-              url: folderEntry.data.url,
-              parent: folderEntry.data.parent
-            }
-          });
-          console.log(`Added specific folder type: ${folderType}`);
-        }
-      }
-    }
+    applyFolderSpecialHandling(results, url);
 
     return results;
   } catch (error) {
@@ -942,7 +793,202 @@ export const extractMetadataFromPage = async (
 };
 
 // ============================================================================
-// Helper Functions
+// Post-Processing Helper Functions
+// ============================================================================
+
+/**
+ * Determine the appropriate name for a table based on its position and context.
+ * For the first table, uses page title unless explicitly named.
+ * For subsequent tables, uses explicit name or infers from referenced types.
+ */
+const determineTableName = (
+  tableData: { tableName: string; pageTitle: string; fields: MetadataField[] },
+  tableIndex: number,
+  totalTables: number,
+  allTables: Array<{ tableName: string; pageTitle: string; fields: MetadataField[] }>,
+  existingResults: Array<{ name: string }>,
+  fallbackTypeName: string
+): string => {
+  if (tableIndex === 0) {
+    // Handle the first table
+    if (totalTables === 1) {
+      // For single table, always use page title (the table represents the main type)
+      return tableData.pageTitle;
+    }
+    // For multiple tables, use page title if table name is 'Fields' or empty
+    return !tableData.tableName || tableData.tableName.toLowerCase() === 'fields'
+      ? tableData.pageTitle
+      : tableData.tableName;
+  }
+
+  if (tableData.tableName) {
+    // For subsequent tables, use the found table name
+    return tableData.tableName;
+  }
+
+  // Try to infer name from types in previous tables (both arrays and complex types)
+  const arrayTypes: string[] = [];
+  const complexTypes: string[] = [];
+
+  // Process tables in REVERSE order to prioritize more recent types
+  for (let j = tableIndex - 1; j >= 0; j--) {
+    const prevTable = allTables[j];
+    for (const field of prevTable.fields) {
+      const fieldType = field['Field Type'];
+
+      // Collect array types (higher priority)
+      const arrayType = extractArrayTypeName(fieldType);
+      if (arrayType) arrayTypes.push(arrayType);
+
+      // Collect complex types (lower priority)
+      const complexType = extractComplexTypeName(fieldType);
+      if (complexType) complexTypes.push(complexType);
+    }
+  }
+
+  // Prioritize: arrays from recent tables, then complex types from recent tables
+  const candidateTypes = [...arrayTypes, ...complexTypes];
+
+  // Find the first unused candidate type
+  for (const candidate of candidateTypes) {
+    const alreadyUsed = existingResults.some(r => r.name === candidate);
+    if (!alreadyUsed) {
+      return candidate;
+    }
+  }
+
+  return `${fallbackTypeName} (Table ${tableIndex + 1})`;
+};
+
+/**
+ * Process referenced types that don't have their own tables but appear in field types.
+ * Only includes types that have a heading on the page, indicating they have their own section.
+ */
+const processReferencedTypes = (
+  results: Array<{ name: string; data: MetadataType }>,
+  pageHeadingsSet: Set<string>,
+  url: string
+): void => {
+  const extractedTypeNames = new Set(results.map(r => r.name));
+  const referencedTypes = new Set<string>();
+
+  /** Check if a type name matches any heading on the page */
+  const hasHeadingOnPage = (typeName: string): boolean => {
+    const lowerTypeName = typeName.toLowerCase();
+    for (const heading of Array.from(pageHeadingsSet)) {
+      if (heading.toLowerCase() === lowerTypeName) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Collect all referenced types from field types
+  for (const result of results) {
+    for (const field of result.data.fields) {
+      const fieldType = field['Field Type'];
+
+      // Check for array types (e.g., "SharingTerritoryRule[]")
+      const arrayType = extractArrayTypeName(fieldType);
+      if (arrayType && !extractedTypeNames.has(arrayType) && hasHeadingOnPage(arrayType)) {
+        referencedTypes.add(arrayType);
+      }
+
+      // Check for complex types (e.g., "SharedTo")
+      const complexType = extractComplexTypeName(fieldType);
+      if (complexType && !extractedTypeNames.has(complexType) && hasHeadingOnPage(complexType)) {
+        referencedTypes.add(complexType);
+      }
+    }
+  }
+
+  // Add entries for referenced types with empty fields arrays
+  for (const referencedType of Array.from(referencedTypes)) {
+    console.log(`     ℹ️  Adding referenced type without fields: ${referencedType}`);
+    const refDescription = `Referenced type from ${url}`;
+    results.push({
+      name: referencedType,
+      data: {
+        fields: [],
+        short_description: refDescription,
+        url: url.split('#')[0],
+        parent: extractParentType(refDescription, [])
+      }
+    });
+  }
+};
+
+/**
+ * Process headings without tables, updating or creating entries as needed.
+ * Updates existing entries with better descriptions or creates new entries.
+ */
+const processHeadingsWithoutTables = (
+  results: Array<{ name: string; data: MetadataType }>,
+  headingsWithoutTables: Array<{ headingName: string; description: string }>,
+  url: string
+): void => {
+  for (const heading of headingsWithoutTables) {
+    // Check if we already have an entry for this heading name
+    const existingEntry = results.find(r => r.name === heading.headingName);
+    if (existingEntry) {
+      // Update the existing entry if it only has a generic "Referenced type" description
+      if (existingEntry.data.short_description.startsWith('Referenced type from')) {
+        const cleanedDesc = normalizeWhitespace(heading.description);
+        existingEntry.data.short_description = cleanedDesc;
+        existingEntry.data.parent = extractParentType(cleanedDesc, existingEntry.data.fields);
+        console.log('Updated entry HEADING WITHOUT TABLE:', JSON.stringify(existingEntry, null, 2));
+      }
+      continue;
+    }
+
+    // Create a new entry with no fields but with the description
+    const cleanedHeadingDesc = normalizeWhitespace(heading.description);
+    results.push({
+      name: heading.headingName,
+      data: {
+        fields: [],
+        short_description: cleanedHeadingDesc,
+        url: url.split('#')[0],
+        parent: extractParentType(cleanedHeadingDesc, [])
+      }
+    });
+    console.log('Newest entry HEADING WITHOUT TABLE:', JSON.stringify(results.at(-1), null, 2));
+  }
+};
+
+/**
+ * Apply special handling for the Folder metadata type.
+ * Replaces generic Folder entry with 5 specific folder types (Document, Email, EmailTemplate, Report, Dashboard).
+ */
+const applyFolderSpecialHandling = (results: Array<{ name: string; data: MetadataType }>, url: string): void => {
+  if (!url.includes('meta_folder.htm')) return;
+
+  const folderIndex = results.findIndex(r => r.name === 'Folder');
+  if (folderIndex === -1) return;
+
+  const folderEntry = results[folderIndex];
+  const folderTypes = ['DocumentFolder', 'EmailFolder', 'EmailTemplateFolder', 'ReportFolder', 'DashboardFolder'];
+
+  // Remove the original Folder entry
+  results.splice(folderIndex, 1);
+
+  // Add 5 specific folder type entries with the same description and fields
+  for (const folderType of folderTypes) {
+    results.push({
+      name: folderType,
+      data: {
+        fields: folderEntry.data.fields,
+        short_description: folderEntry.data.short_description,
+        url: folderEntry.data.url,
+        parent: folderEntry.data.parent
+      }
+    });
+    console.log(`Added specific folder type: ${folderType}`);
+  }
+};
+
+// ============================================================================
+// Text Processing Helper Functions
 // ============================================================================
 
 /** Clean up text by normalizing whitespace */
@@ -956,7 +1002,11 @@ const normalizeWhitespace = (text: string): string => {
     .trim();
 };
 
-/** Extract parent metadata type from description and fields (defaults to "Metadata" if not found) */
+/**
+ * Extract parent metadata type from description and fields.
+ * Looks for "extends" patterns in descriptions and "inherited from" in field descriptions.
+ * Defaults to "Metadata" if not found.
+ */
 const extractParentType = (description: string, fields?: MetadataField[]): string => {
   if (!description && (!fields || fields.length === 0)) return 'Metadata';
 
@@ -982,7 +1032,10 @@ const extractParentType = (description: string, fields?: MetadataField[]): strin
   return 'Metadata';
 };
 
-/** Extract type name from array notation (e.g., "AssignmentRule[]" -> "AssignmentRule") */
+/**
+ * Extract type name from array notation (e.g., "AssignmentRule[]" -> "AssignmentRule").
+ * Handles zero-width Unicode characters that may be present in scraped data.
+ */
 const extractArrayTypeName = (fieldType: string): string | null => {
   // Remove zero-width characters that might be in the type name
   const cleanType = fieldType.replaceAll(/[\u200B-\u200D\uFEFF]/g, '');
@@ -990,7 +1043,10 @@ const extractArrayTypeName = (fieldType: string): string | null => {
   return match ? match[1] : null;
 };
 
-/** Extract complex type names (non-primitive types without []) */
+/**
+ * Extract complex type names (non-primitive types without []).
+ * Excludes primitives (string, boolean, int, etc.) and enumeration types.
+ */
 const extractComplexTypeName = (fieldType: string): string | null => {
   // Skip enumeration types entirely - they don't represent table structures
   if (fieldType.toLowerCase().includes('enumeration')) return null;
