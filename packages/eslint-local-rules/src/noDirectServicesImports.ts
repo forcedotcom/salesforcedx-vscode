@@ -31,13 +31,13 @@ export const noDirectServicesImports = RuleCreator.withoutDocs({
   meta: {
     type: 'problem',
     docs: {
-      description:
-        'Disallow direct imports from salesforcedx-vscode-services - use type-only imports instead'
+      description: 'Disallow direct imports from salesforcedx-vscode-services - use type-only imports instead',
+      url: 'https://github.com/forcedotcom/salesforcedx-vscode/blob/main/packages/salesforcedx-vscode-services/README.md#usage-example-consuming-services-from-other-extensions'
     },
     schema: [],
     messages: {
       noDirectImport:
-        'Direct imports from salesforcedx-vscode-services are not allowed. Use "import type" or make all specifiers type-only (e.g., "import { type Foo }").'
+        'Direct imports from salesforcedx-vscode-services are not allowed. Use "import type" for types, and access services through the extension API. See: https://github.com/forcedotcom/salesforcedx-vscode/blob/main/packages/salesforcedx-vscode-services/README.md#usage-example-consuming-services-from-other-extensions'
     }
   },
   defaultOptions: [],
