@@ -32,7 +32,6 @@
     "@salesforce/core": "^8.23.3",
     "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/source-deploy-retrieve": "^12.29.1",
-    "@vscode/test-web": "^0.0.76",
     "esbuild": "^0.27.1",
     "salesforcedx-vscode-services": "*"
   },

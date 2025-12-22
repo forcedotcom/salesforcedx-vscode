@@ -6,7 +6,7 @@
   "dependencies": {
     "@playwright/test": "^1.54.1",
     "@vscode/test-electron": "2.5.2",
-    "@vscode/test-web": "^0.0.71"
+    "@vscode/test-web": "^0.0.77"
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.3"
