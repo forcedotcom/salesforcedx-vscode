@@ -6,7 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
-import { EditorService, NoActiveEditorError } from 'salesforcedx-vscode-services/src/vscode/editorService';
+import type { NoActiveEditorError } from 'salesforcedx-vscode-services/src/vscode/editorService';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
@@ -22,7 +22,8 @@ const deployPaths = Effect.fn('deployPaths')(function* (paths: Set<string>) {
 
 const deployActiveEditorEffect = (): Effect.Effect<void, Error | NoActiveEditorError, ExtensionProviderService> =>
   Effect.gen(function* () {
-    const activeEditorUri = yield* (yield* EditorService).getActiveEditorUri;
+    const activeEditorUri = yield* (yield* (yield* (yield* ExtensionProviderService).getServicesApi).services
+      .EditorService).getActiveEditorUri;
     return yield* deployPaths(new Set([activeEditorUri.path]));
   }).pipe(Effect.withSpan('deployActiveEditor'), Effect.provide(AllServicesLayer));
 

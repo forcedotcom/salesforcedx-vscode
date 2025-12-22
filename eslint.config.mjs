@@ -564,6 +564,15 @@ export default [
     }
   },
   {
+    // Prevent direct imports from services extension (except in services package itself)
+    // Only applies to src directories, not test directories
+    files: ['packages/**/src/**/*.ts'],
+    ignores: ['packages/salesforcedx-vscode-services/**/*.ts'],
+    rules: {
+      'local/no-direct-services-imports': 'error'
+    }
+  },
+  {
     // Relaxed rules for test files in services and org-browser packages
     files: [
       'packages/salesforcedx-vscode-services/test/**/*.ts',
