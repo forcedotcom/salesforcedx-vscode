@@ -13,15 +13,18 @@ import {
   notificationService,
   ParametersGatherer,
   ProgressNotification,
-  SfCommandlet,
   SfWorkspaceChecker,
   TimingUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { nls } from '../messages';
-import { taskViewService } from '../statuses/taskView';
-import { SfCommandletExecutor } from './util';
+import {
+  getChannelService,
+  getSfCommandlet,
+  getSfCommandletExecutorClass,
+  getTaskViewService,
+  getTelemetryService
+} from '../utils/coreExtensionUtils';
 
 type QueryResponse = {
   status: number;
@@ -51,7 +54,7 @@ class IdGatherer implements ParametersGatherer<IdSelection> {
   }
 }
 
-class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelection> {
+class DebuggerSessionDetachExecutor extends getSfCommandletExecutorClass()<IdSelection> {
   public build(data: IdSelection): Command {
     return new SfCommandBuilder()
       .withArg('data:update:record')
@@ -65,7 +68,7 @@ class DebuggerSessionDetachExecutor extends SfCommandletExecutor<IdSelection> {
   }
 }
 
-class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
+class StopActiveDebuggerSessionExecutor {
   public build(_data: {}): Command {
     return new SfCommandBuilder()
       .withArg('data:query')
@@ -81,6 +84,8 @@ class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
     const startTime = TimingUtils.getCurrentTime();
     const cancellationTokenSource = new vscode.CancellationTokenSource();
     const cancellationToken = cancellationTokenSource.token;
+    const channelService = await getChannelService();
+    const taskViewService = await getTaskViewService();
 
     const execution = new CliCommandExecutor(this.build(response.data), {
       cwd: workspaceUtils.getRootWorkspacePath()
@@ -88,7 +93,14 @@ class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
 
     const resultPromise = new CommandOutput().getCmdResult(execution);
     execution.processExitSubject.subscribe(() => {
-      this.logMetric(execution.command.logName, startTime);
+      // Log metric using telemetry service from core
+      void getTelemetryService()
+        .then(telemetryService => {
+          telemetryService.sendCommandEvent(execution.command.logName, startTime);
+        })
+        .catch(() => {
+          // Telemetry service not available, skip logging
+        });
     });
     channelService.streamCommandOutput(execution);
     channelService.showChannelOutput();
@@ -103,6 +115,7 @@ class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
       if (queryResponse?.result?.size === 1) {
         const sessionIdToUpdate = queryResponse.result.records[0].Id;
         if (sessionIdToUpdate?.startsWith('07a')) {
+          const SfCommandlet = await getSfCommandlet();
           const sessionDetachCommandlet = new SfCommandlet(
             new SfWorkspaceChecker(),
             new IdGatherer(sessionIdToUpdate),
@@ -118,6 +131,7 @@ class StopActiveDebuggerSessionExecutor extends SfCommandletExecutor<{}> {
 }
 
 export const debuggerStop = async () => {
+  const SfCommandlet = await getSfCommandlet();
   const sessionStopCommandlet = new SfCommandlet(
     new SfWorkspaceChecker(),
     new EmptyParametersGatherer(),
