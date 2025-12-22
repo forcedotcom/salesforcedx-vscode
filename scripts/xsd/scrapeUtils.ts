@@ -720,7 +720,7 @@ export const extractMetadataFromPage = async (
     if (allTableFields.length === 0 && !extractionResult.headingsWithoutTables?.length) return [];
 
     /** Helper to create a result entry with cleaned fields and normalized description */
-    const createResultEntry = (name: string, description: string, fields: MetadataField[], logPrefix: string) => {
+    const createResultEntry = (name: string, description: string, fields: MetadataField[]) => {
       const cleanedFields = fields.map((field: MetadataField) => ({
         ...field,
         Description: normalizeWhitespace(field.Description),
@@ -738,19 +738,17 @@ export const extractMetadataFromPage = async (
         }
       };
       results.push(entry);
-      console.log(`Newest entry ${logPrefix}:`, JSON.stringify(entry, null, 2));
+      console.log(`Newest entry:`, JSON.stringify(entry, null, 2));
     };
 
-    // Process all tables - single table is treated as first (and only) table in the loop
+    // Process all tables
     for (let i = 0; i < allTableFields.length; i++) {
       const tableData = allTableFields[i];
-      const isOnlyTable = allTableFields.length === 1;
-
       let finalName: string;
 
       if (i === 0) {
         // Handle the first table
-        if (isOnlyTable) {
+        if (allTableFields.length === 1) {
           // For single table, always use page title (the table represents the main type)
           finalName = tableData.pageTitle;
         } else {
@@ -812,8 +810,7 @@ export const extractMetadataFromPage = async (
       const description =
         i === 0 ? (tableData.pageLevelDescription ?? tableData.tableDescription) : tableData.tableDescription;
 
-      const logPrefix = isOnlyTable ? 'ONE TABLE' : 'MULTIPLE TABLES';
-      createResultEntry(finalName, description, tableData.fields, logPrefix);
+      createResultEntry(finalName, description, tableData.fields);
     }
 
     // After extracting all tables, identify referenced types that don't have their own tables
