@@ -765,7 +765,7 @@ export const extractMetadataFromPage = async (
         } else if (tableData.tableName) {
           // For subsequent tables, use the found table name
           finalName = tableData.tableName;
-        } else if (i > 0) {
+        } else {
           // Try to infer name from types in previous tables (both arrays and complex types)
           let inferredName: string | null = null;
 
@@ -806,8 +806,6 @@ export const extractMetadataFromPage = async (
           }
 
           finalName = inferredName ?? `${typeName} (Table ${i + 1})`;
-        } else {
-          finalName = `${typeName} (Table ${i + 1})`;
         }
 
         // For the first table, always use page-level description first (just like we always use page title)
