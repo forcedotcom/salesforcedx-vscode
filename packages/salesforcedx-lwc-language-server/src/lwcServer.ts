@@ -340,13 +340,11 @@ export default class Server {
     if (await this.context.isLWCTemplate(doc)) {
       this.auraDataProvider.activated = false;
       this.lwcDataProvider.activated = true;
-      const hover = this.languageService.doHover(doc, position, htmlDoc);
-      return hover;
+      return this.languageService.doHover(doc, position, htmlDoc);
     } else if (await this.context.isAuraMarkup(doc)) {
       this.auraDataProvider.activated = true;
       this.lwcDataProvider.activated = false;
-      const hover = this.languageService.doHover(doc, position, htmlDoc);
-      return hover;
+      return this.languageService.doHover(doc, position, htmlDoc);
     } else {
       return null;
     }
