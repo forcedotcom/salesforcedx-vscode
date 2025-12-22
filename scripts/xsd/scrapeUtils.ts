@@ -577,6 +577,12 @@ export const extractMetadataFromPage = async (
 
         console.log(`Looking for description after heading: ${headingElement.textContent?.trim()}`);
 
+        /** Helper to extract description from a paragraph element, returns the description or empty string */
+        const tryExtractDescription = (element: Element): string => {
+          const text = element.textContent?.trim() ?? '';
+          return !isInsideCallout(element) && text.length > 0 ? text : '';
+        };
+
         while (nextElement) {
           const tagName = nextElement.tagName;
           console.log(`  Found tag ${tagName}, class: ${nextElement.className}`);
@@ -595,17 +601,10 @@ export const extractMetadataFromPage = async (
 
           // Look for a paragraph with meaningful content
           if (tagName === 'P') {
-            if (!isInsideCallout(nextElement)) {
-              const text = nextElement.textContent?.trim() ?? '';
-              console.log(`    Checking P content: "${text.substring(0, 50)}..."`);
-              // Only accept non-empty descriptions
-              if (text.length > 0) {
-                description = text;
-                console.log('    ✅ Found valid description');
-                break;
-              }
-            } else {
-              console.log('    Skipping P inside callout');
+            const extracted = tryExtractDescription(nextElement);
+            if (extracted) {
+              description = extracted;
+              break;
             }
           }
 
@@ -622,16 +621,11 @@ export const extractMetadataFromPage = async (
             const paragraphs = Array.from(nextElement.querySelectorAll('p'));
             let foundInDiv = false;
             for (const p of paragraphs) {
-              if (!isInsideCallout(p)) {
-                const text = p.textContent?.trim() ?? '';
-                console.log(`    Checking P inside DIV: "${text.substring(0, 50)}..."`);
-                // Only accept non-empty descriptions
-                if (text.length > 0) {
-                  description = text;
-                  console.log('    ✅ Found valid description inside DIV');
-                  foundInDiv = true;
-                  break;
-                }
+              const extracted = tryExtractDescription(p);
+              if (extracted) {
+                description = extracted;
+                foundInDiv = true;
+                break;
               }
             }
             if (foundInDiv) break;
