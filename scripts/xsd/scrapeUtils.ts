@@ -741,80 +741,79 @@ export const extractMetadataFromPage = async (
       console.log(`Newest entry ${logPrefix}:`, JSON.stringify(entry, null, 2));
     };
 
-    // If only one table, always use the page title (the table represents the main type)
-    if (allTableFields.length === 1) {
-      const tableData = allTableFields[0];
-      const tableName = tableData.pageTitle;
-      // For the only table, always use page-level description
-      const tableDescription = tableData.pageLevelDescription;
+    // Process all tables - single table is treated as first (and only) table in the loop
+    for (let i = 0; i < allTableFields.length; i++) {
+      const tableData = allTableFields[i];
+      const isOnlyTable = allTableFields.length === 1;
 
-      createResultEntry(tableName, tableDescription, tableData.fields, 'ONE TABLE');
-    } else {
-      // Multiple tables - use actual table names or infer from field types
-      for (let i = 0; i < allTableFields.length; i++) {
-        const tableData = allTableFields[i];
+      let finalName: string;
 
-        let finalName: string;
-
-        if (i === 0) {
-          // Handle the first table - use page title if table name is 'Fields' or empty
+      if (i === 0) {
+        // Handle the first table
+        if (isOnlyTable) {
+          // For single table, always use page title (the table represents the main type)
+          finalName = tableData.pageTitle;
+        } else {
+          // For multiple tables, use page title if table name is 'Fields' or empty
           finalName =
             !tableData.tableName || tableData.tableName.toLowerCase() === 'fields'
               ? tableData.pageTitle
               : tableData.tableName;
-        } else if (tableData.tableName) {
-          // For subsequent tables, use the found table name
-          finalName = tableData.tableName;
-        } else {
-          // Try to infer name from types in previous tables (both arrays and complex types)
-          let inferredName: string | null = null;
+        }
+      } else if (tableData.tableName) {
+        // For subsequent tables, use the found table name
+        finalName = tableData.tableName;
+      } else {
+        // Try to infer name from types in previous tables (both arrays and complex types)
+        let inferredName: string | null = null;
 
-          // Collect candidate type names from previous tables
-          // Process tables in REVERSE order to prioritize more recent types
-          const arrayTypes: string[] = [];
-          const complexTypes: string[] = [];
+        // Collect candidate type names from previous tables
+        // Process tables in REVERSE order to prioritize more recent types
+        const arrayTypes: string[] = [];
+        const complexTypes: string[] = [];
 
-          for (let j = i - 1; j >= 0; j--) {
-            const prevTable = allTableFields[j];
-            for (const field of prevTable.fields) {
-              const fieldType = field['Field Type'];
+        for (let j = i - 1; j >= 0; j--) {
+          const prevTable = allTableFields[j];
+          for (const field of prevTable.fields) {
+            const fieldType = field['Field Type'];
 
-              // Collect array types (higher priority)
-              const arrayType = extractArrayTypeName(fieldType);
-              if (arrayType) {
-                arrayTypes.push(arrayType);
-              }
+            // Collect array types (higher priority)
+            const arrayType = extractArrayTypeName(fieldType);
+            if (arrayType) {
+              arrayTypes.push(arrayType);
+            }
 
-              // Collect complex types (lower priority)
-              const complexType = extractComplexTypeName(fieldType);
-              if (complexType) {
-                complexTypes.push(complexType);
-              }
+            // Collect complex types (lower priority)
+            const complexType = extractComplexTypeName(fieldType);
+            if (complexType) {
+              complexTypes.push(complexType);
             }
           }
-
-          // Prioritize: arrays from recent tables, then complex types from recent tables
-          const candidateTypes = [...arrayTypes, ...complexTypes];
-
-          // Find the first unused candidate type
-          for (const candidate of candidateTypes) {
-            const alreadyUsed = results.some(r => r.name === candidate);
-            if (!alreadyUsed) {
-              inferredName = candidate;
-              break;
-            }
-          }
-
-          finalName = inferredName ?? `${typeName} (Table ${i + 1})`;
         }
 
-        // For the first table, always use page-level description first (just like we always use page title)
-        // For subsequent tables, only use table-specific descriptions
-        const description =
-          i === 0 ? (tableData.pageLevelDescription ?? tableData.tableDescription) : tableData.tableDescription;
+        // Prioritize: arrays from recent tables, then complex types from recent tables
+        const candidateTypes = [...arrayTypes, ...complexTypes];
 
-        createResultEntry(finalName, description, tableData.fields, 'MULTIPLE TABLES');
+        // Find the first unused candidate type
+        for (const candidate of candidateTypes) {
+          const alreadyUsed = results.some(r => r.name === candidate);
+          if (!alreadyUsed) {
+            inferredName = candidate;
+            break;
+          }
+        }
+
+        finalName = inferredName ?? `${typeName} (Table ${i + 1})`;
       }
+
+      // For the first table, prefer page-level description
+      // For single table, always use page-level description
+      // For subsequent tables, only use table-specific descriptions
+      const description =
+        i === 0 ? (tableData.pageLevelDescription ?? tableData.tableDescription) : tableData.tableDescription;
+
+      const logPrefix = isOnlyTable ? 'ONE TABLE' : 'MULTIPLE TABLES';
+      createResultEntry(finalName, description, tableData.fields, logPrefix);
     }
 
     // After extracting all tables, identify referenced types that don't have their own tables
