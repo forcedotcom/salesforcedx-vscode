@@ -264,47 +264,44 @@ export const extractMetadataFromPage = async (
 
           // Try the element itself if it's P or DD
           if (current.tagName === 'P' || current.tagName === 'DD') {
-            if (checkAndCollectParagraph(current, checkElement, collectedParagraphs, maxParagraphs)) {
-              foundExtends = true;
-              break;
+            const text = checkElement(current);
+            if (text && collectedParagraphs.length < maxParagraphs) {
+              collectedParagraphs.push(text);
+              // Stop collecting if this paragraph contains "extends"
+              if (text.toLowerCase().includes('extends')) {
+                foundExtends = true;
+                break;
+              }
             }
           }
 
           // If it's a DIV, iterate through its children in order (but skip callout divs)
           // Stop if we encounter a heading inside the DIV
           if (current.tagName === 'DIV' && !isInsideCallout(current)) {
-            for (const child of Array.from(current.children)) {
-              if (foundExtends) break; // Stop if we already found extends
-
-              // Stop if we hit a heading inside the DIV
-              if (child.tagName.match(/^H[2-6]$/)) {
-                break;
-              }
-
-              // Check paragraphs directly
-              if (child.tagName === 'P' || child.tagName === 'DD') {
-                if (checkAndCollectParagraph(child, checkElement, collectedParagraphs, maxParagraphs)) {
-                  foundExtends = true;
-                  break;
-                }
-              }
-
-              // Also check for nested P/DD in non-heading containers
-              if (child.tagName === 'DIV' && !isInsideCallout(child) && !child.tagName.match(/^H[2-6]$/)) {
-                const nestedParagraphs = child.querySelectorAll('p, dd');
-                for (const p of Array.from(nestedParagraphs)) {
-                  if (foundExtends) break; // Stop if we already found extends
-                  if (checkAndCollectParagraph(p, checkElement, collectedParagraphs, maxParagraphs)) {
+            const shouldStop = processDivForParagraphs(
+              current,
+              checkElement,
+              text => {
+                if (text && collectedParagraphs.length < maxParagraphs) {
+                  collectedParagraphs.push(text);
+                  // Stop collecting if this paragraph contains "extends"
+                  if (text.toLowerCase().includes('extends')) {
                     foundExtends = true;
-                    break;
+                    return true; // Stop processing
                   }
                 }
+                return false; // Continue processing
+              },
+              {
+                checkDirectChildren: true,
+                checkNestedDivs: true,
+                fallbackToDirectText: false
               }
-            }
-          }
+            );
 
-          // If we found "extends" while processing the DIV, stop the main loop
-          if (foundExtends) break;
+            // If we found "extends" while processing the DIV, stop the main loop
+            if (shouldStop) break;
+          }
 
           current = current.nextElementSibling;
         }
@@ -519,6 +516,76 @@ export const extractMetadataFromPage = async (
         return false;
       }
 
+      /**
+       * Helper to extract paragraphs from a DIV element, skipping callouts.
+       * Returns true if processing should stop (early termination), false to continue.
+       */
+      function processDivForParagraphs(
+        divElement: Element,
+        extractText: (el: Element) => string,
+        onParagraphFound: (text: string) => boolean,
+        options: {
+          checkDirectChildren?: boolean;
+          checkNestedDivs?: boolean;
+          fallbackToDirectText?: boolean;
+        } = {}
+      ): boolean {
+        const { checkDirectChildren = false, checkNestedDivs = false, fallbackToDirectText = false } = options;
+
+        // Skip if the DIV itself is a callout
+        if (isCalloutElement(divElement)) return false;
+
+        if (checkDirectChildren) {
+          // Process direct children in order
+          for (const child of Array.from(divElement.children)) {
+            // Stop if we hit a heading inside the DIV
+            if (child.tagName.match(/^H[2-6]$/)) break;
+
+            // Check paragraphs directly
+            if (child.tagName === 'P' || child.tagName === 'DD') {
+              const text = extractText(child);
+              if (text && onParagraphFound(text)) return true;
+            }
+
+            // Check nested DIVs if requested
+            if (checkNestedDivs && child.tagName === 'DIV' && !isInsideCallout(child)) {
+              const nestedParagraphs = child.querySelectorAll('p, dd');
+              for (const p of Array.from(nestedParagraphs)) {
+                const text = extractText(p);
+                if (text && onParagraphFound(text)) return true;
+              }
+            }
+          }
+        } else {
+          // Use querySelectorAll to find all paragraphs in the DIV
+          const paragraphs = Array.from(divElement.querySelectorAll('p'));
+          for (const p of paragraphs) {
+            const text = extractText(p);
+            if (text && onParagraphFound(text)) return true;
+          }
+        }
+
+        // Fallback: Check direct text content if no valid P found
+        if (fallbackToDirectText) {
+          const hasComplexChildren = divElement.querySelector('table, h1, h2, h3, h4, h5, h6');
+          if (!hasComplexChildren) {
+            // Clone to verify text without callouts (avoids "combined text" issue)
+            const clone = divElement.cloneNode(true) as Element;
+            const allElements = Array.from(clone.querySelectorAll('*'));
+            for (const el of allElements) {
+              if (isCalloutElement(el)) {
+                el.remove();
+              }
+            }
+
+            const text = clone.textContent?.trim() ?? '';
+            if (text.length > 0 && onParagraphFound(text)) return true;
+          }
+        }
+
+        return false;
+      }
+
       /** Search for elements in regular DOM and shadow DOMs with optional filter predicate */
       function searchInRegularAndShadowDOMs<T extends Element>(
         root: Document | ShadowRoot | Element,
@@ -554,22 +621,6 @@ export const extractMetadataFromPage = async (
         return results;
       }
 
-      /** Helper to check element and add to collected paragraphs if valid, returns true if "extends" was found */
-      function checkAndCollectParagraph(
-        element: Element,
-        checkElement: (el: Element) => string,
-        collectedParagraphs: string[],
-        maxParagraphs: number
-      ): boolean {
-        const desc = checkElement(element);
-        if (desc && collectedParagraphs.length < maxParagraphs) {
-          collectedParagraphs.push(desc);
-          // Stop collecting if this paragraph contains "extends"
-          if (desc.toLowerCase().includes('extends')) return true;
-        }
-        return false;
-      }
-
       /** Helper to find description paragraph after a heading element */
       function findDescriptionAfterHeading(headingElement: Element): string {
         let description = '';
@@ -601,44 +652,20 @@ export const extractMetadataFromPage = async (
 
           // Check inside DIVs for paragraphs (but skip callout divs)
           if (tagName === 'DIV' && !isInsideCallout(nextElement)) {
-            // Skip if the DIV itself is a callout
-            if (isCalloutElement(nextElement)) {
-              nextElement = nextElement.nextElementSibling;
-              continue;
-            }
-
-            // Iterate all paragraphs in the DIV
-            const paragraphs = Array.from(nextElement.querySelectorAll('p'));
-            let foundInDiv = false;
-            for (const p of paragraphs) {
-              const extracted = tryExtractDescription(p);
-              if (extracted) {
-                description = extracted;
-                foundInDiv = true;
-                break;
-              }
-            }
-            if (foundInDiv) break;
-
-            // Fallback: Check direct text content if no valid P found
-            const hasComplexChildren = nextElement.querySelector('table, h1, h2, h3, h4, h5, h6');
-            if (!hasComplexChildren) {
-              // Clone to verify text without callouts (avoids "combined text" issue)
-              const clone = nextElement.cloneNode(true) as Element;
-              const allElements = Array.from(clone.querySelectorAll('*'));
-              for (const el of allElements) {
-                if (isCalloutElement(el)) {
-                  el.remove();
-                }
-              }
-
-              const text = clone.textContent?.trim() ?? '';
-              // Only accept non-empty descriptions
-              if (text.length > 0) {
+            const foundInDiv = processDivForParagraphs(
+              nextElement,
+              tryExtractDescription,
+              text => {
                 description = text;
-                break;
+                return true; // Stop processing after first match
+              },
+              {
+                checkDirectChildren: false,
+                checkNestedDivs: false,
+                fallbackToDirectText: true
               }
-            }
+            );
+            if (foundInDiv) break;
           }
 
           nextElement = nextElement.nextElementSibling;
