@@ -58,6 +58,7 @@ import { TYPESCRIPT_SUPPORT_SETTING } from './constants';
 import { LWCWorkspaceContext } from './context/lwcContext';
 import { compileDocument as javascriptCompileDocument } from './javascript/compiler';
 import { LWCDataProvider } from './lwcDataProvider';
+import { nls } from './messages';
 
 import {
   Tag,
@@ -323,6 +324,12 @@ export default class Server {
   public async onHover(params: TextDocumentPositionParams): Promise<Hover | null> {
     if (!params?.textDocument || !params.position) {
       return null;
+    }
+
+    if (!this.isDelayedInitializationComplete) {
+      return {
+        contents: nls.localize('server_initializing_message')
+      };
     }
 
     const {

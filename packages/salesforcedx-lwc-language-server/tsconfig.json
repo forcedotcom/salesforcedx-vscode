@@ -11,6 +11,9 @@
   "references": [
     {
       "path": "../salesforcedx-lightning-lsp-common"
+    },
+    {
+      "path": "../salesforcedx-vscode-i18n"
     }
   ]
 }
