@@ -1,11 +1,65 @@
-<!-- a511afd3-1f16-46d5-8864-0c07b70f3e30 4640080e-4af9-44d5-9eea-79fc1b441498 -->
+---
+name: Create Playwright E2E Tests for Metadata Extension with Dedicated Playwright Package
+overview: ""
+todos:
+  - id: 132054c7-ac19-429e-9fd7-ff6caff25936
+    content: Create salesforcedx-vscode-playwright package directory with src folders (1.1 - COMPLETE)
+    status: completed
+  - id: a849859e-2d5b-466e-a68f-53199b3505f1
+    content: Configure package.json (private, dependencies) and tsconfig.json, verify compile (1.2 - COMPLETE)
+    status: completed
+  - id: 4953dc5e-fd06-4467-8e95-1d61836ef7a3
+    content: Move shared utilities from org-browser to playwright package, verify compile (1.3 - COMPLETE)
+    status: completed
+  - id: 73f2f470-598c-44c4-91b1-450a88de3a7b
+    content: Create src/index.ts with explicit named exports, verify compile (1.4 - COMPLETE)
+    status: completed
+  - id: 27e3250b-5853-4878-8ffc-ae7143f7062d
+    content: Add playwright package dependency, update imports, remove duplicated files, verify compile (1.5 - COMPLETE)
+    status: completed
+  - id: 9c8cc4f7-d9b2-4304-a7c6-668a64a5b783
+    content: Run org-browser playwright tests - environmental issues noted, ready for Phase 2 (1.5 verify - COMPLETE)
+    status: completed
+  - id: bf9da673-e06a-4b76-bed8-e57387f687b3
+    content: Create test/playwright directory structure in metadata extension (2.1 - COMPLETE)
+    status: completed
+  - id: b43dd345-08d5-48e6-b279-bea95d951715
+    content: Create fixtures (index.ts, desktopFixtures.ts, web/headlessServer.ts) + extract shared fixture types, verify compile (2.2 - COMPLETE)
+    status: completed
+  - id: ffab5e70-e776-48b1-8474-7b69061068f1
+    content: Create sourceTrackingStatusBarPage.ts, verify compile (2.3 - COMPLETE)
+    status: completed
+  - id: fb99d4ce-cecc-41f2-852e-26ec42358837
+    content: Create apexFileHelpers.ts and notifications.ts, verify compile (2.4 - COMPLETE)
+    status: completed
+  - id: 2d7a7289-a357-4f54-85fc-e299d07e383b
+    content: Create sourceTrackingStatusBar.headless.spec.ts with load verification test, verify compile (2.5.1 - COMPLETE)
+    status: completed
+  - id: a3d2fd0c-bd47-4a43-a68c-9288219de0c3
+    content: Create playwright configs, verify compile (2.6)
+    status: completed
+  - id: 4ba360c9-257b-4416-9a56-4a37050641e0
+    content: Add dependencies and test scripts, verify compile and bundle (2.7)
+    status: completed
+  - id: 676043ff-f0f8-490f-9509-29ef7c559347
+    content: Run metadata playwright tests (desktop and web), verify all pass (2.8)
+    status: completed
+  - id: 598ed5ce-e7a3-4bde-a1ce-9af3d1d7d6be
+    content: Re-run org-browser tests to ensure nothing broke (2.8)
+    status: completed
+  - id: fd4ab030-d5a8-4c22-80c8-a27524f36ad2
+    content: dedupe config files by sharing code from playwright pkg
+    status: completed
+  - id: 31066e21-c33d-4afa-a6da-25d1254bc3b6
+    content: figure out a better way to share constants (made a new top-level export from services that's not index.js so playwright and other ext can use it)
+    status: completed
+---
+
 # Create Playwright E2E Tests for Metadata Extension with Dedicated Playwright Package
 
 ## Overview
 
-Create Playwright e2e tests for `salesforcedx-vscode-metadata` extension. **First**, create a new `salesforcedx-vscode-playwright` package and extract shared utilities from org-browser playwright tests into it. **Then**, create metadata extension tests using those shared utilities.
-
-**Critical**: After each sub-phase, verify org-browser playwright tests still pass before proceeding.
+Create Playwright e2e tests for `salesforcedx-vscode-metadata` extension. **First**, create a new `salesforcedx-vscode-playwright` package and extract shared utilities from org-browser playwright tests into it. **Then**, create metadata extension tests using those shared utilities.**Critical**: After each sub-phase, verify org-browser playwright tests still pass before proceeding.
 
 ## Phase 1: Create Shared Playwright Utilities Package
 
@@ -40,33 +94,25 @@ Create Playwright e2e tests for `salesforcedx-vscode-metadata` extension. **Firs
 - `compile`: TypeScript compilation
 - `watch`: TypeScript watch mode
 - `clean`: Clean output directory
-
 - **tsconfig.json**: Extend from common config, compile to `out/`
 
 **Verify**: Run `npm run compile` from repo root, ensure no errors
 
 ### 1.3 Move Shared Utilities from Org-Browser
 
-Move these files from `packages/salesforcedx-vscode-org-browser/test/playwright/` to `packages/salesforcedx-vscode-playwright/src/`:
-
-**Files to move:**
+Move these files from `packages/salesforcedx-vscode-org-browser/test/playwright/` to `packages/salesforcedx-vscode-playwright/src/`:**Files to move:**
 
 - `utils/helpers.ts` → `src/utils/helpers.ts`
 - Exports: `setupConsoleMonitoring`, `setupNetworkMonitoring`, `filterErrors`, `filterNetworkErrors`, `waitForVSCodeWorkbench`, `typingSpeed`
-
 - `utils/dreamhouseScratchOrgSetup.ts` → `src/utils/dreamhouseScratchOrgSetup.ts`
 - Exports: `create`, `DREAMHOUSE_ORG_ALIAS`
-
 - `pages/settings.ts` → `src/pages/settings.ts`
 - Exports: `upsertScratchOrgAuthFieldsToSettings` and helper functions
 - Note: Remove `OrgBrowserPage` import, make it generic or parameterize (accept page object as parameter)
-
 - `pages/commands.ts` → `src/pages/commands.ts`
 - Exports: `executeCommandWithCommandPalette`, `openCommandPalette`, `executeCommand`
-
 - `shared/screenshotUtils.ts` → `src/shared/screenshotUtils.ts`
 - Exports: `saveScreenshot`
-
 - `fixtures/desktopWorkspace.ts` → `src/fixtures/desktopWorkspace.ts`
 - Exports: `createTestWorkspace`
 - Make org alias configurable via parameter (default to DREAMHOUSE_ORG_ALIAS)
@@ -157,12 +203,10 @@ Move these files from `packages/salesforcedx-vscode-org-browser/test/playwright/
 - `editOpenFile(page, comment)` - Edit currently open file via UI interactions
 - `findAndEditApexClass(page, className, comment)` - Combine open + edit operations
 - **Note**: Refactored to use UI interactions (Quick Open, keyboard, Monaco editor) instead of VS Code API for cross-environment compatibility
-
 - ✅ `pages/notifications.ts` (deploy-specific):
 - `waitForDeployProgressNotificationToAppear(page, timeout)` - Locator filter `hasText: /Deploying/i`
 - `waitForDeployErrorNotification(page, timeout)` - Locator filter `hasText: /deploy.*failed|deploy.*error/i`
 - `waitForDeploySuccessNotification(page, timeout)` - Locator filter `hasText: /deploy.*succeeded|deploy.*success/i`
-
 - ✅ **Enhanced Status Bar Item for Testability**:
 - Added `id` parameter to `createStatusBarItem()`: `'salesforce.salesforcedx-vscode-metadata'`
 - Added `name` property: `'Salesforce: Source Tracking'`
@@ -208,9 +252,7 @@ Move these files from `packages/salesforcedx-vscode-org-browser/test/playwright/
 - `playwright.config.desktop.ts` - Uses `createDesktopConfig()` shared factory (~10 lines)
 - `playwright.config.web.ts` - Uses `createWebConfig()` shared factory (~10 lines)
 
-**Additional Work**: Refactored org-browser configs to also use the same shared factories, eliminating ~50 lines of duplicated configuration per extension.
-
-**Verified**: Ran `npm run compile` in metadata package ✅
+**Additional Work**: Refactored org-browser configs to also use the same shared factories, eliminating ~50 lines of duplicated configuration per extension.**Verified**: Ran `npm run compile` in metadata package ✅
 
 ### 2.7 Package.json Updates ✅
 
@@ -262,7 +304,6 @@ All org-browser tests continue to pass with shared config factories.
 - `packages/salesforcedx-vscode-services/**` changes
 - `packages/salesforcedx-vscode-playwright/**` changes
 - `.github/workflows/metadataE2E.yml` changes
-
 - **Jobs**:
 - `e2e-web`: Ubuntu runner
 - Setup Node.js 22
@@ -273,7 +314,6 @@ All org-browser tests continue to pass with shared config factories.
 - Run `npm run test:web:headless:ci -w salesforcedx-vscode-metadata`
 - Upload playwright reports and test results
 - Cleanup scratch org
-
 - `e2e-desktop`: Matrix (macos-latest, windows-latest)
 - Same steps as e2e-web but with `VSCODE_DESKTOP=1`
 - Run `npm run test:desktop:ci -w salesforcedx-vscode-metadata`
@@ -301,24 +341,3 @@ All org-browser tests continue to pass with shared config factories.
 - Background color CSS variable when conflicts > 0
 - Command execution results (error notifications vs success)
 - Status bar count changes after operations
--
-
-### To-dos
-
-- [x] Create salesforcedx-vscode-playwright package directory with src folders (1.1 - COMPLETE)
-- [x] Configure package.json (private, dependencies) and tsconfig.json, verify compile (1.2 - COMPLETE)
-- [x] Move shared utilities from org-browser to playwright package, verify compile (1.3 - COMPLETE)
-- [x] Create src/index.ts with explicit named exports, verify compile (1.4 - COMPLETE)
-- [x] Add playwright package dependency, update imports, remove duplicated files, verify compile (1.5 - COMPLETE)
-- [x] Run org-browser playwright tests - environmental issues noted, ready for Phase 2 (1.5 verify - COMPLETE)
-- [x] Create test/playwright directory structure in metadata extension (2.1 - COMPLETE)
-- [x] Create fixtures (index.ts, desktopFixtures.ts, web/headlessServer.ts) + extract shared fixture types, verify compile (2.2 - COMPLETE)
-- [x] Create sourceTrackingStatusBarPage.ts, verify compile (2.3 - COMPLETE)
-- [x] Create apexFileHelpers.ts and notifications.ts, verify compile (2.4 - COMPLETE)
-- [x] Create sourceTrackingStatusBar.headless.spec.ts with load verification test, verify compile (2.5.1 - COMPLETE)
-- [x] Create playwright configs, verify compile (2.6)
-- [x] Add dependencies and test scripts, verify compile and bundle (2.7)
-- [x] Run metadata playwright tests (desktop and web), verify all pass (2.8)
-- [x] Re-run org-browser tests to ensure nothing broke (2.8)
-- [x] dedupe config files by sharing code from playwright pkg
-- [x] figure out a better way to share constants (made a new top-level export from services that's not index.js so playwright and other ext can use it)

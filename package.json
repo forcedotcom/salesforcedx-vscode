@@ -161,6 +161,7 @@
         "./packages/salesforcedx-vscode-soql:compile",
         "./packages/salesforcedx-vscode-visualforce:compile",
         "./packages/salesforcedx-vscode-services:compile",
+        "./packages/salesforcedx-vscode-metadata:compile",
         "./packages/salesforcedx-vscode-services-types:compile",
         "./packages/salesforcedx-vscode-org:compile",
         "./packages/salesforcedx-vscode-org-browser:compile",
@@ -215,6 +216,7 @@
         "./packages/salesforcedx-vscode-apex-testing:test",
         "./packages/salesforcedx-vscode-lwc:test",
         "./packages/salesforcedx-vscode-lightning:test",
+        "./packages/salesforcedx-vscode-metadata:test",
         "./packages/salesforcedx-vscode-soql:test",
         "./packages/salesforcedx-vscode-visualforce:test",
         "./packages/salesforcedx-vscode-services:test",
@@ -236,6 +238,7 @@
         "./packages/salesforcedx-vscode-services:vscode:bundle",
         "./packages/salesforcedx-vscode-org:vscode:bundle",
         "./packages/salesforcedx-vscode-org-browser:vscode:bundle",
+        "./packages/salesforcedx-vscode-metadata:vscode:bundle",
         "./packages/salesforcedx-vscode-apex-testing:vscode:bundle"
       ]
     },

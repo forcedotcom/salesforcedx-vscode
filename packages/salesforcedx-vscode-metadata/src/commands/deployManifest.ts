@@ -10,30 +10,26 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
-import { getActiveEditorUri } from '../shared/activeEditorUri';
-import { deployComponentSet } from '../shared/deploy/deployComponentSet';
+import { deployComponentSet, EnsureNonEmptyComponentSet } from '../shared/deploy/deployComponentSet';
 
-/** Deploy manifest to the default org */
-const deployManifestEffect = Effect.fn('deployManifest')(function* (manifestUri?: URI) {
-  yield* Effect.annotateCurrentSpan({ manifestUri });
+const deployManifestEffect = (manifestUri?: URI): Effect.Effect<void, Error, ExtensionProviderService> =>
+  Effect.gen(function* () {
+    yield* Effect.annotateCurrentSpan({ manifestUri });
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const resolved =
+      manifestUri ??
+      (yield* (yield* api.services.EditorService).getActiveEditorUri.pipe(
+        Effect.catchTag('NoActiveEditorError', () => Effect.fail(new Error(nls.localize('deploy_select_manifest'))))
+      ));
+    // Use path instead of fsPath for memfs URIs (web environments) to avoid backslash conversion issues
+    // For file:// URIs, path and fsPath are equivalent
+    const manifestPath = process.env.ESBUILD_PLATFORM === 'web' ? resolved.path : resolved.fsPath;
 
-  const resolved =
-    manifestUri ??
-    (yield* getActiveEditorUri.pipe(
-      Effect.catchTag('NoActiveEditorError', () => Effect.fail(new Error(nls.localize('deploy_select_manifest'))))
-    ));
-  // Use path instead of fsPath for memfs URIs (web environments) to avoid backslash conversion issues
-  // For file:// URIs, path and fsPath are equivalent
-  const manifestPath = process.env.ESBUILD_PLATFORM === 'web' ? resolved.path : resolved.fsPath;
+    const deployService = yield* api.services.MetadataDeployService;
+    const componentSet = EnsureNonEmptyComponentSet(yield* deployService.getComponentSetFromManifest(manifestPath));
 
-  const deployService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.MetadataDeployService;
-  const componentSet = yield* deployService.getComponentSetFromManifest(manifestPath);
-
-  if (Array.from(componentSet.getSourceComponents()).length === 0) {
-    return yield* Effect.fail(new Error(nls.localize('deploy_no_components_message')));
-  }
-  yield* deployComponentSet({ componentSet, emptyMessage: nls.localize('deploy_no_components_message') });
-});
+    yield* deployComponentSet({ componentSet });
+  }).pipe(Effect.withSpan('deployManifest', { attributes: { manifestUri } }), Effect.provide(AllServicesLayer));
 
 /** Deploy manifest to the default org */
 export const deployManifest = async (manifestUri?: URI): Promise<void> =>

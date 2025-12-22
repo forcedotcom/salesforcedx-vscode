@@ -27,6 +27,7 @@ import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './virtua
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
+import { EditorService } from './vscode/editorService';
 import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { SettingsService } from './vscode/settingsService';
@@ -42,6 +43,7 @@ export type SalesforceVSCodeServicesApi = {
     WorkspaceService: typeof WorkspaceService;
     FsService: typeof FsService;
     FileWatcherService: typeof FileWatcherService;
+    EditorService: typeof EditorService;
     ConfigService: typeof ConfigService;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataDeployService: typeof MetadataDeployService;
@@ -147,6 +149,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       WorkspaceService,
       FsService,
       FileWatcherService,
+      EditorService,
       ConfigService,
       MetadataDescribeService,
       MetadataDeployService,

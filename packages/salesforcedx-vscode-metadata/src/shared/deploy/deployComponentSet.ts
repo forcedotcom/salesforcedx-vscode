@@ -6,6 +6,7 @@
  */
 
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
+import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
@@ -13,27 +14,23 @@ import { ExtensionProviderService } from '../../services/extensionProvider';
 import { COMPONENT_STATUS_FAILED } from '../constants';
 import { formatDeployOutput } from './formatDeployOutput';
 
+/** A ComponentSet that is guaranteed to be non-empty */
+export type NonEmptyComponentSet = ComponentSet & Brand.Brand<'NonEmptyComponentSet'>;
+
+/** Constructor for NonEmptyComponentSet that validates the ComponentSet is non-empty */
+export const EnsureNonEmptyComponentSet = Brand.refined<NonEmptyComponentSet>(
+  componentSet => componentSet.size > 0 || Array.from(componentSet.getSourceComponents()).length > 0,
+  componentSet => Brand.error(`Expected ComponentSet to be non-empty, but got size ${componentSet.size}`)
+);
+
 /** Deploy a ComponentSet, handling empty sets, cancellation, and output formatting */
 export const deployComponentSet = Effect.fn('deployComponentSet')(function* (options: {
-  componentSet: ComponentSet;
-  /** the message to display if the component set is empty */
-  emptyMessage: string;
+  componentSet: NonEmptyComponentSet;
 }) {
-  const { componentSet, emptyMessage } = options;
+  const { componentSet } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
   const deployService = yield* api.services.MetadataDeployService;
-
-  if (componentSet.size === 0) {
-    yield* Effect.all(
-      [
-        channelService.appendToChannel(emptyMessage),
-        Effect.promise(() => vscode.window.showInformationMessage(emptyMessage))
-      ],
-      { concurrency: 'unbounded' }
-    );
-    return;
-  }
 
   yield* channelService.appendToChannel(
     `Deploying ${componentSet.size} component${componentSet.size === 1 ? '' : 's'}...`

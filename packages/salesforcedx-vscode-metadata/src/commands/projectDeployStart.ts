@@ -6,9 +6,10 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
-import { deployComponentSet } from '../shared/deploy/deployComponentSet';
+import { deployComponentSet, EnsureNonEmptyComponentSet } from '../shared/deploy/deployComponentSet';
 
 /** Deploy local changes to the default org */
 export const projectDeployStart = async (ignoreConflicts = false): Promise<void> =>
@@ -21,5 +22,15 @@ const projectDeployStartEffect = Effect.fn('projectDeployStart')(function* (igno
   const deployService = yield* api.services.MetadataDeployService;
   const componentSet = yield* deployService.getComponentSetForDeploy({ ignoreConflicts });
 
-  yield* deployComponentSet({ componentSet, emptyMessage: nls.localize('deploy_no_local_changes_message') });
+  const nonEmptyComponentSet = yield* Effect.try(() => EnsureNonEmptyComponentSet(componentSet)).pipe(
+    Effect.catchAll(() =>
+      Effect.promise(() => vscode.window.showInformationMessage(nls.localize('deploy_no_local_changes_message')))
+    ),
+    Effect.as(undefined)
+  );
+  if (!nonEmptyComponentSet) {
+    return;
+  }
+
+  yield* deployComponentSet({ componentSet: nonEmptyComponentSet });
 });

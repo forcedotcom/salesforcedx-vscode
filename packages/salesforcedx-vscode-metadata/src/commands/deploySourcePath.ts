@@ -6,30 +6,29 @@
  */
 
 import * as Effect from 'effect/Effect';
+import { EditorService, NoActiveEditorError } from 'salesforcedx-vscode-services/src/vscode/editorService';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
-import { getActiveEditorUri } from '../shared/activeEditorUri';
-import { deployComponentSet } from '../shared/deploy/deployComponentSet';
+import { deployComponentSet, EnsureNonEmptyComponentSet } from '../shared/deploy/deployComponentSet';
 
 const deployPaths = Effect.fn('deployPaths')(function* (paths: Set<string>) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const deployService = yield* api.services.MetadataDeployService;
-  const componentSet = yield* deployService.getComponentSetFromPaths(Array.from(paths));
-  yield* deployComponentSet({ componentSet, emptyMessage: nls.localize('deploy_no_components_message') });
+  const componentSet = EnsureNonEmptyComponentSet(yield* deployService.getComponentSetFromPaths(Array.from(paths)));
+  yield* deployComponentSet({ componentSet });
 });
 
-const deployActiveEditorEffect = Effect.fn('deployActiveEditor')(function* () {
-  const activeEditorUri = yield* getActiveEditorUri;
-  const paths = new Set([activeEditorUri.path]);
-  return yield* deployPaths(paths);
-});
+const deployActiveEditorEffect = (): Effect.Effect<void, Error | NoActiveEditorError, ExtensionProviderService> =>
+  Effect.gen(function* () {
+    const activeEditorUri = yield* (yield* EditorService).getActiveEditorUri;
+    return yield* deployPaths(new Set([activeEditorUri.path]));
+  }).pipe(Effect.withSpan('deployActiveEditor'), Effect.provide(AllServicesLayer));
 
 /** Deploy source paths to the default org */
 const deploySourcePathsEffect = Effect.fn('deploySourcePaths')(function* (sourceUri: URI, uris: URI[]) {
   yield* Effect.annotateCurrentSpan({ sourceUri, uris });
-
   const paths = new Set([sourceUri.path, ...uris.map(uri => uri.path)]);
   return yield* deployPaths(paths);
 });
