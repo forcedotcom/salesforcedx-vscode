@@ -777,15 +777,11 @@ export const extractMetadataFromPage = async (
 
             // Collect array types (higher priority)
             const arrayType = extractArrayTypeName(fieldType);
-            if (arrayType) {
-              arrayTypes.push(arrayType);
-            }
+            if (arrayType) arrayTypes.push(arrayType);
 
             // Collect complex types (lower priority)
             const complexType = extractComplexTypeName(fieldType);
-            if (complexType) {
-              complexTypes.push(complexType);
-            }
+            if (complexType) complexTypes.push(complexType);
           }
         }
 
