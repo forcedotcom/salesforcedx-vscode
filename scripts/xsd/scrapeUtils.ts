@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Page } from 'playwright';
+import { Frame, Page } from 'playwright';
 
 type MetadataField = {
   Description: string;
@@ -42,7 +42,7 @@ export const loadMetadataPage = async (
   page: Page,
   url: string,
   indent: string = '     '
-): Promise<{ success: boolean; contentFrame: any }> => {
+): Promise<{ success: boolean; contentFrame: Frame | null }> => {
   try {
     console.log(`${indent.slice(0, -2)}📄 Loading: ${url}`);
 
@@ -57,7 +57,7 @@ export const loadMetadataPage = async (
     const expectedPage = urlParts.at(-1)!;
 
     // Wait for iframe elements to be present and loaded in the page
-    let contentFrame: any = null;
+    let contentFrame: Frame;
     let iframePresent = false;
 
     try {
@@ -83,8 +83,8 @@ export const loadMetadataPage = async (
     const frames = page.frames();
     console.log(`${indent}🔍 Found ${frames.length} frames${iframePresent ? ' (iframes detected)' : ''}`);
 
-    // Find the frame matching our target URL
-    contentFrame = frames.find(f => f.url().includes(expectedPage));
+    // Find the frame matching our target URL, fall back to main frame if not found
+    contentFrame = frames.find(f => f.url().includes(expectedPage)) ?? page.mainFrame();
 
     const frameInfo = contentFrame === page.mainFrame() ? 'main frame' : contentFrame.url() || 'unnamed frame';
     console.log(`${indent}✓ Using frame: ${frameInfo}`);
@@ -155,7 +155,7 @@ export const loadMetadataPage = async (
  * Returns an array because some pages have multiple tables representing different types
  */
 export const extractMetadataFromPage = async (
-  contentFrame: any,
+  contentFrame: Frame,
   url: string,
   typeName: string
 ): Promise<{ name: string; data: MetadataType }[]> => {
