@@ -575,8 +575,6 @@ export const extractMetadataFromPage = async (
         let description = '';
         let nextElement = headingElement.nextElementSibling;
 
-        console.log(`Looking for description after heading: ${headingElement.textContent?.trim()}`);
-
         /** Helper to extract description from a paragraph element, returns the description or empty string */
         const tryExtractDescription = (element: Element): string => {
           const text = element.textContent?.trim() ?? '';
@@ -585,19 +583,12 @@ export const extractMetadataFromPage = async (
 
         while (nextElement) {
           const tagName = nextElement.tagName;
-          console.log(`  Found tag ${tagName}, class: ${nextElement.className}`);
 
           // Stop if we hit a table (when specified)
-          if (tagName === 'TABLE') {
-            console.log('    Stopped at TABLE');
-            break;
-          }
+          if (tagName === 'TABLE') break;
 
           // Stop if we hit another heading
-          if (tagName?.match(/^H[1-6]$/)) {
-            console.log('    Stopped at next heading');
-            break;
-          }
+          if (tagName?.match(/^H[1-6]$/)) break;
 
           // Look for a paragraph with meaningful content
           if (tagName === 'P') {
@@ -612,7 +603,6 @@ export const extractMetadataFromPage = async (
           if (tagName === 'DIV' && !isInsideCallout(nextElement)) {
             // Skip if the DIV itself is a callout
             if (isCalloutElement(nextElement)) {
-              console.log('    Skipping Callout DIV');
               nextElement = nextElement.nextElementSibling;
               continue;
             }
@@ -643,11 +633,9 @@ export const extractMetadataFromPage = async (
               }
 
               const text = clone.textContent?.trim() ?? '';
-              console.log(`    Checking DIV text content: "${text.substring(0, 50)}..."`);
               // Only accept non-empty descriptions
               if (text.length > 0) {
                 description = text;
-                console.log('    ✅ Found valid description from DIV text');
                 break;
               }
             }
