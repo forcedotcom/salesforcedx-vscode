@@ -6,20 +6,6 @@
   "bugs": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
   },
-  "icon": "images/VSCodeLightning.png",
-  "galleryBanner": {
-    "color": "#ECECEC",
-    "theme": "light"
-  },
-  "version": "65.9.1",
-  "publisher": "salesforce",
-  "license": "BSD-3-Clause",
-  "engines": {
-    "vscode": "^1.90.0"
-  },
-  "categories": [
-    "Programming Languages"
-  ],
   "contributes": {
     "configuration": {
       "properties": {
@@ -64,6 +50,20 @@
       }
     ]
   },
+  "icon": "images/VSCodeLightning.png",
+  "galleryBanner": {
+    "color": "#ECECEC",
+    "theme": "light"
+  },
+  "version": "65.10.0",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
   "dependencies": {
     "@salesforce/salesforcedx-aura-language-server": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
