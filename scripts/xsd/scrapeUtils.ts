@@ -535,6 +535,20 @@ export const extractMetadataFromPage = async (
         // Skip if the DIV itself is a callout
         if (isCalloutElement(divElement)) return false;
 
+        /** Helper to process a single element and invoke callback if text is found */
+        const processElement = (el: Element): boolean => {
+          const text = extractText(el);
+          return text ? onParagraphFound(text) : false;
+        };
+
+        /** Helper to process an array of elements */
+        const processElements = (elements: Element[]): boolean => {
+          for (const el of elements) {
+            if (processElement(el)) return true;
+          }
+          return false;
+        };
+
         if (checkDirectChildren) {
           // Process direct children in order
           for (const child of Array.from(divElement.children)) {
@@ -543,26 +557,19 @@ export const extractMetadataFromPage = async (
 
             // Check paragraphs directly
             if (child.tagName === 'P' || child.tagName === 'DD') {
-              const text = extractText(child);
-              if (text && onParagraphFound(text)) return true;
+              if (processElement(child)) return true;
             }
 
             // Check nested DIVs if requested
             if (checkNestedDivs && child.tagName === 'DIV' && !isInsideCallout(child)) {
-              const nestedParagraphs = child.querySelectorAll('p, dd');
-              for (const p of Array.from(nestedParagraphs)) {
-                const text = extractText(p);
-                if (text && onParagraphFound(text)) return true;
-              }
+              const nestedParagraphs = Array.from(child.querySelectorAll('p, dd'));
+              if (processElements(nestedParagraphs)) return true;
             }
           }
         } else {
           // Use querySelectorAll to find all paragraphs in the DIV
           const paragraphs = Array.from(divElement.querySelectorAll('p'));
-          for (const p of paragraphs) {
-            const text = extractText(p);
-            if (text && onParagraphFound(text)) return true;
-          }
+          if (processElements(paragraphs)) return true;
         }
 
         // Fallback: Check direct text content if no valid P found
