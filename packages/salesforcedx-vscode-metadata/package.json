@@ -24,7 +24,7 @@
     "Other"
   ],
   "dependencies": {
-    "effect": "^3.19.3",
+    "effect": "^3.19.13",
     "@salesforce/vscode-i18n": "*",
     "vscode-uri": "^3.1.0"
   },

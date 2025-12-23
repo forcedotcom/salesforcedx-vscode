@@ -59,10 +59,7 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
       })
     );
 
-    const withStore = <A>(
-      mode: IDBTransactionMode,
-      f: (store: IDBObjectStore) => IDBRequest<A>
-    ): Effect.Effect<A, Error> =>
+    const withStore = <A>(mode: IDBTransactionMode, f: (store: IDBObjectStore) => IDBRequest<A>) =>
       Effect.async<A, Error>(resume => {
         // eslint-disable-next-line functional/no-try-statements
         try {
@@ -77,9 +74,12 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
           request.onerror = (): void => {
             resume(
               Effect.fail(
-                new Error(`Transaction failed with mode "${mode}" with cause: ${String(request.error)}`, {
-                  cause: request.error
-                })
+                new VirtualFsProviderError(
+                  `Transaction failed with mode "${mode}" with cause: ${String(request.error)}`,
+                  {
+                    cause: request.error
+                  }
+                )
               )
             );
           };
@@ -92,7 +92,7 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
         }
       });
 
-    const loadState = (): Effect.Effect<void, Error> =>
+    const loadState = () =>
       withStore('readonly', store => store.getAll()).pipe(
         Effect.tap((entries: SerializedEntryWithPath[]) => {
           entries.filter(isSerializedDirectoryWithPath).forEach(entry => {
@@ -104,16 +104,16 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
         Effect.withSpan('loadState')
       );
 
-    const saveFile = (path: string): Effect.Effect<void, Error> =>
+    const saveFile = (path: string) =>
       // Provide the key explicitly since the store uses out-of-line keys
       withStore('readwrite', store => store.put(buildFileEntry(path), path)).pipe(
         Effect.withSpan('saveFile', { attributes: { path } })
       );
 
-    const deleteFile = (path: string): Effect.Effect<void, Error> =>
+    const deleteFile = (path: string) =>
       withStore('readwrite', store => store.delete(path)).pipe(Effect.withSpan('deleteFile', { attributes: { path } }));
 
-    const loadFile = (path: string): Effect.Effect<void, Error> =>
+    const loadFile = (path: string) =>
       withStore<SerializedEntryWithPath | undefined>('readonly', store => store.get(path)).pipe(
         Effect.tap(entry => {
           if (!entry) {

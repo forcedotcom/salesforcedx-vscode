@@ -5,27 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ConfigService } from './configService';
-import type { DescribeMetadataObject } from './schemas/describeMetadataObject';
-import type { SettingsService } from '../vscode/settingsService';
-import type { WorkspaceService } from '../vscode/workspaceService';
 import * as Effect from 'effect/Effect';
 import * as S from 'effect/Schema';
-import type { DescribeSObjectResult } from 'jsforce';
 import { ChannelService } from '../vscode/channelService';
 import { ConnectionService } from './connectionService';
-import { FilePropertiesSchema, type FileProperties } from './schemas/fileProperties';
-
-type DescribeContext = ConnectionService | ConfigService | WorkspaceService | ChannelService | SettingsService;
+import { FilePropertiesSchema } from './schemas/fileProperties';
 
 const NON_SUPPORTED_TYPES = new Set(['InstalledPackage', 'Profile', 'Scontrol']);
 
 export class MetadataDescribeService extends Effect.Service<MetadataDescribeService>()('MetadataDescribeService', {
   effect: Effect.gen(function* () {
     // a task that can be cached - uses the key parameter for caching
-    const cacheableDescribe = (
-      _key: string = 'cached'
-    ): Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext> =>
+    const cacheableDescribe = (_key: string = 'cached') =>
       Effect.flatMap(ConnectionService, svc => svc.getConnection).pipe(
         Effect.flatMap(conn =>
           Effect.tryPromise({
@@ -46,13 +37,11 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
 
     const cachedDescribe = yield* Effect.cachedFunction(cacheableDescribe);
 
-    const describe = (
-      forceRefresh = false
-    ): Effect.Effect<readonly DescribeMetadataObject[], Error, DescribeContext> =>
+    const describe = (forceRefresh = false) =>
       forceRefresh ? cacheableDescribe(`fresh-${Date.now()}`) : cachedDescribe('cached');
 
     // TODO: write the result in a common place that other services can use.  Probably do the same with mdapi describe and list
-    const describeCustomObject = (objectName: string): Effect.Effect<DescribeSObjectResult, Error, DescribeContext> =>
+    const describeCustomObject = (objectName: string) =>
       Effect.flatMap(ConnectionService, svc => svc.getConnection).pipe(
         Effect.flatMap(conn =>
           Effect.tryPromise({
@@ -64,10 +53,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
         Effect.withSpan('describeCustomObject', { attributes: { objectName } })
       );
 
-    const listMetadata = (
-      type: string,
-      folder?: string
-    ): Effect.Effect<readonly FileProperties[], Error, DescribeContext> =>
+    const listMetadata = (type: string, folder?: string) =>
       Effect.flatMap(ConnectionService, svc => svc.getConnection).pipe(
         Effect.flatMap(conn =>
           Effect.tryPromise({

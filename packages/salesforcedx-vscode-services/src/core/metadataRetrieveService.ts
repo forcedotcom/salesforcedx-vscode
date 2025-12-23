@@ -5,81 +5,60 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  type RetrieveResult,
-  type MetadataMember,
-  MetadataApiRetrieve,
-  ComponentSet
-} from '@salesforce/source-deploy-retrieve';
+import { type MetadataMember, MetadataApiRetrieve, ComponentSet } from '@salesforce/source-deploy-retrieve';
 
 import * as Brand from 'effect/Brand';
 import * as Cause from 'effect/Cause';
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as vscode from 'vscode';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
-import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
-import { ConfigService } from './configService';
+import { FailedToBuildComponentSetError } from './componentSetService';
 import { ConnectionService } from './connectionService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
+import { unknownToErrorCause } from './shared';
 import { SourceTrackingService } from './sourceTrackingService';
 
-const buildComponentSetFromSource = (
-  members: MetadataMember[],
-  sourcePaths: string[]
-): Effect.Effect<ComponentSet, Error, MetadataRegistryService | WorkspaceService> =>
+export class MetadataRetrieveError extends Data.TaggedError('MetadataRetrieveError')<{
+  readonly cause: unknown;
+}> {}
+
+const buildComponentSetFromSource = (members: MetadataMember[], sourcePaths: string[]) =>
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ members, sourcePaths });
     const include = members.length > 0 ? yield* buildComponentSet(members) : undefined;
     const registryAccess = yield* (yield* MetadataRegistryService).getRegistryAccess();
     const cs = yield* Effect.try({
       try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
-      catch: e => new Error('Failed to build ComponentSet from source', { cause: e })
+      catch: e => new FailedToBuildComponentSetError(unknownToErrorCause(e))
     });
     yield* Effect.annotateCurrentSpan({ size: cs.size });
     return cs;
   }).pipe(Effect.withSpan('buildComponentSetFromSource'));
 
-const buildComponentSet = (
-  members: MetadataMember[]
-): Effect.Effect<ComponentSet, Error, MetadataRegistryService | WorkspaceService> =>
+const buildComponentSet = (members: MetadataMember[]) =>
   Effect.gen(function* () {
     const registryAccess = yield* (yield* MetadataRegistryService).getRegistryAccess();
     return yield* Effect.try({
       try: () => new ComponentSet(members, registryAccess),
-      catch: e => new Error('Failed to build ComponentSet', { cause: e })
+      catch: e => new FailedToBuildComponentSetError(unknownToErrorCause(e))
     });
   }).pipe(Effect.withSpan('buildComponentSet'));
 
-const retrieve = (
-  members: MetadataMember[]
-): Effect.Effect<
-  RetrieveResult | SuccessfulCancelResult,
-  Error,
-  | ConnectionService
-  | ProjectService
-  | WorkspaceService
-  | ConfigService
-  | SettingsService
-  | MetadataRegistryService
-  | SourceTrackingService
-> =>
+const retrieve = (members: MetadataMember[]) =>
   Effect.gen(function* () {
-    const [connection, project, workspaceDescription, registryAccess] = yield* Effect.all(
+    const [connection, project, registryAccess] = yield* Effect.all(
       [
         Effect.flatMap(ConnectionService, service => service.getConnection),
         Effect.flatMap(ProjectService, service => service.getSfProject),
-        Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo),
-        Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess())
+        Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess()),
+        Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow)
       ],
       { concurrency: 'unbounded' }
     );
-
-    if (workspaceDescription.isEmpty) {
-      return yield* Effect.fail(new Error('No workspace path found'));
-    }
 
     const componentSet = yield* buildComponentSet(members);
 
@@ -114,7 +93,7 @@ const retrieve = (
         },
         catch: e => {
           console.error(e);
-          return new Error('Failed to retrieve metadata', { cause: e });
+          return new MetadataRetrieveError(unknownToErrorCause(e));
         }
       }).pipe(Effect.withSpan('retrieve (API call)'))
     );

@@ -4,7 +4,7 @@
   "private": true,
   "main": "./out/src/index.js",
   "dependencies": {
-    "@playwright/test": "^1.54.1",
+    "@playwright/test": "^1.57.0",
     "@vscode/test-electron": "2.5.2",
     "@vscode/test-web": "^0.0.77"
   },

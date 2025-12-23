@@ -8,39 +8,32 @@
 import { OrgConfigProperties } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';
 import type { SfProject } from '@salesforce/core/project';
-import { type DeployResult, ComponentSet, RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { type SourceTracking } from '@salesforce/source-tracking';
 import * as Brand from 'effect/Brand';
 import * as Cause from 'effect/Cause';
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { ChannelService } from '../vscode/channelService';
-import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
+import { ensureNonEmptyComponentSet, FailedToBuildComponentSetError } from './componentSetService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { MetadataRegistryService } from './metadataRegistryService';
-import { ProjectService } from './projectService';
+import { FailedToResolveSfProjectError, ProjectService } from './projectService';
+import { unknownToErrorCause } from './shared';
 import { type SourceTrackingOptions, SourceTrackingService } from './sourceTrackingService';
 
+export class MetadataDeployError extends Data.TaggedError('FailedToDeployMetadataError')<{
+  readonly cause: unknown;
+}> {}
+
 /** Get ComponentSet of local changes for deploy */
-const getComponentSetForDeploy = (
-  options?: SourceTrackingOptions
-): Effect.Effect<
-  ComponentSet,
-  Error,
-  | ConnectionService
-  | SettingsService
-  | ConfigService
-  | WorkspaceService
-  | ProjectService
-  | MetadataRegistryService
-  | SourceTrackingService
-  | ChannelService
-> =>
+const getComponentSetForDeploy = (options?: SourceTrackingOptions) =>
   Effect.gen(function* () {
     const tracking = yield* Effect.flatMap(SourceTrackingService, svc => svc.getSourceTracking(options));
     if (!tracking) {
@@ -70,7 +63,7 @@ const getComponentSetForDeploy = (
     return localComponentSets[0] ?? new ComponentSet();
   }).pipe(Effect.withSpan('getComponentSetForDeploy'));
 
-const conflictCheck = (tracking: SourceTracking): Effect.Effect<void, Error, ChannelService> =>
+const conflictCheck = (tracking: SourceTracking) =>
   Effect.gen(function* () {
     const conflicts = yield* Effect.tryPromise(() => tracking.getConflicts()).pipe(Effect.withSpan('STL.GetConflicts'));
     if (conflicts?.length > 0) {
@@ -95,33 +88,17 @@ const conflictCheck = (tracking: SourceTracking): Effect.Effect<void, Error, Cha
   });
 
 /** Deploy metadata to the default org */
-const deploy = (
-  components: ComponentSet
-): Effect.Effect<
-  DeployResult | SuccessfulCancelResult,
-  Error,
-  | ConnectionService
-  | ProjectService
-  | WorkspaceService
-  | ConfigService
-  | SettingsService
-  | MetadataRegistryService
-  | SourceTrackingService
-> =>
+const deploy = (components: ComponentSet) =>
   Effect.gen(function* () {
-    const [connection, project, workspaceDescription] = yield* Effect.all(
+    const [connection, project] = yield* Effect.all(
       [
         Effect.flatMap(ConnectionService, service => service.getConnection),
         Effect.flatMap(ProjectService, service => service.getSfProject),
-        Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo),
+        Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow),
         Effect.annotateCurrentSpan({ components: components.size })
       ],
       { concurrency: 'unbounded' }
     );
-
-    if (workspaceDescription.isEmpty) {
-      return yield* Effect.fail(new Error('No workspace path found'));
-    }
 
     components.projectDirectory = project.getPath();
 
@@ -151,7 +128,7 @@ const deploy = (
         },
         catch: e => {
           console.error(e);
-          return new Error('Failed to deploy metadata', { cause: e });
+          return new MetadataDeployError(unknownToErrorCause(e));
         }
       }).pipe(Effect.withSpan('deploy (API call)'))
     );
@@ -175,11 +152,7 @@ const deploy = (
   }).pipe(Effect.withSpan('deploy', { attributes: { componentCount: components.size } }));
 
 /** Get required services for building ComponentSets */
-const getComponentSetServices = (): Effect.Effect<
-  readonly [RegistryAccess, SfProject, ConfigAggregator],
-  Error,
-  MetadataRegistryService | ProjectService | ConfigService | WorkspaceService
-> =>
+const getComponentSetServices = () =>
   Effect.all(
     [
       Effect.flatMap(MetadataRegistryService, svc => svc.getRegistryAccess()),
@@ -194,14 +167,17 @@ const setComponentSetProperties = (
   componentSet: ComponentSet,
   project: SfProject,
   configAggregator: ConfigAggregator
-): Effect.Effect<void, Error, never> =>
+) =>
   Effect.gen(function* () {
     componentSet.projectDirectory = project.getPath();
     const apiVersion = configAggregator.getPropertyValue<string>(OrgConfigProperties.ORG_API_VERSION);
     if (apiVersion) {
       componentSet.apiVersion = apiVersion;
     }
-    const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
+    const projectJson = yield* Effect.tryPromise({
+      try: () => project.retrieveSfProjectJson(),
+      catch: e => new FailedToResolveSfProjectError(unknownToErrorCause(e))
+    });
     const sourceApiVersion = projectJson.get<string>('sourceApiVersion');
     if (sourceApiVersion) {
       componentSet.sourceApiVersion = String(sourceApiVersion);
@@ -209,16 +185,14 @@ const setComponentSetProperties = (
   });
 
 /** Get ComponentSet from source paths (files/directories) */
-const getComponentSetFromPaths = (
-  paths: string[]
-): Effect.Effect<ComponentSet, Error, MetadataRegistryService | ProjectService | ConfigService | WorkspaceService> =>
+const getComponentSetFromPaths = (paths: Set<string>) =>
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ paths });
     const [registryAccess, project, configAggregator] = yield* getComponentSetServices();
 
     const componentSet = yield* Effect.try({
-      try: () => ComponentSet.fromSource({ fsPaths: paths, registry: registryAccess }),
-      catch: e => new Error('Failed to build ComponentSet from source paths', { cause: e })
+      try: () => ComponentSet.fromSource({ fsPaths: Array.from(paths), registry: registryAccess }),
+      catch: e => new FailedToBuildComponentSetError(unknownToErrorCause(e))
     });
 
     yield* setComponentSetProperties(componentSet, project, configAggregator);
@@ -228,9 +202,7 @@ const getComponentSetFromPaths = (
   }).pipe(Effect.withSpan('getComponentSetFromPaths'));
 
 /** Get ComponentSet from manifest file */
-const getComponentSetFromManifest = (
-  manifestPath: string
-): Effect.Effect<ComponentSet, Error, MetadataRegistryService | ProjectService | ConfigService | WorkspaceService> =>
+const getComponentSetFromManifest = (manifestPath: string) =>
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ manifestPath });
     const [registryAccess, project, configAggregator] = yield* getComponentSetServices();
@@ -244,10 +216,7 @@ const getComponentSetFromManifest = (
           forceAddWildcards: true,
           registry: registryAccess
         }),
-      catch: e =>
-        new Error(`Failed to build ComponentSet from manifest: ${e instanceof Error ? e.message : String(e)}`, {
-          cause: e
-        })
+      catch: e => new FailedToBuildComponentSetError(unknownToErrorCause(e))
     });
 
     yield* setComponentSetProperties(componentSet, project, configAggregator);
@@ -263,6 +232,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     getComponentSetForDeploy,
     /** Build a ComponentSet from source paths (files/directories) */
     getComponentSetFromPaths,
-    getComponentSetFromManifest
+    getComponentSetFromManifest,
+    ensureNonEmptyComponentSet
   } as const
 }) {}

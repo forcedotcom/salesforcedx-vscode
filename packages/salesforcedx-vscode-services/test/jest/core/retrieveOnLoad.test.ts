@@ -13,19 +13,22 @@ import { MetadataRegistryService } from '../../../src/core/metadataRegistryServi
 import { WorkspaceService } from '../../../src/vscode/workspaceService';
 
 /** Create a test layer for WorkspaceService with a mock workspace path */
-const createMockWorkspaceService = (workspacePath: string): Layer.Layer<WorkspaceService, never, never> =>
-  Layer.succeed(
+const createMockWorkspaceService = (workspacePath: string): Layer.Layer<WorkspaceService, never, never> => {
+  const workspaceInfo = {
+    path: `file://${workspacePath}`,
+    fsPath: workspacePath,
+    isEmpty: false as const,
+    isVirtualFs: false,
+    cwd: workspacePath
+  };
+  return Layer.succeed(
     WorkspaceService,
     new WorkspaceService({
-      getWorkspaceInfo: Effect.succeed({
-        path: `file://${workspacePath}`,
-        fsPath: workspacePath,
-        isEmpty: false,
-        isVirtualFs: false,
-        cwd: workspacePath
-      })
+      getWorkspaceInfo: Effect.succeed(workspaceInfo),
+      getWorkspaceInfoOrThrow: Effect.succeed(workspaceInfo)
     })
   );
+};
 
 const createFileResponse = (
   type: string,

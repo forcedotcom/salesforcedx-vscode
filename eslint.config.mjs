@@ -521,8 +521,11 @@ export default [
       'functional/no-let': 'error',
       'functional/no-loop-statements': 'error',
       'functional/prefer-property-signatures': 'error',
-      '@typescript-eslint/explicit-function-return-type': 'error',
+      // let Effect figure it out.  This is especially helpful for Error typings
+      '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      'local/no-explicit-effect-return-type': 'error',
+
       // Effect code should always handle promises properly
       '@typescript-eslint/no-floating-promises': 'error',
 

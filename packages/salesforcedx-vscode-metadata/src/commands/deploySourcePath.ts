@@ -6,24 +6,25 @@
  */
 
 import * as Effect from 'effect/Effect';
-import type { NoActiveEditorError } from 'salesforcedx-vscode-services/src/vscode/editorService';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
-import { deployComponentSet, EnsureNonEmptyComponentSet } from '../shared/deploy/deployComponentSet';
+import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
-const deployPaths = Effect.fn('deployPaths')(function* (paths: Set<string>) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const deployService = yield* api.services.MetadataDeployService;
-  const componentSet = EnsureNonEmptyComponentSet(yield* deployService.getComponentSetFromPaths(Array.from(paths)));
-  yield* deployComponentSet({ componentSet });
-});
-
-const deployActiveEditorEffect = (): Effect.Effect<void, Error | NoActiveEditorError, ExtensionProviderService> =>
+const deployPaths = (paths: Set<string>) =>
   Effect.gen(function* () {
-    const activeEditorUri = yield* (yield* (yield* (yield* ExtensionProviderService).getServicesApi).services
-      .EditorService).getActiveEditorUri;
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const deployService = yield* api.services.MetadataDeployService;
+    const rawCS = yield* deployService.getComponentSetFromPaths(paths);
+    const componentSet = yield* deployService.ensureNonEmptyComponentSet(rawCS);
+    yield* deployComponentSet({ componentSet });
+  });
+
+const deployActiveEditorEffect = () =>
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const activeEditorUri = yield* (yield* api.services.EditorService).getActiveEditorUri;
     return yield* deployPaths(new Set([activeEditorUri.path]));
   }).pipe(Effect.withSpan('deployActiveEditor'), Effect.provide(AllServicesLayer));
 

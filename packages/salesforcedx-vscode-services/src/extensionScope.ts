@@ -12,13 +12,13 @@ import * as Scope from 'effect/Scope';
 // eslint-disable-next-line functional/no-let
 let extensionScope: Scope.CloseableScope | undefined;
 
-export const getExtensionScope = (): Effect.Effect<Scope.CloseableScope, Error, never> =>
+export const getExtensionScope = () =>
   Effect.gen(function* () {
     extensionScope ??= yield* Scope.make();
     return extensionScope;
   });
 
-export const closeExtensionScope = (): Effect.Effect<void, Error, never> =>
+export const closeExtensionScope = () =>
   Effect.gen(function* () {
     if (extensionScope) {
       yield* Scope.close(extensionScope, Exit.void);

@@ -27,31 +27,29 @@ type FileEventWithSpan = FileChangeInfo<string> & { span: AnySpan };
 // 1 queue for the file events from our watch fn
 const fileEventQueue = Effect.runSync(Queue.unbounded<FileEventWithSpan>());
 
-const updateIDB =
-  (storage: IndexedDBStorageService) =>
-  (event: FileChangeInfo<string>): Effect.Effect<void, Error, IndexedDBStorageService> =>
-    Effect.gen(function* () {
-      if (!event.filename) {
-        return;
-      }
-      yield* Effect.annotateCurrentSpan({ event });
+const updateIDB = (storage: IndexedDBStorageService) => (event: FileChangeInfo<string>) =>
+  Effect.gen(function* () {
+    if (!event.filename) {
+      return;
+    }
+    yield* Effect.annotateCurrentSpan({ event });
 
-      const fullPath = `/${sampleProjectName}/${event.filename}`;
-      const uri = vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}/${event.filename}`);
+    const fullPath = `/${sampleProjectName}/${event.filename}`;
+    const uri = vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}/${event.filename}`);
 
-      if (event.eventType === 'rename') {
-        if (fs.existsSync(fullPath)) {
-          yield* storage.saveFile(fullPath);
-          emitter.fire([{ type: vscode.FileChangeType.Created, uri }]);
-        } else {
-          yield* storage.deleteFile(fullPath);
-          emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
-        }
-      } else if (event.eventType === 'change') {
+    if (event.eventType === 'rename') {
+      if (fs.existsSync(fullPath)) {
         yield* storage.saveFile(fullPath);
-        emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
+        emitter.fire([{ type: vscode.FileChangeType.Created, uri }]);
+      } else {
+        yield* storage.deleteFile(fullPath);
+        emitter.fire([{ type: vscode.FileChangeType.Deleted, uri }]);
       }
-    }).pipe(Effect.withSpan('updateIDB', { attributes: { filename: event.filename, eventType: event.eventType } }));
+    } else if (event.eventType === 'change') {
+      yield* storage.saveFile(fullPath);
+      emitter.fire([{ type: vscode.FileChangeType.Changed, uri }]);
+    }
+  }).pipe(Effect.withSpan('updateIDB', { attributes: { filename: event.filename, eventType: event.eventType } }));
 
 /** consumer for the file event queue */
 const fileEventProcessor = Effect.gen(function* () {
@@ -66,7 +64,7 @@ const fileEventProcessor = Effect.gen(function* () {
 Effect.runSync(Effect.forkDaemon(fileEventProcessor));
 
 /** Starts watching the memfs for file changes */
-export const startWatch = (): Effect.Effect<void, Error, ChannelService | IndexedDBStorageService> =>
+export const startWatch = () =>
   Effect.gen(function* () {
     const channelService = yield* ChannelService;
 

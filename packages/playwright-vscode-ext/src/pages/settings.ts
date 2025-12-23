@@ -17,7 +17,7 @@ const settingsLocator = (page: Page): Locator => page.locator(SETTINGS_SEARCH_IN
 export const openSettingsUI = async (page: Page): Promise<void> => {
   await closeWelcomeTabs(page);
   await page.locator(WORKBENCH).click({ timeout: 60_000 });
-  await executeCommandWithCommandPalette(page, 'Preferences: Open Workspace Settings');
+  await executeCommandWithCommandPalette(page, 'Preferences: Open Workspace Settings', 'JSON');
   await settingsLocator(page).first().waitFor({ timeout: 3000 });
 };
 

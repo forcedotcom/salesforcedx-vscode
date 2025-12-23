@@ -8,25 +8,22 @@
 import { Page } from '@playwright/test';
 import { QUICK_INPUT_WIDGET } from '../utils/locators';
 
-export const openCommandPalette = async (page: Page): Promise<void> => {
+const openCommandPalette = async (page: Page): Promise<void> => {
   await page.keyboard.press('F1');
   await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
 };
 
-export const executeCommand = async (page: Page, command: string): Promise<void> => {
-  await page.keyboard.type(command, { delay: 10 });
+const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
+  await page.keyboard.type(command, { delay: 5 });
   // Use text content matching to find exact command (bypasses MRU prioritization)
-  await page.locator('.monaco-list-row').filter({ hasText: command }).first().click();
+  await page.locator('.monaco-list-row').filter({ hasText: command, hasNotText, visible: true }).first().click();
 };
 
-export const executeCommandWithCommandPalette = async (page: Page, command: string): Promise<void> => {
+export const executeCommandWithCommandPalette = async (
+  page: Page,
+  command: string,
+  hasNotText?: string
+): Promise<void> => {
   await openCommandPalette(page);
-  await executeCommand(page, command);
-};
-
-/** Reload VS Code window and wait for it to be ready */
-export const reloadWindow = async (page: Page): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'Developer: Reload Window');
-  // Wait for workbench to be visible again after reload
-  await page.locator('.monaco-workbench').waitFor({ state: 'visible', timeout: 60_000 });
+  await executeCommand(page, command, hasNotText);
 };

@@ -10,9 +10,9 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
-import { deployComponentSet, EnsureNonEmptyComponentSet } from '../shared/deploy/deployComponentSet';
+import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
-const deployManifestEffect = (manifestUri?: URI): Effect.Effect<void, Error, ExtensionProviderService> =>
+const deployManifestEffect = (manifestUri?: URI) =>
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ manifestUri });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -26,7 +26,9 @@ const deployManifestEffect = (manifestUri?: URI): Effect.Effect<void, Error, Ext
     const manifestPath = process.env.ESBUILD_PLATFORM === 'web' ? resolved.path : resolved.fsPath;
 
     const deployService = yield* api.services.MetadataDeployService;
-    const componentSet = EnsureNonEmptyComponentSet(yield* deployService.getComponentSetFromManifest(manifestPath));
+    const componentSet = yield* deployService.ensureNonEmptyComponentSet(
+      yield* deployService.getComponentSetFromManifest(manifestPath)
+    );
 
     yield* deployComponentSet({ componentSet });
   }).pipe(Effect.withSpan('deployManifest', { attributes: { manifestUri } }), Effect.provide(AllServicesLayer));

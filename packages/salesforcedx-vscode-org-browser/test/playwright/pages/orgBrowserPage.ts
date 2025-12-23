@@ -172,7 +172,7 @@ export class OrgBrowserPage {
       return metadataItem.first();
     }
 
-    const retryableFind = (page: Page): Effect.Effect<void, Error> =>
+    const retryableFind = (page: Page) =>
       Effect.gen(function* () {
         yield* Effect.promise(() => page.waitForTimeout(1000));
         yield* Effect.promise(() => page.keyboard.type(itemName, { delay: typingSpeed }));

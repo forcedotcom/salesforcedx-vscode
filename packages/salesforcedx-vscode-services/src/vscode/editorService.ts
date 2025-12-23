@@ -12,7 +12,7 @@ import { URI } from 'vscode-uri';
 
 export class NoActiveEditorError extends Data.TaggedError('NoActiveEditorError') {}
 
-const getActiveEditorUriTask = Effect.gen(function* () {
+const getActiveEditorUri = Effect.gen(function* () {
   const editor = vscode.window.activeTextEditor;
   return editor ? URI.parse(editor.document.uri.toString()) : yield* Effect.fail(new NoActiveEditorError());
 }).pipe(Effect.withSpan('getActiveEditorUri'));
@@ -20,6 +20,6 @@ const getActiveEditorUriTask = Effect.gen(function* () {
 export class EditorService extends Effect.Service<EditorService>()('EditorService', {
   succeed: {
     /** Get URI from active editor, fails with NoActiveEditorError if none */
-    getActiveEditorUri: getActiveEditorUriTask
+    getActiveEditorUri
   } as const
 }) {}

@@ -8,6 +8,7 @@
 import { commandMustBeInPackageJson } from './commandMustBeInPackageJson';
 import { noDirectServicesImports } from './noDirectServicesImports';
 import { noDuplicateI18nValues } from './noDuplicateI18nValues';
+import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noVscodeMessageLiterals } from './noVscodeMessageLiterals';
 
 const plugin = {
@@ -15,6 +16,7 @@ const plugin = {
     'command-must-be-in-package-json': commandMustBeInPackageJson,
     'no-duplicate-i18n-values': noDuplicateI18nValues,
     'no-direct-services-imports': noDirectServicesImports,
+    'no-explicit-effect-return-type': noExplicitEffectReturnType,
     'no-vscode-message-literals': noVscodeMessageLiterals
   }
 };

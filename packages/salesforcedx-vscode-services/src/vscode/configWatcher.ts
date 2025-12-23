@@ -7,7 +7,6 @@
 
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import {
   ACCESS_TOKEN_KEY,
@@ -16,35 +15,13 @@ import {
   RETRIEVE_ON_LOAD_KEY,
   API_VERSION_KEY
 } from '../constants';
-import { ConfigService } from '../core/configService';
 import { ConnectionService } from '../core/connectionService';
-import { MetadataRegistryService } from '../core/metadataRegistryService';
-import { MetadataRetrieveService } from '../core/metadataRetrieveService';
-import { ProjectService } from '../core/projectService';
 import { retrieveOnLoadEffect } from '../core/retrieveOnLoad';
-import { SourceTrackingService } from '../core/sourceTrackingService';
 import { ChannelService } from './channelService';
-import { SettingsService } from './settingsService';
 import { SettingsWatcherService } from './settingsWatcherService';
-import { WorkspaceService } from './workspaceService';
 
 /** Watches settings changes and triggers appropriate effects */
-export const watchSettingsService = (): Effect.Effect<
-  void,
-  Error,
-  | SettingsService
-  | SettingsWatcherService
-  | ConnectionService
-  | ConfigService
-  | WorkspaceService
-  | Scope.CloseableScope
-  | MetadataRetrieveService
-  | ProjectService
-  | MetadataRegistryService
-  | SourceTrackingService
-  | ChannelService
-  | Scope.CloseableScope
-> =>
+export const watchSettingsService = () =>
   Effect.gen(function* () {
     console.log('watchSettingsService starting');
 

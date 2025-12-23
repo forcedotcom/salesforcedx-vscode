@@ -66,7 +66,7 @@
     "@salesforce/source-deploy-retrieve": "^12.29.1",
     "@salesforce/source-tracking": "^7.8.0",
     "@types/vscode": "^1.90.0",
-    "effect": "^3.19.3",
+    "effect": "^3.19.13",
     "jsforce": "^3.10.2",
     "vscode-uri": "^3.1.0"
   },

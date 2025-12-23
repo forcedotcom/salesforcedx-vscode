@@ -38,7 +38,7 @@ const getAdditionalAttributes = (): [string, string | undefined][] => {
   ];
 };
 
-const getPermanentAttributes = (): Effect.Effect<[string, string | undefined][]> => {
+const getPermanentAttributes = () => {
   const { machineId, sessionId, uiKind } = env ?? {};
   const uiKindString = uiKind ? UIKind[uiKind] : undefined;
   return Effect.succeed([

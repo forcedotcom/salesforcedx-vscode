@@ -6,7 +6,7 @@
  */
 
 import type { DeployResult, RetrieveResult } from '@salesforce/source-deploy-retrieve';
-import type { SourceTracking } from '@salesforce/source-tracking';
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -17,18 +17,14 @@ import { ConnectionService } from './connectionService';
 import { defaultOrgRef } from './defaultOrgService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
-import { getOrgFromConnection } from './shared';
+import { getOrgFromConnection, unknownToErrorCause } from './shared';
 
 export type SourceTrackingOptions = { ignoreConflicts?: boolean };
-
+export class SourceTrackingError extends Data.TaggedError('FailedToUpdateSourceTrackingError')<{
+  readonly cause: unknown;
+}> {}
 /** Creates a SourceTracking instance with optional configuration */
-const getTracking = (
-  options?: SourceTrackingOptions
-): Effect.Effect<
-  SourceTracking | undefined,
-  Error,
-  ConnectionService | SettingsService | ConfigService | WorkspaceService | ProjectService | MetadataRegistryService
-> =>
+const getTracking = (options?: SourceTrackingOptions) =>
   Effect.gen(function* () {
     const [connection, project, registryAccess, ref, configAggregator] = yield* Effect.all(
       [
@@ -68,14 +64,14 @@ const getTracking = (
           ignoreConflicts: options?.ignoreConflicts ?? false,
           registry: registryAccess
         }),
-      catch: error => new Error('Failed to create SourceTracking', { cause: error })
+      catch: error => new SourceTrackingError(unknownToErrorCause(error))
     }).pipe(Effect.withSpan('STL create'));
   }).pipe(Effect.withSpan('getTracking'));
 
 export class SourceTrackingService extends Effect.Service<SourceTrackingService>()('SourceTrackingService', {
   succeed: {
     getSourceTracking: (options?: SourceTrackingOptions) => getTracking(options),
-    updateTrackingFromRetrieve: (result: RetrieveResult): Effect.Effect<void, Error> =>
+    updateTrackingFromRetrieve: (result: RetrieveResult) =>
       Effect.gen(function* () {
         yield* Effect.annotateCurrentSpan({ files: result.getFileResponses().map(r => r.filePath) });
         const tracking = yield* getTracking({ ignoreConflicts: true });
@@ -84,7 +80,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
               try: () => tracking.updateTrackingFromRetrieve(result),
               catch: error => {
                 console.error(error);
-                return new Error('Failed to update SourceTracking from retrieve', { cause: error });
+                return new SourceTrackingError(unknownToErrorCause(error));
               }
             }).pipe(Effect.withSpan('trackingUpdate'))
           : yield* Effect.succeed(undefined);
@@ -102,7 +98,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
         )
       ),
     /** safe to pass a result to.  If tracking is not enabled, this will be a no-op */
-    updateTrackingFromDeploy: (result: DeployResult): Effect.Effect<void, Error> =>
+    updateTrackingFromDeploy: (result: DeployResult) =>
       Effect.gen(function* () {
         const tracking = yield* getTracking({ ignoreConflicts: true });
         return tracking
@@ -112,7 +108,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
                   try: () => tracking.updateTrackingFromDeploy(result),
                   catch: error => {
                     console.error(error);
-                    return new Error('Failed to update SourceTracking from deploy', { cause: error });
+                    return new SourceTrackingError(unknownToErrorCause(error));
                   }
                 }).pipe(Effect.withSpan('trackingUpdate in STL')),
                 Effect.annotateCurrentSpan({ files: result.getFileResponses().map(r => r.filePath) })

@@ -42,7 +42,7 @@ export { createMinimalOrg, MINIMAL_ORG_ALIAS } from './orgs/minimalScratchOrgSet
 // Pages
 export { upsertScratchOrgAuthFieldsToSettings, openSettingsUI, upsertSettings } from './pages/settings';
 
-export { executeCommandWithCommandPalette, openCommandPalette, executeCommand, reloadWindow } from './pages/commands';
+export { executeCommandWithCommandPalette } from './pages/commands';
 
 export { executeEditorContextMenuCommand, executeExplorerContextMenuCommand } from './pages/contextMenu';
 

@@ -24,7 +24,7 @@ const createMockChannelService = (): ChannelService =>
           appendLine: mockAppendToChannel
         }) as unknown as vscode.OutputChannel
     ),
-    appendToChannel: (message: string): Effect.Effect<void> => Effect.sync(() => mockAppendToChannel(message))
+    appendToChannel: (message: string) => Effect.sync(() => mockAppendToChannel(message))
   });
 
 const createMockWorkspaceService = (workspacePath: string, isVirtualFs = false): WorkspaceService => {
@@ -38,6 +38,18 @@ const createMockWorkspaceService = (workspacePath: string, isVirtualFs = false):
       isEmpty: false,
       isVirtualFs,
       cwd: fsPath
+    }),
+    getWorkspaceInfoOrThrow: Effect.succeed({
+      path: workspacePath,
+      fsPath,
+      isEmpty: false,
+      isVirtualFs,
+      cwd: fsPath,
+      workspaceFolder: {
+        uri: { fsPath },
+        name: 'workspace',
+        index: 0
+      }
     })
   });
 };

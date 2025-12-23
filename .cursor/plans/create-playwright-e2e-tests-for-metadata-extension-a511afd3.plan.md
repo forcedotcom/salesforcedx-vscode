@@ -340,4 +340,3 @@ All org-browser tests continue to pass with shared config factories.
 - Status bar text format: `{conflicts}$(warning) {remote}$(arrow-down) {local}$(arrow-up)`
 - Background color CSS variable when conflicts > 0
 - Command execution results (error notifications vs success)
-- Status bar count changes after operations

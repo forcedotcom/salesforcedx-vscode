@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 import { defaultOrgRef } from '../core/defaultOrgService';
 
 /** Update VS Code context variables when the default org changes */
-export const watchDefaultOrgContext = (): Effect.Effect<void, never> =>
+export const watchDefaultOrgContext = () =>
   Stream.runForEach(defaultOrgRef.changes, orgInfo =>
     Effect.all(
       [

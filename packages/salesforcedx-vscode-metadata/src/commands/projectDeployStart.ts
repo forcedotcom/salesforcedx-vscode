@@ -6,31 +6,21 @@
  */
 
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
-import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
-import { deployComponentSet, EnsureNonEmptyComponentSet } from '../shared/deploy/deployComponentSet';
+import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
 /** Deploy local changes to the default org */
-export const projectDeployStart = async (ignoreConflicts = false): Promise<void> =>
+export const projectDeployStart = async (ignoreConflicts = false) =>
   Effect.runPromise(projectDeployStartEffect(ignoreConflicts).pipe(Effect.provide(AllServicesLayer)));
 
-const projectDeployStartEffect = Effect.fn('projectDeployStart')(function* (ignoreConflicts: boolean) {
-  yield* Effect.annotateCurrentSpan({ ignoreConflicts });
+const projectDeployStartEffect = (ignoreConflicts: boolean) =>
+  Effect.gen(function* () {
+    yield* Effect.annotateCurrentSpan({ ignoreConflicts });
 
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const deployService = yield* api.services.MetadataDeployService;
-  const componentSet = yield* deployService.getComponentSetForDeploy({ ignoreConflicts });
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const deployService = yield* api.services.MetadataDeployService;
+    const componentSetUnvalidated = yield* deployService.getComponentSetForDeploy({ ignoreConflicts });
+    const componentSet = yield* deployService.ensureNonEmptyComponentSet(componentSetUnvalidated);
 
-  const nonEmptyComponentSet = yield* Effect.try(() => EnsureNonEmptyComponentSet(componentSet)).pipe(
-    Effect.catchAll(() =>
-      Effect.promise(() => vscode.window.showInformationMessage(nls.localize('deploy_no_local_changes_message')))
-    ),
-    Effect.as(undefined)
-  );
-  if (!nonEmptyComponentSet) {
-    return;
-  }
-
-  yield* deployComponentSet({ componentSet: nonEmptyComponentSet });
-});
+    yield* deployComponentSet({ componentSet });
+  }).pipe(Effect.withSpan('projectDeployStart', { attributes: { ignoreConflicts } }), Effect.provide(AllServicesLayer));

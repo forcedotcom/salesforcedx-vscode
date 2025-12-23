@@ -42,7 +42,7 @@ const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) 
 /** Prompt user to select output directory from available package directories */
 const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfo;
+  const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow;
   const fsService = yield* api.services.FsService;
 
   const packageDirs = project.getPackageDirectories();

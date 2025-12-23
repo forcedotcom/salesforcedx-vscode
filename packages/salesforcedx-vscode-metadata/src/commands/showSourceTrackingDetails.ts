@@ -43,7 +43,7 @@ const viewChangesEffect = Effect.fn('viewChanges')(function* (options: ViewChang
     ],
     { concurrency: 'unbounded' }
   );
-  const status = (yield* Effect.tryPromise(() => tracking.getStatus(options))).filter(row => !row.ignored);
+  const status = (yield* Effect.promise(() => tracking.getStatus(options))).filter(row => !row.ignored);
 
   const remoteChanges = options.remote ? status.filter(row => row.origin === 'remote' && !row.conflict) : undefined;
   const localChanges = options.local ? status.filter(row => row.origin === 'local' && !row.conflict) : undefined;

@@ -8,9 +8,6 @@
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { sampleProjectName } from '../constants';
-import { ChannelService } from '../vscode/channelService';
-import { SettingsService } from '../vscode/settingsService';
-import { WorkspaceService } from '../vscode/workspaceService';
 import { fsPrefix } from './constants';
 import { FsProvider } from './fileSystemProvider';
 import { IndexedDBStorageService } from './indexedDbStorage';
@@ -18,9 +15,7 @@ import { startWatch } from './memfsWatcher';
 import { projectFiles } from './projectInit';
 
 /** Sets up the virtual file system for the extension */
-export const fileSystemSetup = (
-  context: vscode.ExtensionContext
-): Effect.Effect<void, Error, WorkspaceService | ChannelService | SettingsService | IndexedDBStorageService> =>
+export const fileSystemSetup = (context: vscode.ExtensionContext) =>
   Effect.gen(function* () {
     const fsProvider = new FsProvider();
 
