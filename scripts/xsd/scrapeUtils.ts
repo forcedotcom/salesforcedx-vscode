@@ -834,6 +834,9 @@ const determineTableName = (
   for (let j = tableIndex - 1; j >= 0; j--) {
     const prevTable = allTables[j];
     for (const field of prevTable.fields) {
+      // Skip fields with empty field names - they're just inline type references, not actual fields
+      if (!field['Field Name'] || field['Field Name'].trim() === '') continue;
+
       const fieldType = field['Field Type'];
 
       // Collect array types (higher priority)
@@ -849,15 +852,22 @@ const determineTableName = (
   // Prioritize: arrays from recent tables, then complex types from recent tables
   const candidateTypes = [...arrayTypes, ...complexTypes];
 
-  // Find the first unused candidate type
-  for (const candidate of candidateTypes) {
-    const alreadyUsed = existingResults.some(r => r.name === candidate);
-    if (!alreadyUsed) {
-      return candidate;
-    }
+  // Filter out unused candidates
+  const unusedCandidates = candidateTypes.filter(candidate => !existingResults.some(r => r.name === candidate));
+
+  if (unusedCandidates.length === 0) {
+    return `${fallbackTypeName} (Table ${tableIndex + 1})`;
   }
 
-  return `${fallbackTypeName} (Table ${tableIndex + 1})`;
+  // Prefer candidates that start with the page title (more specific, compound types)
+  const pageTitle = allTables[0]?.pageTitle || fallbackTypeName;
+  const matchingPrefix = unusedCandidates.find(candidate => candidate.startsWith(pageTitle));
+  if (matchingPrefix) {
+    return matchingPrefix;
+  }
+
+  // Otherwise, use the first unused candidate
+  return unusedCandidates[0];
 };
 
 /**
@@ -886,6 +896,9 @@ const processReferencedTypes = (
   // Collect all referenced types from field types
   for (const result of results) {
     for (const field of result.data.fields) {
+      // Skip fields with empty field names - they're just inline type references, not actual fields
+      if (!field['Field Name'] || field['Field Name'].trim() === '') continue;
+
       const fieldType = field['Field Type'];
 
       // Check for array types (e.g., "SharingTerritoryRule[]")
@@ -1046,6 +1059,7 @@ const extractArrayTypeName = (fieldType: string): string | null => {
 /**
  * Extract complex type names (non-primitive types without []).
  * Excludes primitives (string, boolean, int, etc.) and enumeration types.
+ * Converts camelCase type names to PascalCase for consistency.
  */
 const extractComplexTypeName = (fieldType: string): string | null => {
   // Skip enumeration types entirely - they don't represent table structures
@@ -1061,8 +1075,17 @@ const extractComplexTypeName = (fieldType: string): string | null => {
   const primitives = ['string', 'boolean', 'int', 'double', 'date', 'datetime', 'long'];
   if (primitives.includes(cleanType.toLowerCase())) return null;
 
-  // Match capitalized type names (but not array notation)
-  // Allow underscores and be more flexible with the pattern
-  const match = cleanType.match(/^([A-Z][a-zA-Z0-9_]+)$/);
-  return match ? match[1] : null;
+  // Match PascalCase type names
+  const pascalCaseMatch = cleanType.match(/^([A-Z][a-zA-Z0-9_]+)$/);
+  if (pascalCaseMatch) return pascalCaseMatch[1];
+
+  // Match camelCase type names and convert to PascalCase
+  const camelCaseMatch = cleanType.match(/^([a-z][a-zA-Z0-9_]+)$/);
+  if (camelCaseMatch) {
+    const camelCaseName = camelCaseMatch[1];
+    // Convert first character to uppercase
+    return camelCaseName.charAt(0).toUpperCase() + camelCaseName.slice(1);
+  }
+
+  return null;
 };

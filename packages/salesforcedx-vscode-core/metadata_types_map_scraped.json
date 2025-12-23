@@ -9280,7 +9280,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm",
     "parent": "Metadata"
   },
-  "AppCanvasConfig": {
+  "ConnectedAppOauthConfig": {
     "fields": [
       {
         "Description": "The OAuth asset token configuration for the connected app OAuth settings. Available in API version 49.0 and later.",
@@ -9564,12 +9564,6 @@
       }
     ],
     "short_description": "Specifies the configuration options for a connected app’s session policies. Use these policies to define how long a user’s session can last before reauthenticating, to block user access to the connected app, or to require multi-factor authentication (MFA) to access the app. Available in API version 49.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm",
-    "parent": "Metadata"
-  },
-  "ConnectedAppOauthConfig": {
-    "fields": [],
-    "short_description": "Represents the field names that configure how your connected app communicates with Salesforce.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm",
     "parent": "Metadata"
   },
@@ -17319,7 +17313,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_duplicaterule.htm",
     "parent": "Metadata"
   },
-  "ObjectMapping": {
+  "DuplicateRuleFilter": {
     "fields": [
       {
         "Description": "Required. A string of boolean operators that establishes the filter logic for the filter items specified in duplicateRuleFilterItems.",
@@ -17353,7 +17347,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_duplicaterule.htm",
     "parent": "FilterItem"
   },
-  "DuplicateRuleFilter": {
+  "ObjectMapping": {
     "fields": [
       {
         "Description": "Required. The input object for the duplicate rule. The DuplicateRule is associated with this object. For example, if you define a duplicate rule for Contact records, and you want to match with Lead records, the value of inputObject is Contact.",
@@ -29977,7 +29971,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_messagingchannel.htm",
     "parent": "Metadata"
   },
-  "MessagingAutoResponse": {
+  "MessagingChannelUsage": {
     "fields": [
       {
         "Description": "Required. Represents an identifier for the MessagingAuthorization entity. The value must begin with a letter. Only alphanumeric characters and _ are allowed.",
@@ -30006,6 +30000,43 @@
       }
     ],
     "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_messagingchannel.htm",
+    "parent": "Metadata"
+  },
+  "MessagingAutoResponse": {
+    "fields": [
+      {
+        "Description": "The content type of the auto-response: TextResponse or MessageDefinition.",
+        "Field Name": "autoResponseContentType",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The language of the auto response.",
+        "Field Name": "language",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The name of the messaging component.",
+        "Field Name": "messageDefinitionName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The text of the auto response.",
+        "Field Name": "response",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The number of minutes after which a response can no longer be sent. The value can range from 5 to 60.",
+        "Field Name": "responseTimeoutInMins",
+        "Field Type": "integer"
+      },
+      {
+        "Description": "Required. The type of response, which determines when it’s used in a messaging session. Values are: AgentEndEngagementResponse AgentEngagedResponse CustomResponse (Available in API version 65.0 and later.) DoubleOptInPrompt (Available in API version 65.0 and later.) EndUserIdleResponse (Available in API version 65.0 and later.) EndUserInactiveResponse (Available in API version 65.0 and later.) HelpResponse (Available in API version 65.0 and later.) InitialResponse OptInConfirmation (Available in API version 65.0 and later.) OptInPrompt (Available in API version 65.0 and later.) OptOutConfirmation (Available in API version 65.0 and later.)",
+        "Field Name": "type",
+        "Field Type": "MessagingAutoResponseType (enumeration of type string)"
+      }
+    ],
+    "short_description": "Represents an automated response used in a channel.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_messagingchannel.htm",
     "parent": "Metadata"
   },
@@ -30087,23 +30118,6 @@
       }
     ],
     "short_description": "Represents a standard parameter used to pass information into a channel.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_messagingchannel.htm",
-    "parent": "Metadata"
-  },
-  "MessagingChannelUsage": {
-    "fields": [
-      {
-        "Description": "Optional. The consent type for the messaging channel. Values are: ImplicitOptIn ExplicitOptIn DoubleOptIn",
-        "Field Name": "channelConsentType",
-        "Field Type": "MessagingChannelConsentType (enumeration of type string)"
-      },
-      {
-        "Description": "Required. The deployment type for the messaging channel. Values are: DigitalEngagementConversation UnifiedConversation MessagingEngagement MarketingJourneyBuilder",
-        "Field Name": "deploymentType",
-        "Field Type": "MessagingChannelUsageDeploymentType (enumeration of type string)"
-      }
-    ],
-    "short_description": "Represents the deployment type and consent configuration for a messaging channel. Available in API version 62.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_messagingchannel.htm",
     "parent": "Metadata"
   },
