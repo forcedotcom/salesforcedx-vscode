@@ -5,13 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as S from 'effect/Schema';
 import { ChannelService } from '../vscode/channelService';
 import { ConnectionService } from './connectionService';
 import { FilePropertiesSchema } from './schemas/fileProperties';
+import { unknownToErrorCause } from './shared';
 
 const NON_SUPPORTED_TYPES = new Set(['InstalledPackage', 'Profile', 'Scontrol']);
+
+export class MetadataDescribeError extends Data.TaggedError('MetadataDescribeError')<{
+  readonly cause: unknown;
+  readonly function: string;
+  readonly objectName?: string;
+}> {}
+
+export class ListMetadataError extends Data.TaggedError('ListMetadataError')<{
+  readonly cause: unknown;
+  readonly function: string;
+  readonly metadataType: string;
+  readonly folder?: string;
+}> {}
 
 export class MetadataDescribeService extends Effect.Service<MetadataDescribeService>()('MetadataDescribeService', {
   effect: Effect.gen(function* () {
@@ -21,7 +36,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
         Effect.flatMap(conn =>
           Effect.tryPromise({
             try: () => conn.metadata.describe(),
-            catch: e => new Error(`Describe failed: ${String(e)}`)
+            catch: e => new MetadataDescribeError({ ...unknownToErrorCause(e), function: 'describe' })
           }).pipe(
             Effect.withSpan('describe (API call)'),
             Effect.map(result => result.metadataObjects.filter(obj => !NON_SUPPORTED_TYPES.has(obj.xmlName))),
@@ -46,7 +61,8 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
         Effect.flatMap(conn =>
           Effect.tryPromise({
             try: () => conn.sobject(objectName).describe(),
-            catch: e => new Error(`describeCustomObject failed for object ${objectName}: ${String(e)}`)
+            catch: e =>
+              new MetadataDescribeError({ ...unknownToErrorCause(e), function: 'describeCustomObject', objectName })
           })
         ),
         Effect.tap(result => Effect.log(result.fields.map(f => f.name).join(', '))),
@@ -58,14 +74,23 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
         Effect.flatMap(conn =>
           Effect.tryPromise({
             try: () => conn.metadata.list({ type, ...(folder ? { folder } : {}) }),
-            catch: e => new Error(`listMetadata failed for type ${type}: ${String(e)}`)
+            catch: e =>
+              new ListMetadataError({ ...unknownToErrorCause(e), function: 'listMetadata', metadataType: type, folder })
           }).pipe(
             Effect.tap(result => Effect.annotateCurrentSpan({ result })),
             Effect.withSpan('listMetadata (API call)'),
             Effect.map(ensureArray),
             Effect.map(arr => arr.toSorted((a, b) => a.fullName.localeCompare(b.fullName))),
             Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
-            Effect.mapError(e => new Error(`Failed to decode FileProperties: ${String(e)}`))
+            Effect.mapError(
+              e =>
+                new ListMetadataError({
+                  ...unknownToErrorCause(e),
+                  function: 'listMetadata',
+                  metadataType: type,
+                  folder
+                })
+            )
           )
         ),
         Effect.withSpan('listMetadata', { attributes: { metadataType: type, folder } })

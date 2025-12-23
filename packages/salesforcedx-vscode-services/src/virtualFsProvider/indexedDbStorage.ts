@@ -10,12 +10,14 @@ import * as Layer from 'effect/Layer';
 import { Buffer } from 'node:buffer';
 import { dirname } from 'node:path';
 import * as vscode from 'vscode';
+import { unknownToErrorCause } from '../core/shared';
 import {
   isSerializedDirectoryWithPath,
   isSerializedFileWithPath,
   SerializedEntryWithPath,
   SerializedFileWithPath
 } from './fsTypes';
+import { VirtualFsProviderError } from './virtualFsProviderError';
 
 const DB_NAME = 'fsProviderDB';
 const STORE_NAME = 'files';
@@ -60,7 +62,7 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
     );
 
     const withStore = <A>(mode: IDBTransactionMode, f: (store: IDBObjectStore) => IDBRequest<A>) =>
-      Effect.async<A, Error>(resume => {
+      Effect.async<A, VirtualFsProviderError>(resume => {
         // eslint-disable-next-line functional/no-try-statements
         try {
           const transaction = db.transaction(STORE_NAME, mode);
@@ -74,19 +76,20 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
           request.onerror = (): void => {
             resume(
               Effect.fail(
-                new VirtualFsProviderError(
-                  `Transaction failed with mode "${mode}" with cause: ${String(request.error)}`,
-                  {
-                    cause: request.error
-                  }
-                )
+                new VirtualFsProviderError({
+                  message: `Transaction failed with mode "${mode}"`,
+                  ...unknownToErrorCause(request.error)
+                })
               )
             );
           };
-        } catch (error) {
+        } catch (error: unknown) {
           resume(
             Effect.fail(
-              new Error(`Transaction failed with mode "${mode}" with cause: ${String(error)}`, { cause: error })
+              new VirtualFsProviderError({
+                message: `Transaction failed with mode "${mode}"`,
+                ...unknownToErrorCause(error)
+              })
             )
           );
         }
@@ -144,8 +147,8 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
 const IndexedDBStorageServicesNoop: Layer.Layer<IndexedDBStorageService, never> = Layer.succeed(
   IndexedDBStorageService,
   new IndexedDBStorageService({
-    loadState: () => Effect.succeed(undefined),
-    saveFile: () => Effect.succeed(undefined),
+    loadState: () => Effect.succeed([]),
+    saveFile: () => Effect.succeed('foo'),
     deleteFile: () => Effect.succeed(undefined),
     loadFile: () => Effect.succeed(undefined)
   })

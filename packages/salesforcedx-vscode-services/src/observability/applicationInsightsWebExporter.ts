@@ -17,6 +17,7 @@ import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { TelemetryReporter } from '@vscode/extension-telemetry';
 import * as Match from 'effect/Match';
 import { workspace } from 'vscode';
+import { unknownToErrorCause } from '../core/shared';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
 // TODO: should this be in Effect?
 // Lazy initialization to avoid bundling issues
@@ -64,7 +65,7 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
         console.error('ApplicationInsightsWebExporter export failed:', error);
         return {
           code: ExportResultCode.FAILED,
-          error: error instanceof Error ? error : new Error(String(error))
+          error: unknownToErrorCause(error).cause
         };
       }
     })();

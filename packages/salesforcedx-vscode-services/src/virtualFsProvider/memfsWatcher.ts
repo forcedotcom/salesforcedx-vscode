@@ -78,7 +78,7 @@ export const startWatch = () =>
     yield* Stream.fromAsyncIterable(
       // this watches files in the project/workspace only, not the global sfdx folders, tmp, home, etc.
       fs.promises.watch(projectPath, { recursive: true }),
-      e => new Error(String(e)) // Error Handling
+      e => new Error(String(e)) // Error Handling?  Can it even error?
     ).pipe(
       // if there are "change" events AND non-change events for the same file, drop the change events.  We prefer the "rename" (create) event.
       Stream.changesWith((a, b) => a.eventType === 'change' && b.eventType !== 'change' && a.filename === b.filename),

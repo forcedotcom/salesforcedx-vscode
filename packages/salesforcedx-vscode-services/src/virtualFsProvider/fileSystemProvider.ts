@@ -15,7 +15,9 @@ import { Buffer } from 'node:buffer';
 // eslint-disable-next-line no-restricted-imports
 import type { Dirent } from 'node:fs';
 import * as vscode from 'vscode';
+import { unknownToErrorCause } from '../core/shared';
 import { emitter } from './memfsWatcher';
+import { VirtualFsProviderError } from './virtualFsProviderError';
 /**
  * the VSCode API doesn't store these anywhere by default.
  * This is hooked up to memfs right now, and its watcher handles everything else
@@ -74,7 +76,7 @@ export class FsProvider implements vscode.FileSystemProvider {
       Effect.flatMap(() =>
         Effect.tryPromise({
           try: () => fs.promises.writeFile(uri.path, Buffer.from(content)),
-          catch: e => new Error(`Failed to write file: ${String(e)}`)
+          catch: e => new VirtualFsProviderError({ ...unknownToErrorCause(e), message: 'writeFile', path: uri.path })
         })
       )
     );

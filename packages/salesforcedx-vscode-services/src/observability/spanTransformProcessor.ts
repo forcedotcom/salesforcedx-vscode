@@ -53,8 +53,8 @@ const getPermanentAttributes = () => {
           ['common.systemmemory', `${(os?.totalmem?.() ?? 0 / (1024 * 1024 * 1024)).toFixed(2)} GB`],
           ['common.cpus', getCPUs()]
         ]
-      : []) satisfies [string, string][])
-  ]);
+      : []) satisfies [string, string | undefined][])
+  ] satisfies [string, string | undefined][]);
 };
 
 const memoized = Effect.runSync(Effect.cachedFunction(getPermanentAttributes));
