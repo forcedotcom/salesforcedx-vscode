@@ -47,7 +47,7 @@
     "@effect/platform": "0.93.7",
     "@salesforce/playwright-vscode-ext": "*",
     "browserify-zlib": "^0.2.0",
-    "esbuild": "0.25.0",
+    "esbuild": "^0.27.2",
     "https-browserify": "^1.0.0",
     "jsforce": "^3.9.4",
     "nyc": "^15",
