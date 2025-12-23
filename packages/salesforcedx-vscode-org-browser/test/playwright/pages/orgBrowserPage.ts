@@ -8,7 +8,6 @@ import { Page, Locator, expect } from '@playwright/test';
 import { saveScreenshot, typingSpeed, waitForWorkspaceReady } from '@salesforce/playwright-vscode-ext';
 import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
-import { isDesktop } from '../fixtures';
 
 /**
  * Page Object Model for the Org Browser extension in VS Code web
@@ -46,7 +45,6 @@ export class OrgBrowserPage {
 
     // Trigger navigation to Org Browser and wait for the types response
     await Promise.all([
-      this.awaitMdapiResponse(),
       this.activityBarItem.click(),
       expect(this.sidebar, 'Sidebar for Org Browser should be visible').toBeVisible({ timeout: 10_000 }),
       //  assert at least 5 top-level items are present
@@ -65,13 +63,11 @@ export class OrgBrowserPage {
     await Promise.all([
       folderItem.click({ timeout: 5000, delay: 100 }),
       // we need it to go from loading to expanded state
-      ...(isDesktop
-        ? [
-            expect(twistie, 'Went to loading state')
-              .toContainClass('codicon-tree-item-loading', { timeout: 2000 })
-              .catch(() => undefined) // allow it to continue if it never hit loading state, but we at least delayed it before coming back to
-          ]
-        : [this.awaitMdapiResponse()])
+      [
+        expect(twistie, 'Went to loading state')
+          .toContainClass('codicon-tree-item-loading', { timeout: 2000 })
+          .catch(() => undefined) // allow it to continue if it never hit loading state, but we at least delayed it before coming back to
+      ]
     ]);
     // ensure it's done loading
     await expect(twistie, 'should finish loading').not.toContainClass('codicon-tree-item-loading', { timeout: 60_000 });
@@ -111,15 +107,6 @@ export class OrgBrowserPage {
     await saveScreenshot(this.page, `expandFolder.${await folderItemAgain.textContent()}.png`, true);
   }
 
-  public async awaitMdapiResponse(): Promise<void> {
-    if (!isDesktop) {
-      await this.page.waitForResponse(
-        response => /\/services\/Soap\/m\/\d+\.0/.test(response.url()) && response.status() === 200,
-        { timeout: 30_000 }
-      );
-    }
-  }
-
   /**
    * Find a specific metadata type by name using type-to-search navigation
    * Much more reliable than scrolling in virtualized lists
@@ -136,7 +123,6 @@ export class OrgBrowserPage {
     }
 
     await Promise.all([
-      this.awaitMdapiResponse(),
       this.sidebar
         .getByRole('treeitem', {
           level: 1,

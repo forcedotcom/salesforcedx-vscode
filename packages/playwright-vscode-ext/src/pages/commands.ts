@@ -15,6 +15,7 @@ const openCommandPalette = async (page: Page): Promise<void> => {
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
   await page.keyboard.type(command, { delay: 5 });
+  await page.waitForTimeout(50); // unfortunately, it really does take a bit to be usable.
   // Use text content matching to find exact command (bypasses MRU prioritization)
   await page.locator('.monaco-list-row').filter({ hasText: command, hasNotText, visible: true }).first().click();
 };

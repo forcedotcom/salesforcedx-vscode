@@ -37,7 +37,7 @@ export {
 
 export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSION_KEY } from './constants';
 
-export { createDreamhouseOrg as create, DREAMHOUSE_ORG_ALIAS } from './orgs/dreamhouseScratchOrgSetup';
+export { createDreamhouseOrg, DREAMHOUSE_ORG_ALIAS } from './orgs/dreamhouseScratchOrgSetup';
 export { createMinimalOrg, MINIMAL_ORG_ALIAS } from './orgs/minimalScratchOrgSetup';
 
 // Pages
