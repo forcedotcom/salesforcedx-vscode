@@ -192,7 +192,10 @@
         "./packages/salesforcedx-vscode-services:lint",
         "./packages/salesforcedx-vscode-org:lint",
         "./packages/salesforcedx-vscode-org-browser:lint",
-        "./packages/salesforcedx-vscode-automation-tests:lint"
+        "./packages/salesforcedx-vscode-automation-tests:lint",
+        "./packages/salesforcedx-lightning-lsp-common:lint",
+        "./packages/salesforcedx-aura-language-server:lint",
+        "./packages/salesforcedx-lwc-language-server:lint"
       ]
     },
     "test": {
@@ -204,6 +207,9 @@
         "./packages/salesforcedx-sobjects-faux-generator:test",
         "./packages/salesforcedx-apex-debugger:test",
         "./packages/salesforcedx-apex-replay-debugger:test",
+        "./packages/salesforcedx-lightning-lsp-common:test",
+        "./packages/salesforcedx-aura-language-server:test",
+        "./packages/salesforcedx-lwc-language-server:test",
         "./packages/salesforcedx-visualforce-markup-language-server:test",
         "./packages/salesforcedx-visualforce-language-server:test",
         "./packages/salesforcedx-vscode-core:test",

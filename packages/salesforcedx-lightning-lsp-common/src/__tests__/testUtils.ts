@@ -53,7 +53,7 @@ const PACKAGE_CORE_ALL_ROOT = resolve(
 
 // Export the appropriate paths based on whether we're running from source or compiled code
 // Check for 'out' directory in path (cross-platform: Windows uses '\', Unix uses '/')
-const normalizedDirname = __dirname.replace(/\\/g, '/');
+const normalizedDirname = __dirname.replaceAll('\\', '/');
 const isCommonPackage = __dirname.includes('salesforcedx-lightning-lsp-common') && !normalizedDirname.includes('/out/');
 
 // Normalize workspace roots to ensure consistent path format (especially Windows drive letter casing)

@@ -27,7 +27,7 @@
   "scripts": {
     "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache",
     "compile": "wireit",
-    "test": "jest --coverage",
+    "test": "wireit",
     "lint": "wireit"
   },
   "wireit": {
@@ -56,6 +56,18 @@
       "files": [
         "src/**/*.ts",
         "../../eslint.config.mjs"
+      ],
+      "output": []
+    },
+    "test": {
+      "command": "jest --coverage",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
       ],
       "output": []
     }

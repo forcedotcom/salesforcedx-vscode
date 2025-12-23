@@ -49,7 +49,7 @@ const patchComments = (metadata: Metadata): void => {
 };
 
 const extractLocationFromBabelError = (message: string): any => {
-  const m = message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
+  const m = message.replaceAll(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
   const startLine = m.indexOf('\n> ') + 3;
   const line = parseInt(m.substring(startLine, m.indexOf(' | ', startLine)), 10);
   const startColumn = m.indexOf('    | ', startLine);
@@ -164,7 +164,7 @@ export const extractAttributes = (
       if (x.loc) {
         const location = Location.create(uri, toVSCodeRange(x.loc));
 
-        const name = x.name.replace(/([A-Z])/g, (match: string) => `-${match.toLowerCase()}`);
+        const name = x.name.replaceAll(/([A-Z])/g, (match: string) => `-${match.toLowerCase()}`);
         const memberType = x.type === 'property' ? 'PROPERTY' : 'METHOD';
         publicAttributes.push({
           name,
@@ -180,7 +180,7 @@ export const extractAttributes = (
       if (x.loc) {
         const location = Location.create(uri, toVSCodeRange(x.loc));
 
-        const name = x.name.replace(/([A-Z])/g, (match: string) => `-${match.toLowerCase()}`);
+        const name = x.name.replaceAll(/([A-Z])/g, (match: string) => `-${match.toLowerCase()}`);
         const memberType = x.type === 'property' ? 'PROPERTY' : 'METHOD';
         const decorator: 'TRACK' | undefined = x.decorator === 'track' ? 'TRACK' : undefined;
         if (decorator) {

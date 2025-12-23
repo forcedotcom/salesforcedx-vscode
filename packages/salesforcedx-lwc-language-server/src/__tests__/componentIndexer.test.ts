@@ -64,9 +64,9 @@ describe('ComponentIndexer', () => {
         ].map(item => normalizePath(path.join(componentIndexer.workspaceRoot, item)));
 
         const componentEntries = await componentIndexer.getComponentEntries();
-        const paths = componentEntries.map(entry => normalizePath(path.resolve(entry.path))).sort();
+        const paths = componentEntries.map(entry => normalizePath(path.resolve(entry.path))).toSorted();
 
-        expect(paths).toEqual(expectedComponents.sort());
+        expect(paths).toEqual(expectedComponents.toSorted());
         expect(paths).not.toContain(path.join('force-app', 'main', 'default', 'lwc', 'import_relative', 'messages.js'));
         expect(paths).not.toContain(path.join('force-app', 'main', 'default', 'lwc', 'todo', 'store.js'));
       });

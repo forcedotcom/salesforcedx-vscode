@@ -283,7 +283,7 @@ export default class AuraIndexer implements Indexer {
     if (!str) {
       return '';
     }
-    return str.replace(/"([^"]+(?="))"/g, '$1');
+    return str.replaceAll(/"([^"]+(?="))"/g, '$1');
   }
 
   private getTagInfo(file: string, sfdxProject: boolean, contents: string, node: Node): TagInfo | undefined {

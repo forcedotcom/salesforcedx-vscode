@@ -42,9 +42,9 @@ const createReadJsonSyncMockImplementation = (actualUtils: any) => async (file: 
         throw new Error('File not found', { cause: file });
       }
       const fallbackCleaned = fallbackContent
-        .replace(/\/\/.*$/gm, '')
-        .replace(/\/\*[\s\S]*?\*\//g, '')
-        .replace(/,(\s*[}\]])/g, '$1');
+        .replaceAll(/\/\/.*$/gm, '')
+        .replaceAll(/\/\*[\s\S]*?\*\//g, '')
+        .replaceAll(/,(\s*[}\]])/g, '$1');
       try {
         const parsed = JSON.parse(fallbackCleaned);
         return parsed;
@@ -53,9 +53,9 @@ const createReadJsonSyncMockImplementation = (actualUtils: any) => async (file: 
       }
     }
     let cleaned = content;
-    cleaned = cleaned.replace(/\/\/.*$/gm, '');
-    cleaned = cleaned.replace(/\/\*[\s\S]*?\*\//g, '');
-    cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
+    cleaned = cleaned.replaceAll(/\/\/.*$/gm, '');
+    cleaned = cleaned.replaceAll(/\/\*[\s\S]*?\*\//g, '');
+    cleaned = cleaned.replaceAll(/,(\s*[}\]])/g, '$1');
     try {
       const parsed = JSON.parse(cleaned);
       return parsed;
