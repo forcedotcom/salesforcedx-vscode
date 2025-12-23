@@ -321,14 +321,28 @@ export const extractMetadataFromPage = async (
       const analyzeTable = (
         table: Element
       ): { headers: string[]; fieldIdx: number; typeIdx: number; descIdx: number } | null => {
-        const headers = Array.from(table.querySelectorAll('th')).map(cell => cell.textContent?.trim().toLowerCase());
+        let headers = Array.from(table.querySelectorAll('th')).map(cell => cell.textContent?.trim().toLowerCase());
 
         if (headers.length === 0) return null;
 
         // Check if this is a fields table
-        const hasField = headers.some(isFieldNameColumn);
+        let hasField = headers.some(isFieldNameColumn);
         const hasType = headers.some(isFieldTypeColumn);
         const hasDesc = headers.some(isDescriptionColumn);
+
+        // Special case: Handle Salesforce documentation bug where first "Field Type" column should be "Field Name"
+        // This happens when we have 3 columns with duplicate "Field Type" headers
+        if (!hasField && hasType && hasDesc && headers.length === 3) {
+          // Find all indices of "Field Type" columns
+          const typeIndices = headers.map((h, idx) => (isFieldTypeColumn(h) ? idx : -1)).filter(idx => idx >= 0);
+
+          // If we have exactly 2 "Field Type" columns, treat the first one as "Field Name"
+          if (typeIndices.length === 2) {
+            headers = headers.slice(); // Clone to avoid mutating original
+            headers[typeIndices[0]] = 'field name'; // Fix the first duplicate
+            hasField = true; // Update the flag
+          }
+        }
 
         // Accept tables with all 3 columns OR 2-column format (field name + description)
         const isTraditionalFormat = hasField && hasType && hasDesc;
