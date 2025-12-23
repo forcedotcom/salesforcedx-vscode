@@ -14,7 +14,7 @@ import { execAsync, env, tryUseExistingOrg, extractAuthFields, requireOrgInCI } 
 const DREAMHOUSE_REPO = 'https://github.com/trailheadapps/dreamhouse-lwc';
 export const DREAMHOUSE_ORG_ALIAS = 'orgBrowserDreamhouseTestOrg';
 /** Create Dreamhouse scratch org - if running locally, could create many orgs in parallel. Better to run steps once, or run just one test */
-export const create = async (): Promise<OrgAuthResult> => {
+export const createDreamhouseOrg = async (): Promise<OrgAuthResult> => {
   // Fast path: use provided org and skip org creation/deploy (requires deploy, permset already done)
   const existingOrg = await tryUseExistingOrg(DREAMHOUSE_ORG_ALIAS);
   if (existingOrg) {

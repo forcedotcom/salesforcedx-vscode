@@ -10,8 +10,6 @@ import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  filterErrors,
-  filterNetworkErrors,
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
   createMinimalOrg,
@@ -21,7 +19,8 @@ import {
   selectOutputChannel,
   waitForOutputChannelText,
   createApexClass,
-  editOpenFile
+  editOpenFile,
+  validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
@@ -83,11 +82,6 @@ test.describe('Deploy On Save', () => {
       await waitForOutputChannelText(page, { expectedText: 'Deploy on save complete', timeout: 240_000 });
     });
 
-    await test.step('validate no critical errors', async () => {
-      const criticalConsole = filterErrors(consoleErrors);
-      const criticalNetwork = filterNetworkErrors(networkErrors);
-      expect(criticalConsole, `Console errors: ${criticalConsole.map(e => e.text).join(' | ')}`).toHaveLength(0);
-      expect(criticalNetwork, `Network errors: ${criticalNetwork.map(e => e.description).join(' | ')}`).toHaveLength(0);
-    });
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
   });
 });

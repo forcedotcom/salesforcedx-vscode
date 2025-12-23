@@ -10,15 +10,14 @@ import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  filterErrors,
-  filterNetworkErrors,
   upsertScratchOrgAuthFieldsToSettings,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   selectOutputChannel,
   waitForOutputChannelText,
   outputChannelContains,
-  createMinimalOrg
+  createMinimalOrg,
+  validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { upsertRetrieveOnLoadSetting } from '../pages/settingsPage';
 import { SERVICES_CHANNEL_NAME } from '../../../src/constants';
@@ -72,10 +71,5 @@ test('retrieves metadata on load for CustomObject:Activity and Workflow:Case', a
     expect(hasActivityOrCase, `Expected Activity or Case related files, got: ${tabTexts.join(', ')}`).toBe(true);
   });
 
-  await test.step('validate no critical errors', async () => {
-    const criticalConsole = filterErrors(consoleErrors);
-    const criticalNetwork = filterNetworkErrors(networkErrors);
-    expect(criticalConsole, `Console errors: ${criticalConsole.map(e => e.text).join(' | ')}`).toHaveLength(0);
-    expect(criticalNetwork, `Network errors: ${criticalNetwork.map(e => e.description).join(' | ')}`).toHaveLength(0);
-  });
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });

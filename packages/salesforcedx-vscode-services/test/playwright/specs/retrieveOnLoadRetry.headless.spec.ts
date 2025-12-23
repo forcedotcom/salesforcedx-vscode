@@ -10,15 +10,14 @@ import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  filterErrors,
-  filterNetworkErrors,
   upsertScratchOrgAuthFieldsToSettings,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   selectOutputChannel,
   waitForOutputChannelText,
   outputChannelContains,
-  createMinimalOrg
+  createMinimalOrg,
+  validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { upsertRetrieveOnLoadSetting } from '../pages/settingsPage';
 import { SERVICES_CHANNEL_NAME } from '../../../src/constants';
@@ -53,16 +52,5 @@ test('handles project resolution with retry logic', async ({ page }) => {
     expect(hasFileCount, 'Should show file count in success message').toBe(true);
   });
 
-  await test.step('validate no critical errors', async () => {
-    const criticalConsole = filterErrors(consoleErrors);
-    const criticalNetwork = filterNetworkErrors(networkErrors);
-    expect(
-      criticalConsole,
-      `Console errors: ${criticalConsole.map((e: { text: string }) => e.text).join(' | ')}`
-    ).toHaveLength(0);
-    expect(
-      criticalNetwork,
-      `Network errors: ${criticalNetwork.map((e: { description: string }) => e.description).join(' | ')}`
-    ).toHaveLength(0);
-  });
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });

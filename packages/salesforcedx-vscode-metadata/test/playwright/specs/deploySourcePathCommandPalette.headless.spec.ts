@@ -10,8 +10,6 @@ import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  filterErrors,
-  filterNetworkErrors,
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
   createMinimalOrg,
@@ -19,7 +17,8 @@ import {
   upsertSettings,
   createApexClass,
   executeCommandWithCommandPalette,
-  saveScreenshot
+  saveScreenshot,
+  validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -77,11 +76,6 @@ test.describe('Deploy Source Path', () => {
       await saveScreenshot(page, 'step1.deploy-complete.png');
     });
 
-    await test.step('validate no critical errors', async () => {
-      const criticalConsole = filterErrors(consoleErrors);
-      const criticalNetwork = filterNetworkErrors(networkErrors);
-      expect(criticalConsole, `Console errors: ${criticalConsole.map(e => e.text).join(' | ')}`).toHaveLength(0);
-      expect(criticalNetwork, `Network errors: ${criticalNetwork.map(e => e.description).join(' | ')}`).toHaveLength(0);
-    });
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
   });
 });

@@ -10,8 +10,6 @@ import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  filterErrors,
-  filterNetworkErrors,
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
   create,
@@ -21,7 +19,8 @@ import {
   selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
-  outputChannelContains
+  outputChannelContains,
+  validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { nls } from '../../../src/messages';
@@ -118,11 +117,6 @@ test.describe('View Changes Commands', () => {
       expect(hasLocal, `View Remote Changes should NOT show "${sectionLocal}" section`).toBe(false);
     });
 
-    await test.step('validate no critical errors', async () => {
-      const criticalConsole = filterErrors(consoleErrors);
-      const criticalNetwork = filterNetworkErrors(networkErrors);
-      expect(criticalConsole, `Console errors: ${criticalConsole.map(e => e.text).join(' | ')}`).toHaveLength(0);
-      expect(criticalNetwork, `Network errors: ${criticalNetwork.map(e => e.description).join(' | ')}`).toHaveLength(0);
-    });
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
   });
 });

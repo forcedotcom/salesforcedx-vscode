@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { WORKBENCH, TAB, TAB_CLOSE_BUTTON } from './locators';
 
 type ConsoleError = { text: string; url?: string };
@@ -143,3 +143,19 @@ export const typingSpeed = 50; // ms
 
 /** Returns true if running on macOS desktop (Electron) */
 export const isMacDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' && process.platform === 'darwin';
+
+/** Validate no critical console or network errors occurred during test execution */
+export const validateNoCriticalErrors = async (
+  test: { step: (name: string, fn: () => Promise<void>) => Promise<void> },
+  consoleErrors: ConsoleError[],
+  networkErrors?: NetworkError[]
+): Promise<void> => {
+  await test.step('validate no critical errors', async () => {
+    const criticalConsole = filterErrors(consoleErrors);
+    const criticalNetwork = networkErrors ? filterNetworkErrors(networkErrors) : [];
+    expect(criticalConsole, `Console errors: ${criticalConsole.map(e => e.text).join(' | ')}`).toHaveLength(0);
+    if (networkErrors) {
+      expect(criticalNetwork, `Network errors: ${criticalNetwork.map(e => e.description).join(' | ')}`).toHaveLength(0);
+    }
+  });
+};
