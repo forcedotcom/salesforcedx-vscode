@@ -3462,7 +3462,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Example:",
+    "short_description": "Represents a container widget definition for a Tableau Next dashboard.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_analyticsdashboard.htm",
     "parent": "Metadata"
   },
@@ -3499,7 +3499,7 @@
         "Field Type": "AnalyticsDynamicTokenType"
       }
     ],
-    "short_description": "",
+    "short_description": "Represents a widget dynamic token for a Tableau Next dashboard.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_analyticsdashboard.htm",
     "parent": "Metadata"
   },
@@ -5183,7 +5183,7 @@
         "Field Type": "AudienceCriterion[]"
       }
     ],
-    "short_description": "",
+    "short_description": "Represents criteria for an audience. This subtype is available in API version 47.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
     "parent": "Metadata"
   },
@@ -5210,7 +5210,7 @@
         "Field Type": "AudienceCriterion​Type(enumeration of type string)"
       }
     ],
-    "short_description": "",
+    "short_description": "Represents a criterion for an audience.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
     "parent": "Metadata"
   },
@@ -5277,7 +5277,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "country",
+    "short_description": "Represents the value of a criterion in an audience. For a list of AudienceCriteriaValue fields that you can use with each AudienceCriterion field value, see . This table summarizes which AudienceCriteriaValue fields you can use with the different AudienceCriterion field values.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
     "parent": "Metadata"
   },
@@ -5289,7 +5289,7 @@
         "Field Type": "PersonalizationTarget​Info[]"
       }
     ],
-    "short_description": "When deploying an audience, you must include ExperienceBundle in your package to support experience variation targets.",
+    "short_description": "Represents targets for an audience. This subtype is available in API version 47.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
     "parent": "Metadata"
   },
@@ -5316,7 +5316,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "To determine the target group name, see https://developer.salesforce.com/docs/atlas.en-us.communities_dev.meta/communities_dev/communities_dev_personalization_names.htm in the Experience Cloud Developer Guide.",
+    "short_description": "Represents a target for an audience. This subtype is available in API version 47.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
     "parent": "Metadata"
   },
@@ -17188,7 +17188,7 @@
         "Field Type": "ObjectMapping"
       }
     ],
-    "short_description": "",
+    "short_description": "Describes the associated with the . The identifies duplicate records.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_duplicaterule.htm",
     "parent": "Metadata"
   },
@@ -17205,7 +17205,7 @@
         "Field Type": "DuplicateRuleFilterItem[]"
       }
     ],
-    "short_description": "",
+    "short_description": "Specifies filter criteria for a DuplicateRule. Salesforce only applies the DuplicateRule if the record matches the criteria.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_duplicaterule.htm",
     "parent": "Metadata"
   },
@@ -17244,7 +17244,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "For example, you can have a DuplicateRule that looks for duplicates between the Contact object and the Lead object. In this case, the input object is Contact, and the output object is Lead.",
+    "short_description": "Represents a map of fields in the input object of the DuplicateRule to fields in the output object of DuplicateRule. The input object is the object associated with the DuplicateRule. The output object can be the same object or a different object with similar fields.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_duplicaterule.htm",
     "parent": "Metadata"
   },
@@ -17261,7 +17261,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "A field name in the input object of the DuplicateRule, and the corresponding field name in the output object.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_duplicaterule.htm",
     "parent": "Metadata"
   },
@@ -17827,7 +17827,7 @@
         "Field Type": "Boolean"
       }
     ],
-    "short_description": "",
+    "short_description": "Returns the form that’s used for pre-chat. Available in API version 62 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm",
     "parent": "Metadata"
   },
@@ -17874,7 +17874,7 @@
         "Field Type": "EmbeddedServiceCustomLabel[]"
       }
     ],
-    "short_description": "",
+    "short_description": "Represents an individual field in a prechat form. Available in API version 62 or higher.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm",
     "parent": "Metadata"
   },
@@ -17921,7 +17921,7 @@
         "Field Type": "Boolean"
       }
     ],
-    "short_description": "",
+    "short_description": "Returns the settings of an Embedded Service deployment whose is EmbeddedMessaging. Available in API version 62 or higher.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm",
     "parent": "Metadata"
   },
@@ -24738,7 +24738,7 @@
   },
   "FlowStageStepOutputConfigParam": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
+    "short_description": "Defines a mock output value for a step. It extends and inherits all its fields. This metadata type is available in API version 65.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
     "parent": "Metadata"
   },
@@ -29941,7 +29941,7 @@
         "Field Type": "String"
       }
     ],
-    "short_description": "",
+    "short_description": "This junction entity stores the messaging channel authorization for a Messaging Channel (Embedded Messaging Channel). On this entity, we configure different authorization methods supported by the Messaging for In-App and Web `(Embedded Messaging) channel. This entity is available in API version 62.0 or later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_messagingchannel.htm",
     "parent": "Metadata"
   },
@@ -30098,7 +30098,7 @@
         "Field Type": "String"
       }
     ],
-    "short_description": "",
+    "short_description": "Represents settings specific to an EmbeddedMessaging MessagingChannel. Available in API version 62 or later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_messagingchannel.htm",
     "parent": "Metadata"
   },
@@ -31198,7 +31198,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Branding for a menu item.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_navigationmenu.htm",
     "parent": "Metadata"
   },
@@ -51408,7 +51408,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "PipelineInspMetricConfigTranslation contains details for the translation of Pipeline Inspection forecast category metric settings. Available in API version 57.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
     "parent": "Metadata"
   },

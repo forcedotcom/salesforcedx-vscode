@@ -673,6 +673,23 @@ export const extractMetadataFromPage = async (
 
           // Check inside DIVs for paragraphs (but skip callout divs)
           if (tagName === 'DIV' && !isInsideCallout(nextElement)) {
+            // Special case: Salesforce uses <div class="p"> as paragraph containers
+            // Extract direct text content before nested elements (like <div class="data colSort">)
+            if (nextElement.classList.contains('p')) {
+              // Get only the direct text nodes, not nested divs
+              let directText = '';
+              for (const child of Array.from(nextElement.childNodes)) {
+                if (child.nodeType === Node.TEXT_NODE) {
+                  const text = child.textContent?.trim() ?? '';
+                  if (text) directText += (directText ? ' ' : '') + text;
+                }
+              }
+              if (directText) {
+                description = directText;
+                break;
+              }
+            }
+
             const foundInDiv = processDivForParagraphs(
               nextElement,
               tryExtractDescription,
