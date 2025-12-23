@@ -1259,7 +1259,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatasource.htm",
     "parent": "Metadata"
   },
-  "ExternalDataSrcDescriptors": {
+  "ExternalDataSrcDescriptors\n        for Salesforce Connect Adapter for Amazon DynamoDB and for Amazon\n        Athena": {
     "fields": [
       {
         "Description": "If set, the external object associated with the descriptor.",
@@ -1302,7 +1302,7 @@
         "Field Type": "ExternalDataSrcDescType (enumeration of type string)"
       }
     ],
-    "short_description": "",
+    "short_description": "Represents schema descriptors for an external data source used with Salesforce Connect adapter for Amazon DynamoDB (available in API version 55.0 or later) or Amazon Athena (available in API version 56.0 or later).",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatasource.htm",
     "parent": "Metadata"
   },
@@ -3462,7 +3462,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "Example:",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_analyticsdashboard.htm",
     "parent": "Metadata"
   },
@@ -5175,7 +5175,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
     "parent": "Metadata"
   },
-  "AudienceCriterion": {
+  "AudienceCriteria": {
     "fields": [
       {
         "Description": "List of criteria for an audience. An audience can have up to 100 criteria.",
@@ -5187,7 +5187,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
     "parent": "Metadata"
   },
-  "AudienceCriteria": {
+  "AudienceCriterion": {
     "fields": [
       {
         "Description": "The number associated with the criterion in a formula, for example (1 AND 2) OR 3. This field is available in API version 45.0 and later.",
@@ -5277,7 +5277,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "country",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
     "parent": "Metadata"
   },
@@ -5289,7 +5289,7 @@
         "Field Type": "PersonalizationTarget​Info[]"
       }
     ],
-    "short_description": "",
+    "short_description": "When deploying an audience, you must include ExperienceBundle in your package to support experience variation targets.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
     "parent": "Metadata"
   },
@@ -5316,7 +5316,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "To determine the target group name, see https://developer.salesforce.com/docs/atlas.en-us.communities_dev.meta/communities_dev/communities_dev_personalization_names.htm in the Experience Cloud Developer Guide.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
     "parent": "Metadata"
   },
@@ -9280,118 +9280,6 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm",
     "parent": "Metadata"
   },
-  "ConnectedAppOauthConfig": {
-    "fields": [
-      {
-        "Description": "The OAuth asset token configuration for the connected app OAuth settings. Available in API version 49.0 and later.",
-        "Field Name": "assetTokenConfig",
-        "Field Type": "connectedAppOauthAssetToken"
-      },
-      {
-        "Description": "Required. The endpoint that Salesforce calls back to your connected app during OAuth. It’s the OAuth redirect_uri.",
-        "Field Name": "callbackUrl",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The PEM-encoded certificate string, if the app uses a certificate.",
-        "Field Name": "certificate",
-        "Field Type": "string"
-      },
-      {
-        "Description": "A value used by the consumer for identification to Salesforce. Referred to as client_id in OAuth 2.0.In API version 32.0 and later, you can set this field’s value only during creation. After you define and save the value, it can’t be edited. The value must be alphanumeric, can’t contain special characters or spaces, and must be between 8–256 characters. Consumer keys must be globally unique.",
-        "Field Name": "consumerKey",
-        "Field Type": "string"
-      },
-      {
-        "Description": "A value that is combined with the consumerKey and used by the consumer for identification to Salesforce. Referred to as client_secret in OAuth 2.0. Typically, Salesforce generates this value when you create the connected app. However, you can customize the shared secret value during creation. After you save the value, it can’t be edited. When set, the value isn’t returned in Metadata API requests.The value must be alphanumeric (no special characters and no spaces) and a minimum of 8 characters (maximum of 256 characters). If you specify a secret already in use for another connected app in the organization, an error occurs. Available in API version 32.0 and later.",
-        "Field Name": "consumerSecret",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Specifies the ID token configuration for the connected app OAuth settings. Available in API version 43.0 and later.",
-        "Field Name": "idTokenConfig",
-        "Field Type": "ConnectedAppOauthIdToken"
-      },
-      {
-        "Description": "If set to false (default), anyone in the org can authorize the app. Users must approve the app the first time they access it.If set to true, only users with the appropriate profile or permission set can access the app. These users don’t have to approve the app before they can access it. Manage profiles for the app by editing each profile’s Connected App Access list. Manage permission sets for the app by editing each permission set’s Assigned Connected App list. This setting isn’t available in Group Edition. Available in API version 46.0 and later. Connected app consumers can edit this setting when deploying a connected app in their org.",
-        "Field Name": "isAdminApproved",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "If set to true, the connected app can use the OAuth 2.0 client credentials flow. To use the client credentials flow, you must also specify a user for oauthClientCredentialUser.If set to false (default), the connected app can’t use the client credentials flow. Available in API version 56.0 and later.",
-        "Field Name": "isClientCredentialEnabled",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Determines whether the app can use the Authorization Code and Credentials Flow to provide identity services to headless, off-platform apps. The Authorization Code and Credentials Flow is the foundation of headless login, headless registration, headless passwordless login, and headless guest identity. If set to true, the connected app can use the Authorization Code and Credentials Flow and all associated Headless Identity features. The default value is false. This field is available in API version 57.0 and later.",
-        "Field Name": "isCodeCredentialEnabled",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "For the Authorization Code and Credentials Flow, determines whether the user’s credentials must be sent in the body of the initial HTTPS POST request to the Salesforce authorization endpoint. Requiring the credentials in the POST body instead of in the header improves security.If set to true, the user’s credentials must be included in the POST body. The default value is false. This field is available in API version 57.0 and later.",
-        "Field Name": "isCodeCredentialPostOnly",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "If set to false (default), the connected app’s client secret is required in exchange for an access token in the OAuth 2.0 web server flow.If the client app can’t keep the client secret confidential and it must use the web server flow, set to true. A client secret is still generated for the connected app, but this setting instructs the web server flow not to require the client_secret parameter in the access token request. We recommend the user agent flow as a more secure option than web server flow without the secret. Available in API version 49.0 and later.",
-        "Field Name": "isConsumerSecretOptional",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "If set to true, authorizes the connected app to introspect all access and refresh tokens within the entire org.If set to false (default), the connected app can introspect its own tokens. In addition, an OAuth client that directly registers OAuth 2.0 connected apps through the dynamic client registration endpoint can check the tokens for itself and its registered apps. Available in API version 49.0 and later.",
-        "Field Name": "isIntrospectAllTokens",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "If set to true, the connected app is enabled to issue JSON Web Token (JWT)-based access tokens.This field is generally available in API version 59.0 and later.",
-        "Field Name": "isNamedUserJwtEnabled",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Determines whether the Proof Key for Code Exchange (PKCE) extension is required for variations of the OAuth 2.0 authorization code flow configured for the connected app, including the web server flow and Authorization Code and Credentials Flow. For public client apps that can’t keep the consumer secret confidential, such as mobile apps, the PKCE extension helps ensure that the client that initiates an authorization flow is the same client that completes it. For this reason, we always recommend implementing PKCE for public clients. We also strongly recommend that you implement PKCE for private clients.If set to true, the PKCE extension is required and any authorization code flow variations that don’t implement it fail. If set to false, you can still implement PKCE but it isn’t required. The default value is false. This field is available in API version 59.0 and later.",
-        "Field Name": "isPkceRequired",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "If set to true, the connected app issues a new refresh token each time the OAuth refresh token flow is invoked. The old refresh token is automatically invalidated. If a user tries to use a previous refresh token that’s been invalidated, the current refresh token and its associated access tokens get deleted. If set to false, the refresh token can be used to obtain multiple access tokens.This field is available in API version 60.0 and later.",
-        "Field Name": "isRefreshTokenRotationEnabled",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "If set to true (default), the app’s client secret is required in the authorization request of a refresh token and hybrid refresh token flow. If set to false and an app sends the client secret in the authorization request, Salesforce still validates it. Select this option for web-server based apps that can protect client secrets. For apps that can’t protect client secrets, such as mobile apps or apps installed on a user’s computer, we recommend against selecting this option. Available in API version 51.0 and later.",
-        "Field Name": "isSecretRequiredForRefreshToken",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "If set to true, the connected app must include its consumer secret (client_secret) in the token request during the OAuth 2.0 token exchange flow. For security, set this field to true only if your app has a private client backend where it can keep the secret safe. For public client apps, such as single-page apps and mobile apps, set this field to false and don’t include the consumer secret.This field is available in API version 60.0 and later.",
-        "Field Name": "isSecretRequiredForTokenExchange",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "If set to true, the connected app can use the OAuth 2.0 token exchange flow to exchange tokens from an external identity provider for Salesforce tokens.This field is available in API version 60.0 and later.",
-        "Field Name": "isTokenExchangeEnabled",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "The execution user for the OAuth 2.0 client credentials flow. Salesforce returns access tokens on behalf of this user. This user must have the API Only permission.To use this field, set isClientCredentialEnabled to true and specify a consumerKey. Available in API version 56.0 and later.",
-        "Field Name": "oauthClientCredentialUser",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The permissions given by the user running the connected app. When deploying metadata, valid values are: Basic—Allows access to your identity URL service (the same behavior as deploying Address, Email, Phone, and Profile). Api—Allows access to the logged-in user's account over the APIs. Web—Allows use of the access_token on the web. This usage also includes visualforce, allowing access to Visualforce pages. Full—Allows access to all data accessible by the logged-in user. Chatter—Allows access to only the Connect REST API resources. CustomApplications—Provides access to custom applications, such as those using Visualforce. RefreshToken—Allows a refresh token to be returned if you’re eligible to receive one (the same behavior as deploying OfflineAccess). OpenID—Allows access to the logged-in user's unique identifier for OpenID Connect apps. Profile—Allows access to the logged-in user's profile (the same behavior as deploying Basic). Email—Allows access to the logged-in user's email address (the same behavior as deploying Basic). Address—Allows access to the logged-in user's street address (the same behavior as deploying Basic). Phone—Allows access to the logged-in user's phone number value (the same behavior as deploying Basic). OfflineAccess—Allows the app to interact with the user's data while the user is offline and get a refresh token (the same behavior as deploying RefreshToken). CustomPermissions—Allows access to the custom permissions in an organization associated with the connected app and shows whether the current user has each permission enabled. Wave—Allows access to the Analytics REST API resources. Available in API version 35.0 and later. Eclair—Allows access to the Analytics REST API Charts Geodata resource. Available in API version 35.0 and later. Pardot—Allows access to Pardot API services on behalf of the user. The full extent of accessible services is managed by the Pardot account. Available in API version 49.0 and later. Lightning—Allows hybrid apps to directly obtain Lightning child sessions through the OAuth 2.0 hybrid app token flow and hybrid app refresh token flow. Available in API version 51.0 and later. Content—Allows hybrid apps to directly obtain content child sessions through the OAuth 2.0 hybrid app token flow and hybrid app refresh token flow. Available in API version 51.0 and later. CDPIngest—Allows access to Data Cloud ingest API services. Customers use these API services to upload and maintain external datasets in the Data 360. Available in API version 52.0 and later. Chatbot—Allows access to Einstein Bot API services. Available in API version 54.0 and later. ForgotPassword—Allows access to Headless Forgot Password API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 57.0 and later. UserRegistration—Allows access to Headless Registration API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 58.0 and later. PwdlessLogin—Allows access to Headless Passwordless Login API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 59.0 and later. When retrieving metadata, valid values are: Api—Allows access to the logged-in user’s account over the APIs. Basic—Allows access to the user’s identity URL service, and includes Address, Email, Phone, and Profile. Chatter—Allows access to only the Connect REST API resources. CustomApplications—Allows access to custom applications, such as those using Visualforce. Full—Allows access to all data accessible by the logged-in user. OpenID—Allows access to the logged-in user's unique identifier for OpenID Connect apps. CDPIngest—Allows access to Data Cloud ingest API services. Customers use these API services to upload and maintain external datasets in the Data 360. Available in API version 52.0 and later. Pardot—Allows access to Pardot API services on behalf of the user. The full extent of accessible services is managed by the Pardot account. Available in API version 49.0 and later. Lightning—Allows hybrid apps to directly obtain Lightning child sessions through the OAuth 2.0 hybrid app token flow and hybrid app refresh token flow. Available in API version 51.0 and later. Content—Allows hybrid apps to directly obtain content child sessions through the OAuth 2.0 hybrid app token flow and hybrid app refresh token flow. Available in API version 51.0 and later. RefreshToken—Allows a refresh token to be returned if you’re eligible to receive one and is synonymous with allowing OfflineAccess. Wave—Allows access to the Analytics REST API resources. Available in API version 35.0 and later. Eclair—Allows access to the Analytics REST API Charts Geodata resource. Available in API version 35.0 and later. Web—Allows usage of the access_token on the web. This usage also includes visualforce, allowing access to Visualforce pages. Chatbot—Allows access to Einstein Bot API services. Available in API version 54.0 and later. ForgotPassword—Allows access to Headless Forgot Password API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 57.0 and later. UserRegistration—Allows access to Headless Registration API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 58.0 and later. PwdlessLogin—Allows access to Headless Passwordless Login API. Assign to an internal integration user to get an access token for authenticated requests to this API. Available in API version 59.0 and later.",
-        "Field Name": "scopes",
-        "Field Type": "ConnectedAppOauthAccessScope (enumeration of type string)[]"
-      },
-      {
-        "Description": "The single logout endpoint. This URL is the endpoint where Salesforce sends a logout request when users log out of Salesforce.",
-        "Field Name": "singleLogoutUrl",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm",
-    "parent": "Metadata"
-  },
   "ConnectedAppOauthAssetToken": {
     "fields": [
       {
@@ -9564,6 +9452,12 @@
       }
     ],
     "short_description": "Specifies the configuration options for a connected app’s session policies. Use these policies to define how long a user’s session can last before reauthenticating, to block user access to the connected app, or to require multi-factor authentication (MFA) to access the app. Available in API version 49.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm",
+    "parent": "Metadata"
+  },
+  "ConnectedAppOauthConfig": {
+    "fields": [],
+    "short_description": "Represents the field names that configure how your connected app communicates with Salesforce.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm",
     "parent": "Metadata"
   },
@@ -11433,53 +11327,6 @@
       }
     ],
     "short_description": "Represents how lists display in a Salesforce console app. Required if isServiceCloudConsole is true. Available in API version 25.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customapplication.htm",
-    "parent": "Metadata"
-  },
-  "WorkspaceMappingSingle": {
-    "fields": [
-      {
-        "Description": "Specifies whether Chat is enabled in your organization (true) or not (false).",
-        "Field Name": "enableLiveChat",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Specifies whether to open a new Account subtab in a Salesforce console app automatically (true) or not (false) when an agent accepts a chat.",
-        "Field Name": "openNewAccountSubtab",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Specifies whether to open a new Case subtab in a Salesforce console app automatically (true) or not (false) when an agent accepts a chat.",
-        "Field Name": "openNewCaseSubtab",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Specifies whether to open a new Contact subtab in a Salesforce console app automatically (true) or not (false) when an agent accepts a chat.",
-        "Field Name": "openNewContactSubtab",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Specifies whether to open a new Lead subtab in a Salesforce console app automatically (true) or not (false) when an agent accepts a chat.",
-        "Field Name": "openNewLeadSubtab",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Specifies whether to open a new Visualforce page as a subtab in a Salesforce console app automatically (true) or not (false) when an agent accepts a chat.",
-        "Field Name": "openNewVFPageSubtab",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Specifies the Visualforce pages to open in subtabs when an agent accepts a chat in a Salesforce console app.This field is available in API version 42.0 and later.",
-        "Field Name": "pageNamesToOpen",
-        "Field Type": "string [array of strings]"
-      },
-      {
-        "Description": "Specifies whether to display the Knowledge component while using Chat in a Salesforce console app (true) or not (false).",
-        "Field Name": "showKnowledgeArticles",
-        "Field Type": "boolean"
-      }
-    ],
-    "short_description": "",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customapplication.htm",
     "parent": "Metadata"
   },
@@ -13485,6 +13332,38 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_weblink.htm",
     "parent": "Metadata"
   },
+  "ValueSet": {
+    "fields": [
+      {
+        "Description": "The fullname of the controlling field if this is a dependent picklist. A controlling field can be a checkbox or picklist field, but in this case it’s a picklist. The controlling picklist filters the available values in the dependent picklist.",
+        "Field Name": "controllingField",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Whether the picklist’s values are limited to only the values defined by a Salesforce admin. Values are true or false.",
+        "Field Name": "restricted",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Defines value-specific settings for a custom dependent picklist. Indicates whether the value set of the custom picklist field is sorted alphabetically.",
+        "Field Name": "valueSetDefinition",
+        "Field Type": "ValueSetValuesDefinition"
+      },
+      {
+        "Description": "The masterLabel of the global value set to be used for this picklist field.",
+        "Field Name": "valueSetName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Used for the settings that describe a value in a custom picklist field. The picklist can have its own unique value set, or inherit the values from a global value set. You can add field dependency values via Metadata API but not remove them.",
+        "Field Name": "valueSettings",
+        "Field Type": "ValueSettings"
+      }
+    ],
+    "short_description": "These field types extend the field types described in the Salesforce Object Reference.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_field_types.htm",
+    "parent": "Metadata"
+  },
   "ValueSetValuesDefinition": {
     "fields": [
       {
@@ -13498,7 +13377,7 @@
         "Field Type": "CustomValue"
       }
     ],
-    "short_description": "These field types extend the field types described in the Salesforce Object Reference.",
+    "short_description": "",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_field_types.htm",
     "parent": "Metadata"
   },
@@ -17365,7 +17244,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
+    "short_description": "For example, you can have a DuplicateRule that looks for duplicates between the Contact object and the Lead object. In this case, the input object is Contact, and the output object is Lead.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_duplicaterule.htm",
     "parent": "Metadata"
   },
@@ -17935,7 +17814,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm",
     "parent": "Metadata"
   },
-  "EmbeddedServiceResource": {
+  "EmbeddedServiceForm": {
     "fields": [
       {
         "Description": "Required. Indicates when we display this form. Values are: Session- The pre-chat form is displayed every session. Conversation- Tthe pre-chat form is displayed every conversation. None- Don’t select this option.",
@@ -17952,19 +17831,54 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm",
     "parent": "Metadata"
   },
-  "EmbeddedServiceFlowConfig": {
+  "EmbeddedServiceFormField": {
     "fields": [
       {
-        "Description": "Indicates whether the embedded flow is enabled (true) or not (false). Defaults to false.",
-        "Field Name": "enabled",
-        "Field Type": "boolean"
+        "Description": "Required. Maps to either a StandardMessingChannelParameter or a CustomMessagingChannelParameter",
+        "Field Name": "formField",
+        "Field Type": "string or enum"
+      },
+      {
+        "Description": "Required. Indicates whether formField points to a StandardMessagingChannelParameter or a CustomMessagingChannelParameter. Please match the Enum value here to the formField passed in. Valid values for MessagingChannelParameterType are: Standard - select this field when you want to reference a StandardMessagingChannelParameter Custom - select this field when you want to reference a CustomMessagingChannelParameter Valid values for StandardMessagingChannelParameter are: FirstName LastName Email Subject",
+        "Field Name": "messagingChannelParameterType",
+        "Field Type": "MessagingChannelParameterType (enumeration of type string) OR StandardMessagingChannelParameter (enumeration of type string)"
+      },
+      {
+        "Description": "Required. Indicates the type of data is passed by the End User when filling out the Prechat form. Valid values are: Text Email Phone Number Checkbox Choicelist",
+        "Field Name": "formFieldType",
+        "Field Type": "EmbeddedServiceFormFieldType (enumeration of type string)"
+      },
+      {
+        "Description": "Indicates the relative order of the form field in the prechat form. For Prechat fields where isHidden is set to true displayOrder must be set to -1. For Prechat fields where isHidden is set to false, this value must be greater than or equal to 0.",
+        "Field Name": "displayOrder",
+        "Field Type": "Integer"
+      },
+      {
+        "Description": "Indicates whether a Prechat form field is required. If isHidden is set to true, isRequired must be set to false.",
+        "Field Name": "isRequired",
+        "Field Type": "Boolean"
+      },
+      {
+        "Description": "Indicates whether a Prechat form field is displayed in the UI. isHidden can only be set to true if the formField field is set to CustomMessagingChannelParameter and messagingChannelParameterType is set to Custom.",
+        "Field Name": "isHidden",
+        "Field Type": "Boolean"
+      },
+      {
+        "Description": "The choice list that's associated with EmbeddedServiceFormField. ChoiceList can only be associated if the formField is set to CustomMessagingChannelParameter and messagingChannelParameterType is set to Custom.",
+        "Field Name": "choiceList",
+        "Field Type": "ChoiceList"
+      },
+      {
+        "Description": "The custom label for this field.",
+        "Field Name": "embeddedServiceCustomLabels",
+        "Field Type": "EmbeddedServiceCustomLabel[]"
       }
     ],
-    "short_description": "Represents a setup node for creating an embedded flow. This type extends the Metadata metadata type and inherits its fullName field.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceflowconfig.htm",
+    "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm",
     "parent": "Metadata"
   },
-  "EmbeddedServiceFlow": {
+  "embeddedServiceMessagingChannel": {
     "fields": [
       {
         "Description": "The Business Hours record that’s associated with this specific embedded service deployment.",
@@ -18009,6 +17923,57 @@
     ],
     "short_description": "",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm",
+    "parent": "Metadata"
+  },
+  "EmbeddedServiceResource": {
+    "fields": [
+      {
+        "Description": "Required. The ID of the static resource that contains the javascript file of the customization.",
+        "Field Name": "resource",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The embedded service feature to customize. Valid values are: ChatInvitation—Use for Chat deployments. SettingsFile—Use if you’re configuring a settings file for a Channel Menu deployment.",
+        "Field Name": "resourceType",
+        "Field Type": "EmbeddedServiceResourceType (enumeration of type string)"
+      }
+    ],
+    "short_description": "Returns the static resource associated with the Embedded Service Chat feature customization. Available in API version 50.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm",
+    "parent": "Metadata"
+  },
+  "EmbeddedServiceFlow": {
+    "fields": [
+      {
+        "Description": "The developer name of the flow.",
+        "Field Name": "flow",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The type of flow. Valid values are: FS_CancelAppointment FS_Flow FS_ModifyAppointment FS_NewAppointment LA_Survey",
+        "Field Name": "flowType",
+        "Field Type": "EmbeddedServiceFlowType(enumeration of type string)"
+      },
+      {
+        "Description": "Indicates whether users are required to log in to access the Embedded Service component. The value can’t be true for the FS_Flow value and must be true for all other values.",
+        "Field Name": "isAuthenticationRequired",
+        "Field Type": "boolean"
+      }
+    ],
+    "short_description": "Returns an embedded flow that’s associated with an EmbeddedServiceConfig setup.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceconfig.htm",
+    "parent": "Metadata"
+  },
+  "EmbeddedServiceFlowConfig": {
+    "fields": [
+      {
+        "Description": "Indicates whether the embedded flow is enabled (true) or not (false). Defaults to false.",
+        "Field Name": "enabled",
+        "Field Type": "boolean"
+      }
+    ],
+    "short_description": "Represents a setup node for creating an embedded flow. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_embeddedserviceflowconfig.htm",
     "parent": "Metadata"
   },
   "EmbeddedServiceLayout": {
@@ -23607,23 +23572,6 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
     "parent": "Metadata"
   },
-  "FlowScreenActionInputParameter": {
-    "fields": [
-      {
-        "Description": "Required. Unique name of the input parameter of a flow screen action.",
-        "Field Name": "name",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Defines the valueof an input parameter for a flow screen action.",
-        "Field Name": "value",
-        "Field Type": "FlowElementReferenceOrValue"
-      }
-    ],
-    "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
-    "parent": "Metadata"
-  },
   "FlowScreenField": {
     "fields": [
       {
@@ -24781,6 +24729,12 @@
     "short_description": "An output parameter for FlowWaitEvent. The parameter’s value is assigned to a variable in the flow so that it can be referenced in another part of the flow. It extends FlowBaseElement and inherits all its fields. FlowWaitEventOutputParameter is available in API version 32.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
     "parent": "FlowBaseElement"
+  },
+  "FlowScreenActionInputParameter": {
+    "fields": [],
+    "short_description": "Defines an iput parameter for a flow screen action. It extends FlowScreenFieldInputParameter and inherits all its fields.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
+    "parent": "FlowScreenFieldInputParameter"
   },
   "FlowStageStepOutputConfigParam": {
     "fields": [],
@@ -28821,27 +28775,15 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatagentconfig.htm",
     "parent": "Metadata"
   },
-  "AgentConfigUserAssignments": {
-    "fields": [
-      {
-        "Description": "Specifies the username of the user associated with a specific agent configuration.",
-        "Field Name": "user",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "",
+  "SupervisorAgentConfigSkills": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatagentconfig.htm",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatagentconfig.htm",
     "parent": "Metadata"
   },
-  "SupervisorAgentConfigSkills": {
-    "fields": [
-      {
-        "Description": "Specifies the agent skills available for filtering the Agent Status list in the Supervisor Panel.",
-        "Field Name": "skill",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "",
+  "AgentConfigUserAssignments": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatagentconfig.htm",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatagentconfig.htm",
     "parent": "Metadata"
   },
@@ -29971,7 +29913,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_messagingchannel.htm",
     "parent": "Metadata"
   },
-  "MessagingChannelUsage": {
+  "MessagingAuthorization": {
     "fields": [
       {
         "Description": "Required. Represents an identifier for the MessagingAuthorization entity. The value must begin with a letter. Only alphanumeric characters and _ are allowed.",
@@ -30118,6 +30060,23 @@
       }
     ],
     "short_description": "Represents a standard parameter used to pass information into a channel.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_messagingchannel.htm",
+    "parent": "Metadata"
+  },
+  "MessagingChannelUsage": {
+    "fields": [
+      {
+        "Description": "Optional. The consent type for the messaging channel. Values are: ImplicitOptIn ExplicitOptIn DoubleOptIn",
+        "Field Name": "channelConsentType",
+        "Field Type": "MessagingChannelConsentType (enumeration of type string)"
+      },
+      {
+        "Description": "Required. The deployment type for the messaging channel. Values are: DigitalEngagementConversation UnifiedConversation MessagingEngagement MarketingJourneyBuilder",
+        "Field Name": "deploymentType",
+        "Field Type": "MessagingChannelUsageDeploymentType (enumeration of type string)"
+      }
+    ],
+    "short_description": "Represents the deployment type and consent configuration for a messaging channel. Available in API version 62.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_messagingchannel.htm",
     "parent": "Metadata"
   },
@@ -31231,6 +31190,30 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_navigationmenu.htm",
     "parent": "Metadata"
   },
+  "NavigationMenuItemBranding": {
+    "fields": [
+      {
+        "Description": "Name of the ContentAsset to use for the navigation menu item.",
+        "Field Name": "tileImage",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_navigationmenu.htm",
+    "parent": "Metadata"
+  },
+  "NavigationSubMenu": {
+    "fields": [
+      {
+        "Description": "A list of menu items in a NavigationSubMenu. Use navigationMenuItem to create, delete, or update child items under a parent heading.",
+        "Field Name": "navigationMenuItem",
+        "Field Type": "NavigationMenuItem[]"
+      }
+    ],
+    "short_description": "A list of child menu items. Only NavigationMenuItem items of type MenuLabel can have items in a NavigationSubMenu. Available in API 39.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_navigationmenu.htm",
+    "parent": "Metadata"
+  },
   "NavigationMenuItem": {
     "fields": [
       {
@@ -31279,32 +31262,8 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_navigationmenu.htm",
-    "parent": "Metadata"
-  },
-  "NavigationMenuItemBranding": {
-    "fields": [
-      {
-        "Description": "Name of the ContentAsset to use for the navigation menu item.",
-        "Field Name": "tileImage",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_navigationmenu.htm",
-    "parent": "Metadata"
-  },
-  "NavigationSubMenu": {
-    "fields": [
-      {
-        "Description": "A list of menu items in a NavigationSubMenu. Use navigationMenuItem to create, delete, or update child items under a parent heading.",
-        "Field Name": "navigationMenuItem",
-        "Field Type": "NavigationMenuItem[]"
-      }
-    ],
-    "short_description": "A list of child menu items. Only NavigationMenuItem items of type MenuLabel can have items in a NavigationSubMenu. Available in API 39.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_navigationmenu.htm",
+    "short_description": "Represents a single menu item in the NavigationLinkSet subtype (API version 37.0 to 46.0) or in the NavigationMenu type (API version 47.0 and later). Use this subtype to create, delete, or update menu items in your site’s navigation menu.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_network.htm",
     "parent": "Metadata"
   },
   "Network": {
@@ -40578,33 +40537,6 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
     "parent": "Metadata"
   },
-  "EmailToCaseRoutingAddress": {
-    "fields": [
-      {
-        "Description": "Specifies the maximum number of characters displayed for each feed item.",
-        "Field Name": "characterLimit",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Removed. Indicates whether earlier messages in an email thread are removed from email feed items (true) or not (false). Available in API versions 27.0 to 46.0.",
-        "Field Name": "collapseThread",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Indicates how email feed items are displayed. Valid values are: Default—Blank lines in email feed items are displayed. HideBlankLines—Blank lines in email feed items aren’t displayed.",
-        "Field Name": "displayFormat",
-        "Field Type": "FeedItemDisplayFormat (enumeration of type string)"
-      },
-      {
-        "Description": "The type of feed item to which the settings apply. For FeedItemSettings, the only valid feedItemType value is EmailMessageEvent.",
-        "Field Name": "feedItemType",
-        "Field Type": "FeedItemType (enumeration of type string)"
-      }
-    ],
-    "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
-    "parent": "Metadata"
-  },
   "FeedItemSettings": {
     "fields": [],
     "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
@@ -40618,6 +40550,12 @@
     "parent": "Metadata"
   },
   "WebToCaseSettings": {
+    "fields": [],
+    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
+    "parent": "Metadata"
+  },
+  "EmailToCaseRoutingAddress": {
     "fields": [],
     "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
@@ -42461,23 +42399,6 @@
       }
     ],
     "short_description": "Represents an organization's custom field mapping for Work Plan or Work Step generation. Custom Fields can be mapped from WorkPlanTemplate to WorkPlan, WorkStepTemplate to WorkStep, or WorkPlanTemplateEntry to WorkStep. Available in API version 52.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_fieldservicesettings.htm",
-    "parent": "Metadata"
-  },
-  "FieldServiceSettings (Table 4)": {
-    "fields": [
-      {
-        "Description": "Required. The name of a custom field supplying source data. This field is from the object specified in inputObject.",
-        "Field Name": "inputField",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The name of a custom field that receives data from the source field specified in inputField. This field is from the object specified in outputObject.",
-        "Field Name": "outputField",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_fieldservicesettings.htm",
     "parent": "Metadata"
   },
@@ -51474,6 +51395,23 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
     "parent": "Metadata"
   },
+  "PipelineInspMetricConfigTranslation": {
+    "fields": [
+      {
+        "Description": "Required. The translated Pipeline Inspection metric configuration name.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the Pipeline Inspection metric configuration.",
+        "Field Name": "name",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
   "PromptTranslation": {
     "fields": [
       {
@@ -51648,12 +51586,6 @@
       }
     ],
     "short_description": "ScontrolTranslation contains details for a translation of an s-control. For more information, see “About S-Controls” in Salesforce Help.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
-    "parent": "Metadata"
-  },
-  "PipelineInspMetricConfigTranslation": {
-    "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
     "parent": "Metadata"
   },

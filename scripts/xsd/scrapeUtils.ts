@@ -699,11 +699,18 @@ export const extractMetadataFromPage = async (
       function findHeadingBefore(startElement: Element | null): Element | null {
         if (!startElement) return null;
 
+        // First, try to find a heading among previous siblings at the current level
         let current = startElement.previousElementSibling;
 
         while (current) {
           if (current.tagName.match(/^H[1-6]$/)) return current;
           current = current.previousElementSibling;
+        }
+
+        // If no heading found at this level, try looking at the parent's siblings
+        // This handles cases where the table is nested in a wrapper div
+        if (startElement.parentElement && startElement.parentElement.tagName !== 'BODY') {
+          return findHeadingBefore(startElement.parentElement);
         }
 
         return null;
