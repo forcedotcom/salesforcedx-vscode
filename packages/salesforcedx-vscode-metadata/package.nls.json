@@ -1,0 +1,17 @@
+{
+  "configuration_title": "Salesforce Metadata Configuration",
+  "project_deploy_start_default_org_text": "SFDX: Push Source to Default Org",
+  "project_deploy_start_ignore_conflicts_default_org_text": "SFDX: Push Source to Default Org and Ignore Conflicts",
+  "project_retrieve_start_default_org_text": "SFDX: Pull Source from Default Org",
+  "view_all_changes_text": "SFDX: View All Changes (Local and in Default Org)",
+  "view_local_changes_text": "SFDX: View Local Changes",
+  "view_remote_changes_text": "SFDX: View Changes in Default Org",
+  "apex_generate_class_text": "SFDX: Create Apex Class",
+  "source_tracking_status_bar_local_changes": "Local Changes",
+  "source_tracking_status_bar_remote_changes": "Remote Changes",
+  "source_tracking_status_bar_conflicts": "Conflicts",
+  "source_tracking_status_bar_click_to_push": "Click to push local changes to org",
+  "source_tracking_status_bar_no_changes": "No source tracking changes",
+  "deploy_on_save_enabled_description": "Automatically deploy metadata when files are saved (used when vscode-core is not installed)",
+  "deploy_on_save_ignore_conflicts_description": "When deploy on save is enabled, ignore conflicts (used when vscode-core is not installed)"
+}

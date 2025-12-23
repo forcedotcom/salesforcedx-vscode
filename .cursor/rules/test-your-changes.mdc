@@ -17,6 +17,7 @@ After ANY code change, run these in order from repo root. Avoid responding while
    - Run with `--retries 0` to get quicker feedback
    - If there are failures, be sure to look at the screenshots produced
    - unzip traces.zip for more screenshots and json results
+   - if you encounter auth or org setup issues, ask the user to set up an org like the CI does
 7. check for dupes `npm run check:dupes` and then look in `jscpd-report` to make sure none of your changes are flagged.
 
 Rules:
@@ -30,3 +31,4 @@ Rules:
 Troubleshooting
 
 - if knip fails due to `ERR_MODULE_NOT_FOUND` you can `rm -rf ~/.npm/_npx` and re-run it. You'll have to agree to it (or pass `-y` to it)
+  .

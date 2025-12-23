@@ -2,6 +2,34 @@
 name: NotificationService Consolidation
 overview: ""
 todos:
+  - id: a84e2fc9-2ae7-4f02-b561-4582bb8d8475
+    content: Extract updateSelection to utils-vscode, update apex and lwc consumers
+    status: pending
+  - id: 37aee1dd-c09c-4ea0-893c-b45792fc57e4
+    content: Refactor vscode-core NotificationService to extend utils-vscode version
+    status: pending
+  - id: f2bee31e-7e51-43b2-9126-69f342e15b73
+    content: Consolidate SfCommandletExecutor between utils-vscode and vscode-core
+    status: pending
+  - id: a1397f27-0b0a-4301-88a9-ee6a8c27055a
+    content: Create factory helper for lightning template commands
+    status: pending
+  - id: 66769bfa-da88-43fb-ab53-a47c09b73104
+    content: Extract shared getComponents logic from deploy/retrieve commands
+    status: pending
+  - id: d15af2dd-4001-49e8-9013-aa20c9d200e8
+    content: Extract getTestFileInfo helper for LWC test actions
+    status: pending
+  - id: 1c896e56-e366-4c55-a3f2-b4bcb8c40af7
+    content: Create executeWithTiming helper for org commands
+    status: pending
+---
+
+=======
+---
+name: NotificationService Consolidation
+overview: ""
+todos:
   - id: 5d174e0f-a27c-4ebf-9930-5e385e3a918d
     content: Extract updateSelection to utils-vscode, update apex and lwc consumers
     status: pending
@@ -25,6 +53,7 @@ todos:
     status: pending
 ---
 
+>>>>>>> origin/develop
 # NotificationService Consolidation
 
 ## Goal
@@ -67,4 +96,5 @@ Re-export `notificationService` from `@salesforce/salesforcedx-utils-vscode` ins
 These become unnecessary since NotificationService now auto-shows on failure:
 
 - `salesforcedx-vscode-lwc/src/commands/commandUtils.ts` - remove from `showError`
+<<<<<<< HEAD
 - `salesforcedx-vscode-org/src/commands/configSet.ts` - remove after error handling

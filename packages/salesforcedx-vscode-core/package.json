@@ -30,7 +30,7 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.29.1",
-    "@salesforce/source-tracking": "^7.7.0",
+    "@salesforce/source-tracking": "^7.8.0",
     "@salesforce/templates": "^65.1.1",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-i18n": "*",
@@ -911,6 +911,11 @@
           "type": "boolean",
           "default": true,
           "description": "%use_legacy_org_browser_description%"
+        },
+        "salesforcedx-vscode-core.useMetadataExtensionCommands": {
+          "type": "boolean",
+          "default": false,
+          "description": "%use_metadata_extension_commands_description%"
         }
       }
     },

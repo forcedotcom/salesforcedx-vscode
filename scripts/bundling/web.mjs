@@ -45,7 +45,7 @@ export const commonConfigBrowser = {
   platform: 'browser',
   external: ['vscode'],
   // TODO: we need a way to turn this off for debugging and local dev
-  minify: true,
+  minify: false,
   sourcemap: true,
   // keepNames: false, // Disabled to fix "Cannot redefine property: name" error
   resolveExtensions: ['.js', '.ts', '.json'],

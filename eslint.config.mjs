@@ -80,6 +80,29 @@ export default [
       effect: effectPlugin
     },
     rules: {
+      'local/command-must-be-in-package-json': [
+        'error',
+        {
+          ignorePatterns: [
+            // Internal commands not shown in command palette
+            '\\.internal\\.',
+            // Telemetry API exposed for other extensions
+            '\\.get\\.telemetry$',
+            // Called programmatically by pushOrDeployOnSave, not user-facing
+            '^sf\\.deploy\\.multiple\\.source\\.paths$',
+            // Delegate commands invoked by code lens, not command palette
+            '\\.delegate$',
+            // Debug adapter protocol commands
+            '^extension\\.replay-debugger\\.',
+            // Programmatic launch commands
+            '^sf\\.launch\\.',
+            // Internal toggle/config commands
+            '^sf\\.apex\\.toggle\\.',
+            '^sf\\.apex\\.debug\\.document$',
+            '^sf\\.config\\.set$'
+          ]
+        }
+      ],
       'local/no-duplicate-i18n-values': 'error',
       'local/no-vscode-message-literals': 'error',
       'workspaces/no-relative-imports': 'error',
@@ -432,7 +455,8 @@ export default [
       'packages/salesforcedx**/src/**/*.test.ts',
       'packages/salesforcedx**/test/web/**/*',
       'packages/salesforcedx**/test/playwright/**/*',
-      'packages/salesforcedx-vscode-automation-tests/**/*'
+      'packages/salesforcedx-vscode-automation-tests/**/*',
+      'packages/playwright-vscode-ext/**/*.ts'
     ],
     plugins: {
       '@typescript-eslint': typescriptEslint,
@@ -492,7 +516,11 @@ export default [
   },
   {
     // Effect-specific rules for new Effect services-based packages
-    files: ['packages/salesforcedx-vscode-services/**/*.ts', 'packages/salesforcedx-vscode-org-browser/**/*.ts'],
+    files: [
+      'packages/salesforcedx-vscode-services/**/*.ts',
+      'packages/salesforcedx-vscode-org-browser/**/*.ts',
+      'packages/salesforcedx-vscode-metadata/**/*.ts'
+    ],
     rules: {
       'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
       'barrel-files/avoid-barrel-files': 'error',
@@ -549,8 +577,10 @@ export default [
     files: [
       'packages/salesforcedx-vscode-services/test/**/*.ts',
       'packages/salesforcedx-vscode-org-browser/test/**/*.ts',
+      'packages/salesforcedx-vscode-metadata/test/**/*.ts',
       'packages/salesforcedx-vscode-services/playwright*.ts',
-      'packages/salesforcedx-vscode-org-browser/playwright*.ts'
+      'packages/salesforcedx-vscode-org-browser/playwright*.ts',
+      'packages/salesforcedx-vscode-metadata/playwright*.ts'
     ],
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import

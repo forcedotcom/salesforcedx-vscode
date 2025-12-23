@@ -9,25 +9,28 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
-import { sampleProjectName } from './constants';
+import { SERVICES_CHANNEL_NAME } from './constants';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
 import { defaultOrgRef, watchConfigFiles } from './core/defaultOrgService';
+import { MetadataDeployService } from './core/metadataDeployService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
+import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { closeExtensionScope, getExtensionScope } from './extensionScope';
 import { SdkLayer } from './observability/spans';
-import { fsPrefix } from './virtualFsProvider/constants';
-import { FsProvider } from './virtualFsProvider/fileSystemProvider';
+import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
-import { startWatch } from './virtualFsProvider/memfsWatcher';
-import { projectFiles } from './virtualFsProvider/projectInit';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
+import { watchSettingsService } from './vscode/configWatcher';
+import { watchDefaultOrgContext } from './vscode/context';
+import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { SettingsService } from './vscode/settingsService';
+import { SettingsWatcherService } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
 
 export type SalesforceVSCodeServicesApi = {
@@ -38,8 +41,10 @@ export type SalesforceVSCodeServicesApi = {
     ChannelServiceLayer: typeof ChannelServiceLayer;
     WorkspaceService: typeof WorkspaceService;
     FsService: typeof FsService;
+    FileWatcherService: typeof FileWatcherService;
     ConfigService: typeof ConfigService;
     MetadataDescribeService: typeof MetadataDescribeService;
+    MetadataDeployService: typeof MetadataDeployService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
     SourceTrackingService: typeof SourceTrackingService;
@@ -52,16 +57,37 @@ export type SalesforceVSCodeServicesApi = {
 /** Effect that runs when the extension is activated */
 const activationEffect = (
   context: vscode.ExtensionContext
-): Effect.Effect<void, Error, WorkspaceService | SettingsService | IndexedDBStorageService | ChannelService> =>
+): Effect.Effect<
+  void,
+  Error,
+  | WorkspaceService
+  | SettingsService
+  | SettingsWatcherService
+  | IndexedDBStorageService
+  | ChannelService
+  | ConnectionService
+  | ConfigService
+  | FileWatcherService
+  | MetadataRetrieveService
+  | ProjectService
+  | MetadataRegistryService
+  | SourceTrackingService
+  | Scope.CloseableScope
+> =>
   Effect.gen(function* () {
-    yield* (yield* ChannelService).appendToChannel('Salesforce Services extension is activating!');
+    yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
       yield* fileSystemSetup(context);
+      yield* retrieveOnLoadEffect();
+      yield* Effect.forkIn(watchSettingsService(), yield* getExtensionScope());
     }
 
     // watch the config files for changes, which various serices use to invalidate caches
     yield* Effect.forkIn(watchConfigFiles(), yield* getExtensionScope());
+
+    // watch default org changes to update VS Code context variables
+    yield* Effect.forkIn(watchDefaultOrgContext(), yield* getExtensionScope());
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**
@@ -71,13 +97,13 @@ const activationEffect = (
  */
 export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
   if (process.env.ESBUILD_PLATFORM === 'web') {
-    // set the theme as early as possible.  TODO: manage this from CBW instead of in an extension
-    const config = vscode.workspace.getConfiguration();
-    await config.update('workbench.colorTheme', 'Monokai', vscode.ConfigurationTarget.Global);
-    if (process.env.ESBUILD_PLATFORM === 'web') {
-      const { getWebAppInsightsReporter } = await import('./observability/applicationInsightsWebExporter.js');
-      context.subscriptions.push(getWebAppInsightsReporter());
+    // test-web has this on by default. vscode-dev does not
+    const autoSave = vscode.workspace.getConfiguration('files').get<boolean>('autoSave', false);
+    if (autoSave) {
+      await vscode.workspace.getConfiguration('files').update('autoSave', 'off', vscode.ConfigurationTarget.Global);
     }
+    const { getWebAppInsightsReporter } = await import('./observability/applicationInsightsWebExporter.js');
+    context.subscriptions.push(getWebAppInsightsReporter());
   }
 
   const extensionScope = Effect.runSync(getExtensionScope());
@@ -85,10 +111,20 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   const requirements = Layer.mergeAll(
     WorkspaceService.Default,
     SettingsService.Default,
+    SettingsWatcherService.Default,
     IndexedDBStorageServiceShared,
     SdkLayer,
+    ConnectionService.Default,
+    ConfigService.Default,
+    FileWatcherService.Default,
+    MetadataRetrieveService.Default,
+    ProjectService.Default,
+    MetadataRegistryService.Default,
+    SourceTrackingService.Default,
     ChannelService.Default
   );
+
+  // Build the layer with extensionScope - scoped services live until extension deactivates
   await Effect.runPromise(
     Effect.provide(
       activationEffect(context).pipe(
@@ -96,7 +132,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
           attributes: { isWeb: process.env.ESBUILD_PLATFORM === 'web' }
         })
       ),
-      requirements
+      await Effect.runPromise(Layer.buildWithScope(requirements, extensionScope).pipe(Scope.extend(extensionScope)))
     ).pipe(Scope.extend(extensionScope))
   );
 
@@ -110,8 +146,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ChannelServiceLayer,
       WorkspaceService,
       FsService,
+      FileWatcherService,
       ConfigService,
       MetadataDescribeService,
+      MetadataDeployService,
       MetadataRegistryService,
       MetadataRetrieveService,
       SourceTrackingService,
@@ -137,30 +175,3 @@ const deactivateEffect = Effect.gen(function* () {
   Effect.withSpan('deactivation:salesforcedx-vscode-services'),
   Effect.provide(Layer.mergeAll(ChannelService.Default, SdkLayer))
 );
-
-/** Sets up the virtual file system for the extension */
-const fileSystemSetup = (
-  context: vscode.ExtensionContext
-): Effect.Effect<void, Error, WorkspaceService | ChannelService | SettingsService | IndexedDBStorageService> =>
-  Effect.gen(function* () {
-    const fsProvider = new FsProvider();
-
-    // Load state from IndexedDB first
-    yield* (yield* IndexedDBStorageService).loadState();
-
-    // Register the file system provider
-    context.subscriptions.push(
-      vscode.workspace.registerFileSystemProvider(fsPrefix, fsProvider, {
-        isCaseSensitive: true
-      })
-    );
-
-    // Replace the existing workspace with ours
-    vscode.workspace.updateWorkspaceFolders(0, 0, {
-      name: 'Code Builder',
-      uri: vscode.Uri.parse(`${fsPrefix}:/${sampleProjectName}`)
-    });
-
-    yield* startWatch();
-    yield* projectFiles(fsProvider);
-  }).pipe(Effect.withSpan('fileSystemSetup'));

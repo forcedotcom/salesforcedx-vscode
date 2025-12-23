@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Page, Locator, expect } from '@playwright/test';
-import { saveScreenshot } from '../shared/screenshotUtils';
-import { typingSpeed } from '../utils/helpers';
+import { saveScreenshot, typingSpeed, waitForWorkspaceReady } from '@salesforce/playwright-vscode-ext';
 import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
 import { isDesktop } from '../fixtures';
@@ -31,35 +30,9 @@ export class OrgBrowserPage {
     );
   }
 
-  /**
-   * Wait for the project file system to be loaded in Explorer
-   */
+  /** Wait for the project file system to be loaded in Explorer */
   public async waitForProject(): Promise<void> {
-    // Wait for Explorer view
-
-    try {
-      await Promise.any(
-        ['[aria-label*="Explorer"]', '.explorer-viewlet', '#workbench\\.parts\\.sidebar .explorer-folders-view'].map(
-          selector => this.page.waitForSelector(selector, { state: 'visible', timeout: 15_000 })
-        )
-      );
-    } catch {
-      throw new Error('Explorer view not found - file system may not be initialized');
-    }
-
-    // Wait for sfdx-project.json file
-
-    try {
-      await Promise.any(
-        [
-          'text=sfdx-project.json',
-          '.monaco-list-row:has-text("sfdx-project.json")',
-          '[aria-label*="sfdx-project.json"]'
-        ].map(selector => this.page.waitForSelector(selector, { state: 'visible', timeout: 15_000 }))
-      );
-    } catch {
-      throw new Error('sfdx-project.json not found - Salesforce project may not be loaded');
-    }
+    await waitForWorkspaceReady(this.page, 15_000);
   }
 
   /**
@@ -246,21 +219,13 @@ export class OrgBrowserPage {
    * throws if no file opens
    */
   public async waitForFileToOpenInEditor(timeout = 10_000): Promise<void> {
-    await this.page.waitForFunction(
-      () =>
-        Array.from(document.querySelectorAll('.monaco-workbench .tabs-container .tab'))
-          .map(tab => tab.textContent ?? '')
-          .filter(tab => tab !== '')
-          .filter(
-            // Look for any tab that's not the welcome/walkthrough tab
-            tabText =>
-              !tabText.includes('Welcome') &&
-              !tabText.includes('Walkthrough') &&
-              !tabText.includes('Get Started') &&
-              !tabText.includes('Settings')
-          ).length > 0,
-      { timeout }
-    );
+    await this.page
+      .locator('.monaco-workbench .tabs-container .tab')
+      .filter({
+        hasNotText: /Welcome|Walkthrough|Get Started|Settings/
+      })
+      .first()
+      .waitFor({ state: 'visible', timeout });
     await saveScreenshot(this.page, 'waitForFileToOpenInEditor.png', true);
   }
 }

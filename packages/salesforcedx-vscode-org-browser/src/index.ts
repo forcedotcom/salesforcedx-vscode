@@ -57,6 +57,7 @@ export const activateEffect = (
 
     yield* Effect.forkDaemon(
       api.services.TargetOrgRef.changes.pipe(
+        Stream.filter(org => org && typeof org === 'object' && 'orgId' in org),
         Stream.runForEach(org =>
           Effect.all([
             svc.appendToChannel(`Target org changed to ${JSON.stringify(org)}`),

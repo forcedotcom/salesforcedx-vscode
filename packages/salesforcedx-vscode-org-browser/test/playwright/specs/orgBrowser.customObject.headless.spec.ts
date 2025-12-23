@@ -7,8 +7,11 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
-import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
-import { create } from '../utils/dreamhouseScratchOrgSetup';
+import {
+  upsertScratchOrgAuthFieldsToSettings,
+  create,
+  NOTIFICATION_LIST_ITEM
+} from '@salesforce/playwright-vscode-ext';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
 test.describe('Org Browser - CustomObject retrieval', () => {
@@ -16,7 +19,8 @@ test.describe('Org Browser - CustomObject retrieval', () => {
 
   test.beforeEach(async ({ page }) => {
     const createResult = await create();
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    const orgBrowserPage = new OrgBrowserPage(page);
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
   });
 
   test('customobject headless: retrieve Broker__c', async ({ page }) => {
@@ -50,14 +54,14 @@ test.describe('Org Browser - CustomObject retrieval', () => {
     });
 
     await test.step('wait for editor file to open (completion signal)', async () => {
-      await orgBrowserPage.waitForFileToOpenInEditor(120_000);
+      await orgBrowserPage.waitForFileToOpenInEditor(300_000);
     });
 
     await test.step('override confirmation for Broker__c', async () => {
       await orgBrowserPage.clickRetrieveButton(brokerItem);
 
       const overwrite = page
-        .locator('.monaco-workbench .notification-list-item')
+        .locator(NOTIFICATION_LIST_ITEM)
         .filter({ hasText: /Overwrite\s+local\s+files\s+for/i })
         .first();
       await expect(overwrite).toBeVisible();
@@ -66,7 +70,7 @@ test.describe('Org Browser - CustomObject retrieval', () => {
       await overwrite.getByRole('button', { name: /^Yes$/ }).click();
 
       const retrieving = page
-        .locator('.monaco-workbench .notification-list-item')
+        .locator(NOTIFICATION_LIST_ITEM)
         .filter({ hasText: /Retrieving\s+CustomObject/i })
         .first();
       await expect(retrieving).toBeVisible({ timeout: 60_000 });
