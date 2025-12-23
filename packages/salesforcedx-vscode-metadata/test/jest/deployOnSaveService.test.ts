@@ -161,9 +161,11 @@ describe('shouldDeploy', () => {
     });
   });
 
-  describe('virtual filesystem (memfs)', () => {
+  // UT does not run on windows because it's virtualFs (always posix-style)
+  (process.platform === 'win32' ? describe.skip : describe)('virtual filesystem (memfs)', () => {
+    const memfsRoot = '/MyProject';
+
     it('should return true for valid metadata file in memfs workspace', async () => {
-      const memfsRoot = '/MyProject';
       const uri = URI.parse('memfs:/MyProject/force-app/main/default/classes/FileUtilities.cls');
       const mockChannelService = createMockChannelService();
       const mockWorkspaceService = createMockWorkspaceService(memfsRoot, true);
@@ -181,7 +183,6 @@ describe('shouldDeploy', () => {
     });
 
     it('should return false for file outside memfs workspace', async () => {
-      const memfsRoot = '/MyProject';
       const uri = URI.parse('memfs:/OtherProject/force-app/main/default/classes/Test.cls');
       const mockChannelService = createMockChannelService();
       const mockWorkspaceService = createMockWorkspaceService(memfsRoot, true);
@@ -199,7 +200,6 @@ describe('shouldDeploy', () => {
     });
 
     it('should return false for .soql files in memfs workspace', async () => {
-      const memfsRoot = '/MyProject';
       const uri = URI.parse('memfs:/MyProject/force-app/main/default/queries/test.soql');
       const mockChannelService = createMockChannelService();
       const mockWorkspaceService = createMockWorkspaceService(memfsRoot, true);
