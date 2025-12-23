@@ -185,7 +185,7 @@
   "browser": "./dist/web/index.js",
   "contributes": {
     "configuration": {
-      "title": "Salesforce Metadata Configuration",
+      "title": "%configuration_title%",
       "properties": {
         "salesforcedx-vscode-metadata.deployOnSave.enabled": {
           "type": "boolean",

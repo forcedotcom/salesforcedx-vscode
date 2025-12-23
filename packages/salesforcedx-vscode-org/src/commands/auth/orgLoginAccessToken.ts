@@ -15,6 +15,7 @@ import {
 import * as vscode from 'vscode';
 import { channelService, OUTPUT_CHANNEL } from '../../channels';
 import { nls } from '../../messages';
+import { updateConfigAndStateAggregators } from '../../util';
 import { AccessTokenParams, AccessTokenParamsGatherer } from './authParamsGatherer';
 
 class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenParams> {
@@ -41,6 +42,8 @@ class OrgLoginAccessTokenExecutor extends LibraryCommandletExecutor<AccessTokenP
         setDefaultDevHub: false
       };
       await authInfo.handleAliasAndDefaultSettings(sideEffects);
+      // Refresh state aggregators after config is updated
+      await updateConfigAndStateAggregators();
     } catch (error) {
       if (error.message?.includes('Bad_OAuth_Token')) {
         // Provide a user-friendly message for invalid / expired session ID

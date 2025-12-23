@@ -20,6 +20,9 @@
       "path": "packages/salesforcedx-utils-vscode"
     },
     {
+      "path": "packages/salesforcedx-vscode-i18n"
+    },
+    {
       "path": "packages/salesforcedx-visualforce-language-server"
     },
     {
@@ -81,6 +84,15 @@
     },
     {
       "path": "packages/salesforcedx-vscode-services-types"
+    },
+    {
+      "path": "packages/salesforcedx-aura-language-server"
+    },
+    {
+      "path": "packages/salesforcedx-lightning-lsp-common"
+    },
+    {
+      "path": "packages/salesforcedx-lwc-language-server"
     }
   ]
 }

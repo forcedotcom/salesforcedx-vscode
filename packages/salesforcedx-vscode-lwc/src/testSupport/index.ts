@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
+import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
 import { ExtensionContext } from 'vscode';
 import { registerLwcTestCodeLensProvider } from './codeLens/lwcTestCodeLensProvider';
 import { registerCommands } from './commands';
