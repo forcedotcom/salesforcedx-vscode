@@ -42,7 +42,7 @@ const isConfigFile = (path: string, globalConfigPath: string, projectConfigPatte
 };
 
 /** watch the global and local sf/config.json files; clear the defaultOrgRef when they change */
-export const watchConfigFiles = (): Effect.Effect<void, never, FileWatcherService> =>
+export const watchConfigFiles = () =>
   Effect.scoped(
     Effect.gen(function* () {
       const configFileName = Config.getFileName();

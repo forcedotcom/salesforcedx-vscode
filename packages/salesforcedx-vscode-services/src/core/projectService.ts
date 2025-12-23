@@ -7,15 +7,21 @@
 
 import { SfProject } from '@salesforce/core/project';
 import * as Cache from 'effect/Cache';
+import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import { WorkspaceService } from '../vscode/workspaceService';
+import { unknownToErrorCause } from './shared';
 
-const resolveSfProject = (fsPath: string): Effect.Effect<SfProject, Error, never> =>
+export class FailedToResolveSfProjectError extends Data.TaggedError('FailedToResolveSfProjectError')<{
+  readonly cause?: Error;
+}> {}
+
+const resolveSfProject = (fsPath: string) =>
   Effect.tryPromise({
     try: () => SfProject.resolve(fsPath),
-    catch: error => new Error('Project Resolution Error', { cause: error })
+    catch: error => new FailedToResolveSfProjectError(unknownToErrorCause(error))
   }).pipe(Effect.withSpan('resolveSfProject', { attributes: { fsPath } }));
 
 // Global cache - created once at module level, not scoped to any consumer
@@ -44,14 +50,12 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
     ),
     /** Get the SfProject instance for the workspace (fails if not a Salesforce project) */
     getSfProject: WorkspaceService.pipe(
-      Effect.flatMap(ws => ws.getWorkspaceInfo),
-      Effect.flatMap(workspaceDescription =>
-        workspaceDescription.isEmpty
-          ? Effect.fail(new Error('No workspace open'))
-          : globalSfProjectCache.get(workspaceDescription.fsPath)
-      ),
+      Effect.flatMap(ws => ws.getWorkspaceInfoOrThrow),
+      Effect.flatMap(workspaceDescription => globalSfProjectCache.get(workspaceDescription.fsPath)),
       Effect.withSpan('getSfProject')
     )
   } as const,
   dependencies: [WorkspaceService.Default]
 }) {}
+
+export class NoWorkspaceOpenError extends Data.TaggedError('NoWorkspaceOpenError')<{}> {}

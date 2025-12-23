@@ -8,16 +8,16 @@ import { Locator, Page, expect } from '@playwright/test';
 import type { AuthFields } from '@salesforce/core';
 import { ACCESS_TOKEN_KEY, API_VERSION_KEY, CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY } from '../constants';
 import { saveScreenshot } from '../shared/screenshotUtils';
-import { waitForVSCodeWorkbench } from '../utils/helpers';
+import { waitForVSCodeWorkbench, closeWelcomeTabs, waitForWorkspaceReady } from '../utils/helpers';
 import { WORKBENCH, SETTINGS_SEARCH_INPUT } from '../utils/locators';
 import { executeCommandWithCommandPalette } from './commands';
 
 const settingsLocator = (page: Page): Locator => page.locator(SETTINGS_SEARCH_INPUT.join(','));
 
 export const openSettingsUI = async (page: Page): Promise<void> => {
+  await closeWelcomeTabs(page);
   await page.locator(WORKBENCH).click({ timeout: 60_000 });
-  await page.waitForTimeout(2000);
-  await executeCommandWithCommandPalette(page, 'Preferences: Open Settings (UI)');
+  await executeCommandWithCommandPalette(page, 'Preferences: Open Workspace Settings', 'JSON');
   await settingsLocator(page).first().waitFor({ timeout: 3000 });
 };
 
@@ -27,7 +27,7 @@ export const openSettingsUI = async (page: Page): Promise<void> => {
 export const upsertScratchOrgAuthFieldsToSettings = async (
   page: Page,
   authFields: Required<Pick<AuthFields, 'instanceUrl' | 'accessToken' | 'instanceApiVersion'>>,
-  waitForProject?: () => Promise<void>
+  waitForProject: () => Promise<void> = () => waitForWorkspaceReady(page)
 ): Promise<void> => {
   // Desktop uses real CLI auth files, so just wait for workbench (no navigation, no settings)
   const isDesktop = process.env.VSCODE_DESKTOP === '1';
@@ -81,6 +81,8 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       } catch {}
     }
 
+    await settingsLocator(page).first().waitFor({ timeout: 3000 });
+
     // First try an exact search by full id (section.key)
     await performSearch(id);
 
@@ -107,7 +109,6 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       } catch {}
     }
 
-    // Fail fast if the deterministic row isn't found — do not fall back to label-based heuristics
     await row.waitFor({ state: 'attached', timeout: 15_000 });
 
     await row.waitFor({ state: 'visible', timeout: 30_000 });

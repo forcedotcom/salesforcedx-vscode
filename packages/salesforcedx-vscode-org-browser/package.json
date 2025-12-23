@@ -25,16 +25,14 @@
   ],
   "dependencies": {
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.18.4",
+    "effect": "^3.19.13",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.3",
     "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/source-deploy-retrieve": "^12.29.1",
-    "@vscode/test-web": "^0.0.76",
-    "cross-env": "^7.0.3",
-    "esbuild": "^0.27.1",
+    "esbuild": "0.25.12",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
@@ -44,7 +42,7 @@
     "vscode:bundle": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
-    "test:web:ui": "npm run test:web -- --headed",
+    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
     "test:web:debug": "npm run test:web -- --debug",
     "test:desktop": "wireit",
     "test:desktop:debug": "npm run test:desktop -- --debug",
@@ -69,7 +67,8 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
-        "../../tsconfig.common.json"
+        "../../tsconfig.common.json",
+        "package.json"
       ],
       "output": [
         "out/**",

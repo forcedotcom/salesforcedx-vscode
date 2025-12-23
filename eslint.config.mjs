@@ -48,7 +48,8 @@ export default [
       'packages/salesforcedx-lightning-lsp-common/src/resources/**',
       'packages/salesforcedx-lightning-lsp-common/src/html-language-service/**',
       '**/.vscode-test-web/**',
-      '**/.vscode-test/**'
+      '**/.vscode-test/**',
+      '**/playwright-report/**'
     ]
   },
   {
@@ -530,8 +531,11 @@ export default [
       'functional/no-let': 'error',
       'functional/no-loop-statements': 'error',
       'functional/prefer-property-signatures': 'error',
-      '@typescript-eslint/explicit-function-return-type': 'error',
+      // let Effect figure it out.  This is especially helpful for Error typings
+      '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      'local/no-explicit-effect-return-type': 'error',
+
       // Effect code should always handle promises properly
       '@typescript-eslint/no-floating-promises': 'error',
 
@@ -570,6 +574,15 @@ export default [
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off'
+    }
+  },
+  {
+    // Prevent direct imports from services extension (except in services package itself)
+    // Only applies to src directories, not test directories
+    files: ['packages/**/src/**/*.ts'],
+    ignores: ['packages/salesforcedx-vscode-services/**/*.ts'],
+    rules: {
+      'local/no-direct-services-imports': 'error'
     }
   },
   {

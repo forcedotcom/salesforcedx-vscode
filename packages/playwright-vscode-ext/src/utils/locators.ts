@@ -40,3 +40,6 @@ export const SETTINGS_SEARCH_INPUT = [
   `${WORKBENCH} .settings-header .search-container ${EDITOR}`,
   `${WORKBENCH} [aria-label="Settings"] .settings-header .search-container ${EDITOR}`
 ] as const;
+
+/** VS Code context menu container */
+export const CONTEXT_MENU = '.monaco-menu';

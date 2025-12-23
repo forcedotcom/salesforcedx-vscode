@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { DeployResult } from '@salesforce/source-deploy-retrieve';
-import { COMPONENT_STATUS_FAILED } from './constants';
+import { COMPONENT_STATUS_FAILED } from '../constants';
 
 /** Format deploy results for output */
 export const formatDeployOutput = (result: DeployResult): string => {

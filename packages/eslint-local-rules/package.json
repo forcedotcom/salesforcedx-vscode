@@ -22,7 +22,8 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
-        "../../tsconfig.common.json"
+        "../../tsconfig.common.json",
+        "package.json"
       ],
       "output": [
         "out/**",
@@ -72,7 +73,7 @@
     "@humanwhocodes/momoa": "^3.3.10",
     "@types/eslint": "^9.0.0",
     "@types/estree": "^1.0.0",
-    "@typescript-eslint/rule-tester": "^8.47.0",
-    "@typescript-eslint/utils": "^8.47.0"
+    "@typescript-eslint/rule-tester": "^8.50.0",
+    "@typescript-eslint/utils": "^8.50.0"
   }
 }

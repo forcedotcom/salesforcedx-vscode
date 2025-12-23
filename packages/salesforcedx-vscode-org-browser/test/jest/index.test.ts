@@ -67,7 +67,7 @@ const mockOutputChannel: vscode.OutputChannel = {
 // 2. ChannelService mock
 const mockChannelService = {
   getChannel: Effect.sync(() => mockOutputChannel),
-  appendToChannel: (message: string): Effect.Effect<void> => Effect.sync(() => mockAppendLine(message))
+  appendToChannel: (message: string) => Effect.sync(() => mockAppendLine(message))
 };
 const MockChannelService = Context.GenericTag<typeof mockChannelService>('ChannelService');
 const MockChannelServiceLayer = (_: string): Layer.Layer<typeof mockChannelService> =>
@@ -77,26 +77,23 @@ const MockChannelServiceLayer = (_: string): Layer.Layer<typeof mockChannelServi
   );
 
 // 3. ExtensionProviderService mock
-const MockExtensionProviderServiceLive = Layer.effect(
-  ExtensionProviderService,
-  Effect.sync(() => ({
-    getServicesApi: Effect.sync(
-      () =>
-        ({
-          services: {
-            ConnectionService: {} as typeof ConnectionService,
-            ProjectService: {} as typeof ProjectService,
-            ChannelService: MockChannelService,
-            ChannelServiceLayer: MockChannelServiceLayer,
-            WorkspaceService,
-            FsService,
-            ConfigService,
-            MetadataRetrieveService: {} as typeof ConnectionService // Use a real type if available
-          }
-        }) as unknown as SalesforceVSCodeServicesApi
-    )
-  }))
-);
+const MockExtensionProviderServiceLive = Layer.succeed(ExtensionProviderService, {
+  getServicesApi: Effect.sync(
+    () =>
+      ({
+        services: {
+          ConnectionService: {} as typeof ConnectionService,
+          ProjectService: {} as typeof ProjectService,
+          ChannelService: MockChannelService,
+          ChannelServiceLayer: MockChannelServiceLayer,
+          WorkspaceService,
+          FsService,
+          ConfigService,
+          MetadataRetrieveService: {} as typeof ConnectionService // Use a real type if available
+        }
+      }) as unknown as SalesforceVSCodeServicesApi
+  )
+});
 
 const mockContext = {
   subscriptions: []
@@ -108,12 +105,20 @@ describe.skip('Extension', () => {
   });
 
   it('should activate successfully', async () => {
-    await Effect.runPromise(Effect.provide(activateEffect(mockContext), MockExtensionProviderServiceLive));
-    expect(mockAppendLine).toHaveBeenCalledWith('Salesforce Org Browser extension is now active!');
+    await Effect.runPromise(
+      activateEffect(mockContext).pipe(
+        Effect.provide(Layer.mergeAll(MockExtensionProviderServiceLive, MockChannelServiceLayer('test')))
+      )
+    );
+    expect(mockAppendLine).toHaveBeenCalledWith('Salesforce Org Browser activation complete.');
   });
 
   it('should deactivate successfully', async () => {
-    await Effect.runPromise(Effect.provide(deactivateEffect, MockExtensionProviderServiceLive));
+    await Effect.runPromise(
+      deactivateEffect().pipe(
+        Effect.provide(Layer.mergeAll(MockExtensionProviderServiceLive, MockChannelServiceLayer('test')))
+      )
+    );
     expect(mockAppendLine).toHaveBeenCalledWith('Salesforce Org Browser extension is now deactivated!');
   });
 });

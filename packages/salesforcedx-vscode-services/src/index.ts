@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// eslint-disable-next-line barrel-files/avoid-barrel-files
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
@@ -23,10 +24,11 @@ import { SourceTrackingService } from './core/sourceTrackingService';
 import { closeExtensionScope, getExtensionScope } from './extensionScope';
 import { SdkLayer } from './observability/spans';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
-import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
+import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
+import { EditorService } from './vscode/editorService';
 import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { SettingsService } from './vscode/settingsService';
@@ -42,6 +44,7 @@ export type SalesforceVSCodeServicesApi = {
     WorkspaceService: typeof WorkspaceService;
     FsService: typeof FsService;
     FileWatcherService: typeof FileWatcherService;
+    EditorService: typeof EditorService;
     ConfigService: typeof ConfigService;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataDeployService: typeof MetadataDeployService;
@@ -53,27 +56,13 @@ export type SalesforceVSCodeServicesApi = {
     TargetOrgRef: typeof defaultOrgRef;
   };
 };
+export type { NonEmptyComponentSet } from './core/componentSetService';
+export type { NoActiveEditorError } from './vscode/editorService';
+// export type { FailedToResolveSfProjectError } from './core/projectService';
+export type { GetOrgFromConnectionError } from './core/shared';
 
 /** Effect that runs when the extension is activated */
-const activationEffect = (
-  context: vscode.ExtensionContext
-): Effect.Effect<
-  void,
-  Error,
-  | WorkspaceService
-  | SettingsService
-  | SettingsWatcherService
-  | IndexedDBStorageService
-  | ChannelService
-  | ConnectionService
-  | ConfigService
-  | FileWatcherService
-  | MetadataRetrieveService
-  | ProjectService
-  | MetadataRegistryService
-  | SourceTrackingService
-  | Scope.CloseableScope
-> =>
+const activationEffect = (context: vscode.ExtensionContext) =>
   Effect.gen(function* () {
     yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
 
@@ -147,6 +136,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       WorkspaceService,
       FsService,
       FileWatcherService,
+      EditorService,
       ConfigService,
       MetadataDescribeService,
       MetadataDeployService,
@@ -175,3 +165,5 @@ const deactivateEffect = Effect.gen(function* () {
   Effect.withSpan('deactivation:salesforcedx-vscode-services'),
   Effect.provide(Layer.mergeAll(ChannelService.Default, SdkLayer))
 );
+
+export { type ChannelService } from './vscode/channelService';

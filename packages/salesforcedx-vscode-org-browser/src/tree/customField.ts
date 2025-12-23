@@ -13,9 +13,7 @@ import { OrgBrowserTreeItem } from './orgBrowserNode';
 import { CustomObjectField, MetadataListResultItem } from './types';
 
 export const createCustomFieldNode =
-  (treeProvider: MetadataTypeTreeProvider) =>
-  (element: OrgBrowserTreeItem) =>
-  (f: CustomObjectField): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
+  (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) => (f: CustomObjectField) =>
     Effect.gen(function* () {
       // Create a MetadataListResultItem-like object for the custom field
       const fieldMetadata: MetadataListResultItem = {
