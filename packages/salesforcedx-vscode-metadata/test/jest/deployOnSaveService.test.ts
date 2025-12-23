@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { shouldDeploy } from '../../src/services/deployOnSaveService';
@@ -13,6 +14,10 @@ import { ExtensionProviderService } from '../../src/services/extensionProvider';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+
+/** Base path for test workspace - uses temp dir for cross-platform compatibility */
+const workspaceRoot = path.join(path.sep, 'workspace');
+const otherRoot = path.join(path.sep, 'other');
 
 const mockAppendToChannel = jest.fn();
 
@@ -27,10 +32,8 @@ const createMockChannelService = (): ChannelService =>
     appendToChannel: (message: string) => Effect.sync(() => mockAppendToChannel(message))
   });
 
-const createMockWorkspaceService = (workspacePath: string, isVirtualFs = false): WorkspaceService => {
-  const fsPath = workspacePath.startsWith('memfs:')
-    ? workspacePath.replace('memfs:', '')
-    : workspacePath.replace('file://', '');
+const createMockWorkspaceService = (fsPath: string, isVirtualFs = false): WorkspaceService => {
+  const workspacePath = isVirtualFs ? `memfs:${fsPath}` : URI.file(fsPath).toString();
   return new WorkspaceService({
     getWorkspaceInfo: Effect.succeed({
       path: workspacePath,
@@ -73,10 +76,9 @@ describe('shouldDeploy', () => {
 
   describe('file filesystem', () => {
     it('should return true for valid metadata file in workspace', async () => {
-      const workspacePath = 'file:///workspace';
-      const uri = URI.file('/workspace/classes/Test.cls');
+      const uri = URI.file(path.join(workspaceRoot, 'classes', 'Test.cls'));
       const mockChannelService = createMockChannelService();
-      const mockWorkspaceService = createMockWorkspaceService(workspacePath);
+      const mockWorkspaceService = createMockWorkspaceService(workspaceRoot);
       const mockExtensionProvider = createMockExtensionProvider();
 
       const result = await Effect.runPromise(
@@ -91,10 +93,9 @@ describe('shouldDeploy', () => {
     });
 
     it('should return false for file outside workspace', async () => {
-      const workspacePath = 'file:///workspace';
-      const uri = URI.file('/other/classes/Test.cls');
+      const uri = URI.file(path.join(otherRoot, 'classes', 'Test.cls'));
       const mockChannelService = createMockChannelService();
-      const mockWorkspaceService = createMockWorkspaceService(workspacePath);
+      const mockWorkspaceService = createMockWorkspaceService(workspaceRoot);
       const mockExtensionProvider = createMockExtensionProvider();
 
       const result = await Effect.runPromise(
@@ -109,10 +110,9 @@ describe('shouldDeploy', () => {
     });
 
     it('should return false for dot files', async () => {
-      const workspacePath = 'file:///workspace';
-      const uri = URI.file('/workspace/.hidden');
+      const uri = URI.file(path.join(workspaceRoot, '.hidden'));
       const mockChannelService = createMockChannelService();
-      const mockWorkspaceService = createMockWorkspaceService(workspacePath);
+      const mockWorkspaceService = createMockWorkspaceService(workspaceRoot);
       const mockExtensionProvider = createMockExtensionProvider();
 
       const result = await Effect.runPromise(
@@ -127,10 +127,9 @@ describe('shouldDeploy', () => {
     });
 
     it('should return false for .soql files', async () => {
-      const workspacePath = 'file:///workspace';
-      const uri = URI.file('/workspace/queries/test.soql');
+      const uri = URI.file(path.join(workspaceRoot, 'queries', 'test.soql'));
       const mockChannelService = createMockChannelService();
-      const mockWorkspaceService = createMockWorkspaceService(workspacePath);
+      const mockWorkspaceService = createMockWorkspaceService(workspaceRoot);
       const mockExtensionProvider = createMockExtensionProvider();
 
       const result = await Effect.runPromise(
@@ -145,10 +144,9 @@ describe('shouldDeploy', () => {
     });
 
     it('should return false for .apex files', async () => {
-      const workspacePath = 'file:///workspace';
-      const uri = URI.file('/workspace/test.apex');
+      const uri = URI.file(path.join(workspaceRoot, 'test.apex'));
       const mockChannelService = createMockChannelService();
-      const mockWorkspaceService = createMockWorkspaceService(workspacePath);
+      const mockWorkspaceService = createMockWorkspaceService(workspaceRoot);
       const mockExtensionProvider = createMockExtensionProvider();
 
       const result = await Effect.runPromise(
@@ -165,10 +163,10 @@ describe('shouldDeploy', () => {
 
   describe('virtual filesystem (memfs)', () => {
     it('should return true for valid metadata file in memfs workspace', async () => {
-      const workspacePath = 'memfs:/MyProject';
+      const memfsRoot = '/MyProject';
       const uri = URI.parse('memfs:/MyProject/force-app/main/default/classes/FileUtilities.cls');
       const mockChannelService = createMockChannelService();
-      const mockWorkspaceService = createMockWorkspaceService(workspacePath, true);
+      const mockWorkspaceService = createMockWorkspaceService(memfsRoot, true);
       const mockExtensionProvider = createMockExtensionProvider();
 
       const result = await Effect.runPromise(
@@ -183,10 +181,10 @@ describe('shouldDeploy', () => {
     });
 
     it('should return false for file outside memfs workspace', async () => {
-      const workspacePath = 'memfs:/MyProject';
+      const memfsRoot = '/MyProject';
       const uri = URI.parse('memfs:/OtherProject/force-app/main/default/classes/Test.cls');
       const mockChannelService = createMockChannelService();
-      const mockWorkspaceService = createMockWorkspaceService(workspacePath, true);
+      const mockWorkspaceService = createMockWorkspaceService(memfsRoot, true);
       const mockExtensionProvider = createMockExtensionProvider();
 
       const result = await Effect.runPromise(
@@ -201,10 +199,10 @@ describe('shouldDeploy', () => {
     });
 
     it('should return false for .soql files in memfs workspace', async () => {
-      const workspacePath = 'memfs:/MyProject';
+      const memfsRoot = '/MyProject';
       const uri = URI.parse('memfs:/MyProject/force-app/main/default/queries/test.soql');
       const mockChannelService = createMockChannelService();
-      const mockWorkspaceService = createMockWorkspaceService(workspacePath, true);
+      const mockWorkspaceService = createMockWorkspaceService(memfsRoot, true);
       const mockExtensionProvider = createMockExtensionProvider();
 
       const result = await Effect.runPromise(
