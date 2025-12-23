@@ -5,12 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { shared as lspCommon } from '@salesforce/lightning-lsp-common';
-import { ActivationTracker, SFDX_LWC_EXTENSION_NAME } from '@salesforce/salesforcedx-utils-vscode';
+import * as lspCommon from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  ActivationTracker,
+  bootstrapWorkspaceAwareness,
+  detectWorkspaceType
+} from '@salesforce/salesforcedx-utils-vscode';
+import { Effect } from 'effect';
 import * as path from 'node:path';
-import { commands, ConfigurationTarget, Disposable, ExtensionContext, workspace, WorkspaceConfiguration } from 'vscode';
+import { commands, Disposable, ExtensionContext, workspace } from 'vscode';
 import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
-import { ESLINT_NODEPATH_CONFIG, log } from './constants';
+import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
 import { DevServerService } from './service/devServerService';
@@ -44,8 +49,9 @@ export const activate = async (extensionContext: ExtensionContext) => {
     workspaceUris.push(folder.uri.fsPath);
   });
 
-  // If activationMode is autodetect or always, check workspaceType before startup
-  const workspaceType = lspCommon.detectWorkspaceType(workspaceUris);
+  // For workspace type detection, we still need to check the file system
+  // Create a temporary provider just for detection
+  const workspaceType = await detectWorkspaceType(workspaceUris);
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
@@ -54,42 +60,46 @@ export const activate = async (extensionContext: ExtensionContext) => {
     log(`WorkspaceType detected: ${workspaceType}`);
     return;
   }
-  // If activationMode === always, ignore workspace type and continue activating
 
   // register commands
   const ourCommands = registerCommands(extensionContext);
   extensionContext.subscriptions.push(ourCommands);
 
-  // If we get here, we either passed autodetect validation or activationMode == always
-  log('Lightning Web Components Extension Activated');
-  log(`WorkspaceType detected: ${workspaceType}`);
-
   // Start the LWC Language Server
   const serverPath = extensionContext.extension.packageJSON.serverPath;
   const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
-  const client = createLanguageClient(serverModule);
+  const client = createLanguageClient(serverModule, { workspaceType });
 
   // Start the client and add it to subscriptions
   await client.start();
   extensionContext.subscriptions.push(client);
 
+  // Trigger loading of workspace files into document cache after server initialization
+  // This runs asynchronously and does not block extension activation
+  // The language server uses scheduleReinitialization to wait for file loading to stabilize
+  void Effect.runPromise(
+    bootstrapWorkspaceAwareness({
+      fileGlob: '**/lwc/**/*.{js,ts,html}',
+      excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
+      logger: log
+    })
+  ).catch((error: unknown) => {
+    log(`Failed to bootstrap workspace awareness: ${String(error)}`);
+  });
+
+  // Also load essential JSON files for workspace type detection
+  void Effect.runPromise(
+    bootstrapWorkspaceAwareness({
+      fileGlob: '**/*.{json,xml}',
+      excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
+      logger: log
+    })
+  ).catch((error: unknown) => {
+    log(`Failed to bootstrap essential files: ${String(error)}`);
+  });
+
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
-
-  if (workspaceType === lspCommon.WorkspaceType.SFDX) {
-    // We no longer want to manage the eslint.nodePath. Remove any previous configuration of the nodepath
-    // which points at our LWC extension node_modules path
-    const config: WorkspaceConfiguration = workspace.getConfiguration('');
-    const currentNodePath = config.get<string>(ESLINT_NODEPATH_CONFIG);
-    if (currentNodePath?.includes(SFDX_LWC_EXTENSION_NAME)) {
-      try {
-        log('Removing eslint.nodePath setting as the LWC Extension no longer manages this value');
-        await config.update(ESLINT_NODEPATH_CONFIG, undefined, ConfigurationTarget.Workspace);
-      } catch (e) {
-        telemetryService.sendException('lwc_eslint_nodepath_couldnt_be_set', e.message);
-      }
-    }
-  }
 
   // Activate Test support
   if (shouldActivateLwcTestSupport(workspaceType)) {

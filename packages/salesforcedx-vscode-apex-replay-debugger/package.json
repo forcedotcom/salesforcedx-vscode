@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.9.0",
+  "version": "65.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,7 +24,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.3.7",
+    "@salesforce/apex-node": "^8.4.2",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -113,7 +113,9 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "../../eslint.config.mjs"
+        "../../eslint.config.mjs",
+        "package.json",
+        "package.nls.json"
       ],
       "output": []
     },
@@ -260,7 +262,7 @@
     "debuggers": [
       {
         "type": "apex-replay",
-        "label": "Apex Replay Debugger",
+        "label": "%debugger_label%",
         "program": "./dist/apexReplayDebug.js",
         "runtime": "node",
         "languages": [

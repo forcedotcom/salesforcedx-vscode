@@ -51,7 +51,9 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "../../eslint.config.mjs"
+        "../../eslint.config.mjs",
+        "package.json",
+        "package.nls.json"
       ],
       "output": []
     }
@@ -64,9 +66,11 @@
   "author": "Salesforce",
   "license": "BSD-3-Clause",
   "peerDependencies": {
-    "eslint": ">=8.0.0"
+    "eslint": ">=8.0.0",
+    "@eslint/json": "^0.3.0"
   },
   "devDependencies": {
+    "@humanwhocodes/momoa": "^3.3.10",
     "@types/eslint": "^9.0.0",
     "@types/estree": "^1.0.0",
     "@typescript-eslint/rule-tester": "^8.50.0",

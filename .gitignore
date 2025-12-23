@@ -127,3 +127,6 @@ test-resources/
 **/.wireit
 **/playwright-report/
 jscpd-report/
+
+# Generated tern defs (copied during build from aura-language-server)
+packages/salesforcedx-vscode-lightning/tern/

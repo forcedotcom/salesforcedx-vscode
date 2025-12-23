@@ -22,6 +22,7 @@ import functional from 'eslint-plugin-functional';
 import eslintPluginWorkspaces from 'eslint-plugin-workspaces';
 import effectPlugin from '@effect/eslint-plugin';
 import eslintPluginEslintPlugin from 'eslint-plugin-eslint-plugin';
+import jsonPlugin from '@eslint/json';
 
 import localRulesPlugin from './packages/eslint-local-rules/out/index.js';
 
@@ -33,14 +34,19 @@ export default [
       '**/out/**',
       '**/dist/**',
       '**/packages/**/coverage',
+      '**/test-workspaces/**',
       '**/*.d.ts',
       '**/jest.config.js',
       '**/jest.integration.config.js',
       'packages/salesforcedx-visualforce-markup-language-server/src/**',
+      'packages/salesforcedx-aura-language-server/src/tern/**',
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'scripts/vsce-bundled-extension.ts',
       'scripts/reportInstalls.ts',
+      'packages/salesforcedx-lwc-language-server/src/javascript/__tests__/fixtures/**',
+      'packages/salesforcedx-lightning-lsp-common/src/resources/**',
+      'packages/salesforcedx-lightning-lsp-common/src/html-language-service/**',
       '**/.vscode-test-web/**',
       '**/.vscode-test/**',
       '**/playwright-report/**'
@@ -445,10 +451,13 @@ export default [
     files: [
       'packages/salesforcedx**/test/jest/**/*',
       'packages/salesforcedx**/test/unit/**/*',
+      'packages/salesforcedx**/src/**/__tests__/**/*',
+      'packages/salesforcedx**/src/**/*.spec.ts',
+      'packages/salesforcedx**/src/**/*.test.ts',
       'packages/salesforcedx**/test/web/**/*',
       'packages/salesforcedx**/test/playwright/**/*',
       'packages/salesforcedx-vscode-automation-tests/**/*',
-      'packages/playwright-vscode-ext/**/*'
+      'packages/playwright-vscode-ext/**/*.ts'
     ],
     plugins: {
       '@typescript-eslint': typescriptEslint,
@@ -463,7 +472,7 @@ export default [
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'warn',
-      '@typescript-eslint/no-unused-expressions': 'warn',
+      '@typescript-eslint/no-unused-expressions': ['warn', {}],
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -485,6 +494,7 @@ export default [
   {
     // these have extensive copy-paste from an old version of msft language server
     // this rule requires strict null checks to be enabled and that code does not support it
+    // Also disable for packages that don't have strictNullChecks enabled
     files: [
       'packages/salesforcedx-visualforce-markup-language-server/**',
       'packages/salesforcedx-visualforce-language-server/**',
@@ -615,6 +625,28 @@ export default [
   // Ignore test files for eslint-local-rules
   {
     ignores: ['packages/eslint-local-rules/test/**']
+  },
+  // Register JSON plugin
+  {
+    plugins: {
+      json: jsonPlugin
+    }
+  },
+  // JSON linting for package.json files
+  {
+    files: ['packages/*/package.json'],
+    language: 'json/json',
+    plugins: {
+      json: jsonPlugin,
+      local: { rules: localRules }
+    },
+    rules: {
+      ...jsonPlugin.configs.recommended.rules,
+      'local/package-json-i18n-descriptions': 'error',
+      'local/package-json-icon-paths': 'error',
+      'local/package-json-command-refs': 'error',
+      'local/package-json-view-refs': 'error'
+    }
   },
   eslintConfigPrettier
 ];

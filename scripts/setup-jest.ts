@@ -7,9 +7,66 @@ class EventEmitter {
 }
 
 class Uri {
-  public static parse = jest.fn();
-  public static file = jest.fn();
-  public static joinPath = jest.fn();
+  public scheme: string;
+  public authority: string;
+  public path: string;
+  public query: string;
+  public fragment: string;
+
+  public constructor(scheme: string, authority: string, path: string, query: string, fragment: string) {
+    this.scheme = scheme;
+    this.authority = authority;
+    this.path = path;
+    this.query = query;
+    this.fragment = fragment;
+  }
+
+  public static parse = jest.fn() as jest.MockedFunction<(value: string) => Uri>;
+
+  public static file = jest.fn((path: string): Uri => {
+    return new Uri('file', '', path, '', '');
+  }) as jest.MockedFunction<(path: string) => Uri>;
+
+  public static joinPath = jest.fn((...paths: string[]): Uri => {
+    const joined = paths.join('/');
+    return new Uri('file', '', joined, '', '');
+  }) as jest.MockedFunction<(...paths: string[]) => Uri>;
+
+  public toString(skipEncoding?: boolean): string {
+    const auth = this.authority ? `//${this.authority}` : '';
+    const query = this.query ? `?${this.query}` : '';
+    const fragment = this.fragment ? `#${this.fragment}` : '';
+    return `${this.scheme}:${auth}${this.path}${query}${fragment}`;
+  }
+
+  // Add fsPath property for compatibility with VS Code Uri
+  public get fsPath(): string {
+    if (this.scheme === 'file') {
+      // For file URIs, return the path (handles both Unix and Windows)
+      return this.path;
+    }
+    return this.path;
+  }
+
+  public with(change: { scheme?: string; authority?: string; path?: string; query?: string; fragment?: string }): Uri {
+    return new Uri(
+      change.scheme ?? this.scheme,
+      change.authority ?? this.authority,
+      change.path ?? this.path,
+      change.query ?? this.query,
+      change.fragment ?? this.fragment
+    );
+  }
+
+  public toJSON(): any {
+    return {
+      scheme: this.scheme,
+      authority: this.authority,
+      path: this.path,
+      query: this.query,
+      fragment: this.fragment
+    };
+  }
 }
 
 const mockLanguageStatusItem = {
@@ -90,10 +147,10 @@ const getMockVSCode = () => {
       createLanguageStatusItem: mockCreateLanguageStatusItem
     },
     Uri: {
-      file: jest.fn(),
-      joinPath: jest.fn(),
-      parse: jest.fn(),
-      toString: jest.fn()
+      ...Uri,
+      parse: Uri.parse,
+      file: Uri.file,
+      joinPath: Uri.joinPath
     },
     Position: class {
       public constructor(
@@ -109,9 +166,17 @@ const getMockVSCode = () => {
     Range: class {
       public start: any;
       public end: any;
-      public constructor(start: any, end: any) {
-        this.start = start;
-        this.end = end;
+      public constructor(startOrLine: any, startCharOrEnd?: any, endLine?: any, endChar?: any) {
+        // Support both forms: Range(start, end) and Range(startLine, startChar, endLine, endChar)
+        if (endLine !== undefined && endChar !== undefined) {
+          // 4-parameter form: Range(startLine, startChar, endLine, endChar)
+          this.start = new (getMockVSCode().Position)(startOrLine, startCharOrEnd);
+          this.end = new (getMockVSCode().Position)(endLine, endChar);
+        } else {
+          // 2-parameter form: Range(start, end)
+          this.start = startOrLine;
+          this.end = startCharOrEnd;
+        }
       }
     },
     RelativePattern: class {
@@ -125,6 +190,28 @@ const getMockVSCode = () => {
         public uri: Uri,
         public range: Range
       ) {}
+    },
+    TestMessage: class {
+      public message: string;
+      public location?: Location;
+      public constructor(message: string) {
+        this.message = message;
+        this.location = undefined;
+      }
+    },
+    TestTag: class {
+      public id: string;
+      public constructor(id: string) {
+        this.id = id;
+      }
+    },
+    TestItem: class {
+      public label: string;
+      public uri?: Uri;
+      public constructor(label: string, uri?: Uri) {
+        this.label = label;
+        this.uri = uri;
+      }
     },
     StatusBarAlignment: {
       Left: 1,
@@ -147,11 +234,39 @@ const getMockVSCode = () => {
         show: jest.fn()
       })),
       showSaveDialog: jest.fn(),
+      showTextDocument: jest.fn(),
       OutputChannel: {
         show: jest.fn()
       },
       createStatusBarItem: jest.fn(),
       createTextEditorDecorationType: jest.fn()
+    },
+    ViewColumn: {
+      Active: -1,
+      One: 1,
+      Two: 2,
+      Three: 3,
+      Four: 4,
+      Five: 5,
+      Six: 6,
+      Seven: 7,
+      Eight: 8,
+      Nine: 9,
+      Beside: -2
+    },
+    TextEditorRevealType: {
+      Default: 0,
+      InCenter: 1,
+      InCenterIfOutsideViewport: 2,
+      AtTop: 3
+    },
+    Selection: class {
+      public anchor: any;
+      public active: any;
+      public constructor(anchor: any, active: any) {
+        this.anchor = anchor;
+        this.active = active;
+      }
     },
     workspace: {
       getConfiguration: () => {
@@ -250,6 +365,14 @@ const getMockVSCode = () => {
       Event: 24,
       Operator: 25,
       TypeParameter: 26
+    },
+    tests: {
+      createTestController: jest.fn()
+    },
+    TestRunProfileKind: {
+      Run: 1,
+      Debug: 2,
+      Coverage: 3
     }
   };
 };

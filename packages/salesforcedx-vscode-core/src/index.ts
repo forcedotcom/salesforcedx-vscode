@@ -33,7 +33,6 @@ import {
   apexGenerateUnitTestClass,
   configList,
   dataQuery,
-  debuggerStop,
   deleteSource,
   deployManifest,
   deploySourcePaths,
@@ -71,7 +70,6 @@ import {
   visualforceGenerateComponent,
   visualforceGeneratePage
 } from './commands';
-import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { RetrieveMetadataTrigger } from './commands/retrieveMetadata';
 import { SelectFileName, SelectOutputDir, SfCommandletExecutor } from './commands/util';
 
@@ -144,7 +142,6 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.lightning.generate.event', lightningGenerateEvent),
     vscode.commands.registerCommand('sf.lightning.generate.interface', lightningGenerateInterface),
     vscode.commands.registerCommand('sf.lightning.generate.lwc', lightningGenerateLwc),
-    vscode.commands.registerCommand('sf.debugger.stop', debuggerStop),
     vscode.commands.registerCommand('sf.config.list', configList),
     vscode.commands.registerCommand('sf.alias.list', aliasList),
     vscode.commands.registerCommand('sf.project.generate', sfProjectGenerate),
@@ -153,9 +150,7 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.apex.generate.trigger', apexGenerateTrigger),
     vscode.commands.registerCommand('sf.start.apex.debug.logging', () => turnOnLogging(extensionContext)),
     vscode.commands.registerCommand('sf.stop.apex.debug.logging', () => turnOffLogging(extensionContext)),
-    vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap),
-    registerGetTelemetryServiceCommand(),
-    registerSharedCommands()
+    registerGetTelemetryServiceCommand()
   );
 const registerInternalDevCommands = (): vscode.Disposable =>
   vscode.Disposable.from(
@@ -287,6 +282,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   extensionContext.subscriptions.push(
     registerCommands(extensionContext),
+    registerSharedCommands(),
     // Register editor change listener
     vscode.window.onDidChangeActiveTextEditor(async () => {
       await checkPackageDirectoriesEditorView();

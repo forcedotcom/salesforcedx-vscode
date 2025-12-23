@@ -12,11 +12,15 @@ import {
   ParametersGatherer,
   SfWorkspaceChecker,
   SfCommandlet,
-  SfCommandletExecutor
+  SfCommandletExecutor,
+  CliCommandExecutor,
+  TimingUtils,
+  workspaceUtils
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import { ORG_LOGIN_WEB } from '../../constants';
 import { nls } from '../../messages';
+import { updateConfigAndStateAggregators } from '../../util';
 import { DEFAULT_ALIAS } from './authParamsGatherer';
 
 class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
@@ -31,6 +35,28 @@ class OrgLoginWebDevHubExecutor extends SfCommandletExecutor<{}> {
       .withFlag('--alias', data.alias)
       .withArg('--set-default-dev-hub');
     return command.build();
+  }
+
+  public execute(response: ContinueResponse<AuthDevHubParams>): void {
+    const startTime = TimingUtils.getCurrentTime();
+    const cancellationTokenSource = new vscode.CancellationTokenSource();
+    const cancellationToken = cancellationTokenSource.token;
+    const execution = new CliCommandExecutor(this.build(response.data), {
+      cwd: workspaceUtils.getRootWorkspacePath(),
+      env: { SF_JSON_TO_STDOUT: 'true' }
+    }).execute(cancellationToken);
+
+    this.attachExecution(execution, cancellationTokenSource, cancellationToken);
+
+    // old rxjs doesn't like async functions in subscribe, but we use them and they seem to work.
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    execution.processExitSubject.subscribe(async exitCode => {
+      this.logMetric(execution.command.logName, startTime);
+      // Only update state aggregators on successful completion (exit code 0)
+      if (exitCode === 0) {
+        await updateConfigAndStateAggregators();
+      }
+    });
   }
 }
 

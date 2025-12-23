@@ -124,8 +124,10 @@ jobs:
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
+          VSCODE_DESKTOP: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
+          npm run vscode:bundle -w salesforcedx-vscode-services && npm run vscode:bundle -w salesforcedx-vscode-org-browser
+          npm run test:desktop:ci -w salesforcedx-vscode-org-browser -- --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()

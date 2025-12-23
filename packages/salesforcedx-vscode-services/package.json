@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.9.0",
+  "version": "65.10.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.32",
-    "@effect/opentelemetry": "0.58.0",
+    "@effect/opentelemetry": "0.59.2",
     "@opentelemetry/api": "1.9.0",
     "@opentelemetry/core": "2.0.1",
     "@opentelemetry/exporter-trace-otlp-http": "0.208.0",
@@ -44,7 +44,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@effect/platform": "0.92.1",
+    "@effect/platform": "0.93.7",
     "@salesforce/playwright-vscode-ext": "*",
     "browserify-zlib": "^0.2.0",
     "esbuild": "0.25.0",
@@ -136,7 +136,9 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "../../eslint.config.mjs"
+        "../../eslint.config.mjs",
+        "package.json",
+        "package.nls.json"
       ],
       "output": []
     },
@@ -191,37 +193,37 @@
   "browser": "./dist/web/index.js",
   "contributes": {
     "configuration": {
-      "title": "Salesforce Services Configuration",
+      "title": "%configuration.title%",
       "properties": {
         "salesforcedx-vscode-code-builder-web.instanceUrl": {
           "type": "string",
           "default": "",
-          "description": "Salesforce instance URL for web extensions.  Only valid in browser"
+          "description": "%configuration.instanceUrl.description%"
         },
         "salesforcedx-vscode-code-builder-web.accessToken": {
           "type": "string",
           "default": "",
-          "description": "Salesforce access token for web extensions.  Only valid in browser"
+          "description": "%configuration.accessToken.description%"
         },
         "salesforcedx-vscode-code-builder-web.apiVersion": {
           "type": "string",
           "default": "64.0",
-          "description": "Salesforce api version (example: 65.0).  Only valid in browser"
+          "description": "%configuration.apiVersion.description%"
         },
         "salesforcedx-vscode-code-builder-web.retrieveOnLoad": {
           "type": "string",
           "default": "",
-          "description": "Comma-separated list of metadata to retrieve on load (format: MetadataType:FullName, e.g. ApexClass:Foo,CustomObject:Account). Web only."
+          "description": "%configuration.retrieveOnLoad.description%"
         },
         "salesforcedx-vscode-salesforcedx.enableLocalTraces": {
           "type": "boolean",
           "default": false,
-          "description": "Enable local OpenTelemetry traces for debugging and performance monitoring.  Start the trace viewer using docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm"
+          "description": "%configuration.otelLocal.description%"
         },
         "salesforcedx-vscode-salesforcedx.enableConsoleTraces": {
           "type": "boolean",
           "default": false,
-          "description": "Send OpenTelemetry traces for debugging and performance monitoring to the console (browser or electron)."
+          "description": "%configuration.otelConsole.description%"
         }
       }
     },
