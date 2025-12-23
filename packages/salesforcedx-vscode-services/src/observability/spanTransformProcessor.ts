@@ -26,7 +26,9 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
   }
 }
 
-const getAdditionalAttributes = (): [string, string | undefined][] => {
+type TelemetryAttribute = [string, string | undefined];
+
+const getAdditionalAttributes = (): TelemetryAttribute[] => {
   const { orgId, devHubOrgId, isSandbox, isScratch, tracksSource } = Effect.runSync(SubscriptionRef.get(defaultOrgRef));
   return [
     ['orgId', orgId],
@@ -53,8 +55,8 @@ const getPermanentAttributes = () => {
           ['common.systemmemory', `${(os?.totalmem?.() ?? 0 / (1024 * 1024 * 1024)).toFixed(2)} GB`],
           ['common.cpus', getCPUs()]
         ]
-      : []) satisfies [string, string | undefined][])
-  ] satisfies [string, string | undefined][]);
+      : []) satisfies TelemetryAttribute[])
+  ] satisfies TelemetryAttribute[]);
 };
 
 const memoized = Effect.runSync(Effect.cachedFunction(getPermanentAttributes));

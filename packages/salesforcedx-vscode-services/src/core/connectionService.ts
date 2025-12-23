@@ -7,7 +7,7 @@
 
 import { AuthInfo, Connection, StateAggregator, OrgConfigProperties } from '@salesforce/core';
 import * as Cache from 'effect/Cache';
-import Data from 'effect/Data';
+import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
