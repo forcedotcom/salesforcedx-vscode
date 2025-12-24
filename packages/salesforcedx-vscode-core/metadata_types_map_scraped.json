@@ -1259,7 +1259,7 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatasource.htm",
     "parent": "Metadata"
   },
-  "ExternalDataSrcDescriptors\n        for Salesforce Connect Adapter for Amazon DynamoDB and for Amazon\n        Athena": {
+  "ExternalDataSrcDescriptors for Salesforce Connect Adapter for Amazon DynamoDB and for Amazon Athena": {
     "fields": [
       {
         "Description": "If set, the external object associated with the descriptor.",
@@ -1302,7 +1302,7 @@
         "Field Type": "ExternalDataSrcDescType (enumeration of type string)"
       }
     ],
-    "short_description": "Represents schema descriptors for an external data source used with Salesforce Connect adapter for Amazon DynamoDB (available in API version 55.0 or later) or Amazon Athena (available in API version 56.0 or later).",
+    "short_description": "Declarative Metadata Sample Definition: Amazon DynamoDB Declarative Metadata Sample Definition: Amazon Athena",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatasource.htm",
     "parent": "Metadata"
   },
@@ -5277,7 +5277,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents the value of a criterion in an audience. For a list of AudienceCriteriaValue fields that you can use with each AudienceCriterion field value, see . This table summarizes which AudienceCriteriaValue fields you can use with the different AudienceCriterion field values.",
+    "short_description": "Represents the value of a criterion in an audience. For a list of AudienceCriteriaValue fields that you can use with each AudienceCriterion type field value, see this table. This table summarizes which AudienceCriteriaValue fields you can use with the different AudienceCriterion type field values.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
     "parent": "Metadata"
   },
@@ -17188,7 +17188,7 @@
         "Field Type": "ObjectMapping"
       }
     ],
-    "short_description": "Describes the associated with the . The identifies duplicate records.",
+    "short_description": "Describes the MatchingRule associated with the DuplicateRule. The MatchingRule identifies duplicate records.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_duplicaterule.htm",
     "parent": "Metadata"
   },
@@ -24738,9 +24738,9 @@
   },
   "FlowStageStepOutputConfigParam": {
     "fields": [],
-    "short_description": "Defines a mock output value for a step. It extends and inherits all its fields. This metadata type is available in API version 65.0 and later.",
+    "short_description": "Defines a mock output value for a step. It extends FlowBaseElement and inherits all its fields. This metadata type is available in API version 65.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
-    "parent": "Metadata"
+    "parent": "FlowBaseElement"
   },
   "InvocableActionType": {
     "fields": [],

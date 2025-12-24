@@ -202,28 +202,30 @@ export const extractMetadataFromPage = async (
       const shortdescDiv = searchInRegularAndShadowDOMs(document, 'div.shortdesc');
       let foundExtendsInShortdesc = false;
 
-      // Collect paragraphs from shortdesc, stopping when we find "extends"
+      // Collect the first paragraph from shortdesc as the main description
       if (shortdescDiv) {
-        const shortdescParagraphs = Array.from(shortdescDiv.querySelectorAll('p'));
+        // Look for both <p> tags and <div class="p"> paragraph containers
+        const shortdescParagraphs = Array.from(shortdescDiv.querySelectorAll('p, div.p'));
 
         if (shortdescParagraphs.length > 0) {
-          // If shortdesc has <p> tags, process them individually to stop at "extends"
+          // Collect only the first non-callout paragraph as the primary description
           for (const p of shortdescParagraphs) {
             if (isInsideCallout(p)) continue;
-            const text = p.textContent?.trim() ?? '';
+            const text = getTextIncludingLinks(p);
             // Only collect non-empty paragraphs
             if (text.length > 0) {
               collectedParagraphs.push(text);
-              // Stop if this paragraph contains "extends"
+              // Check if this first paragraph contains "extends"
               if (text.toLowerCase().includes('extends')) {
                 foundExtendsInShortdesc = true;
-                break;
               }
+              // Stop after first paragraph - we'll look for extends info separately if needed
+              break;
             }
           }
         } else {
-          // Fallback: if no <p> tags, use the entire shortdesc text content
-          const text = shortdescDiv.textContent?.trim() ?? '';
+          // Fallback: if no paragraph tags, use the entire shortdesc text content
+          const text = getTextIncludingLinks(shortdescDiv);
           if (text.length > 0) {
             collectedParagraphs.push(text);
             // Check if it contains "extends"
@@ -259,7 +261,7 @@ export const extractMetadataFromPage = async (
           // Check if this element or its children have the description
           const checkElement = (el: Element) => {
             if (isInsideCallout(el)) return '';
-            return el.textContent?.trim() ?? '';
+            return getTextIncludingLinks(el);
           };
 
           // Try the element itself if it's P or DD
@@ -386,7 +388,7 @@ export const extractMetadataFromPage = async (
 
         // Try to find a table name and description
         const heading = findHeadingBefore(table.parentElement);
-        const tableName = heading?.textContent?.trim() ?? '';
+        const tableName = heading ? getTextIncludingLinks(heading) : '';
         const tableDescription = heading ? findDescriptionAfterHeading(heading) : '';
 
         // Extract rows for this table
@@ -515,6 +517,45 @@ export const extractMetadataFromPage = async (
       // Helper Functions (defined at bottom for hoisting with function declarations)
       // ============================================================================
 
+      /**
+       * Extract text content from an element, ensuring hyperlink text is included.
+       * Only collects text from inline elements (text nodes, <a>, <span>, etc.)
+       * and stops at block-level elements to avoid capturing too much.
+       */
+      function getTextIncludingLinks(el: Element): string {
+        const textParts: string[] = [];
+        const blockElements = new Set(['DIV', 'TABLE', 'UL', 'OL', 'DL', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P']);
+
+        /** Recursively collect text from node, stopping at block elements */
+        const collectText = (node: Node): void => {
+          // For element nodes, check if it's a block element
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node as Element;
+
+            // Stop at block-level child elements (but not if it's the root element we're processing)
+            if (node !== el && blockElements.has(element.tagName)) {
+              return;
+            }
+
+            // Process children of inline elements
+            for (const child of Array.from(node.childNodes)) {
+              collectText(child);
+            }
+          }
+          // For text nodes, collect the text (without trimming individual parts to preserve spacing)
+          else if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent ?? '';
+            if (text) {
+              textParts.push(text);
+            }
+          }
+        };
+
+        collectText(el);
+        // Join all parts and normalize whitespace to remove extra spaces
+        return textParts.join('').replace(/\s+/g, ' ').trim();
+      }
+
       /** Helper to check if an element is a callout/note container */
       function isCalloutElement(el: Element): boolean {
         return el.tagName?.toLowerCase().includes('callout') ?? false;
@@ -599,7 +640,7 @@ export const extractMetadataFromPage = async (
               }
             }
 
-            const text = clone.textContent?.trim() ?? '';
+            const text = getTextIncludingLinks(clone);
             if (text.length > 0 && onParagraphFound(text)) return true;
           }
         }
@@ -649,8 +690,9 @@ export const extractMetadataFromPage = async (
 
         /** Helper to extract description from a paragraph element, returns the description or empty string */
         const tryExtractDescription = (element: Element): string => {
-          const text = element.textContent?.trim() ?? '';
-          return !isInsideCallout(element) && text.length > 0 ? text : '';
+          if (isInsideCallout(element)) return '';
+          const text = getTextIncludingLinks(element);
+          return text.length > 0 ? text : '';
         };
 
         while (nextElement) {
@@ -674,16 +716,9 @@ export const extractMetadataFromPage = async (
           // Check inside DIVs for paragraphs (but skip callout divs)
           if (tagName === 'DIV' && !isInsideCallout(nextElement)) {
             // Special case: Salesforce uses <div class="p"> as paragraph containers
-            // Extract direct text content before nested elements (like <div class="data colSort">)
+            // Extract all visible text content including links
             if (nextElement.classList.contains('p')) {
-              // Get only the direct text nodes, not nested divs
-              let directText = '';
-              for (const child of Array.from(nextElement.childNodes)) {
-                if (child.nodeType === Node.TEXT_NODE) {
-                  const text = child.textContent?.trim() ?? '';
-                  if (text) directText += (directText ? ' ' : '') + text;
-                }
-              }
+              const directText = getTextIncludingLinks(nextElement);
               if (directText) {
                 description = directText;
                 break;
@@ -782,6 +817,7 @@ export const extractMetadataFromPage = async (
       }));
 
       const cleanedDescription = normalizeWhitespace(description);
+
       const entry = {
         name,
         data: {
