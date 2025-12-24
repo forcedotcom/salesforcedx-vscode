@@ -29,7 +29,7 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.18.4",
+    "effect": "^3.19.13",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
