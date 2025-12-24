@@ -96,7 +96,7 @@ const uriToFile = (uri: string): string => URI.parse(uri).fsPath;
 
 describe('indexer parsing content', () => {
   it('aura indexer', async () => {
-    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new FileSystemDataProvider());
+    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider);
     context.initialize('SFDX');
     await context.configureProject();
 

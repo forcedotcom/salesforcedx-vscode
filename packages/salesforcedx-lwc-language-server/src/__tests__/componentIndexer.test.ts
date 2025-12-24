@@ -103,7 +103,7 @@ describe('ComponentIndexer', () => {
     describe('#findTagByURI', () => {
       it('finds a Tag by matching the URI', () => {
         const query = URI.file(
-          path.resolve('../../test-workspaces/sfdx-workspace/force-app/main/default/lwc/hello_world/hello_world.js')
+          path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/lwc/hello_world/hello_world.js')
         ).toString();
         expect(componentIndexer.findTagByURI(query)).not.toBeNull();
         expect(componentIndexer.findTagByURI(path.join('lwc', 'hello_world', 'hello_world.js'))).toBeNull();
@@ -113,7 +113,7 @@ describe('ComponentIndexer', () => {
 
       it('finds a Tag by its matching html file', () => {
         const query = URI.file(
-          path.resolve('../../test-workspaces/sfdx-workspace/force-app/main/default/lwc/hello_world/hello_world.html')
+          path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/lwc/hello_world/hello_world.html')
         ).toString();
         expect(componentIndexer.findTagByURI(query)).not.toBeNull();
         expect(componentIndexer.findTagByURI('lwc/hello_world/hello_world.html')).toBeNull();

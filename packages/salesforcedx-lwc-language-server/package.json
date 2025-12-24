@@ -95,6 +95,12 @@
     "@lwc/old-compiler": "npm:@lwc/compiler@0.34.8",
     "@types/babel-types": "^7.0.8",
     "@types/xml2js": "^0.4.14",
-    "jest-extended": "^0.11.5"
+    "colormin": "1.1.2",
+    "jest-extended": "^0.11.5",
+    "js-base64": "3.7.8",
+    "num2fraction": "1.2.2",
+    "rollup": "0.66.2",
+    "uniq": "1.0.1",
+    "uniqs": "2.0.0"
   }
 }
