@@ -13360,7 +13360,7 @@
         "Field Type": "ValueSettings"
       }
     ],
-    "short_description": "These field types extend the field types described in the Salesforce Object Reference.",
+    "short_description": "Represents a set of values that can be selected from a custom picklist field. Defines the valueSet of a custom picklist field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_field_types.htm",
     "parent": "Metadata"
   },
@@ -39131,7 +39131,7 @@
         "Field Type": "Country[]"
       }
     ],
-    "short_description": "Represents the configuration of country/territory and state picklists. Use the AddressSettings component type to configure state and country/territory data in your organization so that you can convert text-based values into standard picklist values. To convert your state and country/territory values, from Setup, enter State and Country/Territory Picklists in the Quick Find box, then select State and Country/Territory Picklists. This type extends the Metadata metadata type and inherits its fullName field.",
+    "short_description": "This complex metadata type represents valid definitions of states and countries/territories in picklists.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_addresssettings.htm",
     "parent": "Metadata"
   },
@@ -43777,7 +43777,7 @@
         "Field Type": "boolean"
       }
     ],
-    "short_description": "Represents settings for industries verticals such as Financial Services Cloud, Consumer Goods Cloud, Public Sector Solutions, Education Cloud, Salesforce Scheduler, Life Sciences Cloud, and Health Cloud. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for more details.",
+    "short_description": "Users need the FSC Insurance permission set to access the settings available in editions with Financial Services Cloud.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_industriessettings.htm",
     "parent": "Metadata"
   },

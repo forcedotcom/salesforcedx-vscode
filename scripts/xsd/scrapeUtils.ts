@@ -898,10 +898,19 @@ export const extractMetadataFromPage = async (
       // Determine the appropriate name for this table
       const finalName = determineTableName(tableData, i, allTableFields.length, allTableFields, results, typeName);
 
-      // For the first table, prefer page-level description
-      // For subsequent tables, only use table-specific descriptions
-      const description =
-        i === 0 ? (tableData.pageLevelDescription ?? tableData.tableDescription) : tableData.tableDescription;
+      // For the first table: use page-level description if table name matches page title,
+      // otherwise use table-specific description (e.g., ValueSet has its own description)
+      // For subsequent tables: always use table-specific descriptions
+      let description: string;
+      if (i === 0) {
+        // Check if the final name matches the page title (case-insensitive)
+        const nameMatchesTitle = finalName.toLowerCase() === tableData.pageTitle.toLowerCase();
+        description = nameMatchesTitle
+          ? tableData.pageLevelDescription || tableData.tableDescription
+          : tableData.tableDescription || tableData.pageLevelDescription;
+      } else {
+        description = tableData.tableDescription;
+      }
 
       createResultEntry(finalName, description, tableData.fields);
     }
