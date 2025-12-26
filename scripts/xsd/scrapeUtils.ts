@@ -695,113 +695,132 @@ export const extractMetadataFromPage = async (
           return text.length > 0 ? text : '';
         };
 
-        while (nextElement) {
-          const tagName = nextElement.tagName;
+        /** Helper to search for description in a sequence of sibling elements */
+        const searchInSiblings = (startElement: Element | null): string => {
+          let current = startElement;
+          while (current) {
+            const tagName = current.tagName;
 
-          // Stop if we hit a table (when specified)
-          if (tagName === 'TABLE') break;
+            // Stop if we hit a table
+            if (tagName === 'TABLE') break;
 
-          // Stop if we hit another heading
-          if (tagName?.match(/^H[1-6]$/)) break;
+            // Stop if we hit another heading
+            if (tagName?.match(/^H[1-6]$/)) break;
 
-          // Look for a paragraph with meaningful content
-          if (tagName === 'P') {
-            const extracted = tryExtractDescription(nextElement);
-            if (extracted) {
-              description = extracted;
-              break;
+            // Look for a paragraph with meaningful content
+            if (tagName === 'P') {
+              const extracted = tryExtractDescription(current);
+              if (extracted) {
+                return extracted;
+              }
             }
-          }
 
-          // Check inside DIVs for paragraphs (but skip callout divs)
-          if (tagName === 'DIV' && !isInsideCallout(nextElement)) {
-            // Special case: Salesforce uses <div class="p"> as paragraph containers
-            // These DIVs can contain multiple elements (text, paragraphs, tables, code samples, strong tags)
-            // We need to extract text but stop at tables to avoid collecting example headers
-            if (nextElement.classList.contains('p')) {
-              // Create a helper function that extracts text but stops after encountering a table
-              const extractTextBeforeTable = (el: Element): string => {
-                const textParts: string[] = [];
-                const blockElements = new Set(['TABLE', 'UL', 'OL', 'DL', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6']);
+            // Check inside DIVs for paragraphs (but skip callout divs)
+            if (tagName === 'DIV' && !isInsideCallout(current)) {
+              // Special case: Salesforce uses <div class="p"> as paragraph containers
+              // These DIVs can contain multiple elements (text, paragraphs, tables, code samples, strong tags)
+              // We need to extract text but stop at tables to avoid collecting example headers
+              if (current.classList.contains('p')) {
+                // Create a helper function that extracts text but stops after encountering a table
+                const extractTextBeforeTable = (el: Element): string => {
+                  const textParts: string[] = [];
+                  const blockElements = new Set(['TABLE', 'UL', 'OL', 'DL', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6']);
 
-                // Process children until we hit a table or data container
-                for (const child of Array.from(el.childNodes)) {
-                  // If we hit a table or data container (which wraps tables), stop
-                  if (child.nodeType === Node.ELEMENT_NODE) {
-                    const element = child as Element;
-                    if (element.tagName === 'TABLE' || element.classList.contains('data')) {
-                      break;
-                    }
-
-                    // Skip callout/note containers (Important boxes, etc.)
-                    if (isCalloutElement(element)) {
-                      continue;
-                    }
-
-                    // Skip other block elements
-                    if (blockElements.has(element.tagName)) {
-                      continue;
-                    }
-
-                    // For inline elements and paragraphs, collect text recursively
-                    const collectText = (node: Node): void => {
-                      if (node.nodeType === Node.ELEMENT_NODE) {
-                        const elem = node as Element;
-                        // Skip callout elements
-                        if (isCalloutElement(elem)) {
-                          return;
-                        }
-                        // Stop at block elements except P
-                        if (
-                          blockElements.has(elem.tagName) ||
-                          elem.tagName === 'TABLE' ||
-                          elem.classList.contains('data')
-                        ) {
-                          return;
-                        }
-                        for (const c of Array.from(node.childNodes)) {
-                          collectText(c);
-                        }
-                      } else if (node.nodeType === Node.TEXT_NODE) {
-                        const text = node.textContent ?? '';
-                        if (text) textParts.push(text);
+                  // Process children until we hit a table or data container
+                  for (const child of Array.from(el.childNodes)) {
+                    // If we hit a table or data container (which wraps tables), stop
+                    if (child.nodeType === Node.ELEMENT_NODE) {
+                      const element = child as Element;
+                      if (element.tagName === 'TABLE' || element.classList.contains('data')) {
+                        break;
                       }
-                    };
 
-                    collectText(child);
-                  } else if (child.nodeType === Node.TEXT_NODE) {
-                    const text = child.textContent ?? '';
-                    if (text) textParts.push(text);
+                      // Skip callout/note containers (Important boxes, etc.)
+                      if (isCalloutElement(element)) {
+                        continue;
+                      }
+
+                      // Skip other block elements
+                      if (blockElements.has(element.tagName)) {
+                        continue;
+                      }
+
+                      // For inline elements and paragraphs, collect text recursively
+                      const collectText = (node: Node): void => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                          const elem = node as Element;
+                          // Skip callout elements
+                          if (isCalloutElement(elem)) {
+                            return;
+                          }
+                          // Stop at block elements except P
+                          if (
+                            blockElements.has(elem.tagName) ||
+                            elem.tagName === 'TABLE' ||
+                            elem.classList.contains('data')
+                          ) {
+                            return;
+                          }
+                          for (const c of Array.from(node.childNodes)) {
+                            collectText(c);
+                          }
+                        } else if (node.nodeType === Node.TEXT_NODE) {
+                          const text = node.textContent ?? '';
+                          if (text) textParts.push(text);
+                        }
+                      };
+
+                      collectText(child);
+                    } else if (child.nodeType === Node.TEXT_NODE) {
+                      const text = child.textContent ?? '';
+                      if (text) textParts.push(text);
+                    }
                   }
+
+                  return textParts.join('').replace(/\s+/g, ' ').trim();
+                };
+
+                const directText = extractTextBeforeTable(current);
+                if (directText) {
+                  return directText;
                 }
-
-                return textParts.join('').replace(/\s+/g, ' ').trim();
-              };
-
-              const directText = extractTextBeforeTable(nextElement);
-              if (directText) {
-                description = directText;
-                break;
               }
+
+              let foundText = '';
+              processDivForParagraphs(
+                current,
+                tryExtractDescription,
+                text => {
+                  foundText = text;
+                  return true; // Stop processing after first match
+                },
+                {
+                  checkDirectChildren: false,
+                  checkNestedDivs: false,
+                  fallbackToDirectText: true
+                }
+              );
+              if (foundText) return foundText;
             }
 
-            const foundInDiv = processDivForParagraphs(
-              nextElement,
-              tryExtractDescription,
-              text => {
-                description = text;
-                return true; // Stop processing after first match
-              },
-              {
-                checkDirectChildren: false,
-                checkNestedDivs: false,
-                fallbackToDirectText: true
-              }
-            );
-            if (foundInDiv) break;
+            current = current.nextElementSibling;
           }
+          return '';
+        };
 
-          nextElement = nextElement.nextElementSibling;
+        // First, search in the heading's siblings (same section)
+        description = searchInSiblings(nextElement);
+
+        // If no description found and heading is in a section div, check the next section div
+        if (!description) {
+          const parentSection = headingElement.closest('div.section');
+          if (parentSection) {
+            const nextSection = parentSection.nextElementSibling;
+            if (nextSection && nextSection.tagName === 'DIV') {
+              // Search in the first few children of the next section
+              description = searchInSiblings(nextSection.firstElementChild);
+            }
+          }
         }
 
         return description;

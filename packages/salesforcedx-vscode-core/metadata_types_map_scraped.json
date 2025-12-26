@@ -5895,7 +5895,7 @@
   },
   "BatchCalcJobUnion": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "short_description": "Represents a collection of fields relating to the union of data from two nodes in a data processing engine.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
     "parent": "Metadata"
   },
@@ -5907,37 +5907,121 @@
   },
   "BatchCalcJobFilter": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "short_description": "Represents a collection of fields relating to a filter node in a data processing engine.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
     "parent": "Metadata"
   },
   "BatchCalcJobForecast": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "short_description": "Represents a collection of fields relating to a forecast node in a data processing engine. Available in API version 58.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
     "parent": "Metadata"
   },
   "BatchCalcJobHierarchyPath": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "short_description": "Represents a collection of hierarchy path nodes in a data processing engine definition.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
     "parent": "Metadata"
   },
   "BatchCalcJobParameter": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "short_description": "Represents a collection of fields relating to an input variable in a data processing engine.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
     "parent": "Metadata"
   },
   "BatchCalcJobTransform": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "short_description": "Represents a collection of fields relating to a data transformation in a data processing engine.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
     "parent": "Metadata"
   },
   "BatchCalcJobOrderByField": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "short_description": "Represents a collection of fields that are used to sort the partitioned data.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJob​​​Aggregate": {
+    "fields": [],
+    "short_description": "Represents a collection of fields relating to an aggregate node in a data processing engine.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJob​AggregateField": {
+    "fields": [],
+    "short_description": "Represents a collection of fields relating to an aggregation field in an aggregate node of a data processing engine.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJob​​​CustomNode": {
+    "fields": [],
+    "short_description": "Represents a collection of custom nodes in a data processing engine. Use a custom node to add a custom action.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJob​​​CustomNodeParameter": {
+    "fields": [],
+    "short_description": "Represents the field mappings of an extension node.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJob​Datasource": {
+    "fields": [],
+    "short_description": "Represents a collection of fields relating to a data source node in a data processing engine.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJob​DatasourceField": {
+    "fields": [],
+    "short_description": "Represents a collection of fields relating to a source object field that are selected in the data source node of a data processing engine.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJobFilter​Criteria": {
+    "fields": [],
+    "short_description": "Represents a collection of fields relating to a filter condition in a filter node in a data processing engine.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJobSource​Join": {
+    "fields": [],
+    "short_description": "Represents a collection of fields relating to a join node in a data processing engine.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJobJoin​Key": {
+    "fields": [],
+    "short_description": "Represents a collection of fields relating to a mapping of fields from the first source node and second source node in a join node of a data processing engine.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJobJoin​ResultField": {
+    "fields": [],
+    "short_description": "Represents a collection of fields relating to a set of resultant fields in a join node of a data processing engine.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJobTransform​DroppedField": {
+    "fields": [],
+    "short_description": "Represents a collection of fields relating to a dropped field in a data transformation of a data processing engine.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJobTransform​AddedField": {
+    "fields": [],
+    "short_description": "Represents a collection of fields relating to a formula in a data transformation of a data processing engine.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJobWriteback​Object": {
+    "fields": [],
+    "short_description": "Represents a collection of fields relating to the object in which the results of the data processing engine are written back.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
+    "parent": "Metadata"
+  },
+  "BatchCalcJobWriteback​Mapping": {
+    "fields": [],
+    "short_description": "Represents a collection of fields relating to the mapping between results and the fields in the target object.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_batchcalcjobdefinition.htm",
     "parent": "Metadata"
   },
@@ -11433,7 +11517,7 @@
   },
   "LiveAgentConfig": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customapplication.htm",
+    "short_description": "Represents your organization's settings for using Chat in the Salesforce Console.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customapplication.htm",
     "parent": "Metadata"
   },
@@ -18864,13 +18948,13 @@
   },
   "EntitlementProcessMilestoneItem": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_entitlementprocess.htm",
+    "short_description": "Represents a milestone item on an entitlement process.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_entitlementprocess.htm",
     "parent": "Metadata"
   },
   "EntitlementProcessMilestoneTimeTrigger": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_entitlementprocess.htm",
+    "short_description": "Represents the time trigger on an entitlement process milestone.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_entitlementprocess.htm",
     "parent": "Metadata"
   },
@@ -28777,13 +28861,13 @@
   },
   "SupervisorAgentConfigSkills": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatagentconfig.htm",
+    "short_description": "Represents the agent skills associated with a supervisor’s Chat configuration. Available in API version 29.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatagentconfig.htm",
     "parent": "Metadata"
   },
   "AgentConfigUserAssignments": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatagentconfig.htm",
+    "short_description": "Represents the users associated with a specific Chat configuration.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatagentconfig.htm",
     "parent": "Metadata"
   },
@@ -28982,7 +29066,7 @@
   },
   "LiveChatButtonSkills": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatbutton.htm",
+    "short_description": "Represents the skills associated with a chat button or invitation.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatbutton.htm",
     "parent": "Metadata"
   },
@@ -29050,7 +29134,7 @@
   },
   "LiveChatDeploymentDomainWhiteList": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatdeployment.htm",
+    "short_description": "Represents a Chat deployment’s domain whitelist.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_livechatdeployment.htm",
     "parent": "Metadata"
   },
@@ -40539,25 +40623,25 @@
   },
   "FeedItemSettings": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
+    "short_description": "Represents an organization's feed item settings. Available in API version 32.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
     "parent": "Metadata"
   },
   "EmailToCaseSettings": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
+    "short_description": "Represents an organization's Email-to-Case settings.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
     "parent": "Metadata"
   },
   "WebToCaseSettings": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
+    "short_description": "Represents an organization's Web-to-Case settings.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
     "parent": "Metadata"
   },
   "EmailToCaseRoutingAddress": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
+    "short_description": "Represents an organization's Email-to-Case routing address.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_casesettings.htm",
     "parent": "Metadata"
   },
@@ -49253,19 +49337,19 @@
   },
   "SkillAssignments": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_skills.htm",
+    "short_description": "Represents which users and user profiles to whom specific skills are assigned.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_skills.htm",
     "parent": "Metadata"
   },
   "SkillProfileAssignments": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_skills.htm",
+    "short_description": "Represents the profiles that are associated with a specific skill.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_skills.htm",
     "parent": "Metadata"
   },
   "SkillUserAssignments": {
     "fields": [],
-    "short_description": "Referenced type from https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_skills.htm",
+    "short_description": "Represents the users that are associated with a specific skill.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_skills.htm",
     "parent": "Metadata"
   },
