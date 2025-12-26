@@ -716,9 +716,69 @@ export const extractMetadataFromPage = async (
           // Check inside DIVs for paragraphs (but skip callout divs)
           if (tagName === 'DIV' && !isInsideCallout(nextElement)) {
             // Special case: Salesforce uses <div class="p"> as paragraph containers
-            // Extract all visible text content including links
+            // These DIVs can contain multiple elements (text, paragraphs, tables, code samples, strong tags)
+            // We need to extract text but stop at tables to avoid collecting example headers
             if (nextElement.classList.contains('p')) {
-              const directText = getTextIncludingLinks(nextElement);
+              // Create a helper function that extracts text but stops after encountering a table
+              const extractTextBeforeTable = (el: Element): string => {
+                const textParts: string[] = [];
+                const blockElements = new Set(['TABLE', 'UL', 'OL', 'DL', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6']);
+
+                // Process children until we hit a table or data container
+                for (const child of Array.from(el.childNodes)) {
+                  // If we hit a table or data container (which wraps tables), stop
+                  if (child.nodeType === Node.ELEMENT_NODE) {
+                    const element = child as Element;
+                    if (element.tagName === 'TABLE' || element.classList.contains('data')) {
+                      break;
+                    }
+
+                    // Skip callout/note containers (Important boxes, etc.)
+                    if (isCalloutElement(element)) {
+                      continue;
+                    }
+
+                    // Skip other block elements
+                    if (blockElements.has(element.tagName)) {
+                      continue;
+                    }
+
+                    // For inline elements and paragraphs, collect text recursively
+                    const collectText = (node: Node): void => {
+                      if (node.nodeType === Node.ELEMENT_NODE) {
+                        const elem = node as Element;
+                        // Skip callout elements
+                        if (isCalloutElement(elem)) {
+                          return;
+                        }
+                        // Stop at block elements except P
+                        if (
+                          blockElements.has(elem.tagName) ||
+                          elem.tagName === 'TABLE' ||
+                          elem.classList.contains('data')
+                        ) {
+                          return;
+                        }
+                        for (const c of Array.from(node.childNodes)) {
+                          collectText(c);
+                        }
+                      } else if (node.nodeType === Node.TEXT_NODE) {
+                        const text = node.textContent ?? '';
+                        if (text) textParts.push(text);
+                      }
+                    };
+
+                    collectText(child);
+                  } else if (child.nodeType === Node.TEXT_NODE) {
+                    const text = child.textContent ?? '';
+                    if (text) textParts.push(text);
+                  }
+                }
+
+                return textParts.join('').replace(/\s+/g, ' ').trim();
+              };
+
+              const directText = extractTextBeforeTable(nextElement);
               if (directText) {
                 description = directText;
                 break;

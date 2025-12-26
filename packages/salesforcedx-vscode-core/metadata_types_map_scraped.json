@@ -1302,7 +1302,7 @@
         "Field Type": "ExternalDataSrcDescType (enumeration of type string)"
       }
     ],
-    "short_description": "Declarative Metadata Sample Definition: Amazon DynamoDB Declarative Metadata Sample Definition: Amazon Athena",
+    "short_description": "Represents schema descriptors for an external data source used with Salesforce Connect adapter for Amazon DynamoDB (available in API version 55.0 or later) or Amazon Athena (available in API version 56.0 or later).",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externaldatasource.htm",
     "parent": "Metadata"
   },
@@ -5277,7 +5277,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents the value of a criterion in an audience. For a list of AudienceCriteriaValue fields that you can use with each AudienceCriterion type field value, see this table. This table summarizes which AudienceCriteriaValue fields you can use with the different AudienceCriterion type field values.",
+    "short_description": "Represents the value of a criterion in an audience. For a list of AudienceCriteriaValue fields that you can use with each AudienceCriterion type field value, see this table.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
     "parent": "Metadata"
   },
@@ -5289,7 +5289,7 @@
         "Field Type": "PersonalizationTarget​Info[]"
       }
     ],
-    "short_description": "Represents targets for an audience. This subtype is available in API version 47.0 and later.",
+    "short_description": "Represents targets for an audience. This subtype is available in API version 47.0 and later. When deploying an audience, you must include ExperienceBundle in your package to support experience variation targets.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
     "parent": "Metadata"
   },
@@ -17244,7 +17244,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents a map of fields in the input object of the DuplicateRule to fields in the output object of DuplicateRule. The input object is the object associated with the DuplicateRule. The output object can be the same object or a different object with similar fields.",
+    "short_description": "Represents a map of fields in the input object of the DuplicateRule to fields in the output object of DuplicateRule. The input object is the object associated with the DuplicateRule. The output object can be the same object or a different object with similar fields. For example, you can have a DuplicateRule that looks for duplicates between the Contact object and the Lead object. In this case, the input object is Contact, and the output object is Lead.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_duplicaterule.htm",
     "parent": "Metadata"
   },
