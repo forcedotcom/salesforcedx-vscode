@@ -830,6 +830,17 @@ export const extractMetadataFromPage = async (
       function findHeadingBefore(startElement: Element | null): Element | null {
         if (!startElement) return null;
 
+        // Special case: Check if the previous sibling is a section div with a heading
+        // This handles cases where tables are placed outside their section divs (e.g., NavigationMenuItem)
+        const prevSibling = startElement.previousElementSibling;
+        if (prevSibling && prevSibling.tagName === 'DIV' && prevSibling.classList.contains('section')) {
+          // Look for a heading inside this section div
+          const headingInSection = prevSibling.querySelector('h1, h2, h3, h4, h5, h6');
+          if (headingInSection) {
+            return headingInSection as Element;
+          }
+        }
+
         // First, try to find a heading among previous siblings at the current level
         let current = startElement.previousElementSibling;
 
