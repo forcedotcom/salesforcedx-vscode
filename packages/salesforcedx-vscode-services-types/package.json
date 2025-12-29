@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/vscode-services",
-  "version": "65.10.0",
+  "version": "65.11.0",
   "description": "TypeScript type definitions for Salesforce VS Code Services extension API",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
