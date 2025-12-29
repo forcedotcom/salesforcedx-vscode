@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import { MetadataDocumentationService } from '../../../src/metadataSupport/metadataDocumentationService';
 import {
   MetadataHoverProvider,
   isMetadataFile,
@@ -26,6 +27,17 @@ import {
   contents,
   range
 }));
+
+// Mock MetadataDocumentationService
+const createMockDocumentationService = (
+  validTypes: Set<string> = new Set(['ApexClass', 'CustomObject', 'CustomField'])
+) =>
+  ({
+    isValidMetadataType: jest.fn((type: string) => validTypes.has(type)),
+    getDocumentation: jest.fn(),
+    getFieldDocumentation: jest.fn(),
+    initialize: jest.fn().mockResolvedValue(undefined)
+  }) as any as MetadataDocumentationService;
 
 // Mock document
 const createMockDocument = (fileName: string, content: string) =>
@@ -104,39 +116,49 @@ describe('MetadataHoverProvider', () => {
 
   describe('isMetadataFile', () => {
     it('should identify metadata files correctly', () => {
+      const mockDocService = createMockDocumentationService();
       const metadataDoc = createMockDocument('test-meta.xml', '<ApexClass>');
       const regularDoc = createMockDocument('test.txt', 'some text');
 
       // Test the exported function directly
-      expect(isMetadataFile(metadataDoc)).toBe(true);
-      expect(isMetadataFile(regularDoc)).toBe(false);
+      expect(isMetadataFile(metadataDoc, mockDocService)).toBe(true);
+      expect(isMetadataFile(regularDoc, mockDocService)).toBe(false);
     });
 
     it('should identify XML files with metadata namespace', () => {
+      const mockDocService = createMockDocumentationService();
       const xmlDoc = createMockDocument(
         'test.xml',
         '<?xml version="1.0"?><root xmlns="http://soap.sforce.com/2006/04/metadata">'
       );
 
-      expect(isMetadataFile(xmlDoc)).toBe(true);
+      expect(isMetadataFile(xmlDoc, mockDocService)).toBe(true);
     });
   });
 
   describe('extractMetadataType', () => {
     it('should extract metadata type from XML element', () => {
-      const result = extractMetadataType('<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">', 'ApexClass', 5);
+      const mockDocService = createMockDocumentationService();
+      const result = extractMetadataType(
+        '<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">',
+        'ApexClass',
+        5,
+        mockDocService
+      );
 
       expect(result).toBe('ApexClass');
     });
 
     it('should handle namespaced elements', () => {
-      const result = extractMetadataType('<tns:CustomObject>', 'CustomObject', 10);
+      const mockDocService = createMockDocumentationService();
+      const result = extractMetadataType('<tns:CustomObject>', 'CustomObject', 10, mockDocService);
 
       expect(result).toBe('CustomObject');
     });
 
     it('should return null for non-metadata elements', () => {
-      const result = extractMetadataType('<div>', 'div', 2);
+      const mockDocService = createMockDocumentationService();
+      const result = extractMetadataType('<div>', 'div', 2, mockDocService);
 
       expect(result).toBeNull();
     });
@@ -167,6 +189,9 @@ describe('MetadataHoverProvider', () => {
 
   describe('extractFieldInfo', () => {
     it('should extract field information for internal fields within CustomObject', () => {
+      const mockDocService = createMockDocumentationService(
+        new Set(['ApexClass', 'CustomObject', 'Flow', 'ApexComponent', 'Prompt'])
+      );
       const content = `<?xml version="1.0" encoding="UTF-8"?>
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
     <label>Test Object</label>
@@ -177,7 +202,7 @@ describe('MetadataHoverProvider', () => {
       const document = createMockDocument('TestObject__c.object-meta.xml', content);
       const position = { line: 3, character: 10 } as vscode.Position; // Within '<enableActivities>' tag
 
-      const result = extractFieldInfo(document, position);
+      const result = extractFieldInfo(document, position, mockDocService);
 
       expect(result).toEqual({
         metadataType: 'CustomObject',
@@ -187,6 +212,9 @@ describe('MetadataHoverProvider', () => {
     });
 
     it('should extract field information for common fields', () => {
+      const mockDocService = createMockDocumentationService(
+        new Set(['ApexClass', 'CustomObject', 'Flow', 'ApexComponent', 'Prompt'])
+      );
       const content = `<?xml version="1.0" encoding="UTF-8"?>
 <ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>59.0</apiVersion>
@@ -197,7 +225,7 @@ describe('MetadataHoverProvider', () => {
       const document = createMockDocument('TestClass.cls-meta.xml', content);
       const position = { line: 3, character: 8 } as vscode.Position; // Position inside '<description>' tag
 
-      const result = extractFieldInfo(document, position);
+      const result = extractFieldInfo(document, position, mockDocService);
 
       expect(result).toEqual({
         metadataType: 'ApexClass',
@@ -207,6 +235,9 @@ describe('MetadataHoverProvider', () => {
     });
 
     it('should handle namespaced field elements', () => {
+      const mockDocService = createMockDocumentationService(
+        new Set(['ApexClass', 'CustomObject', 'Flow', 'ApexComponent', 'Prompt'])
+      );
       const content = `<?xml version="1.0" encoding="UTF-8"?>
 <tns:Flow xmlns:tns="http://soap.sforce.com/2006/04/metadata">
     <tns:status>Active</tns:status>
@@ -216,7 +247,7 @@ describe('MetadataHoverProvider', () => {
       const document = createMockDocument('TestFlow.flow-meta.xml', content);
       const position = { line: 2, character: 15 } as vscode.Position; // Position inside '<tns:status>' tag
 
-      const result = extractFieldInfo(document, position);
+      const result = extractFieldInfo(document, position, mockDocService);
 
       expect(result).toEqual({
         metadataType: 'Flow',
@@ -226,6 +257,9 @@ describe('MetadataHoverProvider', () => {
     });
 
     it('should return null for metadata type elements (not fields)', () => {
+      const mockDocService = createMockDocumentationService(
+        new Set(['ApexClass', 'CustomObject', 'Flow', 'ApexComponent', 'Prompt'])
+      );
       const content = `<?xml version="1.0" encoding="UTF-8"?>
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
     <label>Test Object</label>
@@ -234,12 +268,15 @@ describe('MetadataHoverProvider', () => {
       const document = createMockDocument('TestObject__c.object-meta.xml', content);
       const position = { line: 1, character: 5 } as vscode.Position; // Position on 'CustomObject'
 
-      const result = extractFieldInfo(document, position);
+      const result = extractFieldInfo(document, position, mockDocService);
 
       expect(result).toBeNull();
     });
 
     it('should handle nested field structures', () => {
+      const mockDocService = createMockDocumentationService(
+        new Set(['ApexClass', 'CustomObject', 'Flow', 'ApexComponent', 'Prompt'])
+      );
       const content = `<?xml version="1.0" encoding="UTF-8"?>
 <Prompt xmlns="http://soap.sforce.com/2006/04/metadata">
     <promptVersions>
@@ -253,7 +290,7 @@ describe('MetadataHoverProvider', () => {
       const document = createMockDocument('TestPrompt.prompt-meta.xml', content);
       const position = { line: 4, character: 15 } as vscode.Position; // Position inside '<displayType>' tag
 
-      const result = extractFieldInfo(document, position);
+      const result = extractFieldInfo(document, position, mockDocService);
 
       expect(result).toEqual({
         metadataType: 'Prompt',
@@ -263,6 +300,9 @@ describe('MetadataHoverProvider', () => {
     });
 
     it('should handle opening tag on a different line than closing tag', () => {
+      const mockDocService = createMockDocumentationService(
+        new Set(['ApexClass', 'CustomObject', 'Flow', 'ApexComponent', 'Prompt'])
+      );
       const content = `<?xml version="1.0" encoding="UTF-8"?>
 <ApexComponent xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>53.0</apiVersion>
@@ -277,7 +317,7 @@ describe('MetadataHoverProvider', () => {
       const document = createMockDocument('TestComponent.component-meta.xml', content);
       const position = { line: 4, character: 10 } as vscode.Position; // Position inside '<packageVersions>' tag
 
-      const result = extractFieldInfo(document, position);
+      const result = extractFieldInfo(document, position, mockDocService);
 
       expect(result).toEqual({
         metadataType: 'ApexComponent',
@@ -289,6 +329,7 @@ describe('MetadataHoverProvider', () => {
 
   describe('findParentMetadataTypeWithLayers', () => {
     it('should handle multiline XML elements where closing bracket is on next line', () => {
+      const mockDocService = createMockDocumentationService(new Set(['ApexClass', 'CustomObject', 'Flow']));
       const content = `<?xml version="1.0" encoding="UTF-8"?>
 <Flow xmlns="http://soap.sforce.com/2006/04/metadata">
     <decisions>
@@ -304,7 +345,7 @@ describe('MetadataHoverProvider', () => {
 
       const document = createMockDocument('TestFlow.flow-meta.xml', content);
 
-      const result = findParentMetadataTypeWithLayers(document, 7);
+      const result = findParentMetadataTypeWithLayers(document, 7, mockDocService);
 
       expect(result).toEqual({
         metadataType: 'Flow',
@@ -315,6 +356,7 @@ describe('MetadataHoverProvider', () => {
 
   describe('findParentMetadataType', () => {
     it('should find parent metadata type from current line', () => {
+      const mockDocService = createMockDocumentationService(new Set(['ApexClass', 'CustomObject', 'Flow']));
       const content = `<?xml version="1.0" encoding="UTF-8"?>
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
     <label>Test Object</label>
@@ -323,12 +365,13 @@ describe('MetadataHoverProvider', () => {
 
       const document = createMockDocument('TestObject__c.object-meta.xml', content);
 
-      const result = findParentMetadataType(document, 3);
+      const result = findParentMetadataType(document, 3, mockDocService);
 
       expect(result).toBe('CustomObject');
     });
 
     it('should find parent metadata type from multiple lines above', () => {
+      const mockDocService = createMockDocumentationService(new Set(['ApexClass', 'CustomObject', 'Flow']));
       const content = `<?xml version="1.0" encoding="UTF-8"?>
 <ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>59.0</apiVersion>
@@ -339,12 +382,13 @@ describe('MetadataHoverProvider', () => {
 
       const document = createMockDocument('TestClass.cls-meta.xml', content);
 
-      const result = findParentMetadataType(document, 5);
+      const result = findParentMetadataType(document, 5, mockDocService);
 
       expect(result).toBe('ApexClass');
     });
 
     it('should handle namespaced parent elements', () => {
+      const mockDocService = createMockDocumentationService(new Set(['ApexClass', 'CustomObject', 'Flow']));
       const content = `<?xml version="1.0" encoding="UTF-8"?>
 <tns:Flow xmlns:tns="http://soap.sforce.com/2006/04/metadata">
     <tns:status>Active</tns:status>
@@ -352,12 +396,13 @@ describe('MetadataHoverProvider', () => {
 
       const document = createMockDocument('TestFlow.flow-meta.xml', content);
 
-      const result = findParentMetadataType(document, 2);
+      const result = findParentMetadataType(document, 2, mockDocService);
 
       expect(result).toBe('Flow');
     });
 
     it('should return null when no parent metadata type found', () => {
+      const mockDocService = createMockDocumentationService(new Set(['ApexClass', 'CustomObject', 'Flow']));
       const content = `<?xml version="1.0" encoding="UTF-8"?>
 <root>
     <someField>value</someField>
@@ -365,7 +410,7 @@ describe('MetadataHoverProvider', () => {
 
       const document = createMockDocument('test.xml', content);
 
-      const result = findParentMetadataType(document, 2);
+      const result = findParentMetadataType(document, 2, mockDocService);
 
       expect(result).toBeNull();
     });

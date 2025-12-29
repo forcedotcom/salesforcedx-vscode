@@ -48,6 +48,13 @@ export class MetadataDocumentationService {
   }
 
   /**
+   * Check if a metadata type is valid (exists in the XSD)
+   */
+  public isValidMetadataType(metadataType: string): boolean {
+    return this.documentationMap.has(metadataType);
+  }
+
+  /**
    * Get documentation for a specific metadata type
    */
   public getDocumentation(metadataType: string): MetadataTypeDocumentation | null {
