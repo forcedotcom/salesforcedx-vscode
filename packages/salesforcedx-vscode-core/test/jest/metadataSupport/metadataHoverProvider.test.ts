@@ -420,7 +420,11 @@ describe('MetadataHoverProvider', () => {
     beforeEach(() => {
       // Mock the documentation service to return test data
       const mockDocumentationService = {
-        getFieldDocumentation: jest.fn()
+        isValidMetadataType: jest.fn((type: string) =>
+          ['ApexClass', 'CustomObject', 'Flow', 'Prompt', 'PromptVersion', 'ApexComponent'].includes(type)
+        ),
+        getFieldDocumentation: jest.fn(),
+        getDocumentation: jest.fn()
       };
       (hoverProvider as any).documentationService = mockDocumentationService;
 
@@ -769,6 +773,9 @@ describe('MetadataHoverProvider', () => {
     beforeEach(() => {
       // Mock the documentation service
       const mockDocumentationService = {
+        isValidMetadataType: jest.fn((type: string) =>
+          ['ApexClass', 'CustomObject', 'Flow', 'Prompt', 'PromptVersion', 'ApexComponent'].includes(type)
+        ),
         getDocumentation: jest.fn(),
         getFieldDocumentation: jest.fn()
       };
