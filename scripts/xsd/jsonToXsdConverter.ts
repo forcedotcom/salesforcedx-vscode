@@ -153,6 +153,7 @@ const createXsdFromJson = (jsonFilePath: string, outputFilePath: string): number
     '  <xsd:choice>',
     '   <xsd:element name="fullName" minOccurs="0" type="xsd:string"/>',
     '  </xsd:choice>',
+    '  <xsd:attribute name="fqn" type="xsd:string"/>',
     ' </xsd:complexType>'
   );
 
@@ -246,7 +247,6 @@ const createXsdFromJson = (jsonFilePath: string, outputFilePath: string): number
       xsdLines.push('    </xsd:choice>');
     }
 
-    xsdLines.push('    <xsd:attribute name="fqn" type="xsd:string"/>');
     xsdLines.push('   </xsd:extension>');
     xsdLines.push('  </xsd:complexContent>');
     xsdLines.push(' </xsd:complexType>');
