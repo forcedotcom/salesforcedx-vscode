@@ -84,6 +84,27 @@ function fixXsdFile(xsdFilePath: string, errors: ErrorInfo[]): void {
   console.log(`\n✅ Fixed ${fixedCount} type references in ${xsdFilePath}`);
 }
 
+/** Use fixed values to override known issues in the XSD file */
+function fixKnownXSDIssues(xsdFilePath: string): void {
+  const content = fs.readFileSync(xsdFilePath, 'utf-8');
+  let modifiedContent = content;
+  let fixCount = 0;
+
+  // Fix targetConfigs - it's a simple type but has children, so it needs to be xsd:anyType
+  // Look for lines containing name="targetConfigs" and ensure the type attribute is xsd:anyType
+  const targetConfigsRegex = /(<xsd:element\s+name="targetConfigs"[^>]*?\s+type=)"[^"]+"/g;
+  if (targetConfigsRegex.test(content)) {
+    modifiedContent = modifiedContent.replace(targetConfigsRegex, '$1"xsd:anyType"');
+    fixCount++;
+    console.log('Fixed targetConfigs type to xsd:anyType');
+  }
+
+  if (fixCount > 0) {
+    fs.writeFileSync(xsdFilePath, modifiedContent, 'utf-8');
+    console.log(`\n✅ Fixed ${fixCount} known issue(s) in ${xsdFilePath}`);
+  }
+}
+
 function main() {
   const repoRoot = path.resolve(__dirname, '../..');
   const errorFilePath = path.join(repoRoot, 'xsdErrors.txt');
@@ -92,7 +113,10 @@ function main() {
     'packages/salesforcedx-vscode-core/resources/salesforce_metadata_api_common.xsd'
   );
 
-  console.log('Parsing error file...');
+  console.log('Fixing known issues in the XSD file...');
+  fixKnownXSDIssues(xsdFilePath);
+
+  console.log('\nParsing error file...');
   const errors = parseErrorFile(errorFilePath);
   console.log(`Found ${errors.length} error references to fix`);
 
