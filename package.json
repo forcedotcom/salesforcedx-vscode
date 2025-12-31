@@ -141,6 +141,7 @@
     "report:installs": "ts-node scripts/reportInstalls.ts",
     "scrape:all:pages": "ts-node scripts/xsd/scrape-all-metadata-pages.ts",
     "scrape:single:page": "ts-node scripts/xsd/scrape-single-page.ts",
+    "convert:json:to:xsd": "ts-node scripts/xsd/jsonToXsdConverter.ts",
     "validate:xsd": "ts-node scripts/xsd/validateXsd.ts",
     "automation-test": "rm -rf ./e2e-temp && npm install && npm run compile && npm run vscode:package && rm -rf ./extensions && mkdir -p ./extensions && find ./packages -name '*.vsix' -exec cp {} ./extensions/ \\; || true && VSIX_TO_INSTALL=./extensions node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec ./packages/salesforcedx-vscode-automation-tests/lib/test/specs/runLwcTests.e2e.js",
     "gha-automation-tests": "node ./node_modules/@salesforce/salesforcedx-vscode-test-tools/lib/src/test-setup-and-runner.js --spec",

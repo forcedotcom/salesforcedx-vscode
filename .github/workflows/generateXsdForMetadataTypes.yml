@@ -31,7 +31,7 @@ jobs:
         run: npm run scrape:all:pages
 
       - name: Convert JSON to XSD
-        run: npx ts-node scripts/xsd/jsonToXsdConverter.ts
+        run: npm run convert:json:to:xsd
 
       - name: Upload JSON artifact
         uses: actions/upload-artifact@v4
