@@ -33,6 +33,12 @@ jobs:
       - name: Convert JSON to XSD
         run: npm run convert:json:to:xsd
 
+      - name: Validate XSD
+        run: npm run validate:xsd
+
+      - name: Fix XSD errors
+        run: npm run fix:xsd:errors
+
       - name: Upload JSON artifact
         uses: actions/upload-artifact@v4
         with:
