@@ -99,6 +99,11 @@ function main() {
   console.log('\nFixing XSD file...');
   fixXsdFile(xsdFilePath, errors);
 
+  // Delete the error file after successful fix
+  console.log('\nDeleting error file...');
+  fs.unlinkSync(errorFilePath);
+  console.log(`Deleted ${errorFilePath}`);
+
   console.log('\n✨ Done!');
 }
 
