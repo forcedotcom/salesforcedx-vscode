@@ -35,6 +35,7 @@ jobs:
 
       - name: Validate XSD
         run: npm run validate:xsd
+        continue-on-error: true
 
       - name: Fix XSD errors
         run: npm run fix:xsd:errors
