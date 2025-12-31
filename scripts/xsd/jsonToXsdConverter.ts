@@ -52,6 +52,12 @@ const cleanXsdName = (name: string): string => {
 const mapFieldTypeToXsd = (fieldType: string): string => {
   // First remove zero-width characters
   const cleanedFieldType = removeZeroWidthCharacters(fieldType);
+
+  // Handle empty field types
+  if (!cleanedFieldType || cleanedFieldType.trim() === '') {
+    return 'xsd:anyType';
+  }
+
   const lowerFieldType = cleanedFieldType.toLowerCase();
 
   // Handle arrays - strip [] and recurse to get base type
