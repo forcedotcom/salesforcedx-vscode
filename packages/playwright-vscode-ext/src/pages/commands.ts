@@ -29,8 +29,10 @@ const openCommandPalette = async (page: Page): Promise<void> => {
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
   // VS Code command palette automatically adds '>' prefix when opened with F1/Ctrl+Shift+P
-  // Just type the command text directly
-  await page.keyboard.type(command, { delay: 5 });
+  // Get the input locator - use locator-specific action for better reliability on desktop
+  const input = page.locator(QUICK_INPUT_WIDGET).locator('input.input');
+  await input.waitFor({ state: 'visible', timeout: 5000 });
+  await input.pressSequentially(command, { delay: 5 });
   await page.waitForTimeout(100); // unfortunately, it really does take a bit to be usable.
 
   // Capture HTML snapshot before clicking to debug Windows issues
@@ -65,7 +67,6 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // This matches the pattern used in contextMenu.ts for Windows reliability.
   if (isWindowsDesktop()) {
     // Focus the input field before pressing Enter (aria-activedescendant is on the input)
-    const input = page.locator(QUICK_INPUT_WIDGET).locator('input.input');
     await input.focus();
     await page.waitForTimeout(50); // Small delay for focus
     await page.keyboard.press('Enter');

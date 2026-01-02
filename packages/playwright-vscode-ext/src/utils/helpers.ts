@@ -37,7 +37,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'Failed to fetch', // Generic fetch failures (often for optional resources)
   'NO_COLOR', // Node.js color env var warnings
   'Content Security Policy', // CSP violations from VS Code webviews (non-critical UI errors)
-  'Applying inline style violates' // CSP inline style errors from VS Code UI
+  'Applying inline style violates', // CSP inline style errors from VS Code UI
+  'Unable to resolve resource walkThrough://' // VS Code walkthrough/getting started page errors (non-critical)
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [
