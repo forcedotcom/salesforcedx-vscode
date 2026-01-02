@@ -204,15 +204,15 @@ export const editOpenFile = async (page: Page, comment: string): Promise<void> =
   for (let i = 0; i < 50; i++) {
     // Get current line from DOM - Monaco marks the current line with .current-line class
     // Try .view-line.current-line first, fallback to .current-line .view-line
-    let lineText = '';
     const currentLineDirect = editor.locator('.view-line.current-line').first();
     const currentLineNested = editor.locator('.current-line .view-line').first();
 
-    if ((await currentLineDirect.count()) > 0) {
-      lineText = (await currentLineDirect.textContent()) ?? '';
-    } else if ((await currentLineNested.count()) > 0) {
-      lineText = (await currentLineNested.textContent()) ?? '';
-    }
+    const lineText =
+      (await currentLineDirect.count()) > 0
+        ? ((await currentLineDirect.textContent()) ?? '')
+        : (await currentLineNested.count()) > 0
+          ? ((await currentLineNested.textContent()) ?? '')
+          : '';
 
     const trimmed = lineText.trim();
     if (trimmed === '' || trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) {
