@@ -898,29 +898,6 @@ export const extractMetadataFromPage = async (
     // If no tables and no headings without tables, return empty
     if (allTableFields.length === 0 && !extractionResult.headingsWithoutTables?.length) return [];
 
-    /** Helper to create a result entry with cleaned fields and normalized description */
-    const createResultEntry = (name: string, description: string, fields: MetadataField[]) => {
-      const cleanedFields = fields.map((field: MetadataField) => ({
-        ...field,
-        Description: normalizeWhitespace(field.Description),
-        'Field Type': normalizeWhitespace(field['Field Type'])
-      }));
-
-      const cleanedDescription = normalizeWhitespace(description);
-
-      const entry = {
-        name,
-        data: {
-          fields: cleanedFields,
-          short_description: cleanedDescription,
-          url: url.split('#')[0], // Strip hash fragment if present
-          parent: extractParentType(cleanedDescription, cleanedFields)
-        }
-      };
-      results.push(entry);
-      console.log(`Newest entry:`, JSON.stringify(entry, null, 2));
-    };
-
     // Process all tables
     for (let i = 0; i < allTableFields.length; i++) {
       const tableData = allTableFields[i];
@@ -942,7 +919,8 @@ export const extractMetadataFromPage = async (
         description = tableData.tableDescription;
       }
 
-      createResultEntry(finalName, description, tableData.fields);
+      const entry = createResultEntry(finalName, description, tableData.fields, url);
+      results.push(entry);
     }
 
     // After extracting all tables, identify referenced types that don't have their own tables
@@ -963,6 +941,42 @@ export const extractMetadataFromPage = async (
     console.error(`    Error extracting data: ${error}`);
     return [];
   }
+};
+
+// ============================================================================
+// Result Entry Creation Helper
+// ============================================================================
+
+/**
+ * Create a metadata result entry with cleaned fields and normalized description.
+ * Returns the entry object instead of mutating an array.
+ */
+const createResultEntry = (
+  name: string,
+  description: string,
+  fields: MetadataField[],
+  url: string
+): { name: string; data: MetadataType } => {
+  const cleanedFields = fields.map((field: MetadataField) => ({
+    ...field,
+    Description: normalizeWhitespace(field.Description),
+    'Field Type': normalizeWhitespace(field['Field Type'])
+  }));
+
+  const cleanedDescription = normalizeWhitespace(description);
+
+  const entry = {
+    name,
+    data: {
+      fields: cleanedFields,
+      short_description: cleanedDescription,
+      url: url.split('#')[0], // Strip hash fragment if present
+      parent: extractParentType(cleanedDescription, cleanedFields)
+    }
+  };
+
+  console.log(`Newest entry:`, JSON.stringify(entry, null, 2));
+  return entry;
 };
 
 // ============================================================================
