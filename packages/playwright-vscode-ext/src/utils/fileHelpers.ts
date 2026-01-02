@@ -191,6 +191,11 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
 export const editOpenFile = async (page: Page, comment: string): Promise<void> => {
   const editor = page.locator(EDITOR_WITH_URI).first();
   await editor.waitFor({ state: 'visible' });
+
+  // Wait for editor content to render (at least one line visible)
+  await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
+
+  // Click editor to focus it (same approach as createFileWithContents)
   await editor.click();
 
   // Go to end of first line (class declaration)

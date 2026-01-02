@@ -1,131 +1,102 @@
 ---
-name: Fix Flaky E2E Tests
-overview: Fix the `editOpenFile` function which is corrupting Apex class files in CI by not properly inserting newlines, causing deploy failures. The issue is that the DOM-based current-line detection and keyboard operations have timing issues in web/CI environments.
+name: Fix Windows E2E Tests
+overview: Make all Playwright E2E tests pass on Windows desktop. Web tests are now passing after fixing `editOpenFile`. Windows failures are caused by `executeCommandWithCommandPalette` failing to open the command palette, resulting in text being typed into the editor.
 todos:
-  - id: fix-editOpenFile
-    content: Simplify editOpenFile to use End-of-line approach
-    status: pending
-  - id: test-local
-    content: Run tests locally to verify fix
+  - id: fix-command-palette-windows
+    content: Fix executeCommandWithCommandPalette on Windows
     status: pending
   - id: monitor-ci
     content: Monitor CI run after user pushes
     status: pending
   - id: analyze-results
     content: Analyze CI screenshots and update plan
-    status: pending
+    status: completed
 ---
 
-# Fix Flaky E2E Tests
+# Fix Windows E2E Tests
 
-## Problem Analysis
+## Goal
 
-From the CI screenshots, the `editOpenFile` function is corrupting files:**Expected file content:**
+Make all Playwright E2E tests pass on Windows desktop.
 
-```apex
-public class Test {
-// comment
-}
-```
+## Current Status
 
-**Actual file content (from screenshot):**
+| Platform | Status | Notes |
 
-```apex
-public class Test {
-// Editor context menu DeploySourcePathTest1767329215411}
-```
+|----------|--------|-------|
 
-The closing brace `}` is concatenated to the comment line. The Enter key press is not creating a newline properly, or there's a race condition between typing and the DOM update.
+| Web (chromium) | ✅ PASSED | `editOpenFile` fix worked |
 
-### Root Causes
+| macOS desktop | ✅ PASSED | |
 
-1. **DOM-based current-line detection is unreliable**: The `.current-line` class may not update synchronously after keyboard navigation
-2. **No wait between keyboard operations**: Typing and Enter happen without waiting for the editor to process
-3. **Enter key may not work as expected**: In some cases, Enter at the end of a line may behave differently
-
-## Solution
-
-Rewrite `editOpenFile` to be more robust:
-
-1. **Use End-of-line approach**: Instead of inserting at the start of a line, go to the end of line 1 and insert a new line below
-2. **Add explicit waits**: Wait for the editor to stabilize after keyboard operations
-3. **Verify the edit worked**: Check that the file content changed as expected before saving
-
-## Iteration Process
-
-Each iteration will:
-
-1. Propose changes (no commit/push)
-2. User reviews and pushes
-3. Monitor CI results
-4. Analyze screenshots/artifacts
-5. Update plan with findings
-6. Propose next changes
+| Windows desktop | ❌ FAILED | Command palette issues |
 
 ---
 
-## Iteration 1: Fix editOpenFile
+## Iteration 1 Results (CI Run 20659201069)
 
-### Changes to [packages/playwright-vscode-ext/src/utils/fileHelpers.ts](packages/playwright-vscode-ext/src/utils/fileHelpers.ts)
+### Screenshot Analysis
 
-Replace the current `editOpenFile` implementation with a simpler, more robust approach:
+1. **`deployOnSave` failure** (`test-failed-1.png`):
+
+   - File content shows: `File: Savepublic class DeployOnSaveTest...`
+   - The text "File: Save" was **typed into the editor** instead of executing as a command
+   - **Note**: Preview mode is irrelevant — files in preview mode can still be edited. The issue is that keyboard events aren't reaching the editor.
+   - **Root cause**: `executeCommandWithCommandPalette` failed — F1 didn't open the command palette, so `keyboard.type("File: Save")` went to the editor
+
+2. **`deploySourcePath` failure** (`test-failed-1.png`):
+
+   - File content is correct: `public class...` with `// Editor context menu test` comment
+   - `editOpenFile` worked correctly here
+   - Failure: "Deploying progress notification should be visible"
+   - **Root cause**: Likely a timing issue or deploy not triggered
+
+3. **`deployManifest` failure** (`test-failed-1.png`):
+
+   - Explorer shows `.sf` folder selected, no Apex class visible
+   - Status bar: `94↓ 1↑` (1 local change exists)
+   - Editor is empty (no file open)
+   - **Root cause**: `createFileWithContents` failed — "Folder path" textbox timeout
+
+### Key Finding: Command Palette Failure
+
+The `deployOnSave` screenshot clearly shows:
+
+- Line 1: `File: Savepublic class DeployOnSaveTest1767362417254 {`
+- The command "File: Save" was typed as text, not executed
+
+This means `openCommandPalette()` failed silently — the `F1` key didn't open the command palette, but the 3-second timeout passed without the `QUICK_INPUT_WIDGET` becoming visible, and execution continued.
+
+**Current code** (`packages/playwright-vscode-ext/src/pages/commands.ts`):
 
 ```typescript
-export const editOpenFile = async (page: Page, comment: string): Promise<void> => {
-  const editor = page.locator(EDITOR_WITH_URI).first();
-  await editor.waitFor({ state: 'visible' });
-  await editor.click();
-
-  // Go to end of first line (class declaration)
-  await page.keyboard.press('Control+Home');
-  await page.keyboard.press('End');
-
-  // Insert new line below and type comment
-  await page.keyboard.press('Enter');
-  await page.keyboard.type(`// ${comment}`);
-
-  // Save file
-  await executeCommandWithCommandPalette(page, 'File: Save');
-  await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
+const openCommandPalette = async (page: Page): Promise<void> => {
+  await page.keyboard.press('F1');
+  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
 };
 ```
 
-This approach:
+The `waitFor` throws if the widget doesn't appear, but the test continued — suggesting either:
 
-- Goes to line 1, end of line
-- Presses Enter to create a new line 2
-- Types the comment on the new line 2
-- Original closing brace stays on line 3
-
-### Verification
-
-Run locally first:
-
-```bash
-npm run test:web -w salesforcedx-vscode-metadata -- deployOnSave.headless.spec.ts
-npm run test:web -w salesforcedx-vscode-metadata -- deployManifest.headless.spec.ts
-```
+1. The widget appeared briefly then closed
+2. There's a race condition
+3. F1 doesn't work reliably on Windows desktop
 
 ---
 
 ## Artifacts Location
 
-CI artifacts will be downloaded to: `/tmp/gh-artifacts-<run_id>/`
-
-Structure:
+CI artifacts downloaded to: `/tmp/gh-artifacts-20659201069/`
 
 - `playwright-test-results-web/` — Web (chromium) test results
 - `playwright-test-results-desktop-windows-latest/` — Windows desktop test results
-
-Each test folder contains:
-
-- `test-failed-1.png` / `test-finished-1.png` — Screenshots
-- `error-context.md` — Page snapshot at failure
-- `trace.zip` — Playwright trace
-- `video.webm` — Test recording
 
 ---
 
 ## Tracking
 
 | Iteration | Changes | CI Run | Result | Next Steps |
+
+|-----------|---------|--------|--------|------------|
+
+| 1 | Simplify editOpenFile | 20659201069 | ✅ Web/macOS passed<br>❌ Windows failed | Fix command palette on Windows |
