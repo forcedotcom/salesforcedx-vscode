@@ -7,7 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
-import { closeSettingsTab, closeWelcomeTabs } from './helpers';
+import { closeSettingsTab, closeWelcomeTabs, isWindowsDesktop } from './helpers';
 import { WORKBENCH, QUICK_INPUT_WIDGET, EDITOR_WITH_URI, DIRTY_EDITOR, QUICK_INPUT_LIST_ROW } from './locators';
 
 /** Creates a new file with contents using the "Create: New File..." command */
@@ -195,11 +195,15 @@ export const editOpenFile = async (page: Page, comment: string): Promise<void> =
   // Wait for editor content to render (at least one line visible)
   await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
 
-  // Target the Monaco editor's input area directly (more reliable on Windows desktop)
-  // The textarea is the actual input element that receives keyboard events
-  const inputArea = editor.locator('textarea.inputarea').first();
-  await inputArea.waitFor({ state: 'visible', timeout: 5000 });
-  await inputArea.click();
+  // On Windows desktop, target the Monaco editor's textarea directly for more reliable keyboard input
+  // On web and macOS desktop, clicking the editor container works fine
+  if (isWindowsDesktop()) {
+    const inputArea = editor.locator('textarea.inputarea').first();
+    await inputArea.waitFor({ state: 'attached', timeout: 5000 });
+    await inputArea.click();
+  } else {
+    await editor.click();
+  }
 
   // Go to end of first line (class declaration)
   await page.keyboard.press('Control+Home');

@@ -6,16 +6,22 @@
  */
 
 import { Page } from '@playwright/test';
+import { isWindowsDesktop } from '../utils/helpers';
 import { QUICK_INPUT_WIDGET } from '../utils/locators';
 
 const openCommandPalette = async (page: Page): Promise<void> => {
   // Try F1 first (standard command palette shortcut)
   await page.keyboard.press('F1');
-  try {
-    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
-  } catch {
-    // If F1 didn't work, try Ctrl+Shift+P fallback (especially useful on Windows desktop)
-    await page.keyboard.press('Control+Shift+p');
+  if (isWindowsDesktop()) {
+    // On Windows desktop, F1 may not work reliably, so try Ctrl+Shift+P fallback
+    try {
+      await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
+    } catch {
+      await page.keyboard.press('Control+Shift+p');
+      await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
+    }
+  } else {
+    // Web and macOS desktop: F1 should work
     await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
   }
 };

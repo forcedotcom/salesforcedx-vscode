@@ -15,6 +15,7 @@ export {
   waitForWorkspaceReady,
   typingSpeed,
   isMacDesktop,
+  isWindowsDesktop,
   validateNoCriticalErrors
 } from './utils/helpers';
 
