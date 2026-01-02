@@ -37,14 +37,18 @@ When a user requests to analyze e2e tests:
      - If only completed workflows: use the most recent one
 
 3. **Monitor Workflow Status**
+   - **IMPORTANT**: Always continue monitoring until all workflows complete. Do NOT ask the user if they want to continue - just keep monitoring automatically.
    - If multiple playwright workflows are running:
      - Monitor all of them: `gh run watch <run-id-1> <run-id-2> ...` (if supported)
      - Or monitor each sequentially, showing which workflow is being watched
+     - Keep checking status periodically until all workflows complete
    - If workflow is `in_progress` or `queued`:
      - Use `gh run watch <run-id>` to monitor until completion
      - Show status updates: "Monitoring workflow: <workflow-name>...", "Waiting for completion..."
+     - If watch times out or workflows are still running, periodically check status with `gh run view <run-id> --json status,conclusion` until all show `status: "completed"`
    - If workflow is already completed:
      - Skip monitoring, proceed to result handling
+   - **Never ask "should I continue monitoring?"** - always keep monitoring until completion
 
 4. **Handle Results**
 
