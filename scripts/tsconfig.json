@@ -5,6 +5,6 @@
     "noEmit": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "lib": ["es2021", "dom"]
+    "lib": ["ES2023", "DOM"]
   }
 }
