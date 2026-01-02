@@ -189,48 +189,19 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
 
 /** Edit the currently open file by adding a comment at the top */
 export const editOpenFile = async (page: Page, comment: string): Promise<void> => {
-  // Wait for editor to be ready
   const editor = page.locator(EDITOR_WITH_URI).first();
   await editor.waitFor({ state: 'visible' });
-
-  // Click into the editor to focus it
   await editor.click();
 
-  // Move cursor to start of file
+  // Go to end of first line (class declaration)
   await page.keyboard.press('Control+Home');
+  await page.keyboard.press('End');
 
-  // Find the first non-comment, non-blank line by reading visible text
-  // Move down past header comments
-  for (let i = 0; i < 50; i++) {
-    // Get current line from DOM - Monaco marks the current line with .current-line class
-    // Try .view-line.current-line first, fallback to .current-line .view-line
-    const currentLineDirect = editor.locator('.view-line.current-line').first();
-    const currentLineNested = editor.locator('.current-line .view-line').first();
-
-    const lineText =
-      (await currentLineDirect.count()) > 0
-        ? ((await currentLineDirect.textContent()) ?? '')
-        : (await currentLineNested.count()) > 0
-          ? ((await currentLineNested.textContent()) ?? '')
-          : '';
-
-    const trimmed = lineText.trim();
-    if (trimmed === '' || trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) {
-      await page.keyboard.press('ArrowDown');
-    } else {
-      break;
-    }
-  }
-
-  // Add the comment line
-  await page.keyboard.press('Home');
-  await page.keyboard.type(`// ${comment}`);
+  // Insert new line below and type comment
   await page.keyboard.press('Enter');
+  await page.keyboard.type(`// ${comment}`);
 
-  // Save file via command palette (more reliable than keyboard shortcut across OSes)
+  // Save file
   await executeCommandWithCommandPalette(page, 'File: Save');
-
-  // Wait for save indicator to disappear (file tab loses "dirty" state)
-  // If already not visible, this passes immediately
   await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
 };
