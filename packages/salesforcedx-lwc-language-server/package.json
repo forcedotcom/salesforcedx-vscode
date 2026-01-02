@@ -1,0 +1,88 @@
+{
+  "name": "@salesforce/salesforcedx-lwc-language-server",
+  "displayName": "LWC Language Server",
+  "version": "64.16.1",
+  "description": "Language server for Lightning Web Components.",
+  "publisher": "salesforce",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "main": "out/src/server.js",
+  "typings": "out/src/server.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./out/src/server.js",
+      "require": "./out/src/server.js",
+      "types": "./out/src/server.d.ts"
+    }
+  },
+  "license": "BSD-3-Clause",
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "bin": {
+    "lwc-language-server": "./bin/lwc-language-server.js"
+  },
+  "scripts": {
+    "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache",
+    "compile": "wireit",
+    "test": "jest --coverage",
+    "lint": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc -p . && node scripts/convert.js && node scripts/build.js",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-lightning-lsp-common:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "scripts/**/*.js",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    }
+  },
+  "dependencies": {
+    "@lwc/compiler": "8.16.0",
+    "@lwc/errors": "8.16.0",
+    "@lwc/metadata": "12.2.0",
+    "@lwc/template-compiler": "8.16.0",
+    "@salesforce/apex": "0.0.21",
+    "@salesforce/label": "0.0.21",
+    "@salesforce/salesforcedx-lightning-lsp-common": "64.16.1",
+    "@salesforce/schema": "0.0.21",
+    "babel-types": "^6.26.0",
+    "change-case": "^4.1.1",
+    "comment-parser": "^0.7.6",
+    "minimatch": "^10.0.1",
+    "vscode-html-languageservice": "^5.5.1",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12",
+    "vscode-uri": "^2.1.2",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@lwc/old-compiler": "npm:@lwc/compiler@0.34.8",
+    "@types/babel-types": "^7.0.8",
+    "@types/xml2js": "^0.4.14",
+    "jest-extended": "^0.11.5"
+  }
+}

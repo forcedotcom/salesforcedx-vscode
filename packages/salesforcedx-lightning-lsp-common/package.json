@@ -1,0 +1,105 @@
+{
+  "name": "@salesforce/salesforcedx-lightning-lsp-common",
+  "displayName": "Lightning LSP Common",
+  "version": "64.16.1",
+  "description": "Common components for lwc-language-server and aura-language-server.",
+  "publisher": "salesforce",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "main": "out/src/index.js",
+  "typings": "out/src/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./out/src/index.js",
+      "require": "./out/src/index.js",
+      "types": "./out/src/index.d.ts"
+    },
+    "./testUtils": {
+      "import": "./out/src/__tests__/testUtils.js",
+      "require": "./out/src/__tests__/testUtils.js",
+      "types": "./out/src/__tests__/testUtils.d.ts"
+    },
+    "./providers/fileSystemDataProvider": {
+      "import": "./out/src/providers/fileSystemDataProvider.js",
+      "require": "./out/src/providers/fileSystemDataProvider.js",
+      "types": "./out/src/providers/fileSystemDataProvider.d.ts"
+    }
+  },
+  "license": "BSD-3-Clause",
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "scripts": {
+    "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache",
+    "compile": "wireit",
+    "test": "wireit",
+    "lint": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty && node scripts/build.js",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-utils:compile",
+        "../salesforcedx-vscode-i18n:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "scripts/**/*.js",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "test": {
+      "command": "jest --coverage",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "jest/**/*.ts",
+        "jest.config.js",
+        "jest.setup.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "jest/**/*.ts",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    }
+  },
+  "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/vscode-i18n": "*",
+    "ejs": "^3.1.10",
+    "tiny-jsonc": "^1.0.2",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-protocol": "^3.17.5",
+    "vscode-languageserver-textdocument": "^1.0.12",
+    "vscode-uri": "^2.1.2"
+  },
+  "devDependencies": {
+    "@lwc/engine-dom": "8.26.2",
+    "@types/ejs": "^3.1.5",
+    "find-node-modules": "^2.1.3",
+    "jest-extended": "^0.11.5",
+    "lwc": "2.37.3"
+  }
+}

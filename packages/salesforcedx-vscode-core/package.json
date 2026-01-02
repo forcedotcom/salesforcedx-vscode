@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.9.1",
+  "version": "65.11.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -30,7 +30,7 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/source-deploy-retrieve": "^12.29.1",
-    "@salesforce/source-tracking": "^7.7.0",
+    "@salesforce/source-tracking": "^7.8.0",
     "@salesforce/templates": "^65.1.1",
     "@salesforce/ts-types": "2.0.12",
     "@salesforce/vscode-i18n": "*",
@@ -39,7 +39,6 @@
     "fast-xml-parser": "^4.3.2",
     "glob": "^11.1.0",
     "rxjs": "^5.4.1",
-    "sanitize-filename": "^1.6.1",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
@@ -439,10 +438,6 @@
           "when": "sf:project_opened"
         },
         {
-          "command": "sf.debugger.stop",
-          "when": "sf:project_opened"
-        },
-        {
           "command": "sf.config.list",
           "when": "sf:project_opened"
         },
@@ -485,10 +480,6 @@
         {
           "command": "sf.stop.apex.debug.logging",
           "when": "sf:project_opened && sf:replay_debugger_extension && sf:has_target_org && (!isWeb || (isWeb && sf:code_builder_enabled))"
-        },
-        {
-          "command": "sf.debug.isv.bootstrap",
-          "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
           "command": "sf.retrieve.component",
@@ -694,10 +685,6 @@
         "title": "%lightning_generate_interface_text%"
       },
       {
-        "command": "sf.debugger.stop",
-        "title": "%debugger_stop_text%"
-      },
-      {
         "command": "sf.config.list",
         "title": "%config_list_text%"
       },
@@ -732,10 +719,6 @@
       {
         "command": "sf.stop.apex.debug.logging",
         "title": "%stop_apex_debug_logging%"
-      },
-      {
-        "command": "sf.debug.isv.bootstrap",
-        "title": "%isv_bootstrap_command_text%"
       },
       {
         "command": "sf.retrieve.source.path",

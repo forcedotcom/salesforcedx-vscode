@@ -24,27 +24,21 @@ import {
   VscodeDebuggerMessage,
   VscodeDebuggerMessageType
 } from '@salesforce/salesforcedx-apex-debugger';
-import { ActivationTracker, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import { DebugProtocol } from '@vscode/debugprotocol';
-import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
+import { debuggerStop } from './commands/debuggerStop';
+import { isvDebugBootstrap } from './commands/isvdebugging/bootstrapCmd';
 import { getActiveApexExtension } from './context/apexExtension';
 import { registerIsvAuthWatcher, setupGlobalDefaultUserIsvAuth } from './context/isvContext';
 import { nls } from './messages';
+import { getActiveSalesforceCoreExtension, getTelemetryService } from './utils/coreExtensionUtils';
 
 const cachedExceptionBreakpoints: Map<string, ExceptionBreakpointItem> = new Map();
-const salesforceCoreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>(
-  'salesforce.salesforcedx-vscode-core'
-);
 
-export const getDebuggerType = async (session: vscode.DebugSession): Promise<string> => {
-  let type = session.type;
-  if (type === LIVESHARE_DEBUGGER_TYPE) {
-    type = await session.customRequest(LIVESHARE_DEBUG_TYPE_REQUEST);
-  }
-  return type;
-};
+export const getDebuggerType = async (session: vscode.DebugSession): Promise<string> =>
+  session.type === LIVESHARE_DEBUGGER_TYPE ? session.customRequest(LIVESHARE_DEBUG_TYPE_REQUEST) : session.type;
 
 const registerCommands = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(async event => {
@@ -75,6 +69,8 @@ const registerCommands = (): vscode.Disposable => {
     'sf.debug.exception.breakpoint',
     configureExceptionBreakpoint
   );
+  const isvBootstrapCmd = vscode.commands.registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);
+  const debuggerStopCmd = vscode.commands.registerCommand('sf.debugger.stop', debuggerStop);
   const startSessionHandler = vscode.debug.onDidStartDebugSession(session => {
     cachedExceptionBreakpoints.forEach(breakpoint => {
       const args: SetExceptionBreakpointsArguments = {
@@ -84,7 +80,13 @@ const registerCommands = (): vscode.Disposable => {
     });
   });
 
-  return vscode.Disposable.from(customEventHandler, exceptionBreakpointCmd, startSessionHandler);
+  return vscode.Disposable.from(
+    customEventHandler,
+    exceptionBreakpointCmd,
+    isvBootstrapCmd,
+    debuggerStopCmd,
+    startSessionHandler
+  );
 };
 
 export type ExceptionBreakpointItem = vscode.QuickPickItem & {
@@ -226,12 +228,10 @@ const registerDebugHandlers = (): vscode.Disposable => {
 
       if (event.event === SEND_METRIC_EVENT && isMetric(event.body)) {
         // Send metric event using core telemetry service
-        if (salesforceCoreExtension?.exports?.telemetryService) {
-          // Convert the debug event to telemetry format
-          const telemetryService = salesforceCoreExtension.exports.telemetryService;
-          const eventData = event.body as any;
-          telemetryService.sendEventData('apexDebuggerMetric', eventData.properties, eventData.measurements);
-        }
+        const telemetryService = await getTelemetryService();
+        // Convert the debug event to telemetry format
+        const eventData = event.body as any;
+        telemetryService.sendEventData('apexDebuggerMetric', eventData.properties, eventData.measurements);
       }
     }
   });
@@ -252,38 +252,31 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     vscode.debug.registerDebugConfigurationProvider('apex', new DebugConfigurationProvider())
   );
 
-  if (salesforceCoreExtension?.exports) {
-    if (!salesforceCoreExtension.isActive) {
-      await salesforceCoreExtension.activate();
+  const salesforceCoreExtension = await getActiveSalesforceCoreExtension();
+  if (salesforceCoreExtension.exports.isCLIInstalled()) {
+    console.log('Setting up ISV Debugger environment variables');
+    // register watcher for ISV authentication and setup default user for CLI
+    // this is done in core because it shares access to GlobalCliEnvironment with the commands
+    // (VS Code does not seem to allow sharing npm modules between extensions)
+    try {
+      registerIsvAuthWatcher(extensionContext);
+      await setupGlobalDefaultUserIsvAuth();
+    } catch (e) {
+      console.error(e);
+      vscode.window.showWarningMessage(nls.localize('isv_debug_config_environment_error'));
     }
-    if (salesforceCoreExtension.exports.isCLIInstalled()) {
-      console.log('Setting up ISV Debugger environment variables');
-      // register watcher for ISV authentication and setup default user for CLI
-      // this is done in core because it shares access to GlobalCliEnvironment with the commands
-      // (VS Code does not seem to allow sharing npm modules between extensions)
-      try {
-        registerIsvAuthWatcher(extensionContext);
-        await setupGlobalDefaultUserIsvAuth();
-      } catch (e) {
-        console.error(e);
-        vscode.window.showWarningMessage(nls.localize('isv_debug_config_environment_error'));
-      }
-    }
-
-    // Telemetry
-    const telemetryService = TelemetryService.getInstance();
-    await telemetryService.initializeService(extensionContext);
-    const activationTracker = new ActivationTracker(extensionContext, telemetryService);
-    await activationTracker.markActivationStop();
-  } else {
-    console.warn('Salesforce Core Extension not available - telemetry will not be initialized');
   }
+
+  // Telemetry
+  const telemetryService = await getTelemetryService();
+  await telemetryService.initializeService(extensionContext);
+  const activationTracker = new ActivationTracker(extensionContext, telemetryService);
+  await activationTracker.markActivationStop();
 };
 
-export const deactivate = () => {
+export const deactivate = async () => {
   console.log('Apex Debugger Extension Deactivated');
   // Send deactivation event using shared service if available
-  if (salesforceCoreExtension?.exports?.telemetryService) {
-    salesforceCoreExtension.exports.telemetryService.sendExtensionDeactivationEvent();
-  }
+  const telemetryService = await getTelemetryService();
+  telemetryService.sendExtensionDeactivationEvent();
 };

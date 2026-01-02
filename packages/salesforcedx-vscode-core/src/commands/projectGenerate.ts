@@ -70,7 +70,7 @@ class LibraryProjectGenerateExecutor extends LibraryBaseTemplateCommand<ProjectN
   }
 }
 
-export type ProjectNameAndPathAndTemplate = ProjectName & ProjectURI & { projectTemplate: ProjectTemplate };
+type ProjectNameAndPathAndTemplate = ProjectName & ProjectURI & { projectTemplate: ProjectTemplate };
 
 type ProjectURI = {
   projectUri: string;
@@ -108,7 +108,7 @@ class SelectProjectTemplate implements ParametersGatherer<{ projectTemplate: Pro
     return projectTemplate ? { type: 'CONTINUE', data: { projectTemplate } } : { type: 'CANCEL' };
   }
 }
-export class SelectProjectName implements ParametersGatherer<ProjectName> {
+class SelectProjectName implements ParametersGatherer<ProjectName> {
   private readonly prefillValueProvider?: () => string;
 
   constructor(prefillValueProvider?: () => string) {
@@ -123,7 +123,7 @@ export class SelectProjectName implements ParametersGatherer<ProjectName> {
   }
 }
 
-export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
+class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ProjectURI>> {
     const projectUri = await vscode.window.showOpenDialog({
       canSelectFiles: false,
@@ -137,7 +137,7 @@ export class SelectProjectFolder implements ParametersGatherer<ProjectURI> {
   }
 }
 
-export class PathExistsChecker implements PostconditionChecker<ProjectNameAndPathAndTemplate> {
+class PathExistsChecker implements PostconditionChecker<ProjectNameAndPathAndTemplate> {
   public async check(
     inputs: ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse
   ): Promise<ContinueResponse<ProjectNameAndPathAndTemplate> | CancelResponse> {
