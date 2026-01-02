@@ -31,3 +31,4 @@ Capture html "parent" levels up from where you are having a problem and study it
 Use emojis infrequently.
 
 Read the playwright docs
+use https://github.com/redhat-developer/vscode-extension-tester for pageObject/Selector stuff. It's selenium (not playwright) but might be informative.

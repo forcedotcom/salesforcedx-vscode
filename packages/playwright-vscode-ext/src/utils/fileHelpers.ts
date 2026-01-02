@@ -195,8 +195,11 @@ export const editOpenFile = async (page: Page, comment: string): Promise<void> =
   // Wait for editor content to render (at least one line visible)
   await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
 
-  // Click editor to focus it (same approach as createFileWithContents)
-  await editor.click();
+  // Target the Monaco editor's input area directly (more reliable on Windows desktop)
+  // The textarea is the actual input element that receives keyboard events
+  const inputArea = editor.locator('textarea.inputarea').first();
+  await inputArea.waitFor({ state: 'visible', timeout: 5000 });
+  await inputArea.click();
 
   // Go to end of first line (class declaration)
   await page.keyboard.press('Control+Home');

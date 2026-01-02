@@ -9,8 +9,15 @@ import { Page } from '@playwright/test';
 import { QUICK_INPUT_WIDGET } from '../utils/locators';
 
 const openCommandPalette = async (page: Page): Promise<void> => {
+  // Try F1 first (standard command palette shortcut)
   await page.keyboard.press('F1');
-  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
+  try {
+    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
+  } catch {
+    // If F1 didn't work, try Ctrl+Shift+P fallback (especially useful on Windows desktop)
+    await page.keyboard.press('Control+Shift+p');
+    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
+  }
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
