@@ -14,7 +14,8 @@ import {
   extractMetadataFromPage,
   MetadataType,
   MetadataTypesMap,
-  BROWSER_LAUNCH_ARGS
+  BROWSER_LAUNCH_ARGS,
+  createBrowserContext
 } from './scrapeUtils';
 
 const JSON_DOC_URL = 'https://developer.salesforce.com/docs/get_document/atlas.en-us.api_meta.meta';
@@ -468,24 +469,6 @@ const scrapeInBatches = async (
 
   // Run the Effect program
   return Effect.runPromise(program);
-};
-
-/** Create a browser context with standard configuration */
-const createBrowserContext = async (browser: Browser) => {
-  const context = await browser.newContext({
-    userAgent:
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-    viewport: { width: 1920, height: 1080 },
-    locale: 'en-US',
-    timezoneId: 'America/Los_Angeles',
-    extraHTTPHeaders: {
-      'Accept-Language': 'en-US,en;q=0.9',
-      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-      'Accept-Encoding': 'gzip, deflate, br'
-    }
-  });
-
-  return context;
 };
 
 /**
