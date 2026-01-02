@@ -25,7 +25,8 @@ import {
   isMacDesktop,
   validateNoCriticalErrors,
   captureOutputChannelDetails,
-  NOTIFICATION_LIST_ITEM
+  NOTIFICATION_LIST_ITEM,
+  EDITOR
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -91,7 +92,7 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
     await openFileByName(page, 'package.xml');
 
     // Ensure the manifest editor is focused and ready
-    const manifestEditor = page.locator('.monaco-editor[data-uri*="package.xml"]').first();
+    const manifestEditor = page.locator(`${EDITOR}[data-uri*="package.xml"]`).first();
     await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
     await manifestEditor.click(); // Click to ensure focus
 

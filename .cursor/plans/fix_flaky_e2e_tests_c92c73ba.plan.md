@@ -2,8 +2,8 @@
 name: Fix Windows E2E Tests
 overview: Make all Playwright E2E tests pass on Windows desktop. Web tests are now passing after fixing `editOpenFile`. Windows failures are caused by `executeCommandWithCommandPalette` failing to open the command palette, resulting in text being typed into the editor.
 todos:
-  - id: fix-command-palette-windows
-    content: Fix executeCommandWithCommandPalette on Windows
+  - id: fix-windows-keyboard-input
+    content: Fix keyboard operations in editOpenFile on Windows desktop
     status: pending
   - id: monitor-ci
     content: Monitor CI run after user pushes
@@ -25,11 +25,29 @@ Make all Playwright E2E tests pass on Windows desktop.
 
 |----------|--------|-------|
 
-| Web (chromium) | ✅ PASSED | `editOpenFile` fix worked |
+| Web (chromium) | ✅ PASSED | `editOpenFile` fix working — **no longer a concern** |
 
-| macOS desktop | ✅ PASSED | |
+| macOS desktop | ✅ PASSED | **no longer a concern** |
 
-| Windows desktop | ❌ FAILED | Command palette issues |
+| Windows desktop | ❌ FAILED | Keyboard operations in `editOpenFile` not working — **only remaining issue** |
+
+---
+
+## Iteration 2 Results (CI Run 20660170620)
+
+**Status:** ✅ Web tests passing, ❌ Windows desktop still failing
+
+**Windows Desktop Failures:**
+
+1. **`deployManifest` test**: Timeout in `createFileWithContents` (line 80)
+   - "Folder path" textbox timeout — same issue as before
+
+2. **`deployOnSave` test**: Timeout in `editOpenFile` (line 210)
+   - `locator.click: Timeout 30000ms exceeded` when trying to save
+   - File content shows no comment was added — keyboard operations (`Control+Home`, `End`, `Enter`, `type`) aren't working on Windows desktop
+   - Root cause: Keyboard events aren't reaching the editor after clicking
+
+**Key Finding:** The `editOpenFile` fix works for web and macOS, but on Windows desktop, clicking the editor and waiting for `.view-line` isn't sufficient — keyboard events don't reach the editor. Need Windows-specific approach or more robust focus mechanism.
 
 ---
 
@@ -86,10 +104,10 @@ The `waitFor` throws if the widget doesn't appear, but the test continued — su
 
 ## Artifacts Location
 
-CI artifacts downloaded to: `/tmp/gh-artifacts-20659201069/`
+CI artifacts downloaded to: `/tmp/gh-artifacts-<run_id>/`
 
-- `playwright-test-results-web/` — Web (chromium) test results
-- `playwright-test-results-desktop-windows-latest/` — Windows desktop test results
+- `playwright-test-results-web/` — Web (chromium) test results (✅ passing)
+- `playwright-test-results-desktop-windows-latest/` — Windows desktop test results (❌ failing)
 
 ---
 
@@ -99,4 +117,6 @@ CI artifacts downloaded to: `/tmp/gh-artifacts-20659201069/`
 
 |-----------|---------|--------|--------|------------|
 
-| 1 | Simplify editOpenFile | 20659201069 | ✅ Web/macOS passed<br>❌ Windows failed | Fix command palette on Windows |
+| 1 | Simplify editOpenFile | 20659201069 | ✅ Web/macOS passed<br>❌ Windows failed | Fix keyboard operations on Windows |
+
+| 2 | Wait for editor readiness | 20660170620 | ✅ Web/macOS passed<br>❌ Windows failed | Fix Windows desktop keyboard input |

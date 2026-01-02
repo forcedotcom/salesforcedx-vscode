@@ -10,7 +10,8 @@ import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
   upsertScratchOrgAuthFieldsToSettings,
   createDreamhouseOrg,
-  NOTIFICATION_LIST_ITEM
+  NOTIFICATION_LIST_ITEM,
+  TAB
 } from '@salesforce/playwright-vscode-ext';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
@@ -59,7 +60,7 @@ test('Org Browser - CustomTab retrieval: custom-tab headless: retrieve Broker__c
   await test.step('verify editor is visible and capture final state', async () => {
     const editorPart = page.locator('#workbench\\.parts\\.editor');
     await expect(editorPart).toBeVisible();
-    const anyEditorTab = page.locator('.monaco-workbench .tabs-container .tab').first();
+    const anyEditorTab = page.locator(TAB).first();
     await expect(anyEditorTab).toBeVisible();
     const brokerTab = page.getByRole('tab', { name: /Broker__c/i }).first();
     await expect(brokerTab).toBeVisible();
@@ -91,7 +92,7 @@ test('Org Browser - CustomTab retrieval: custom-tab headless: retrieve Broker__c
   });
 
   await test.step('download all customTabs from the type-level retrieve icon', async () => {
-    const originalTabTexts = await page.locator('.monaco-workbench .tabs-container .tab').allTextContents();
+    const originalTabTexts = await page.locator(TAB).allTextContents();
     const typeLocator = await orgBrowserPage.findMetadataType('CustomTab');
     await orgBrowserPage.clickRetrieveButton(typeLocator);
 
@@ -111,6 +112,6 @@ test('Org Browser - CustomTab retrieval: custom-tab headless: retrieve Broker__c
     await expect(retrieving).toBeVisible({ timeout: 60_000 });
 
     // we didn't open any additional files on a "retrieve all"
-    expect(await page.locator('.monaco-workbench .tabs-container .tab').allTextContents()).toEqual(originalTabTexts);
+    expect(await page.locator(TAB).allTextContents()).toEqual(originalTabTexts);
   });
 });

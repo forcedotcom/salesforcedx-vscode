@@ -23,7 +23,9 @@ import {
   executeExplorerContextMenuCommand,
   saveScreenshot,
   isMacDesktop,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  EDITOR,
+  NOTIFICATION_LIST_ITEM
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
@@ -117,7 +119,7 @@ import packageNls from '../../../package.nls.json';
     await apexEditor.click();
 
     // Wait for editor content to be ready
-    await page.locator('.monaco-editor').first().waitFor({ state: 'visible', timeout: 5000 });
+    await page.locator(EDITOR).first().waitFor({ state: 'visible', timeout: 5000 });
 
     // Wait for status bar to be ready and showing synced state
     await statusBarPage.waitForVisible(5000);
@@ -152,7 +154,7 @@ import packageNls from '../../../package.nls.json';
     await saveScreenshot(page, 'step2.after-explorer-context-menu-command.png');
 
     // Check for deploy-related error notifications before waiting for deploying notification
-    const allNotifications = page.locator('.monaco-workbench .notification-list-item');
+    const allNotifications = page.locator(NOTIFICATION_LIST_ITEM);
     await saveScreenshot(page, 'step2.checking-notifications.png');
     const deployErrorNotification = allNotifications
       .filter({ hasText: /Failed to deploy|ENOENT|deploy.*failed/i })
@@ -205,7 +207,7 @@ import packageNls from '../../../package.nls.json';
     await saveScreenshot(page, 'step3.after-explorer-context-menu-command.png');
 
     // Check for deploy-related error notifications before waiting for deploying notification
-    const allNotifications = page.locator('.monaco-workbench .notification-list-item');
+    const allNotifications = page.locator(NOTIFICATION_LIST_ITEM);
     await saveScreenshot(page, 'step3.checking-notifications.png');
     const deployErrorNotification = allNotifications
       .filter({ hasText: /Failed to deploy|ENOENT|deploy.*failed/i })

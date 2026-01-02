@@ -27,6 +27,7 @@ import jsonPlugin from '@eslint/json';
 import localRulesPlugin from './packages/eslint-local-rules/out/index.js';
 
 const localRules = localRulesPlugin.rules;
+const localPlugin = { rules: localRules };
 
 export default [
   {
@@ -74,7 +75,7 @@ export default [
       'prefer-arrow': eslintPluginPreferArrow,
       '@stylistic/eslint-plugin-ts': stylistic,
       unicorn: eslintPluginUnicorn,
-      local: { rules: localRules },
+      local: localPlugin,
       'barrel-files': eslintPluginBarrelFiles,
       functional: functional,
       workspaces: eslintPluginWorkspaces,
@@ -459,9 +460,11 @@ export default [
       'packages/salesforcedx-vscode-automation-tests/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
+    ignores: ['**/locators.ts'],
     plugins: {
       '@typescript-eslint': typescriptEslint,
-      jest: eslintPluginJest
+      jest: eslintPluginJest,
+      local: localPlugin
     },
     rules: {
       'unicorn/filename-case': 'off',
@@ -488,7 +491,8 @@ export default [
       'jest/unbound-method': 'error',
       'no-useless-constructor': 'off',
       'no-restricted-imports': 'off',
-      'no-param-reassign': 'off'
+      'no-param-reassign': 'off',
+      'local/no-duplicate-playwright-locators': 'error'
     }
   },
   {
@@ -638,7 +642,7 @@ export default [
     language: 'json/json',
     plugins: {
       json: jsonPlugin,
-      local: { rules: localRules }
+      local: localPlugin
     },
     rules: {
       ...jsonPlugin.configs.recommended.rules,

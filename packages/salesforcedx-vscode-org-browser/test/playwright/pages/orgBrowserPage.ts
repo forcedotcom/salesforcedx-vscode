@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Page, Locator, expect } from '@playwright/test';
-import { saveScreenshot, typingSpeed, waitForWorkspaceReady } from '@salesforce/playwright-vscode-ext';
+import { saveScreenshot, typingSpeed, waitForWorkspaceReady, TAB } from '@salesforce/playwright-vscode-ext';
 import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
 
@@ -206,7 +206,7 @@ export class OrgBrowserPage {
    */
   public async waitForFileToOpenInEditor(timeout = 10_000): Promise<void> {
     await this.page
-      .locator('.monaco-workbench .tabs-container .tab')
+      .locator(TAB)
       .filter({
         hasNotText: /Welcome|Walkthrough|Get Started|Settings/
       })

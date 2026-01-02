@@ -17,7 +17,8 @@ import {
   waitForOutputChannelText,
   outputChannelContains,
   createMinimalOrg,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  TAB
 } from '@salesforce/playwright-vscode-ext';
 import { upsertRetrieveOnLoadSetting } from '../pages/settingsPage';
 import { SERVICES_CHANNEL_NAME } from '../../../src/constants';
@@ -58,7 +59,7 @@ test('retrieves metadata on load for CustomObject:Activity and Workflow:Case', a
   });
 
   await test.step('verify editor tabs contain retrieved files', async () => {
-    const tabs = page.locator('.monaco-workbench .tabs-container .tab');
+    const tabs = page.locator(TAB);
     const tabTexts = await tabs.allTextContents();
 
     // Should have at least 1 file open (Activity object and/or Case workflow)
