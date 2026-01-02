@@ -29,6 +29,44 @@ const formatElapsedTime = (startTime: number, endTime: number): string => {
   return `${minutes}m ${seconds}s`;
 };
 
+/** Apply anti-detection measures to a page */
+const applyAntiDetection = async (page: Page): Promise<void> => {
+  await page.addInitScript(() => {
+    // Hide webdriver
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+
+    // Mock chrome object
+    (window as any).chrome = {
+      runtime: {},
+      loadTimes: () => {},
+      csi: () => {},
+      app: {}
+    };
+
+    // Mock plugins
+    Object.defineProperty(navigator, 'plugins', {
+      get: () => [1, 2, 3, 4, 5]
+    });
+
+    // Mock languages
+    Object.defineProperty(navigator, 'languages', {
+      get: () => ['en-US', 'en']
+    });
+
+    // Mock permissions
+    const originalQuery = window.navigator.permissions.query;
+    window.navigator.permissions.query = (parameters: any) =>
+      parameters.name === 'notifications'
+        ? Promise.resolve({ state: 'prompt' } as PermissionStatus)
+        : originalQuery(parameters);
+
+    // Override the headless property
+    Object.defineProperty(navigator, 'platform', {
+      get: () => 'MacIntel'
+    });
+  });
+};
+
 /**
  * Scrape a single metadata type (may return multiple if page has multiple tables)
  */
@@ -255,42 +293,7 @@ const scrapeMetadataTypeWithContext = async (
   const { context, index: contextIndex } = await contextPool.acquire();
 
   const page = await context.newPage();
-
-  // Comprehensive anti-detection
-  await page.addInitScript(() => {
-    // Hide webdriver
-    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-
-    // Mock chrome object
-    (window as any).chrome = {
-      runtime: {},
-      loadTimes: () => {},
-      csi: () => {},
-      app: {}
-    };
-
-    // Mock plugins
-    Object.defineProperty(navigator, 'plugins', {
-      get: () => [1, 2, 3, 4, 5]
-    });
-
-    // Mock languages
-    Object.defineProperty(navigator, 'languages', {
-      get: () => ['en-US', 'en']
-    });
-
-    // Mock permissions
-    const originalQuery = window.navigator.permissions.query;
-    window.navigator.permissions.query = (parameters: any) =>
-      parameters.name === 'notifications'
-        ? Promise.resolve({ state: 'prompt' } as PermissionStatus)
-        : originalQuery(parameters);
-
-    // Override the headless property
-    Object.defineProperty(navigator, 'platform', {
-      get: () => 'MacIntel'
-    });
-  });
+  await applyAntiDetection(page);
 
   try {
     console.log(`[${index + 1}/${total}] ${type.name} → Browser ${contextIndex + 1}`);
@@ -497,42 +500,7 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
 
   const discoveryContext = await createBrowserContext(discoveryBrowser);
   const discoveryPage = await discoveryContext.newPage();
-
-  // Comprehensive anti-detection for discovery page
-  await discoveryPage.addInitScript(() => {
-    // Hide webdriver
-    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-
-    // Mock chrome object
-    (window as any).chrome = {
-      runtime: {},
-      loadTimes: () => {},
-      csi: () => {},
-      app: {}
-    };
-
-    // Mock plugins
-    Object.defineProperty(navigator, 'plugins', {
-      get: () => [1, 2, 3, 4, 5]
-    });
-
-    // Mock languages
-    Object.defineProperty(navigator, 'languages', {
-      get: () => ['en-US', 'en']
-    });
-
-    // Mock permissions
-    const originalQuery = window.navigator.permissions.query;
-    window.navigator.permissions.query = (parameters: any) =>
-      parameters.name === 'notifications'
-        ? Promise.resolve({ state: 'prompt' } as PermissionStatus)
-        : originalQuery(parameters);
-
-    // Override the headless property
-    Object.defineProperty(navigator, 'platform', {
-      get: () => 'MacIntel'
-    });
-  });
+  await applyAntiDetection(discoveryPage);
 
   // Step 1: Discover all metadata types from documentation
   const metadataTypes = await discoverMetadataTypes(discoveryPage);
