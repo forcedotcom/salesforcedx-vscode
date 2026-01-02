@@ -28,10 +28,10 @@ const openCommandPalette = async (page: Page): Promise<void> => {
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
-  // VS Code command palette uses '>' prefix to distinguish commands from file search
-  // Type '>' first, then the command text
-  await page.keyboard.type(`>${command}`, { delay: 5 });
-  await page.waitForTimeout(50); // unfortunately, it really does take a bit to be usable.
+  // VS Code command palette automatically adds '>' prefix when opened with F1/Ctrl+Shift+P
+  // Just type the command text directly
+  await page.keyboard.type(command, { delay: 5 });
+  await page.waitForTimeout(100); // unfortunately, it really does take a bit to be usable.
 
   // Capture HTML snapshot before clicking to debug Windows issues
   if (isWindowsDesktop()) {
@@ -58,13 +58,18 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   await commandRow.waitFor({ state: 'visible', timeout: 5000 });
   await commandRow.scrollIntoViewIfNeeded();
 
-  // On Windows, ensure the element is focused/actionable before clicking
+  // On Windows, use Enter key instead of click
+  // The input has aria-activedescendant pointing to the focused row, which indicates
+  // keyboard navigation is the intended interaction pattern. Enter will activate
+  // the focused item referenced by aria-activedescendant.
+  // This matches the pattern used in contextMenu.ts for Windows reliability.
   if (isWindowsDesktop()) {
     await commandRow.hover();
     await page.waitForTimeout(100); // Small delay for hover state
+    await page.keyboard.press('Enter');
+  } else {
+    await commandRow.click();
   }
-
-  await commandRow.click();
 };
 
 export const executeCommandWithCommandPalette = async (

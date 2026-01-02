@@ -149,5 +149,3 @@ Test cases should include:
     - Calculate relative path from current file to `packages/playwright-vscode-ext/src/utils/locators.ts`
 - Fix limitations:
     - Only fix exact matches (not partial matches in template literals with expressions)
-    - Skip fixes if import path cannot be determined
-    - Skip fixes if constant name conflicts with existing identifier in scope
