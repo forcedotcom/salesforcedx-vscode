@@ -151,5 +151,3 @@ Test cases should include:
     - Only fix exact matches (not partial matches in template literals with expressions)
     - Skip fixes if import path cannot be determined
     - Skip fixes if constant name conflicts with existing identifier in scope
-
-## Files to Modify

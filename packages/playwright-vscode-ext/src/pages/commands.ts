@@ -6,8 +6,9 @@
  */
 
 import { Page } from '@playwright/test';
+import { saveScreenshot } from '../shared/screenshotUtils';
 import { isWindowsDesktop } from '../utils/helpers';
-import { QUICK_INPUT_WIDGET } from '../utils/locators';
+import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
 
 const openCommandPalette = async (page: Page): Promise<void> => {
   // Try F1 first (standard command palette shortcut)
@@ -27,10 +28,43 @@ const openCommandPalette = async (page: Page): Promise<void> => {
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
-  await page.keyboard.type(command, { delay: 5 });
+  // VS Code command palette uses '>' prefix to distinguish commands from file search
+  // Type '>' first, then the command text
+  await page.keyboard.type(`>${command}`, { delay: 5 });
   await page.waitForTimeout(50); // unfortunately, it really does take a bit to be usable.
+
+  // Capture HTML snapshot before clicking to debug Windows issues
+  if (isWindowsDesktop()) {
+    const quickInputWidget = page.locator(QUICK_INPUT_WIDGET);
+    const htmlContent = await quickInputWidget.innerHTML();
+    const snapshotPath = `test-results/command-palette-before-click-${Date.now()}.html`;
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const testResultsDir = path.join(process.cwd(), 'test-results');
+    fs.mkdirSync(testResultsDir, { recursive: true });
+    fs.writeFileSync(path.join(testResultsDir, path.basename(snapshotPath)), htmlContent);
+    await saveScreenshot(page, `command-palette-before-click-${Date.now()}.png`, false);
+  }
+
   // Use text content matching to find exact command (bypasses MRU prioritization)
-  await page.locator('.monaco-list-row').filter({ hasText: command, hasNotText, visible: true }).first().click();
+  // Scope to QUICK_INPUT_WIDGET first, then find the list row (more specific than just .monaco-list-row)
+  const commandRow = page
+    .locator(QUICK_INPUT_WIDGET)
+    .locator(QUICK_INPUT_LIST_ROW)
+    .filter({ hasText: command, hasNotText, visible: true })
+    .first();
+
+  // Ensure the row is visible and actionable before clicking
+  await commandRow.waitFor({ state: 'visible', timeout: 5000 });
+  await commandRow.scrollIntoViewIfNeeded();
+
+  // On Windows, ensure the element is focused/actionable before clicking
+  if (isWindowsDesktop()) {
+    await commandRow.hover();
+    await page.waitForTimeout(100); // Small delay for hover state
+  }
+
+  await commandRow.click();
 };
 
 export const executeCommandWithCommandPalette = async (

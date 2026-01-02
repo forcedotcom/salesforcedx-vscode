@@ -98,5 +98,3 @@ CI artifacts downloaded to: `/tmp/gh-artifacts-<run_id>/`
 ---
 
 ## Tracking
-
-| Iteration | Changes | CI Run | Result | Next Steps ||-----------|---------|--------|--------|------------|| 1 | Simplify editOpenFile | 20659201069 | ✅ Web/macOS passed<br>❌ Windows failed | Fix keyboard operations on Windows |
