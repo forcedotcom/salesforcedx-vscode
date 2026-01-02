@@ -6,7 +6,8 @@
  */
 
 import { expect, type Page } from '@playwright/test';
-import { EDITOR } from '../utils/locators';
+import { isMacDesktop } from '../utils/helpers';
+import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB } from '../utils/locators';
 import { executeCommandWithCommandPalette } from './commands';
 
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
@@ -98,4 +99,50 @@ export const waitForOutputChannelText = async (
       expect(combinedText.includes(expectedText), `Expected "${expectedText}" in output`).toBe(true);
     }).toPass({ timeout });
   });
+};
+
+/**
+ * Opens output channel for a named extension, opens it in editor, and takes a screenshot.
+ * Useful for debugging when errors occur.
+ * Note: Context menus don't work on Mac+Desktop+Electron, so this will skip on that platform.
+ */
+export const captureOutputChannelDetails = async (
+  page: Page,
+  channelName: string,
+  screenshotName?: string
+): Promise<void> => {
+  // Skip on Mac desktop - context menus don't work there
+  if (isMacDesktop()) {
+    console.warn('Skipping captureOutputChannelDetails on Mac desktop - context menus not supported');
+    return;
+  }
+
+  await ensureOutputPanelOpen(page);
+  await selectOutputChannel(page, channelName);
+
+  // Find the ellipsis button (three dots) in the output panel toolbar
+  const outputPanelToolbar = outputPanel(page).locator('.monaco-toolbar');
+  const moreActionsButton = outputPanelToolbar.getByRole('button', { name: /More Actions|\.\.\./i }).last();
+
+  // Right-click to open context menu
+  await moreActionsButton.waitFor({ state: 'visible', timeout: 5000 });
+  await moreActionsButton.click({ button: 'right' });
+
+  // Wait for context menu and click "Open Output in Editor"
+  const contextMenu = page.locator(CONTEXT_MENU);
+  await contextMenu.waitFor({ state: 'visible', timeout: 5000 });
+  const openInEditorOption = contextMenu.getByRole('menuitem', { name: /Open Output in Editor/i });
+  await openInEditorOption.click();
+
+  // Wait for editor tab to appear (output channels open as editor tabs)
+  const safeChannelName = channelName.replaceAll(/[^a-zA-Z0-9]/g, '_');
+  const outputTab = page.locator(TAB).filter({ hasText: new RegExp(channelName, 'i') });
+  await outputTab.waitFor({ state: 'visible', timeout: 10_000 });
+
+  // Wait for editor content to be visible
+  const editor = page.locator(EDITOR_WITH_URI).last();
+  await editor.waitFor({ state: 'visible', timeout: 5000 });
+
+  const screenshotFileName = screenshotName ?? `output-channel-${safeChannelName}.png`;
+  await page.screenshot({ path: `test-results/${screenshotFileName}`, fullPage: true });
 };

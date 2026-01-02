@@ -23,11 +23,14 @@ import {
   executeExplorerContextMenuCommand,
   executeCommandWithCommandPalette,
   isMacDesktop,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  captureOutputChannelDetails,
+  NOTIFICATION_LIST_ITEM
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
-import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
+import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED, OUTPUT_CHANNEL_NAME } from '../../../src/constants';
+import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 
 const manifestContent = `<?xml version="1.0" encoding="UTF-8"?>
@@ -38,6 +41,10 @@ const manifestContent = `<?xml version="1.0" encoding="UTF-8"?>
   </types>
   <version>65.0</version>
 </Package>`;
+
+/** Escape regex special characters in a string for use in RegExp */
+// eslint-disable-next-line unicorn/prefer-string-replace-all -- regex escaping requires replace with regex pattern
+const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // eslint-disable-next-line jest/unbound-method
 (isMacDesktop() ? test.skip : test)('Deploy Manifest: deploys via all entry points', async ({ page }) => {
@@ -92,10 +99,11 @@ const manifestContent = `<?xml version="1.0" encoding="UTF-8"?>
     await executeEditorContextMenuCommand(page, packageNls.deploy_in_manifest_text, 'package.xml');
 
     // Check for deploy-related error notifications before waiting for deploying notification
-    const allNotifications = page.locator('.monaco-workbench .notification-list-item');
-    const deployErrorNotification = allNotifications
-      .filter({ hasText: /Failed to deploy|ENOENT.*package\.xml|manifest/i })
-      .first();
+    // Match deploy_failed message or file system errors (ENOENT, manifest issues)
+    const allNotifications = page.locator(NOTIFICATION_LIST_ITEM);
+    const escapedDeployFailedEarly = escapeRegex(messages.deploy_failed.replaceAll('%s', '.*'));
+    const earlyDeployErrorPattern = new RegExp(`${escapedDeployFailedEarly}|ENOENT.*package\\.xml|manifest`, 'i');
+    const deployErrorNotification = allNotifications.filter({ hasText: earlyDeployErrorPattern }).first();
     const hasDeployError = await deployErrorNotification.isVisible({ timeout: 2000 }).catch(() => false);
     if (hasDeployError) {
       const errorText = await deployErrorNotification.textContent();
@@ -105,6 +113,22 @@ const manifestContent = `<?xml version="1.0" encoding="UTF-8"?>
     // Verify deploy completes - look for deploying notification
     const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
     await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
+
+    // Check for deploy error notifications after deploy completes
+    const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);
+    // Match error messages from deployComponentSet (deploy_completed_with_errors_message) or deployManifest (deploy_failed)
+    const escapedCompletedWithErrors = escapeRegex(messages.deploy_completed_with_errors_message);
+    const escapedDeployFailed = escapeRegex(messages.deploy_failed.replaceAll('%s', '.*'));
+    const deployErrorPattern = new RegExp(`${escapedCompletedWithErrors}|${escapedDeployFailed}`, 'i');
+    const postDeployErrorNotification = postDeployNotifications.filter({ hasText: deployErrorPattern }).first();
+    const hasPostDeployError = await postDeployErrorNotification.isVisible({ timeout: 2000 }).catch(() => false);
+    if (hasPostDeployError) {
+      const errorText = await postDeployErrorNotification.textContent();
+      // Capture output channel details for debugging
+      await captureOutputChannelDetails(page, OUTPUT_CHANNEL_NAME, 'deploy-error-metadata-output.png');
+      throw new Error(`Deploy failed with error notification: ${errorText}`);
+    }
+
     await statusBarPage.waitForCounts({ local: 0 }, 60_000);
   });
 
@@ -127,6 +151,22 @@ const manifestContent = `<?xml version="1.0" encoding="UTF-8"?>
     // Verify deploy completes
     const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
     await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
+
+    // Check for deploy error notifications after deploy completes
+    const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);
+    // Match error messages from deployComponentSet (deploy_completed_with_errors_message) or deployManifest (deploy_failed)
+    const escapedCompletedWithErrors = escapeRegex(messages.deploy_completed_with_errors_message);
+    const escapedDeployFailed = escapeRegex(messages.deploy_failed.replaceAll('%s', '.*'));
+    const deployErrorPattern = new RegExp(`${escapedCompletedWithErrors}|${escapedDeployFailed}`, 'i');
+    const postDeployErrorNotification = postDeployNotifications.filter({ hasText: deployErrorPattern }).first();
+    const hasPostDeployError = await postDeployErrorNotification.isVisible({ timeout: 2000 }).catch(() => false);
+    if (hasPostDeployError) {
+      const errorText = await postDeployErrorNotification.textContent();
+      // Capture output channel details for debugging
+      await captureOutputChannelDetails(page, OUTPUT_CHANNEL_NAME, 'deploy-error-metadata-output-step2.png');
+      throw new Error(`Deploy failed with error notification: ${errorText}`);
+    }
+
     await statusBarPage.waitForCounts({ local: 0 }, 60_000);
   });
 

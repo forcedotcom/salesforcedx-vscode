@@ -52,7 +52,8 @@ export {
   selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
-  outputChannelContains
+  outputChannelContains,
+  captureOutputChannelDetails
 } from './pages/outputChannel';
 
 // Shared

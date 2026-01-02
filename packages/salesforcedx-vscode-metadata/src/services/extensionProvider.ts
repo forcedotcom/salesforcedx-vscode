@@ -11,6 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
+import { OUTPUT_CHANNEL_NAME } from '../constants';
 
 export class ServicesExtensionNotFoundError extends Data.TaggedError('ServicesExtensionNotFoundError') {}
 export class InvalidServicesApiError extends Data.TaggedError('InvalidServicesApiError')<{ cause?: Error }> {}
@@ -69,7 +70,7 @@ export const AllServicesLayer = Layer.unwrapEffect(
       api.services.SettingsService.Default,
       api.services.WorkspaceService.Default,
       api.services.SourceTrackingService.Default,
-      api.services.ChannelServiceLayer('Salesforce Metadata'),
+      api.services.ChannelServiceLayer(OUTPUT_CHANNEL_NAME),
       api.services.FileWatcherService.Default
     );
   }).pipe(Effect.provide(ExtensionProviderServiceLive))
