@@ -7,7 +7,7 @@
  *   npm run scrape:single:page -- https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_auradefinitionbundle.htm
  */
 
-import { chromium } from 'playwright';
+import { chromium, Browser, BrowserContext } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
 import { loadMetadataPage, extractMetadataFromPage, BROWSER_LAUNCH_ARGS } from './scrapeUtils';
@@ -49,12 +49,12 @@ Options:
   console.log(`🚀 Single-Page Metadata Scraper${isVisible ? ' (VISIBLE MODE)' : ''}`);
   console.log(`🔗 URL: ${url}\n`);
 
-  const browser = await chromium.launch({
+  const browser: Browser = await chromium.launch({
     headless: !isVisible,
     args: BROWSER_LAUNCH_ARGS
   });
 
-  const context = await browser.newContext({
+  const context: BrowserContext = await browser.newContext({
     userAgent:
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
     viewport: { width: 1920, height: 1080 },

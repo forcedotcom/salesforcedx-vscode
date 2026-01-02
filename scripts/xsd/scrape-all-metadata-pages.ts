@@ -8,7 +8,7 @@
 import { Effect } from 'effect';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { chromium, Page } from 'playwright';
+import { chromium, Page, Browser, BrowserContext } from 'playwright';
 import {
   loadMetadataPage,
   extractMetadataFromPage,
@@ -204,17 +204,17 @@ const discoverMetadataTypes = async (page: Page): Promise<{ name: string; url: s
 
 /** Context pool for dynamic work distribution */
 class ContextPool {
-  private contexts: any[];
+  private contexts: BrowserContext[];
   private availableSlots: number[];
 
-  constructor(contexts: any[], maxSlotsPerContext: number) {
+  constructor(contexts: BrowserContext[], maxSlotsPerContext: number) {
     this.contexts = contexts;
     // Track available slots per context
     this.availableSlots = contexts.map(() => maxSlotsPerContext);
   }
 
   /** Acquire a context (returns context and its index) */
-  public async acquire(): Promise<{ context: any; index: number }> {
+  public async acquire(): Promise<{ context: BrowserContext; index: number }> {
     // Find first context with available slots
     while (true) {
       for (let i = 0; i < this.contexts.length; i++) {
@@ -471,7 +471,7 @@ const scrapeInBatches = async (
 };
 
 /** Create a browser context with standard configuration */
-const createBrowserContext = async (browser: any) => {
+const createBrowserContext = async (browser: Browser) => {
   const context = await browser.newContext({
     userAgent:
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
