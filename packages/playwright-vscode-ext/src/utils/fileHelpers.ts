@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
 import { closeSettingsTab, closeWelcomeTabs } from './helpers';
 import { WORKBENCH, QUICK_INPUT_WIDGET, EDITOR_WITH_URI, DIRTY_EDITOR, QUICK_INPUT_LIST_ROW } from './locators';
@@ -202,14 +202,17 @@ export const editOpenFile = async (page: Page, comment: string): Promise<void> =
   // Find the first non-comment, non-blank line by reading visible text
   // Move down past header comments
   for (let i = 0; i < 50; i++) {
-    // Get current line via Monaco API
-    const lineText = await page.evaluate(() => {
-      const monacoEditor = (window as any).monaco?.editor?.getEditors?.()?.[0];
-      if (!monacoEditor) return '';
-      const position = monacoEditor.getPosition();
-      const model = monacoEditor.getModel();
-      return model?.getLineContent(position.lineNumber) ?? '';
-    });
+    // Get current line from DOM - Monaco marks the current line with .current-line class
+    // Try .view-line.current-line first, fallback to .current-line .view-line
+    let lineText = '';
+    const currentLineDirect = editor.locator('.view-line.current-line').first();
+    const currentLineNested = editor.locator('.current-line .view-line').first();
+
+    if ((await currentLineDirect.count()) > 0) {
+      lineText = (await currentLineDirect.textContent()) ?? '';
+    } else if ((await currentLineNested.count()) > 0) {
+      lineText = (await currentLineNested.textContent()) ?? '';
+    }
 
     const trimmed = lineText.trim();
     if (trimmed === '' || trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) {
@@ -228,7 +231,6 @@ export const editOpenFile = async (page: Page, comment: string): Promise<void> =
   await executeCommandWithCommandPalette(page, 'File: Save');
 
   // Wait for save indicator to disappear (file tab loses "dirty" state)
-  await page.waitForSelector(DIRTY_EDITOR, { state: 'detached', timeout: 5000 }).catch(() => {
-    // File might save instantly
-  });
+  // If already not visible, this passes immediately
+  await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 5000 });
 };

@@ -6,6 +6,7 @@
  */
 
 import { expect, type Page } from '@playwright/test';
+import { saveScreenshot } from '../shared/screenshotUtils';
 import { isMacDesktop } from '../utils/helpers';
 import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB } from '../utils/locators';
 import { executeCommandWithCommandPalette } from './commands';
@@ -105,44 +106,59 @@ export const waitForOutputChannelText = async (
  * Opens output channel for a named extension, opens it in editor, and takes a screenshot.
  * Useful for debugging when errors occur.
  * Note: Context menus don't work on Mac+Desktop+Electron, so this will skip on that platform.
+ * In web VS Code, if opening in editor fails, falls back to screenshotting the output panel directly.
  */
 export const captureOutputChannelDetails = async (
   page: Page,
   channelName: string,
   screenshotName?: string
 ): Promise<void> => {
+  const safeChannelName = channelName.replaceAll(/[^a-zA-Z0-9]/g, '_');
+  const screenshotFileName = screenshotName ?? `output-channel-${safeChannelName}.png`;
+
   // Skip on Mac desktop - context menus don't work there
   if (isMacDesktop()) {
-    console.warn('Skipping captureOutputChannelDetails on Mac desktop - context menus not supported');
+    console.log('Skipping "Open Output in Editor" on Mac Desktop (context menus not supported)');
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, channelName);
+    await saveScreenshot(page, `test-results/${screenshotFileName}`, true);
     return;
   }
 
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, channelName);
 
-  // Find the ellipsis button (three dots) in the output panel toolbar
-  const outputPanelToolbar = outputPanel(page).locator('.monaco-toolbar');
-  const moreActionsButton = outputPanelToolbar.getByRole('button', { name: /More Actions|\.\.\./i }).last();
+  // Try to open output in editor, but fall back to screenshotting the panel if it fails (e.g., in web VS Code)
+  try {
+    // Find the ellipsis button (three dots) in the output panel toolbar
+    const outputPanelToolbar = outputPanel(page).locator('.monaco-toolbar');
+    const moreActionsButton = outputPanelToolbar.getByRole('button', { name: /More Actions|\.\.\./i }).last();
 
-  // Right-click to open context menu
-  await moreActionsButton.waitFor({ state: 'visible', timeout: 5000 });
-  await moreActionsButton.click({ button: 'right' });
+    // Right-click to open context menu
+    await moreActionsButton.waitFor({ state: 'visible', timeout: 5000 });
+    await moreActionsButton.click({ button: 'right' });
 
-  // Wait for context menu and click "Open Output in Editor"
-  const contextMenu = page.locator(CONTEXT_MENU);
-  await contextMenu.waitFor({ state: 'visible', timeout: 5000 });
-  const openInEditorOption = contextMenu.getByRole('menuitem', { name: /Open Output in Editor/i });
-  await openInEditorOption.click();
+    // Wait for context menu and click "Open Output in Editor"
+    const contextMenu = page.locator(CONTEXT_MENU);
+    await contextMenu.waitFor({ state: 'visible', timeout: 5000 });
+    const openInEditorOption = contextMenu.getByRole('menuitem', { name: /Open Output in Editor/i });
+    await openInEditorOption.click();
 
-  // Wait for editor tab to appear (output channels open as editor tabs)
-  const safeChannelName = channelName.replaceAll(/[^a-zA-Z0-9]/g, '_');
-  const outputTab = page.locator(TAB).filter({ hasText: new RegExp(channelName, 'i') });
-  await outputTab.waitFor({ state: 'visible', timeout: 10_000 });
+    // Wait for editor tab to appear (output channels open as editor tabs)
+    const outputTab = page.locator(TAB).filter({ hasText: new RegExp(channelName, 'i') });
+    await outputTab.waitFor({ state: 'visible', timeout: 10_000 });
 
-  // Wait for editor content to be visible
-  const editor = page.locator(EDITOR_WITH_URI).last();
-  await editor.waitFor({ state: 'visible', timeout: 5000 });
+    // Wait for editor content to be visible
+    const editor = page.locator(EDITOR_WITH_URI).last();
+    await editor.waitFor({ state: 'visible', timeout: 10_000 });
 
-  const screenshotFileName = screenshotName ?? `output-channel-${safeChannelName}.png`;
-  await page.screenshot({ path: `test-results/${screenshotFileName}`, fullPage: true });
+    await saveScreenshot(page, `test-results/${screenshotFileName}`, true);
+  } catch (error) {
+    // Fallback: if opening in editor fails (e.g., "More Actions" button not available in web),
+    // just screenshot the output panel directly
+    console.log(
+      `Failed to open output in editor (${error instanceof Error ? error.message : String(error)}), falling back to output panel screenshot`
+    );
+    await saveScreenshot(page, `test-results/${screenshotFileName}`, true);
+  }
 };
