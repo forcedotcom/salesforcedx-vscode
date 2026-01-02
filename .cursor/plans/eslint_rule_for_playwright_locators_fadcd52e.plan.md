@@ -146,6 +146,3 @@ Test cases should include:
     - Import path resolution:
     - Files in `playwright-vscode-ext`: use relative path `'../utils/locators'` or `'./utils/locators'`
     - Files in other packages: use package import `'@salesforcedx/vscode-playwright/utils/locators'`
-    - Calculate relative path from current file to `packages/playwright-vscode-ext/src/utils/locators.ts`
-- Fix limitations:
-    - Only fix exact matches (not partial matches in template literals with expressions)

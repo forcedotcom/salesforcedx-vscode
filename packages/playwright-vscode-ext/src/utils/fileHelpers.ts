@@ -7,7 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
-import { closeSettingsTab, closeWelcomeTabs, isWindowsDesktop } from './helpers';
+import { closeSettingsTab, closeWelcomeTabs } from './helpers';
 import { WORKBENCH, QUICK_INPUT_WIDGET, EDITOR_WITH_URI, DIRTY_EDITOR, QUICK_INPUT_LIST_ROW } from './locators';
 
 /** Creates a new file with contents using the "Create: New File..." command */
@@ -31,13 +31,24 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
   await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
 
-  // First dialog: "Select File Type or Enter File Name..."
-  // Type just the filename (e.g., "package.xml")
+  // Check what prompt appears:
+  // - If "Text File" option is visible → file type picker (select it first)
+  // - Otherwise → filename input (type filename directly)
+  const textFileOption = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: 'Text File' });
+  const hasFileTypePicker = await textFileOption.isVisible().catch(() => false);
+
+  if (hasFileTypePicker) {
+    // File type picker flow: select "Text File", then filename prompt appears
+    await textFileOption.click();
+    await quickInput.waitFor({ state: 'visible', timeout: 5000 });
+  }
+
+  // Now at filename prompt (both flows converge here)
   await page.keyboard.type(fileName);
   await page.keyboard.press('Enter');
 
-  // Second dialog: "Create File" asks for folder path
-  // Wait for the folder path textbox to appear, then find the OK button
+  // Final dialog: "Create File" asks for folder path
+  // Wait for the folder path textbox to appear
   const folderPathInput = page.getByRole('textbox', { name: /Folder path/i });
   await folderPathInput.waitFor({ state: 'visible', timeout: 5000 });
 
@@ -195,15 +206,9 @@ export const editOpenFile = async (page: Page, comment: string): Promise<void> =
   // Wait for editor content to render (at least one line visible)
   await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
 
-  // On Windows desktop, target the Monaco editor's textarea directly for more reliable keyboard input
-  // On web and macOS desktop, clicking the editor container works fine
-  if (isWindowsDesktop()) {
-    const inputArea = editor.locator('textarea.inputarea').first();
-    await inputArea.waitFor({ state: 'attached', timeout: 5000 });
-    await inputArea.click();
-  } else {
-    await editor.click();
-  }
+  // Click the editor container first to ensure it's focused
+  // This is needed on all platforms to activate the editor
+  await editor.click();
 
   // Go to end of first line (class declaration)
   await page.keyboard.press('Control+Home');

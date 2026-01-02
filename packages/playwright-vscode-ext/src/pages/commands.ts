@@ -60,19 +60,8 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   await commandRow.waitFor({ state: 'visible', timeout: 5000 });
   await commandRow.scrollIntoViewIfNeeded();
 
-  // On Windows, use Enter key instead of click
-  // The input has aria-activedescendant pointing to the focused row, which indicates
-  // keyboard navigation is the intended interaction pattern. Enter should be sent
-  // to the input field (not the row) to activate the focused item referenced by aria-activedescendant.
-  // This matches the pattern used in contextMenu.ts for Windows reliability.
-  if (isWindowsDesktop()) {
-    // Focus the input field before pressing Enter (aria-activedescendant is on the input)
-    await input.focus();
-    await page.waitForTimeout(50); // Small delay for focus
-    await page.keyboard.press('Enter');
-  } else {
-    await commandRow.click();
-  }
+  // Click the command row to execute - this works reliably on all platforms
+  await commandRow.click();
 };
 
 export const executeCommandWithCommandPalette = async (
