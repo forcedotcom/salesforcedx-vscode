@@ -60,12 +60,14 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
 
   // On Windows, use Enter key instead of click
   // The input has aria-activedescendant pointing to the focused row, which indicates
-  // keyboard navigation is the intended interaction pattern. Enter will activate
-  // the focused item referenced by aria-activedescendant.
+  // keyboard navigation is the intended interaction pattern. Enter should be sent
+  // to the input field (not the row) to activate the focused item referenced by aria-activedescendant.
   // This matches the pattern used in contextMenu.ts for Windows reliability.
   if (isWindowsDesktop()) {
-    await commandRow.hover();
-    await page.waitForTimeout(100); // Small delay for hover state
+    // Focus the input field before pressing Enter (aria-activedescendant is on the input)
+    const input = page.locator(QUICK_INPUT_WIDGET).locator('input.input');
+    await input.focus();
+    await page.waitForTimeout(50); // Small delay for focus
     await page.keyboard.press('Enter');
   } else {
     await commandRow.click();
