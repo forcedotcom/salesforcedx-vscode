@@ -48,6 +48,13 @@ export class MetadataDocumentationService {
   }
 
   /**
+   * Check if a metadata type is valid (exists in the XSD)
+   */
+  public isValidMetadataType(metadataType: string): boolean {
+    return this.documentationMap.has(metadataType);
+  }
+
+  /**
    * Get documentation for a specific metadata type
    */
   public getDocumentation(metadataType: string): MetadataTypeDocumentation | null {
@@ -57,9 +64,31 @@ export class MetadataDocumentationService {
   /**
    * Get documentation for a specific field within a metadata type
    */
-  public getFieldDocumentation(metadataType: string, fieldName: string): MetadataFieldDocumentation | null {
-    // First, try to get field documentation from XSD-extracted metadata
-    const typeDoc = this.documentationMap.get(metadataType);
+  public getFieldDocumentation(
+    metadataType: string,
+    fieldName: string,
+    intermediateLayers: string[] = []
+  ): MetadataFieldDocumentation | null {
+    // Resolve the actual type by traversing intermediate layers
+    let currentType = metadataType;
+
+    for (const layerName of intermediateLayers) {
+      const layerTypeDoc = this.documentationMap.get(currentType);
+      if (!layerTypeDoc?.fields) {
+        break;
+      }
+
+      const layerField = layerTypeDoc.fields.find(f => f.name === layerName);
+      if (!layerField) {
+        break;
+      }
+
+      // Get the type of this layer field and strip array notation if present
+      currentType = layerField.type.endsWith('[]') ? layerField.type.slice(0, -2) : layerField.type;
+    }
+
+    // Now look up the field in the resolved type (not the original metadataType)
+    const typeDoc = this.documentationMap.get(currentType);
     if (typeDoc?.fields) {
       const field = typeDoc.fields.find(f => f.name === fieldName);
       if (field?.description.trim()) {
@@ -78,17 +107,17 @@ export class MetadataDocumentationService {
     if (typeDoc?.fields) {
       const field = typeDoc.fields.find(f => f.name === fieldName);
       if (field) {
-        const patternDoc = this.extractFieldFromXSDPatterns(metadataType, fieldName);
+        const patternDoc = this.extractFieldFromXSDPatterns(currentType, fieldName);
         return {
           ...field,
           description:
-            patternDoc?.description ?? field.description ?? `The ${fieldName} field for ${metadataType} metadata.`
+            patternDoc?.description ?? field.description ?? `The ${fieldName} field for ${currentType} metadata.`
         };
       }
     }
 
     // If no definition found, try to extract from XSD patterns
-    return this.extractFieldFromXSDPatterns(metadataType, fieldName);
+    return this.extractFieldFromXSDPatterns(currentType, fieldName);
   }
 
   /**
@@ -213,15 +242,28 @@ export class MetadataDocumentationService {
         if (!element['@_name']) continue;
 
         const fieldName = element['@_name'];
-        const fieldType = element['@_type'] ?? 'string';
+        let fieldType = element['@_type'] ?? 'string';
         const minOccurs = element['@_minOccurs'];
         const required = minOccurs !== '0';
 
         let description = '';
         const annotation = element['xsd:annotation'];
-        if (annotation?.['xsd:documentation']) {
-          const doc = annotation['xsd:documentation'];
-          description = typeof doc === 'string' ? doc : (doc['#text'] ?? '');
+        if (annotation) {
+          // Extract documentation
+          if (annotation['xsd:documentation']) {
+            const doc = annotation['xsd:documentation'];
+            description = typeof doc === 'string' ? doc : (doc['#text'] ?? '');
+          }
+
+          // Extract type from appinfo if available
+          if (annotation['xsd:appinfo']) {
+            const appinfo = annotation['xsd:appinfo'];
+            const appinfoText = typeof appinfo === 'string' ? appinfo : (appinfo['#text'] ?? '');
+            const typeMatch = appinfoText.match(/Type:\s*(.+)/);
+            if (typeMatch) {
+              fieldType = typeMatch[1].trim();
+            }
+          }
         }
 
         fields.push({

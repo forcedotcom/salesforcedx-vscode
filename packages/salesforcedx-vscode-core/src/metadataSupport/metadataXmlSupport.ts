@@ -90,7 +90,7 @@ export class MetadataXmlSupport {
       const catalogs = this.getLocalFilePath(['metadata-catalog.xml'], extensionContext);
       const fileAssociations = [
         {
-          systemId: this.getLocalFilePath(['salesforce_metadata_api_clean.xsd'], extensionContext)[0],
+          systemId: this.getLocalFilePath(['salesforce_metadata_api_namespace1.xsd'], extensionContext)[0],
           pattern: '**/*-meta.xml'
         }
       ];
