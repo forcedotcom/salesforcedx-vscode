@@ -167,33 +167,6 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actvplatformadncidentifier.htm",
     "parent": "Metadata"
   },
-  "ActvPlatformFieldValue": {
-    "fields": [
-      {
-        "Description": "Required. Reference to the ActivationPlatform metadata type.",
-        "Field Name": "activationPlatformField",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Indicates whether the value is default (true) or not (false). The default is false. Picklist isn’t supported in API version 54.0",
-        "Field Name": "isDefault",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Required. The name of the field.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The value of activationPlatformField.",
-        "Field Name": "value",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents the field values for the ActivationPlatformFields.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_actvplatformfieldvalue.htm",
-    "parent": "Metadata"
-  },
   "AiPluginUtteranceDef": {
     "fields": [
       {
@@ -1645,90 +1618,6 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mktdatatranobject.htm",
     "parent": "Metadata"
   },
-  "ObjectSourceTargetMap": {
-    "fields": [
-      {
-        "Description": "Describes whether this object was added by the user or as part of a standard taxonomy. Valid values are: ADG Activation_Audience Bridge Calculated_Insight CG_Audience (Available in API version 62.0 and later) Chunk Curated Custom Derived Directory_Table External Ml_Prediction Segment_Membership Semantic Standard System Transform Vector_Embedding",
-        "Field Name": "creationType",
-        "Field Type": "DefinitionCreationType (enumeration of type string)"
-      },
-      {
-        "Description": "Contains the field-level mappings associated with this object mapping.",
-        "Field Name": "fieldSourceTargetMaps",
-        "Field Type": "FieldSourceTargetMap[]"
-      },
-      {
-        "Description": "Required. The UI name for the target map.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Use this field to display multiple mappings between the same two objects, for a consistent customer experience when presenting the mappings.",
-        "Field Name": "sequenceNbr",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Required. Name of the source object that’s mapped, such as Email, or SfmcEnt1_Subscriber.",
-        "Field Name": "sourceObjectName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Name of the target object that’s mapped, such as ContactPointEmail or Individual.",
-        "Field Name": "targetObjectName",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Contains the object-level mappings between the source and the target objects. The source and target objects can be an MktDataLakeObject or an MktDataModelObject. For example, an Email source object can be mapped to the ContactPointEmail object.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_objectsourcetargetmap.htm",
-    "parent": "Metadata"
-  },
-  "FieldSourceTargetMap": {
-    "fields": [
-      {
-        "Description": "Describes whether this object was added by the user or as part of a standard taxonomy. Values are: ADG Activation_Audience Bridge Calculated_Insight Chunk Curated Custom Derived Directory_Table External Ml_Prediction Segment_Membership Semantic Standard System Transform Vector_Embedding",
-        "Field Name": "creationType",
-        "Field Type": "DefinitionCreationType (enumeration of type string)"
-      },
-      {
-        "Description": "Specifies whether the field-level mapping is an event type filter (true) or not (false).",
-        "Field Name": "filterApplied",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "If the field-level mapping is an event type filter, specifies the filtering operator.Value is: Equal",
-        "Field Name": "filterOperationType",
-        "Field Type": "string"
-      },
-      {
-        "Description": "If the field-level mapping is an event type filter, specifies the object that contains the event type field.",
-        "Field Name": "filterValue",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Specifies whether the source field is a formula (true) or not (false). If true, you must include the sourceFormula value.",
-        "Field Name": "isSourceFormula",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Required. The source object field that’s mapped, such as EmailAddr or SfmcEnt1_Subscriber.FName.",
-        "Field Name": "sourceField",
-        "Field Type": "string"
-      },
-      {
-        "Description": "A formula, such as concatenation, date function, or constant value.",
-        "Field Name": "sourceFormula",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The target object field that’s mapped, such as SfmcEnt1_Email.EmailAddr or Individual.FirstName.",
-        "Field Name": "targetField",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Contains the field-level mappings between the source and the target objects.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_objectsourcetargetmap.htm",
-    "parent": "Metadata"
-  },
   "StreamingAppDataConnector": {
     "fields": [
       {
@@ -2688,68 +2577,6 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_advaccountforecastset.htm",
     "parent": "Metadata"
   },
-  "AffinityScoreDefinition": {
-    "fields": [
-      {
-        "Description": "Description of the affinity score definition.",
-        "Field Name": "affinityScoreDefinitionDesc",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Name of the affinity score definition.",
-        "Field Name": "affinityScoreDefinitionName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Type of the affinity score that’s defined.Valid values are: CAP—Capacity, Ability, Propensity (CAP) RFM—Recency, Frequency, Monetary (RFM) The default value is RFM.",
-        "Field Name": "affinityScoreType",
-        "Field Type": "AffinityScoreType (enumeration of type string)"
-      },
-      {
-        "Description": "Label for this affinity score definition value. This display value is the internal label that doesn't get translated.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Number of months to analyze the records for calculating the affinity score.",
-        "Field Name": "numberOfMonths",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Required. Number of ranges to use in the calculation, ranging from 0 to 9. Provide the corresponding range list values in the scoreRangeList field.",
-        "Field Name": "numberOfRanges",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Required. Ranges that are referenced in the affinity score calculation. This field is used with scoreRangeList. For example, to calculate RFM with numberOfRanges value as 3, provide the values for the scoreRangeList field in this format.",
-        "Field Name": "scoreRangeList",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. API names of the source fields that are referenced in the score calculation.",
-        "Field Name": "sourceFieldApiNameList",
-        "Field Type": "string"
-      },
-      {
-        "Description": "API names of the source objects that are referenced in the score calculation.",
-        "Field Name": "sourceObjectApiNameList",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. API names of the target fields where the calculated scores are added.",
-        "Field Name": "targetFieldApiNameList",
-        "Field Type": "string"
-      },
-      {
-        "Description": "API name of the target object where the calculated scores are added.",
-        "Field Name": "targetObjectApiName",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents the affinity information used in calculations to analyze and categorize contacts for marketing purposes.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/fundraising_affinityscoredefinition_metadata_api.htm",
-    "parent": "Metadata"
-  },
   "AIApplication": {
     "fields": [
       {
@@ -2817,33 +2644,6 @@
     ],
     "short_description": "Additional prediction information related to an AI application. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_aiapplicationconfig.htm",
-    "parent": "Metadata"
-  },
-  "AiAuthoringBundle": {
-    "fields": [
-      {
-        "Description": "Specifies the type or category of the AI authoring bundle, indicating the kind of AI authoring content contained within the bundle. Currently, this value must be AGENT, which represents an Agent Script agent. See Agent Script in the Agentforce Developer Guide for details.",
-        "Field Name": "bundleType",
-        "Field Type": ""
-      },
-      {
-        "Description": "Specifies the context or destination for the AI authoring bundle, defining how the bundle content should be applied or deployed. To commit an agent version, Agentforce agents must specify the developerName for the Bot and BotVersion components, separated by a period: {Bot}.{BotVersion}. For example, Agentforce_Service_Agent.v2. These two components tie the AI authoring bundle to a specific agent and a specific agent version. This field is automatically populated when you publish an agent with Agentforce DX. Publishing an agent with this field present is the equivalent to committing the agent in Agentforce Builder with the Commit Version button. If you want to deploy an agent to your org in draft state, omit this field.",
-        "Field Name": "target",
-        "Field Type": ""
-      },
-      {
-        "Description": "Provides a human-readable description of the bundle version, documenting what changes or features are included in this version of the AI authoring bundle.",
-        "Field Name": "versionDescription",
-        "Field Type": ""
-      },
-      {
-        "Description": "Defines a version identifier or tag for the AI authoring bundle. This value can be used for version tracking and management of different bundle iterations.",
-        "Field Name": "versionTag",
-        "Field Type": ""
-      }
-    ],
-    "short_description": "Represents an AI authoring bundle, which is a container for AI-related authoring content. For example, an AI authoring bundle for an Agentforce agent contains an Agent Script file and the associated metadata content. AiAuthoringBundle packages and manages AI authoring artifacts with version control features. This metadata type provides a structured way to organize, version, and target AI-related content within your Salesforce org.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_aiauthoringbundle.htm",
     "parent": "Metadata"
   },
   "AIScoringModelDefinition": {
@@ -3682,187 +3482,6 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_analyticsnapshot.htm",
     "parent": "Metadata"
   },
-  "AnalyticsVisualization": {
-    "fields": [
-      {
-        "Description": "The actions for the visualization. A visualization has 0 or more actions.",
-        "Field Name": "actions",
-        "Field Type": "AnalyticsAssetAction[]"
-      },
-      {
-        "Description": "Required. The Tableau Next workspace the visualization belongs to.",
-        "Field Name": "analyticsWorkspace",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The data source for the visualization.",
-        "Field Name": "dataSource",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The description for the visualization.",
-        "Field Name": "description",
-        "Field Type": "string"
-      },
-      {
-        "Description": "A list of data fields for the visualization. A visualization has 0 or more fields.",
-        "Field Name": "fields",
-        "Field Type": "AnalyticsVizField[]"
-      },
-      {
-        "Description": "The date and time the workspace draft was last modified.",
-        "Field Name": "lastDraftModifiedDate",
-        "Field Type": "dateTime"
-      },
-      {
-        "Description": "The date and time the workspace was last published.",
-        "Field Name": "lastPublishedDate",
-        "Field Type": "dateTime"
-      },
-      {
-        "Description": "Required. The name of the visualization.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "If the visualization was created from a template, the name of the source visualization in the template.",
-        "Field Name": "templateAssetSourceName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "If the visualization was created from a template, the name of the source template.",
-        "Field Name": "templateSource",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The API version of the visualization.",
-        "Field Name": "version",
-        "Field Type": "double"
-      },
-      {
-        "Description": "A list of views for the visualization. A visualization has 0 or more views.",
-        "Field Name": "views",
-        "Field Type": "AnalyticsVizViewDef[]"
-      },
-      {
-        "Description": "Required. The visual specification for the visualization.",
-        "Field Name": "visualSpecification",
-        "Field Type": "base64Binary"
-      },
-      {
-        "Description": "A list of analytics assets in the workspace this visualization is associated with. A visualization has 0 or more workspace asset relationships.",
-        "Field Name": "workspaceAssetRelationships",
-        "Field Type": "AnalyticsWorkspaceAsset[]"
-      }
-    ],
-    "short_description": "Represents a Tableau Next visualization.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_analyticsvisualization.htm",
-    "parent": "Metadata"
-  },
-  "AnalyticsVizField": {
-    "fields": [
-      {
-        "Description": "The expression to do an ad-hoc calculation with.",
-        "Field Name": "adHoCalc",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The version of the visualization the field is associated with.",
-        "Field Name": "analyticsVizVersion",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The expression to compute the field value with.",
-        "Field Name": "computeUsing",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The display category type for the visualization field. Values are: Continuous Discrete",
-        "Field Name": "displayCategory",
-        "Field Type": "VisualizationFieldDisplayCategoryType (enumeration of type string)"
-      },
-      {
-        "Description": "Required. The key for the field.",
-        "Field Name": "fieldKey",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The name of the field.",
-        "Field Name": "fieldName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The function type of the visualization field. Values are: Avg Count CountD DatePartDay DatePartMonth DatePartQuarter DatePartWeek DatePartWeekDay DatePartYear DateTruncDay DateTruncMonth DateTruncQuarter DateTruncWeek DateTruncYear FiscalDatePartMonth FiscalDatePartQuarter FiscalDatePartWeek FiscalDatePartYear FiscalDateTruncMonth FiscalDateTruncQuarter FiscalDateTruncWeek FiscalDateTruncYear Max Mdy Median Min My Stdev Stdevp Sum UserAgg Var Varp",
-        "Field Name": "function",
-        "Field Type": "VisualizationFieldFunctionType (enumeration of type string)"
-      },
-      {
-        "Description": "The label for the field.",
-        "Field Name": "label",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The name of the data source object for the field.",
-        "Field Name": "objectName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The expression to do a quick table calculation with.",
-        "Field Name": "quickTableCalc",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The role type of the visualization field. Values are: Dimension Measure",
-        "Field Name": "role",
-        "Field Type": "VisualizationFieldRoleType (enumeration of type string)"
-      },
-      {
-        "Description": "The type of the visualization field. Values are: Field MeasureNames MeasureValues",
-        "Field Name": "type",
-        "Field Type": "VisualizationFieldType (enumeration of type string)"
-      }
-    ],
-    "short_description": "Represents a data field in a visualization.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_analyticsvisualization.htm",
-    "parent": "Metadata"
-  },
-  "AnalyticsVizViewDef": {
-    "fields": [
-      {
-        "Description": "The version of the visualization the view is associated with.",
-        "Field Name": "analyticsVizVersion",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The full name of the view definition.",
-        "Field Name": "fullName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Indicates whether the view is original (true) or not (false).",
-        "Field Name": "isOriginal",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Required. The name of the view definition.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The API version of the visualization view.",
-        "Field Name": "version",
-        "Field Type": "double"
-      },
-      {
-        "Description": "The specification for the view definition.",
-        "Field Name": "viewSpecification",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents a view definition for a Tableau Next visualization.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_analyticsvisualization.htm",
-    "parent": "Metadata"
-  },
   "AnalyticsWorkspace": {
     "fields": [
       {
@@ -4474,38 +4093,6 @@
     "short_description": "Represents a suite of Apex test classes to include in a test run.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_apextestsuite.htm",
     "parent": "Metadata"
-  },
-  "ApexTrigger": {
-    "fields": [
-      {
-        "Description": "Required. The API version for this trigger. Every trigger has an API version specified at creation.",
-        "Field Name": "apiVersion",
-        "Field Type": "double"
-      },
-      {
-        "Description": "The Apex trigger definition. This field is inherited from the MetadataWithContent component.",
-        "Field Name": "content",
-        "Field Type": "base64"
-      },
-      {
-        "Description": "The Apex trigger name. The name can only contain characters, letters, and the underscore (_) character, must start with a letter, and can’t end with an underscore or contain two consecutive underscore characters. This field is inherited from the Metadata component.",
-        "Field Name": "fullName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The list of installed managed package versions that are referenced by this Apex trigger.For more information about managed packages, see the Second-Generation Managed Packaging Developer Guide. This field is available in API version 16.0 and later.",
-        "Field Name": "packageVersions",
-        "Field Type": "PackageVersion[]"
-      },
-      {
-        "Description": "Required. The status of the Apex trigger. The following string values are valid: Active - The trigger is active. Inactive - The trigger is inactive, but not deleted. Deleted - The trigger is marked for deletion. Useful for managed packages, because it allows a trigger to be deleted when a managed package is updated.",
-        "Field Name": "status",
-        "Field Type": "ApexCodeUnitStatus (enumeration of type string)"
-      }
-    ],
-    "short_description": "Represents an Apex trigger. A trigger is Apex code that executes before or after specific data manipulation language (DML) events occur, such as before object records are inserted into the database, or after records have been deleted. For more information, see “Manage Apex Triggers” in Salesforce Help. This type extends the MetadataWithContent metadata type and inherits its content and fullName fields.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_triggers.htm",
-    "parent": "MetadataWithContent"
   },
   "AppointmentAssignmentPolicy": {
     "fields": [
@@ -5121,203 +4708,6 @@
     ],
     "short_description": "Represents the container object for Assessment Questions.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_assessmentquestionset.htm",
-    "parent": "Metadata"
-  },
-  "Audience": {
-    "fields": [
-      {
-        "Description": "Required. The name of the audience.",
-        "Field Name": "audienceName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The name of the site or org that contains the audience.",
-        "Field Name": "container",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Criteria in an audience. This field is available in API version 47.0 and later.",
-        "Field Name": "criteria",
-        "Field Type": "AudienceCriteria"
-      },
-      {
-        "Description": "Removed. List of criteria in an audience. This field is available in API version 44.0–46.0. In API version 47.0 and later, use criteria instead.",
-        "Field Name": "criterion",
-        "Field Type": "AudienceCriterion[]"
-      },
-      {
-        "Description": "The description of the audience.",
-        "Field Name": "description",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Formula used to determine the audience. This field is available in API version 45.0 and later.",
-        "Field Name": "formula",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Indicates the audience’s formula type. Valid values are AllCriteriaMatch AnyCriterionMatches CustomLogicMatches (available in API version 45.0 and later)",
-        "Field Name": "formulaFilterType",
-        "Field Type": "FormulaFilterType​(enumeration of type string)"
-      },
-      {
-        "Description": "Indicates whether the audience is the default audience (true) or not (false). This field is available and required in API version 48.0. In API version 49.0 and later, this field is optional.The default audience file name is of format Default_Network Name.audience.",
-        "Field Name": "isDefaultAudience",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Targets for the audience. This field is available in API version 47.0 and later.",
-        "Field Name": "targets",
-        "Field Type": "PersonalizationTarget​Infos"
-      }
-    ],
-    "short_description": "Represents the audience in an Experience Builder site. An audience consists of different types of criteria, where the audience can be assigned and used for targeting in a site. This type extends the Metadata metadata type and inherits its fullName field.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
-    "parent": "Metadata"
-  },
-  "AudienceCriteria": {
-    "fields": [
-      {
-        "Description": "List of criteria for an audience. An audience can have up to 100 criteria.",
-        "Field Name": "criterion",
-        "Field Type": "AudienceCriterion[]"
-      }
-    ],
-    "short_description": "Represents criteria for an audience. This subtype is available in API version 47.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
-    "parent": "Metadata"
-  },
-  "AudienceCriterion": {
-    "fields": [
-      {
-        "Description": "The number associated with the criterion in a formula, for example (1 AND 2) OR 3. This field is available in API version 45.0 and later.",
-        "Field Name": "criteriaNumber",
-        "Field Type": "int"
-      },
-      {
-        "Description": "The value of the criterion.",
-        "Field Name": "criterionValue",
-        "Field Type": "AudienceCriteriaValue"
-      },
-      {
-        "Description": "The operator associated with this criterion. Valid values are: Equal NotEqual GreaterThan GreaterThanOrEqual LessThan LessThanOrEqual Contains StartsWith Includes (available in API version 45.0 and later) NotIncludes (available in API version 45.0 and later)",
-        "Field Name": "operator",
-        "Field Type": "AudienceCriterion​Operator(enumeration of type string)"
-      },
-      {
-        "Description": "Required. Valid values are: GeoLocation Domain Profile FieldBased Permission (available in API version 45.0 and later) Default (available in API version 47.0 and later) Audience (available in API version 53.0 and later) For a list of AudienceCriteriaValue fields that you can use with each AudienceCriterion type field value, see this table.",
-        "Field Name": "type",
-        "Field Type": "AudienceCriterion​Type(enumeration of type string)"
-      }
-    ],
-    "short_description": "Represents a criterion for an audience.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
-    "parent": "Metadata"
-  },
-  "AudienceCriteriaValue": {
-    "fields": [
-      {
-        "Description": "Developer name of the audience. This field is available in API version 53.0 and later. You can use this field only when the value of the AudienceCriterion type field is Audience.",
-        "Field Name": "audienceDeveloperName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "City of a user. You can use this field only when the value of the AudienceCriterion type field is GeoLocation.",
-        "Field Name": "city",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Country of a user. You can use this field only when the value of the AudienceCriterion type field is GeoLocation.",
-        "Field Name": "country",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Domain of a user. You can use this field only when the value of the AudienceCriterion type field is Domain.",
-        "Field Name": "domain",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Field of an object. You can use this field only when the value of the AudienceCriterion type field is FieldBased.",
-        "Field Name": "entityField",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Type of object. You can use this field only when the value of the AudienceCriterion type field is FieldBased.",
-        "Field Name": "entityType",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Value of a field. You can use this field only when the value of the AudienceCriterion type field is FieldBased.",
-        "Field Name": "fieldValue",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Indicates whether the permission is enabled (true) or not (false) for a user. This field is available in API version 45.0 and later. You can use this field used only when the value of the AudienceCriterion type field is Permission.",
-        "Field Name": "isEnabled",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Valid API name of a standard user or custom permission. This field is available in API version 45.0 and later. You can use this field only when the value of the AudienceCriterion type field is Permission.",
-        "Field Name": "permissionName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Type of permission. Valid values are Standard and Custom. This field is available in API version 45.0 and later. You can use this field only when the value of the AudienceCriterion type field is Permission.",
-        "Field Name": "permissionType",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Profile of a user. You can use this field only when the value of the AudienceCriterion type field is Profile.",
-        "Field Name": "profile",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Subdivision of a user. You can use this field only when the value of the AudienceCriterion type field is GeoLocation.",
-        "Field Name": "subdivision",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents the value of a criterion in an audience. For a list of AudienceCriteriaValue fields that you can use with each AudienceCriterion type field value, see this table.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
-    "parent": "Metadata"
-  },
-  "PersonalizationTargetInfos": {
-    "fields": [
-      {
-        "Description": "List of targets for an audience.",
-        "Field Name": "target",
-        "Field Type": "PersonalizationTarget​Info[]"
-      }
-    ],
-    "short_description": "Represents targets for an audience. This subtype is available in API version 47.0 and later. When deploying an audience, you must include ExperienceBundle in your package to support experience variation targets.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
-    "parent": "Metadata"
-  },
-  "PersonalizationTargetInfo": {
-    "fields": [
-      {
-        "Description": "Required. Group name of the target. Groups bundle related target and audience pairs. You can have up to 2,000 groups and 500 targets per group.To determine the target group name, see https://developer.salesforce.com/docs/atlas.en-us.communities_dev.meta/communities_dev/communities_dev_personalization_names.htm in the Experience Cloud Developer Guide.",
-        "Field Name": "groupName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Priority of the target. Within a group, priority determines which target is returned when the user matches more than one audience.",
-        "Field Name": "priority",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Required. Type of target, indicating the nature of the data being targeted. Supported values include: ExperienceVariation (API version 47.0 and later) NavigationLinkSet (API version 49.0 and later) Report (API version 49.0 and later) Dashboard (API version 49.0 and later) You can have up to 2,500 ExperienceVariation targets and 25,000 record targets. For more information on the ExperienceVariation target type, see ExperienceBundle.",
-        "Field Name": "targetType",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Value of the target, which is the developer name of the experience variation, such as ContactSupport_ContactSupportFor​California_Page for a page variation.To determine the target developer name, see https://developer.salesforce.com/docs/atlas.en-us.communities_dev.meta/communities_dev/communities_dev_personalization_names.htm in the Experience Cloud Developer Guide.",
-        "Field Name": "targetValue",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents a target for an audience. This subtype is available in API version 47.0 and later.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_audience.htm",
     "parent": "Metadata"
   },
   "AuraDefinitionBundle": {
@@ -8136,43 +7526,6 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_carerequestconfiguration.htm",
     "parent": "Metadata"
   },
-  "Certificate": {
-    "fields": [
-      {
-        "Description": "Required. Indicates whether this certificate is signed by the issuer (true) or not (false).",
-        "Field Name": "caSigned",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Indicates whether this certificate is encrypted with Platform Encryption.",
-        "Field Name": "encryptedWithPlatformEncryption",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "The date that this certificate expires and is no longer usable. For self-signed certificates, if keySize is 2048 bits, the expiration date is automatically 1 year after you create the certificate. If keySize is 4096 bits, the expiration date is automatically 2 years after you create the certificate. For CA-signed certificates, expirationDate is automatically updated to the signed certificate’s expiration date when a signed certificate chain is uploaded. The date format is YYYY-MM-DD.",
-        "Field Name": "expirationDate",
-        "Field Type": "dateTime"
-      },
-      {
-        "Description": "Certificate keys can be either 2048 bits or 4096 bits. A certificate with 4096-bit keys lasts 2 years, and a certificate with 2048-bit keys lasts 1 year. Certificates with 2048-bit keys are faster than certificates with 4096-bit keys. If keySize isn’t specified when you create a certificate, the key size defaults to 2048 bits.",
-        "Field Name": "keySize",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Required. A user-friendly name for the certificate that appears in the Salesforce user interface, such as in Certificate and Key Management. Limit: 64 characters.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Indicates whether this certificate’s private key is exportable. If privateKeyExportable isn’t specified when you create a certificate, its default value is true.",
-        "Field Name": "privateKeyExportable",
-        "Field Type": "boolean"
-      }
-    ],
-    "short_description": "Represents a certificate used for digital signatures that verify that requests are coming from your org. Certificates are used for either authenticated single sign-on with an external website, or when using your org as an identity provider. This type extends the Metadata With Content metadata type and inherits its content and fullName fields.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_certificate.htm",
-    "parent": "Metadata"
-  },
   "ChatterExtension": {
     "fields": [
       {
@@ -8331,171 +7684,6 @@
     ],
     "short_description": "Represents the configuration about the clause category that can be used to categorize your disclosure and compliance reports from standardized disclosure templates in a response document.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_clausecatgconfiguration.htm",
-    "parent": "Metadata"
-  },
-  "CleanDataService": {
-    "fields": [
-      {
-        "Description": "Required. A list of data integration rules",
-        "Field Name": "cleanRules",
-        "Field Type": "CleanRule[]"
-      },
-      {
-        "Description": "Required. A description of the data service",
-        "Field Name": "description",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Label for this data service. Although this value is displayed, it’s an internal label for the data service and isn’t translated.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. A key that maps to the internal data service identifier.",
-        "Field Name": "matchEngine",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents a data service that adds and updates data in standard objects.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_cleandataservice.htm",
-    "parent": "Metadata"
-  },
-  "CleanRule": {
-    "fields": [
-      {
-        "Description": "Required. If this field is set to true, Salesforce applies the data integration rule to existing records whenever the rule is updated or saved.",
-        "Field Name": "bulkEnabled",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Required. If this field is set to true, Salesforce bypasses triggers when it applies the rule; otherwise, it applies triggers after it applies the rule.",
-        "Field Name": "bypassTriggers",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Required. If this field is set to true, Salesforce bypasses workflow rules when it applies the data integration rule; otherwise, it applies workflow rules after it applies the rule.",
-        "Field Name": "bypassWorkflow",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Required. User-friendly text that describes the data integration rule.",
-        "Field Name": "description",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. This name can contain only underscores and alphanumeric characters, and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores. This unique name prevents conflicts with rules from other packages that have the same masterLabel.Only users with View DeveloperName OR View Setup and Configuration permission can view, group, sort, and filter this field.",
-        "Field Name": "developerName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. A list of FieldMapping entries for the rule.",
-        "Field Name": "fieldMappings",
-        "Field Type": "FieldMapping[]"
-      },
-      {
-        "Description": "Required. Label for this object. This display value is the internal label that is not translated.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. An internal label for a matching rule in the data service that’s associated with the CleanRule.",
-        "Field Name": "matchRule",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. A virtual object in the data service that is associated with the CleanRule. Specifying a non-existent object causes an error.",
-        "Field Name": "sourceSobjectType",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Status of the data integration rule. Valid values are Active and Inactive.",
-        "Field Name": "status",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. A standard object that’s the target of additions and updates specified by this CleanRule. Specifying an object that the data service does not support causes an error.",
-        "Field Name": "targetSobjectType",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents information that controls how the data service adds and updates data in an org.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_cleandataservice.htm",
-    "parent": "Metadata"
-  },
-  "FieldMapping": {
-    "fields": [
-      {
-        "Description": "Required. This name can contain only underscores and alphanumeric characters, and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores. This unique name prevents conflicts with field mappings from other packages that have the same masterLabel.Only users with View DeveloperName OR View Setup and Configuration permission can view, group, sort, and filter this field.",
-        "Field Name": "developerName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. A list of FieldMappingRow entries. Each entry represents a field in a standard object that maps to a field in the data service.",
-        "Field Name": "fieldMappingRows",
-        "Field Type": "FieldMappingRow[]"
-      },
-      {
-        "Description": "Required. Label for this object. This display value is the internal label that is not translated.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The standard object associated with this FieldMapping. Specifying an object that the data service does not support causes an error.",
-        "Field Name": "SObjectType",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents a mapping between fields in the data service and fields in an object in the org.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_cleandataservice.htm",
-    "parent": "Metadata"
-  },
-  "FieldMappingRow": {
-    "fields": [
-      {
-        "Description": "The display name for the field represented by the FieldMappingRow.",
-        "Field Name": "fieldName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. A list of FieldMappingField entries. Each entry is a field in a standard object that maps to a field in the data service.",
-        "Field Name": "fieldMappingFields",
-        "Field Type": "FieldMappingField[]"
-      },
-      {
-        "Description": "The comparison operation the data service applies when it compares the value of this FieldMappingRow to the mapped field in the object specified in SObjectType. The value of this field is AutoFill, which indicates that the data service only adds data if the object field is blank.",
-        "Field Name": "mappingOperation",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The standard object for the field mapped to the FieldMappingRow. Specifying an object that the data service does not support causes an error.",
-        "Field Name": "SObjectType",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents the status of a CleanRule.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_cleandataservice.htm",
-    "parent": "Metadata"
-  },
-  "FieldMappingField": {
-    "fields": [
-      {
-        "Description": "Required. A field in the data service that is mapped to this field.",
-        "Field Name": "dataServiceField",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. An object in the data service that contains the FieldMappingRow associated with this FieldMappingField. Specifying a non-existent object causes an error.",
-        "Field Name": "dataServiceObjectName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Represents the priority that the data service uses when it updates the field, relative to other update rules for the same field. Valid values are 1-100.",
-        "Field Name": "priority",
-        "Field Type": "int"
-      }
-    ],
-    "short_description": "Represents a field in a standard object. A FieldMappingField maps to a FieldMappingRow entry in a data service.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_cleandataservice.htm",
     "parent": "Metadata"
   },
   "CMSConnectSource": {
@@ -9029,156 +8217,6 @@
     ],
     "short_description": "This field is available in API version 39.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_communitytemplatedefinition.htm",
-    "parent": "Metadata"
-  },
-  "CommunityThemeDefinition": {
-    "fields": [
-      {
-        "Description": "If specified, at least one preview image and one highlight are required. Up to 3 preview images and 4 highlights are supported. Available in API version 44.0 and later",
-        "Field Name": "bundlesInfo",
-        "Field Type": "CommunityThemeBundleInfo[]"
-      },
-      {
-        "Description": "The list of custom theme layout types available to the theme layout.",
-        "Field Name": "customThemeLayoutType",
-        "Field Type": "CommunityCustomThemeLayoutType[]"
-      },
-      {
-        "Description": "The set of branding properties associated with this CommunityThemeDefinition, as defined in the Theme panel in Experience Builder. Available in API version 44.0 and later.",
-        "Field Name": "defaultBrandingSet",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The optional description text of this CommunityThemeDefinition.",
-        "Field Name": "description",
-        "Field Type": "string"
-      },
-      {
-        "Description": "False by default. Determines if deleting this CommunityThemeDefinition attempts to delete other directly or indirectly referenced objects automatically, for example, FlexiPage. Values are true or false.",
-        "Field Name": "enableExtendedCleanUp​OnDelete",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Required. The label for this CommunityThemeDefinition, which displays in Setup.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Defines the name of the publisher as seen in the wizard for creating Experience Builder sites. If no name is provided, the name of the org from which the package was originally exported is used.This field is available in API version 45.0 and later.",
-        "Field Name": "publisher",
-        "Field Type": "string"
-      },
-      {
-        "Description": "List of theme layout type overrides for flexipages (currently only for home). Available in API version 44.0 and later.",
-        "Field Name": "themeRouteOverride",
-        "Field Type": "CommunityThemeRouteOverride[]"
-      },
-      {
-        "Description": "Required. The list of settings for this CommunityThemeDefinition.",
-        "Field Name": "themeSetting",
-        "Field Type": "CommunityTheme Setting []"
-      }
-    ],
-    "short_description": "Represents the definition of a theme for an Experience Builder site. This type extends the Metadata metadata type and inherits its fullName field.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_communitythemedefinition.htm",
-    "parent": "Metadata"
-  },
-  "CommunityThemeBundleInfo": {
-    "fields": [
-      {
-        "Description": "The optional description text of its CommunityThemeBundleInfo.",
-        "Field Name": "description",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required only when the type is PreviewImage, otherwise this field is optional. A preview image for this CommunityThemeDefinition.",
-        "Field Name": "image",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. An integer specifying the position of this CommunityThemeBundleInfo relative to others of the same type within its CommunityThemeDefinition. 1 is the first position, 3 is the maximum position for PreviewImage type, and 4 is the maximum position for the Highlight type.",
-        "Field Name": "order",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Required. The title of this CommunityThemeBundleInfo to use in code.",
-        "Field Name": "title",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Stores descriptive information about the theme that is included in the export. Valid values are: Highlight—This CommunityThemeBundleInfo is used as a highlighted feature. Up to 4 are supported. PreviewImage—This CommunityThemeBundleInfo is used as a preview image. Up to 3 are supported.",
-        "Field Name": "type",
-        "Field Type": "CommunityTemplate​BundleInfoType (enumeration of type string)"
-      }
-    ],
-    "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_communitythemedefinition.htm",
-    "parent": "Metadata"
-  },
-  "CommunityCustomThemeLayoutType": {
-    "fields": [
-      {
-        "Description": "The description of the custom theme layout type.",
-        "Field Name": "description",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The name of the custom theme layout type. The values Inner, Home, and Login are reserved.",
-        "Field Name": "label",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_communitythemedefinition.htm",
-    "parent": "Metadata"
-  },
-  "CommunityThemeRouteOverride": {
-    "fields": [
-      {
-        "Description": "Required when themeLayoutType isn’t specified. Provides the custom theme layout type associated with the theme layout. This field and themeLayoutType are mutually exclusive; you can’t specify both.",
-        "Field Name": "customThemeLayoutType",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Specifies the attributes of the site page for which the default theme layout type is overridden. The only valid value is {\"PageName\":\"Home\"}.",
-        "Field Name": "pageAttributes",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Specifies the type of the site page for which the default theme layout type is overridden. The only valid value is comm__standardPage.",
-        "Field Name": "pageType",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required if customThemeLayoutType isn’t specified. Provides the default theme layout type associated with the theme layout. Valid values are Inner, Home, or Login. This field and customThemeLayoutType are mutually exclusive; you can’t specify both.",
-        "Field Name": "themeLayoutType",
-        "Field Type": "CommunityTheme​LayoutType (enumeration of type string)"
-      }
-    ],
-    "short_description": "Required. Specifies the type of the site page for which the default theme layout type is overridden. The only valid value is comm__standardPage.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_communitythemedefinition.htm",
-    "parent": "Metadata"
-  },
-  "CommunityTheme Setting": {
-    "fields": [
-      {
-        "Description": "Required when themeLayoutType isn’t specified. The custom theme layout type associated with the theme layout. This field and themeLayoutType are mutually exclusive; you can’t specify both.",
-        "Field Name": "customThemeLayoutType",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The configuration and layout for this theme.",
-        "Field Name": "themeLayout",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required when customThemeLayoutType isn’t specified. The default theme layout type associated with the theme layout. Valid values are Inner, Home, or Login. This field and customThemeLayoutType are mutually exclusive; you can’t specify both.",
-        "Field Name": "themeLayoutType",
-        "Field Type": "CommunityTheme​LayoutType (enumeration of type string)"
-      }
-    ],
-    "short_description": "",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_communitythemedefinition.htm",
     "parent": "Metadata"
   },
   "ConnectedApp": {
@@ -25694,88 +24732,6 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_functionreference.htm",
     "parent": "Metadata"
   },
-  "FundraisingConfig": {
-    "fields": [
-      {
-        "Description": "Reserved for future use.",
-        "Field Name": "donorMatchingMethod",
-        "Field Type": "DonorMatchingMethod (enumeration of type string)"
-      },
-      {
-        "Description": "The count of consecutive failed past transactions before the gift commitment status is changed to Failing. If set to 0, the status is never auto-changed to Failing.",
-        "Field Name": "failedTransactionCount",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Reserved for future use.",
-        "Field Name": "householdSoftCreditRole",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The duration in the number of days before or after an unpaid transaction in a gift commitment is marked as another installment in the gift commitment schedule. The unpaid transaction within the grace period is considered a gift transaction.",
-        "Field Name": "installmentExtDayCount",
-        "Field Type": "int"
-      },
-      {
-        "Description": "Reserved for future use.",
-        "Field Name": "isHshldSoftCrAutoCrea",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "The count of consecutive unpaid past transactions before the gift commitment status is changed to Lapsed. If set to 0, the status is never auto-changed to Lapsed.",
-        "Field Name": "lapsedUnpaidTrxnCount",
-        "Field Type": "int"
-      },
-      {
-        "Description": "A user-friendly name for FundraisingConfig, which is defined when the FundraisingConfig is created.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Indicates whether to automatically close a recurring gift commitment when it has no ongoing or future schedule and no unpaid transaction (true) or not (false). The default value is false. Available in API version 59.0 and later.",
-        "Field Name": "shouldClosePaidRcrCmt",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Indicates whether the next transaction in a recurring schedule is automatically created (true) or not (false). The default value is true. Available in API version 59.0 and later.",
-        "Field Name": "shouldCreateRcrSchdTrxn",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Name of the sObject of the campaign for which the donation was received. Available in API version 64.0 and later.",
-        "Field Name": "utmCampaignSrcObj",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Name of the field on the sObject in utmCampaignSrcObj of the campaign for which the donation was received. Available in API version 64.0 and later.",
-        "Field Name": "utmCampaignSrcObjField",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Name of the sObject that stores data about the message channel from which the donation originated. Available in API version 64.0 and later.",
-        "Field Name": "utmMediumSrcObj",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Name of the field on the sObject in utmMediumSrcObj that stores data about the message channel from which the donation originated. Available in API version 64.0 and later.",
-        "Field Name": "utmMediumSrcObjField",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Name of the sObject that stores data about the source of a donation. Available in API version 64.0 and later.",
-        "Field Name": "utmSourceSrcObj",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Name of the field on the sObject in utmSourceSrcObj that stores data about the source of a donation. Available in API version 64.0 and later.",
-        "Field Name": "utmSourceSrcObjField",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents a collection of settings to configure the fundraising product.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_fundraisingconfig.htm",
-    "parent": "Metadata"
-  },
   "GatewayProviderPaymentMethodType": {
     "fields": [
       {
@@ -25811,438 +24767,6 @@
     ],
     "short_description": "Represents an entity that allows integrators and payment providers to choose an active payment to receive an order's payment data rather than allowing the Salesforce Order Management platform to select a default payment method. This object is available in API version 51 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_gatewayproviderpaymentmethodtype.htm",
-    "parent": "Metadata"
-  },
-  "GenAiFunction": {
-    "fields": [
-      {
-        "Description": "A description explaining the general purpose and domain of the action.",
-        "Field Name": "description",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Target invocation used by invocation operations.",
-        "Field Name": "invocationTarget",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Invocable action type used by invocation operations. Values are: apex api createCatalogItemRequest flow generatePromptResponse externalService quickAction slack standardInvocableAction",
-        "Field Name": "invocationTargetType",
-        "Field Type": "PlannerFunctionInvocableTargetType (enumeration of type string)"
-      },
-      {
-        "Description": "Indicates whether confirmation is required for this action.",
-        "Field Name": "isConfirmationRequired",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Indicates whether to display the progress indicator for this action.",
-        "Field Name": "isIncludeInProgressIndicator",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "List of attributes for the planner.",
-        "Field Name": "mappingAttributes",
-        "Field Type": "GenAiPlannerAttr[]"
-      },
-      {
-        "Description": "Required. The master label for the generative AI action.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Represents the action’s parent topic.",
-        "Field Name": "pluginField",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The progress message.",
-        "Field Name": "progressIndicatorMessage",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents an agent action that can be added to an AI agent.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaifunction.htm",
-    "parent": "Metadata"
-  },
-  "GenAiPlannerAttr": {
-    "fields": [
-      {
-        "Description": "Description of the planner attribute.",
-        "Field Name": "description",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Label for the planner attribute.",
-        "Field Name": "label",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Name of the planner attribute.",
-        "Field Name": "name",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The parameter name.",
-        "Field Name": "parameterName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The parameter type. Values are: input output",
-        "Field Name": "parameterType",
-        "Field Type": "PlannerAttrMappingType (enumeration of type string)"
-      }
-    ],
-    "short_description": "Required. Label for the planner attribute.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaifunction.htm",
-    "parent": "Metadata"
-  },
-  "Input Folder": {
-    "fields": [
-      {
-        "Description": "A list of all the required properties in the input list.",
-        "Field Name": "required",
-        "Field Type": "array of strings"
-      },
-      {
-        "Description": "The parent object for all the properties associated with the input.",
-        "Field Name": "properties",
-        "Field Type": "object"
-      },
-      {
-        "Description": "Required. Each property in the properties object must contain the API value corresponding to the input parameter.",
-        "Field Name": "{PROPERTY_NAME}(child of properties\n\t\t\t\t\t\t\t\t\tfield)",
-        "Field Type": "object"
-      },
-      {
-        "Description": "Required. The label for the property.",
-        "Field Name": "title(child of properties.PROPERTY_NAME\n\t\t\t\t\t\t\t\t\tfield)",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The description for the property.",
-        "Field Name": "description(child of\n\t\t\t\t\t\t\t\t\tproperties.PROPERTY_NAME field)",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Describes the type of property. Some of the possible values include: lightning__booleanType—Boolean type. lightning__dateType—Date type. lightning__dateTimeType—Date and time type. When using this value, you must provide a dateTime string. This field is specified in the format yyyy-MM-dd'T'HH:mm:ss.SSSZ. You can also provide a timeZone string. Use the timezone attribute to specify a time zone in the IANA time zone database format. lightning__integerType—Integer type. When using this value, you can also provide maximum and minimum numbers for this property. lightning__listType—List type. lightning__multilineTextType—Multi-line text type. When using this value, you can also provide maxLength and minLength numbers for this property. lightning__numberType—Number type. When using this value, you can also provide maximum and minimum numbers for this property. lightning__objectType—Object type. When using this value, you must also provide a properties object that contains the list of subproperties within it. lightning__recordIdType—Record ID type. lightning__richTextType—Rich text type. When using this value, you can also provide maxLength and minLength numbers for this property. lightning__textType—Text type. When using this value, you can also provide maxLength and minLength numbers for this property. The maximum text type length is 250 characters. lightning__urlType—URL type. When using this value, you can also provide an array of strings in a lightning:allowedUrlSchemes field to specify the list of allowed URL schemes.",
-        "Field Name": "lightning:type(child of\n\t\t\t\t\t\t\t\t\tproperties.PROPERTY_NAME field)",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Indicates whether the property contains personally identifiable information.",
-        "Field Name": "lightning:isPII(child of\n\t\t\t\t\t\t\t\t\tproperties.PROPERTY_NAME field)",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Indicates whether the property is presented as user input.",
-        "Field Name": "copilotAction:isUserInput(child of\n\t\t\t\t\t\t\t\t\tproperties.PROPERTY_NAME field)",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Required. Describes the type of input. This value should always be lightning__objectType.",
-        "Field Name": "lightning:type",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "The input folder contains a schema.json file with the action inputs. Here’s a sample input schema file.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaifunction.htm",
-    "parent": "Metadata"
-  },
-  "Output Folder": {
-    "fields": [
-      {
-        "Description": "The parent object for all the properties associated with the output.",
-        "Field Name": "properties",
-        "Field Type": "object"
-      },
-      {
-        "Description": "Required. Each property in the properties object must contain the API value corresponding to the output parameter.",
-        "Field Name": "{PROPERTY_NAME}(child of properties\n\t\t\t\t\t\t\t\t\tfield)",
-        "Field Type": "object"
-      },
-      {
-        "Description": "Required. The label for the property.",
-        "Field Name": "title(child of properties.PROPERTY_NAME\n\t\t\t\t\t\t\t\t\tfield)",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The description for the property.",
-        "Field Name": "description(child of\n\t\t\t\t\t\t\t\t\tproperties.PROPERTY_NAME field)",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Describes the type of output. Some of the possible values include: lightning__booleanType—Boolean type. lightning__dateType—Date type. lightning__dateTimeType—Date and time type. When using this value, you must provide a dateTime string. This field is specified in the format yyyy-MM-dd'T'HH:mm:ss.SSSZ. You can also provide a timeZone string. Use the timezone attribute to specify a time zone in the IANA time zone database format. lightning__integerType—Integer type. When using this value, you can also provide maximum and minimum numbers for this property. lightning__listType—List type. lightning__multilineTextType—Multi-line text type. When using this value, you can also provide maxLength and minLength numbers for this property. lightning__numberType—Number type. When using this value, you can also provide maximum and minimum numbers for this property. lightning__objectType—Object type. When using this value, you must also provide a properties object that contains the list of subproperties within it. lightning__recordIdType—Record ID type. lightning__richTextType—Rich text type. When using this value, you can also provide maxLength and minLength numbers for this property. lightning__textType—Text type. When using this value, you can also provide maxLength and minLength numbers for this property. The maximum text type length is 250 characters. lightning__urlType—URL type. When using this value, you can also provide an array of strings in a lightning:allowedUrlSchemes field to specify the list of allowed URL schemes.",
-        "Field Name": "lightning:type(child of properties.PROPERTY_NAME\n\t\t\t\t\t\t\t\tfield)",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Indicates whether the property contains personally identifiable information.",
-        "Field Name": "lightning:isPII(child of properties.PROPERTY_NAME\n\t\t\t\t\t\t\t\tfield)",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Indicates whether the property is displayable as output.",
-        "Field Name": "copilotAction:isDisplayable(child of properties.PROPERTY_NAME\n\t\t\t\t\t\t\t\t\tfield)",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Indicates whether the property is used by the agent planner. At least one output property must have this value as true or else the planner returns random responses.",
-        "Field Name": "copilotAction:isUsedByPlanner(child of\n\t\t\t\t\t\t\t\t\tproperties.PROPERTY_NAME field)",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Required. Describes the type of output. This value should always be lightning__objectType.",
-        "Field Name": "lightning:type",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "The output folder contains a schema.json file with the action output. Here’s a sample output schema file.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaifunction.htm",
-    "parent": "Metadata"
-  },
-  "GenAiPlanner": {
-    "fields": [
-      {
-        "Description": "A list of action attribute mappings.",
-        "Field Name": "attributeMappings",
-        "Field Type": "GenAiPlannerAttrMapping[]"
-      },
-      {
-        "Description": "A set of tags associated with the agent.",
-        "Field Name": "capabilities",
-        "Field Type": "string"
-      },
-      {
-        "Description": "A description explaining the general purpose and domain of the agent.",
-        "Field Name": "description",
-        "Field Type": "string"
-      },
-      {
-        "Description": "A list of agent action definitions, such as a knowledge action, that are not contained in a topic.",
-        "Field Name": "genAiFunctions",
-        "Field Type": "GenAiPlannerFunctionDef[]"
-      },
-      {
-        "Description": "Deprecated. Use ruleExpressions instead.",
-        "Field Name": "genAiPlannerRuleExpressions",
-        "Field Type": "GenAiPlannerRuleExpr[]"
-      },
-      {
-        "Description": "A list of agent topic definitions.",
-        "Field Name": "genAiPlugins",
-        "Field Type": "GenAiPlannerFunctionDef[]"
-      },
-      {
-        "Description": "Required. The master label for the planner.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. A particular approach to problem solving that is given as prompt instructions to a large language model (LLM). The only supported value is: AiCopilot__ReAct—Uses a reactive reasoning strategy to solve problems with the LLM. This strategy consists of prompting the LLM to generate the next step in response to an event and the current context. It differs from a sequential reasoning engine in that it doesn’t plan more than one step ahead of time.",
-        "Field Name": "plannerType",
-        "Field Type": "PlannerType (enumeration of type string)"
-      },
-      {
-        "Description": "A list of rule expression assignments.",
-        "Field Name": "ruleExpressionAssignments",
-        "Field Type": "GenAiPlannerRuleExprAsgn[]"
-      },
-      {
-        "Description": "A list of rule expressions.",
-        "Field Name": "ruleExpressions",
-        "Field Type": "GenAiPlannerRuleExprDef[]"
-      }
-    ],
-    "short_description": "Represents a planner for an agent. It’s a container for all the topics and actions used to interact with a large language model (LLM).",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplanner.htm",
-    "parent": "Metadata"
-  },
-  "GenAiPlannerAttrMapping": {
-    "fields": [
-      {
-        "Description": "Required. The attribute name in the format: Namespace.TopicName.ActionName.AttributeName.",
-        "Field Name": "attributeName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The attribute type. Values are: CustomPluginFunctionAttribute—Map to a custom action input or output StandardPluginFunctionInput—Map to a standard action input StandardPluginFunctionOutput—Map output to a variable",
-        "Field Name": "attributeType",
-        "Field Type": "AttributeType (enumeration of type string)"
-      },
-      {
-        "Description": "Reserved for future use.",
-        "Field Name": "constantValue",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The target name for the attribute mapping.",
-        "Field Name": "mappingTargetName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The target type. Values are: ActionAttribute Constant Variable ContextVariable",
-        "Field Name": "mappingType",
-        "Field Type": "AttributeMappingType (enumeration of type string)"
-      }
-    ],
-    "short_description": "Represents an attribute mapping, which enables you to map the output of one action attribute to the input of another attribute. This mapping enables you to propagate sensitive data safely without relying on untrusted user input.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplanner.htm",
-    "parent": "Metadata"
-  },
-  "GenAiPlannerFunctionDef": {
-    "fields": [
-      {
-        "Description": "A list of custom agent topics.",
-        "Field Name": "genAiCustomizedPlugin",
-        "Field Type": "GenAiLocalPlugin[]"
-      },
-      {
-        "Description": "The name of the agent action.",
-        "Field Name": "genAiFunctionName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The name of the agent topic.",
-        "Field Name": "genAiPluginName",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents an agent topic or action definition.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplanner.htm",
-    "parent": "Metadata"
-  },
-  "GenAiLocalPlugin": {
-    "fields": [
-      {
-        "Description": "A list of utterances that can be used to pick a topic during runtime.",
-        "Field Name": "aiPluginUtterances",
-        "Field Type": "AiPluginUtteranceDef[]"
-      },
-      {
-        "Description": "The description of the topic.",
-        "Field Name": "description",
-        "Field Type": "string"
-      },
-      {
-        "Description": "A list of functions in the topic.",
-        "Field Name": "genAiFunctions",
-        "Field Type": "GenAiPluginFunctionDef[]"
-      },
-      {
-        "Description": "A list of instructions in the topic.",
-        "Field Name": "genAiPluginInstructions",
-        "Field Type": "GenAiPluginInstructionDef[]"
-      },
-      {
-        "Description": "Required. The language of the topic.",
-        "Field Name": "language",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The master label for the topic.",
-        "Field Name": "masterLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Represents the API name of the topic. This name must be unique across all custom and customized topics. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.",
-        "Field Name": "name",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Values are: Topic",
-        "Field Name": "pluginType",
-        "Field Type": "PluginType (enumeration of type string)"
-      },
-      {
-        "Description": "A specific job description for a topic.",
-        "Field Name": "scope",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents a custom agent topic.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplanner.htm",
-    "parent": "Metadata"
-  },
-  "GenAiPlannerRuleExprAsgn": {
-    "fields": [
-      {
-        "Description": "Required. The name of the rule expression.",
-        "Field Name": "ruleExpressionName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The target of the assignment, which is a Namespace.TopicName.ActionName or a TopicName.",
-        "Field Name": "targetName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The type of the target. Values are: Function—A knowledge action Plugin—A topic PluginFunction—An action in a topic",
-        "Field Name": "targetType",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents a rule-expression assignment to either a topic or an action.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplanner.htm",
-    "parent": "Metadata"
-  },
-  "GenAiPlannerRuleExprDef": {
-    "fields": [
-      {
-        "Description": "A list of conditions for a rule expression.",
-        "Field Name": "conditions",
-        "Field Type": "GenAiPlannerRuleExprCondition[]"
-      },
-      {
-        "Description": "An expression with the combined conditions.",
-        "Field Name": "expression",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The expression label.",
-        "Field Name": "expressionLabel",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The expression name.",
-        "Field Name": "expressionName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "The expression type. Values are: handlebars—Reserved for future use sel—Salesforce Expression Language, as used in formula fields",
-        "Field Name": "expressionType",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents a rule expression, which conditionally locks or unlocks topics and actions based on defined security criteria.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplanner.htm",
-    "parent": "Metadata"
-  },
-  "GenAiPlannerRuleExprCondition": {
-    "fields": [
-      {
-        "Description": "Required. The left operand in the expression.",
-        "Field Name": "leftOperand",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. The type for the left operand. Values are: Variable ContextVariable Attribute",
-        "Field Name": "leftOperandType",
-        "Field Type": "GenAiAgentVariableType (enumeration of type string)"
-      },
-      {
-        "Description": "Required. The operator in the expression. Values are: equal greaterThan greaterThanOrEqual lessThan lessThanOrEqual notEqual isEmpty isNotEmpty",
-        "Field Name": "operator",
-        "Field Type": "GenAiRuleExpressionOperator (enumeration of type string)"
-      },
-      {
-        "Description": "The value for the right operand.",
-        "Field Name": "rightOperandValue",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents a condition for a rule expression.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplanner.htm",
     "parent": "Metadata"
   },
   "GenAiPlannerBundle": {
@@ -26299,6 +24823,198 @@
       }
     ],
     "short_description": "Represents a planner for an agent or agent template. It’s a container for all the topics and actions used to interact with a large language model (LLM).",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplannerbundle.htm",
+    "parent": "Metadata"
+  },
+  "GenAiPlannerAttrMapping": {
+    "fields": [
+      {
+        "Description": "Required. The attribute name in the format: Namespace.TopicName.ActionName.AttributeName.",
+        "Field Name": "attributeName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The attribute type. Values are: CustomPluginFunctionAttribute—Map to a custom action input or output StandardPluginFunctionInput—Map to a standard action input StandardPluginFunctionOutput—Map output to a variable",
+        "Field Name": "attributeType",
+        "Field Type": "AttributeType (enumeration of type string)"
+      },
+      {
+        "Description": "Reserved for future use.",
+        "Field Name": "constantValue",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The target name for the attribute mapping.",
+        "Field Name": "mappingTargetName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The target type. Values are: ActionAttribute Constant Variable ContextVariable",
+        "Field Name": "mappingType",
+        "Field Type": "AttributeMappingType (enumeration of type string)"
+      }
+    ],
+    "short_description": "Represents an attribute mapping, which enables you to map the output of one action attribute to the input of another attribute. This mapping enables you to propagate sensitive data safely without relying on untrusted user input.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplannerbundle.htm",
+    "parent": "Metadata"
+  },
+  "GenAiPlannerFunctionDef": {
+    "fields": [
+      {
+        "Description": "A list of custom agent topics.",
+        "Field Name": "genAiCustomizedPlugin",
+        "Field Type": "GenAiLocalPlugin[]"
+      },
+      {
+        "Description": "The name of the agent action.",
+        "Field Name": "genAiFunctionName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The name of the agent topic.",
+        "Field Name": "genAiPluginName",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents an agent topic or action definition.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplannerbundle.htm",
+    "parent": "Metadata"
+  },
+  "GenAiLocalPlugin": {
+    "fields": [
+      {
+        "Description": "A list of utterances that can be used to pick a topic during runtime.",
+        "Field Name": "aiPluginUtterances",
+        "Field Type": "AiPluginUtteranceDef[]"
+      },
+      {
+        "Description": "Determines whether this topic is applicable for escalation to a rep.",
+        "Field Name": "canEscalate",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Required. The description of the topic.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
+        "Description": "A list of functions in the topic.",
+        "Field Name": "genAiFunctions",
+        "Field Type": "GenAiPluginFunctionDef[]"
+      },
+      {
+        "Description": "A list of instructions in the topic.",
+        "Field Name": "genAiPluginInstructions",
+        "Field Type": "GenAiPluginInstructionDef[]"
+      },
+      {
+        "Description": "Required. The language of the topic.",
+        "Field Name": "language",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The master label for the topic.",
+        "Field Name": "masterLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Represents the API name of the topic. This name must be unique across all custom and customized topics. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.",
+        "Field Name": "name",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Values are: Topic APICustomTopic",
+        "Field Name": "pluginType",
+        "Field Type": "PluginType (enumeration of type string)"
+      },
+      {
+        "Description": "A specific job description for a topic.",
+        "Field Name": "scope",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents a custom agent topic.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplannerbundle.htm",
+    "parent": "Metadata"
+  },
+  "GenAiPlannerRuleExprAsgn": {
+    "fields": [
+      {
+        "Description": "Required. The name of the rule expression.",
+        "Field Name": "ruleExpressionName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The target of the assignment, which is a Namespace.TopicName.ActionName or a TopicName.",
+        "Field Name": "targetName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The type of the target. Values are: Function—A knowledge action Plugin—A topic PluginFunction—An action in a topic",
+        "Field Name": "targetType",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents a rule-expression assignment to either a topic or an action.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplannerbundle.htm",
+    "parent": "Metadata"
+  },
+  "GenAiPlannerRuleExprDef": {
+    "fields": [
+      {
+        "Description": "A list of conditions for a rule expression.",
+        "Field Name": "conditions",
+        "Field Type": "GenAiPlannerRuleExprCondition[]"
+      },
+      {
+        "Description": "An expression with the combined conditions.",
+        "Field Name": "expression",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The expression label.",
+        "Field Name": "expressionLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The expression name.",
+        "Field Name": "expressionName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The expression type. Values are: handlebars—Reserved for future use sel—Salesforce Expression Language, as used in formula fields",
+        "Field Name": "expressionType",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents a rule expression, which conditionally locks or unlocks topics and actions based on defined security criteria.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplannerbundle.htm",
+    "parent": "Metadata"
+  },
+  "GenAiPlannerRuleExprCondition": {
+    "fields": [
+      {
+        "Description": "Required. The left operand in the expression.",
+        "Field Name": "leftOperand",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The type for the left operand. Values are: Variable ContextVariable Attribute",
+        "Field Name": "leftOperandType",
+        "Field Type": "GenAiAgentVariableType (enumeration of type string)"
+      },
+      {
+        "Description": "Required. The operator in the expression. Values are: equal greaterThan greaterThanOrEqual lessThan lessThanOrEqual notEqual isEmpty isNotEmpty",
+        "Field Name": "operator",
+        "Field Type": "GenAiRuleExpressionOperator (enumeration of type string)"
+      },
+      {
+        "Description": "The value for the right operand.",
+        "Field Name": "rightOperandValue",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents a condition for a rule expression.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_genaiplannerbundle.htm",
     "parent": "Metadata"
   },
