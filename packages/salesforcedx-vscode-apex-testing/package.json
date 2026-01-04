@@ -397,6 +397,34 @@
             "%apex_test_output_format_markdown_description%",
             "%apex_test_output_format_text_description%"
           ]
+        },
+        "salesforcedx-vscode-apex-testing.testSortOrder": {
+          "type": "string",
+          "enum": [
+            "runtime",
+            "coverage",
+            "severity"
+          ],
+          "default": "runtime",
+          "description": "%apex_test_sort_order_description%",
+          "enumDescriptions": [
+            "%apex_test_sort_order_runtime_description%",
+            "%apex_test_sort_order_coverage_description%",
+            "%apex_test_sort_order_severity_description%"
+          ]
+        },
+        "salesforcedx-vscode-apex-testing.testPerformanceThresholdMs": {
+          "type": "number",
+          "default": 5000,
+          "description": "%apex_test_performance_threshold_description%",
+          "minimum": 0
+        },
+        "salesforcedx-vscode-apex-testing.testCoverageThresholdPercent": {
+          "type": "number",
+          "default": 75,
+          "description": "%apex_test_coverage_threshold_description%",
+          "minimum": 0,
+          "maximum": 100
         }
       }
     }

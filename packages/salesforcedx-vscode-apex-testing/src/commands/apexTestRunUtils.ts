@@ -68,8 +68,9 @@ export const runApexTests = async (
   // Generate and open test report
   const reportStartTime = Date.now();
   const outputFormat = settings.retrieveOutputFormat();
+  const sortOrder = settings.retrieveTestSortOrder();
   try {
-    await writeAndOpenTestReport(result, options.outputDir, outputFormat);
+    await writeAndOpenTestReport(result, options.outputDir, outputFormat, options.codeCoverage, sortOrder);
     const reportDurationMs = Date.now() - reportStartTime;
     telemetryService.sendEventData(
       'apexTestReportGenerated',
