@@ -93,6 +93,17 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
       // Wait for file to be created and editor to open
       const newEditor = page.locator(EDITOR_WITH_URI).first();
       await newEditor.waitFor({ state: 'visible', timeout: 10_000 });
+
+      // Dismiss any visible notifications that might block the click
+      const notificationCloseButtons = page.locator('.notifications-toasts .codicon-notifications-clear-all');
+      const closeButtonCount = await notificationCloseButtons.count();
+      if (closeButtonCount > 0) {
+        await notificationCloseButtons.first().click().catch(() => {
+          // Notification might have auto-dismissed
+        });
+        await page.waitForTimeout(500);
+      }
+
       await newEditor.click();
 
       // Type contents and save
