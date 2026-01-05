@@ -71,13 +71,15 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
       await explorerWorkspaceRoot.waitFor({ state: 'visible', timeout: 5000 });
       await explorerWorkspaceRoot.click();
 
-      // Use explorer's "New File" action (icon or keyboard shortcut)
+      // Use explorer's "New File" action button
       // The explorer should now show an inline input for the filename
       const explorerView = page.locator('.explorer-folders-view');
       await explorerView.waitFor({ state: 'visible', timeout: 5000 });
 
-      // Try keyboard shortcut for new file in explorer (varies by platform, but typically works)
-      await page.keyboard.press(process.platform === 'darwin' ? 'Meta+n' : 'Control+n');
+      // Click the "New File" action button in the explorer (in the view title actions)
+      const newFileButton = page.locator('.monaco-action-bar').locator('[aria-label*="New File"]');
+      await newFileButton.waitFor({ state: 'visible', timeout: 5000 });
+      await newFileButton.click();
       await page.waitForTimeout(500);
 
       // Wait for inline rename input to appear in explorer
