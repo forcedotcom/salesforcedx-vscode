@@ -28,12 +28,7 @@ const viewChangesEffect = Effect.fn('viewChanges')(function* (options: ViewChang
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
   const channel = yield* channelService.getChannel;
-  const tracking = yield* Effect.flatMap(api.services.SourceTrackingService, svc => svc.getSourceTracking());
-
-  if (!tracking) {
-    yield* channelService.appendToChannel('No source tracking available for this org');
-    return;
-  }
+  const tracking = yield* Effect.flatMap(api.services.SourceTrackingService, svc => svc.getSourceTrackingOrThrow());
 
   // Re-read both remote and local tracking to ensure fresh data
   yield* Effect.all(

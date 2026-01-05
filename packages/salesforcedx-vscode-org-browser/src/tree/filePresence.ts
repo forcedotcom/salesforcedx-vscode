@@ -66,7 +66,7 @@ const getFilePaths = (member: MetadataMember) =>
     );
     const dirs = (yield* projectService.getSfProject).getPackageDirectories().map(directory => directory.fullPath);
     yield* Effect.annotateCurrentSpan({ packageDirectories: dirs });
-    const componentSet = yield* retrieveService.buildComponentSetFromSource([member], dirs);
+    const componentSet = yield* retrieveService.buildComponentSetFromSource(dirs, [member]);
     yield* Effect.annotateCurrentSpan({ size: componentSet.size });
     const paths = Array.from(componentSet.getSourceComponents()).flatMap(c =>
       [c.xml, c.content].filter(f => f !== undefined)

@@ -46,7 +46,7 @@ const retrieveEffect = (
 
     const dirs = (yield* projectService.getSfProject).getPackageDirectories().map(directory => directory.fullPath);
 
-    const localComponents = yield* retrieveService.buildComponentSetFromSource([target.value], dirs);
+    const localComponents = yield* retrieveService.buildComponentSetFromSource(dirs, [target.value]);
 
     if (!(yield* confirmOverwrite(localComponents, target.value))) {
       return Brand.nominal<SuccessfulCancelResult>()('User canceled');

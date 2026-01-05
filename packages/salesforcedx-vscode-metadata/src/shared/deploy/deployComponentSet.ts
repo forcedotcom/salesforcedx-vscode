@@ -10,7 +10,6 @@ import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { ExtensionProviderService } from '../../services/extensionProvider';
-import { COMPONENT_STATUS_FAILED } from '../constants';
 import { formatDeployOutput } from './formatDeployOutput';
 
 /** Deploy a ComponentSet, handling empty sets, cancellation, and output formatting */
@@ -19,8 +18,10 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
 }) {
   const { componentSet } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
-  const deployService = yield* api.services.MetadataDeployService;
+  const [channelService, deployService, componentSetService] = yield* Effect.all(
+    [api.services.ChannelService, api.services.MetadataDeployService, api.services.ComponentSetService],
+    { concurrency: 'unbounded' }
+  );
 
   yield* channelService.appendToChannel(
     `Deploying ${componentSet.size} component${componentSet.size === 1 ? '' : 's'}...`
@@ -34,9 +35,9 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
     return;
   }
 
-  yield* channelService.appendToChannel(formatDeployOutput(result));
+  yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 
-  if (result.getFileResponses().some(r => String(r.state) === COMPONENT_STATUS_FAILED)) {
+  if (result.getFileResponses().some(componentSetService.isSDRFailure)) {
     yield* Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_completed_with_errors_message')));
   }
 });

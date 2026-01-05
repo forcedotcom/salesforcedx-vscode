@@ -5,9 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgConfigProperties } from '@salesforce/core';
-import type { ConfigAggregator } from '@salesforce/core/configAggregator';
-import type { SfProject } from '@salesforce/core/project';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import { type SourceTracking } from '@salesforce/source-tracking';
 import * as Brand from 'effect/Brand';
@@ -20,11 +17,8 @@ import * as vscode from 'vscode';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { ChannelService } from '../vscode/channelService';
 import { WorkspaceService } from '../vscode/workspaceService';
-import { ensureNonEmptyComponentSet, FailedToBuildComponentSetError } from './componentSetService';
-import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
-import { MetadataRegistryService } from './metadataRegistryService';
-import { FailedToResolveSfProjectError, ProjectService } from './projectService';
+import { ProjectService } from './projectService';
 import { unknownToErrorCause } from './shared';
 import { type SourceTrackingOptions, SourceTrackingService } from './sourceTrackingService';
 
@@ -151,88 +145,10 @@ const deploy = (components: ComponentSet) =>
     return deployOutcome;
   }).pipe(Effect.withSpan('deploy', { attributes: { componentCount: components.size } }));
 
-/** Get required services for building ComponentSets */
-const getComponentSetServices = () =>
-  Effect.all(
-    [
-      Effect.flatMap(MetadataRegistryService, svc => svc.getRegistryAccess()),
-      Effect.flatMap(ProjectService, svc => svc.getSfProject),
-      Effect.flatMap(ConfigService, svc => svc.getConfigAggregator)
-    ],
-    { concurrency: 'unbounded' }
-  );
-
-/** Set project directory, API version, and source API version on ComponentSet */
-const setComponentSetProperties = (
-  componentSet: ComponentSet,
-  project: SfProject,
-  configAggregator: ConfigAggregator
-) =>
-  Effect.gen(function* () {
-    componentSet.projectDirectory = project.getPath();
-    const apiVersion = configAggregator.getPropertyValue<string>(OrgConfigProperties.ORG_API_VERSION);
-    if (apiVersion) {
-      componentSet.apiVersion = apiVersion;
-    }
-    const projectJson = yield* Effect.tryPromise({
-      try: () => project.retrieveSfProjectJson(),
-      catch: e => new FailedToResolveSfProjectError(unknownToErrorCause(e))
-    });
-    const sourceApiVersion = projectJson.get<string>('sourceApiVersion');
-    if (sourceApiVersion) {
-      componentSet.sourceApiVersion = String(sourceApiVersion);
-    }
-  });
-
-/** Get ComponentSet from source paths (files/directories) */
-const getComponentSetFromPaths = (paths: Set<string>) =>
-  Effect.gen(function* () {
-    yield* Effect.annotateCurrentSpan({ paths });
-    const [registryAccess, project, configAggregator] = yield* getComponentSetServices();
-
-    const componentSet = yield* Effect.try({
-      try: () => ComponentSet.fromSource({ fsPaths: Array.from(paths), registry: registryAccess }),
-      catch: e => new FailedToBuildComponentSetError(unknownToErrorCause(e))
-    });
-
-    yield* setComponentSetProperties(componentSet, project, configAggregator);
-
-    yield* Effect.annotateCurrentSpan({ size: componentSet.size });
-    return componentSet;
-  }).pipe(Effect.withSpan('getComponentSetFromPaths'));
-
-/** Get ComponentSet from manifest file */
-const getComponentSetFromManifest = (manifestPath: string) =>
-  Effect.gen(function* () {
-    yield* Effect.annotateCurrentSpan({ manifestPath });
-    const [registryAccess, project, configAggregator] = yield* getComponentSetServices();
-
-    const componentSet = yield* Effect.tryPromise({
-      try: async () =>
-        ComponentSet.fromManifest({
-          manifestPath,
-          // Get package directories as full paths
-          resolveSourcePaths: project.getPackageDirectories().map(pkgDir => pkgDir.fullPath),
-          forceAddWildcards: true,
-          registry: registryAccess
-        }),
-      catch: e => new FailedToBuildComponentSetError(unknownToErrorCause(e))
-    });
-
-    yield* setComponentSetProperties(componentSet, project, configAggregator);
-
-    yield* Effect.annotateCurrentSpan({ size: componentSet.size });
-    return componentSet;
-  }).pipe(Effect.withSpan('getComponentSetFromManifest'));
-
 export class MetadataDeployService extends Effect.Service<MetadataDeployService>()('MetadataDeployService', {
   succeed: {
     /** Deploy metadata to the default org */
     deploy,
-    getComponentSetForDeploy,
-    /** Build a ComponentSet from source paths (files/directories) */
-    getComponentSetFromPaths,
-    getComponentSetFromManifest,
-    ensureNonEmptyComponentSet
+    getComponentSetForDeploy
   } as const
 }) {}

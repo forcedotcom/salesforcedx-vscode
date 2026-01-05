@@ -12,17 +12,19 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
+import { ComponentSetService } from './componentSetService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { MetadataRetrieveService } from './metadataRetrieveService';
-import { fileResponseHasPath, isFileResponseSuccess } from './sdrGuards';
+import { fileResponseHasPath } from './sdrGuards';
 
 export const filterFileResponses = Effect.fn('filterFileResponses')(function* (
   fileResponses: FileResponse[],
   members: MetadataMember[]
 ) {
+  const componentSetService = yield* ComponentSetService;
   const allowedSuffixes = yield* getAllowedSuffixes(members);
   return fileResponses
-    .filter(isFileResponseSuccess)
+    .filter(componentSetService.isSDRSuccess)
     .filter(fileResponseHasPath)
     .map(fileResponse => fileResponse.filePath?.replaceAll('\\', '/'))
     .filter(filePath => allowedSuffixes.some(suffix => filePath.endsWith(suffix)));

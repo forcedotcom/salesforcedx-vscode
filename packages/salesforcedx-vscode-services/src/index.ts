@@ -11,6 +11,7 @@ import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
+import { ComponentSetService } from './core/componentSetService';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
 import { defaultOrgRef, watchConfigFiles } from './core/defaultOrgService';
@@ -37,6 +38,7 @@ import { WorkspaceService } from './vscode/workspaceService';
 
 export type SalesforceVSCodeServicesApi = {
   services: {
+    ComponentSetService: typeof ComponentSetService;
     ConnectionService: typeof ConnectionService;
     ProjectService: typeof ProjectService;
     ChannelService: typeof ChannelService;
@@ -98,6 +100,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   const extensionScope = Effect.runSync(getExtensionScope());
 
   const requirements = Layer.mergeAll(
+    ComponentSetService.Default,
     WorkspaceService.Default,
     SettingsService.Default,
     SettingsWatcherService.Default,
@@ -129,6 +132,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   // Return API for other extensions to consume
   return {
     services: {
+      ComponentSetService,
       ConnectionService,
       ProjectService,
       ChannelService,

@@ -23,7 +23,20 @@ export type SourceTrackingOptions = { ignoreConflicts?: boolean };
 export class SourceTrackingError extends Data.TaggedError('FailedToUpdateSourceTrackingError')<{
   readonly cause: unknown;
 }> {}
-/** Creates a SourceTracking instance with optional configuration */
+
+export class SourceTrackingNotEnabledError extends Data.TaggedError('SourceTrackingNotEnabledError')<{
+  readonly message: string;
+}> {}
+/** Gets a SourceTracking instance with optional configuration.  Throws a SourceTrackingNotEnabledError if source tracking is not enabled */
+const getTrackingOrThrow = (options?: SourceTrackingOptions) =>
+  Effect.gen(function* () {
+    const tracking = yield* getTracking(options);
+    if (!tracking) {
+      return yield* Effect.fail(new SourceTrackingNotEnabledError({ message: 'Source tracking is not enabled' }));
+    }
+    return tracking;
+  });
+/** Creates a SourceTracking instance with optional configuration.  Returns undefined if source tracking is not enabled */
 const getTracking = (options?: SourceTrackingOptions) =>
   Effect.gen(function* () {
     const [connection, project, registryAccess, ref, configAggregator] = yield* Effect.all(
@@ -70,6 +83,7 @@ const getTracking = (options?: SourceTrackingOptions) =>
 
 export class SourceTrackingService extends Effect.Service<SourceTrackingService>()('SourceTrackingService', {
   succeed: {
+    getSourceTrackingOrThrow: (options?: SourceTrackingOptions) => getTrackingOrThrow(options),
     getSourceTracking: (options?: SourceTrackingOptions) => getTracking(options),
     updateTrackingFromRetrieve: (result: RetrieveResult) =>
       Effect.gen(function* () {

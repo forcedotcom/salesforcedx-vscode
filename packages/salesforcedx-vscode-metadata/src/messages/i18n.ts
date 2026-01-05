@@ -50,7 +50,17 @@ export const messages = {
   deploy_on_save_error_no_target_org:
     'Error running deploy on save: No default org is set. Run "SFDX: Authorize an Org", then deploy the changes that you just saved.',
   deploy_on_save_error_generic: 'Deploy on save failed: %s',
-  deploy_failed: 'Failed to deploy: %s'
+  deploy_failed: 'Failed to deploy: %s',
+  retrieve_this_source_text: 'SFDX: Retrieve This Source from Org',
+  retrieve_in_manifest_text: 'SFDX: Retrieve Source in Manifest from Org',
+  retrieve_select_file_or_directory:
+    'You can run SFDX: Retrieve This Source from Org only on a source file or directory.',
+  retrieve_select_manifest: 'You can run SFDX: Retrieve Source in Manifest from Org only on a manifest file.',
+  retrieve_completed_with_errors_message: 'Retrieve completed with errors. Check output for details.',
+  retrieve_no_components_message: 'No components found to retrieve',
+  retrieve_failed: 'Failed to retrieve: %s',
+  error_source_tracking_service_failed: 'Failed to initialize source tracking service.',
+  error_source_tracking_components_failed: 'Failed to retrieve components using source tracking: %s'
 } as const;
 
 export type MessageKey = keyof typeof messages;
