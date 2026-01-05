@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(ralph-wiggum:help)",
+      "Skill(ralph-wiggum:ralph-loop)",
+      "Bash(cat:*)",
+      "Bash(claude:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh run view:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run test:e2e:web:*)",
+      "Bash(npm run:*)",
+      "Bash(ls:*)",
+      "Bash(npx playwright show-report:*)",
+      "Bash(grep:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run watch:*)",
+      "Bash(gh workflow run:*)"
+    ]
+  }
+}

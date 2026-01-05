@@ -81,7 +81,7 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
       await page.waitForTimeout(500);
 
       // Wait for inline rename input to appear in explorer
-      const inlineInput = page.locator('.monaco-inputbox input');
+      const inlineInput = explorerView.locator('.monaco-inputbox input');
       await inlineInput.waitFor({ state: 'visible', timeout: 5000 });
 
       // Type full filename (can include path like "subfolder/file.txt")

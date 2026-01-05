@@ -145,4 +145,3 @@ Test cases should include:
     - If no import: find last import statement or top of file, use `fixer.insertTextAfter()` or `fixer.insertTextBefore()`
     - Import path resolution:
     - Files in `playwright-vscode-ext`: use relative path `'../utils/locators'` or `'./utils/locators'`
-    - Files in other packages: use package import `'@salesforcedx/vscode-playwright/utils/locators'`
