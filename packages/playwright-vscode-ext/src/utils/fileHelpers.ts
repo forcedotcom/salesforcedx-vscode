@@ -58,11 +58,10 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
 
     if (createdUntitled) {
       // Untitled file created (web or Windows desktop)
-      // Type contents first, then save to trigger filename prompt
+      // Save EMPTY first to avoid native dialog on Windows, then add content
       await page.locator(EDITOR_WITH_URI).first().click();
-      await page.keyboard.type(contents);
 
-      // Save - this will trigger "Save As" dialog
+      // Save empty file - this should trigger quickInput filename prompt
       await page.keyboard.press('Control+s');
 
       // Wait for quick input (filename prompt) to appear
@@ -84,7 +83,23 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
       }
 
       // Wait for file to be saved
-      await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });
+      const savedEditor = page.locator(EDITOR_WITH_URI).first();
+      await savedEditor.waitFor({ state: 'visible', timeout: 10_000 });
+
+      // Now add content to the saved file
+      await savedEditor.click();
+      await page.keyboard.type(contents);
+      await page.keyboard.press('Control+s');
+
+      // Wait for save to complete
+      const untitledDirtyEditor = page.locator(DIRTY_EDITOR);
+      const untitledDirtyCount = await untitledDirtyEditor.count();
+      if (untitledDirtyCount > 0) {
+        await untitledDirtyEditor.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {
+          // File saved instantly without showing dirty state
+        });
+      }
+
       return;
     }
 
