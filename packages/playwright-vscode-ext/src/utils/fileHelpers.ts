@@ -58,45 +58,51 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
 
     if (createdUntitled) {
       // Untitled file created (web or Windows desktop)
-      // Save EMPTY first to avoid native dialog on Windows, then add content
-      await page.locator(EDITOR_WITH_URI).first().click();
+      // Close it and try the Files Explorer flow instead (avoids native save dialogs)
+      await executeCommandWithCommandPalette(page, 'View: Close Editor');
+      await page.waitForTimeout(500);
 
-      // Use command palette to save (more reliable than Ctrl+S on Windows)
-      await executeCommandWithCommandPalette(page, 'File: Save');
+      // Focus Files Explorer
+      await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+      await page.waitForTimeout(500);
 
-      // Wait for quick input (filename prompt) to appear
-      await quickInput.waitFor({ state: 'visible', timeout: 5000 });
-      // Type the filename
+      // Click on workspace root folder to select it
+      const explorerWorkspaceRoot = page.locator('.monaco-list-row[aria-level="1"]').first();
+      await explorerWorkspaceRoot.waitFor({ state: 'visible', timeout: 5000 });
+      await explorerWorkspaceRoot.click();
+
+      // Use explorer's "New File" action (icon or keyboard shortcut)
+      // The explorer should now show an inline input for the filename
+      const explorerView = page.locator('.explorer-folders-view');
+      await explorerView.waitFor({ state: 'visible', timeout: 5000 });
+
+      // Try keyboard shortcut for new file in explorer (varies by platform, but typically works)
+      await page.keyboard.press(process.platform === 'darwin' ? 'Meta+n' : 'Control+n');
+      await page.waitForTimeout(500);
+
+      // Wait for inline rename input to appear in explorer
+      const inlineInput = page.locator('.monaco-inputbox input');
+      await inlineInput.waitFor({ state: 'visible', timeout: 5000 });
+
+      // Type full filename (can include path like "subfolder/file.txt")
       await page.keyboard.type(fileName);
       await page.keyboard.press('Enter');
 
-      // Handle folder path dialog if it appears
-      const untitledFolderPathInput = page.getByRole('textbox', { name: /Folder path/i });
-      const hasFolderDialog = await untitledFolderPathInput.isVisible({ timeout: 2000 }).catch(() => false);
-      if (hasFolderDialog) {
-        // Build full path
-        await page.keyboard.press('Control+a');
-        const untitledFullPath = filePath.startsWith('/') ? filePath : `/MyProject/${filePath}`;
-        await page.keyboard.type(untitledFullPath);
-        const untitledOkButton = page.getByRole('button', { name: 'OK', exact: true });
-        await untitledOkButton.click();
-      }
+      // Wait for file to be created and editor to open
+      const newEditor = page.locator(EDITOR_WITH_URI).first();
+      await newEditor.waitFor({ state: 'visible', timeout: 10_000 });
+      await newEditor.click();
 
-      // Wait for file to be saved
-      const savedEditor = page.locator(EDITOR_WITH_URI).first();
-      await savedEditor.waitFor({ state: 'visible', timeout: 10_000 });
-
-      // Now add content to the saved file
-      await savedEditor.click();
+      // Type contents and save
       await page.keyboard.type(contents);
       await page.keyboard.press('Control+s');
 
       // Wait for save to complete
-      const untitledDirtyEditor = page.locator(DIRTY_EDITOR);
-      const untitledDirtyCount = await untitledDirtyEditor.count();
-      if (untitledDirtyCount > 0) {
-        await untitledDirtyEditor.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {
-          // File saved instantly without showing dirty state
+      const finalDirtyEditor = page.locator(DIRTY_EDITOR);
+      const finalDirtyCount = await finalDirtyEditor.count();
+      if (finalDirtyCount > 0) {
+        await finalDirtyEditor.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {
+          // File saved instantly
         });
       }
 
