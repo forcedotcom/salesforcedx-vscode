@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.10.0",
+  "version": "65.12.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -31,7 +31,7 @@
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "applicationinsights": "1.0.7",
-    "effect": "^3.18.4",
+    "effect": "^3.19.13",
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
     "rxjs": "^5.4.1",
