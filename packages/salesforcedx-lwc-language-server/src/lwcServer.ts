@@ -326,12 +326,6 @@ export default class Server {
       return null;
     }
 
-    if (!this.isDelayedInitializationComplete) {
-      return {
-        contents: nls.localize('server_initializing_message')
-      };
-    }
-
     const {
       position,
       textDocument: { uri }
@@ -345,11 +339,19 @@ export default class Server {
     const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
 
     if (await this.context.isLWCTemplate(doc)) {
+      if (!this.isDelayedInitializationComplete) {
+        return {
+          contents: nls.localize('server_initializing_message')
+        };
+      }
       this.auraDataProvider.activated = false;
       this.lwcDataProvider.activated = true;
       const hover = this.languageService.doHover(doc, position, htmlDoc);
       return hover;
     } else if (await this.context.isAuraMarkup(doc)) {
+      if (!this.isDelayedInitializationComplete) {
+        return null;
+      }
       this.auraDataProvider.activated = true;
       this.lwcDataProvider.activated = false;
       const hover = this.languageService.doHover(doc, position, htmlDoc);
