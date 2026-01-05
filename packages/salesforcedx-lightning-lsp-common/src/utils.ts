@@ -66,22 +66,8 @@ export type NormalizedPath = string & { readonly __brand: 'NormalizedPath' };
 export const normalizePath = (filePath: string): NormalizedPath => {
   const unixified = unixify(filePath);
   // Normalize Windows drive letter to lowercase (e.g., "D:/path" -> "d:/path")
-  let normalized = unixified.replace(/^([A-Z]):/, (_match: string, drive: string) => `${drive.toLowerCase()}:`);
-
-  // On Windows, also normalize path segments to lowercase for consistent Map lookups
-  // Windows file system is case-insensitive, but JavaScript Map keys are case-sensitive
-  // This ensures paths with different casing (e.g., "Salesforcedx-Vscode" vs "salesforcedx-vscode")
-  // are treated as the same key in Maps
-  if (process.platform === 'win32' && normalized.match(/^[a-z]:/)) {
-    // Split path, normalize each segment to lowercase, then rejoin
-    const parts = normalized.split('/');
-    const driveAndRoot = parts[0]; // e.g., "d:"
-    const segments = parts.slice(1).map(segment => segment.toLowerCase());
-    normalized = [driveAndRoot, ...segments].join('/');
-  }
-
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  return normalized as NormalizedPath;
+  return unixified.replace(/^([A-Z]):/, (_match: string, drive: string) => `${drive.toLowerCase()}:`) as NormalizedPath;
 };
 
 export const relativePath = (from: string, to: string): string => unixify(relative(from, to));

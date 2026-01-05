@@ -142,7 +142,7 @@ export default class AuraIndexer implements Indexer {
 
     for (const file of markupfiles) {
       try {
-        await this.indexFile(file, this.context.type === 'SFDX');
+        this.indexFile(file, this.context.type === 'SFDX');
       } catch (e) {
         Logger.log(`Error parsing markup from ${file}:`, e);
       }

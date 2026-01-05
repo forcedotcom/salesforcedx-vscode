@@ -2,12 +2,12 @@
 
 exports[`indexer parsing content aura indexer 1`] = `
 [
-  "force-app/main/default/aura/helloWorldApp/helloWorldApp.app",
-  "force-app/main/default/aura/indexApp/indexApp.app",
-  "force-app/main/default/aura/lightningExamplesApp/lightningExamplesApp.app",
-  "force-app/main/default/aura/todoApp/todoApp.app",
-  "force-app/main/default/aura/wireLdsApp/wireLdsApp.app",
-  "force-app/main/default/aura/wireLdsCmp/wireLdsCmp.cmp",
+  "/Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/sfdx-workspace/force-app/main/default/aura/helloWorldApp/helloWorldApp.app",
+  "/Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/sfdx-workspace/force-app/main/default/aura/indexApp/indexApp.app",
+  "/Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/sfdx-workspace/force-app/main/default/aura/lightningExamplesApp/lightningExamplesApp.app",
+  "/Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/sfdx-workspace/force-app/main/default/aura/todoApp/todoApp.app",
+  "/Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/sfdx-workspace/force-app/main/default/aura/wireLdsApp/wireLdsApp.app",
+  "/Users/madhur.shrivastava/salesforcedx-vscode/test-workspaces/sfdx-workspace/force-app/main/default/aura/wireLdsCmp/wireLdsCmp.cmp",
 ]
 `;
 
