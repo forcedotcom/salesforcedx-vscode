@@ -61,8 +61,8 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
       // Save EMPTY first to avoid native dialog on Windows, then add content
       await page.locator(EDITOR_WITH_URI).first().click();
 
-      // Save empty file - this should trigger quickInput filename prompt
-      await page.keyboard.press('Control+s');
+      // Use command palette to save (more reliable than Ctrl+S on Windows)
+      await executeCommandWithCommandPalette(page, 'File: Save');
 
       // Wait for quick input (filename prompt) to appear
       await quickInput.waitFor({ state: 'visible', timeout: 5000 });
