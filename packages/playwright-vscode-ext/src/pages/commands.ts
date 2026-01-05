@@ -33,11 +33,11 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   const input = page.locator(QUICK_INPUT_WIDGET).locator('input.input');
   await input.waitFor({ state: 'visible', timeout: 5000 });
 
-  // Click input to ensure focus, then use keyboard.type() for Windows compatibility
-  // pressSequentially() fails to type into VS Code command palette input on Windows
-  // Clicking first ensures the input is focused before typing
-  await input.click();
-  await page.keyboard.type(command, { delay: 10 });
+  // Different typing strategies for Windows vs other platforms
+  // Windows needs slower, more deliberate typing with longer delays (50ms vs 5ms)
+  // This gives VS Code time to process each character on Windows
+  const typingDelay = isWindowsDesktop() ? 50 : 5;
+  await input.pressSequentially(command, { delay: typingDelay });
 
   // Wait for command row to appear after filling the input
   const commandRow = page
