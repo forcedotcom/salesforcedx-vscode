@@ -279,7 +279,7 @@ describe('WorkspaceContext', () => {
     // verify typings/jsconfig after configuration:
 
     expect(sfdxFileSystemProvider.fileExists(jsconfigPathUtils)).toBe(true);
-    await context.configureProject();
+    context.configureProject();
 
     const { sfdxPackageDirsPattern } = await context.initSfdxProjectConfigCache();
     expect(sfdxPackageDirsPattern).toBe('{force-app,utils,registered-empty-folder}');
@@ -387,7 +387,7 @@ describe('WorkspaceContext', () => {
     }
 
     // configure and verify typings/jsconfig after configuration:
-    await context.configureProject();
+    context.configureProject();
 
     await verifyJsconfigCore(coreProjectFileSystemProvider, jsconfigPath);
     await verifyTypingsCore(coreProjectFileSystemProvider);
@@ -405,7 +405,7 @@ describe('WorkspaceContext', () => {
     const tsconfigPathForce = path.join(context.workspaceRoots[0], 'tsconfig.json');
 
     // configure and verify typings/jsconfig after configuration:
-    await context.configureProject();
+    context.configureProject();
 
     // For CORE_ALL, getModulesDirs only processes the first workspace root and looks for
     // project subdirectories. Since CORE_MULTI_ROOT[0] doesn't have project subdirectories,
@@ -436,7 +436,7 @@ describe('WorkspaceContext', () => {
     // No cleanup needed - updateFileContent() will overwrite the existing content.
 
     // configure and verify typings/jsconfig after configuration:
-    await context.configureProject();
+    context.configureProject();
 
     // verify newly created jsconfig.json
     await verifyJsconfigCore(coreFileSystemProvider, jsconfigPathGlobal);

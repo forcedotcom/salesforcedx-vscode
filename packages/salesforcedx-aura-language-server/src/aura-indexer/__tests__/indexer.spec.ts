@@ -132,7 +132,7 @@ describe('indexer parsing content', () => {
   it('should index a valid aura component', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider);
     context.initialize('SFDX');
-    await context.configureProject();
+    context.configureProject();
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();
     context.addIndexingProvider({ name: 'aura', indexer: auraIndexer });
@@ -153,7 +153,7 @@ describe('indexer parsing content', () => {
   xit('should handle indexing an invalid aura component', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new FileSystemDataProvider());
     context.initialize('SFDX');
-    await context.configureProject();
+    context.configureProject();
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();
     context.addIndexingProvider({ name: 'aura', indexer: auraIndexer });

@@ -52,7 +52,7 @@ describe('tern completion', () => {
     const ws = SFDX_WORKSPACE_ROOT;
     const context = new AuraWorkspaceContext(ws, sfdxFileSystemProvider);
     context.initialize('SFDX');
-    await context.configureProject();
+    context.configureProject();
 
     const completions = await onCompletion(
       {
