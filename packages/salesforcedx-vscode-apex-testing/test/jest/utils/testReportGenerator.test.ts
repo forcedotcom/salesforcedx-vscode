@@ -5,15 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TestResult } from '@salesforce/apex-node';
+import { TestResult, MarkdownTextReporter, MarkdownTextReporterOptions } from '@salesforce/apex-node';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import * as settings from '../../../src/settings';
-import {
-  generateMarkdownReport,
-  generateTextReport,
-  writeAndOpenTestReport
-} from '../../../src/utils/testReportGenerator';
+import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../../../src/settings';
+import { writeAndOpenTestReport } from '../../../src/utils/testReportGenerator';
 
 // Mock vscode.workspace.fs
 const mockWriteFile = jest.fn().mockResolvedValue(undefined);
@@ -58,6 +55,43 @@ describe('testReportGenerator', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
+
+  // Helper function to generate markdown report using the library's reporter
+  const generateMarkdownReport = (
+    result: TestResult,
+    timestamp: Date,
+    codeCoverage: boolean = false,
+    sortOrder: 'runtime' | 'coverage' | 'severity' = 'runtime'
+  ): string => {
+    const performanceThresholdMs = retrievePerformanceThreshold();
+    const coverageThresholdPercent = retrieveCoverageThreshold();
+    const options: MarkdownTextReporterOptions = {
+      format: 'markdown',
+      sortOrder,
+      performanceThresholdMs,
+      coverageThresholdPercent,
+      codeCoverage,
+      timestamp
+    };
+    const reporter = new MarkdownTextReporter(options);
+    return reporter.format(result);
+  };
+
+  // Helper function to generate text report using the library's reporter
+  const generateTextReport = (result: TestResult, timestamp: Date, codeCoverage: boolean = false): string => {
+    const performanceThresholdMs = retrievePerformanceThreshold();
+    const coverageThresholdPercent = retrieveCoverageThreshold();
+    const options: MarkdownTextReporterOptions = {
+      format: 'text',
+      sortOrder: 'runtime',
+      performanceThresholdMs,
+      coverageThresholdPercent,
+      codeCoverage,
+      timestamp
+    };
+    const reporter = new MarkdownTextReporter(options);
+    return reporter.format(result);
+  };
 
   const createMockTestResult = (): TestResult =>
     ({
