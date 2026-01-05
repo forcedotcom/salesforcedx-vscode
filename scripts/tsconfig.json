@@ -4,6 +4,7 @@
     "outDir": "./dist",
     "noEmit": true,
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "lib": ["ES2023", "DOM"]
   }
 }

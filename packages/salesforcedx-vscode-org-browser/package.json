@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.10.0",
+  "version": "65.12.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.18.4",
+    "effect": "^3.19.13",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
