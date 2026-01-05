@@ -12,6 +12,7 @@ export {
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
   closeSettingsTab,
+  dismissExtensionDisabledNotification,
   waitForWorkspaceReady,
   typingSpeed,
   isMacDesktop,

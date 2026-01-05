@@ -93,6 +93,9 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
   const isDesktop = process.env.VSCODE_DESKTOP === '1';
   if (isDesktop) {
     await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
+    // Dismiss the "All installed extensions are temporarily disabled" notification on Windows
+    // This notification appears due to --disable-extensions flag in Extension Development Host mode
+    await dismissExtensionDisabledNotification(page);
     return;
   }
 
@@ -128,6 +131,32 @@ export const closeSettingsTab = async (page: Page): Promise<void> => {
     const closeButton = settingsTab.locator(TAB_CLOSE_BUTTON);
     await closeButton.click();
     await settingsTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+  }
+};
+
+/**
+ * Dismisses the "All installed extensions are temporarily disabled" notification.
+ * This notification appears on Windows when VS Code launches with --disable-extensions flag (Extension Development Host mode).
+ * The notification is harmless but can interfere with UI interactions, so we dismiss it early.
+ */
+export const dismissExtensionDisabledNotification = async (page: Page): Promise<void> => {
+  // Look for the notification dialog
+  const notification = page
+    .locator('.notifications-toasts .notification-list-item')
+    .filter({ hasText: /All installed extensions are temporarily disabled/i })
+    .first();
+
+  const isVisible = await notification.isVisible().catch(() => false);
+  if (isVisible) {
+    // Find and click the close button (X icon with aria-label "Clear Notification")
+    const closeButton = notification.locator('button[aria-label*="Clear Notification"]');
+    await closeButton.click().catch(() => {
+      // If close button isn't found or clickable, notification might have auto-dismissed
+    });
+    // Wait for notification to disappear
+    await notification.waitFor({ state: 'detached', timeout: 2000 }).catch(() => {
+      // Notification might have already disappeared
+    });
   }
 };
 
