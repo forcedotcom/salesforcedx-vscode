@@ -32,8 +32,18 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // Get the input locator - use locator-specific action for better reliability on desktop
   const input = page.locator(QUICK_INPUT_WIDGET).locator('input.input');
   await input.waitFor({ state: 'visible', timeout: 5000 });
-  await input.pressSequentially(command, { delay: 5 });
-  await page.waitForTimeout(100); // unfortunately, it really does take a bit to be usable.
+
+  // Use keyboard.type() instead of pressSequentially() for Windows compatibility
+  // pressSequentially() fails to type into VS Code command palette input on Windows
+  await page.keyboard.type(command);
+
+  // Wait for command row to appear after typing (instead of arbitrary timeout)
+  const commandRow = page
+    .locator(QUICK_INPUT_WIDGET)
+    .locator(QUICK_INPUT_LIST_ROW)
+    .filter({ hasText: command, hasNotText, visible: true })
+    .first();
+  await commandRow.waitFor({ state: 'visible', timeout: 5000 });
 
   // Capture HTML snapshot before clicking to debug Windows issues
   if (isWindowsDesktop()) {
@@ -48,16 +58,7 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
     await saveScreenshot(page, `command-palette-before-click-${Date.now()}.png`, false);
   }
 
-  // Use text content matching to find exact command (bypasses MRU prioritization)
-  // Scope to QUICK_INPUT_WIDGET first, then find the list row (more specific than just .monaco-list-row)
-  const commandRow = page
-    .locator(QUICK_INPUT_WIDGET)
-    .locator(QUICK_INPUT_LIST_ROW)
-    .filter({ hasText: command, hasNotText, visible: true })
-    .first();
-
   // Ensure the row is visible and actionable before clicking
-  await commandRow.waitFor({ state: 'visible', timeout: 5000 });
   await commandRow.scrollIntoViewIfNeeded();
 
   // Click the command row to execute - this works reliably on all platforms
