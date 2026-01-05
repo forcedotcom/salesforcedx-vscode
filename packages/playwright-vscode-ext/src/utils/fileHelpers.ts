@@ -8,7 +8,7 @@
 import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
 import { closeSettingsTab, closeWelcomeTabs } from './helpers';
-import { WORKBENCH, QUICK_INPUT_WIDGET, EDITOR_WITH_URI, DIRTY_EDITOR, QUICK_INPUT_LIST_ROW } from './locators';
+import { WORKBENCH, QUICK_INPUT_WIDGET, EDITOR_WITH_URI, DIRTY_EDITOR, QUICK_INPUT_LIST_ROW, TAB } from './locators';
 
 /** Creates a new file with contents using the "Create: New File..." command */
 export const createFileWithContents = async (page: Page, filePath: string, contents: string): Promise<void> => {
@@ -38,12 +38,47 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
   const hasFileTypePicker = await textFileOption.isVisible().catch(() => false);
 
   if (hasFileTypePicker) {
-    // File type picker flow: select "Text File", then filename prompt appears
+    // File type picker flow: select "Text File"
     await textFileOption.click();
-    await quickInput.waitFor({ state: 'visible', timeout: 5000 });
+    // Wait for widget to close
+    await quickInput.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {
+      // Widget didn't close, that's fine
+    });
+
+    // Check if an untitled file was created (web behavior)
+    // On web, clicking "Text File" creates an untitled file directly
+    // On desktop, it prompts for filename
+    // Wait a moment for the editor to appear, then check for untitled tab
+    await page.waitForTimeout(500);
+    const untitledTab = page
+      .locator(TAB)
+      .filter({ hasText: /Untitled/i })
+      .first();
+    const createdUntitled = await untitledTab.isVisible().catch(() => false);
+
+    if (createdUntitled) {
+      // Web flow: untitled file created, use "Save As" to name it
+      await executeCommandWithCommandPalette(page, 'File: Save As...');
+      await quickInput.waitFor({ state: 'visible', timeout: 5000 });
+      // Type the filename
+      await page.keyboard.type(fileName);
+      await page.keyboard.press('Enter');
+      // Wait for file to be saved and editor to update
+      await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });
+      // Skip the folder path dialog - we're done
+      // Type contents and save
+      await page.locator(EDITOR_WITH_URI).first().click();
+      await page.keyboard.type(contents);
+      await page.keyboard.press('Control+s');
+      return;
+    }
+
+    // Desktop flow: filename prompt appears
+    const filenameInput = page.locator(QUICK_INPUT_WIDGET).locator('input.input');
+    await filenameInput.waitFor({ state: 'visible', timeout: 5000 });
   }
 
-  // Now at filename prompt (both flows converge here)
+  // Now at filename prompt (desktop flow)
   await page.keyboard.type(fileName);
   await page.keyboard.press('Enter');
 
