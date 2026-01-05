@@ -19,7 +19,6 @@ import {
 import { snakeCase, camelCase } from 'change-case';
 import { minimatch as minimatchFn } from 'minimatch';
 import * as path from 'node:path';
-import { URI } from 'vscode-uri';
 
 import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
 
@@ -227,24 +226,7 @@ export default class ComponentIndexer {
 
   public findTagByURI(uri: string): Tag | null {
     const uriText = uri.replace('.html', '.js');
-    // Normalize the input URI to handle both relative and absolute paths
-    // Parse the input URI and get its fsPath for comparison
-    let inputFsPath: string;
-    try {
-      const parsedUri = URI.parse(uriText);
-      inputFsPath = parsedUri.fsPath;
-    } catch {
-      // If URI parsing fails, try to resolve as a file path
-      inputFsPath = path.resolve(uriText);
-    }
-    // Compare using fsPath to handle path normalization differences
-    return (
-      Array.from(this.tags.values()).find(tag => {
-        const tagUri = getTagUri(tag);
-        const tagParsed = URI.parse(tagUri);
-        return tagParsed.fsPath === inputFsPath;
-      }) ?? null
-    );
+    return Array.from(this.tags.values()).find(tag => getTagUri(tag) === uriText) ?? null;
   }
 
   private async loadTagsFromIndex(): Promise<void> {
