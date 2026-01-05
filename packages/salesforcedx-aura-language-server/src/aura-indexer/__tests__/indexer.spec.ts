@@ -121,7 +121,7 @@ describe('indexer parsing content', () => {
     await auraIndexer.configureAndIndex();
     context.addIndexingProvider({ name: 'aura', indexer: auraIndexer });
 
-    const markup = (await context.findAllAuraMarkup()).toSorted();
+    const markup = (await context.findAllAuraMarkup()).map(p => normalize(SFDX_WORKSPACE_ROOT, p)).toSorted();
     expect(markup).toMatchSnapshot();
     const tags = auraIndexer.getAuraTags();
     tags.forEach(taginfo => {
