@@ -72,27 +72,12 @@ jest.mock('../../resources/transformed-aura-system.json', () =>
   mockJsonFromAuraServer('resources/transformed-aura-system.json')
 );
 
-import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { FileSystemDataProvider, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import URI from 'vscode-uri';
 import { AuraWorkspaceContext } from '../../context/auraContext';
 import AuraIndexer from '../indexer';
-
-// Normalize paths for cross-platform test consistency
-const normalize = (start: string, p: string): string => {
-  // Convert backslashes to forward slashes and normalize to POSIX format
-  const normalizedStart = path.posix.normalize(start.replaceAll('\\', '/'));
-  const normalizedP = path.posix.normalize(p.replaceAll('\\', '/'));
-
-  // Handle Windows case-insensitive paths by comparing lowercase
-  const lowerStart = normalizedStart.toLowerCase();
-  const lowerP = normalizedP.toLowerCase();
-  if (lowerP.startsWith(lowerStart)) {
-    return path.posix.relative(lowerStart, lowerP);
-  }
-  return normalizedP;
-};
 
 const uriToFile = (uri: string): string => URI.parse(uri).fsPath;
 
@@ -107,21 +92,21 @@ describe('indexer parsing content', () => {
     context.addIndexingProvider({ name: 'aura', indexer: auraIndexer });
 
     let markup = await context.findAllAuraMarkup();
-    markup = markup.map(p => normalize(SFDX_WORKSPACE_ROOT, p)).toSorted();
+    markup = markup.map(p => normalizePath(p)).toSorted();
     expect(markup).toMatchSnapshot();
     const tags = auraIndexer.getAuraTags();
     tags.forEach(taginfo => {
       if (taginfo.file) {
-        taginfo.file = normalize(SFDX_WORKSPACE_ROOT, taginfo.file);
+        taginfo.file = normalizePath(taginfo.file);
       }
       if (taginfo.location?.uri) {
-        taginfo.location.uri = normalize(SFDX_WORKSPACE_ROOT, uriToFile(taginfo.location.uri));
+        taginfo.location.uri = normalizePath(uriToFile(taginfo.location.uri));
       }
       if (taginfo.attributes) {
         taginfo.attributes = taginfo.attributes.toSorted((a, b) => a.name.localeCompare(b.name));
         for (const attribute of taginfo.attributes) {
           if (attribute.location?.uri) {
-            attribute.location.uri = normalize(SFDX_WORKSPACE_ROOT, uriToFile(attribute.location.uri));
+            attribute.location.uri = normalizePath(uriToFile(attribute.location.uri));
           }
         }
       }
