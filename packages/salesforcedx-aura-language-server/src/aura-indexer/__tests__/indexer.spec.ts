@@ -86,8 +86,10 @@ const normalize = (start: string, p: string): string => {
   const normalizedP = path.posix.normalize(p.replaceAll('\\', '/'));
 
   // Handle Windows case-insensitive paths by comparing lowercase
-  if (normalizedP.toLowerCase().startsWith(normalizedStart.toLowerCase())) {
-    return path.posix.relative(normalizedStart, normalizedP);
+  const lowerStart = normalizedStart.toLowerCase();
+  const lowerP = normalizedP.toLowerCase();
+  if (lowerP.startsWith(lowerStart)) {
+    return path.posix.relative(lowerStart, lowerP);
   }
   return normalizedP;
 };
