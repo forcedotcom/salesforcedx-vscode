@@ -82,29 +82,11 @@ import AuraIndexer from '../indexer';
 // Normalize paths for cross-platform test consistency
 // Converts absolute paths to relative paths from the workspace root
 const normalize = (start: string, p: string): string => {
-  // Convert backslashes to forward slashes and normalize to POSIX format
   const normalizedStart = normalizePath(start);
   const normalizedP = normalizePath(p);
 
-  // Handle Windows case-insensitive paths by comparing lowercase
-  // but preserve original casing in the output
-  const lowerStart = normalizedStart.toLowerCase();
-  const lowerP = normalizedP.toLowerCase();
-  if (lowerP.startsWith(lowerStart)) {
-    // Calculate relative path manually to preserve original casing from p
-    // Find where the start path ends in the full path (case-insensitive)
-    const startLength = lowerStart.length;
-    if (normalizedP.length > startLength) {
-      // Check if there's a path separator after the start path
-      if (lowerP[startLength] === '/') {
-        // Return the remainder, preserving original casing from normalizedP
-        return normalizedP.substring(startLength + 1);
-      }
-      // No separator, return everything after the start
-      return normalizedP.substring(startLength);
-    }
-    // Paths are the same (case-insensitive)
-    return '';
+  if (normalizedP.toLowerCase().startsWith(normalizedStart.toLowerCase())) {
+    return path.posix.relative(normalizedStart, normalizedP);
   }
   return normalizedP;
 };
