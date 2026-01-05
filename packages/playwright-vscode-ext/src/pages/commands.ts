@@ -33,11 +33,13 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   const input = page.locator(QUICK_INPUT_WIDGET).locator('input.input');
   await input.waitFor({ state: 'visible', timeout: 5000 });
 
-  // Use keyboard.type() instead of pressSequentially() for Windows compatibility
+  // Click input to ensure focus, then use keyboard.type() for Windows compatibility
   // pressSequentially() fails to type into VS Code command palette input on Windows
-  await page.keyboard.type(command);
+  // Clicking first ensures the input is focused before typing
+  await input.click();
+  await page.keyboard.type(command, { delay: 10 });
 
-  // Wait for command row to appear after typing (instead of arbitrary timeout)
+  // Wait for command row to appear after filling the input
   const commandRow = page
     .locator(QUICK_INPUT_WIDGET)
     .locator(QUICK_INPUT_LIST_ROW)
