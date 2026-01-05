@@ -140,9 +140,10 @@ const findAuraMarkupIn = async (namespaceRoot: string, context: AuraWorkspaceCon
 
       if (isDir) {
         for (const ext of AURA_EXTENSIONS) {
-          const markupFile = normalizePath(path.join(componentDir, dir.name + ext));
-          const exists = context.fileSystemProvider.fileExists(markupFile);
-          if (exists) {
+          // Construct path using namespaceRoot and dir.name to preserve original casing
+          const markupFile = path.join(namespaceRoot, dir.name, dir.name + ext);
+          // Use normalizePath only for the file existence check (case-insensitive on Windows)
+          if (context.fileSystemProvider.fileExists(normalizePath(markupFile))) {
             files.push(markupFile);
           }
         }
