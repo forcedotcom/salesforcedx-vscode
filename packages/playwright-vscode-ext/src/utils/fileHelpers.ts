@@ -57,19 +57,34 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
     const createdUntitled = await untitledTab.isVisible().catch(() => false);
 
     if (createdUntitled) {
-      // Web flow: untitled file created, use "Save As" to name it
-      await executeCommandWithCommandPalette(page, 'File: Save As...');
+      // Untitled file created (web or Windows desktop)
+      // Type contents first, then save to trigger filename prompt
+      await page.locator(EDITOR_WITH_URI).first().click();
+      await page.keyboard.type(contents);
+
+      // Save - this will trigger "Save As" dialog
+      await page.keyboard.press('Control+s');
+
+      // Wait for quick input (filename prompt) to appear
       await quickInput.waitFor({ state: 'visible', timeout: 5000 });
       // Type the filename
       await page.keyboard.type(fileName);
       await page.keyboard.press('Enter');
-      // Wait for file to be saved and editor to update
+
+      // Handle folder path dialog if it appears
+      const untitledFolderPathInput = page.getByRole('textbox', { name: /Folder path/i });
+      const hasFolderDialog = await untitledFolderPathInput.isVisible({ timeout: 2000 }).catch(() => false);
+      if (hasFolderDialog) {
+        // Build full path
+        await page.keyboard.press('Control+a');
+        const untitledFullPath = filePath.startsWith('/') ? filePath : `/MyProject/${filePath}`;
+        await page.keyboard.type(untitledFullPath);
+        const untitledOkButton = page.getByRole('button', { name: 'OK', exact: true });
+        await untitledOkButton.click();
+      }
+
+      // Wait for file to be saved
       await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });
-      // Skip the folder path dialog - we're done
-      // Type contents and save
-      await page.locator(EDITOR_WITH_URI).first().click();
-      await page.keyboard.type(contents);
-      await page.keyboard.press('Control+s');
       return;
     }
 
