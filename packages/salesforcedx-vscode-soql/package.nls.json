@@ -21,5 +21,7 @@
   "soql_walkthrough_step4_alt": "Running a SOQL query and viewing results",
   "soql_walkthrough_step5_title": "Save and Export Results",
   "soql_walkthrough_step5_description": "After running a query, you can export the results by clicking the **Save** button in the results viewer. Choose between CSV or JSON format for further analysis. You can also save your SOQL queries as `.soql` files to reuse them later.\n\n💡 **Pro tip**: CSV format is great for spreadsheet analysis, while JSON format preserves data relationships for programmatic use.",
-  "soql_walkthrough_step5_alt": "Saving and exporting SOQL query results"
+  "soql_walkthrough_step5_alt": "Saving and exporting SOQL query results",
+  "data_query_input_text": "SFDX: Execute SOQL Query...",
+  "data_query_selection_text": "SFDX: Execute SOQL Query with Currently Selected Text"
 }

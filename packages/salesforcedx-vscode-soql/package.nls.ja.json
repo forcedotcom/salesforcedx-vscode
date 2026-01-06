@@ -3,5 +3,7 @@
   "soqlCustom_soql": "SOQL ビルダー",
   "soql_builder_open_new": "SFDX: SOQL ビルダーでクエリを作成",
   "soql_builder_toggle": "SOQL ビルダーとテキストエディタを切り替える",
-  "soql_validation_flag": "REST API を使用して SOQL クエリを検証しエラーを特定する"
+  "soql_validation_flag": "REST API を使用して SOQL クエリを検証しエラーを特定する",
+  "data_query_input_text": "SFDX: SOQL クエリを実行...",
+  "data_query_selection_text": "SFDX: 現在選択されているテキストを使用して SOQL クエリを実行"
 }

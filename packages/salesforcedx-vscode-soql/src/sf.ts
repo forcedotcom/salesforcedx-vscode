@@ -12,7 +12,8 @@ import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 import { nls } from './messages';
 
-export const channelService = ChannelService.getInstance(nls.localize('soql_channel_name'));
+export const OUTPUT_CHANNEL = vscode.window.createOutputChannel(nls.localize('soql_channel_name'));
+export const channelService = new ChannelService(OUTPUT_CHANNEL);
 
 export const workspaceContext = WorkspaceContextUtil.getInstance();
 

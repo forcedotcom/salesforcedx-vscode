@@ -6,7 +6,6 @@
  */
 export { aliasList } from './aliasList';
 export { configList } from './configList';
-export { dataQuery } from './dataQuery';
 export { deleteSource } from './deleteSource';
 export { projectGenerateManifest } from './projectGenerateManifest';
 export { packageInstall } from './packageInstall';

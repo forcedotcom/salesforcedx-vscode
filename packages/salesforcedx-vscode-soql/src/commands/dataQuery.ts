@@ -21,9 +21,8 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { channelService, OUTPUT_CHANNEL } from '../channels';
-import { WorkspaceContext } from '../context';
 import { nls } from '../messages';
+import { channelService, OUTPUT_CHANNEL, workspaceContext } from '../sf';
 
 type QueryResult = Awaited<ReturnType<Connection['query']>>;
 
@@ -41,7 +40,7 @@ class DataQueryExecutor extends LibraryCommandletExecutor<QueryAndApiInputs> {
 
     try {
       // Get connection from workspace context
-      const connection = await WorkspaceContext.getInstance().getConnection();
+      const connection = await workspaceContext.getConnection();
 
       // Execute query using the appropriate API
       const queryResult = await runSoqlQuery(connection, query, api === 'TOOLING');
@@ -171,9 +170,7 @@ const getMaxFetch = async (): Promise<number | undefined> => {
   return undefined;
 };
 
-/**
- * Generates table output from query records
- */
+/** Generates table output from query records */
 export const generateTableOutput = (records: QueryResult['records'], title: string): string => {
   // Ensure the first record exists and is an object
   const firstRecord = records[0];
@@ -208,9 +205,7 @@ export const generateTableOutput = (records: QueryResult['records'], title: stri
 const isRecord = (record: unknown): record is Record<string, unknown> =>
   Boolean(record) && typeof record === 'object' && !Array.isArray(record);
 
-/**
- * Flattens a record by converting nested objects to dot notation field names
- */
+/** Flattens a record by converting nested objects to dot notation field names */
 const flattenRecord = (record: Record<string, unknown>): Record<string, unknown> => {
   const flattened: Record<string, unknown> = {};
 
@@ -275,9 +270,7 @@ const getAllFlattenedFields = (records: Record<string, unknown>[]): string[] => 
   return fieldOrder;
 };
 
-/**
- * Converts query records to CSV format
- */
+/** Converts query records to CSV format */
 export const convertToCSV = (records: QueryResult['records']): string => {
   if (!records?.length) {
     return '';
@@ -303,9 +296,7 @@ export const convertToCSV = (records: QueryResult['records']): string => {
   return [header, ...rows].join('\n');
 };
 
-/**
- * Escapes a field value for CSV format
- */
+/** Escapes a field value for CSV format */
 export const escapeCSVField = (field: string): string => {
   // If field contains comma, quote, or newline, wrap in quotes and escape internal quotes
   if (field.includes(',') || field.includes('"') || field.includes('\n') || field.includes('\r')) {
@@ -314,9 +305,7 @@ export const escapeCSVField = (field: string): string => {
   return field;
 };
 
-/**
- * Formats a field value for CSV export
- */
+/** Formats a field value for CSV export */
 export const formatFieldValue = (value: unknown): string => {
   if (value === null || value === undefined) {
     return '';
@@ -328,9 +317,7 @@ export const formatFieldValue = (value: unknown): string => {
   return String(value);
 };
 
-/**
- * Formats a field value for table display
- */
+/** Formats a field value for table display */
 export const formatFieldValueForDisplay = (value: unknown): string => {
   if (value === null || value === undefined) {
     return '';
@@ -375,9 +362,7 @@ export const buildQueryOptions = (maxFetch?: number) => {
   return maxFetch !== undefined ? { ...baseOptions, maxFetch } : baseOptions;
 };
 
-/**
- * Displays query results in table format
- */
+/** Displays query results in table format */
 export const displayTableResults = (queryResult: QueryResult): void => {
   if (!queryResult.records?.length) {
     channelService.appendLine(nls.localize('data_query_no_records'));
@@ -388,9 +373,7 @@ export const displayTableResults = (queryResult: QueryResult): void => {
   channelService.appendLine(`\n${tableOutput}`);
 };
 
-/**
- * Converts query result to CSV string
- */
+/** Converts query result to CSV string */
 export const convertQueryResultToCSV = (queryResult: QueryResult): string => {
   if (!queryResult.records?.length) {
     return nls.localize('data_query_no_records');
@@ -399,9 +382,7 @@ export const convertQueryResultToCSV = (queryResult: QueryResult): string => {
   return convertToCSV(queryResult.records);
 };
 
-/**
- * Formats error messages for better user experience
- */
+/** Formats error messages for better user experience */
 export const formatErrorMessage = (error: unknown): string => {
   // Handle different error formats
   let errorString: string;
