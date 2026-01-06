@@ -86,8 +86,9 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
       const inlineInput = explorerView.locator('.monaco-inputbox input');
       await inlineInput.waitFor({ state: 'visible', timeout: 5000 });
 
-      // Type full filename (can include path like "subfolder/file.txt")
-      await page.keyboard.type(fileName);
+      // Use fill() to set filename - more reliable than keyboard.type() on Windows
+      await inlineInput.fill(fileName);
+      await inlineInput.dispatchEvent('input');
       await page.keyboard.press('Enter');
 
       // Wait for file to be created and editor to open
@@ -117,50 +118,62 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
     // Desktop flow: filename prompt appears
     const filenameInput = page.locator(QUICK_INPUT_WIDGET).locator('input.input');
     await filenameInput.waitFor({ state: 'visible', timeout: 5000 });
+
+    // Use fill() instead of keyboard.type() - more reliable on Windows
+    await filenameInput.fill(fileName);
+    await filenameInput.dispatchEvent('input');
+    await page.keyboard.press('Enter');
+
+    // Final dialog: "Create File" asks for folder path - continue below
   }
 
-  // Now at filename prompt (desktop flow)
-  await page.keyboard.type(fileName);
-  await page.keyboard.press('Enter');
+  // If we're in the simple flow (no desktop dialog), we're done. Otherwise continue:
+  if (await page.locator(QUICK_INPUT_WIDGET).isVisible({ timeout: 1000 }).catch(() => false)) {
+    // Final dialog: "Create File" asks for folder path
+    // Wait for the folder path textbox to appear
+    const folderPathInput = page.getByRole('textbox', { name: /Folder path/i });
+    await folderPathInput.waitFor({ state: 'visible', timeout: 5000 });
 
-  // Final dialog: "Create File" asks for folder path
-  // Wait for the folder path textbox to appear
-  const folderPathInput = page.getByRole('textbox', { name: /Folder path/i });
-  await folderPathInput.waitFor({ state: 'visible', timeout: 5000 });
+    // The OK button should be next to the input - use exact match to avoid status bar conflicts
+    const okButton = page.getByRole('button', { name: 'OK', exact: true });
 
-  // The OK button should be next to the input - use exact match to avoid status bar conflicts
-  const okButton = page.getByRole('button', { name: 'OK', exact: true });
+    // Set the full file path using fill() - more reliable than keyboard.type() on Windows
+    // Use absolute path from workspace root (workspace name is typically "MyProject" in test environments)
+    // Build full path: if filePath doesn't start with /, prepend /MyProject/
+    const fullPath = filePath.startsWith('/') ? filePath : `/MyProject/${filePath}`;
+    await folderPathInput.fill(fullPath);
+    await folderPathInput.dispatchEvent('input');
 
-  // Clear the path and type the full file path
-  // Use absolute path from workspace root (workspace name is typically "MyProject" in test environments)
-  await page.keyboard.press('Control+a');
-  // Build full path: if filePath doesn't start with /, prepend /MyProject/
-  const fullPath = filePath.startsWith('/') ? filePath : `/MyProject/${filePath}`;
-  await page.keyboard.type(fullPath);
+    await okButton.click();
 
-  await okButton.click();
+    // Handle any additional OK confirmations (folder creation, file exists, etc.)
+    // Wait for the dialog to potentially change, then check for another OK button
+    for (let i = 0; i < 3; i++) {
+      // Wait a moment for the dialog to update
+      await page
+        .locator(QUICK_INPUT_WIDGET)
+        .waitFor({ state: 'visible', timeout: 1000 })
+        .catch(() => {});
 
-  // Handle any additional OK confirmations (folder creation, file exists, etc.)
-  // Wait for the dialog to potentially change, then check for another OK button
-  for (let i = 0; i < 3; i++) {
-    // Wait a moment for the dialog to update
-    await quickInput.waitFor({ state: 'visible', timeout: 1000 }).catch(() => {});
-
-    const confirmOk = page.getByRole('button', { name: 'OK', exact: true });
-    // Use a short timeout to check if button is clickable
-    const clicked = await confirmOk
-      .click({ timeout: 1000 })
-      .then(() => true)
-      .catch(() => false);
-    if (!clicked) {
-      break;
+      const confirmOk = page.getByRole('button', { name: 'OK', exact: true });
+      // Use a short timeout to check if button is clickable
+      const clicked = await confirmOk
+        .click({ timeout: 1000 })
+        .then(() => true)
+        .catch(() => false);
+      if (!clicked) {
+        break;
+      }
     }
-  }
 
-  // Wait for the dialog to close
-  await quickInput.waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {
-    // Dialog might already be hidden
-  });
+    // Wait for the dialog to close
+    await page
+      .locator(QUICK_INPUT_WIDGET)
+      .waitFor({ state: 'hidden', timeout: 10_000 })
+      .catch(() => {
+        // Dialog might already be hidden
+      });
+  }
 
   // Wait for an editor to be visible and click into it to focus
   const editor = page.locator(EDITOR_WITH_URI).first();
@@ -196,7 +209,11 @@ export const createApexClass = async (page: Page, className: string, content?: s
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
   await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
   await quickInput.getByText(/Enter Apex class name/i).waitFor({ state: 'visible', timeout: 10_000 });
-  await page.keyboard.type(className);
+
+  // Use fill() to set class name - more reliable than keyboard.type() on Windows
+  const classNameInput = quickInput.locator('input.input');
+  await classNameInput.fill(className);
+  await classNameInput.dispatchEvent('input');
   await page.keyboard.press('Enter');
 
   // Second prompt: Quick Pick to select output directory - just press Enter to accept default
@@ -225,10 +242,13 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
   await page.keyboard.press('Control+p');
 
   // Wait for Quick Open to appear
-  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10_000 });
+  const quickInput = page.locator(QUICK_INPUT_WIDGET);
+  await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
 
-  // Type the filename
-  await page.keyboard.type(fileName);
+  // Use fill() to set filename - more reliable than keyboard.type() on Windows
+  const input = quickInput.locator('input.input');
+  await input.fill(fileName);
+  await input.dispatchEvent('input');
 
   // Wait for search results to populate and stabilize
   await page.locator(QUICK_INPUT_LIST_ROW).first().waitFor({ state: 'visible', timeout: 10_000 });
