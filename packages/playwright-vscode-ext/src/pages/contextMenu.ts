@@ -94,13 +94,10 @@ const selectContextMenuItem = async (page: Page, itemName: string | RegExp): Pro
   }
   // Scroll into view and ensure item is actionable
   await matchingItem.scrollIntoViewIfNeeded();
-  // Hover first to ensure menu item is ready and highlighted
-  await matchingItem.hover({ timeout: 5000 });
   // Wait for the item to be stable and actionable
   await matchingItem.waitFor({ state: 'visible', timeout: 2000 });
-  // VS Code context menus work better with keyboard Enter when item is highlighted
-  // Click might not register properly, so use Enter which is more reliable
-  await page.keyboard.press('Enter');
+  // Click the menu item directly - more reliable than hover + Enter on Windows
+  await matchingItem.click({ timeout: 5000 });
   // Wait for menu to close after action to confirm it was executed
   await contextMenu.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
     // Menu might close instantly or might not close if action failed
