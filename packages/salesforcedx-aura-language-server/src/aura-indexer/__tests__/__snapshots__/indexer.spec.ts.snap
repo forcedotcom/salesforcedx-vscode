@@ -1,6 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`indexer parsing content aura indexer 1`] = `[]`;
+exports[`indexer parsing content aura indexer 1`] = `
+[
+  "force-app/main/default/aura/helloWorldApp/helloWorldApp.app",
+  "force-app/main/default/aura/indexApp/indexApp.app",
+  "force-app/main/default/aura/lightningExamplesApp/lightningExamplesApp.app",
+  "force-app/main/default/aura/todoApp/todoApp.app",
+  "force-app/main/default/aura/wireLdsApp/wireLdsApp.app",
+  "force-app/main/default/aura/wireLdsCmp/wireLdsCmp.cmp",
+]
+`;
 
 exports[`indexer parsing content aura indexer 2`] = `
 Map {
@@ -867,6 +876,138 @@ Map {
     "name": "aura:unescapedHtml",
     "namespace": "aura",
     "type": "STANDARD",
+  },
+  "c:helloWorldApp" => {
+    "attributes": [],
+    "documentation": "",
+    "file": "force-app/main/default/aura/helloWorldApp/helloWorldApp.app",
+    "location": {
+      "range": {
+        "end": {
+          "character": 19,
+          "line": 5,
+        },
+        "start": {
+          "character": 1,
+          "line": 1,
+        },
+      },
+      "uri": "force-app/main/default/aura/helloWorldApp/helloWorldApp.app",
+    },
+    "lwc": false,
+    "name": "c:helloWorldApp",
+    "namespace": "c",
+    "type": "CUSTOM",
+  },
+  "c:indexApp" => {
+    "attributes": [],
+    "documentation": "",
+    "file": "force-app/main/default/aura/indexApp/indexApp.app",
+    "location": {
+      "range": {
+        "end": {
+          "character": 37,
+          "line": 1,
+        },
+        "start": {
+          "character": 1,
+          "line": 1,
+        },
+      },
+      "uri": "force-app/main/default/aura/indexApp/indexApp.app",
+    },
+    "lwc": false,
+    "name": "c:indexApp",
+    "namespace": "c",
+    "type": "CUSTOM",
+  },
+  "c:lightningExamplesApp" => {
+    "attributes": [],
+    "documentation": "",
+    "file": "force-app/main/default/aura/lightningExamplesApp/lightningExamplesApp.app",
+    "location": {
+      "range": {
+        "end": {
+          "character": 37,
+          "line": 1,
+        },
+        "start": {
+          "character": 1,
+          "line": 1,
+        },
+      },
+      "uri": "force-app/main/default/aura/lightningExamplesApp/lightningExamplesApp.app",
+    },
+    "lwc": false,
+    "name": "c:lightningExamplesApp",
+    "namespace": "c",
+    "type": "CUSTOM",
+  },
+  "c:todoApp" => {
+    "attributes": [],
+    "documentation": "",
+    "file": "force-app/main/default/aura/todoApp/todoApp.app",
+    "location": {
+      "range": {
+        "end": {
+          "character": 19,
+          "line": 6,
+        },
+        "start": {
+          "character": 1,
+          "line": 1,
+        },
+      },
+      "uri": "force-app/main/default/aura/todoApp/todoApp.app",
+    },
+    "lwc": false,
+    "name": "c:todoApp",
+    "namespace": "c",
+    "type": "CUSTOM",
+  },
+  "c:wireLdsApp" => {
+    "attributes": [],
+    "documentation": "",
+    "file": "force-app/main/default/aura/wireLdsApp/wireLdsApp.app",
+    "location": {
+      "range": {
+        "end": {
+          "character": 37,
+          "line": 1,
+        },
+        "start": {
+          "character": 1,
+          "line": 1,
+        },
+      },
+      "uri": "force-app/main/default/aura/wireLdsApp/wireLdsApp.app",
+    },
+    "lwc": false,
+    "name": "c:wireLdsApp",
+    "namespace": "c",
+    "type": "CUSTOM",
+  },
+  "c:wireLdsCmp" => {
+    "attributes": [],
+    "documentation": "",
+    "file": "force-app/main/default/aura/wireLdsCmp/wireLdsCmp.cmp",
+    "location": {
+      "range": {
+        "end": {
+          "character": 17,
+          "line": 3,
+        },
+        "start": {
+          "character": 1,
+          "line": 1,
+        },
+      },
+      "uri": "force-app/main/default/aura/wireLdsCmp/wireLdsCmp.cmp",
+    },
+    "lwc": false,
+    "name": "c:wireLdsCmp",
+    "namespace": "c",
+    "type": "CUSTOM",
   },
   "clients:availableForMailAppAppPage" => {
     "attributes": [],
@@ -14619,6 +14760,7 @@ Map {
 exports[`indexer parsing content aura indexer 3`] = `
 [
   "aura",
+  "c",
   "clients",
   "flexipage",
   "force",
