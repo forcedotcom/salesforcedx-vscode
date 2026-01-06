@@ -19,7 +19,17 @@
       "Bash(gh run list:*)",
       "Bash(gh run watch:*)",
       "Bash(gh workflow run:*)",
-      "Bash(gh workflow:*)"
+      "Bash(gh workflow:*)",
+      "Bash(gh run download:*)",
+      "Read(./**)",
+      "Read(/tmp/**)",
+      "Read(/tmp/**/*.png)",
+      "Read(/tmp/**/*.md)",
+      "Read(/private/tmp/**)",
+      "Bash(git restore:*)",
+      "Bash(git revert:*)",
+      "Bash(git stash:*)",
+      "Bash(tee:*)"
     ]
   }
 }

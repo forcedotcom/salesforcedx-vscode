@@ -6,40 +6,29 @@
  */
 
 import { Page } from '@playwright/test';
-import { saveScreenshot } from '../shared/screenshotUtils';
-import { isWindowsDesktop } from '../utils/helpers';
 import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
 
 const openCommandPalette = async (page: Page): Promise<void> => {
-  // Try F1 first (standard command palette shortcut)
+  // Use F1 to open quick input widget (per coding-playwright-tests.mdc guidelines)
   await page.keyboard.press('F1');
-  if (isWindowsDesktop()) {
-    // On Windows desktop, F1 may not work reliably, so try Ctrl+Shift+P fallback
-    try {
-      await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
-    } catch {
-      await page.keyboard.press('Control+Shift+p');
-      await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
-    }
-  } else {
-    // Web and macOS desktop: F1 should work
-    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
-  }
+  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
+
+  // F1 sometimes opens Quick Open instead of Command Palette
+  // Type ">" to switch to command mode if needed
+  const input = page.locator(QUICK_INPUT_WIDGET).locator('input.input');
+  await input.pressSequentially('>', { delay: 5 });
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
-  // VS Code command palette automatically adds '>' prefix when opened with F1/Ctrl+Shift+P
+  // VS Code command palette has '>' prefix from openCommandPalette
   // Get the input locator - use locator-specific action for better reliability on desktop
   const input = page.locator(QUICK_INPUT_WIDGET).locator('input.input');
   await input.waitFor({ state: 'visible', timeout: 5000 });
 
-  // Different typing strategies for Windows vs other platforms
-  // Windows needs slower, more deliberate typing with longer delays (50ms vs 5ms)
-  // This gives VS Code time to process each character on Windows
-  const typingDelay = isWindowsDesktop() ? 50 : 5;
-  await input.pressSequentially(command, { delay: typingDelay });
+  // Type the command (don't clear - we need to keep the '>' prefix)
+  await input.pressSequentially(command, { delay: 5 });
 
-  // Wait for command row to appear after filling the input
+  // Wait for command row to appear after typing
   const commandRow = page
     .locator(QUICK_INPUT_WIDGET)
     .locator(QUICK_INPUT_LIST_ROW)
@@ -47,23 +36,7 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
     .first();
   await commandRow.waitFor({ state: 'visible', timeout: 5000 });
 
-  // Capture HTML snapshot before clicking to debug Windows issues
-  if (isWindowsDesktop()) {
-    const quickInputWidget = page.locator(QUICK_INPUT_WIDGET);
-    const htmlContent = await quickInputWidget.innerHTML();
-    const snapshotPath = `test-results/command-palette-before-click-${Date.now()}.html`;
-    const fs = await import('node:fs');
-    const path = await import('node:path');
-    const testResultsDir = path.join(process.cwd(), 'test-results');
-    fs.mkdirSync(testResultsDir, { recursive: true });
-    fs.writeFileSync(path.join(testResultsDir, path.basename(snapshotPath)), htmlContent);
-    await saveScreenshot(page, `command-palette-before-click-${Date.now()}.png`, false);
-  }
-
-  // Ensure the row is visible and actionable before clicking
-  await commandRow.scrollIntoViewIfNeeded();
-
-  // Click the command row to execute - this works reliably on all platforms
+  // Click the command row to execute
   await commandRow.click();
 };
 
