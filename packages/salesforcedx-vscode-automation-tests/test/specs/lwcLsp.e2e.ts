@@ -26,7 +26,6 @@ import { expect } from 'chai';
 import { By, after } from 'vscode-extension-tester';
 import { defaultExtensionConfigs } from '../testData/constants';
 import { getFolderPath } from '../utils/buildFilePathHelper';
-// import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('LWC LSP', () => {
