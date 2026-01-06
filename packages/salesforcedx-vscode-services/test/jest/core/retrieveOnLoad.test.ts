@@ -9,6 +9,7 @@ import { ComponentStatus, type FileResponse, type FileResponseSuccess } from '@s
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { parseRetrieveOnLoad, filterFileResponses } from '../../../src/core/retrieveOnLoad';
+import { ComponentSetService } from '../../../src/core/componentSetService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import { WorkspaceService } from '../../../src/vscode/workspaceService';
 
@@ -103,7 +104,11 @@ describe('parseRetrieveOnLoad', () => {
 describe('filterFileResponses', () => {
   const workspacePath = '/mock/workspace';
   const workspaceLayer = createMockWorkspaceService(workspacePath);
-  const testLayer = Layer.merge(Layer.provide(MetadataRegistryService.Default, workspaceLayer), workspaceLayer);
+  const testLayer = Layer.mergeAll(
+    ComponentSetService.Default,
+    Layer.provide(MetadataRegistryService.Default, workspaceLayer),
+    workspaceLayer
+  );
 
   it('should include .cls files for ApexClass and not include cls-meta.xml', async () => {
     const members = [{ type: 'ApexClass', fullName: 'Foo' }];

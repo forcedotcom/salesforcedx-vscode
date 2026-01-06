@@ -15,9 +15,10 @@ import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 const deployPaths = (paths: Set<string>) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const deployService = yield* api.services.MetadataDeployService;
-    const rawCS = yield* deployService.getComponentSetFromPaths(paths);
-    const componentSet = yield* deployService.ensureNonEmptyComponentSet(rawCS);
+    const componentSetService = yield* api.services.ComponentSetService;
+    const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
+      yield* componentSetService.getComponentSetFromPaths(paths)
+    );
     yield* deployComponentSet({ componentSet });
   });
 

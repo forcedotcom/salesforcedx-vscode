@@ -167,7 +167,7 @@
       ]
     },
     "run:web": {
-      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-org-browser --open-devtools --port 3001",
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-org-browser --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
         "vscode:bundle",
@@ -241,6 +241,10 @@
           "when": "salesforcedx-vscode-metadata.showSharedCommands"
         },
         {
+          "command": "sf.source.tracking.reset.remote",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
+        },
+        {
           "command": "sf.apex.generate.class",
           "when": "salesforcedx-vscode-metadata.showSharedCommands"
         },
@@ -255,6 +259,22 @@
         {
           "command": "sf.deploy.in.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.project.retrieve.start.ignore.conflicts",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands"
+        },
+        {
+          "command": "sf.retrieve.source.path",
+          "when": "never"
+        },
+        {
+          "command": "sf.retrieve.current.source.file",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.retrieve.in.manifest",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         }
       ],
       "editor/context": [
@@ -265,6 +285,14 @@
         {
           "command": "sf.deploy.in.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.retrieve.source.path",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.retrieve.in.manifest",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         }
       ],
       "explorer/context": [
@@ -274,6 +302,14 @@
         },
         {
           "command": "sf.deploy.in.manifest",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.retrieve.source.path",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.retrieve.in.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         }
       ]
@@ -304,6 +340,10 @@
         "title": "%view_remote_changes_text%"
       },
       {
+        "command": "sf.source.tracking.reset.remote",
+        "title": "%reset_remote_tracking_text%"
+      },
+      {
         "command": "sf.apex.generate.class",
         "title": "%apex_generate_class_text%"
       },
@@ -318,6 +358,22 @@
       {
         "command": "sf.deploy.active.editor",
         "title": "%deploy_this_source_text%"
+      },
+      {
+        "command": "sf.project.retrieve.start.ignore.conflicts",
+        "title": "%project_retrieve_start_ignore_conflicts_default_org_text%"
+      },
+      {
+        "command": "sf.retrieve.source.path",
+        "title": "%retrieve_this_source_text%"
+      },
+      {
+        "command": "sf.retrieve.current.source.file",
+        "title": "%retrieve_this_source_text%"
+      },
+      {
+        "command": "sf.retrieve.in.manifest",
+        "title": "%retrieve_in_manifest_text%"
       }
     ]
   }

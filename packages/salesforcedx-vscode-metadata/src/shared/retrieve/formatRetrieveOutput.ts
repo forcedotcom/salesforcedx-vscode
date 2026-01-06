@@ -4,12 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { DeployResult } from '@salesforce/source-deploy-retrieve';
+import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import { ExtensionProviderService } from '../../services/extensionProvider';
 
-/** Format deploy results for output */
-export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (result: DeployResult) {
+/** Format retrieve results for output */
+export const formatRetrieveOutput = Effect.fn('formatRetrieveOutput')(function* (result: RetrieveResult) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const componentSetService = yield* api.services.ComponentSetService;
   const fileResponses = result.getFileResponses();
@@ -18,12 +18,12 @@ export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (res
 
   const successSection =
     succeeded.length > 0
-      ? `\n=== Deployed Source ===\n${succeeded.map(r => `${r.state} ${r.type} ${r.fullName}`).join('\n')}\n`
+      ? `\n=== Retrieved Source ===\n${succeeded.map(r => `${r.state} ${r.type} ${r.fullName}`).join('\n')}\n`
       : '';
 
   const failureSection =
     failed.length > 0
-      ? `\n=== Deploy Errors ===\n${failed
+      ? `\n=== Retrieve Errors ===\n${failed
           .map(r => {
             const error = 'error' in r ? r.error : 'Unknown error';
             return `ERROR: ${r.filePath ?? r.fullName}: ${error}`;
@@ -31,7 +31,7 @@ export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (res
           .join('\n')}\n`
       : '';
 
-  const summary = `\n${succeeded.length} component${succeeded.length === 1 ? '' : 's'} deployed${failed.length > 0 ? `, ${failed.length} failed` : ''}\n`;
+  const summary = `\n${succeeded.length} component${succeeded.length === 1 ? '' : 's'} retrieved${failed.length > 0 ? `, ${failed.length} failed` : ''}\n`;
 
   return successSection + failureSection + summary;
 });

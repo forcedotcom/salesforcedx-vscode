@@ -57,6 +57,7 @@ export const AllServicesLayer = Layer.unwrapEffect(
     // Merge all the service layers from the API
     return Layer.mergeAll(
       ExtensionProviderServiceLive,
+      api.services.ComponentSetService.Default,
       api.services.ConfigService.Default,
       api.services.ConnectionService.Default,
       api.services.FsService.Default,

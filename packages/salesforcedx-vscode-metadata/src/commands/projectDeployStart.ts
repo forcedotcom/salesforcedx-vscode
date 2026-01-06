@@ -18,9 +18,13 @@ const projectDeployStartEffect = (ignoreConflicts: boolean) =>
     yield* Effect.annotateCurrentSpan({ ignoreConflicts });
 
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const deployService = yield* api.services.MetadataDeployService;
-    const componentSetUnvalidated = yield* deployService.getComponentSetForDeploy({ ignoreConflicts });
-    const componentSet = yield* deployService.ensureNonEmptyComponentSet(componentSetUnvalidated);
+    const [deployService, componentSetService] = yield* Effect.all(
+      [api.services.MetadataDeployService, api.services.ComponentSetService],
+      { concurrency: 'unbounded' }
+    );
+    const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
+      yield* deployService.getComponentSetForDeploy({ ignoreConflicts })
+    );
 
     yield* deployComponentSet({ componentSet });
   }).pipe(Effect.withSpan('projectDeployStart', { attributes: { ignoreConflicts } }), Effect.provide(AllServicesLayer));

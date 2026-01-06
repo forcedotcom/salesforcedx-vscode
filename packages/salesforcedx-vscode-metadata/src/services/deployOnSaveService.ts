@@ -42,13 +42,15 @@ export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (ur
 
 const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* (paths: Set<string>) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
-  const deployService = yield* api.services.MetadataDeployService;
+  const [channelService, deployService, componentSetService] = yield* Effect.all(
+    [api.services.ChannelService, api.services.MetadataDeployService, api.services.ComponentSetService],
+    { concurrency: 'unbounded' }
+  );
 
   const ignoreConflicts = getIgnoreConflicts();
   yield* channelService.appendToChannel(`Deploy on save triggered (ignoreConflicts: ${ignoreConflicts})`);
 
-  const componentSet = yield* deployService.getComponentSetFromPaths(paths);
+  const componentSet = yield* componentSetService.getComponentSetFromPaths(paths);
 
   if (componentSet.size === 0) {
     return yield* channelService.appendToChannel('Deploy on save: No changes to deploy');

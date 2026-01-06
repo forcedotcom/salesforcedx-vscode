@@ -5,7 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type MetadataMember, MetadataApiRetrieve, ComponentSet } from '@salesforce/source-deploy-retrieve';
+import type { Connection } from '@salesforce/core';
+import type { SfProject } from '@salesforce/core/project';
+import {
+  type MetadataMember,
+  MetadataApiRetrieve,
+  ComponentSet,
+  type RegistryAccess
+} from '@salesforce/source-deploy-retrieve';
 
 import * as Brand from 'effect/Brand';
 import * as Cause from 'effect/Cause';
@@ -15,7 +22,8 @@ import * as Fiber from 'effect/Fiber';
 import * as vscode from 'vscode';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { WorkspaceService } from '../vscode/workspaceService';
-import { FailedToBuildComponentSetError } from './componentSetService';
+import { FailedToBuildComponentSetError, setComponentSetProperties } from './componentSetService';
+import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
@@ -26,10 +34,17 @@ export class MetadataRetrieveError extends Data.TaggedError('MetadataRetrieveErr
   readonly cause: unknown;
 }> {}
 
-const buildComponentSetFromSource = (members: MetadataMember[], sourcePaths: string[]) =>
+/** Build a ComponentSet from source paths.
+ *
+ * If you pass a members array, that will be used to filter the components (componentSet will only include the members you pass in)
+ *
+ * pass an empty array to include all components from the source paths
+ *
+ */
+const buildComponentSetFromSource = (sourcePaths: string[], filterMembers: MetadataMember[]) =>
   Effect.gen(function* () {
-    yield* Effect.annotateCurrentSpan({ members, sourcePaths });
-    const include = members.length > 0 ? yield* buildComponentSet(members) : undefined;
+    yield* Effect.annotateCurrentSpan({ filterMembers, sourcePaths });
+    const include = filterMembers.length > 0 ? yield* buildComponentSet(filterMembers) : undefined;
     const registryAccess = yield* (yield* MetadataRegistryService).getRegistryAccess();
     const cs = yield* Effect.try({
       try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
@@ -62,6 +77,19 @@ const retrieve = (members: MetadataMember[]) =>
 
     const componentSet = yield* buildComponentSet(members);
 
+    const title = `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`;
+    return yield* performRetrieveOperation(componentSet, connection, project, registryAccess, title);
+  }).pipe(Effect.withSpan('retrieve', { attributes: { members } }));
+
+/** Shared helper to perform the actual retrieve operation */
+const performRetrieveOperation = (
+  componentSet: ComponentSet,
+  connection: Connection,
+  project: SfProject,
+  registryAccess: RegistryAccess,
+  title: string
+) =>
+  Effect.gen(function* () {
     const retrieveFiber = yield* Effect.fork(
       Effect.tryPromise({
         try: async () => {
@@ -77,7 +105,7 @@ const retrieve = (members: MetadataMember[]) =>
           const retrieveResult = await vscode.window.withProgress(
             {
               location: vscode.ProgressLocation.Notification,
-              title: `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`,
+              title,
               cancellable: true
             },
             async (_, token) => {
@@ -107,13 +135,35 @@ const retrieve = (members: MetadataMember[]) =>
     });
 
     if (typeof retrieveOutcome !== 'string') {
+      yield* Effect.annotateCurrentSpan({ fileResponses: retrieveOutcome.getFileResponses().map(r => r.filePath) });
       yield* Effect.flatMap(SourceTrackingService, svc => svc.updateTrackingFromRetrieve(retrieveOutcome)).pipe(
         Effect.withSpan('MetadataRetrieveService.updateTrackingFromRetrieve')
       );
     }
 
     return retrieveOutcome;
-  }).pipe(Effect.withSpan('retrieve', { attributes: { members } }));
+  });
+
+/** Retrieve metadata using a ComponentSet directly */
+const retrieveComponentSet = (components: ComponentSet) =>
+  Effect.gen(function* () {
+    yield* Effect.annotateCurrentSpan({ components: components.size });
+    const [connection, project, registryAccess, configAggregator] = yield* Effect.all(
+      [
+        Effect.flatMap(ConnectionService, service => service.getConnection),
+        Effect.flatMap(ProjectService, service => service.getSfProject),
+        Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess()),
+        Effect.flatMap(ConfigService, service => service.getConfigAggregator),
+        Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow)
+      ],
+      { concurrency: 'unbounded' }
+    );
+
+    yield* setComponentSetProperties(components, project, configAggregator);
+
+    const title = `Retrieving ${components.size} component${components.size === 1 ? '' : 's'}`;
+    return yield* performRetrieveOperation(components, connection, project, registryAccess, title);
+  }).pipe(Effect.withSpan('retrieveComponentSet', { attributes: { componentCount: components.size } }));
 
 export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()('MetadataRetrieveService', {
   succeed: {
@@ -123,6 +173,13 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
      * @returns Effect that resolves to SDR's RetrieveResult
      */
     retrieve,
+    /**
+     * Retrieve metadata using a ComponentSet directly.
+     * Sets project directory and API versions on the ComponentSet before retrieving.
+     * @param components - ComponentSet to retrieve
+     * @returns Effect that resolves to SDR's RetrieveResult
+     */
+    retrieveComponentSet,
     buildComponentSet,
     buildComponentSetFromSource
   } as const

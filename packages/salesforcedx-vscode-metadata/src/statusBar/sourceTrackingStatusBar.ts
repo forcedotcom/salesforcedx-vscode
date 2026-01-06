@@ -71,7 +71,6 @@ const stopFileWatcherSubscription = (): void => {
 /** Refresh the status bar's data using data from tracking service */
 const refresh = (statusBarItem: vscode.StatusBarItem) =>
   Effect.gen(function* () {
-    console.log('refresh source tracking status bar');
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const sourceTrackingService = yield* api.services.SourceTrackingService;
 

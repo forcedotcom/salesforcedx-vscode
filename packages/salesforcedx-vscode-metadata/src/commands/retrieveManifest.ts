@@ -10,16 +10,16 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
-import { deployComponentSet } from '../shared/deploy/deployComponentSet';
+import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
 
-const deployManifestEffect = (manifestUri?: URI) =>
+const retrieveManifestEffect = (manifestUri?: URI) =>
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ manifestUri });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const resolved =
       manifestUri ??
       (yield* (yield* api.services.EditorService).getActiveEditorUri.pipe(
-        Effect.catchTag('NoActiveEditorError', () => Effect.fail(new Error(nls.localize('deploy_select_manifest'))))
+        Effect.catchTag('NoActiveEditorError', () => Effect.fail(new Error(nls.localize('retrieve_select_manifest'))))
       ));
     // Use path instead of fsPath for memfs URIs (web environments) to avoid backslash conversion issues
     // For file:// URIs, path and fsPath are equivalent
@@ -30,16 +30,16 @@ const deployManifestEffect = (manifestUri?: URI) =>
       yield* componentSetService.getComponentSetFromManifest(manifestPath)
     );
 
-    yield* deployComponentSet({ componentSet });
-  }).pipe(Effect.withSpan('deployManifest', { attributes: { manifestUri } }), Effect.provide(AllServicesLayer));
+    yield* retrieveComponentSet({ componentSet });
+  }).pipe(Effect.withSpan('retrieveManifest', { attributes: { manifestUri } }), Effect.provide(AllServicesLayer));
 
-/** Deploy manifest to the default org */
-export const deployManifest = async (manifestUri?: URI): Promise<void> =>
+/** Retrieve manifest from the default org */
+export const retrieveManifest = async (manifestUri?: URI): Promise<void> =>
   Effect.runPromise(
-    deployManifestEffect(manifestUri).pipe(
+    retrieveManifestEffect(manifestUri).pipe(
       // handle all other errors generically
       Effect.catchAll(error =>
-        Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_failed', error.message)))
+        Effect.promise(() => vscode.window.showErrorMessage(nls.localize('retrieve_failed', error.message)))
       ),
       Effect.as(undefined),
       Effect.provide(AllServicesLayer)

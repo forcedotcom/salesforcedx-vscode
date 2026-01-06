@@ -12,6 +12,9 @@ import { createApexClass } from './commands/createApexClass';
 import { deployManifest } from './commands/deployManifest';
 import { deployActiveEditor, deploySourcePaths } from './commands/deploySourcePath';
 import { projectDeployStart } from './commands/projectDeployStart';
+import { resetRemoteTracking } from './commands/resetRemoteTracking';
+import { retrieveManifest } from './commands/retrieveManifest';
+import { retrieveSourcePaths } from './commands/retrieveSourcePath';
 import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
 import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './commands/showSourceTrackingDetails';
 import { DEPLOY_ON_SAVE_ENABLED, EXTENSION_NAME, METADATA_CONFIG_SECTION } from './constants';
@@ -50,14 +53,21 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     context.subscriptions.push(
       vscode.commands.registerCommand('sf.project.deploy.start', async () => projectDeployStart(false)),
       vscode.commands.registerCommand('sf.project.deploy.start.ignore.conflicts', async () => projectDeployStart(true)),
-      vscode.commands.registerCommand('sf.project.retrieve.start', projectRetrieveStart),
+      vscode.commands.registerCommand('sf.project.retrieve.start', async () => projectRetrieveStart(false)),
+      vscode.commands.registerCommand('sf.project.retrieve.start.ignore.conflicts', async () =>
+        projectRetrieveStart(true)
+      ),
       vscode.commands.registerCommand('sf.view.all.changes', viewAllChanges),
       vscode.commands.registerCommand('sf.view.local.changes', viewLocalChanges),
       vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
+      vscode.commands.registerCommand('sf.source.tracking.reset.remote', resetRemoteTracking),
       vscode.commands.registerCommand('sf.apex.generate.class', createApexClass),
       vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
       vscode.commands.registerCommand('sf.deploy.active.editor', deployActiveEditor),
-      vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest)
+      vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest),
+      vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths),
+      vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
+      vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest)
     );
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
