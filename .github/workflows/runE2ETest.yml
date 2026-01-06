@@ -299,15 +299,6 @@ jobs:
           rm -rf ~/.cache/vscode-extension-tester 2>/dev/null || true
 
           npm run compile
-
-          # Windows-specific: Add delay before running tests to allow VS Code to fully initialize
-          # This helps prevent the parent class cleanup from killing VS Code during startup
-          # The LWC extension takes longer to initialize, making it more vulnerable to early cleanup
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            echo "Waiting for Windows environment to stabilize before launching VS Code..."
-            sleep 15
-          fi
-
           npm run gha-automation-tests --spec "$SPEC_PATH"
           echo "E2E test completed successfully"
           EOF
