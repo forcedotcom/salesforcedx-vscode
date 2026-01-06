@@ -48,23 +48,20 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
     // Check if an untitled file was created (web behavior)
     // On web, clicking "Text File" creates an untitled file directly
     // On desktop, it prompts for filename
-    // Wait a moment for the editor to appear, then check for untitled tab
-    await page.waitForTimeout(500);
+    // Wait for either untitled tab or filename input to appear
     const untitledTab = page
       .locator(TAB)
       .filter({ hasText: /Untitled/i })
       .first();
-    const createdUntitled = await untitledTab.isVisible().catch(() => false);
+    const createdUntitled = await untitledTab.isVisible({ timeout: 2000 }).catch(() => false);
 
     if (createdUntitled) {
       // Untitled file created (web or Windows desktop)
       // Close it and try the Files Explorer flow instead (avoids native save dialogs)
       await executeCommandWithCommandPalette(page, 'View: Close Editor');
-      await page.waitForTimeout(500);
 
       // Focus Files Explorer
       await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
-      await page.waitForTimeout(500);
 
       // Click on workspace root folder to select it
       const explorerWorkspaceRoot = page.locator('.monaco-list-row[aria-level="1"]').first();
@@ -80,7 +77,6 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
       const newFileButton = page.locator('.monaco-action-bar').locator('[aria-label*="New File"]');
       await newFileButton.waitFor({ state: 'visible', timeout: 5000 });
       await newFileButton.click();
-      await page.waitForTimeout(500);
 
       // Wait for inline rename input to appear in explorer
       const inlineInput = explorerView.locator('.monaco-inputbox input');
