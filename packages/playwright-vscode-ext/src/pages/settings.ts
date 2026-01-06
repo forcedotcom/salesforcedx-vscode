@@ -63,12 +63,13 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
   const performSearch = async (query: string): Promise<void> => {
     // Reset search by selecting all and clearing
     await searchMonaco.click();
-    // seems to be necessary to avoid clearing the setting instead of the search box.
-    // TODO: figure out what to actually wait for (ex: can I tell if it's focused?)
+    // Wait for Monaco editor to be fully focused
+    await searchMonaco.waitFor({ state: 'visible', timeout: 3000 });
     await page.waitForTimeout(100);
-    // TODO: this works in headless tests with playwright on local mac, and ControlOrMeta+A doesn't work!
+    // Select all and clear existing text
     await page.keyboard.press('Control+KeyA');
     await page.keyboard.press('Backspace');
+    // Type the query - using keyboard.type() as Monaco editors don't support fill()
     await page.keyboard.type(query);
   };
 
