@@ -14,21 +14,23 @@ const openCommandPalette = async (page: Page): Promise<void> => {
   await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
 
   // F1 sometimes opens Quick Open instead of Command Palette
-  // Type ">" to switch to command mode if needed
+  // Use fill() to ensure ">" prefix for command mode
   const input = page.locator(QUICK_INPUT_WIDGET).locator('input.input');
-  await input.pressSequentially('>', { delay: 5 });
+  await input.waitFor({ state: 'visible', timeout: 3000 });
+  await input.fill('>');
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
   // VS Code command palette has '>' prefix from openCommandPalette
-  // Get the input locator - use locator-specific action for better reliability on desktop
+  // Get the input locator
   const input = page.locator(QUICK_INPUT_WIDGET).locator('input.input');
   await input.waitFor({ state: 'visible', timeout: 5000 });
 
-  // Type the command (don't clear - we need to keep the '>' prefix)
-  await input.pressSequentially(command, { delay: 5 });
+  // Use fill() to set the full command text (including '>' prefix)
+  // This is more reliable than pressSequentially() which can cause VS Code crashes
+  await input.fill(`>${command}`);
 
-  // Wait for command row to appear after typing
+  // Wait for command row to appear after filling
   const commandRow = page
     .locator(QUICK_INPUT_WIDGET)
     .locator(QUICK_INPUT_LIST_ROW)
