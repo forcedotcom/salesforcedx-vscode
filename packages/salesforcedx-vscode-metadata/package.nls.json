@@ -6,6 +6,7 @@
   "view_all_changes_text": "SFDX: View All Changes (Local and in Default Org)",
   "view_local_changes_text": "SFDX: View Local Changes",
   "view_remote_changes_text": "SFDX: View Changes in Default Org",
+  "reset_remote_tracking_text": "SFDX: Reset Remote Tracking",
   "apex_generate_class_text": "SFDX: Create Apex Class",
   "deploy_this_source_text": "SFDX: Deploy This Source to Org",
   "deploy_in_manifest_text": "SFDX: Deploy Source in Manifest to Org",
