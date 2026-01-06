@@ -446,14 +446,6 @@
           "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
-          "command": "sf.data.query.input",
-          "when": "sf:project_opened && !editorHasSelection && sf:has_target_org"
-        },
-        {
-          "command": "sf.data.query.selection",
-          "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
-        },
-        {
           "command": "sf.project.generate",
           "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
@@ -691,14 +683,6 @@
       {
         "command": "sf.alias.list",
         "title": "%alias_list_text%"
-      },
-      {
-        "command": "sf.data.query.input",
-        "title": "%data_query_input_text%"
-      },
-      {
-        "command": "sf.data.query.selection",
-        "title": "%data_query_selection_text%"
       },
       {
         "command": "sf.project.generate",
