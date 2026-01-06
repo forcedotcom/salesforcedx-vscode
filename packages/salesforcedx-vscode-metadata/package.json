@@ -241,6 +241,10 @@
           "when": "salesforcedx-vscode-metadata.showSharedCommands"
         },
         {
+          "command": "sf.source.tracking.reset.remote",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
+        },
+        {
           "command": "sf.apex.generate.class",
           "when": "salesforcedx-vscode-metadata.showSharedCommands"
         },
@@ -334,6 +338,10 @@
       {
         "command": "sf.view.remote.changes",
         "title": "%view_remote_changes_text%"
+      },
+      {
+        "command": "sf.source.tracking.reset.remote",
+        "title": "%reset_remote_tracking_text%"
       },
       {
         "command": "sf.apex.generate.class",

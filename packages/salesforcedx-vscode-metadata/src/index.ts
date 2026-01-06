@@ -12,6 +12,7 @@ import { createApexClass } from './commands/createApexClass';
 import { deployManifest } from './commands/deployManifest';
 import { deployActiveEditor, deploySourcePaths } from './commands/deploySourcePath';
 import { projectDeployStart } from './commands/projectDeployStart';
+import { resetRemoteTracking } from './commands/resetRemoteTracking';
 import { retrieveManifest } from './commands/retrieveManifest';
 import { retrieveSourcePaths } from './commands/retrieveSourcePath';
 import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
@@ -59,6 +60,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       vscode.commands.registerCommand('sf.view.all.changes', viewAllChanges),
       vscode.commands.registerCommand('sf.view.local.changes', viewLocalChanges),
       vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
+      vscode.commands.registerCommand('sf.source.tracking.reset.remote', resetRemoteTracking),
       vscode.commands.registerCommand('sf.apex.generate.class', createApexClass),
       vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
       vscode.commands.registerCommand('sf.deploy.active.editor', deployActiveEditor),
