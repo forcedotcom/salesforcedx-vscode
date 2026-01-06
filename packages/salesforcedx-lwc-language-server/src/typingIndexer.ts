@@ -38,10 +38,10 @@ type TypingIndexerData = {
 
 // Utility function to diff items
 const diffItems = (items: string[], compareItems: string[]): string[] => {
-  const compareBasenames = compareItems.map(pathBasename);
+  const compareBasenames = new Set(compareItems.map(pathBasename));
   return items.filter(item => {
     const filename = pathBasename(item);
-    return !compareBasenames.includes(filename);
+    return !compareBasenames.has(filename);
   });
 };
 
