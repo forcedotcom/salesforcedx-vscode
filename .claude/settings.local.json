@@ -29,7 +29,9 @@
       "Bash(git restore:*)",
       "Bash(git revert:*)",
       "Bash(git stash:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(timeout 10 node:*)",
+      "Bash(curl:*)"
     ]
   }
 }
