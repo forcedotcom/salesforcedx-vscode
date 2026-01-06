@@ -30,6 +30,10 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // This is more reliable than pressSequentially() which can cause VS Code crashes
   await input.fill(`>${command}`);
 
+  // Dispatch input event to trigger VS Code's command filtering
+  // fill() doesn't trigger input events, but VS Code needs them to update the command list
+  await input.dispatchEvent('input');
+
   // Wait for command row to appear after filling
   const commandRow = page
     .locator(QUICK_INPUT_WIDGET)
