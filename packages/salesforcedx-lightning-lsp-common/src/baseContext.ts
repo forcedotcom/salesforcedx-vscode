@@ -72,8 +72,8 @@ const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProv
 };
 
 const updateConfigFile = (filePath: string, content: string, fileSystemProvider: IFileSystemProvider): void => {
-  const dir = path.dirname(filePath);
-  fileSystemProvider.updateDirectoryListing(dir, []);
+  // Don't clear directory listing - it may be needed by other operations (e.g., getModulesDirs)
+  // The file content will be updated, which is sufficient
   fileSystemProvider.updateFileContent(filePath, content);
 };
 

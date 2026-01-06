@@ -53,7 +53,7 @@ const PACKAGE_CORE_ALL_ROOT = resolve(
 
 // Export the appropriate paths based on whether we're running from source or compiled code
 // Check for 'out' directory in path (cross-platform: Windows uses '\', Unix uses '/')
-const normalizedDirname = __dirname.replace(/\\/g, '/');
+const normalizedDirname = __dirname.replaceAll('\\', '/');
 const isCommonPackage = __dirname.includes('salesforcedx-lightning-lsp-common') && !normalizedDirname.includes('/out/');
 
 // Normalize workspace roots to ensure consistent path format (especially Windows drive letter casing)
@@ -726,16 +726,41 @@ export const populateFileSystemProvider = (
 
     // Create directory listing
     const entries: DirectoryEntry[] = [];
-    const childPaths = allPaths.filter(
+    const seenNames = new Set<string>();
+
+    // Find files that are direct children
+    const childFilePaths = allPaths.filter(
       p => p.startsWith(`${dirPath}/`) && !p.substring(dirPath.length + 1).includes('/')
     );
-    childPaths.forEach(childPath => {
+    childFilePaths.forEach(childPath => {
       const childName = childPath.substring(dirPath.length + 1);
-      entries.push({
-        name: childName,
-        type: childName.includes('.') ? 'file' : 'directory',
-        uri: normalizePath(join(normalizedWorkspacePath, dirPath, childName))
-      });
+      if (!seenNames.has(childName)) {
+        seenNames.add(childName);
+        entries.push({
+          name: childName,
+          type: 'file',
+          uri: normalizePath(join(normalizedWorkspacePath, dirPath, childName))
+        });
+      }
+    });
+
+    // Also find directories that are direct children (even if they contain nested files)
+    directories.forEach(childDirPath => {
+      if (childDirPath.startsWith(`${dirPath}/`) && childDirPath !== dirPath) {
+        const relativePath = childDirPath.substring(dirPath.length + 1);
+        // Only include immediate children (not nested directories)
+        if (relativePath && !relativePath.includes('/')) {
+          const childName = relativePath;
+          if (!seenNames.has(childName)) {
+            seenNames.add(childName);
+            entries.push({
+              name: childName,
+              type: 'directory',
+              uri: normalizePath(join(normalizedWorkspacePath, dirPath, childName))
+            });
+          }
+        }
+      }
     });
 
     if (entries.length > 0) {

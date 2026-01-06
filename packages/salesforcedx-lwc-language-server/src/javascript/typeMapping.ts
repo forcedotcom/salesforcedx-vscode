@@ -426,7 +426,7 @@ const getPropLoc = (prop: ClassProperty): number | undefined => {
   const dataPropLoc = prop.dataProperty?.location?.start;
   const getterLoc = prop.getter?.location?.start;
   const setterLoc = prop.setter?.location?.start;
-  return [dataPropLoc, getterLoc, setterLoc].sort()[0];
+  return [dataPropLoc, getterLoc, setterLoc].toSorted()[0];
 };
 
 const getDecoratedProperties = (
@@ -480,7 +480,7 @@ const getDecoratedProperties = (
  * property/method names to their locations using this Map.
  */
 const sortDecorators = <T extends { name: string }>(decorators: T[], locations: Map<string, number>): T[] =>
-  decorators.concat().sort((a: T, b: T) => (locations.get(a.name) ?? 0) - (locations.get(b.name) ?? 0));
+  decorators.concat().toSorted((a: T, b: T) => (locations.get(a.name) ?? 0) - (locations.get(b.name) ?? 0));
 
 const getDecorators = (classObj: Class): InternalDecorator[] => {
   const {

@@ -42,9 +42,7 @@ const forAllPropsPurgeable = infer.constraint({
   }
 });
 
-const getFilename = (filename: string): string => {
-  return path.join(server.options.projectDir, filename);
-};
+const getFilename = (filename: string): string => path.join(server.options.projectDir, filename);
 
 const isBlocklisted = (filename: string): boolean => {
   // Normalize path separators for cross-platform compatibility
@@ -73,9 +71,9 @@ const readFile = async (filename: string): Promise<string> => {
   }
 };
 
-const trimExt = (path: string): string => {
-  const lastDot = path.lastIndexOf('.');
-  return lastDot === -1 ? path : path.slice(0, lastDot);
+const trimExt = (input: string): string => {
+  const lastDot = input.lastIndexOf('.');
+  return lastDot === -1 ? input : input.slice(0, lastDot);
 };
 
 const initScope = (scope: any): void => {
