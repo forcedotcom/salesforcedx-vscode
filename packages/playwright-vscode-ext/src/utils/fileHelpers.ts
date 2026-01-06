@@ -210,6 +210,10 @@ export const createApexClass = async (page: Page, className: string, content?: s
   if (content !== undefined) {
     await page.keyboard.type(content);
   }
+
+  // Save the file to ensure source tracking detects it
+  // On Windows, file watchers may not trigger until an explicit save
+  await page.keyboard.press('Control+S');
 };
 
 /** Open a file using Quick Open (Ctrl+P) */
