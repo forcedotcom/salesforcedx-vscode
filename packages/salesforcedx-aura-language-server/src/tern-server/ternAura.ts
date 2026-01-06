@@ -71,9 +71,9 @@ const readFile = async (filename: string): Promise<string> => {
   }
 };
 
-const trimExt = (p: string): string => {
-  const lastDot = p.lastIndexOf('.');
-  return lastDot === -1 ? p : p.slice(0, lastDot);
+const trimExt = (input: string): string => {
+  const lastDot = input.lastIndexOf('.');
+  return lastDot === -1 ? input : input.slice(0, lastDot);
 };
 
 const initScope = (scope: any): void => {

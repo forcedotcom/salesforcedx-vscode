@@ -1,11 +1,9 @@
 /*
- * Copyright (c) 2020, salesforce.com, inc.
+ * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { MessageKey } from './i18n';
 
 /**
  * Conventions:
@@ -17,7 +15,8 @@ import { MessageKey } from './i18n';
  *
  * If omitted, we will assume _message.
  */
-export const messages: Partial<Record<MessageKey, string>> = {
-  data_query_input_text: 'SFDX: SOQL クエリを実行...',
-  data_query_selection_text: 'SFDX: 現在選択されているテキストで SOQL クエリを実行'
-};
+export const messages = {
+  server_initializing_message: 'Loading... 🔍'
+} as const;
+
+export type MessageKey = keyof typeof messages;

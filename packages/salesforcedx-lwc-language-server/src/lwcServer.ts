@@ -58,6 +58,7 @@ import { TYPESCRIPT_SUPPORT_SETTING } from './constants';
 import { LWCWorkspaceContext } from './context/lwcContext';
 import { compileDocument as javascriptCompileDocument } from './javascript/compiler';
 import { LWCDataProvider } from './lwcDataProvider';
+import { nls } from './messages';
 
 import {
   Tag,
@@ -338,10 +339,18 @@ export default class Server {
     const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
 
     if (await this.context.isLWCTemplate(doc)) {
+      if (!this.isDelayedInitializationComplete) {
+        return {
+          contents: nls.localize('server_initializing_message')
+        };
+      }
       this.auraDataProvider.activated = false;
       this.lwcDataProvider.activated = true;
       return this.languageService.doHover(doc, position, htmlDoc);
     } else if (await this.context.isAuraMarkup(doc)) {
+      if (!this.isDelayedInitializationComplete) {
+        return null;
+      }
       this.auraDataProvider.activated = true;
       this.lwcDataProvider.activated = false;
       return this.languageService.doHover(doc, position, htmlDoc);

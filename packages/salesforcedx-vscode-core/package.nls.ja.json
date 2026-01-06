@@ -9,8 +9,6 @@
   "conflict_detect_resolve_view": "Org Differences",
   "conflict_detection_enabled_description": "Specifies whether to enable conflict detection for all deploy commands executed from VS Code",
   "core_settings_title": "Salesforce 機能のプレビュー",
-  "data_query_input_text": "SFDX: SOQL クエリを実行...",
-  "data_query_selection_text": "SFDX: 現在選択されているテキストを使用して SOQL クエリを実行",
   "delete_source_text": "SFDX: プロジェクトおよび組織から削除",
   "delete_source_this_source_text": "SFDX: このソースをプロジェクトと組織から削除",
   "deploy_in_manifest_text": "SFDX: マニフェストファイルのソースを組織へデプロイ",

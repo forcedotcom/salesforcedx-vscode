@@ -35,7 +35,8 @@
       "command": "tsc -p . && node scripts/convert.js && node scripts/build.js",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-lightning-lsp-common:compile"
+        "../salesforcedx-lightning-lsp-common:compile",
+        "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -83,6 +84,7 @@
     "@salesforce/label": "0.0.21",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/schema": "0.0.21",
+    "@salesforce/vscode-i18n": "*",
     "babel-types": "^6.26.0",
     "change-case": "^4.1.1",
     "comment-parser": "^0.7.6",
@@ -99,6 +101,12 @@
     "@types/babel-types": "^7.0.8",
     "@types/ejs": "^3.1.5",
     "@types/xml2js": "^0.4.14",
-    "jest-extended": "^0.11.5"
+    "colormin": "1.1.2",
+    "jest-extended": "^0.11.5",
+    "js-base64": "3.7.8",
+    "num2fraction": "1.2.2",
+    "rollup": "0.66.2",
+    "uniq": "1.0.1",
+    "uniqs": "2.0.0"
   }
 }

@@ -70,10 +70,6 @@ export const createTag = async (attributes: TagAttrs, fileSystemProvider?: IFile
   const file = attributes.file!;
   const metadata = attributes.metadata!;
 
-  // if (!metadata) {
-  //     throw new Error('Metadata is required to create a tag');
-  // }
-
   let updatedAt: Date;
 
   if (attributes.updatedAt) {
@@ -82,11 +78,7 @@ export const createTag = async (attributes: TagAttrs, fileSystemProvider?: IFile
     try {
       // file is already normalized, and getFileStat normalizes internally
       const stat = fileSystemProvider.getFileStat(`file://${file}`);
-      if (stat) {
-        updatedAt = new Date(stat.mtime);
-      } else {
-        updatedAt = new Date();
-      }
+      updatedAt = stat ? new Date(stat.mtime) : new Date();
     } catch {
       // If file doesn't exist or can't be read, use current date
       updatedAt = new Date();
@@ -114,11 +106,7 @@ export const getAuraName = (tag: Tag): string => `c:${camelCase(getTagName(tag))
 // Utility function to get LWC name
 export const getLwcName = (tag: Tag): string => {
   const name = getTagName(tag);
-  if (name.includes('_')) {
-    return `c-${name}`;
-  } else {
-    return `c-${paramCase(name)}`;
-  }
+  return name.includes('_') ? `c-${name}` : `c-${paramCase(name)}`;
 };
 
 // Utility function to get LWC typings name
@@ -154,13 +142,10 @@ const getTagMethods = (tag: Tag): ClassMember[] => {
 const getApiMethods = (tag: Tag): ClassMember[] => getTagMethods(tag).filter(method => method.decorator === 'api');
 
 // Utility function to get tag range
-export const getTagRange = (tag: Tag): Range => {
-  if (tag.metadata.declarationLoc) {
-    return toVSCodeRange(tag.metadata.declarationLoc);
-  } else {
-    return Range.create(Position.create(0, 0), Position.create(0, 0));
-  }
-};
+export const getTagRange = (tag: Tag): Range =>
+  tag.metadata.declarationLoc
+    ? toVSCodeRange(tag.metadata.declarationLoc)
+    : Range.create(Position.create(0, 0), Position.create(0, 0));
 
 // Utility function to get tag location
 export const getTagLocation = (tag: Tag): Location => Location.create(getTagUri(tag), getTagRange(tag));
@@ -207,7 +192,7 @@ export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvide
   };
 
   // Match files like name.html or name.css
-  const pattern = new RegExp(`^${name.replace(/[.+^${}()|[\]\\]/g, '\\$&')}\\.(html|css)$`);
+  const pattern = new RegExp(`^${name.replaceAll(/[.+^${}()|[\]\\]/g, '\\$&')}\\.(html|css)$`);
   const filteredFiles = findFilesInDirectory(normalizedDir, pattern, fileSystemProvider);
   const locations = filteredFiles.map(convertFileToLocation);
   const tagLocation = getTagLocation(tag);
@@ -281,11 +266,7 @@ export const updateTagMetadata = async (
     try {
       // tag.file is already normalized, and getFileStat normalizes internally
       const stat = fileSystemProvider.getFileStat(`file://${tag.file}`);
-      if (stat) {
-        tag.updatedAt = new Date(stat.mtime);
-      } else {
-        tag.updatedAt = new Date();
-      }
+      tag.updatedAt = stat ? new Date(stat.mtime) : new Date();
     } catch {
       // If file doesn't exist or can't be read, use current date
       tag.updatedAt = new Date();

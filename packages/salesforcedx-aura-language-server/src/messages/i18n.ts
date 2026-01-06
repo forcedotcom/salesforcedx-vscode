@@ -28,5 +28,6 @@ export const messages = {
   failed_to_load_browser_json_message: 'Failed to load browser.json from %s: %s',
   failed_to_load_ecmascript_json_message: 'Failed to load ecmascript.json from %s: %s',
   invalid_browser_definition_message: 'Invalid browser definition: type=%s, isNull=%s, isUndefined=%s, keys=%s',
-  invalid_ecmascript_definition_message: 'Invalid ecmascript definition: type=%s, isNull=%s, isUndefined=%s, keys=%s'
+  invalid_ecmascript_definition_message: 'Invalid ecmascript definition: type=%s, isNull=%s, isUndefined=%s, keys=%s',
+  server_initializing_message: 'Loading... 🔍'
 } as const;
