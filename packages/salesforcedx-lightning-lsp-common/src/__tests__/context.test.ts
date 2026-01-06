@@ -46,7 +46,7 @@ beforeAll(() => {
 const verifyJsconfigCore = async (fileSystemProvider: FileSystemDataProvider, jsconfigPath: string): Promise<void> => {
   const normalizedPath = normalizePath(jsconfigPath);
   const jsconfigContent = Buffer.from(fileSystemProvider.getFileContent(normalizedPath) ?? '').toString('utf8');
-  expect(jsconfigContent).toContain('"compilerOptions":{');
+  expect(jsconfigContent).toContain('"compilerOptions": {');
   const jsconfig = JSON.parse(jsconfigContent);
   expect(jsconfig.compilerOptions.experimentalDecorators).toBe(true);
   expect(Array.isArray(jsconfig.include)).toBe(true);
@@ -209,7 +209,7 @@ describe('WorkspaceContext', () => {
     const jsconfigForceAppContent = Buffer.from(
       sfdxFileSystemProvider.getFileContent(jsconfigPathForceApp) ?? ''
     ).toString('utf8');
-    expect(jsconfigForceAppContent).toContain('"compilerOptions":{');
+    expect(jsconfigForceAppContent).toContain('"compilerOptions": {');
     const jsconfigForceApp = JSON.parse(jsconfigForceAppContent);
     expect(jsconfigForceApp.compilerOptions.experimentalDecorators).toBe(true);
     expect(jsconfigForceApp.include[0]).toBe('**/*');
