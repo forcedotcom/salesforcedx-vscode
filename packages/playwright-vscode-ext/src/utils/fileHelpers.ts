@@ -48,20 +48,23 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
     // Check if an untitled file was created (web behavior)
     // On web, clicking "Text File" creates an untitled file directly
     // On desktop, it prompts for filename
-    // Wait for either untitled tab or quick input to appear
+    // Wait a moment for the editor to appear, then check for untitled tab
+    await page.waitForTimeout(500);
     const untitledTab = page
       .locator(TAB)
       .filter({ hasText: /Untitled/i })
       .first();
-    const createdUntitled = await untitledTab.isVisible({ timeout: 2000 }).catch(() => false);
+    const createdUntitled = await untitledTab.isVisible().catch(() => false);
 
     if (createdUntitled) {
       // Untitled file created (web or Windows desktop)
       // Close it and try the Files Explorer flow instead (avoids native save dialogs)
       await executeCommandWithCommandPalette(page, 'View: Close Editor');
+      await page.waitForTimeout(500);
 
       // Focus Files Explorer
       await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
+      await page.waitForTimeout(500);
 
       // Click on workspace root folder to select it
       const explorerWorkspaceRoot = page.locator('.monaco-list-row[aria-level="1"]').first();
@@ -77,6 +80,7 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
       const newFileButton = page.locator('.monaco-action-bar').locator('[aria-label*="New File"]');
       await newFileButton.waitFor({ state: 'visible', timeout: 5000 });
       await newFileButton.click();
+      await page.waitForTimeout(500);
 
       // Wait for inline rename input to appear in explorer
       const inlineInput = explorerView.locator('.monaco-inputbox input');
@@ -95,12 +99,8 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
       // This allows notifications to remain (needed for extension loading) while still focusing editor
       await newEditor.click({ force: true });
 
-      // Set contents using textarea fill (much faster than keyboard.type)
-      const newEditorTextarea = newEditor.locator('textarea').first();
-      await newEditorTextarea.waitFor({ state: 'attached', timeout: 5000 });
-      await newEditorTextarea.fill(contents);
-
-      // Save using keyboard shortcut
+      // Type contents and save
+      await page.keyboard.type(contents);
       await page.keyboard.press('Control+s');
 
       // Wait for save to complete
@@ -180,10 +180,8 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
   await editor.waitFor({ state: 'visible', timeout: 10_000 });
   await editor.click();
 
-  // Set contents using textarea fill (much faster than keyboard.type)
-  const editorTextarea = editor.locator('textarea').first();
-  await editorTextarea.waitFor({ state: 'attached', timeout: 5000 });
-  await editorTextarea.fill(contents);
+  // Type the file contents
+  await page.keyboard.type(contents);
 
   // Save the file
   await page.keyboard.press('Control+s');
@@ -223,14 +221,11 @@ export const createApexClass = async (page: Page, className: string, content?: s
   await page.keyboard.press('Enter');
 
   // Wait for the editor to open with the new class
-  const apexEditor = page.locator(EDITOR_WITH_URI).first();
-  await apexEditor.waitFor({ state: 'visible', timeout: 15_000 });
+  await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 15_000 });
 
-  // If content is provided, set it using textarea fill
+  // If content is provided, type it into the editor
   if (content !== undefined) {
-    const editorTextarea = apexEditor.locator('textarea').first();
-    await editorTextarea.waitFor({ state: 'attached', timeout: 5000 });
-    await editorTextarea.fill(content);
+    await page.keyboard.type(content);
   }
 
   // Save the file to ensure source tracking detects it
@@ -315,19 +310,13 @@ export const editOpenFile = async (page: Page, comment: string): Promise<void> =
   // This is needed on all platforms to activate the editor
   await editor.click();
 
-  // Get current editor content
-  const editorTextarea = editor.locator('textarea').first();
-  await editorTextarea.waitFor({ state: 'attached', timeout: 5000 });
-  const currentContent = await editorTextarea.inputValue();
+  // Go to end of first line (class declaration)
+  await page.keyboard.press('Control+Home');
+  await page.keyboard.press('End');
 
-  // Find first newline and insert comment after first line
-  const firstNewline = currentContent.indexOf('\n');
-  const newContent = firstNewline >= 0
-    ? `${currentContent.slice(0, firstNewline + 1)}  // ${comment}\n${currentContent.slice(firstNewline + 1)}`
-    : `${currentContent}\n// ${comment}`;
-
-  // Set the modified content
-  await editorTextarea.fill(newContent);
+  // Insert new line below and type comment
+  await page.keyboard.press('Enter');
+  await page.keyboard.type(`// ${comment}`);
 
   // Save file
   await executeCommandWithCommandPalette(page, 'File: Save');
