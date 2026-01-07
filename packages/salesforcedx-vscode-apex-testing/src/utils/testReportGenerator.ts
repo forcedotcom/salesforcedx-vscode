@@ -4,52 +4,48 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  TestResult,
-  MarkdownTextReporter,
-  OutputFormat,
-  TestSortOrder,
-  MarkdownTextReporterOptions
-} from '@salesforce/apex-node';
+import { TestResult, MarkdownTextFormatTransformer, OutputFormat, TestSortOrder } from '@salesforce/apex-node';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../settings';
 
-/** Generates a markdown or text report from test results using the MarkdownTextReporter */
-const generateReport = (
+/** Collects stream output into a string */
+const streamToString = async (stream: NodeJS.ReadableStream): Promise<string> => {
+  const chunks: Buffer[] = [];
+  return new Promise((resolve, reject) => {
+    stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+    stream.on('error', reject);
+  });
+};
+
+/** Generates a markdown or text report from test results using the MarkdownTextFormatTransformer */
+const generateReport = async (
   result: TestResult,
   format: OutputFormat,
   codeCoverage: boolean,
   sortOrder: TestSortOrder
-): string => {
+): Promise<string> => {
   // Retrieve thresholds from settings
   const performanceThresholdMs = retrievePerformanceThreshold();
   const coverageThresholdPercent = retrieveCoverageThreshold();
 
-  const options: MarkdownTextReporterOptions = {
+  const transformer = new MarkdownTextFormatTransformer(result, {
     format,
     sortOrder,
     performanceThresholdMs,
     coverageThresholdPercent,
     codeCoverage,
     timestamp: new Date()
-  };
+  });
 
-  const reporter = new MarkdownTextReporter(options);
-  return reporter.format(result);
+  return streamToString(transformer);
 };
 
-/** Generates a filename with timestamp to preserve previous runs */
-const generateReportFilename = (outputDir: string, extension: string): string => {
-  const timestamp = new Date();
-  const year = timestamp.getFullYear();
-  const month = String(timestamp.getMonth() + 1).padStart(2, '0');
-  const day = String(timestamp.getDate()).padStart(2, '0');
-  const hour = String(timestamp.getHours()).padStart(2, '0');
-  const minute = String(timestamp.getMinutes()).padStart(2, '0');
-  const second = String(timestamp.getSeconds()).padStart(2, '0');
-  const timestampStr = `${year}${month}${day}-${hour}${minute}${second}`;
-  return path.join(outputDir, `test-results-${timestampStr}${extension}`);
+/** Generates a filename using the library's format: test-result-{testRunId}.{ext} */
+const generateReportFilename = (outputDir: string, testRunId: string | undefined, extension: string): string => {
+  const filename = testRunId ? `test-result-${testRunId}${extension}` : `test-result${extension}`;
+  return path.join(outputDir, filename);
 };
 
 /** Writes test report to file and opens it in editor */
@@ -60,11 +56,12 @@ export const writeAndOpenTestReport = async (
   codeCoverage: boolean = false,
   sortOrder: TestSortOrder = 'runtime'
 ): Promise<string> => {
-  const reportContent = generateReport(result, format, codeCoverage, sortOrder);
+  const reportContent = await generateReport(result, format, codeCoverage, sortOrder);
 
-  // Generate filename with timestamp to preserve previous runs
+  // Generate filename using library's format: test-result-{testRunId}.{ext}
   const extension = format === 'markdown' ? '.md' : '.txt';
-  const reportPath = generateReportFilename(outputDir, extension);
+  const testRunId = result.summary?.testRunId;
+  const reportPath = generateReportFilename(outputDir, testRunId, extension);
 
   // Ensure content uses LF line endings (UTF-8 with LF)
   const normalizedContent = reportContent.replaceAll('\r\n', '\n').replaceAll('\r', '\n');

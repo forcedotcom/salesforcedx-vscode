@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TestResult, MarkdownTextReporter, MarkdownTextReporterOptions } from '@salesforce/apex-node';
+import { TestResult, MarkdownTextFormatTransformer } from '@salesforce/apex-node';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import * as settings from '../../../src/settings';
@@ -56,41 +56,53 @@ describe('testReportGenerator', () => {
     jest.restoreAllMocks();
   });
 
-  // Helper function to generate markdown report using the library's reporter
-  const generateMarkdownReport = (
+  // Helper function to collect stream output into a string
+  const streamToString = async (stream: NodeJS.ReadableStream): Promise<string> => {
+    const chunks: Buffer[] = [];
+    return new Promise((resolve, reject) => {
+      stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+      stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+      stream.on('error', reject);
+    });
+  };
+
+  // Helper function to generate markdown report using the library's transformer
+  const generateMarkdownReport = async (
     result: TestResult,
     timestamp: Date,
     codeCoverage: boolean = false,
     sortOrder: 'runtime' | 'coverage' | 'severity' = 'runtime'
-  ): string => {
+  ): Promise<string> => {
     const performanceThresholdMs = retrievePerformanceThreshold();
     const coverageThresholdPercent = retrieveCoverageThreshold();
-    const options: MarkdownTextReporterOptions = {
+    const transformer = new MarkdownTextFormatTransformer(result, {
       format: 'markdown',
       sortOrder,
       performanceThresholdMs,
       coverageThresholdPercent,
       codeCoverage,
       timestamp
-    };
-    const reporter = new MarkdownTextReporter(options);
-    return reporter.format(result);
+    });
+    return streamToString(transformer);
   };
 
-  // Helper function to generate text report using the library's reporter
-  const generateTextReport = (result: TestResult, timestamp: Date, codeCoverage: boolean = false): string => {
+  // Helper function to generate text report using the library's transformer
+  const generateTextReport = async (
+    result: TestResult,
+    timestamp: Date,
+    codeCoverage: boolean = false
+  ): Promise<string> => {
     const performanceThresholdMs = retrievePerformanceThreshold();
     const coverageThresholdPercent = retrieveCoverageThreshold();
-    const options: MarkdownTextReporterOptions = {
+    const transformer = new MarkdownTextFormatTransformer(result, {
       format: 'text',
       sortOrder: 'runtime',
       performanceThresholdMs,
       coverageThresholdPercent,
       codeCoverage,
       timestamp
-    };
-    const reporter = new MarkdownTextReporter(options);
-    return reporter.format(result);
+    });
+    return streamToString(transformer);
   };
 
   const createMockTestResult = (): TestResult =>
@@ -101,7 +113,8 @@ describe('testReportGenerator', () => {
         passing: 2,
         failing: 1,
         skipped: 0,
-        testExecutionTimeInMs: 5000
+        testExecutionTimeInMs: 5000,
+        testRunId: 'test-run-123'
       },
       tests: [
         {
@@ -141,11 +154,11 @@ describe('testReportGenerator', () => {
     }) as unknown as TestResult;
 
   describe('generateMarkdownReport', () => {
-    it('should generate markdown report with correct structure', () => {
+    it('should generate markdown report with correct structure', async () => {
       const result = createMockTestResult();
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp);
+      const report = await generateMarkdownReport(result, timestamp);
 
       expect(report).toContain('# Apex Test Results');
       expect(report).toContain('## Summary');
@@ -154,11 +167,11 @@ describe('testReportGenerator', () => {
       expect(report).toContain('❌ **Failed:** 1');
     });
 
-    it('should include failures section with error message and stack trace', () => {
+    it('should include failures section with error message and stack trace', async () => {
       const result = createMockTestResult();
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp);
+      const report = await generateMarkdownReport(result, timestamp);
 
       expect(report).toContain('## ❌ Failures (1)');
       expect(report).toContain('### TestClass2.testMethod3');
@@ -168,18 +181,18 @@ describe('testReportGenerator', () => {
       expect(report).toContain('TestClass2.testMethod3: line 10');
     });
 
-    it('should include passed tests section', () => {
+    it('should include passed tests section', async () => {
       const result = createMockTestResult();
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp);
+      const report = await generateMarkdownReport(result, timestamp);
 
       expect(report).toContain('## ✅ Passed Tests (2)');
       expect(report).toContain('- TestClass1.testMethod1');
       expect(report).toContain('- TestClass1.testMethod2');
     });
 
-    it('should escape markdown special characters in test names', () => {
+    it('should escape markdown special characters in test names', async () => {
       const result: TestResult = {
         summary: {
           outcome: 'Passed',
@@ -205,14 +218,14 @@ describe('testReportGenerator', () => {
       } as unknown as TestResult;
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp);
+      const report = await generateMarkdownReport(result, timestamp);
 
       // Should escape special characters (but not dots)
       expect(report).toContain('Test\\_Class\\*With\\[Special\\]Chars');
       expect(report).toContain('test\\_Method\\*With\\[Special\\]Chars');
     });
 
-    it('should handle namespace prefix in class names', () => {
+    it('should handle namespace prefix in class names', async () => {
       const result: TestResult = {
         summary: {
           outcome: 'Passed',
@@ -238,12 +251,12 @@ describe('testReportGenerator', () => {
       } as unknown as TestResult;
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp);
+      const report = await generateMarkdownReport(result, timestamp);
 
       expect(report).toContain('MyNamespace.TestClass.testMethod');
     });
 
-    it('should handle skipped tests', () => {
+    it('should handle skipped tests', async () => {
       const result: TestResult = {
         summary: {
           outcome: 'Passed',
@@ -280,13 +293,13 @@ describe('testReportGenerator', () => {
       } as unknown as TestResult;
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp);
+      const report = await generateMarkdownReport(result, timestamp);
 
       expect(report).toContain('## ⏭️ Skipped Tests (1)');
       expect(report).toContain('- TestClass.testMethod2');
     });
 
-    it('should format duration correctly', () => {
+    it('should format duration correctly', async () => {
       const result: TestResult = {
         summary: {
           outcome: 'Passed',
@@ -312,14 +325,14 @@ describe('testReportGenerator', () => {
       } as unknown as TestResult;
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp);
+      const report = await generateMarkdownReport(result, timestamp);
 
       expect(report).toContain('**Duration:** 2m 5s');
       // Since the test takes 125 seconds (over 5s threshold), it's marked as poorly performing
       expect(report).toContain('(🐌 **2m 5s** - slow)');
     });
 
-    it('should highlight poorly performing tests', () => {
+    it('should highlight poorly performing tests', async () => {
       const result: TestResult = {
         summary: {
           outcome: 'Passed',
@@ -370,7 +383,7 @@ describe('testReportGenerator', () => {
       } as unknown as TestResult;
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp, true, 'severity');
+      const report = await generateMarkdownReport(result, timestamp, true, 'severity');
 
       expect(report).toContain('## ⚠️ Test Quality Warnings');
       expect(report).toContain('### 🐌 Poorly Performing Tests (1)');
@@ -381,7 +394,7 @@ describe('testReportGenerator', () => {
       expect(report).toContain('font-weight: bold; color: #d32f2f');
     });
 
-    it('should highlight poorly covered tests', () => {
+    it('should highlight poorly covered tests', async () => {
       const result: TestResult = {
         summary: {
           outcome: 'Passed',
@@ -432,7 +445,7 @@ describe('testReportGenerator', () => {
       } as unknown as TestResult;
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp, true, 'severity');
+      const report = await generateMarkdownReport(result, timestamp, true, 'severity');
 
       expect(report).toContain('## ⚠️ Test Quality Warnings');
       expect(report).toContain('### 📉 Poorly Covered Tests (1)');
@@ -443,7 +456,7 @@ describe('testReportGenerator', () => {
       expect(report).toContain('font-weight: bold; color: #d32f2f');
     });
 
-    it('should highlight tests with both poor performance and poor coverage', () => {
+    it('should highlight tests with both poor performance and poor coverage', async () => {
       const result: TestResult = {
         summary: {
           outcome: 'Passed',
@@ -476,14 +489,14 @@ describe('testReportGenerator', () => {
       } as unknown as TestResult;
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp, true, 'severity');
+      const report = await generateMarkdownReport(result, timestamp, true, 'severity');
 
       // Check for warning emoji and bold red text for both coverage and runtime
       expect(report).toContain('⚠️');
       expect(report).toContain('font-weight: bold; color: #d32f2f');
     });
 
-    it('should highlight poorly performing tests in passed tests section', () => {
+    it('should highlight poorly performing tests in passed tests section', async () => {
       const result: TestResult = {
         summary: {
           outcome: 'Passed',
@@ -509,12 +522,12 @@ describe('testReportGenerator', () => {
       } as unknown as TestResult;
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp);
+      const report = await generateMarkdownReport(result, timestamp);
 
       expect(report).toContain('(🐌 **6s** - slow)');
     });
 
-    it('should highlight poorly covered tests in passed tests section', () => {
+    it('should highlight poorly covered tests in passed tests section', async () => {
       const result: TestResult = {
         summary: {
           outcome: 'Passed',
@@ -547,12 +560,12 @@ describe('testReportGenerator', () => {
       } as unknown as TestResult;
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp, true, 'severity');
+      const report = await generateMarkdownReport(result, timestamp, true, 'severity');
 
       expect(report).toContain('(📉 **50%** coverage - low)');
     });
 
-    it('should not show warnings section when no issues', () => {
+    it('should not show warnings section when no issues', async () => {
       const result: TestResult = {
         summary: {
           outcome: 'Passed',
@@ -585,12 +598,12 @@ describe('testReportGenerator', () => {
       } as unknown as TestResult;
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp, true, 'severity');
+      const report = await generateMarkdownReport(result, timestamp, true, 'severity');
 
       expect(report).not.toContain('## ⚠️ Test Quality Warnings');
     });
 
-    it('should sort poorly performing tests from worst to best', () => {
+    it('should sort poorly performing tests from worst to best', async () => {
       const result: TestResult = {
         summary: {
           outcome: 'Passed',
@@ -638,7 +651,7 @@ describe('testReportGenerator', () => {
       } as unknown as TestResult;
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp);
+      const report = await generateMarkdownReport(result, timestamp);
 
       // Find the position of each test in the poorly performing section
       const testMethod2Index = report.indexOf('TestClass2.testMethod2');
@@ -650,7 +663,7 @@ describe('testReportGenerator', () => {
       expect(testMethod3Index).toBeLessThan(testMethod1Index);
     });
 
-    it('should sort poorly covered tests from worst to best', () => {
+    it('should sort poorly covered tests from worst to best', async () => {
       const result: TestResult = {
         summary: {
           outcome: 'Passed',
@@ -719,7 +732,7 @@ describe('testReportGenerator', () => {
       } as unknown as TestResult;
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp, true, 'severity');
+      const report = await generateMarkdownReport(result, timestamp, true, 'severity');
 
       // Find the position of each test in the poorly covered section
       const testMethod1Index = report.indexOf('TestClass1.testMethod1');
@@ -731,7 +744,7 @@ describe('testReportGenerator', () => {
       expect(testMethod3Index).toBeLessThan(testMethod2Index);
     });
 
-    it('should sort test results table by severity (worst first)', () => {
+    it('should sort test results table by severity (worst first)', async () => {
       const result: TestResult = {
         summary: {
           outcome: 'Passed',
@@ -818,7 +831,7 @@ describe('testReportGenerator', () => {
       } as unknown as TestResult;
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp, true, 'severity');
+      const report = await generateMarkdownReport(result, timestamp, true, 'severity');
 
       // Find positions in the table section
       const tableStart = report.indexOf('## Test Results with Coverage');
@@ -837,7 +850,7 @@ describe('testReportGenerator', () => {
       expect(testMethod1Index).toBeGreaterThan(testMethod4Index);
     });
 
-    it('should sort passed tests by runtime (slowest first)', () => {
+    it('should sort passed tests by runtime (slowest first)', async () => {
       const result: TestResult = {
         summary: {
           outcome: 'Passed',
@@ -885,7 +898,7 @@ describe('testReportGenerator', () => {
       } as unknown as TestResult;
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateMarkdownReport(result, timestamp);
+      const report = await generateMarkdownReport(result, timestamp);
 
       // Find positions in the passed tests section
       const passedSectionStart = report.indexOf('## ✅ Passed Tests');
@@ -900,11 +913,11 @@ describe('testReportGenerator', () => {
   });
 
   describe('generateTextReport', () => {
-    it('should generate text report with correct structure', () => {
+    it('should generate text report with correct structure', async () => {
       const result = createMockTestResult();
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateTextReport(result, timestamp);
+      const report = await generateTextReport(result, timestamp);
 
       expect(report).toContain('Apex Test Results');
       expect(report).toContain('Summary:');
@@ -914,11 +927,11 @@ describe('testReportGenerator', () => {
       expect(report).toContain('  Total:   3');
     });
 
-    it('should include failures section in text format', () => {
+    it('should include failures section in text format', async () => {
       const result = createMockTestResult();
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateTextReport(result, timestamp);
+      const report = await generateTextReport(result, timestamp);
 
       expect(report).toContain('Failures:');
       expect(report).toContain('TestClass2.testMethod3');
@@ -927,11 +940,11 @@ describe('testReportGenerator', () => {
       expect(report).toContain('Stack Trace:');
     });
 
-    it('should include passed tests section in text format', () => {
+    it('should include passed tests section in text format', async () => {
       const result = createMockTestResult();
       const timestamp = new Date('2025-01-15T10:30:00Z');
 
-      const report = generateTextReport(result, timestamp);
+      const report = await generateTextReport(result, timestamp);
 
       expect(report).toContain('Passed Tests:');
       expect(report).toContain('  - TestClass1.testMethod1');
@@ -983,7 +996,7 @@ describe('testReportGenerator', () => {
       expect(decoded).toContain('# Apex Test Results');
     });
 
-    it('should use timestamp filename to preserve previous runs', async () => {
+    it('should use library filename format: test-result-{testRunId}.md', async () => {
       const result = createMockTestResult();
       const outputDir = path.join('test', 'output');
 
@@ -992,8 +1005,8 @@ describe('testReportGenerator', () => {
       expect(mockStat).not.toHaveBeenCalled();
       const writeCall = mockWriteFile.mock.calls[0];
       const [uri] = writeCall;
-      // Should use timestamp format: test-results-YYYYMMDD-HHMMSS.md
-      expect(uri.fsPath).toMatch(/test-results-\d{8}-\d{6}\.md/);
+      // Should use library format: test-result-{testRunId}.md
+      expect(uri.fsPath).toContain('test-result-test-run-123.md');
     });
   });
 });
