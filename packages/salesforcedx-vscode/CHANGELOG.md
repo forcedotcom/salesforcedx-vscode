@@ -3,34 +3,20 @@
 ## Added
 
 #### salesforcedx-aura-language-server
-
-- W-19345728 :  use ts objects and not ejs templates over json for config files ([PR #6711](https://github.com/forcedotcom/salesforcedx-vscode/pull/6711))
-
 #### salesforcedx-lightning-lsp-common
-
-- W-19345728 :  use ts objects and not ejs templates over json for config files ([PR #6711](https://github.com/forcedotcom/salesforcedx-vscode/pull/6711))
-
 #### salesforcedx-lwc-language-server
 
-- W-19345728 :  use ts objects and not ejs templates over json for config files ([PR #6711](https://github.com/forcedotcom/salesforcedx-vscode/pull/6711))
+- Refactored lightning-language-server over to the mono repo for maintainability. Removed node:fs and direct fs calls from lightning-language-server in favor of async loading of file system data to server. ([PR #6620](https://github.com/forcedotcom/salesforcedx-vscode/pull/6620), ([PR #6658](https://github.com/forcedotcom/salesforcedx-vscode/pull/6658)), ([PR #6666](https://github.com/forcedotcom/salesforcedx-vscode/pull/6666)), ([PR #6711](https://github.com/forcedotcom/salesforcedx-vscode/pull/6711))
+- Added user experience popups and hover documentation to communnicate the delayed start. ([PR #6723](https://github.com/forcedotcom/salesforcedx-vscode/pull/6723))
 
 #### salesforcedx-vscode-apex-testing
 
-- [W-20175136]  new apex test controller ([PR #6704](https://github.com/forcedotcom/salesforcedx-vscode/pull/6704))
+- New apex test controller: a new Test Explorer UI, updating configuration settings, and improving test suite management and discovery. ([PR #6704](https://github.com/forcedotcom/salesforcedx-vscode/pull/6704))
 
 #### salesforcedx-vscode-core
 
-- [W-20328559][W-20328751]  scrape Metadata API Developer Guide metadata types for metadata XML hover documentation using Playwright + GHA workflow to do this once per week ([PR #6675](https://github.com/forcedotcom/salesforcedx-vscode/pull/6675))
+- Scrape Metadata API Developer Guide metadata types for metadata XML hover documentation using Playwright + GHA workflow to do this once per week ([PR #6675](https://github.com/forcedotcom/salesforcedx-vscode/pull/6675))
 
-- Move debugger commands to debugger W-20163556 ([PR #6727](https://github.com/forcedotcom/salesforcedx-vscode/pull/6727))
+- Move stop debugger and bootstrap cmd to the apex debugger extension ([PR #6727](https://github.com/forcedotcom/salesforcedx-vscode/pull/6727))
 
-## Fixed
-
-#### salesforcedx-aura-language-server
-
-- W-20602076:  add static text for hover ([PR #6723](https://github.com/forcedotcom/salesforcedx-vscode/pull/6723))
-
-#### salesforcedx-lwc-language-server
-
-- W-20602076:  add static text for hover ([PR #6723](https://github.com/forcedotcom/salesforcedx-vscode/pull/6723))
 
