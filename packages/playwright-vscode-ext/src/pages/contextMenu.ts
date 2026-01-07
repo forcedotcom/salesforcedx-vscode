@@ -96,21 +96,10 @@ const selectContextMenuItem = async (page: Page, itemName: string | RegExp): Pro
   await matchingItem.scrollIntoViewIfNeeded();
   // Wait for the item to be stable and actionable
   await matchingItem.waitFor({ state: 'visible', timeout: 2000 });
-
-  // Platform-specific menu item selection
-  // Windows: click directly (hover causes crashes)
-  // Mac/Web: hover + Enter (click causes crashes)
-  const isWindowsDesktop = process.env.VSCODE_DESKTOP === '1' && process.platform === 'win32';
-
-  if (isWindowsDesktop) {
-    // Click the menu item directly on Windows
-    await matchingItem.click({ timeout: 5000 });
-  } else {
-    // Hover and press Enter on Mac/Web
-    await matchingItem.hover({ timeout: 5000 });
-    await page.keyboard.press('Enter');
-  }
-
+  // Hover to highlight the menu item
+  await matchingItem.hover({ timeout: 5000 });
+  // Use keyboard Enter to activate (more reliable than click across platforms)
+  await page.keyboard.press('Enter');
   // Wait for menu to close after action to confirm it was executed
   await contextMenu.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
     // Menu might close instantly or might not close if action failed
