@@ -1,19 +1,36 @@
-# 65.9.1 - December 19, 2025
+# 65.12.1 - January 9, 2026
 
-## Fixed
+## Added
 
-#### salesforcedx-vscode-apex
+#### salesforcedx-aura-language-server
 
-- We fixed an issue where code coverage highlights were not applied when navigating between Apex files. Coverage decorations now appear automatically when switching files, as long as Highlight Apex Code Coverage is enabled. ([PR #6721](https://github.com/forcedotcom/salesforcedx-vscode/pull/6721))
+- W-19345728 :  use ts objects and not ejs templates over json for config files ([PR #6711](https://github.com/forcedotcom/salesforcedx-vscode/pull/6711))
+
+#### salesforcedx-lightning-lsp-common
+
+- W-19345728 :  use ts objects and not ejs templates over json for config files ([PR #6711](https://github.com/forcedotcom/salesforcedx-vscode/pull/6711))
+
+#### salesforcedx-lwc-language-server
+
+- W-19345728 :  use ts objects and not ejs templates over json for config files ([PR #6711](https://github.com/forcedotcom/salesforcedx-vscode/pull/6711))
 
 #### salesforcedx-vscode-apex-testing
 
-- We fixed an issue where the test panel did not automatically populate local Apex tests when opened. The test view now refreshes on activation and provides clearer feedback when the Apex Language Server is not ready, improving reliability and overall usability. ([PR #6722](https://github.com/forcedotcom/salesforcedx-vscode/pull/6722))
+- [W-20175136]  new apex test controller ([PR #6704](https://github.com/forcedotcom/salesforcedx-vscode/pull/6704))
 
-#### salesforcedx-vscode-org
+#### salesforcedx-vscode-core
 
-- We fixed an issue where org state was not refreshed after login, logout, or delete operations. You no longer need to reload the VS Code window after authorizing a Dev Hub before creating a scratch org- the extension now immediately reflects the latest org information. ([PR #6720](https://github.com/forcedotcom/salesforcedx-vscode/pull/6720))
+- [W-20328559][W-20328751]  scrape Metadata API Developer Guide metadata types for metadata XML hover documentation using Playwright + GHA workflow to do this once per week ([PR #6675](https://github.com/forcedotcom/salesforcedx-vscode/pull/6675))
 
-#### salesforcedx-utils-vscode
+- Move debugger commands to debugger W-20163556 ([PR #6727](https://github.com/forcedotcom/salesforcedx-vscode/pull/6727))
 
-- We made some changes under the hood. ([PR #6712](https://github.com/forcedotcom/salesforcedx-vscode/pull/6712))
+## Fixed
+
+#### salesforcedx-aura-language-server
+
+- W-20602076:  add static text for hover ([PR #6723](https://github.com/forcedotcom/salesforcedx-vscode/pull/6723))
+
+#### salesforcedx-lwc-language-server
+
+- W-20602076:  add static text for hover ([PR #6723](https://github.com/forcedotcom/salesforcedx-vscode/pull/6723))
+
