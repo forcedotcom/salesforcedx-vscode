@@ -6,7 +6,7 @@
     "strict": false,
     "noImplicitAny": false
   },
-  "exclude": ["node_modules", ".vscode-test", "out", "./test/ui-test/resources/extensions", "dist", "soql-common/lib"],
+  "exclude": ["node_modules", ".vscode-test", "out", "./test/ui-test/resources/extensions", "dist"],
   "include": ["src/**/*.ts", "test/**/*.ts", "soql-common/src/**/*.ts"],
   "references": [
     {
