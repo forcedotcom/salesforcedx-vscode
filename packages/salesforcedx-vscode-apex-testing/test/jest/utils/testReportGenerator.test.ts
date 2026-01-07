@@ -6,6 +6,7 @@
  */
 
 import { TestResult, MarkdownTextFormatTransformer } from '@salesforce/apex-node';
+import { Global } from '@salesforce/core';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import * as settings from '../../../src/settings';
@@ -29,6 +30,9 @@ describe('testReportGenerator', () => {
     mockStat.mockClear();
     // Default: file doesn't exist (stat throws)
     mockStat.mockRejectedValue(new Error('File not found'));
+
+    // Mock Global.SF_DIR to avoid path issues in tests
+    jest.spyOn(Global, 'SF_DIR', 'get').mockReturnValue('/tmp/.sf');
 
     // Set up mocks
     jest.spyOn(vscode.workspace.fs, 'writeFile').mockImplementation(mockWriteFile);
