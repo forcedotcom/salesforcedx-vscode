@@ -1,0 +1,23 @@
+{
+  "name": "@salesforce/soql-common",
+  "version": "0.2.2",
+  "description": "SOQL Common utility library",
+  "main": "lib/",
+  "scripts": {
+    "compile": "tsc --project .",
+    "include-soql-parser": "shx cp -R soql-parser.lib ./lib/soql-parser",
+    "build": "npm run compile && npm run include-soql-parser",
+    "clean": "shx rm -rf lib",
+    "test": "jest --runInBand"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forcedotcom/salesforcedx-vscode.git"
+  },
+  "keywords": [
+    "soql",
+    "common"
+  ],
+  "author": "Salesforce",
+  "license": "BSD-3-Clause"
+}

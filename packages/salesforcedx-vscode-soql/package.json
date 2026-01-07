@@ -36,7 +36,6 @@
     "@salesforce/salesforcedx-sobjects-faux-generator": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/soql-builder-ui": "1.0.0",
-    "@salesforce/soql-common": "0.2.1",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
     "@salesforce/soql-model": "1.0.0",
@@ -60,8 +59,9 @@
     "vscode:bundle": "wireit",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix soql-common/lib",
     "copy:grammars": "wireit",
+    "copy:soql-parser": "wireit",
     "test": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -76,16 +76,20 @@
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-utils:compile",
-        "../salesforcedx-vscode-core:compile"
+        "../salesforcedx-vscode-core:compile",
+        "copy:soql-parser"
       ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
+        "soql-common/src/**/*.ts",
         "tsconfig.json",
+        "soql-common/tsconfig.json",
         "../../tsconfig.common.json"
       ],
       "output": [
         "out/**",
+        "soql-common/lib/**",
         "tsconfig.tsbuildinfo"
       ]
     },
@@ -96,6 +100,15 @@
       ],
       "output": [
         "grammars/soql.tmLanguage"
+      ]
+    },
+    "copy:soql-parser": {
+      "command": "shx mkdir -p soql-common/lib && shx cp -R soql-common/soql-parser.lib soql-common/lib/soql-parser",
+      "files": [
+        "soql-common/soql-parser.lib/**"
+      ],
+      "output": [
+        "soql-common/lib/soql-parser/**"
       ]
     },
     "vscode:bundle": {
