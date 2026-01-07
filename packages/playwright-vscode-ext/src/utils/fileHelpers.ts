@@ -227,6 +227,27 @@ export const createApexClass = async (page: Page, className: string, content?: s
   // Save the file to ensure source tracking detects it
   // On Windows, file watchers may not trigger until an explicit save
   await page.keyboard.press('Control+S');
+
+  // Wait for save to complete - check for dirty indicator to disappear
+  const dirtyEditor = page.locator(DIRTY_EDITOR);
+  const dirtyCount = await dirtyEditor.count();
+  if (dirtyCount > 0) {
+    await dirtyEditor.waitFor({ state: 'detached', timeout: 10_000 }).catch(() => {
+      // File might have saved instantly without showing dirty state
+    });
+  }
+
+  // On Windows, close the editor to ensure file is flushed to disk
+  // This helps Windows file watchers detect the new file for source tracking
+  const isWindows = process.platform === 'win32';
+  if (isWindows) {
+    await page.keyboard.press('Control+F4');
+    // Wait for editor to close
+    const editor = page.locator(EDITOR_WITH_URI).first();
+    await editor.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {
+      // Editor might not close if it was the last one, that's okay
+    });
+  }
 };
 
 /** Open a file using Quick Open (Ctrl+P) */
