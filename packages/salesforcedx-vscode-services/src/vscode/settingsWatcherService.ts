@@ -15,7 +15,6 @@ export class SettingsWatcherService extends Effect.Service<SettingsWatcherServic
     console.log('SettingsWatcherService starting');
     const pubsub = yield* PubSub.sliding<vscode.ConfigurationChangeEvent>(10_000);
     const disposable = vscode.workspace.onDidChangeConfiguration(event => {
-      console.log('configuration change event', event);
       Effect.runSync(PubSub.publish(pubsub, event));
     });
 

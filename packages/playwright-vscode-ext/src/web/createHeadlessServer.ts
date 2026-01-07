@@ -29,6 +29,7 @@ export const createHeadlessServer = async (options: HeadlessServerOptions): Prom
     await open({
       browserType: 'chromium',
       headless: true,
+      quality: 'stable',
       port: 3001,
       printServerLog: true,
       verbose: true,

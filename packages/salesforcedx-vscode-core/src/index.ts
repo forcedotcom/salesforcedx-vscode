@@ -104,10 +104,18 @@ const registerSharedCommands = (): vscode.Disposable => {
       projectDeployStart(isDeployOnSave, true)
     ),
     vscode.commands.registerCommand('sf.project.retrieve.start', projectRetrieveStart),
+    vscode.commands.registerCommand('sf.project.retrieve.start.ignore.conflicts', () => projectRetrieveStart(true)),
     vscode.commands.registerCommand('sf.view.all.changes', viewAllChanges),
     vscode.commands.registerCommand('sf.view.local.changes', viewLocalChanges),
     vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
-    vscode.commands.registerCommand('sf.apex.generate.class', apexGenerateClass)
+    vscode.commands.registerCommand('sf.apex.generate.class', apexGenerateClass),
+    vscode.commands.registerCommand('sf.delete.source', deleteSource),
+    vscode.commands.registerCommand('sf.delete.source.current.file', deleteSource),
+    vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
+    vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest),
+    vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths),
+    vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
+    vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest)
   );
 };
 
@@ -122,16 +130,8 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     vscode.commands.registerCommand('sf.diff', sourceDiff),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
     vscode.commands.registerCommand('sf.internal.refreshsobjects', refreshSObjects),
-    vscode.commands.registerCommand('sf.delete.source', deleteSource),
-    vscode.commands.registerCommand('sf.delete.source.current.file', deleteSource),
     vscode.commands.registerCommand('sf.deploy.current.source.file', deploySourcePaths),
-    vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest),
     vscode.commands.registerCommand('sf.deploy.multiple.source.paths', deploySourcePaths),
-    vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
-    vscode.commands.registerCommand('sf.project.retrieve.start.ignore.conflicts', () => projectRetrieveStart(true)),
-    vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths),
-    vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
-    vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest),
     vscode.commands.registerCommand('sf.task.stop', taskStop),
     vscode.commands.registerCommand('sf.apex.generate.unit.test.class', apexGenerateUnitTestClass),
     vscode.commands.registerCommand('sf.analytics.generate.template', analyticsGenerateTemplate),

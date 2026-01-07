@@ -6,9 +6,11 @@
  */
 
 import type { DeployResult, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import { type SourceTracking } from '@salesforce/source-tracking';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
@@ -25,6 +27,10 @@ export class SourceTrackingError extends Data.TaggedError('FailedToUpdateSourceT
 
 export class SourceTrackingNotEnabledError extends Data.TaggedError('SourceTrackingNotEnabledError')<{
   readonly message: string;
+}> {}
+
+export class SourceTrackingConflictError extends Data.TaggedError('SourceTrackingConflictError')<{
+  readonly conflicts: string[]; // conflict details
 }> {}
 /** Gets a SourceTracking instance with optional configuration.  Throws a SourceTrackingNotEnabledError if source tracking is not enabled */
 const getTrackingOrThrow = (options?: SourceTrackingOptions) =>
@@ -80,6 +86,32 @@ const getTracking = (options?: SourceTrackingOptions) =>
     }).pipe(Effect.withSpan('STL create'));
   }).pipe(Effect.withSpan('getTracking'));
 
+/** Check for conflicts and display them in the channel, failing if conflicts are found */
+const checkConflicts = (tracking: SourceTracking) =>
+  Effect.gen(function* () {
+    const conflicts = yield* Effect.tryPromise({
+      try: () => tracking.getConflicts(),
+      catch: error => new SourceTrackingError(unknownToErrorCause(error))
+    }).pipe(Effect.withSpan('STL.GetConflicts'));
+
+    if (!conflicts?.length) {
+      return yield* Effect.succeed(undefined);
+    }
+    yield* Effect.annotateCurrentSpan({
+      conflicts: true
+    });
+    const conflictDetails = conflicts.map(c => `${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`);
+    yield* Effect.flatMap(ChannelService, channelService =>
+      channelService.appendToChannel(['Conflicts detected', ...conflictDetails.map(detail => `  ${detail}`)].join('\n'))
+    );
+    (yield* Effect.flatMap(ChannelService, channelService => channelService.getChannel)).show();
+    return yield* Effect.fail(
+      new SourceTrackingConflictError({
+        conflicts: conflictDetails
+      })
+    );
+  });
+
 /** safe to pass a result to.  If tracking is not enabled, this will be a no-op */
 const updateTrackingFromRetrieve = (result: RetrieveResult) =>
   Effect.gen(function* () {
@@ -121,6 +153,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
   succeed: {
     getSourceTrackingOrThrow: (options?: SourceTrackingOptions) => getTrackingOrThrow(options),
     getSourceTracking: (options?: SourceTrackingOptions) => getTracking(options),
+    checkConflicts: (tracking: SourceTracking) => checkConflicts(tracking),
     updateTrackingFromRetrieve,
     updateTrackingFromDeploy
   } as const,
@@ -130,6 +163,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     ConfigService.Default,
     SettingsService.Default,
     WorkspaceService.Default,
-    MetadataRegistryService.Default
+    MetadataRegistryService.Default,
+    ChannelService.Default
   ]
 }) {}

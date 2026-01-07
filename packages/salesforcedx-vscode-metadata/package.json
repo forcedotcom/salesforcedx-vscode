@@ -24,7 +24,7 @@
     "Other"
   ],
   "dependencies": {
-    "effect": "^3.19.13",
+    "effect": "^3.19.14",
     "@salesforce/vscode-i18n": "*",
     "vscode-uri": "^3.1.0"
   },
@@ -249,6 +249,14 @@
           "when": "salesforcedx-vscode-metadata.showSharedCommands"
         },
         {
+          "command": "sf.delete.source",
+          "when": "never"
+        },
+        {
+          "command": "sf.delete.source.current.file",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
           "command": "sf.deploy.source.path",
           "when": "never"
         },
@@ -279,6 +287,10 @@
       ],
       "editor/context": [
         {
+          "command": "sf.delete.source",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
           "command": "sf.deploy.source.path",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
@@ -296,6 +308,10 @@
         }
       ],
       "explorer/context": [
+        {
+          "command": "sf.delete.source",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
+        },
         {
           "command": "sf.deploy.source.path",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
@@ -346,6 +362,14 @@
       {
         "command": "sf.apex.generate.class",
         "title": "%apex_generate_class_text%"
+      },
+      {
+        "command": "sf.delete.source",
+        "title": "%delete_source_text%"
+      },
+      {
+        "command": "sf.delete.source.current.file",
+        "title": "%delete_source_text%"
       },
       {
         "command": "sf.deploy.source.path",
