@@ -3,5 +3,5 @@ const baseConfig = require('../../config/jest.base.config');
 
 module.exports = {
   ...baseConfig,
-  testMatch: ['<rootDir>/out/test/jest/**/*.test.js', '<rootDir>/out/soql-common/**/*.test.js']
+  testMatch: [...baseConfig.testMatch, '<rootDir>/out/soql-common/**/*.test.js']
 };
