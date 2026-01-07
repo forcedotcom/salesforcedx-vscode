@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "65.11.0",
+  "version": "65.12.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -32,6 +32,7 @@
   ],
   "dependencies": {
     "@salesforce/apex-tmlanguage": "^1.8.3",
+    "@salesforce/core": "^8.23.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/soql-builder-ui": "1.0.0",
@@ -46,7 +47,6 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^8.23.2",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/ts-types": "2.0.12",
     "@types/papaparse": "^5.2.3",
@@ -207,6 +207,14 @@
       {
         "command": "soql.walkthrough.open",
         "title": "%soql_walkthrough_open%"
+      },
+      {
+        "command": "sf.data.query.input",
+        "title": "%data_query_input_text%"
+      },
+      {
+        "command": "sf.data.query.selection",
+        "title": "%data_query_selection_text%"
       }
     ],
     "menus": {
@@ -222,6 +230,14 @@
         {
           "command": "soql.walkthrough.open",
           "when": "sf:project_opened"
+        },
+        {
+          "command": "sf.data.query.input",
+          "when": "sf:project_opened && !editorHasSelection && sf:has_target_org"
+        },
+        {
+          "command": "sf.data.query.selection",
+          "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
         }
       ],
       "editor/title": [

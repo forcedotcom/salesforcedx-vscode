@@ -67,34 +67,54 @@ export class FileSystemDataProvider implements IFileSystemProvider {
    */
   public getDirectoryListing(uri: NormalizedPath): DirectoryEntry[] {
     const explicitListing = this.directoryListings.get(uri);
-    if (explicitListing) {
+    // Only use explicit listing if it has entries - empty arrays should fall back to building from file stats
+    if (explicitListing && explicitListing.length > 0) {
       return explicitListing;
     }
 
     const entries: DirectoryEntry[] = [];
+    const seenNames = new Set<string>();
 
-    // If no explicit listing, but directory exists (inferred from files), build listing
-    if (this.directoryExists(uri)) {
-      const dirPathWithSlash = uri.endsWith('/') ? uri : `${uri}/`;
-      const seenNames = new Set<string>();
+    // If no explicit listing (or explicit listing is empty), but directory exists (inferred from files/directories), build listing
+    // Check directory existence by looking at file stats directly, not through directoryExists which might
+    // return true for empty explicit listings
+    const dirPathWithSlash = uri.endsWith('/') ? uri : `${uri}/`;
 
-      // Find all files that are direct children of this directory
-      for (const fileUri of this.fileStats.keys()) {
-        if (fileUri.startsWith(dirPathWithSlash)) {
-          // Get the relative path from the directory
-          const relativePath = fileUri.substring(dirPathWithSlash.length);
-          // Only include immediate children (not nested files)
-          if (relativePath && !relativePath.includes('/')) {
-            const fileName = relativePath;
-            if (!seenNames.has(fileName)) {
-              seenNames.add(fileName);
-              const stat = this.fileStats.get(fileUri);
-              entries.push({
-                name: fileName,
-                type: stat?.type ?? 'file',
-                uri: fileUri
-              });
-            }
+    // First, find all files that are direct children of this directory
+    for (const fileUri of this.fileStats.keys()) {
+      if (fileUri.startsWith(dirPathWithSlash)) {
+        // Get the relative path from the directory
+        const relativePath = fileUri.substring(dirPathWithSlash.length);
+        // Only include immediate children (not nested files)
+        if (relativePath && !relativePath.includes('/')) {
+          const fileName = relativePath;
+          if (!seenNames.has(fileName)) {
+            seenNames.add(fileName);
+            const stat = this.fileStats.get(fileUri);
+            entries.push({
+              name: fileName,
+              type: stat?.type ?? 'file',
+              uri: fileUri
+            });
+          }
+        }
+      }
+    }
+
+    // Also include directories that are direct children (needed for getModulesDirs in CORE_ALL)
+    for (const [dirUri, stat] of this.fileStats.entries()) {
+      if (stat.type === 'directory' && dirUri.startsWith(dirPathWithSlash) && dirUri !== uri) {
+        const relativePath = dirUri.substring(dirPathWithSlash.length);
+        // Only include immediate children (not nested directories)
+        if (relativePath && !relativePath.includes('/')) {
+          const dirName = relativePath;
+          if (!seenNames.has(dirName)) {
+            seenNames.add(dirName);
+            entries.push({
+              name: dirName,
+              type: 'directory',
+              uri: dirUri
+            });
           }
         }
       }
