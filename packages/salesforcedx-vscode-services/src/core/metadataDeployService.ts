@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { type SourceTracking } from '@salesforce/source-tracking';
+import { ComponentSet, RequestStatus } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
 import * as Cause from 'effect/Cause';
 import * as Data from 'effect/Data';
@@ -15,7 +14,6 @@ import * as Fiber from 'effect/Fiber';
 import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
-import { ChannelService } from '../vscode/channelService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConnectionService } from './connectionService';
 import { ProjectService } from './projectService';
@@ -40,7 +38,7 @@ const getComponentSetForDeploy = (options?: SourceTrackingOptions) =>
     );
 
     if (!options?.ignoreConflicts) {
-      yield* conflictCheck(tracking).pipe(Effect.provide(ChannelService.Default));
+      yield* Effect.flatMap(SourceTrackingService, svc => svc.checkConflicts(tracking));
     }
     const localComponentSets = yield* Effect.tryPromise(() => tracking.localChangesAsComponentSet(false)).pipe(
       Effect.withSpan('STL.LocalChangesAsComponentSet')
@@ -57,30 +55,6 @@ const getComponentSetForDeploy = (options?: SourceTrackingOptions) =>
     return localComponentSets[0] ?? new ComponentSet();
   }).pipe(Effect.withSpan('getComponentSetForDeploy'));
 
-const conflictCheck = (tracking: SourceTracking) =>
-  Effect.gen(function* () {
-    const conflicts = yield* Effect.tryPromise(() => tracking.getConflicts()).pipe(Effect.withSpan('STL.GetConflicts'));
-    if (conflicts?.length > 0) {
-      yield* Effect.annotateCurrentSpan({
-        conflicts: true
-      });
-      yield* Effect.flatMap(ChannelService, channelService =>
-        channelService.appendToChannel(
-          [
-            'Conflicts detected',
-            ...conflicts.flatMap(c => [`  ${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`])
-          ].join('\n')
-        )
-      );
-      (yield* Effect.flatMap(ChannelService, channelService => channelService.getChannel)).show();
-      return yield* Effect.fail(
-        new Error(
-          'Local and remote changes detected on the same file(s).  See output channel for details. Run a push or pull with ignored conflicts to proceed.'
-        )
-      );
-    }
-  });
-
 /** Deploy metadata to the default org */
 const deploy = (components: ComponentSet) =>
   Effect.gen(function* () {
@@ -89,7 +63,7 @@ const deploy = (components: ComponentSet) =>
         Effect.flatMap(ConnectionService, service => service.getConnection),
         Effect.flatMap(ProjectService, service => service.getSfProject),
         Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow),
-        Effect.annotateCurrentSpan({ components: components.size })
+        Effect.annotateCurrentSpan({ components: components.map(c => `${c.type.name}:${c.fullName}`) })
       ],
       { concurrency: 'unbounded' }
     );
@@ -114,7 +88,6 @@ const deploy = (components: ComponentSet) =>
                 await deployOperation.cancel();
                 await Effect.runPromise(Fiber.interrupt(deployFiber));
               });
-              await deployOperation.start();
               return await deployOperation.pollStatus();
             }
           );
@@ -135,8 +108,11 @@ const deploy = (components: ComponentSet) =>
       onSuccess: outcome => Effect.succeed(outcome)
     });
 
-    if (typeof deployOutcome !== 'string') {
-      yield* Effect.annotateCurrentSpan({ fileResponses: deployOutcome.getFileResponses().map(r => r.filePath) });
+    if (typeof deployOutcome === 'string') {
+      return deployOutcome;
+    }
+    yield* Effect.annotateCurrentSpan({ fileResponses: deployOutcome.getFileResponses().map(r => r.filePath) });
+    if (deployOutcome.response?.status === RequestStatus.Succeeded) {
       yield* Effect.flatMap(SourceTrackingService, svc => svc.updateTrackingFromDeploy(deployOutcome)).pipe(
         Effect.withSpan('MetadataDeployService.updateTrackingFromDeploy')
       );

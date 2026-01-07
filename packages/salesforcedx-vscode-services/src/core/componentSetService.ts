@@ -14,7 +14,9 @@ import {
   type FileResponse,
   type FileResponseFailure,
   type FileResponseSuccess,
-  ComponentStatus
+  ComponentStatus,
+  SourceComponent,
+  type MetadataComponent
 } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
 import * as Data from 'effect/Data';
@@ -33,7 +35,7 @@ const EnsureNonEmptyComponentSet = Brand.refined<NonEmptyComponentSet>(
   componentSet => Brand.error(`Expected ComponentSet to be non-empty, but got size ${componentSet.size}`)
 );
 
-export class EmptyComponentSetError extends Data.TaggedError('EmptyComponentSetError')<{
+class EmptyComponentSetError extends Data.TaggedError('EmptyComponentSetError')<{
   readonly size: number;
 }> {}
 
@@ -48,6 +50,10 @@ const isSDRSuccess = (fileResponse: FileResponse): fileResponse is FileResponseS
 /** Type guard to check if a FileResponse is a failure */
 const isSDRFailure = (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
   fileResponse.state === ComponentStatus.Failed;
+
+/** Type guard to check if a MetadataComponent is a SourceComponent */
+export const isSourceComponent = (component: MetadataComponent): component is SourceComponent =>
+  component instanceof SourceComponent;
 
 /** Effect that validates a ComponentSet is non-empty and returns NonEmptyComponentSet */
 const ensureNonEmptyComponentSet = (componentSet: ComponentSetType) =>
@@ -68,9 +74,9 @@ const getComponentSetDependencies = () =>
   );
 
 /** Get ComponentSet from source paths (files/directories) */
-const getComponentSetFromPaths = (paths: Set<string>) =>
+export const getComponentSetFromPaths = (paths: Set<string>) =>
   Effect.gen(function* () {
-    yield* Effect.annotateCurrentSpan({ paths });
+    yield* Effect.annotateCurrentSpan({ paths: Array.from(paths).join(',') });
     const [registryAccess, project, configAggregator] = yield* getComponentSetDependencies();
 
     const componentSet = yield* Effect.try({
@@ -109,24 +115,24 @@ const getComponentSetFromManifest = (manifestPath: string) =>
   }).pipe(Effect.withSpan('getComponentSetFromManifest'));
 
 export class ComponentSetService extends Effect.Service<ComponentSetService>()('ComponentSetService', {
-  effect: Effect.gen(function* () {
-    return {
-      /** Type guard to check if a FileResponse is successful */
-      isSDRSuccess,
-      /** Type guard to check if a FileResponse is a failure */
-      isSDRFailure,
-      /** Effect that validates a ComponentSet is non-empty and returns NonEmptyComponentSet */
-      ensureNonEmptyComponentSet,
-      /** Get ComponentSet from source paths (files/directories) */
-      getComponentSetFromPaths,
-      /** Get ComponentSet from manifest file */
-      getComponentSetFromManifest
-    } as const;
-  }),
-  dependencies: [MetadataRegistryService.Default, ProjectService.Default, ConfigService.Default]
+  succeed: {
+    /** Type guard to check if a FileResponse is successful */
+    isSDRSuccess,
+    /** Type guard to check if a FileResponse is a failure */
+    isSDRFailure,
+    /** Effect that validates a ComponentSet is non-empty and returns NonEmptyComponentSet */
+    ensureNonEmptyComponentSet,
+    /** Get ComponentSet from source paths (files/directories) */
+    getComponentSetFromPaths,
+    /** Get ComponentSet from manifest file */
+    getComponentSetFromManifest
+  } as const
 }) {}
 
-/** Set project directory, API version, and source API version on ComponentSet */
+/**
+ * Set project directory, API version, and source API version on ComponentSet
+ * side effect: mutates the componentSet in place.  There's not a good way to return a new componentSet with the properties set.
+ */
 export const setComponentSetProperties = (
   componentSet: ComponentSetType,
   project: SfProject,

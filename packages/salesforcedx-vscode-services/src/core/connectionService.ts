@@ -43,7 +43,7 @@ export class FailedToResolveUsernameError extends Data.TaggedError('FailedToReso
 
 export class NoTargetOrgConfiguredError extends Data.TaggedError('NoTargetOrgConfiguredError')<{}> {}
 
-export class FailedToGetTracksSourceError extends Data.TaggedError('FailedToGetTracksSourceError')<{
+class FailedToGetTracksSourceError extends Data.TaggedError('FailedToGetTracksSourceError')<{
   readonly cause: unknown;
 }> {}
 
