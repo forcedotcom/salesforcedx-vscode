@@ -68,9 +68,11 @@
       "files": [
         "src/**/*.ts",
         "jest.config.js",
-        "../../config/jest.base.config.js"
+        "../../config/jest.config.js"
       ],
-      "output": []
+      "output": [
+        "coverage"
+      ]
     }
   },
   "dependencies": {
@@ -80,12 +82,13 @@
     "@lwc/template-compiler": "8.16.0",
     "@salesforce/apex": "0.0.21",
     "@salesforce/label": "0.0.21",
-    "@salesforce/salesforcedx-lightning-lsp-common": "64.16.1",
+    "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/schema": "0.0.21",
     "@salesforce/vscode-i18n": "*",
     "babel-types": "^6.26.0",
     "change-case": "^4.1.1",
     "comment-parser": "^0.7.6",
+    "ejs": "^3.1.10",
     "minimatch": "^10.0.1",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageserver": "^9.0.1",
@@ -96,6 +99,7 @@
   "devDependencies": {
     "@lwc/old-compiler": "npm:@lwc/compiler@0.34.8",
     "@types/babel-types": "^7.0.8",
+    "@types/ejs": "^3.1.5",
     "@types/xml2js": "^0.4.14",
     "colormin": "1.1.2",
     "jest-extended": "^0.11.5",

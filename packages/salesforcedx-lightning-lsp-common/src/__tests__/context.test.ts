@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as path from 'node:path';
-import { processTemplate, getModulesDirs } from '../baseContext';
+import { getModulesDirs } from '../baseContext';
 import '../../jest/matchers';
 import { FileSystemDataProvider } from '../providers/fileSystemDataProvider';
 import { normalizePath } from '../utils';
@@ -35,62 +35,6 @@ const CORE_WORKSPACE_PATH = normalizePath(
 );
 
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
-jest.mock('../resources/core/jsconfig-core.json', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-  const pathModule = require('node:path');
-  // Always read from source: go up to package root (from out/src/__tests__ or src/__tests__)
-  let current = __dirname;
-  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-    const parent = pathModule.resolve(current, '..');
-    if (parent === current) break; // reached filesystem root
-    current = parent;
-  }
-  const filePath = pathModule.join(current, 'src', 'resources', 'core', 'jsconfig-core.json');
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  // JSON imports in TypeScript are treated as default exports
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return { default: content, ...content };
-});
-
-jest.mock('../resources/core/settings-core.json', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-  const pathModule = require('node:path');
-  // Always read from source: go up to package root (from out/src/__tests__ or src/__tests__)
-  let current = __dirname;
-  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-    const parent = pathModule.resolve(current, '..');
-    if (parent === current) break; // reached filesystem root
-    current = parent;
-  }
-  const filePath = pathModule.join(current, 'src', 'resources', 'core', 'settings-core.json');
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  // JSON imports in TypeScript are treated as default exports
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return { default: content, ...content };
-});
-
-jest.mock('../resources/sfdx/jsconfig-sfdx.json', () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-  const pathModule = require('node:path');
-  // Always read from source: go up to package root (from out/src/__tests__ or src/__tests__)
-  let current = __dirname;
-  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-    const parent = pathModule.resolve(current, '..');
-    if (parent === current) break; // reached filesystem root
-    current = parent;
-  }
-  const filePath = pathModule.join(current, 'src', 'resources', 'sfdx', 'jsconfig-sfdx.json');
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  // JSON imports in TypeScript are treated as default exports
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return { default: content, ...content };
-});
 
 beforeAll(() => {
   // make sure test runner config doesn't overlap with test workspace
@@ -102,7 +46,7 @@ beforeAll(() => {
 const verifyJsconfigCore = async (fileSystemProvider: FileSystemDataProvider, jsconfigPath: string): Promise<void> => {
   const normalizedPath = normalizePath(jsconfigPath);
   const jsconfigContent = Buffer.from(fileSystemProvider.getFileContent(normalizedPath) ?? '').toString('utf8');
-  expect(jsconfigContent).toContain('"compilerOptions":{');
+  expect(jsconfigContent).toContain('"compilerOptions": {');
   const jsconfig = JSON.parse(jsconfigContent);
   expect(jsconfig.compilerOptions.experimentalDecorators).toBe(true);
   expect(Array.isArray(jsconfig.include)).toBe(true);
@@ -205,29 +149,6 @@ describe('WorkspaceContext', () => {
     expect(Array.isArray(modulesDirs)).toBe(true);
   });
 
-  it('processTemplate() with EJS', async () => {
-    const templateString = `
-{
-  "compilerOptions": {
-    "baseUrl": "<%= project_root %>",
-    "paths": {
-      "@/*": ["<%= project_root %>/src/*"]
-    }
-  }
-}`;
-
-    const variableMap = {
-      project_root: '/path/to/project'
-    };
-
-    // Use the standalone function
-    const result = processTemplate(templateString, variableMap);
-
-    expect(result).toContain('"baseUrl": "/path/to/project"');
-    expect(result).toContain('"@/*": ["/path/to/project/src/*"]');
-    expect(result).not.toContain('${project_root}');
-  });
-
   it('configureSfdxProject()', async () => {
     const context = new WorkspaceContext(SFDX_WORKSPACE_PATH, sfdxFileSystemProvider);
     context.initialize('SFDX');
@@ -288,7 +209,7 @@ describe('WorkspaceContext', () => {
     const jsconfigForceAppContent = Buffer.from(
       sfdxFileSystemProvider.getFileContent(jsconfigPathForceApp) ?? ''
     ).toString('utf8');
-    expect(jsconfigForceAppContent).toContain('"compilerOptions":{');
+    expect(jsconfigForceAppContent).toContain('"compilerOptions": {');
     const jsconfigForceApp = JSON.parse(jsconfigForceAppContent);
     expect(jsconfigForceApp.compilerOptions.experimentalDecorators).toBe(true);
     expect(jsconfigForceApp.include[0]).toBe('**/*');

@@ -5,26 +5,35 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+// Mock the internal utils module (used by baseContext.ts via './utils')
+jest.mock(
+  '../../../salesforcedx-lightning-lsp-common/out/src/utils',
+  () => {
+    const actual = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
 
-/* eslint-disable @typescript-eslint/no-unsafe-return */
+    return {
+      ...actual,
+      readJsonSync: jest.fn(createReadJsonSyncMockImplementation(actual))
+    };
+  },
+  { virtual: true }
+);
 
-const mockJsonFromCommon = (relativePath: string) => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const pathModule = require('node:path');
-  let current = __dirname;
-  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-    const parent = pathModule.resolve(current, '..');
-    if (parent === current) break;
-    current = parent;
-  }
-  const packagesDir = pathModule.resolve(current, '..');
-  const filePath = pathModule.join(packagesDir, 'salesforcedx-lightning-lsp-common', 'src', relativePath);
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  return { default: content, ...content };
-};
+// Also mock the package-level export (for direct imports from the package)
+// This is used by componentIndexer.ts which imports readJsonSync from the package
+jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
+  const actual = jest.requireActual('@salesforce/salesforcedx-lightning-lsp-common');
+  const actualUtils = jest.requireActual('../../../salesforcedx-lightning-lsp-common/out/src/utils');
+
+  const mockFn = jest.fn(createReadJsonSyncMockImplementation(actualUtils));
+
+  const mocked = {
+    ...actual,
+    readJsonSync: mockFn
+  };
+
+  return mocked;
+});
 
 // Mock readJsonSync from the common package to avoid dynamic import issues with tiny-jsonc
 // jest.mock() doesn't intercept dynamic imports, so we need to mock readJsonSync directly
@@ -123,27 +132,6 @@ jest.mock('../resources/transformed-lwc-standard.json', () => {
 // Mock relative imports - these need to match the exact paths Jest resolves when baseContext.js
 // executes require("./resources/..."). Since baseContext.js is in out/src/, the relative path
 // resolves to out/src/resources/... which we mock using paths relative to the test file.
-jest.mock(
-  '../../../salesforcedx-lightning-lsp-common/out/src/resources/core/jsconfig-core.json',
-  () => mockJsonFromCommon('resources/core/jsconfig-core.json'),
-  {
-    virtual: true
-  }
-);
-jest.mock(
-  '../../../salesforcedx-lightning-lsp-common/out/src/resources/core/settings-core.json',
-  () => mockJsonFromCommon('resources/core/settings-core.json'),
-  {
-    virtual: true
-  }
-);
-jest.mock(
-  '../../../salesforcedx-lightning-lsp-common/out/src/resources/sfdx/jsconfig-sfdx.json',
-  () => mockJsonFromCommon('resources/sfdx/jsconfig-sfdx.json'),
-  {
-    virtual: true
-  }
-);
 
 import { normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';

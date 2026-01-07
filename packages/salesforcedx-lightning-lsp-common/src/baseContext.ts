@@ -5,22 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as ejs from 'ejs';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { nls } from './messages';
 import { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
-import * as jsconfigCoreTemplateJson from './resources/core/jsconfig-core.json';
-import * as settingsCoreTemplateJson from './resources/core/settings-core.json';
-import * as jsconfigSfdxTemplateJson from './resources/sfdx/jsconfig-sfdx.json';
+import { jsconfigCore } from './resources/core/jsconfig-core';
+import { settingsCore } from './resources/core/settings-core';
+import { jsconfigSfdx } from './resources/sfdx/jsconfig-sfdx';
 import { WorkspaceType, getSfdxProjectFile } from './shared';
 import * as utils from './utils';
 import { NormalizedPath } from './utils';
-
-// Handle namespace JSON imports - extract actual JSON content (may be in .default or directly on namespace)
-const jsconfigCoreTemplate = utils.extractJsonFromImport(jsconfigCoreTemplateJson);
-const settingsCoreTemplate = utils.extractJsonFromImport(settingsCoreTemplateJson);
-const jsconfigSfdxTemplate = utils.extractJsonFromImport(jsconfigSfdxTemplateJson);
 
 export const AURA_EXTENSIONS: string[] = ['.cmp', '.app', '.design', '.evt', '.intf', '.auradoc', '.tokens'];
 
@@ -71,11 +65,29 @@ const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProv
   }
 };
 
-const updateConfigFile = (filePath: string, content: string, fileSystemProvider: IFileSystemProvider): void => {
-  // Don't clear directory listing - it may be needed by other operations (e.g., getModulesDirs)
-  // The file content will be updated, which is sufficient
-  fileSystemProvider.updateFileContent(filePath, content);
-};
+const updateConfigFile =
+  (fileSystemProvider: IFileSystemProvider) =>
+  (filePath: string, content: string): void => {
+    const dir = path.dirname(filePath);
+    fileSystemProvider.updateDirectoryListing(dir, []);
+    fileSystemProvider.updateFileContent(filePath, content);
+  };
+
+const getCoreSettings = (workspaceRoots: string[]): Record<string, unknown> =>
+  // Merge template settings with provided settings
+  ({
+    ...settingsCore,
+    // Update eslint settings
+    'eslint.workingDirectories': workspaceRoots,
+    'eslint.validate': ['javascript', 'typescript'],
+    'eslint.options': {
+      overrideConfigFile: path.join(workspaceRoots[0], '.eslintrc.json')
+    },
+    // Set perforce settings with default values
+    'perforce.client': 'username-localhost-blt',
+    'perforce.user': 'username',
+    'perforce.port': 'ssl:host:port'
+  });
 
 export const updateForceIgnoreFile = (
   forceignorePath: string,
@@ -112,9 +124,6 @@ export const updateForceIgnoreFile = (
   // Always write the forceignore file, even if it's empty
   fileSystemProvider.updateFileContent(forceignorePath, forceignoreContent.trim());
 };
-
-// exported for testing
-export const processTemplate = (template: string, data: Record<string, unknown>): string => ejs.render(template, data);
 
 export const getModulesDirs = (
   workspaceType: WorkspaceType,
@@ -278,26 +287,22 @@ export abstract class BaseWorkspaceContext {
    * Configures the project
    */
   public configureProject(): void {
-    this.writeSettings();
+    this.writeSettingsJson();
+    this.writeCodeWorkspace();
     this.writeJsconfigJson();
     this.writeTypings();
   }
 
-  private writeSettings(): void {
-    this.writeSettingsJson();
-    this.writeCodeWorkspace();
-  }
-
   private writeSettingsJson(): void {
     const settingsPath = path.join(this.workspaceRoots[0], '.vscode', 'settings.json');
-    const settings = this.getSettings();
-    updateConfigFile(settingsPath, JSON.stringify(settings, null, 2), this.fileSystemProvider);
+    const settings = getCoreSettings(this.workspaceRoots);
+    updateConfigFile(this.fileSystemProvider)(settingsPath, JSON.stringify(settings, null, 2));
   }
 
   private writeCodeWorkspace(): void {
     const workspacePath = path.join(this.workspaceRoots[0], 'core.code-workspace');
-    const workspace = this.getCodeWorkspace();
-    updateConfigFile(workspacePath, JSON.stringify(workspace, null, 2), this.fileSystemProvider);
+    const workspace = getCodeWorkspace(this.workspaceRoots);
+    updateConfigFile(this.fileSystemProvider)(workspacePath, JSON.stringify(workspace, null, 2));
   }
 
   private writeJsconfigJson(): void {
@@ -357,43 +362,6 @@ export abstract class BaseWorkspaceContext {
           if (!isRecord(existingConfig)) {
             throw new Error(nls.localize('invalid_existing_config_format_message'));
           }
-          let templateConfig: unknown = jsconfigSfdxTemplate;
-          // Double-check extraction - if it's still wrapped, extract again
-          if (
-            templateConfig &&
-            typeof templateConfig === 'object' &&
-            !Array.isArray(templateConfig) &&
-            'default' in templateConfig &&
-            templateConfig.default
-          ) {
-            templateConfig = templateConfig.default;
-          }
-          // Ensure it's a record (object, not null, not array)
-          if (!isRecord(templateConfig) || Array.isArray(templateConfig)) {
-            const errorDetails = {
-              templateConfigType: typeof templateConfig,
-              templateConfigIsNull: templateConfig === null,
-              templateConfigIsUndefined: templateConfig === undefined,
-              templateConfigIsArray: Array.isArray(templateConfig),
-              templateConfigKeys:
-                templateConfig && typeof templateConfig === 'object' ? Object.keys(templateConfig) : [],
-              jsconfigSfdxTemplateType: typeof jsconfigSfdxTemplate,
-              jsconfigSfdxTemplateKeys:
-                jsconfigSfdxTemplate && typeof jsconfigSfdxTemplate === 'object'
-                  ? Object.keys(jsconfigSfdxTemplate)
-                  : []
-            };
-            // Use a shorter error message that's less likely to be truncated
-            throw new Error(
-              nls.localize(
-                'invalid_template_config_message',
-                errorDetails.templateConfigType,
-                String(errorDetails.templateConfigIsArray),
-                errorDetails.templateConfigKeys.join(','),
-                errorDetails.jsconfigSfdxTemplateKeys.join(',')
-              )
-            );
-          }
 
           // Merge existing config with template config
           if (!this.workspaceRoots[0]) {
@@ -406,20 +374,15 @@ export abstract class BaseWorkspaceContext {
             );
           }
           const relativeWorkspaceRoot = utils.relativePath(path.dirname(jsconfigPath), this.workspaceRoots[0]) || '.';
-          const templateInclude = templateConfig.include;
-          const processedTemplateInclude = Array.isArray(templateInclude)
-            ? templateInclude.map((include: unknown) =>
-                typeof include === 'string' ? include.replace('<%= project_root %>', relativeWorkspaceRoot) : include
-              )
-            : [];
+          const typingsInclude = `${relativeWorkspaceRoot}/.sfdx/typings/lwc/**/*.d.ts`;
 
           const existingInclude = existingConfig.include;
           const existingCompilerOptions = existingConfig.compilerOptions;
-          const templateCompilerOptions = templateConfig.compilerOptions;
+          const templateCompilerOptions = jsconfigSfdx.compilerOptions;
 
           const mergedConfig = {
             ...existingConfig,
-            ...templateConfig,
+            ...jsconfigSfdx,
             compilerOptions: {
               ...(isRecord(existingCompilerOptions) ? existingCompilerOptions : {}),
               ...(isRecord(templateCompilerOptions) ? templateCompilerOptions : {})
@@ -428,7 +391,8 @@ export abstract class BaseWorkspaceContext {
               ...(Array.isArray(existingInclude)
                 ? existingInclude.filter((item): item is string => typeof item === 'string')
                 : []),
-              ...processedTemplateInclude
+              ...jsconfigSfdx.include,
+              typingsInclude
             ]
           };
 
@@ -444,68 +408,21 @@ export abstract class BaseWorkspaceContext {
               )
             );
           }
-          if (!jsconfigSfdxTemplate) {
-            throw new Error(nls.localize('jsconfigSfdxTemplate_not_found_message'));
-          }
-          // Ensure we have a valid object (handle case where extraction might need to happen again)
-          let templateToUse = jsconfigSfdxTemplate;
-          if (
-            templateToUse &&
-            typeof templateToUse === 'object' &&
-            !Array.isArray(templateToUse) &&
-            'default' in templateToUse &&
-            templateToUse.default
-          ) {
-            templateToUse = templateToUse.default;
-          }
-          // Ensure it's a record (object, not null, not array)
-          if (!isRecord(templateToUse) || Array.isArray(templateToUse)) {
-            const errorDetails = {
-              templateToUseType: typeof templateToUse,
-              templateToUseIsNull: templateToUse === null,
-              templateToUseIsUndefined: templateToUse === undefined,
-              templateToUseIsArray: Array.isArray(templateToUse),
-              templateToUseKeys: templateToUse && typeof templateToUse === 'object' ? Object.keys(templateToUse) : [],
-              jsconfigSfdxTemplateType: typeof jsconfigSfdxTemplate,
-              jsconfigSfdxTemplateKeys:
-                jsconfigSfdxTemplate && typeof jsconfigSfdxTemplate === 'object'
-                  ? Object.keys(jsconfigSfdxTemplate)
-                  : []
-            };
-            // Use a shorter error message that's less likely to be truncated
-            throw new Error(
-              nls.localize(
-                'invalid_template_config_message',
-                errorDetails.templateToUseType,
-                String(errorDetails.templateToUseIsArray),
-                errorDetails.templateToUseKeys.join(','),
-                errorDetails.jsconfigSfdxTemplateKeys.join(',')
-              )
-            );
-          }
-          const jsconfigTemplate = JSON.stringify(templateToUse);
-          if (!jsconfigTemplate || typeof jsconfigTemplate !== 'string') {
-            throw new Error(nls.localize('jsconfigTemplate_must_be_a_string_message', typeof jsconfigTemplate));
-          }
           const fromPath = path.dirname(jsconfigPath);
           const toPath = this.workspaceRoots[0];
           if (!fromPath || !toPath) {
             throw new Error(nls.localize('invalid_paths_message', fromPath, toPath));
           }
           const relativeWorkspaceRoot = utils.relativePath(fromPath, toPath) || '.';
-          if (typeof relativeWorkspaceRoot !== 'string') {
-            throw new Error(
-              nls.localize(
-                'relativeWorkspaceRoot_must_be_a_string_message',
-                typeof relativeWorkspaceRoot,
-                relativeWorkspaceRoot
-              )
-            );
-          }
-          jsconfigContent = processTemplate(jsconfigTemplate, { project_root: relativeWorkspaceRoot });
+          const typingsInclude = `${relativeWorkspaceRoot}/.sfdx/typings/lwc/**/*.d.ts`;
+          const config = {
+            ...jsconfigSfdx,
+            include: [...jsconfigSfdx.include, typingsInclude]
+          };
+          jsconfigContent = JSON.stringify(config, null, 2);
         }
 
-        updateConfigFile(jsconfigPath, jsconfigContent, this.fileSystemProvider);
+        updateConfigFile(this.fileSystemProvider)(jsconfigPath, jsconfigContent);
       } catch (error) {
         console.error(
           `writeSfdxJsconfig: Error reading/writing jsconfig: ${error instanceof Error ? error.message : String(error)}`
@@ -539,16 +456,17 @@ export abstract class BaseWorkspaceContext {
       }
 
       try {
-        const jsconfigTemplate = JSON.stringify(jsconfigCoreTemplate);
         // For core workspaces, the typings are in the core directory, not the project directory
         // Calculate relative path from modules directory to the core directory
         const coreDir = this.type === 'CORE_ALL' ? this.workspaceRoots[0] : path.dirname(this.workspaceRoots[0]);
         const relativeCoreRoot = utils.relativePath(modulesDir, coreDir);
-        if (!jsconfigTemplate) {
-          throw new Error(nls.localize('jsconfigTemplate_not_found_message'));
-        }
-        const jsconfigContent = processTemplate(jsconfigTemplate, { project_root: relativeCoreRoot });
-        updateConfigFile(jsconfigPath, jsconfigContent, this.fileSystemProvider);
+        const typingsInclude = `${relativeCoreRoot}/.vscode/typings/lwc/**/*.d.ts`;
+        const config = {
+          ...jsconfigCore,
+          include: [...jsconfigCore.include, typingsInclude]
+        };
+        const jsconfigContent = JSON.stringify(config, null, 2);
+        updateConfigFile(this.fileSystemProvider)(jsconfigPath, jsconfigContent);
       } catch (error) {
         console.error('writeCoreJsconfig: Error reading/writing jsconfig:', error);
         throw error;
@@ -557,118 +475,73 @@ export abstract class BaseWorkspaceContext {
   }
 
   private writeTypings(): void {
-    let typingsDir: string | undefined;
-
-    switch (this.type) {
-      case 'SFDX':
-        typingsDir = path.join(this.workspaceRoots[0], '.sfdx', 'typings', 'lwc');
-        break;
-      case 'CORE_PARTIAL':
-        typingsDir = path.join(this.workspaceRoots[0], '..', '.vscode', 'typings', 'lwc');
-        break;
-      case 'CORE_ALL':
-        typingsDir = path.join(this.workspaceRoots[0], '.vscode', 'typings', 'lwc');
-        break;
+    const typingsDir = getTypingsDir(this.type, this.workspaceRoots);
+    if (!typingsDir) {
+      return;
     }
-
     // TODO should we just be copying every file in this directory rather than hardcoding?
-    if (typingsDir) {
-      // copy typings to typingsDir
-      const resourceTypingsDir = utils.getSfdxResource('typings');
-      this.fileSystemProvider.updateDirectoryListing(typingsDir, []);
-      try {
-        const sourcePath = path.join(resourceTypingsDir, 'lds.d.ts');
-        const destPath = path.join(typingsDir, 'lds.d.ts');
-        const content = this.fileSystemProvider.getFileContent(sourcePath);
-        if (content) {
-          this.fileSystemProvider.updateFileContent(destPath, content);
-        }
-      } catch {
-        // ignore
-      }
-      try {
-        const sourcePath = path.join(resourceTypingsDir, 'messageservice.d.ts');
-        const destPath = path.join(typingsDir, 'messageservice.d.ts');
-        const content = this.fileSystemProvider.getFileContent(sourcePath);
-        if (content) {
-          this.fileSystemProvider.updateFileContent(destPath, content);
-        }
-      } catch {
-        // ignore
-      }
-      const dirs = this.fileSystemProvider.getDirectoryListing(
-        utils.normalizePath(path.join(resourceTypingsDir, 'copied'))
-      );
-      for (const file of dirs) {
-        try {
-          const sourcePath = path.join(resourceTypingsDir, 'copied', file.name);
-          const destPath = path.join(typingsDir, file.name);
-          const content = this.fileSystemProvider.getFileContent(sourcePath);
-          if (content) {
-            this.fileSystemProvider.updateFileContent(destPath, content);
-          }
-        } catch {
-          // ignore
-        }
-      }
-    }
-  }
-
-  private getSettings(): Record<string, unknown> {
-    const settings: Record<string, unknown> = {};
-    this.updateCoreSettings(settings);
-    return settings;
-  }
-
-  private getCodeWorkspace(): Record<string, unknown> {
-    const workspace: { folders: { path: string }[]; settings: Record<string, unknown> } = {
-      folders: this.workspaceRoots.map(root => ({ path: root })),
-      settings: {}
-    };
-    this.updateCoreCodeWorkspace(workspace.settings);
-    return workspace;
-  }
-
-  private updateCoreSettings(settings: Record<string, unknown>): void {
-    // Get eslint path once to avoid multiple warnings
-
+    // copy typings to typingsDir
+    const resourceTypingsDir = utils.getSfdxResource('typings');
+    this.fileSystemProvider.updateDirectoryListing(typingsDir, []);
     try {
-      // Load core settings template
-      const coreSettingsTemplate = settingsCoreTemplate;
-      // Merge template settings with provided settings
-      Object.assign(settings, coreSettingsTemplate);
-
-      // Update eslint settings
-      settings['eslint.workingDirectories'] = this.workspaceRoots;
-      settings['eslint.validate'] = ['javascript', 'typescript'];
-      settings['eslint.options'] = {
-        overrideConfigFile: path.join(this.workspaceRoots[0], '.eslintrc.json')
-      };
-
-      // Set perforce settings with default values
-      settings['perforce.client'] = 'username-localhost-blt';
-      settings['perforce.user'] = 'username';
-      settings['perforce.port'] = 'ssl:host:port';
-    } catch (error) {
-      console.error('updateCoreSettings: Error loading core settings template:', error);
-      // Fallback to basic settings
-      settings['eslint.workingDirectories'] = this.workspaceRoots;
-      settings['eslint.validate'] = ['javascript', 'typescript'];
-      settings['eslint.options'] = {
-        overrideConfigFile: path.join(this.workspaceRoots[0], '.eslintrc.json')
-      };
+      const sourcePath = path.join(resourceTypingsDir, 'lds.d.ts');
+      const destPath = path.join(typingsDir, 'lds.d.ts');
+      const content = this.fileSystemProvider.getFileContent(sourcePath);
+      if (content) {
+        this.fileSystemProvider.updateFileContent(destPath, content);
+      }
+    } catch {
+      // ignore
     }
-  }
-
-  private updateCoreCodeWorkspace(settings: Record<string, unknown>) {
-    settings['eslint.workingDirectories'] = this.workspaceRoots;
-    settings['eslint.validate'] = ['javascript', 'typescript'];
-    settings['eslint.options'] = {
-      overrideConfigFile: path.join(this.workspaceRoots[0], '.eslintrc.json')
-    };
+    try {
+      const sourcePath = path.join(resourceTypingsDir, 'messageservice.d.ts');
+      const destPath = path.join(typingsDir, 'messageservice.d.ts');
+      const content = this.fileSystemProvider.getFileContent(sourcePath);
+      if (content) {
+        this.fileSystemProvider.updateFileContent(destPath, content);
+      }
+    } catch {
+      // ignore
+    }
+    const dirs = this.fileSystemProvider.getDirectoryListing(
+      utils.normalizePath(path.join(resourceTypingsDir, 'copied'))
+    );
+    for (const file of dirs) {
+      try {
+        const sourcePath = path.join(resourceTypingsDir, 'copied', file.name);
+        const destPath = path.join(typingsDir, file.name);
+        const content = this.fileSystemProvider.getFileContent(sourcePath);
+        if (content) {
+          this.fileSystemProvider.updateFileContent(destPath, content);
+        }
+      } catch {
+        // ignore
+      }
+    }
   }
 
   private initSfdxProject(): SfdxProjectConfig {
     return readSfdxProjectConfig(this.workspaceRoots[0], this.fileSystemProvider);
   }
 }
+
+const getTypingsDir = (type: WorkspaceType, workspaceRoots: string[]): string | undefined => {
+  switch (type) {
+    case 'SFDX':
+      return path.join(workspaceRoots[0], '.sfdx', 'typings', 'lwc');
+    case 'CORE_PARTIAL':
+      return path.join(workspaceRoots[0], '..', '.vscode', 'typings', 'lwc');
+    case 'CORE_ALL':
+      return path.join(workspaceRoots[0], '.vscode', 'typings', 'lwc');
+  }
+};
+const getCodeWorkspace = (workspaceRoots: string[]): Record<string, unknown> => ({
+  folders: workspaceRoots.map(root => ({ path: root })),
+  settings: {
+    'eslint.workingDirectories': workspaceRoots,
+    'eslint.validate': ['javascript', 'typescript'],
+    'eslint.options': {
+      overrideConfigFile: path.join(workspaceRoots[0], '.eslintrc.json')
+    }
+  }
+});

@@ -6,23 +6,6 @@
  */
 
 // Mock JSON imports from baseContext.ts - these are runtime require() calls in compiled code
-const mockJsonFromCommon = (relativePath: string) => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const pathModule = require('node:path');
-  let current = __dirname;
-  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-    const parent = pathModule.resolve(current, '..');
-    if (parent === current) break;
-    current = parent;
-  }
-  const packagesDir = pathModule.resolve(current, '..');
-  const filePath = pathModule.join(packagesDir, 'salesforcedx-lightning-lsp-common', 'src', relativePath);
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  return { default: content, ...content };
-};
-
 // Mock JSON imports from indexer.ts
 const mockJsonFromAuraServer = (relativePath: string) => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -43,27 +26,6 @@ const mockJsonFromAuraServer = (relativePath: string) => {
 // Mock relative imports from baseContext.js - these need to match the exact paths Jest resolves when baseContext.js
 // executes require("./resources/..."). Since baseContext.js is in out/src/, the relative path
 // resolves to out/src/resources/... which we mock using paths relative to the test file.
-jest.mock(
-  '../../../../salesforcedx-lightning-lsp-common/out/src/resources/core/jsconfig-core.json',
-  () => mockJsonFromCommon('resources/core/jsconfig-core.json'),
-  {
-    virtual: true
-  }
-);
-jest.mock(
-  '../../../../salesforcedx-lightning-lsp-common/out/src/resources/core/settings-core.json',
-  () => mockJsonFromCommon('resources/core/settings-core.json'),
-  {
-    virtual: true
-  }
-);
-jest.mock(
-  '../../../../salesforcedx-lightning-lsp-common/out/src/resources/sfdx/jsconfig-sfdx.json',
-  () => mockJsonFromCommon('resources/sfdx/jsconfig-sfdx.json'),
-  {
-    virtual: true
-  }
-);
 
 // Mock JSON imports for aura indexer - from indexer.ts which is in src/aura-indexer/
 // So the relative path from indexer.ts is ../resources/, but from test file (src/aura-indexer/__tests__/) it's ../../resources/

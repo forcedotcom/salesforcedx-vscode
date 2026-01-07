@@ -23,14 +23,7 @@ export {
 } from './utils';
 
 // Re-export from base-context
-export {
-  BaseWorkspaceContext,
-  Indexer,
-  AURA_EXTENSIONS,
-  processTemplate,
-  getModulesDirs,
-  updateForceIgnoreFile
-} from './baseContext';
+export { BaseWorkspaceContext, Indexer, AURA_EXTENSIONS, getModulesDirs, updateForceIgnoreFile } from './baseContext';
 
 // Re-export from shared
 export { WorkspaceType, isLWC, getSfdxProjectFile, detectWorkspaceHelper, detectWorkspaceType } from './shared';
