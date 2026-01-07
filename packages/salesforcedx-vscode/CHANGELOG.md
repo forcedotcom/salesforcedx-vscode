@@ -19,4 +19,6 @@
 
 - Move stop debugger and bootstrap cmd to the apex debugger extension ([PR #6727](https://github.com/forcedotcom/salesforcedx-vscode/pull/6727))
 
+- [W-20777516] refactor: move SFDX: Execute SOQL Query... and SFDX: Execute SOQL Query with Currently Selected Text from CLI Integration extension to SOQL extension ([PR #6747](https://github.com/forcedotcom/salesforcedx-vscode/pull/6747))
+
 
