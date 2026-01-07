@@ -221,6 +221,73 @@ describe('writeResultFiles - Snapshot Tests', () => {
     matchSnapshot(content);
   });
 
+  it('should produce consistent markdown output', async function () {
+    const testResultWithCoverage: TestResult = {
+      ...mockTestResult,
+      tests: [
+        {
+          ...mockTestResult.tests[0],
+          perClassCoverage: [mockPerClassCoverage]
+        },
+        ...mockTestResult.tests.slice(1)
+      ],
+      codecoverage: [mockCodeCoverageResult]
+    };
+
+    const outputConfig: OutputDirConfig = {
+      dirPath: tempDir,
+      resultFormats: [ResultFormat.markdown]
+    };
+
+    await writeResultFiles(
+      testResultWithCoverage,
+      outputConfig,
+      true,
+      mockRunPipeline
+    );
+
+    const markdownFilePath = join(
+      tempDir,
+      'test-result-snapshot-test-run-456.md'
+    );
+    const content = await readFile(markdownFilePath, 'utf8');
+
+    // Snapshot the markdown output
+    matchSnapshot(content);
+  });
+
+  it('should produce consistent text output', async function () {
+    const testResultWithCoverage: TestResult = {
+      ...mockTestResult,
+      tests: [
+        {
+          ...mockTestResult.tests[0],
+          perClassCoverage: [mockPerClassCoverage]
+        },
+        ...mockTestResult.tests.slice(1)
+      ],
+      codecoverage: [mockCodeCoverageResult]
+    };
+
+    const outputConfig: OutputDirConfig = {
+      dirPath: tempDir,
+      resultFormats: [ResultFormat.text]
+    };
+
+    await writeResultFiles(
+      testResultWithCoverage,
+      outputConfig,
+      true,
+      mockRunPipeline
+    );
+
+    const textFilePath = join(tempDir, 'test-result-snapshot-test-run-456.txt');
+    const content = await readFile(textFilePath, 'utf8');
+
+    // Snapshot the text output
+    matchSnapshot(content);
+  });
+
   it('should produce consistent code coverage output', async function () {
     const testResultWithCoverage: TestResult = {
       ...mockTestResult,
@@ -313,7 +380,13 @@ describe('writeResultFiles - Snapshot Tests', () => {
 
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.json, ResultFormat.tap, ResultFormat.junit],
+      resultFormats: [
+        ResultFormat.json,
+        ResultFormat.tap,
+        ResultFormat.junit,
+        ResultFormat.markdown,
+        ResultFormat.text
+      ],
       fileInfos: [
         {
           filename: 'comprehensive-test.txt',

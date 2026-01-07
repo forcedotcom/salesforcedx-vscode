@@ -396,10 +396,47 @@ describe('writeResultFiles', () => {
     expect(existsSync(join(nestedDir, 'test-run-id.txt'))).to.be.true;
   });
 
-  it('should handle all result formats together', async () => {
+  it('should create markdown result file when format is specified', async () => {
+    // Add coverage data to ensure table appears in markdown output
+    const testResultWithCoverage: TestResult = {
+      ...mockTestResult,
+      tests: [
+        {
+          ...mockTestResult.tests[0],
+          perClassCoverage: [mockPerClassCoverage]
+        },
+        ...mockTestResult.tests.slice(1)
+      ]
+    };
+
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.json, ResultFormat.tap, ResultFormat.junit]
+      resultFormats: [ResultFormat.markdown]
+    };
+
+    const result = await writeResultFiles(
+      testResultWithCoverage,
+      outputConfig,
+      true, // Enable code coverage to show table
+      mockRunPipeline
+    );
+
+    const markdownFilePath = join(tempDir, 'test-result-test-run-123.md');
+    expect(result).to.include(markdownFilePath);
+    expect(existsSync(markdownFilePath)).to.be.true;
+
+    const content = await readFile(markdownFilePath, 'utf8');
+    expect(content).to.include('# Apex Test Results');
+    expect(content).to.include('## Summary');
+    expect(content).to.include('<table'); // Table appears when coverage is enabled
+    expect(content).to.include('TestClass1');
+    expect(content).to.include('TestClass2');
+  });
+
+  it('should create text result file when format is specified', async () => {
+    const outputConfig: OutputDirConfig = {
+      dirPath: tempDir,
+      resultFormats: [ResultFormat.text]
     };
 
     const result = await writeResultFiles(
@@ -409,7 +446,70 @@ describe('writeResultFiles', () => {
       mockRunPipeline
     );
 
-    expect(result).to.have.length(4); // test-run-id.txt + 3 format files
+    const textFilePath = join(tempDir, 'test-result-test-run-123.txt');
+    expect(result).to.include(textFilePath);
+    expect(existsSync(textFilePath)).to.be.true;
+
+    const content = await readFile(textFilePath, 'utf8');
+    expect(content).to.include('Apex Test Results');
+    expect(content).to.include('Summary');
+    expect(content).to.not.include('<table'); // Text format should not have HTML
+    expect(content).to.not.include('##'); // Text format should not have markdown headers
+  });
+
+  it('should create markdown file with code coverage when enabled', async () => {
+    const testResultWithCoverage: TestResult = {
+      ...mockTestResult,
+      tests: [
+        {
+          ...mockTestResult.tests[0],
+          perClassCoverage: [mockPerClassCoverage]
+        },
+        ...mockTestResult.tests.slice(1)
+      ],
+      codecoverage: [mockCodeCoverageResult]
+    };
+
+    const outputConfig: OutputDirConfig = {
+      dirPath: tempDir,
+      resultFormats: [ResultFormat.markdown]
+    };
+
+    const result = await writeResultFiles(
+      testResultWithCoverage,
+      outputConfig,
+      true,
+      mockRunPipeline
+    );
+
+    const markdownFilePath = join(tempDir, 'test-result-test-run-123.md');
+    expect(result).to.include(markdownFilePath);
+
+    const content = await readFile(markdownFilePath, 'utf8');
+    expect(content).to.include('Code Coverage');
+    expect(content).to.include('TestClass1');
+  });
+
+  it('should handle all result formats together', async () => {
+    const outputConfig: OutputDirConfig = {
+      dirPath: tempDir,
+      resultFormats: [
+        ResultFormat.json,
+        ResultFormat.tap,
+        ResultFormat.junit,
+        ResultFormat.markdown,
+        ResultFormat.text
+      ]
+    };
+
+    const result = await writeResultFiles(
+      mockTestResult,
+      outputConfig,
+      false,
+      mockRunPipeline
+    );
+
+    expect(result).to.have.length(6); // test-run-id.txt + 5 format files
     expect(result).to.include(join(tempDir, 'test-run-id.txt'));
     expect(result).to.include(join(tempDir, 'test-result-test-run-123.json'));
     expect(result).to.include(
@@ -418,6 +518,8 @@ describe('writeResultFiles', () => {
     expect(result).to.include(
       join(tempDir, 'test-result-test-run-123-junit.xml')
     );
+    expect(result).to.include(join(tempDir, 'test-result-test-run-123.md'));
+    expect(result).to.include(join(tempDir, 'test-result-test-run-123.txt'));
   });
 
   it('should handle comprehensive scenario with all options', async () => {
@@ -434,7 +536,13 @@ describe('writeResultFiles', () => {
 
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
-      resultFormats: [ResultFormat.json, ResultFormat.tap, ResultFormat.junit],
+      resultFormats: [
+        ResultFormat.json,
+        ResultFormat.tap,
+        ResultFormat.junit,
+        ResultFormat.markdown,
+        ResultFormat.text
+      ],
       fileInfos: [
         {
           filename: 'custom.txt',
@@ -454,8 +562,8 @@ describe('writeResultFiles', () => {
       mockRunPipeline
     );
 
-    // Should have: test-run-id.txt + 3 formats + 1 coverage + 2 custom files = 7 files
-    expect(result).to.have.length(7);
+    // Should have: test-run-id.txt + 5 formats + 1 coverage + 2 custom files = 9 files
+    expect(result).to.have.length(9);
 
     // Verify all files exist
     for (const filePath of result) {
@@ -471,6 +579,8 @@ describe('writeResultFiles', () => {
     expect(result).to.include(
       join(tempDir, 'test-result-test-run-123-junit.xml')
     );
+    expect(result).to.include(join(tempDir, 'test-result-test-run-123.md'));
+    expect(result).to.include(join(tempDir, 'test-result-test-run-123.txt'));
     expect(result).to.include(
       join(tempDir, 'test-result-test-run-123-codecoverage.json')
     );

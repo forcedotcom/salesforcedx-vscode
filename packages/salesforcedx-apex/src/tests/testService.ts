@@ -22,7 +22,11 @@ import {
 import { join } from 'path';
 import { CancellationToken, Progress } from '../common';
 import { nls } from '../i18n';
-import { JUnitFormatTransformer, TapFormatTransformer } from '../reporters';
+import {
+  JUnitFormatTransformer,
+  TapFormatTransformer,
+  MarkdownTextFormatTransformer
+} from '../reporters';
 import {
   getBufferSize,
   getJsonIndent,
@@ -108,6 +112,22 @@ export const writeResultFiles = async (
           );
           readable = new JUnitFormatTransformer(result, {
             bufferSize: getBufferSize()
+          });
+          break;
+        case ResultFormat.markdown:
+          filePath = join(dirPath, `test-result-${testRunId || 'default'}.md`);
+          readable = new MarkdownTextFormatTransformer(result, {
+            bufferSize: getBufferSize(),
+            format: 'markdown',
+            codeCoverage
+          });
+          break;
+        case ResultFormat.text:
+          filePath = join(dirPath, `test-result-${testRunId || 'default'}.txt`);
+          readable = new MarkdownTextFormatTransformer(result, {
+            bufferSize: getBufferSize(),
+            format: 'text',
+            codeCoverage
           });
           break;
         default:

@@ -85,7 +85,9 @@ export enum ResultFormat {
   junit = 'junit',
   tap = 'tap',
   json = 'json',
-  human = 'human'
+  human = 'human',
+  markdown = 'markdown',
+  text = 'text'
 }
 
 export type OutputDirConfig = {
