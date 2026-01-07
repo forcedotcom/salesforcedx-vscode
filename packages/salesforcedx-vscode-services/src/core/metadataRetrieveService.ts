@@ -28,7 +28,7 @@ import { ConnectionService } from './connectionService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
 import { unknownToErrorCause } from './shared';
-import { SourceTrackingService } from './sourceTrackingService';
+import { SourceTrackingService, type SourceTrackingOptions } from './sourceTrackingService';
 
 export class MetadataRetrieveError extends Data.TaggedError('MetadataRetrieveError')<{
   readonly cause: unknown;
@@ -63,7 +63,7 @@ const buildComponentSet = (members: MetadataMember[]) =>
     });
   }).pipe(Effect.withSpan('buildComponentSet'));
 
-const retrieve = (members: MetadataMember[]) =>
+const retrieve = (members: MetadataMember[], options?: SourceTrackingOptions) =>
   Effect.gen(function* () {
     const [connection, project, registryAccess] = yield* Effect.all(
       [
@@ -76,6 +76,17 @@ const retrieve = (members: MetadataMember[]) =>
     );
 
     const componentSet = yield* buildComponentSet(members);
+
+    const tracking = yield* Effect.flatMap(SourceTrackingService, svc => svc.getSourceTracking(options));
+    if (tracking) {
+      yield* Effect.promise(() => tracking.reReadLocalTrackingCache()).pipe(
+        Effect.withSpan('STL.ReReadLocalTrackingCache')
+      );
+
+      if (!options?.ignoreConflicts) {
+        yield* Effect.flatMap(SourceTrackingService, svc => svc.checkConflicts(tracking));
+      }
+    }
 
     const title = `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`;
     return yield* performRetrieveOperation(componentSet, connection, project, registryAccess, title);
@@ -90,41 +101,39 @@ const performRetrieveOperation = (
   title: string
 ) =>
   Effect.gen(function* () {
-    const retrieveFiber = yield* Effect.fork(
-      Effect.tryPromise({
-        try: async () => {
-          const retrieveOperation = new MetadataApiRetrieve({
-            usernameOrConnection: connection,
-            components: componentSet,
-            output: project.getDefaultPackage().fullPath,
-            format: 'source',
-            merge: true,
-            registry: registryAccess
-          });
+    const retrieveFiber = yield* Effect.tryPromise({
+      try: async () => {
+        const retrieveOperation = new MetadataApiRetrieve({
+          usernameOrConnection: connection,
+          components: componentSet,
+          output: project.getDefaultPackage().fullPath,
+          format: 'source',
+          merge: true,
+          registry: registryAccess
+        });
 
-          const retrieveResult = await vscode.window.withProgress(
-            {
-              location: vscode.ProgressLocation.Notification,
-              title,
-              cancellable: true
-            },
-            async (_, token) => {
-              token.onCancellationRequested(async () => {
-                await retrieveOperation.cancel();
-                await Effect.runPromise(Fiber.interrupt(retrieveFiber));
-              });
-              await retrieveOperation.start();
-              return await retrieveOperation.pollStatus();
-            }
-          );
-          return retrieveResult;
-        },
-        catch: e => {
-          console.error(e);
-          return new MetadataRetrieveError(unknownToErrorCause(e));
-        }
-      }).pipe(Effect.withSpan('retrieve (API call)'))
-    );
+        const retrieveResult = await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title,
+            cancellable: true
+          },
+          async (_, token) => {
+            token.onCancellationRequested(async () => {
+              await retrieveOperation.cancel();
+              await Effect.runPromise(Fiber.interrupt(retrieveFiber));
+            });
+            await retrieveOperation.start();
+            return await retrieveOperation.pollStatus();
+          }
+        );
+        return retrieveResult;
+      },
+      catch: e => {
+        console.error(e);
+        return new MetadataRetrieveError(unknownToErrorCause(e));
+      }
+    }).pipe(Effect.withSpan('retrieve (API call)'), Effect.fork);
 
     const retrieveOutcome = yield* Effect.matchCauseEffect(Fiber.join(retrieveFiber), {
       onFailure: cause =>
@@ -145,7 +154,7 @@ const performRetrieveOperation = (
   });
 
 /** Retrieve metadata using a ComponentSet directly */
-const retrieveComponentSet = (components: ComponentSet) =>
+const retrieveComponentSet = (components: ComponentSet, options?: SourceTrackingOptions) =>
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ components: components.size });
     const [connection, project, registryAccess, configAggregator] = yield* Effect.all(
@@ -160,6 +169,17 @@ const retrieveComponentSet = (components: ComponentSet) =>
     );
 
     yield* setComponentSetProperties(components, project, configAggregator);
+
+    const tracking = yield* Effect.flatMap(SourceTrackingService, svc => svc.getSourceTracking(options));
+    if (tracking) {
+      yield* Effect.promise(() => tracking.reReadLocalTrackingCache()).pipe(
+        Effect.withSpan('STL.ReReadLocalTrackingCache')
+      );
+
+      if (!options?.ignoreConflicts) {
+        yield* Effect.flatMap(SourceTrackingService, svc => svc.checkConflicts(tracking));
+      }
+    }
 
     const title = `Retrieving ${components.size} component${components.size === 1 ? '' : 's'}`;
     return yield* performRetrieveOperation(components, connection, project, registryAccess, title);

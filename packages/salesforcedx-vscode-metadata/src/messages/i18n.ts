@@ -58,6 +58,7 @@ export const messages = {
   retrieve_select_manifest: 'You can run SFDX: Retrieve Source in Manifest from Org only on a manifest file.',
   retrieve_completed_with_errors_message: 'Retrieve completed with errors. Check output for details.',
   retrieve_no_components_message: 'No components found to retrieve',
+  retrieve_source_conflicts_detected: 'Conflicts detected. Resolve conflicts before retrieving. \n Conflicts: %s',
   retrieve_failed: 'Failed to retrieve: %s',
   error_source_tracking_service_failed: 'Failed to initialize source tracking service.',
   error_source_tracking_components_failed: 'Failed to retrieve components using source tracking: %s',

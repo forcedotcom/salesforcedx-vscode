@@ -40,6 +40,11 @@ const projectRetrieveStartEffect = (ignoreConflicts: boolean) =>
       { concurrency: 'unbounded' }
     );
 
+    if (!ignoreConflicts) {
+      // check conflicts up here to avoid deletes (since the normal conflict check is in the retrieve service)
+      yield* sourceTrackingService.checkConflicts(tracking);
+    }
+
     const result = yield* Effect.tryPromise({
       try: () => tracking.maybeApplyRemoteDeletesToLocal(true),
       catch: e =>
@@ -64,7 +69,7 @@ const projectRetrieveStartEffect = (ignoreConflicts: boolean) =>
       return;
     }
 
-    yield* retrieveComponentSet({ componentSet });
+    yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
   }).pipe(
     Effect.withSpan('projectRetrieveStart', { attributes: { ignoreConflicts } }),
     Effect.provide(AllServicesLayer)

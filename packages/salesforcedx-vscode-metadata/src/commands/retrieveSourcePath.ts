@@ -67,16 +67,23 @@ export const retrieveSourcePaths = async (sourceUri: URI | undefined, uris: URI[
   const resolvedUris = uris?.length ? uris : [resolvedSourceUri];
   await Effect.runPromise(
     retrieveSourcePathsEffect(resolvedSourceUri, resolvedUris).pipe(
+      Effect.catchTag('SourceTrackingConflictError', error =>
+        displayErrorMessage(nls.localize('retrieve_source_conflicts_detected', error.conflicts.join(',')))
+      ),
       Effect.catchAll(error =>
         Effect.gen(function* () {
-          const api = yield* (yield* ExtensionProviderService).getServicesApi;
-          const channelService = yield* api.services.ChannelService;
           const errorMessage = error instanceof Error ? error.message : String(error);
-          yield* channelService.appendToChannel(`Retrieve failed: ${errorMessage}`);
-          yield* Effect.promise(() => vscode.window.showErrorMessage(errorMessage));
-        }).pipe(Effect.provide(AllServicesLayer), Effect.as(undefined))
+          yield* displayErrorMessage(`Retrieve failed: ${errorMessage}`);
+        }).pipe(Effect.as(undefined))
       ),
       Effect.provide(AllServicesLayer)
     )
   );
 };
+
+const displayErrorMessage = Effect.fn('displayErrorMessage')(function* (msg: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const channelService = yield* api.services.ChannelService;
+  yield* channelService.appendToChannel(`Retrieve failed: ${msg}`);
+  yield* Effect.promise(() => vscode.window.showErrorMessage(msg));
+});
