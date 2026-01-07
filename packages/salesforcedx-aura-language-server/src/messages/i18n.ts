@@ -31,5 +31,3 @@ export const messages = {
   invalid_ecmascript_definition_message: 'Invalid ecmascript definition: type=%s, isNull=%s, isUndefined=%s, keys=%s',
   server_initializing_message: 'Loading... 🔍'
 } as const;
-
-export type MessageKey = keyof typeof messages;

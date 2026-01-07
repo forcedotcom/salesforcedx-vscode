@@ -483,7 +483,6 @@ export default class Server {
     const { document } = changeEvent;
     const uri = document.uri;
     const content = document.getText();
-    const fileName = path.basename(URI.parse(uri).fsPath);
 
     // Normalize URI to fsPath before syncing (entry point for path normalization)
     const normalizedPath = normalizePath(URI.parse(uri).fsPath);
@@ -495,6 +494,8 @@ export default class Server {
     }
 
     // Check if this is an Aura component file and initialize indexer if needed
+    // Parse URI to get filename in a cross-platform way (URIs use forward slashes, but path.basename handles both)
+    const fileName = path.basename(URI.parse(uri).fsPath);
     if (fileName && this.isAuraComponentFile(fileName)) {
       this.hasDetectedAuraFiles = true;
 
