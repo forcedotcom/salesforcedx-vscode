@@ -15,6 +15,8 @@ import { ComponentSetService } from './core/componentSetService';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
 import { defaultOrgRef, watchConfigFiles } from './core/defaultOrgService';
+import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
+import { MetadataDeleteService } from './core/metadataDeleteService';
 import { MetadataDeployService } from './core/metadataDeployService';
 import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
@@ -50,6 +52,7 @@ export type SalesforceVSCodeServicesApi = {
     ConfigService: typeof ConfigService;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataDeployService: typeof MetadataDeployService;
+    MetadataDeleteService: typeof MetadataDeleteService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
     SourceTrackingService: typeof SourceTrackingService;
@@ -62,6 +65,7 @@ export type { NonEmptyComponentSet } from './core/componentSetService';
 export type { NoActiveEditorError } from './vscode/editorService';
 // export type { FailedToResolveSfProjectError } from './core/projectService';
 export type { GetOrgFromConnectionError } from './core/shared';
+export type { SourceTrackingConflictError } from './core/sourceTrackingService';
 
 /** Effect that runs when the extension is activated */
 const activationEffect = (context: vscode.ExtensionContext) =>
@@ -69,6 +73,7 @@ const activationEffect = (context: vscode.ExtensionContext) =>
     yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
+      yield* Effect.forkIn(subscribeLifecycleWarnings(), yield* getExtensionScope());
       yield* fileSystemSetup(context);
       yield* retrieveOnLoadEffect();
       yield* Effect.forkIn(watchSettingsService(), yield* getExtensionScope());
@@ -112,6 +117,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     MetadataRetrieveService.Default,
     ProjectService.Default,
     MetadataRegistryService.Default,
+    MetadataDeleteService.Default,
     SourceTrackingService.Default,
     ChannelService.Default
   );
@@ -144,6 +150,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ConfigService,
       MetadataDescribeService,
       MetadataDeployService,
+      MetadataDeleteService,
       MetadataRegistryService,
       MetadataRetrieveService,
       SourceTrackingService,

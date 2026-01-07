@@ -32,18 +32,22 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
   await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
 
   // Check what prompt appears:
-  // - If "Text File" option is visible → file type picker (select it first)
+  // - If "Text File" option is visible → file type picker (type filename directly per placeholder text)
   // - Otherwise → filename input (type filename directly)
   const textFileOption = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: 'Text File' });
   const hasFileTypePicker = await textFileOption.isVisible().catch(() => false);
 
   if (hasFileTypePicker) {
-    // File type picker flow: select "Text File", then filename prompt appears
-    await textFileOption.click();
-    await quickInput.waitFor({ state: 'visible', timeout: 5000 });
+    // File type picker flow: placeholder says "Select File Type or Enter File Name..."
+    // Type filename directly without selecting "Text File" option
+    const input = quickInput.getByRole('textbox').first();
+    await input.waitFor({ state: 'attached', timeout: 10_000 });
+    await input.focus();
+    // Wait for input to be visible after focus
+    await expect(input).toBeVisible({ timeout: 10_000 });
   }
 
-  // Now at filename prompt (both flows converge here)
+  // Type filename (works for both file type picker and direct input flows)
   await page.keyboard.type(fileName);
   await page.keyboard.press('Enter');
 

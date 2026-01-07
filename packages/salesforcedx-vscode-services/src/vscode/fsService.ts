@@ -45,6 +45,11 @@ export const toUri = (filePath: string | vscode.Uri): vscode.Uri => {
     return URI.file(`/${normalizedPath}`);
   }
 
+  // In web environment, paths without a scheme should use memfs:
+  if (process.env.ESBUILD_PLATFORM === 'web') {
+    return URI.parse(`memfs:${filePath}`);
+  }
+
   // Otherwise treat as file path (including Windows paths like C:\)
   const fileUri = URI.file(filePath);
   return fileUri;
@@ -145,21 +150,10 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
     safeDelete: (filePath: string, options = {}) =>
       Effect.tryPromise({
         try: async () => {
-          const uri = toUri(filePath);
-          await vscode.workspace.fs.stat(uri);
-          return uri;
+          await vscode.workspace.fs.delete(toUri(filePath), options);
         },
-        catch: () => undefined
-      }).pipe(
-        Effect.flatMap(uri =>
-          uri
-            ? Effect.tryPromise(async () => await vscode.workspace.fs.delete(uri, options)).pipe(
-                Effect.catchAll(() => Effect.succeed(undefined))
-              )
-            : Effect.succeed(undefined)
-        ),
-        Effect.catchAll(() => Effect.succeed(undefined))
-      ),
+        catch: error => error
+      }).pipe(Effect.catchAll(() => Effect.succeed(undefined))),
     rename: (oldPath: string, newPath: string) =>
       Effect.tryPromise({
         try: async () => {

@@ -9,6 +9,7 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { createApexClass } from './commands/createApexClass';
+import { deleteSourcePaths } from './commands/deleteSourcePath';
 import { deployManifest } from './commands/deployManifest';
 import { deployActiveEditor, deploySourcePaths } from './commands/deploySourcePath';
 import { projectDeployStart } from './commands/projectDeployStart';
@@ -62,6 +63,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
       vscode.commands.registerCommand('sf.source.tracking.reset.remote', resetRemoteTracking),
       vscode.commands.registerCommand('sf.apex.generate.class', createApexClass),
+      vscode.commands.registerCommand('sf.delete.source', deleteSourcePaths),
+      vscode.commands.registerCommand('sf.delete.source.current.file', deleteSourcePaths),
       vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
       vscode.commands.registerCommand('sf.deploy.active.editor', deployActiveEditor),
       vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest),

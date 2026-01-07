@@ -60,7 +60,19 @@ export const messages = {
   retrieve_no_components_message: 'No components found to retrieve',
   retrieve_failed: 'Failed to retrieve: %s',
   error_source_tracking_service_failed: 'Failed to initialize source tracking service.',
-  error_source_tracking_components_failed: 'Failed to retrieve components using source tracking: %s'
+  error_source_tracking_components_failed: 'Failed to retrieve components using source tracking: %s',
+  delete_source_text: 'SFDX: Delete from Project and Org',
+  delete_source_select_file_or_directory:
+    'You can run SFDX: Delete from Project and Org only on a source file or directory.',
+  delete_source_confirmation_message:
+    'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
+  confirm_delete_source_button_text: 'Delete Source',
+  cancel_delete_source_button_text: 'Cancel',
+  delete_source_conflicts_detected: 'Conflicts detected. Resolve conflicts before deleting.',
+  delete_source_no_components_found: 'No components found to delete',
+  delete_source_operation_failed: 'Delete operation failed',
+  delete_completed_with_errors_message: 'Delete completed with errors. Check output for details.',
+  delete_failed: 'Failed to delete: %s'
 } as const;
 
 export type MessageKey = keyof typeof messages;
