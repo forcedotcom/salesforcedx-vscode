@@ -16,9 +16,9 @@
 
 #### salesforcedx-vscode-core
 
-- We now scrape Metadata API Developer Guide metadata types to power metadata XML hover documentation. This runs weekly using Playwright and a GitHub Actions workflow. ([PR #6675](https://github.com/forcedotcom/salesforcedx-vscode/pull/6675))
+- We now scrape Metadata API Developer Guide metadata types using Playwright to power metadata XML hover documentation. This runs weekly via a GitHub Actions workflow. ([PR #6675](https://github.com/forcedotcom/salesforcedx-vscode/pull/6675))
 
-- We moved the stop debugger and bootstrap commands into the Apex Debugger extension. ([PR #6727](https://github.com/forcedotcom/salesforcedx-vscode/pull/6727))
+- We moved `SFDX: Stop Apex Debugger Session` and `SFDX: Create and Set Up Project for ISV Debugging` from the CLI Integration extension to the Apex Interactive Debugger extension. ([PR #6727](https://github.com/forcedotcom/salesforcedx-vscode/pull/6727))
 
 - We moved `SFDX: Execute SOQL Query…` and `SFDX: Execute SOQL Query with Currently Selected Text` from the CLI Integration extension to the SOQL extension. ([PR #6747](https://github.com/forcedotcom/salesforcedx-vscode/pull/6747))
 
