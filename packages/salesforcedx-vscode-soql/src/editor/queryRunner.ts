@@ -8,7 +8,7 @@
 import type { Connection } from '@salesforce/core';
 import type { JsonMap } from '@salesforce/ts-types';
 import * as vscode from 'vscode';
-import { soqlComments } from '../../soql-common/src';
+import * as soqlComments from '../../soql-common/soqlComments';
 import { nls } from '../messages';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

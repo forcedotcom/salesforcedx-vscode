@@ -80,7 +80,7 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
-        "soql-common/src/**/*.ts",
+        "soql-common/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json"
       ],
