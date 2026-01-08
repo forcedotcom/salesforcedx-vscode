@@ -11,7 +11,7 @@
  * you might want to make that same change over there
  */
 
-import { parseHeaderComments } from './soqlComments';
+import { parseHeaderComments } from '../../../src/soql-common/soqlComments';
 
 describe('Extract comments at the top of SOQL queries', () => {
   it('Handle single-line query with no comments', () => {
