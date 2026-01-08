@@ -7,6 +7,7 @@
 import {
   ApexTestProgressValue,
   AsyncTestConfiguration,
+  HumanReporter,
   Progress,
   ResultFormat,
   TestResult,
@@ -14,6 +15,7 @@ import {
 } from '@salesforce/apex-node';
 import { getVscodeCoreExtension } from 'salesforcedx-vscode-apex/src/coreExtensionUtils';
 import { CancellationToken } from 'vscode';
+import { channelService } from '../channels';
 import * as settings from '../settings';
 import { telemetryService } from '../telemetry/telemetry';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
@@ -64,6 +66,22 @@ export const runApexTests = async (
     { resultFormats: [ResultFormat.json], dirPath: options.outputDir },
     options.codeCoverage
   );
+
+  // Print test results to output channel
+  channelService.appendLine('\n=== Test Results ===\n');
+  const humanOutput = new HumanReporter().format(result, options.codeCoverage, false);
+  if (humanOutput) {
+    // Split by lines and add each line separately to preserve formatting
+    const lines = humanOutput.split('\n');
+    for (const line of lines) {
+      channelService.appendLine(line);
+    }
+  } else {
+    // Fallback if HumanReporter returns empty - at least show summary
+    channelService.appendLine(
+      `Test execution completed. Tests ran: ${result.summary.testsRan ?? 0}, Passed: ${result.summary.passing ?? 0}, Failed: ${result.summary.failing ?? 0}`
+    );
+  }
 
   // Generate and open test report
   const reportStartTime = Date.now();

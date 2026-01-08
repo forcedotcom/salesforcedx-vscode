@@ -980,7 +980,6 @@ describe('testReportGenerator', () => {
       expect(appendLineSpy).toHaveBeenCalledWith(
         expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.md'))
       );
-      expect(appendLineSpy).toHaveBeenCalledWith(expect.stringContaining('file://'));
     });
 
     it('should open markdown preview when user selects Open Report', async () => {
@@ -1023,7 +1022,6 @@ describe('testReportGenerator', () => {
       expect(appendLineSpy).toHaveBeenCalledWith(
         expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.txt'))
       );
-      expect(appendLineSpy).toHaveBeenCalledWith(expect.stringContaining('file://'));
     });
 
     it('should open text report when user selects Open Report', async () => {
@@ -1042,6 +1040,25 @@ describe('testReportGenerator', () => {
       expect(mockShowTextDocument).toHaveBeenCalled();
       expect(appendLineSpy).toHaveBeenCalledWith(
         expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.txt'))
+      );
+    });
+
+    it('should write report path to both output channel and test results when outputTarget is testResults', async () => {
+      const result = createMockTestResult();
+      const outputDir = path.join('test', 'output');
+
+      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
+      const run = { appendOutput: jest.fn() } as unknown as vscode.TestRun;
+
+      await writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime');
+
+      // Should always write to output channel
+      expect(appendLineSpy).toHaveBeenCalledWith(
+        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.md'))
+      );
+      // Additionally, should write to test results when run from TestController
+      expect(run.appendOutput).toHaveBeenCalledWith(
+        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.md'))
       );
     });
 

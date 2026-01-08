@@ -77,8 +77,10 @@ export const messages = {
   apex_test_debug_org_only_warning_message:
     'Debugging is not supported for tests that exist only in the org and not in your local workspace. Please retrieve the class to your local project first.',
   apex_test_report_open_action: 'Open Report',
-  apex_test_report_ready_message: 'Apex test report is ready: %s. See the Apex Testing output for the saved path.',
+  apex_test_report_ready_message: 'Apex test report is ready: %s',
   apex_test_report_written_to_message: 'Apex test report saved to: %s',
+  apex_test_report_markdown_preview_tip:
+    'Tip: For the best experience viewing the markdown file, open it and run "Markdown: Open Preview" from the Command Palette.\n\n',
   test_view_refresh_failed_message:
     'Failed to refresh test view, please make sure the Apex Language Server is running and try again. Apex LS status: %s'
 } as const;

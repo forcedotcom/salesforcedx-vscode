@@ -97,9 +97,13 @@ export const writeAndOpenTestReport = async (
 
   const openAction = nls.localize('apex_test_report_open_action');
   const message = nls.localize('apex_test_report_ready_message', path.basename(reportPath));
-  const outputLine = `${nls.localize('apex_test_report_written_to_message', reportPath)} (${uri.toString()})`;
+  const outputLine = nls.localize('apex_test_report_written_to_message', reportPath);
   // Always print the report location to the Apex Testing output channel so it's easy to find later.
   channelService.appendLine(outputLine);
+  // If markdown format, add a tip about viewing the preview
+  if (format === 'markdown') {
+    channelService.appendLine(nls.localize('apex_test_report_markdown_preview_tip'));
+  }
 
   void Promise.resolve(vscode.window.showInformationMessage(message, openAction)).then(async selection => {
     if (selection === openAction) {
