@@ -30,7 +30,7 @@ const retrieveManifestEffect = (manifestUri?: URI) =>
       yield* componentSetService.getComponentSetFromManifest(manifestPath)
     );
 
-    yield* retrieveComponentSet({ componentSet });
+    yield* retrieveComponentSet({ componentSet, ignoreConflicts: false });
   }).pipe(Effect.withSpan('retrieveManifest', { attributes: { manifestUri } }), Effect.provide(AllServicesLayer));
 
 /** Retrieve manifest from the default org */

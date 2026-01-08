@@ -16,8 +16,9 @@ import { formatRetrieveOutput } from './formatRetrieveOutput';
 /** Retrieve a ComponentSet, handling empty sets, cancellation, and output formatting */
 export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* (options: {
   componentSet: ComponentSet;
+  ignoreConflicts?: boolean;
 }) {
-  const { componentSet } = options;
+  const { componentSet, ignoreConflicts } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [channelService, retrieveService, componentSetService] = yield* Effect.all(
     [api.services.ChannelService, api.services.MetadataRetrieveService, api.services.ComponentSetService],
@@ -27,7 +28,7 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
   const componentCount = componentSet.size;
   yield* channelService.appendToChannel(`Retrieving ${componentCount} component${componentCount === 1 ? '' : 's'}...`);
 
-  const result = yield* retrieveService.retrieveComponentSet(componentSet);
+  const result = yield* retrieveService.retrieveComponentSet(componentSet, { ignoreConflicts });
 
   // Handle cancellation
   if (typeof result === 'string') {
