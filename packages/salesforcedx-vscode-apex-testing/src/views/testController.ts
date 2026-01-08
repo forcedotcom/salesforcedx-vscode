@@ -31,6 +31,7 @@ import {
   isSuite,
   gatherTests
 } from '../utils/testItemUtils';
+import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { updateTestRunResults } from '../utils/testResultProcessor';
 import { buildClassToUriIndex, fetchFromLs, getFullClassName, isFlowTest } from '../utils/testUtils';
 import { ApexTestMethod } from './lspConverter';
@@ -710,6 +711,23 @@ export class ApexTestController {
       { resultFormats: [ResultFormat.json], dirPath: outputDir },
       codeCoverage
     );
+
+    // Generate and open test report
+    const reportStartTime = Date.now();
+    const outputFormat = settings.retrieveOutputFormat();
+    const sortOrder = settings.retrieveTestSortOrder();
+    try {
+      await writeAndOpenTestReport(result, outputDir, outputFormat, codeCoverage, sortOrder);
+      const reportDurationMs = Date.now() - reportStartTime;
+      telemetryService.sendEventData(
+        'apexTestReportGenerated',
+        { outputFormat, trigger: 'testExplorer' },
+        { reportDurationMs }
+      );
+    } catch (error) {
+      console.error('Failed to generate test report:', error);
+      // Continue even if report generation fails
+    }
 
     // Update test results in Test Explorer
     updateTestRunResults(result, run, testsToRun, this.methodItems, this.classItems, codeCoverage);
