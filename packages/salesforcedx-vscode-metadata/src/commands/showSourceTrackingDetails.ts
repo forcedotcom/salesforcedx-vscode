@@ -9,6 +9,7 @@ import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as Effect from 'effect/Effect';
 import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { separateChanges } from '../statusBar/helpers';
 
 type ViewChangesOptions = { local: boolean; remote: boolean };
 
@@ -38,11 +39,11 @@ const viewChangesEffect = Effect.fn('viewChanges')(function* (options: ViewChang
     ],
     { concurrency: 'unbounded' }
   );
-  const status = (yield* Effect.promise(() => tracking.getStatus(options))).filter(row => !row.ignored);
+  const status = yield* Effect.promise(() => tracking.getStatus(options));
+  const { localChanges: allLocalChanges, remoteChanges: allRemoteChanges, conflicts } = separateChanges(status);
 
-  const remoteChanges = options.remote ? status.filter(row => row.origin === 'remote' && !row.conflict) : undefined;
-  const localChanges = options.local ? status.filter(row => row.origin === 'local' && !row.conflict) : undefined;
-  const conflicts = status.filter(row => row.conflict);
+  const remoteChanges = options.remote ? allRemoteChanges : undefined;
+  const localChanges = options.local ? allLocalChanges : undefined;
 
   const title =
     options.local && options.remote

@@ -16,7 +16,7 @@ export const WebSdkLayer = WebSdk.layer(() => ({
   resource: {
     serviceName: 'salesforcedx-vscode-services',
     //manually bump this to cause rebuilds/bust cache
-    serviceVersion: '2025-11-11T08:15:30.000Z',
+    serviceVersion: '2026-01-08T10:38.004Z',
     attributes: {
       'service.environment': 'vscode-extension',
       'service.platform': 'web'

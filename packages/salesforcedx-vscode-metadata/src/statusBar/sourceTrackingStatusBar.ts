@@ -81,8 +81,15 @@ const refresh = (statusBarItem: vscode.StatusBarItem) =>
       return;
     }
 
-    yield* Effect.promise(() => tracking.reReadLocalTrackingCache());
+    yield* Effect.all(
+      [
+        Effect.promise(() => tracking.reReadLocalTrackingCache()),
+        Effect.promise(() => tracking.reReadRemoteTracking())
+      ],
+      { concurrency: 'unbounded' }
+    );
     const status = yield* Effect.tryPromise(() => tracking.getStatus({ local: true, remote: true }));
+    yield* (yield* api.services.ChannelService).appendToChannel(`status: ${JSON.stringify(status)}`);
     updateDisplay(statusBarItem)(dedupeStatus(status));
   }).pipe(
     Effect.provide(AllServicesLayer),
