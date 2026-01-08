@@ -1043,22 +1043,21 @@ describe('testReportGenerator', () => {
       );
     });
 
-    it('should write report path to both output channel and test results when outputTarget is testResults', async () => {
+    it('should write report path and markdown tip to output channel for markdown format', async () => {
       const result = createMockTestResult();
       const outputDir = path.join('test', 'output');
 
       const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
-      const run = { appendOutput: jest.fn() } as unknown as vscode.TestRun;
 
       await writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime');
 
-      // Should always write to output channel
+      // Should write report path to output channel
       expect(appendLineSpy).toHaveBeenCalledWith(
         expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.md'))
       );
-      // Additionally, should write to test results when run from TestController
-      expect(run.appendOutput).toHaveBeenCalledWith(
-        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.md'))
+      // Should also write markdown preview tip for markdown format
+      expect(appendLineSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Tip: For the best experience viewing the markdown file')
       );
     });
 
