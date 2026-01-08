@@ -10,29 +10,55 @@ import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../settings';
+import { NewlineNormalizationState, normalizeTextChunkToLf } from './newlineUtils';
 
-/** Collects stream output into a string */
-const streamToString = async (stream: NodeJS.ReadableStream): Promise<string> => {
-  const chunks: Buffer[] = [];
-  return new Promise((resolve, reject) => {
-    stream.on('data', (chunk: Buffer) => chunks.push(chunk));
-    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+/** Collects stream output into a UTF-8 encoded Uint8Array with LF line endings */
+const streamToNormalizedUtf8Bytes = async (stream: NodeJS.ReadableStream): Promise<Uint8Array> => {
+  const decoder = new TextDecoder('utf-8');
+  const encoder = new TextEncoder();
+  const parts: Uint8Array[] = [];
+
+  // Tracks a trailing '\r' from the previous decoded chunk so we can correctly normalize CRLF across boundaries.
+  const state: NewlineNormalizationState = { hasTrailingCarriageReturn: false };
+
+  await new Promise<void>((resolve, reject) => {
+    stream.on('data', (chunk: Buffer) => {
+      const decoded = decoder.decode(chunk, { stream: true });
+      const { normalizedText: normalizedChunkText } = normalizeTextChunkToLf(decoded, state);
+      if (normalizedChunkText.length > 0) {
+        parts.push(encoder.encode(normalizedChunkText));
+      }
+    });
+    stream.on('end', () => resolve());
     stream.on('error', reject);
   });
+
+  // Flush any final decoder state.
+  const { normalizedText: normalizedTailText } = normalizeTextChunkToLf(decoder.decode(), state);
+  if (normalizedTailText.length > 0) {
+    parts.push(encoder.encode(normalizedTailText));
+  }
+
+  const totalLength = parts.reduce((sum, part) => sum + part.length, 0);
+  const out = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const part of parts) {
+    out.set(part, offset);
+    offset += part.length;
+  }
+  return out;
 };
 
-/** Generates a markdown or text report from test results using the MarkdownTextFormatTransformer */
-const generateReport = async (
+/** Builds the MarkdownTextFormatTransformer for the given result and settings */
+const createReportTransformer = (
   result: TestResult,
   format: OutputFormat,
   codeCoverage: boolean,
   sortOrder: TestSortOrder
-): Promise<string> => {
-  // Retrieve thresholds from settings
+): MarkdownTextFormatTransformer => {
   const performanceThresholdMs = retrievePerformanceThreshold();
   const coverageThresholdPercent = retrieveCoverageThreshold();
-
-  const transformer = new MarkdownTextFormatTransformer(result, {
+  return new MarkdownTextFormatTransformer(result, {
     format,
     sortOrder,
     performanceThresholdMs,
@@ -40,8 +66,6 @@ const generateReport = async (
     codeCoverage,
     timestamp: new Date()
   });
-
-  return streamToString(transformer);
 };
 
 /** Generates a filename using the library's format: test-result-{testRunId}.{ext} */
@@ -58,19 +82,16 @@ export const writeAndOpenTestReport = async (
   codeCoverage: boolean = false,
   sortOrder: TestSortOrder = 'runtime'
 ): Promise<string> => {
-  const reportContent = await generateReport(result, format, codeCoverage, sortOrder);
+  // Write directly to UTF-8 bytes (with LF newlines) without building a large intermediate string.
+  const transformer = createReportTransformer(result, format, codeCoverage, sortOrder);
 
   // Generate filename using library's format: test-result-{testRunId}.{ext}
   const extension = format === 'markdown' ? '.md' : '.txt';
   const testRunId = result.summary?.testRunId;
   const reportPath = generateReportFilename(outputDir, testRunId, extension);
 
-  // Ensure content uses LF line endings (UTF-8 with LF)
-  const normalizedContent = reportContent.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
-
   // Write file using vscode.workspace.fs
-  const encoder = new TextEncoder();
-  const uint8Array = encoder.encode(normalizedContent);
+  const uint8Array = await streamToNormalizedUtf8Bytes(transformer);
   const uri = vscode.Uri.file(reportPath);
   await vscode.workspace.fs.writeFile(uri, uint8Array);
 
