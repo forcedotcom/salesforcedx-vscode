@@ -80,7 +80,7 @@ jest.mock('../../src/observability/spansNode', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const E = require('effect');
   return {
-    NodeSdkLayer: E.Layer.empty
+    NodeSdkLayerFor: () => E.Layer.empty
   };
 });
 

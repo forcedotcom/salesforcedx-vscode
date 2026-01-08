@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL_NAME } from '../constants';
+import { EXTENSION_NAME, OUTPUT_CHANNEL_NAME } from '../constants';
 
 export class ServicesExtensionNotFoundError extends Data.TaggedError('ServicesExtensionNotFoundError') {}
 export class InvalidServicesApiError extends Data.TaggedError('InvalidServicesApiError')<{ cause?: Error }> {}
@@ -54,6 +54,9 @@ export const AllServicesLayer = Layer.unwrapEffect(
   Effect.gen(function* () {
     const extensionProvider = yield* ExtensionProviderService;
     const api = yield* extensionProvider.getServicesApi;
+    const extension = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`);
+    const extensionVersion = extension?.packageJSON?.version ?? 'unknown';
+    const o11yEndpoint = process.env.O11Y_ENDPOINT ?? extension?.packageJSON?.o11yUploadEndpoint;
     // Merge all the service layers from the API
     return Layer.mergeAll(
       ExtensionProviderServiceLive,
@@ -68,7 +71,7 @@ export const AllServicesLayer = Layer.unwrapEffect(
       api.services.MetadataRegistryService.Default,
       api.services.MetadataDescribeService.Default,
       api.services.ProjectService.Default,
-      api.services.SdkLayer,
+      api.services.SdkLayerFor({ extensionName: EXTENSION_NAME, extensionVersion, o11yEndpoint }),
       api.services.SettingsService.Default,
       api.services.WorkspaceService.Default,
       api.services.SourceTrackingService.Default,

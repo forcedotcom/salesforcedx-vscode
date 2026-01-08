@@ -15,10 +15,12 @@ import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { TelemetryReporter } from '@vscode/extension-telemetry';
+import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import { workspace } from 'vscode';
 import { unknownToErrorCause } from '../core/shared';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
+import { convertAttributes, getExtensionNameAndVersionAttributes, isTopLevelSpan, spanDuration } from './spanUtils';
 // TODO: should this be in Effect?
 // Lazy initialization to avoid bundling issues
 const _webAppInsightsReporter: { instance: TelemetryReporter | undefined } = { instance: undefined };
@@ -35,13 +37,6 @@ const getSpanKindName = (kind: SpanKind): string =>
     Match.when(SpanKind.PRODUCER, () => 'PRODUCER'),
     Match.when(SpanKind.CONSUMER, () => 'CONSUMER'),
     Match.orElse(() => 'UNKNOWN')
-  );
-
-const convertAttributes = (attributes: Record<string, unknown>): Record<string, string> =>
-  Object.fromEntries(
-    Object.entries(attributes)
-      .filter(([, value]) => value !== undefined && value !== null)
-      .map(([key, value]) => [key, String(value)])
   );
 
 const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vscode-core.telemetry-tag');
@@ -79,9 +74,6 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
   }
 }
 
-// span filters
-const isTopLevelSpan = (span: ReadableSpan): boolean => span.parentSpanContext === undefined;
-
 const exportSpan = (span: ReadableSpan): void => {
   const success = !span.status || span.status.code !== SpanStatusCode.ERROR;
 
@@ -94,6 +86,7 @@ const exportSpan = (span: ReadableSpan): void => {
 
   const props = {
     ...convertAttributes(span.resource.attributes),
+    ...getExtensionNameAndVersionAttributes(span.resource.attributes),
     ...convertAttributes(span.attributes),
     ...telemetryTrace,
     spanKind: getSpanKindName(span.kind),
@@ -103,20 +96,22 @@ const exportSpan = (span: ReadableSpan): void => {
   };
 
   const measurements = {
-    duration: span.duration ? span.duration[0] * 1000 + span.duration[1] / 1_000_000 : 0
+    duration: spanDuration(span)
   };
 
-  // eslint-disable-next-line functional/no-try-statements
-  try {
-    const reporter = getWebAppInsightsReporter();
-    if (success) {
-      // Use dangerous method to bypass telemetry level checks for development
-      reporter.sendDangerousTelemetryEvent(span.name, props, measurements);
-    } else {
-      // Use dangerous method to bypass telemetry level checks for development
-      reporter.sendDangerousTelemetryErrorEvent(span.name, props, measurements);
-    }
-  } catch (error) {
-    console.error('❌ Failed to send dangerous telemetry:', error);
-  }
+  Effect.runSync(
+    Effect.try({
+      try: () =>
+        success
+          ? getWebAppInsightsReporter().sendDangerousTelemetryEvent(span.name, props, measurements)
+          : getWebAppInsightsReporter().sendDangerousTelemetryErrorEvent(span.name, props, measurements),
+      catch: error => unknownToErrorCause(error)
+    }).pipe(
+      Effect.catchAll(error =>
+        Effect.sync(() => {
+          console.error('❌ Failed to send dangerous telemetry:', error.cause);
+        })
+      )
+    )
+  );
 };

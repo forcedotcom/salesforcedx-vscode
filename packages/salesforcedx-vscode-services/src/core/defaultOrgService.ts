@@ -14,7 +14,7 @@ import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { join, normalize, sep } from 'node:path';
-import { SdkLayer } from '../observability/spans';
+import { ServicesSdkLayer } from '../observability/spans';
 import { FileWatcherService } from '../vscode/fileWatcherService';
 
 export const DefaultOrgInfoSchema = Schema.Struct({
@@ -32,7 +32,10 @@ export const defaultOrgRef = Effect.runSync(SubscriptionRef.make<typeof DefaultO
 
 const clearDefaultOrgRef = (): void =>
   Effect.runSync(
-    Ref.update(defaultOrgRef, () => ({})).pipe(Effect.withSpan('cleared defaultOrgRef'), Effect.provide(SdkLayer))
+    Ref.update(defaultOrgRef, () => ({})).pipe(
+      Effect.withSpan('cleared defaultOrgRef'),
+      Effect.provide(ServicesSdkLayer())
+    )
   );
 
 /** Check if a file path is a config file (global or project-specific) */

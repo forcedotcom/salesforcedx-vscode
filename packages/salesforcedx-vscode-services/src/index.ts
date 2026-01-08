@@ -25,7 +25,7 @@ import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { closeExtensionScope, getExtensionScope } from './extensionScope';
-import { SdkLayer } from './observability/spans';
+import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
@@ -57,7 +57,7 @@ export type SalesforceVSCodeServicesApi = {
     MetadataRetrieveService: typeof MetadataRetrieveService;
     SourceTrackingService: typeof SourceTrackingService;
     SettingsService: typeof SettingsService;
-    SdkLayer: typeof SdkLayer;
+    SdkLayerFor: typeof SdkLayerFor;
     TargetOrgRef: typeof defaultOrgRef;
   };
 };
@@ -110,7 +110,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     SettingsService.Default,
     SettingsWatcherService.Default,
     IndexedDBStorageServiceShared,
-    SdkLayer,
+    ServicesSdkLayer(),
     ConnectionService.Default,
     ConfigService.Default,
     FileWatcherService.Default,
@@ -155,7 +155,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       MetadataRetrieveService,
       SourceTrackingService,
       SettingsService,
-      SdkLayer,
+      SdkLayerFor,
       TargetOrgRef: defaultOrgRef
     }
   };
@@ -174,7 +174,7 @@ const deactivateEffect = Effect.gen(function* () {
   );
 }).pipe(
   Effect.withSpan('deactivation:salesforcedx-vscode-services'),
-  Effect.provide(Layer.mergeAll(ChannelService.Default, SdkLayer))
+  Effect.provide(Layer.mergeAll(ChannelService.Default, ServicesSdkLayer()))
 );
 
 export { type ChannelService } from './vscode/channelService';
