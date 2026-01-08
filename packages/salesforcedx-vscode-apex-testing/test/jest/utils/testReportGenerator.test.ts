@@ -9,6 +9,7 @@ import { TestResult, MarkdownTextFormatTransformer } from '@salesforce/apex-node
 import { Global } from '@salesforce/core';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { channelService } from '../../../src/channels';
 import * as settings from '../../../src/settings';
 import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../../../src/settings';
 import { writeAndOpenTestReport } from '../../../src/utils/testReportGenerator';
@@ -17,6 +18,7 @@ import { writeAndOpenTestReport } from '../../../src/utils/testReportGenerator';
 const mockWriteFile = jest.fn().mockResolvedValue(undefined);
 const mockOpenTextDocument = jest.fn().mockResolvedValue({});
 const mockShowTextDocument = jest.fn().mockResolvedValue(undefined);
+const mockShowInformationMessage = jest.fn().mockResolvedValue(undefined);
 const mockExecuteCommand = jest.fn().mockResolvedValue(undefined);
 const mockStat = jest.fn();
 
@@ -39,6 +41,7 @@ describe('testReportGenerator', () => {
     jest.spyOn(vscode.workspace.fs, 'stat').mockImplementation(mockStat);
     jest.spyOn(vscode.workspace, 'openTextDocument').mockImplementation(mockOpenTextDocument);
     jest.spyOn(vscode.window, 'showTextDocument').mockImplementation(mockShowTextDocument);
+    jest.spyOn(vscode.window, 'showInformationMessage').mockImplementation(mockShowInformationMessage);
     jest.spyOn(vscode.commands, 'executeCommand').mockImplementation(mockExecuteCommand);
 
     // Mock settings to return default thresholds
@@ -52,7 +55,8 @@ describe('testReportGenerator', () => {
       scheme: 'file',
       authority: '',
       query: '',
-      fragment: ''
+      fragment: '',
+      toString: () => `file://${p}`
     }));
   });
 
@@ -957,11 +961,37 @@ describe('testReportGenerator', () => {
   });
 
   describe('writeAndOpenTestReport', () => {
-    it('should write markdown report and open preview', async () => {
+    it('should write markdown report and notify without opening by default', async () => {
       const result = createMockTestResult();
       const outputDir = path.join('test', 'output');
 
-      await writeAndOpenTestReport(result, outputDir, 'markdown');
+      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
+
+      await writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime');
+
+      expect(mockWriteFile).toHaveBeenCalled();
+      expect(mockShowInformationMessage).toHaveBeenCalledWith(
+        expect.stringContaining('test-result-test-run-123.md'),
+        'Open Report'
+      );
+      expect(mockExecuteCommand).not.toHaveBeenCalled();
+      expect(mockOpenTextDocument).not.toHaveBeenCalled();
+      expect(mockShowTextDocument).not.toHaveBeenCalled();
+      expect(appendLineSpy).toHaveBeenCalledWith(
+        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.md'))
+      );
+      expect(appendLineSpy).toHaveBeenCalledWith(expect.stringContaining('file://'));
+    });
+
+    it('should open markdown preview when user selects Open Report', async () => {
+      const result = createMockTestResult();
+      const outputDir = path.join('test', 'output');
+
+      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
+      mockShowInformationMessage.mockResolvedValueOnce('Open Report');
+
+      await writeAndOpenTestReport(result, outputDir, 'markdown', false, 'runtime');
+      await Promise.resolve();
 
       expect(mockWriteFile).toHaveBeenCalled();
       // Refresh should be called before showing preview
@@ -969,17 +999,50 @@ describe('testReportGenerator', () => {
       expect(mockExecuteCommand).toHaveBeenCalledWith('markdown.showPreview', expect.any(Object));
       expect(mockOpenTextDocument).not.toHaveBeenCalled();
       expect(mockShowTextDocument).not.toHaveBeenCalled();
+      expect(appendLineSpy).toHaveBeenCalledWith(
+        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.md'))
+      );
     });
 
-    it('should write text report and open it', async () => {
+    it('should write text report and notify without opening by default', async () => {
       const result = createMockTestResult();
       const outputDir = path.join('test', 'output');
 
-      await writeAndOpenTestReport(result, outputDir, 'text');
+      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
+
+      await writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime');
 
       expect(mockWriteFile).toHaveBeenCalled();
+      expect(mockShowInformationMessage).toHaveBeenCalledWith(
+        expect.stringContaining('test-result-test-run-123.txt'),
+        'Open Report'
+      );
+      expect(mockExecuteCommand).not.toHaveBeenCalled();
+      expect(mockOpenTextDocument).not.toHaveBeenCalled();
+      expect(mockShowTextDocument).not.toHaveBeenCalled();
+      expect(appendLineSpy).toHaveBeenCalledWith(
+        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.txt'))
+      );
+      expect(appendLineSpy).toHaveBeenCalledWith(expect.stringContaining('file://'));
+    });
+
+    it('should open text report when user selects Open Report', async () => {
+      const result = createMockTestResult();
+      const outputDir = path.join('test', 'output');
+
+      const appendLineSpy = jest.spyOn(channelService, 'appendLine').mockImplementation(jest.fn());
+      mockShowInformationMessage.mockResolvedValueOnce('Open Report');
+
+      await writeAndOpenTestReport(result, outputDir, 'text', false, 'runtime');
+      await Promise.resolve();
+
+      expect(mockWriteFile).toHaveBeenCalled();
+      expect(mockExecuteCommand).not.toHaveBeenCalled();
       expect(mockOpenTextDocument).toHaveBeenCalled();
       expect(mockShowTextDocument).toHaveBeenCalled();
+      expect(appendLineSpy).toHaveBeenCalledWith(
+        expect.stringContaining(path.join(outputDir, 'test-result-test-run-123.txt'))
+      );
     });
 
     it('should encode content as UTF-8', async () => {

@@ -7,6 +7,8 @@
 import { TestResult, MarkdownTextFormatTransformer, OutputFormat, TestSortOrder } from '@salesforce/apex-node';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { channelService } from '../channels';
+import { nls } from '../messages';
 import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../settings';
 
 /** Collects stream output into a string */
@@ -48,7 +50,7 @@ const generateReportFilename = (outputDir: string, testRunId: string | undefined
   return path.join(outputDir, filename);
 };
 
-/** Writes test report to file and opens it in editor */
+/** Writes test report to file and notifies the user when it's ready */
 export const writeAndOpenTestReport = async (
   result: TestResult,
   outputDir: string,
@@ -72,24 +74,33 @@ export const writeAndOpenTestReport = async (
   const uri = vscode.Uri.file(reportPath);
   await vscode.workspace.fs.writeFile(uri, uint8Array);
 
-  // Open the markdown preview automatically for markdown files
-  if (format === 'markdown') {
-    // Try to refresh the preview if it's already open (before opening a new one)
-    try {
-      await vscode.commands.executeCommand('markdown.preview.refresh');
-    } catch {
-      // Preview refresh command might not be available, ignore
+  const openAction = nls.localize('apex_test_report_open_action');
+  const message = nls.localize('apex_test_report_ready_message', path.basename(reportPath));
+  const outputLine = `${nls.localize('apex_test_report_written_to_message', reportPath)} (${uri.toString()})`;
+  // Always print the report location to the Apex Testing output channel so it's easy to find later.
+  channelService.appendLine(outputLine);
+
+  void Promise.resolve(vscode.window.showInformationMessage(message, openAction)).then(async selection => {
+    if (selection === openAction) {
+      // Only open the report if the user explicitly chooses to.
+      if (format === 'markdown') {
+        // Try to refresh the preview if it's already open (before opening a new one)
+        try {
+          await vscode.commands.executeCommand('markdown.preview.refresh');
+        } catch {
+          // Preview refresh command might not be available, ignore
+        }
+        // Then show the preview
+        await vscode.commands.executeCommand('markdown.showPreview', uri);
+      } else {
+        const document = await vscode.workspace.openTextDocument(uri);
+        await vscode.window.showTextDocument(document, {
+          preview: false,
+          preserveFocus: false
+        });
+      }
     }
-    // Then show the preview
-    await vscode.commands.executeCommand('markdown.showPreview', uri);
-  } else {
-    // For text files, just open the document
-    const document = await vscode.workspace.openTextDocument(uri);
-    await vscode.window.showTextDocument(document, {
-      preview: false,
-      preserveFocus: false
-    });
-  }
+  });
 
   return reportPath;
 };
