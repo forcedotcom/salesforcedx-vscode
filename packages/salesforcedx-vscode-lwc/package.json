@@ -45,15 +45,16 @@
   "devDependencies": {
     "@types/uuid": "^3.4.8",
     "@types/which": "^1.3.1",
+    "@vscode/test-web": "^0.0.76",
     "esbuild": "0.25.10",
     "nyc": "^15",
     "salesforcedx-vscode-core": "*"
   },
-  "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core"
-  ],
+  "extensionDependencies": [],
   "scripts": {
     "vscode:bundle": "wireit",
+    "run:web": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --open-devtools --port 3001 --verbose --printServerLog --quality stable",
+    "bundle:web": "npm run vscode:bundle && npm run run:web",
     "vscode:prepublish": "npm prune --production",
     "vscode:package:legacy": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -94,7 +95,8 @@
       "files": [
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
-        "out/**"
+        "../../scripts/bundling/web.mjs",
+        "src/**"
       ],
       "output": [
         "dist"
@@ -151,6 +153,7 @@
     ],
     "packageUpdates": {
       "main": "dist/index.js",
+      "browser": "./dist/web/index.js",
       "serverPath": [
         "dist",
         "lwcServer.js"
@@ -164,11 +167,13 @@
     }
   },
   "activationEvents": [
+    "*",
     "workspaceContains:**/lwc/**",
     "workspaceContains:../workspace-user.xml",
     "workspaceContains:**/workspace-user.xml"
   ],
   "main": "./out/src",
+  "browser": "./dist/web/index.js",
   "serverPath": [
     "dist",
     "lwcServer.js"

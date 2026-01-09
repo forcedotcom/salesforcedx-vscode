@@ -110,6 +110,16 @@ const exit = () => {};
 // Command line arguments - return empty array for browser
 const argv = [];
 
+// Mock stdin/stdout/stderr streams with fd property and isatty method to prevent errors
+// isatty is a function from the tty module that checks if a file descriptor is a TTY
+const mockStream = {
+  fd: 0, // Default file descriptor
+  isTTY: false,
+  readable: false,
+  writable: false,
+  isatty: () => false // Always return false in browser (not a TTY)
+};
+
 // The process object with complete EventEmitter API
 const process = {
   env,
@@ -118,6 +128,10 @@ const process = {
   platform,
   pid,
   version: 'v18.0.0',
+  // Mock streams to prevent fd access errors
+  stdin: mockStream,
+  stdout: mockStream,
+  stderr: mockStream,
   // EventEmitter methods
   on,
   addListener,

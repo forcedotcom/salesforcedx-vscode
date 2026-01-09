@@ -11,35 +11,79 @@ import {
   bootstrapWorkspaceAwareness,
   detectWorkspaceType
 } from '@salesforce/salesforcedx-utils-vscode';
+import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { Effect } from 'effect';
 import * as path from 'node:path';
-import { commands, Disposable, ExtensionContext, workspace } from 'vscode';
+import { commands, Disposable, ExtensionContext, Uri, workspace } from 'vscode';
+import { channelService } from './channel';
 import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
 import { log } from './constants';
 import { createLanguageClient } from './languageClient';
 import { metaSupport } from './metasupport';
 import { DevServerService } from './service/devServerService';
-import { telemetryService } from './telemetry';
-import { activateLwcTestSupport, shouldActivateLwcTestSupport } from './testSupport';
+// Test support is lazy-loaded to avoid bundling jest-editor-support in web mode
 import { WorkspaceUtils } from './util/workspaceUtils';
 
+// Lazy telemetry service getter - only loads telemetry module when not in web mode
+const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
+  if (process.env.ESBUILD_PLATFORM === 'web') {
+    // Import web-specific no-op telemetry service (doesn't import applicationinsights)
+    const { telemetryService } = await import('./telemetry/web.js');
+    return telemetryService;
+  }
+  // Dynamically import telemetry only when needed (not in web mode)
+  const telemetryModule = await import('./telemetry/index.js');
+  return telemetryModule.telemetryService;
+};
+
 export const activate = async (extensionContext: ExtensionContext) => {
+  // Log immediately to browser console - this should always appear if extension loads
+  console.log('[LWC] Extension activate() called');
+  console.log('[LWC] Extension context:', extensionContext.extension.id);
+
+  // Get telemetry service (lazy load - no-op in web mode)
+  const telemetryService = await getTelemetryService();
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
 
+  log('Lightning Web Components extension activating...');
+  try {
+    channelService.appendLine('Lightning Web Components extension activating...');
+  } catch (e) {
+    console.error('[LWC] Failed to append to channel:', e);
+  }
   log(`Activation Mode: ${getActivationMode()}`);
+  channelService.appendLine(`Activation Mode: ${getActivationMode()}`);
   // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
-    log('LWC Language Server activationMode set to off, exiting...');
+    const msg = 'LWC Language Server activationMode set to off, exiting...';
+    log(msg);
+    channelService.appendLine(msg);
     return;
   }
 
-  // Initialize telemetry service
-  await telemetryService.initializeService(extensionContext);
+  // Initialize telemetry service (no-op in web mode)
+  if (process.env.ESBUILD_PLATFORM === 'web') {
+    log('Skipping telemetry initialization (web mode - AppInsights not available)');
+    channelService.appendLine('Skipping telemetry initialization (web mode - AppInsights not available)');
+  } else {
+    try {
+      await telemetryService.initializeService(extensionContext);
+    } catch (e) {
+      const errorMsg = `Failed to initialize telemetry service: ${String(e)}`;
+      log(errorMsg);
+      channelService.appendLine(errorMsg);
+      // Continue without telemetry if initialization fails
+      log('Continuing without telemetry service');
+      channelService.appendLine('Continuing without telemetry service');
+    }
+  }
 
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders) {
-    log('No workspace, exiting extension');
+    const msg = 'No workspace, exiting extension';
+    log(msg);
+    channelService.appendLine(msg);
     return;
   }
 
@@ -56,8 +100,12 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
-    log('LWC LSP - autodetect did not find a valid project structure, exiting....');
-    log(`WorkspaceType detected: ${workspaceType}`);
+    const msg1 = 'LWC LSP - autodetect did not find a valid project structure, exiting....';
+    const msg2 = `WorkspaceType detected: ${workspaceType}`;
+    log(msg1);
+    log(msg2);
+    channelService.appendLine(msg1);
+    channelService.appendLine(msg2);
     return;
   }
 
@@ -67,7 +115,16 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // Start the LWC Language Server
   const serverPath = extensionContext.extension.packageJSON.serverPath;
-  const serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
+  let serverModule: string;
+  if (process.env.ESBUILD_PLATFORM === 'web') {
+    // For web mode, use the browser bundle and convert to URI
+    const serverPathArray = ['dist', 'web', 'lwcServer.js'];
+    const serverPathUri = Uri.joinPath(extensionContext.extensionUri, ...serverPathArray);
+    serverModule = serverPathUri.toString();
+  } else {
+    // For Node.js mode, use the file system path
+    serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
+  }
   const client = createLanguageClient(serverModule, { workspaceType });
 
   // Start the client and add it to subscriptions
@@ -101,9 +158,19 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
 
-  // Activate Test support
-  if (shouldActivateLwcTestSupport(workspaceType)) {
-    activateLwcTestSupport(extensionContext, workspaceType);
+  // Activate Test support (skip in web mode - test execution requires Node.js/terminal)
+  if (process.env.ESBUILD_PLATFORM !== 'web') {
+    try {
+      // Lazy load test support to avoid bundling jest-editor-support in web mode
+      const testSupport = await import('./testSupport/index.js');
+
+      if (testSupport.shouldActivateLwcTestSupport(workspaceType)) {
+        testSupport.activateLwcTestSupport(extensionContext, workspaceType);
+      }
+    } catch (e) {
+      log(`Failed to load test support: ${String(e)}`);
+      channelService.appendLine(`Failed to load test support: ${String(e)}`);
+    }
   }
 
   // Initialize utils for user settings
@@ -111,6 +178,10 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // Notify telemetry that our extension is now active
   void activateTracker.markActivationStop();
+
+  const activationCompleteMsg = 'Lightning Web Components extension activation complete.';
+  log(activationCompleteMsg);
+  channelService.appendLine(activationCompleteMsg);
 };
 
 export const deactivate = async () => {
@@ -118,6 +189,8 @@ export const deactivate = async () => {
     await DevServerService.instance.stopServer();
   }
   log('Lightning Web Components Extension Deactivated');
+  // Get telemetry service for deactivation (no-op in web mode)
+  const telemetryService = await getTelemetryService();
   telemetryService.sendExtensionDeactivationEvent();
 };
 
