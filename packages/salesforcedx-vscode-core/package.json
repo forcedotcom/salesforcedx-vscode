@@ -248,23 +248,23 @@
       "editor/context": [
         {
           "command": "sf.retrieve.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.retrieve.in.manifest",
-          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.deploy.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.deploy.in.manifest",
-          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.delete.source.current.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.diff",
@@ -286,7 +286,7 @@
         },
         {
           "command": "sf.apex.generate.class",
-          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened"
+          "when": "explorerResourceIsFolder && resourcePath =~ /classes/ && sf:project_opened && sf:show_shared_commands"
         },
         {
           "command": "sf.apex.generate.unit.test.class",
@@ -350,23 +350,23 @@
         },
         {
           "command": "sf.retrieve.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.retrieve.in.manifest",
-          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.deploy.source.path",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.deploy.in.manifest",
-          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.delete.source",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.project.generate.manifest",
@@ -388,31 +388,31 @@
         },
         {
           "command": "sf.project.retrieve.start",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:has_target_org"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.project.retrieve.start.ignore.conflicts",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:has_target_org"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.project.deploy.start",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:has_target_org"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.project.deploy.start.ignore.conflicts",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:has_target_org"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.view.all.changes",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:show_shared_commands"
         },
         {
           "command": "sf.view.local.changes",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:show_shared_commands"
         },
         {
           "command": "sf.view.remote.changes",
-          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking"
+          "when": "sf:project_opened && !sf:isv_debug_project && sf:target_org_has_change_tracking && sf:show_shared_commands"
         },
         {
           "command": "sf.task.stop",
@@ -420,7 +420,7 @@
         },
         {
           "command": "sf.apex.generate.class",
-          "when": "sf:project_opened"
+          "when": "sf:project_opened && sf:show_shared_commands"
         },
         {
           "command": "sf.apex.generate.unit.test.class",
@@ -500,19 +500,19 @@
         },
         {
           "command": "sf.retrieve.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && editorIsOpen && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && editorIsOpen && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.retrieve.in.manifest",
-          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.deploy.current.source.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && editorIsOpen && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && editorIsOpen && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.deploy.in.manifest",
-          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId == 'forcesourcemanifest' && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.delete.source",
@@ -520,7 +520,7 @@
         },
         {
           "command": "sf.delete.source.current.file",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && editorIsOpen && sf:has_target_org"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && editorIsOpen && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.lightning.generate.lwc",

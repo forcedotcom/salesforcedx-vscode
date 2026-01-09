@@ -24,8 +24,10 @@ import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
+import { setExtensionContext } from './extensionContext';
 import { closeExtensionScope, getExtensionScope } from './extensionScope';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
+import { updateTelemetryUserIds } from './observability/webUserId';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
@@ -40,25 +42,25 @@ import { WorkspaceService } from './vscode/workspaceService';
 
 export type SalesforceVSCodeServicesApi = {
   services: {
-    ComponentSetService: typeof ComponentSetService;
-    ConnectionService: typeof ConnectionService;
-    ProjectService: typeof ProjectService;
     ChannelService: typeof ChannelService;
     ChannelServiceLayer: typeof ChannelServiceLayer;
-    WorkspaceService: typeof WorkspaceService;
-    FsService: typeof FsService;
-    FileWatcherService: typeof FileWatcherService;
-    EditorService: typeof EditorService;
+    ComponentSetService: typeof ComponentSetService;
     ConfigService: typeof ConfigService;
+    ConnectionService: typeof ConnectionService;
+    EditorService: typeof EditorService;
+    FileWatcherService: typeof FileWatcherService;
+    FsService: typeof FsService;
+    MetadataDeleteService: typeof MetadataDeleteService;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataDeployService: typeof MetadataDeployService;
-    MetadataDeleteService: typeof MetadataDeleteService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
-    SourceTrackingService: typeof SourceTrackingService;
-    SettingsService: typeof SettingsService;
+    ProjectService: typeof ProjectService;
     SdkLayerFor: typeof SdkLayerFor;
+    SettingsService: typeof SettingsService;
+    SourceTrackingService: typeof SourceTrackingService;
     TargetOrgRef: typeof defaultOrgRef;
+    WorkspaceService: typeof WorkspaceService;
   };
 };
 export type { NonEmptyComponentSet } from './core/componentSetService';
@@ -81,6 +83,7 @@ const activationEffect = (context: vscode.ExtensionContext) =>
 
     // watch the config files for changes, which various serices use to invalidate caches
     yield* Effect.forkIn(watchConfigFiles(), yield* getExtensionScope());
+    yield* updateTelemetryUserIds(context);
 
     // watch default org changes to update VS Code context variables
     yield* Effect.forkIn(watchDefaultOrgContext(), yield* getExtensionScope());
@@ -92,6 +95,8 @@ const activationEffect = (context: vscode.ExtensionContext) =>
  * Consumers should get both from the API, not via direct imports.
  */
 export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
+  setExtensionContext(context);
+
   if (process.env.ESBUILD_PLATFORM === 'web') {
     // test-web has this on by default. vscode-dev does not
     const autoSave = vscode.workspace.getConfiguration('files').get<boolean>('autoSave', false);
@@ -105,21 +110,21 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   const extensionScope = Effect.runSync(getExtensionScope());
 
   const requirements = Layer.mergeAll(
+    ChannelService.Default,
     ComponentSetService.Default,
-    WorkspaceService.Default,
-    SettingsService.Default,
-    SettingsWatcherService.Default,
-    IndexedDBStorageServiceShared,
-    ServicesSdkLayer(),
-    ConnectionService.Default,
     ConfigService.Default,
+    ConnectionService.Default,
     FileWatcherService.Default,
+    IndexedDBStorageServiceShared,
+    MetadataDeleteService.Default,
+    MetadataRegistryService.Default,
     MetadataRetrieveService.Default,
     ProjectService.Default,
-    MetadataRegistryService.Default,
-    MetadataDeleteService.Default,
+    ServicesSdkLayer(),
+    SettingsService.Default,
+    SettingsWatcherService.Default,
     SourceTrackingService.Default,
-    ChannelService.Default
+    WorkspaceService.Default
   );
 
   // Build the layer with extensionScope - scoped services live until extension deactivates
@@ -134,29 +139,29 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     ).pipe(Scope.extend(extensionScope))
   );
 
-  console.log('Salesforce Services extension is now active! 7:50');
+  console.log('Salesforce Services extension is now active!');
   // Return API for other extensions to consume
   return {
     services: {
-      ComponentSetService,
-      ConnectionService,
-      ProjectService,
       ChannelService,
       ChannelServiceLayer,
-      WorkspaceService,
-      FsService,
-      FileWatcherService,
-      EditorService,
+      ComponentSetService,
       ConfigService,
+      ConnectionService,
+      EditorService,
+      FileWatcherService,
+      FsService,
+      MetadataDeleteService,
       MetadataDescribeService,
       MetadataDeployService,
-      MetadataDeleteService,
       MetadataRegistryService,
       MetadataRetrieveService,
-      SourceTrackingService,
-      SettingsService,
+      ProjectService,
       SdkLayerFor,
-      TargetOrgRef: defaultOrgRef
+      SettingsService,
+      SourceTrackingService,
+      TargetOrgRef: defaultOrgRef,
+      WorkspaceService
     }
   };
 };

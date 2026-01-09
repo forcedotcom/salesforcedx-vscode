@@ -37,7 +37,9 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
 type TelemetryAttribute = [string, string | undefined];
 
 const getAdditionalAttributes = (extensionName: unknown, extensionVersion: unknown): TelemetryAttribute[] => {
-  const { orgId, devHubOrgId, isSandbox, isScratch, tracksSource } = Effect.runSync(SubscriptionRef.get(defaultOrgRef));
+  const { orgId, devHubOrgId, isSandbox, isScratch, tracksSource, webUserId, cliId } = Effect.runSync(
+    SubscriptionRef.get(defaultOrgRef)
+  );
   const commonAttrs: TelemetryAttribute[] = [];
   if (typeof extensionName === 'string') {
     commonAttrs.push(['common.extname', extensionName]);
@@ -53,6 +55,8 @@ const getAdditionalAttributes = (extensionName: unknown, extensionVersion: unkno
     ['isSandbox', optionalBooleanToString(isSandbox)],
     ['isScratch', optionalBooleanToString(isScratch)],
     ['tracksSource', optionalBooleanToString(tracksSource)],
+    ['userId', cliId],
+    ['webUserId', webUserId],
     ['telemetryTag', workspace.getConfiguration('salesforcedx-vscode-core')?.get('telemetry-tag')]
   ];
 };

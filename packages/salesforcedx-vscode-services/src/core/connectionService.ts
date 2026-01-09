@@ -13,9 +13,12 @@ import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { getCliId } from '../observability/cliTelemetry';
+import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
 import { SettingsService } from '../vscode/settingsService';
 import { ConfigService } from './configService';
-import { DefaultOrgInfoSchema, defaultOrgRef } from './defaultOrgService';
+import { defaultOrgRef } from './defaultOrgService';
+import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
 
 type WebConnectionKey = {
@@ -170,9 +173,35 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
   Effect.gen(function* () {
     const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
 
-    yield* Effect.annotateCurrentSpan({ orgId, devHubUsername, isScratch, isSandbox, tracksSource });
-    const devHubOrgId = yield* yield* Effect.cached(getDevHubId(devHubUsername));
-    const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
+    const [{ username, user_id: userId }, devHubOrgId, existingOrgInfo, cliId] = yield* Effect.all(
+      [
+        Effect.tryPromise(() => conn.identity()).pipe(
+          // best efforts, its just telemetry
+          Effect.catchAll(() => Effect.succeed({ username: undefined, user_id: undefined }))
+        ),
+        Effect.flatten(getDevHubId(devHubUsername)),
+        SubscriptionRef.get(defaultOrgRef),
+        Effect.flatten(getCliId())
+      ],
+      { concurrency: 'unbounded' }
+    );
+
+    yield* Effect.annotateCurrentSpan({
+      orgId,
+      devHubUsername,
+      isScratch,
+      isSandbox,
+      tracksSource,
+      username,
+      userId,
+      devHubOrgId
+    });
+
+    const webUserId =
+      existingOrgInfo.webUserId === UNAUTHENTICATED_USER && orgId && userId
+        ? // ooh, now we know who they are, so we set that
+          yield* setWebUserId(orgId, userId)
+        : (existingOrgInfo.webUserId ?? UNAUTHENTICATED_USER);
 
     const updates = Object.fromEntries(
       Object.entries({
@@ -181,8 +210,11 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
         tracksSource: tracksSource ?? (yield* getTracksSourceFromOrg(conn)),
         isScratch,
         isSandbox,
-        devHubOrgId
-      }).filter(([, v]) => v !== undefined)
+        devHubOrgId,
+        userId,
+        webUserId,
+        ...(typeof cliId === 'string' ? { cliId } : {})
+      } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => v !== undefined)
     );
 
     const updated = Object.fromEntries(
@@ -191,6 +223,7 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
         ...updates
       })
     );
+
     // Check if objects have the same content (deep equality using schema)
     // otherwise, calling set on the ref counts as a change bu it's really not one.
     if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
@@ -208,9 +241,10 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
 
 /** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */
 const getDevHubId = (scratchOrgUsername?: string) =>
-  scratchOrgUsername
+  (scratchOrgUsername
     ? createAuthInfoFromUsername(scratchOrgUsername).pipe(Effect.map(authInfo => authInfo.getFields().orgId))
-    : Effect.succeed(undefined);
+    : Effect.succeed(undefined)
+  ).pipe(Effect.cached);
 
 const createAuthInfoFromUsername = (username: string) =>
   Effect.tryPromise({

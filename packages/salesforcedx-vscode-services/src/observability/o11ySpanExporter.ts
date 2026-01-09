@@ -9,6 +9,8 @@ import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { O11yService } from '@salesforce/o11y-reporter';
 import * as Effect from 'effect/Effect';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { defaultOrgRef } from '../core/defaultOrgService';
 import { unknownToErrorCause } from '../core/shared';
 import { convertAttributes, getExtensionNameAndVersionAttributes, isTopLevelSpan, spanDuration } from './spanUtils';
 
@@ -48,6 +50,7 @@ export class O11ySpanExporter implements SpanExporter {
       Effect.tryPromise({
         try: async () => {
           await this.ensureInitialized();
+          const { cliId, webUserId } = Effect.runSync(SubscriptionRef.get(defaultOrgRef));
           spans.filter(isTopLevelSpan).forEach(span => {
             const success = !span.status || span.status.code !== SpanStatusCode.ERROR;
             const props = {
@@ -56,7 +59,9 @@ export class O11ySpanExporter implements SpanExporter {
               ...convertAttributes(span.attributes),
               traceID: span.spanContext().traceId,
               spanID: span.spanContext().spanId,
-              parentID: span.parentSpanContext?.spanId
+              parentID: span.parentSpanContext?.spanId,
+              ...(cliId ? { userId: cliId } : {}),
+              ...(webUserId ? { webUserId } : {})
             };
             const measurements = {
               duration: spanDuration(span)
