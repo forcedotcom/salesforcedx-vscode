@@ -85,5 +85,6 @@ const displayErrorMessage = Effect.fn('displayErrorMessage')(function* (msg: str
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
   yield* channelService.appendToChannel(`Retrieve failed: ${msg}`);
+  yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
   yield* Effect.promise(() => vscode.window.showErrorMessage(msg));
 });
