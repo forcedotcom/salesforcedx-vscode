@@ -7,10 +7,12 @@
 import { Effect } from 'effect';
 import * as vscode from 'vscode';
 
-// --- Configuration ---
-const MAX_CONCURRENCY = 50;
-const YIELD_INTERVAL = 50; // yield every N opens
-const YIELD_DELAY_MS = 25; // small sleep to avoid UI stutter
+// --- Configuration ---/
+// Windows machines use smaller batch sizes due to performance characteristics
+const isWindows = typeof process !== 'undefined' && process.platform === 'win32';
+const BATCH_SIZE = isWindows ? 5 : 10; // Number of files to process per batch
+const BATCH_CONCURRENCY = isWindows ? 2 : 3; // Concurrent files within each batch
+const BATCH_DELAY_MS = isWindows ? 150 : 100; // Delay between batches (ms)
 
 /**
  * Options for bootstrapWorkspaceAwareness
@@ -66,21 +68,34 @@ export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.E
     );
     yield* Effect.log(`📁 Bootstrapping ${uris.length} files`);
 
-    // 2. Open all files in bounded parallel fashion
-    const itemsWithIndex: { uri: vscode.Uri; idx: number }[] = uris.map((uri: vscode.Uri, idx: number) => ({
-      uri,
-      idx
-    }));
+    // 2. Process files in batches
+    // Split URIs into batches of BATCH_SIZE
+    const batches: vscode.Uri[][] = [];
+    for (let i = 0; i < uris.length; i += BATCH_SIZE) {
+      batches.push(uris.slice(i, i + BATCH_SIZE));
+    }
 
-    yield* Effect.forEach(
-      itemsWithIndex,
-      ({ uri, idx }) =>
-        openDoc(uri).pipe(
-          Effect.tap(() => (idx % YIELD_INTERVAL === 0 ? Effect.sleep(YIELD_DELAY_MS) : Effect.void)),
-          Effect.catchAll((err: unknown) => Effect.logError(String(err)))
-        ),
-      { concurrency: MAX_CONCURRENCY }
-    );
+    logger(`📦 Processing ${batches.length} batches (${BATCH_SIZE} files per batch)`);
+
+    // Process each batch sequentially with a delay between batches
+    for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
+      const batch = batches[batchIdx];
+      const batchNum = batchIdx + 1;
+
+      logger(`📦 Processing batch ${batchNum}/${batches.length} (${batch.length} files)...`);
+
+      // Process files within the batch with limited concurrency
+      yield* Effect.forEach(
+        batch,
+        uri => openDoc(uri).pipe(Effect.catchAll((err: unknown) => Effect.logError(String(err)))),
+        { concurrency: BATCH_CONCURRENCY }
+      );
+
+      // Add a delay between batches (except after the last batch)
+      if (batchIdx < batches.length - 1) {
+        yield* Effect.sleep(BATCH_DELAY_MS);
+      }
+    }
 
     // 3. Log completion
     logger(`✅ Workspace bootstrap complete (${uris.length} files loaded into document cache)`);
