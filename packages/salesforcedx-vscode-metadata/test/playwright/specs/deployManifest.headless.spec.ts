@@ -12,7 +12,7 @@ import {
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
-  createMinimalOrg,
+  createDreamhouseOrg,
   upsertScratchOrgAuthFieldsToSettings,
   upsertSettings,
   createApexClass,
@@ -55,8 +55,8 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
   let className: string;
   let statusBarPage: SourceTrackingStatusBarPage;
 
-  await test.step('setup minimal org and disable deploy-on-save', async () => {
-    const createResult = await createMinimalOrg();
+  await test.step('setup dreamhouse org and disable deploy-on-save', async () => {
+    const createResult = await createDreamhouseOrg();
     await waitForVSCodeWorkbench(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
@@ -69,13 +69,19 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
     await closeWelcomeTabs(page);
   });
 
-  await test.step('create apex class and manifest', async () => {
+  let initialLocalCount: number;
+
+  await test.step('capture initial counts and create apex class', async () => {
+    // Get initial counts after Dreamhouse deployment
+    const initialCounts = await statusBarPage.getCounts();
+    initialLocalCount = initialCounts.local;
+
     // Create apex class (so manifest has something to deploy)
     className = `DeployManifestTest${Date.now()}`;
     await createApexClass(page, className);
 
-    // Verify local count increments to 1
-    await statusBarPage.waitForCounts({ local: 1 }, 60_000);
+    // Verify local count incremented by 1
+    await statusBarPage.waitForCounts({ local: initialLocalCount + 1 }, 60_000);
 
     // Create the manifest file at project root (no subfolder for simplicity)
     await createFileWithContents(page, 'package.xml', manifestContent);
@@ -86,7 +92,7 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
     await openFileByName(page, `${className}.cls`);
 
     await editOpenFile(page, 'Editor context menu manifest test');
-    await statusBarPage.waitForCounts({ local: 1 }, 60_000);
+    await statusBarPage.waitForCounts({ local: initialLocalCount + 1 }, 60_000);
 
     // Open the manifest file (already created in previous step)
     await openFileByName(page, 'package.xml');
@@ -130,7 +136,7 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
       throw new Error(`Deploy failed with error notification: ${errorText}`);
     }
 
-    await statusBarPage.waitForCounts({ local: 0 }, 60_000);
+    await statusBarPage.waitForCounts({ local: initialLocalCount }, 60_000);
   });
 
   await test.step('2. Explorer context menu (file)', async () => {
@@ -144,7 +150,7 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
     await apexEditor.waitFor({ state: 'visible', timeout: 10_000 });
     await apexEditor.click();
     await editOpenFile(page, 'Explorer context menu manifest test');
-    await statusBarPage.waitForCounts({ local: 1 }, 60_000);
+    await statusBarPage.waitForCounts({ local: initialLocalCount + 1 }, 60_000);
 
     // Right-click manifest in explorer → "SFDX: Deploy Source in Manifest to Org"
     await executeExplorerContextMenuCommand(page, /package\.xml/i, packageNls.deploy_in_manifest_text);
@@ -168,7 +174,7 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
       throw new Error(`Deploy failed with error notification: ${errorText}`);
     }
 
-    await statusBarPage.waitForCounts({ local: 0 }, 60_000);
+    await statusBarPage.waitForCounts({ local: initialLocalCount }, 60_000);
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

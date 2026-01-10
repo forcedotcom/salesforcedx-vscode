@@ -51,10 +51,28 @@ Windows Desktop Failures:
    - Updated to verify completion via output channel
    - Matched actual service output messages
 
-### In Progress
-- deployOnSave test still timing out locally (needs further investigation)
-- Issue: Test waits for "Deploy on save complete:" but message may not appear or have different format
-- Next steps: Need to capture actual output channel content to see what messages appear
+### Current Session (Commit TBD - sm/ralph-e2e-2)
+- 🔍 Investigated deployManifest.headless.spec.ts failures
+- Root cause identified: Source tracking status bar not initializing in web mode
+  - Tests using `createMinimalOrg()` fail: status bar never appears (120s timeout)
+  - Switched to `createDreamhouseOrg()` which fixes status bar visibility
+  - However: Source tracking counts remain 0↓0↑ even after creating files
+  - File creation in memfs doesn't trigger source tracking updates
+- Testing matrix results:
+  - **Web mode (macOS)**: ALL metadata tests fail - source tracking doesn't detect file changes
+    - deployManifest: Status bar shows but counts don't update
+    - sourceTrackingStatusBar: Remote changes = 0 (expected > 0 after Dreamhouse)
+    - deploySourcePath: Status bar timeout with createMinimalOrg
+  - **Desktop mode (macOS)**: deployManifest SKIPPED - uses right-click which doesn't work on Mac
+  - **Windows desktop (CI)**: This is where the test actually runs and fails
+- Changes made to deployManifest test:
+  - Switched from `createMinimalOrg()` to `createDreamhouseOrg()`
+  - Made count assertions relative to initial state instead of absolute values
+  - Test now structured to handle variable initial counts from Dreamhouse
+- Blocker: Cannot effectively test or fix source tracking issues on macOS
+  - Web mode has fundamental source tracking limitations
+  - Desktop mode test is intentionally skipped on Mac
+  - Need Windows desktop environment to properly test/debug
 
 ### Key Findings
 - Deploy-on-save operations intentionally don't show progress notifications
