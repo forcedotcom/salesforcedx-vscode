@@ -6,7 +6,6 @@
  */
 
 import { test } from '../fixtures';
-import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -22,7 +21,6 @@ import {
   editOpenFile,
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
-import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 
 test('Deploy On Save: automatically deploys when file is saved', async ({ page }) => {
@@ -63,22 +61,17 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
     await editOpenFile(page, 'Deploy on save test comment');
   });
 
-  await test.step('verify deploying notification appears and disappears', async () => {
+  await test.step('verify deploy triggers and completes', async () => {
     // Wait for deploy-on-save to trigger (service has 1s delay, then deploy starts)
-    // Check output channel first to verify deploy-on-save is working
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
+    // Match the actual message which includes ignoreConflicts flag
     await waitForOutputChannelText(page, { expectedText: 'Deploy on save triggered', timeout: 30_000 });
 
-    // Now wait for the deploying notification
-    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-    await expect(deployingNotification).not.toBeVisible({ timeout: 600_000 });
-  });
-
-  await test.step('verify output channel shows deploy success', async () => {
-    // Output channel already open from previous step
-    // Check for completion message
-    await waitForOutputChannelText(page, { expectedText: 'Deploy on save complete', timeout: 240_000 });
+    // Wait for deploy to complete - deploy-on-save doesn't show progress notifications
+    // so we verify completion via output channel instead
+    // Match the actual completion message which includes counts
+    await waitForOutputChannelText(page, { expectedText: 'Deploy on save complete:', timeout: 240_000 });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

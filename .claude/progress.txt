@@ -1,0 +1,44 @@
+# E2E Test Progress
+
+## Current Status
+Working on fixing failing metadata e2e tests. Org-browser tests are passing (web and desktop on macOS).
+
+## GitHub Actions Analysis (from run 20865969685 on sm/olly-and-per-ext-telemetry branch)
+Windows Desktop Failures:
+1. **deployManifest.headless.spec.ts** - Timeout waiting for source tracking status bar (60s timeout exceeded, page/context/browser closed)
+2. **deployOnSave.headless.spec.ts** - "Deploying" progress notification not appearing (30s timeout)
+
+## Commands Status
+
+### Deploy Commands
+1. `sf.project.deploy.start` - Has test: deploySourcePath.headless.spec.ts
+2. `sf.project.deploy.start.ignore.conflicts` - TODO
+3. `sf.deploy.source.path` - Has test: deploySourcePath*.spec.ts
+4. `sf.deploy.active.editor` - TODO
+5. `sf.deploy.in.manifest` - Has test: deployManifest.headless.spec.ts ❌ FAILING (Windows desktop)
+6. Deploy on save - Has test: deployOnSave.headless.spec.ts ❌ FAILING (Windows desktop)
+
+### Retrieve Commands
+7. `sf.project.retrieve.start` - TODO
+8. `sf.project.retrieve.start.ignore.conflicts` - TODO
+9. `sf.retrieve.source.path` - TODO
+10. `sf.retrieve.current.source.file` - TODO
+11. `sf.retrieve.in.manifest` - TODO
+
+### View Changes Commands
+12. `sf.view.all.changes` - Has test: viewChangesCommands.headless.spec.ts
+13. `sf.view.local.changes` - Has test: viewChangesCommands.headless.spec.ts
+14. `sf.view.remote.changes` - Has test: viewChangesCommands.headless.spec.ts
+
+### Source Tracking Commands
+15. `sf.source.tracking.reset.remote` - TODO
+16. Source tracking status bar - Has test: sourceTrackingStatusBar.headless.spec.ts
+
+### Other Commands
+17. `sf.apex.generate.class` - TODO
+18. `sf.delete.source` - TODO
+19. `sf.delete.source.current.file` - TODO
+
+## Current Work
+- Fixed org-browser desktop tests (were failing due to incomplete VS Code download)
+- Now focusing on deployOnSave.headless.spec.ts failure
