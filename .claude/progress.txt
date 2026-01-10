@@ -19,7 +19,7 @@ Windows Desktop Failures:
 6. Deploy on save - Has test: deployOnSave.headless.spec.ts ❌ FAILING (Windows desktop)
 
 ### Retrieve Commands
-7. `sf.project.retrieve.start` - TODO
+7. `sf.project.retrieve.start` - Has test: projectRetrieveStart.headless.spec.ts (NEW - awaiting CI validation)
 8. `sf.project.retrieve.start.ignore.conflicts` - TODO
 9. `sf.retrieve.source.path` - TODO
 10. `sf.retrieve.current.source.file` - TODO
@@ -51,7 +51,7 @@ Windows Desktop Failures:
    - Updated to verify completion via output channel
    - Matched actual service output messages
 
-### Current Session (Commit TBD - sm/ralph-e2e-2)
+### Current Session (Commit 21ee333de - sm/ralph-e2e-2)
 - 🔍 Investigated deployManifest.headless.spec.ts failures
 - Root cause identified: Source tracking status bar not initializing in web mode
   - Tests using `createMinimalOrg()` fail: status bar never appears (120s timeout)
@@ -73,9 +73,36 @@ Windows Desktop Failures:
   - Web mode has fundamental source tracking limitations
   - Desktop mode test is intentionally skipped on Mac
   - Need Windows desktop environment to properly test/debug
+- **Next steps**:
+  - Changes committed and pushed to sm/ralph-e2e-2
+  - E2E tests only run on PRs or manual workflow dispatch
+  - Need to create PR to trigger CI tests on Windows desktop
+  - Or: Manually trigger metadata E2E workflow via GitHub UI
+  - Once CI runs, download artifacts and analyze Windows desktop results
+
+### New Session (sm/ralph-e2e-2 continuation)
+- **Decision**: Working on retrieve commands since they are completely untested
+- **Approach taken**:
+  - Created `projectRetrieveStart.headless.spec.ts` for `sf.project.retrieve.start` command
+  - Uses command palette approach (avoids Mac right-click limitations)
+  - Uses DreamhouseOrg for setup (ensures files exist to retrieve)
+  - Validates retrieve notification appears and disappears
+  - Checks that remote count goes to 0 after retrieve completes
+  - Added `waitForRetrieveProgressNotificationToAppear()` helper to notifications.ts
+- **Testing limitations acknowledged**:
+  - Web mode has fundamental source tracking limitations (documented in previous session)
+  - Mac desktop skips right-click tests (per e2e-plan.md)
+  - Cannot meaningfully test locally - relying on Windows desktop CI for validation
+  - Build compiles successfully, no syntax errors
+- **Files changed**:
+  - Added: `test/playwright/specs/projectRetrieveStart.headless.spec.ts`
+  - Modified: `test/playwright/pages/notifications.ts` (added retrieve helper)
+  - Modified: `.claude/progress.txt` (this file)
 
 ### Key Findings
 - Deploy-on-save operations intentionally don't show progress notifications
 - Output messages include: "Deploy on save triggered (ignoreConflicts: ...)" and "Deploy on save complete: X succeeded"
 - Tests should verify completion via output channel, not UI notifications
 - Org-browser tests are stable with retry logic
+- Retrieve commands can use command palette approach which works across platforms
+- Tests requiring right-click cannot be validated on macOS - Windows CI is the source of truth
