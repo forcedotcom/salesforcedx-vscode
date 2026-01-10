@@ -39,6 +39,25 @@ Windows Desktop Failures:
 18. `sf.delete.source` - TODO
 19. `sf.delete.source.current.file` - TODO
 
-## Current Work
-- Fixed org-browser desktop tests (were failing due to incomplete VS Code download)
-- Now focusing on deployOnSave.headless.spec.ts failure
+## Session Summary (Commit 5501e751f)
+
+### Completed
+1. ✅ Analyzed GitHub Actions failures from recent runs
+2. ✅ Verified org-browser tests pass locally (web: 4/4 passed, desktop: 4/4 passed)
+   - Tests are flaky on first run but pass on retry
+3. ✅ Improved deployOnSave test approach:
+   - Removed incorrect expectation of progress notifications
+   - Deploy-on-save doesn't show UI notifications (by design)
+   - Updated to verify completion via output channel
+   - Matched actual service output messages
+
+### In Progress
+- deployOnSave test still timing out locally (needs further investigation)
+- Issue: Test waits for "Deploy on save complete:" but message may not appear or have different format
+- Next steps: Need to capture actual output channel content to see what messages appear
+
+### Key Findings
+- Deploy-on-save operations intentionally don't show progress notifications
+- Output messages include: "Deploy on save triggered (ignoreConflicts: ...)" and "Deploy on save complete: X succeeded"
+- Tests should verify completion via output channel, not UI notifications
+- Org-browser tests are stable with retry logic
