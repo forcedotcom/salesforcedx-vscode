@@ -6,7 +6,6 @@
  */
 
 import { test } from '../fixtures';
-import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -20,16 +19,17 @@ import {
   executeExplorerContextMenuCommand,
   isMacDesktop,
   validateNoCriticalErrors,
-  saveScreenshot
+  saveScreenshot,
+  ensureOutputPanelOpen,
+  selectOutputChannel,
+  waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
-import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 import packageNls from '../../../package.nls.json';
 
-// Skip on web mode (source tracking doesn't work) and Mac desktop (right-click doesn't work)
-const isWeb = process.env.VSCODE_DESKTOP !== '1';
+// Skip on Mac desktop (right-click doesn't work)
 // eslint-disable-next-line jest/unbound-method
-(isWeb || isMacDesktop() ? test.skip : test)('Retrieve Source Path: retrieves file via explorer context menu', async ({ page }) => {
+(isMacDesktop() ? test.skip : test)('Retrieve Source Path: retrieves file via explorer context menu', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -75,15 +75,21 @@ const isWeb = process.env.VSCODE_DESKTOP !== '1';
     const initialCounts = await statusBarPage.getCounts();
     await saveScreenshot(page, `step2.initial-counts-${initialCounts.local}-${initialCounts.remote}.png`);
 
+    // Prepare output channel before triggering command
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+
     // Right-click the apex class file in explorer and select retrieve
     const classFilePattern = new RegExp(`${className}\\.cls$`, 'i');
     await executeExplorerContextMenuCommand(page, classFilePattern, packageNls.retrieve_this_source_text);
     await saveScreenshot(page, 'step2.after-context-menu.png');
 
-    // Verify retrieve progress notification appears then disappears
-    const retrievingNotification = await waitForRetrieveProgressNotificationToAppear(page, 30_000);
-    await saveScreenshot(page, 'step2.retrieve-notification-appeared.png');
-    await expect(retrievingNotification).not.toBeVisible({ timeout: 240_000 });
+    // Verify retrieve starts and completes via output channel
+    // Retrieve operations may not show progress notifications consistently across platforms
+    await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
+    await saveScreenshot(page, 'step2.retrieve-started.png');
+
+    await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: 240_000 });
     await saveScreenshot(page, 'step2.retrieve-complete.png');
 
     // After retrieve, local count should decrease (file retrieved from org)

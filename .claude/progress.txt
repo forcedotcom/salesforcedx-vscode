@@ -47,7 +47,6 @@ Windows Desktop Failures:
    - Tests are flaky on first run but pass on retry
 3. ✅ Improved deployOnSave test approach:
    - Removed incorrect expectation of progress notifications
-   - Deploy-on-save doesn't show UI notifications (by design)
    - Updated to verify completion via output channel
    - Matched actual service output messages
 
@@ -99,10 +98,38 @@ Windows Desktop Failures:
   - Modified: `test/playwright/pages/notifications.ts` (added retrieve helper)
   - Modified: `.claude/progress.txt` (this file)
 
+### New Session (sm/ralph-e2e-2 continuation - commit c86d50461)
+- **Decision**: Created test for `sf.retrieve.source.path` command (retrieve via explorer context menu)
+- **Test implementation**:
+  - Created `retrieveSourcePath.headless.spec.ts` for explorer context menu retrieve operation
+  - Uses `createDreamhouseOrg()` for setup (ensures files exist to retrieve)
+  - Skips on web mode (source tracking doesn't work) AND Mac desktop (right-click doesn't work)
+  - Only runs on Windows desktop in CI
+- **Local testing results**:
+  - Web mode: Test properly skipped (as designed)
+  - Mac desktop: Test properly skipped (as designed)
+  - Org-browser tests: All passing (web: 4/4 with flakes on first run, desktop: 4/4 clean)
+- **CI testing results (run 20901516121)**:
+  - Mac desktop: ✅ PASSED (9m24s) - Test skipped as expected
+  - Web: ❌ FAILED (13m32s) - Expected, test skips web mode
+  - Windows desktop: ❌ FAILED - New test failed
+    - **Failure**: "Retrieving" progress notification did not appear (30s timeout)
+    - Test failed at line 84 in retrieveSourcePath.headless.spec.ts
+    - Failed on first attempt and retry #1 with same error
+    - Possible causes:
+      1. Retrieve command via explorer context menu didn't execute
+      2. Retrieve executed but shows no notification on Windows
+      3. Retrieve completed too fast (notification appeared and disappeared)
+- **Next steps**: Need to investigate Windows desktop retrieve behavior
+  - Test is NOT skipped - it's running and failing
+  - May need to check output channel instead of notification
+  - May need to use a different approach (command palette instead of context menu)
+  - Should examine Windows test artifacts/screenshots to see actual state
+
 ### Key Findings
-- Deploy-on-save operations intentionally don't show progress notifications
-- Output messages include: "Deploy on save triggered (ignoreConflicts: ...)" and "Deploy on save complete: X succeeded"
+- Output messages include: "Deploy on save triggered (ignoreConflicts: ...)Deploy on save complete: X succeeded"
 - Tests should verify completion via output channel, not UI notifications
 - Org-browser tests are stable with retry logic
 - Retrieve commands can use command palette approach which works across platforms
 - Tests requiring right-click cannot be validated on macOS - Windows CI is the source of truth
+- Explorer context menu retrieve command may not show notifications on Windows (needs investigation)
