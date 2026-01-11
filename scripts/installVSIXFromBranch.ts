@@ -75,12 +75,12 @@ const vsixFiles = execSync(`find ${SAVE_DIRECTORY} -name "*.vsix"`, { encoding: 
 if (vsixFiles.length > 0) {
   logger('\nCleaning up any old Salesforce extensions (if applicable) and installing the new VSIX files.');
 
-  // First uninstall Agentforce for Developers
+  // First uninstall Agentforce Vibes
   try {
     logger('\n');
     execSync(`${IDE} --uninstall-extension salesforce.salesforcedx-einstein-gpt`, { stdio: 'inherit' });
   } catch (error) {
-    logger('Agentforce for Developers was not installed, continuing...');
+    logger('Agentforce Vibes was not installed, continuing...');
   }
 
   // Uninstall code-analyzer
