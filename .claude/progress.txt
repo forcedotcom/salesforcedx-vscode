@@ -20,17 +20,25 @@
    - Test passes on web (with flake on first run) and desktop modes
    - Org-browser tests still passing (4/4 on web)
 
+3. **Created retrieveInManifest.headless.spec.ts** (commit: 4ab89f779)
+   - New e2e test for sf.retrieve.in.manifest command
+   - Tests both editor context menu and explorer context menu entry points
+   - Uses package.xml with ApexClass wildcard retrieval
+   - Validates via output channel text verification
+   - Skipped on Mac desktop (right-click doesn't work)
+
 ### Test Coverage Summary
 
 Commands with tests:
-1. ✅ sf.project.deploy.start - projectDeployStart.headless.spec.ts (NEW)
-2. ✅ sf.project.retrieve.start - projectRetrieveStart.headless.spec.ts (FIXED)
+1. ✅ sf.project.deploy.start - projectDeployStart.headless.spec.ts
+2. ✅ sf.project.retrieve.start - projectRetrieveStart.headless.spec.ts
 3. ✅ sf.deploy.source.path - deploySourcePath*.headless.spec.ts
 4. ✅ sf.deploy.in.manifest - deployManifest.headless.spec.ts
-5. ✅ sf.retrieve.source.path - retrieveSourcePath.headless.spec.ts
-6. ✅ sf.view.all.changes - viewChangesCommands.headless.spec.ts
-7. ✅ sf.view.local.changes - viewChangesCommands.headless.spec.ts
-8. ✅ sf.view.remote.changes - viewChangesCommands.headless.spec.ts
+5. ✅ sf.retrieve.source.path - retrieveSourcePath.headless.spec.ts (explorer context menu only)
+6. ✅ sf.retrieve.in.manifest - retrieveInManifest.headless.spec.ts
+7. ✅ sf.view.all.changes - viewChangesCommands.headless.spec.ts
+8. ✅ sf.view.local.changes - viewChangesCommands.headless.spec.ts
+9. ✅ sf.view.remote.changes - viewChangesCommands.headless.spec.ts
 
 Commands still needing tests:
 - sf.project.deploy.start.ignore.conflicts
@@ -40,10 +48,12 @@ Commands still needing tests:
 - sf.delete.source
 - sf.delete.source.current.file
 - sf.deploy.active.editor
-- sf.retrieve.current.source.file
-- sf.retrieve.in.manifest
+- sf.retrieve.current.source.file (editor context menu)
 
-### CI Status
-- Triggered Metadata E2E workflow run 20902936199 for branch sm/ralph-e2e-meta
-- Run includes both projectRetrieveStart fix and new projectDeployStart test
-- Monitoring in background (gh run watch)
+### Latest CI Status (Run 20902936199)
+- ✅ e2e-web: PASSED (10m25s)
+- ✅ e2e-desktop (macos-latest): PASSED (7m10s)
+- ⏳ e2e-desktop (windows-latest): In progress
+
+All current tests (9 commands) passing on web and macos.
+retrieveInManifest test working correctly.
