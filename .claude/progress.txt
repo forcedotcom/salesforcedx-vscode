@@ -62,7 +62,7 @@ Commands still needing tests (7 remaining):
 ### Latest CI Status (Run 20902936199)
 - ✅ e2e-web: PASSED (10m25s)
 - ✅ e2e-desktop (macos-latest): PASSED (7m10s)
-- ⏳ e2e-desktop (windows-latest): In progress
+- ❌ e2e-desktop (windows-latest): FAILED - deployManifest test failing on Windows with timeout waiting for "Folder path" textbox in createFileWithContents helper
 
-All current tests (9 commands) passing on web and macos.
-retrieveInManifest test working correctly.
+All current tests (10 commands) passing on web and macos.
+Windows has one test failure in deployManifest that needs investigation.
