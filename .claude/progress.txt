@@ -27,6 +27,15 @@
    - Validates via output channel text verification
    - Skipped on Mac desktop (right-click doesn't work)
 
+4. **Created apexGenerateClass.headless.spec.ts** (commit: 644a1257c)
+   - New e2e test for sf.apex.generate.class command
+   - Tests class creation via command palette
+   - Verifies prompts appear (class name, output directory)
+   - Validates file creation in explorer and editor
+   - Checks generated class structure contains expected definition
+   - Passes on both web and desktop (macos) modes
+   - Org-browser tests still passing (4/4 on web)
+
 ### Test Coverage Summary
 
 Commands with tests:
@@ -39,12 +48,12 @@ Commands with tests:
 7. ✅ sf.view.all.changes - viewChangesCommands.headless.spec.ts
 8. ✅ sf.view.local.changes - viewChangesCommands.headless.spec.ts
 9. ✅ sf.view.remote.changes - viewChangesCommands.headless.spec.ts
+10. ✅ sf.apex.generate.class - apexGenerateClass.headless.spec.ts (NEW)
 
-Commands still needing tests:
+Commands still needing tests (7 remaining):
 - sf.project.deploy.start.ignore.conflicts
 - sf.project.retrieve.start.ignore.conflicts
 - sf.source.tracking.reset.remote
-- sf.apex.generate.class
 - sf.delete.source
 - sf.delete.source.current.file
 - sf.deploy.active.editor
