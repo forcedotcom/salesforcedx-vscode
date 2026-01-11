@@ -25,6 +25,8 @@ import {
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
+import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
+import { expect } from '@playwright/test';
 import packageNls from '../../../package.nls.json';
 
 // Skip on Mac desktop (right-click doesn't work)
@@ -51,29 +53,46 @@ import packageNls from '../../../package.nls.json';
     await saveScreenshot(page, 'setup.complete.png');
   });
 
-  await test.step('create local apex class and make remote change', async () => {
+  await test.step('create and deploy apex class', async () => {
     // Create apex class locally
     className = `RetrieveSourcePathTest${Date.now()}`;
     await createApexClass(page, className);
     await saveScreenshot(page, 'step1.after-create-class.png');
 
-    // Wait for local count to increment
-    const countsAfterCreate = await statusBarPage.getCounts();
-    await saveScreenshot(page, `step1.after-create-counts-${countsAfterCreate.local}-${countsAfterCreate.remote}.png`);
-
-    // Simulate remote change by making a local edit, then resetting locally
-    // This creates a scenario where the file exists remotely but differs locally
+    // Edit the class to create local change
     await openFileByName(page, `${className}.cls`);
-    await editOpenFile(page, 'Remote change simulation');
+    await editOpenFile(page, 'Initial version to deploy');
     await saveScreenshot(page, 'step1.after-edit.png');
 
-    // Note: We cannot easily simulate a true remote-only change without deploying
-    // So this test focuses on the retrieve mechanism itself working correctly
+    // Wait for local count to increment
+    await statusBarPage.waitForCounts({ local: 1 }, 60_000);
+    await saveScreenshot(page, 'step1.after-local-count-1.png');
+
+    // Deploy the file via explorer context menu
+    const classFilePattern = new RegExp(`${className}\\.cls$`, 'i');
+    await executeExplorerContextMenuCommand(page, classFilePattern, packageNls.deploy_this_source_text);
+    await saveScreenshot(page, 'step1.after-deploy-context-menu.png');
+
+    // Verify deploy completes
+    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
+    await saveScreenshot(page, 'step1.deploy-notification-appeared.png');
+    await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
+    await statusBarPage.waitForCounts({ local: 0 }, 60_000);
+    await saveScreenshot(page, 'step1.deploy-complete.png');
   });
 
-  await test.step('retrieve file via explorer context menu', async () => {
-    const initialCounts = await statusBarPage.getCounts();
-    await saveScreenshot(page, `step2.initial-counts-${initialCounts.local}-${initialCounts.remote}.png`);
+  await test.step('make local change and retrieve to restore deployed version', async () => {
+    // Make another local edit to create a difference between local and org
+    await openFileByName(page, `${className}.cls`);
+    const apexEditor = page.locator(`[data-uri*="${className}.cls"]`).first();
+    await apexEditor.waitFor({ state: 'visible', timeout: 10_000 });
+    await apexEditor.click();
+    await editOpenFile(page, 'Local change to be overwritten by retrieve');
+    await saveScreenshot(page, 'step2.after-local-edit.png');
+
+    // Wait for local count to increment
+    await statusBarPage.waitForCounts({ local: 1 }, 60_000);
+    await saveScreenshot(page, 'step2.after-local-count-1.png');
 
     // Prepare output channel before triggering command
     await ensureOutputPanelOpen(page);
@@ -92,9 +111,8 @@ import packageNls from '../../../package.nls.json';
     await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: 240_000 });
     await saveScreenshot(page, 'step2.retrieve-complete.png');
 
-    // After retrieve, local count should decrease (file retrieved from org)
-    // We cannot assert exact counts since the Dreamhouse org state is variable
-    // But we verify the retrieve operation completed successfully
+    // After retrieve, local count should go back to 0 (file retrieved from org)
+    await statusBarPage.waitForCounts({ local: 0 }, 60_000);
     await saveScreenshot(page, 'step2.final-state.png');
   });
 
