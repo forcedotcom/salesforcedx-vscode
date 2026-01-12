@@ -32,7 +32,9 @@
 - packages/playwright-vscode-ext/test/playwright/specs/fileOperations.headless.spec.ts
 
 ### Status:
-- All web tests passing consistently (no flaky tests)
-- All desktop tests passing
+- All web tests passing consistently (21/21, no flaky tests)
+- All desktop tests passing (18 pass, 3 skipped as expected on macOS)
 - Output channel clearing verified with screenshots (test-results/output-channel-cleared.png)
-- Ready to commit and push
+- Committed and pushed (7329d5f76)
+- CI workflow running (20927884970) - monitoring results
+- Org-browser web tests still passing (4/4)
