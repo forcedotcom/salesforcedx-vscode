@@ -66,12 +66,13 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   await expect(commandRow).toBeAttached({ timeout: 5000 });
   
   // For virtualized lists, the element may exist but not be visible in the viewport.
-  // Wait a bit for the list to stabilize and filter results
-  await page.waitForTimeout(300);
+  // Wait a bit longer for the list to stabilize and filter results, especially on desktop CI
+  await page.waitForTimeout(500);
   
-  // Wait for the element to be visible - Playwright's click() will automatically scroll into view if needed
+  // Wait for the element to be visible with longer timeout for desktop CI
+  // Playwright's click() will automatically scroll into view if needed
   // Don't use scrollIntoViewIfNeeded() for virtualized DOM as the element won't exist until scrolled into view
-  await expect(commandRow).toBeVisible({ timeout: 5000 });
+  await expect(commandRow).toBeVisible({ timeout: 10_000 });
   
   // Click the command row - Playwright will handle scrolling if needed
   await commandRow.click();
