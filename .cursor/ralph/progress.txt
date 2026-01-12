@@ -49,7 +49,7 @@
   - Added wait for welcome tabs to appear before closing
   - Added double-check after closing to ensure no new tabs appear
   - Added fallback to Ctrl+W keyboard shortcut if close button fails
-  - Added small delays to allow DOM to stabilize
+  - Note: Small delays were later removed to align with coding rules (no waitForTimeout)
 - Committed and pushed fix (commit b0a565233)
 - CI run 20931588288 results:
   - Web: ✓ 21/21 tests pass (0 failures) - fix successful!
@@ -117,3 +117,46 @@
   - Fix import order in outputChannel test
   - All tests pass locally (18 desktop, 21 web)
 - CI run 20933635258 started - monitoring results
+- Fixed flaky command palette test (commit 2410d7144):
+  - Removed toBeVisible() check on command list rows that was causing flaky failures
+  - Wait for attachment (exists in DOM) instead of visibility
+  - Rely on Playwright's click() to handle scrolling and visibility automatically
+  - Fixes issue where virtualized DOM rows exist but are hidden until scrolled into view
+  - All web tests pass consistently locally (21/21)
+  - Desktop tests pass locally (18 pass, 3 skipped)
+- CI run 20933803907 started - monitoring results
+- CI run 20933803907 results:
+  - Web: failures - welcome tabs not being closed properly in CI
+  - Root cause: closeWelcomeTabs not ensuring workbench focus before closing tabs
+- Fixed closeWelcomeTabs function (commit 8d8f4794f):
+  - Ensure workbench is focused before closing tabs
+  - Focus workbench before each close attempt
+  - Use keyboard shortcut (Control+w) first as it's more reliable
+  - Wait for tab to actually be detached before continuing
+- Fixed waitForTimeout violation in outputChannel.ts (commit 60b9d542d):
+  - Removed waitForTimeout(500) from withOutputFilter function
+  - Replaced with proper wait for filter input value using expect().toHaveValue()
+  - Fixes coding rules violation - should wait for specific elements instead of arbitrary timeouts
+  - All tests pass locally (21 web, 18 desktop with 3 skipped)
+- Fixed waitForTimeout violation in settings.ts:
+  - Removed waitForTimeout(100) from performSearch function
+  - Replaced with proper wait for Monaco editor focused class using expect().toHaveClass(/focused/)
+  - Monaco editor doesn't expose focus via standard APIs, so we check for the 'focused' class
+  - All tests pass locally (21 web, 18 desktop with 3 skipped)
+- Fixed flaky output channel filter input test (commit d4228976b):
+  - Ensure filter input is visible and focused before filling
+  - Add explicit wait for input value after filling with timeout (5000ms)
+  - Add verification that filter is cleared after use
+  - Fixes flaky test where filter input value wasn't being set reliably
+- Fixed desktop command palette virtualized DOM issue (commit d4228976b):
+  - Scroll command row into view before clicking for virtualized DOM
+  - Use evaluate() to call scrollIntoView() directly on DOM element
+  - Wait for element to be visible after scrolling before clicking
+  - Fixes desktop CI failures where command exists in DOM but isn't visible
+  - All web tests pass consistently locally (21/21)
+  - All desktop tests pass locally (18 pass, 3 skipped)
+- CI run 20934517110 results:
+  - Web: ✓ 21/21 tests pass (0 failures)
+  - macOS desktop: failure - command palette command not visible (virtualized DOM issue)
+  - Windows desktop: failure - similar virtualized DOM issue
+- CI run 20934988628 started - monitoring results (includes scrollIntoView fix)

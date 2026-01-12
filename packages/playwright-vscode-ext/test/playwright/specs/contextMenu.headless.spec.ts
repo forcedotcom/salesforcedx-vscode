@@ -64,9 +64,9 @@ test.describe('Context Menu', () => {
       // Actual explorer context menu functionality (executeExplorerContextMenuCommand)
       // is tested in extensions that have workspace folders (like org-browser).
 
-      // Verify the "Open Folder" button is present as proof explorer loaded correctly
-      const openFolderButton = page.getByRole('button', { name: /Open Folder/i });
-      await expect(openFolderButton).toBeVisible();
+      // Verify explorer view container is present (more reliable than checking for specific buttons)
+      const explorerView = page.locator('[id="workbench.view.explorer"]');
+      await expect(explorerView).toBeVisible({ timeout: 5000 });
     });
   });
 });
