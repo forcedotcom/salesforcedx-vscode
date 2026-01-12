@@ -27,7 +27,7 @@
 - Web tests passing consistently (21/21)
 - Desktop tests passing locally on macOS (18 pass, 3 skipped as expected)
 - Output channel clearing test includes screenshot verification using saveScreenshot utility (requirement 1a satisfied)
-- Org-browser web tests still passing (4/4)
+- Output channel clearing test verifies channel is completely cleared (text length is 0) with screenshot
 
 ### Latest Changes:
 - Fixed GitHub Actions workflow: removed ubuntu-latest from desktop matrix (Electron requires display server on Linux, plan only specifies Mac/Windows desktop tests)

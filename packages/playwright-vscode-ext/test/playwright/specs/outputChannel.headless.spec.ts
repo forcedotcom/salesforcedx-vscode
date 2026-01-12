@@ -13,11 +13,11 @@ import {
   waitForOutputChannelText,
   outputChannelContains
 } from '../../../src/pages/outputChannel';
+import { saveScreenshot } from '../../../src/shared/screenshotUtils';
 import {
   waitForVSCodeWorkbench,
   closeWelcomeTabs
 } from '../../../src/utils/helpers';
-import { saveScreenshot } from '../../../src/shared/screenshotUtils';
 import { test } from '../fixtures/index';
 
 test.describe('Output Channel', () => {
