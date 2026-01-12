@@ -279,7 +279,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   console.log('salesforcedx-vscode-core index.ts activate() - 23');
   if (salesforceProjectOpened) {
     console.log('salesforcedx-vscode-core index.ts activate() - 24');
-    await initializeProject(extensionContext);
+    await initializeProject(extensionContext); // THIS LINE FAILED
     console.log('salesforcedx-vscode-core index.ts activate() - 25');
   }
   console.log('salesforcedx-vscode-core index.ts activate() - 26');

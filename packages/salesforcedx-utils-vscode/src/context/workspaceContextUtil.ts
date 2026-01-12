@@ -112,7 +112,9 @@ export class WorkspaceContextUtil {
           Date.now() - connectionDetails.lastTokenValidationTimestamp > 1000 * 60 * 5 // 5 minutes
         ) {
           console.log('workspaceContextUtil.ts getConnection() - 10');
-          await connectionDetails.connection.identity();
+          await connectionDetails.connection.identity(); // THIS LINE FAILED
+          // There was no identity because the user was logged out.
+          // Therefore the workaround was to login again via CLI.
           console.log('workspaceContextUtil.ts getConnection() - 11');
           this.knownBadConnections.delete(this._username);
           console.log('workspaceContextUtil.ts getConnection() - 12');
