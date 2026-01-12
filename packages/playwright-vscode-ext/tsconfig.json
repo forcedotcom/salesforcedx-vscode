@@ -5,5 +5,5 @@
     "outDir": "out"
   },
   "exclude": ["node_modules", "out"],
-  "include": ["src/**/*.ts", "test/**/*.ts", "playwright.config.*.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts", "playwright.config.web.ts", "playwright.config.desktop.ts"]
 }

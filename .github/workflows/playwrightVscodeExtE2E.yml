@@ -1,0 +1,107 @@
+name: Playwright VS Code Ext E2E Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'packages/playwright-vscode-ext/**'
+      - '.github/workflows/playwrightVscodeExtE2E.yml'
+
+jobs:
+  e2e-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile
+        run: npm run compile -w playwright-vscode-ext
+
+      - name: Install Playwright browsers and OS deps
+        run: npx playwright install chromium --with-deps
+
+      - name: Run Playwright web tests
+        env:
+          CI: 1
+        run: |
+          npm run test:web -w playwright-vscode-ext
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-web
+          path: packages/playwright-vscode-ext/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-web
+          path: packages/playwright-vscode-ext/test-results
+          if-no-files-found: ignore
+
+  e2e-desktop:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile
+        run: npm run compile -w playwright-vscode-ext
+
+      - name: Install Playwright browsers and OS deps
+        run: npx playwright install chromium --with-deps
+
+      - name: Run Playwright desktop tests
+        env:
+          CI: 1
+          VSCODE_DESKTOP: 1
+        run: |
+          npm run test:desktop -w playwright-vscode-ext
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-desktop-${{ matrix.os }}
+          path: packages/playwright-vscode-ext/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-desktop-${{ matrix.os }}
+          path: packages/playwright-vscode-ext/test-results
+          if-no-files-found: ignore
