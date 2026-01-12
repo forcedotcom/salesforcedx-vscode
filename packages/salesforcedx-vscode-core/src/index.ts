@@ -176,10 +176,13 @@ const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promi
 };
 
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
+  console.log('salesforcedx-vscode-core index.ts - enter activate()');
   const activationStartTime = TimingUtils.getCurrentTime();
+  console.log('salesforcedx-vscode-core index.ts activate() - 1');
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
-
+  console.log('salesforcedx-vscode-core index.ts activate() - 2');
   const rootWorkspacePath = getRootWorkspacePath();
+  console.log('salesforcedx-vscode-core index.ts activate() - 3');
   // Switch to the project directory so that the main @salesforce
   // node libraries work correctly.  @salesforce/core,
   // @salesforce/source-tracking, etc. all use process.cwd()
@@ -191,20 +194,25 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   // thus avoiding the potential errors surfaced when the libs call
   // process.cwd().
   await ensureCurrentWorkingDirIsProjectPath(rootWorkspacePath);
+  console.log('salesforcedx-vscode-core index.ts activate() - 4');
   setNodeExtraCaCerts();
+  console.log('salesforcedx-vscode-core index.ts activate() - 5');
   setSfLogLevel();
+  console.log('salesforcedx-vscode-core index.ts activate() - 6');
   await telemetryService.initializeService(extensionContext);
+  console.log('salesforcedx-vscode-core index.ts activate() - 7');
   void showTelemetryMessage(extensionContext);
-
+  console.log('salesforcedx-vscode-core index.ts activate() - 8');
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider('sf.tasks.view', taskViewService);
+  console.log('salesforcedx-vscode-core index.ts activate() - 9');
   extensionContext.subscriptions.push(treeDataProvider);
-
+  console.log('salesforcedx-vscode-core index.ts activate() - 10');
   // Set internal dev context
   const internalDev = salesforceCoreSettings.getInternalDev();
-
+  console.log('salesforcedx-vscode-core index.ts activate() - 11');
   void vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
-
+  console.log('salesforcedx-vscode-core index.ts activate() - 12');
   const api: SalesforceVSCodeCoreApi = {
     channelService,
     getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
@@ -232,20 +240,24 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
       CommandEventDispatcher
     }
   };
-
+  console.log('salesforcedx-vscode-core index.ts activate() - 13');
   if (internalDev) {
     // Internal Dev commands
+    console.log('salesforcedx-vscode-core index.ts activate() - 14');
     extensionContext.subscriptions.push(registerInternalDevCommands());
-
+    console.log('salesforcedx-vscode-core index.ts activate() - 15');
     telemetryService.sendExtensionActivationEvent(activationStartTime);
+    console.log('salesforcedx-vscode-core index.ts activate() - 16');
     reportExtensionPackStatus();
     console.log('SF CLI Extension Activated (internal dev mode)');
+    console.log('salesforcedx-vscode-core index.ts - exit 1 activate()');
     return api;
   }
+  console.log('salesforcedx-vscode-core index.ts activate() - 17');
 
   // Context
   const salesforceProjectOpened = (await isSalesforceProjectOpened()).result;
-
+  console.log('salesforcedx-vscode-core index.ts activate() - 18');
   // TODO: move this and the replay debugger commands to the apex extension
 
   void vscode.commands.executeCommand(
@@ -253,19 +265,24 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     'sf:replay_debugger_extension',
     vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex-replay-debugger') !== undefined
   );
-
+  console.log('salesforcedx-vscode-core index.ts activate() - 19');
   void vscode.commands.executeCommand('setContext', 'sf:project_opened', salesforceProjectOpened);
-
+  console.log('salesforcedx-vscode-core index.ts activate() - 20');
   // Set Code Builder context
   const codeBuilderEnabled = process.env.CODE_BUILDER === 'true';
+  console.log('salesforcedx-vscode-core index.ts activate() - 21');
   void vscode.commands.executeCommand('setContext', 'sf:code_builder_enabled', codeBuilderEnabled);
+  console.log('salesforcedx-vscode-core index.ts activate() - 22');
 
   // Set initial context
   await checkPackageDirectoriesEditorView();
-
+  console.log('salesforcedx-vscode-core index.ts activate() - 23');
   if (salesforceProjectOpened) {
+    console.log('salesforcedx-vscode-core index.ts activate() - 24');
     await initializeProject(extensionContext);
+    console.log('salesforcedx-vscode-core index.ts activate() - 25');
   }
+  console.log('salesforcedx-vscode-core index.ts activate() - 26');
 
   extensionContext.subscriptions.push(
     registerCommands(extensionContext),
@@ -276,31 +293,40 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     registerConflictView(),
     CommandEventDispatcher.getInstance()
   );
-
+  console.log('salesforcedx-vscode-core index.ts activate() - 27');
   if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+    console.log('salesforcedx-vscode-core index.ts activate() - 28');
     // Refresh SObject definitions if there aren't any faux classes
     const sobjectRefreshStartup: boolean = vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
-
+    console.log('salesforcedx-vscode-core index.ts activate() - 29');
     await initSObjectDefinitions(vscode.workspace.workspaceFolders[0].uri.fsPath, sobjectRefreshStartup);
+    console.log('salesforcedx-vscode-core index.ts activate() - 30');
   }
+  console.log('salesforcedx-vscode-core index.ts activate() - 31');
 
   void activateTracker.markActivationStop();
+  console.log('salesforcedx-vscode-core index.ts activate() - 32');
   reportExtensionPackStatus();
-
+  console.log('salesforcedx-vscode-core index.ts activate() - 33');
   // Handle trace flag cleanup after setting target org
   try {
+    console.log('salesforcedx-vscode-core index.ts activate() - 34');
     await handleTraceFlagCleanup(extensionContext);
+    console.log('salesforcedx-vscode-core index.ts activate() - 35');
   } catch (error) {
+    console.log('salesforcedx-vscode-core index.ts activate() - 36');
     console.log(
       'Trace flag cleanup not completed during activation of CLI Integration extension',
       errorToString(error)
     );
   }
+  console.log('salesforcedx-vscode-core index.ts activate() - 37');
 
   console.log('SF CLI Extension Activated');
   handleTheUnhandled();
+  console.log('salesforcedx-vscode-core index.ts - exit 2 activate()');
   return api;
 };
 
