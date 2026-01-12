@@ -1,0 +1,31 @@
+## Playwright VSCode Extension E2E Tests - Progress (2026-01-11)
+
+### Test Infrastructure Created
+- Created test directory structure: fixtures/, specs/, web/
+- Created fixtures/index.ts and fixtures/desktopFixtures.ts
+- Created web/headlessServer.ts
+- Created playwright.config.web.ts and playwright.config.desktop.ts
+- Updated tsconfig.json to include test/**/*.ts
+- Updated package.json with test:web and test:desktop scripts
+
+### Test Specs Created
+- helpers.headless.spec.ts - PASSING (3/3 tests)
+- commandPalette.headless.spec.ts - PASSING (3/3 tests)
+- fileOperations.headless.spec.ts - FAILING (0/4 tests)
+- settings.headless.spec.ts - FAILING (1/4 tests, openSettingsUI works)
+- outputChannel.headless.spec.ts - FAILING (1/5 tests, ensureOutputPanelOpen works)
+- contextMenu.headless.spec.ts - FAILING (0/2 tests)
+
+### Web Test Results (First Run)
+- 8/21 tests passing
+- 13/21 tests failing
+
+### Failures to Fix
+1. File operations - createFileWithContents timing out (needs workspace)
+2. Settings - "Preferences: Open Workspace Settings" command lookup failing (needs investigation)
+3. Output channel - selectOutputChannel timing out (needs investigation)
+4. Context menu - tests timing out (needs workspace with files)
+
+### Next Action
+Per ralph.sh instructions, focus on ONE test at a time. Start with settings since openSettingsUI already works.
+Need to debug why upsertSettings is failing on command palette lookup.

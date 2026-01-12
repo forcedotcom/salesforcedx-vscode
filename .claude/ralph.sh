@@ -36,6 +36,7 @@ some may already exist and may or may not be passing. \
 13. If tests flap, update the plan to fix it. \
 14. If, while implementing the feature, you notice that all work \
 is complete, output <promise>COMPLETE</promise>. \
+15. never exit unless complete.  do not disable tests or attempt to find ways to exit early.
 ")
 
   echo "$result"

@@ -14,7 +14,12 @@
   "scripts": {
     "compile": "wireit",
     "clean": "shx rm -rf node_modules .wireit out .eslintcache tsconfig.tsbuildinfo",
-    "lint": "wireit"
+    "lint": "wireit",
+    "test:web": "wireit",
+    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
+    "test:web:debug": "npm run test:web -- --debug",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "npm run test:desktop -- --debug"
   },
   "wireit": {
     "compile": {
@@ -39,6 +44,28 @@
       "files": [
         "src/**/*.ts",
         "../../eslint.config.mjs"
+      ],
+      "output": []
+    },
+    "test:web": {
+      "command": "playwright test --config=playwright.config.web.ts",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "playwright.config.web.ts"
+      ],
+      "output": []
+    },
+    "test:desktop": {
+      "command": "VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "playwright.config.desktop.ts"
       ],
       "output": []
     }
