@@ -34,6 +34,8 @@ import {
 } from 'vscode-html-languageservice';
 import {
   createConnection,
+  BrowserMessageReader,
+  BrowserMessageWriter,
   Connection,
   TextDocuments,
   TextDocumentChangeEvent,
@@ -128,7 +130,11 @@ const containsDeletedLwcWatchedDirectory = async (
 };
 
 export default class Server {
-  public readonly connection: Connection = createConnection();
+  // In a web worker, use globalThis (which is self in worker context)
+  public readonly connection: Connection = createConnection(
+    new BrowserMessageReader(globalThis),
+    new BrowserMessageWriter(globalThis)
+  );
   public readonly documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
   private context!: LWCWorkspaceContext;
   private workspaceFolders!: WorkspaceFolder[];
@@ -705,4 +711,3 @@ export default class Server {
     }
   }
 }
-

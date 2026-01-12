@@ -90,12 +90,21 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Pass the workspace folder URIs to the language server
   const workspaceUris: string[] = [];
   workspace.workspaceFolders.forEach(folder => {
-    workspaceUris.push(folder.uri.fsPath);
+    // In web mode, fsPath might be undefined for non-file:// URIs
+    // Use fsPath if available, otherwise fall back to URI path
+    const folderPath = folder.uri.fsPath ?? folder.uri.path;
+    if (folderPath) {
+      workspaceUris.push(folderPath);
+    } else {
+      // If we can't get a path, log a warning but continue
+      log(`Warning: Could not determine path for workspace folder: ${folder.uri.toString()}`);
+    }
   });
 
   // For workspace type detection, we still need to check the file system
   // Create a temporary provider just for detection
-  const workspaceType = await detectWorkspaceType(workspaceUris);
+  // In web mode with no valid paths, default to UNKNOWN
+  const workspaceType = workspaceUris.length > 0 ? await detectWorkspaceType(workspaceUris) : 'UNKNOWN';
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
