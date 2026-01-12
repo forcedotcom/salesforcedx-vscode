@@ -25,12 +25,15 @@ const getVisibleOutputText = async (page: Page): Promise<string> =>
 /** Use filter to search and check for text, clearing filter afterward */
 const withOutputFilter = async <T>(page: Page, searchText: string, fn: () => Promise<T>): Promise<T> => {
   const input = filterInput(page);
+  await input.waitFor({ state: 'visible', timeout: 5000 });
+  await input.focus();
   await input.fill(searchText);
-  await expect(input).toHaveValue(searchText);
+  await expect(input).toHaveValue(searchText, { timeout: 5000 });
   try {
     return await fn();
   } finally {
     await input.fill('');
+    await expect(input).toHaveValue('', { timeout: 2000 });
   }
 };
 
