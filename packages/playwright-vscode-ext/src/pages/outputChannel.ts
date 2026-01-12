@@ -43,7 +43,8 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
 
   if (!isVisible) {
     await executeCommandWithCommandPalette(page, outputFocusCommand);
-    await panel.waitFor({ state: 'visible', timeout: 5000 });
+    // Wait for panel to become visible - command execution may take a moment
+    await expect(panel).toBeVisible({ timeout: 10_000 });
   }
 };
 

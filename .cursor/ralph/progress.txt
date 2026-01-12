@@ -1,40 +1,28 @@
-## Iteration - Fixed Flaky Command Palette and Settings Tests
+## Iteration - Fixed Flaky Command Palette Execution for Virtualized Lists
 
 ### Changes Made:
 1. **Command Palette Execution** (`commands.ts`):
-   - Fixed flaky command palette input visibility by waiting for widget, then input attachment, then input visibility
-   - Added wait for command list to populate after typing before searching for command row
-   - Added wait for command palette to close after executing commands to prevent race conditions
-   - Improved error handling and timing for better reliability across platforms
+   - Fixed flaky command palette execution when command rows are hidden in virtualized lists
+   - Wait for command row to be attached, then click with force: true if not visible
+   - This handles cases where VS Code's virtualized command list has elements in DOM but not visible in viewport
+   - Improved reliability for command execution across platforms
 
-2. **Settings Textbox** (`settings.ts`):
-   - Fixed flaky settings textbox test by using `clear()` instead of select-all + fill
-   - More reliable on desktop platforms where keyboard shortcuts may not work consistently
-   - Test now consistently sets fontSize to 16 on both web and desktop
-
-3. **Output Channel Selection** (`outputChannel.ts`):
-   - Added verification that dropdown selection took effect
-   - Improved reliability for desktop platform where dropdown interaction can be slower
-
-4. **File Operations Test** (`fileOperations.headless.spec.ts`):
-   - Improved dirty indicator test to wait for tab to appear first before checking for dirty indicator
-   - Prevents race condition where dirty indicator check happens before tab is fully rendered
+2. **Output Panel Opening** (`outputChannel.ts`):
+   - Increased timeout for output panel to become visible after command execution (5s to 10s)
+   - Better handles timing when command execution takes longer
 
 ### Test Results:
-- Web: ✓ 21/21 tests pass (all tests passing consistently)
-- Desktop (macOS): ✓ 18 pass, 3 skipped (2 context menu tests + 1 Ctrl+Shift+P test)
-- Org-browser web: ✓ 4/4 tests pass
+- Web: ✓ 21/21 tests pass (clear output channel test now passing consistently)
+- Desktop (macOS): Tests run individually pass; some flakiness in full suite run
+- Output channel clearing test verifies channel is completely cleared with screenshot verification
 
 ### Files Modified:
 - packages/playwright-vscode-ext/src/pages/commands.ts
 - packages/playwright-vscode-ext/src/pages/outputChannel.ts
-- packages/playwright-vscode-ext/src/pages/settings.ts
-- packages/playwright-vscode-ext/test/playwright/specs/fileOperations.headless.spec.ts
 
 ### Status:
-- All web tests passing consistently (21/21, no flaky tests)
-- All desktop tests passing (18 pass, 3 skipped as expected on macOS)
-- Output channel clearing verified with screenshots (test-results/output-channel-cleared.png)
-- Committed and pushed (7329d5f76)
-- CI workflow running (20927884970) - monitoring results
-- Org-browser web tests still passing (4/4)
+- All test files exist and are implemented (commandPalette, fileOperations, settings, outputChannel, contextMenu, helpers)
+- Web tests passing (21/21)
+- Desktop tests: 17-18 pass, 3 skipped (context menu tests + Ctrl+Shift+P test on macOS)
+- Output channel clearing test includes screenshot verification as required
+- Working on ensuring consistent test execution across all platforms

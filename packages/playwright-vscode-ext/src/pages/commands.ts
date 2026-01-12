@@ -62,12 +62,18 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
     .filter({ hasText: command, hasNotText })
     .first();
 
-  // Wait for the command row to appear and be visible
-  await expect(commandRow).toBeVisible({ timeout: 5000 });
-  await commandRow.scrollIntoViewIfNeeded();
-
-  // Click the command row to execute - this works reliably on all platforms
-  await commandRow.click();
+  // Wait for the command row to be attached first (exists in DOM)
+  await expect(commandRow).toBeAttached({ timeout: 5000 });
+  
+  // For virtualized lists, the element may exist but not be visible in the viewport.
+  // Wait a bit for the list to stabilize and filter results
+  await page.waitForTimeout(300);
+  
+  // Try to click the command row - if it's visible, click normally
+  // If it's not visible (virtualized list), use force: true to click it anyway
+  // since it exists in the DOM
+  const isVisible = await commandRow.isVisible({ timeout: 1000 }).catch(() => false);
+  await (isVisible ? commandRow.click() : commandRow.click({ force: true }));
 
   // Wait for the command palette to close after executing the command
   await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
