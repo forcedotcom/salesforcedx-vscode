@@ -8,7 +8,6 @@ import { Effect } from 'effect';
 import * as vscode from 'vscode';
 
 // --- Configuration ---
-// Batching approach to prevent excessive RAM usage and IDE blocking
 // Opening too many documents simultaneously can cause:
 // - High memory usage (each document loaded into memory)
 // - UI freezing (too many concurrent file I/O operations)
