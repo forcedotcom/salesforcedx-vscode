@@ -11,8 +11,8 @@ fi
 # For each iteration, run Claude Code with the following prompt.
 # This prompt is basic, we'll expand it later.
 for ((i=1; i<=$1; i++)); do
-  result=$(claude --dangerously-skip-permissions -p \
-"@.cursor/plans/e2e_tests_for_playwright_vscode_extension_a7c36853.plan.md @.claude/progress.txt \
+  result=$(agent --force -p \
+"@.cursor/plans/e2e_tests_for_playwright_vscode_extension_a7c36853.plan.md @.cursor/ralph/progress.txt \
 0. read this doc, remove any statements in progress.txt that contradict this script.
 0a. never edit this ralph.sh file.
 1. Decide which command to work next. \
@@ -20,6 +20,7 @@ This should be the one YOU decide has the highest priority, \
 - not necessarily the first in the list. \
 some may already exist and may or may not be passing. \
  Start with any existing failing \
+1a. make sure output channel tests completely clear the output channel, there should not be text left in it.  Use screenshots to verify this.
 2. never chagne branches, stay on ralph-e2e-meta-testing
 3. get it to run locally on test:web.  Web tests should never be skipped
 4. get it to run locally using the :desktop tests (the local environment is macos) \
@@ -27,7 +28,7 @@ some may already exist and may or may not be passing. \
 5a if failures locally, see the Debugging section of iterating-playwright-tests.mdc \
 6. commit with a detailed commit message \
 7. push to github \
-8. monitor the e2e run via gh cli \
+8. monitor the e2e run via gh cli.  retry if connection errors happen \
 9. If failures, download logs/artifacts and update the progress.txt file \
 9a. if failure is provably happening, you may change code in playwright ext to fix it.
 10. once a test is passing on github actions, remove fallbacks, waits, and <try another way> as long as they still pass on github actions \

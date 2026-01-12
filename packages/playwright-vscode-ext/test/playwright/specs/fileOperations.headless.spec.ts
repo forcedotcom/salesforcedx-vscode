@@ -100,6 +100,10 @@ test.describe('File Operations', () => {
     });
 
     await test.step('Verify file shows dirty indicator (untitled files are dirty)', async () => {
+      // Wait for tab to appear first
+      const tab = page.locator(TAB).filter({ hasText: /Untitled-\d+/ });
+      await expect(tab).toBeVisible();
+      // Then check for dirty indicator
       const dirtyIndicator = page.locator('.tabs-container .tab.dirty');
       await expect(dirtyIndicator).toBeVisible();
     });

@@ -63,9 +63,17 @@ test.describe('Settings', () => {
       await openSettingsUI(page);
       const searchInput = page.locator(SETTINGS_SEARCH_INPUT[0]);
       await searchInput.click();
-      await page.keyboard.type(settingKey);
+      // Clear any existing text first
+      await page.keyboard.press('Control+KeyA');
+      await page.keyboard.press('Backspace');
+      // Search for modified settings with the key name to filter to just this setting
+      await page.keyboard.type(`@modified ${settingKey}`);
 
-      const fontSizeInput = page.locator('.settings-editor').getByRole('spinbutton', { name: settingKey, exact: true });
+      // Wait for search results to appear
+      await page.locator('.settings-editor').waitFor({ state: 'visible', timeout: 5000 });
+
+      // After searching for @modified editor.fontSize, there should be only one spinbutton
+      const fontSizeInput = page.locator('.settings-editor').getByRole('spinbutton').first();
       await expect(fontSizeInput).toHaveValue(settingValue);
     });
   });

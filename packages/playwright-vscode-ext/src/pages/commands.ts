@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { isWindowsDesktop } from '../utils/helpers';
 import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
@@ -30,10 +30,17 @@ const openCommandPalette = async (page: Page): Promise<void> => {
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
   // VS Code command palette automatically adds '>' prefix when opened with F1/Ctrl+Shift+P
   // Get the input locator - use locator-specific action for better reliability on desktop
-  const input = page.locator(QUICK_INPUT_WIDGET).locator('input.input');
-  await input.waitFor({ state: 'visible', timeout: 5000 });
+  const widget = page.locator(QUICK_INPUT_WIDGET);
+  const input = widget.locator('input.input');
+  // Wait for widget to be visible first, then wait for input to be attached and visible
+  await widget.waitFor({ state: 'visible', timeout: 5000 });
+  await input.waitFor({ state: 'attached', timeout: 5000 });
+  await expect(input).toBeVisible({ timeout: 5000 });
   await input.pressSequentially(command, { delay: 5 });
-  await page.waitForTimeout(100); // unfortunately, it really does take a bit to be usable.
+  await page.waitForTimeout(200); // Wait for typing to complete and list to start filtering
+
+  // Wait for the command list to populate after typing - wait for at least one row to appear
+  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
 
   // Capture HTML snapshot before clicking to debug Windows issues
   if (isWindowsDesktop()) {
@@ -50,18 +57,22 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
 
   // Use text content matching to find exact command (bypasses MRU prioritization)
   // Scope to QUICK_INPUT_WIDGET first, then find the list row (more specific than just .monaco-list-row)
-  const commandRow = page
-    .locator(QUICK_INPUT_WIDGET)
+  const commandRow = widget
     .locator(QUICK_INPUT_LIST_ROW)
-    .filter({ hasText: command, hasNotText, visible: true })
+    .filter({ hasText: command, hasNotText })
     .first();
 
-  // Ensure the row is visible and actionable before clicking
-  await commandRow.waitFor({ state: 'visible', timeout: 5000 });
+  // Wait for the command row to appear and be visible
+  await expect(commandRow).toBeVisible({ timeout: 5000 });
   await commandRow.scrollIntoViewIfNeeded();
 
   // Click the command row to execute - this works reliably on all platforms
   await commandRow.click();
+
+  // Wait for the command palette to close after executing the command
+  await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+    // If it doesn't close (e.g., multi-step commands), that's ok
+  });
 };
 
 export const executeCommandWithCommandPalette = async (

@@ -105,15 +105,28 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
 
 /** Close VS Code Welcome/Walkthrough tabs if they're open */
 export const closeWelcomeTabs = async (page: Page): Promise<void> => {
-  const welcomeTab = page
-    .locator(TAB)
-    .filter({ hasText: /Welcome|Walkthrough/i })
-    .first();
-  const isWelcomeVisible = await welcomeTab.isVisible().catch(() => false);
-  if (isWelcomeVisible) {
+  // Loop to close all welcome/walkthrough tabs (there may be multiple)
+  let attempts = 0;
+  const maxAttempts = 5;
+
+  while (attempts < maxAttempts) {
+    const welcomeTab = page
+      .locator(TAB)
+      .filter({ hasText: /Welcome|Walkthrough/i })
+      .first();
+
+    const isWelcomeVisible = await welcomeTab.isVisible().catch(() => false);
+    if (!isWelcomeVisible) {
+      break;
+    }
+
     const closeButton = welcomeTab.locator(TAB_CLOSE_BUTTON);
     await closeButton.click();
-    await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+
+    // Wait for tab to be fully removed from DOM
+    await welcomeTab.waitFor({ state: 'detached', timeout: 5000 });
+
+    attempts++;
   }
 };
 

@@ -143,6 +143,9 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       const inputElement = textboxCount > 0 ? roleTextbox : roleSpinbutton;
       await inputElement.waitFor({ timeout: 30_000 });
       await inputElement.click({ timeout: 5000 });
+      // Clear the input first, then type the new value
+      // This is more reliable than select-all + fill on desktop
+      await inputElement.clear();
       await inputElement.fill(value);
       await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
       // Press Enter to commit the change before blurring

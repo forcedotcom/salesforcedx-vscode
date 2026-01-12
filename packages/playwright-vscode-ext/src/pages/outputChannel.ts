@@ -62,6 +62,8 @@ export const selectOutputChannel = async (page: Page, channelName: string, timeo
     await dropdown.waitFor({ state: 'attached', timeout: 5000 });
     // Select the channel using the select element (force: true since it's hidden with custom overlay)
     await dropdown.selectOption({ label: channelName }, { force: true });
+    // Verify the selection took effect - this ensures the dropdown is ready
+    await expect(dropdown).toHaveValue(channelName, { timeout: 2000 });
   }).toPass({ timeout });
 };
 
