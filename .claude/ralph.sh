@@ -20,19 +20,20 @@ This should be the one YOU decide has the highest priority, \
 - not necessarily the first in the list. \
 some may already exist and may or may not be passing. \
  Start with any existing failing \
-2. never chagne branches, stay on sm/ralph-e2e-2
+2. never chagne branches, stay on ralph-e2e-meta-testing
 3. get it to run locally on test:web.  Web tests should never be skipped
 4. get it to run locally using the :desktop tests (the local environment is macos) \
 5. makes sure org-browser tests are still passing locally (web and desktop) \
-5a if there are failures locally, see the Debugging section of iterating-playwright-tests.mdc
+5a if failures locally, see the Debugging section of iterating-playwright-tests.mdc \
 6. commit with a detailed commit message \
 7. push to github \
 8. monitor the e2e run via gh cli \
-9. If there are failures, download the logs/artifacts and update the progress.txt file \
+9. If failures, download logs/artifacts and update the progress.txt file \
+9a. if failure is provably happening, you may change code in playwright ext to fix it.
 10. once a test is passing on github actions, remove fallbacks, waits, and <try another way> as long as they still pass on github actions \
 11. make sure code aligns with very carefully aligning with coding-playwright-tests.mdc rules and still passes3. make sure the org-browser tests are still passing (they share the playwright ext) \
 12. Append your progress to the progress.txt file. Do not make statements that are not supported by the code.\
-13. If you are seeing test flakiness, update the plan to fix it. \
+13. If tests flap, update the plan to fix it. \
 14. If, while implementing the feature, you notice that all work \
 is complete, output <promise>COMPLETE</promise>. \
 ")

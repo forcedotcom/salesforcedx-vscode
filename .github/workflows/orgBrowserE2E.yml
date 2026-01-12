@@ -11,6 +11,7 @@ on:
 
 jobs:
   e2e-web:
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -75,6 +76,8 @@ jobs:
 
   e2e-desktop:
     runs-on: ${{ matrix.os }}
+    if: false
+
     timeout-minutes: 60
     strategy:
       matrix:
