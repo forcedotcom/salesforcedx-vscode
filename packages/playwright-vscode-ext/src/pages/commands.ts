@@ -42,8 +42,10 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   await expect(input).toBeVisible({ timeout: 5000 });
   await input.pressSequentially(command, { delay: 5 });
 
-  // Wait for the command list to populate after typing - wait for at least one row to appear and be visible
-  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeVisible({ timeout: 5000 });
+  // Wait for the command list to populate after typing - wait for at least one row to exist in DOM
+  // For virtualized lists, rows may exist in DOM but not be visible until scrolled into view
+  // We wait for attachment (exists in DOM) rather than visibility, then rely on Playwright's click() to handle scrolling
+  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
 
   // Capture HTML snapshot before clicking to debug Windows issues
   if (isWindowsDesktop()) {
@@ -65,15 +67,12 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
     .filter({ hasText: command, hasNotText })
     .first();
 
-  // Wait for the command row to be attached first (exists in DOM)
+  // Wait for the command row to be attached (exists in DOM)
+  // For virtualized lists, the element may exist but not be visible until scrolled into view
+  // Playwright's click() handles scrolling and visibility automatically, so we don't check visibility
   await expect(commandRow).toBeAttached({ timeout: 5000 });
   
-  // Wait for at least one list row to be visible to ensure the list has rendered
-  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeVisible({ timeout: 5000 });
-  
   // Click the command row - Playwright will automatically scroll into view and wait for visibility if needed
-  // For virtualized lists, the element may exist but not be visible until scrolled into view
-  // Playwright's click() handles this automatically, so we don't need to check visibility separately
   await commandRow.click({ timeout: 10_000 });
 
   // Wait for the command palette to close after executing the command
