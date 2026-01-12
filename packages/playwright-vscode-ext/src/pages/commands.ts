@@ -73,7 +73,8 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // If it's not visible (virtualized list), use force: true to click it anyway
   // since it exists in the DOM
   const isVisible = await commandRow.isVisible({ timeout: 1000 }).catch(() => false);
-  await (isVisible ? commandRow.click() : commandRow.click({ force: true }));
+  // Use force: true if not visible to handle virtualized lists where element exists but isn't in viewport
+  await commandRow.click({ force: !isVisible });
 
   // Wait for the command palette to close after executing the command
   await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
