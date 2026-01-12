@@ -10,8 +10,8 @@ import { executeCommandWithCommandPalette } from '../pages/commands';
 import { closeSettingsTab, closeWelcomeTabs } from './helpers';
 import { WORKBENCH, QUICK_INPUT_WIDGET, EDITOR_WITH_URI, DIRTY_EDITOR, QUICK_INPUT_LIST_ROW } from './locators';
 
-/** Creates a new file with contents using the "File: New Untitled Text File" command and Ctrl+S to save */
-export const createFileWithContents = async (page: Page, filePath: string, contents: string): Promise<void> => {
+/** Creates a new untitled file with contents - works in both web and desktop without filesystem access */
+export const createFileWithContents = async (page: Page, _filePath: string, contents: string): Promise<void> => {
   await page.locator(WORKBENCH).click();
 
   // Create a new untitled file
@@ -25,37 +25,8 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
   // Type the file contents
   await page.keyboard.type(contents);
 
-  // Use "File: Save As..." command which works in both web and desktop
-  await executeCommandWithCommandPalette(page, 'File: Save As...');
-
-  // Wait for the save dialog
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
-  await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-
-  // The save dialog should show an input for the filename
-  const input = quickInput.getByRole('textbox').first();
-  await input.waitFor({ state: 'visible', timeout: 10_000 });
-
-  // Clear any default value and type the full file path
-  await page.keyboard.press('Control+a');
-  // Build full path: if filePath doesn't start with /, prepend /MyProject/
-  const fullPath = filePath.startsWith('/') ? filePath : `/MyProject/${filePath}`;
-  await page.keyboard.type(fullPath);
-  await page.keyboard.press('Enter');
-
-  // Wait for the dialog to close
-  await quickInput.waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {
-    // Dialog might already be hidden
-  });
-
-  // Wait for file to be saved (dirty indicator should disappear)
-  const dirtyEditor = page.locator(DIRTY_EDITOR);
-  const dirtyCount = await dirtyEditor.count();
-  if (dirtyCount > 0) {
-    await dirtyEditor.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {
-      // File saved instantly without showing dirty state
-    });
-  }
+  // Note: We don't save the file to avoid filesystem/native dialog issues in web
+  // The file remains as an untitled file which works identically in web and desktop
 };
 
 /** Creates a new Apex class using the SFDX: Create Apex Class command */

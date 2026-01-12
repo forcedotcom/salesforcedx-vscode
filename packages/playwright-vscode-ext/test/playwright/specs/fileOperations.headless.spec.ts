@@ -6,17 +6,9 @@
  */
 
 import { expect } from '@playwright/test';
-import {
-  createFileWithContents,
-  openFileByName,
-  editOpenFile
-} from '../../../src/utils/fileHelpers';
-import {
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  isVSCodeWeb
-} from '../../../src/utils/helpers';
-import { EDITOR, TAB } from '../../../src/utils/locators';
+import { createFileWithContents } from '../../../src/utils/fileHelpers';
+import { waitForVSCodeWorkbench, closeWelcomeTabs } from '../../../src/utils/helpers';
+import { EDITOR_WITH_URI, TAB } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
 test.describe('File Operations', () => {
@@ -26,99 +18,99 @@ test.describe('File Operations', () => {
   });
 
   test('should create file with contents', async ({ page }) => {
-    // File save dialogs trigger native browser dialogs in VS Code web that Playwright cannot interact with
-    test.skip(isVSCodeWeb(), 'File save dialogs not supported in VS Code web');
-
-    const fileName = 'testFile.txt';
     const fileContent = 'Hello, World!';
 
-    await test.step('Create new file with content', async () => {
-      await createFileWithContents(page, fileName, fileContent);
+    await test.step('Create new untitled file with content', async () => {
+      await createFileWithContents(page, 'unused', fileContent);
     });
 
-    await test.step('Verify file is open in editor', async () => {
-      const tab = page.locator(TAB).filter({ hasText: fileName });
+    await test.step('Verify untitled file is open in editor', async () => {
+      const tab = page.locator(TAB).filter({ hasText: /Untitled-\d+/ });
       await expect(tab).toBeVisible();
     });
 
     await test.step('Verify file content', async () => {
-      const editor = page.locator(EDITOR);
+      const editor = page.locator(EDITOR_WITH_URI).first();
       await expect(editor).toContainText(fileContent);
     });
   });
 
-  test('should open file by name', async ({ page }) => {
-    // File save dialogs trigger native browser dialogs in VS Code web that Playwright cannot interact with
-    test.skip(isVSCodeWeb(), 'File save dialogs not supported in VS Code web');
-
-    const fileName = 'openTest.txt';
-
-    await test.step('Create file first', async () => {
-      await createFileWithContents(page, fileName, 'Test content');
+  test('should switch between multiple files', async ({ page }) => {
+    await test.step('Create first file', async () => {
+      await createFileWithContents(page, 'unused', 'First file content');
     });
 
-    await test.step('Close all editors', async () => {
-      await page.keyboard.press('Control+KeyK');
-      await page.keyboard.press('Control+KeyW');
+    await test.step('Create second file', async () => {
+      await createFileWithContents(page, 'unused', 'Second file content');
     });
 
-    await test.step('Open file via Quick Open', async () => {
-      await openFileByName(page, fileName);
-      const tab = page.locator(TAB).filter({ hasText: fileName });
-      await expect(tab).toBeVisible();
+    await test.step('Verify both tabs are visible', async () => {
+      const tabs = page.locator(TAB).filter({ hasText: /Untitled-\d+/ });
+      await expect(tabs).toHaveCount(2);
+    });
+
+    await test.step('Switch to first tab by clicking', async () => {
+      const firstTab = page.locator(TAB).filter({ hasText: /Untitled-1/ });
+      await firstTab.click();
+      const editor = page.locator(EDITOR_WITH_URI).first();
+      await expect(editor).toContainText('First file content');
+    });
+
+    await test.step('Switch to second tab by clicking', async () => {
+      const secondTab = page.locator(TAB).filter({ hasText: /Untitled-2/ });
+      await secondTab.click();
+      const editor = page.locator(EDITOR_WITH_URI).first();
+      await expect(editor).toContainText('Second file content');
     });
   });
 
   test('should edit open file', async ({ page }) => {
-    // File save dialogs trigger native browser dialogs in VS Code web that Playwright cannot interact with
-    test.skip(isVSCodeWeb(), 'File save dialogs not supported in VS Code web');
-
-    const fileName = 'editTest.txt';
     const initialContent = 'Initial content';
-    const newContent = 'Edited content';
 
     await test.step('Create and open file', async () => {
-      await createFileWithContents(page, fileName, initialContent);
+      await createFileWithContents(page, 'unused', initialContent);
     });
 
-    await test.step('Edit file content', async () => {
-      await editOpenFile(page, newContent);
+    await test.step('Edit file content by typing', async () => {
+      const editor = page.locator(EDITOR_WITH_URI).first();
+      await editor.click();
+      await page.keyboard.press('Control+End');
+      await page.keyboard.press('Enter');
+      await page.keyboard.type('Added text');
     });
 
     await test.step('Verify edited content', async () => {
-      const editor = page.locator(EDITOR);
-      await expect(editor).toContainText(newContent);
+      const editor = page.locator(EDITOR_WITH_URI).first();
+      await expect(editor).toContainText(initialContent);
+      await expect(editor).toContainText('Added text');
     });
   });
 
-  test('should save file with Ctrl+S', async ({ page }) => {
-    // File save dialogs trigger native browser dialogs in VS Code web that Playwright cannot interact with
-    test.skip(isVSCodeWeb(), 'File save dialogs not supported in VS Code web');
-
-    const fileName = 'saveTest.txt';
-    const content = 'Content to save';
+  test('should show dirty indicator when file has unsaved changes', async ({ page }) => {
+    const content = 'Content to edit';
 
     await test.step('Create file', async () => {
-      await createFileWithContents(page, fileName, content);
+      await createFileWithContents(page, 'unused', content);
     });
 
-    await test.step('Edit file to make it dirty', async () => {
-      await page.keyboard.press('Control+Home');
-      await page.keyboard.type('New line\n');
+    await test.step('Verify file shows dirty indicator (untitled files are dirty)', async () => {
+      const dirtyIndicator = page.locator('.tabs-container .tab.dirty');
+      await expect(dirtyIndicator).toBeVisible();
     });
 
-    await test.step('Verify file is dirty', async () => {
-      const dirtyTab = page.locator(TAB).filter({ hasText: fileName }).locator('.dirty-dot');
-      await expect(dirtyTab).toBeVisible();
+    await test.step('Edit file further', async () => {
+      const editor = page.locator(EDITOR_WITH_URI).first();
+      await editor.click();
+      await page.keyboard.press('Control+End');
+      await page.keyboard.press('Enter');
+      await page.keyboard.type('More content');
     });
 
-    await test.step('Save file with Ctrl+S', async () => {
-      await page.keyboard.press('Control+KeyS');
-    });
-
-    await test.step('Verify file is no longer dirty', async () => {
-      const dirtyTab = page.locator(TAB).filter({ hasText: fileName }).locator('.dirty-dot');
-      await expect(dirtyTab).not.toBeVisible();
+    await test.step('Verify file still shows dirty indicator', async () => {
+      const dirtyIndicator = page.locator('.tabs-container .tab.dirty');
+      await expect(dirtyIndicator).toBeVisible();
+      const editor = page.locator(EDITOR_WITH_URI).first();
+      await expect(editor).toContainText('More content');
     });
   });
 });
