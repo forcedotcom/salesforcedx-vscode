@@ -54,13 +54,15 @@ export const selectOutputChannel = async (page: Page, channelName: string, timeo
   const panel = outputPanel(page);
   await panel.waitFor({ state: 'visible', timeout: 5000 });
 
+  // Re-query the dropdown each time to avoid stale element issues
   // The dropdown is a hidden select element with class monaco-select-box
   // We don't wait for it to be visible since it's intentionally hidden with a custom overlay
-  const dropdown = panel.locator('select.monaco-select-box');
-  await dropdown.waitFor({ state: 'attached', timeout });
-
-  // Select the channel using the select element (force: true since it's hidden with custom overlay)
-  await dropdown.selectOption({ label: channelName }, { force: true });
+  await expect(async () => {
+    const dropdown = panel.locator('select.monaco-select-box');
+    await dropdown.waitFor({ state: 'attached', timeout: 5000 });
+    // Select the channel using the select element (force: true since it's hidden with custom overlay)
+    await dropdown.selectOption({ label: channelName }, { force: true });
+  }).toPass({ timeout });
 };
 
 /** Checks if the output channel contains specific text using the filter input */
@@ -81,12 +83,12 @@ export const clearOutputChannel = async (page: Page): Promise<void> => {
   const clearButton = page.getByRole('button', { name: 'Clear Output' }).first();
   await clearButton.click();
 
-  // Wait a moment for the clear action to take effect
+  // Wait for the clear action to take effect - output should be completely empty
   const codeArea = outputPanelCodeArea(page);
   await expect(async () => {
     const text = await codeArea.textContent();
-    // Allow up to 200 characters as some channels may have persistent content/headers
-    expect(text?.trim().length ?? 0, 'Output channel should be mostly cleared').toBeLessThan(200);
+    // Output channel should be completely cleared - no text should remain
+    expect(text?.trim().length ?? 0, 'Output channel should be completely cleared').toBe(0);
   }).toPass({ timeout: 2000 });
 };
 

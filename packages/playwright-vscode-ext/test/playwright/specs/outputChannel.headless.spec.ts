@@ -94,12 +94,14 @@ test.describe('Output Channel', () => {
       await clearOutputChannel(page);
     });
 
-    await test.step('Verify output is cleared', async () => {
+    await test.step('Verify output is completely cleared', async () => {
       // Use the output panel specific selector to avoid matching other editors
       const outputContent = page.locator('[id="workbench.panel.output"]').locator('.view-lines').first();
       const text = await outputContent.textContent();
-      // Allow up to 200 characters as some channels may have persistent content/headers
-      expect(text?.trim().length).toBeLessThan(200);
+      // Take screenshot to verify output channel is completely clear
+      await page.screenshot({ path: 'test-results/output-channel-cleared.png', fullPage: false });
+      // Output channel should be completely cleared - no text should remain
+      expect(text?.trim().length ?? 0, 'Output channel should be completely cleared').toBe(0);
     });
   });
 });
