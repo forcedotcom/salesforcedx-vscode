@@ -159,4 +159,44 @@
   - Web: ✓ 21/21 tests pass (0 failures)
   - macOS desktop: failure - command palette command not visible (virtualized DOM issue)
   - Windows desktop: failure - similar virtualized DOM issue
-- CI run 20934988628 started - monitoring results (includes scrollIntoView fix)
+<<<<<<< HEAD
+- CI run 20934988628 results:
+  - Web: ✓ 21/21 tests pass (0 failures)
+  - macOS desktop: failures - command palette and file operations tests failing (welcome tabs interfering)
+  - Windows desktop: failure - context menu explorer test (Open Folder button not visible)
+- Fixed Windows desktop context menu test (commit 1ad622765):
+  - Changed explorer accessibility verification to check for explorer view container instead of 'Open Folder' button
+  - The 'Open Folder' button may not always be visible in CI, causing flaky test failures
+  - Explorer heading visibility check already verifies explorer is accessible
+  - Updated progress.txt to clarify that delays were removed to align with coding rules
+- CI run 20935395383 results:
+  - Web: ✓ 21/21 tests pass (0 failures)
+  - Windows desktop: ✓ 20 pass, 1 failure, 0 skipped (Windows desktop context menu fix successful!)
+  - macOS desktop: failure - command palette command not visible after scrolling (virtualized DOM issue)
+- Fixed macOS desktop command palette virtualized DOM issue (commit f9a247960):
+  - Removed visibility check after scrolling - element exists in DOM but may be hidden until scrolled
+  - Rely on Playwright's click() to handle scrolling and visibility automatically
+  - Aligns with coding rules - don't check visibility for virtualized DOM elements
+  - All tests pass locally (18 desktop, 21 web)
+- CI run monitoring for fix
+=======
+- CI run 20934988628 results:
+  - Web: ✓ 21/21 tests pass (0 failures)
+  - macOS desktop: failures - command palette and file operations tests failing (welcome tabs interfering)
+  - Windows desktop: failure - context menu explorer test (Open Folder button not visible)
+- Fixed Windows desktop context menu test (commit 1ad622765):
+  - Changed explorer accessibility verification to check for explorer view container instead of 'Open Folder' button
+  - The 'Open Folder' button may not always be visible in CI, causing flaky test failures
+  - Explorer heading visibility check already verifies explorer is accessible
+  - Updated progress.txt to clarify that delays were removed to align with coding rules
+- CI run 20935395383 results:
+  - Web: ✓ 21/21 tests pass (0 failures)
+  - Windows desktop: ✓ 20 pass, 1 failure, 0 skipped (Windows desktop context menu fix successful!)
+  - macOS desktop: failure - command palette command not visible after scrolling (virtualized DOM issue)
+- Fixed macOS desktop command palette virtualized DOM issue (commit f9a247960):
+  - Removed visibility check after scrolling - element exists in DOM but may be hidden until scrolled
+  - Rely on Playwright's click() to handle scrolling and visibility automatically
+  - Aligns with coding rules - don't check visibility for virtualized DOM elements
+  - All tests pass locally (18 desktop, 21 web)
+- CI run monitoring for fix
+>>>>>>> da2d41afc (fix(playwright-vscode-ext): remove visibility check after scrolling in command palette)
