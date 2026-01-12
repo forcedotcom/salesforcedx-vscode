@@ -31,8 +31,24 @@
 
 ### Status:
 - All test files exist and are implemented (commandPalette, fileOperations, settings, outputChannel, contextMenu, helpers)
-- Web tests passing consistently (21/21)
+- Web tests passing consistently locally (21/21)
 - Desktop tests passing locally on macOS (18 pass, 3 skipped as expected)
 - Output channel clearing test includes screenshot verification using saveScreenshot utility (requirement 1a satisfied)
 - Output channel clearing test verifies channel is completely cleared (text length is 0) with screenshot
 - Fixed test isolation issues in `selectOutputChannel` that caused failures when output channel tests run together
+- Fixed CI failures:
+  - Web test failure: Removed scrollIntoViewIfNeeded() from commands.ts as it doesn't work with virtualized DOM (element won't exist until scrolled into view). Increased visibility timeout to 5000ms and rely on Playwright's click() to handle scrolling.
+  - Windows desktop test failure: Removed VSCODE_DESKTOP=1 from wireit command in package.json since it's already set in workflow env and doesn't work on Windows.
+- CI run 20931181904 completed with failures:
+  - Web: 9/21 tests failed (commandPalette: 1, fileOperations: 3, outputChannel: 5)
+  - Windows desktop: failures
+  - macOS desktop: still running
+- Root cause identified: welcome tabs not being closed properly in CI, causing command palette and other tests to fail
+- Fixed `closeWelcomeTabs` function:
+  - Increased max attempts from 5 to 10
+  - Added wait for welcome tabs to appear before closing
+  - Added double-check after closing to ensure no new tabs appear
+  - Added fallback to Ctrl+W keyboard shortcut if close button fails
+  - Added small delays to allow DOM to stabilize
+- Committed and pushed fix (commit b0a565233)
+- New CI run should start automatically from push
