@@ -27,7 +27,7 @@ jobs:
         run: npm ci
 
       - name: Compile
-        run: npm run compile -w playwright-vscode-ext
+        run: npm run compile -w @salesforce/playwright-vscode-ext
 
       - name: Install Playwright browsers and OS deps
         run: npx playwright install chromium --with-deps
@@ -36,7 +36,7 @@ jobs:
         env:
           CI: 1
         run: |
-          npm run test:web -w playwright-vscode-ext
+          npm run test:web -w @salesforce/playwright-vscode-ext
 
       - name: Upload Playwright HTML report
         if: always()
@@ -78,7 +78,7 @@ jobs:
         run: npm ci
 
       - name: Compile
-        run: npm run compile -w playwright-vscode-ext
+        run: npm run compile -w @salesforce/playwright-vscode-ext
 
       - name: Install Playwright browsers and OS deps
         run: npx playwright install chromium --with-deps
@@ -88,7 +88,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
         run: |
-          npm run test:desktop -w playwright-vscode-ext
+          npm run test:desktop -w @salesforce/playwright-vscode-ext
 
       - name: Upload Playwright HTML report
         if: always()

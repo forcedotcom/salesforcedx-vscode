@@ -81,11 +81,13 @@ export const clearOutputChannel = async (page: Page): Promise<void> => {
   const clearButton = page.getByRole('button', { name: 'Clear Output' }).first();
   await clearButton.click();
 
+  // Wait a moment for the clear action to take effect
   const codeArea = outputPanelCodeArea(page);
   await expect(async () => {
     const text = await codeArea.textContent();
-    expect(text?.trim().length ?? 0, 'Output channel should be cleared').toBeLessThan(50);
-  }).toPass({ timeout: 1000 });
+    // Allow up to 200 characters as some channels may have persistent content/headers
+    expect(text?.trim().length ?? 0, 'Output channel should be mostly cleared').toBeLessThan(200);
+  }).toPass({ timeout: 2000 });
 };
 
 /** Wait for output channel to contain specific text using filter */

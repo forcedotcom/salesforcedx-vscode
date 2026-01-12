@@ -9,9 +9,10 @@ import { expect } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../../../src/pages/commands';
 import {
   waitForVSCodeWorkbench,
-  closeWelcomeTabs
+  closeWelcomeTabs,
+  isMacDesktop
 } from '../../../src/utils/helpers';
-import { QUICK_INPUT_WIDGET } from '../../../src/utils/locators';
+import { QUICK_INPUT_WIDGET, WORKBENCH } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
 test.describe('Command Palette', () => {
@@ -37,11 +38,20 @@ test.describe('Command Palette', () => {
     });
   });
 
-  test('should support command palette on Windows', async ({ page }) => {
+  test('should support command palette with Ctrl+Shift+P', async ({ page }) => {
+    // Ctrl+Shift+P doesn't reliably work on macOS Electron - skip there
+    test.skip(isMacDesktop(), 'Ctrl+Shift+P keyboard shortcut unreliable on Mac desktop Electron');
+
     await test.step('Press Ctrl+Shift+P to open command palette', async () => {
-      await page.keyboard.press('Control+Shift+KeyP');
+      // Focus on the workbench by clicking on it first
+      const workbench = page.locator('[id="workbench.parts.editor"]').first();
+      await workbench
+        .click({ position: { x: 10, y: 10 } })
+        .catch(() => page.locator(WORKBENCH).click());
+
+      await page.keyboard.press('Control+Shift+P');
       const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await expect(quickInput).toBeVisible();
+      await expect(quickInput).toBeVisible({ timeout: 5000 });
     });
 
     await test.step('Close command palette with Escape', async () => {
