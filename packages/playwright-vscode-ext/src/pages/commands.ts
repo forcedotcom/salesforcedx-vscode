@@ -6,7 +6,6 @@
  */
 
 import { expect, Page } from '@playwright/test';
-import { saveScreenshot } from '../shared/screenshotUtils';
 import { isWindowsDesktop } from '../utils/helpers';
 import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
 
@@ -47,19 +46,6 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // We wait for attachment (exists in DOM) rather than visibility, then rely on Playwright's click() to handle scrolling
   await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
 
-  // Capture HTML snapshot before clicking to debug Windows issues
-  if (isWindowsDesktop()) {
-    const quickInputWidget = page.locator(QUICK_INPUT_WIDGET);
-    const htmlContent = await quickInputWidget.innerHTML();
-    const snapshotPath = `test-results/command-palette-before-click-${Date.now()}.html`;
-    const fs = await import('node:fs');
-    const path = await import('node:path');
-    const testResultsDir = path.join(process.cwd(), 'test-results');
-    fs.mkdirSync(testResultsDir, { recursive: true });
-    fs.writeFileSync(path.join(testResultsDir, path.basename(snapshotPath)), htmlContent);
-    await saveScreenshot(page, `command-palette-before-click-${Date.now()}.png`, false);
-  }
-
   // Use text content matching to find exact command (bypasses MRU prioritization)
   // Scope to QUICK_INPUT_WIDGET first, then find the list row (more specific than just .monaco-list-row)
   const commandRow = widget
@@ -69,7 +55,8 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
 
   // Wait for the command row to be attached (exists in DOM)
   // For virtualized lists, the element may exist but not be visible until scrolled into view
-  await expect(commandRow).toBeAttached({ timeout: 5000 });
+  // In CI, commands may take longer to appear, so use a longer timeout
+  await expect(commandRow).toBeAttached({ timeout: 10_000 });
   
   // For virtualized DOM, click directly via evaluate to bypass Playwright's visibility checks
   // This is more reliable than using click() with force: true, which still checks visibility
