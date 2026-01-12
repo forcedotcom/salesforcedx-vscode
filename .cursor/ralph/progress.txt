@@ -32,3 +32,6 @@
 ### Latest Changes:
 - Fixed GitHub Actions workflow: removed ubuntu-latest from desktop matrix (Electron requires display server on Linux, plan only specifies Mac/Windows desktop tests)
 - Fixed outputChannel test screenshot path to use saveScreenshot utility for consistency
+- Fixed wireit config: added dependency on services extension bundle for test:web and test:desktop (fixes "Activating extension 'salesforce.salesforcedx-vscode-services' failed: Not Found" error in CI)
+- Committed and pushed (16e46a1c2)
+- CI workflow 20928603543 failed due to missing services extension bundle - fixed in current changes
