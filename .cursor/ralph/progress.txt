@@ -51,4 +51,11 @@
   - Added fallback to Ctrl+W keyboard shortcut if close button fails
   - Added small delays to allow DOM to stabilize
 - Committed and pushed fix (commit b0a565233)
-- New CI run should start automatically from push
+- CI run 20931588288 results:
+  - Web: ✓ 21/21 tests pass (0 failures) - fix successful!
+  - macOS desktop: 18 pass, 4 failures, 3 skipped
+    - Failures: commandPalette (1), fileOperations (2), outputChannel (1)
+  - Windows desktop: 20 pass, 1 failure, 0 skipped
+    - Failure: contextMenu (explorer view not accessible)
+- Desktop failures appear to be different issues than welcome tabs (which is now fixed for web)
+- Next: investigate desktop-specific failures
