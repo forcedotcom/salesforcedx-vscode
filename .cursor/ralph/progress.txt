@@ -81,4 +81,22 @@
   - This fixes the 'command not visible in list' timing issue on macOS desktop CI
   - All tests pass locally (18 desktop, 21 web)
 - Committed and pushed fix (commit d76144c5c)
-- New CI run started - monitoring results
+- CI run 20932535321 results:
+  - Web: ✓ 21/21 tests pass (0 failures)
+  - macOS desktop: ✓ 18 pass, 3 skipped (all tests passing!)
+  - Windows desktop: failure - "property engines is mandatory and must be of type object" error
+- Fixed Windows desktop CI failure:
+  - Added engines field to playwright-vscode-ext package.json (vscode: ^1.90.0)
+  - This fixes the VS Code extension loading error on Windows desktop
+- Enhanced output channel clearing test verification (requirement 1a):
+  - Added explicit verification after screenshot to ensure channel is completely cleared
+  - Verifies text length is 0 after clearing and screenshot
+  - Uses same locator pattern as outputChannel.ts for consistency
+- Committed and pushed fix (commit 231a501d4)
+- CI run 20933038140 results:
+  - Web: ✓ 21/21 tests pass (0 failures)
+  - macOS desktop: 17 pass, 4 failures, 3 skipped (command palette visibility issue persists)
+  - Windows desktop: 20 pass, 1 failure, 0 skipped (engines field fix successful! Only 1 failure remaining)
+- Windows desktop engines field fix successful - reduced failures from many to just 1
+- Remaining Windows desktop failure: context menu explorer test - strict mode violation (getByRole('heading', { name: 'Explorer' }) resolves to 2 elements)
+- macOS desktop still has command palette visibility timing issue - element exists in DOM but is hidden

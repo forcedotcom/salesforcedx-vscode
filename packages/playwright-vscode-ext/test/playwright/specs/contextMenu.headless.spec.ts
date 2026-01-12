@@ -54,7 +54,8 @@ test.describe('Context Menu', () => {
       await page.keyboard.press('Control+Shift+KeyE');
 
       // Wait for explorer heading to confirm it's visible
-      const explorerHeading = page.getByRole('heading', { name: 'Explorer' });
+      // Use .first() to handle strict mode violation when multiple headings match
+      const explorerHeading = page.getByRole('heading', { name: 'Explorer' }).first();
       await expect(explorerHeading).toBeVisible({ timeout: 5000 });
 
       // Note: Without a workspace folder, there's no file/folder tree to right-click on.
