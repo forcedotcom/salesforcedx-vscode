@@ -64,4 +64,9 @@
   - macOS: output channel timeout
   - Windows: context menu explorer view not accessible
 - Desktop tests pass locally (18 pass, 3 skipped on macOS), suggesting CI-specific timing/flakiness
-- Next: investigate desktop CI timing issues and make tests more robust
+- Fixed command palette execution timeouts:
+  - Increased wait timeout from 300ms to 500ms for list stabilization
+  - Increased visibility timeout from 5000ms to 10000ms for command row visibility
+  - Should help with desktop CI timing issues where commands aren't visible in list
+- Committed and pushed fix (commit 2aaac7968)
+- New CI run started (20931992520) - monitoring results
