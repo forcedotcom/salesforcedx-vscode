@@ -37,10 +37,9 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   await input.waitFor({ state: 'attached', timeout: 5000 });
   await expect(input).toBeVisible({ timeout: 5000 });
   await input.pressSequentially(command, { delay: 5 });
-  await page.waitForTimeout(200); // Wait for typing to complete and list to start filtering
 
-  // Wait for the command list to populate after typing - wait for at least one row to appear
-  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
+  // Wait for the command list to populate after typing - wait for at least one row to appear and be visible
+  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeVisible({ timeout: 5000 });
 
   // Capture HTML snapshot before clicking to debug Windows issues
   if (isWindowsDesktop()) {
@@ -65,17 +64,13 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // Wait for the command row to be attached first (exists in DOM)
   await expect(commandRow).toBeAttached({ timeout: 5000 });
   
-  // For virtualized lists, the element may exist but not be visible in the viewport.
-  // Wait a bit longer for the list to stabilize and filter results, especially on desktop CI
-  await page.waitForTimeout(500);
+  // Wait for at least one list row to be visible to ensure the list has rendered
+  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeVisible({ timeout: 5000 });
   
-  // Wait for the element to be visible with longer timeout for desktop CI
-  // Playwright's click() will automatically scroll into view if needed
-  // Don't use scrollIntoViewIfNeeded() for virtualized DOM as the element won't exist until scrolled into view
-  await expect(commandRow).toBeVisible({ timeout: 10_000 });
-  
-  // Click the command row - Playwright will handle scrolling if needed
-  await commandRow.click();
+  // Click the command row - Playwright will automatically scroll into view and wait for visibility if needed
+  // For virtualized lists, the element may exist but not be visible until scrolled into view
+  // Playwright's click() handles this automatically, so we don't need to check visibility separately
+  await commandRow.click({ timeout: 10_000 });
 
   // Wait for the command palette to close after executing the command
   await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
