@@ -6,11 +6,6 @@
  */
 
 import { expect } from '@playwright/test';
-import { test } from '../fixtures/index';
-import {
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs
-} from '../../../src/utils/helpers';
 import {
   ensureOutputPanelOpen,
   selectOutputChannel,
@@ -18,6 +13,11 @@ import {
   waitForOutputChannelText,
   outputChannelContains
 } from '../../../src/pages/outputChannel';
+import {
+  waitForVSCodeWorkbench,
+  closeWelcomeTabs
+} from '../../../src/utils/helpers';
+import { test } from '../fixtures/index';
 
 test.describe('Output Channel', () => {
   test.beforeEach(async ({ page }) => {

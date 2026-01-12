@@ -6,17 +6,18 @@
  */
 
 import { expect } from '@playwright/test';
-import { test } from '../fixtures/index';
-import {
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs,
-  isMacDesktop
-} from '../../../src/utils/helpers';
 import {
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand
 } from '../../../src/pages/contextMenu';
 import { createFileWithContents } from '../../../src/utils/fileHelpers';
+import {
+  waitForVSCodeWorkbench,
+  closeWelcomeTabs,
+  isMacDesktop
+} from '../../../src/utils/helpers';
+import { EDITOR } from '../../../src/utils/locators';
+import { test } from '../fixtures/index';
 
 test.describe('Context Menu', () => {
   test.beforeEach(async ({ page }) => {
@@ -45,7 +46,7 @@ test.describe('Context Menu', () => {
       await page.keyboard.press('Enter');
       await page.keyboard.press('Control+KeyV');
 
-      const editor = page.locator('.monaco-editor .view-lines');
+      const editor = page.locator(`${EDITOR} .view-lines`);
       const content = await editor.textContent();
       expect(content).toContain('Test content for context menu');
     });

@@ -6,17 +6,17 @@
  */
 
 import { expect } from '@playwright/test';
-import { test } from '../fixtures/index';
-import {
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs
-} from '../../../src/utils/helpers';
 import {
   createFileWithContents,
   openFileByName,
   editOpenFile
 } from '../../../src/utils/fileHelpers';
+import {
+  waitForVSCodeWorkbench,
+  closeWelcomeTabs
+} from '../../../src/utils/helpers';
 import { EDITOR, TAB } from '../../../src/utils/locators';
+import { test } from '../fixtures/index';
 
 test.describe('File Operations', () => {
   test.beforeEach(async ({ page }) => {

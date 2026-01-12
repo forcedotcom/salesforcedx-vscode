@@ -17,11 +17,6 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
   // Close all open editors so the "Create: New File..." command defaults to project root
   await executeCommandWithCommandPalette(page, 'View: Close All Editors');
 
-  // Focus the explorer and click on workspace root
-  await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
-  const workspaceRoot = page.locator('.monaco-list-row[aria-level="1"]').first();
-  await workspaceRoot.click();
-
   // Parse the file path to get the filename for the first dialog
   const lastSlash = filePath.lastIndexOf('/');
   const fileName = lastSlash > 0 ? filePath.substring(lastSlash + 1) : filePath;

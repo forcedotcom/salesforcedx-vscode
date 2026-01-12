@@ -6,13 +6,13 @@
  */
 
 import { expect } from '@playwright/test';
-import { test } from '../fixtures/index';
 import {
   closeWelcomeTabs,
   waitForWorkspaceReady,
   waitForVSCodeWorkbench
 } from '../../../src/utils/helpers';
 import { WORKBENCH } from '../../../src/utils/locators';
+import { test } from '../fixtures/index';
 
 test.describe('Helper Functions', () => {
   test('waitForVSCodeWorkbench should wait for workbench to load', async ({ page }) => {

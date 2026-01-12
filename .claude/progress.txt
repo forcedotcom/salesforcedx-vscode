@@ -8,41 +8,41 @@
 - Updated tsconfig.json to include test/**/*.ts
 - Updated package.json with test:web and test:desktop scripts
 
-### Test Specs Created
-- helpers.headless.spec.ts - PASSING (3/3 tests)
-- commandPalette.headless.spec.ts - PASSING (3/3 tests)
+### Test Specs Status
+- helpers.headless.spec.ts - PASSING (3/3 tests web)
+- commandPalette.headless.spec.ts - PASSING (3/3 tests web)
+- settings.headless.spec.ts - FLAKY (4/4 tests, but 1 fails first try)
 - fileOperations.headless.spec.ts - FAILING (0/4 tests)
-- settings.headless.spec.ts - FAILING (1/4 tests, openSettingsUI works)
 - outputChannel.headless.spec.ts - FAILING (1/5 tests, ensureOutputPanelOpen works)
 - contextMenu.headless.spec.ts - FAILING (0/2 tests)
 
-### Web Test Results (First Run)
-- 8/21 tests passing
-- 13/21 tests failing
+### Recent Changes (Latest Session)
+1. Settings: Added Enter key press before blur to commit changes (src/pages/settings.ts:149)
+   - Reduces flakiness but doesn't fully solve the issue
+   - Test still fails first try sometimes, passes on retry
+2. File Operations: Removed workspace root click requirement (src/utils/fileHelpers.ts:20-23)
+   - Tests now fail faster (8s vs 18s) but still failing
+   - Root cause: "Create: New File..." command behavior needs investigation
 
-### Failures to Fix
-1. File operations - createFileWithContents timing out (needs workspace)
-2. Settings - "Preferences: Open Workspace Settings" command lookup failing (needs investigation)
-3. Output channel - selectOutputChannel timing out (needs investigation)
-4. Context menu - tests timing out (needs workspace with files)
+### Web Test Results (Current)
+- 11/21 tests passing (helpers 3/3, commandPalette 3/3, settings 4/4 but flaky, outputPanel 1/1)
+- 10/21 tests failing (fileOperations 4/4, outputChannel 4/5, contextMenu 2/2)
 
-### Desktop Test Results (First Run - macOS)
-- 4/21 tests passing (helpers + outputChannel open)
-- 17/21 tests failing
-- Context menu test properly skipped on Mac desktop ✓
-- VS Code engine warning about missing engines field in package.json
-
-### Work Completed This Session
-1. Created complete test infrastructure for playwright-vscode-ext
-2. Created 6 test spec files covering all exported functions
-3. Fixed import statements to use correct modules
-4. Verified web tests run (8/21 passing)
-5. Verified desktop tests run (4/21 passing)
-6. Committed and pushed initial test setup
+### Failures Remaining
+1. Settings - textbox setting test is flaky (value "14" instead of "16" on first try)
+   - Need to wait for setting to persist after Enter+blur, or use different approach
+2. File operations - all 4 tests failing after "Create: New File..." command
+   - Removed workspace root click but tests still fail
+   - Need to debug why file creation dialog doesn't work properly
+3. Output channel - selectOutputChannel can't find combobox dropdown (4/5 tests)
+   - ensureOutputPanelOpen works, but selectOutputChannel times out
+   - Dropdown selector may be incorrect for test environment
+4. Context menu - both tests failing (depends on file operations)
 
 ### Next Actions (Per ralph.sh Sequence)
-1. Fix package.json engines field issue for desktop
-2. Focus on ONE failing test at a time - start with settings (already partially working)
-3. Get all web tests passing before moving to desktop
-4. Create GitHub Actions workflow once tests are stable
-5. Iterate to remove fallbacks and align with coding-playwright-tests.mdc
+1. Investigate settings flakiness - add wait after blur or use different commit approach
+2. Debug file operations - check why "Create: New File..." dialog doesn't appear/work
+3. Fix output channel dropdown selector
+4. Verify org-browser tests after each change
+5. Run desktop tests after web tests pass
+6. Create GitHub Actions workflow once tests are stable

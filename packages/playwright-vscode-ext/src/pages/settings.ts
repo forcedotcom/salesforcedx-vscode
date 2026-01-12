@@ -145,6 +145,8 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       await inputElement.click({ timeout: 5000 });
       await inputElement.fill(value);
       await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
+      // Press Enter to commit the change before blurring
+      await page.keyboard.press('Enter');
       await inputElement.blur();
     }
 

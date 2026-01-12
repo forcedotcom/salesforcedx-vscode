@@ -6,13 +6,13 @@
  */
 
 import { expect } from '@playwright/test';
-import { test } from '../fixtures/index';
+import { executeCommandWithCommandPalette } from '../../../src/pages/commands';
 import {
   waitForVSCodeWorkbench,
   closeWelcomeTabs
 } from '../../../src/utils/helpers';
-import { executeCommandWithCommandPalette } from '../../../src/pages/commands';
 import { QUICK_INPUT_WIDGET } from '../../../src/utils/locators';
+import { test } from '../fixtures/index';
 
 test.describe('Command Palette', () => {
   test.beforeEach(async ({ page }) => {
