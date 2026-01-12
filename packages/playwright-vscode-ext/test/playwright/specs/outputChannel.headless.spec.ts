@@ -17,6 +17,7 @@ import {
   waitForVSCodeWorkbench,
   closeWelcomeTabs
 } from '../../../src/utils/helpers';
+import { saveScreenshot } from '../../../src/shared/screenshotUtils';
 import { test } from '../fixtures/index';
 
 test.describe('Output Channel', () => {
@@ -99,7 +100,7 @@ test.describe('Output Channel', () => {
       const outputContent = page.locator('[id="workbench.panel.output"]').locator('.view-lines').first();
       const text = await outputContent.textContent();
       // Take screenshot to verify output channel is completely clear
-      await page.screenshot({ path: 'test-results/output-channel-cleared.png', fullPage: false });
+      await saveScreenshot(page, 'output-channel-cleared.png', false);
       // Output channel should be completely cleared - no text should remain
       expect(text?.trim().length ?? 0, 'Output channel should be completely cleared').toBe(0);
     });

@@ -3,26 +3,32 @@
 ### Changes Made:
 1. **Command Palette Execution** (`commands.ts`):
    - Fixed flaky command palette execution when command rows are hidden in virtualized lists
-   - Wait for command row to be attached, then click with force: true if not visible
-   - This handles cases where VS Code's virtualized command list has elements in DOM but not visible in viewport
-   - Improved reliability for command execution across platforms
+   - Wait for command row to be attached, check visibility, then use force parameter directly based on visibility
+   - Avoids race condition where element becomes invisible between visibility check and click
+   - Handles cases where VS Code's virtualized command list has elements in DOM but not visible in viewport
 
 2. **Output Panel Opening** (`outputChannel.ts`):
    - Increased timeout for output panel to become visible after command execution (5s to 10s)
    - Better handles timing when command execution takes longer
 
 ### Test Results:
-- Web: ✓ 21/21 tests pass (clear output channel test now passing consistently)
-- Desktop (macOS): Tests run individually pass; some flakiness in full suite run
+- Web: ✓ 21/21 tests pass consistently (clear output channel test passing)
+- Desktop (macOS): ✓ 18 pass, 3 skipped (context menu tests + Ctrl+Shift+P test)
+- Org-browser web: ✓ 4/4 tests pass
 - Output channel clearing test verifies channel is completely cleared with screenshot verification
 
 ### Files Modified:
 - packages/playwright-vscode-ext/src/pages/commands.ts
 - packages/playwright-vscode-ext/src/pages/outputChannel.ts
+- .cursor/ralph/progress.txt
 
 ### Status:
 - All test files exist and are implemented (commandPalette, fileOperations, settings, outputChannel, contextMenu, helpers)
-- Web tests passing (21/21)
-- Desktop tests: 17-18 pass, 3 skipped (context menu tests + Ctrl+Shift+P test on macOS)
-- Output channel clearing test includes screenshot verification as required
-- Working on ensuring consistent test execution across all platforms
+- Web tests passing consistently (21/21)
+- Desktop tests passing locally on macOS (18 pass, 3 skipped as expected)
+- Output channel clearing test includes screenshot verification using saveScreenshot utility (requirement 1a satisfied)
+- Org-browser web tests still passing (4/4)
+
+### Latest Changes:
+- Fixed GitHub Actions workflow: removed ubuntu-latest from desktop matrix (Electron requires display server on Linux, plan only specifies Mac/Windows desktop tests)
+- Fixed outputChannel test screenshot path to use saveScreenshot utility for consistency
