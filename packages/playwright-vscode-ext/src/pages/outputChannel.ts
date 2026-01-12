@@ -27,13 +27,19 @@ const withOutputFilter = async <T>(page: Page, searchText: string, fn: () => Pro
   const input = filterInput(page);
   await input.waitFor({ state: 'visible', timeout: 5000 });
   await input.focus();
+  // Clear existing value by selecting all and deleting
+  await page.keyboard.press('Control+KeyA');
+  await page.keyboard.press('Backspace');
+  // Fill the search text - more reliable than type() on desktop
   await input.fill(searchText);
   await expect(input).toHaveValue(searchText, { timeout: 5000 });
   try {
     return await fn();
   } finally {
+    // Clear filter - ensure input is focused, then clear using fill
+    await input.focus();
     await input.fill('');
-    await expect(input).toHaveValue('', { timeout: 2000 });
+    await expect(input).toHaveValue('', { timeout: 5000 });
   }
 };
 
