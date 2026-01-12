@@ -11,6 +11,10 @@ import { isWindowsDesktop } from '../utils/helpers';
 import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
 
 const openCommandPalette = async (page: Page): Promise<void> => {
+  // Ensure workbench is focused before opening command palette
+  const { WORKBENCH } = await import('../utils/locators.js');
+  await page.locator(WORKBENCH).click();
+  
   // Try F1 first (standard command palette shortcut)
   await page.keyboard.press('F1');
   if (isWindowsDesktop()) {

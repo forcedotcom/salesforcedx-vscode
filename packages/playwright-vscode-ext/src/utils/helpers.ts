@@ -105,9 +105,10 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
 
 /** Close VS Code Welcome/Walkthrough tabs if they're open */
 export const closeWelcomeTabs = async (page: Page): Promise<void> => {
-  // Wait a bit for any welcome tabs to appear
-  await page.waitForTimeout(500);
-  
+  // Wait for tab container to be ready before checking for welcome tabs
+  const tabContainer = page.locator('.tabs-container');
+  await tabContainer.waitFor({ state: 'attached', timeout: 5000 }).catch(() => {});
+
   // Loop to close all welcome/walkthrough tabs (there may be multiple)
   let attempts = 0;
   const maxAttempts = 10;
@@ -117,8 +118,8 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
     const count = await welcomeTabs.count();
     
     if (count === 0) {
-      // Wait a bit more to ensure no new tabs appear
-      await page.waitForTimeout(500);
+      // Wait for tab container to stabilize to ensure no new tabs appear
+      await tabContainer.waitFor({ state: 'attached', timeout: 1000 }).catch(() => {});
       const finalCount = await welcomeTabs.count();
       if (finalCount === 0) {
         break;
@@ -127,26 +128,34 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
 
     // Close the first welcome tab
     const welcomeTab = welcomeTabs.first();
-    const isWelcomeVisible = await welcomeTab.isVisible().catch(() => false);
+    const isWelcomeVisible = await welcomeTab.isVisible({ timeout: 1000 }).catch(() => false);
     if (!isWelcomeVisible) {
       attempts++;
       continue;
     }
 
     const closeButton = welcomeTab.locator(TAB_CLOSE_BUTTON);
-    await closeButton.click({ timeout: 5000 }).catch(() => {
-      // If close button click fails, try clicking the tab itself and then pressing Ctrl+W
-      welcomeTab.click().catch(() => {});
-    });
+    const closeButtonVisible = await closeButton.isVisible({ timeout: 1000 }).catch(() => false);
+    
+    if (closeButtonVisible) {
+      await closeButton.click({ timeout: 5000 }).catch(() => {
+        // If close button click fails, try keyboard shortcut
+        page.keyboard.press('Control+w').catch(() => {});
+      });
+    } else {
+      // If close button not visible, try keyboard shortcut directly
+      await welcomeTab.click({ timeout: 1000 }).catch(() => {});
+      await page.keyboard.press('Control+w').catch(() => {});
+    }
 
     // Wait for tab to be fully removed from DOM
     await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {
-      // If tab doesn't detach, try keyboard shortcut
+      // If tab doesn't detach, try keyboard shortcut again
       page.keyboard.press('Control+w').catch(() => {});
     });
 
-    // Wait a bit before checking for more tabs
-    await page.waitForTimeout(300);
+    // Wait for tab container to update before checking for more tabs
+    await tabContainer.waitFor({ state: 'attached', timeout: 1000 }).catch(() => {});
     attempts++;
   }
 };
