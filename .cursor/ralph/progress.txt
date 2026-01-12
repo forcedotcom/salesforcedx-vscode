@@ -58,4 +58,10 @@
   - Windows desktop: 20 pass, 1 failure, 0 skipped
     - Failure: contextMenu (explorer view not accessible)
 - Desktop failures appear to be different issues than welcome tabs (which is now fixed for web)
-- Next: investigate desktop-specific failures
+- Desktop CI failures analysis:
+  - macOS: command palette command not visible in list (timing issue)
+  - macOS: file operations failing (likely timing/welcome tabs related)
+  - macOS: output channel timeout
+  - Windows: context menu explorer view not accessible
+- Desktop tests pass locally (18 pass, 3 skipped on macOS), suggesting CI-specific timing/flakiness
+- Next: investigate desktop CI timing issues and make tests more robust
