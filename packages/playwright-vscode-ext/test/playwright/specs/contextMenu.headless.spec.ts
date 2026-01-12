@@ -8,8 +8,8 @@
 import { expect } from '@playwright/test';
 import { executeEditorContextMenuCommand } from '../../../src/pages/contextMenu';
 import { createFileWithContents } from '../../../src/utils/fileHelpers';
-import { waitForVSCodeWorkbench, closeWelcomeTabs, isMacDesktop, isVSCodeWeb } from '../../../src/utils/helpers';
-import { EDITOR } from '../../../src/utils/locators';
+import { waitForVSCodeWorkbench, closeWelcomeTabs, isMacDesktop } from '../../../src/utils/helpers';
+import { CONTEXT_MENU, EDITOR_WITH_URI, QUICK_INPUT_WIDGET } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
 test.describe('Context Menu', () => {
@@ -20,39 +20,34 @@ test.describe('Context Menu', () => {
 
   test('should execute editor context menu command', async ({ page }) => {
     test.skip(isMacDesktop(), 'Context menus not supported on Mac desktop');
-    // Context menu behavior differs significantly between web and desktop
-    // Web uses browser context menus which are not easily testable with Playwright
-    // This test validates the executeEditorContextMenuCommand utility works on desktop platforms
-    test.skip(isVSCodeWeb(), 'Context menu interaction differs in web environment');
 
     await test.step('Create and open untitled file', async () => {
-      await createFileWithContents(page, 'unused', 'Test content for context menu');
+      await createFileWithContents(page, 'unused', 'Test content');
     });
 
-    await test.step('Execute context menu command', async () => {
-      // Select all text first
-      await page.keyboard.press('Control+KeyA');
+    await test.step('Execute Command Palette via context menu', async () => {
+      const editor = page.locator(EDITOR_WITH_URI).first();
+      await editor.click();
 
-      // Execute copy via context menu
-      await executeEditorContextMenuCommand(page, 'Copy');
+      // Execute "Command Palette..." via context menu
+      await executeEditorContextMenuCommand(page, /Command Palette/);
 
-      // Verify copy worked by pasting
-      await page.keyboard.press('Control+End');
-      await page.keyboard.press('Enter');
-      await page.keyboard.press('Control+KeyV');
+      // Wait for Command Palette to appear
+      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      await expect(quickInput).toBeVisible({ timeout: 5000 });
 
-      const editor = page.locator(`${EDITOR} .view-lines`);
-      const content = await editor.textContent();
-      expect(content).toContain('Test content for context menu');
+      // Verify command palette is showing (has input box)
+      const inputBox = quickInput.locator('input[type="text"]');
+      await expect(inputBox).toBeVisible();
+
+      // Close the command palette by pressing Escape
+      await page.keyboard.press('Escape');
+      await expect(quickInput).not.toBeVisible();
     });
   });
 
   test('should execute explorer context menu command', async ({ page }) => {
     test.skip(isMacDesktop(), 'Context menus not supported on Mac desktop');
-    // Context menu behavior differs significantly between web and desktop
-    // Web uses browser context menus which are not easily testable with Playwright
-    // This test validates the executeExplorerContextMenuCommand utility works on desktop platforms
-    test.skip(isVSCodeWeb(), 'Context menu interaction differs in web environment');
 
     await test.step('Focus explorer', async () => {
       // Use keyboard to focus explorer
@@ -74,7 +69,7 @@ test.describe('Context Menu', () => {
       await workspaceFolder.click({ button: 'right' });
 
       // Wait for context menu
-      const contextMenu = page.locator('.context-view');
+      const contextMenu = page.locator(CONTEXT_MENU);
       await expect(contextMenu).toBeVisible({ timeout: 2000 });
 
       // Find and click "New File..." option

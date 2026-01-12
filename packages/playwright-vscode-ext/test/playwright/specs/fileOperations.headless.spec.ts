@@ -18,10 +18,11 @@ test.describe('File Operations', () => {
   });
 
   test('should create file with contents', async ({ page }) => {
+    const fileName = 'test-file.txt';
     const fileContent = 'Hello, World!';
 
-    await test.step('Create new untitled file with content', async () => {
-      await createFileWithContents(page, 'unused', fileContent);
+    await test.step(`Create new untitled file ${fileName} with content`, async () => {
+      await createFileWithContents(page, fileName, fileContent);
     });
 
     await test.step('Verify untitled file is open in editor', async () => {
@@ -36,12 +37,15 @@ test.describe('File Operations', () => {
   });
 
   test('should switch between multiple files', async ({ page }) => {
-    await test.step('Create first file', async () => {
-      await createFileWithContents(page, 'unused', 'First file content');
+    const firstFile = 'first-file.txt';
+    const secondFile = 'second-file.txt';
+
+    await test.step(`Create first file ${firstFile}`, async () => {
+      await createFileWithContents(page, firstFile, 'First file content');
     });
 
-    await test.step('Create second file', async () => {
-      await createFileWithContents(page, 'unused', 'Second file content');
+    await test.step(`Create second file ${secondFile}`, async () => {
+      await createFileWithContents(page, secondFile, 'Second file content');
     });
 
     await test.step('Verify both tabs are visible', async () => {
@@ -65,10 +69,11 @@ test.describe('File Operations', () => {
   });
 
   test('should edit open file', async ({ page }) => {
+    const fileName = 'editable-file.txt';
     const initialContent = 'Initial content';
 
-    await test.step('Create and open file', async () => {
-      await createFileWithContents(page, 'unused', initialContent);
+    await test.step(`Create and open file ${fileName}`, async () => {
+      await createFileWithContents(page, fileName, initialContent);
     });
 
     await test.step('Edit file content by typing', async () => {
@@ -87,10 +92,11 @@ test.describe('File Operations', () => {
   });
 
   test('should show dirty indicator when file has unsaved changes', async ({ page }) => {
+    const fileName = 'dirty-file.txt';
     const content = 'Content to edit';
 
-    await test.step('Create file', async () => {
-      await createFileWithContents(page, 'unused', content);
+    await test.step(`Create file ${fileName}`, async () => {
+      await createFileWithContents(page, fileName, content);
     });
 
     await test.step('Verify file shows dirty indicator (untitled files are dirty)', async () => {
