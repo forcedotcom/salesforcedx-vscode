@@ -26,7 +26,7 @@ const getVisibleOutputText = async (page: Page): Promise<string> =>
 const withOutputFilter = async <T>(page: Page, searchText: string, fn: () => Promise<T>): Promise<T> => {
   const input = filterInput(page);
   await input.fill(searchText);
-  await page.waitForTimeout(500);
+  await expect(input).toHaveValue(searchText);
   try {
     return await fn();
   } finally {
