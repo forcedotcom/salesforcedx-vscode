@@ -173,13 +173,6 @@
   - Web: ✓ 21/21 tests pass (0 failures)
   - Windows desktop: ✓ 20 pass, 1 failure, 0 skipped (Windows desktop context menu fix successful!)
   - macOS desktop: failure - command palette command not visible after scrolling (virtualized DOM issue)
-- Fixed macOS desktop command palette virtualized DOM issue (commit f9a247960):
-  - Removed visibility check after scrolling - element exists in DOM but may be hidden until scrolled
-  - Rely on Playwright's click() to handle scrolling and visibility automatically
-  - Aligns with coding rules - don't check visibility for virtualized DOM elements
-  - All tests pass locally (18 desktop, 21 web)
-- CI run monitoring for fix
-=======
 - CI run 20934988628 results:
   - Web: ✓ 21/21 tests pass (0 failures)
   - macOS desktop: failures - command palette and file operations tests failing (welcome tabs interfering)
@@ -193,10 +186,9 @@
   - Web: ✓ 21/21 tests pass (0 failures)
   - Windows desktop: ✓ 20 pass, 1 failure, 0 skipped (Windows desktop context menu fix successful!)
   - macOS desktop: failure - command palette command not visible after scrolling (virtualized DOM issue)
-- Fixed macOS desktop command palette virtualized DOM issue (commit f9a247960):
+- Fixed macOS desktop command palette virtualized DOM issue (commit 331477e51):
   - Removed visibility check after scrolling - element exists in DOM but may be hidden until scrolled
   - Rely on Playwright's click() to handle scrolling and visibility automatically
   - Aligns with coding rules - don't check visibility for virtualized DOM elements
   - All tests pass locally (18 desktop, 21 web)
-- CI run monitoring for fix
->>>>>>> da2d41afc (fix(playwright-vscode-ext): remove visibility check after scrolling in command palette)
+- CI run 20935968273 started - monitoring results (includes macOS desktop command palette fix)
