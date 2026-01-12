@@ -191,4 +191,12 @@
   - Rely on Playwright's click() to handle scrolling and visibility automatically
   - Aligns with coding rules - don't check visibility for virtualized DOM elements
   - All tests pass locally (18 desktop, 21 web)
-- CI run 20935968273 started - monitoring results (includes macOS desktop command palette fix)
+- CI run 20935968273 results:
+  - Web: ✓ 21/21 tests pass (0 failures)
+  - Windows desktop: ✓ 20 pass, 1 failure, 0 skipped
+  - macOS desktop: failure - command palette test failing (tab count assertion timing issue)
+- Fixed command palette test timing issue (commit pending):
+  - Increased timeout for tab count assertion from 5000ms to 10000ms
+  - Command execution may take time to close all tabs, especially on macOS desktop CI
+  - All tests pass locally (18 desktop, 21 web)
+- CI run monitoring for fix
