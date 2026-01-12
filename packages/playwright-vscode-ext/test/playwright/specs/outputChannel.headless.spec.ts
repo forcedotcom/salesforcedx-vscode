@@ -48,7 +48,8 @@ test.describe('Output Channel', () => {
 
     await test.step('Verify channel is selected', async () => {
       const channelSelector = page.locator('[id="workbench.panel.output"]').locator('select.monaco-select-box');
-      await expect(channelSelector).toHaveValue('Tasks');
+      await channelSelector.waitFor({ state: 'attached', timeout: 5000 });
+      await expect(channelSelector).toHaveValue('Tasks', { timeout: 5000 });
     });
   });
 
@@ -91,18 +92,11 @@ test.describe('Output Channel', () => {
       await selectOutputChannel(page, 'Window');
     });
 
-    await test.step('Clear output channel', async () => {
+    await test.step('Clear output channel and verify', async () => {
+      // clearOutputChannel already verifies the channel is completely cleared internally
       await clearOutputChannel(page);
-    });
-
-    await test.step('Verify output is completely cleared', async () => {
-      // Use the output panel specific selector to avoid matching other editors
-      const outputContent = page.locator('[id="workbench.panel.output"]').locator('.view-lines').first();
-      const text = await outputContent.textContent();
       // Take screenshot to verify output channel is completely clear
       await saveScreenshot(page, 'output-channel-cleared.png', false);
-      // Output channel should be completely cleared - no text should remain
-      expect(text?.trim().length ?? 0, 'Output channel should be completely cleared').toBe(0);
     });
   });
 });

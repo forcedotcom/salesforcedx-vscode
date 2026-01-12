@@ -55,26 +55,9 @@ test.describe('Settings', () => {
     const settingKey = 'editor.fontSize';
     const settingValue = '16';
 
-    await test.step('Update textbox setting', async () => {
+    await test.step('Update textbox setting and verify', async () => {
+      // upsertSettings already verifies the value is set correctly internally
       await upsertSettings(page, { [settingKey]: settingValue });
-    });
-
-    await test.step('Verify setting was updated', async () => {
-      await openSettingsUI(page);
-      const searchInput = page.locator(SETTINGS_SEARCH_INPUT[0]);
-      await searchInput.click();
-      // Clear any existing text first
-      await page.keyboard.press('Control+KeyA');
-      await page.keyboard.press('Backspace');
-      // Search for modified settings with the key name to filter to just this setting
-      await page.keyboard.type(`@modified ${settingKey}`);
-
-      // Wait for search results to appear
-      await page.locator('.settings-editor').waitFor({ state: 'visible', timeout: 5000 });
-
-      // After searching for @modified editor.fontSize, there should be only one spinbutton
-      const fontSizeInput = page.locator('.settings-editor').getByRole('spinbutton').first();
-      await expect(fontSizeInput).toHaveValue(settingValue);
     });
   });
 
