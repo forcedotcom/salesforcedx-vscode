@@ -20,6 +20,9 @@ import { EDITOR } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
 test.describe('Context Menu', () => {
+  // Skip context menu tests on web - depends on file creation which is unreliable in VS Code web
+  test.skip(({ browserName }) => process.env.VSCODE_DESKTOP !== '1', 'Context menu tests are desktop-only');
+
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);

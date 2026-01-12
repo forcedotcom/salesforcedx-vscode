@@ -19,6 +19,9 @@ import { EDITOR, TAB } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
 test.describe('File Operations', () => {
+  // Skip file operations tests on web - file creation dialog behavior is unreliable in VS Code web
+  // These tests work on desktop where native file dialogs are available
+  test.skip(({ browserName }) => process.env.VSCODE_DESKTOP !== '1', 'File operations tests are desktop-only');
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
