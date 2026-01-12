@@ -138,20 +138,22 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
       continue;
     }
 
-    // Try to close using keyboard shortcut first (more reliable than close button)
+    // Select the tab first to ensure it's active
     await welcomeTab.click({ timeout: 2000 }).catch(() => {});
-    await page.keyboard.press('Control+w');
-    
-    // Wait for tab to be fully removed from DOM
-    const tabClosed = await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => false);
-    if (!tabClosed) {
-      // If keyboard shortcut didn't work, try close button
-      const closeButton = welcomeTab.locator(TAB_CLOSE_BUTTON);
-      const closeButtonVisible = await closeButton.isVisible({ timeout: 1000 }).catch(() => false);
-      if (closeButtonVisible) {
-        await closeButton.click({ timeout: 5000 }).catch(() => {});
-        await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
-      }
+    // Wait briefly for tab to be selected
+    await expect(welcomeTab).toHaveAttribute('aria-selected', 'true', { timeout: 2000 }).catch(() => {});
+
+    // Try close button first (more reliable than keyboard shortcut)
+    const closeButton = welcomeTab.locator(TAB_CLOSE_BUTTON);
+    const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+    if (closeButtonVisible) {
+      await closeButton.click({ timeout: 5000 });
+      // Wait for tab to be fully removed from DOM
+      await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+    } else {
+      // Fall back to keyboard shortcut if close button not visible
+      await page.keyboard.press('Control+w');
+      await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
     }
 
     // Wait for tab container to update before checking for more tabs

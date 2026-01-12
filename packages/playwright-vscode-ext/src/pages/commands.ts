@@ -38,7 +38,10 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // Wait for widget to be visible first, then wait for input to be attached and visible
   await widget.waitFor({ state: 'visible', timeout: 5000 });
   await input.waitFor({ state: 'attached', timeout: 5000 });
-  await expect(input).toBeVisible({ timeout: 5000 });
+  // Wait for input to be visible - it may be attached but hidden initially
+  await expect(input).toBeVisible({ timeout: 10_000 });
+  // Focus the input to ensure it's ready for typing
+  await input.focus({ timeout: 5000 }).catch(() => {});
   await input.pressSequentially(command, { delay: 5 });
 
   // Wait for the command list to populate after typing - wait for at least one row to exist in DOM
