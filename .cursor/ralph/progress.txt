@@ -100,3 +100,20 @@
 - Windows desktop engines field fix successful - reduced failures from many to just 1
 - Remaining Windows desktop failure: context menu explorer test - strict mode violation (getByRole('heading', { name: 'Explorer' }) resolves to 2 elements)
 - macOS desktop still has command palette visibility timing issue - element exists in DOM but is hidden
+- Fixed Windows desktop context menu test strict mode violation:
+  - getByRole('heading', { name: 'Explorer' }) resolves to 2 elements
+  - Use .first() to select the main Explorer heading
+- Committed and pushed fix (commit 16e8263df)
+- CI run 20933364110 results:
+  - Web: ✓ 21/21 tests pass (0 failures)
+  - macOS desktop: 16 pass, 2 failures, 3 skipped
+    - Failures: fileOperations (should show dirty indicator), outputChannel (should clear output channel)
+    - Both failures due to Quick Open command list not visible - welcome tabs interfering with focus
+  - Windows desktop: still running
+- Fixed macOS desktop CI failures (commit 4a7d6ecad):
+  - Removed waitForTimeout calls from closeWelcomeTabs (violates coding rules)
+  - Wait for tab container to stabilize instead of arbitrary timeouts
+  - Ensure workbench is focused before opening command palette
+  - Fix import order in outputChannel test
+  - All tests pass locally (18 desktop, 21 web)
+- CI run 20933635258 started - monitoring results
