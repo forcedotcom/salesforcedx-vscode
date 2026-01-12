@@ -332,7 +332,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
 const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
   console.log('salesforcedx-vscode-core index.ts - enter initializeProject()');
-  await WorkspaceContext.getInstance().initialize(extensionContext);
+  // await WorkspaceContext.getInstance().initialize(extensionContext);
   console.log('salesforcedx-vscode-core index.ts initializeProject() - 1');
   PersistentStorageService.initialize(extensionContext);
   console.log('salesforcedx-vscode-core index.ts initializeProject() - 2');

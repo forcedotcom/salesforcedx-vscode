@@ -114,6 +114,7 @@ export class WorkspaceContextUtil {
           console.log('workspaceContextUtil.ts getConnection() - 10');
           await connectionDetails.connection.identity(); // THIS LINE FAILED
           // There was no identity because the user was logged out.
+          // The issue is that this step is *part of the initialization of the CLI Integration extension*.
           // Therefore the workaround was to login again via CLI.
           console.log('workspaceContextUtil.ts getConnection() - 11');
           this.knownBadConnections.delete(this._username);
