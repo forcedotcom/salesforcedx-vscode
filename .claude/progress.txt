@@ -26,6 +26,23 @@
 3. Output channel - selectOutputChannel timing out (needs investigation)
 4. Context menu - tests timing out (needs workspace with files)
 
-### Next Action
-Per ralph.sh instructions, focus on ONE test at a time. Start with settings since openSettingsUI already works.
-Need to debug why upsertSettings is failing on command palette lookup.
+### Desktop Test Results (First Run - macOS)
+- 4/21 tests passing (helpers + outputChannel open)
+- 17/21 tests failing
+- Context menu test properly skipped on Mac desktop ✓
+- VS Code engine warning about missing engines field in package.json
+
+### Work Completed This Session
+1. Created complete test infrastructure for playwright-vscode-ext
+2. Created 6 test spec files covering all exported functions
+3. Fixed import statements to use correct modules
+4. Verified web tests run (8/21 passing)
+5. Verified desktop tests run (4/21 passing)
+6. Committed and pushed initial test setup
+
+### Next Actions (Per ralph.sh Sequence)
+1. Fix package.json engines field issue for desktop
+2. Focus on ONE failing test at a time - start with settings (already partially working)
+3. Get all web tests passing before moving to desktop
+4. Create GitHub Actions workflow once tests are stable
+5. Iterate to remove fallbacks and align with coding-playwright-tests.mdc

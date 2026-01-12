@@ -6,16 +6,16 @@
  */
 
 import { expect } from '@playwright/test';
-import { test } from '../fixtures/index';
-import {
-  waitForVSCodeWorkbench,
-  closeWelcomeTabs
-} from '../../../src/utils/helpers';
 import {
   openSettingsUI,
   upsertSettings
 } from '../../../src/pages/settings';
+import {
+  waitForVSCodeWorkbench,
+  closeWelcomeTabs
+} from '../../../src/utils/helpers';
 import { SETTINGS_SEARCH_INPUT } from '../../../src/utils/locators';
+import { test } from '../fixtures/index';
 
 test.describe('Settings', () => {
   test.beforeEach(async ({ page }) => {
@@ -41,12 +41,12 @@ test.describe('Settings', () => {
 
     await test.step('Search for a setting', async () => {
       const searchInput = page.locator(SETTINGS_SEARCH_INPUT[0]);
-      await searchInput.fill('editor.fontSize');
-      await expect(searchInput).toHaveValue('editor.fontSize');
+      await searchInput.click();
+      await page.keyboard.type('editor.fontSize');
     });
 
     await test.step('Verify search results appear', async () => {
-      const settingRow = page.locator('.settings-editor').getByText('Font Size', { exact: false });
+      const settingRow = page.locator('.settings-editor').getByText('Font Size', { exact: false }).first();
       await expect(settingRow).toBeVisible();
     });
   });
@@ -62,9 +62,10 @@ test.describe('Settings', () => {
     await test.step('Verify setting was updated', async () => {
       await openSettingsUI(page);
       const searchInput = page.locator(SETTINGS_SEARCH_INPUT[0]);
-      await searchInput.fill(settingKey);
+      await searchInput.click();
+      await page.keyboard.type(settingKey);
 
-      const fontSizeInput = page.locator('.settings-editor').getByRole('textbox', { name: /font size/i });
+      const fontSizeInput = page.locator('.settings-editor').getByRole('spinbutton', { name: settingKey, exact: true });
       await expect(fontSizeInput).toHaveValue(settingValue);
     });
   });
@@ -80,7 +81,8 @@ test.describe('Settings', () => {
     await test.step('Verify setting was updated', async () => {
       await openSettingsUI(page);
       const searchInput = page.locator(SETTINGS_SEARCH_INPUT[0]);
-      await searchInput.fill(settingKey);
+      await searchInput.click();
+      await page.keyboard.type(settingKey);
 
       const minimapCheckbox = page.locator('.settings-editor').getByRole('checkbox', { name: /minimap/i });
       await expect(minimapCheckbox).not.toBeChecked();

@@ -8,16 +8,18 @@ import { Locator, Page, expect } from '@playwright/test';
 import type { AuthFields } from '@salesforce/core';
 import { ACCESS_TOKEN_KEY, API_VERSION_KEY, CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY } from '../constants';
 import { saveScreenshot } from '../shared/screenshotUtils';
-import { waitForVSCodeWorkbench, closeWelcomeTabs, waitForWorkspaceReady } from '../utils/helpers';
+import { waitForVSCodeWorkbench, closeWelcomeTabs, waitForWorkspaceReady, isMacDesktop } from '../utils/helpers';
 import { WORKBENCH, SETTINGS_SEARCH_INPUT } from '../utils/locators';
-import { executeCommandWithCommandPalette } from './commands';
 
 const settingsLocator = (page: Page): Locator => page.locator(SETTINGS_SEARCH_INPUT.join(','));
 
 export const openSettingsUI = async (page: Page): Promise<void> => {
   await closeWelcomeTabs(page);
   await page.locator(WORKBENCH).click({ timeout: 60_000 });
-  await executeCommandWithCommandPalette(page, 'Preferences: Open Workspace Settings', 'JSON');
+  // Use keyboard shortcut instead of command palette (more reliable)
+  // Mac desktop uses Meta (Command), all others use Control
+  const shortcut = isMacDesktop() ? 'Meta+,' : 'Control+,';
+  await page.keyboard.press(shortcut);
   await settingsLocator(page).first().waitFor({ timeout: 3000 });
 };
 
@@ -132,13 +134,18 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
         await checkbox.click();
       }
     } else {
-      // Handle textbox setting
+      // Handle textbox or spinbutton setting
       const roleTextbox = row.getByRole('textbox').first();
-      await roleTextbox.waitFor({ timeout: 30_000 });
-      await roleTextbox.click({ timeout: 5000 });
-      await roleTextbox.fill(value);
-      await expect(roleTextbox).toHaveValue(value, { timeout: 10_000 });
-      await roleTextbox.blur();
+      const roleSpinbutton = row.getByRole('spinbutton').first();
+
+      const textboxCount = await roleTextbox.count();
+
+      const inputElement = textboxCount > 0 ? roleTextbox : roleSpinbutton;
+      await inputElement.waitFor({ timeout: 30_000 });
+      await inputElement.click({ timeout: 5000 });
+      await inputElement.fill(value);
+      await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
+      await inputElement.blur();
     }
 
     // Capture after state
