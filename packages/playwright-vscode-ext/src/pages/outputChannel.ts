@@ -61,10 +61,15 @@ export const selectOutputChannel = async (page: Page, channelName: string, timeo
   await expect(async () => {
     const dropdown = panel.locator('select.monaco-select-box');
     await dropdown.waitFor({ state: 'attached', timeout: 5000 });
+    // Check current value - if already selected, no need to change
+    const currentValue = await dropdown.inputValue();
+    if (currentValue === channelName) {
+      return;
+    }
     // Select the channel using the select element (force: true since it's hidden with custom overlay)
     await dropdown.selectOption({ label: channelName }, { force: true });
-    // Verify the selection took effect - this ensures the dropdown is ready
-    await expect(dropdown).toHaveValue(channelName, { timeout: 2000 });
+    // Verify the selection took effect - wait a bit longer for the UI to update
+    await expect(dropdown).toHaveValue(channelName, { timeout: 5000 });
   }).toPass({ timeout });
 };
 

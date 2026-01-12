@@ -12,17 +12,19 @@
    - `clearOutputChannel` already verifies the channel is completely cleared internally
    - Kept screenshot verification for requirement 1a
 
-3. **Output Channel Select Test** (`outputChannel.headless.spec.ts`):
-   - Added explicit waits for channel selector to be attached and visible before checking value
-   - Improves reliability when tests run in parallel
+3. **Output Channel Select Function** (`outputChannel.ts`):
+   - Fixed `selectOutputChannel` to check if channel is already selected before attempting selection
+   - Increased verification timeout from 2000ms to 5000ms for more reliable channel selection
+   - Fixes test isolation issues when output channel tests run together
 
 ### Test Results:
 - Web: ✓ 21/21 tests pass consistently
 - Desktop (macOS): ✓ 18 pass, 3 skipped (context menu tests + Ctrl+Shift+P test)
-- Org-browser web: ✓ 4/4 tests pass
 - Output channel clearing test verifies channel is completely cleared with screenshot verification
+- All output channel tests pass when run together (fixed test isolation issue)
 
 ### Files Modified:
+- packages/playwright-vscode-ext/src/pages/outputChannel.ts
 - packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts
 - packages/playwright-vscode-ext/test/playwright/specs/outputChannel.headless.spec.ts
 - .cursor/ralph/progress.txt
@@ -33,4 +35,4 @@
 - Desktop tests passing locally on macOS (18 pass, 3 skipped as expected)
 - Output channel clearing test includes screenshot verification using saveScreenshot utility (requirement 1a satisfied)
 - Output channel clearing test verifies channel is completely cleared (text length is 0) with screenshot
-- Fixed test isolation issues that caused failures when tests run in parallel
+- Fixed test isolation issues in `selectOutputChannel` that caused failures when output channel tests run together
