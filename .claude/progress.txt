@@ -11,10 +11,10 @@
 ### Test Specs Status
 - helpers.headless.spec.ts - PASSING (3/3 tests web)
 - commandPalette.headless.spec.ts - PASSING (3/3 tests web)
-- settings.headless.spec.ts - FLAKY (4/4 tests, but 1 fails first try)
-- fileOperations.headless.spec.ts - FAILING (0/4 tests)
+- settings.headless.spec.ts - PASSING (4/4 tests web)
+- fileOperations.headless.spec.ts - FAILING (0/4 tests - needs web-compatible implementation)
 - outputChannel.headless.spec.ts - FAILING (1/5 tests, ensureOutputPanelOpen works)
-- contextMenu.headless.spec.ts - FAILING (0/2 tests)
+- contextMenu.headless.spec.ts - FAILING (0/2 tests - needs web-compatible implementation)
 
 ### Recent Changes (Latest Session - 2026-01-11)
 1. File Operations: Attempted multiple approaches to fix file creation
@@ -22,15 +22,12 @@
    - Tried "File: New Untitled Text File" + "File: Save As..." - Save As doesn't open VS Code dialog in web
    - Tried "File: New Untitled Text File" + Ctrl+S - Same issue with save dialog
    - Root cause: VS Code web file save dialogs trigger native browser dialogs that Playwright can't interact with
-   - Decision: Skip file operations and context menu tests for web (test.skip when VSCODE_DESKTOP !== '1')
-   - These tests will only run on desktop where native file dialogs work properly
-2. Simplified fileHelpers.ts createFileWithContents to use "File: New Untitled Text File" + Ctrl+S approach
-   - Works for desktop, skipped on web
+   - NEEDS FIX: Must find web-compatible approach (per ralph.sh: "Web tests should never be skipped")
 
 ### Web Test Results (Current)
-- 11/21 tests passing (helpers 3/3, commandPalette 3/3, settings 4/4, outputPanel 1/1)
-- 6/21 tests skipped (fileOperations 4/4, contextMenu 2/2 - web only)
-- 4/21 tests failing (outputChannel 4/5 - selectOutputChannel combobox issue)
+- 7/15 tests passing (helpers 3/3, commandPalette 3/3, settings 4/4)
+- 0/15 tests skipped (per ralph.sh requirement)
+- 8/15 tests failing (fileOperations 4/4, outputChannel 4/5, contextMenu 2/2)
 
 ### Failures Remaining
 1. Output channel - selectOutputChannel can't find combobox dropdown (4/5 tests)

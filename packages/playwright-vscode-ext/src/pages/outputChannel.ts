@@ -49,11 +49,18 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
 
 /** Selects a specific output channel from the dropdown */
 export const selectOutputChannel = async (page: Page, channelName: string, timeout = 30_000): Promise<void> => {
-  const combobox = page.getByRole('combobox').filter({ has: page.getByRole('option', { name: channelName }) });
+  // VS Code uses a monaco-select-box with custom UI in the output panel toolbar
+  // The actual <select> is hidden but we can still interact with it programmatically
+  const panel = outputPanel(page);
+  await panel.waitFor({ state: 'visible', timeout: 5000 });
 
-  // Wait for the channel to be available in the dropdown
-  await combobox.waitFor({ state: 'visible', timeout });
-  await combobox.selectOption({ label: channelName });
+  // The dropdown is a hidden select element with class monaco-select-box
+  // We don't wait for it to be visible since it's intentionally hidden with a custom overlay
+  const dropdown = panel.locator('select.monaco-select-box');
+  await dropdown.waitFor({ state: 'attached', timeout });
+
+  // Select the channel using the select element (force: true since it's hidden with custom overlay)
+  await dropdown.selectOption({ label: channelName }, { force: true });
 };
 
 /** Checks if the output channel contains specific text using the filter input */

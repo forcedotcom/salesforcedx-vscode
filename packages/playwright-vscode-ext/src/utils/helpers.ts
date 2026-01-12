@@ -148,6 +148,9 @@ export const isMacDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' &&
 /** Returns true if running on Windows desktop (Electron) */
 export const isWindowsDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' && process.platform === 'win32';
 
+/** Returns true if running in VS Code web (not desktop Electron) */
+export const isVSCodeWeb = (): boolean => process.env.VSCODE_DESKTOP !== '1';
+
 /** Validate no critical console or network errors occurred during test execution */
 export const validateNoCriticalErrors = async (
   test: { step: (name: string, fn: () => Promise<void>) => Promise<void> },

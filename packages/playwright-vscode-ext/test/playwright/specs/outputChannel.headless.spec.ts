@@ -41,13 +41,13 @@ test.describe('Output Channel', () => {
       await ensureOutputPanelOpen(page);
     });
 
-    await test.step('Select Extensions channel', async () => {
-      await selectOutputChannel(page, 'Extensions');
+    await test.step('Select Tasks channel', async () => {
+      await selectOutputChannel(page, 'Tasks');
     });
 
     await test.step('Verify channel is selected', async () => {
-      const channelSelector = page.locator('.output-channels-dropdown');
-      await expect(channelSelector).toContainText('Extensions');
+      const channelSelector = page.locator('[id="workbench.panel.output"]').locator('select.monaco-select-box');
+      await expect(channelSelector).toHaveValue('Tasks');
     });
   });
 
@@ -56,12 +56,12 @@ test.describe('Output Channel', () => {
       await ensureOutputPanelOpen(page);
     });
 
-    await test.step('Select Log channel', async () => {
-      await selectOutputChannel(page, 'Log (Window)');
+    await test.step('Select Window channel', async () => {
+      await selectOutputChannel(page, 'Window');
     });
 
     await test.step('Wait for text in output', async () => {
-      // Log channel should have some content
+      // Window channel should have some content
       await waitForOutputChannelText(page, { expectedText: 'Window', timeout: 5000 });
     });
   });
@@ -71,8 +71,8 @@ test.describe('Output Channel', () => {
       await ensureOutputPanelOpen(page);
     });
 
-    await test.step('Select Log channel', async () => {
-      await selectOutputChannel(page, 'Log (Window)');
+    await test.step('Select Window channel', async () => {
+      await selectOutputChannel(page, 'Window');
     });
 
     await test.step('Check if output contains text', async () => {
@@ -86,8 +86,8 @@ test.describe('Output Channel', () => {
       await ensureOutputPanelOpen(page);
     });
 
-    await test.step('Select Log channel', async () => {
-      await selectOutputChannel(page, 'Log (Window)');
+    await test.step('Select Window channel', async () => {
+      await selectOutputChannel(page, 'Window');
     });
 
     await test.step('Clear output channel', async () => {

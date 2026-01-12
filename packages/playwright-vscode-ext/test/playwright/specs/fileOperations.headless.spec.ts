@@ -13,21 +13,22 @@ import {
 } from '../../../src/utils/fileHelpers';
 import {
   waitForVSCodeWorkbench,
-  closeWelcomeTabs
+  closeWelcomeTabs,
+  isVSCodeWeb
 } from '../../../src/utils/helpers';
 import { EDITOR, TAB } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
 test.describe('File Operations', () => {
-  // Skip file operations tests on web - file creation dialog behavior is unreliable in VS Code web
-  // These tests work on desktop where native file dialogs are available
-  test.skip(({ browserName }) => process.env.VSCODE_DESKTOP !== '1', 'File operations tests are desktop-only');
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
   });
 
   test('should create file with contents', async ({ page }) => {
+    // File save dialogs trigger native browser dialogs in VS Code web that Playwright cannot interact with
+    test.skip(isVSCodeWeb(), 'File save dialogs not supported in VS Code web');
+
     const fileName = 'testFile.txt';
     const fileContent = 'Hello, World!';
 
@@ -47,6 +48,9 @@ test.describe('File Operations', () => {
   });
 
   test('should open file by name', async ({ page }) => {
+    // File save dialogs trigger native browser dialogs in VS Code web that Playwright cannot interact with
+    test.skip(isVSCodeWeb(), 'File save dialogs not supported in VS Code web');
+
     const fileName = 'openTest.txt';
 
     await test.step('Create file first', async () => {
@@ -66,6 +70,9 @@ test.describe('File Operations', () => {
   });
 
   test('should edit open file', async ({ page }) => {
+    // File save dialogs trigger native browser dialogs in VS Code web that Playwright cannot interact with
+    test.skip(isVSCodeWeb(), 'File save dialogs not supported in VS Code web');
+
     const fileName = 'editTest.txt';
     const initialContent = 'Initial content';
     const newContent = 'Edited content';
@@ -85,6 +92,9 @@ test.describe('File Operations', () => {
   });
 
   test('should save file with Ctrl+S', async ({ page }) => {
+    // File save dialogs trigger native browser dialogs in VS Code web that Playwright cannot interact with
+    test.skip(isVSCodeWeb(), 'File save dialogs not supported in VS Code web');
+
     const fileName = 'saveTest.txt';
     const content = 'Content to save';
 

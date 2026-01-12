@@ -14,15 +14,13 @@ import { createFileWithContents } from '../../../src/utils/fileHelpers';
 import {
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
-  isMacDesktop
+  isMacDesktop,
+  isVSCodeWeb
 } from '../../../src/utils/helpers';
 import { EDITOR } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
 test.describe('Context Menu', () => {
-  // Skip context menu tests on web - depends on file creation which is unreliable in VS Code web
-  test.skip(({ browserName }) => process.env.VSCODE_DESKTOP !== '1', 'Context menu tests are desktop-only');
-
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
@@ -30,6 +28,8 @@ test.describe('Context Menu', () => {
 
   test('should execute editor context menu command', async ({ page }) => {
     test.skip(isMacDesktop(), 'Context menus not supported on Mac desktop');
+    // File save dialogs trigger native browser dialogs in VS Code web that Playwright cannot interact with
+    test.skip(isVSCodeWeb(), 'File save dialogs not supported in VS Code web');
 
     const fileName = 'contextMenuTest.txt';
 
@@ -57,6 +57,8 @@ test.describe('Context Menu', () => {
 
   test('should execute explorer context menu command', async ({ page }) => {
     test.skip(isMacDesktop(), 'Context menus not supported on Mac desktop');
+    // File save dialogs trigger native browser dialogs in VS Code web that Playwright cannot interact with
+    test.skip(isVSCodeWeb(), 'File save dialogs not supported in VS Code web');
 
     const fileName = 'explorerTest.txt';
 

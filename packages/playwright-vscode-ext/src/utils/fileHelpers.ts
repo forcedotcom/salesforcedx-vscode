@@ -25,8 +25,8 @@ export const createFileWithContents = async (page: Page, filePath: string, conte
   // Type the file contents
   await page.keyboard.type(contents);
 
-  // Save the file using Ctrl+S (this opens the save dialog in VS Code's UI)
-  await page.keyboard.press('Control+KeyS');
+  // Use "File: Save As..." command which works in both web and desktop
+  await executeCommandWithCommandPalette(page, 'File: Save As...');
 
   // Wait for the save dialog
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
