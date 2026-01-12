@@ -12,7 +12,7 @@ fi
 # This prompt is basic, we'll expand it later.
 for ((i=1; i<=$1; i++)); do
   result=$(claude --dangerously-skip-permissions -p \
-"@.cursor/plans/e2e-plan.md @.claude/progress.txt \
+"@.cursor/plans/e2e_tests_for_playwright_vscode_extension_a7c36853.plan.md @.claude/progress.txt \
 0. read this doc, remove any statements in progress.txt that contradict this script.
 0a. never edit this ralph.sh file.
 1. Decide which command to work next. \
