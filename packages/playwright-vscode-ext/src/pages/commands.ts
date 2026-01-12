@@ -71,13 +71,12 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // For virtualized lists, the element may exist but not be visible until scrolled into view
   await expect(commandRow).toBeAttached({ timeout: 5000 });
   
-  // Scroll the command row into view for virtualized DOM
-  // Use evaluate to directly call scrollIntoView on the DOM element
-  await commandRow.evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
-  
-  // Click the command row with force: true since it exists in DOM but may not be visible
-  // This is more reliable than waiting for visibility on virtualized DOM elements
-  await commandRow.click({ force: true, timeout: 10_000 });
+  // For virtualized DOM, click directly via evaluate to bypass Playwright's visibility checks
+  // This is more reliable than using click() with force: true, which still checks visibility
+  await commandRow.evaluate((el) => {
+    el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    (el as HTMLElement).click();
+  });
 
   // Wait for the command palette to close after executing the command
   await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
