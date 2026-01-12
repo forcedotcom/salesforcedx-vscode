@@ -38,10 +38,15 @@ export class WorkspaceContext {
   }
 
   public async initialize(extensionContext: vscode.ExtensionContext) {
+    console.log('salesforcedx-vscode-core workspaceContext.ts - enter initialize()');
     if (extensionContext.extension.id === 'salesforce.salesforcedx-vscode-core') {
+      console.log('salesforcedx-vscode-core workspaceContext.ts initialize() - 1');
       this.coreExtensionContext = extensionContext;
+      console.log('salesforcedx-vscode-core workspaceContext.ts initialize() - 2');
     }
+    console.log('salesforcedx-vscode-core workspaceContext.ts initialize() - 3');
     await WorkspaceContextUtil.getInstance().initialize(extensionContext);
+    console.log('salesforcedx-vscode-core workspaceContext.ts - exit initialize()');
   }
 
   public static getInstance(forceNew = false): WorkspaceContext {

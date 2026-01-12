@@ -331,16 +331,17 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 };
 
 const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
+  console.log('salesforcedx-vscode-core index.ts - enter initializeProject()');
   await WorkspaceContext.getInstance().initialize(extensionContext);
-
+  console.log('salesforcedx-vscode-core index.ts initializeProject() - 1');
   PersistentStorageService.initialize(extensionContext);
-
+  console.log('salesforcedx-vscode-core index.ts initializeProject() - 2');
   // Register file watcher for push or deploy on save
   registerPushOrDeployOnSave();
-
+  console.log('salesforcedx-vscode-core index.ts initializeProject() - 3');
   // Initialize metadata hover provider
   const metadataHoverProvider = new MetadataHoverProvider();
-
+  console.log('salesforcedx-vscode-core index.ts initializeProject() - 4');
   await Promise.all([
     setupOrgBrowser(extensionContext),
     setupConflictView(extensionContext),
@@ -349,11 +350,12 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
     // Initialize metadata hover provider
     metadataHoverProvider.initialize()
   ]);
-
+  console.log('salesforcedx-vscode-core index.ts initializeProject() - 5');
   // Register hover provider for XML files
   extensionContext.subscriptions.push(
     vscode.languages.registerHoverProvider({ scheme: 'file', language: 'xml' }, metadataHoverProvider)
   );
+  console.log('salesforcedx-vscode-core index.ts - exit initializeProject()');
 };
 
 export const deactivate = async (): Promise<void> => {

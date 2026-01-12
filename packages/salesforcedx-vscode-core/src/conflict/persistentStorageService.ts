@@ -23,7 +23,9 @@ export class PersistentStorageService {
   }
 
   public static initialize(extensionContext: ExtensionContext) {
+    console.log('salesforcedx-vscode-core persistentStorageService.ts - enter initialize()');
     PersistentStorageService.instance = new PersistentStorageService(extensionContext);
+    console.log('salesforcedx-vscode-core persistentStorageService.ts - exit initialize()');
   }
 
   public static getInstance(): PersistentStorageService {
