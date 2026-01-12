@@ -530,15 +530,136 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dataconnectors3.htm",
     "parent": "Metadata"
   },
+  "DataKitObjectTemplate": {
+    "fields": [
+      {
+        "Description": "Required. Name of the data kit object template. This can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.",
+        "Field Name": "developerName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "A string-based JSON payload containing the metadata of a data kit component. The payload is templatized to enable variable substitution during the deployment process.",
+        "Field Name": "entityPayload",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The label of the data kit object template.",
+        "Field Name": "masterLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The linked data kit package definition in the data kit.",
+        "Field Name": "parentDataPackageKitDefinitionName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The developer name of the source object for the data kit object template.",
+        "Field Name": "sourceObject",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The object type of the metadata component in the data kit. Valid values are: MKT_DATA_TRANSFORM MKT_DATA_CONNECTION IDENTITY_RESOLUTION DATA_GRAPH EXT_DATA_SHARE SEMANTIC_SEARCH DATA_ACTION DATA_ACTION_TARGET MARKET_SEGMENT DATA_SPACE_MEMBER INTERNAL_DATA_CONNECTOR MARKET_SEGMENT_ACTIVATION STREAMING_APP_AND_INGESTION_CONNECTOR ML_CONFIGURED_MODEL ACTIVATION_TARGET SEMANTIC_MODEL PERSONALIZATION_RECOMMENDER PERSONALIZATION_POINT PERSONALIZATION_SCHEMA PERSONALIZATION_OBJECTIVE ENGAGEMENT_SIGNAL PERSONALIZATION_BATCH_DECISION MC_CONNECTOR ML_PREDICTION_JOB ML_RETRIEVER TUA_TEMPLATED_OBJECT IR_RELATED_LIST_ENRICHMENT TAG_METADATA DATA_CLEAN_ROOM_PROVIDER IDP_CONFIGURATION COPY_FIELD_ENRICHMENT DATA_CUSTOM_CODE ANALYTICS_VISUALIZATION ANALYTICS_DASHBOARD ANALYTICS_WORKSPACE SECONDARY_INDEX POLICY_RULE_DEFINITION_METADATA POLICY_RULE_DEFINITION_SET_METADATA",
+        "Field Name": "sourceObjectType",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The version number of the template.",
+        "Field Name": "templateVersion",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents the object in Data Kit Object Template. These object templates are added inside the data kit.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datakitobjecttemplate.htm",
+    "parent": "Metadata"
+  },
+  "DataKitObjectDependency": {
+    "fields": [
+      {
+        "Description": "Required. The ID of the linked DataPackageKitDefinition.",
+        "Field Name": "dataPackageKitDef",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the DataKitObjectDependency. This name can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.",
+        "Field Name": "developerName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Label that identifies the data kit object dependency.",
+        "Field Name": "masterLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The source data kit object template that the target object depends on.",
+        "Field Name": "sourceObject",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The type of the source object referenced in the data kit. Valid values are: DataKitObjectTemplate DataSourceObject DataStreamTemplate DataSourceBundleDefinition MKtDataModelObject",
+        "Field Name": "sourceObjectType",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The target data kit object template that depends on the source object.",
+        "Field Name": "targetObject",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents the dependency between two data kit objects. The object templates are added inside the data kit.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datakitobjectdependency.htm",
+    "parent": "Metadata"
+  },
+  "DataObjectBuildOrgTemplate": {
+    "fields": [
+      {
+        "Description": "Required. Name of the data object build org template. This name can contain only underscores and alphanumeric characters and must be unique in your org.",
+        "Field Name": "developerName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The label of the data object build org template.",
+        "Field Name": "masterLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The developer name of the object created from the objectPayload entity in the build org.",
+        "Field Name": "objectDevName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The serialized metadata for the entity. The build organization deserializes this payload to create the underlying metadata components.",
+        "Field Name": "objectPayload",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The type of metadata entity associated with the template. Valid values are: DataGraph MktCalculatedInsightObject MktDataModelObject MktDataLakeObject",
+        "Field Name": "objectType",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the template associated with the data object build org template.",
+        "Field Name": "templateObject",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The version number of the data object build org template.",
+        "Field Name": "templateVersion",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Represents the derived object template used to define the structure and configuration of data objects in a build organization. The object templates are added inside the data kit to deploy metadata.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_dataobjectbuildorgtemplate.htm",
+    "parent": "Metadata"
+  },
   "DataPackageKitDefinition": {
     "fields": [
       {
-        "Description": "Represents the type of data kit created. Available in API version 63.0 and later. Valid values are: Default Sandbox",
+        "Description": "The type of data kit created. Available in API version 63.0 and later. Valid values are: Default Sandbox",
         "Field Name": "dataKitType",
         "Field Type": "string"
       },
       {
-        "Description": "Represents the data source in the updated data kit. Available in API version 63.0 and later.",
+        "Description": "The data source in the updated data kit. Available in API version 63.0 and later.",
         "Field Name": "dataKitSource",
         "Field Type": "string"
       },
@@ -548,17 +669,17 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. Represents the name of the application. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.",
+        "Description": "Required. The name of the application. This name contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.",
         "Field Name": "developerName",
         "Field Type": "string"
       },
       {
-        "Description": "Indicates whether Data Kit content is deployed.",
+        "Description": "Indicates whether the data kit content is deployed.",
         "Field Name": "isDeployed",
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the Data Kit is enabled.",
+        "Description": "Indicates whether the data kit is enabled.",
         "Field Name": "isEnabled",
         "Field Type": "boolean"
       },
@@ -566,6 +687,11 @@
         "Description": "Required. Label that identifies the AI application throughout the Salesforce user interface.",
         "Field Name": "masterLabel",
         "Field Type": "string"
+      },
+      {
+        "Description": "Required. Indicates whether the data kit should use the deterministic naming feature. Available in API version 65.0 and later. Valid values are: True False",
+        "Field Name": "useDeterministicNaming",
+        "Field Type": "boolean"
       },
       {
         "Description": "Auto incremented version number.",
@@ -583,7 +709,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents the top-level Data Kit container definition. Content objects can be added after the Data Kit is defined.",
+    "short_description": "Represents the top-level data kit container definition. Content objects can be added after the data kit is defined.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datapackagekitdefinition.htm",
     "parent": "Metadata"
   },
@@ -2844,6 +2970,180 @@
     ],
     "short_description": "Represents an AI authoring bundle, which is a container for AI-related authoring content. For example, an AI authoring bundle for an Agentforce agent contains an Agent Script file and the associated metadata content. AiAuthoringBundle packages and manages AI authoring artifacts with version control features. This metadata type provides a structured way to organize, version, and target AI-related content within your Salesforce org.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_aiauthoringbundle.htm",
+    "parent": "Metadata"
+  },
+  "AiEvaluationDefinition": {
+    "fields": [
+      {
+        "Description": "The purpose of the test.",
+        "Field Name": "description",
+        "Field Type": ""
+      },
+      {
+        "Description": "Required. The API name of the test. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.",
+        "Field Name": "name",
+        "Field Type": ""
+      },
+      {
+        "Description": "Required. A unique identifier for the agent being tested. Make sure that this identifier matches the API name of the agent, which you can find on the agent details page in Setup.",
+        "Field Name": "subjectName",
+        "Field Type": ""
+      },
+      {
+        "Description": "Required. The type of subject being tested. The only currently supported value is AGENT.",
+        "Field Name": "subjectType",
+        "Field Type": ""
+      },
+      {
+        "Description": "The agent version to test. If not provided, the latest active version is used by default. You can find the version in the BotVersion metadata type.",
+        "Field Name": "subjectVersion",
+        "Field Type": ""
+      },
+      {
+        "Description": "A list of test cases.",
+        "Field Name": "testCase",
+        "Field Type": ""
+      }
+    ],
+    "short_description": "Represents an agent evaluation, including subject metadata and a set of test cases. In Metadata API, you can create test definitions, including specifying inputs and expected outcomes, and deploy them to different orgs. In Connect API, you can execute test scenarios, poll for results, and retrieve test outcomes. This type extends the Metadata metadata type and inherits its fullName field. For more information on testing agents, see the Testing API Developer Guide.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_aievaluationdefinition.htm",
+    "parent": "Metadata"
+  },
+  "AiEvaluationTestCase": {
+    "fields": [
+      {
+        "Description": "The criteria used to test the artifact's responses.",
+        "Field Name": "expectation",
+        "Field Type": ""
+      },
+      {
+        "Description": "The specific input provided to the artifact being tested.",
+        "Field Name": "inputs",
+        "Field Type": ""
+      },
+      {
+        "Description": "The unique number for the test case. If not provided, the value is automatically calculated.",
+        "Field Name": "number",
+        "Field Type": ""
+      }
+    ],
+    "short_description": "Represents a test case.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_aievaluationdefinition.htm",
+    "parent": "Metadata"
+  },
+  "AiEvaluationExpectation": {
+    "fields": [
+      {
+        "Description": "The expected outcome of the test. The format of this field depends on the value of the name field. The expected outcome is compared against the response generated when you run the test using Connect REST API",
+        "Field Name": "expectedValue",
+        "Field Type": ""
+      },
+      {
+        "Description": "An optional label for an expectation. Typically added when using the same custom expectation name multiple times in a test case. If provided, this label appears in the test results; otherwise, the expectation name appears.",
+        "Field Name": "label",
+        "Field Type": ""
+      },
+      {
+        "Description": "Required. The expectation name. Valid values are: topic_sequence_match: The expectedValue field value is a string representing the topic that the agent is expected to use, such as OOTBSingleRecordSummary. For a list of agent topics, see Standard Agent Topic Reference in Salesforce Help. action_sequence_match: The expectedValue field value is a string[] representing a list of actions that you expect the artifact to take during the test, such as ['IdentifyRecordByName', 'action2']. For a list of agent actions, see Standard Agent Action Reference in Salesforce Help. This option was previously called action_sequence_match. bot_response_rating: The expectedValue field value is a string representing the expected response generated by the artifact, such as Summarization of the Global Media account. coherence: A generated answer is coherent if it’s easy to understand and has no grammatical errors. If you use this quality check, you don't need an expectedValue field value. completeness: A generated answer is complete if it includes all the essential information. If you use this quality check, you don't need an expectedValue field value. conciseness: A generated answer is concise if it's brief but comprehensive. Shorter is better. If you use this quality check, you don't need an expectedValue field value. output_latency_milliseconds: Latency in milliseconds from sending a request until a response is received. If you use this quality check, you don't need an expectedValue field value. string_comparison: A custom evaluation criteria that tests a response for a specified string value. numeric_comparison: A custom evaluation criteria that tests a response for a specified numeric value.",
+        "Field Name": "name",
+        "Field Type": ""
+      },
+      {
+        "Description": "Required for custom test criteria. An array of parameters for the specific custom criteria defined by expectation.name. This field replaces expectedValue for custom test criteria.",
+        "Field Name": "parameter",
+        "Field Type": ""
+      }
+    ],
+    "short_description": "Represents the expected outcome for a test case.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_aievaluationdefinition.htm",
+    "parent": "Metadata"
+  },
+  "AiEvaluationTestCaseCritParam": {
+    "fields": [
+      {
+        "Description": "If true, indicates that value is a JSONPath expression referencing runtime data from the generatedData object returned by the Get Test Results resource. If true, the value must be a JSONPath string. The default value is false.",
+        "Field Name": "isReference",
+        "Field Type": ""
+      },
+      {
+        "Description": "Required for custom evaluation criteria. The name of the parameter required by the evaluation. Valid values are: operator—type of comparison; actual—runtime value to evaluate; expected—target value to compare against. For operator, valid options include: equals: Checks if the actual value exactly matches the expected value (string or numeric). contains: Checks if the actual string contains the expected string. startswith: Checks if the actual string begins with the expected string. endswith: Checks if the actual string ends with the expected string. greater_than_or_equal: Checks if the numeric actual value is greater than or equal to the numeric expected value (>=). greater_than: Checks if the numeric actual value is greater than the numeric expected value (>). less_than: Checks if the numeric actual value is less than the numeric expected value (<). less_than_or_equal: Checks if the numeric actual value is less than or equal to the numeric expected value (<=).",
+        "Field Name": "name",
+        "Field Type": ""
+      },
+      {
+        "Description": "Required for custom evaluation criteria. The value for the parameter. This field can be a literal value or a JSONPath expression if isReference is true. Typically, JSONPath expressions are used to dynamically retrieve actual parameters.",
+        "Field Name": "value",
+        "Field Type": ""
+      }
+    ],
+    "short_description": "Defines a criterion parameter for expectations, including name, value, and whether it references another value. Available in API version 64.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_aievaluationdefinition.htm",
+    "parent": "Metadata"
+  },
+  "AiEvaluationAgentTestCaseInput": {
+    "fields": [
+      {
+        "Description": "An XML array of context variables sent to the agent.",
+        "Field Name": "contextVariable",
+        "Field Type": ""
+      },
+      {
+        "Description": "An XML array of conversation history elements sent to the agent.",
+        "Field Name": "conversationHistory",
+        "Field Type": ""
+      },
+      {
+        "Description": "Required. The request sent to the agent.",
+        "Field Name": "utterance",
+        "Field Type": ""
+      }
+    ],
+    "short_description": "Represents the inputs for a test case, including variables, conversation history, and the utterance.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_aievaluationdefinition.htm",
+    "parent": "Metadata"
+  },
+  "AiEvalCopilotTestCaseCntxtVar": {
+    "fields": [
+      {
+        "Description": "Required. The name of the context variable.",
+        "Field Name": "variableName",
+        "Field Type": ""
+      },
+      {
+        "Description": "Required. The value of the context variable.",
+        "Field Name": "variableValue",
+        "Field Type": ""
+      }
+    ],
+    "short_description": "An XML array of context variables sent to the agent.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_aievaluationdefinition.htm",
+    "parent": "Metadata"
+  },
+  "AiEvalCopilotTestCaseConv": {
+    "fields": [
+      {
+        "Description": "A zero based index for this conversation message.",
+        "Field Name": "index",
+        "Field Type": ""
+      },
+      {
+        "Description": "The text from the user or agent.",
+        "Field Name": "message",
+        "Field Type": ""
+      },
+      {
+        "Description": "The role associated with a message. Valid values are user or agent. A conversation must begin with a message from the user.",
+        "Field Name": "role",
+        "Field Type": ""
+      },
+      {
+        "Description": "Required for agent messages. Represents the topic the agent used to generate a response.",
+        "Field Name": "topic",
+        "Field Type": ""
+      }
+    ],
+    "short_description": "An XML array of conversation history sent to the agent.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_aievaluationdefinition.htm",
     "parent": "Metadata"
   },
   "AIScoringModelDefinition": {
@@ -6264,6 +6564,21 @@
   "Bot": {
     "fields": [
       {
+        "Description": "Reserved for internal use.",
+        "Field Name": "agentDSLEnabled",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "If this Bot represents an agent, this field represents the name of the agent template used to create it. Available in API version 64.0 and later.",
+        "Field Name": "agentTemplate",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Specifies the agent type for this agent. For example, AgentforceServiceAgent. Available in API version 64.0 and later.",
+        "Field Name": "agentType",
+        "Field Type": "GenAiAgentType (enumeration of type string)"
+      },
+      {
         "Description": "Represents the Einstein intent set that groups intents, entities, and variables associated with a bot. All Einstein Bot versions under the same bot now share an intent set. Available in API version 44.0 and later.",
         "Field Name": "botMlDomain",
         "Field Type": "LocalMlDomain"
@@ -6289,6 +6604,11 @@
         "Field Type": "ConversationDefinitionChannelProvider []"
       },
       {
+        "Description": "Specifies a fallback escalation behavior if the primary agent escalation behavior is not available. For example, Agentforce Service Agents can route conversations to human service reps. Available in API version 65.0 and later.",
+        "Field Name": "defaultOutboundFlow",
+        "Field Type": "string"
+      },
+      {
         "Description": "A description of the bot.",
         "Field Name": "description",
         "Field Type": "string"
@@ -6302,6 +6622,11 @@
         "Description": "Specifies whether to log customer inputs as part of conversation data (true) or not (false). Available in API version 48.0 and later.",
         "Field Name": "logPrivateConversationData",
         "Field Type": "boolean"
+      },
+      {
+        "Description": "Provides page-level context variables for the bot. Available in API version 64.0 and later.",
+        "Field Name": "pageContextVariables",
+        "Field Type": "PageContextVariable[]"
       },
       {
         "Description": "Represents the maximum amount of minutes that a bot session can be idle. Available in API version 58.0 and later.",
@@ -6368,7 +6693,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Indicates whether the variable is injected into the prompt sent to the Agentforce model. Available in API version 63.0 and later.",
+        "Description": "Indicates whether the variable is injected into the prompt sent to the Agentforce model. If true, the variable appears in the Included Fields section of the UI. The default variables Id, EndUserId, and EndUserLanguage always appear in the Included Fields section of the UI, regardless of their value of includeInPrompt. We recommend that you don't change the value of includeInPrompt for these default variables, as changing the value can prevent your agent from accessing important session data. Available in API version 63.0 and later.",
         "Field Name": "includeInPrompt",
         "Field Type": "boolean"
       },
@@ -6423,6 +6748,38 @@
       }
     ],
     "short_description": "The developer name of a conversation channel linked to the bot. Available in API version 51.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_bot.htm",
+    "parent": "Metadata"
+  },
+  "PageContextVariable": {
+    "fields": [
+      {
+        "Description": "Specifies the sObject type associated with this page context variable.",
+        "Field Name": "SObjectType",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Represents the data type of the page context variable. Valid values are: Text Number Boolean Object Date DateTime Currency Id",
+        "Field Name": "dataType",
+        "Field Type": "ConversationDataType (enumeration of type string)"
+      },
+      {
+        "Description": "A description of the page context variable.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Represents the unique API name of the page context variable. Can contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.",
+        "Field Name": "developerName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. A label that identifies the page context variable throughout the Salesforce user interface.",
+        "Field Name": "label",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "A page-level context variable used by the bot. Available in API version 64.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_bot.htm",
     "parent": "Metadata"
   },
@@ -7401,7 +7758,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Indicates whether the variable is injected into the prompt sent to the Agentforce model. Available in API version 63.0 and later.",
+        "Description": "Indicates whether the variable is injected into the prompt sent to the Agentforce model. If true, the variable appears in the Included Fields section of the UI. The default variables Id, EndUserId, and EndUserLanguage always appear in the Included Fields section of the UI, regardless of their value of includeInPrompt. We recommend that you don't change the value of includeInPrompt for these default variables, as changing the value can prevent your agent from accessing important session data. Available in API version 63.0 and later.",
         "Field Name": "includeInPrompt",
         "Field Type": "boolean"
       },
@@ -28722,33 +29079,6 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_lightningonboardingconfig.htm",
     "parent": "Metadata"
   },
-  "LightningOutApp": {
-    "fields": [
-      {
-        "Description": "Required. The name of the Lightning Out 2.0 app.",
-        "Field Name": "applicationName",
-        "Field Type": "string"
-      },
-      {
-        "Description": "Required. Indicates whether the Lightning Out 2.0 app is enabled (true) or disabled (false). The default value is false. If the app is disabled, then user authentication fails and the embedded components don’t load in the external app.",
-        "Field Name": "isEnabled",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "A packaging construct that indicates whether the LightningOutApp is protected (true) or not (false). Protected LightningOutApp components cannot be linked to or referenced by components created in the installing organization.",
-        "Field Name": "isProtected",
-        "Field Type": "boolean"
-      },
-      {
-        "Description": "Required. ​A user-friendly name for the LightningOutApp, which is defined when the LightningOutApp is created.",
-        "Field Name": "label",
-        "Field Type": "string"
-      }
-    ],
-    "short_description": "Represents a Lightning Out 2.0 application. With a Lightning Out 2.0 app, you can embed Lightning web components (LWC) into external applications. See Extend Salesforce to External Apps with Lightning Out 2.0 in Salesforce Help and Use Components Outside Salesforce with Lightning Out 2.0 in the Lightning Web Components Developer Guide.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_lightningoutapp.htm",
-    "parent": "Metadata"
-  },
   "LightningTypeBundle": {
     "fields": [
       {
@@ -31534,12 +31864,12 @@
         "Field Type": "string"
       },
       {
-        "Description": "Email template used to verify a user’s email address change. This email is sent to the new email address.You can't update this template via metadata API.",
+        "Description": "Email template used to verify a user’s email address change. This email is sent to the new email address.You can't update this template via Metadata API.",
         "Field Name": "chgEmailVerNewTemplate",
         "Field Type": "string"
       },
       {
-        "Description": "Email template used to verify a user’s email address change. This email is sent to the old email address.You can't update this template via metadata API.",
+        "Description": "Email template used to verify a user’s email address change. This email is sent to the old email address.You can't update this template via Metadata API.",
         "Field Name": "chgEmailVerOldTemplate",
         "Field Type": "string"
       },
@@ -31574,7 +31904,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. Email address from which emails are sent.After this email address is set, it can’t be updated.",
+        "Description": "Required. Email address from which emails are sent.You can't update this field via Metadata API. Instead, you can edit the Email Address field on the Emails page of the site's Administration workspace.",
         "Field Name": "emailSenderAddress",
         "Field Type": "string"
       },
@@ -35164,7 +35494,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Required. Specifies how many minutes of inactivity elapse before a user’s authenticated session times out. At the end of the session, the user must log in again. This session timeout value applies to users of the profile and overrides the org-wide timeout value. Changes to the org-wide timeout value don’t apply to users of this profile. Valid values: 15 30 60 90 120 240 480 720 1440",
+        "Description": "Required. Specifies how many minutes of inactivity elapse before a user’s authenticated session times out. At the end of the session, the user must log in again. This session timeout value applies to users of the profile and overrides the org-wide timeout value. Changes to the org-wide timeout value don’t apply to users of this profile. Valid values: 0—2 Hours 15—15 Minutes 30—30 Minutes 60—1 Hour 90—90 Minutes 120—2 Hours 240—4 Hours 480—8 Hours 720—12 Hours 1440—24 Hours",
         "Field Name": "sessionTimeout",
         "Field Type": "int"
       }
@@ -45226,6 +45556,11 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "If true, dynamic boxcar optimization for the Aura framework is disabled. With dynamic boxcar optimization, a limited number of server-side Aura actions are grouped in a single network request, which improves the performance of Lightning components and apps. For more information, see Boxcar Grouping and Optimization in the Lightning Aura Components Developer Guide.The default value is false.",
+        "Field Name": "enableAuraBoxcarReductionPref",
+        "Field Type": ""
+      },
+      {
         "Description": "Indicates whether Lightning Experience and other apps use a content delivery network (CDN) to serve the static content for Lightning Component framework. A CDN generally speeds up page load time, but it also changes the source domain that serves the files. If your company has IP range restrictions for content served from Salesforce, test thoroughly before enabling this setting. The default is true.",
         "Field Name": "enableAuraCDNPref",
         "Field Type": "boolean"
@@ -46471,6 +46806,46 @@
   "PrivacySettings": {
     "fields": [
       {
+        "Description": "Indicates whether browser information is captured during authorization consent capture (true) or not (false). The default value is false. Available in API version 59.0 and later.",
+        "Field Name": "authorizationCaptureBrowser",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether email address is captured during authorization consent capture (true) or not (false). The default value is false. Available in API version 59.0 and later.",
+        "Field Name": "authorizationCaptureEmail",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether IP address is captured during authorization consent capture (true) or not (false). The default value is false. Available in API version 59.0 and later.",
+        "Field Name": "authorizationCaptureIp",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether location information is captured during authorization consent capture (true) or not (false). The default value is false. Available in API version 59.0 and later.",
+        "Field Name": "authorizationCaptureLocation",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether custom sharing is enabled for authorization consent records (true) or not (false). The default value is false. Available in API version 59.0 and later.",
+        "Field Name": "authorizationCustomSharing",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether custom sharing for authorization consent records uses permission-based access control (true) or not (false). The default value is false. Available in API version 62.0 and later.",
+        "Field Name": "authorizationCustomSharingPCU",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether locking and versioning is enabled for authorization consent records (true) or not (false). The default value is false. Available in API version 59.0 and later.",
+        "Field Name": "authorizationLockingAndVersioning",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether configurable user PII (Personally Identifiable Information) classification is active (true) or not (false). The default value is false. Available in API version 59.0 and later.",
+        "Field Name": "enableConfigurableUserPIIActive",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Reserved for future use.",
         "Field Name": "enableConsentAuditTrail",
         "Field Type": "boolean"
@@ -46483,6 +46858,11 @@
       {
         "Description": "Indicates whether a default data sensitivity value is applied to all contacts, leads, person accounts, and users (true) or not (false). This field has a default value of false. Available in API version 47.0 and later.",
         "Field Name": "enableDefaultMetadataValues",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Salesforce Archive is enabled for privacy-related data archival (true) or not (false). The default value is false. Available in API version 61.0 and later.",
+        "Field Name": "enableSalesforceArchive",
         "Field Type": "boolean"
       },
       {
