@@ -1,0 +1,229 @@
+# Page snapshot
+
+```yaml
+- application [ref=e2]:
+  - generic [ref=e6]:
+    - generic [ref=e8]:
+      - menubar [ref=e12]:
+        - menuitem "File" [ref=e13]:
+          - generic [ref=e14]: File
+        - menuitem "Edit" [ref=e15]:
+          - generic [ref=e16]: Edit
+        - menuitem "Selection" [ref=e17]:
+          - generic [ref=e18]: Selection
+        - menuitem "More" [ref=e19]:
+          - generic [ref=e20]: 
+      - toolbar [ref=e26]:
+        - button "Go Back (Alt+LeftArrow)" [disabled] [ref=e27]: 
+        - button "Go Forward (Alt+RightArrow)" [disabled] [ref=e28]: 
+        - listitem [ref=e29] [cursor=pointer]:
+          - toolbar [ref=e32]:
+            - button "[Extension Development Host] vscode-orgbrowser-test-5IkMlL [Administrator]" [ref=e33]:
+              - generic [ref=e34]: 
+              - generic [ref=e35]: "[Extension Development Host] vscode-orgbrowser-test-5IkMlL [Administrator]"
+        - button "Toggle Chat" [ref=e36] [cursor=pointer]:
+          - button "Toggle Chat" [ref=e37]: 
+        - button "More..." [ref=e41] [cursor=pointer]: 
+      - toolbar "Title actions" [ref=e46]:
+        - button "Customize Layout..." [ref=e47] [cursor=pointer]: 
+        - checkbox "Toggle Primary Side Bar (Ctrl+B)" [checked] [ref=e48] [cursor=pointer]: 
+        - checkbox "Toggle Panel (Ctrl+J)" [ref=e49] [cursor=pointer]: 
+        - checkbox "Toggle Secondary Side Bar (Ctrl+Alt+B)" [checked] [ref=e50] [cursor=pointer]: 
+    - generic [ref=e57]:
+      - generic [ref=e59]:
+        - tablist "Active View Switcher" [ref=e62]:
+          - tab "Explorer (Ctrl+Shift+E)" [expanded] [selected] [ref=e63] [cursor=pointer]:
+            - generic "Explorer (Ctrl+Shift+E)" [ref=e64]: 
+          - tab "Search (Ctrl+Shift+F)" [ref=e65] [cursor=pointer]:
+            - generic "Search (Ctrl+Shift+F)" [ref=e66]: 
+          - tab "Source Control" [ref=e67] [cursor=pointer]:
+            - generic "Source Control" [ref=e68]: 
+            - generic "Source Control" [ref=e69]
+          - tab "Run and Debug (Ctrl+Shift+D)" [ref=e71] [cursor=pointer]:
+            - generic "Run and Debug (Ctrl+Shift+D)" [ref=e72]: 
+          - tab "Extensions (Ctrl+Shift+X)" [ref=e73] [cursor=pointer]:
+            - generic "Extensions (Ctrl+Shift+X)" [ref=e74]: 
+        - toolbar "Manage" [ref=e77]:
+          - button "Accounts" [ref=e78] [cursor=pointer]:
+            - generic "Accounts" [ref=e79]: 
+          - button "Manage" [ref=e80] [cursor=pointer]:
+            - generic "Manage" [ref=e81]: 
+      - generic [ref=e82]:
+        - generic [ref=e83]:
+          - heading "Explorer" [level=2] [ref=e85]
+          - toolbar "Explorer actions" [ref=e89]:
+            - button "Views and More Actions..." [ref=e92] [cursor=pointer]: 
+          - generic:
+            - generic:
+              - generic:
+                - toolbar
+        - generic [ref=e97]:
+          - generic [ref=e99]:
+            - 'button "Explorer Section: vscode-orgbrowser-test-5IkMlL" [expanded] [ref=e100] [cursor=pointer]':
+              - generic [ref=e101]: 
+              - text: 
+              - 'heading "Explorer Section: vscode-orgbrowser-test-5IkMlL" [level=3] [ref=e102]': vscode-orgbrowser-test-5IkMlL
+              - toolbar "vscode-orgbrowser-test-5IkMlL actions" [ref=e106]:
+                - button "New File..." [ref=e107]: 
+                - button "New Folder..." [ref=e108]: 
+                - button "Refresh Explorer" [ref=e109]: 
+                - button "Collapse Folders in Explorer" [ref=e110]: 
+            - tree "Files Explorer" [active] [ref=e113]:
+              - generic [ref=e114]:
+                - treeitem ".sf" [level=1] [ref=e115] [cursor=pointer]:
+                  - generic [ref=e116]:
+                    - generic [ref=e117]: 
+                    - generic "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\vscode-orgbrowser-test-5IkMlL\\.sf" [ref=e119]:
+                      - generic [ref=e122]: .sf
+                - treeitem ".vscode-test-extensions" [level=1] [ref=e123] [cursor=pointer]:
+                  - generic [ref=e124]:
+                    - generic [ref=e125]: 
+                    - generic "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\vscode-orgbrowser-test-5IkMlL\\.vscode-test-extensions" [ref=e127]:
+                      - generic [ref=e130]: .vscode-test-extensions
+                - treeitem ".vscode-test-user-data" [level=1] [ref=e131] [cursor=pointer]:
+                  - generic [ref=e132]:
+                    - generic [ref=e133]: 
+                    - generic "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\vscode-orgbrowser-test-5IkMlL\\.vscode-test-user-data" [ref=e135]:
+                      - generic [ref=e138]: .vscode-test-user-data
+                - treeitem "force-app" [level=1] [ref=e139] [cursor=pointer]:
+                  - generic [ref=e140]:
+                    - generic [ref=e141]: 
+                    - generic "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\vscode-orgbrowser-test-5IkMlL\\force-app" [ref=e143]:
+                      - generic [ref=e146]: force-app
+                - treeitem "sfdx-project.json" [level=1] [ref=e147] [cursor=pointer]:
+                  - generic "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\vscode-orgbrowser-test-5IkMlL\\sfdx-project.json" [ref=e150]:
+                    - text: 
+                    - generic [ref=e153]: sfdx-project.json
+          - button "Outline Section" [ref=e156] [cursor=pointer]:
+            - generic [ref=e157]: 
+            - text: 
+            - heading "Outline" [level=3] [ref=e158]
+            - text:  
+          - button "Timeline Section" [ref=e161] [cursor=pointer]:
+            - generic [ref=e162]: 
+            - text: 
+            - heading "Timeline" [level=3] [ref=e163]
+            - text:    
+      - main [ref=e172]:
+        - generic "Editor Group 1 (empty)" [ref=e180]:
+          - generic [ref=e185]:
+            - generic [ref=e186]:
+              - term [ref=e187]: Open Chat
+              - definition [ref=e188]:
+                - generic "Control+Alt+I" [ref=e189]:
+                  - generic [ref=e190]: Ctrl
+                  - generic [ref=e191]: +
+                  - generic [ref=e192]: Alt
+                  - generic [ref=e193]: +
+                  - generic [ref=e194]: I
+            - generic [ref=e195]:
+              - term [ref=e196]: Show All Commands
+              - definition [ref=e197]:
+                - generic "Control+Shift+P" [ref=e198]:
+                  - generic [ref=e199]: Ctrl
+                  - generic [ref=e200]: +
+                  - generic [ref=e201]: Shift
+                  - generic [ref=e202]: +
+                  - generic [ref=e203]: P
+            - generic [ref=e204]:
+              - term [ref=e205]: Start Debugging
+              - definition [ref=e206]:
+                - generic "F5" [ref=e207]:
+                  - generic [ref=e208]: F5
+      - generic [ref=e209]:
+        - generic [ref=e210]:
+          - tablist "Active View Switcher" [ref=e214]:
+            - tab "Chat (Ctrl+Alt+I)" [expanded] [selected] [ref=e215] [cursor=pointer]:
+              - generic "Chat (Ctrl+Alt+I)" [ref=e216]: Chat
+          - toolbar "Chat actions" [ref=e220]:
+            - button "New Chat (Ctrl+N)" [ref=e222] [cursor=pointer]: 
+            - button "New Chat" [ref=e226] [cursor=pointer]: 
+            - button "Configure Chat" [ref=e229] [cursor=pointer]: 
+            - button "Views and More Actions..." [ref=e232] [cursor=pointer]: 
+          - toolbar [ref=e237]:
+            - button "Maximize Secondary Side Bar Size" [ref=e238] [cursor=pointer]: 
+            - button "Hide Secondary Side Bar (Ctrl+Alt+B)" [ref=e239] [cursor=pointer]: 
+        - generic [ref=e246]:
+          - text:      
+          - generic [ref=e247]:
+            - text: 
+            - generic [ref=e248]:
+              - text:  
+              - generic [ref=e249]:
+                - generic [ref=e251]:
+                  - generic [ref=e253]: 
+                  - generic [ref=e254]: Build with Agent
+                  - paragraph [ref=e257]: AI responses may be inaccurate.
+                  - paragraph [ref=e260]:
+                    - link "Generate Agent Instructions" [ref=e261] [cursor=pointer]:
+                      - /url: ""
+                    - text: to onboard AI onto your codebase.
+                  - generic [ref=e262]:
+                    - generic [ref=e263]: Suggested Actions
+                    - 'button "Suggested prompt: Build Workspace" [ref=e264] [cursor=pointer]':
+                      - 'generic "Suggested prompt: How do I build this workspace?" [ref=e265]': Build Workspace
+                    - 'button "Suggested prompt: Show Config" [ref=e266] [cursor=pointer]':
+                      - 'generic "Suggested prompt: Where is the configuration for this project defined?" [ref=e267]': Show Config
+                - text: 
+                - generic [ref=e268]:
+                  - generic:  
+                  - generic [ref=e270]:
+                    - toolbar [ref=e275]:
+                      - button "Add Context... (Ctrl+/)" [ref=e276] [cursor=pointer]:
+                        - generic [ref=e277]: 
+                        - text: Add Context...
+                    - code [ref=e280]:
+                      - generic [ref=e281]:
+                        - textbox "The editor is not accessible at this time. To enable screen reader optimized mode, use Shift+Alt+F1" [ref=e282]
+                        - textbox [ref=e283]
+                        - generic [ref=e289]: Describe what to build next
+                    - generic [ref=e290]:
+                      - toolbar [ref=e293]:
+                        - button "Set Agent (Ctrl+.) - Agent" [ref=e296] [cursor=pointer]:
+                          - generic [ref=e297]: Agent
+                          - generic [ref=e298]: 
+                        - button "(Ctrl+Alt+.) - Auto" [ref=e301] [cursor=pointer]:
+                          - generic [ref=e302]: Auto
+                          - generic [ref=e303]: 
+                        - button "Configure Tools..." [ref=e304] [cursor=pointer]: 
+                        - text: 
+                      - toolbar [ref=e307]:
+                        - button "Send [Alt] Send to New Chat (Ctrl+Shift+Enter)" [disabled] [ref=e308]: 
+    - status [ref=e311]:
+      - generic [ref=e312]:
+        - generic "remote" [ref=e313]:
+          - button "remote" [ref=e314] [cursor=pointer]:
+            - generic [ref=e315]: 
+        - generic "No Problems" [ref=e316]:
+          - button "No Problems" [ref=e317] [cursor=pointer]:
+            - generic [ref=e318]: 
+            - text: "0"
+            - generic [ref=e319]: 
+            - text: "0"
+      - generic [ref=e320]:
+        - generic "Notifications" [ref=e321]:
+          - button "Notifications" [ref=e322] [cursor=pointer]:
+            - generic [ref=e323]: 
+        - generic "Copilot status" [ref=e324]:
+          - button "Copilot status" [ref=e325] [cursor=pointer]:
+            - generic [ref=e326]: 
+  - generic [ref=e327]:
+    - alert [ref=e328]: "Info: All installed extensions are temporarily disabled."
+    - alert
+  - generic [ref=e329]:
+    - 'list "Info: All installed extensions are temporarily disabled., notification" [ref=e333]':
+      - 'dialog "Info: All installed extensions are temporarily disabled., notification, Inspect the response in the accessible view with Alt+F2" [ref=e335] [cursor=pointer]':
+        - generic [ref=e336]:
+          - button "Reload and Enable Extensions" [ref=e339]
+          - generic [ref=e340]:
+            - generic [ref=e341]: 
+            - generic [ref=e342]: All installed extensions are temporarily disabled.
+            - toolbar "Notification Actions" [ref=e345]:
+              - button "Clear Notification (Delete)" [ref=e346]: 
+    - 'list "Warning: Failed loading extension ''d:\\a\\salesforcedx-vscode\\salesforcedx-vscode\\packages\\playwright-vscode-ext'' under development because it is invalid: property `engines` is mandatory and must be of type `object`, notification" [ref=e350]':
+      - 'dialog "Warning: Failed loading extension ''d:\\a\\salesforcedx-vscode\\salesforcedx-vscode\\packages\\playwright-vscode-ext'' under development because it is invalid: property `engines` is mandatory and must be of type `object`, notification, Inspect the response in the accessible view with Alt+F2" [ref=e352] [cursor=pointer]':
+        - generic [ref=e354]:
+          - generic [ref=e355]: 
+          - generic [ref=e356]: "Failed loading extension 'd:\\a\\salesforcedx-vscode\\salesforcedx-vscode\\packages\\playwright-vscode-ext' under development because it is invalid: property `engines` is mandatory and must be of type `object`"
+          - text:  
+```

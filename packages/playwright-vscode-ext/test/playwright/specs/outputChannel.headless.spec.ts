@@ -13,6 +13,7 @@ import {
   waitForOutputChannelText,
   outputChannelContains
 } from '../../../src/pages/outputChannel';
+import { EDITOR } from '../../../src/utils/locators';
 import { saveScreenshot } from '../../../src/shared/screenshotUtils';
 import {
   waitForVSCodeWorkbench,
@@ -95,8 +96,12 @@ test.describe('Output Channel', () => {
     await test.step('Clear output channel and verify', async () => {
       // clearOutputChannel already verifies the channel is completely cleared internally
       await clearOutputChannel(page);
-      // Take screenshot to verify output channel is completely clear
+      // Take screenshot to verify output channel is completely clear (requirement 1a)
       await saveScreenshot(page, 'output-channel-cleared.png', false);
+      // Verify channel is still completely cleared after screenshot (requirement 1a)
+      const codeArea = page.locator('[id="workbench.panel.output"]').locator(`${EDITOR} .view-lines`);
+      const text = await codeArea.textContent();
+      expect(text?.trim().length ?? 0, 'Output channel should be completely cleared with no text left').toBe(0);
     });
   });
 });

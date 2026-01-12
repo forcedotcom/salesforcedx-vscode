@@ -69,4 +69,16 @@
   - Increased visibility timeout from 5000ms to 10000ms for command row visibility
   - Should help with desktop CI timing issues where commands aren't visible in list
 - Committed and pushed fix (commit 2aaac7968)
-- New CI run started (20931992520) - monitoring results
+- CI run 20932032783 results:
+  - Web: ✓ 21/21 tests pass (0 failures)
+  - macOS desktop: 10 pass, 5 failures, 3 skipped
+    - Failures: commandPalette (1 - "expect(locator).toBeVisible() failed"), fileOperations (2), outputChannel (2)
+  - Windows desktop: failures
+- Fixed command palette visibility issue:
+  - Removed waitForTimeout calls that violated coding rules
+  - Wait for list to render (first row visible) before clicking command
+  - Rely on Playwright's click() to handle scrolling and visibility automatically
+  - This fixes the 'command not visible in list' timing issue on macOS desktop CI
+  - All tests pass locally (18 desktop, 21 web)
+- Committed and pushed fix (commit d76144c5c)
+- New CI run started - monitoring results
