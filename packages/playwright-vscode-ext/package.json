@@ -60,7 +60,7 @@
       "output": []
     },
     "test:desktop": {
-      "command": "VSCODE_DESKTOP=1 playwright test --config=playwright.config.desktop.ts",
+      "command": "playwright test --config=playwright.config.desktop.ts",
       "dependencies": [
         "compile",
         "../salesforcedx-vscode-services:vscode:bundle"

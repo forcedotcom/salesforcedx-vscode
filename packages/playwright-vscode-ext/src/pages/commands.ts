@@ -69,14 +69,11 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // Wait a bit for the list to stabilize and filter results
   await page.waitForTimeout(300);
   
-  // Scroll the command row into view to handle virtualized lists
-  // This ensures the element is visible before clicking
-  await commandRow.scrollIntoViewIfNeeded();
+  // Wait for the element to be visible - Playwright's click() will automatically scroll into view if needed
+  // Don't use scrollIntoViewIfNeeded() for virtualized DOM as the element won't exist until scrolled into view
+  await expect(commandRow).toBeVisible({ timeout: 5000 });
   
-  // Wait for the element to be visible after scrolling
-  await expect(commandRow).toBeVisible({ timeout: 2000 });
-  
-  // Click the command row
+  // Click the command row - Playwright will handle scrolling if needed
   await commandRow.click();
 
   // Wait for the command palette to close after executing the command
