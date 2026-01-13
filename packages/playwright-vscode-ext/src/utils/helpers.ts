@@ -188,26 +188,28 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
       continue;
     }
 
+    // Ensure Quick Input is closed before interacting with tabs
+    const quickInputStillVisible = await quickInput.isVisible({ timeout: 500 }).catch(() => false);
+    if (quickInputStillVisible) {
+      await page.keyboard.press('Escape');
+      await quickInput.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
+    }
+
     // Select the tab first to ensure it's active - use force: true on desktop for reliability
-    await welcomeTab.click({ timeout: 5000, force: isDesktop }).catch(() => {});
-    // Wait for tab to be selected
-    await expect(welcomeTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(() => {});
+    await workbench.click({ timeout: 2000 }).catch(() => {});
+    await welcomeTab.click({ timeout: 5000, force: isDesktop });
+    // Wait for tab to be selected - this is critical for closing to work
+    await expect(welcomeTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
 
     // Try close button first (more reliable than keyboard shortcut)
     const closeButton = welcomeTab.locator(TAB_CLOSE_BUTTON);
     const closeButtonVisible = await closeButton.isVisible({ timeout: 5000 }).catch(() => false);
     
     if (closeButtonVisible) {
-      // Ensure Quick Input is closed before clicking close button
-      const quickInputStillVisible = await quickInput.isVisible({ timeout: 500 }).catch(() => false);
-      if (quickInputStillVisible) {
-        await page.keyboard.press('Escape');
-        await quickInput.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
-      }
+      // Ensure tab is still selected before clicking close button
+      await welcomeTab.click({ timeout: 2000, force: isDesktop }).catch(() => {});
       // On desktop, use evaluate() to click close button directly for better reliability
       if (isDesktop) {
-        await workbench.click({ timeout: 1000 }).catch(() => {});
-        await welcomeTab.click({ timeout: 1000, force: true }).catch(() => {});
         // Use evaluate() to click close button directly, bypassing Playwright's visibility checks
         await closeButton.evaluate((el: HTMLElement) => el.click()).catch(
           () => closeButton.click({ timeout: 5000, force: true })
@@ -226,11 +228,9 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
       }
     } else {
       // Fall back to keyboard shortcut if close button not visible
-      // On desktop, ensure workbench has focus before using keyboard shortcut
-      if (isDesktop) {
-        await workbench.click({ timeout: 2000 }).catch(() => {});
-        await welcomeTab.click({ timeout: 1000, force: true }).catch(() => {});
-      }
+      // Ensure workbench has focus before using keyboard shortcut
+      await workbench.click({ timeout: 2000 }).catch(() => {});
+      await welcomeTab.click({ timeout: 1000, force: isDesktop }).catch(() => {});
       await page.keyboard.press('Control+w');
       // Wait for tab to be detached - use longer timeout for CI
       await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 }).catch(() => {});
@@ -238,6 +238,26 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
 
     // Wait for tab container to update before checking for more tabs
     await tabContainer.waitFor({ state: 'attached', timeout: 2000 }).catch(() => {});
+    
+    // Verify the tab was actually closed - re-query to avoid stale references
+    const verifyTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
+    const remainingCount = await verifyTabs.count();
+    if (remainingCount === 0) {
+      // Tab was closed successfully - wait a bit more to ensure no new tabs appear
+      await tabContainer.waitFor({ state: 'attached', timeout: 2000 }).catch(() => {});
+      const finalVerify = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
+      const finalCount = await finalVerify.count();
+      if (finalCount === 0) {
+        // Verify by checking all tab texts
+        const allTabs = page.locator(TAB);
+        const allTabTexts = await allTabs.allTextContents();
+        const hasWelcomeTab = allTabTexts.some(text => /Welcome|Walkthrough/i.test(text));
+        if (!hasWelcomeTab) {
+          break; // Successfully closed all welcome tabs
+        }
+      }
+    }
+    
     attempts++;
   }
 };

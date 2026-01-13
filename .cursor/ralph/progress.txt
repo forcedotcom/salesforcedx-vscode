@@ -298,3 +298,18 @@
   - Web tests: ✓ 5/5 output channel tests pass consistently
   - Desktop tests: No longer crashing (fixed crash issue), but output panel not opening on desktop
   - Root cause: Keyboard shortcut Control+Shift+U not working on macOS desktop, command palette fallback also not opening panel
+- Fixed flaky web tests: command palette input visibility (commit d14299a00):
+  - Removed desktop-only check for forcing input visibility - now applies to web too
+  - Force visibility on both widget and input when input is hidden (not just desktop)
+  - Improve workbench stability wait before opening command palette
+  - Wait for editor attachment before visibility check in createFileWithContents
+  - Reduced flaky tests from 5 to 2-4 (improvement, but still some flakiness)
+  - Web tests: Some flaky tests remain (command palette, file operations)
+  - CI run 20973179460 started - monitoring results
+- Fixed closeWelcomeTabs reliability issue (commit fbcb59332):
+  - Removed silent error handling from tab selection verification - now properly waits for tab to be selected before closing
+  - Improved focus handling - ensure workbench is focused before selecting and closing tabs
+  - Added better verification that tabs are actually closed before continuing
+  - Fixes local test failure where welcome tabs weren't being closed, causing command palette to fail
+  - Test "should switch between multiple files" now passes locally
+  - Web tests: running full suite to verify no regressions
