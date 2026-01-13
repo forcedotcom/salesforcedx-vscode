@@ -63,6 +63,9 @@
       "output": []
     },
     "test:desktop": {
+      "env": {
+        "VSCODE_DESKTOP": "1"
+      },
       "command": "playwright test --config=playwright.config.desktop.ts",
       "dependencies": [
         "compile",

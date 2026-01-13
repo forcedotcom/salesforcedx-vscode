@@ -35,9 +35,8 @@ for ((i=1; i<=$1; i++)); do
 12. Append your progress to the progress.txt file. Do not make statements that are not supported by the code.\
 13. If tests flap, update the plan to fix it. \
 14b. remove from plan.md anything that is complete.  Complete means it passes locally and on github actions and aligns with the rules in coding-playwright-tests.mdc\
-14. If, while implementing the feature, you notice that all work \
-is complete, output <promise>COMPLETE</promise>. \
-15. never exit unless complete.  do not disable tests or attempt to find ways to exit early.\
+14. If, while implementing the feature, you notice that all work is complete, output <promise>COMPLETE</promise>. \
+15. never exit unless complete.  do not disable tests or attempt to find ways to exit early.  You may not ask a question, only respond with <promise>COMPLETE</promise>\
 ")
 
   echo "$result"

@@ -330,3 +330,19 @@
   - Added direct tab closing logic in `openCommandPalette` as a fallback if `closeWelcomeTabs` doesn't work
   - Web tests: ✓ 21/21 tests pass consistently (all tests passing, no flaky tests!)
   - All web tests now passing reliably - welcome tabs are being closed properly before opening command palette
+  - CI run 20973913223 results:
+    - Web: ✓ 21/21 tests pass (all tests passing in CI!)
+    - Windows desktop: Failure - VSCODE_DESKTOP environment variable issue (fixed in commit 1d6d14702)
+    - macOS desktop: Failure - command palette input still hidden (desktop tests pass locally but fail in CI)
+  - Fixed Windows desktop CI failure (commit 1d6d14702):
+    - Removed VSCODE_DESKTOP=1 from wireit command in package.json
+    - VSCODE_DESKTOP is already set as environment variable in workflow
+    - Windows doesn't support shell variable syntax in npm scripts
+  - Desktop tests locally: ✓ 18/18 tests pass (macOS)
+  - Desktop CI failures appear to be environment-specific timing issues (tests pass locally but fail in CI)
+  - CI run 20974271614 results:
+    - Web: ✓ success (all tests passing)
+    - macOS desktop: ✓ success (all tests passing)
+    - Windows desktop: ✗ failure - VSCODE_DESKTOP environment variable issue ('VSCODE_DESKTOP' is not recognized as an internal or external command)
+    - Root cause: VSCODE_DESKTOP is being used as a command in wireit script on Windows, not as an environment variable
+    - Windows doesn't support shell variable syntax in npm scripts the same way Unix systems do
