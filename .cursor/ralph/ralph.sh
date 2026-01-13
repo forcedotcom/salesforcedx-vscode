@@ -26,7 +26,7 @@ for ((i=1; i<=$1; i++)); do
 5a if failures locally, see the Debugging section of iterating-playwright-tests.mdc \
 6. commit with a detailed commit message.  Be sure not to commit test artifacts from local or CI tests \
 7. push to github \
-8. monitor the e2e run via gh cli.  retry if connection errors happen \
+8. monitor the e2e run see @.cursor/commands/analyze-e2e.md \
 9. If failures, download logs/artifacts and update the progress.txt file \
 9a. if failure is provably happening, you may change code in playwright ext to fix it.\
 9b. If a commit made the result much worse, revert the commit and try somethinge else.\
