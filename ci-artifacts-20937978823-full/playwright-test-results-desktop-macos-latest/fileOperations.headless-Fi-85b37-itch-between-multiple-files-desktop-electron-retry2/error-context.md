@@ -1,0 +1,293 @@
+# Page snapshot
+
+```yaml
+- application [ref=e2]:
+  - generic [ref=e6]:
+    - generic [ref=e8]:
+      - toolbar [ref=e16]:
+        - button "Go Back (⌃-)" [disabled] [ref=e17]: 
+        - button "Go Forward (⌃⇧-)" [disabled] [ref=e18]: 
+        - listitem [ref=e19] [cursor=pointer]:
+          - toolbar [ref=e22]:
+            - button "[Extension Development Host] vscode-orgbrowser-test-qSu0K6" [ref=e23]:
+              - generic [ref=e24]: 
+              - generic [ref=e25]: "[Extension Development Host] vscode-orgbrowser-test-qSu0K6"
+        - button "Toggle Chat" [ref=e26] [cursor=pointer]:
+          - button "Toggle Chat" [ref=e27]: 
+        - button "More..." [ref=e31] [cursor=pointer]: 
+      - toolbar "Title actions" [ref=e36]:
+        - button "Customize Layout..." [ref=e37] [cursor=pointer]: 
+        - checkbox "Toggle Primary Side Bar (⌘B)" [checked] [ref=e38] [cursor=pointer]: 
+        - checkbox "Toggle Panel (⌘J)" [ref=e39] [cursor=pointer]: 
+        - checkbox "Toggle Secondary Side Bar (⌥⌘B)" [checked] [ref=e40] [cursor=pointer]: 
+    - generic [ref=e46]:
+      - generic [ref=e48]:
+        - tablist "Active View Switcher" [ref=e51]:
+          - tab "Explorer (⇧⌘E)" [expanded] [selected] [ref=e52] [cursor=pointer]:
+            - generic "Explorer (⇧⌘E)" [ref=e53]: 
+          - tab "Search (⇧⌘F)" [ref=e54] [cursor=pointer]:
+            - generic "Search (⇧⌘F)" [ref=e55]: 
+          - tab "Source Control (⌃⇧G)" [ref=e56] [cursor=pointer]:
+            - generic "Source Control (⌃⇧G)" [ref=e57]: 
+          - tab "Run and Debug (⇧⌘D)" [ref=e58] [cursor=pointer]:
+            - generic "Run and Debug (⇧⌘D)" [ref=e59]: 
+          - tab "Extensions (⇧⌘X)" [ref=e60] [cursor=pointer]:
+            - generic "Extensions (⇧⌘X)" [ref=e61]: 
+        - toolbar "Manage" [ref=e64]:
+          - button "Accounts" [ref=e65] [cursor=pointer]:
+            - generic "Accounts" [ref=e66]: 
+          - button "Manage" [ref=e67] [cursor=pointer]:
+            - generic "Manage" [ref=e68]: 
+      - generic [ref=e69]:
+        - generic [ref=e70]:
+          - heading "Explorer" [level=2] [ref=e72]
+          - toolbar "Explorer actions" [ref=e76]:
+            - button "Views and More Actions..." [ref=e79] [cursor=pointer]: 
+          - generic:
+            - generic:
+              - generic:
+                - toolbar
+        - generic [ref=e84]:
+          - generic [ref=e86]:
+            - 'button "Explorer Section: vscode-orgbrowser-test-qSu0K6" [expanded] [ref=e87] [cursor=pointer]':
+              - generic [ref=e88]: 
+              - text: 
+              - 'heading "Explorer Section: vscode-orgbrowser-test-qSu0K6" [level=3] [ref=e89]': vscode-orgbrowser-test-qSu0K6
+              - text:    
+            - tree "Files Explorer" [ref=e92]:
+              - generic [ref=e93]:
+                - treeitem ".sf" [level=1] [ref=e94] [cursor=pointer]:
+                  - generic [ref=e95]:
+                    - generic [ref=e96]: 
+                    - generic "/var/folders/03/bcr7nd0x5lz0x5lkgq6vrh5w0000gn/T/vscode-orgbrowser-test-qSu0K6/.sf" [ref=e98]:
+                      - generic [ref=e101]: .sf
+                - treeitem ".vscode-test-extensions" [level=1] [ref=e102] [cursor=pointer]:
+                  - generic [ref=e103]:
+                    - generic [ref=e104]: 
+                    - generic "/var/folders/03/bcr7nd0x5lz0x5lkgq6vrh5w0000gn/T/vscode-orgbrowser-test-qSu0K6/.vscode-test-extensions" [ref=e106]:
+                      - generic [ref=e109]: .vscode-test-extensions
+                - treeitem ".vscode-test-user-data" [level=1] [ref=e110] [cursor=pointer]:
+                  - generic [ref=e111]:
+                    - generic [ref=e112]: 
+                    - generic "/var/folders/03/bcr7nd0x5lz0x5lkgq6vrh5w0000gn/T/vscode-orgbrowser-test-qSu0K6/.vscode-test-user-data" [ref=e114]:
+                      - generic [ref=e117]: .vscode-test-user-data
+                - treeitem "force-app" [level=1] [ref=e118] [cursor=pointer]:
+                  - generic [ref=e119]:
+                    - generic [ref=e120]: 
+                    - generic "/var/folders/03/bcr7nd0x5lz0x5lkgq6vrh5w0000gn/T/vscode-orgbrowser-test-qSu0K6/force-app" [ref=e122]:
+                      - generic [ref=e125]: force-app
+                - treeitem "sfdx-project.json" [level=1] [ref=e126] [cursor=pointer]:
+                  - generic "/var/folders/03/bcr7nd0x5lz0x5lkgq6vrh5w0000gn/T/vscode-orgbrowser-test-qSu0K6/sfdx-project.json" [ref=e129]:
+                    - text: 
+                    - generic [ref=e132]: sfdx-project.json
+          - button "Outline Section" [ref=e135] [cursor=pointer]:
+            - generic [ref=e136]: 
+            - text: 
+            - heading "Outline" [level=3] [ref=e137]
+            - text:  
+          - button "Timeline Section" [ref=e140] [cursor=pointer]:
+            - generic [ref=e141]: 
+            - text: 
+            - heading "Timeline" [level=3] [ref=e142]
+            - text:    
+      - main [ref=e151]:
+        - generic [ref=e159]:
+          - generic [ref=e161] [cursor=pointer]:
+            - tablist [ref=e162]:
+              - 'tab "Walkthrough: Setup VS Code, preview" [selected] [ref=e163]':
+                - 'generic "Walkthrough: Setup VS Code" [ref=e164]':
+                  - generic [ref=e166]: "Walkthrough: Setup VS Code"
+                - toolbar "Tab actions" [ref=e169]:
+                  - button "Close (⌘W)" [ref=e170]: 
+            - toolbar "Editor actions" [ref=e174]:
+              - button "Split Editor Right (⌘\\) [⌥] Split Editor Down" [ref=e175]: 
+              - button "More Actions..." [ref=e178]: 
+          - document "Overview of how to get up to speed with your editor." [ref=e181]:
+            - generic [ref=e182]:
+              - generic [ref=e184]:
+                - generic [ref=e185]:
+                  - generic [ref=e186]:
+                    - heading "Start" [level=2] [ref=e187]
+                    - list [ref=e188]:
+                      - listitem [ref=e189]:
+                        - button " New File..." [disabled] [ref=e190] [cursor=pointer]:
+                          - generic [ref=e191]: 
+                          - text: New File...
+                      - listitem [ref=e192]:
+                        - button " Open..." [disabled] [ref=e193] [cursor=pointer]:
+                          - generic [ref=e194]: 
+                          - text: Open...
+                      - listitem [ref=e195]:
+                        - button " Clone Git Repository..." [disabled] [ref=e196] [cursor=pointer]:
+                          - generic [ref=e197]: 
+                          - text: Clone Git Repository...
+                      - listitem [ref=e198]:
+                        - button " Connect to..." [disabled] [ref=e199] [cursor=pointer]:
+                          - generic [ref=e200]: 
+                          - text: Connect to...
+                      - listitem [ref=e201]:
+                        - button " Generate New Workspace..." [disabled] [ref=e202] [cursor=pointer]:
+                          - generic [ref=e203]: 
+                          - text: Generate New Workspace...
+                  - generic [ref=e204]:
+                    - heading "Recent" [level=2] [ref=e205]
+                    - list [ref=e206]:
+                      - generic [ref=e207]:
+                        - text: You have no recent folders,
+                        - button "open a folder" [ref=e208] [cursor=pointer]
+                        - text: to start.
+                - generic [ref=e210]:
+                  - heading "Walkthroughs" [level=2] [ref=e211]
+                  - list [ref=e212]:
+                    - button " Get started with VS Code Customize your editor, learn the basics, and start coding" [disabled] [ref=e213]:
+                      - generic [ref=e215]: 
+                      - heading "Get started with VS Code" [level=3] [ref=e217]
+                      - generic [ref=e218]: Customize your editor, learn the basics, and start coding
+                    - button " Learn the Fundamentals" [disabled] [ref=e219]:
+                      - generic [ref=e220]:
+                        - generic [ref=e221]: 
+                        - heading "Learn the Fundamentals" [level=3] [ref=e222]
+                - paragraph [ref=e224]:
+                  - checkbox "When checked, this page will be shown on startup." [checked] [ref=e225] [cursor=pointer]: 
+                  - generic [ref=e226] [cursor=pointer]: Show welcome page on startup
+              - generic [ref=e227]:
+                - button "" [ref=e228] [cursor=pointer]:
+                  - generic [ref=e229]: 
+                - generic [ref=e230]:
+                  - generic [ref=e232]:
+                    - heading "Get started with VS Code" [level=2] [ref=e233]
+                    - paragraph [ref=e235]: Customize your editor, learn the basics, and start coding
+                  - list [ref=e236]:
+                    - generic [ref=e237]:
+                      - button "Inspect this in the accessible view (Option+F2). Use AI features with Copilot for free" [expanded] [active] [ref=e238]:
+                        - 'checkbox "Checkbox for Step Use AI features with Copilot for free: Not completed" [ref=e239] [cursor=pointer]': 
+                        - generic [ref=e240]:
+                          - heading "Use AI features with Copilot for free" [level=3] [ref=e241]
+                          - generic [ref=e242]:
+                            - paragraph [ref=e243]:
+                              - text: You can use
+                              - button "Copilot" [ref=e244] [cursor=pointer]
+                              - text: to generate code across multiple files, fix errors, ask questions about your code, and much more using natural language.
+                            - paragraph [ref=e245]:
+                              - text: By continuing with GitHub Copilot, you agree to GitHub's
+                              - button "Terms" [ref=e246] [cursor=pointer]
+                              - text: and
+                              - button "Privacy Statement" [ref=e247] [cursor=pointer]
+                            - button "Use AI Features" [ref=e249] [cursor=pointer]:
+                              - generic [ref=e250]: Use AI Features
+                      - 'button "Checkbox for Step Choose your theme: Not completed Choose your theme" [ref=e251]':
+                        - 'checkbox "Checkbox for Step Choose your theme: Not completed" [ref=e252]': 
+                        - heading "Choose your theme" [level=3] [ref=e254]
+                      - 'button "Checkbox for Step Watch video tutorials: Not completed Watch video tutorials" [ref=e255]':
+                        - 'checkbox "Checkbox for Step Watch video tutorials: Not completed" [ref=e256]': 
+                        - heading "Watch video tutorials" [level=3] [ref=e258]
+                    - generic [ref=e259]:
+                      - button " Mark Done" [ref=e260] [cursor=pointer]:
+                        - generic [ref=e261]: 
+                        - text: Mark Done
+                      - button "Next Section " [ref=e262] [cursor=pointer]:
+                        - text: Next Section
+                        - generic [ref=e263]: 
+                  - paragraph [ref=e268]:
+                    - text: Code collects usage data. Read our
+                    - link "privacy statement" [ref=e269] [cursor=pointer]:
+                      - /url: ""
+                    - text: and learn how to
+                    - link "opt out" [ref=e270] [cursor=pointer]:
+                      - /url: ""
+                    - text: .
+      - generic [ref=e271]:
+        - generic [ref=e272]:
+          - tablist "Active View Switcher" [ref=e276]:
+            - tab "Chat (⌃⌘I)" [expanded] [selected] [ref=e277] [cursor=pointer]:
+              - generic "Chat (⌃⌘I)" [ref=e278]: Chat
+          - toolbar "Chat actions" [ref=e282]:
+            - button "New Chat (⌘N)" [ref=e284] [cursor=pointer]: 
+            - button "New Chat" [ref=e288] [cursor=pointer]: 
+            - button "Configure Chat" [ref=e291] [cursor=pointer]: 
+            - button "Views and More Actions..." [ref=e294] [cursor=pointer]: 
+          - toolbar [ref=e299]:
+            - button "Maximize Secondary Side Bar Size" [ref=e300] [cursor=pointer]: 
+            - button "Hide Secondary Side Bar (⌥⌘B)" [ref=e301] [cursor=pointer]: 
+        - generic [ref=e308]:
+          - text:      
+          - generic [ref=e309]:
+            - text: 
+            - generic [ref=e310]:
+              - text:  
+              - generic [ref=e311]:
+                - generic [ref=e313]:
+                  - generic [ref=e315]: 
+                  - generic [ref=e316]: Build with Agent
+                  - paragraph [ref=e319]: AI responses may be inaccurate.
+                  - paragraph [ref=e322]:
+                    - text: By continuing with GitHub Copilot, you agree to GitHub's
+                    - link "Terms" [ref=e323] [cursor=pointer]:
+                      - /url: ""
+                    - text: and
+                    - link "Privacy Statement" [ref=e324] [cursor=pointer]:
+                      - /url: ""
+                    - text: .
+                  - generic [ref=e325]:
+                    - generic [ref=e326]: Suggested Actions
+                    - 'button "Suggested prompt: Build Workspace" [ref=e327] [cursor=pointer]':
+                      - 'generic "Suggested prompt: How do I build this workspace?" [ref=e328]': Build Workspace
+                    - 'button "Suggested prompt: Show Config" [ref=e329] [cursor=pointer]':
+                      - 'generic "Suggested prompt: Where is the configuration for this project defined?" [ref=e330]': Show Config
+                - text: 
+                - generic [ref=e331]:
+                  - generic:  
+                  - generic [ref=e333]:
+                    - toolbar [ref=e338]:
+                      - button "Add Context... (⌘/)" [ref=e339] [cursor=pointer]:
+                        - generic [ref=e340]: 
+                        - text: Add Context...
+                    - code [ref=e343]:
+                      - generic [ref=e344]:
+                        - textbox "The editor is not accessible at this time. To enable screen reader optimized mode, use Shift+Option+F1" [ref=e345]
+                        - textbox [ref=e346]
+                        - generic [ref=e352]: Describe what to build next
+                    - generic [ref=e353]:
+                      - toolbar [ref=e356]:
+                        - button "Set Agent (⌘.) - Agent" [ref=e359] [cursor=pointer]:
+                          - generic [ref=e360]: Agent
+                          - generic [ref=e361]: 
+                        - button "(⌥⌘.) - Auto" [ref=e364] [cursor=pointer]:
+                          - generic [ref=e365]: Auto
+                          - generic [ref=e366]: 
+                        - button "Configure Tools..." [ref=e367] [cursor=pointer]: 
+                        - text: 
+                      - toolbar [ref=e370]:
+                        - button "Send [⌥] Send to New Chat (⇧⌘Enter)" [disabled] [ref=e371]: 
+    - status [ref=e374]:
+      - generic [ref=e375]:
+        - generic "remote" [ref=e376]:
+          - button "remote" [ref=e377] [cursor=pointer]:
+            - generic [ref=e378]: 
+        - generic "No Problems" [ref=e379]:
+          - button "No Problems" [ref=e380] [cursor=pointer]:
+            - generic [ref=e381]: 
+            - text: "0"
+            - generic [ref=e382]: 
+            - text: "0"
+      - generic [ref=e383]:
+        - generic "Notifications" [ref=e384]:
+          - button "Notifications" [ref=e385] [cursor=pointer]:
+            - generic [ref=e386]: 
+        - generic "Copilot status" [ref=e387]:
+          - button "Copilot status" [ref=e388] [cursor=pointer]:
+            - generic [ref=e389]: 
+  - generic [ref=e390]:
+    - alert [ref=e391]: "Info: All installed extensions are temporarily disabled."
+    - alert
+  - 'list "Info: All installed extensions are temporarily disabled., notification" [ref=e396]':
+    - 'dialog "Info: All installed extensions are temporarily disabled., notification, Inspect the response in the accessible view with Option+F2" [ref=e398] [cursor=pointer]':
+      - generic [ref=e399]:
+        - button "Reload and Enable Extensions" [ref=e402]
+        - generic [ref=e403]:
+          - generic [ref=e404]: 
+          - generic [ref=e405]: All installed extensions are temporarily disabled.
+          - toolbar "Notification Actions" [ref=e408]:
+            - button "Clear Notification (⌘Backspace)" [ref=e409]: 
+  - text:             
+```

@@ -6,7 +6,7 @@
  */
 
 import { expect, type Page } from '@playwright/test';
-import { WORKBENCH, TAB, TAB_CLOSE_BUTTON } from './locators';
+import { WORKBENCH, TAB, TAB_CLOSE_BUTTON, QUICK_INPUT_WIDGET } from './locators';
 
 type ConsoleError = { text: string; url?: string };
 type NetworkError = { status: number; url: string; description: string };
@@ -105,6 +105,14 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
 
 /** Close VS Code Welcome/Walkthrough tabs if they're open */
 export const closeWelcomeTabs = async (page: Page): Promise<void> => {
+  // Close any open Quick Input widgets first (they can intercept clicks)
+  const quickInput = page.locator(QUICK_INPUT_WIDGET);
+  const isQuickInputVisible = await quickInput.isVisible({ timeout: 1000 }).catch(() => false);
+  if (isQuickInputVisible) {
+    await page.keyboard.press('Escape');
+    await quickInput.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
+  }
+
   // Ensure workbench is focused before closing tabs
   await page.locator(WORKBENCH).click({ timeout: 5000 }).catch(() => {});
 
@@ -114,50 +122,84 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
 
   // Loop to close all welcome/walkthrough tabs (there may be multiple)
   let attempts = 0;
-  const maxAttempts = 10;
+  const maxAttempts = 15;
 
   while (attempts < maxAttempts) {
+    // Re-query tabs each iteration to avoid stale element issues
     const welcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
     const count = await welcomeTabs.count();
     
     if (count === 0) {
       // Wait for tab container to stabilize to ensure no new tabs appear
-      await tabContainer.waitFor({ state: 'attached', timeout: 1000 }).catch(() => {});
+      await tabContainer.waitFor({ state: 'attached', timeout: 2000 }).catch(() => {});
+      // Double-check after waiting
       const finalCount = await welcomeTabs.count();
       if (finalCount === 0) {
-        break;
+        // Verify tabs are actually gone by checking DOM directly
+        const allTabs = page.locator(TAB);
+        const allTabTexts = await allTabs.allTextContents();
+        const hasWelcomeTab = allTabTexts.some(text => /Welcome|Walkthrough/i.test(text));
+        if (!hasWelcomeTab) {
+          break;
+        }
       }
     }
 
-    // Close the first welcome tab - ensure workbench is focused first
-    await page.locator(WORKBENCH).click({ timeout: 1000 }).catch(() => {});
-    const welcomeTab = welcomeTabs.first();
-    const isWelcomeVisible = await welcomeTab.isVisible({ timeout: 2000 }).catch(() => false);
-    if (!isWelcomeVisible) {
+    // Close any Quick Input widgets that may have appeared
+    const quickInputVisible = await quickInput.isVisible({ timeout: 500 }).catch(() => false);
+    if (quickInputVisible) {
+      await page.keyboard.press('Escape');
+      await quickInput.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
+    }
+
+    // Ensure workbench is focused before closing tabs
+    await page.locator(WORKBENCH).click({ timeout: 2000 }).catch(() => {});
+
+    // Re-query to get fresh tab reference
+    const currentWelcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
+    const currentCount = await currentWelcomeTabs.count();
+    if (currentCount === 0) {
+      attempts++;
+      continue;
+    }
+
+    const welcomeTab = currentWelcomeTabs.first();
+    
+    // Wait for tab to be attached (exists in DOM)
+    const tabAttached = await welcomeTab.waitFor({ state: 'attached', timeout: 5000 }).catch(() => false);
+    if (!tabAttached) {
       attempts++;
       continue;
     }
 
     // Select the tab first to ensure it's active
-    await welcomeTab.click({ timeout: 2000 }).catch(() => {});
-    // Wait briefly for tab to be selected
-    await expect(welcomeTab).toHaveAttribute('aria-selected', 'true', { timeout: 2000 }).catch(() => {});
+    await welcomeTab.click({ timeout: 5000 }).catch(() => {});
+    // Wait for tab to be selected
+    await expect(welcomeTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(() => {});
 
     // Try close button first (more reliable than keyboard shortcut)
     const closeButton = welcomeTab.locator(TAB_CLOSE_BUTTON);
-    const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+    const closeButtonVisible = await closeButton.isVisible({ timeout: 5000 }).catch(() => false);
+    
     if (closeButtonVisible) {
+      // Ensure Quick Input is closed before clicking close button
+      const quickInputStillVisible = await quickInput.isVisible({ timeout: 500 }).catch(() => false);
+      if (quickInputStillVisible) {
+        await page.keyboard.press('Escape');
+        await quickInput.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
+      }
       await closeButton.click({ timeout: 5000 });
-      // Wait for tab to be fully removed from DOM
-      await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+      // Wait for tab to be fully removed from DOM - use longer timeout for CI
+      await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 }).catch(() => {});
     } else {
       // Fall back to keyboard shortcut if close button not visible
       await page.keyboard.press('Control+w');
-      await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+      // Wait for tab to be detached - use longer timeout for CI
+      await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 }).catch(() => {});
     }
 
     // Wait for tab container to update before checking for more tabs
-    await tabContainer.waitFor({ state: 'attached', timeout: 1000 }).catch(() => {});
+    await tabContainer.waitFor({ state: 'attached', timeout: 2000 }).catch(() => {});
     attempts++;
   }
 };

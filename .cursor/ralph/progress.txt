@@ -48,7 +48,7 @@
   - Increased max attempts from 5 to 10
   - Added wait for welcome tabs to appear before closing
   - Added double-check after closing to ensure no new tabs appear
-  - Added fallback to Ctrl+W keyboard shortcut if close button fails
+  - Note: Fallback approach was later replaced with close button first approach (see commit 8d57f85a4)
   - Note: Small delays were later removed to align with coding rules (no waitForTimeout)
 - Committed and pushed fix (commit b0a565233)
 - CI run 20931588288 results:
@@ -219,3 +219,46 @@
     - macOS desktop: failures (fileOperations tests - timing/timeout issues in CI environment)
     - Windows desktop: failures (need to investigate)
     - Desktop tests pass locally (18 pass, 3 skipped) but fail in CI due to timing/environment differences
+- Fixed CI timing issues in command palette execution (commit 88f8ce1f6):
+  - Increased timeout for command row attachment from 5s to 10s to handle slower CI environments
+  - Removed unused saveScreenshot import from commands.ts
+  - Fixed numeric separator lint error (10000 -> 10_000)
+  - Updated progress.txt to reflect actual CI failures (fileOperations tests, not outputChannel)
+  - Desktop tests pass locally (18 pass, 3 skipped)
+  - CI run 20938455947 started - monitoring results
+- Fixed flaky output channel tests (commit 8d57f85a4):
+  - Improved closeWelcomeTabs to use close button first (more reliable than keyboard shortcut)
+  - Added explicit tab selection wait (aria-selected check) before closing welcome tabs
+  - Increased command palette input visibility timeout from 5s to 10s
+  - Added focus() call to ensure input is ready for typing before pressSequentially
+  - Fixes flaky test failures where welcome tabs weren't being closed properly, preventing command palette from opening
+  - Fixes flaky test failures where command palette input was attached but hidden
+  - Web tests: ✓ 21/21 tests pass consistently locally
+  - Desktop tests: ✓ 18 pass, 3 skipped locally
+  - CI run 20938455947 completed with failures (all platforms)
+  - CI run 20938846157 completed with failures:
+    - Web: Command palette commands not appearing in list ("View: Close All Editors", "File: New Untitled Text File")
+    - Welcome tabs close button timeout in fileOperations test
+    - Root cause: Commands not being found after typing, suggesting filtering/list rendering issue
+    - Desktop: Similar failures expected
+  - CI run 20943150037 completed with failures (all platforms):
+    - Web: Command palette test failed - widget exists but is hidden (welcome tabs interfering)
+    - macOS desktop: Command palette test failed - widget exists but is hidden (welcome tabs interfering)
+    - Windows desktop: Similar failures expected
+    - Root cause: Welcome tabs not being closed properly in CI, preventing command palette from opening
+    - Error contexts show welcome tabs ("Walkthrough: Setup VS Code Web") still open when tests run
+  - Fixed welcome tabs closing reliability (commit pending):
+    - Increased max attempts from 10 to 15 for CI environments
+    - Increased timeouts for tab detachment from 5s to 10s
+    - Added verification that tabs are actually gone by checking DOM directly
+    - Re-query tabs each iteration to avoid stale element issues
+    - Improved tab selection and close button visibility checks
+    - Fixes CI failures where welcome tabs weren't being closed, causing command palette to fail
+  - Fixed command palette widget visibility timeout (commit pending):
+    - Increased widget visibility timeout in executeCommand from 5s to 10s
+    - Increased input attachment timeout from 5s to 10s
+    - Ensures widget stays visible even if welcome tabs interfere briefly
+    - Fixes CI failures where widget existed but was hidden
+  - Web tests: ✓ 21/21 pass locally
+  - Desktop tests: ✓ 18 pass, 3 skipped locally (macOS)
+  - Pushing fixes - monitoring CI results

@@ -1,0 +1,1092 @@
+<testsuites id="" name="" tests="21" failures="4" skipped="0" errors="0" time="312.735591">
+<testsuite name="commandPalette.headless.spec.ts" timestamp="2026-01-12T23:38:20.516Z" hostname="chromium" tests="3" failures="0" skipped="0" time="25.238" errors="0">
+<testcase name="Command Palette › should open command palette with F1" classname="commandPalette.headless.spec.ts" time="3.396">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|commandPalette.headless-Co-0aa59-pen-command-palette-with-F1-chromium/test-finished-1.png]]
+
+[[ATTACHMENT|commandPalette.headless-Co-0aa59-pen-command-palette-with-F1-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Command Palette › should execute command via command palette" classname="commandPalette.headless.spec.ts" time="18.865">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|commandPalette.headless-Co-16549-command-via-command-palette-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|commandPalette.headless-Co-16549-command-via-command-palette-chromium/video.webm]]
+
+[[ATTACHMENT|commandPalette.headless-Co-16549-command-via-command-palette-chromium/error-context.md]]
+
+[[ATTACHMENT|commandPalette.headless-Co-16549-command-via-command-palette-chromium/trace.zip]]
+
+[[ATTACHMENT|commandPalette.headless-Co-16549-command-via-command-palette-chromium-retry1/test-finished-1.png]]
+
+[[ATTACHMENT|commandPalette.headless-Co-16549-command-via-command-palette-chromium-retry1/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Command Palette › should support command palette with Ctrl+Shift+P" classname="commandPalette.headless.spec.ts" time="2.977">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|commandPalette.headless-Co-1a00a-d-palette-with-Ctrl-Shift-P-chromium/test-finished-1.png]]
+
+[[ATTACHMENT|commandPalette.headless-Co-1a00a-d-palette-with-Ctrl-Shift-P-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="contextMenu.headless.spec.ts" timestamp="2026-01-12T23:38:20.516Z" hostname="chromium" tests="2" failures="0" skipped="0" time="7.457" errors="0">
+<testcase name="Context Menu › should execute editor context menu command" classname="contextMenu.headless.spec.ts" time="4.827">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|contextMenu.headless-Conte-350a4-editor-context-menu-command-chromium/test-finished-1.png]]
+
+[[ATTACHMENT|contextMenu.headless-Conte-350a4-editor-context-menu-command-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Context Menu › should execute explorer context menu command" classname="contextMenu.headless.spec.ts" time="2.63">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|contextMenu.headless-Conte-a6810-plorer-context-menu-command-chromium/test-finished-1.png]]
+
+[[ATTACHMENT|contextMenu.headless-Conte-a6810-plorer-context-menu-command-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="fileOperations.headless.spec.ts" timestamp="2026-01-12T23:38:20.516Z" hostname="chromium" tests="4" failures="0" skipped="0" time="43.269" errors="0">
+<testcase name="File Operations › should create file with contents" classname="fileOperations.headless.spec.ts" time="4.248">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|fileOperations.headless-Fi-c1f34-d-create-file-with-contents-chromium/test-finished-1.png]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-c1f34-d-create-file-with-contents-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="File Operations › should switch between multiple files" classname="fileOperations.headless.spec.ts" time="29.96">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|fileOperations.headless-Fi-85b37-itch-between-multiple-files-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-85b37-itch-between-multiple-files-chromium/video.webm]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-85b37-itch-between-multiple-files-chromium/error-context.md]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-85b37-itch-between-multiple-files-chromium/trace.zip]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-85b37-itch-between-multiple-files-chromium-retry1/test-failed-1.png]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-85b37-itch-between-multiple-files-chromium-retry1/video.webm]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-85b37-itch-between-multiple-files-chromium-retry1/error-context.md]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-85b37-itch-between-multiple-files-chromium-retry1/trace.zip]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-85b37-itch-between-multiple-files-chromium-retry2/test-finished-1.png]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-85b37-itch-between-multiple-files-chromium-retry2/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="File Operations › should edit open file" classname="fileOperations.headless.spec.ts" time="4.566">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|fileOperations.headless-Fi-d5982-tions-should-edit-open-file-chromium/test-finished-1.png]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-d5982-tions-should-edit-open-file-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="File Operations › should show dirty indicator when file has unsaved changes" classname="fileOperations.headless.spec.ts" time="4.495">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|fileOperations.headless-Fi-4eb77-en-file-has-unsaved-changes-chromium/test-finished-1.png]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-4eb77-en-file-has-unsaved-changes-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="helpers.headless.spec.ts" timestamp="2026-01-12T23:38:20.516Z" hostname="chromium" tests="3" failures="0" skipped="0" time="16.583" errors="0">
+<testcase name="Helper Functions › waitForVSCodeWorkbench should wait for workbench to load" classname="helpers.headless.spec.ts" time="2.071">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|helpers.headless-Helper-Fu-eb15f--wait-for-workbench-to-load-chromium/test-finished-1.png]]
+
+[[ATTACHMENT|helpers.headless-Helper-Fu-eb15f--wait-for-workbench-to-load-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Helper Functions › closeWelcomeTabs should close welcome tabs" classname="helpers.headless.spec.ts" time="2.502">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|helpers.headless-Helper-Fu-ff03a-s-should-close-welcome-tabs-chromium/test-finished-1.png]]
+
+[[ATTACHMENT|helpers.headless-Helper-Fu-ff03a-s-should-close-welcome-tabs-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Helper Functions › waitForWorkspaceReady should wait for workspace to be ready" classname="helpers.headless.spec.ts" time="12.01">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|helpers.headless-Helper-Fu-dbcfa-t-for-workspace-to-be-ready-chromium/test-finished-1.png]]
+
+[[ATTACHMENT|helpers.headless-Helper-Fu-dbcfa-t-for-workspace-to-be-ready-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="outputChannel.headless.spec.ts" timestamp="2026-01-12T23:38:20.516Z" hostname="chromium" tests="5" failures="0" skipped="0" time="74.715" errors="0">
+<testcase name="Output Channel › should open output panel" classname="outputChannel.headless.spec.ts" time="9.969">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|outputChannel.headless-Out-d50ab-el-should-open-output-panel-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|outputChannel.headless-Out-d50ab-el-should-open-output-panel-chromium/video.webm]]
+
+[[ATTACHMENT|outputChannel.headless-Out-d50ab-el-should-open-output-panel-chromium/error-context.md]]
+
+[[ATTACHMENT|outputChannel.headless-Out-d50ab-el-should-open-output-panel-chromium/trace.zip]]
+
+[[ATTACHMENT|outputChannel.headless-Out-d50ab-el-should-open-output-panel-chromium-retry1/test-finished-1.png]]
+
+[[ATTACHMENT|outputChannel.headless-Out-d50ab-el-should-open-output-panel-chromium-retry1/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Output Channel › should select output channel" classname="outputChannel.headless.spec.ts" time="4.144">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|outputChannel.headless-Out-376a0-hould-select-output-channel-chromium/test-finished-1.png]]
+
+[[ATTACHMENT|outputChannel.headless-Out-376a0-hould-select-output-channel-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Output Channel › should wait for output text" classname="outputChannel.headless.spec.ts" time="19.888">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|outputChannel.headless-Out-9a2cf-should-wait-for-output-text-chromium/test-finished-1.png]]
+
+[[ATTACHMENT|outputChannel.headless-Out-9a2cf-should-wait-for-output-text-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Output Channel › should check if output contains text" classname="outputChannel.headless.spec.ts" time="20.947">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-chromium/video.webm]]
+
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-chromium/error-context.md]]
+
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-chromium/trace.zip]]
+
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-chromium-retry1/test-failed-1.png]]
+
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-chromium-retry1/video.webm]]
+
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-chromium-retry1/error-context.md]]
+
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-chromium-retry1/trace.zip]]
+
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-chromium-retry2/test-finished-1.png]]
+
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-chromium-retry2/video.webm]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Output Channel › should clear output channel" classname="outputChannel.headless.spec.ts" time="19.767">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|outputChannel.headless-Out-c563a-should-clear-output-channel-chromium/test-finished-1.png]]
+
+[[ATTACHMENT|outputChannel.headless-Out-c563a-should-clear-output-channel-chromium/video.webm]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="settings.headless.spec.ts" timestamp="2026-01-12T23:38:20.516Z" hostname="chromium" tests="4" failures="4" skipped="0" time="123.427" errors="0">
+<testcase name="Settings › should open settings UI" classname="settings.headless.spec.ts" time="30.868">
+<failure message="settings.headless.spec.ts:26:7 should open settings UI" type="FAILURE">
+<![CDATA[  [chromium] › settings.headless.spec.ts:26:7 › Settings › should open settings UI ─────────────────
+
+    TimeoutError: locator.click: Timeout 5000ms exceeded.
+    Call log:
+      - waiting for locator('.monaco-workbench .tabs-container .tab').filter({ hasText: /Welcome|Walkthrough/i }).first().locator('.codicon-close')
+        - locator resolved to <a tabindex="0" role="button" aria-label="Close (Ctrl+F4)" class="action-label codicon codicon-close"></a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        9 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 500ms
+
+
+       at ../../../src/utils/helpers.ts:150
+
+      148 |     const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+      149 |     if (closeButtonVisible) {
+    > 150 |       await closeButton.click({ timeout: 5000 });
+          |                         ^
+      151 |       // Wait for tab to be fully removed from DOM
+      152 |       await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+      153 |     } else {
+        at closeWelcomeTabs (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/utils/helpers.ts:150:25)
+        at openSettingsUI (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/pages/settings.ts:17:3)
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:28:7
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:27:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: locator.click: Timeout 5000ms exceeded.
+    Call log:
+      - waiting for locator('.monaco-workbench .tabs-container .tab').filter({ hasText: /Welcome|Walkthrough/i }).first().locator('.codicon-close')
+        - locator resolved to <a tabindex="0" role="button" aria-label="Close (Ctrl+F4)" class="action-label codicon codicon-close"></a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        10 × waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
+
+
+       at ../../../src/utils/helpers.ts:150
+
+      148 |     const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+      149 |     if (closeButtonVisible) {
+    > 150 |       await closeButton.click({ timeout: 5000 });
+          |                         ^
+      151 |       // Wait for tab to be fully removed from DOM
+      152 |       await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+      153 |     } else {
+        at closeWelcomeTabs (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/utils/helpers.ts:150:25)
+        at openSettingsUI (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/pages/settings.ts:17:3)
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:28:7
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:27:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: locator.click: Timeout 5000ms exceeded.
+    Call log:
+      - waiting for locator('.monaco-workbench .tabs-container .tab').filter({ hasText: /Welcome|Walkthrough/i }).first().locator('.codicon-close')
+        - locator resolved to <a tabindex="0" role="button" aria-label="Close (Ctrl+F4)" class="action-label codicon codicon-close"></a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        9 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+
+
+       at ../../../src/utils/helpers.ts:150
+
+      148 |     const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+      149 |     if (closeButtonVisible) {
+    > 150 |       await closeButton.click({ timeout: 5000 });
+          |                         ^
+      151 |       // Wait for tab to be fully removed from DOM
+      152 |       await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+      153 |     } else {
+        at closeWelcomeTabs (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/utils/helpers.ts:150:25)
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:23:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium-retry2/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium-retry2/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium-retry2/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium-retry2/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../test-results/settings.headless-Settings-should-open-settings-UI-chromium-retry2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|settings.headless-Settings-should-open-settings-UI-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-open-settings-UI-chromium/video.webm]]
+
+[[ATTACHMENT|settings.headless-Settings-should-open-settings-UI-chromium/error-context.md]]
+
+[[ATTACHMENT|settings.headless-Settings-should-open-settings-UI-chromium/trace.zip]]
+
+[[ATTACHMENT|settings.headless-Settings-should-open-settings-UI-chromium-retry1/test-failed-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-open-settings-UI-chromium-retry1/video.webm]]
+
+[[ATTACHMENT|settings.headless-Settings-should-open-settings-UI-chromium-retry1/error-context.md]]
+
+[[ATTACHMENT|settings.headless-Settings-should-open-settings-UI-chromium-retry1/trace.zip]]
+
+[[ATTACHMENT|settings.headless-Settings-should-open-settings-UI-chromium-retry2/test-failed-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-open-settings-UI-chromium-retry2/video.webm]]
+
+[[ATTACHMENT|settings.headless-Settings-should-open-settings-UI-chromium-retry2/error-context.md]]
+
+[[ATTACHMENT|settings.headless-Settings-should-open-settings-UI-chromium-retry2/trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Settings › should search for settings" classname="settings.headless.spec.ts" time="30.841">
+<failure message="settings.headless.spec.ts:37:7 should search for settings" type="FAILURE">
+<![CDATA[  [chromium] › settings.headless.spec.ts:37:7 › Settings › should search for settings ──────────────
+
+    TimeoutError: locator.click: Timeout 5000ms exceeded.
+    Call log:
+      - waiting for locator('.monaco-workbench .tabs-container .tab').filter({ hasText: /Welcome|Walkthrough/i }).first().locator('.codicon-close')
+        - locator resolved to <a tabindex="0" role="button" aria-label="Close (Ctrl+F4)" class="action-label codicon codicon-close"></a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        9 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 500ms
+
+
+       at ../../../src/utils/helpers.ts:150
+
+      148 |     const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+      149 |     if (closeButtonVisible) {
+    > 150 |       await closeButton.click({ timeout: 5000 });
+          |                         ^
+      151 |       // Wait for tab to be fully removed from DOM
+      152 |       await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+      153 |     } else {
+        at closeWelcomeTabs (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/utils/helpers.ts:150:25)
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:23:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: locator.click: Timeout 5000ms exceeded.
+    Call log:
+      - waiting for locator('.monaco-workbench .tabs-container .tab').filter({ hasText: /Welcome|Walkthrough/i }).first().locator('.codicon-close')
+        - locator resolved to <a tabindex="0" role="button" aria-label="Close (Ctrl+F4)" class="action-label codicon codicon-close"></a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        9 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 500ms
+
+
+       at ../../../src/utils/helpers.ts:150
+
+      148 |     const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+      149 |     if (closeButtonVisible) {
+    > 150 |       await closeButton.click({ timeout: 5000 });
+          |                         ^
+      151 |       // Wait for tab to be fully removed from DOM
+      152 |       await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+      153 |     } else {
+        at closeWelcomeTabs (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/utils/helpers.ts:150:25)
+        at openSettingsUI (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/pages/settings.ts:17:3)
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:39:7
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:38:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: locator.click: Timeout 5000ms exceeded.
+    Call log:
+      - waiting for locator('.monaco-workbench .tabs-container .tab').filter({ hasText: /Welcome|Walkthrough/i }).first().locator('.codicon-close')
+        - locator resolved to <a tabindex="0" role="button" aria-label="Close (Ctrl+F4)" class="action-label codicon codicon-close"></a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        9 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+
+
+       at ../../../src/utils/helpers.ts:150
+
+      148 |     const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+      149 |     if (closeButtonVisible) {
+    > 150 |       await closeButton.click({ timeout: 5000 });
+          |                         ^
+      151 |       // Wait for tab to be fully removed from DOM
+      152 |       await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+      153 |     } else {
+        at closeWelcomeTabs (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/utils/helpers.ts:150:25)
+        at openSettingsUI (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/pages/settings.ts:17:3)
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:39:7
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:38:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium-retry2/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium-retry2/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium-retry2/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium-retry2/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../test-results/settings.headless-Settings-should-search-for-settings-chromium-retry2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|settings.headless-Settings-should-search-for-settings-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-search-for-settings-chromium/video.webm]]
+
+[[ATTACHMENT|settings.headless-Settings-should-search-for-settings-chromium/error-context.md]]
+
+[[ATTACHMENT|settings.headless-Settings-should-search-for-settings-chromium/trace.zip]]
+
+[[ATTACHMENT|settings.headless-Settings-should-search-for-settings-chromium-retry1/test-failed-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-search-for-settings-chromium-retry1/video.webm]]
+
+[[ATTACHMENT|settings.headless-Settings-should-search-for-settings-chromium-retry1/error-context.md]]
+
+[[ATTACHMENT|settings.headless-Settings-should-search-for-settings-chromium-retry1/trace.zip]]
+
+[[ATTACHMENT|settings.headless-Settings-should-search-for-settings-chromium-retry2/test-failed-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-search-for-settings-chromium-retry2/video.webm]]
+
+[[ATTACHMENT|settings.headless-Settings-should-search-for-settings-chromium-retry2/error-context.md]]
+
+[[ATTACHMENT|settings.headless-Settings-should-search-for-settings-chromium-retry2/trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Settings › should modify textbox setting" classname="settings.headless.spec.ts" time="30.912">
+<failure message="settings.headless.spec.ts:54:7 should modify textbox setting" type="FAILURE">
+<![CDATA[  [chromium] › settings.headless.spec.ts:54:7 › Settings › should modify textbox setting › Update textbox setting and verify 
+
+    TimeoutError: locator.click: Timeout 5000ms exceeded.
+    Call log:
+      - waiting for locator('.monaco-workbench .tabs-container .tab').filter({ hasText: /Welcome|Walkthrough/i }).first().locator('.codicon-close')
+        - locator resolved to <a tabindex="0" role="button" aria-label="Close (Ctrl+F4)" class="action-label codicon codicon-close"></a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        9 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 500ms
+
+
+       at ../../../src/utils/helpers.ts:150
+
+      148 |     const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+      149 |     if (closeButtonVisible) {
+    > 150 |       await closeButton.click({ timeout: 5000 });
+          |                         ^
+      151 |       // Wait for tab to be fully removed from DOM
+      152 |       await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+      153 |     } else {
+        at closeWelcomeTabs (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/utils/helpers.ts:150:25)
+        at openSettingsUI (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/pages/settings.ts:17:3)
+        at upsertSettings (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/pages/settings.ts:60:3)
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:60:7
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:58:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: locator.click: Timeout 5000ms exceeded.
+    Call log:
+      - waiting for locator('.monaco-workbench .tabs-container .tab').filter({ hasText: /Welcome|Walkthrough/i }).first().locator('.codicon-close')
+        - locator resolved to <a tabindex="0" role="button" aria-label="Close (Ctrl+F4)" class="action-label codicon codicon-close"></a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        9 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+
+
+       at ../../../src/utils/helpers.ts:150
+
+      148 |     const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+      149 |     if (closeButtonVisible) {
+    > 150 |       await closeButton.click({ timeout: 5000 });
+          |                         ^
+      151 |       // Wait for tab to be fully removed from DOM
+      152 |       await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+      153 |     } else {
+        at closeWelcomeTabs (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/utils/helpers.ts:150:25)
+        at openSettingsUI (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/pages/settings.ts:17:3)
+        at upsertSettings (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/pages/settings.ts:60:3)
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:60:7
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:58:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: locator.click: Timeout 5000ms exceeded.
+    Call log:
+      - waiting for locator('.monaco-workbench .tabs-container .tab').filter({ hasText: /Welcome|Walkthrough/i }).first().locator('.codicon-close')
+        - locator resolved to <a tabindex="0" role="button" aria-label="Close (Ctrl+F4)" class="action-label codicon codicon-close"></a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        9 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 500ms
+
+
+       at ../../../src/utils/helpers.ts:150
+
+      148 |     const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+      149 |     if (closeButtonVisible) {
+    > 150 |       await closeButton.click({ timeout: 5000 });
+          |                         ^
+      151 |       // Wait for tab to be fully removed from DOM
+      152 |       await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+      153 |     } else {
+        at closeWelcomeTabs (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/utils/helpers.ts:150:25)
+        at openSettingsUI (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/pages/settings.ts:17:3)
+        at upsertSettings (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/pages/settings.ts:60:3)
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:60:7
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:58:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium-retry2/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium-retry2/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium-retry2/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium-retry2/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../test-results/settings.headless-Settings-should-modify-textbox-setting-chromium-retry2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|settings.headless-Settings-should-modify-textbox-setting-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-textbox-setting-chromium/video.webm]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-textbox-setting-chromium/error-context.md]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-textbox-setting-chromium/trace.zip]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-textbox-setting-chromium-retry1/test-failed-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-textbox-setting-chromium-retry1/video.webm]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-textbox-setting-chromium-retry1/error-context.md]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-textbox-setting-chromium-retry1/trace.zip]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-textbox-setting-chromium-retry2/test-failed-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-textbox-setting-chromium-retry2/video.webm]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-textbox-setting-chromium-retry2/error-context.md]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-textbox-setting-chromium-retry2/trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Settings › should modify checkbox setting" classname="settings.headless.spec.ts" time="30.806">
+<failure message="settings.headless.spec.ts:64:7 should modify checkbox setting" type="FAILURE">
+<![CDATA[  [chromium] › settings.headless.spec.ts:64:7 › Settings › should modify checkbox setting ──────────
+
+    TimeoutError: locator.click: Timeout 5000ms exceeded.
+    Call log:
+      - waiting for locator('.monaco-workbench .tabs-container .tab').filter({ hasText: /Welcome|Walkthrough/i }).first().locator('.codicon-close')
+        - locator resolved to <a tabindex="0" role="button" aria-label="Close (Ctrl+F4)" class="action-label codicon codicon-close"></a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        9 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 500ms
+
+
+       at ../../../src/utils/helpers.ts:150
+
+      148 |     const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+      149 |     if (closeButtonVisible) {
+    > 150 |       await closeButton.click({ timeout: 5000 });
+          |                         ^
+      151 |       // Wait for tab to be fully removed from DOM
+      152 |       await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+      153 |     } else {
+        at closeWelcomeTabs (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/utils/helpers.ts:150:25)
+        at openSettingsUI (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/pages/settings.ts:17:3)
+        at upsertSettings (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/pages/settings.ts:60:3)
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:69:7
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:68:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: locator.click: Timeout 5000ms exceeded.
+    Call log:
+      - waiting for locator('.monaco-workbench .tabs-container .tab').filter({ hasText: /Welcome|Walkthrough/i }).first().locator('.codicon-close')
+        - locator resolved to <a tabindex="0" role="button" aria-label="Close (Ctrl+F4)" class="action-label codicon codicon-close"></a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        9 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 500ms
+
+
+       at ../../../src/utils/helpers.ts:150
+
+      148 |     const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+      149 |     if (closeButtonVisible) {
+    > 150 |       await closeButton.click({ timeout: 5000 });
+          |                         ^
+      151 |       // Wait for tab to be fully removed from DOM
+      152 |       await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+      153 |     } else {
+        at closeWelcomeTabs (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/utils/helpers.ts:150:25)
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:23:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium-retry1/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium-retry1/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium-retry1/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium-retry1/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium-retry1/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #2 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: locator.click: Timeout 5000ms exceeded.
+    Call log:
+      - waiting for locator('.monaco-workbench .tabs-container .tab').filter({ hasText: /Welcome|Walkthrough/i }).first().locator('.codicon-close')
+        - locator resolved to <a tabindex="0" role="button" aria-label="Close (Ctrl+F4)" class="action-label codicon codicon-close"></a>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        9 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="monaco-icon-label-container">…</div> from <div tabindex="-1" class="quick-input-widget show-file-icons">…</div> subtree intercepts pointer events
+        - retrying click action
+          - waiting 500ms
+        - waiting for element to be visible, enabled and stable
+        - element is visible, enabled and stable
+        - scrolling into view if needed
+        - done scrolling
+
+
+       at ../../../src/utils/helpers.ts:150
+
+      148 |     const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+      149 |     if (closeButtonVisible) {
+    > 150 |       await closeButton.click({ timeout: 5000 });
+          |                         ^
+      151 |       // Wait for tab to be fully removed from DOM
+      152 |       await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+      153 |     } else {
+        at closeWelcomeTabs (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/utils/helpers.ts:150:25)
+        at openSettingsUI (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/pages/settings.ts:17:3)
+        at upsertSettings (/home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/src/pages/settings.ts:60:3)
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:69:7
+        at /home/runner/work/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/test/playwright/specs/settings.headless.spec.ts:68:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium-retry2/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium-retry2/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium-retry2/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium-retry2/trace.zip
+    Usage:
+
+        npx playwright show-trace ../../../test-results/settings.headless-Settings-should-modify-checkbox-setting-chromium-retry2/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[
+[[ATTACHMENT|settings.headless-Settings-should-modify-checkbox-setting-chromium/test-failed-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-checkbox-setting-chromium/video.webm]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-checkbox-setting-chromium/error-context.md]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-checkbox-setting-chromium/trace.zip]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-checkbox-setting-chromium-retry1/test-failed-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-checkbox-setting-chromium-retry1/video.webm]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-checkbox-setting-chromium-retry1/error-context.md]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-checkbox-setting-chromium-retry1/trace.zip]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-checkbox-setting-chromium-retry2/test-failed-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-checkbox-setting-chromium-retry2/video.webm]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-checkbox-setting-chromium-retry2/error-context.md]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-checkbox-setting-chromium-retry2/trace.zip]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

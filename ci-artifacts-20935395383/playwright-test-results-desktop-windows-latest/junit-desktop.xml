@@ -1,0 +1,268 @@
+<testsuites id="" name="" tests="21" failures="0" skipped="0" errors="0" time="267.39286200000004">
+<testsuite name="commandPalette.headless.spec.ts" timestamp="2026-01-12T21:26:17.904Z" hostname="desktop-electron" tests="3" failures="0" skipped="0" time="36.848" errors="0">
+<testcase name="Command Palette › should open command palette with F1" classname="commandPalette.headless.spec.ts" time="20.176">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|commandPalette.headless-Co-0aa59-pen-command-palette-with-F1-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|commandPalette.headless-Co-0aa59-pen-command-palette-with-F1-desktop-electron\trace.zip]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[- Resolving version...
+[32m✔[39m Validated version: 1.108.0
+- Found at https://update.code.visualstudio.com/1.108.0/win32-x64-archive/stable?released=true
+[32m✔[39m Found at https://update.code.visualstudio.com/1.108.0/win32-x64-archive/stable?released=true
+- Downloading (167.06 MB)
+[32m✔[39m Downloaded VS Code into D:\a\salesforcedx-vscode\salesforcedx-vscode\packages\playwright-vscode-ext\.vscode-test\vscode-win32-x64-archive-1.108.0
+]]>
+</system-err>
+</testcase>
+<testcase name="Command Palette › should execute command via command palette" classname="commandPalette.headless.spec.ts" time="9.688">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|commandPalette.headless-Co-16549-command-via-command-palette-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|commandPalette.headless-Co-16549-command-via-command-palette-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Command Palette › should support command palette with Ctrl+Shift+P" classname="commandPalette.headless.spec.ts" time="6.984">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|commandPalette.headless-Co-1a00a-d-palette-with-Ctrl-Shift-P-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|commandPalette.headless-Co-1a00a-d-palette-with-Ctrl-Shift-P-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="contextMenu.headless.spec.ts" timestamp="2026-01-12T21:26:17.904Z" hostname="desktop-electron" tests="2" failures="0" skipped="0" time="20.636" errors="0">
+<testcase name="Context Menu › should execute editor context menu command" classname="contextMenu.headless.spec.ts" time="9.622">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|contextMenu.headless-Conte-350a4-editor-context-menu-command-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|contextMenu.headless-Conte-350a4-editor-context-menu-command-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Context Menu › should execute explorer context menu command" classname="contextMenu.headless.spec.ts" time="11.014">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|contextMenu.headless-Conte-a6810-plorer-context-menu-command-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|contextMenu.headless-Conte-a6810-plorer-context-menu-command-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="fileOperations.headless.spec.ts" timestamp="2026-01-12T21:26:17.904Z" hostname="desktop-electron" tests="4" failures="0" skipped="0" time="56.788" errors="0">
+<testcase name="File Operations › should create file with contents" classname="fileOperations.headless.spec.ts" time="14.102">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|fileOperations.headless-Fi-c1f34-d-create-file-with-contents-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-c1f34-d-create-file-with-contents-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="File Operations › should switch between multiple files" classname="fileOperations.headless.spec.ts" time="19.043">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|fileOperations.headless-Fi-85b37-itch-between-multiple-files-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-85b37-itch-between-multiple-files-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="File Operations › should edit open file" classname="fileOperations.headless.spec.ts" time="13.624">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|fileOperations.headless-Fi-d5982-tions-should-edit-open-file-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-d5982-tions-should-edit-open-file-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="File Operations › should show dirty indicator when file has unsaved changes" classname="fileOperations.headless.spec.ts" time="10.019">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|fileOperations.headless-Fi-4eb77-en-file-has-unsaved-changes-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|fileOperations.headless-Fi-4eb77-en-file-has-unsaved-changes-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="helpers.headless.spec.ts" timestamp="2026-01-12T21:26:17.904Z" hostname="desktop-electron" tests="3" failures="0" skipped="0" time="22.224" errors="0">
+<testcase name="Helper Functions › waitForVSCodeWorkbench should wait for workbench to load" classname="helpers.headless.spec.ts" time="7.693">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|helpers.headless-Helper-Fu-eb15f--wait-for-workbench-to-load-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|helpers.headless-Helper-Fu-eb15f--wait-for-workbench-to-load-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Helper Functions › closeWelcomeTabs should close welcome tabs" classname="helpers.headless.spec.ts" time="7.572">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|helpers.headless-Helper-Fu-ff03a-s-should-close-welcome-tabs-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|helpers.headless-Helper-Fu-ff03a-s-should-close-welcome-tabs-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Helper Functions › waitForWorkspaceReady should wait for workspace to be ready" classname="helpers.headless.spec.ts" time="6.959">
+<system-out>
+<![CDATA[[Electron Console Error] %c  ERR color: #f33 Canceled: Canceled
+    at I1 (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:7:1281)
+    at vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3912:37831
+    at Array.forEach (<anonymous>)
+    at FPt.dispose (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3912:37771)
+    at m$e.dispose (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3912:49448)
+    at _kn.dispose (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3919:7743)
+    at Ukn.stopAllInReverse (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3919:7045)
+    at async nTt.vb (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3918:16049)
+  at vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:37
+[Electron Console Error] %c  ERR color: #f33 Canceled: Canceled
+    at I1 (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:7:1281)
+    at vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3912:37831
+    at Array.forEach (<anonymous>)
+    at FPt.dispose (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3912:37771)
+    at m$e.dispose (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3912:49448)
+    at _kn.dispose (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3919:7743)
+    at Ukn.stopAllInReverse (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3919:7045)
+    at async nTt.vb (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3918:16049)
+  at vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:37
+[Electron Console Error] %c  ERR color: #f33 Canceled: Canceled
+    at new Dkn (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3912:36350)
+    at FPt.U (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3912:41002)
+    at n.<computed>.o.charCodeAt.n.<computed> (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3912:38487)
+    at Sli.getSessions (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:607:74266)
+    at oJe.getSessions (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:607:71264)
+    at oJe.getAccounts (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:607:70561)
+    at sJe.j (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:607:64998)
+    at vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:607:64359
+    at Array.map (<anonymous>)
+    at Object.factory (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:607:64347)
+  at vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:37
+[Electron Console Error] %c  ERR color: #f33 Canceled: Canceled
+    at new Dkn (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3912:36350)
+    at FPt.U (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3912:41002)
+    at n.<computed>.o.charCodeAt.n.<computed> (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:3912:38487)
+    at Sli.getSessions (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:607:74266)
+    at oJe.getSessions (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:607:71264)
+    at oJe.getAccounts (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:607:70561)
+    at sJe.j (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:607:64998)
+    at vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:607:64359
+    at Array.map (<anonymous>)
+    at Object.factory (vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:607:64347)
+  at vscode-file://vscode-app/d:/a/salesforcedx-vscode/salesforcedx-vscode/packages/playwright-vscode-ext/.vscode-test/vscode-win32-x64-archive-1.108.0/resources/app/out/vs/workbench/workbench.desktop.main.js:37
+
+[[ATTACHMENT|helpers.headless-Helper-Fu-dbcfa-t-for-workspace-to-be-ready-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|helpers.headless-Helper-Fu-dbcfa-t-for-workspace-to-be-ready-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="outputChannel.headless.spec.ts" timestamp="2026-01-12T21:26:17.904Z" hostname="desktop-electron" tests="5" failures="0" skipped="0" time="87.537" errors="0">
+<testcase name="Output Channel › should open output panel" classname="outputChannel.headless.spec.ts" time="9.952">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|outputChannel.headless-Out-d50ab-el-should-open-output-panel-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|outputChannel.headless-Out-d50ab-el-should-open-output-panel-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Output Channel › should select output channel" classname="outputChannel.headless.spec.ts" time="9.137">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|outputChannel.headless-Out-376a0-hould-select-output-channel-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|outputChannel.headless-Out-376a0-hould-select-output-channel-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Output Channel › should wait for output text" classname="outputChannel.headless.spec.ts" time="9.562">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|outputChannel.headless-Out-9a2cf-should-wait-for-output-text-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|outputChannel.headless-Out-9a2cf-should-wait-for-output-text-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Output Channel › should check if output contains text" classname="outputChannel.headless.spec.ts" time="49.137">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-desktop-electron\test-failed-1.png]]
+
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-desktop-electron\error-context.md]]
+
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-desktop-electron\trace.zip]]
+
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-desktop-electron-retry1\test-finished-1.png]]
+
+[[ATTACHMENT|outputChannel.headless-Out-4b6d9-eck-if-output-contains-text-desktop-electron-retry1\trace.zip]]
+]]>
+</system-out>
+<system-err>
+<![CDATA[- Resolving version...
+[32m✔[39m Validated version: 1.108.0
+[32m✔[39m Found existing install in D:\a\salesforcedx-vscode\salesforcedx-vscode\packages\playwright-vscode-ext\.vscode-test\vscode-win32-x64-archive-1.108.0
+]]>
+</system-err>
+</testcase>
+<testcase name="Output Channel › should clear output channel" classname="outputChannel.headless.spec.ts" time="9.749">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|outputChannel.headless-Out-c563a-should-clear-output-channel-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|outputChannel.headless-Out-c563a-should-clear-output-channel-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="settings.headless.spec.ts" timestamp="2026-01-12T21:26:17.904Z" hostname="desktop-electron" tests="4" failures="0" skipped="0" time="38.745" errors="0">
+<testcase name="Settings › should open settings UI" classname="settings.headless.spec.ts" time="9.039">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|settings.headless-Settings-should-open-settings-UI-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-open-settings-UI-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Settings › should search for settings" classname="settings.headless.spec.ts" time="9.441">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|settings.headless-Settings-should-search-for-settings-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-search-for-settings-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Settings › should modify textbox setting" classname="settings.headless.spec.ts" time="10.016">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|settings.headless-Settings-should-modify-textbox-setting-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-textbox-setting-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Settings › should modify checkbox setting" classname="settings.headless.spec.ts" time="10.249">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|settings.headless-Settings-should-modify-checkbox-setting-desktop-electron\test-finished-1.png]]
+
+[[ATTACHMENT|settings.headless-Settings-should-modify-checkbox-setting-desktop-electron\trace.zip]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

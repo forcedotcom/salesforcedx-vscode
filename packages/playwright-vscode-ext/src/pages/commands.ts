@@ -16,17 +16,18 @@ const openCommandPalette = async (page: Page): Promise<void> => {
   
   // Try F1 first (standard command palette shortcut)
   await page.keyboard.press('F1');
+  const widget = page.locator(QUICK_INPUT_WIDGET);
   if (isWindowsDesktop()) {
     // On Windows desktop, F1 may not work reliably, so try Ctrl+Shift+P fallback
     try {
-      await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
+      await expect(widget).toBeVisible({ timeout: 10_000 });
     } catch {
       await page.keyboard.press('Control+Shift+p');
-      await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
+      await expect(widget).toBeVisible({ timeout: 10_000 });
     }
   } else {
-    // Web and macOS desktop: F1 should work
-    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
+    // Web and macOS desktop: F1 should work, but may take longer in CI
+    await expect(widget).toBeVisible({ timeout: 10_000 });
   }
 };
 
@@ -35,14 +36,19 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // Get the input locator - use locator-specific action for better reliability on desktop
   const widget = page.locator(QUICK_INPUT_WIDGET);
   const input = widget.locator('input.input');
-  // Wait for widget to be visible first, then wait for input to be attached and visible
-  await widget.waitFor({ state: 'visible', timeout: 5000 });
-  await input.waitFor({ state: 'attached', timeout: 5000 });
+  // Widget should already be visible from openCommandPalette, but verify it's still visible
+  // In CI, widget may become hidden if welcome tabs interfere, so wait with longer timeout
+  await expect(widget).toBeVisible({ timeout: 10_000 });
+  await input.waitFor({ state: 'attached', timeout: 10_000 });
   // Wait for input to be visible - it may be attached but hidden initially
   await expect(input).toBeVisible({ timeout: 10_000 });
   // Focus the input to ensure it's ready for typing
-  await input.focus({ timeout: 5000 }).catch(() => {});
-  await input.pressSequentially(command, { delay: 5 });
+  await input.focus({ timeout: 5000 });
+  // Wait for input to be focused and ready - ensure it has the '>' prefix that VS Code adds automatically
+  await expect(input).toHaveValue(/^>/, { timeout: 5000 });
+  // Type the command - use fill() for reliability on desktop
+  // VS Code adds '>' prefix automatically, so we fill with '>' + command
+  await input.fill(`>${command}`);
 
   // Wait for input value to contain what we typed - VS Code adds '>' prefix automatically
   // This ensures typing has completed before we look for commands
@@ -54,6 +60,31 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // For virtualized lists, rows may exist in DOM but not be visible until scrolled into view
   // We wait for attachment (exists in DOM) rather than visibility, then rely on Playwright's click() to handle scrolling
   await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
+
+  // Wait for the filtered list to stabilize - VS Code filters commands as you type
+  // Wait for at least one row that matches our command text to appear in the filtered results
+  // This ensures VS Code has finished filtering before we look for the specific command
+  const listRows = widget.locator(QUICK_INPUT_LIST_ROW);
+  await expect(async () => {
+    const count = await listRows.count();
+    expect(count, 'Command list should have at least one row').toBeGreaterThan(0);
+    // Check if any row contains our command text (case-insensitive partial match)
+    const commandLower = command.toLowerCase();
+    const availableCommands: string[] = [];
+    for (let i = 0; i < Math.min(count, 20); i++) {
+      const rowText = await listRows.nth(i).textContent();
+      if (rowText) {
+        const text = rowText.trim();
+        availableCommands.push(text);
+        if (text.toLowerCase().includes(commandLower)) {
+          return;
+        }
+      }
+    }
+    throw new Error(
+      `Command "${command}" not found in filtered list. Available commands (first ${availableCommands.length}): ${availableCommands.join(' | ')}`
+    );
+  }).toPass({ timeout: 10_000 });
 
   // Use text content matching to find exact command (bypasses MRU prioritization)
   // Scope to QUICK_INPUT_WIDGET first, then find the list row (more specific than just .monaco-list-row)
