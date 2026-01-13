@@ -2,8 +2,5 @@
   "compilerOptions": {
     "experimentalDecorators": true,
     "target": "es2017"
-  },
-  "typeAcquisition": {
-    "include": ["jest"]
   }
 }
