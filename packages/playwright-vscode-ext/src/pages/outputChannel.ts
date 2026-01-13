@@ -55,79 +55,40 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
     
     // Close any notification dialogs that might block keyboard shortcuts
     const notificationDialog = page.locator('[role="dialog"]').filter({ hasText: /notification/i });
-    const notificationVisible = await notificationDialog.isVisible({ timeout: 1000 }).catch(() => false);
-    if (notificationVisible) {
+    if (await notificationDialog.isVisible({ timeout: 1000 }).catch(() => false)) {
       await page.keyboard.press('Escape');
-      await notificationDialog.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
+      await notificationDialog.waitFor({ state: 'hidden', timeout: 2000 });
     }
     
     // Ensure workbench is focused before using keyboard shortcut
     const workbench = page.locator(WORKBENCH);
-    await workbench.click({ timeout: 5000 }).catch(() => {});
+    await workbench.click({ timeout: 5000 });
     await expect(workbench).toBeVisible({ timeout: 5000 });
     
     // On desktop, also click the editor area to ensure focus
     const isDesktop = process.env.VSCODE_DESKTOP === '1';
     if (isDesktop) {
       const editorArea = page.locator(`.editor-container, ${EDITOR}, [id="workbench.parts.editor"]`);
-      await editorArea.first().click({ timeout: 2000, force: true }).catch(() => {});
-      // Wait for workbench to be visible to ensure focus has settled
-      await expect(workbench).toBeVisible({ timeout: 1000 }).catch(() => {});
+      await editorArea.first().click({ timeout: 2000, force: true });
+      await expect(workbench).toBeVisible({ timeout: 1000 });
     }
     
-    // Ensure workbench is focused before using keyboard shortcut
-    await page.locator(WORKBENCH).click({ timeout: 5000 }).catch(() => {});
-    
-    // Try keyboard shortcut - use Command+Shift+U on macOS, Control+Shift+U elsewhere
+    // Use keyboard shortcut - Command+Shift+U on macOS, Control+Shift+U elsewhere
     await (isMacDesktop() ? page.keyboard.press('Meta+Shift+u') : page.keyboard.press('Control+Shift+u'));
     
-    // Wait for panel to become visible - command execution may take a moment
-    let panelVisible = await panel.isVisible({ timeout: 5000 }).catch(() => false);
-    
+    // Wait for panel to become visible, with fallback to command palette if needed
+    const panelVisible = await panel.isVisible({ timeout: 5000 }).catch(() => false);
     if (!panelVisible) {
-      // Fallback: try command palette if keyboard shortcut didn't work
-      // On desktop, executeCommandWithCommandPalette can crash VS Code, so we open command palette
-      // and use Enter key to execute the command instead of clicking
-      const commandVariations = [
-        'Output: Focus on Output View',
-        'View: Toggle Output',
-        'View: Focus Output'
-      ];
-      
-      for (const command of commandVariations) {
-        try {
-          // Open command palette
-          await openCommandPalette(page);
-          
-          // Type the command in the palette
-          const widget = page.locator(QUICK_INPUT_WIDGET);
-          const input = widget.locator('input.input');
-          await input.waitFor({ state: 'attached', timeout: 5000 });
-          await expect(input).toBeVisible({ timeout: 5000 });
-          await input.fill(`>${command}`);
-          
-          // Wait for command to appear in list and be selected (first item)
-          await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
-          
-          // Wait for input value to be set before pressing Enter
-          await expect(input).toHaveValue(new RegExp(`>.*${command.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i'), { timeout: 5000 });
-          
-          // Press Enter to execute the selected command (safer than clicking)
-          await page.keyboard.press('Enter');
-          
-          // Wait for panel to become visible
-          panelVisible = await panel.isVisible({ timeout: 5000 }).catch(() => false);
-          if (panelVisible) {
-            break;
-          }
-        } catch {
-          // Try next variation
-          continue;
-        }
-      }
+      await openCommandPalette(page);
+      const widget = page.locator(QUICK_INPUT_WIDGET);
+      const input = widget.locator('input.input');
+      await input.waitFor({ state: 'attached', timeout: 5000 });
+      await expect(input).toBeVisible({ timeout: 5000 });
+      await input.fill('>Output: Focus on Output View');
+      await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
+      await page.keyboard.press('Enter');
     }
     
-    // Wait for panel to become visible - command execution may take a moment
     await expect(panel).toBeVisible({ timeout: 10_000 });
   }
 };
