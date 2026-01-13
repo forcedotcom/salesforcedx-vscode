@@ -13,6 +13,7 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
   const { WORKBENCH, TAB } = await import('../utils/locators.js');
   const { closeWelcomeTabs } = await import('../utils/helpers.js');
   const widget = page.locator(QUICK_INPUT_WIDGET);
+  const workbench = page.locator(WORKBENCH);
   
   // Retry opening command palette if widget exists but is hidden (welcome tabs may interfere)
   let attempts = 0;
@@ -26,18 +27,39 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
     const welcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
     let welcomeTabCount = await welcomeTabs.count();
     let closeAttempts = 0;
-    while (welcomeTabCount > 0 && closeAttempts < 3) {
+    while (welcomeTabCount > 0 && closeAttempts < 5) {
       await closeWelcomeTabs(page);
       // Wait for tab container to update after closing
       const tabContainer = page.locator('.tabs-container');
-      await tabContainer.waitFor({ state: 'attached', timeout: 2000 }).catch(() => {});
-      welcomeTabCount = await welcomeTabs.count();
+      await tabContainer.waitFor({ state: 'attached', timeout: 3000 }).catch(() => {});
+      // Re-query tabs to avoid stale references
+      const currentWelcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
+      welcomeTabCount = await currentWelcomeTabs.count();
+      // If tabs are still there, try closing them directly
+      if (welcomeTabCount > 0) {
+        const { TAB_CLOSE_BUTTON: TAB_CLOSE_BTN } = await import('../utils/locators.js');
+        const tabToClose = currentWelcomeTabs.first();
+        const closeButton = tabToClose.locator(TAB_CLOSE_BTN);
+        const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
+        if (closeButtonVisible) {
+          await closeButton.click({ timeout: 2000, force: true }).catch(() => {});
+          await tabToClose.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+        } else {
+          // Fallback to keyboard shortcut
+          await workbench.click({ timeout: 1000 }).catch(() => {});
+          await tabToClose.click({ timeout: 1000, force: true }).catch(() => {});
+          await page.keyboard.press('Control+w');
+          await tabToClose.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+        }
+        // Re-check count after direct close attempt
+        const recheckTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
+        welcomeTabCount = await recheckTabs.count();
+      }
       closeAttempts++;
     }
     
     // Ensure workbench is focused and visible before opening command palette
     // Click multiple times to ensure focus
-    const workbench = page.locator(WORKBENCH);
     await workbench.click({ timeout: 5000 }).catch(() => {});
     await workbench.click({ timeout: 5000 }).catch(() => {});
     await expect(workbench).toBeVisible({ timeout: 5000 });

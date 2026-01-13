@@ -312,9 +312,21 @@
   - Added better verification that tabs are actually closed before continuing
   - Fixes local test failure where welcome tabs weren't being closed, causing command palette to fail
   - Test "should switch between multiple files" now passes locally
-  - Web tests: 17 passed, 4 flaky (commandPalette, fileOperations tests) - welcome tabs still interfering
-  - CI run 20973488490 in progress - monitoring results
-  - Current issues:
-    - Welcome tabs not being closed reliably before command palette opens
-    - Command palette input fill() timing out (15s timeout exceeded)
-    - Editor attachment timeout in createFileWithContents (10s timeout exceeded)
+  - Fixed command palette input typing reliability (commit aea069112):
+    - Replaced fill() with pressSequentially for command palette input typing (more reliable when VS Code interferes)
+    - Type command after '>' prefix instead of selecting all (more reliable)
+    - Increased editor attachment timeout from 10s to 15s in createFileWithContents
+    - Improved input value verification with better error handling
+    - Web tests: 17 passed, 2 failed, 2 flaky (improved from 4 flaky)
+  - CI run 20973488490 completed with failures
+  - CI run 20973913223 started - monitoring results
+  - Desktop tests locally: 12 passed, 8 failed, 1 skipped (command palette and file operations tests failing)
+  - Similar failures to web tests - command palette input typing and file operations issues
+- Fixed welcome tabs closing reliability (commit pending):
+  - Improved `closeWelcomeTabs` to be more aggressive about ensuring tabs are closed and stay closed
+  - Increased max attempts from 15 to 20
+  - Added multiple verification steps to ensure tabs are actually closed before returning
+  - Improved `openCommandPalette` to directly close welcome tabs if they're still present after calling `closeWelcomeTabs`
+  - Added direct tab closing logic in `openCommandPalette` as a fallback if `closeWelcomeTabs` doesn't work
+  - Web tests: ✓ 21/21 tests pass consistently (all tests passing, no flaky tests!)
+  - All web tests now passing reliably - welcome tabs are being closed properly before opening command palette
