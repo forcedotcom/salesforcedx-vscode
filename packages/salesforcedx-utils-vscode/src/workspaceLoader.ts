@@ -5,9 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Effect } from 'effect';
-// eslint-disable-next-line no-restricted-imports
-import { glob } from 'node:fs/promises';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
 
 // --- Configuration ---
@@ -56,118 +53,9 @@ export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.E
   const { fileGlob, excludeGlob, logger = console.log } = options;
 
   return Effect.gen(function* () {
-    // 1. Find all matching workspace files using glob
+    // 1. Find all matching workspace files
     const uris = yield* Effect.tryPromise({
-      try: async () => {
-        if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-          return [];
-        }
-
-        // Expand brace patterns like {a,b} into multiple patterns
-        // This ensures compatibility with glob package which may not expand braces the same way as vscode.workspace.findFiles
-        const expandBraces = (pattern: string): string[] => {
-          const braceMatch = pattern.match(/\{([^}]+)\}/);
-          if (!braceMatch) {
-            return [pattern];
-          }
-
-          const [fullMatch, alternatives] = braceMatch;
-          const braceOptions = alternatives.split(',').map(opt => opt.trim());
-          const results: string[] = [];
-
-          for (const braceOption of braceOptions) {
-            const expanded = pattern.replace(fullMatch, braceOption);
-            results.push(...expandBraces(expanded));
-          }
-
-          return results;
-        };
-
-        const patterns = expandBraces(fileGlob);
-
-        // Search workspace folders
-        // On Windows, run sequentially to avoid excessive file system operations
-        // On other platforms, run in parallel for better performance
-        const allUris: vscode.Uri[] = [];
-
-        if (isWindows) {
-          // Sequential search on Windows to avoid resource contention
-          for (const folder of vscode.workspace.workspaceFolders) {
-            const workspacePath = folder.uri.fsPath || folder.uri.path;
-            if (!workspacePath) {
-              continue;
-            }
-
-            // Search each pattern and combine results
-            for (const pattern of patterns) {
-              const files: string[] = [];
-              const globOptions: { cwd: string; ignore?: string[]; withFileTypes?: boolean } = {
-                cwd: workspacePath,
-                withFileTypes: true
-              };
-              if (excludeGlob) {
-                globOptions.ignore = [excludeGlob];
-              }
-
-              // fs.glob returns an async generator, convert to array
-              for await (const entry of glob(pattern, globOptions)) {
-                // entry is a Dirent when withFileTypes is true
-                if (typeof entry === 'object' && 'isFile' in entry && entry.isFile()) {
-                  // Resolve to absolute path
-                  const absolutePath = path.resolve(workspacePath, entry.name);
-                  files.push(absolutePath);
-                }
-              }
-
-              allUris.push(...files.map(filePath => vscode.Uri.file(filePath)));
-            }
-          }
-        } else {
-          // Parallel search on non-Windows platforms
-          const searchPromises = vscode.workspace.workspaceFolders.map(async folder => {
-            const workspacePath = folder.uri.fsPath || folder.uri.path;
-            if (!workspacePath) {
-              return [];
-            }
-
-            // Search each pattern and combine results
-            const allFiles: string[] = [];
-            for (const pattern of patterns) {
-              const files: string[] = [];
-              const globOptions: { cwd: string; ignore?: string[]; withFileTypes?: boolean } = {
-                cwd: workspacePath,
-                withFileTypes: true
-              };
-              if (excludeGlob) {
-                globOptions.ignore = [excludeGlob];
-              }
-
-              // fs.glob returns an async generator, convert to array
-              for await (const entry of glob(pattern, globOptions)) {
-                // entry is a Dirent when withFileTypes is true
-                if (typeof entry === 'object' && 'isFile' in entry && entry.isFile()) {
-                  // Resolve to absolute path
-                  const absolutePath = path.resolve(workspacePath, entry.name);
-                  files.push(absolutePath);
-                }
-              }
-              allFiles.push(...files);
-            }
-
-            return allFiles.map(filePath => vscode.Uri.file(filePath));
-          });
-
-          const searchResults = await Promise.all(searchPromises);
-          allUris.push(...searchResults.flat());
-        }
-
-        // Remove duplicates (in case multiple patterns match the same file)
-        const uniqueUris = Array.from(new Set(allUris.map(uri => uri.toString()))).map(uriString =>
-          vscode.Uri.parse(uriString)
-        );
-
-        return uniqueUris;
-      },
+      try: () => vscode.workspace.findFiles(fileGlob, excludeGlob),
       catch: (e: unknown) => new Error(`Failed to find workspace files: ${String(e)}`)
     });
 
