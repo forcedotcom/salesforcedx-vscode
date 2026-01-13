@@ -312,4 +312,5 @@
   - Added better verification that tabs are actually closed before continuing
   - Fixes local test failure where welcome tabs weren't being closed, causing command palette to fail
   - Test "should switch between multiple files" now passes locally
-  - Web tests: running full suite to verify no regressions
+  - Web tests: 18 passed, 3 flaky (no failures) - fix successful!
+  - CI run 20973488490 started - monitoring results
