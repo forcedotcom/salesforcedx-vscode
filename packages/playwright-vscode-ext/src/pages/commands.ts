@@ -19,19 +19,26 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
   const maxAttempts = 3;
   
   while (attempts < maxAttempts) {
-    // Ensure welcome tabs are closed before opening command palette
+    // Ensure welcome tabs are closed before opening command palette - be aggressive about this
     await closeWelcomeTabs(page);
     
-    // Verify no welcome tabs exist
+    // Verify no welcome tabs exist - check multiple times to ensure they're really gone
     const welcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
-    const welcomeTabCount = await welcomeTabs.count();
-    if (welcomeTabCount > 0) {
-      // Welcome tabs still exist - close them again
+    let welcomeTabCount = await welcomeTabs.count();
+    let closeAttempts = 0;
+    while (welcomeTabCount > 0 && closeAttempts < 3) {
       await closeWelcomeTabs(page);
+      // Wait for tab container to update after closing
+      const tabContainer = page.locator('.tabs-container');
+      await tabContainer.waitFor({ state: 'attached', timeout: 2000 }).catch(() => {});
+      welcomeTabCount = await welcomeTabs.count();
+      closeAttempts++;
     }
     
     // Ensure workbench is focused and visible before opening command palette
-    await page.locator(WORKBENCH).click();
+    // Click multiple times to ensure focus
+    await page.locator(WORKBENCH).click({ timeout: 5000 }).catch(() => {});
+    await page.locator(WORKBENCH).click({ timeout: 5000 }).catch(() => {});
     await expect(page.locator(WORKBENCH)).toBeVisible({ timeout: 5000 });
     
     // Close any existing quick input widget
@@ -90,9 +97,13 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
               el.style.opacity = '1';
               (el as HTMLInputElement).focus();
             }).catch(() => {});
-            // Wait a moment for focus to settle, then check visibility again
-            await expect(input).toBeVisible({ timeout: 5000 }).catch(() => {});
-            return;
+            // Wait for input to actually be visible after forcing - don't return if still hidden
+            const inputNowVisible = await input.isVisible({ timeout: 5000 }).catch(() => false);
+            if (inputNowVisible) {
+              await expect(input).toBeVisible({ timeout: 10_000 });
+              return;
+            }
+            // If still hidden after forcing, continue to retry logic below
           }
         }
       }

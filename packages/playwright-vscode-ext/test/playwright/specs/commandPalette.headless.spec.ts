@@ -34,7 +34,8 @@ test.describe('Command Palette', () => {
     await test.step('Execute "View: Close All Editors" command', async () => {
       await executeCommandWithCommandPalette(page, 'View: Close All Editors');
       // Wait for tabs to close - command execution may take a moment
-      const tabs = page.locator('.tabs-container .tab');
+      // Filter out welcome tabs as they may reopen - we're testing that editor tabs close
+      const tabs = page.locator('.tabs-container .tab').filter({ hasNotText: /Welcome|Walkthrough/i });
       await expect(tabs).toHaveCount(0, { timeout: 10_000 });
     });
   });
