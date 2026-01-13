@@ -261,4 +261,21 @@
     - Fixes CI failures where widget existed but was hidden
   - Web tests: ✓ 21/21 pass locally
   - Desktop tests: ✓ 18 pass, 3 skipped locally (macOS)
-  - Pushing fixes - monitoring CI results
+  - Committed and pushed fixes (commit 4d5519dfe) - monitoring CI results
+- Fixed command palette widget hidden by welcome tabs (commit a1c68b396):
+  - Wait for widget to be attached before checking visibility
+  - If widget exists but is hidden, close welcome tabs and reopen command palette
+  - Handles CI failures where welcome tabs interfere with command palette visibility
+  - Web tests: ✓ 21/21 pass locally
+  - Desktop tests: Some failures locally (widget still hidden in some cases)
+  - Committed and pushed fix - monitoring CI results
+- Improved command palette retry logic (commit pending):
+  - Added retry loop in `openCommandPalette` to retry up to 3 times if widget is hidden
+  - Verify welcome tabs are closed before opening command palette
+  - Ensure workbench is focused and visible before opening command palette
+  - Added retry logic in `executeCommand` to handle widget becoming hidden during execution
+  - Fixed lint error (widget should be const in executeCommand)
+  - Web tests: ✓ 21/21 pass locally
+  - Desktop tests: Still failing locally - widget exists but is hidden (7 pass, 11 fail, 3 skipped)
+  - Root cause: Command palette widget consistently hidden on desktop even after closing welcome tabs
+  - Need to investigate why widget becomes hidden - may be VS Code rendering issue or z-index/overlay problem

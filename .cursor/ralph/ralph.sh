@@ -26,7 +26,7 @@ some may already exist and may or may not be passing. \
 4. get it to run locally using the :desktop tests (the local environment is macos) \
 5. makes sure org-browser tests are still passing locally (web and desktop) \
 5a if failures locally, see the Debugging section of iterating-playwright-tests.mdc \
-6. commit with a detailed commit message \
+6. commit with a detailed commit message.  Be sure not to commit test artifacts from local or CI tests \
 7. push to github \
 8. monitor the e2e run via gh cli.  retry if connection errors happen \
 9. If failures, download logs/artifacts and update the progress.txt file \

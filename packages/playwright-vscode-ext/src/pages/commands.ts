@@ -10,25 +10,30 @@ import { isWindowsDesktop } from '../utils/helpers';
 import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
 
 const openCommandPalette = async (page: Page): Promise<void> => {
-  // Ensure workbench is focused before opening command palette
-  const { WORKBENCH } = await import('../utils/locators.js');
-  await page.locator(WORKBENCH).click();
-  
-  // Try F1 first (standard command palette shortcut)
-  await page.keyboard.press('F1');
+  const { WORKBENCH, TAB } = await import('../utils/locators.js');
+  const { closeWelcomeTabs } = await import('../utils/helpers.js');
   const widget = page.locator(QUICK_INPUT_WIDGET);
   
-  // Wait for widget to be attached (exists in DOM) first
-  await widget.waitFor({ state: 'attached', timeout: 10_000 });
+  // Retry opening command palette if widget exists but is hidden (welcome tabs may interfere)
+  let attempts = 0;
+  const maxAttempts = 3;
   
-  // Check if widget is visible - if not, welcome tabs may be interfering (common in CI)
-  let isVisible = await widget.isVisible({ timeout: 3000 }).catch(() => false);
-  if (!isVisible) {
-    // Widget exists but is hidden - welcome tabs may be covering it
-    // Close welcome tabs and refocus workbench, then reopen command palette
-    const { closeWelcomeTabs } = await import('../utils/helpers.js');
+  while (attempts < maxAttempts) {
+    // Ensure welcome tabs are closed before opening command palette
     await closeWelcomeTabs(page);
+    
+    // Verify no welcome tabs exist
+    const welcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
+    const welcomeTabCount = await welcomeTabs.count();
+    if (welcomeTabCount > 0) {
+      // Welcome tabs still exist - close them again
+      await closeWelcomeTabs(page);
+    }
+    
+    // Ensure workbench is focused and visible before opening command palette
     await page.locator(WORKBENCH).click();
+    await expect(page.locator(WORKBENCH)).toBeVisible({ timeout: 5000 });
+    
     // Close any existing quick input widget
     const existingWidget = page.locator(QUICK_INPUT_WIDGET);
     const existingVisible = await existingWidget.isVisible({ timeout: 500 }).catch(() => false);
@@ -36,25 +41,44 @@ const openCommandPalette = async (page: Page): Promise<void> => {
       await page.keyboard.press('Escape');
       await existingWidget.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
     }
-    // Reopen command palette
+    
+    // Try F1 first (standard command palette shortcut)
     await page.keyboard.press('F1');
+    
+    // Wait for widget to be attached (exists in DOM) first
     await widget.waitFor({ state: 'attached', timeout: 10_000 });
-    // Check if widget is now visible after reopening
-    isVisible = await widget.isVisible({ timeout: 3000 }).catch(() => false);
+    
+    // Try to verify widget is visible - if it fails, welcome tabs may be interfering
+    const widgetVisible = await widget.isVisible({ timeout: 5000 }).catch(() => false);
+    
+    if (widgetVisible) {
+      // Widget is visible - verify it stays visible and input is ready
+      await expect(widget).toBeVisible({ timeout: 10_000 });
+      const input = widget.locator('input.input');
+      await input.waitFor({ state: 'attached', timeout: 10_000 });
+      const inputVisible = await input.isVisible({ timeout: 5000 }).catch(() => false);
+      if (inputVisible) {
+        await expect(input).toBeVisible({ timeout: 10_000 });
+        return;
+      }
+    }
+    
+    // Widget or input is hidden - retry
+    attempts++;
+    if (attempts < maxAttempts) {
+      // Wait for workbench to be ready before retry
+      await page.locator(WORKBENCH).waitFor({ state: 'visible', timeout: 2000 }).catch(() => {});
+    }
   }
   
+  // After max attempts, try Windows fallback if on Windows desktop
   if (isWindowsDesktop()) {
-    // On Windows desktop, F1 may not work reliably, so try Ctrl+Shift+P fallback
-    if (!isVisible) {
-      await page.keyboard.press('Control+Shift+p');
-      await widget.waitFor({ state: 'attached', timeout: 10_000 });
-      await expect(widget).toBeVisible({ timeout: 10_000 });
-    } else {
-      await expect(widget).toBeVisible({ timeout: 10_000 });
-    }
+    await page.locator(WORKBENCH).click();
+    await page.keyboard.press('Control+Shift+p');
+    await widget.waitFor({ state: 'attached', timeout: 10_000 });
+    await expect(widget).toBeVisible({ timeout: 10_000 });
   } else {
-    // Web and macOS desktop: F1 should work, but may take longer in CI
-    // Wait for widget to be visible (whether it's already visible or needs more time)
+    // Final attempt - wait for visibility with longer timeout
     await expect(widget).toBeVisible({ timeout: 10_000 });
   }
 };
@@ -63,20 +87,43 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // VS Code command palette automatically adds '>' prefix when opened with F1/Ctrl+Shift+P
   // Get the input locator - use locator-specific action for better reliability on desktop
   const widget = page.locator(QUICK_INPUT_WIDGET);
-  const input = widget.locator('input.input');
-  // Widget should already be visible from openCommandPalette, but verify it's still visible
-  // In CI, widget may become hidden if welcome tabs interfere, so wait with longer timeout
-  await expect(widget).toBeVisible({ timeout: 10_000 });
-  await input.waitFor({ state: 'attached', timeout: 10_000 });
-  // Wait for input to be visible - it may be attached but hidden initially
-  await expect(input).toBeVisible({ timeout: 10_000 });
-  // Focus the input to ensure it's ready for typing
-  await input.focus({ timeout: 5000 });
-  // Wait for input to be focused and ready - ensure it has the '>' prefix that VS Code adds automatically
-  await expect(input).toHaveValue(/^>/, { timeout: 5000 });
-  // Type the command - use fill() for reliability on desktop
-  // VS Code adds '>' prefix automatically, so we fill with '>' + command
-  await input.fill(`>${command}`);
+  let input = widget.locator('input.input');
+  
+  // Ensure widget and input are ready - retry if welcome tabs interfere
+  await expect(async () => {
+    // Widget should already be visible from openCommandPalette, but verify it's still visible
+    // In CI, widget may become hidden if welcome tabs interfere, so wait with longer timeout
+    const widgetVisible = await widget.isVisible({ timeout: 3000 }).catch(() => false);
+    if (!widgetVisible) {
+      // Widget is hidden - close welcome tabs and reopen command palette
+      const { closeWelcomeTabs } = await import('../utils/helpers.js');
+      const { WORKBENCH } = await import('../utils/locators.js');
+      await closeWelcomeTabs(page);
+      await page.locator(WORKBENCH).click();
+      // Close existing widget and reopen
+      const existingVisible = await widget.isVisible({ timeout: 500 }).catch(() => false);
+      if (existingVisible) {
+        await page.keyboard.press('Escape');
+        await widget.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
+      }
+      await page.keyboard.press('F1');
+      await widget.waitFor({ state: 'attached', timeout: 10_000 });
+      await expect(widget).toBeVisible({ timeout: 10_000 });
+      // Re-query input after reopening
+      input = widget.locator('input.input');
+    }
+    
+    await input.waitFor({ state: 'attached', timeout: 10_000 });
+    // Wait for input to be visible - it may be attached but hidden initially
+    await expect(input).toBeVisible({ timeout: 10_000 });
+    // Focus the input to ensure it's ready for typing
+    await input.focus({ timeout: 5000 });
+    // Wait for input to be focused and ready - ensure it has the '>' prefix that VS Code adds automatically
+    await expect(input).toHaveValue(/^>/, { timeout: 5000 });
+    // Type the command - use fill() for reliability on desktop
+    // VS Code adds '>' prefix automatically, so we fill with '>' + command
+    await input.fill(`>${command}`);
+  }).toPass({ timeout: 15_000 });
 
   // Wait for input value to contain what we typed - VS Code adds '>' prefix automatically
   // This ensures typing has completed before we look for commands
