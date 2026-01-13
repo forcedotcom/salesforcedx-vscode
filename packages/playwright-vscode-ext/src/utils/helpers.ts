@@ -113,8 +113,20 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
     await quickInput.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
   }
 
+  const isDesktop = process.env.VSCODE_DESKTOP === '1';
+  
   // Ensure workbench is focused before closing tabs
-  await page.locator(WORKBENCH).click({ timeout: 5000 }).catch(() => {});
+  const workbench = page.locator(WORKBENCH);
+  await workbench.click({ timeout: 5000 }).catch(() => {});
+  
+  // On desktop, also click the editor area directly to ensure focus
+  if (isDesktop) {
+    const { EDITOR } = await import('./locators.js');
+    const editorArea = page.locator(`.editor-container, ${EDITOR}, [id="workbench.parts.editor"]`);
+    await editorArea.first().click({ timeout: 2000, force: true }).catch(() => {});
+    // Wait for workbench to be visible to ensure focus has settled
+    await expect(workbench).toBeVisible({ timeout: 1000 }).catch(() => {});
+  }
 
   // Wait for tab container to be ready before checking for welcome tabs
   const tabContainer = page.locator('.tabs-container');
@@ -152,8 +164,12 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
       await quickInput.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
     }
 
-    // Ensure workbench is focused before closing tabs
-    await page.locator(WORKBENCH).click({ timeout: 2000 }).catch(() => {});
+    // Ensure workbench is focused before closing tabs - click in the editor area to ensure focus
+    await workbench.click({ timeout: 5000 }).catch(() => {});
+    // On desktop, also try clicking the editor area directly to ensure focus
+    const { EDITOR } = await import('./locators.js');
+    const editorArea = page.locator(`.editor-container, ${EDITOR}`);
+    await editorArea.first().click({ timeout: 2000, force: true }).catch(() => {});
 
     // Re-query to get fresh tab reference
     const currentWelcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
@@ -172,8 +188,8 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
       continue;
     }
 
-    // Select the tab first to ensure it's active
-    await welcomeTab.click({ timeout: 5000 }).catch(() => {});
+    // Select the tab first to ensure it's active - use force: true on desktop for reliability
+    await welcomeTab.click({ timeout: 5000, force: isDesktop }).catch(() => {});
     // Wait for tab to be selected
     await expect(welcomeTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(() => {});
 
@@ -188,11 +204,33 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
         await page.keyboard.press('Escape');
         await quickInput.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
       }
-      await closeButton.click({ timeout: 5000 });
+      // On desktop, use evaluate() to click close button directly for better reliability
+      if (isDesktop) {
+        await workbench.click({ timeout: 1000 }).catch(() => {});
+        await welcomeTab.click({ timeout: 1000, force: true }).catch(() => {});
+        // Use evaluate() to click close button directly, bypassing Playwright's visibility checks
+        await closeButton.evaluate((el: HTMLElement) => el.click()).catch(
+          () => closeButton.click({ timeout: 5000, force: true })
+        );
+      } else {
+        await closeButton.click({ timeout: 5000 });
+      }
       // Wait for tab to be fully removed from DOM - use longer timeout for CI
-      await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 }).catch(() => {});
+      const tabDetached = await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 }).catch(() => false);
+      if (!tabDetached) {
+        // If close button didn't work, try keyboard shortcut as fallback
+        await workbench.click({ timeout: 1000 }).catch(() => {});
+        await welcomeTab.click({ timeout: 1000, force: isDesktop }).catch(() => {});
+        await page.keyboard.press('Control+w');
+        await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 }).catch(() => {});
+      }
     } else {
       // Fall back to keyboard shortcut if close button not visible
+      // On desktop, ensure workbench has focus before using keyboard shortcut
+      if (isDesktop) {
+        await workbench.click({ timeout: 2000 }).catch(() => {});
+        await welcomeTab.click({ timeout: 1000, force: true }).catch(() => {});
+      }
       await page.keyboard.press('Control+w');
       // Wait for tab to be detached - use longer timeout for CI
       await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 }).catch(() => {});

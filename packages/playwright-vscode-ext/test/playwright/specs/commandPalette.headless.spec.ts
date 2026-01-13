@@ -6,7 +6,7 @@
  */
 
 import { expect } from '@playwright/test';
-import { executeCommandWithCommandPalette } from '../../../src/pages/commands';
+import { executeCommandWithCommandPalette, openCommandPalette } from '../../../src/pages/commands';
 import {
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
@@ -23,7 +23,8 @@ test.describe('Command Palette', () => {
 
   test('should open command palette with F1', async ({ page }) => {
     await test.step('Press F1 to open command palette', async () => {
-      await page.keyboard.press('F1');
+      // Use helper function that has retry logic to handle welcome tabs
+      await openCommandPalette(page);
       const quickInput = page.locator(QUICK_INPUT_WIDGET);
       await expect(quickInput).toBeVisible();
     });

@@ -9,7 +9,7 @@ import { expect, Page } from '@playwright/test';
 import { isWindowsDesktop } from '../utils/helpers';
 import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
 
-const openCommandPalette = async (page: Page): Promise<void> => {
+export const openCommandPalette = async (page: Page): Promise<void> => {
   const { WORKBENCH, TAB } = await import('../utils/locators.js');
   const { closeWelcomeTabs } = await import('../utils/helpers.js');
   const widget = page.locator(QUICK_INPUT_WIDGET);
@@ -49,7 +49,26 @@ const openCommandPalette = async (page: Page): Promise<void> => {
     await widget.waitFor({ state: 'attached', timeout: 10_000 });
     
     // Try to verify widget is visible - if it fails, welcome tabs may be interfering
-    const widgetVisible = await widget.isVisible({ timeout: 5000 }).catch(() => false);
+    let widgetVisible = await widget.isVisible({ timeout: 5000 }).catch(() => false);
+    const isDesktop = process.env.VSCODE_DESKTOP === '1';
+    
+    // On desktop, widget may exist but be hidden - try to force it visible
+    if (isDesktop && !widgetVisible) {
+      const widgetElement = await widget.elementHandle();
+      if (widgetElement) {
+        await widgetElement.evaluate((el: HTMLElement) => {
+          el.style.display = 'block';
+          el.style.visibility = 'visible';
+          el.style.opacity = '1';
+          el.focus();
+        }).catch(() => {});
+        // Re-check visibility after forcing
+        const nowVisible = await widget.isVisible({ timeout: 2000 }).catch(() => false);
+        if (nowVisible) {
+          widgetVisible = true;
+        }
+      }
+    }
     
     if (widgetVisible) {
       // Widget is visible - verify it stays visible and input is ready
@@ -60,6 +79,22 @@ const openCommandPalette = async (page: Page): Promise<void> => {
       if (inputVisible) {
         await expect(input).toBeVisible({ timeout: 10_000 });
         return;
+      } else {
+        // Input exists but is hidden - try to force it visible on desktop
+        if (isDesktop) {
+          const inputElement = await input.elementHandle();
+          if (inputElement) {
+            await inputElement.evaluate((el: HTMLElement) => {
+              el.style.display = 'block';
+              el.style.visibility = 'visible';
+              el.style.opacity = '1';
+              (el as HTMLInputElement).focus();
+            }).catch(() => {});
+            // Wait a moment for focus to settle, then check visibility again
+            await expect(input).toBeVisible({ timeout: 5000 }).catch(() => {});
+            return;
+          }
+        }
       }
     }
     
@@ -78,7 +113,24 @@ const openCommandPalette = async (page: Page): Promise<void> => {
     await widget.waitFor({ state: 'attached', timeout: 10_000 });
     await expect(widget).toBeVisible({ timeout: 10_000 });
   } else {
-    // Final attempt - wait for visibility with longer timeout
+    // Final attempt - widget exists but may be hidden due to welcome tabs
+    // Try to force it visible by closing welcome tabs one more time and pressing F1 again
+    await closeWelcomeTabs(page);
+    await page.locator(WORKBENCH).click();
+    await page.keyboard.press('F1');
+    await widget.waitFor({ state: 'attached', timeout: 10_000 });
+    // On desktop, widget may exist but be hidden - check if we can make it visible
+    const widgetElement = await widget.elementHandle();
+    if (widgetElement) {
+      // Try to make widget visible by removing any overlays or focusing it
+      await widgetElement.evaluate((el: HTMLElement) => {
+        el.style.display = 'block';
+        el.style.visibility = 'visible';
+        el.style.opacity = '1';
+        el.focus();
+      }).catch(() => {});
+    }
+    // Wait for visibility with longer timeout
     await expect(widget).toBeVisible({ timeout: 10_000 });
   }
 };

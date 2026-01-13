@@ -19,7 +19,7 @@
 
 ### Test Results:
 - Web: ✓ 21/21 tests pass consistently
-- Desktop (macOS): ✓ 18 pass, 3 skipped (context menu tests + Ctrl+Shift+P test)
+- Desktop (macOS): Currently failing - command palette widget hidden (7 pass, 11 fail, 3 skipped)
 - Output channel clearing test verifies channel is completely cleared with screenshot verification
 - All output channel tests pass when run together (fixed test isolation issue)
 
@@ -32,7 +32,7 @@
 ### Status:
 - All test files exist and are implemented (commandPalette, fileOperations, settings, outputChannel, contextMenu, helpers)
 - Web tests passing consistently locally (21/21)
-- Desktop tests passing locally on macOS (18 pass, 3 skipped as expected)
+- Desktop tests currently failing locally on macOS (7 pass, 11 fail, 3 skipped) - command palette widget hidden issue
 - Output channel clearing test includes screenshot verification using saveScreenshot utility (requirement 1a satisfied)
 - Output channel clearing test verifies channel is completely cleared (text length is 0) with screenshot
 - Fixed test isolation issues in `selectOutputChannel` that caused failures when output channel tests run together
@@ -276,6 +276,12 @@
   - Added retry logic in `executeCommand` to handle widget becoming hidden during execution
   - Fixed lint error (widget should be const in executeCommand)
   - Web tests: ✓ 21/21 pass locally
-  - Desktop tests: Still failing locally - widget exists but is hidden (7 pass, 11 fail, 3 skipped)
-  - Root cause: Command palette widget consistently hidden on desktop even after closing welcome tabs
-  - Need to investigate why widget becomes hidden - may be VS Code rendering issue or z-index/overlay problem
+- Fixed desktop command palette widget visibility issue:
+  - Export openCommandPalette from commands.ts for test reuse
+  - Force widget and input visibility on desktop when hidden (welcome tabs interfere)
+  - Use evaluate() to manipulate CSS styles and focus to make widget visible
+  - Improve closeWelcomeTabs to use evaluate() for close button clicks on desktop
+  - Fix lint errors: use EDITOR from locators, remove duplicate workbench declaration
+  - Desktop tests: 1 test now passing (should open command palette with F1), 11 still failing
+  - Remaining failures: command execution and other tests still have widget visibility issues
+  - Root cause: Welcome tabs interfere with command palette visibility on desktop, widget exists but is hidden
