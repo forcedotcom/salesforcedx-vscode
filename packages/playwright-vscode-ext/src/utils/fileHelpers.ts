@@ -22,9 +22,10 @@ export const createFileWithContents = async (page: Page, _filePath: string, cont
   await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
 
   // Wait for the editor to open - wait for attachment first, then visibility
+  // Use expect().toBeAttached() for better error messages and retry logic
   const editor = page.locator(EDITOR_WITH_URI).first();
-  await editor.waitFor({ state: 'attached', timeout: 10_000 });
-  await editor.waitFor({ state: 'visible', timeout: 10_000 });
+  await expect(editor).toBeAttached({ timeout: 15_000 });
+  await expect(editor).toBeVisible({ timeout: 15_000 });
   await editor.click();
 
   // Type the file contents

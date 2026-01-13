@@ -216,16 +216,21 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
     await input.focus({ timeout: 5000 });
     // Wait for input to be focused and ready - ensure it has the '>' prefix that VS Code adds automatically
     await expect(input).toHaveValue(/^>/, { timeout: 5000 });
-    // Type the command - use fill() for reliability on desktop
-    // VS Code adds '>' prefix automatically, so we fill with '>' + command
-    await input.fill(`>${command}`);
+    // Type the command - use pressSequentially for reliability (works better than fill() when VS Code interferes)
+    // VS Code adds '>' prefix automatically, so we type the command without the '>' prefix
+    // Instead of selecting all, just type after the '>' prefix - this is more reliable
+    await input.click({ timeout: 5000 });
+    // Move to end of input (after '>') and type the command
+    await page.keyboard.press('End');
+    await input.pressSequentially(command, { delay: 50 });
+    // Wait for input value to contain what we typed - verify typing was successful
+    // eslint-disable-next-line unicorn/prefer-string-replace-all -- replaceAll doesn't support regex patterns
+    const escapedCommand = command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Check input value - it should contain the command (with '>' prefix)
+    await expect(input).toHaveValue(new RegExp(`>.*${escapedCommand}`, 'i'), { timeout: 5000 });
+    // Wait for command list to appear - this confirms VS Code processed the input
+    await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
   }).toPass({ timeout: 15_000 });
-
-  // Wait for input value to contain what we typed - VS Code adds '>' prefix automatically
-  // This ensures typing has completed before we look for commands
-  // eslint-disable-next-line unicorn/prefer-string-replace-all -- replaceAll doesn't support regex patterns
-  const escapedCommand = command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  await expect(input).toHaveValue(new RegExp(`>.*${escapedCommand}`, 'i'), { timeout: 10_000 });
 
   // Wait for the command list to populate after typing - wait for at least one row to exist in DOM
   // For virtualized lists, rows may exist in DOM but not be visible until scrolled into view

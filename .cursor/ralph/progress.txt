@@ -312,5 +312,9 @@
   - Added better verification that tabs are actually closed before continuing
   - Fixes local test failure where welcome tabs weren't being closed, causing command palette to fail
   - Test "should switch between multiple files" now passes locally
-  - Web tests: 18 passed, 3 flaky (no failures) - fix successful!
-  - CI run 20973488490 started - monitoring results
+  - Web tests: 17 passed, 4 flaky (commandPalette, fileOperations tests) - welcome tabs still interfering
+  - CI run 20973488490 in progress - monitoring results
+  - Current issues:
+    - Welcome tabs not being closed reliably before command palette opens
+    - Command palette input fill() timing out (15s timeout exceeded)
+    - Editor attachment timeout in createFileWithContents (10s timeout exceeded)
