@@ -41,19 +41,13 @@ const resetRemoteTrackingEffect = Effect.fn('resetRemoteTracking')(function* () 
 /** Reset remote tracking so remote changes go to zero and only changes after this point are tracked */
 export const resetRemoteTracking = async (): Promise<void> =>
   resetRemoteTrackingEffect().pipe(
+    Effect.catchTag('ResetRemoteTrackingError', (error: ResetRemoteTrackingError) =>
+      Effect.promise(() => vscode.window.showErrorMessage(error.cause.message)).pipe(Effect.as(undefined))
+    ),
     Effect.catchAll(error =>
-      Effect.gen(function* () {
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const channelService = yield* api.services.ChannelService;
-        const errorMessage =
-          error instanceof ResetRemoteTrackingError
-            ? error.cause.message
-            : error instanceof Error
-              ? error.message
-              : String(error);
-        yield* channelService.appendToChannel(`Reset remote tracking failed: ${errorMessage}`);
-        yield* Effect.promise(() => vscode.window.showErrorMessage(errorMessage));
-      }).pipe(Effect.as(undefined))
+      Effect.promise(() => vscode.window.showErrorMessage(error instanceof Error ? error.message : String(error))).pipe(
+        Effect.as(undefined)
+      )
     ),
     Effect.provide(AllServicesLayer),
     Effect.runPromise

@@ -80,13 +80,9 @@ export const projectRetrieveStart = async (ignoreConflicts = false): Promise<voi
   Effect.runPromise(
     projectRetrieveStartEffect(ignoreConflicts).pipe(
       Effect.catchAll(error =>
-        Effect.gen(function* () {
-          const api = yield* (yield* ExtensionProviderService).getServicesApi;
-          const channelService = yield* api.services.ChannelService;
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          yield* channelService.appendToChannel(`Retrieve failed: ${errorMessage}`);
-          yield* Effect.promise(() => vscode.window.showErrorMessage(errorMessage));
-        }).pipe(Effect.provide(AllServicesLayer), Effect.as(undefined))
+        Effect.promise(() =>
+          vscode.window.showErrorMessage(error instanceof Error ? error.message : String(error))
+        ).pipe(Effect.as(undefined))
       )
     )
   );

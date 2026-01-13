@@ -8,9 +8,8 @@
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as S from 'effect/Schema';
-import { dirname } from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { unknownToErrorCause } from '../core/shared';
 import { ChannelService } from '../vscode/channelService';
 
@@ -72,6 +71,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
   succeed: {
     readFile,
     toUri,
+    /** Write file to filesystem, creating directories if they don't exist */
     writeFile: (filePath: string | vscode.Uri, content: string) =>
       Effect.flatMap(ChannelService, channelService =>
         channelService
@@ -79,23 +79,29 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
             `[FsService] writeFile: ${String(typeof filePath === 'string' ? filePath : filePath.toString())}`
           )
           .pipe(
+            Effect.withSpan('writeFile', {
+              attributes: { filePath }
+            }),
             Effect.flatMap(() =>
               Effect.tryPromise({
                 try: async () => {
                   const uri = toUri(filePath);
-                  const dirUri = uri.with({ path: dirname(uri.path) });
-                  await vscode.workspace.fs.createDirectory(dirUri);
-                  const encoder = new TextEncoder();
-                  const uint8Array = encoder.encode(content);
+                  await vscode.workspace.fs.createDirectory(Utils.dirname(uri));
+                  const uint8Array = new TextEncoder().encode(content);
                   await vscode.workspace.fs.writeFile(uri, uint8Array);
                 },
-                catch: e =>
-                  new FsServiceError({
-                    ...unknownToErrorCause(e),
-                    function: 'writeFile',
-                    filePath: typeof filePath === 'string' ? filePath : filePath.toString()
-                  })
-              })
+                catch: e => e
+              }).pipe(
+                Effect.catchAll(e =>
+                  Effect.fail(
+                    new FsServiceError({
+                      ...unknownToErrorCause(e),
+                      function: 'writeFile',
+                      filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+                    })
+                  )
+                )
+              )
             )
           )
       ),

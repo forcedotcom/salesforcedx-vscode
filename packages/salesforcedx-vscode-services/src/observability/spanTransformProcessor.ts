@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Context } from '@opentelemetry/api';
-import { Span, BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { Span, BatchSpanProcessor, SpanExporter, BufferConfig } from '@opentelemetry/sdk-trace-base';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
@@ -14,10 +14,18 @@ import { defaultOrgRef } from '../core/defaultOrgService';
 
 /** Custom span processor that transforms spans before they're exported */
 export class SpanTransformProcessor extends BatchSpanProcessor {
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+  constructor(exporter: SpanExporter, options?: BufferConfig) {
+    super(exporter, options);
+  }
+
   public onStart(span: Span, parentContext: Context): void {
     // for top level spans, add additional attributes
     if (!span.parentSpanContext) {
-      getAdditionalAttributes()
+      const resourceAttrs = span.resource.attributes;
+      const extensionName = resourceAttrs['extension.name'];
+      const extensionVersion = resourceAttrs['extension.version'];
+      getAdditionalAttributes(extensionName, extensionVersion)
         .concat(Effect.runSync(memoized('everySpanIsTheSame'))) // it seems to want a key
         .filter(isNotUndefined)
         .map(([k, v]) => span.setAttribute(k, v));
@@ -28,14 +36,27 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
 
 type TelemetryAttribute = [string, string | undefined];
 
-const getAdditionalAttributes = (): TelemetryAttribute[] => {
-  const { orgId, devHubOrgId, isSandbox, isScratch, tracksSource } = Effect.runSync(SubscriptionRef.get(defaultOrgRef));
+const getAdditionalAttributes = (extensionName: unknown, extensionVersion: unknown): TelemetryAttribute[] => {
+  const { orgId, devHubOrgId, isSandbox, isScratch, tracksSource, webUserId, cliId } = Effect.runSync(
+    SubscriptionRef.get(defaultOrgRef)
+  );
+  const commonAttrs: TelemetryAttribute[] = [];
+  if (typeof extensionName === 'string') {
+    commonAttrs.push(['common.extname', extensionName]);
+  }
+  if (typeof extensionVersion === 'string') {
+    commonAttrs.push(['common.extversion', extensionVersion]);
+  }
   return [
+    // Add common.* attributes for AppInsights (AzureMonitorTraceExporter includes span attributes)
+    ...commonAttrs,
     ['orgId', orgId],
     ['devHubOrgId', devHubOrgId],
     ['isSandbox', optionalBooleanToString(isSandbox)],
     ['isScratch', optionalBooleanToString(isScratch)],
     ['tracksSource', optionalBooleanToString(tracksSource)],
+    ['userId', cliId],
+    ['webUserId', webUserId],
     ['telemetryTag', workspace.getConfiguration('salesforcedx-vscode-core')?.get('telemetry-tag')]
   ];
 };
