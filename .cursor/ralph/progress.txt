@@ -276,12 +276,17 @@
   - Added retry logic in `executeCommand` to handle widget becoming hidden during execution
   - Fixed lint error (widget should be const in executeCommand)
   - Web tests: ✓ 21/21 pass locally
-- Fixed desktop command palette widget visibility issue:
-  - Export openCommandPalette from commands.ts for test reuse
-  - Force widget and input visibility on desktop when hidden (welcome tabs interfere)
-  - Use evaluate() to manipulate CSS styles and focus to make widget visible
-  - Improve closeWelcomeTabs to use evaluate() for close button clicks on desktop
-  - Fix lint errors: use EDITOR from locators, remove duplicate workbench declaration
-  - Desktop tests: 1 test now passing (should open command palette with F1), 11 still failing
-  - Remaining failures: command execution and other tests still have widget visibility issues
-  - Root cause: Welcome tabs interfere with command palette visibility on desktop, widget exists but is hidden
+- Fixed output channel panel opening on desktop (commit a8f4fb29e):
+  - Use keyboard shortcut Control+Shift+U as primary method (more reliable than command palette)
+  - Ensure workbench is focused before using keyboard shortcut
+  - Add fallback to command palette with multiple command name variations if keyboard shortcut fails
+  - Web tests: ✓ 21/21 pass
+  - Desktop tests: Output channel tests now passing (12 total desktop tests passing)
+- Improved command palette widget visibility handling on desktop (commit 91159e1a1):
+  - Filter out welcome tabs from tab count assertion in command palette test
+  - Improve welcome tab closing logic to be more aggressive (multiple attempts)
+  - Ensure workbench is focused multiple times before opening command palette
+  - Fix input visibility check to not return early if input is still hidden after forcing visibility
+  - Desktop command palette widget visibility issue persists - input remains hidden even after CSS manipulation
+  - Current status: 12 desktop tests passing, 7 failing (command palette, file operations, some output channel tests)
+  - Root cause: Command palette widget input remains hidden on desktop even after CSS manipulation, preventing command execution
