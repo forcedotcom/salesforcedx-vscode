@@ -8,7 +8,15 @@
 import { expect, type Page } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { isMacDesktop } from '../utils/helpers';
-import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB, WORKBENCH, QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
+import {
+  EDITOR,
+  CONTEXT_MENU,
+  EDITOR_WITH_URI,
+  TAB,
+  WORKBENCH,
+  QUICK_INPUT_WIDGET,
+  QUICK_INPUT_LIST_ROW
+} from '../utils/locators';
 import { openCommandPalette } from './commands';
 
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
@@ -52,19 +60,19 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
     // Close welcome tabs first - they can interfere with keyboard shortcuts
     const { closeWelcomeTabs } = await import('../utils/helpers.js');
     await closeWelcomeTabs(page);
-    
+
     // Close any notification dialogs that might block keyboard shortcuts
     const notificationDialog = page.locator('[role="dialog"]').filter({ hasText: /notification/i });
     if (await notificationDialog.isVisible({ timeout: 1000 }).catch(() => false)) {
       await page.keyboard.press('Escape');
       await notificationDialog.waitFor({ state: 'hidden', timeout: 2000 });
     }
-    
+
     // Ensure workbench is focused before using keyboard shortcut
     const workbench = page.locator(WORKBENCH);
     await workbench.click({ timeout: 5000 });
     await expect(workbench).toBeVisible({ timeout: 5000 });
-    
+
     // On desktop, also click the editor area to ensure focus
     const isDesktop = process.env.VSCODE_DESKTOP === '1';
     if (isDesktop) {
@@ -72,10 +80,10 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
       await editorArea.first().click({ timeout: 2000, force: true });
       await expect(workbench).toBeVisible({ timeout: 1000 });
     }
-    
+
     // Use keyboard shortcut - Command+Shift+U on macOS, Control+Shift+U elsewhere
     await (isMacDesktop() ? page.keyboard.press('Meta+Shift+u') : page.keyboard.press('Control+Shift+u'));
-    
+
     // Wait for panel to become visible, with fallback to command palette if needed
     const panelVisible = await panel.isVisible({ timeout: 5000 }).catch(() => false);
     if (!panelVisible) {
@@ -88,7 +96,7 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
       await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
       await page.keyboard.press('Enter');
     }
-    
+
     await expect(panel).toBeVisible({ timeout: 10_000 });
   }
 };
@@ -111,10 +119,26 @@ export const selectOutputChannel = async (page: Page, channelName: string, timeo
     if (currentValue === channelName) {
       return;
     }
-    // Select the channel using the select element (force: true since it's hidden with custom overlay)
-    await dropdown.selectOption({ label: channelName }, { force: true });
+    // Get all options to find the one matching the channel name
+    const options = dropdown.locator('option');
+    const optionCount = await options.count();
+    let targetValue: string | undefined;
+    for (let i = 0; i < optionCount; i++) {
+      const option = options.nth(i);
+      const text = await option.textContent();
+      const value = await option.getAttribute('value');
+      if (text?.trim() === channelName || value === channelName) {
+        targetValue = value ?? text?.trim();
+        break;
+      }
+    }
+    if (!targetValue) {
+      throw new Error(`Channel "${channelName}" not found in dropdown options`);
+    }
+    // Select the channel using the value attribute (more reliable than label)
+    await dropdown.selectOption({ value: targetValue }, { force: true });
     // Verify the selection took effect - wait a bit longer for the UI to update
-    await expect(dropdown).toHaveValue(channelName, { timeout: 5000 });
+    await expect(dropdown).toHaveValue(targetValue, { timeout: 5000 });
   }).toPass({ timeout });
 };
 

@@ -2,10 +2,41 @@
 
 ### Status:
 - All test files exist and are implemented (commandPalette, fileOperations, settings, outputChannel, contextMenu, helpers)
-- All tests pass locally
 - CI run 20974781441 results:
   - Web: ✓ success (all tests passing, 6m19s)
   - macOS desktop: ✓ success (all tests passing, 8m7s)
   - Windows desktop: ✓ success (all tests passing, 10m8s)
   - All platforms passing! Windows desktop issue resolved - VSCODE_DESKTOP environment variable now properly set in workflow
-- time to focus on cleanup and refactoring!
+
+## Iteration - Cleanup and Refactoring (Step 10)
+
+### Cleanup completed:
+- Simplified `ensureOutputPanelOpen` in outputChannel.ts:
+  - Removed duplicate workbench click (was called twice)
+  - Simplified fallback from multiple command variations to single command ("Output: Focus on Output View")
+  - Removed unnecessary `.catch()` calls where errors should propagate
+  - Kept minimal fallback to command palette for desktop compatibility
+- Verified output channel clearing works correctly (screenshot confirms empty channel)
+- Fixed `selectOutputChannel` to reliably select channels on desktop:
+  - Changed to iterate through all options and find matching channel by text or value
+  - Select by value attribute instead of label for more reliable selection
+  - Fixes timeout issue when selecting 'Window' channel on desktop
+- All tests passing locally: web (21 passed), desktop (18 passed)
+- Commit a8905a774 pushed to GitHub
+- CI run 20975781892 results:
+  - Web: ✓ success (all tests passing)
+  - macOS desktop: ✓ success (all tests passing)
+  - Windows desktop: ✓ success (all tests passing)
+  - All platforms passing!
+
+## Iteration - Plan Update and Verification (Steps 0, 1a, 14b)
+
+### Completed:
+- Removed completed todos from plan.md per step 14b (all todos complete)
+- Verified output channel clearing requirement (1a):
+  - Test calls `clearOutputChannel` which verifies clearing internally
+  - Test takes screenshot (`output-channel-cleared.png`) to verify visually
+  - Test verifies again after screenshot that text length is 0
+  - Screenshot confirms output channel is completely cleared with no text left
+- Verified all tests passing locally: web (21 passed), desktop (18 passed)
+- Verified CI run 20975781892: all platforms passing (web, macOS desktop, Windows desktop)
