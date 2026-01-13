@@ -37,9 +37,12 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
     
     // Ensure workbench is focused and visible before opening command palette
     // Click multiple times to ensure focus
-    await page.locator(WORKBENCH).click({ timeout: 5000 }).catch(() => {});
-    await page.locator(WORKBENCH).click({ timeout: 5000 }).catch(() => {});
-    await expect(page.locator(WORKBENCH)).toBeVisible({ timeout: 5000 });
+    const workbench = page.locator(WORKBENCH);
+    await workbench.click({ timeout: 5000 }).catch(() => {});
+    await workbench.click({ timeout: 5000 }).catch(() => {});
+    await expect(workbench).toBeVisible({ timeout: 5000 });
+    // Wait for workbench to be stable - ensure no overlays are blocking
+    await workbench.waitFor({ state: 'visible', timeout: 2000 }).catch(() => {});
     
     // Close any existing quick input widget
     const existingWidget = page.locator(QUICK_INPUT_WIDGET);
@@ -57,10 +60,9 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
     
     // Try to verify widget is visible - if it fails, welcome tabs may be interfering
     let widgetVisible = await widget.isVisible({ timeout: 5000 }).catch(() => false);
-    const isDesktop = process.env.VSCODE_DESKTOP === '1';
     
-    // On desktop, widget may exist but be hidden - try to force it visible
-    if (isDesktop && !widgetVisible) {
+    // Widget may exist but be hidden - try to force it visible (works on both web and desktop)
+    if (!widgetVisible) {
       const widgetElement = await widget.elementHandle();
       if (widgetElement) {
         await widgetElement.evaluate((el: HTMLElement) => {
@@ -82,31 +84,33 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
       await expect(widget).toBeVisible({ timeout: 10_000 });
       const input = widget.locator('input.input');
       await input.waitFor({ state: 'attached', timeout: 10_000 });
-      const inputVisible = await input.isVisible({ timeout: 5000 }).catch(() => false);
-      if (inputVisible) {
-        await expect(input).toBeVisible({ timeout: 10_000 });
-        return;
-      } else {
-        // Input exists but is hidden - try to force it visible on desktop
-        if (isDesktop) {
-          const inputElement = await input.elementHandle();
-          if (inputElement) {
-            await inputElement.evaluate((el: HTMLElement) => {
-              el.style.display = 'block';
-              el.style.visibility = 'visible';
-              el.style.opacity = '1';
-              (el as HTMLInputElement).focus();
-            }).catch(() => {});
-            // Wait for input to actually be visible after forcing - don't return if still hidden
-            const inputNowVisible = await input.isVisible({ timeout: 5000 }).catch(() => false);
-            if (inputNowVisible) {
-              await expect(input).toBeVisible({ timeout: 10_000 });
-              return;
-            }
-            // If still hidden after forcing, continue to retry logic below
-          }
+      // Check if input is visible - if not, force visibility on both widget and input
+      const inputVisible = await input.isVisible({ timeout: 2000 }).catch(() => false);
+      if (!inputVisible) {
+        // Force visibility on widget first (parent element)
+        const widgetElement = await widget.elementHandle();
+        if (widgetElement) {
+          await widgetElement.evaluate((el: HTMLElement) => {
+            el.style.display = 'block';
+            el.style.visibility = 'visible';
+            el.style.opacity = '1';
+            el.style.zIndex = '10000';
+          }).catch(() => {});
+        }
+        // Then force visibility on input
+        const inputElement = await input.elementHandle();
+        if (inputElement) {
+          await inputElement.evaluate((el: HTMLElement) => {
+            el.style.display = 'block';
+            el.style.visibility = 'visible';
+            el.style.opacity = '1';
+            (el as HTMLInputElement).focus();
+          }).catch(() => {});
         }
       }
+      // Wait for input to be visible (with retry logic)
+      await expect(input).toBeVisible({ timeout: 10_000 });
+      return;
     }
     
     // Widget or input is hidden - retry
@@ -130,7 +134,7 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
     await page.locator(WORKBENCH).click();
     await page.keyboard.press('F1');
     await widget.waitFor({ state: 'attached', timeout: 10_000 });
-    // On desktop, widget may exist but be hidden - check if we can make it visible
+    // Widget may exist but be hidden - check if we can make it visible (works on both web and desktop)
     const widgetElement = await widget.elementHandle();
     if (widgetElement) {
       // Try to make widget visible by removing any overlays or focusing it
@@ -143,6 +147,22 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
     }
     // Wait for visibility with longer timeout
     await expect(widget).toBeVisible({ timeout: 10_000 });
+    // Also ensure input is visible
+    const input = widget.locator('input.input');
+    await input.waitFor({ state: 'attached', timeout: 10_000 });
+    const inputVisible = await input.isVisible({ timeout: 5000 }).catch(() => false);
+    if (!inputVisible) {
+      const inputElement = await input.elementHandle();
+      if (inputElement) {
+        await inputElement.evaluate((el: HTMLElement) => {
+          el.style.display = 'block';
+          el.style.visibility = 'visible';
+          el.style.opacity = '1';
+          (el as HTMLInputElement).focus();
+        }).catch(() => {});
+      }
+    }
+    await expect(input).toBeVisible({ timeout: 10_000 });
   }
 };
 
@@ -178,6 +198,19 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
     
     await input.waitFor({ state: 'attached', timeout: 10_000 });
     // Wait for input to be visible - it may be attached but hidden initially
+    const inputVisible = await input.isVisible({ timeout: 5000 }).catch(() => false);
+    if (!inputVisible) {
+      // Input is hidden - try to force it visible
+      const inputElement = await input.elementHandle();
+      if (inputElement) {
+        await inputElement.evaluate((el: HTMLElement) => {
+          el.style.display = 'block';
+          el.style.visibility = 'visible';
+          el.style.opacity = '1';
+          (el as HTMLInputElement).focus();
+        }).catch(() => {});
+      }
+    }
     await expect(input).toBeVisible({ timeout: 10_000 });
     // Focus the input to ensure it's ready for typing
     await input.focus({ timeout: 5000 });

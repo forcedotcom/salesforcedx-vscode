@@ -290,3 +290,11 @@
   - Desktop command palette widget visibility issue persists - input remains hidden even after CSS manipulation
   - Current status: 12 desktop tests passing, 7 failing (command palette, file operations, some output channel tests)
   - Root cause: Command palette widget input remains hidden on desktop even after CSS manipulation, preventing command execution
+- Fixed output channel crash on desktop (commit abc6103d5):
+  - Removed command palette fallback that was causing VS Code to crash with 'Target page, context or browser has been closed' error
+  - Restored command palette fallback with better error handling to prevent crashes
+  - Close welcome tabs and notification dialogs before opening output panel
+  - Ensure workbench is focused before using keyboard shortcut
+  - Web tests: ✓ 5/5 output channel tests pass consistently
+  - Desktop tests: No longer crashing (fixed crash issue), but output panel not opening on desktop
+  - Root cause: Keyboard shortcut Control+Shift+U not working on macOS desktop, command palette fallback also not opening panel

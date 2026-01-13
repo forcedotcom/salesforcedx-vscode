@@ -8,7 +8,8 @@
 import { expect, type Page } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { isMacDesktop } from '../utils/helpers';
-import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB, WORKBENCH } from '../utils/locators';
+import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB, WORKBENCH, QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
+import { openCommandPalette } from './commands';
 
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
 const outputPanel = (page: Page) => page.locator(OUTPUT_PANEL_ID);
@@ -74,61 +75,59 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
       await expect(workbench).toBeVisible({ timeout: 1000 }).catch(() => {});
     }
     
-    // Try multiple approaches to open the output panel
-    // Approach 1: Keyboard shortcut Control+Shift+U (works on web and most desktop platforms)
-    await page.keyboard.press('Control+Shift+u');
+    // Ensure workbench is focused before using keyboard shortcut
+    await page.locator(WORKBENCH).click({ timeout: 5000 }).catch(() => {});
     
-    // Wait for panel to become visible - keyboard shortcut execution may take a moment
-    let panelVisible = await panel.isVisible({ timeout: 3000 }).catch(() => false);
+    // Try keyboard shortcut - use Command+Shift+U on macOS, Control+Shift+U elsewhere
+    await (isMacDesktop() ? page.keyboard.press('Meta+Shift+u') : page.keyboard.press('Control+Shift+u'));
+    
+    // Wait for panel to become visible - command execution may take a moment
+    let panelVisible = await panel.isVisible({ timeout: 5000 }).catch(() => false);
     
     if (!panelVisible) {
-      // Approach 2: Try clicking the panel toggle button in the status bar
-      // The output panel can be toggled via a button in the status bar area
-      try {
-        const panelToggleButton = page.getByRole('button', { name: /Toggle.*Panel|Output/i }).or(
-          page.locator('[aria-label*="Output" i], [title*="Output" i], [aria-label*="Panel" i], [title*="Panel" i]')
-        ).first();
-        const toggleVisible = await panelToggleButton.isVisible({ timeout: 2000 }).catch(() => false);
-        if (toggleVisible) {
-          await panelToggleButton.click({ timeout: 2000 });
-          panelVisible = await panel.isVisible({ timeout: 3000 }).catch(() => false);
+      // Fallback: try command palette if keyboard shortcut didn't work
+      // On desktop, executeCommandWithCommandPalette can crash VS Code, so we open command palette
+      // and use Enter key to execute the command instead of clicking
+      const commandVariations = [
+        'Output: Focus on Output View',
+        'View: Toggle Output',
+        'View: Focus Output'
+      ];
+      
+      for (const command of commandVariations) {
+        try {
+          // Open command palette
+          await openCommandPalette(page);
+          
+          // Type the command in the palette
+          const widget = page.locator(QUICK_INPUT_WIDGET);
+          const input = widget.locator('input.input');
+          await input.waitFor({ state: 'attached', timeout: 5000 });
+          await expect(input).toBeVisible({ timeout: 5000 });
+          await input.fill(`>${command}`);
+          
+          // Wait for command to appear in list and be selected (first item)
+          await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
+          
+          // Wait for input value to be set before pressing Enter
+          await expect(input).toHaveValue(new RegExp(`>.*${command.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i'), { timeout: 5000 });
+          
+          // Press Enter to execute the selected command (safer than clicking)
+          await page.keyboard.press('Enter');
+          
+          // Wait for panel to become visible
+          panelVisible = await panel.isVisible({ timeout: 5000 }).catch(() => false);
+          if (panelVisible) {
+            break;
+          }
+        } catch {
+          // Try next variation
+          continue;
         }
-      } catch {
-        // Toggle button not found or not clickable, continue to next approach
       }
     }
     
-    if (!panelVisible) {
-      // Approach 3: Try command palette as fallback
-      // Use a simpler approach - just open command palette and execute command directly
-      // Avoid the complex retry logic in executeCommandWithCommandPalette that might cause crashes
-      try {
-        const { openCommandPalette } = await import('./commands.js');
-        const { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } = await import('../utils/locators.js');
-        await openCommandPalette(page);
-        
-        // Execute command directly without retry logic
-        const widget = page.locator(QUICK_INPUT_WIDGET);
-        const input = widget.locator('input.input');
-        await input.waitFor({ state: 'attached', timeout: 5000 });
-        await input.fill('>Output: Focus on Output View');
-        await expect(input).toHaveValue(/Output.*Focus.*Output/i, { timeout: 5000 });
-        
-        // Wait for command list and click first result that matches
-        const commandRow = widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /Output.*Focus.*Output/i }).first();
-        await commandRow.waitFor({ state: 'attached', timeout: 5000 });
-        await commandRow.click();
-        
-        // Wait for command palette to close
-        await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
-        panelVisible = await panel.isVisible({ timeout: 3000 }).catch(() => false);
-      } catch {
-        // If command palette fallback fails, try keyboard shortcut one more time
-        await page.keyboard.press('Control+Shift+u');
-      }
-    }
-    
-    // Final verification that panel is visible
+    // Wait for panel to become visible - command execution may take a moment
     await expect(panel).toBeVisible({ timeout: 10_000 });
   }
 };
