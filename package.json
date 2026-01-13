@@ -45,7 +45,7 @@
     "@typescript-eslint/eslint-plugin": "^8.50.0",
     "@typescript-eslint/parser": "^8.50.0",
     "@vscode/test-electron": "2.5.2",
-    "@vscode/test-web": "^0.0.77",
+    "@vscode/test-web": "^0.0.78",
     "@vscode/vsce": "3.5.0",
     "acorn": "8.15.0",
     "assert": "2.1.0",

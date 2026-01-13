@@ -73,7 +73,16 @@ export const messages = {
   delete_source_no_components_found: 'No components found to delete',
   delete_source_operation_failed: 'Delete operation failed',
   delete_completed_with_errors_message: 'Delete completed with errors. Check output for details.',
-  delete_failed: 'Failed to delete: %s'
+  delete_failed: 'Failed to delete: %s',
+  manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
+  manifest_input_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
+  manifest_generation_cancelled: 'SFDX: Generate Manifest File was cancelled.',
+  manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',
+  manifest_overwrite_confirmation: 'Manifest file "%s" already exists. Do you want to overwrite it?',
+  project_generate_manifest_text: 'SFDX: Generate Manifest File',
+  generate_manifest_select_file_or_directory:
+    'You can run SFDX: Generate Manifest File only on a source file or directory.',
+  generate_manifest_failed: 'Generate manifest failed: %s'
 } as const;
 
 export type MessageKey = keyof typeof messages;
