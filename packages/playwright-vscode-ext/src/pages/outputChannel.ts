@@ -8,7 +8,7 @@
 import { expect, type Page } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { isMacDesktop } from '../utils/helpers';
-import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB } from '../utils/locators';
+import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB, WORKBENCH } from '../utils/locators';
 import { executeCommandWithCommandPalette } from './commands';
 
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
@@ -43,15 +43,44 @@ const withOutputFilter = async <T>(page: Page, searchText: string, fn: () => Pro
   }
 };
 
-const outputFocusCommand = 'Output: Focus on Output View';
-
 /** Opens the Output panel (idempotent - safe to call if already open) */
 export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
   const panel = outputPanel(page);
   const isVisible = await panel.isVisible();
 
   if (!isVisible) {
-    await executeCommandWithCommandPalette(page, outputFocusCommand);
+    // Ensure workbench is focused before using keyboard shortcut
+    await page.locator(WORKBENCH).click({ timeout: 5000 }).catch(() => {});
+    
+    // Try keyboard shortcut Control+Shift+U first (works on web and most desktop platforms)
+    await page.keyboard.press('Control+Shift+u');
+    
+    // Wait for panel to become visible - command execution may take a moment
+    const panelVisible = await panel.isVisible({ timeout: 5000 }).catch(() => false);
+    
+    if (!panelVisible) {
+      // Fallback: try command palette if keyboard shortcut didn't work
+      // VS Code command names can vary, so try multiple variations
+      const commandVariations = [
+        'Output: Focus on Output View',
+        'View: Toggle Output',
+        'View: Focus Output'
+      ];
+      
+      for (const command of commandVariations) {
+        try {
+          await executeCommandWithCommandPalette(page, command);
+          const nowVisible = await panel.isVisible({ timeout: 5000 }).catch(() => false);
+          if (nowVisible) {
+            break;
+          }
+        } catch {
+          // Try next variation
+          continue;
+        }
+      }
+    }
+    
     // Wait for panel to become visible - command execution may take a moment
     await expect(panel).toBeVisible({ timeout: 10_000 });
   }
