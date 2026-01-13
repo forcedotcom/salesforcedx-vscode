@@ -90,77 +90,76 @@ export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.E
         // On other platforms, run in parallel for better performance
         const allUris: vscode.Uri[] = [];
 
-        // Temporarily commented out Windows-specific sequential search
-        // if (isWindows) {
-        //   // Sequential search on Windows to avoid resource contention
-        //   for (const folder of vscode.workspace.workspaceFolders) {
-        //     const workspacePath = folder.uri.fsPath || folder.uri.path;
-        //     if (!workspacePath) {
-        //       continue;
-        //     }
-
-        //     // Search each pattern and combine results
-        //     for (const pattern of patterns) {
-        //       const files: string[] = [];
-        //       const globOptions: { cwd: string; ignore?: string[]; withFileTypes?: boolean } = {
-        //         cwd: workspacePath,
-        //         withFileTypes: true
-        //       };
-        //       if (excludeGlob) {
-        //         globOptions.ignore = [excludeGlob];
-        //       }
-
-        //       // fs.glob returns an async generator, convert to array
-        //       for await (const entry of glob(pattern, globOptions)) {
-        //         // entry is a Dirent when withFileTypes is true
-        //         if (typeof entry === 'object' && 'isFile' in entry && entry.isFile()) {
-        //           // Resolve to absolute path
-        //           const absolutePath = path.resolve(workspacePath, entry.name);
-        //           files.push(absolutePath);
-        //         }
-        //       }
-
-        //       allUris.push(...files.map(filePath => vscode.Uri.file(filePath)));
-        //     }
-        //   }
-        // } else {
-        // Parallel search on non-Windows platforms
-        const searchPromises = vscode.workspace.workspaceFolders.map(async folder => {
-          const workspacePath = folder.uri.fsPath || folder.uri.path;
-          if (!workspacePath) {
-            return [];
-          }
-
-          // Search each pattern and combine results
-          const allFiles: string[] = [];
-          for (const pattern of patterns) {
-            const files: string[] = [];
-            const globOptions: { cwd: string; ignore?: string[]; withFileTypes?: boolean } = {
-              cwd: workspacePath,
-              withFileTypes: true
-            };
-            if (excludeGlob) {
-              globOptions.ignore = [excludeGlob];
+        if (isWindows) {
+          // Sequential search on Windows to avoid resource contention
+          for (const folder of vscode.workspace.workspaceFolders) {
+            const workspacePath = folder.uri.fsPath || folder.uri.path;
+            if (!workspacePath) {
+              continue;
             }
 
-            // fs.glob returns an async generator, convert to array
-            for await (const entry of glob(pattern, globOptions)) {
-              // entry is a Dirent when withFileTypes is true
-              if (typeof entry === 'object' && 'isFile' in entry && entry.isFile()) {
-                // Resolve to absolute path
-                const absolutePath = path.resolve(workspacePath, entry.name);
-                files.push(absolutePath);
+            // Search each pattern and combine results
+            for (const pattern of patterns) {
+              const files: string[] = [];
+              const globOptions: { cwd: string; ignore?: string[]; withFileTypes?: boolean } = {
+                cwd: workspacePath,
+                withFileTypes: true
+              };
+              if (excludeGlob) {
+                globOptions.ignore = [excludeGlob];
               }
+
+              // fs.glob returns an async generator, convert to array
+              for await (const entry of glob(pattern, globOptions)) {
+                // entry is a Dirent when withFileTypes is true
+                if (typeof entry === 'object' && 'isFile' in entry && entry.isFile()) {
+                  // Resolve to absolute path
+                  const absolutePath = path.resolve(workspacePath, entry.name);
+                  files.push(absolutePath);
+                }
+              }
+
+              allUris.push(...files.map(filePath => vscode.Uri.file(filePath)));
             }
-            allFiles.push(...files);
           }
+        } else {
+          // Parallel search on non-Windows platforms
+          const searchPromises = vscode.workspace.workspaceFolders.map(async folder => {
+            const workspacePath = folder.uri.fsPath || folder.uri.path;
+            if (!workspacePath) {
+              return [];
+            }
 
-          return allFiles.map(filePath => vscode.Uri.file(filePath));
-        });
+            // Search each pattern and combine results
+            const allFiles: string[] = [];
+            for (const pattern of patterns) {
+              const files: string[] = [];
+              const globOptions: { cwd: string; ignore?: string[]; withFileTypes?: boolean } = {
+                cwd: workspacePath,
+                withFileTypes: true
+              };
+              if (excludeGlob) {
+                globOptions.ignore = [excludeGlob];
+              }
 
-        const searchResults = await Promise.all(searchPromises);
-        allUris.push(...searchResults.flat());
-        // }
+              // fs.glob returns an async generator, convert to array
+              for await (const entry of glob(pattern, globOptions)) {
+                // entry is a Dirent when withFileTypes is true
+                if (typeof entry === 'object' && 'isFile' in entry && entry.isFile()) {
+                  // Resolve to absolute path
+                  const absolutePath = path.resolve(workspacePath, entry.name);
+                  files.push(absolutePath);
+                }
+              }
+              allFiles.push(...files);
+            }
+
+            return allFiles.map(filePath => vscode.Uri.file(filePath));
+          });
+
+          const searchResults = await Promise.all(searchPromises);
+          allUris.push(...searchResults.flat());
+        }
 
         // Remove duplicates (in case multiple patterns match the same file)
         const uniqueUris = Array.from(new Set(allUris.map(uri => uri.toString()))).map(uriString =>
