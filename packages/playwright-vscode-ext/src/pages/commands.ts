@@ -44,10 +44,16 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   await input.focus({ timeout: 5000 }).catch(() => {});
   await input.pressSequentially(command, { delay: 5 });
 
+  // Wait for input value to contain what we typed - VS Code adds '>' prefix automatically
+  // This ensures typing has completed before we look for commands
+  // eslint-disable-next-line unicorn/prefer-string-replace-all -- replaceAll doesn't support regex patterns
+  const escapedCommand = command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  await expect(input).toHaveValue(new RegExp(`>.*${escapedCommand}`, 'i'), { timeout: 10_000 });
+
   // Wait for the command list to populate after typing - wait for at least one row to exist in DOM
   // For virtualized lists, rows may exist in DOM but not be visible until scrolled into view
   // We wait for attachment (exists in DOM) rather than visibility, then rely on Playwright's click() to handle scrolling
-  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
+  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
 
   // Use text content matching to find exact command (bypasses MRU prioritization)
   // Scope to QUICK_INPUT_WIDGET first, then find the list row (more specific than just .monaco-list-row)
