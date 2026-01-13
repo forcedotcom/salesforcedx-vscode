@@ -9,7 +9,6 @@ import { expect, type Page } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { isMacDesktop } from '../utils/helpers';
 import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB, WORKBENCH } from '../utils/locators';
-import { executeCommandWithCommandPalette } from './commands';
 
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
 const outputPanel = (page: Page) => page.locator(OUTPUT_PANEL_ID);
@@ -49,39 +48,87 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
   const isVisible = await panel.isVisible();
 
   if (!isVisible) {
-    // Ensure workbench is focused before using keyboard shortcut
-    await page.locator(WORKBENCH).click({ timeout: 5000 }).catch(() => {});
+    // Close welcome tabs first - they can interfere with keyboard shortcuts
+    const { closeWelcomeTabs } = await import('../utils/helpers.js');
+    await closeWelcomeTabs(page);
     
-    // Try keyboard shortcut Control+Shift+U first (works on web and most desktop platforms)
+    // Close any notification dialogs that might block keyboard shortcuts
+    const notificationDialog = page.locator('[role="dialog"]').filter({ hasText: /notification/i });
+    const notificationVisible = await notificationDialog.isVisible({ timeout: 1000 }).catch(() => false);
+    if (notificationVisible) {
+      await page.keyboard.press('Escape');
+      await notificationDialog.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
+    }
+    
+    // Ensure workbench is focused before using keyboard shortcut
+    const workbench = page.locator(WORKBENCH);
+    await workbench.click({ timeout: 5000 }).catch(() => {});
+    await expect(workbench).toBeVisible({ timeout: 5000 });
+    
+    // On desktop, also click the editor area to ensure focus
+    const isDesktop = process.env.VSCODE_DESKTOP === '1';
+    if (isDesktop) {
+      const editorArea = page.locator(`.editor-container, ${EDITOR}, [id="workbench.parts.editor"]`);
+      await editorArea.first().click({ timeout: 2000, force: true }).catch(() => {});
+      // Wait for workbench to be visible to ensure focus has settled
+      await expect(workbench).toBeVisible({ timeout: 1000 }).catch(() => {});
+    }
+    
+    // Try multiple approaches to open the output panel
+    // Approach 1: Keyboard shortcut Control+Shift+U (works on web and most desktop platforms)
     await page.keyboard.press('Control+Shift+u');
     
-    // Wait for panel to become visible - command execution may take a moment
-    const panelVisible = await panel.isVisible({ timeout: 5000 }).catch(() => false);
+    // Wait for panel to become visible - keyboard shortcut execution may take a moment
+    let panelVisible = await panel.isVisible({ timeout: 3000 }).catch(() => false);
     
     if (!panelVisible) {
-      // Fallback: try command palette if keyboard shortcut didn't work
-      // VS Code command names can vary, so try multiple variations
-      const commandVariations = [
-        'Output: Focus on Output View',
-        'View: Toggle Output',
-        'View: Focus Output'
-      ];
-      
-      for (const command of commandVariations) {
-        try {
-          await executeCommandWithCommandPalette(page, command);
-          const nowVisible = await panel.isVisible({ timeout: 5000 }).catch(() => false);
-          if (nowVisible) {
-            break;
-          }
-        } catch {
-          // Try next variation
-          continue;
+      // Approach 2: Try clicking the panel toggle button in the status bar
+      // The output panel can be toggled via a button in the status bar area
+      try {
+        const panelToggleButton = page.getByRole('button', { name: /Toggle.*Panel|Output/i }).or(
+          page.locator('[aria-label*="Output" i], [title*="Output" i], [aria-label*="Panel" i], [title*="Panel" i]')
+        ).first();
+        const toggleVisible = await panelToggleButton.isVisible({ timeout: 2000 }).catch(() => false);
+        if (toggleVisible) {
+          await panelToggleButton.click({ timeout: 2000 });
+          panelVisible = await panel.isVisible({ timeout: 3000 }).catch(() => false);
         }
+      } catch {
+        // Toggle button not found or not clickable, continue to next approach
       }
     }
     
-    // Wait for panel to become visible - command execution may take a moment
+    if (!panelVisible) {
+      // Approach 3: Try command palette as fallback
+      // Use a simpler approach - just open command palette and execute command directly
+      // Avoid the complex retry logic in executeCommandWithCommandPalette that might cause crashes
+      try {
+        const { openCommandPalette } = await import('./commands.js');
+        const { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } = await import('../utils/locators.js');
+        await openCommandPalette(page);
+        
+        // Execute command directly without retry logic
+        const widget = page.locator(QUICK_INPUT_WIDGET);
+        const input = widget.locator('input.input');
+        await input.waitFor({ state: 'attached', timeout: 5000 });
+        await input.fill('>Output: Focus on Output View');
+        await expect(input).toHaveValue(/Output.*Focus.*Output/i, { timeout: 5000 });
+        
+        // Wait for command list and click first result that matches
+        const commandRow = widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: /Output.*Focus.*Output/i }).first();
+        await commandRow.waitFor({ state: 'attached', timeout: 5000 });
+        await commandRow.click();
+        
+        // Wait for command palette to close
+        await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+        panelVisible = await panel.isVisible({ timeout: 3000 }).catch(() => false);
+      } catch {
+        // If command palette fallback fails, try keyboard shortcut one more time
+        await page.keyboard.press('Control+Shift+u');
+      }
+    }
+    
+    // Final verification that panel is visible
     await expect(panel).toBeVisible({ timeout: 10_000 });
   }
 };
