@@ -6,8 +6,8 @@
  *
  */
 
-import { getBodyClass, getWindow, hasVscode } from './globals';
-import { getLocalStorage } from './globals';
+import { getBodyClass, getWindow, hasVscode } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/globals';
+import { getLocalStorage } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/globals';
 describe('Globals should', () => {
   it('expose window', () => {
     expect(getWindow()).toBeTruthy();

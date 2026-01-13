@@ -10,11 +10,11 @@
  */
 
 import { BehaviorSubject } from 'rxjs';
-import { AndOr } from '../services/model';
-import { ToolingModelService, ToolingModelJson } from './toolingModelService';
-import { VscodeMessageService } from './message/vscodeMessageService';
-import { IMessageService } from './message/iMessageService';
-import { MessageType, SoqlEditorEvent } from './message/soqlEditorEvent';
+import { AndOr } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/model';
+import { ToolingModelService, ToolingModelJson } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingModelService';
+import { VscodeMessageService } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/vscodeMessageService';
+import { IMessageService } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/iMessageService';
+import { MessageType, SoqlEditorEvent } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 
 describe('Tooling Model Service', () => {
   let modelService: ToolingModelService;

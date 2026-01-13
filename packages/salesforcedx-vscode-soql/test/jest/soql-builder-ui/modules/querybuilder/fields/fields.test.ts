@@ -12,7 +12,7 @@
 
 import { createElement } from 'lwc';
 import Fields, { SELECT_ALL_OPTION, CLEAR_OPTION } from 'querybuilder/fields';
-import { SELECT_COUNT } from '../services/model';
+import { SELECT_COUNT } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/model';
 
 describe('Fields', () => {
   const fields = createElement('querybuilder-fields', {

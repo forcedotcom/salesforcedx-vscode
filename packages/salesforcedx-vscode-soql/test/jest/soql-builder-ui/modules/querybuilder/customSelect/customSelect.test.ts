@@ -14,7 +14,7 @@
  */
 
 import { createElement } from 'lwc';
-import CustomSelect from './customSelect';
+import CustomSelect from '../../../../../../src/soql-builder-ui/modules/querybuilder/customSelect/customSelect';
 
 describe('Custom Select', () => {
   let customSelect;

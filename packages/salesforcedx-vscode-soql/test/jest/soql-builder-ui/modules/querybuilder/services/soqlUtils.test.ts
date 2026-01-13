@@ -19,8 +19,8 @@ import {
   isLikeStart,
   addWildCardToValue,
   stripWildCardPadding
-} from './soqlUtils';
-import { SELECT_COUNT, ToolingModelJson } from './model';
+} from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/soqlUtils';
+import { SELECT_COUNT, ToolingModelJson } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/model';
 
 describe('SoqlUtils', () => {
   const uiModelOne: ToolingModelJson = {

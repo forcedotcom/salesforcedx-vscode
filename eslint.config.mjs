@@ -44,6 +44,7 @@ export default [
       'test-assets/**',
       'packages/salesforcedx-vscode-soql/test/ui-test/resources/.mocharc-debug.ts',
       'packages/salesforcedx-vscode-soql/src/soql-builder-ui/**',
+      'packages/salesforcedx-vscode-soql/test/jest/soql-builder-ui/**',
       'scripts/vsce-bundled-extension.ts',
       'scripts/reportInstalls.ts',
       'packages/salesforcedx-lwc-language-server/src/javascript/__tests__/fixtures/**',

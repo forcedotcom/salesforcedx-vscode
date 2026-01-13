@@ -8,11 +8,11 @@
  *
  */
 
-import { ToolingSDK } from './toolingSDK';
-import { VscodeMessageService } from './message/vscodeMessageService';
-import { IMessageService } from './message/iMessageService';
-import { getWindow, getVscode } from './globals';
-import { MessageType } from './message/soqlEditorEvent';
+import { ToolingSDK } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingSDK';
+import { VscodeMessageService } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/vscodeMessageService';
+import { IMessageService } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/iMessageService';
+import { getWindow, getVscode } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/globals';
+import { MessageType } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 
 describe('Tooling SDK Service', () => {
   let toolingSDK: ToolingSDK;

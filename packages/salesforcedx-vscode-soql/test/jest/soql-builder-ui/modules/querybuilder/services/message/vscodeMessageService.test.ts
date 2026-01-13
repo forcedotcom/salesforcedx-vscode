@@ -12,9 +12,9 @@
  *
  */
 
-import { getWindow } from '../globals';
-import { VscodeMessageService } from './vscodeMessageService';
-import { MessageType } from './soqlEditorEvent';
+import { getWindow } from '../../../../../../../src/soql-builder-ui/modules/querybuilder/services/globals';
+import { VscodeMessageService } from '../../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/vscodeMessageService';
+import { MessageType } from '../../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 
 describe('VscodeMessageService', () => {
   let vsCodeApi;

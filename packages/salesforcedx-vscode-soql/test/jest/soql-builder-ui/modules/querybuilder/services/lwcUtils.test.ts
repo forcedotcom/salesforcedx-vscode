@@ -1,4 +1,4 @@
-import { lwcIndexableArray } from './lwcUtils';
+import { lwcIndexableArray } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/lwcUtils';
 
 describe('Lwc Utils Should', () => {
   it('turn simple array into an indexed array', () => {

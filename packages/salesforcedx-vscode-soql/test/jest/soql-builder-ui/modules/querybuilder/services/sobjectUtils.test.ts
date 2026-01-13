@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Soql } from '@salesforce/soql-model';
-import { SObjectTypeUtils } from './sobjectUtils';
+import { SObjectTypeUtils } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/sobjectUtils';
 
 describe('SObjectTypeUtils should', () => {
   const sobjectMetadata = {

@@ -8,9 +8,9 @@
  *
  */
 
-import { MessageServiceFactory } from './messageServiceFactory';
-import { StandaloneMessageService } from './standaloneMessageService';
-import { VscodeMessageService } from './vscodeMessageService';
+import { MessageServiceFactory } from '../../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/messageServiceFactory';
+import { StandaloneMessageService } from '../../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/standaloneMessageService';
+import { VscodeMessageService } from '../../../../../../../src/soql-builder-ui/modules/querybuilder/services/message/vscodeMessageService';
 
 describe('Message Service Factory', () => {
   it('will switch implementation based on vscode', () => {

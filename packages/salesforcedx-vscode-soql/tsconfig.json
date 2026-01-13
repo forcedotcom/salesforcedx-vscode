@@ -12,7 +12,8 @@
     "out",
     "./test/ui-test/resources/extensions",
     "dist",
-    "src/soql-builder-ui"
+    "src/soql-builder-ui",
+    "test/jest/soql-builder-ui"
   ],
   "include": ["src/**/*.ts", "test/**/*.ts"],
   "references": [

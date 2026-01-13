@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Soql } from '@salesforce/soql-model';
-import { createQueryTelemetry } from './telemetryUtils';
-import { ToolingModelJson } from './toolingModelService';
+import { createQueryTelemetry } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/telemetryUtils';
+import { ToolingModelJson } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingModelService';
 
 describe('Telemetry Utils', () => {
   const error1 = {
