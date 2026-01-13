@@ -61,30 +61,86 @@ export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.E
           return [];
         }
 
-        // Search all workspace folders in parallel
-        const searchPromises = vscode.workspace.workspaceFolders.map(async folder => {
-          const workspacePath = folder.uri.fsPath || folder.uri.path;
-          if (!workspacePath) {
-            return [];
+        // Expand brace patterns like {a,b} into multiple patterns
+        // This ensures compatibility with glob package which may not expand braces the same way as vscode.workspace.findFiles
+        const expandBraces = (pattern: string): string[] => {
+          const braceMatch = pattern.match(/\{([^}]+)\}/);
+          if (!braceMatch) {
+            return [pattern];
           }
 
-          // Use glob to find files matching the pattern
-          // The pattern is relative to cwd, so we set cwd to the workspace folder
-          const files = await glob(fileGlob, {
-            cwd: workspacePath,
-            absolute: true,
-            ignore: excludeGlob ? [excludeGlob] : [],
-            nodir: true // Only return files, not directories
+          const [fullMatch, alternatives] = braceMatch;
+          const braceOptions = alternatives.split(',').map(opt => opt.trim());
+          const results: string[] = [];
+
+          for (const braceOption of braceOptions) {
+            const expanded = pattern.replace(fullMatch, braceOption);
+            results.push(...expandBraces(expanded));
+          }
+
+          return results;
+        };
+
+        const patterns = expandBraces(fileGlob);
+
+        // Search workspace folders
+        // On Windows, run sequentially to avoid excessive file system operations
+        // On other platforms, run in parallel for better performance
+        const allUris: vscode.Uri[] = [];
+
+        if (isWindows) {
+          // Sequential search on Windows to avoid resource contention
+          for (const folder of vscode.workspace.workspaceFolders) {
+            const workspacePath = folder.uri.fsPath || folder.uri.path;
+            if (!workspacePath) {
+              continue;
+            }
+
+            // Search each pattern and combine results
+            for (const pattern of patterns) {
+              const files = await glob(pattern, {
+                cwd: workspacePath,
+                absolute: true,
+                ignore: excludeGlob ? [excludeGlob] : [],
+                nodir: true
+              });
+
+              allUris.push(...files.map(filePath => vscode.Uri.file(filePath)));
+            }
+          }
+        } else {
+          // Parallel search on non-Windows platforms
+          const searchPromises = vscode.workspace.workspaceFolders.map(async folder => {
+            const workspacePath = folder.uri.fsPath || folder.uri.path;
+            if (!workspacePath) {
+              return [];
+            }
+
+            // Search each pattern and combine results
+            const allFiles: string[] = [];
+            for (const pattern of patterns) {
+              const files = await glob(pattern, {
+                cwd: workspacePath,
+                absolute: true,
+                ignore: excludeGlob ? [excludeGlob] : [],
+                nodir: true
+              });
+              allFiles.push(...files);
+            }
+
+            return allFiles.map(filePath => vscode.Uri.file(filePath));
           });
 
-          // Convert file paths to vscode.Uri objects
-          // With absolute: true, glob returns absolute paths, so we can use them directly
-          return files.map(filePath => vscode.Uri.file(filePath));
-        });
+          const results = await Promise.all(searchPromises);
+          allUris.push(...results.flat());
+        }
 
-        // Wait for all searches to complete and flatten the results
-        const results = await Promise.all(searchPromises);
-        return results.flat();
+        // Remove duplicates (in case multiple patterns match the same file)
+        const uniqueUris = Array.from(new Set(allUris.map(uri => uri.toString()))).map(uriString =>
+          vscode.Uri.parse(uriString)
+        );
+
+        return uniqueUris;
       },
       catch: (e: unknown) => new Error(`Failed to find workspace files: ${String(e)}`)
     });
