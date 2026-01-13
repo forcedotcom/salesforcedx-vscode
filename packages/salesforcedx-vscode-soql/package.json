@@ -111,7 +111,6 @@
       "files": [
         "src/soql-builder-ui/*.{ts,html}",
         "src/soql-builder-ui/modules/**",
-        "src/soql-builder-ui/jestSetup/**",
         "src/soql-builder-ui/webpack.config.js",
         "src/soql-builder-ui/lwc.config.json",
         "src/soql-builder-ui/lwc-services.config.js",
