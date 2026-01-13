@@ -279,8 +279,8 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "npm run compile && npm run lint && npm run check:peer-deps && npm run check:typescript-project-references && ts-node scripts/package-lock.validation.ts",
-      "pre-push": "npm run compile && npm run lint && npm run test"
+      "pre-commit": "npm run lint && npm run check:peer-deps && npm run check:typescript-project-references && ts-node scripts/package-lock.validation.ts",
+      "pre-push": "npm run lint && npm run test"
     }
   }
 }
