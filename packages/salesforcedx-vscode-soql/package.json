@@ -67,7 +67,7 @@
     "vscode:bundle": "wireit",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix soql-builder-ui/dist",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist",
     "copy:grammars": "wireit",
     "build:soql-builder-ui": "wireit",
     "test": "wireit",
@@ -107,16 +107,16 @@
       ]
     },
     "build:soql-builder-ui": {
-      "command": "cd soql-builder-ui && npm install && export NODE_OPTIONS=--openssl-legacy-provider && npx lwc-services build -w webpack.config.js -m production",
+      "command": "cd src/soql-builder-ui && npm install && export NODE_OPTIONS=--openssl-legacy-provider && npx lwc-services build -w webpack.config.js -m production",
       "files": [
-        "soql-builder-ui/src/**",
-        "soql-builder-ui/webpack.config.js",
-        "soql-builder-ui/lwc.config.json",
-        "soql-builder-ui/lwc-services.config.js",
-        "soql-builder-ui/package.json"
+        "src/soql-builder-ui/src/**",
+        "src/soql-builder-ui/webpack.config.js",
+        "src/soql-builder-ui/lwc.config.json",
+        "src/soql-builder-ui/lwc-services.config.js",
+        "src/soql-builder-ui/package.json"
       ],
       "output": [
-        "soql-builder-ui/dist/**"
+        "src/soql-builder-ui/dist/**"
       ]
     },
     "vscode:bundle": {
@@ -130,7 +130,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "out/**",
-        "soql-builder-ui/dist/**"
+        "src/soql-builder-ui/dist/**"
       ],
       "output": [
         "dist"
