@@ -17,16 +17,44 @@ const openCommandPalette = async (page: Page): Promise<void> => {
   // Try F1 first (standard command palette shortcut)
   await page.keyboard.press('F1');
   const widget = page.locator(QUICK_INPUT_WIDGET);
+  
+  // Wait for widget to be attached (exists in DOM) first
+  await widget.waitFor({ state: 'attached', timeout: 10_000 });
+  
+  // Check if widget is visible - if not, welcome tabs may be interfering (common in CI)
+  let isVisible = await widget.isVisible({ timeout: 3000 }).catch(() => false);
+  if (!isVisible) {
+    // Widget exists but is hidden - welcome tabs may be covering it
+    // Close welcome tabs and refocus workbench, then reopen command palette
+    const { closeWelcomeTabs } = await import('../utils/helpers.js');
+    await closeWelcomeTabs(page);
+    await page.locator(WORKBENCH).click();
+    // Close any existing quick input widget
+    const existingWidget = page.locator(QUICK_INPUT_WIDGET);
+    const existingVisible = await existingWidget.isVisible({ timeout: 500 }).catch(() => false);
+    if (existingVisible) {
+      await page.keyboard.press('Escape');
+      await existingWidget.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
+    }
+    // Reopen command palette
+    await page.keyboard.press('F1');
+    await widget.waitFor({ state: 'attached', timeout: 10_000 });
+    // Check if widget is now visible after reopening
+    isVisible = await widget.isVisible({ timeout: 3000 }).catch(() => false);
+  }
+  
   if (isWindowsDesktop()) {
     // On Windows desktop, F1 may not work reliably, so try Ctrl+Shift+P fallback
-    try {
-      await expect(widget).toBeVisible({ timeout: 10_000 });
-    } catch {
+    if (!isVisible) {
       await page.keyboard.press('Control+Shift+p');
+      await widget.waitFor({ state: 'attached', timeout: 10_000 });
+      await expect(widget).toBeVisible({ timeout: 10_000 });
+    } else {
       await expect(widget).toBeVisible({ timeout: 10_000 });
     }
   } else {
     // Web and macOS desktop: F1 should work, but may take longer in CI
+    // Wait for widget to be visible (whether it's already visible or needs more time)
     await expect(widget).toBeVisible({ timeout: 10_000 });
   }
 };
