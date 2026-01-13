@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Effect } from 'effect';
-import { glob } from 'glob';
+// eslint-disable-next-line no-restricted-imports
+import { glob } from 'node:fs/promises';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 
 // --- Configuration ---
@@ -98,12 +100,24 @@ export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.E
 
             // Search each pattern and combine results
             for (const pattern of patterns) {
-              const files = await glob(pattern, {
+              const files: string[] = [];
+              const globOptions: { cwd: string; ignore?: string[]; withFileTypes?: boolean } = {
                 cwd: workspacePath,
-                absolute: true,
-                ignore: excludeGlob ? [excludeGlob] : [],
-                nodir: true
-              });
+                withFileTypes: true
+              };
+              if (excludeGlob) {
+                globOptions.ignore = [excludeGlob];
+              }
+
+              // fs.glob returns an async generator, convert to array
+              for await (const entry of glob(pattern, globOptions)) {
+                // entry is a Dirent when withFileTypes is true
+                if (typeof entry === 'object' && 'isFile' in entry && entry.isFile()) {
+                  // Resolve to absolute path
+                  const absolutePath = path.resolve(workspacePath, entry.name);
+                  files.push(absolutePath);
+                }
+              }
 
               allUris.push(...files.map(filePath => vscode.Uri.file(filePath)));
             }
@@ -119,12 +133,24 @@ export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.E
             // Search each pattern and combine results
             const allFiles: string[] = [];
             for (const pattern of patterns) {
-              const files = await glob(pattern, {
+              const files: string[] = [];
+              const globOptions: { cwd: string; ignore?: string[]; withFileTypes?: boolean } = {
                 cwd: workspacePath,
-                absolute: true,
-                ignore: excludeGlob ? [excludeGlob] : [],
-                nodir: true
-              });
+                withFileTypes: true
+              };
+              if (excludeGlob) {
+                globOptions.ignore = [excludeGlob];
+              }
+
+              // fs.glob returns an async generator, convert to array
+              for await (const entry of glob(pattern, globOptions)) {
+                // entry is a Dirent when withFileTypes is true
+                if (typeof entry === 'object' && 'isFile' in entry && entry.isFile()) {
+                  // Resolve to absolute path
+                  const absolutePath = path.resolve(workspacePath, entry.name);
+                  files.push(absolutePath);
+                }
+              }
               allFiles.push(...files);
             }
 
