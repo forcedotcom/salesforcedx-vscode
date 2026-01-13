@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Effect } from 'effect';
+import { glob } from 'glob';
 import * as vscode from 'vscode';
 
 // --- Configuration ---
@@ -53,9 +54,38 @@ export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.E
   const { fileGlob, excludeGlob, logger = console.log } = options;
 
   return Effect.gen(function* () {
-    // 1. Find all matching workspace files
+    // 1. Find all matching workspace files using glob
     const uris = yield* Effect.tryPromise({
-      try: () => vscode.workspace.findFiles(fileGlob, excludeGlob),
+      try: async () => {
+        if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+          return [];
+        }
+
+        // Search all workspace folders in parallel
+        const searchPromises = vscode.workspace.workspaceFolders.map(async folder => {
+          const workspacePath = folder.uri.fsPath || folder.uri.path;
+          if (!workspacePath) {
+            return [];
+          }
+
+          // Use glob to find files matching the pattern
+          // The pattern is relative to cwd, so we set cwd to the workspace folder
+          const files = await glob(fileGlob, {
+            cwd: workspacePath,
+            absolute: true,
+            ignore: excludeGlob ? [excludeGlob] : [],
+            nodir: true // Only return files, not directories
+          });
+
+          // Convert file paths to vscode.Uri objects
+          // With absolute: true, glob returns absolute paths, so we can use them directly
+          return files.map(filePath => vscode.Uri.file(filePath));
+        });
+
+        // Wait for all searches to complete and flatten the results
+        const results = await Promise.all(searchPromises);
+        return results.flat();
+      },
       catch: (e: unknown) => new Error(`Failed to find workspace files: ${String(e)}`)
     });
 
