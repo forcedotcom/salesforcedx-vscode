@@ -109,7 +109,9 @@
     "build:soql-builder-ui": {
       "command": "cd src/soql-builder-ui && npm install && export NODE_OPTIONS=--openssl-legacy-provider && npx lwc-services build -w webpack.config.js -m production",
       "files": [
-        "src/soql-builder-ui/src/**",
+        "src/soql-builder-ui/*.{ts,html}",
+        "src/soql-builder-ui/modules/**",
+        "src/soql-builder-ui/jestSetup/**",
         "src/soql-builder-ui/webpack.config.js",
         "src/soql-builder-ui/lwc.config.json",
         "src/soql-builder-ui/lwc-services.config.js",

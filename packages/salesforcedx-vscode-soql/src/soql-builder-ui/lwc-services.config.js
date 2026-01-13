@@ -2,5 +2,5 @@
 // https://github.com/muenzpraeger/create-lwc-app/blob/main/packages/lwc-services/example/lwc-services.config.js
 module.exports = {
   buildDir: './dist',
-  sourceDir: './src'
+  sourceDir: '.'
 };
