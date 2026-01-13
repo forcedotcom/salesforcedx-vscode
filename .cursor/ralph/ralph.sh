@@ -20,6 +20,7 @@ for ((i=1; i<=$1; i++)); do
  If there are no failures, choose the next highest priority command\
 1a. make sure output channel tests completely clear the output channel, there should not be text left in it.  Use screenshots to verify this.\
 2. never change branches, stay on ralph-e2e-meta\
+2a. you may not bypass eslint rules.
 3. get it to run locally on test:web.  Web tests should never be skipped \
 4. get it to run locally using the :desktop tests (the local environment is macos) \
 5. makes sure org-browser tests are still passing locally (web and desktop) \
