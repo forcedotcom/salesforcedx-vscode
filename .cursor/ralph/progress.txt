@@ -1,4 +1,4 @@
-## Iteration - Fixed Test Isolation Issues for Desktop Tests
+Simplified playwright test helpers per plan simplify_playwright_test_helpers_420ec698.plan.md
 
 ### Status:
 - All test files exist and are implemented (commandPalette, fileOperations, settings, outputChannel, contextMenu, helpers)
