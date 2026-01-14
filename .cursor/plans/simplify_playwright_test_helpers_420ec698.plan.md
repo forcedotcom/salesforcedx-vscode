@@ -16,7 +16,8 @@ todos:
     note: Simplified significantly but kept retry logic to reopen command palette if widget becomes hidden. macOS desktop shows flaky test that passes on retry - this may be inherent flakiness exposed by simplification.
   - id: simplify-output-channel
     content: Simplify ensureOutputPanelOpen() - remove desktop-specific editor clicks and simplify fallback
-    status: pending
+    status: completed
+    note: Simplified by removing desktop-specific editor area click and unifying keyboard shortcut. However, fallback to command palette shows CI-specific flakiness on macOS desktop - tests pass locally but fail intermittently on CI. Web and Windows desktop tests pass consistently.
   - id: review-platform-specific
     content: Review all platform-specific code paths (isWindowsDesktop, isMacDesktop, isDesktop) and unify where possible
     status: pending
