@@ -8,7 +8,7 @@ import { Locator, Page, expect } from '@playwright/test';
 import type { AuthFields } from '@salesforce/core';
 import { ACCESS_TOKEN_KEY, API_VERSION_KEY, CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY } from '../constants';
 import { saveScreenshot } from '../shared/screenshotUtils';
-import { waitForVSCodeWorkbench, closeWelcomeTabs, waitForWorkspaceReady, isMacDesktop } from '../utils/helpers';
+import { waitForVSCodeWorkbench, closeWelcomeTabs, waitForWorkspaceReady, isMacDesktop, isDesktop } from '../utils/helpers';
 import { WORKBENCH, SETTINGS_SEARCH_INPUT } from '../utils/locators';
 
 const settingsLocator = (page: Page): Locator => page.locator(SETTINGS_SEARCH_INPUT.join(','));
@@ -32,8 +32,7 @@ export const upsertScratchOrgAuthFieldsToSettings = async (
   waitForProject: () => Promise<void> = () => waitForWorkspaceReady(page)
 ): Promise<void> => {
   // Desktop uses real CLI auth files, so just wait for workbench (no navigation, no settings)
-  const isDesktop = process.env.VSCODE_DESKTOP === '1';
-  if (isDesktop) {
+  if (isDesktop()) {
     // Page is already loaded by Electron fixture, just wait for project if callback provided
     if (waitForProject) {
       await waitForProject();

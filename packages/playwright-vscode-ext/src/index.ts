@@ -14,6 +14,7 @@ export {
   closeSettingsTab,
   waitForWorkspaceReady,
   typingSpeed,
+  isDesktop,
   isMacDesktop,
   isWindowsDesktop,
   validateNoCriticalErrors

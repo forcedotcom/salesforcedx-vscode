@@ -90,8 +90,7 @@ export const filterNetworkErrors = (errors: NetworkError[]): NetworkError[] =>
 /** Wait for VS Code workbench to load. For web, navigates to /. For desktop, just waits. */
 export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promise<void> => {
   // Desktop: page is already loaded by Electron, no navigation possible
-  const isDesktop = process.env.VSCODE_DESKTOP === '1';
-  if (isDesktop) {
+  if (isDesktop()) {
     await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
     return;
   }
@@ -181,6 +180,9 @@ export const waitForWorkspaceReady = async (page: Page, timeout = 30_000): Promi
 };
 
 export const typingSpeed = 50; // ms
+
+/** Returns true if running on desktop (Electron), regardless of platform */
+export const isDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1';
 
 /** Returns true if running on macOS desktop (Electron) */
 export const isMacDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' && process.platform === 'darwin';
