@@ -89,3 +89,23 @@ Simplified playwright test helpers per plan simplify_playwright_test_helpers_420
   - macOS desktop: ✗ failure (commandPalette test flaky - same issue as before)
   - Windows desktop: ✗ failure (outputChannel test - unrelated to changes)
 - Note: Failures are in unrelated tests (commandPalette flakiness on macOS, outputChannel on Windows). The isDesktop() helper function change is correct and doesn't affect these tests. These appear to be pre-existing flaky tests or CI-specific issues.
+
+### Completed: remove-multiple-clicks
+- Removed fallback click pattern in commandPalette test where test attempted to click workbench editor area first, then fell back to clicking WORKBENCH locator
+- Simplified to use single WORKBENCH click with timeout
+- Local tests passing:
+  - playwright-vscode-ext web: ✓ 21 passed
+  - playwright-vscode-ext desktop: ✓ 18 passed (3 skipped)
+  - org-browser web: ✓ 4 passed
+  - org-browser desktop: ✓ 4 passed
+- Committed: cd488e814
+- CI run 21003606325 results:
+  - Web: ✓ success (all tests passing)
+  - Windows desktop: ✓ success (all tests passing)
+  - macOS desktop: ✗ failure (pre-existing flaky test "Command Palette › should execute command via command palette")
+- Note: The macOS desktop failure is in a different test than the one modified. The modified test ("should support command palette with Ctrl+Shift+P") is skipped on macOS desktop, so this change cannot have caused the failure. This is the same pre-existing flaky test documented in simplify-execute-command task (line 57).
+
+### Completed: remove-force-visibility
+- Verified that all force visibility hacks were already removed in previous simplifications
+- The only remaining evaluate() call is for virtualized lists (scroll and click in commands.ts line 127), which is necessary and not a force visibility hack
+- No changes needed - task already complete from previous simplifications

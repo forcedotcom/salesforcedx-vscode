@@ -24,10 +24,12 @@ todos:
     note: Added isDesktop() helper function and replaced inline checks in waitForVSCodeWorkbench() and upsertScratchOrgAuthFieldsToSettings(). Platform-specific checks for shortcuts (Meta vs Control) and context menus (Mac desktop limitation) remain as they are necessary. All tests passing locally. CI shows failures in unrelated tests (commandPalette flakiness on macOS, outputChannel on Windows) - these are not caused by this change.
   - id: remove-multiple-clicks
     content: Remove duplicate/multiple click patterns throughout codebase
-    status: pending
+    status: completed
+    note: Removed fallback click pattern in commandPalette test. Simplified to use single WORKBENCH click. All local tests passing (web, desktop, org-browser). CI: Web ✓, Windows ✓, macOS ✗ (pre-existing flaky test, unrelated to change).
   - id: remove-force-visibility
     content: Remove all evaluate() calls that force visibility by manipulating DOM styles
-    status: pending
+    status: completed
+    note: All force visibility hacks were already removed in simplify-open-command-palette and simplify-execute-command tasks. The only remaining evaluate() call is for virtualized lists (scroll and click), which is necessary and not a force visibility hack.
     dependencies:
       - simplify-open-command-palette
       - simplify-execute-command
