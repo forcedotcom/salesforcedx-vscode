@@ -43,10 +43,29 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
   const widget = page.locator(QUICK_INPUT_WIDGET);
-  const input = widget.locator('input.input');
+  let input = widget.locator('input.input');
   
-  // Widget should already be visible from openCommandPalette
-  await expect(input).toBeVisible({ timeout: 10_000 });
+  // Ensure widget and input are visible - reopen command palette if needed
+  await expect(async () => {
+    const widgetVisible = await widget.isVisible({ timeout: 3000 }).catch(() => false);
+    if (!widgetVisible) {
+      // Widget is hidden - reopen command palette
+      const { closeWelcomeTabs } = await import('../utils/helpers.js');
+      const { WORKBENCH } = await import('../utils/locators.js');
+      await closeWelcomeTabs(page);
+      await page.locator(WORKBENCH).click({ timeout: 5000 }).catch(() => {});
+      const existingWidget = page.locator(QUICK_INPUT_WIDGET);
+      if (await existingWidget.isVisible({ timeout: 500 }).catch(() => false)) {
+        await page.keyboard.press('Escape');
+        await existingWidget.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
+      }
+      await page.keyboard.press('F1');
+      await widget.waitFor({ state: 'attached', timeout: 10_000 });
+      await expect(widget).toBeVisible({ timeout: 10_000 });
+      input = widget.locator('input.input');
+    }
+    await expect(input).toBeVisible({ timeout: 10_000 });
+  }).toPass({ timeout: 15_000 });
   await input.focus({ timeout: 5000 });
   await expect(input).toHaveValue(/^>/, { timeout: 5000 });
   
