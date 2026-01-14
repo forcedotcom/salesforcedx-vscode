@@ -73,16 +73,8 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
     await workbench.click({ timeout: 5000 });
     await expect(workbench).toBeVisible({ timeout: 5000 });
 
-    // On desktop, also click the editor area to ensure focus
-    const isDesktop = process.env.VSCODE_DESKTOP === '1';
-    if (isDesktop) {
-      const editorArea = page.locator(`.editor-container, ${EDITOR}, [id="workbench.parts.editor"]`);
-      await editorArea.first().click({ timeout: 2000, force: true });
-      await expect(workbench).toBeVisible({ timeout: 1000 });
-    }
-
-    // Use keyboard shortcut - Command+Shift+U on macOS, Control+Shift+U elsewhere
-    await (isMacDesktop() ? page.keyboard.press('Meta+Shift+u') : page.keyboard.press('Control+Shift+u'));
+    // Use keyboard shortcut - Control+Shift+U works on all platforms (VS Code maps Command to Control on macOS)
+    await page.keyboard.press('Control+Shift+u');
 
     // Wait for panel to become visible, with fallback to command palette if needed
     const panelVisible = await panel.isVisible({ timeout: 5000 }).catch(() => false);
@@ -90,7 +82,6 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
       await openCommandPalette(page);
       const widget = page.locator(QUICK_INPUT_WIDGET);
       const input = widget.locator('input.input');
-      await input.waitFor({ state: 'attached', timeout: 5000 });
       await expect(input).toBeVisible({ timeout: 5000 });
       await input.fill('>Output: Focus on Output View');
       await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
