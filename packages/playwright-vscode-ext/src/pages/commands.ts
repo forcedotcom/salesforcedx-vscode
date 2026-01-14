@@ -35,10 +35,13 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
   await widget.waitFor({ state: 'attached', timeout: 10_000 });
   await expect(widget).toBeVisible({ timeout: 10_000 });
   
-  // Wait for input to be ready
+  // Wait for input to be ready and stable
   const input = widget.locator('input.input');
   await input.waitFor({ state: 'attached', timeout: 10_000 });
   await expect(input).toBeVisible({ timeout: 10_000 });
+  // Ensure input is focused and ready before returning
+  await input.focus({ timeout: 5000 }).catch(() => {});
+  await expect(input).toHaveValue(/^>/, { timeout: 5000 }).catch(() => {});
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
