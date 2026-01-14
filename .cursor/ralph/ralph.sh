@@ -16,7 +16,7 @@ for ((i=1; i<=$1; i++)); do
 0a. never edit this ralph.sh file.\
 1.  Review commits, progress.txt, and plan.md to avoid repeating mistakes.\
  If no failures, choose the next highest priority item\
- only work on one item at a time, the end of this list.\
+ only work on one item at a time, all the way through the end of this list.\
  if a large simplificaiton fails, try doing it in pieces.
 2. never change branches, stay on ralph-e2e-meta\
 2a. you may not bypass eslint rules.\
