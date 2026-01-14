@@ -61,25 +61,9 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
     const { closeWelcomeTabs } = await import('../utils/helpers.js');
     await closeWelcomeTabs(page);
 
-    // Close any notification dialogs that might block keyboard shortcuts
-    const notificationDialog = page.locator('[role="dialog"]').filter({ hasText: /notification/i });
-    if (await notificationDialog.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await page.keyboard.press('Escape');
-      await notificationDialog.waitFor({ state: 'hidden', timeout: 2000 });
-    }
-
     // Ensure workbench is focused before using keyboard shortcut
     const workbench = page.locator(WORKBENCH);
-    await workbench.click({ timeout: 5000 });
-    await expect(workbench).toBeVisible({ timeout: 5000 });
-
-    // On desktop, also click the editor area to ensure focus
-    const isDesktop = process.env.VSCODE_DESKTOP === '1';
-    if (isDesktop) {
-      const editorArea = page.locator(`.editor-container, ${EDITOR}, [id="workbench.parts.editor"]`);
-      await editorArea.first().click({ timeout: 2000, force: true });
-      await expect(workbench).toBeVisible({ timeout: 1000 });
-    }
+    await workbench.click();
 
     // Use keyboard shortcut - Command+Shift+U on macOS, Control+Shift+U elsewhere
     await (isMacDesktop() ? page.keyboard.press('Meta+Shift+u') : page.keyboard.press('Control+Shift+u'));
@@ -90,7 +74,6 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
       await openCommandPalette(page);
       const widget = page.locator(QUICK_INPUT_WIDGET);
       const input = widget.locator('input.input');
-      await input.waitFor({ state: 'attached', timeout: 5000 });
       await expect(input).toBeVisible({ timeout: 5000 });
       await input.fill('>Output: Focus on Output View');
       await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });

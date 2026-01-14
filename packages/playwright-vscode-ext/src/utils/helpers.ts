@@ -110,175 +110,46 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
   const isQuickInputVisible = await quickInput.isVisible({ timeout: 1000 }).catch(() => false);
   if (isQuickInputVisible) {
     await page.keyboard.press('Escape');
-    await quickInput.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
+    await quickInput.waitFor({ state: 'hidden', timeout: 2000 });
   }
 
-  const isDesktop = process.env.VSCODE_DESKTOP === '1';
-  
-  // Ensure workbench is focused before closing tabs - click multiple times for reliability
+  // Ensure workbench is focused before closing tabs
   const workbench = page.locator(WORKBENCH);
-  await workbench.click({ timeout: 5000 }).catch(() => {});
-  await workbench.click({ timeout: 2000 }).catch(() => {});
-  
-  // On desktop, also click the editor area directly to ensure focus
-  if (isDesktop) {
-    const { EDITOR } = await import('./locators.js');
-    const editorArea = page.locator(`.editor-container, ${EDITOR}, [id="workbench.parts.editor"]`);
-    await editorArea.first().click({ timeout: 2000, force: true }).catch(() => {});
-    // Wait for workbench to be visible to ensure focus has settled
-    await expect(workbench).toBeVisible({ timeout: 1000 }).catch(() => {});
-  }
+  await workbench.click();
 
-  // Wait for tab container to be ready before checking for welcome tabs
-  const tabContainer = page.locator('.tabs-container');
-  await tabContainer.waitFor({ state: 'attached', timeout: 5000 }).catch(() => {});
-
-  // Loop to close all welcome/walkthrough tabs (there may be multiple)
+  // Find all welcome/walkthrough tabs - loop until none remain
   let attempts = 0;
-  const maxAttempts = 20;
-
+  const maxAttempts = 10;
   while (attempts < maxAttempts) {
-    // Re-query tabs each iteration to avoid stale element issues
     const welcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
     const count = await welcomeTabs.count();
     
     if (count === 0) {
-      // Wait for tab container to stabilize to ensure no new tabs appear
-      await tabContainer.waitFor({ state: 'attached', timeout: 3000 }).catch(() => {});
-      // Double-check after waiting - re-query to avoid stale references
-      const recheckWelcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
-      const finalCount = await recheckWelcomeTabs.count();
-      if (finalCount === 0) {
-        // Verify tabs are actually gone by checking DOM directly
-        const allTabs = page.locator(TAB);
-        const allTabTexts = await allTabs.allTextContents();
-        const hasWelcomeTab = allTabTexts.some(text => /Welcome|Walkthrough/i.test(text));
-        if (!hasWelcomeTab) {
-          // Wait one more time to ensure tabs don't reopen
-          await tabContainer.waitFor({ state: 'attached', timeout: 2000 }).catch(() => {});
-          const finalVerify = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
-          const finalVerifyCount = await finalVerify.count();
-          if (finalVerifyCount === 0) {
-            break;
-          }
-        }
-      }
+      break;
     }
 
-    // Close any Quick Input widgets that may have appeared
+    // Close any quick input that may have appeared
     const quickInputVisible = await quickInput.isVisible({ timeout: 500 }).catch(() => false);
     if (quickInputVisible) {
       await page.keyboard.press('Escape');
-      await quickInput.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
+      await quickInput.waitFor({ state: 'hidden', timeout: 1000 });
     }
 
-    // Ensure workbench is focused before closing tabs - click in the editor area to ensure focus
-    await workbench.click({ timeout: 5000 }).catch(() => {});
-    // On desktop, also try clicking the editor area directly to ensure focus
-    const { EDITOR } = await import('./locators.js');
-    const editorArea = page.locator(`.editor-container, ${EDITOR}`);
-    await editorArea.first().click({ timeout: 2000, force: true }).catch(() => {});
-
-    // Re-query to get fresh tab reference
-    const currentWelcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
-    const currentCount = await currentWelcomeTabs.count();
-    if (currentCount === 0) {
-      attempts++;
-      continue;
-    }
-
-    const welcomeTab = currentWelcomeTabs.first();
+    const tab = welcomeTabs.first();
+    await expect(tab).toBeAttached();
     
-    // Wait for tab to be attached (exists in DOM)
-    const tabAttached = await welcomeTab.waitFor({ state: 'attached', timeout: 5000 }).catch(() => false);
-    if (!tabAttached) {
-      attempts++;
-      continue;
-    }
-
-    // Ensure Quick Input is closed before interacting with tabs
-    const quickInputStillVisible = await quickInput.isVisible({ timeout: 500 }).catch(() => false);
-    if (quickInputStillVisible) {
-      await page.keyboard.press('Escape');
-      await quickInput.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
-    }
-
-    // Select the tab first to ensure it's active - use force: true on desktop for reliability
-    await workbench.click({ timeout: 2000 }).catch(() => {});
-    // Re-query tab to avoid stale reference after attachment check
-    const tabToClose = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i }).first();
-    await tabToClose.click({ timeout: 5000, force: isDesktop });
-    // Wait for tab to be selected - this is critical for closing to work
-    await expect(tabToClose).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
-
-    // Try close button first (more reliable than keyboard shortcut)
-    const closeButton = tabToClose.locator(TAB_CLOSE_BUTTON);
-    const closeButtonVisible = await closeButton.isVisible({ timeout: 5000 }).catch(() => false);
+    // Try close button first
+    const closeButton = tab.locator(TAB_CLOSE_BUTTON);
+    const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
     
     if (closeButtonVisible) {
-      // Ensure tab is still selected before clicking close button
-      await tabToClose.click({ timeout: 2000, force: isDesktop }).catch(() => {});
-      // On desktop, use evaluate() to click close button directly for better reliability
-      if (isDesktop) {
-        // Use evaluate() to click close button directly, bypassing Playwright's visibility checks
-        await closeButton.evaluate((el: HTMLElement) => el.click()).catch(
-          () => closeButton.click({ timeout: 5000, force: true })
-        );
-      } else {
-        await closeButton.click({ timeout: 5000 });
-      }
-      // Wait for tab to be fully removed from DOM - use longer timeout for CI
-      const tabDetached = await tabToClose.waitFor({ state: 'detached', timeout: 10_000 }).catch(() => false);
-      if (!tabDetached) {
-        // If close button didn't work, try keyboard shortcut as fallback
-        await workbench.click({ timeout: 1000 }).catch(() => {});
-        // Re-query tab in case it's still there
-        const fallbackTab = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i }).first();
-        await fallbackTab.click({ timeout: 1000, force: isDesktop }).catch(() => {});
-        await page.keyboard.press('Control+w');
-        await fallbackTab.waitFor({ state: 'detached', timeout: 10_000 }).catch(() => {});
-      }
+      await closeButton.click();
+      await tab.waitFor({ state: 'detached', timeout: 5000 });
     } else {
-      // Fall back to keyboard shortcut if close button not visible
-      // Ensure workbench has focus before using keyboard shortcut
-      await workbench.click({ timeout: 2000 }).catch(() => {});
-      await tabToClose.click({ timeout: 1000, force: isDesktop }).catch(() => {});
+      // Fall back to keyboard shortcut
+      await tab.click();
       await page.keyboard.press('Control+w');
-      // Wait for tab to be detached - use longer timeout for CI
-      await tabToClose.waitFor({ state: 'detached', timeout: 10_000 }).catch(() => {});
-    }
-
-    // Wait for tab container to update before checking for more tabs
-    await tabContainer.waitFor({ state: 'attached', timeout: 2000 }).catch(() => {});
-    
-    // Verify the tab was actually closed - re-query to avoid stale references
-    await tabContainer.waitFor({ state: 'attached', timeout: 2000 }).catch(() => {});
-    // Wait for tab container to stabilize after closing
-    await expect(tabContainer).toBeAttached({ timeout: 1000 }).catch(() => {});
-    const verifyTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
-    const remainingCount = await verifyTabs.count();
-    if (remainingCount === 0) {
-      // Tab was closed successfully - wait a bit more to ensure no new tabs appear
-      await tabContainer.waitFor({ state: 'attached', timeout: 3000 }).catch(() => {});
-      await expect(tabContainer).toBeAttached({ timeout: 1000 }).catch(() => {});
-      const finalVerify = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
-      const finalCount = await finalVerify.count();
-      if (finalCount === 0) {
-        // Verify by checking all tab texts
-        const allTabs = page.locator(TAB);
-        const allTabTexts = await allTabs.allTextContents();
-        const hasWelcomeTab = allTabTexts.some(text => /Welcome|Walkthrough/i.test(text));
-        if (!hasWelcomeTab) {
-          // One final wait to ensure tabs don't reopen
-          await tabContainer.waitFor({ state: 'attached', timeout: 2000 }).catch(() => {});
-          await expect(tabContainer).toBeAttached({ timeout: 1000 }).catch(() => {});
-          const ultimateVerify = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
-          const ultimateCount = await ultimateVerify.count();
-          if (ultimateCount === 0) {
-            break; // Successfully closed all welcome tabs
-          }
-        }
-      }
+      await tab.waitFor({ state: 'detached', timeout: 5000 });
     }
     
     attempts++;
