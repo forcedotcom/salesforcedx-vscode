@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.10.0",
+  "version": "65.13.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,7 +24,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.2",
+    "@salesforce/apex-node": "^8.4.3",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",

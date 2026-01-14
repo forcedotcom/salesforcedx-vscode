@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.10.0",
+  "version": "65.13.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -24,7 +24,7 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "^8.4.2",
+    "@salesforce/apex-node": "^8.4.3",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
@@ -385,6 +385,47 @@
           "type": "boolean",
           "default": false,
           "description": "%apex_test_run_concise%"
+        },
+        "salesforcedx-vscode-apex-testing.outputFormat": {
+          "type": "string",
+          "enum": [
+            "markdown",
+            "text"
+          ],
+          "default": "markdown",
+          "description": "%apex_test_output_format_description%",
+          "enumDescriptions": [
+            "%apex_test_output_format_markdown_description%",
+            "%apex_test_output_format_text_description%"
+          ]
+        },
+        "salesforcedx-vscode-apex-testing.testSortOrder": {
+          "type": "string",
+          "enum": [
+            "runtime",
+            "coverage",
+            "severity"
+          ],
+          "default": "runtime",
+          "description": "%apex_test_sort_order_description%",
+          "enumDescriptions": [
+            "%apex_test_sort_order_runtime_description%",
+            "%apex_test_sort_order_coverage_description%",
+            "%apex_test_sort_order_severity_description%"
+          ]
+        },
+        "salesforcedx-vscode-apex-testing.testPerformanceThresholdMs": {
+          "type": "number",
+          "default": 5000,
+          "description": "%apex_test_performance_threshold_description%",
+          "minimum": 0
+        },
+        "salesforcedx-vscode-apex-testing.testCoverageThresholdPercent": {
+          "type": "number",
+          "default": 75,
+          "description": "%apex_test_coverage_threshold_description%",
+          "minimum": 0,
+          "maximum": 100
         }
       }
     }
