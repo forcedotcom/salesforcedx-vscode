@@ -82,6 +82,7 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
       await openCommandPalette(page);
       const widget = page.locator(QUICK_INPUT_WIDGET);
       const input = widget.locator('input.input');
+      await input.waitFor({ state: 'attached', timeout: 5000 });
       await expect(input).toBeVisible({ timeout: 5000 });
       await input.fill('>Output: Focus on Output View');
       await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
