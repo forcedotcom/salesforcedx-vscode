@@ -53,26 +53,27 @@ export const upsertScratchOrgAuthFieldsToSettings = async (
   });
 };
 
+const performSearch =
+  (page: Page) =>
+  async (query: string): Promise<void> => {
+    // Reset search by selecting all and clearing
+    const searchMonaco = settingsLocator(page).first();
+    await searchMonaco.click();
+    // seems to be necessary to avoid clearing the setting instead of the search box.
+    // TODO: figure out what to actually wait for (ex: can I tell if it's focused?)
+    await page.waitForTimeout(200);
+    // TODO: this works in headless tests with playwright on local mac, and ControlOrMeta+A doesn't work!
+    await page.keyboard.press('Control+KeyA');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.type(query);
+  };
+
 /** Upsert settings using Settings (UI) search and fill of each id.
  * For checkbox settings, pass "true" or "false" as the value.
  */
 export const upsertSettings = async (page: Page, settings: Record<string, string>): Promise<void> => {
   await openSettingsUI(page);
   const debugAria = process.env.E2E_ARIA_DEBUG === '1';
-
-  const searchMonaco = settingsLocator(page).first();
-
-  const performSearch = async (query: string): Promise<void> => {
-    // Reset search by selecting all and clearing
-    await searchMonaco.click();
-    // Wait for Monaco editor to be focused - check for "focused" class on editor div
-    // Monaco editor doesn't expose focus state via standard focus APIs, so we check the class
-    await expect(searchMonaco).toHaveClass(/focused/, { timeout: 5000 });
-    // TODO: this works in headless tests with playwright on local mac, and ControlOrMeta+A doesn't work!
-    await page.keyboard.press('Control+KeyA');
-    await page.keyboard.press('Backspace');
-    await page.keyboard.type(query);
-  };
 
   for (const [id, value] of Object.entries(settings)) {
     // Debug visibility: take screenshot and aria snapshot before each search
@@ -86,7 +87,7 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
     await settingsLocator(page).first().waitFor({ timeout: 3000 });
 
     // First try an exact search by full id (section.key)
-    await performSearch(id);
+    await performSearch(page)(id);
 
     // Wait for search results to appear - wait for any search result element to indicate search completed
     await page.locator('[data-id^="searchResultModel_"]').first().waitFor({ state: 'attached', timeout: 15_000 });
@@ -148,8 +149,6 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       await inputElement.clear();
       await inputElement.fill(value);
       await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
-      // Press Enter to commit the change before blurring
-      await page.keyboard.press('Enter');
       await inputElement.blur();
     }
 

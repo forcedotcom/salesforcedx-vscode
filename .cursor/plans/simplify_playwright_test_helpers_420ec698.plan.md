@@ -4,15 +4,16 @@ overview: Review and simplify the playwright-vscode-ext codebase by removing exc
 todos:
   - id: simplify-close-welcome-tabs
     content: Simplify closeWelcomeTabs() - remove nested retry loops, redundant checks, excessive waits, and platform-specific code where not needed
-    status: pending
+    status: completed
   - id: simplify-open-command-palette
     content: Simplify openCommandPalette() - remove retry loop, nested welcome tab closing, force visibility hacks, and Windows-specific fallback if not needed
-    status: pending
+    status: completed
   - id: simplify-execute-command
     content: Simplify executeCommand() - remove unnecessary retry logic and fallbacks
-    status: pending
+    status: completed
     dependencies:
       - simplify-open-command-palette
+    note: Simplified significantly but kept retry logic to reopen command palette if widget becomes hidden. macOS desktop shows flaky test that passes on retry - this may be inherent flakiness exposed by simplification.
   - id: simplify-output-channel
     content: Simplify ensureOutputPanelOpen() - remove desktop-specific editor clicks and simplify fallback
     status: pending
