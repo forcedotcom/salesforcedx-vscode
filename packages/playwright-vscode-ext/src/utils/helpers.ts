@@ -6,7 +6,7 @@
  */
 
 import { expect, type Page } from '@playwright/test';
-import { WORKBENCH, TAB, TAB_CLOSE_BUTTON } from './locators';
+import { WORKBENCH, TAB, TAB_CLOSE_BUTTON, QUICK_INPUT_WIDGET } from './locators';
 
 type ConsoleError = { text: string; url?: string };
 type NetworkError = { status: number; url: string; description: string };
@@ -104,16 +104,56 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
 
 /** Close VS Code Welcome/Walkthrough tabs if they're open */
 export const closeWelcomeTabs = async (page: Page): Promise<void> => {
-  const welcomeTab = page
-    .locator(TAB)
-    .filter({ hasText: /Welcome|Walkthrough/i })
-    .first();
-  const isWelcomeVisible = await welcomeTab.isVisible().catch(() => false);
-  if (isWelcomeVisible) {
+  const quickInput = page.locator(QUICK_INPUT_WIDGET);
+  const workbench = page.locator(WORKBENCH);
+
+  // Use Playwright's retry mechanism to close all welcome tabs
+  await expect(async () => {
+    // Close Quick Input if it's visible (it can intercept clicks)
+    if (await quickInput.isVisible({ timeout: 500 }).catch(() => false)) {
+      await page.keyboard.press('Escape');
+      await quickInput.waitFor({ state: 'hidden', timeout: 2000 });
+    }
+
+    // Ensure workbench is focused before interacting with tabs
+    await workbench.click({ timeout: 5000 }).catch(() => {});
+
+    const welcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
+    const count = await welcomeTabs.count();
+    
+    if (count === 0) {
+      return;
+    }
+
+    const welcomeTab = welcomeTabs.first();
+    // Ensure Quick Input is closed before clicking tab
+    if (await quickInput.isVisible({ timeout: 500 }).catch(() => false)) {
+      await page.keyboard.press('Escape');
+      await quickInput.waitFor({ state: 'hidden', timeout: 2000 });
+    }
+
+    // Select the tab first to ensure it's active
+    await welcomeTab.click({ timeout: 5000, force: true });
+    await expect(welcomeTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
+    
+    // Try close button first
     const closeButton = welcomeTab.locator(TAB_CLOSE_BUTTON);
-    await closeButton.click();
-    await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
-  }
+    if (await closeButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await closeButton.click({ timeout: 5000 });
+      await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 });
+    } else {
+      // Fall back to keyboard shortcut
+      await page.keyboard.press('Control+w');
+      await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 });
+    }
+
+    // Verify tab was closed - re-query to avoid stale references
+    const remainingTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
+    const remainingCount = await remainingTabs.count();
+    if (remainingCount > 0) {
+      throw new Error(`Still ${remainingCount} welcome tab(s) remaining`);
+    }
+  }).toPass({ timeout: 30_000 });
 };
 
 /** Closes any visible Settings tabs */
