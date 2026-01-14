@@ -13,7 +13,6 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { Effect } from 'effect';
-import * as path from 'node:path';
 import { commands, Disposable, ExtensionContext, Uri, workspace } from 'vscode';
 import { channelService } from './channel';
 import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
@@ -36,21 +35,23 @@ const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
   return telemetryModule.telemetryService;
 };
 
-export const activate = async (extensionContext: ExtensionContext) => {
-  // Log immediately to browser console - this should always appear if extension loads
-  console.log('[LWC] Extension activate() called');
-  console.log('[LWC] Extension context:', extensionContext.extension.id);
+// Track if we've already activated to avoid duplicate activation
+let isActivated = false;
+
+const performActivation = async (extensionContext: ExtensionContext) => {
+  console.log('[LWC] performActivation called, isActivated:', isActivated);
+  // If already activated, don't activate again
+  if (isActivated) {
+    const msg = '[DEBUG] Extension already activated, skipping duplicate activation';
+    console.log(msg);
+    log(msg);
+    return;
+  }
 
   // Get telemetry service (lazy load - no-op in web mode)
   const telemetryService = await getTelemetryService();
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
 
-  log('Lightning Web Components extension activating...');
-  try {
-    channelService.appendLine('Lightning Web Components extension activating...');
-  } catch (e) {
-    console.error('[LWC] Failed to append to channel:', e);
-  }
   log(`Activation Mode: ${getActivationMode()}`);
   channelService.appendLine(`Activation Mode: ${getActivationMode()}`);
   // Run our auto detection routine before we activate
@@ -79,9 +80,30 @@ export const activate = async (extensionContext: ExtensionContext) => {
     }
   }
 
+  // Debug workspace state
+  log(`[DEBUG] workspace.workspaceFolders: ${workspace.workspaceFolders ? 'exists' : 'undefined'}`);
+  log(`[DEBUG] workspace.workspaceFolders?.length: ${workspace.workspaceFolders?.length ?? 'N/A'}`);
+  log(`[DEBUG] workspace.name: ${workspace.name ?? 'undefined'}`);
+  log(`[DEBUG] workspace.workspaceFile: ${workspace.workspaceFile?.toString() ?? 'undefined'}`);
+
+  // In web mode, workspace folders might not be available immediately
+  // Wait a bit for them to load if they're not available yet
+  if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
+    log('[DEBUG] No workspace folders found, waiting up to 2 seconds for them to load...');
+    // Wait for workspace folders with a timeout
+    const maxWaitTime = 2000; // 2 seconds
+    const checkInterval = 100; // Check every 100ms
+    let waited = 0;
+    while ((!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) && waited < maxWaitTime) {
+      await new Promise(resolve => setTimeout(resolve, checkInterval));
+      waited += checkInterval;
+    }
+    log(`[DEBUG] After waiting ${waited}ms, workspace folders: ${workspace.workspaceFolders?.length ?? 0}`);
+  }
+
   // if we have no workspace folders, exit
-  if (!workspace.workspaceFolders) {
-    const msg = 'No workspace, exiting extension';
+  if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
+    const msg = 'No workspace folders found, exiting extension';
     log(msg);
     channelService.appendLine(msg);
     return;
@@ -89,10 +111,14 @@ export const activate = async (extensionContext: ExtensionContext) => {
 
   // Pass the workspace folder URIs to the language server
   const workspaceUris: string[] = [];
-  workspace.workspaceFolders.forEach(folder => {
+  log(`[DEBUG] Workspace folders count: ${workspace.workspaceFolders.length}`);
+  workspace.workspaceFolders.forEach((folder, index) => {
     // In web mode, fsPath might be undefined for non-file:// URIs
     // Use fsPath if available, otherwise fall back to URI path
     const folderPath = folder.uri.fsPath ?? folder.uri.path;
+    log(
+      `[DEBUG] Workspace folder ${index}: uri=${folder.uri.toString()}, fsPath=${folder.uri.fsPath ?? 'undefined'}, path=${folder.uri.path ?? 'undefined'}, extractedPath=${folderPath ?? 'undefined'}`
+    );
     if (folderPath) {
       workspaceUris.push(folderPath);
     } else {
@@ -101,10 +127,21 @@ export const activate = async (extensionContext: ExtensionContext) => {
     }
   });
 
+  log(`[DEBUG] Workspace URIs to check: ${JSON.stringify(workspaceUris)}`);
+  log(`[DEBUG] Workspace URIs count: ${workspaceUris.length}`);
+
   // For workspace type detection, we still need to check the file system
   // Create a temporary provider just for detection
   // In web mode with no valid paths, default to UNKNOWN
-  const workspaceType = workspaceUris.length > 0 ? await detectWorkspaceType(workspaceUris) : 'UNKNOWN';
+  let workspaceType: lspCommon.WorkspaceType;
+  if (workspaceUris.length > 0) {
+    log(`[DEBUG] Calling detectWorkspaceType with ${workspaceUris.length} workspace root(s)`);
+    workspaceType = await detectWorkspaceType(workspaceUris);
+    log(`[DEBUG] detectWorkspaceType returned: ${workspaceType}`);
+  } else {
+    log('[DEBUG] No workspace URIs available, defaulting to UNKNOWN');
+    workspaceType = 'UNKNOWN';
+  }
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
@@ -118,10 +155,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
     return;
   }
 
-  // register commands
-  const ourCommands = registerCommands(extensionContext);
-  extensionContext.subscriptions.push(ourCommands);
-
   // Start the LWC Language Server
   const serverPath = extensionContext.extension.packageJSON.serverPath;
   let serverModule: string;
@@ -132,13 +165,16 @@ export const activate = async (extensionContext: ExtensionContext) => {
     serverModule = serverPathUri.toString();
   } else {
     // For Node.js mode, use the file system path
-    serverModule = extensionContext.asAbsolutePath(path.join(...serverPath));
+    // Dynamically import path only in Node.js mode to avoid bundling issues in web mode
+    const { join } = await import('node:path');
+    serverModule = extensionContext.asAbsolutePath(join(...serverPath));
   }
-  const client = createLanguageClient(serverModule, { workspaceType });
+  const client = await createLanguageClient(serverModule, { workspaceType });
 
   // Start the client and add it to subscriptions
   await client.start();
   extensionContext.subscriptions.push(client);
+  isActivated = true;
 
   // Trigger loading of workspace files into document cache after server initialization
   // This runs asynchronously and does not block extension activation
@@ -191,6 +227,41 @@ export const activate = async (extensionContext: ExtensionContext) => {
   const activationCompleteMsg = 'Lightning Web Components extension activation complete.';
   log(activationCompleteMsg);
   channelService.appendLine(activationCompleteMsg);
+};
+
+export const activate = async (extensionContext: ExtensionContext) => {
+  // Log immediately to browser console - this should always appear if extension loads
+  console.log('[LWC] Extension activate() called');
+  console.log('[LWC] Extension context:', extensionContext.extension.id);
+
+  log('Lightning Web Components extension activating...');
+  try {
+    channelService.appendLine('Lightning Web Components extension activating...');
+  } catch (e) {
+    console.error('[LWC] Failed to append to channel:', e);
+  }
+
+  // Register commands (only once)
+  const ourCommands = registerCommands(extensionContext);
+  extensionContext.subscriptions.push(ourCommands);
+
+  // Try to activate immediately if workspace folders are available
+  await performActivation(extensionContext);
+
+  // Listen for workspace folder changes (important for web mode where folders are added after initial activation)
+  extensionContext.subscriptions.push(
+    workspace.onDidChangeWorkspaceFolders(async event => {
+      const msg = `[DEBUG] Workspace folders changed. Added: ${event.added.length}, Removed: ${event.removed.length}`;
+      console.log(msg);
+      log(msg);
+      if (event.added.length > 0 && !isActivated) {
+        const activateMsg = '[DEBUG] Workspace folders added, attempting activation...';
+        console.log(activateMsg);
+        log(activateMsg);
+        await performActivation(extensionContext);
+      }
+    })
+  );
 };
 
 export const deactivate = async () => {

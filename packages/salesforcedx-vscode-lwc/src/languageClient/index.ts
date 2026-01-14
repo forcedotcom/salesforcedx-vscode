@@ -6,11 +6,18 @@
  */
 
 import type { WorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { createLanguageClient as createNodeLanguageClient } from './node';
-import { createLanguageClient as createWebLanguageClient } from './web';
 
 // Conditionally export the appropriate language client based on platform
-export const createLanguageClient = (serverPath: string, initializationOptions: { workspaceType: WorkspaceType }) =>
-  process.env.ESBUILD_PLATFORM === 'web'
-    ? createWebLanguageClient(serverPath, initializationOptions)
-    : createNodeLanguageClient(serverPath, initializationOptions);
+// Use dynamic imports to avoid bundling Node.js-specific code in web mode
+export const createLanguageClient = async (
+  serverPath: string,
+  initializationOptions: { workspaceType: WorkspaceType }
+) => {
+  if (process.env.ESBUILD_PLATFORM === 'web') {
+    const { createLanguageClient: createWebLanguageClient } = await import('./web.js');
+    return createWebLanguageClient(serverPath, initializationOptions);
+  } else {
+    const { createLanguageClient: createNodeLanguageClient } = await import('./node.js');
+    return createNodeLanguageClient(serverPath, initializationOptions);
+  }
+};

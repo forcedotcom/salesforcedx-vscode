@@ -167,7 +167,7 @@
     }
   },
   "activationEvents": [
-    "*",
+    "onStartupFinished",
     "workspaceContains:**/lwc/**",
     "workspaceContains:../workspace-user.xml",
     "workspaceContains:**/workspace-user.xml"
