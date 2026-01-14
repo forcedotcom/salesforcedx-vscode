@@ -36,6 +36,7 @@ for ((i=1; i<=$1; i++)); do
 15. never exit unless complete and all tests are passing on all platforms locally and on CI. \
 16. Do not disable tests or attempt to find ways to exit early. \
 17. You may not ask a question, only respond with <promise>COMPLETE</promise> \
+18. for any failures (locally or on CI) caused by the change, indicate on the plan.md file that that code cannot be simplified.
 ")
 
   echo "$result"
