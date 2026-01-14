@@ -26,7 +26,7 @@ for ((i=1; i<=$1; i++)); do
 5a if failures locally, see the Debugging section of iterating-playwright-tests.mdc \
 5b. make sure code aligns with with coding-playwright-tests.mdc rules and still passess. make sure the org-browser tests are still passing (they share the playwright ext) \
 6. commit with a detailed commit message.  Be sure not to commit test artifacts from local or CI tests \
-7. push to github \
+7. only if e2e tests are passing locally (desktopa and web), push to github \
 8. must pass in github actions! \
   You cannot continue until the e2e run is passing for mac, windows, and web.\
   monitor the e2e run see @.cursor/commands/analyze-e2e.md for how to do it.\
