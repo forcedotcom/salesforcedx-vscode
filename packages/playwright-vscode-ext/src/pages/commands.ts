@@ -63,8 +63,14 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
       await widget.waitFor({ state: 'attached', timeout: 10_000 });
       await expect(widget).toBeVisible({ timeout: 10_000 });
       input = widget.locator('input.input');
+      // Wait for input to be ready after reopening
+      await input.waitFor({ state: 'attached', timeout: 10_000 });
+      await expect(input).toBeVisible({ timeout: 10_000 });
+    } else {
+      // Widget is visible - ensure input is also visible and ready
+      await expect(input).toBeVisible({ timeout: 10_000 });
+      await input.waitFor({ state: 'attached', timeout: 10_000 });
     }
-    await expect(input).toBeVisible({ timeout: 10_000 });
   }).toPass({ timeout: 15_000 });
   await input.focus({ timeout: 5000 });
   await expect(input).toHaveValue(/^>/, { timeout: 5000 });
