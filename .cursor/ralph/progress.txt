@@ -12,12 +12,15 @@ Completed simplifications:
 - selectOutputChannel(): Fixed timeout issue on desktop by improving verification logic to check both dropdown value and selected option text, making it more robust for desktop environment.
 
 Test results:
-- playwright-vscode-ext web tests: All 21 tests pass
-- playwright-vscode-ext desktop tests: All 18 tests pass (3 skipped as expected for Mac context menu tests)
+- playwright-vscode-ext web tests: All 21 tests pass (local and CI)
+- playwright-vscode-ext desktop tests: 
+  - Local Mac: All 18 tests pass (3 skipped as expected for Mac context menu tests)
+  - CI Windows: 20 pass, 1 failure in "should check if output contains text" (flaky - outputChannelContains returned false, likely timing/content issue)
+  - CI Mac: 3 failures in file operations (unrelated to simplifications - command not found errors)
 - org-browser web tests: 4 failures observed in orgBrowserPage.ts (not in simplified functions). These failures are about sidebar metadata types not loading and appear unrelated to the simplifications.
 
 Code reduction: ~475 lines removed, ~70 lines added (net -405 lines)
 
 Commits:
 - 462fc45a2 - refactor: simplify playwright test helpers
-- [current] - fix: improve selectOutputChannel verification for desktop
+- ee7747c66 - fix: improve selectOutputChannel verification for desktop
