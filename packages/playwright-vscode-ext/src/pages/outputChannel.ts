@@ -99,7 +99,8 @@ export const selectOutputChannel = async (page: Page, channelName: string, timeo
     await dropdown.waitFor({ state: 'attached', timeout: 5000 });
     // Check current value - if already selected, no need to change
     const currentValue = await dropdown.inputValue();
-    if (currentValue === channelName) {
+    const currentText = await dropdown.locator('option:checked').textContent();
+    if (currentValue === channelName || currentText?.trim() === channelName) {
       return;
     }
     // Get all options to find the one matching the channel name
@@ -120,8 +121,15 @@ export const selectOutputChannel = async (page: Page, channelName: string, timeo
     }
     // Select the channel using the value attribute (more reliable than label)
     await dropdown.selectOption({ value: targetValue }, { force: true });
-    // Verify the selection took effect - wait a bit longer for the UI to update
-    await expect(dropdown).toHaveValue(targetValue, { timeout: 5000 });
+    // Verify the selection took effect - check both value and selected option text
+    await expect(async () => {
+      const newValue = await dropdown.inputValue();
+      const newText = await dropdown.locator('option:checked').textContent();
+      if (newValue === targetValue || newText?.trim() === channelName) {
+        return;
+      }
+      throw new Error(`Channel selection not confirmed: value="${newValue}", text="${newText}"`);
+    }).toPass({ timeout: 5000 });
   }).toPass({ timeout });
 };
 

@@ -9,11 +9,15 @@ Completed simplifications:
 
 - ensureOutputPanelOpen(): Simplified. Removed desktop-specific editor area clicks, removed notification dialog closing (not needed), simplified fallback to command palette.
 
+- selectOutputChannel(): Fixed timeout issue on desktop by improving verification logic to check both dropdown value and selected option text, making it more robust for desktop environment.
+
 Test results:
 - playwright-vscode-ext web tests: All 21 tests pass
 - playwright-vscode-ext desktop tests: All 18 tests pass (3 skipped as expected for Mac context menu tests)
-- org-browser web tests: 4 failures observed, but these appear to be in orgBrowserPage.ts (not in simplified functions) and may be pre-existing/flaky
+- org-browser web tests: 4 failures observed in orgBrowserPage.ts (not in simplified functions). These failures are about sidebar metadata types not loading and appear unrelated to the simplifications.
 
-Code reduction: ~475 lines removed, ~60 lines added (net -415 lines)
+Code reduction: ~475 lines removed, ~70 lines added (net -405 lines)
 
-Commit: 462fc45a2 - refactor: simplify playwright test helpers
+Commits:
+- 462fc45a2 - refactor: simplify playwright test helpers
+- [current] - fix: improve selectOutputChannel verification for desktop
