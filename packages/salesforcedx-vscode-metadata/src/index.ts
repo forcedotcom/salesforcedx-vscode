@@ -12,6 +12,7 @@ import { createApexClass } from './commands/createApexClass';
 import { deleteSourcePaths } from './commands/deleteSourcePath';
 import { deployManifest } from './commands/deployManifest';
 import { deployActiveEditor, deploySourcePaths } from './commands/deploySourcePath';
+import { generateManifest } from './commands/generateManifest';
 import { projectDeployStart } from './commands/projectDeployStart';
 import { resetRemoteTracking } from './commands/resetRemoteTracking';
 import { retrieveManifest } from './commands/retrieveManifest';
@@ -48,7 +49,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   // Register shared commands only if core extension is not installed or config enables it
   if (shouldRegisterSharedCommands()) {
-    vscode.commands.executeCommand('setContext', 'salesforcedx-vscode-metadata.showSharedCommands', true);
+    yield* Effect.promise(() =>
+      vscode.commands.executeCommand('setContext', 'salesforcedx-vscode-metadata.showSharedCommands', true)
+    );
 
     yield* svc.appendToChannel('Registering shared commands (core extension not present or config enabled)');
     context.subscriptions.push(
@@ -70,7 +73,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest),
       vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths),
       vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
-      vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest)
+      vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest),
+      vscode.commands.registerCommand('sf.project.generate.manifest', generateManifest)
     );
 
     if (process.env.ESBUILD_PLATFORM === 'web') {

@@ -14,6 +14,7 @@
   "retrieve_this_source_text": "SFDX: Retrieve This Source from Org",
   "retrieve_in_manifest_text": "SFDX: Retrieve Source in Manifest from Org",
   "delete_source_text": "SFDX: Delete from Project and Org",
+  "project_generate_manifest_text": "SFDX: Generate Manifest File",
   "source_tracking_status_bar_local_changes": "Local Changes",
   "source_tracking_status_bar_remote_changes": "Remote Changes",
   "source_tracking_status_bar_conflicts": "Conflicts",

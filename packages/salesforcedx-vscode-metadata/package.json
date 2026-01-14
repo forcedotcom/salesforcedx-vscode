@@ -29,8 +29,8 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/source-deploy-retrieve": "^12.29.1",
-    "@salesforce/source-tracking": "^7.8.0",
+    "@salesforce/source-deploy-retrieve": "^12.31.5",
+    "@salesforce/source-tracking": "^7.8.1",
     "esbuild": "0.25.12",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-services": "*"
@@ -283,6 +283,10 @@
         {
           "command": "sf.retrieve.in.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.project.generate.manifest",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         }
       ],
       "editor/context": [
@@ -305,6 +309,10 @@
         {
           "command": "sf.retrieve.in.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.project.generate.manifest",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         }
       ],
       "explorer/context": [
@@ -327,6 +335,10 @@
         {
           "command": "sf.retrieve.in.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.project.generate.manifest",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         }
       ]
     },
@@ -398,6 +410,10 @@
       {
         "command": "sf.retrieve.in.manifest",
         "title": "%retrieve_in_manifest_text%"
+      },
+      {
+        "command": "sf.project.generate.manifest",
+        "title": "%project_generate_manifest_text%"
       }
     ]
   }

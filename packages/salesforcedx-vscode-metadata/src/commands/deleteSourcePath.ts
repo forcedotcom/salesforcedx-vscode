@@ -13,6 +13,7 @@ import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { deleteComponentSet } from '../shared/delete/deleteComponentSet';
 import { type DeleteSourceFailedError } from '../shared/delete/deleteErrors';
+import { formatDeployOutput } from '../shared/deploy/formatDeployOutput';
 
 const showDeleteConfirmation = () =>
   Effect.promise(async () => {
@@ -69,13 +70,18 @@ export const deleteSourcePaths = async (sourceUri: URI | undefined, uris: URI[] 
         const message = `${nls.localize('delete_source_conflicts_detected')} Conflicts: ${error.conflicts.join(', ')}`;
         return Effect.all([
           channelService.appendToChannel(message),
+          channelService.getChannel.pipe(Effect.map(channel => channel.show())),
           Effect.promise(() => vscode.window.showErrorMessage(message))
         ]);
       }),
       Effect.catchTag('DeleteSourceFailedError', (error: DeleteSourceFailedError) => {
         const errorMessage = error.cause?.message ?? nls.localize('delete_failed', 'Unknown error');
         return Effect.all([
-          channelService.appendToChannel(`Delete failed: ${errorMessage}`),
+          channelService.appendToChannel(errorMessage),
+          ...(error.result
+            ? [formatDeployOutput(error.result).pipe(Effect.flatMap(o => channelService.appendToChannel(o)))]
+            : []),
+          channelService.getChannel.pipe(Effect.map(channel => channel.show())),
           Effect.promise(() => vscode.window.showErrorMessage(errorMessage))
         ]);
       }),
@@ -83,6 +89,7 @@ export const deleteSourcePaths = async (sourceUri: URI | undefined, uris: URI[] 
         const errorMessage = error instanceof Error ? error.message : String(error);
         return Effect.all([
           channelService.appendToChannel(`Delete failed: ${errorMessage}`),
+          channelService.getChannel.pipe(Effect.map(channel => channel.show())),
           Effect.promise(() => vscode.window.showErrorMessage(errorMessage))
         ]);
       })

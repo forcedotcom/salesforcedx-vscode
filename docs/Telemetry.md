@@ -38,11 +38,12 @@ It's a pain. If you need this, plan ahead.
 
 ## New
 
-OrgBrowser extension is using open-telemetry via the Effect framework. It doesn't have `o11y` support yet and we don't recommend following this pattern yet.
+OrgBrowser extension is using open-telemetry via the Effect framework. See the [Observability README](../packages/salesforcedx-vscode-services/src/observability/README.md) for documentation on how to use OpenTelemetry with Effect for observability.
 
 The advantage of otel is the ability to use spans and traces to provide logging and telemetry in a unified way across platforms including web.
 
 ## See Also
 
+- [Observability README](../packages/salesforcedx-vscode-services/src/observability/README.md) - OpenTelemetry with Effect documentation
 - [Extensions - Logging](./architecture/Extensions.md#logging) - console and outputChannel logging options
 - [contributing/telemetry.md](../contributing/telemetry.md) - telemetry implementation details for this repo

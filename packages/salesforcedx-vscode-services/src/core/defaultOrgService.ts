@@ -10,30 +10,25 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as PubSub from 'effect/PubSub';
 import * as Ref from 'effect/Ref';
-import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { join, normalize, sep } from 'node:path';
-import { SdkLayer } from '../observability/spans';
 import { FileWatcherService } from '../vscode/fileWatcherService';
-
-export const DefaultOrgInfoSchema = Schema.Struct({
-  orgId: Schema.optional(Schema.String),
-  devHubOrgId: Schema.optional(Schema.String),
-  username: Schema.optional(Schema.String),
-  devHubUsername: Schema.optional(Schema.String),
-  tracksSource: Schema.optional(Schema.Boolean),
-  isScratch: Schema.optional(Schema.Boolean),
-  isSandbox: Schema.optional(Schema.Boolean)
-});
+import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 
 // A "global" ref that can be accessed anywhere in the program
 export const defaultOrgRef = Effect.runSync(SubscriptionRef.make<typeof DefaultOrgInfoSchema.Type>({}));
 
-const clearDefaultOrgRef = (): void =>
-  Effect.runSync(
-    Ref.update(defaultOrgRef, () => ({})).pipe(Effect.withSpan('cleared defaultOrgRef'), Effect.provide(SdkLayer))
-  );
+// preserves the webUserId and cliId when clearing the defaultOrgRef
+const clearDefaultOrgRef = Effect.fn('clearDefaultOrgRef')(function* () {
+  yield* Ref.update(defaultOrgRef, current => {
+    const preserved = {
+      ...(current.webUserId ? { webUserId: current.webUserId } : {}),
+      ...(current.cliId ? { cliId: current.cliId } : {})
+    };
+    return preserved;
+  });
+});
 
 /** Check if a file path is a config file (global or project-specific) */
 const isConfigFile = (path: string, globalConfigPath: string, projectConfigPattern: string): boolean => {
@@ -56,7 +51,7 @@ export const watchConfigFiles = () =>
       yield* Stream.fromQueue(dequeue).pipe(
         Stream.filter(event => isConfigFile(event.uri.fsPath, globalConfigPath, projectConfigPattern)),
         Stream.debounce(Duration.millis(5)),
-        Stream.runForEach(() => Effect.sync(() => clearDefaultOrgRef()))
+        Stream.runForEach(() => clearDefaultOrgRef())
       );
     })
   );

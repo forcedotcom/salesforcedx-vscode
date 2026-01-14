@@ -75,7 +75,7 @@ import { SelectFileName, SelectOutputDir, SfCommandletExecutor } from './command
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, USE_METADATA_EXTENSION_COMMANDS } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
@@ -218,6 +218,10 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   void vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
 
+  // Set shared commands visibility context (inverse of useMetadataExtensionCommands)
+  const useMetadataCommands = salesforceCoreSettings.getUseMetadataExtensionCommands();
+  void vscode.commands.executeCommand('setContext', 'sf:show_shared_commands', !useMetadataCommands);
+
   const api: SalesforceVSCodeCoreApi = {
     channelService,
     getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
@@ -286,6 +290,13 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     // Register editor change listener
     vscode.window.onDidChangeActiveTextEditor(async () => {
       await checkPackageDirectoriesEditorView();
+    }),
+    // Register configuration change listener for shared commands visibility
+    vscode.workspace.onDidChangeConfiguration(e => {
+      if (e.affectsConfiguration(`${SFDX_CORE_CONFIGURATION_NAME}.${USE_METADATA_EXTENSION_COMMANDS}`)) {
+        const updatedUseMetadataCommands = salesforceCoreSettings.getUseMetadataExtensionCommands();
+        void vscode.commands.executeCommand('setContext', 'sf:show_shared_commands', !updatedUseMetadataCommands);
+      }
     }),
     registerConflictView(),
     CommandEventDispatcher.getInstance()

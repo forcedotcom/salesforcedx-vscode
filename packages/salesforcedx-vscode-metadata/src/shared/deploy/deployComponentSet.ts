@@ -38,6 +38,7 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 
   if (result.getFileResponses().some(componentSetService.isSDRFailure)) {
+    yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
     yield* Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_completed_with_errors_message')));
   }
 });
