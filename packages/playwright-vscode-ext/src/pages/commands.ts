@@ -6,186 +6,39 @@
  */
 
 import { expect, Page } from '@playwright/test';
-import { isWindowsDesktop } from '../utils/helpers';
 import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
 
 export const openCommandPalette = async (page: Page): Promise<void> => {
-  const { WORKBENCH, TAB } = await import('../utils/locators.js');
+  const { WORKBENCH } = await import('../utils/locators.js');
   const { closeWelcomeTabs } = await import('../utils/helpers.js');
   const widget = page.locator(QUICK_INPUT_WIDGET);
   const workbench = page.locator(WORKBENCH);
   
-  // Retry opening command palette if widget exists but is hidden (welcome tabs may interfere)
-  let attempts = 0;
-  const maxAttempts = 3;
+  // Close welcome tabs before opening command palette
+  await closeWelcomeTabs(page);
   
-  while (attempts < maxAttempts) {
-    // Ensure welcome tabs are closed before opening command palette - be aggressive about this
-    await closeWelcomeTabs(page);
-    
-    // Verify no welcome tabs exist - check multiple times to ensure they're really gone
-    const welcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
-    let welcomeTabCount = await welcomeTabs.count();
-    let closeAttempts = 0;
-    while (welcomeTabCount > 0 && closeAttempts < 5) {
-      await closeWelcomeTabs(page);
-      // Wait for tab container to update after closing
-      const tabContainer = page.locator('.tabs-container');
-      await tabContainer.waitFor({ state: 'attached', timeout: 3000 }).catch(() => {});
-      // Re-query tabs to avoid stale references
-      const currentWelcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
-      welcomeTabCount = await currentWelcomeTabs.count();
-      // If tabs are still there, try closing them directly
-      if (welcomeTabCount > 0) {
-        const { TAB_CLOSE_BUTTON: TAB_CLOSE_BTN } = await import('../utils/locators.js');
-        const tabToClose = currentWelcomeTabs.first();
-        const closeButton = tabToClose.locator(TAB_CLOSE_BTN);
-        const closeButtonVisible = await closeButton.isVisible({ timeout: 2000 }).catch(() => false);
-        if (closeButtonVisible) {
-          await closeButton.click({ timeout: 2000, force: true }).catch(() => {});
-          await tabToClose.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
-        } else {
-          // Fallback to keyboard shortcut
-          await workbench.click({ timeout: 1000 }).catch(() => {});
-          await tabToClose.click({ timeout: 1000, force: true }).catch(() => {});
-          await page.keyboard.press('Control+w');
-          await tabToClose.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
-        }
-        // Re-check count after direct close attempt
-        const recheckTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
-        welcomeTabCount = await recheckTabs.count();
-      }
-      closeAttempts++;
-    }
-    
-    // Ensure workbench is focused and visible before opening command palette
-    // Click multiple times to ensure focus
-    await workbench.click({ timeout: 5000 }).catch(() => {});
-    await workbench.click({ timeout: 5000 }).catch(() => {});
-    await expect(workbench).toBeVisible({ timeout: 5000 });
-    // Wait for workbench to be stable - ensure no overlays are blocking
-    await workbench.waitFor({ state: 'visible', timeout: 2000 }).catch(() => {});
-    
-    // Close any existing quick input widget
-    const existingWidget = page.locator(QUICK_INPUT_WIDGET);
-    const existingVisible = await existingWidget.isVisible({ timeout: 500 }).catch(() => false);
-    if (existingVisible) {
-      await page.keyboard.press('Escape');
-      await existingWidget.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
-    }
-    
-    // Try F1 first (standard command palette shortcut)
-    await page.keyboard.press('F1');
-    
-    // Wait for widget to be attached (exists in DOM) first
-    await widget.waitFor({ state: 'attached', timeout: 10_000 });
-    
-    // Try to verify widget is visible - if it fails, welcome tabs may be interfering
-    let widgetVisible = await widget.isVisible({ timeout: 5000 }).catch(() => false);
-    
-    // Widget may exist but be hidden - try to force it visible (works on both web and desktop)
-    if (!widgetVisible) {
-      const widgetElement = await widget.elementHandle();
-      if (widgetElement) {
-        await widgetElement.evaluate((el: HTMLElement) => {
-          el.style.display = 'block';
-          el.style.visibility = 'visible';
-          el.style.opacity = '1';
-          el.focus();
-        }).catch(() => {});
-        // Re-check visibility after forcing
-        const nowVisible = await widget.isVisible({ timeout: 2000 }).catch(() => false);
-        if (nowVisible) {
-          widgetVisible = true;
-        }
-      }
-    }
-    
-    if (widgetVisible) {
-      // Widget is visible - verify it stays visible and input is ready
-      await expect(widget).toBeVisible({ timeout: 10_000 });
-      const input = widget.locator('input.input');
-      await input.waitFor({ state: 'attached', timeout: 10_000 });
-      // Check if input is visible - if not, force visibility on both widget and input
-      const inputVisible = await input.isVisible({ timeout: 2000 }).catch(() => false);
-      if (!inputVisible) {
-        // Force visibility on widget first (parent element)
-        const widgetElement = await widget.elementHandle();
-        if (widgetElement) {
-          await widgetElement.evaluate((el: HTMLElement) => {
-            el.style.display = 'block';
-            el.style.visibility = 'visible';
-            el.style.opacity = '1';
-            el.style.zIndex = '10000';
-          }).catch(() => {});
-        }
-        // Then force visibility on input
-        const inputElement = await input.elementHandle();
-        if (inputElement) {
-          await inputElement.evaluate((el: HTMLElement) => {
-            el.style.display = 'block';
-            el.style.visibility = 'visible';
-            el.style.opacity = '1';
-            (el as HTMLInputElement).focus();
-          }).catch(() => {});
-        }
-      }
-      // Wait for input to be visible (with retry logic)
-      await expect(input).toBeVisible({ timeout: 10_000 });
-      return;
-    }
-    
-    // Widget or input is hidden - retry
-    attempts++;
-    if (attempts < maxAttempts) {
-      // Wait for workbench to be ready before retry
-      await page.locator(WORKBENCH).waitFor({ state: 'visible', timeout: 2000 }).catch(() => {});
-    }
+  // Ensure workbench is focused
+  await workbench.click({ timeout: 5000 }).catch(() => {});
+  await expect(workbench).toBeVisible({ timeout: 5000 });
+  
+  // Close any existing quick input widget
+  const existingWidget = page.locator(QUICK_INPUT_WIDGET);
+  if (await existingWidget.isVisible({ timeout: 500 }).catch(() => false)) {
+    await page.keyboard.press('Escape');
+    await existingWidget.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
   }
   
-  // After max attempts, try Windows fallback if on Windows desktop
-  if (isWindowsDesktop()) {
-    await page.locator(WORKBENCH).click();
-    await page.keyboard.press('Control+Shift+p');
-    await widget.waitFor({ state: 'attached', timeout: 10_000 });
-    await expect(widget).toBeVisible({ timeout: 10_000 });
-  } else {
-    // Final attempt - widget exists but may be hidden due to welcome tabs
-    // Try to force it visible by closing welcome tabs one more time and pressing F1 again
-    await closeWelcomeTabs(page);
-    await page.locator(WORKBENCH).click();
-    await page.keyboard.press('F1');
-    await widget.waitFor({ state: 'attached', timeout: 10_000 });
-    // Widget may exist but be hidden - check if we can make it visible (works on both web and desktop)
-    const widgetElement = await widget.elementHandle();
-    if (widgetElement) {
-      // Try to make widget visible by removing any overlays or focusing it
-      await widgetElement.evaluate((el: HTMLElement) => {
-        el.style.display = 'block';
-        el.style.visibility = 'visible';
-        el.style.opacity = '1';
-        el.focus();
-      }).catch(() => {});
-    }
-    // Wait for visibility with longer timeout
-    await expect(widget).toBeVisible({ timeout: 10_000 });
-    // Also ensure input is visible
-    const input = widget.locator('input.input');
-    await input.waitFor({ state: 'attached', timeout: 10_000 });
-    const inputVisible = await input.isVisible({ timeout: 5000 }).catch(() => false);
-    if (!inputVisible) {
-      const inputElement = await input.elementHandle();
-      if (inputElement) {
-        await inputElement.evaluate((el: HTMLElement) => {
-          el.style.display = 'block';
-          el.style.visibility = 'visible';
-          el.style.opacity = '1';
-          (el as HTMLInputElement).focus();
-        }).catch(() => {});
-      }
-    }
-    await expect(input).toBeVisible({ timeout: 10_000 });
-  }
+  // Open command palette with F1
+  await page.keyboard.press('F1');
+  
+  // Wait for widget to be attached and visible
+  await widget.waitFor({ state: 'attached', timeout: 10_000 });
+  await expect(widget).toBeVisible({ timeout: 10_000 });
+  
+  // Wait for input to be ready
+  const input = widget.locator('input.input');
+  await input.waitFor({ state: 'attached', timeout: 10_000 });
+  await expect(input).toBeVisible({ timeout: 10_000 });
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
