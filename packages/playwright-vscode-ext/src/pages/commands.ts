@@ -6,12 +6,10 @@
  */
 
 import { expect, Page } from '@playwright/test';
-import { isMacDesktop } from '../utils/helpers';
-import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW } from '../utils/locators';
+import { closeWelcomeTabs, isMacDesktop } from '../utils/helpers';
+import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW, WORKBENCH } from '../utils/locators';
 
 export const openCommandPalette = async (page: Page): Promise<void> => {
-  const { WORKBENCH } = await import('../utils/locators.js');
-  const { closeWelcomeTabs } = await import('../utils/helpers.js');
   const widget = page.locator(QUICK_INPUT_WIDGET);
   const workbench = page.locator(WORKBENCH);
 
@@ -56,8 +54,6 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
     const widgetVisible = await widget.isVisible({ timeout: 3000 }).catch(() => false);
     if (!widgetVisible) {
       // Widget is hidden - reopen command palette
-      const { closeWelcomeTabs } = await import('../utils/helpers.js');
-      const { WORKBENCH } = await import('../utils/locators.js');
       await closeWelcomeTabs(page);
       await page
         .locator(WORKBENCH)
