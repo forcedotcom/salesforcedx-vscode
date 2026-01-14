@@ -12,7 +12,7 @@ fi
 # This prompt is basic, we'll expand it later.
 for ((i=1; i<=$1; i++)); do
   result=$(agent --force -p \
-"@..cursor/plans/simplify_playwright_test_helpers_420ec698.plan.md @.cursor/ralph/progress.txt \
+"@.cursor/plans/simplify_playwright_test_helpers_420ec698.plan.md @.cursor/ralph/progress.txt \
 0a. never edit this ralph.sh file.\
 1.  Review commits, progress.txt, and plan.md to avoid repeating mistakes.\
  If no failures, choose the next highest priority item\
