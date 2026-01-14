@@ -42,7 +42,9 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
   await expect(input).toBeVisible({ timeout: 10_000 });
   // Ensure input is focused and ready before returning
   await input.focus({ timeout: 5000 }).catch(() => {});
-  await expect(input).toHaveValue(/^>/, { timeout: 5000 }).catch(() => {});
+  await expect(input)
+    .toHaveValue(/^>/, { timeout: 5000 })
+    .catch(() => {});
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
@@ -57,7 +59,10 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
       const { closeWelcomeTabs } = await import('../utils/helpers.js');
       const { WORKBENCH } = await import('../utils/locators.js');
       await closeWelcomeTabs(page);
-      await page.locator(WORKBENCH).click({ timeout: 5000 }).catch(() => {});
+      await page
+        .locator(WORKBENCH)
+        .click({ timeout: 5000 })
+        .catch(() => {});
       const existingWidget = page.locator(QUICK_INPUT_WIDGET);
       if (await existingWidget.isVisible({ timeout: 500 }).catch(() => false)) {
         await page.keyboard.press('Escape');
@@ -75,12 +80,14 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
         if (!inputVisible) {
           const inputElement = await input.elementHandle();
           if (inputElement) {
-            await inputElement.evaluate((el: HTMLElement) => {
-              el.style.display = 'block';
-              el.style.visibility = 'visible';
-              el.style.opacity = '1';
-              (el as HTMLInputElement).focus();
-            }).catch(() => {});
+            await inputElement
+              .evaluate((el: HTMLElement) => {
+                el.style.display = 'block';
+                el.style.visibility = 'visible';
+                el.style.opacity = '1';
+                (el as HTMLInputElement).focus();
+              })
+              .catch(() => {});
           }
         }
       }
@@ -94,12 +101,14 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
         if (!inputVisible) {
           const inputElement = await input.elementHandle();
           if (inputElement) {
-            await inputElement.evaluate((el: HTMLElement) => {
-              el.style.display = 'block';
-              el.style.visibility = 'visible';
-              el.style.opacity = '1';
-              (el as HTMLInputElement).focus();
-            }).catch(() => {});
+            await inputElement
+              .evaluate((el: HTMLElement) => {
+                el.style.display = 'block';
+                el.style.visibility = 'visible';
+                el.style.opacity = '1';
+                (el as HTMLInputElement).focus();
+              })
+              .catch(() => {});
           }
         }
       }
@@ -114,6 +123,23 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   const escapedCommand = command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   await expect(async () => {
     // Ensure input is still visible and focused
+    // On macOS desktop Electron, input can become hidden during typing - force visibility if needed
+    if (isMacDesktop()) {
+      const inputVisible = await input.isVisible({ timeout: 5000 }).catch(() => false);
+      if (!inputVisible) {
+        const inputElement = await input.elementHandle();
+        if (inputElement) {
+          await inputElement
+            .evaluate((el: HTMLInputElement) => {
+              el.style.display = 'block';
+              el.style.visibility = 'visible';
+              el.style.opacity = '1';
+              el.focus();
+            })
+            .catch(() => {});
+        }
+      }
+    }
     await expect(input).toBeVisible({ timeout: 5000 });
     await input.focus({ timeout: 5000 });
     await page.keyboard.press('End');
@@ -147,15 +173,12 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   }).toPass({ timeout: 10_000 });
 
   // Find and click the command row
-  const commandRow = widget
-    .locator(QUICK_INPUT_LIST_ROW)
-    .filter({ hasText: command, hasNotText })
-    .first();
+  const commandRow = widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: command, hasNotText }).first();
 
   await expect(commandRow).toBeAttached({ timeout: 10_000 });
 
   // For virtualized lists, use evaluate to scroll and click (more reliable than Playwright's click)
-  await commandRow.evaluate((el) => {
+  await commandRow.evaluate(el => {
     el.scrollIntoView({ block: 'center', behavior: 'instant' });
     (el as HTMLElement).click();
   });
