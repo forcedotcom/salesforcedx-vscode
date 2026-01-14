@@ -19,7 +19,7 @@ for ((i=1; i<=$1; i++)); do
  Decide what to change to address the failure.  Review past commits to make sure you are not repeating the same mistake.\
  If there are no failures, choose the next highest priority item\
 2. never change branches, stay on ralph-e2e-meta\
-2a. you may not bypass eslint rules.
+2a. you may not bypass eslint rules.\
 3. must pass locally on test:web.  Web tests should never be skipped \
 4. must pass locally using the :desktop tests (the local environment is macos) \
 5. makes sure org-browser tests are still passing locally (web and desktop) \
