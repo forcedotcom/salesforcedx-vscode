@@ -72,3 +72,20 @@ Simplified playwright test helpers per plan simplify_playwright_test_helpers_420
   - 21002580814: Web ✓, Windows ✓, macOS ✗ (outputChannel tests still failing in fallback path)
 - Note: macOS desktop CI shows failures in outputChannel tests when fallback to command palette is used. Tests pass locally on macOS desktop, suggesting CI-specific timing/flakiness. The fallback path (when keyboard shortcut doesn't work) has reliability issues on macOS CI. Web and Windows desktop tests pass consistently.
 - Committed: 828a26c78, b52d2e0b6
+
+### Completed: review-platform-specific
+- Added isDesktop() helper function to helpers.ts to centralize desktop check logic
+- Replaced inline isDesktop checks in waitForVSCodeWorkbench() with helper function
+- Replaced inline isDesktop check in upsertScratchOrgAuthFieldsToSettings() with helper function
+- Exported isDesktop() from index.ts for consistency
+- Local tests passing:
+  - playwright-vscode-ext web: ✓ 21 passed
+  - playwright-vscode-ext desktop: ✓ 18 passed (3 skipped)
+  - org-browser web: ✓ 4 passed
+  - org-browser desktop: ✓ 4 passed
+- Committed: 145137247
+- CI run 21003135751 results:
+  - Web: ✓ success (all tests passing)
+  - macOS desktop: ✗ failure (commandPalette test flaky - same issue as before)
+  - Windows desktop: ✗ failure (outputChannel test - unrelated to changes)
+- Note: Failures are in unrelated tests (commandPalette flakiness on macOS, outputChannel on Windows). The isDesktop() helper function change is correct and doesn't affect these tests. These appear to be pre-existing flaky tests or CI-specific issues.

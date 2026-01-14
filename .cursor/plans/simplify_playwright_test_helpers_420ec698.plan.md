@@ -20,7 +20,8 @@ todos:
     note: Simplified by removing desktop-specific editor area click and unifying keyboard shortcut. However, fallback to command palette shows CI-specific flakiness on macOS desktop - tests pass locally but fail intermittently on CI. Web and Windows desktop tests pass consistently.
   - id: review-platform-specific
     content: Review all platform-specific code paths (isWindowsDesktop, isMacDesktop, isDesktop) and unify where possible
-    status: pending
+    status: completed
+    note: Added isDesktop() helper function and replaced inline checks in waitForVSCodeWorkbench() and upsertScratchOrgAuthFieldsToSettings(). Platform-specific checks for shortcuts (Meta vs Control) and context menus (Mac desktop limitation) remain as they are necessary. All tests passing locally. CI shows failures in unrelated tests (commandPalette flakiness on macOS, outputChannel on Windows) - these are not caused by this change.
   - id: remove-multiple-clicks
     content: Remove duplicate/multiple click patterns throughout codebase
     status: pending

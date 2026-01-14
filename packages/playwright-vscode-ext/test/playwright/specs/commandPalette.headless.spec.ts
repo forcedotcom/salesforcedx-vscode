@@ -46,10 +46,8 @@ test.describe('Command Palette', () => {
 
     await test.step('Press Ctrl+Shift+P to open command palette', async () => {
       // Focus on the workbench by clicking on it first
-      const workbench = page.locator('[id="workbench.parts.editor"]').first();
-      await workbench
-        .click({ position: { x: 10, y: 10 } })
-        .catch(() => page.locator(WORKBENCH).click());
+      const workbench = page.locator(WORKBENCH);
+      await workbench.click({ timeout: 5000 });
 
       await page.keyboard.press('Control+Shift+P');
       const quickInput = page.locator(QUICK_INPUT_WIDGET);
