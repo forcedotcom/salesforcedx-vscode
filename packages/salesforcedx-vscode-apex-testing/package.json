@@ -31,9 +31,7 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
-    "esbuild": "0.25.10",
-    "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-core": "*"
+    "esbuild": "0.25.10"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
