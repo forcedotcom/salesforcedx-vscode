@@ -153,15 +153,35 @@ export class WorkspaceContextUtil {
             console.log('workspaceContextUtil.ts getConnection() - 21');
             await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
             console.log('workspaceContextUtil.ts getConnection() - 22');
+            // After successful login, invalidate the cached connection and try again
+            this.sessionConnections.delete(this._username);
+            this.knownBadConnections.delete(this._username);
+            console.log('workspaceContextUtil.ts getConnection() - 23');
+            try {
+              // Attempt to create a fresh connection with the new auth
+              const newConnection = await Connection.create({
+                authInfo: await AuthInfo.create({ username: this._username })
+              });
+              await newConnection.identity();
+              this.sessionConnections.set(this._username, {
+                connection: newConnection,
+                lastTokenValidationTimestamp: Date.now()
+              });
+              console.log('workspaceContextUtil.ts - exit 3 getConnection() after successful re-login');
+              return newConnection;
+            } catch {
+              console.log('workspaceContextUtil.ts getConnection() - 24 - retry failed');
+              // Login didn't work, fall through to mark as bad and throw
+            }
           }
-          console.log('workspaceContextUtil.ts getConnection() - 23');
+          console.log('workspaceContextUtil.ts getConnection() - 25');
         }
-        console.log('workspaceContextUtil.ts getConnection() - 24');
+        console.log('workspaceContextUtil.ts getConnection() - 26');
         this.knownBadConnections.add(this._username);
-        console.log('workspaceContextUtil.ts getConnection() - 25');
+        console.log('workspaceContextUtil.ts getConnection() - 27');
         throw new Error('Unable to refresh your access token.  Please login again.');
       }
-      console.log('workspaceContextUtil.ts getConnection() - 26');
+      console.log('workspaceContextUtil.ts getConnection() - 28');
     }
     console.log('workspaceContextUtil.ts - exit 2 getConnection()');
     return connectionDetails.connection;
