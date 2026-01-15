@@ -158,11 +158,14 @@ export class WorkspaceContextUtil {
             this.knownBadConnections.delete(this._username);
             console.log('workspaceContextUtil.ts getConnection() - 23');
             try {
+              console.log('workspaceContextUtil.ts getConnection() - 23A');
               // Attempt to create a fresh connection with the new auth
               const newConnection = await Connection.create({
                 authInfo: await AuthInfo.create({ username: this._username })
               });
+              console.log('workspaceContextUtil.ts getConnection() - 23B');
               await newConnection.identity();
+              console.log('workspaceContextUtil.ts getConnection() - 23C');
               this.sessionConnections.set(this._username, {
                 connection: newConnection,
                 lastTokenValidationTimestamp: Date.now()
