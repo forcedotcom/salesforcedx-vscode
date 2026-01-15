@@ -80,6 +80,7 @@ export class SfCommandlet<T> {
 
 export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor<T> {
   protected cancellable: boolean = false;
+  private cancelled: boolean = false;
   protected readonly executionName: string;
   protected readonly logName: string;
   protected readonly outputChannel: vscode.OutputChannel;
@@ -98,6 +99,46 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
   ): Promise<boolean>;
 
   public async execute(response: ContinueResponse<T>): Promise<void> {
-    await this.run(response);
+    const startTime = new Date().toLocaleTimeString();
+    this.outputChannel.appendLine(`Starting ${this.executionName} at ${startTime}`);
+
+    try {
+      const success = await vscode.window.withProgress(
+        {
+          title: this.executionName,
+          location: vscode.ProgressLocation.Notification,
+          cancellable: this.cancellable
+        },
+        (progress, token) => {
+          token.onCancellationRequested(() => {
+            this.cancelled = true;
+          });
+          return this.run(response, progress, token);
+        }
+      );
+
+      const endTime = new Date().toLocaleTimeString();
+      this.outputChannel.appendLine(`Ended ${this.executionName} at ${endTime}`);
+
+      if (this.showChannelOutput) {
+        this.outputChannel.show();
+      }
+
+      if (!this.cancelled) {
+        if (success) {
+          void notificationService.showSuccessfulExecution(this.executionName, {
+            show: () => this.outputChannel.show()
+          });
+        } else {
+          notificationService.showFailedExecution(this.executionName);
+        }
+      }
+    } catch (e) {
+      if (e instanceof Error) {
+        notificationService.showFailedExecution(this.executionName);
+        this.outputChannel.appendLine(e.message);
+      }
+      this.outputChannel.show();
+    }
   }
 }

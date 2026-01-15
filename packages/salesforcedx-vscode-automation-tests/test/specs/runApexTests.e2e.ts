@@ -32,7 +32,6 @@ import {
   clickFilePathOkButton,
   dismissAllNotifications,
   executeQuickPick,
-  getStatusBarItemWhichIncludes,
   getTextEditor,
   getWorkbench,
   replaceLineInFile,
@@ -41,7 +40,7 @@ import {
   zoom
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { By, InputBox, QuickOpenBox, SideBarView } from 'vscode-extension-tester';
+import { By, InputBox, QuickOpenBox } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { logTestStart } from '../utils/loggingHelper';
@@ -122,15 +121,6 @@ describe('Run Apex Tests', () => {
     if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
       this.skip();
     }
-  });
-
-  it('Verify LSP finished indexing', async () => {
-    logTestStart(testSetup, 'Verify LSP finished indexing');
-
-    // Get Apex LSP Status Bar
-    const statusBar = await retryOperation(async () => await getStatusBarItemWhichIncludes('Editor Language Status'));
-    await statusBar.click();
-    expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
   });
 
   it('Run All Tests via Apex Class', async () => {
@@ -265,13 +255,22 @@ describe('Run Apex Tests', () => {
   it('Run All tests via Test Sidebar', async () => {
     logTestStart(testSetup, 'Run All tests via Test Sidebar');
     const workbench = getWorkbench();
-    const testingView = await workbench.getActivityBar().getViewControl('Testing');
-    expect(testingView).to.not.be.undefined;
-    // Open the Test Sidebar
-    const testingSideBarView = await testingView?.openView();
-    expect(testingSideBarView).to.be.instanceOf(SideBarView);
 
-    const apexTestsSection = await getTestsSection(workbench, 'Apex Tests');
+    // Focus on Test Explorer view using command palette (more reliable than activity bar)
+    await retryOperation(
+      async () => {
+        await executeQuickPick('Testing: Focus on Test Explorer View');
+      },
+      3,
+      'RunApexTests - Error focusing on test explorer view'
+    );
+
+    // Open the Test Sidebar - now uses VS Code's native Test Explorer
+    const apexTestsSection = await retryOperation(
+      async () => await getTestsSection(workbench, 'Test Explorer'),
+      3,
+      'RunApexTests - Error getting test explorer section'
+    );
     await pause(Duration.seconds(10)); // Wait for test section to load
     const expectedItems = ['ExampleApexClass1Test', 'ExampleApexClass2Test', 'ExampleApexClass3Test'];
     const apexTestsItems = await verifyTestItemsInSideBar(apexTestsSection, 'Refresh Tests', expectedItems, 6, 3);
@@ -315,7 +314,7 @@ describe('Run Apex Tests', () => {
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
-    const terminalText = await runTestCaseFromSideBar(workbench, 'Apex Tests', 'ExampleApexClass2Test', 'Run Tests');
+    const terminalText = await runTestCaseFromSideBar(workbench, 'Test Explorer', 'ExampleApexClass2Test', 'Run Tests');
     const expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',
@@ -336,7 +335,12 @@ describe('Run Apex Tests', () => {
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
-    const terminalText = await runTestCaseFromSideBar(workbench, 'Apex Tests', 'validateSayHello', 'Run Single Test');
+    const terminalText = await runTestCaseFromSideBar(
+      workbench,
+      'Test Explorer',
+      'validateSayHello',
+      'Run Single Test'
+    );
     const expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',

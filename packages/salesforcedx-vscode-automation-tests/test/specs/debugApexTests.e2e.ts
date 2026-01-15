@@ -159,23 +159,23 @@ describe('Debug Apex Tests', () => {
 
     await retryOperation(
       async () => {
-        await executeQuickPick('Testing: Focus on Apex Tests View');
+        await executeQuickPick('Testing: Focus on Test Explorer View');
       },
       3,
-      'DebugApexTests - Error focusing on apex tests view'
+      'DebugApexTests - Error focusing on test explorer view'
     );
 
-    // Open the Test Sidebar
-    const apexTestsSection = await retryOperation(
-      async () => await getTestsSection(workbench, 'Apex Tests'),
+    // Open the Test Sidebar - now uses VS Code's native Test Explorer
+    const testExplorerSection = await retryOperation(
+      async () => await getTestsSection(workbench, 'Test Explorer'),
       3,
-      'DebugApexTests - Error getting apex tests section'
+      'DebugApexTests - Error getting test explorer section'
     );
     const expectedItems = ['ExampleApexClass1Test', 'ExampleApexClass2Test'];
 
     await retryOperation(
       async () => {
-        await verifyTestItemsInSideBar(apexTestsSection, 'Refresh Tests', expectedItems, 4, 2);
+        await verifyTestItemsInSideBar(testExplorerSection, 'Refresh Tests', expectedItems, 4, 2);
       },
       3,
       'DebugApexTests - Error verifying test items in sidebar'
@@ -186,9 +186,9 @@ describe('Debug Apex Tests', () => {
     await retryOperation(
       async () => {
         await pause(Duration.seconds(2));
-        await apexTestsSection.click();
-        await apexTestsSection.wait(20_000);
-        const foundItem = await apexTestsSection.findItem('ExampleApexClass1Test');
+        await testExplorerSection.click();
+        await testExplorerSection.wait(20_000);
+        const foundItem = await testExplorerSection.findItem('ExampleApexClass1Test');
         if (!foundItem) {
           throw new Error('Expected TreeItem but got undefined');
         }
@@ -228,26 +228,26 @@ describe('Debug Apex Tests', () => {
 
     await retryOperation(
       async () => {
-        await executeQuickPick('Testing: Focus on Apex Tests View');
+        await executeQuickPick('Testing: Focus on Test Explorer View');
       },
       3,
-      'DebugApexTests - Error focusing on apex tests view'
+      'DebugApexTests - Error focusing on test explorer view'
     );
 
-    // Open the Test Sidebar
-    const apexTestsSection = await retryOperation(
-      async () => await getTestsSection(workbench, 'Apex Tests'),
+    // Open the Test Sidebar - now uses VS Code's native Test Explorer
+    const testExplorerSection = await retryOperation(
+      async () => await getTestsSection(workbench, 'Test Explorer'),
       3,
-      'DebugApexTests - Error getting apex tests section'
+      'DebugApexTests - Error getting test explorer section'
     );
 
     // Hover a test name under one of the test class sections and click the debug button that is shown to the right of the test name on the Test sidebar
     let apexTestItem: TreeItem;
     await retryOperation(
       async () => {
-        await apexTestsSection.click();
-        await apexTestsSection.wait(20_000);
-        const foundItem = await apexTestsSection.findItem('validateSayHello');
+        await testExplorerSection.click();
+        await testExplorerSection.wait(20_000);
+        const foundItem = await testExplorerSection.findItem('validateSayHello');
         if (!foundItem) {
           throw new Error('Expected TreeItem but got undefined');
         }
