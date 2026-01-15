@@ -1,0 +1,59 @@
+<template>
+  <div class="modifier__group">
+    <!-- FIELDS -->
+    <div class="modifier__item">
+      <querybuilder-custom-select
+        is-loading={isLoading}
+        all-options={allFields}
+        selected-options={_selectedField}
+        placeholder-text={selectPlaceHolderText}
+        onoption__selection={handleSelectionEvent}
+      ></querybuilder-custom-select>
+    </div>
+    <!-- OPERATORS -->
+    <span
+      data-text={operatorErrorMessage}
+      class={operatorClasses}
+      data-el-where-operator
+      ><select
+        name="operator"
+        data-el-where-operator-input
+        onchange={handleSelectionEvent}
+      >
+        <template if:true={hasSelectedOperator}>
+          <option value={_selectedOperator.value}>
+            {_selectedOperator.displayValue}
+          </option>
+        </template>
+        <template for:each={filteredOperators} for:item="operator">
+          <option key={operator.value} value={operator.value}>
+            {operator.displayValue}
+          </option>
+        </template>
+      </select>
+    </span>
+    <!-- CRITERIA -->
+    <span
+      data-text={criteriaErrorMessage}
+      class={criteriaClasses}
+      data-el-where-criteria
+    >
+      <input
+        name="criteria"
+        type="text"
+        oninput={handleSelectionEvent}
+        value={criteriaDisplayValue}
+        maxlength="250"
+        data-el-where-criteria-input
+      />
+    </span>
+    <span
+      role="button"
+      class="modifier__item button__close pointer"
+      onclick={handleConditionRemoved}
+      data-el-where-delete
+    >
+      X
+    </span>
+  </div>
+</template>

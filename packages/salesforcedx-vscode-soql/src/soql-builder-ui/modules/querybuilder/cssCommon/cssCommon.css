@@ -1,0 +1,228 @@
+/*
+ *  Copyright (c) 2020, salesforce.com, inc.
+ *  All rights reserved.
+ *  Licensed under the BSD 3-Clause license.
+ *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ *
+ */
+
+/* NOTE ABOUT THEMING
+  * :host(.dark) :host(.contrast) ONLY triggers inside vscode themes,
+  *  so variables are available in that context
+  * in order to support standalone and contexts outside of vscode
+  * variables are not used in default styles
+  */
+
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
+/* STANDARD COMPONENT LAYOUT ---------- */
+.section-container {
+  display: flex;
+  min-width: 100%;
+  margin-bottom: 1rem;
+}
+
+.section_label-container {
+  width: var(--soql-label-container-width);
+  min-width: var(--soql-label-container-width);
+}
+
+.section_selection-container {
+  width: var(--soql-selection-container-width);
+}
+
+/* TODO: we should change the name of the var
+the width of all the children should be
+default to the width of the parent.
+*/
+.section_selection-container {
+  min-width: var(--soql-input-width);
+  max-width: var(--soql-input-width);
+}
+
+.section_label-container label {
+  display: inline-block;
+  padding-top: 4px;
+  font-size: smaller;
+  font-weight: bold;
+}
+
+.selected-fields-container {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: var(--soql-selection-container-width);
+}
+
+.selected-field {
+  margin: 0.5rem 0.5rem 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 1.25rem;
+  font-size: smaller;
+  background-color: var(
+    --vscode-list-inactiveSelectionBackground,
+    var(--soql-color-medium-grey)
+  );
+  color: var(--vscode-foreground, var(--soql-white));
+  padding: 4px 4px;
+  border-radius: 3px;
+}
+:host(.contrast) .selected-field {
+  background-color: var(--soql-color-medium-blue);
+  color: var(--vscode-foreground);
+}
+.delete-trigger {
+  margin: 0 0.25rem 0 0.5rem;
+  color: var(--vscode-foreground, var(--soql-foreground));
+  font-weight: bold;
+  font-size: smaller;
+}
+
+/* FORM STYLING ------------ */
+button,
+input,
+select {
+  height: 1.5rem;
+  border: 1px solid
+    var(--vscode-list-inactiveSelectionBackground, var(--soql-color-light-grey));
+  border-radius: 3px;
+}
+
+input,
+select {
+  background-color: var(--vscode-sideBar-background, var(--soql-background));
+  color: var(--vscode-foreground, var(--soql-foreground));
+  border-color: var(
+    --vscode-list-inactiveSelectionBackground,
+    var(--soql-color-light-grey)
+  );
+}
+input[type='number'] {
+  padding-left: 0.25rem;
+}
+input::placeholder {
+  color: inherit;
+}
+button:focus,
+input:focus,
+select:focus {
+  outline: unset;
+}
+
+button {
+  color: var(--vscode-button-foreground, var(--soql-white));
+  background-color: var(
+    --vscode-button-background,
+    var(--soql-color-medium-blue)
+  );
+  border: 0;
+  border-radius: 3px;
+  padding: 0 15px 0 15px;
+  cursor: pointer;
+}
+button:hover {
+  background-color: var(
+    --vscode-button-hoverBackground,
+    var(--soql-color-blue-text)
+  );
+}
+button:active {
+  box-shadow: 0 0 0.3em 0em #454444;
+}
+
+.btn--disabled {
+  background-color: var(
+    --vscode-list-inactiveSelectionBackground,
+    var(--soql-color-medium-grey)
+  );
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.select-long {
+  min-width: var(--soql-selection-container-width);
+  max-width: var(--soql-selection-container-width);
+}
+
+/* ERROR / DISABLED ------------ */
+.text-color-required {
+  color: var(--soql-red);
+  opacity: 1;
+}
+
+/* TOOLTIPS --- */
+.tooltip {
+  position: relative;
+}
+.tooltip::before {
+  content: attr(data-text); /* grab the text */
+  position: absolute;
+  transform: scale(
+    0
+  ); /* this keeps it from being reactive to :hover when it is not visible */
+  opacity: 0;
+  transition: opacity ease-in 0.2s;
+
+  /* vertically center above element */
+  bottom: calc(100% + 10px);
+  left: calc(50% - 100px);
+
+  /* basic styles */
+  font-size: small;
+  width: 200px; /* fixed width helps calculate position */
+  padding: 0.5rem;
+  border-radius: 3px;
+  background: var(--vscode-sideBar-background, var(--soql-background));
+  color: var(--vscode-button-foreground, var(--soql-white));
+  text-align: center;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  transform: scale(0);
+  opacity: 0;
+  transition: opacity ease-in 0.2s;
+
+  /* position arrow correctly */
+  left: calc(50% - 10px);
+  bottom: calc(100% - 10px);
+
+  /* the arrow - a trick that uses the after psuedo element with thick border and makes 3 sides transparent */
+  border: 10px solid var(--vscode-sideBar-background, var(--soql-background));
+  border-color: var(--vscode-sideBar-background, var(--soql-background))
+    transparent transparent transparent;
+}
+
+.tooltip--error::before {
+  background: var(--soql-red);
+  color: var(--soql-white);
+}
+
+.tooltip--error::after {
+  border: 10px solid var(--soql-red);
+  border-color: var(--soql-red) transparent transparent transparent;
+}
+
+.tooltip:hover::before,
+.tooltip:hover::after {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* MISC ------------ */
+.pointer {
+  cursor: pointer;
+}
+
+.text-center {
+  text-align: center;
+}
+.text-right {
+  text-align: right;
+}

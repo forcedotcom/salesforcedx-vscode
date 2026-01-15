@@ -1,0 +1,60 @@
+/*
+ *  Copyright (c) 2020, salesforce.com, inc.
+ *  All rights reserved.
+ *  Licensed under the BSD 3-Clause license.
+ *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ *
+ */
+@import 'querybuilder/cssCommon';
+main {
+  min-width: var(--soql-main-min-width);
+  max-width: var(--soql-main-max-width);
+}
+
+.querybuilder-body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: row;
+}
+
+.querybuilder-form {
+  flex: 1;
+  min-width: var(--soql-main-min-width);
+}
+
+.query-preview {
+  flex-grow: 1;
+  padding-left: 1rem;
+}
+
+@media screen and (max-width: 750px) {
+  .query-preview {
+    padding: 0 0 2rem 0;
+    max-width: var(--soql-media-max-width);
+    flex-grow: unset;
+    flex: unset;
+  }
+  .querybuilder-body {
+    flex-direction: column-reverse;
+  }
+  .querybuilder-form {
+    flex-grow: 1;
+  }
+}
+
+.warning-notification {
+  max-width: var(--soql-media-max-width);
+}
+
+.warning-notification__message {
+  background-color: var(--soql-red);
+  color: var(--soql-white);
+  font-size: small;
+  padding: 1rem;
+  border-radius: 3px;
+  margin-bottom: 1rem;
+}
+
+.warning-notification__dismiss {
+  text-align: right;
+}

@@ -1,0 +1,20 @@
+<!--
+  Copyright (c) 2020, salesforce.com, inc.
+  All rights reserved.
+  Licensed under the BSD 3-Clause license.
+  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+ -->
+
+<template>
+  <header>
+    <div class="container">
+      <template if:false={isRunning}>
+        <button class="run-button" onclick={handleRunQuery}>Run Query</button>
+      </template>
+      <template if:true={isRunning}>
+        <button class="btn--disabled">Running...</button>
+      </template>
+    </div>
+  </header>
+</template>
