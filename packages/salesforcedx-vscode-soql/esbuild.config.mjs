@@ -21,7 +21,7 @@ await build({
   plugins: [
     copy({
       assets: {
-        from: [`../../node_modules/@salesforce/soql-builder-ui/dist/**`],
+        from: [`./src/soql-builder-ui/dist/**`],
         to: ['./soql-builder-ui']
       }
     }),
