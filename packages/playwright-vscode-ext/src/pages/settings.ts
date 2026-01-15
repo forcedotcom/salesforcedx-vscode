@@ -142,6 +142,7 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       const desiredChecked = value === 'true';
       if (isChecked !== desiredChecked) {
         await checkbox.click();
+        await expect(checkbox).toHaveAttribute('aria-checked', desiredChecked ? 'true' : 'false', { timeout: 10_000 });
       }
     } else {
       // Handle textbox or spinbutton setting
