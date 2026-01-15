@@ -16,7 +16,7 @@ import { waitForRetrieveProgressNotificationToAppear } from '../pages/notificati
 import { RETRIEVE_TIMEOUT_MS } from '../constants';
 
 /** Headless-like test for foldered Report retrieval */
-test.setTimeout(10 * 60 * 1000);
+test.setTimeout(RETRIEVE_TIMEOUT_MS);
 
 test.beforeEach(async ({ page }) => {
   const createResult = await createDreamhouseOrg();

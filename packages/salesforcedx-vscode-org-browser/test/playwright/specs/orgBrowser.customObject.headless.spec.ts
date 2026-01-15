@@ -15,7 +15,7 @@ import {
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 import { RETRIEVE_TIMEOUT_MS } from '../constants';
 
-test.setTimeout(2 * 60 * 1000);
+test.setTimeout(RETRIEVE_TIMEOUT_MS);
 
 test.beforeEach(async ({ page }) => {
   const createResult = await createDreamhouseOrg();

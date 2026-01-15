@@ -10,7 +10,12 @@ import { executeCommandWithCommandPalette } from '../pages/commands';
 import { closeSettingsTab, closeWelcomeTabs } from './helpers';
 import { WORKBENCH, QUICK_INPUT_WIDGET, EDITOR_WITH_URI, DIRTY_EDITOR, QUICK_INPUT_LIST_ROW } from './locators';
 
-/** Creates a new untitled file with contents - works in both web and desktop without filesystem access */
+/**
+ * Creates a new untitled file with contents.
+ * NOTE: This creates an UNTITLED file that is NOT saved to disk.
+ * For tests that need actual files on disk, use createApexClass or similar extension commands.
+ * The filePath parameter is currently unused - file remains as Untitled-N.
+ */
 export const createFileWithContents = async (page: Page, _filePath: string, contents: string): Promise<void> => {
   await page.locator(WORKBENCH).click();
 
