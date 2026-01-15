@@ -13,7 +13,7 @@
 #### salesforcedx-utils-vscode
 #### salesforcedx-vscode-lwc
 
-- We fixed some windows specific config issues. ([PR #6760](https://github.com/forcedotcom/salesforcedx-vscode/pull/6760))
+- We fixed some Windows specific config issues. ([PR #6760](https://github.com/forcedotcom/salesforcedx-vscode/pull/6760))
 
 #### salesforcedx-vscode
 #### salesforcedx-vscode-apex-oas
