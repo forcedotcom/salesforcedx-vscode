@@ -1,0 +1,67 @@
+<!--
+  Copyright (c) 2020, salesforce.com, inc.
+  All rights reserved.
+  Licensed under the BSD 3-Clause license.
+  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+ -->
+<template>
+  <div class="section-container">
+    <div class="section_label-container">
+      <!-- i18n -->
+      <label>Filter</label>
+    </div>
+    <div class="section_selection-container">
+      <header class="header">
+        <div class="header__btn--group">
+          <button
+            type="button"
+            name="and"
+            value="AND"
+            class={andBtnClassList}
+            onclick={handleSetAndOr}
+          >
+            AND
+          </button>
+          <button
+            type="button"
+            name="or"
+            value="OR"
+            class={orBtnClassList}
+            onclick={handleSetAndOr}
+          >
+            OR
+          </button>
+        </div>
+        <div class="header__labels">
+          <!-- i18n -->
+          <p class="header__label__field">Field</p>
+          <p class="header__label__operator">Operator</p>
+          <p class="header__label__value">Value</p>
+        </div>
+      </header>
+      <section class="modifier__group-container">
+        <template for:each={_conditionsStore} for:item="condition">
+          <querybuilder-where-modifier-group
+            all-fields={whereFields}
+            key={condition.index}
+            index={condition.index}
+            condition={condition.condition}
+            is-loading={isLoading}
+            onmodifiergroupselection={handleModifierGroupSelection}
+            sobject-metadata={sobjectMetadata}
+          ></querybuilder-where-modifier-group>
+        </template>
+      </section>
+      <footer>
+        <button
+          class={addBtnClassList}
+          onclick={handleAddModGroup}
+          data-el-where-add-btn
+        >
+          Add
+        </button>
+      </footer>
+    </div>
+  </div>
+</template>

@@ -1,0 +1,25 @@
+/*
+ *  Copyright (c) 2020, salesforce.com, inc.
+ *  All rights reserved.
+ *  Licensed under the BSD 3-Clause license.
+ *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ *
+ */
+
+@import 'querybuilder/cssCommon';
+
+.group-orderby-modifiers {
+  margin-top: 5px;
+}
+
+button,
+.group-orderby-nulls {
+  margin-left: 0.5rem;
+}
+
+.selected-orderby-container {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: var(--soql-selection-container-width);
+  padding-top: 5px;
+}
