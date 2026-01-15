@@ -8,7 +8,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { EOL } from 'os';
-import { Soql } from '@salesforce/soql-model';
+import { Soql } from '../../../../../../../src/soql-model';
 import {
   convertUiModelToSoql,
   convertSoqlToUiModel,

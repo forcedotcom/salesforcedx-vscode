@@ -6,7 +6,7 @@
  *
  */
 
-import { Soql } from '@salesforce/soql-model';
+import { Soql } from '../../../../soql-model';
 
 interface SObjectField {
   name: string;

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Soql } from '@salesforce/soql-model';
+import { Soql } from '../../../../../../../src/soql-model';
 import { createQueryTelemetry } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/telemetryUtils';
 import { ToolingModelJson } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingModelService';
 

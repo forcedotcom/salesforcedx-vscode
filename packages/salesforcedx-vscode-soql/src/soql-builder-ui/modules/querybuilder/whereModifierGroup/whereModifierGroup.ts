@@ -17,7 +17,7 @@ import {
   Soql,
   ValidatorFactory,
   splitMultiInputValues
-} from '@salesforce/soql-model';
+} from '../../../../soql-model';
 import { JsonMap } from '@salesforce/types';
 import { OperatorOption, operatorOptions } from '../services/model';
 import { SObjectTypeUtils } from '../services/sobjectUtils';

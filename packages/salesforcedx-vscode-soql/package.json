@@ -37,8 +37,8 @@
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
-    "@salesforce/soql-model": "1.0.0",
     "@salesforce/vscode-i18n": "*",
+    "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
     "papaparse": "^5.3.0",
     "vscode-languageclient": "^9.0.1",
@@ -106,6 +106,15 @@
         "grammars/soql.tmLanguage"
       ]
     },
+    "copy:soql-parser": {
+      "command": "shx mkdir -p out/src/soql-common && shx cp -R src/soql-common/soql-parser.lib out/src/soql-common/soql-parser.lib",
+      "files": [
+        "src/soql-common/soql-parser.lib/**"
+      ],
+      "output": [
+        "out/src/soql-common/soql-parser.lib/**"
+      ]
+    },
     "build:soql-builder-ui": {
       "command": "cd src/soql-builder-ui && npm install && export NODE_OPTIONS=--openssl-legacy-provider && npx lwc-services build -w webpack.config.js -m production",
       "files": [
@@ -125,6 +134,7 @@
       "dependencies": [
         "compile",
         "copy:grammars",
+        "copy:soql-parser",
         "build:soql-builder-ui"
       ],
       "files": [

@@ -12,7 +12,7 @@ import {
   SoqlModelUtils,
   ModelSerializer,
   ModelDeserializer
-} from '@salesforce/soql-model';
+} from '../../../../soql-model';
 import { SELECT_COUNT, ToolingModelJson } from './model';
 
 export function convertSoqlToUiModel(soql: string): ToolingModelJson {
