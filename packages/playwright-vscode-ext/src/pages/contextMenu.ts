@@ -75,7 +75,9 @@ const openExplorerContextMenu = async (page: Page, itemName: string | RegExp): P
   await treeItem.hover({ timeout: 2000 }).catch(() => {
     // Hover might fail if item is already visible, continue
   });
-  await treeItem.click({ button: 'right' });
+  // Use force: true to bypass sticky container interception
+  // The sticky container overlays the tree item and intercepts pointer events
+  await treeItem.click({ button: 'right', force: true });
   const contextMenu = page.locator(CONTEXT_MENU);
   await contextMenu.waitFor({ state: 'visible', timeout: 5000 });
   return contextMenu;
