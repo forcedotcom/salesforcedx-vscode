@@ -9,7 +9,6 @@ import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { create } from '../utils/dreamhouseScratchOrgSetup';
-import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
 
 test.describe('Org Browser - CustomTab retrieval', () => {
   test.setTimeout(10 * 60 * 1000);
@@ -32,25 +31,16 @@ test.describe('Org Browser - CustomTab retrieval', () => {
       await expect(locator).toMatchAriaSnapshot({ name: 'customtab-hover' });
     });
 
-    const brokerItem = await test.step('expand CustomTab and locate Broker__c', async () => {
+    await test.step('expand CustomTab and locate Broker__c', async () => {
       await orgBrowserPage.expandFolder('CustomTab');
       const item = await orgBrowserPage.getMetadataItem('CustomTab', 'Broker__c');
       await item.hover();
       await expect(item).toMatchAriaSnapshot({ name: 'customtab-broker__c' });
-      return item;
     });
 
     await test.step('trigger retrieval', async () => {
-      const clicked = await orgBrowserPage.clickRetrieveButton(brokerItem);
-      expect(clicked).toBe(true);
-    });
-
-    await test.step('wait for retrieval progress to appear', async () => {
-      await waitForRetrieveProgressNotificationToAppear(page, 60_000);
-    });
-
-    await test.step('wait for editor file to open (completion signal)', async () => {
-      await orgBrowserPage.waitForFileToOpenInEditor(120_000);
+      // Use utility function to handle full retrieve flow
+      await orgBrowserPage.retrieveMetadataItem('CustomTab', 'Broker__c');
     });
 
     await test.step('verify editor is visible and capture final state', async () => {
@@ -64,27 +54,15 @@ test.describe('Org Browser - CustomTab retrieval', () => {
     });
 
     await test.step('visual assertion: Broker__c shows filled circle', async () => {
+      // Re-find the item after retrieval to get fresh locator
+      const brokerItem = await orgBrowserPage.getMetadataItem('CustomTab', 'Broker__c');
       await expect(brokerItem.locator('div.custom-view-tree-node-item-icon')).toContainClass('codicon-pass-filled');
       await expect(brokerItem).toMatchAriaSnapshot({ name: 'customtab-broker__c-filled' });
     });
 
     await test.step('override confirmation for a single file', async () => {
-      await orgBrowserPage.clickRetrieveButton(brokerItem);
-
-      const overwrite = page
-        .locator('.monaco-workbench .notification-list-item')
-        .filter({ hasText: /Overwrite\s+local\s+files\s+for/i })
-        .first();
-      await expect(overwrite).toBeVisible();
-      await expect(overwrite).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+CustomTab\s*\?/i);
-
-      await overwrite.getByRole('button', { name: /^Yes$/ }).click();
-
-      const retrieving = page
-        .locator('.monaco-workbench .notification-list-item')
-        .filter({ hasText: /Retrieving\s+CustomTab/i })
-        .first();
-      await expect(retrieving).toBeVisible({ timeout: 60_000 });
+      // Use utility function to handle override confirmation flow
+      await orgBrowserPage.retrieveMetadataItemWithOverride('CustomTab', 'Broker__c');
     });
 
     await test.step('download all customTabs from the type-level retrieve icon', async () => {

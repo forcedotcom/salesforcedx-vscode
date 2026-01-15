@@ -44,7 +44,17 @@ test.describe('Org Browser - Foldered Report retrieval ', () => {
       const folder = await orgBrowserPage.getMetadataItem('Report', folderName, 2);
       await expect(folder).toBeVisible();
       await expect(folder.locator('.action-label[aria-label="Retrieve Metadata"]')).toBeHidden();
-      await orgBrowserPage.expandFolder(folderName);
+      // Use the folder locator directly instead of expandFolder to avoid name matching issues with special characters
+      const twistie = folder.locator('.monaco-tl-twistie');
+      // Click to expand
+      await folder.click({ timeout: 5000, delay: 100 });
+      // Wait for loading to complete
+      await expect(twistie, 'should finish loading').not.toContainClass('codicon-tree-item-loading', { timeout: 60_000 });
+      // Ensure it's expanded
+      if (await twistie.evaluate((el: HTMLElement) => el.classList.contains('collapsed'))) {
+        await folder.click();
+      }
+      await expect(twistie, 'Folder twistie should show expanded state').toContainClass('codicon-tree-item-expanded', { timeout: 6000 });
     });
 
     await test.step('locate first report item in folder', async () => {
@@ -61,6 +71,8 @@ test.describe('Org Browser - Foldered Report retrieval ', () => {
     });
 
     await test.step('trigger retrieval on a single report', async () => {
+      // For foldered items, we can't use retrieveMetadataItem utility as it expects metadataType/itemName structure
+      // Keep original pattern for foldered items
       const reportItem = await orgBrowserPage.getMetadataItem(
         'unfiled$public',
         'unfiled$public/flow_screen_prebuilt_report',
@@ -88,6 +100,8 @@ test.describe('Org Browser - Foldered Report retrieval ', () => {
     });
 
     await test.step('override confirmation for a single report', async () => {
+      // For foldered items, we can't use retrieveMetadataItemWithOverride utility
+      // Keep original pattern for foldered items
       const reportItem = await orgBrowserPage.getMetadataItem(
         'unfiled$public',
         'unfiled$public/flow_screen_prebuilt_report',

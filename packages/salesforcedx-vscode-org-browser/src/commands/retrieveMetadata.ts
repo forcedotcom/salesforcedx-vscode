@@ -17,9 +17,13 @@ import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetriev
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 
 export const retrieveOrgBrowserTreeItemCommand = async (
-  node: OrgBrowserTreeItem,
+  node: OrgBrowserTreeItem | undefined,
   treeProvider: MetadataTypeTreeProvider
 ): Promise<void> => {
+  if (!node) {
+    void vscode.window.showErrorMessage(nls.localize('retrieve_failed', 'No tree item selected'));
+    return;
+  }
   const result = await Effect.runPromise(retrieveEffect(node, treeProvider));
   if (typeof result === 'string') {
     void vscode.window.showInformationMessage(nls.localize('retrieve_canceled'));
@@ -30,7 +34,7 @@ const retrieveEffect = (
   node: OrgBrowserTreeItem,
   treeProvider: MetadataTypeTreeProvider
   // void since we catch all the errors and show the vscode error message
-): Effect.Effect<RetrieveResult | SuccessfulCancelResult | void, never, never> =>
+): Effect.Effect<RetrieveResult | SuccessfulCancelResult | void, never> =>
   Effect.gen(function* () {
     const target = getRetrieveTarget(node);
     if (target._tag === 'None') {
@@ -57,14 +61,35 @@ const retrieveEffect = (
 
     if (typeof result !== 'string')
       // Handle post-retrieve UI updates
-      yield* Effect.promise(async () => {
+      yield* Effect.gen(function* () {
         if (node.kind === 'component') {
           node.iconPath = getIconPath(true);
           treeProvider.fireChangeEvent(node);
+        } else if (node.kind === 'customObject') {
+          // For CustomObject nodes, refresh children and update icon directly
+          // Since we just retrieved it, we know the files are present
+          yield* Effect.promise(async () => {
+            await treeProvider.refreshType(node);
+            // Update the icon directly after refresh (files are present since we just retrieved)
+            // Re-find the node from cache in case refreshType created a new instance
+            const cachedNode = node.id ? treeProvider.findTreeItemById(node.id) : node;
+            if (cachedNode) {
+              cachedNode.iconPath = getIconPath(true);
+              cachedNode.filePresent = true;
+              treeProvider.fireChangeEvent(cachedNode);
+            } else {
+              // Fallback: update the original node
+              node.iconPath = getIconPath(true);
+              node.filePresent = true;
+              treeProvider.fireChangeEvent(node);
+            }
+          });
         } else {
-          await treeProvider.refreshType(node);
+          yield* Effect.promise(async () => {
+            await treeProvider.refreshType(node);
+          });
         }
-      });
+      }).pipe(Effect.provide(AllServicesLayer));
 
     return result;
   }).pipe(
@@ -75,9 +100,12 @@ const retrieveEffect = (
         void vscode.window.showErrorMessage(nls.localize('retrieve_failed', String(error)));
       })
     )
-  );
+  ) as Effect.Effect<RetrieveResult | SuccessfulCancelResult | void, never>;
 
 const getRetrieveTarget = (node: OrgBrowserTreeItem): Option.Option<MetadataMember> => {
+  if (!node || !node.kind) {
+    return Option.none();
+  }
   if (node.kind === 'folderType') {
     // folderType nodes don't have retrieve functionality
     return Option.none();

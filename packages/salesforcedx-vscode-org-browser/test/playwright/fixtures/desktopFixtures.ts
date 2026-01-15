@@ -64,7 +64,7 @@ export const test = base.extend<TestFixtures, WorkerFixtures>({
         // Load both extensions (org-browser depends on services)
         `--extensionDevelopmentPath=${extensionPath}`,
         `--extensionDevelopmentPath=${servicesPath}`,
-        '--disable-extensions', // Disable other extensions
+        // Note: --disable-extensions was removed as it disables ALL extensions including the ones being developed
         '--disable-workspace-trust', // Skip workspace trust modal
         '--no-sandbox', // Disable sandbox for file system access (needed for SF CLI auth files)
 

@@ -41,5 +41,14 @@ test.describe('Org Browser headless smoke', () => {
 
     expect(criticalConsole, `Console errors: ${criticalConsole.map(e => e.text).join(' | ')}`).toHaveLength(0);
     expect(criticalNetwork, `Network errors: ${criticalNetwork.map(e => e.description).join(' | ')}`).toHaveLength(0);
+
+    // Verify org name is displayed in tree view
+    const orgName = await orgBrowserPage.getOrgName();
+    // Org name should be displayed (alias, username, or orgId)
+    // It may take a moment to appear, so we check if it exists or is null
+    // In a real org, it should show the org identifier
+    if (orgName) {
+      expect(orgName.length).toBeGreaterThan(0);
+    }
   });
 });

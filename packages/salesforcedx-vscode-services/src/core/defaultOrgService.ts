@@ -20,6 +20,7 @@ export const DefaultOrgInfoSchema = Schema.Struct({
   orgId: Schema.optional(Schema.String),
   devHubOrgId: Schema.optional(Schema.String),
   username: Schema.optional(Schema.String),
+  alias: Schema.optional(Schema.String),
   devHubUsername: Schema.optional(Schema.String),
   tracksSource: Schema.optional(Schema.Boolean),
   isScratch: Schema.optional(Schema.Boolean),

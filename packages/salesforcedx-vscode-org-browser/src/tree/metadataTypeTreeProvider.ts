@@ -4,31 +4,191 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { MetadataListResultItem } from './types';
+import type { FilterState, FilterStateService } from '../services/filterStateService';
 import * as Effect from 'effect/Effect';
-import * as Queue from 'effect/Queue';
 import * as vscode from 'vscode';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { createCustomFieldNode } from './customField';
-import { backgroundFilePresenceCheckQueue } from './filePresence';
+import { FilePresenceService, queueFilePresenceCheck } from './filePresenceService';
+import { isRetrievableComponent } from './filters';
 import { isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
-import { MetadataListResultItem, MetadataDescribeResultItem } from './types';
+import {
+  createErrorNode,
+  describeResultToNode,
+  listResultToComponentNode,
+  listResultToFolderItemNode,
+  listResultToFolderNode
+} from './transformers';
+
+/** Parse search query - supports simple text or Type:Name format */
+const parseSearchQuery = (query: string): { type?: string; name?: string } => {
+  const trimmed = query.trim();
+  if (!trimmed) return {};
+
+  const colonIndex = trimmed.indexOf(':');
+  if (colonIndex > 0) {
+    // Structured search: Type:Name
+    const type = trimmed.slice(0, colonIndex).trim();
+    const name = trimmed.slice(colonIndex + 1).trim();
+    return { type: type || undefined, name: name || undefined };
+  }
+
+  // Simple text search - matches component name
+  return { name: trimmed };
+};
+
+/** Check if a tree item matches the search query */
+const matchesSearch = (item: OrgBrowserTreeItem, query: { type?: string; name?: string }): boolean => {
+  if (!query.type && !query.name) return true;
+
+  // Type match (case-insensitive)
+  if (query.type && !item.xmlName.toLowerCase().includes(query.type.toLowerCase())) {
+    return false;
+  }
+
+  // Name match (case-insensitive) - check both componentName and label
+  if (query.name) {
+    const nameToCheck = item.componentName ?? item.label?.toString() ?? '';
+    if (!nameToCheck.toLowerCase().includes(query.name.toLowerCase())) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+/** Counts for a node's children */
+type NodeCounts = { total: number; local: number };
+
+/** Calculate counts for children */
+const calculateCounts = (children: OrgBrowserTreeItem[]): NodeCounts => {
+  const total = children.length;
+  const local = children.filter(c => c.filePresent === true).length;
+  return { total, local };
+};
+
+/** Format the description string for counts */
+const formatCountDescription = (counts: NodeCounts): string => {
+  if (counts.local > 0) {
+    return `(${counts.local}/${counts.total})`;
+  }
+  return `(${counts.total})`;
+};
+
+/** Debounce delay for tree change events (ms) */
+const DEBOUNCE_DELAY = 100;
 
 export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrowserTreeItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<OrgBrowserTreeItem | undefined | void> = new vscode.EventEmitter();
   public readonly onDidChangeTreeData: vscode.Event<OrgBrowserTreeItem | undefined | void> =
     this._onDidChangeTreeData.event;
 
+  /** Tracks if the last fetch failed - used to show error state */
+  private lastError: Error | undefined;
+
+  /** Current filter state */
+  private filterState: FilterState = { showLocalOnly: false, hideManaged: false, searchQuery: '' };
+
+  /** Cache of children by node id for count updates */
+  private childrenCache: Map<string, OrgBrowserTreeItem[]> = new Map();
+
+  /** Cache of parent nodes by id for description updates */
+  private parentNodeCache: Map<string, OrgBrowserTreeItem> = new Map();
+
+  /** Cache of all tree items by id for lookup */
+  private allItemsCache: Map<string, OrgBrowserTreeItem> = new Map();
+
+  /** Pending debounced fire timeout */
+  private pendingFireTimeout: ReturnType<typeof setTimeout> | undefined;
+
+  /** Current org identifier for cache invalidation */
+  private currentOrgId: string | undefined;
+
+  /** Set the filter state service and initialize filter state */
+  public setFilterService(service: FilterStateService): void {
+    this.filterState = service.getState();
+  }
+
+  /** Clear all caches - should be called when org changes */
+  public clearCache(): void {
+    this.childrenCache.clear();
+    this.parentNodeCache.clear();
+    this.allItemsCache.clear();
+    this.lastError = undefined;
+  }
+
+  /** Find a tree item by its ID from the cache */
+  public findTreeItemById(id: string): OrgBrowserTreeItem | undefined {
+    return this.allItemsCache.get(id);
+  }
+
+  /** Update org ID and clear cache if org changed */
+  public setOrgId(orgId: string | undefined): void {
+    if (this.currentOrgId !== orgId) {
+      this.currentOrgId = orgId;
+      this.clearCache();
+    }
+  }
+
+  /** Update filter state (called by filter service onChange) */
+  public updateFilterState(state: FilterState): void {
+    this.filterState = state;
+  }
+
+  /** Update the counts for a parent node based on its cached children */
+  public updateNodeCounts(parentId: string): void {
+    const children = this.childrenCache.get(parentId);
+    const parent = this.parentNodeCache.get(parentId);
+    if (!children || !parent) return;
+
+    const counts = calculateCounts(children);
+    parent.description = formatCountDescription(counts);
+  }
+
   /** fire the onDidChangeTreeData event for the node to cause vscode ui to update */
+  /** Fire the onDidChangeTreeData event immediately */
   public fireChangeEvent(node?: OrgBrowserTreeItem): void {
     this._onDidChangeTreeData.fire(node);
+  }
+
+  /** Fire the onDidChangeTreeData event with debouncing (for batched updates) */
+  public fireChangeEventDebounced(): void {
+    if (this.pendingFireTimeout) {
+      clearTimeout(this.pendingFireTimeout);
+    }
+    this.pendingFireTimeout = setTimeout(() => {
+      this.pendingFireTimeout = undefined;
+      this._onDidChangeTreeData.fire();
+    }, DEBOUNCE_DELAY);
   }
 
   /**
    * Refreshes only the given type node in the tree.  Fires the onDidChangeTreeData so you don't have to
    */
   public async refreshType(node?: OrgBrowserTreeItem): Promise<void> {
-    await this.getChildren(node, true);
-    this._onDidChangeTreeData.fire(node);
+    // Cancel any pending file presence checks for this node
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const filePresenceService = yield* FilePresenceService;
+        const batchId = node?.id ?? 'root';
+        filePresenceService.cancelBatch(batchId);
+      }).pipe(Effect.provide(AllServicesLayer))
+    ).catch(() => {
+      // Ignore errors cancelling batch
+    });
+
+    // Clear cache for this node so we fetch fresh data
+    if (node?.id) {
+      this.childrenCache.delete(node.id);
+    }
+
+    try {
+      await this.getChildren(node, true);
+    } finally {
+      // Always fire change event so tree updates (even on error, to clear stale data)
+      this._onDidChangeTreeData.fire(node);
+    }
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -37,153 +197,203 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   }
 
   public async getChildren(element?: OrgBrowserTreeItem, refresh = false): Promise<OrgBrowserTreeItem[]> {
-    return await Effect.runPromise(getChildrenOfTreeItem(element, refresh, this));
+    // Return cached children if available and not explicitly refreshing
+    // This prevents infinite loops when fireChangeEvent triggers getChildren
+    if (!refresh && element?.id) {
+      const cached = this.childrenCache.get(element.id);
+      if (cached) {
+        return this.applyFilters(cached, element);
+      }
+    }
+
+    try {
+      const result = await Effect.runPromise(getChildrenOfTreeItem(element, refresh, this));
+      this.lastError = undefined;
+
+      // Cache children and parent for count updates
+      if (element?.id) {
+        this.childrenCache.set(element.id, result);
+        this.parentNodeCache.set(element.id, element);
+        this.allItemsCache.set(element.id, element);
+        // Set initial count description
+        const counts = calculateCounts(result);
+        element.description = formatCountDescription(counts);
+      }
+      // Cache all child items by their IDs
+      for (const child of result) {
+        if (child.id) {
+          this.allItemsCache.set(child.id, child);
+        }
+      }
+
+      // Apply filters to component-level nodes
+      const filtered = this.applyFilters(result, element);
+      return filtered;
+    } catch (error) {
+      this.lastError = error instanceof Error ? error : new Error(String(error));
+      console.error('[Org Browser] Error fetching children:', this.lastError.message);
+
+      // For root level, show an error message node
+      if (!element) {
+        return [createErrorNode(this.lastError.message)];
+      }
+      // For child nodes, return empty (parent still shows, but no children)
+      return [];
+    }
+  }
+
+  /** Apply active filters to the result set */
+  private applyFilters(items: OrgBrowserTreeItem[], parent?: OrgBrowserTreeItem): OrgBrowserTreeItem[] {
+    const { showLocalOnly, hideManaged, searchQuery } = this.filterState;
+    const parsedSearch = parseSearchQuery(searchQuery);
+
+    // For root level (metadata types), filter by type name if search has a type component
+    if (!parent) {
+      if (parsedSearch.type) {
+        return items.filter(item => item.xmlName.toLowerCase().includes(parsedSearch.type!.toLowerCase()));
+      }
+      return items;
+    }
+
+    // For component-level nodes, apply all filters
+    return items.filter(item => {
+      // Local only filter - skip items that aren't present locally
+      // Note: filePresence may be undefined during async check, so only filter when explicitly false
+      if (showLocalOnly && item.filePresent === false) {
+        return false;
+      }
+
+      // Hide managed filter - skip items with a namespace prefix
+      if (hideManaged && item.namespace) {
+        return false;
+      }
+
+      // Search filter
+      if (!matchesSearch(item, parsedSearch)) {
+        return false;
+      }
+
+      return true;
+    });
   }
 }
+
+/** Process items with file presence checks and start batch tracking */
+const processWithBatchTracking = <T>(
+  items: readonly T[],
+  createNode: (item: T) => Effect.Effect<OrgBrowserTreeItem, Error, never>,
+  filePresenceService: FilePresenceService,
+  batchId: string
+): Effect.Effect<OrgBrowserTreeItem[], Error, never> =>
+  Effect.gen(function* () {
+    const nodes = yield* Effect.all(items.map(createNode), { concurrency: 'unbounded' });
+    if (items.length > 0) {
+      void filePresenceService.startBatch(batchId, items.length).catch(() => {
+        // Batch was cancelled - that's okay
+      });
+    }
+    return nodes;
+  });
 
 const getChildrenOfTreeItem = (
   element: OrgBrowserTreeItem | undefined,
   refresh: boolean,
   treeProvider: MetadataTypeTreeProvider
 ): Effect.Effect<OrgBrowserTreeItem[], Error, never> =>
-  ExtensionProviderService.pipe(
-    Effect.flatMap(svcProvider => svcProvider.getServicesApi),
-    Effect.flatMap(api => api.services.MetadataDescribeService),
-    Effect.flatMap(describeService => {
-      if (!element) {
-        return describeService
-          .describe(refresh)
-          .pipe(
-            Effect.map(types =>
-              types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode)
-            )
-          );
-      }
-      if (element.kind === 'customObject') {
-        // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
-        return describeService
-          .describeCustomObject(
-            element.namespace ? `${element.namespace}__${element.componentName!}` : element.componentName!
-          )
-          .pipe(
-            Effect.flatMap(result =>
-              Effect.all(
-                result.fields
-                  // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
-                  .filter(f => f.custom)
-                  .toSorted((a, b) => (a.name < b.name ? -1 : 1))
-                  .map(createCustomFieldNode(treeProvider)(element)),
-                { concurrency: 'unbounded' }
-              )
-            )
-          );
-      }
-      if (element.kind === 'folderType' || (element.kind === 'type' && isFolderType(element.xmlName))) {
-        return describeService
-          .listMetadata(`${element.xmlName}Folder`)
-          .pipe(Effect.map(folders => folders.filter(globalMetadataFilter).map(listMetadataToFolder(element))));
-      }
-      if (element.kind === 'type') {
-        return describeService.listMetadata(element.xmlName).pipe(
-          Effect.flatMap(components =>
-            Effect.all(components.filter(globalMetadataFilter).map(listMetadataToComponent(treeProvider)(element)), {
-              concurrency: 'unbounded'
-            })
-          )
-        );
-      }
-      if (element.kind === 'folder') {
-        const { xmlName, folderName } = element;
-        if (!xmlName || !folderName) return Effect.succeed([]);
-        return describeService.listMetadata(xmlName, folderName).pipe(
-          Effect.flatMap(components =>
-            Effect.all(components.filter(globalMetadataFilter).map(listMetadataToFolderItem(treeProvider)(element)), {
-              concurrency: 'unbounded'
-            })
-          )
-        );
-      }
+  Effect.gen(function* () {
+    const [svcProvider, filePresenceService] = yield* Effect.all([ExtensionProviderService, FilePresenceService]);
+    const api = yield* svcProvider.getServicesApi;
+    const describeService = yield* api.services.MetadataDescribeService;
+    const batchId = element?.id ?? 'root';
 
-      return Effect.die(new Error(`Unsupported node kind: ${element.kind}`));
-    }),
+    if (!element) {
+      const types = yield* describeService.describe(refresh);
+      return types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(describeResultToNode);
+    }
+    if (element.kind === 'customObject') {
+      // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
+      const objectName = element.namespace
+        ? `${element.namespace}__${element.componentName!}`
+        : element.componentName!;
+      const result = yield* describeService.describeCustomObject(objectName);
+      const customFields = result.fields.filter(f => f.custom).toSorted((a, b) => (a.name < b.name ? -1 : 1));
+      return yield* processWithBatchTracking(
+        customFields,
+        createCustomFieldNode(filePresenceService, batchId, treeProvider.fireChangeEvent.bind(treeProvider))(
+          element
+        ),
+        filePresenceService,
+        batchId
+      );
+    }
+    if (element.kind === 'folderType' || (element.kind === 'type' && isFolderType(element.xmlName))) {
+      const folders = yield* describeService.listMetadata(`${element.xmlName}Folder`);
+      return folders.filter(isRetrievableComponent).map(c => listResultToFolderNode(element, c));
+    }
+    if (element.kind === 'type') {
+      const components = yield* describeService.listMetadata(element.xmlName);
+      const retrievable = components.filter(isRetrievableComponent);
+      return yield* processWithBatchTracking(
+        retrievable,
+        c => createComponentWithFileCheck(filePresenceService, treeProvider, element, c, batchId),
+        filePresenceService,
+        batchId
+      );
+    }
+    if (element.kind === 'folder') {
+      const { xmlName, folderName } = element;
+      if (!xmlName || !folderName) return [];
+      const components = yield* describeService.listMetadata(xmlName, folderName);
+      const retrievable = components.filter(isRetrievableComponent);
+      return yield* processWithBatchTracking(
+        retrievable,
+        c => createFolderItemWithFileCheck(filePresenceService, treeProvider, element, c, batchId),
+        filePresenceService,
+        batchId
+      );
+    }
+
+    return yield* Effect.die(new Error(`Unsupported node kind: ${element.kind}`));
+  }).pipe(
     Effect.withSpan('getChildrenOfTreeItem', { attributes: { element: element?.xmlName, refresh } }),
     Effect.provide(AllServicesLayer)
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+  ) as Effect.Effect<OrgBrowserTreeItem[], Error, never>;
+
+/** Create a component node and queue a file presence check */
+const createComponentWithFileCheck = (
+  filePresenceService: FilePresenceService,
+  treeProvider: MetadataTypeTreeProvider,
+  element: OrgBrowserTreeItem,
+  c: MetadataListResultItem,
+  batchId: string
+): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
+  Effect.gen(function* () {
+    const treeItem = listResultToComponentNode(element, c);
+    // Use fireChangeEvent (not debounced) for individual node icon updates
+    yield* queueFilePresenceCheck(filePresenceService, treeItem, c, batchId, treeProvider.fireChangeEvent.bind(treeProvider));
+    return treeItem;
+  }).pipe(
+    Effect.withSpan('createComponentWithFileCheck', {
+      attributes: { xmlName: element.xmlName, componentName: c.fullName }
+    })
   );
 
-const listMetadataToComponent =
-  (treeProvider: MetadataTypeTreeProvider) =>
-  (element: OrgBrowserTreeItem) =>
-  (c: MetadataListResultItem): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
-    Effect.gen(function* () {
-      const treeItem = new OrgBrowserTreeItem({
-        kind: element.xmlName === 'CustomObject' ? 'customObject' : 'component',
-        namespace: c.namespacePrefix,
-        xmlName: element.xmlName,
-        componentName: c.fullName,
-        label: c.fullName
-      });
-      yield* Queue.offer(backgroundFilePresenceCheckQueue, {
-        treeItem,
-        c,
-        treeProvider,
-        parent: element,
-        originalSpan: yield* Effect.currentSpan
-      });
-      return treeItem;
-    }).pipe(
-      Effect.withSpan('listMetadataToComponent', {
-        attributes: { xmlName: element.xmlName, componentName: c.fullName }
-      })
-    );
-
-const listMetadataToFolder =
-  (element: OrgBrowserTreeItem) =>
-  (c: MetadataListResultItem): OrgBrowserTreeItem =>
-    new OrgBrowserTreeItem({
-      kind: 'folder',
-      xmlName: element.xmlName,
-      namespace: c.namespacePrefix,
-      folderName: c.fullName,
-      label: c.fullName
-    });
-
-const listMetadataToFolderItem =
-  (treeProvider: MetadataTypeTreeProvider) =>
-  (element: OrgBrowserTreeItem) =>
-  (c: MetadataListResultItem): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
-    Effect.gen(function* () {
-      const treeItem = new OrgBrowserTreeItem({
-        kind: 'component',
-        namespace: c.namespacePrefix,
-        xmlName: element.xmlName,
-        folderName: element.folderName,
-        componentName: c.fullName,
-        label: c.fullName
-      });
-      yield* Queue.offer(backgroundFilePresenceCheckQueue, {
-        treeItem,
-        c,
-        treeProvider,
-        parent: element,
-        originalSpan: yield* Effect.currentSpan
-      });
-      return treeItem;
-    }).pipe(
-      Effect.withSpan('listMetadataToFolderItem', {
-        attributes: { xmlName: element.xmlName, componentName: c.fullName }
-      })
-    );
-
-const mdapiDescribeToOrgBrowserNode = (t: MetadataDescribeResultItem): OrgBrowserTreeItem =>
-  new OrgBrowserTreeItem({
-    kind: isFolderType(t.xmlName) ? 'folderType' : 'type',
-    xmlName: t.xmlName,
-    label: t.xmlName
-  });
-
-/** applies to all listMetadata calls */
-const globalMetadataFilter = (i: MetadataListResultItem): boolean => hasFullName(i) && isSupportedManageableState(i);
-
-const hasFullName = (i: MetadataListResultItem): boolean => Boolean(i.fullName);
-const isSupportedManageableState = (i: MetadataListResultItem): boolean =>
-  !i.manageableState || ['unmanaged', 'installedEditable', 'deprecatedEditable'].includes(i.manageableState);
+/** Create a folder item node and queue a file presence check */
+const createFolderItemWithFileCheck = (
+  filePresenceService: FilePresenceService,
+  treeProvider: MetadataTypeTreeProvider,
+  element: OrgBrowserTreeItem,
+  c: MetadataListResultItem,
+  batchId: string
+): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
+  Effect.gen(function* () {
+    const treeItem = listResultToFolderItemNode(element, c);
+    // Use fireChangeEvent (not debounced) for individual node icon updates
+    yield* queueFilePresenceCheck(filePresenceService, treeItem, c, batchId, treeProvider.fireChangeEvent.bind(treeProvider));
+    return treeItem;
+  }).pipe(
+    Effect.withSpan('createFolderItemWithFileCheck', {
+      attributes: { xmlName: element.xmlName, componentName: c.fullName }
+    })
+  );

@@ -30,6 +30,8 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-lwc",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-lightning",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-testing",
@@ -68,6 +70,8 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-lwc",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-lightning",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-testing",
@@ -269,7 +273,7 @@
       },
       "preLaunchTask": "Compile and Bundle",
       "internalConsoleOptions": "openOnSessionStart",
-      "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
+      "skipFiles": ["<node_internals>/**"]
     },
 
     {
@@ -324,7 +328,7 @@
       },
       "preLaunchTask": "Compile and Bundle",
       "internalConsoleOptions": "openOnSessionStart",
-      "skipFiles": ["<node_internals>/**"] // https://github.com/nodejs/node/issues/15464#issuecomment-332723120
+      "skipFiles": ["<node_internals>/**"]
     },
     {
       "name": "Debug Faux Jest Unit Tests",
@@ -384,6 +388,77 @@
         "${workspaceFolder}/packages/salesforcedx-vscode-services/dist/**/*.js",
         "${workspaceFolder}/packages/salesforcedx-vscode-org-browser/dist/**/*.js"
       ]
+    },
+    {
+      "name": "Debug Playwright Desktop Tests",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${fileDirname}/../../..",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--inspect-brk"],
+      "program": "${workspaceFolder}/node_modules/@playwright/test/cli.js",
+      "args": ["test", "--config=playwright.config.desktop.ts"],
+      "env": {
+        "VSCODE_DESKTOP": "1"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"],
+      "preLaunchTask": "Compile and Bundle (Current Package)"
+    },
+    {
+      "name": "Debug Playwright Desktop Test (Current File)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${fileDirname}/../../..",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--inspect-brk"],
+      "program": "${workspaceFolder}/node_modules/@playwright/test/cli.js",
+      "args": ["test", "--config=playwright.config.desktop.ts", "${relativeFile}"],
+      "env": {
+        "VSCODE_DESKTOP": "1",
+        "DEBUG_MODE": "1"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"],
+      "preLaunchTask": "Compile and Bundle (Current Package)"
+    },
+    {
+      "name": "Debug Playwright Web Tests",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${fileDirname}/../../..",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--inspect-brk"],
+      "program": "${workspaceFolder}/node_modules/@playwright/test/cli.js",
+      "args": ["test", "--config=playwright.config.web.ts"],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"],
+      "preLaunchTask": "Compile and Bundle (Current Package)"
+    },
+    {
+      "name": "Debug Playwright Web Test (Current File)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${fileDirname}/../../..",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--inspect-brk"],
+      "program": "${workspaceFolder}/node_modules/@playwright/test/cli.js",
+      "args": ["test", "--config=playwright.config.web.ts", "${relativeFile}"],
+      "env": {
+        "DEBUG_MODE": "1",
+        "CI": "false"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"],
+      "preLaunchTask": "Compile and Bundle (Current Package)"
     }
   ],
   "compounds": [

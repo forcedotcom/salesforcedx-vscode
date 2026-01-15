@@ -128,14 +128,47 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 //** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
 const maybeUpdateDefaultOrgRef = (conn: Connection): Effect.Effect<typeof DefaultOrgInfoSchema.Type, Error> =>
   Effect.gen(function* () {
-    const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
+    const { orgId, username, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
 
-    const devHubOrgId = yield* yield* Effect.cached(getDevHubId(devHubUsername));
+    const getDevHubId = (scratchOrgUsername?: string): Effect.Effect<string | undefined, Error> =>
+      scratchOrgUsername
+        ? Effect.tryPromise({
+            try: () => AuthInfo.create({ username: scratchOrgUsername }),
+            catch: error => new Error('Failed to create AuthInfo', { cause: error })
+          }).pipe(Effect.map(authInfo => authInfo.getFields().orgId))
+        : Effect.succeed(undefined);
+
+    // Get alias for the username (if any)
+    const getAlias = (user?: string): Effect.Effect<string | undefined, Error> =>
+      user
+        ? Effect.tryPromise({
+            try: async () => StateAggregator.getInstance(),
+            catch: error => new Error('Failed to get StateAggregator', { cause: error })
+          }).pipe(
+            Effect.flatMap(stateAgg =>
+              Effect.try({
+                try: () => {
+                  const aliases = stateAgg.aliases.getAll(user);
+                  return aliases && aliases.length > 0 ? aliases[0] : undefined;
+                },
+                catch: () => undefined as string | undefined
+              })
+            ),
+            Effect.catchAll(() => Effect.succeed(undefined))
+          )
+        : Effect.succeed(undefined);
+
+    const [devHubOrgId, alias] = yield* Effect.all([
+      yield* Effect.cached(getDevHubId(devHubUsername)),
+      getAlias(username)
+    ]);
     const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
 
     const updates = Object.fromEntries(
       Object.entries({
         orgId,
+        username,
+        alias,
         devHubUsername,
         tracksSource,
         isScratch,
@@ -163,12 +196,6 @@ const maybeUpdateDefaultOrgRef = (conn: Connection): Effect.Effect<typeof Defaul
     );
     return updated;
   }).pipe(Effect.withSpan('maybeUpdateDefaultOrgRef'));
-
-/** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */
-const getDevHubId = (scratchOrgUsername?: string): Effect.Effect<string | undefined, Error> =>
-  scratchOrgUsername
-    ? createAuthInfoFromUsername(scratchOrgUsername).pipe(Effect.map(authInfo => authInfo.getFields().orgId))
-    : Effect.succeed(undefined);
 
 const createAuthInfoFromUsername = (username: string): Effect.Effect<AuthInfo, Error> =>
   Effect.tryPromise({

@@ -4,16 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { MetadataTypeTreeProvider } from './metadataTypeTreeProvider';
 import * as Effect from 'effect/Effect';
-import * as Queue from 'effect/Queue';
-import { AllServicesLayer } from '../services/extensionProvider';
-import { backgroundFilePresenceCheckQueue } from './filePresence';
+import { FilePresenceService, queueFilePresenceCheck } from './filePresenceService';
 import { OrgBrowserTreeItem } from './orgBrowserNode';
 import { CustomObjectField, MetadataListResultItem } from './types';
 
+/** Create a tree node for a custom field */
 export const createCustomFieldNode =
-  (treeProvider: MetadataTypeTreeProvider) =>
+  (filePresenceService: FilePresenceService, batchId: string, fireChangeEvent: (node?: OrgBrowserTreeItem) => void) =>
   (element: OrgBrowserTreeItem) =>
   (f: CustomObjectField): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
     Effect.gen(function* () {
@@ -21,7 +19,7 @@ export const createCustomFieldNode =
       const fieldMetadata: MetadataListResultItem = {
         fullName: `${element.componentName}.${removeNamespacePrefix(element)(f).name}`,
         type: 'CustomField'
-      };
+      } as MetadataListResultItem;
 
       const treeItem = new OrgBrowserTreeItem({
         kind: 'component',
@@ -29,19 +27,13 @@ export const createCustomFieldNode =
         componentName: `${element.componentName}.${f.name}`,
         label: getFieldLabel(removeNamespacePrefix(element)(f))
       });
-      yield* Queue.offer(backgroundFilePresenceCheckQueue, {
-        treeItem,
-        c: fieldMetadata,
-        treeProvider,
-        parent: element,
-        originalSpan: yield* Effect.currentSpan
-      });
+
+      yield* queueFilePresenceCheck(filePresenceService, treeItem, fieldMetadata, batchId, fireChangeEvent);
       return treeItem;
     }).pipe(
       Effect.withSpan('createCustomFieldNode', {
         attributes: { xmlName: 'CustomField', componentName: `${element.componentName}.${f.name}` }
-      }),
-      Effect.provide(AllServicesLayer)
+      })
     );
 
 /** build out the label for a CustomField */
