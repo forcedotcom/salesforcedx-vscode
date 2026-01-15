@@ -48,7 +48,7 @@ jobs:
         shell: bash
         run: |
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
           sf project deploy start
           sf org assign permset -n dreamhouse
         working-directory: dreamhouse-lwc
@@ -62,7 +62,7 @@ jobs:
         shell: bash
         run: |
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json  --wait 30
         working-directory: minimal-project
 
       - name: Run Metadata headless tests (headless config)
@@ -140,7 +140,7 @@ jobs:
         shell: bash
         run: |
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
           sf project deploy start
           sf org assign permset -n dreamhouse
         working-directory: dreamhouse-lwc
@@ -154,7 +154,7 @@ jobs:
         shell: bash
         run: |
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: minimal-project
 
       - name: Run Metadata headless tests (headless config)
