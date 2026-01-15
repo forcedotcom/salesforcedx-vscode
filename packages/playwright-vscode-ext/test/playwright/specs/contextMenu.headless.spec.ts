@@ -8,7 +8,12 @@
 import { expect } from '@playwright/test';
 import { executeEditorContextMenuCommand } from '../../../src/pages/contextMenu';
 import { createFileWithContents } from '../../../src/utils/fileHelpers';
-import { waitForVSCodeWorkbench, assertWelcomeTabExists, closeWelcomeTabs, isMacDesktop } from '../../../src/utils/helpers';
+import {
+  waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
+  closeWelcomeTabs,
+  isMacDesktop
+} from '../../../src/utils/helpers';
 import { EDITOR_WITH_URI, QUICK_INPUT_WIDGET } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 

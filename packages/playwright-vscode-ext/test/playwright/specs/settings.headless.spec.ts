@@ -6,15 +6,8 @@
  */
 
 import { expect } from '@playwright/test';
-import {
-  openSettingsUI,
-  upsertSettings
-} from '../../../src/pages/settings';
-import {
-  waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
-  closeWelcomeTabs
-} from '../../../src/utils/helpers';
+import { openSettingsUI, upsertSettings } from '../../../src/pages/settings';
+import { waitForVSCodeWorkbench, assertWelcomeTabExists, closeWelcomeTabs } from '../../../src/utils/helpers';
 import { SETTINGS_SEARCH_INPUT } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
