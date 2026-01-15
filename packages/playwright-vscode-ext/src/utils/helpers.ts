@@ -6,7 +6,7 @@
  */
 
 import { expect, type Page } from '@playwright/test';
-import { WORKBENCH, TAB, TAB_CLOSE_BUTTON } from './locators';
+import { WORKBENCH, TAB, TAB_CLOSE_BUTTON, QUICK_INPUT_WIDGET } from './locators';
 
 type ConsoleError = { text: string; url?: string };
 type NetworkError = { status: number; url: string; description: string };
@@ -90,8 +90,7 @@ export const filterNetworkErrors = (errors: NetworkError[]): NetworkError[] =>
 /** Wait for VS Code workbench to load. For web, navigates to /. For desktop, just waits. */
 export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promise<void> => {
   // Desktop: page is already loaded by Electron, no navigation possible
-  const isDesktop = process.env.VSCODE_DESKTOP === '1';
-  if (isDesktop) {
+  if (isDesktop()) {
     await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
     return;
   }
@@ -103,18 +102,79 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
   await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
 };
 
+/** Assert that Welcome/Walkthrough tab exists and is visible - useful for debugging startup issues */
+export const assertWelcomeTabExists = async (page: Page): Promise<void> => {
+  const welcomeTab = page.getByRole('tab', { name: /Welcome|Walkthrough/i }).first();
+  await expect(welcomeTab, 'Welcome/Walkthrough tab should exist after VS Code startup').toBeVisible({
+    timeout: 10_000
+  });
+};
+
+/** Dismiss any open quick input widgets by pressing Escape until none visible */
+export const dismissAllQuickInputWidgets = async (page: Page): Promise<void> => {
+  const quickInput = page.locator(QUICK_INPUT_WIDGET);
+  // Press Escape up to 3 times to dismiss any stacked widgets
+  for (let i = 0; i < 3; i++) {
+    if (await quickInput.isVisible({ timeout: 200 }).catch(() => false)) {
+      await page.keyboard.press('Escape');
+      await quickInput.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
+    } else {
+      break;
+    }
+  }
+};
+
 /** Close VS Code Welcome/Walkthrough tabs if they're open */
 export const closeWelcomeTabs = async (page: Page): Promise<void> => {
-  const welcomeTab = page
-    .locator(TAB)
-    .filter({ hasText: /Welcome|Walkthrough/i })
-    .first();
-  const isWelcomeVisible = await welcomeTab.isVisible().catch(() => false);
-  if (isWelcomeVisible) {
+  const workbench = page.locator(WORKBENCH);
+
+  // Use Playwright's retry mechanism to close all welcome tabs
+  await expect(async () => {
+    // Dismiss any quick input widgets that might intercept clicks
+    await dismissAllQuickInputWidgets(page);
+
+    // Ensure workbench is focused before interacting with tabs
+    await workbench.click({ timeout: 5000 });
+
+    const welcomeTabs = page.getByRole('tab', { name: /Welcome|Walkthrough/i });
+    const count = await welcomeTabs.count();
+
+    if (count === 0) {
+      return;
+    }
+
+    const welcomeTab = welcomeTabs.first();
+
+    // Select the tab first to ensure it's active
+    await welcomeTab.click({ timeout: 5000, force: true });
+    await expect(welcomeTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
+
+    // Dismiss any quick input widgets that may have appeared after clicking
+    await dismissAllQuickInputWidgets(page);
+
+    // Try close button first
     const closeButton = welcomeTab.locator(TAB_CLOSE_BUTTON);
-    await closeButton.click();
-    await welcomeTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
-  }
+    if (await closeButton.isVisible({ timeout: 5000 }).catch(() => false)) {
+      // Ensure no quick input widget is intercepting before clicking
+      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      const widgetVisible = await quickInput.isVisible({ timeout: 200 }).catch(() => false);
+      if (widgetVisible) {
+        await dismissAllQuickInputWidgets(page);
+      }
+      await closeButton.click({ timeout: 5000, force: true });
+      await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 });
+    } else {
+      // Fall back to keyboard shortcut
+      await page.keyboard.press('Control+w');
+      await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 });
+    }
+
+    // Verify tab was closed - locators automatically re-evaluate
+    const remainingCount = await welcomeTabs.count();
+    if (remainingCount > 0) {
+      throw new Error(`Still ${remainingCount} welcome tab(s) remaining`);
+    }
+  }).toPass({ timeout: 30_000 });
 };
 
 /** Closes any visible Settings tabs */
@@ -127,7 +187,7 @@ export const closeSettingsTab = async (page: Page): Promise<void> => {
   if (isSettingsVisible) {
     const closeButton = settingsTab.locator(TAB_CLOSE_BUTTON);
     await closeButton.click();
-    await settingsTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+    await settingsTab.waitFor({ state: 'detached', timeout: 5000 });
   }
 };
 
@@ -142,11 +202,17 @@ export const waitForWorkspaceReady = async (page: Page, timeout = 30_000): Promi
 
 export const typingSpeed = 50; // ms
 
+/** Returns true if running on desktop (Electron), regardless of platform */
+export const isDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1';
+
 /** Returns true if running on macOS desktop (Electron) */
 export const isMacDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' && process.platform === 'darwin';
 
 /** Returns true if running on Windows desktop (Electron) */
 export const isWindowsDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' && process.platform === 'win32';
+
+/** Returns true if running in VS Code web (not desktop Electron) */
+export const isVSCodeWeb = (): boolean => process.env.VSCODE_DESKTOP !== '1';
 
 /** Validate no critical console or network errors occurred during test execution */
 export const validateNoCriticalErrors = async (

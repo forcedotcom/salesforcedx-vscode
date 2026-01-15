@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.10.0",
+  "version": "65.13.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "^8.24.0",
-    "@salesforce/o11y-reporter": "1.6.0",
+    "@salesforce/o11y-reporter": "1.7.0",
     "@salesforce/salesforcedx-sobjects-faux-generator": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -66,7 +66,7 @@
       "main": "dist/src/index.js",
       "dependencies": {
         "applicationinsights": "1.0.7",
-        "@salesforce/o11y-reporter": "1.6.0"
+        "@salesforce/o11y-reporter": "1.7.0"
       },
       "devDependencies": {}
     }
@@ -447,14 +447,6 @@
           "when": "sf:project_opened && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
         {
-          "command": "sf.data.query.input",
-          "when": "sf:project_opened && !editorHasSelection && sf:has_target_org"
-        },
-        {
-          "command": "sf.data.query.selection",
-          "when": "sf:project_opened && editorHasSelection && sf:has_target_org"
-        },
-        {
           "command": "sf.project.generate",
           "when": "!sf:internal_dev && (!isWeb || (isWeb && sf:code_builder_enabled))"
         },
@@ -692,14 +684,6 @@
       {
         "command": "sf.alias.list",
         "title": "%alias_list_text%"
-      },
-      {
-        "command": "sf.data.query.input",
-        "title": "%data_query_input_text%"
-      },
-      {
-        "command": "sf.data.query.selection",
-        "title": "%data_query_selection_text%"
       },
       {
         "command": "sf.project.generate",

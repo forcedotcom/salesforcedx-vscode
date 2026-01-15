@@ -14,6 +14,7 @@ import {
   TAB
 } from '@salesforce/playwright-vscode-ext';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
+import { RETRIEVE_TIMEOUT_MS } from '../constants';
 
 test.setTimeout(10 * 60 * 1000);
 
@@ -54,7 +55,7 @@ test('Org Browser - CustomTab retrieval: custom-tab headless: retrieve Broker__c
   });
 
   await test.step('wait for editor file to open (completion signal)', async () => {
-    await orgBrowserPage.waitForFileToOpenInEditor(300_000);
+    await orgBrowserPage.waitForFileToOpenInEditor(RETRIEVE_TIMEOUT_MS);
   });
 
   await test.step('verify editor is visible and capture final state', async () => {

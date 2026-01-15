@@ -294,6 +294,11 @@ export default class Server {
       const isAuraMarkup = await this.context.isAuraMarkup(document);
 
       if (isAuraMarkup) {
+        if (!this.isDelayedInitializationComplete) {
+          return {
+            contents: nls.localize('server_initializing_message')
+          };
+        }
         const htmlDocument = this.htmlLS.parseHTMLDocument(document);
         const hover = this.htmlLS.doHover(document, textDocumentPosition.position, htmlDocument);
         return hover;
@@ -302,6 +307,11 @@ export default class Server {
       const isAuraJavascript = await this.context.isAuraJavascript(document);
 
       if (isAuraJavascript) {
+        if (!this.isDelayedInitializationComplete) {
+          return {
+            contents: nls.localize('server_initializing_message')
+          };
+        }
         const result = await onHover(textDocumentPosition, this.fileSystemProvider);
         return result;
       }
@@ -473,7 +483,6 @@ export default class Server {
     const { document } = changeEvent;
     const uri = document.uri;
     const content = document.getText();
-    const fileName = path.basename(URI.parse(uri).fsPath);
 
     // Normalize URI to fsPath before syncing (entry point for path normalization)
     const normalizedPath = normalizePath(URI.parse(uri).fsPath);
@@ -485,6 +494,8 @@ export default class Server {
     }
 
     // Check if this is an Aura component file and initialize indexer if needed
+    // Parse URI to get filename in a cross-platform way (URIs use forward slashes, but path.basename handles both)
+    const fileName = path.basename(URI.parse(uri).fsPath);
     if (fileName && this.isAuraComponentFile(fileName)) {
       this.hasDetectedAuraFiles = true;
 
@@ -525,7 +536,7 @@ export default class Server {
   /** Get document if it exists and context is ready for processing */
   private getDocumentIfReady(uri: string): TextDocument | undefined {
     const document = this.documents.get(uri);
-    return document !== undefined && this.context !== undefined ? document : undefined;
+    return document ?? undefined;
   }
 
   /**
@@ -595,11 +606,8 @@ export default class Server {
       // Configure project with updated context
       this.context.configureProject();
 
-      // Don't initialize indexer yet - wait for workspace files to be loaded
-      // The indexer will be initialized when the first workspace Aura file is opened
       this.isDelayedInitializationComplete = true;
 
-      // If we already detected Aura files before delayed init completed, initialize indexer now
       if (this.hasDetectedAuraFiles && !this.isIndexerInitialized) {
         this.initializeIndexer();
       }

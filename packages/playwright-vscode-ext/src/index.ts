@@ -10,10 +10,12 @@ export {
   filterErrors,
   filterNetworkErrors,
   waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   closeSettingsTab,
   waitForWorkspaceReady,
   typingSpeed,
+  isDesktop,
   isMacDesktop,
   isWindowsDesktop,
   validateNoCriticalErrors

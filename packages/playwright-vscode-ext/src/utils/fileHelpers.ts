@@ -10,104 +10,29 @@ import { executeCommandWithCommandPalette } from '../pages/commands';
 import { closeSettingsTab, closeWelcomeTabs } from './helpers';
 import { WORKBENCH, QUICK_INPUT_WIDGET, EDITOR_WITH_URI, DIRTY_EDITOR, QUICK_INPUT_LIST_ROW } from './locators';
 
-/** Creates a new file with contents using the "Create: New File..." command */
-export const createFileWithContents = async (page: Page, filePath: string, contents: string): Promise<void> => {
+/** Creates a new untitled file with contents - works in both web and desktop without filesystem access */
+export const createFileWithContents = async (page: Page, _filePath: string, contents: string): Promise<void> => {
   await page.locator(WORKBENCH).click();
 
-  // Close all open editors so the "Create: New File..." command defaults to project root
-  await executeCommandWithCommandPalette(page, 'View: Close All Editors');
+  // Create a new untitled file
+  await executeCommandWithCommandPalette(page, 'File: New Untitled Text File');
 
-  // Focus the explorer and click on workspace root
-  await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
-  const workspaceRoot = page.locator('.monaco-list-row[aria-level="1"]').first();
-  await workspaceRoot.click();
+  // Wait for command palette to close first
+  const widget = page.locator(QUICK_INPUT_WIDGET);
+  await widget.waitFor({ state: 'hidden', timeout: 5000 });
 
-  // Parse the file path to get the filename for the first dialog
-  const lastSlash = filePath.lastIndexOf('/');
-  const fileName = lastSlash > 0 ? filePath.substring(lastSlash + 1) : filePath;
-
-  // Now create the new file
-  await executeCommandWithCommandPalette(page, 'Create: New File...');
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
-  await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-
-  // Check what prompt appears:
-  // - If "Text File" option is visible → file type picker (type filename directly per placeholder text)
-  // - Otherwise → filename input (type filename directly)
-  const textFileOption = page.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: 'Text File' });
-  const hasFileTypePicker = await textFileOption.isVisible().catch(() => false);
-
-  if (hasFileTypePicker) {
-    // File type picker flow: placeholder says "Select File Type or Enter File Name..."
-    // Type filename directly without selecting "Text File" option
-    const input = quickInput.getByRole('textbox').first();
-    await input.waitFor({ state: 'attached', timeout: 10_000 });
-    await input.focus();
-    // Wait for input to be visible after focus
-    await expect(input).toBeVisible({ timeout: 10_000 });
-  }
-
-  // Type filename (works for both file type picker and direct input flows)
-  await page.keyboard.type(fileName);
-  await page.keyboard.press('Enter');
-
-  // Final dialog: "Create File" asks for folder path
-  // Wait for the folder path textbox to appear
-  const folderPathInput = page.getByRole('textbox', { name: /Folder path/i });
-  await folderPathInput.waitFor({ state: 'visible', timeout: 5000 });
-
-  // The OK button should be next to the input - use exact match to avoid status bar conflicts
-  const okButton = page.getByRole('button', { name: 'OK', exact: true });
-
-  // Clear the path and type the full file path
-  // Use absolute path from workspace root (workspace name is typically "MyProject" in test environments)
-  await page.keyboard.press('Control+a');
-  // Build full path: if filePath doesn't start with /, prepend /MyProject/
-  const fullPath = filePath.startsWith('/') ? filePath : `/MyProject/${filePath}`;
-  await page.keyboard.type(fullPath);
-
-  await okButton.click();
-
-  // Handle any additional OK confirmations (folder creation, file exists, etc.)
-  // Wait for the dialog to potentially change, then check for another OK button
-  for (let i = 0; i < 3; i++) {
-    // Wait a moment for the dialog to update
-    await quickInput.waitFor({ state: 'visible', timeout: 1000 }).catch(() => {});
-
-    const confirmOk = page.getByRole('button', { name: 'OK', exact: true });
-    // Use a short timeout to check if button is clickable
-    const clicked = await confirmOk
-      .click({ timeout: 1000 })
-      .then(() => true)
-      .catch(() => false);
-    if (!clicked) {
-      break;
-    }
-  }
-
-  // Wait for the dialog to close
-  await quickInput.waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {
-    // Dialog might already be hidden
-  });
-
-  // Wait for an editor to be visible and click into it to focus
+  // Wait for the editor to open - wait for attachment first, then visibility
+  // Use expect().toBeAttached() for better error messages and retry logic
   const editor = page.locator(EDITOR_WITH_URI).first();
-  await editor.waitFor({ state: 'visible', timeout: 10_000 });
+  await expect(editor).toBeAttached({ timeout: 15_000 });
+  await expect(editor).toBeVisible({ timeout: 15_000 });
   await editor.click();
 
   // Type the file contents
   await page.keyboard.type(contents);
 
-  // Save the file
-  await page.keyboard.press('Control+s');
-
-  const dirtyEditor = page.locator(DIRTY_EDITOR);
-  const dirtyCount = await dirtyEditor.count();
-  if (dirtyCount > 0) {
-    await dirtyEditor.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {
-      // File saved instantly without showing dirty state
-    });
-  }
+  // Note: We don't save the file to avoid filesystem/native dialog issues in web
+  // The file remains as an untitled file which works identically in web and desktop
 };
 
 /** Creates a new Apex class using the SFDX: Create Apex Class command */

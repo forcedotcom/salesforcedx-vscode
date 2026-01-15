@@ -11,6 +11,7 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -35,6 +36,7 @@ test('Deploy Source Path: deploys via command palette (active editor)', async ({
   await test.step('setup minimal org and disable deploy-on-save', async () => {
     const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await saveScreenshot(page, 'setup.after-auth-fields.png');

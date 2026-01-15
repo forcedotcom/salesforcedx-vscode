@@ -10,15 +10,23 @@ import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   selectOutputChannel,
   waitForOutputChannelText,
   outputChannelContains,
   createMinimalOrg,
-  filterErrors
+  filterErrors,
+  waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { SERVICES_CHANNEL_NAME } from '../../../src/constants';
+
+test.beforeEach(async ({ page }) => {
+  await waitForVSCodeWorkbench(page);
+  await assertWelcomeTabExists(page);
+  await closeWelcomeTabs(page);
+});
 
 test('handles empty retrieveOnLoad setting gracefully', async ({ page }) => {
   test.setTimeout(5 * 60 * 1000);
@@ -27,7 +35,6 @@ test('handles empty retrieveOnLoad setting gracefully', async ({ page }) => {
   await test.step('setup org auth without retrieveOnLoad setting', async () => {
     const orgAuth = await createMinimalOrg();
     await upsertScratchOrgAuthFieldsToSettings(page, orgAuth);
-    await closeWelcomeTabs(page);
   });
 
   await test.step('verify no retrieval attempt', async () => {

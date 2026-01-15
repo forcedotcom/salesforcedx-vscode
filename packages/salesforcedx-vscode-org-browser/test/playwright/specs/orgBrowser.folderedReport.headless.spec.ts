@@ -13,6 +13,7 @@ import {
   NOTIFICATION_LIST_ITEM
 } from '@salesforce/playwright-vscode-ext';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
+import { RETRIEVE_TIMEOUT_MS } from '../constants';
 
 /** Headless-like test for foldered Report retrieval */
 test.setTimeout(10 * 60 * 1000);
@@ -80,7 +81,7 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
   });
 
   await test.step('wait for editor file to open (completion signal)', async () => {
-    await orgBrowserPage.waitForFileToOpenInEditor(300_000);
+    await orgBrowserPage.waitForFileToOpenInEditor(RETRIEVE_TIMEOUT_MS);
   });
 
   await test.step('verify editor shows the report tab and capture', async () => {

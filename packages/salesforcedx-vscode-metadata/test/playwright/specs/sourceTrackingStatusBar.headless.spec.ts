@@ -11,6 +11,7 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   createDreamhouseOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -38,6 +39,7 @@ test('Source Tracking Status Bar: tracks remote and local changes through full d
 
     const statusBar = new SourceTrackingStatusBarPage(page);
     await statusBar.waitForVisible(120_000);
+    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     return statusBar;
   });

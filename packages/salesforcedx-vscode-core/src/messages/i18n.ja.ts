@@ -99,9 +99,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   warning_prompt_other_not_shown: '...表示されていない残り %s つのコンポーネント\n',
   config_list_text: 'SFDX: すべての設定変数を一覧表示',
   alias_list_text: 'SFDX: すべてのエイリアスを一覧表示',
-  data_query_input_text: 'SFDX: SOQL クエリを実行...',
-  data_query_selection_text: 'SFDX: 現在選択されているテキストで SOQL クエリを実行',
-  parameter_gatherer_enter_soql_query: 'SOQL クエリを入力してください',
   anon_apex_execute_document_text: 'SFDX: エディタの内容で匿名 Apex コードを実行',
   anon_apex_execute_selection_text: 'SFDX: 現在選択されているテキストで匿名 Apex コードを実行',
   project_generate_text: 'SFDX: プロジェクトを作成',
@@ -122,8 +119,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
 
   manifest_editor_title_message: 'マニフェストエディタ',
 
-  REST_API_description: 'REST API でクエリを実行',
-  tooling_API_description: 'Tooling API でクエリを実行',
   telemetry_legal_dialog_message:
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
   telemetry_legal_dialog_button_text: 'さらに表示',

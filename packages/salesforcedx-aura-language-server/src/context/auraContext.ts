@@ -11,7 +11,8 @@ import {
   AURA_EXTENSIONS,
   findNamespaceRoots,
   Logger,
-  normalizePath
+  normalizePath,
+  NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
@@ -104,12 +105,12 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
     return roots;
   }
 
-  public async findAllAuraMarkup(): Promise<string[]> {
-    const files: string[] = [];
+  public async findAllAuraMarkup(): Promise<NormalizedPath[]> {
+    const files: NormalizedPath[] = [];
     const namespaceRoots = await this.findNamespaceRootsUsingTypeCache();
 
     for (const namespaceRoot of namespaceRoots.aura) {
-      const markupFiles = await findAuraMarkupIn(namespaceRoot, this);
+      const markupFiles = findAuraMarkupIn(namespaceRoot, this);
       files.push(...markupFiles);
     }
     return files;
@@ -128,8 +129,8 @@ export class AuraWorkspaceContext extends BaseWorkspaceContext {
   }
 }
 
-const findAuraMarkupIn = async (namespaceRoot: string, context: AuraWorkspaceContext): Promise<string[]> => {
-  const files: string[] = [];
+const findAuraMarkupIn = (namespaceRoot: string, context: AuraWorkspaceContext): NormalizedPath[] => {
+  const files: NormalizedPath[] = [];
 
   try {
     const dirs = context.fileSystemProvider.getDirectoryListing(normalizePath(namespaceRoot));
@@ -140,9 +141,9 @@ const findAuraMarkupIn = async (namespaceRoot: string, context: AuraWorkspaceCon
 
       if (isDir) {
         for (const ext of AURA_EXTENSIONS) {
-          const markupFile = normalizePath(path.join(componentDir, dir.name + ext));
-          const exists = context.fileSystemProvider.fileExists(markupFile);
-          if (exists) {
+          // Construct path using namespaceRoot and dir.name to preserve original casing
+          const markupFile = normalizePath(path.join(namespaceRoot, dir.name, dir.name + ext));
+          if (context.fileSystemProvider.fileExists(markupFile)) {
             files.push(markupFile);
           }
         }

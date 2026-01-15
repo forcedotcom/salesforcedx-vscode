@@ -8,7 +8,6 @@
 import {
   BaseWorkspaceContext,
   findNamespaceRoots,
-  processTemplate,
   getModulesDirs,
   memoize,
   relativePath,
@@ -22,6 +21,7 @@ import {
   baseTsConfigJson,
   tsConfigTemplateJson
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import * as ejs from 'ejs';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
@@ -153,38 +153,36 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
    * Writes TypeScript configuration files for the project
    */
   protected writeTsconfigJson(): void {
-    switch (this.type) {
-      case 'SFDX':
-        // Write tsconfig.sfdx.json first
-        const baseTsConfigPath = path.join(this.workspaceRoots[0], '.sfdx', 'tsconfig.sfdx.json');
+    if (this.type !== 'SFDX') {
+      return;
+    }
 
-        try {
-          const baseTsConfig = JSON.stringify(baseTsConfigJson, null, 4);
-          updateConfigFile(baseTsConfigPath, baseTsConfig, this.fileSystemProvider);
-        } catch (error) {
-          Logger.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);
-          throw error;
-        }
+    // Write tsconfig.sfdx.json first
+    const baseTsConfigPath = path.join(this.workspaceRoots[0], '.sfdx', 'tsconfig.sfdx.json');
 
-        // Write to the tsconfig.json in each module subdirectory
-        const tsConfigTemplate = JSON.stringify(tsConfigTemplateJson, null, 4);
+    try {
+      const baseTsConfig = JSON.stringify(baseTsConfigJson, null, 4);
+      updateConfigFile(baseTsConfigPath, baseTsConfig, this.fileSystemProvider);
+    } catch (error) {
+      Logger.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);
+      throw error;
+    }
 
-        const forceignore = path.join(this.workspaceRoots[0], '.forceignore');
-        // TODO: We should only be looking through modules that have TS files
-        const modulesDirs = getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, () =>
-          this.initSfdxProjectConfigCache()
-        );
+    // Write to the tsconfig.json in each module subdirectory
+    const tsConfigTemplate = JSON.stringify(tsConfigTemplateJson, null, 4);
 
-        for (const modulesDir of modulesDirs) {
-          const tsConfigPath = path.join(modulesDir, 'tsconfig.json');
-          const relativeWorkspaceRoot = relativePath(path.dirname(tsConfigPath), this.workspaceRoots[0]);
-          const tsConfigContent = processTemplate(tsConfigTemplate, { project_root: relativeWorkspaceRoot });
-          updateConfigFile(tsConfigPath, tsConfigContent, this.fileSystemProvider);
-          updateForceIgnoreFile(forceignore, true, this.fileSystemProvider);
-        }
-        break;
-      default:
-        break;
+    const forceignore = path.join(this.workspaceRoots[0], '.forceignore');
+    // TODO: We should only be looking through modules that have TS files
+    const modulesDirs = getModulesDirs(this.type, this.workspaceRoots, this.fileSystemProvider, () =>
+      this.initSfdxProjectConfigCache()
+    );
+
+    for (const modulesDir of modulesDirs) {
+      const tsConfigPath = path.join(modulesDir, 'tsconfig.json');
+      const relativeWorkspaceRoot = relativePath(path.dirname(tsConfigPath), this.workspaceRoots[0]);
+      const tsConfigContent = ejs.render(tsConfigTemplate, { project_root: relativeWorkspaceRoot });
+      updateConfigFile(tsConfigPath, tsConfigContent, this.fileSystemProvider);
+      updateForceIgnoreFile(forceignore, true, this.fileSystemProvider);
     }
   }
 

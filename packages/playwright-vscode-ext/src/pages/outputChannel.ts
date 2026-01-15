@@ -8,8 +8,15 @@
 import { expect, type Page } from '@playwright/test';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { isMacDesktop } from '../utils/helpers';
-import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB } from '../utils/locators';
-import { executeCommandWithCommandPalette } from './commands';
+import {
+  EDITOR,
+  CONTEXT_MENU,
+  EDITOR_WITH_URI,
+  TAB,
+  QUICK_INPUT_WIDGET,
+  QUICK_INPUT_LIST_ROW
+} from '../utils/locators';
+import { openCommandPalette } from './commands';
 
 const OUTPUT_PANEL_ID = '[id="workbench.panel.output"]';
 const outputPanel = (page: Page) => page.locator(OUTPUT_PANEL_ID);
@@ -25,35 +32,87 @@ const getVisibleOutputText = async (page: Page): Promise<string> =>
 /** Use filter to search and check for text, clearing filter afterward */
 const withOutputFilter = async <T>(page: Page, searchText: string, fn: () => Promise<T>): Promise<T> => {
   const input = filterInput(page);
+  await input.waitFor({ state: 'visible', timeout: 5000 });
+  await input.focus();
+  // Clear existing value by selecting all and deleting
+  await page.keyboard.press('Control+KeyA');
+  await page.keyboard.press('Backspace');
+  // Fill the search text - more reliable than type() on desktop
   await input.fill(searchText);
-  await page.waitForTimeout(500);
+  await expect(input).toHaveValue(searchText, { timeout: 5000 });
   try {
     return await fn();
   } finally {
+    // Clear filter - ensure input is focused, then clear using fill
+    await input.focus();
     await input.fill('');
+    await expect(input).toHaveValue('', { timeout: 5000 });
   }
 };
-
-const outputFocusCommand = 'Output: Focus on Output View';
 
 /** Opens the Output panel (idempotent - safe to call if already open) */
 export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
   const panel = outputPanel(page);
-  const isVisible = await panel.isVisible();
 
-  if (!isVisible) {
-    await executeCommandWithCommandPalette(page, outputFocusCommand);
-    await panel.waitFor({ state: 'visible', timeout: 5000 });
+  if (await panel.isVisible()) {
+    return;
   }
+
+  // Use F1 command palette - most reliable across all platforms per coding rules
+  await openCommandPalette(page);
+  const widget = page.locator(QUICK_INPUT_WIDGET);
+  const input = widget.locator('input.input');
+  await input.waitFor({ state: 'attached', timeout: 5000 });
+  await expect(input).toBeVisible({ timeout: 5000 });
+  await input.fill('>Output: Focus on Output View');
+  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
+  await page.keyboard.press('Enter');
+
+  await expect(panel).toBeVisible({ timeout: 10_000 });
 };
 
 /** Selects a specific output channel from the dropdown */
 export const selectOutputChannel = async (page: Page, channelName: string, timeout = 30_000): Promise<void> => {
-  const combobox = page.getByRole('combobox').filter({ has: page.getByRole('option', { name: channelName }) });
+  // VS Code uses a monaco-select-box with custom UI in the output panel toolbar
+  // The actual <select> is hidden but we can still interact with it programmatically
+  const panel = outputPanel(page);
+  await panel.waitFor({ state: 'visible', timeout: 5000 });
 
-  // Wait for the channel to be available in the dropdown
-  await combobox.waitFor({ state: 'visible', timeout });
-  await combobox.selectOption({ label: channelName });
+  // Re-query the dropdown each time to avoid stale element issues
+  // The dropdown is a hidden select element with class monaco-select-box
+  // We don't wait for it to be visible since it's intentionally hidden with a custom overlay
+  await expect(async () => {
+    const dropdown = panel.locator('select.monaco-select-box');
+    await dropdown.waitFor({ state: 'attached', timeout: 5000 });
+    // Check current value - if already selected, no need to change
+    const currentValue = await dropdown.inputValue();
+    if (currentValue === channelName) {
+      return;
+    }
+    // Get all options to find the one matching the channel name
+    const options = dropdown.locator('option');
+    const optionCount = await options.count();
+    let targetValue: string | undefined;
+    for (let i = 0; i < optionCount; i++) {
+      const option = options.nth(i);
+      const text = await option.textContent();
+      const value = await option.getAttribute('value');
+      if (text?.trim() === channelName || value === channelName) {
+        targetValue = value ?? text?.trim();
+        break;
+      }
+    }
+    if (!targetValue) {
+      throw new Error(`Channel "${channelName}" not found in dropdown options`);
+    }
+    // Wait for the option to be enabled before selecting (fixes macOS GHA timing issues)
+    const targetOption = dropdown.locator(`option[value="${targetValue}"]`);
+    await expect(targetOption).not.toHaveAttribute('disabled', '', { timeout: 5000 });
+    // Select the channel using the value attribute (more reliable than label)
+    await dropdown.selectOption({ value: targetValue }, { force: true });
+    // Verify the selection took effect - wait a bit longer for the UI to update
+    await expect(dropdown).toHaveValue(targetValue, { timeout: 5000 });
+  }).toPass({ timeout });
 };
 
 /** Checks if the output channel contains specific text using the filter input */
@@ -74,11 +133,13 @@ export const clearOutputChannel = async (page: Page): Promise<void> => {
   const clearButton = page.getByRole('button', { name: 'Clear Output' }).first();
   await clearButton.click();
 
+  // Wait for the clear action to take effect - output should be completely empty
   const codeArea = outputPanelCodeArea(page);
   await expect(async () => {
     const text = await codeArea.textContent();
-    expect(text?.trim().length ?? 0, 'Output channel should be cleared').toBeLessThan(50);
-  }).toPass({ timeout: 1000 });
+    // Output channel should be completely cleared - no text should remain
+    expect(text?.trim().length ?? 0, 'Output channel should be completely cleared').toBe(0);
+  }).toPass({ timeout: 2000 });
 };
 
 /** Wait for output channel to contain specific text using filter */

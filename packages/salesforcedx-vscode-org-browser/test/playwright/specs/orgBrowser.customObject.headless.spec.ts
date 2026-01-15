@@ -13,6 +13,7 @@ import {
   NOTIFICATION_LIST_ITEM
 } from '@salesforce/playwright-vscode-ext';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
+import { RETRIEVE_TIMEOUT_MS } from '../constants';
 
 test.setTimeout(2 * 60 * 1000);
 
@@ -53,7 +54,7 @@ test('Org Browser - CustomObject retrieval: customobject headless: retrieve Brok
   });
 
   await test.step('wait for editor file to open (completion signal)', async () => {
-    await orgBrowserPage.waitForFileToOpenInEditor(300_000);
+    await orgBrowserPage.waitForFileToOpenInEditor(RETRIEVE_TIMEOUT_MS);
   });
 
   await test.step('override confirmation for Broker__c', async () => {
@@ -73,6 +74,6 @@ test('Org Browser - CustomObject retrieval: customobject headless: retrieve Brok
       .filter({ hasText: /Retrieving\s+CustomObject/i })
       .first();
     await expect(retrieving).toBeVisible({ timeout: 60_000 });
-    await expect(retrieving).not.toBeVisible({ timeout: 60_000 });
+    await expect(retrieving).not.toBeVisible({ timeout: RETRIEVE_TIMEOUT_MS });
   });
 });

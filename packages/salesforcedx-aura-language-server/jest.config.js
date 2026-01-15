@@ -21,15 +21,6 @@ module.exports = {
     '^@salesforce/salesforcedx-lightning-lsp-common/providers/fileSystemDataProvider$':
       '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/providers/fileSystemDataProvider',
     '^@salesforce/salesforcedx-lightning-lsp-common$': '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/index',
-    // Map relative imports from baseContext.js - these resolve from where baseContext.js is located
-    // When baseContext.js does require("./resources/core/jsconfig-core.json"), it resolves from out/src/baseContext.js
-    // We need to map these relative paths as Jest resolves them
-    '^\\./resources/core/jsconfig-core\\.json$':
-      '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/resources/core/jsconfig-core.json',
-    '^\\./resources/core/settings-core\\.json$':
-      '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/resources/core/settings-core.json',
-    '^\\./resources/sfdx/jsconfig-sfdx\\.json$':
-      '<rootDir>/../salesforcedx-lightning-lsp-common/out/src/resources/sfdx/jsconfig-sfdx.json',
     // Map tern plugin .js imports to .ts files for Jest (dynamic imports use .js but Jest needs .ts)
     // These are needed when ternServer.ts calls loadPlugins() which does dynamic imports
     '^\\./ternAura\\.js$': '<rootDir>/src/tern-server/ternAura',
