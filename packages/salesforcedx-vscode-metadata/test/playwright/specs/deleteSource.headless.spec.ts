@@ -40,6 +40,8 @@ test('Delete Source: deletes file from project and org via command palette', asy
   await test.step('setup minimal org and disable deploy-on-save', async () => {
     const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
+    await closeWelcomeTabs(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await saveScreenshot(page, 'setup.after-auth-fields.png');
@@ -51,9 +53,6 @@ test('Delete Source: deletes file from project and org via command palette', asy
     // Disable deploy-on-save to control when deploys happen
     await upsertSettings(page, { [`${METADATA_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
     await saveScreenshot(page, 'setup.after-disable-deploy-on-save.png');
-
-    await assertWelcomeTabExists(page);
-    await closeWelcomeTabs(page);
     await saveScreenshot(page, 'setup.complete.png');
   });
 
@@ -90,7 +89,9 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await saveScreenshot(page, 'step2.file-already-open.png');
 
     // Verify file is visible in explorer before deletion
-    const explorerFileBefore = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`${className}\\.cls$`, 'i') });
+    const explorerFileBefore = page
+      .locator('[role="treeitem"]')
+      .filter({ hasText: new RegExp(`${className}\\.cls$`, 'i') });
     await expect(explorerFileBefore).toBeVisible();
     await saveScreenshot(page, 'step2.file-in-explorer-before-delete.png');
 
@@ -120,7 +121,9 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await saveScreenshot(page, 'step2.delete-complete.png');
 
     // Verify file is no longer visible in explorer
-    const explorerFileAfter = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`${className}\\.cls$`, 'i') });
+    const explorerFileAfter = page
+      .locator('[role="treeitem"]')
+      .filter({ hasText: new RegExp(`${className}\\.cls$`, 'i') });
     await expect(explorerFileAfter).not.toBeVisible({ timeout: 30_000 });
     await saveScreenshot(page, 'step2.file-removed-from-explorer.png');
 

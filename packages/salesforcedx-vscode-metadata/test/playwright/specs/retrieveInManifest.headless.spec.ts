@@ -49,6 +49,8 @@ const manifestContent = `<?xml version="1.0" encoding="UTF-8"?>
   await test.step('setup dreamhouse org', async () => {
     const createResult = await createDreamhouseOrg();
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
+    await closeWelcomeTabs(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await saveScreenshot(page, 'setup.after-auth-fields.png');
@@ -60,9 +62,6 @@ const manifestContent = `<?xml version="1.0" encoding="UTF-8"?>
     // Create the manifest file at project root
     await createFileWithContents(page, 'package.xml', manifestContent);
     await saveScreenshot(page, 'setup.after-create-manifest.png');
-
-    await assertWelcomeTabExists(page);
-    await closeWelcomeTabs(page);
     await saveScreenshot(page, 'setup.complete.png');
   });
 

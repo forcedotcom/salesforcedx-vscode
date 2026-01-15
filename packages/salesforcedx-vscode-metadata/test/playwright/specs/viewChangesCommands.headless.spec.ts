@@ -34,12 +34,13 @@ test('View Changes Commands: each view changes command shows correct sections in
   await test.step('setup scratch org and wait for status bar', async () => {
     const createResult = await createDreamhouseOrg();
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
+    await closeWelcomeTabs(page);
+
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
     const statusBar = new SourceTrackingStatusBarPage(page);
     await statusBar.waitForVisible(120_000);
-    await assertWelcomeTabExists(page);
-    await closeWelcomeTabs(page);
   });
 
   await test.step('View All Changes shows source tracking details', async () => {

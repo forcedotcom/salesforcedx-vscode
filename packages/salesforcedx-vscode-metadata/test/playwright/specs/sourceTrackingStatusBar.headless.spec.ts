@@ -32,6 +32,8 @@ test('Source Tracking Status Bar: tracks remote and local changes through full d
   const statusBarPage = await test.step('setup scratch org and wait for status bar', async () => {
     const createResult = await createDreamhouseOrg();
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
+    await closeWelcomeTabs(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
     // Disable deploy-on-save so test can control when deploys happen
@@ -39,8 +41,6 @@ test('Source Tracking Status Bar: tracks remote and local changes through full d
 
     const statusBar = new SourceTrackingStatusBarPage(page);
     await statusBar.waitForVisible(120_000);
-    await assertWelcomeTabExists(page);
-    await closeWelcomeTabs(page);
     return statusBar;
   });
 

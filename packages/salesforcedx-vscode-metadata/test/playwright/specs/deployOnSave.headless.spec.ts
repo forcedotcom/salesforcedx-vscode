@@ -31,6 +31,8 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
   await test.step('setup minimal org and enable deploy-on-save', async () => {
     const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
+    await closeWelcomeTabs(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
     // Wait for extension to fully activate (needed for desktop settings to be available)
@@ -49,9 +51,6 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
 
     // Verify deploy-on-save service is initialized by checking output channel
     await waitForOutputChannelText(page, { expectedText: 'Deploy on save service initialized', timeout: 30_000 });
-
-    await assertWelcomeTabExists(page);
-    await closeWelcomeTabs(page);
   });
 
   await test.step('create apex class', async () => {

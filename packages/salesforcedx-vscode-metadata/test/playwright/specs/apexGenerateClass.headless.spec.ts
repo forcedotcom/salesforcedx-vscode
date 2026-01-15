@@ -11,7 +11,6 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
-  assertWelcomeTabExists,
   closeWelcomeTabs,
   createDreamhouseOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -20,7 +19,8 @@ import {
   saveScreenshot,
   QUICK_INPUT_WIDGET,
   QUICK_INPUT_LIST_ROW,
-  EDITOR_WITH_URI
+  EDITOR_WITH_URI,
+  assertWelcomeTabExists
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
@@ -35,6 +35,9 @@ test('Apex Generate Class: creates new Apex class via command palette', async ({
   await test.step('setup dreamhouse org', async () => {
     const createResult = await createDreamhouseOrg();
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
+    await closeWelcomeTabs(page);
+
     await saveScreenshot(page, 'setup.after-workbench.png');
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await saveScreenshot(page, 'setup.after-auth-fields.png');
@@ -42,9 +45,6 @@ test('Apex Generate Class: creates new Apex class via command palette', async ({
     statusBarPage = new SourceTrackingStatusBarPage(page);
     await statusBarPage.waitForVisible(120_000);
     await saveScreenshot(page, 'setup.after-status-bar-visible.png');
-
-    await assertWelcomeTabExists(page);
-    await closeWelcomeTabs(page);
     await saveScreenshot(page, 'setup.complete.png');
   });
 

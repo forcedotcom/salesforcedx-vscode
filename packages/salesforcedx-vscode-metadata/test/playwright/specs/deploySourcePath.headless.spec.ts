@@ -44,6 +44,8 @@ import packageNls from '../../../package.nls.json';
   await test.step('setup minimal org and disable deploy-on-save', async () => {
     const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
+    await closeWelcomeTabs(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await saveScreenshot(page, 'setup.after-auth-fields.png');
@@ -56,9 +58,6 @@ import packageNls from '../../../package.nls.json';
     // upsertSettings already takes a screenshot after setting
     await upsertSettings(page, { [`${METADATA_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
     await saveScreenshot(page, 'setup.after-disable-deploy-on-save.png');
-
-    await assertWelcomeTabExists(page);
-    await closeWelcomeTabs(page);
     await saveScreenshot(page, 'setup.complete.png');
   });
 

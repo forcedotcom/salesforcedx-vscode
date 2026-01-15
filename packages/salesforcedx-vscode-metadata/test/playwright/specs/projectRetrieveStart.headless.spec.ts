@@ -33,6 +33,8 @@ test('Project Retrieve Start: retrieves source from org', async ({ page }) => {
   await test.step('setup dreamhouse org', async () => {
     const createResult = await createDreamhouseOrg();
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
+    await closeWelcomeTabs(page);
     await saveScreenshot(page, 'setup.after-workbench.png');
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await saveScreenshot(page, 'setup.after-auth-fields.png');
@@ -40,16 +42,16 @@ test('Project Retrieve Start: retrieves source from org', async ({ page }) => {
     statusBarPage = new SourceTrackingStatusBarPage(page);
     await statusBarPage.waitForVisible(120_000);
     await saveScreenshot(page, 'setup.after-status-bar-visible.png');
-
-    await assertWelcomeTabExists(page);
-    await closeWelcomeTabs(page);
     await saveScreenshot(page, 'setup.complete.png');
   });
 
   await test.step('retrieve source from org', async () => {
     // Get initial counts
     const initialCounts = await statusBarPage.getCounts();
-    await saveScreenshot(page, `step1.initial-counts-${initialCounts.local}-${initialCounts.remote}-${initialCounts.conflicts}.png`);
+    await saveScreenshot(
+      page,
+      `step1.initial-counts-${initialCounts.local}-${initialCounts.remote}-${initialCounts.conflicts}.png`
+    );
 
     // Prepare output channel before triggering command
     await ensureOutputPanelOpen(page);

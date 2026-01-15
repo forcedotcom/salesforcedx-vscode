@@ -59,6 +59,8 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
   await test.step('setup dreamhouse org and disable deploy-on-save', async () => {
     const createResult = await createDreamhouseOrg();
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
+    await closeWelcomeTabs(page);
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
     statusBarPage = new SourceTrackingStatusBarPage(page);
@@ -66,9 +68,6 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
 
     // Disable deploy-on-save so test can control when deploys happen
     await upsertSettings(page, { [`${METADATA_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
-
-    await assertWelcomeTabExists(page);
-    await closeWelcomeTabs(page);
   });
 
   let initialLocalCount: number;
