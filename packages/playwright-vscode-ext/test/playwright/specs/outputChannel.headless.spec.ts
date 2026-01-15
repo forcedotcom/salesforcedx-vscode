@@ -59,13 +59,13 @@ test.describe('Output Channel', () => {
       await ensureOutputPanelOpen(page);
     });
 
-    await test.step('Select Window channel', async () => {
-      await selectOutputChannel(page, 'Window');
+    await test.step('Select Salesforce Services channel', async () => {
+      await selectOutputChannel(page, 'Salesforce Services');
     });
 
     await test.step('Wait for text in output', async () => {
-      // Window channel should have some content
-      await waitForOutputChannelText(page, { expectedText: 'Window', timeout: 5000 });
+      // Salesforce Services channel should have service initialization messages
+      await waitForOutputChannelText(page, { expectedText: 'Salesforce', timeout: 10_000 });
     });
   });
 
@@ -74,12 +74,12 @@ test.describe('Output Channel', () => {
       await ensureOutputPanelOpen(page);
     });
 
-    await test.step('Select Window channel', async () => {
-      await selectOutputChannel(page, 'Window');
+    await test.step('Select Salesforce Services channel', async () => {
+      await selectOutputChannel(page, 'Salesforce Services');
     });
 
     await test.step('Check if output contains text', async () => {
-      const contains = await outputChannelContains(page, 'Window');
+      const contains = await outputChannelContains(page, 'Salesforce');
       expect(contains).toBe(true);
     });
   });

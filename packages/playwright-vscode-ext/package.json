@@ -57,10 +57,10 @@
         "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
+        "src/**/*.ts",
         "test/playwright/**/*.ts",
         "playwright.config.web.ts"
-      ],
-      "output": []
+      ]
     },
     "test:desktop": {
       "env": {
@@ -74,8 +74,7 @@
       "files": [
         "test/playwright/**/*.ts",
         "playwright.config.desktop.ts"
-      ],
-      "output": []
+      ]
     }
   }
 }

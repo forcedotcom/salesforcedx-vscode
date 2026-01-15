@@ -120,7 +120,7 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
 
     const welcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
     const count = await welcomeTabs.count();
-    
+
     if (count === 0) {
       return;
     }
@@ -135,7 +135,7 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
     // Select the tab first to ensure it's active
     await welcomeTab.click({ timeout: 5000, force: true });
     await expect(welcomeTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
-    
+
     // Try close button first
     const closeButton = welcomeTab.locator(TAB_CLOSE_BUTTON);
     if (await closeButton.isVisible({ timeout: 5000 }).catch(() => false)) {
