@@ -13,7 +13,6 @@ import {
   CONTEXT_MENU,
   EDITOR_WITH_URI,
   TAB,
-  WORKBENCH,
   QUICK_INPUT_WIDGET,
   QUICK_INPUT_LIST_ROW
 } from '../utils/locators';
@@ -54,36 +53,22 @@ const withOutputFilter = async <T>(page: Page, searchText: string, fn: () => Pro
 /** Opens the Output panel (idempotent - safe to call if already open) */
 export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
   const panel = outputPanel(page);
-  const isVisible = await panel.isVisible();
 
-  if (!isVisible) {
-    // Close welcome tabs first - they can interfere with keyboard shortcuts
-    const { closeWelcomeTabs } = await import('../utils/helpers.js');
-    await closeWelcomeTabs(page);
-
-    // Ensure workbench is focused before using keyboard shortcut
-    const workbench = page.locator(WORKBENCH);
-    await workbench.click({ timeout: 5000 });
-    await expect(workbench).toBeVisible({ timeout: 5000 });
-
-    // Use keyboard shortcut - Control+Shift+U works on all platforms (VS Code maps Command to Control on macOS)
-    await page.keyboard.press('Control+Shift+u');
-
-    // Wait for panel to become visible, with fallback to command palette if needed
-    const panelVisible = await panel.isVisible({ timeout: 5000 }).catch(() => false);
-    if (!panelVisible) {
-      await openCommandPalette(page);
-      const widget = page.locator(QUICK_INPUT_WIDGET);
-      const input = widget.locator('input.input');
-      await input.waitFor({ state: 'attached', timeout: 5000 });
-      await expect(input).toBeVisible({ timeout: 5000 });
-      await input.fill('>Output: Focus on Output View');
-      await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
-      await page.keyboard.press('Enter');
-    }
-
-    await expect(panel).toBeVisible({ timeout: 10_000 });
+  if (await panel.isVisible()) {
+    return;
   }
+
+  // Use F1 command palette - most reliable across all platforms per coding rules
+  await openCommandPalette(page);
+  const widget = page.locator(QUICK_INPUT_WIDGET);
+  const input = widget.locator('input.input');
+  await input.waitFor({ state: 'attached', timeout: 5000 });
+  await expect(input).toBeVisible({ timeout: 5000 });
+  await input.fill('>Output: Focus on Output View');
+  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
+  await page.keyboard.press('Enter');
+
+  await expect(panel).toBeVisible({ timeout: 10_000 });
 };
 
 /** Selects a specific output channel from the dropdown */
