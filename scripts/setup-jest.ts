@@ -1,3 +1,6 @@
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+
 class EventEmitter {
   private listeners: any[] = [];
   constructor() {}
@@ -96,8 +99,43 @@ enum TreeItemCollapsibleState {
   Expanded = 2
 }
 
+const createServicesExtensionMock = (vscodeMock: any) => ({
+  isActive: true,
+  activate: jest.fn().mockResolvedValue(undefined),
+  exports: {
+    services: {
+      FsService: {
+        Default: Layer.empty,
+        pipe: (...ops: Array<(arg: unknown) => unknown>) => {
+          // Start with a concrete FsService implementation and apply Effect ops (flatMap/provide).
+          let current: unknown = Effect.succeed({
+            writeFile: (filePath: string | Uri, content: string) => {
+              const encoder = new TextEncoder();
+              const uri = typeof filePath === 'string' ? vscodeMock.Uri.file(filePath) : filePath;
+              return Effect.sync(() => {
+                // vscode.workspace.fs.writeFile is often mocked with a jest.fn that returns undefined.
+                // Using Effect.sync avoids needing a real Promise/Thenable while still exercising the call.
+                void vscodeMock.workspace.fs.writeFile(uri, encoder.encode(content));
+              });
+            }
+          });
+
+          for (const op of ops) {
+            current = op(current);
+          }
+
+          return current;
+        }
+      },
+      ChannelService: {
+        Default: Layer.empty
+      }
+    }
+  }
+});
+
 const getMockVSCode = () => {
-  return {
+  const vscodeMock: any = {
     CancellationTokenSource: class {
       public listeners: any[] = [];
       public token = {
@@ -374,6 +412,8 @@ const getMockVSCode = () => {
       Coverage: 3
     }
   };
+
+  return vscodeMock;
 };
 
 jest.mock(
@@ -383,6 +423,17 @@ jest.mock(
   },
   { virtual: true }
 );
+
+beforeEach(() => {
+  // resetMocks=true wipes mock implementations, so re-apply our default extension mocks here.
+  const vscodeMock: any = jest.requireMock('vscode');
+  vscodeMock?.extensions?.getExtension?.mockImplementation?.((id?: string) => {
+    if (id !== 'salesforce.salesforcedx-vscode-services') {
+      return undefined;
+    }
+    return createServicesExtensionMock(vscodeMock);
+  });
+});
 
 // Mock os module to ensure homedir() always returns a valid path
 jest.mock('node:os', () => ({

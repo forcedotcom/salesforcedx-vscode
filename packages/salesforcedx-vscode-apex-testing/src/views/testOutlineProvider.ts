@@ -167,7 +167,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
         this.apexTestMap.set(test.definingType, apexGroup);
         const apexTest = new ApexTestNode(test.methodName, test.location);
 
-        apexTest.name = `${apexGroup.label}.${apexTest.label}`;
+        apexTest.name = `${apexGroup.name}.${apexTest.name}`;
         this.apexTestMap.set(apexTest.name, apexTest);
         apexGroup.children.push(apexTest);
         if (this.rootNode && !this.rootNode.children.includes(apexGroup)) {
