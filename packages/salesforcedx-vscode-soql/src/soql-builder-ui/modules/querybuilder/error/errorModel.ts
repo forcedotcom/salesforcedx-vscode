@@ -13,31 +13,35 @@ export enum ErrorType {
 }
 
 // recoverable field errors
-export const recoverableFieldErrors = {};
-recoverableFieldErrors[ErrorType.NOSELECT] = true;
-recoverableFieldErrors[ErrorType.NOSELECTIONS] = true;
-recoverableFieldErrors[ErrorType.EMPTY] = true;
+export const recoverableFieldErrors: Partial<Record<ErrorType, boolean>> = {
+  [ErrorType.NOSELECT]: true,
+  [ErrorType.NOSELECTIONS]: true,
+  [ErrorType.EMPTY]: true
+};
 
 // recoverable from errors
-export const recoverableFromErrors = {};
-recoverableFromErrors[ErrorType.INCOMPLETEFROM] = true;
-recoverableFromErrors[ErrorType.NOFROM] = true;
-recoverableFromErrors[ErrorType.EMPTY] = true;
+export const recoverableFromErrors: Partial<Record<ErrorType, boolean>> = {
+  [ErrorType.INCOMPLETEFROM]: true,
+  [ErrorType.NOFROM]: true,
+  [ErrorType.EMPTY]: true
+};
 
 // recoverable limit errors
-export const recoverableLimitErrors = {};
-recoverableLimitErrors[ErrorType.INCOMPLETELIMIT] = true;
+export const recoverableLimitErrors: Partial<Record<ErrorType, boolean>> = {
+  [ErrorType.INCOMPLETELIMIT]: true
+};
 
 // general recoverable errors
-export const recoverableErrors = {
+export const recoverableErrors: Partial<Record<ErrorType, boolean>> = {
   ...recoverableFieldErrors,
   ...recoverableFromErrors,
-  ...recoverableLimitErrors
+  ...recoverableLimitErrors,
+  [ErrorType.EMPTY]: true
 };
-recoverableErrors[ErrorType.EMPTY] = true;
 
 // unrecoverable errors
-export const unrecoverableErrors = {};
-unrecoverableErrors[ErrorType.UNKNOWN] = true;
+export const unrecoverableErrors: Partial<Record<ErrorType, boolean>> = {
+  [ErrorType.UNKNOWN]: true
+};
 
 // END ERROR HANDLING UTLIITIES
