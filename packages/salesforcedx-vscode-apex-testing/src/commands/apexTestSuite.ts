@@ -6,6 +6,12 @@
  */
 
 import { TestService } from '@salesforce/apex-node';
+import * as vscode from 'vscode';
+import { OUTPUT_CHANNEL } from '../channels';
+import { APEX_CLASS_EXT } from '../constants';
+import { getConnection } from '../coreExtensionUtils';
+import { nls } from '../messages';
+import { MessageKey } from '../messages/i18n';
 import {
   CancelResponse,
   ContinueResponse,
@@ -14,16 +20,10 @@ import {
   SFDX_FOLDER,
   SfCommandlet,
   SfWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode';
-import * as vscode from 'vscode';
-import { OUTPUT_CHANNEL } from '../channels';
-import { APEX_CLASS_EXT } from '../constants';
-import { getVscodeCoreExtension } from '../coreExtensionUtils';
-import { nls } from '../messages';
-import { MessageKey } from '../messages/i18n';
+} from '../utils/commandletHelpers';
+import { ApexTestQuickPickItem, getTestInfo, TestType } from '../utils/fileHelpers';
 import { getTestController } from '../views/testController';
-import { ApexLibraryTestRunExecutor, ApexTestQuickPickItem, TestType } from './apexTestRun';
-import { getTestInfo } from './readTestFile';
+import { ApexLibraryTestRunExecutor } from './apexTestRun';
 
 type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 
@@ -35,8 +35,7 @@ const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
 };
 
 const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
-  const vscodeCoreExtension = await getVscodeCoreExtension();
-  const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
+  const connection = await getConnection();
   const testService = new TestService(connection);
   return (await testService.retrieveAllSuites()).map(testSuite => ({
     label: testSuite.TestSuiteName,
@@ -116,8 +115,7 @@ class ApexLibraryTestSuiteBuilder extends LibraryCommandletExecutor<ApexTestSuit
   }
 
   public async run(response: ContinueResponse<ApexTestSuiteOptions>): Promise<boolean> {
-    const vscodeCoreExtension = await getVscodeCoreExtension();
-    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
+    const connection = await getConnection();
     const testService = new TestService(connection);
     await testService.buildSuite(response.data.suitename, response.data.tests);
     return true;

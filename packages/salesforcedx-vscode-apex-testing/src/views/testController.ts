@@ -5,18 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { ToolingTestClass } from '../testDiscovery/schemas';
-import { ResultFormat, TestResult, TestService } from '@salesforce/apex-node';
+import { TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
-import { getTestResultsFolder, notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
-import { getVscodeCoreExtension } from '../coreExtensionUtils';
+import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
 import { telemetryService } from '../telemetry/telemetry';
-import { discoverTests, sourceIsLS } from '../testDiscovery/testDiscovery';
+import { discoverTests } from '../testDiscovery/testDiscovery';
+import { getUriPath } from '../utils/commandletHelpers';
+import { notificationService } from '../utils/notificationHelpers';
 import { createOrgApexClassUri, openOrgApexClass } from '../utils/orgApexClassProvider';
+import { getTestResultsFolder } from '../utils/pathHelpers';
 import { buildTestPayload } from '../utils/payloadBuilder';
 import {
   createClassId,
@@ -33,8 +35,7 @@ import {
 } from '../utils/testItemUtils';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { updateTestRunResults } from '../utils/testResultProcessor';
-import { buildClassToUriIndex, fetchFromLs, getFullClassName, isFlowTest } from '../utils/testUtils';
-import { ApexTestMethod } from './lspConverter';
+import { buildClassToUriIndex, getFullClassName, isFlowTest, writeTestResultJsonFile } from '../utils/testUtils';
 
 const TEST_CONTROLLER_ID = 'sf.apex.testController';
 const TEST_RUN_ID_FILE = 'test-run-id.txt';
@@ -96,8 +97,7 @@ export class ApexTestController {
       return;
     }
 
-    const vscodeCoreExtension = await getVscodeCoreExtension();
-    this.connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
+    this.connection = await getConnection();
     if (!this.connection) {
       throw new Error(nls.localize('apex_test_connection_failed_message'));
     }
@@ -131,14 +131,10 @@ export class ApexTestController {
 
       // Populate suites first so they appear at the top
       await this.populateSuiteItems();
+
       // Then populate test classes from org (all tests, not just local)
       const discoveryResult = await discoverTests({ showAllMethods: true });
       await this.populateTestItemsFromOrg(discoveryResult.classes);
-      // Finally, populate local-only tests (tests in local workspace but not in org)
-      // Only do this when using Language Server discovery, as API discovery already shows all org tests
-      if (sourceIsLS()) {
-        await this.populateLocalOnlyTests(discoveryResult.classes);
-      }
     } catch (error) {
       console.debug('Failed to discover tests:', error);
     }
@@ -257,84 +253,6 @@ export class ApexTestController {
 
       this.controller.items.add(classItem);
       this.testItems.set(createClassId(fullClassName), classItem);
-    }
-  }
-
-  /**
-   * Populate test items for tests that exist locally but not in the org.
-   * These tests are marked with a tag to indicate they're local-only and cannot be run.
-   */
-  private async populateLocalOnlyTests(orgClasses: ToolingTestClass[]): Promise<void> {
-    try {
-      const result = await fetchFromLs();
-      const localTests = result.tests;
-
-      if (localTests.length === 0) {
-        return;
-      }
-
-      // Build a set of class names that exist in the org (for comparison)
-      const orgClassNames = new Set<string>();
-      for (const cls of orgClasses) {
-        const fullClassName = getFullClassName(cls);
-        orgClassNames.add(fullClassName);
-        // Also add just the base name (without namespace) for comparison
-        orgClassNames.add(cls.name);
-      }
-
-      // Group local tests by class
-      const localClassMap = new Map<string, { tests: ApexTestMethod[]; uri: vscode.Uri }>();
-      for (const test of localTests) {
-        const className = test.definingType;
-        if (!localClassMap.has(className)) {
-          localClassMap.set(className, { tests: [], uri: test.location.uri });
-        }
-        const classData = localClassMap.get(className);
-        if (classData) {
-          classData.tests.push(test);
-        }
-      }
-
-      // Create test items for classes that are local but not in org
-      for (const [className, classData] of localClassMap) {
-        // Skip if this class already exists in org (was added by populateTestItemsFromOrg)
-        if (orgClassNames.has(className) || this.classItems.has(className)) {
-          continue;
-        }
-
-        // Create class item with local-only tag
-        const classItem = this.controller.createTestItem(createClassId(className), className, classData.uri);
-        classItem.canResolveChildren = false;
-        if (this.localOnlyTag) {
-          classItem.tags = [this.localOnlyTag];
-        }
-        this.classItems.set(className, classItem);
-
-        // Create method items
-        for (const test of classData.tests) {
-          const methodName = test.methodName;
-          const methodId = `${className}.${methodName}`;
-          const methodItem = this.controller.createTestItem(
-            createMethodId(className, methodName),
-            methodName,
-            test.location.uri
-          );
-          methodItem.range = test.location.range;
-          methodItem.canResolveChildren = false;
-          if (this.localOnlyTag) {
-            methodItem.tags = [this.localOnlyTag];
-          }
-          this.methodItems.set(methodId, methodItem);
-          classItem.children.add(methodItem);
-        }
-
-        this.controller.items.add(classItem);
-        this.testItems.set(createClassId(className), classItem);
-      }
-    } catch (error) {
-      // If local test discovery fails, just log and continue
-      // This shouldn't block showing org tests
-      console.debug('Failed to discover local-only tests:', error);
     }
   }
 
@@ -706,11 +624,8 @@ export class ApexTestController {
       return;
     }
 
-    await testService.writeResultFiles(
-      result,
-      { resultFormats: [ResultFormat.json], dirPath: outputDir },
-      codeCoverage
-    );
+    // Write JSON test result file
+    await writeTestResultJsonFile(result, outputDir, codeCoverage, testService);
 
     // Generate and open test report
     const reportStartTime = Date.now();
@@ -775,7 +690,10 @@ export class ApexTestController {
 
   private async getTempFolder(): Promise<string> {
     if (vscode.workspace?.workspaceFolders) {
-      const apexDir = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
+      const workspaceUri = vscode.workspace.workspaceFolders[0].uri;
+      // In web mode, use path instead of fsPath for virtual file systems
+      const workspacePath = getUriPath(workspaceUri);
+      const apexDir = await getTestResultsFolder(workspacePath, 'apex');
       return apexDir;
     } else {
       throw new Error(nls.localize('cannot_determine_workspace'));

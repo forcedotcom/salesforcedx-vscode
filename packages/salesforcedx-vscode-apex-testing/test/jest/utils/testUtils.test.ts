@@ -257,6 +257,8 @@ describe('testUtils', () => {
       const mockFolder = {
         uri: {
           fsPath: workspacePath,
+          path: workspacePath,
+          scheme: 'file',
           toString: jest.fn().mockReturnValue(`file:///${workspacePath}`)
         },
         name: 'workspace',
@@ -264,10 +266,14 @@ describe('testUtils', () => {
       };
       const testClassUri = {
         fsPath: testClassPath,
+        path: testClassPath,
+        scheme: 'file',
         toString: jest.fn().mockReturnValue(`file:///${testClassPath}`)
       };
       const otherClassUri = {
         fsPath: otherClassPath,
+        path: otherClassPath,
+        scheme: 'file',
         toString: jest.fn().mockReturnValue(`file:///${otherClassPath}`)
       };
 
@@ -301,6 +307,8 @@ describe('testUtils', () => {
       const mockFolder = {
         uri: {
           fsPath: workspacePath,
+          path: workspacePath,
+          scheme: 'file',
           toString: jest.fn().mockReturnValue(`file:///${workspacePath}`)
         },
         name: 'workspace',
@@ -308,10 +316,14 @@ describe('testUtils', () => {
       };
       const testClassUri = {
         fsPath: testClassPath,
+        path: testClassPath,
+        scheme: 'file',
         toString: jest.fn().mockReturnValue(`file:///${testClassPath}`)
       };
       const unrelatedClassUri = {
         fsPath: unrelatedClassPath,
+        path: unrelatedClassPath,
+        scheme: 'file',
         toString: jest.fn().mockReturnValue(`file:///${unrelatedClassPath}`)
       };
 
@@ -342,6 +354,8 @@ describe('testUtils', () => {
       const mockFolder = {
         uri: {
           fsPath: workspacePath,
+          path: workspacePath,
+          scheme: 'file',
           toString: jest.fn().mockReturnValue(`file:///${workspacePath}`)
         },
         name: 'workspace',
@@ -360,7 +374,10 @@ describe('testUtils', () => {
 
       const result = await buildClassToUriIndex(['TestClass']);
       expect(result.size).toBe(0);
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Error building class to URI index');
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[Apex Testing] Error building class to URI index:',
+        expect.any(Error)
+      );
 
       consoleErrorSpy.mockRestore();
       (vscode.workspace.findFiles as jest.Mock).mockResolvedValue([]);

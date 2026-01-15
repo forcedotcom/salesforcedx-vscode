@@ -6,7 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import { getVscodeCoreExtension } from '../coreExtensionUtils';
+import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 
 const SCHEME = 'sf-org-apex';
@@ -40,8 +40,7 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
     }
 
     try {
-      const core = await getVscodeCoreExtension();
-      const connection = await core.exports.services.WorkspaceContext.getInstance().getConnection();
+      const connection = await getConnection();
 
       // Query for the Apex class body using Tooling API
       const query = `SELECT Id, Name, Body, NamespacePrefix FROM ApexClass WHERE Name = '${className.replaceAll("'", "''")}' LIMIT 1`;

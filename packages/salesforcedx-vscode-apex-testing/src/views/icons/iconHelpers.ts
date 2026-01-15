@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { extensionUris } from '@salesforce/salesforcedx-utils-vscode';
+import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { ICONS } from './iconsEnum';
 
@@ -17,7 +17,8 @@ const VSCODE_APEX_TESTING_EXTENSION_NAME = 'salesforce.salesforcedx-vscode-apex-
  * @returns The Uri to the icon image.
  */
 const getIconPath = (key: keyof typeof ICONS) => {
-  const baseExtensionPath = extensionUris.extensionUri(VSCODE_APEX_TESTING_EXTENSION_NAME);
+  const extension = vscode.extensions.getExtension(VSCODE_APEX_TESTING_EXTENSION_NAME);
+  const baseExtensionPath = extension?.extensionUri ?? vscode.Uri.file('');
   const iconUri = Utils.joinPath(baseExtensionPath, ...ICONS[key]);
   return iconUri;
 };

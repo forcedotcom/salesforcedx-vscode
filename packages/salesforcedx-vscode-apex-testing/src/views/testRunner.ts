@@ -5,21 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  EmptyParametersGatherer,
-  SfCommandlet,
-  SfWorkspaceChecker,
-  getTestResultsFolder
-} from '@salesforce/salesforcedx-utils-vscode';
-import * as events from 'node:events';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { ApexLibraryTestRunExecutor } from '../commands';
 import { nls } from '../messages';
 import * as settings from '../settings';
-import { sourceIsLS } from '../testDiscovery/testDiscovery';
 import { apexTestRunCacheService } from '../testRunCache';
-import { getLanguageClientStatus } from '../utils/testUtils';
+import { EmptyParametersGatherer, getUriPath, SfCommandlet, SfWorkspaceChecker } from '../utils/commandletHelpers';
+import { getTestResultsFolder } from '../utils/pathHelpers';
 import { ApexTestGroupNode, ApexTestNode, ApexTestOutlineProvider, TestNode } from './testOutlineProvider';
 
 export enum TestRunType {
@@ -30,11 +23,28 @@ export enum TestRunType {
 
 export class ApexTestRunner {
   private testOutline: ApexTestOutlineProvider;
-  private eventsEmitter: events.EventEmitter;
-  constructor(testOutline: ApexTestOutlineProvider, eventsEmitter?: events.EventEmitter) {
+  private eventsEmitter: {
+    emit: (event: string, ...args: unknown[]) => void;
+    on: (event: string, handler: (...args: unknown[]) => void) => void;
+  };
+  constructor(
+    testOutline: ApexTestOutlineProvider,
+    eventsEmitter?: {
+      emit: (event: string, ...args: unknown[]) => void;
+      on: (event: string, handler: (...args: unknown[]) => void) => void;
+    }
+  ) {
     this.testOutline = testOutline;
-    this.eventsEmitter = eventsEmitter ?? new events.EventEmitter();
-    this.eventsEmitter.on('sf:update_selection', this.updateSelection);
+    this.eventsEmitter = eventsEmitter ?? {
+      emit: () => {},
+      on: () => {}
+    };
+    this.eventsEmitter.on('sf:update_selection', (...args: unknown[]) => {
+      const arg = args[0];
+      if (typeof arg === 'number' || arg instanceof vscode.Range) {
+        this.updateSelection(arg);
+      }
+    });
   }
 
   public showErrorMessage(test: TestNode) {
@@ -57,7 +67,7 @@ export class ApexTestRunner {
         channelService.appendLine(stackTrace);
         channelService.appendLine(errorMessage);
         channelService.appendLine('-----------------------------------------');
-        channelService.showChannelOutput();
+        channelService.show();
       }
     }
 
@@ -96,7 +106,10 @@ export class ApexTestRunner {
 
   public async getTempFolder(): Promise<string> {
     if (vscode.workspace?.workspaceFolders) {
-      const apexDir = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
+      const workspaceUri = vscode.workspace.workspaceFolders[0].uri;
+      // In web mode, use path instead of fsPath for virtual file systems
+      const workspacePath = getUriPath(workspaceUri);
+      const apexDir = await getTestResultsFolder(workspacePath, 'apex');
       return apexDir;
     } else {
       throw new Error(nls.localize('cannot_determine_workspace'));
@@ -113,17 +126,6 @@ export class ApexTestRunner {
   }
 
   public async runApexTests(tests: string[], testRunType: TestRunType) {
-    // Only gate on Language Server when using LS discovery; API discovery should not be blocked by LS status
-    if (sourceIsLS()) {
-      const languageClientStatus = await getLanguageClientStatus();
-      if (!languageClientStatus.isReady()) {
-        if (languageClientStatus.failedToInitialize()) {
-          vscode.window.showErrorMessage(languageClientStatus.getStatusMessage());
-          return [];
-        }
-      }
-    }
-
     const tmpFolder = await this.getTempFolder();
     const getCodeCoverage = settings.retrieveTestCodeCoverage();
     if (testRunType === TestRunType.Class) {

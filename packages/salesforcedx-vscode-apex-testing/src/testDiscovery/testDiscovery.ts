@@ -6,8 +6,7 @@
  */
 
 import type { DiscoverTestsOptions, ToolingTestClass, TestDiscoveryResult, ToolingTestsPage } from './schemas';
-import * as vscode from 'vscode';
-import { getVscodeCoreExtension } from '../coreExtensionUtils';
+import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import { telemetryService } from '../telemetry/telemetry';
 
@@ -18,30 +17,12 @@ import { telemetryService } from '../telemetry/telemetry';
 
 const minApiVersion = 65.0;
 
-/**
- * Checks if the discovery source is set to Language Server ('ls')
- */
-export const sourceIsLS = (): boolean => {
-  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing');
-  const discoverySource = config.get<'ls' | 'api'>('testing.discoverySource', 'ls');
-  return discoverySource === 'ls';
-};
-
-/**
- * Checks if the Test Explorer UI should be used instead of the traditional Test View
- */
-export const useTestExplorer = (): boolean => {
-  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing');
-  return config.get<boolean>('testing.useTestExplorer', false);
-};
-
 export const discoverTests = async (
   options: DiscoverTestsOptions = { showAllMethods: true }
 ): Promise<TestDiscoveryResult> => {
   let connection;
   try {
-    const core = await getVscodeCoreExtension();
-    connection = await core.exports.services.WorkspaceContext.getInstance().getConnection();
+    connection = await getConnection();
   } catch {
     throw new Error(nls.localize('error_no_connection_found_message'));
   }

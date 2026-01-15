@@ -6,11 +6,14 @@
  */
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
+import { ResultFormat, TestResult, TestService } from '@salesforce/apex-node';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { getApexExtension } from '../coreExtensionUtils';
-import { telemetryService } from '../telemetry/telemetry';
-import { discoverTests, sourceIsLS } from '../testDiscovery/testDiscovery';
+import { getServicesApi } from '../services/extensionProvider';
+import { discoverTests } from '../testDiscovery/testDiscovery';
+import { getUriPath } from '../utils/commandletHelpers';
 import { ApexTestMethod } from '../views/lspConverter';
 
 /**
@@ -30,34 +33,6 @@ export const isFlowTest = (cls: ToolingTestClass): boolean => cls.namespacePrefi
 const hasNamespace = (cls: ToolingTestClass): boolean => (cls.namespacePrefix?.trim() ?? '') !== '';
 
 /**
- * Fetch tests from the Language Server via the Apex extension
- */
-export const fetchFromLs = async (): Promise<{ tests: ApexTestMethod[]; durationMs: number }> => {
-  const start = Date.now();
-  telemetryService.sendEventData('apexTestDiscoveryStart', { source: 'ls' });
-
-  try {
-    const apexExtension = await getApexExtension();
-    if (!apexExtension?.isActive) {
-      return { tests: [], durationMs: Date.now() - start };
-    }
-    const apexApi = apexExtension.exports;
-    if (!apexApi?.getApexTests) {
-      return { tests: [], durationMs: Date.now() - start };
-    }
-    const tests = await apexApi.getApexTests();
-
-    const durationMs = Date.now() - start;
-    telemetryService.sendEventData('apexTestDiscoveryEnd', { source: 'ls' }, buildMeasuresFromTests(tests, durationMs));
-    return { tests, durationMs };
-  } catch (error) {
-    const durationMs = Date.now() - start;
-    console.debug('Failed to fetch tests from language server:', error);
-    return { tests: [], durationMs };
-  }
-};
-
-/**
  * Fetch tests from the Tooling API Test Discovery endpoint
  */
 const fetchFromApi = async (options?: {
@@ -75,61 +50,13 @@ const fetchFromApi = async (options?: {
 };
 
 /**
- * Returns Apex tests using the configured discovery source.
- * - ls: queries the Language Server via Apex extension
- * - api: queries the Tooling API Test Discovery endpoint
+ * Returns Apex tests using the Tooling API Test Discovery endpoint.
  * Also emits timing metrics and telemetry.
  */
 export const getApexTests = async (): Promise<ApexTestMethod[]> => {
-  // Fetch according to user selection
-  const selected = sourceIsLS() ? await fetchFromLs() : await fetchFromApi();
+  // Always use API discovery
+  const selected = await fetchFromApi();
   return selected.tests;
-};
-
-/**
- * Get language client status from Apex extension
- */
-export const getLanguageClientStatus = async (): Promise<{
-  isReady: () => boolean;
-  isIndexing: () => boolean;
-  failedToInitialize: () => boolean;
-  getStatusMessage: () => string;
-}> => {
-  try {
-    const apexExtension = await getApexExtension();
-    if (!apexExtension?.isActive) {
-      return {
-        isReady: () => false,
-        isIndexing: () => false,
-        failedToInitialize: () => true,
-        getStatusMessage: () => 'Apex extension is not active'
-      };
-    }
-    const apexApi = apexExtension.exports;
-    if (!apexApi?.languageClientManager) {
-      return {
-        isReady: () => false,
-        isIndexing: () => false,
-        failedToInitialize: () => true,
-        getStatusMessage: () => 'Apex extension API is not available'
-      };
-    }
-    return apexApi.languageClientManager.getStatus();
-  } catch (error) {
-    console.debug('Failed to get language client status:', error);
-    return {
-      isReady: () => false,
-      isIndexing: () => false,
-      failedToInitialize: () => true,
-      getStatusMessage: () => 'Failed to get language client status'
-    };
-  }
-};
-
-const buildMeasuresFromTests = (tests: ApexTestMethod[], durationMs: number) => {
-  const numClasses = new Set(tests.map(t => t.definingType)).size;
-  const numMethods = tests.length;
-  return { durationMs, numClasses, numMethods };
 };
 
 /**
@@ -301,6 +228,13 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
   if (!folder || classNames.length === 0) {
     return new Map<string, vscode.Uri>();
   }
+
+  // In web mode with virtual file systems, findFiles might not work the same way
+  // Return empty map to allow org-only classes to work
+  if (process.env.ESBUILD_PLATFORM === 'web' && folder.uri.scheme !== 'file') {
+    return new Map<string, vscode.Uri>();
+  }
+
   try {
     const exclude = '{**/.sfdx/**,**/.sf/**,**/node_modules/**}';
     // Search for .cls files matching the discovered class names
@@ -308,8 +242,10 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
     const files = await vscode.workspace.findFiles(pattern, exclude);
 
     // Filter to only files whose base name matches one of the discovered class names
+    // In web mode, use path instead of fsPath
     const matchingFiles = files.filter(f => {
-      const base = path.parse(f.fsPath).name;
+      const filePath = getUriPath(f);
+      const base = path.parse(filePath).name;
       return classNames.includes(base);
     });
 
@@ -317,14 +253,70 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
     // Then create map, handling potential duplicates by keeping the first (shortest path)
     return new Map(
       matchingFiles
-        .toSorted((a, b) => a.fsPath.length - b.fsPath.length)
+        .toSorted((a, b) => {
+          const aPath = getUriPath(a);
+          const bPath = getUriPath(b);
+          return aPath.length - bPath.length;
+        })
         .map(f => {
-          const base = path.parse(f.fsPath).name;
+          const filePath = getUriPath(f);
+          const base = path.parse(filePath).name;
           return [base, f];
         })
     );
-  } catch {
-    console.error('Error building class to URI index');
+  } catch (error) {
+    console.error('[Apex Testing] Error building class to URI index:', error);
     return new Map<string, vscode.Uri>();
+  }
+};
+
+/** Writes test result JSON file using FsService (works in both desktop and web modes) */
+export const writeTestResultJson = async (result: TestResult, outputDir: string): Promise<void> => {
+  const testRunId = result.summary?.testRunId;
+  const jsonFilename = testRunId ? `test-result-${testRunId}.json` : 'test-result.json';
+  const jsonFilePath = path.join(outputDir, jsonFilename);
+  const jsonContent = JSON.stringify(result, null, 2);
+
+  const servicesApi = await getServicesApi();
+  const fsServiceLayer = Layer.mergeAll(
+    servicesApi.services.FsService.Default,
+    servicesApi.services.ChannelService.Default
+  );
+
+  await Effect.runPromise(
+    servicesApi.services.FsService.pipe(
+      Effect.flatMap(service => service.writeFile(jsonFilePath, jsonContent)),
+      Effect.provide(fsServiceLayer)
+    )
+  );
+};
+
+/** Writes test result JSON file, using FsService in web mode and testService.writeResultFiles in desktop mode */
+export const writeTestResultJsonFile = async (
+  result: TestResult,
+  outputDir: string,
+  codeCoverage: boolean,
+  testService: TestService
+): Promise<void> => {
+  // In web mode, use FsService since testService.writeResultFiles uses callback-style fs operations
+  // In desktop mode, use testService.writeResultFiles which works correctly
+  if (process.env.ESBUILD_PLATFORM === 'web') {
+    try {
+      await writeTestResultJson(result, outputDir);
+    } catch (error) {
+      // Log error but don't throw - test execution succeeded, just file writing failed
+      console.error('Failed to write JSON test result file:', error);
+    }
+  } else {
+    try {
+      await testService.writeResultFiles(
+        result,
+        { resultFormats: [ResultFormat.json], dirPath: outputDir },
+        codeCoverage
+      );
+    } catch (error) {
+      // Log error but don't throw - test execution succeeded, just file writing failed
+      console.error('Failed to write JSON test result file:', error);
+    }
   }
 };

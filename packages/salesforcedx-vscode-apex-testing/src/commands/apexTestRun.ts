@@ -6,37 +6,27 @@
  */
 
 import { AsyncTestConfiguration, Progress, TestLevel, TestService } from '@salesforce/apex-node';
+import * as path from 'node:path';
+import { type CancellationToken, languages, type Uri, window, workspace } from 'vscode';
+import { OUTPUT_CHANNEL } from '../channels';
+import { APEX_CLASS_EXT, APEX_TESTSUITE_EXT } from '../constants';
+import { getConnection } from '../coreExtensionUtils';
+import { nls } from '../messages';
+import * as settings from '../settings';
 import {
   type CancelResponse,
   type ContinueResponse,
   getRootWorkspacePath,
-  getTestResultsFolder,
   hasRootWorkspace,
   LibraryCommandletExecutor,
   type ParametersGatherer,
   SFDX_FOLDER,
   SfCommandlet,
   SfWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode';
-import { basename } from 'node:path';
-import { type CancellationToken, languages, type QuickPickItem, type Uri, window, workspace } from 'vscode';
-import { OUTPUT_CHANNEL } from '../channels';
-import { APEX_CLASS_EXT, APEX_TESTSUITE_EXT } from '../constants';
-import { getVscodeCoreExtension } from '../coreExtensionUtils';
-import { nls } from '../messages';
-import * as settings from '../settings';
+} from '../utils/commandletHelpers';
+import { ApexTestQuickPickItem, getTestInfo, TestType } from '../utils/fileHelpers';
+import { getTestResultsFolder } from '../utils/pathHelpers';
 import { runApexTests } from './apexTestRunUtils';
-import { getTestInfo } from './readTestFile';
-
-export enum TestType {
-  All,
-  AllLocal,
-  Suite,
-  Class
-}
-export type ApexTestQuickPickItem = QuickPickItem & {
-  type: TestType;
-};
 
 const FILE_SEARCH_PATTERN = `{**/*${APEX_TESTSUITE_EXT},**/*${APEX_CLASS_EXT}}`;
 class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
@@ -57,7 +47,7 @@ class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
 
     const fileItems = [
       ...testSuites.map(testSuite => ({
-        label: basename(testSuite.toString(), '.testSuite-meta.xml'),
+        label: path.basename(testSuite.toString(), '.testSuite-meta.xml'),
         description: testSuite.fsPath,
         type: TestType.Suite
       })),
@@ -101,8 +91,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<ApexTe
     progress?: Progress<{ message?: string }>,
     token?: CancellationToken
   ): Promise<boolean> {
-    const vscodeCoreExtension = await getVscodeCoreExtension();
-    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
+    const connection = await getConnection();
     const testService = new TestService(connection);
     const payload = await buildTestPayload(testService, response.data);
 

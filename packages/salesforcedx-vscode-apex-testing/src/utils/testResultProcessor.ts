@@ -57,7 +57,6 @@ export const updateTestRunResults = (
   classItems: Map<string, vscode.TestItem>,
   codeCoverage: boolean = false
 ): void => {
-  run.appendOutput('\r\n=== Test Results ===\r\n\r\n');
   const humanOutput = new HumanReporter().format(result, codeCoverage, false);
   if (humanOutput) {
     // Split by lines and add each line separately with \r\n to ensure newlines are preserved

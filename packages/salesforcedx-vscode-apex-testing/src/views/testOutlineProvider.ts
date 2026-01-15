@@ -5,14 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TestResult } from '@salesforce/apex-node';
-import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { APEX_GROUP_RANGE, APEX_TESTS, FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
 import { nls } from '../messages';
-import { sourceIsLS } from '../testDiscovery/testDiscovery';
-import { getApexTests, getLanguageClientStatus } from '../utils/testUtils';
+import { readFile } from '../utils/fileHelpers';
+import { getApexTests } from '../utils/testUtils';
 import { iconHelpers } from './icons';
 import { ApexTestMethod } from './lspConverter';
 
@@ -69,20 +68,6 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
       } else {
         const message = NO_TESTS_MESSAGE;
         const description = NO_TESTS_DESCRIPTION;
-        // Check language client status only if using LS discovery
-        if (sourceIsLS()) {
-          void getLanguageClientStatus()
-            .then(languageClientStatus => {
-              if (!languageClientStatus.isReady()) {
-                if (languageClientStatus.failedToInitialize()) {
-                  void vscode.window.showInformationMessage(languageClientStatus.getStatusMessage());
-                }
-              }
-            })
-            .catch(() => {
-              // Ignore errors when checking status
-            });
-        }
         const emptyArray = new Array<ApexTestNode>();
         const testToDisplay = new ApexTestNode(message, null);
         testToDisplay.description = description;

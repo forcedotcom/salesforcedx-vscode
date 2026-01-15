@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ActivationTracker, getTestResultsFolder } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -21,177 +20,128 @@ import {
   apexTestSuiteCreate,
   apexTestSuiteRun
 } from './commands';
-import { getVscodeCoreExtension } from './coreExtensionUtils';
-import { nls } from './messages';
 import { telemetryService } from './telemetry/telemetry';
-import { useTestExplorer } from './testDiscovery/testDiscovery';
+import { ActivationTracker } from './utils/activationTracker';
+import { getUriPath } from './utils/commandletHelpers';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
-import { getLanguageClientStatus } from './utils/testUtils';
+import { getTestResultsFolder } from './utils/pathHelpers';
 import { disposeTestController, getTestController } from './views/testController';
-import { getTestOutlineProvider, TestNode } from './views/testOutlineProvider';
-import { ApexTestRunner, TestRunType } from './views/testRunner';
+import { getTestOutlineProvider } from './views/testOutlineProvider';
 
-/** Refresh the test view, checking language client status if using LS discovery */
+/** Refresh the test view */
 const refreshTestView = async (): Promise<void> => {
   const testOutlineProvider = getTestOutlineProvider();
-  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing');
-  const source = config.get<'ls' | 'api'>('discoverySource', 'ls');
-  if (source === 'ls') {
-    const languageClientStatus = await getLanguageClientStatus();
-    if (languageClientStatus.isReady()) {
-      await testOutlineProvider.refresh();
-    } else {
-      vscode.window.showErrorMessage(
-        nls.localize('test_view_refresh_failed_message', languageClientStatus.getStatusMessage())
-      );
-    }
-  } else {
-    await testOutlineProvider.refresh();
-  }
+  await testOutlineProvider.refresh();
 };
 
 export const activate = async (context: vscode.ExtensionContext) => {
-  const vscodeCoreExtension = await getVscodeCoreExtension();
-  const workspaceContext = vscodeCoreExtension.exports.WorkspaceContext.getInstance();
+  console.log('Salesforce Apex Testing extension is activating...');
 
   // Telemetry
   await telemetryService.initializeService(context);
   const activationTracker = new ActivationTracker(context, telemetryService);
 
-  const useTestExplorerMode = useTestExplorer();
+  // Set context keys for command visibility
+  // Check if we're in a Salesforce project
+  let isSalesforceProject = false;
+  if (vscode.workspace?.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+    const workspaceUri = vscode.workspace.workspaceFolders[0].uri;
+    try {
+      // Check for sfdx-project.json or sf-project.json
+      const sfdxProjectUri = vscode.Uri.joinPath(workspaceUri, 'sfdx-project.json');
+      const sfdxExists = await vscode.workspace.fs.stat(sfdxProjectUri).then(
+        () => true,
+        () => false
+      );
+      isSalesforceProject = sfdxExists;
+    } catch {
+      // If we can't check, assume false
+      isSalesforceProject = false;
+    }
+  }
+  await vscode.commands.executeCommand('setContext', 'sf:project_opened', isSalesforceProject);
+
   const testOutlineProvider = getTestOutlineProvider();
-  // Only create test controller if Test Explorer mode is enabled
-  const testController = useTestExplorerMode ? getTestController() : undefined;
+  const testController = getTestController();
+  console.log('[Apex Testing] Test controller created');
 
-  if (vscode.workspace?.workspaceFolders) {
-    const apexDirPath = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
-    const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(path.join(apexDirPath, '*.json'));
-    testResultFileWatcher.onDidCreate(uri => {
-      void testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath);
-      if (useTestExplorerMode && testController) {
-        void testController.onResultFileCreate(apexDirPath, uri.fsPath);
-      }
-    });
-    testResultFileWatcher.onDidChange(uri => {
-      void testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath);
-      if (useTestExplorerMode && testController) {
-        void testController.onResultFileCreate(apexDirPath, uri.fsPath);
-      }
-    });
+  if (vscode.workspace?.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+    const workspaceUri = vscode.workspace.workspaceFolders[0].uri;
+    // In web mode, only set up file watchers if we have a file scheme workspace
+    // Virtual file systems (memfs, etc.) don't support fsPath and file operations the same way
+    if (process.env.ESBUILD_PLATFORM !== 'web' || workspaceUri.scheme === 'file') {
+      const workspacePath = getUriPath(workspaceUri);
+      if (workspacePath) {
+        const apexDirPath = await getTestResultsFolder(workspacePath, 'apex');
+        const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(path.join(apexDirPath, '*.json'));
+        testResultFileWatcher.onDidCreate(uri => {
+          void testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath || uri.path);
+          void testController.onResultFileCreate(apexDirPath, uri.fsPath || uri.path);
+        });
+        testResultFileWatcher.onDidChange(uri => {
+          void testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath || uri.path);
+          void testController.onResultFileCreate(apexDirPath, uri.fsPath || uri.path);
+        });
 
-    context.subscriptions.push(testResultFileWatcher);
+        context.subscriptions.push(testResultFileWatcher);
+      }
+    }
 
     // Watch for .cls file changes to automatically refresh test discovery
     // This ensures newly created test classes appear in the Test Explorer
-    if (useTestExplorerMode) {
-      const apexClassFileWatcher = vscode.workspace.createFileSystemWatcher('**/*.cls');
-      let refreshTimeout: NodeJS.Timeout | undefined;
-      const debouncedRefresh = () => {
-        if (refreshTimeout) {
-          clearTimeout(refreshTimeout);
-        }
-        // Debounce to avoid too many refreshes when multiple files change
-        refreshTimeout = setTimeout(() => {
-          if (testController) {
-            void testController.refresh();
-          }
-        }, 1000);
-      };
-      apexClassFileWatcher.onDidCreate(() => {
-        debouncedRefresh();
-      });
-      apexClassFileWatcher.onDidChange(() => {
-        debouncedRefresh();
-      });
-      context.subscriptions.push(apexClassFileWatcher);
-
-      // Initialize test discovery for TestController
-      if (testController) {
-        void testController.discoverTests();
+    const apexClassFileWatcher = vscode.workspace.createFileSystemWatcher('**/*.cls');
+    let refreshTimeout: NodeJS.Timeout | undefined;
+    const debouncedRefresh = () => {
+      if (refreshTimeout) {
+        clearTimeout(refreshTimeout);
       }
-    }
-  } else {
-    throw new Error(nls.localize('cannot_determine_workspace'));
+      // Debounce to avoid too many refreshes when multiple files change
+      refreshTimeout = setTimeout(() => {
+        void testController.refresh();
+      }, 1000);
+    };
+    apexClassFileWatcher.onDidCreate(() => {
+      debouncedRefresh();
+    });
+    apexClassFileWatcher.onDidChange(() => {
+      debouncedRefresh();
+    });
+    context.subscriptions.push(apexClassFileWatcher);
+
+    // Initialize test discovery for TestController
+    testController.discoverTests().catch(error => {
+      console.error('Test discovery failed (this is OK if no connection yet):', error);
+      // Don't throw - test discovery can fail if there's no authenticated connection yet
+    });
   }
-
-  // Workspace Context
-  await workspaceContext.initialize(context);
-
-  // Store the test view disposable so we can dispose it when switching modes
-  let testViewDisposable: vscode.Disposable | undefined;
-
-  // Register settings change handler for test discovery source and test UI mode
-  const testDiscoverySettingsWatcher = vscode.workspace.onDidChangeConfiguration(async event => {
-    if (event.affectsConfiguration('salesforcedx-vscode-apex-testing.discoverySource')) {
-      try {
-        await (useTestExplorer() ? getTestController().refresh() : refreshTestView());
-      } catch (error) {
-        // Ignore errors if Apex extension isn't ready yet
-        console.debug('Failed to refresh test outline after settings change:', error);
-      }
-    }
-    if (event.affectsConfiguration('salesforcedx-vscode-apex-testing.useTestExplorer')) {
-      // When switching modes, dispose old controller and initialize the new one
-      const newUseTestExplorerMode = useTestExplorer();
-      try {
-        if (newUseTestExplorerMode) {
-          // Switching to Test Explorer - dispose old view and controller, then create and initialize new one
-          if (testViewDisposable) {
-            testViewDisposable.dispose();
-            testViewDisposable = undefined;
-          }
-          disposeTestController();
-          void getTestController().discoverTests();
-          // The old view will be hidden automatically via the when clause in package.json
-        } else {
-          // Switching to old view - dispose test controller and register old view
-          disposeTestController();
-          if (!testViewDisposable) {
-            testViewDisposable = registerTestView();
-            context.subscriptions.push(testViewDisposable);
-          }
-          await getTestOutlineProvider().refresh();
-          // The old view will be shown automatically via the when clause in package.json
-        }
-      } catch (error) {
-        console.debug('Failed to refresh after UI mode change:', error);
-      }
-    }
-  });
-  context.subscriptions.push(testDiscoverySettingsWatcher);
 
   // Register virtual document provider for org-only Apex classes
-  if (useTestExplorerMode) {
-    const orgApexClassProvider = getOrgApexClassProvider();
-    const providerRegistration = vscode.workspace.registerTextDocumentContentProvider(
-      'sf-org-apex',
-      orgApexClassProvider
-    );
-    context.subscriptions.push(providerRegistration);
+  const orgApexClassProvider = getOrgApexClassProvider();
+  const providerRegistration = vscode.workspace.registerTextDocumentContentProvider(
+    'sf-org-apex',
+    orgApexClassProvider
+  );
+  context.subscriptions.push(providerRegistration);
 
-    // Register command to open org-only tests
-    const openOrgOnlyTestCmd = vscode.commands.registerCommand(
-      'sf.apex.test.openOrgOnlyTest',
-      async (test: vscode.TestItem) => {
-        await getTestController().openOrgOnlyTest(test);
-      }
-    );
-    context.subscriptions.push(openOrgOnlyTestCmd);
-  }
+  // Register command to open org-only tests
+  const openOrgOnlyTestCmd = vscode.commands.registerCommand(
+    'sf.apex.test.openOrgOnlyTest',
+    async (test: vscode.TestItem) => {
+      await getTestController().openOrgOnlyTest(test);
+    }
+  );
+  context.subscriptions.push(openOrgOnlyTestCmd);
 
   // Commands
   const commands = registerCommands(context);
-  // Only register the old test view if not using Test Explorer
-  if (!useTestExplorerMode) {
-    testViewDisposable = registerTestView();
-    context.subscriptions.push(testViewDisposable);
-  }
   context.subscriptions.push(commands);
 
   // Initial refresh of test view to populate tests when extension activates
   void refreshTestViewOnActivation();
 
   void activationTracker.markActivationStop();
+
+  console.log('Salesforce Apex Testing extension is now active!');
 
   // Export API for other extensions to consume
   return {
@@ -256,49 +206,6 @@ const registerCommands = (_context: vscode.ExtensionContext): vscode.Disposable 
     apexTestSuiteRunCmd,
     apexTestSuiteAddCmd
   );
-};
-
-const registerTestView = (): vscode.Disposable => {
-  const testOutlineProvider = getTestOutlineProvider();
-  // Create TestRunner
-  const testRunner = new ApexTestRunner(testOutlineProvider);
-
-  // Test View
-  const testViewItems: vscode.Disposable[] = [
-    vscode.window.registerTreeDataProvider(testOutlineProvider.getId(), testOutlineProvider),
-    // Run Test Button on Test View command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.run`, () => testRunner.runAllApexTests()),
-    // Show Error Message command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.showError`, (test: TestNode) =>
-      testRunner.showErrorMessage(test)
-    ),
-    // Show Definition command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.goToDefinition`, (test: TestNode) =>
-      testRunner.showErrorMessage(test)
-    ),
-    // Run Class Tests command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.runClassTests`, (test: TestNode) =>
-      testRunner.runApexTests([test.name], TestRunType.Class)
-    ),
-    // Run Single Test command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.runSingleTest`, (test: TestNode) =>
-      testRunner.runApexTests([test.name], TestRunType.Method)
-    ),
-    // Refresh Test View command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.refresh`, async () => {
-      try {
-        await refreshTestView();
-      } catch (error) {
-        console.debug('Failed to refresh test view:', error);
-      }
-    }),
-    // Collapse All Apex Tests command
-    vscode.commands.registerCommand(`${testOutlineProvider.getId()}.collapseAll`, () =>
-      testOutlineProvider.collapseAll()
-    )
-  ];
-
-  return vscode.Disposable.from(...testViewItems);
 };
 
 const refreshTestViewOnActivation = async (): Promise<void> => {

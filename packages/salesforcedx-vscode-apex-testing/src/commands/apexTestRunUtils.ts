@@ -9,16 +9,16 @@ import {
   AsyncTestConfiguration,
   HumanReporter,
   Progress,
-  ResultFormat,
   TestResult,
   TestService
 } from '@salesforce/apex-node';
-import { getVscodeCoreExtension } from 'salesforcedx-vscode-apex/src/coreExtensionUtils';
 import { CancellationToken } from 'vscode';
 import { channelService } from '../channels';
+import { getConnection } from '../coreExtensionUtils';
 import * as settings from '../settings';
 import { telemetryService } from '../telemetry/telemetry';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
+import { writeTestResultJsonFile } from '../utils/testUtils';
 
 type ApexTestRunOptions = {
   payload: AsyncTestConfiguration;
@@ -35,8 +35,7 @@ export const runApexTests = async (
   token?: CancellationToken
 ): Promise<TestResult | undefined> => {
   const startTime = Date.now();
-  const vscodeCoreExtension = await getVscodeCoreExtension();
-  const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
+  const connection = await getConnection();
   const testService = new TestService(connection);
 
   const progressReporter: Progress<ApexTestProgressValue> = {
@@ -61,14 +60,10 @@ export const runApexTests = async (
     return undefined;
   }
 
-  await testService.writeResultFiles(
-    result,
-    { resultFormats: [ResultFormat.json], dirPath: options.outputDir },
-    options.codeCoverage
-  );
+  // Write JSON test result file
+  await writeTestResultJsonFile(result, options.outputDir, options.codeCoverage, testService);
 
   // Print test results to output channel
-  channelService.appendLine('\n=== Test Results ===\n');
   const humanOutput = new HumanReporter().format(result, options.codeCoverage, false);
   if (humanOutput) {
     // Split by lines and add each line separately to preserve formatting

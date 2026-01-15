@@ -33,5 +33,8 @@
   "apex_test_sort_order_coverage_description": "Sort by coverage - lowest coverage first",
   "apex_test_sort_order_severity_description": "Sort by severity - tests with both poor performance and poor coverage first",
   "apex_test_performance_threshold_description": "Performance threshold in milliseconds. Tests taking longer than this threshold will be highlighted as poorly performing. Default is 5000ms (5 seconds).",
-  "apex_test_coverage_threshold_description": "Coverage threshold as a percentage. Tests with coverage below this threshold will be highlighted as poorly covered. Default is 75%."
+  "apex_test_coverage_threshold_description": "Coverage threshold as a percentage. Tests with coverage below this threshold will be highlighted as poorly covered. Default is 75%.",
+  "retrieve_test_code_coverage_text": "Specifies whether code coverage results are calculated and retrieved when you run Apex tests.",
+  "apex_test_successful_execution_message": "Successfully ran %s",
+  "apex_test_failed_execution_message": "Failed to run %s"
 }

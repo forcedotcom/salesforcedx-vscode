@@ -369,7 +369,6 @@ describe('testResultProcessor', () => {
 
       updateTestRunResults(result, run, [], methodItems, classItems, false);
 
-      expect(run.appendOutput).toHaveBeenCalledWith('\r\n=== Test Results ===\r\n\r\n');
       // The output is split by lines and each line is added separately with \r\n
       // So we need to check if any call contains the HumanReporter output
       const outputCalls = (run.appendOutput as jest.Mock).mock.calls;
