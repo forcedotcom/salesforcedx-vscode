@@ -16,54 +16,34 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
   // Close welcome tabs before opening command palette
   await closeWelcomeTabs(page);
 
-  // Ensure workbench is focused
-  await workbench.click({ timeout: 5000 });
-  await expect(workbench).toBeVisible({ timeout: 5000 });
-
   // Dismiss any existing quick input widgets
   await dismissAllQuickInputWidgets(page);
 
-  // Open command palette with F1
-  await page.keyboard.press('F1');
+  // Wrap the entire open sequence in retry logic
+  await expect(async () => {
+    // Click workbench to ensure focus is not on walkthrough elements
+    await workbench.click({ timeout: 5000 });
 
-  // Wait for widget to be attached and visible
-  await widget.waitFor({ state: 'attached', timeout: 10_000 });
-  await expect(widget).toBeVisible({ timeout: 10_000 });
+    // Press F1 to open command palette
+    await page.keyboard.press('F1');
 
-  // Wait for input to be ready and stable
-  const input = widget.locator('input.input');
-  await input.waitFor({ state: 'attached', timeout: 10_000 });
-  await expect(input).toBeVisible({ timeout: 10_000 });
-  // Ensure input is focused and ready before returning
-  await input.focus({ timeout: 5000 });
-  await expect(input).toHaveValue(/^>/, { timeout: 5000 });
+    // Wait for widget to be visible (not just attached)
+    await expect(widget).toBeVisible({ timeout: 5000 });
+
+    // Verify input is ready
+    const input = widget.locator('input.input');
+    await expect(input).toBeVisible({ timeout: 5000 });
+    await expect(input).toHaveValue(/^>/, { timeout: 5000 });
+  }).toPass({ timeout: 20_000 });
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
   const widget = page.locator(QUICK_INPUT_WIDGET);
-  let input = widget.locator('input.input');
+  const input = widget.locator('input.input');
 
-  // Ensure widget and input are visible - reopen command palette if needed
-  await expect(async () => {
-    const widgetVisible = await widget.isVisible({ timeout: 3000 }).catch(() => false);
-    if (!widgetVisible) {
-      // Widget is hidden - reopen command palette
-      await closeWelcomeTabs(page);
-      await page.locator(WORKBENCH).click({ timeout: 5000 });
-      await dismissAllQuickInputWidgets(page);
-      await page.keyboard.press('F1');
-      await widget.waitFor({ state: 'attached', timeout: 10_000 });
-      await expect(widget).toBeVisible({ timeout: 10_000 });
-      input = widget.locator('input.input');
-      // Wait for input to be ready after reopening
-      await input.waitFor({ state: 'attached', timeout: 10_000 });
-      await expect(input).toBeVisible({ timeout: 10_000 });
-    } else {
-      // Widget is visible - ensure input is also visible and ready
-      await input.waitFor({ state: 'attached', timeout: 10_000 });
-      await expect(input).toBeVisible({ timeout: 10_000 });
-    }
-  }).toPass({ timeout: 15_000 });
+  // Ensure widget and input are visible - if not, openCommandPalette should have handled it
+  await expect(widget).toBeVisible({ timeout: 5000 });
+  await expect(input).toBeVisible({ timeout: 5000 });
   await input.focus({ timeout: 5000 });
   await expect(input).toHaveValue(/^>/, { timeout: 5000 });
 
@@ -71,9 +51,6 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // eslint-disable-next-line unicorn/prefer-string-replace-all -- replaceAll doesn't support regex patterns
   const escapedCommand = command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   await expect(async () => {
-    // Ensure input is still visible and focused
-    await expect(input).toBeVisible({ timeout: 5000 });
-    await input.focus({ timeout: 5000 });
     await page.keyboard.press('End');
     await input.pressSequentially(command, { delay: 50 });
     // Verify typing was successful

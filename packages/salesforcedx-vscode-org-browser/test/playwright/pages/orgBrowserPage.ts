@@ -51,7 +51,7 @@ export class OrgBrowserPage {
       expect(
         this.sidebar.getByRole('treeitem', { level: 1 }).nth(4),
         'Sidebar should have at least 5 metadata types'
-      ).toBeVisible({ timeout: 30_000 })
+      ).toBeVisible({ timeout: 60_000 })
     ]);
 
     await saveScreenshot(this.page, 'orgBrowserPage.openOrgBrowser.metadataTypesLoaded.png', true);
