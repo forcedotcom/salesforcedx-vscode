@@ -6,6 +6,7 @@
  */
 
 import { test } from '../fixtures';
+import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -14,7 +15,7 @@ import {
   closeWelcomeTabs,
   createDreamhouseOrg,
   upsertScratchOrgAuthFieldsToSettings,
-  createFileWithContents,
+  createApexClass,
   openFileByName,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
@@ -25,25 +26,21 @@ import {
   ensureOutputPanelOpen,
   selectOutputChannel,
   waitForOutputChannelText,
-  EDITOR
+  EDITOR,
+  QUICK_INPUT_WIDGET,
+  NOTIFICATION_LIST_ITEM
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
+import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
+import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
-
-const manifestContent = `<?xml version="1.0" encoding="UTF-8"?>
-<Package xmlns="http://soap.sforce.com/2006/04/metadata">
-  <types>
-    <members>*</members>
-    <name>ApexClass</name>
-  </types>
-  <version>65.0</version>
-</Package>`;
 
 // eslint-disable-next-line jest/unbound-method
 (isMacDesktop() ? test.skip : test)('Retrieve In Manifest: retrieves via all entry points', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
+  let className: string;
   let statusBarPage: SourceTrackingStatusBarPage;
 
   await test.step('setup dreamhouse org', async () => {
@@ -58,61 +55,97 @@ const manifestContent = `<?xml version="1.0" encoding="UTF-8"?>
     statusBarPage = new SourceTrackingStatusBarPage(page);
     await statusBarPage.waitForVisible(120_000);
     await saveScreenshot(page, 'setup.after-status-bar-visible.png');
+  });
 
-    // Create the manifest file at project root
-    await createFileWithContents(page, 'package.xml', manifestContent);
-    await saveScreenshot(page, 'setup.after-create-manifest.png');
-    await saveScreenshot(page, 'setup.complete.png');
+  await test.step('create apex class', async () => {
+    // Create apex class (opens editor automatically)
+    className = `RetrieveManifestTest${Date.now()}`;
+    await createApexClass(page, className);
+    await saveScreenshot(page, 'setup.after-create-class.png');
+  });
+
+  await test.step('generate manifest from apex class', async () => {
+    // Generate manifest from the active editor (Apex class)
+    await executeCommandWithCommandPalette(page, packageNls.project_generate_manifest_text);
+
+    // Wait for input prompt
+    const quickInput = page.locator(QUICK_INPUT_WIDGET);
+    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'visible', timeout: 10_000 });
+
+    // Accept default filename (package.xml) by pressing Enter
+    await page.keyboard.press('Enter');
+
+    // Wait for manifest file to be created and opened
+    const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
+    await manifestEditor.waitFor({ state: 'visible', timeout: 15_000 });
+  });
+
+  await test.step('deploy class to org', async () => {
+    // Open the manifest file
+    await openFileByName(page, 'package.xml');
+
+    // Ensure the manifest editor is focused and ready
+    const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
+    await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
+    await manifestEditor.click();
+
+    // Deploy the manifest to push the class to the org
+    await executeEditorContextMenuCommand(page, packageNls.deploy_in_manifest_text, 'manifest/package.xml');
+
+    // Verify deploy completes
+    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
+    await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
+
+    // Check for deploy error notifications
+    const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);
+    const deployErrorPattern = new RegExp(
+      `${messages.deploy_completed_with_errors_message}|${messages.deploy_failed.replaceAll('%s', '.*')}`,
+      'i'
+    );
+    const deployErrorNotification = postDeployNotifications.filter({ hasText: deployErrorPattern }).first();
+    const hasDeployError = await deployErrorNotification.isVisible({ timeout: 2000 }).catch(() => false);
+    if (hasDeployError) {
+      const errorText = await deployErrorNotification.textContent();
+      throw new Error(`Deploy failed with error notification: ${errorText}`);
+    }
   });
 
   await test.step('1. Editor context menu', async () => {
-    // Open the manifest file
+    // Open the manifest file (Quick Open shows just "package.xml")
     await openFileByName(page, 'package.xml');
-    await saveScreenshot(page, 'step1.after-open-manifest.png');
 
     // Ensure the manifest editor is focused and ready
-    const manifestEditor = page.locator(`${EDITOR}[data-uri*="package.xml"]`).first();
+    const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
     await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
     await manifestEditor.click();
-    await saveScreenshot(page, 'step1.manifest-focused.png');
 
     // Prepare output channel before triggering command
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
-    await saveScreenshot(page, 'step1.output-panel-ready.png');
 
     // Right-click the manifest editor → "SFDX: Retrieve Source in Manifest from Org"
-    await executeEditorContextMenuCommand(page, packageNls.retrieve_in_manifest_text, 'package.xml');
-    await saveScreenshot(page, 'step1.after-context-menu.png');
+    await executeEditorContextMenuCommand(page, packageNls.retrieve_in_manifest_text, 'manifest/package.xml');
 
     // Verify retrieve starts and completes via output channel
     await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
-    await saveScreenshot(page, 'step1.retrieve-started.png');
-
     await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: 240_000 });
-    await saveScreenshot(page, 'step1.retrieve-complete.png');
   });
 
   await test.step('2. Explorer context menu (file)', async () => {
     // Close any open editors to ensure clean state
     await executeCommandWithCommandPalette(page, 'View: Close All Editors');
-    await saveScreenshot(page, 'step2.after-close-editors.png');
 
     // Prepare output channel
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
-    await saveScreenshot(page, 'step2.output-panel-ready.png');
 
     // Right-click manifest in explorer → "SFDX: Retrieve Source in Manifest from Org"
     await executeExplorerContextMenuCommand(page, /package\.xml/i, packageNls.retrieve_in_manifest_text);
-    await saveScreenshot(page, 'step2.after-context-menu.png');
 
     // Verify retrieve starts and completes via output channel
     await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
-    await saveScreenshot(page, 'step2.retrieve-started.png');
-
     await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: 240_000 });
-    await saveScreenshot(page, 'step2.retrieve-complete.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

@@ -18,7 +18,6 @@ import {
   upsertSettings,
   createApexClass,
   editOpenFile,
-  createFileWithContents,
   openFileByName,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
@@ -27,22 +26,14 @@ import {
   validateNoCriticalErrors,
   captureOutputChannelDetails,
   NOTIFICATION_LIST_ITEM,
-  EDITOR
+  EDITOR,
+  QUICK_INPUT_WIDGET
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED, OUTPUT_CHANNEL_NAME } from '../../../src/constants';
 import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
-
-const manifestContent = `<?xml version="1.0" encoding="UTF-8"?>
-<Package xmlns="http://soap.sforce.com/2006/04/metadata">
-  <types>
-    <members>*</members>
-    <name>ApexClass</name>
-  </types>
-  <version>65.0</version>
-</Package>`;
 
 /** Escape regex special characters in a string for use in RegExp */
 // eslint-disable-next-line unicorn/prefer-string-replace-all -- regex escaping requires replace with regex pattern
@@ -83,9 +74,23 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
 
     // Verify local count incremented by 1
     await statusBarPage.waitForCounts({ local: initialLocalCount + 1 }, 60_000);
+  });
 
-    // Create the manifest file at project root (no subfolder for simplicity)
-    await createFileWithContents(page, 'package.xml', manifestContent);
+  await test.step('generate manifest from apex class', async () => {
+    // Generate manifest from the active editor (Apex class)
+    await executeCommandWithCommandPalette(page, packageNls.project_generate_manifest_text);
+
+    // Wait for input prompt
+    const quickInput = page.locator(QUICK_INPUT_WIDGET);
+    await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+    await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'visible', timeout: 10_000 });
+
+    // Accept default filename (package.xml) by pressing Enter
+    await page.keyboard.press('Enter');
+
+    // Wait for manifest file to be created and opened
+    const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
+    await manifestEditor.waitFor({ state: 'visible', timeout: 15_000 });
   });
 
   await test.step('1. Editor context menu', async () => {
@@ -95,16 +100,16 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
     await editOpenFile(page, 'Editor context menu manifest test');
     await statusBarPage.waitForCounts({ local: initialLocalCount + 1 }, 60_000);
 
-    // Open the manifest file (already created in previous step)
+    // Open the manifest file (Quick Open shows just "package.xml")
     await openFileByName(page, 'package.xml');
 
     // Ensure the manifest editor is focused and ready
-    const manifestEditor = page.locator(`${EDITOR}[data-uri*="package.xml"]`).first();
+    const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
     await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
     await manifestEditor.click(); // Click to ensure focus
 
     // Right-click the manifest editor
-    await executeEditorContextMenuCommand(page, packageNls.deploy_in_manifest_text, 'package.xml');
+    await executeEditorContextMenuCommand(page, packageNls.deploy_in_manifest_text, 'manifest/package.xml');
 
     // Check for deploy-related error notifications before waiting for deploying notification
     // Match deploy_failed message or file system errors (ENOENT, manifest issues)
