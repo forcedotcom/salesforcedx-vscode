@@ -157,15 +157,20 @@ export class WorkspaceContextUtil {
             this.sessionConnections.delete(this._username);
             this.knownBadConnections.delete(this._username);
             console.log('workspaceContextUtil.ts getConnection() - 23');
+            // Force reload of auth info since login command runs async
+            await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
+            console.log('workspaceContextUtil.ts getConnection() - 23A');
+            StateAggregator.clearInstance();
+            console.log('workspaceContextUtil.ts getConnection() - 23B');
             try {
-              console.log('workspaceContextUtil.ts getConnection() - 23A');
+              console.log('workspaceContextUtil.ts getConnection() - 23C');
               // Attempt to create a fresh connection with the new auth
               const newConnection = await Connection.create({
                 authInfo: await AuthInfo.create({ username: this._username })
               });
-              console.log('workspaceContextUtil.ts getConnection() - 23B');
+              console.log('workspaceContextUtil.ts getConnection() - 23D');
               await newConnection.identity();
-              console.log('workspaceContextUtil.ts getConnection() - 23C');
+              console.log('workspaceContextUtil.ts getConnection() - 23E');
               this.sessionConnections.set(this._username, {
                 connection: newConnection,
                 lastTokenValidationTimestamp: Date.now()
