@@ -11,6 +11,7 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -51,6 +52,7 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await upsertSettings(page, { [`${METADATA_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
     await saveScreenshot(page, 'setup.after-disable-deploy-on-save.png');
 
+    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await saveScreenshot(page, 'setup.complete.png');
   });

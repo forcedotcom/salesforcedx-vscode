@@ -12,6 +12,7 @@ import {
 } from '../../../src/pages/settings';
 import {
   waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
   closeWelcomeTabs
 } from '../../../src/utils/helpers';
 import { SETTINGS_SEARCH_INPUT } from '../../../src/utils/locators';
@@ -20,6 +21,7 @@ import { test } from '../fixtures/index';
 test.describe('Settings', () => {
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
   });
 
@@ -73,6 +75,9 @@ test.describe('Settings', () => {
       await openSettingsUI(page);
       const searchInput = page.locator(SETTINGS_SEARCH_INPUT[0]);
       await searchInput.click();
+      // Clear existing search before typing
+      await page.keyboard.press('Control+KeyA');
+      await page.keyboard.press('Backspace');
       await page.keyboard.type(settingKey);
 
       const minimapCheckbox = page.locator('.settings-editor').getByRole('checkbox', { name: /minimap/i });

@@ -7,13 +7,14 @@
 
 import { expect } from '@playwright/test';
 import { createFileWithContents } from '../../../src/utils/fileHelpers';
-import { waitForVSCodeWorkbench, closeWelcomeTabs } from '../../../src/utils/helpers';
+import { waitForVSCodeWorkbench, assertWelcomeTabExists, closeWelcomeTabs } from '../../../src/utils/helpers';
 import { EDITOR_WITH_URI, TAB } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
 test.describe('File Operations', () => {
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
   });
 

@@ -11,6 +11,7 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   createDreamhouseOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -37,6 +38,7 @@ test('View Changes Commands: each view changes command shows correct sections in
 
     const statusBar = new SourceTrackingStatusBarPage(page);
     await statusBar.waitForVisible(120_000);
+    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
   });
 

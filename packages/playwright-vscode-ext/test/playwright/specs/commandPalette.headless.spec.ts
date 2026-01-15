@@ -9,6 +9,7 @@ import { expect } from '@playwright/test';
 import { executeCommandWithCommandPalette, openCommandPalette } from '../../../src/pages/commands';
 import {
   waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   isMacDesktop
 } from '../../../src/utils/helpers';
@@ -18,6 +19,7 @@ import { test } from '../fixtures/index';
 test.describe('Command Palette', () => {
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
   });
 

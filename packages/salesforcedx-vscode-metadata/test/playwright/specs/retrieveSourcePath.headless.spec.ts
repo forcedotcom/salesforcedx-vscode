@@ -10,6 +10,7 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   createDreamhouseOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -47,6 +48,7 @@ import packageNls from '../../../package.nls.json';
     await statusBarPage.waitForVisible(120_000);
     await saveScreenshot(page, 'setup.after-status-bar-visible.png');
 
+    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await saveScreenshot(page, 'setup.complete.png');
   });

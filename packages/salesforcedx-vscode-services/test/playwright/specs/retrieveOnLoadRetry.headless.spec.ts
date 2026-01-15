@@ -11,6 +11,7 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   selectOutputChannel,
@@ -32,6 +33,7 @@ test('handles project resolution with retry logic', async ({ page }) => {
     const orgAuth = await createMinimalOrg();
     await upsertScratchOrgAuthFieldsToSettings(page, orgAuth);
     await upsertRetrieveOnLoadSetting(page, 'CustomObject:Account');
+    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
   });
 

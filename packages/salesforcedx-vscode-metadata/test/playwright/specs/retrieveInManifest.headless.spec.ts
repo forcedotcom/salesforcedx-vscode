@@ -10,6 +10,7 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   createDreamhouseOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -60,6 +61,7 @@ const manifestContent = `<?xml version="1.0" encoding="UTF-8"?>
     await createFileWithContents(page, 'package.xml', manifestContent);
     await saveScreenshot(page, 'setup.after-create-manifest.png');
 
+    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await saveScreenshot(page, 'setup.complete.png');
   });

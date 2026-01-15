@@ -10,6 +10,7 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   createDreamhouseOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -42,6 +43,7 @@ test('Project Deploy Start: deploys source to org', async ({ page }) => {
     await statusBarPage.waitForVisible(120_000);
     await saveScreenshot(page, 'setup.after-status-bar-visible.png');
 
+    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
     await saveScreenshot(page, 'setup.complete.png');
   });

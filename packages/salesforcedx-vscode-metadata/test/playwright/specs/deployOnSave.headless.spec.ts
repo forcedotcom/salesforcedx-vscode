@@ -10,6 +10,7 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
@@ -49,6 +50,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
     // Verify deploy-on-save service is initialized by checking output channel
     await waitForOutputChannelText(page, { expectedText: 'Deploy on save service initialized', timeout: 30_000 });
 
+    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
   });
 

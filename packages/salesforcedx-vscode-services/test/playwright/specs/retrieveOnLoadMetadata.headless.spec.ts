@@ -11,6 +11,7 @@ import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   selectOutputChannel,
@@ -36,6 +37,7 @@ test('retrieves metadata on load for CustomObject:Activity and Workflow:Case', a
     // Set the retrieveOnLoad setting
     await upsertRetrieveOnLoadSetting(page, 'CustomObject:Activity, Workflow:Case');
 
+    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
   });
 

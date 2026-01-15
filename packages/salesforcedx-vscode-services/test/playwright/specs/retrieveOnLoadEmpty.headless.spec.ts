@@ -10,6 +10,7 @@ import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   ensureOutputPanelOpen,
   selectOutputChannel,
@@ -27,6 +28,7 @@ test('handles empty retrieveOnLoad setting gracefully', async ({ page }) => {
   await test.step('setup org auth without retrieveOnLoad setting', async () => {
     const orgAuth = await createMinimalOrg();
     await upsertScratchOrgAuthFieldsToSettings(page, orgAuth);
+    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
   });
 

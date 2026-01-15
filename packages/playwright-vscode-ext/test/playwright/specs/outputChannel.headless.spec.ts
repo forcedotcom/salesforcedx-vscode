@@ -16,6 +16,7 @@ import {
 import { saveScreenshot } from '../../../src/shared/screenshotUtils';
 import {
   waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
   closeWelcomeTabs
 } from '../../../src/utils/helpers';
 import { EDITOR } from '../../../src/utils/locators';
@@ -24,6 +25,7 @@ import { test } from '../fixtures/index';
 test.describe('Output Channel', () => {
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
+    await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
   });
 

@@ -102,6 +102,12 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
   await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
 };
 
+/** Assert that Welcome/Walkthrough tab exists and is visible - useful for debugging startup issues */
+export const assertWelcomeTabExists = async (page: Page): Promise<void> => {
+  const welcomeTab = page.getByRole('tab', { name: /Welcome|Walkthrough/i }).first();
+  await expect(welcomeTab, 'Welcome/Walkthrough tab should exist after VS Code startup').toBeVisible({ timeout: 10_000 });
+};
+
 /** Dismiss any open quick input widgets by pressing Escape until none visible */
 export const dismissAllQuickInputWidgets = async (page: Page): Promise<void> => {
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
