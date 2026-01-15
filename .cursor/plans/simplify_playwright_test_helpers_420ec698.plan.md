@@ -1,45 +1,54 @@
 ---
+name: ''
+overview: ''
+todos: []
+---
+
+---
+
 name: Simplify Playwright Test Helpers
 overview: Review and simplify the playwright-vscode-ext codebase by removing excessive fallbacks, retry loops, multiple clicks, redundant waits, and platform-specific code paths that may have been added during iterative debugging but aren't necessary for test stability.
 todos:
-  - id: simplify-close-welcome-tabs
-    content: Simplify closeWelcomeTabs() - remove nested retry loops, redundant checks, excessive waits, and platform-specific code where not needed
-    status: completed
-  - id: simplify-open-command-palette
-    content: Simplify openCommandPalette() - remove retry loop, nested welcome tab closing, force visibility hacks, and Windows-specific fallback if not needed
-    status: completed
-  - id: simplify-execute-command
-    content: Simplify executeCommand() - remove unnecessary retry logic and fallbacks
-    status: completed
-    dependencies:
-      - simplify-open-command-palette
+
+- id: simplify-close-welcome-tabs
+  content: Simplify closeWelcomeTabs() - remove nested retry loops, redundant checks, excessive waits, and platform-specific code where not needed
+  status: completed
+- id: simplify-open-command-palette
+  content: Simplify openCommandPalette() - remove retry loop, nested welcome tab closing, force visibility hacks, and Windows-specific fallback if not needed
+  status: completed
+- id: simplify-execute-command
+  content: Simplify executeCommand() - remove unnecessary retry logic and fallbacks
+  status: completed
+  dependencies:
+  - simplify-open-command-palette
     note: Simplified significantly but kept retry logic to reopen command palette if widget becomes hidden. macOS desktop shows flaky test that passes on retry - this may be inherent flakiness exposed by simplification.
-  - id: simplify-output-channel
-    content: Simplify ensureOutputPanelOpen() - remove desktop-specific editor clicks and simplify fallback
-    status: completed
-    note: Simplified by removing desktop-specific editor area click and unifying keyboard shortcut. However, fallback to command palette shows CI-specific flakiness on macOS desktop - tests pass locally but fail intermittently on CI. Web and Windows desktop tests pass consistently.
-  - id: review-platform-specific
-    content: Review all platform-specific code paths (isWindowsDesktop, isMacDesktop, isDesktop) and unify where possible
-    status: completed
-    note: Added isDesktop() helper function and replaced inline checks in waitForVSCodeWorkbench() and upsertScratchOrgAuthFieldsToSettings(). Platform-specific checks for shortcuts (Meta vs Control) and context menus (Mac desktop limitation) remain as they are necessary. All tests passing locally. CI shows failures in unrelated tests (commandPalette flakiness on macOS, outputChannel on Windows) - these are not caused by this change.
-  - id: remove-multiple-clicks
-    content: Remove duplicate/multiple click patterns throughout codebase
-    status: completed
-    note: Removed fallback click pattern in commandPalette test. Simplified to use single WORKBENCH click. All local tests passing (web, desktop, org-browser). CI: Web ✓, Windows ✓, macOS ✗ (pre-existing flaky test, unrelated to change).
-  - id: remove-force-visibility
-    content: Remove all evaluate() calls that force visibility by manipulating DOM styles
-    status: completed
-    note: All force visibility hacks were already removed in simplify-open-command-palette and simplify-execute-command tasks. The only remaining evaluate() call is for virtualized lists (scroll and click), which is necessary and not a force visibility hack.
-    dependencies:
-      - simplify-open-command-palette
-      - simplify-execute-command
-  - id: test-after-simplification
-    content: Run tests after each simplification to verify changes work and identify what was actually necessary
-    status: pending
-    dependencies:
-      - simplify-close-welcome-tabs
-      - simplify-open-command-palette
-      - simplify-execute-command
+- id: simplify-output-channel
+  content: Simplify ensureOutputPanelOpen() - remove desktop-specific editor clicks and simplify fallback
+  status: completed
+  note: Simplified by removing desktop-specific editor area click and unifying keyboard shortcut. However, fallback to command palette shows CI-specific flakiness on macOS desktop - tests pass locally but fail intermittently on CI. Web and Windows desktop tests pass consistently.
+- id: review-platform-specific
+  content: Review all platform-specific code paths (isWindowsDesktop, isMacDesktop, isDesktop) and unify where possible
+  status: completed
+  note: Added isDesktop() helper function and replaced inline checks in waitForVSCodeWorkbench() and upsertScratchOrgAuthFieldsToSettings(). Platform-specific checks for shortcuts (Meta vs Control) and context menus (Mac desktop limitation) remain as they are necessary. All tests passing locally. CI shows failures in unrelated tests (commandPalette flakiness on macOS, outputChannel on Windows) - these are not caused by this change.
+- id: remove-multiple-clicks
+  content: Remove duplicate/multiple click patterns throughout codebase
+  status: completed
+  note: Removed fallback click pattern in commandPalette test. Simplified to use single WORKBENCH click. All local tests passing (web, desktop, org-browser). CI: Web ✓, Windows ✓, macOS ✗ (pre-existing flaky test, unrelated to change).
+- id: remove-force-visibility
+  content: Remove all evaluate() calls that force visibility by manipulating DOM styles
+  status: completed
+  note: All force visibility hacks were already removed in simplify-open-command-palette and simplify-execute-command tasks. The only remaining evaluate() call is for virtualized lists (scroll and click), which is necessary and not a force visibility hack.
+  dependencies:
+  - simplify-open-command-palette
+  - simplify-execute-command
+- id: test-after-simplification
+  content: Run tests after each simplification to verify changes work and identify what was actually necessary
+  status: pending
+  dependencies:
+  - simplify-close-welcome-tabs
+  - simplify-open-command-palette
+  - simplify-execute-command
+
 ---
 
 # Simplify Playwright Test Helpers

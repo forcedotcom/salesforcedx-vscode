@@ -6,7 +6,7 @@
  */
 
 import { expect, Page } from '@playwright/test';
-import { closeWelcomeTabs, isMacDesktop } from '../utils/helpers';
+import { closeWelcomeTabs, dismissAllQuickInputWidgets } from '../utils/helpers';
 import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW, WORKBENCH } from '../utils/locators';
 
 export const openCommandPalette = async (page: Page): Promise<void> => {
@@ -17,15 +17,11 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
   await closeWelcomeTabs(page);
 
   // Ensure workbench is focused
-  await workbench.click({ timeout: 5000 }).catch(() => {});
+  await workbench.click({ timeout: 5000 });
   await expect(workbench).toBeVisible({ timeout: 5000 });
 
-  // Close any existing quick input widget
-  const existingWidget = page.locator(QUICK_INPUT_WIDGET);
-  if (await existingWidget.isVisible({ timeout: 500 }).catch(() => false)) {
-    await page.keyboard.press('Escape');
-    await existingWidget.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
-  }
+  // Dismiss any existing quick input widgets
+  await dismissAllQuickInputWidgets(page);
 
   // Open command palette with F1
   await page.keyboard.press('F1');
@@ -39,10 +35,8 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
   await input.waitFor({ state: 'attached', timeout: 10_000 });
   await expect(input).toBeVisible({ timeout: 10_000 });
   // Ensure input is focused and ready before returning
-  await input.focus({ timeout: 5000 }).catch(() => {});
-  await expect(input)
-    .toHaveValue(/^>/, { timeout: 5000 })
-    .catch(() => {});
+  await input.focus({ timeout: 5000 });
+  await expect(input).toHaveValue(/^>/, { timeout: 5000 });
 };
 
 const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
@@ -55,59 +49,18 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
     if (!widgetVisible) {
       // Widget is hidden - reopen command palette
       await closeWelcomeTabs(page);
-      await page
-        .locator(WORKBENCH)
-        .click({ timeout: 5000 })
-        .catch(() => {});
-      const existingWidget = page.locator(QUICK_INPUT_WIDGET);
-      if (await existingWidget.isVisible({ timeout: 500 }).catch(() => false)) {
-        await page.keyboard.press('Escape');
-        await existingWidget.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
-      }
+      await page.locator(WORKBENCH).click({ timeout: 5000 });
+      await dismissAllQuickInputWidgets(page);
       await page.keyboard.press('F1');
       await widget.waitFor({ state: 'attached', timeout: 10_000 });
       await expect(widget).toBeVisible({ timeout: 10_000 });
       input = widget.locator('input.input');
       // Wait for input to be ready after reopening
       await input.waitFor({ state: 'attached', timeout: 10_000 });
-      // On macOS desktop Electron, input can be attached but hidden - force visibility if needed
-      if (isMacDesktop()) {
-        const inputVisible = await input.isVisible({ timeout: 5000 }).catch(() => false);
-        if (!inputVisible) {
-          const inputElement = await input.elementHandle();
-          if (inputElement) {
-            await inputElement
-              .evaluate((el: HTMLElement) => {
-                el.style.display = 'block';
-                el.style.visibility = 'visible';
-                el.style.opacity = '1';
-                (el as HTMLInputElement).focus();
-              })
-              .catch(() => {});
-          }
-        }
-      }
       await expect(input).toBeVisible({ timeout: 10_000 });
     } else {
       // Widget is visible - ensure input is also visible and ready
       await input.waitFor({ state: 'attached', timeout: 10_000 });
-      // On macOS desktop Electron, input can be attached but hidden - force visibility if needed
-      if (isMacDesktop()) {
-        const inputVisible = await input.isVisible({ timeout: 5000 }).catch(() => false);
-        if (!inputVisible) {
-          const inputElement = await input.elementHandle();
-          if (inputElement) {
-            await inputElement
-              .evaluate((el: HTMLElement) => {
-                el.style.display = 'block';
-                el.style.visibility = 'visible';
-                el.style.opacity = '1';
-                (el as HTMLInputElement).focus();
-              })
-              .catch(() => {});
-          }
-        }
-      }
       await expect(input).toBeVisible({ timeout: 10_000 });
     }
   }).toPass({ timeout: 15_000 });
@@ -119,23 +72,6 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   const escapedCommand = command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   await expect(async () => {
     // Ensure input is still visible and focused
-    // On macOS desktop Electron, input can become hidden during typing - force visibility if needed
-    if (isMacDesktop()) {
-      const inputVisible = await input.isVisible({ timeout: 5000 }).catch(() => false);
-      if (!inputVisible) {
-        const inputElement = await input.elementHandle();
-        if (inputElement) {
-          await inputElement
-            .evaluate((el: HTMLInputElement) => {
-              el.style.display = 'block';
-              el.style.visibility = 'visible';
-              el.style.opacity = '1';
-              el.focus();
-            })
-            .catch(() => {});
-        }
-      }
-    }
     await expect(input).toBeVisible({ timeout: 5000 });
     await input.focus({ timeout: 5000 });
     await page.keyboard.press('End');

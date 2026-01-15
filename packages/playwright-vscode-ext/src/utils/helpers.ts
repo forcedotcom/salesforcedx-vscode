@@ -102,23 +102,33 @@ export const waitForVSCodeWorkbench = async (page: Page, navigate = true): Promi
   await page.waitForSelector(WORKBENCH, { timeout: 60_000 });
 };
 
+/** Dismiss any open quick input widgets by pressing Escape until none visible */
+export const dismissAllQuickInputWidgets = async (page: Page): Promise<void> => {
+  const quickInput = page.locator(QUICK_INPUT_WIDGET);
+  // Press Escape up to 3 times to dismiss any stacked widgets
+  for (let i = 0; i < 3; i++) {
+    if (await quickInput.isVisible({ timeout: 200 }).catch(() => false)) {
+      await page.keyboard.press('Escape');
+      await quickInput.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
+    } else {
+      break;
+    }
+  }
+};
+
 /** Close VS Code Welcome/Walkthrough tabs if they're open */
 export const closeWelcomeTabs = async (page: Page): Promise<void> => {
-  const quickInput = page.locator(QUICK_INPUT_WIDGET);
   const workbench = page.locator(WORKBENCH);
 
   // Use Playwright's retry mechanism to close all welcome tabs
   await expect(async () => {
-    // Close Quick Input if it's visible (it can intercept clicks)
-    if (await quickInput.isVisible({ timeout: 500 }).catch(() => false)) {
-      await page.keyboard.press('Escape');
-      await quickInput.waitFor({ state: 'hidden', timeout: 2000 });
-    }
+    // Dismiss any quick input widgets that might intercept clicks
+    await dismissAllQuickInputWidgets(page);
 
     // Ensure workbench is focused before interacting with tabs
-    await workbench.click({ timeout: 5000 }).catch(() => {});
+    await workbench.click({ timeout: 5000 });
 
-    const welcomeTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
+    const welcomeTabs = page.getByRole('tab', { name: /Welcome|Walkthrough/i });
     const count = await welcomeTabs.count();
 
     if (count === 0) {
@@ -126,11 +136,6 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
     }
 
     const welcomeTab = welcomeTabs.first();
-    // Ensure Quick Input is closed before clicking tab
-    if (await quickInput.isVisible({ timeout: 500 }).catch(() => false)) {
-      await page.keyboard.press('Escape');
-      await quickInput.waitFor({ state: 'hidden', timeout: 2000 });
-    }
 
     // Select the tab first to ensure it's active
     await welcomeTab.click({ timeout: 5000, force: true });
@@ -147,9 +152,8 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
       await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 });
     }
 
-    // Verify tab was closed - re-query to avoid stale references
-    const remainingTabs = page.locator(TAB).filter({ hasText: /Welcome|Walkthrough/i });
-    const remainingCount = await remainingTabs.count();
+    // Verify tab was closed - locators automatically re-evaluate
+    const remainingCount = await welcomeTabs.count();
     if (remainingCount > 0) {
       throw new Error(`Still ${remainingCount} welcome tab(s) remaining`);
     }
@@ -166,7 +170,7 @@ export const closeSettingsTab = async (page: Page): Promise<void> => {
   if (isSettingsVisible) {
     const closeButton = settingsTab.locator(TAB_CLOSE_BUTTON);
     await closeButton.click();
-    await settingsTab.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {});
+    await settingsTab.waitFor({ state: 'detached', timeout: 5000 });
   }
 };
 

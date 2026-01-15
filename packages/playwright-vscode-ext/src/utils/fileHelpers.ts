@@ -19,7 +19,7 @@ export const createFileWithContents = async (page: Page, _filePath: string, cont
 
   // Wait for command palette to close first
   const widget = page.locator(QUICK_INPUT_WIDGET);
-  await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+  await widget.waitFor({ state: 'hidden', timeout: 5000 });
 
   // Wait for the editor to open - wait for attachment first, then visibility
   // Use expect().toBeAttached() for better error messages and retry logic
