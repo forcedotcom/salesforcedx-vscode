@@ -61,13 +61,6 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
     const { closeWelcomeTabs } = await import('../utils/helpers.js');
     await closeWelcomeTabs(page);
 
-    // Close any notification dialogs that might block keyboard shortcuts
-    const notificationDialog = page.locator('[role="dialog"]').filter({ hasText: /notification/i });
-    if (await notificationDialog.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await page.keyboard.press('Escape');
-      await notificationDialog.waitFor({ state: 'hidden', timeout: 2000 });
-    }
-
     // Ensure workbench is focused before using keyboard shortcut
     const workbench = page.locator(WORKBENCH);
     await workbench.click({ timeout: 5000 });
@@ -127,6 +120,9 @@ export const selectOutputChannel = async (page: Page, channelName: string, timeo
     if (!targetValue) {
       throw new Error(`Channel "${channelName}" not found in dropdown options`);
     }
+    // Wait for the option to be enabled before selecting (fixes macOS GHA timing issues)
+    const targetOption = dropdown.locator(`option[value="${targetValue}"]`);
+    await expect(targetOption).not.toHaveAttribute('disabled', '', { timeout: 5000 });
     // Select the channel using the value attribute (more reliable than label)
     await dropdown.selectOption({ value: targetValue }, { force: true });
     // Verify the selection took effect - wait a bit longer for the UI to update
