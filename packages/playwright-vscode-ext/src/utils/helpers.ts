@@ -30,6 +30,7 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'punycode', // known jsforce and transitive dep deprecation by node
   'selectedStep', // VS Code internal walkthrough/tutorial state errors
   'onWillSaveTextDocument', // VS Code save event timeout (non-critical)
+  'Throttler is disposed', // VS Code internal throttler lifecycle error (non-critical)
   'vscode-log:', // VS Code internal logging infrastructure errors
   'tasks.log', // VS Code tasks log file creation conflicts
   'theme-defaults/themes', // VS Code theme loading failures
