@@ -19,10 +19,17 @@ import {
   outputChannelContains,
   createMinimalOrg,
   validateNoCriticalErrors,
-  TAB
+  TAB,
+  waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { upsertRetrieveOnLoadSetting } from '../pages/settingsPage';
 import { SERVICES_CHANNEL_NAME } from '../../../src/constants';
+
+test.beforeEach(async ({ page }) => {
+  await waitForVSCodeWorkbench(page);
+  await assertWelcomeTabExists(page);
+  await closeWelcomeTabs(page);
+});
 
 test('retrieves metadata on load for CustomObject:Activity and Workflow:Case', async ({ page }) => {
   test.setTimeout(10 * 60 * 1000); // 10 minutes for org creation and metadata retrieval
@@ -36,9 +43,6 @@ test('retrieves metadata on load for CustomObject:Activity and Workflow:Case', a
 
     // Set the retrieveOnLoad setting
     await upsertRetrieveOnLoadSetting(page, 'CustomObject:Activity, Workflow:Case');
-
-    await assertWelcomeTabExists(page);
-    await closeWelcomeTabs(page);
   });
 
   await test.step('verify output channel shows retrieval message', async () => {

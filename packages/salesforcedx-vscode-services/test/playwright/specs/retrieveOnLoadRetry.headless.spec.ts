@@ -18,10 +18,17 @@ import {
   waitForOutputChannelText,
   outputChannelContains,
   createMinimalOrg,
-  validateNoCriticalErrors
+  validateNoCriticalErrors,
+  waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { upsertRetrieveOnLoadSetting } from '../pages/settingsPage';
 import { SERVICES_CHANNEL_NAME } from '../../../src/constants';
+
+test.beforeEach(async ({ page }) => {
+  await waitForVSCodeWorkbench(page);
+  await assertWelcomeTabExists(page);
+  await closeWelcomeTabs(page);
+});
 
 test('handles project resolution with retry logic', async ({ page }) => {
   test.setTimeout(10 * 60 * 1000);
@@ -33,8 +40,6 @@ test('handles project resolution with retry logic', async ({ page }) => {
     const orgAuth = await createMinimalOrg();
     await upsertScratchOrgAuthFieldsToSettings(page, orgAuth);
     await upsertRetrieveOnLoadSetting(page, 'CustomObject:Account');
-    await assertWelcomeTabExists(page);
-    await closeWelcomeTabs(page);
   });
 
   await test.step('verify project resolution succeeds', async () => {
