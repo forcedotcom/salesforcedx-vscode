@@ -39,8 +39,7 @@ import packageNls from '../../../package.nls.json';
 // eslint-disable-next-line unicorn/prefer-string-replace-all -- regex escaping requires replace with regex pattern
 const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-// eslint-disable-next-line jest/unbound-method
-(isMacDesktop() ? test.skip : test)('Deploy Manifest: deploys via all entry points', async ({ page }) => {
+(isMacDesktop() ? test.skip.bind(test) : test)('Deploy Manifest: deploys via all entry points', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 

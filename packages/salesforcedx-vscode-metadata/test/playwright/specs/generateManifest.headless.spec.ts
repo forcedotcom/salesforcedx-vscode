@@ -29,8 +29,7 @@ import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPag
 import packageNls from '../../../package.nls.json';
 import { messages } from '../../../src/messages/i18n';
 
-// eslint-disable-next-line jest/unbound-method
-(isMacDesktop() ? test.skip : test)('Generate Manifest: generates via context menu entry points', async ({ page }) => {
+(isMacDesktop() ? test.skip.bind(test) : test)('Generate Manifest: generates via context menu entry points', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 

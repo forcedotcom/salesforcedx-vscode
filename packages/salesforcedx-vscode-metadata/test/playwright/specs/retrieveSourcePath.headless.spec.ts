@@ -30,7 +30,7 @@ import packageNls from '../../../package.nls.json';
 import { RETRIEVE_TIMEOUT } from '../../constants';
 
 // Skip on Mac desktop (right-click doesn't work)
-(isMacDesktop() ? test.skip : test)(
+(isMacDesktop() ? test.skip.bind(test) : test)(
   'Retrieve Source Path: retrieves file via explorer context menu',
   async ({ page }) => {
     test.setTimeout(RETRIEVE_TIMEOUT);

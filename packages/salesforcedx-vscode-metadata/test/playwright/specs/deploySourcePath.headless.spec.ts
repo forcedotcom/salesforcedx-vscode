@@ -33,8 +33,7 @@ import { waitForDeployProgressNotificationToAppear } from '../pages/notification
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import packageNls from '../../../package.nls.json';
 
-// eslint-disable-next-line jest/unbound-method
-(isMacDesktop() ? test.skip : test)('Deploy Source Path: deploys via all entry points', async ({ page }) => {
+(isMacDesktop() ? test.skip.bind(test) : test)('Deploy Source Path: deploys via all entry points', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
