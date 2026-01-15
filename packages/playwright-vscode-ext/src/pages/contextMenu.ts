@@ -52,7 +52,22 @@ const openEditorContextMenu = async (page: Page, fileName?: string): Promise<Loc
 /** Opens context menu on a file/folder in the explorer sidebar */
 const openExplorerContextMenu = async (page: Page, itemName: string | RegExp): Promise<Locator> => {
   await executeCommandWithCommandPalette(page, 'File: Focus on Files Explorer');
-  const treeItem = page.getByRole('treeitem', { name: itemName });
+  // Filter out sticky rows which intercept clicks - get all matching items then exclude sticky ones
+  const allTreeItems = page.getByRole('treeitem', { name: itemName });
+  const count = await allTreeItems.count();
+  let treeItem: Locator | undefined;
+  // Find first non-sticky tree item
+  for (let i = 0; i < count; i++) {
+    const candidate = allTreeItems.nth(i);
+    const hasStickyClass = await candidate.evaluate(el => el.classList.contains('monaco-tree-sticky-row'));
+    if (!hasStickyClass) {
+      treeItem = candidate;
+      break;
+    }
+  }
+  if (!treeItem) {
+    throw new Error(`No non-sticky tree item found matching "${itemName}"`);
+  }
   await treeItem.waitFor({ state: 'visible', timeout: 10_000 });
   // Scroll into view to ensure item is visible before right-clicking
   await treeItem.scrollIntoViewIfNeeded();

@@ -7,6 +7,7 @@
 
 import { expect } from '@playwright/test';
 import { openSettingsUI, upsertSettings } from '../../../src/pages/settings';
+import { saveScreenshot } from '../../../src/shared/screenshotUtils';
 import { waitForVSCodeWorkbench, assertWelcomeTabExists, closeWelcomeTabs } from '../../../src/utils/helpers';
 import { SETTINGS_SEARCH_INPUT } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
@@ -26,6 +27,12 @@ test.describe('Settings', () => {
     await test.step('Verify settings UI is visible', async () => {
       const searchInput = page.locator(SETTINGS_SEARCH_INPUT[0]);
       await expect(searchInput).toBeVisible();
+    });
+
+    await test.step('Verify Workspace tab is active', async () => {
+      const workspaceTab = page.getByRole('tab', { name: 'Workspace' });
+      await expect(workspaceTab).toHaveAttribute('aria-selected', 'true', { timeout: 3000 });
+      await saveScreenshot(page, 'settings.workspaceTabActive.png', false);
     });
   });
 

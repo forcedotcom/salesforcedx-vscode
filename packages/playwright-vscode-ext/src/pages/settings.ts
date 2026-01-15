@@ -8,7 +8,13 @@ import { Locator, Page, expect } from '@playwright/test';
 import type { AuthFields } from '@salesforce/core';
 import { ACCESS_TOKEN_KEY, API_VERSION_KEY, CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY } from '../constants';
 import { saveScreenshot } from '../shared/screenshotUtils';
-import { waitForVSCodeWorkbench, closeWelcomeTabs, waitForWorkspaceReady, isMacDesktop, isDesktop } from '../utils/helpers';
+import {
+  waitForVSCodeWorkbench,
+  closeWelcomeTabs,
+  waitForWorkspaceReady,
+  isMacDesktop,
+  isDesktop
+} from '../utils/helpers';
 import { WORKBENCH, SETTINGS_SEARCH_INPUT } from '../utils/locators';
 
 const settingsLocator = (page: Page): Locator => page.locator(SETTINGS_SEARCH_INPUT.join(','));
@@ -21,6 +27,10 @@ export const openSettingsUI = async (page: Page): Promise<void> => {
   const shortcut = isMacDesktop() ? 'Meta+,' : 'Control+,';
   await page.keyboard.press(shortcut);
   await settingsLocator(page).first().waitFor({ timeout: 3000 });
+  // Always switch to Workspace settings tab
+  const workspaceTab = page.getByRole('tab', { name: 'Workspace' });
+  await workspaceTab.click();
+  await expect(workspaceTab).toHaveAttribute('aria-selected', 'true', { timeout: 3000 });
 };
 
 /** used for web, where auth fields need to be set to simulate what we'll receive from Core iframe.
