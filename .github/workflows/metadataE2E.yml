@@ -98,8 +98,6 @@ jobs:
           sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
 
   e2e-desktop:
-    if: false
-
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
