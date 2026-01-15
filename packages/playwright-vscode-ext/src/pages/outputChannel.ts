@@ -118,11 +118,20 @@ export const selectOutputChannel = async (page: Page, channelName: string, timeo
 /** Checks if the output channel contains specific text using the filter input */
 export const outputChannelContains = async (page: Page, searchText: string): Promise<boolean> =>
   withOutputFilter(page, searchText, async () => {
-    const combinedText = await getVisibleOutputText(page);
-    const found = combinedText.includes(searchText);
-    const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
-    await page.screenshot({ path: `test-results/filter-${safeName}.png` });
-    return found;
+    // Wait for filter to apply and matching lines to appear
+    try {
+      await expect(async () => {
+        const combinedText = await getVisibleOutputText(page);
+        expect(combinedText.includes(searchText), `Expected "${searchText}" in filtered output`).toBe(true);
+      }).toPass({ timeout: 500 });
+      const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
+      await page.screenshot({ path: `test-results/filter-${safeName}.png` });
+      return true;
+    } catch {
+      const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
+      await page.screenshot({ path: `test-results/filter-${safeName}.png` });
+      return false;
+    }
   });
 
 /**
