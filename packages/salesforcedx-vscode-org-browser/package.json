@@ -31,7 +31,7 @@
   "devDependencies": {
     "@playwright/test": "^1.54.1",
     "@salesforce/core": "^8.23.3",
-    "@salesforce/source-deploy-retrieve": "^12.25.0",
+    "@salesforce/source-deploy-retrieve": "^12.31.6",
     "@types/node": "^20.0.0",
     "@vscode/test-web": "^0.0.76",
     "cross-env": "^7.0.3",
