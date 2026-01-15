@@ -157,29 +157,53 @@ export class WorkspaceContextUtil {
             this.sessionConnections.delete(this._username);
             this.knownBadConnections.delete(this._username);
             console.log('workspaceContextUtil.ts getConnection() - 23');
-            // Force reload of auth info since login command runs async
-            await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
-            console.log('workspaceContextUtil.ts getConnection() - 23A');
-            StateAggregator.clearInstance();
-            console.log('workspaceContextUtil.ts getConnection() - 23B');
-            try {
-              console.log('workspaceContextUtil.ts getConnection() - 23C');
-              // Attempt to create a fresh connection with the new auth
-              const newConnection = await Connection.create({
-                authInfo: await AuthInfo.create({ username: this._username })
-              });
-              console.log('workspaceContextUtil.ts getConnection() - 23D');
-              await newConnection.identity();
-              console.log('workspaceContextUtil.ts getConnection() - 23E');
-              this.sessionConnections.set(this._username, {
-                connection: newConnection,
-                lastTokenValidationTimestamp: Date.now()
-              });
-              console.log('workspaceContextUtil.ts - exit 3 getConnection() after successful re-login');
-              return newConnection;
-            } catch {
-              console.log('workspaceContextUtil.ts getConnection() - 24 - retry failed');
-              // Login didn't work, fall through to mark as bad and throw
+
+            // Wait for auth files to be written and state to update (login command runs async)
+            // Retry with exponential backoff to handle timing issues
+            const maxRetries = 5;
+            const baseDelay = 500; // Start with 500ms
+
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+              console.log(`workspaceContextUtil.ts getConnection() - 23A - attempt ${attempt + 1}`);
+
+              if (attempt > 0) {
+                // Wait before retrying (exponential backoff)
+                const delay = baseDelay * Math.pow(2, attempt - 1);
+                console.log(`workspaceContextUtil.ts getConnection() - waiting ${delay}ms`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+              }
+
+              // Force reload of auth info
+              await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
+              StateAggregator.clearInstance();
+              console.log('workspaceContextUtil.ts getConnection() - 23B');
+
+              try {
+                console.log('workspaceContextUtil.ts getConnection() - 23C');
+                // Attempt to create a fresh connection with the new auth
+                const newConnection = await Connection.create({
+                  authInfo: await AuthInfo.create({ username: this._username })
+                });
+                console.log('workspaceContextUtil.ts getConnection() - 23D');
+                await newConnection.identity();
+                console.log('workspaceContextUtil.ts getConnection() - 23E');
+                this.sessionConnections.set(this._username, {
+                  connection: newConnection,
+                  lastTokenValidationTimestamp: Date.now()
+                });
+                console.log('workspaceContextUtil.ts - exit 3 getConnection() after successful re-login');
+                return newConnection;
+              } catch (retryError) {
+                console.log(
+                  `workspaceContextUtil.ts getConnection() - 24 - attempt ${attempt + 1} failed:`,
+                  retryError instanceof Error ? retryError.message : retryError
+                );
+                // If this was the last attempt, fall through to mark as bad and throw
+                if (attempt === maxRetries - 1) {
+                  console.log('workspaceContextUtil.ts getConnection() - 25 - all retries exhausted');
+                }
+                // Otherwise, loop will retry
+              }
             }
           }
           console.log('workspaceContextUtil.ts getConnection() - 25');
