@@ -141,10 +141,19 @@ export const closeWelcomeTabs = async (page: Page): Promise<void> => {
     await welcomeTab.click({ timeout: 5000, force: true });
     await expect(welcomeTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
 
+    // Dismiss any quick input widgets that may have appeared after clicking
+    await dismissAllQuickInputWidgets(page);
+
     // Try close button first
     const closeButton = welcomeTab.locator(TAB_CLOSE_BUTTON);
     if (await closeButton.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await closeButton.click({ timeout: 5000 });
+      // Ensure no quick input widget is intercepting before clicking
+      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      const widgetVisible = await quickInput.isVisible({ timeout: 200 }).catch(() => false);
+      if (widgetVisible) {
+        await dismissAllQuickInputWidgets(page);
+      }
+      await closeButton.click({ timeout: 5000, force: true });
       await welcomeTab.waitFor({ state: 'detached', timeout: 10_000 });
     } else {
       // Fall back to keyboard shortcut
