@@ -134,6 +134,9 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   /** Update filter state (called by filter service onChange) */
   public updateFilterState(state: FilterState): void {
     this.filterState = state;
+    // Clear children cache when filter changes to ensure filtering uses current filePresence values
+    // This fixes the bug where retrieved items disappear when filter is toggled
+    this.childrenCache.clear();
   }
 
   /** Update the counts for a parent node based on its cached children */

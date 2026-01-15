@@ -64,6 +64,7 @@ const retrieveEffect = (
       yield* Effect.gen(function* () {
         if (node.kind === 'component') {
           node.iconPath = getIconPath(true);
+          node.filePresent = true;
           treeProvider.fireChangeEvent(node);
         } else if (node.kind === 'customObject') {
           // For CustomObject nodes, refresh children and update icon directly

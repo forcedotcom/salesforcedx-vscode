@@ -105,6 +105,15 @@ export const activateEffect = (context: vscode.ExtensionContext) =>
     });
 
     // Register commands
+    // Toggle handlers - both on/off variants do the same thing (toggle)
+    // We register both so VS Code can show different icons based on state via when clauses
+    const toggleLocalOnlyHandler = async () => {
+      await filterService.toggleShowLocalOnly();
+    };
+    const toggleHideManagedHandler = async () => {
+      await filterService.toggleHideManaged();
+    };
+
     context.subscriptions.push(
       vscode.commands.registerCommand(`${TREE_VIEW_ID}.refreshType`, async (node: OrgBrowserTreeItem) => {
         await treeProvider.refreshType(node);
@@ -129,18 +138,10 @@ export const activateEffect = (context: vscode.ExtensionContext) =>
         }
         await retrieveOrgBrowserTreeItemCommand(node, treeProvider);
       }),
-      vscode.commands.registerCommand(`${TREE_VIEW_ID}.toggleLocalOnly`, async () => {
-        await filterService.toggleShowLocalOnly();
-      }),
-      vscode.commands.registerCommand(`${TREE_VIEW_ID}.toggleLocalOnlyOff`, async () => {
-        await filterService.toggleShowLocalOnly();
-      }),
-      vscode.commands.registerCommand(`${TREE_VIEW_ID}.toggleHideManaged`, async () => {
-        await filterService.toggleHideManaged();
-      }),
-      vscode.commands.registerCommand(`${TREE_VIEW_ID}.toggleHideManagedOff`, async () => {
-        await filterService.toggleHideManaged();
-      }),
+      vscode.commands.registerCommand(`${TREE_VIEW_ID}.toggleLocalOnly`, toggleLocalOnlyHandler),
+      vscode.commands.registerCommand(`${TREE_VIEW_ID}.toggleLocalOnlyOff`, toggleLocalOnlyHandler),
+      vscode.commands.registerCommand(`${TREE_VIEW_ID}.toggleHideManaged`, toggleHideManagedHandler),
+      vscode.commands.registerCommand(`${TREE_VIEW_ID}.toggleHideManagedOff`, toggleHideManagedHandler),
       vscode.commands.registerCommand(`${TREE_VIEW_ID}.search`, async () => {
         const query = await vscode.window.showInputBox({
           prompt: 'Search metadata (use Type:Name for structured search, e.g., CustomObject:Broker)',

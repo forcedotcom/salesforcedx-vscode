@@ -20,6 +20,7 @@ type CommandMetadata = {
   commandId: string;
   icon: string | { light: string; dark: string };
   activeIcon?: string; // Icon when command represents active state
+  title: string; // Display title for command palette
 };
 
 /**
@@ -36,35 +37,43 @@ export class OrgBrowserPage {
   private static readonly COMMANDS: Record<string, CommandMetadata> = {
     toggleLocalOnly: {
       commandId: 'sfdxOrgBrowser.toggleLocalOnly',
-      icon: '$(circle-large-outline)'
+      icon: '$(circle-large-outline)',
+      title: 'Toggle Show Local Only'
     },
     toggleLocalOnlyOff: {
       commandId: 'sfdxOrgBrowser.toggleLocalOnlyOff',
-      icon: '$(pass-filled)'
+      icon: '$(pass-filled)',
+      title: 'Toggle Show Local Only'
     },
     toggleHideManaged: {
       commandId: 'sfdxOrgBrowser.toggleHideManaged',
-      icon: { light: 'resources/light/package.svg', dark: 'resources/dark/package.svg' }
+      icon: { light: 'resources/light/package.svg', dark: 'resources/dark/package.svg' },
+      title: 'Toggle Hide Managed Packages'
     },
     toggleHideManagedOff: {
       commandId: 'sfdxOrgBrowser.toggleHideManagedOff',
-      icon: { light: 'resources/light/package-filtered.svg', dark: 'resources/dark/package-filtered.svg' }
+      icon: { light: 'resources/light/package-filtered.svg', dark: 'resources/dark/package-filtered.svg' },
+      title: 'Toggle Hide Managed Packages'
     },
     search: {
       commandId: 'sfdxOrgBrowser.search',
-      icon: '$(search)'
+      icon: '$(search)',
+      title: 'Search Metadata'
     },
     clearSearch: {
       commandId: 'sfdxOrgBrowser.clearSearch',
-      icon: '$(close)'
+      icon: '$(close)',
+      title: 'Clear Search'
     },
     refreshType: {
       commandId: 'sfdxOrgBrowser.refreshType',
-      icon: { light: 'resources/light/refresh.svg', dark: 'resources/dark/refresh.svg' }
+      icon: { light: 'resources/light/refresh.svg', dark: 'resources/dark/refresh.svg' },
+      title: 'Refresh Type'
     },
     retrieveMetadata: {
       commandId: 'sfdxOrgBrowser.retrieveMetadata',
-      icon: { light: 'resources/light/retrieve.svg', dark: 'resources/dark/retrieve.svg' }
+      icon: { light: 'resources/light/retrieve.svg', dark: 'resources/dark/retrieve.svg' },
+      title: 'Retrieve Metadata'
     }
   };
 
@@ -127,10 +136,11 @@ export class OrgBrowserPage {
 
   /**
    * Execute a VS Code command via command palette (without ensuring view is active)
-   * Used for commands that don't require view context, like focusing sidebar
-   * @param commandId The VS Code command ID to execute (e.g., 'workbench.action.focusSideBar')
+   * Used for VS Code built-in commands like workbench.action.focusSideBar
+   * @param commandId The VS Code command ID to execute
    */
-  private async executeVSCodeCommand(commandId: string): Promise<void> {
+  private async executeVSCodeCommandDirect(commandId: string): Promise<void> {
+    console.log(`[DEBUG] Executing command via palette: ${commandId}`);
     // Check if command palette is already open
     const palette = this.page.locator('.quick-input-widget');
     const isAlreadyOpen = await palette.isVisible({ timeout: 500 }).catch(() => false);
@@ -141,12 +151,53 @@ export class OrgBrowserPage {
       await palette.waitFor({ state: 'visible', timeout: 3000 });
     }
 
-    // Fill in the command ID
-    await palette.locator('input').fill(commandId);
+    // Fill in the command ID or title
+    const input = palette.locator('input');
+    await input.fill(commandId);
     await this.page.waitForTimeout(500); // Wait for results to filter
+
+    // Check if command appears in results
+    const results = palette.locator('.quick-input-list .monaco-list-row');
+    const resultCount = await results.count();
+    console.log(`[DEBUG] Command palette results count: ${resultCount}`);
+
+    if (resultCount === 0) {
+      console.log(`[DEBUG] WARNING: Command ${commandId} not found in palette results`);
+      // Try to close the palette and return
+      await this.page.keyboard.press('Escape');
+      return;
+    }
+
+    // Ensure the first result is selected/highlighted
+    const firstResult = results.first();
+    await firstResult.waitFor({ state: 'visible', timeout: 1000 });
+
+    // Click the result to ensure it's selected, then press Enter
+    // Sometimes VS Code needs the result to be explicitly selected
+    await firstResult.click({ timeout: 2000 }).catch(() => {
+      // If click fails, just press Enter - it should work if result is already highlighted
+      console.log(`[DEBUG] Could not click result, trying Enter directly`);
+    });
+
+    // Press Enter to execute the selected command
+    await this.page.waitForTimeout(200); // Brief pause after selection
     await this.page.keyboard.press('Enter');
-    // Wait for command palette to close
-    await palette.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
+
+    // Wait for command palette to close (indicates command was executed)
+    try {
+      await palette.waitFor({ state: 'hidden', timeout: 3000 });
+      console.log(`[DEBUG] Command palette closed - command executed successfully`);
+    } catch (e) {
+      console.log(`[DEBUG] WARNING: Command palette did not close within timeout, trying Escape`);
+      // If palette didn't close, try pressing Escape to close it manually
+      await this.page.keyboard.press('Escape');
+      await palette.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
+    }
+
+    // Give VS Code time to process the async command handler and update state
+    // The toggleShowLocalOnly() method does async work (updateContextKeys, saveState)
+    await this.page.waitForTimeout(1000);
+    console.log(`[DEBUG] Command execution completed, waiting for state update...`);
   }
 
   /**
@@ -154,7 +205,7 @@ export class OrgBrowserPage {
    * Handles case where palette may already be open from previous interactions
    * @param commandId The command ID to execute (e.g., 'sfdxOrgBrowser.toggleLocalOnly')
    */
-  private async executeCommandViaPalette(commandId: string): Promise<void> {
+  private async executeCommandViaPalette(commandIdOrTitle: string): Promise<void> {
     // Ensure Org Browser view is active - commands are only available when view is active
     await this.ensureViewActive();
 
@@ -168,9 +219,14 @@ export class OrgBrowserPage {
       await palette.waitFor({ state: 'visible', timeout: 3000 });
     }
 
-    // Fill in the command ID
-    await palette.locator('input').fill(commandId);
+    // Fill in the command title (VS Code searches by display name, not command ID)
+    await palette.locator('input').fill(commandIdOrTitle);
     await this.page.waitForTimeout(500); // Wait for results to filter
+
+    // Verify the command appears in results before executing
+    const results = palette.locator('.quick-input-list .monaco-list-row');
+    await expect(results.first(), 'Command should appear in palette results').toBeVisible({ timeout: 3000 });
+
     await this.page.keyboard.press('Enter');
     // Wait for command palette to close
     await palette.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => {});
@@ -178,32 +234,26 @@ export class OrgBrowserPage {
 
   /**
    * Execute toggle local only command via command palette
-   * Determines which command to use based on current state
+   * Both toggleLocalOnly and toggleLocalOnlyOff do the same thing (toggle),
+   * so we can use either command ID - VS Code will execute it even if filtered by when clause
    */
   private async executeToggleLocalOnlyViaPalette(): Promise<void> {
-    // Ensure view is active before reading state
+    // Ensure view is active
     await this.ensureViewActive();
-    const message = await this.getTreeViewMessage();
-    const isFilterOn = message?.includes('Local files only') ?? false;
-    const commandId = isFilterOn
-      ? OrgBrowserPage.COMMANDS.toggleLocalOnly.commandId
-      : OrgBrowserPage.COMMANDS.toggleLocalOnlyOff.commandId;
-    await this.executeCommandViaPalette(commandId);
+    // Both commands do the same thing, so just use toggleLocalOnly
+    await this.executeVSCodeCommandDirect(OrgBrowserPage.COMMANDS.toggleLocalOnly.commandId);
   }
 
   /**
    * Execute toggle hide managed command via command palette
-   * Determines which command to use based on current state
+   * Both toggleHideManaged and toggleHideManagedOff do the same thing (toggle),
+   * so we can use either command ID - VS Code will execute it even if filtered by when clause
    */
   private async executeToggleHideManagedViaPalette(): Promise<void> {
-    // Ensure view is active before reading state
+    // Ensure view is active
     await this.ensureViewActive();
-    const message = await this.getTreeViewMessage();
-    const isFilterOn = message?.includes('Hiding managed packages') ?? false;
-    const commandId = isFilterOn
-      ? OrgBrowserPage.COMMANDS.toggleHideManaged.commandId
-      : OrgBrowserPage.COMMANDS.toggleHideManagedOff.commandId;
-    await this.executeCommandViaPalette(commandId);
+    // Both commands do the same thing, so just use toggleHideManaged
+    await this.executeVSCodeCommandDirect(OrgBrowserPage.COMMANDS.toggleHideManaged.commandId);
   }
 
   /**
@@ -222,39 +272,74 @@ export class OrgBrowserPage {
 
   /**
    * Ensure Org Browser view is active
-   * Uses VS Code command to reveal/activate the Org Browser view
+   * Uses VS Code command to focus sidebar and verifies Org Browser content is visible
    */
   private async ensureViewActive(): Promise<void> {
-    // Use VS Code command to reveal/activate Org Browser view
-    // This command will focus the sidebar and activate Org Browser view if needed
-    await this.executeVSCodeCommand('workbench.view.extension.sfdxOrgBrowser');
+    console.log('[DEBUG] ensureViewActive: Checking if Org Browser content is visible...');
 
-    // Wait for sidebar to be visible
-    await expect(this.sidebar, 'Sidebar should be visible after revealing view').toBeVisible({ timeout: 5000 });
+    // Check if Org Browser tree content is visible (most reliable indicator)
+    const treeContent = this.sidebar.getByRole('tree').first();
+    const treeVisible = await treeContent.isVisible({ timeout: 2000 }).catch(() => false);
 
-    // Check if Org Browser view is active
-    const hasActiveAttribute = await this.activityBarItem
-      .getAttribute('aria-selected')
-      .then(attr => attr === 'true')
-      .catch(() => false);
+    // Check if view actions are visible (indicates view is active and commands available)
+    const viewActions = this.sidebar.locator('.view-title .actions, .view-header .actions').first();
+    const actionsVisible = await viewActions.isVisible({ timeout: 1000 }).catch(() => false);
 
-    const hasActiveClass = await this.activityBarItem
-      .evaluate((el: HTMLElement) => el.classList.contains('active'))
-      .catch(() => false);
+    console.log(`[DEBUG] ensureViewActive: treeVisible=${treeVisible}, actionsVisible=${actionsVisible}`);
 
-    // If not active, click the activity bar item to activate it
-    // This ensures the view context is correct for commands
-    if (!hasActiveAttribute && !hasActiveClass) {
-      await this.activityBarItem.click({ timeout: 2000 });
-      // Wait for it to become active
-      await expect(this.activityBarItem, 'Activity bar item should be active after click')
-        .toHaveAttribute('aria-selected', 'true', { timeout: 5000 })
-        .catch(() => {
-          // Fallback: check for active class
-          return expect(this.activityBarItem, 'Activity bar item should have active class').toHaveClass(/active/, {
-            timeout: 5000
-          });
-        });
+    // If tree and actions are visible, view is likely active - just focus sidebar
+    if (treeVisible && actionsVisible) {
+      console.log('[DEBUG] View appears active with actions visible, focusing sidebar...');
+      await this.focusSidebar();
+      console.log('[DEBUG] Sidebar focused, view ready');
+      return;
+    }
+
+    // View not active or actions not visible - try clicking on tree content to activate view context
+    // This avoids clicking activity bar item which might close the view
+    if (treeVisible) {
+      console.log('[DEBUG] Tree visible but actions not visible, clicking tree to activate view context...');
+      // Click on the first tree item or tree itself to activate view context
+      const firstTreeItem = this.sidebar.getByRole('treeitem', { level: 1 }).first();
+      const firstItemVisible = await firstTreeItem.isVisible({ timeout: 1000 }).catch(() => false);
+
+      if (firstItemVisible) {
+        await firstTreeItem.click({ timeout: 2000 });
+        console.log('[DEBUG] Clicked first tree item to activate view context');
+      } else {
+        // Fallback: click on tree container
+        await treeContent.click({ timeout: 2000 });
+        console.log('[DEBUG] Clicked tree container to activate view context');
+      }
+
+      // Wait a moment for view context to activate
+      await this.page.waitForTimeout(500);
+
+      // Check if actions are now visible
+      const actionsVisibleAfterClick = await viewActions.isVisible({ timeout: 2000 }).catch(() => false);
+      console.log(`[DEBUG] Actions visible after clicking tree: ${actionsVisibleAfterClick}`);
+
+      // Focus sidebar to ensure focus is on the tree
+      await this.focusSidebar();
+      console.log('[DEBUG] Sidebar focused, view context should be active');
+    } else {
+      // Tree not visible - need to open the view
+      console.log('[DEBUG] Tree not visible, need to open Org Browser view...');
+      // Use command to reveal view instead of clicking activity bar
+      await this.executeVSCodeCommandDirect('workbench.view.extension.sfdxOrgBrowser');
+
+      // Wait for sidebar and tree to be visible
+      await expect(this.sidebar, 'Sidebar should be visible after revealing view').toBeVisible({
+        timeout: 5000
+      });
+      await expect(treeContent, 'Org Browser tree should be visible after revealing view').toBeVisible({
+        timeout: 5000
+      });
+      console.log('[DEBUG] Org Browser tree content verified visible');
+
+      // Focus sidebar
+      await this.focusSidebar();
+      console.log('[DEBUG] Sidebar focused, view opened');
     }
   }
 
@@ -699,25 +784,94 @@ export class OrgBrowserPage {
     const messageBefore = await this.getTreeViewMessage();
     const wasFilterOnBefore = messageBefore?.includes('Local files only') ?? false;
 
-    // Try UI button first
-    const viewTitleActions = this.sidebar.locator('.view-title .actions, .view-header .actions').first();
-    const toggleButton = viewTitleActions
-      .locator('.action-label[aria-label*="Show Local Only"], .action-label[aria-label*="Toggle Local Only"]')
+    // Try UI button first - look for both the active and inactive button states
+    // Actions are in .pane-header .actions-container with aria-label="Salesforce Org Browser actions"
+    // Use the actions-container with aria-label to make it specific to Org Browser
+    const viewTitleActions = this.sidebar
+      .locator(
+        '.actions-container[aria-label*="Org Browser"], ' +
+          '.pane-header[aria-label*="Org Browser"] .actions-container, ' +
+          '.pane-header[aria-label*="Org Browser"] .actions, ' +
+          '.pane-header .actions, ' +
+          '.view-title .actions, ' +
+          '.view-header .actions'
+      )
       .first();
+    const actionsVisible = await viewTitleActions.isVisible({ timeout: 1000 }).catch(() => false);
+    console.log(`[DEBUG] View title actions visible: ${actionsVisible}`);
 
-    if (await toggleButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await this.focusSidebar();
-      await toggleButton.click();
-    } else {
-      await this.executeToggleLocalOnlyViaPalette();
+    if (actionsVisible) {
+      // Log all visible action buttons for debugging
+      const allButtons = viewTitleActions.locator('.action-label, button');
+      const buttonCount = await allButtons.count();
+      console.log(`[DEBUG] Found ${buttonCount} action buttons in view title`);
+      for (let i = 0; i < Math.min(buttonCount, 10); i++) {
+        const btn = allButtons.nth(i);
+        const ariaLabel = await btn.getAttribute('aria-label').catch(() => null);
+        const title = await btn.getAttribute('title').catch(() => null);
+        const commandId = await btn.getAttribute('data-command-id').catch(() => null);
+        const visible = await btn.isVisible().catch(() => false);
+        console.log(
+          `[DEBUG]   Button ${i}: visible=${visible}, aria-label="${ariaLabel}", title="${title}", command-id="${commandId}"`
+        );
+      }
     }
 
-    // Wait for state change
+    // Try multiple selectors to find the toggle button - use data-command-id for more reliable matching
+    const toggleButton = viewTitleActions
+      .locator(
+        '.action-label[data-command-id="sfdxOrgBrowser.toggleLocalOnly"], ' +
+          '.action-label[data-command-id="sfdxOrgBrowser.toggleLocalOnlyOff"], ' +
+          '.action-label[aria-label*="Show Local Only"], ' +
+          '.action-label[aria-label*="Toggle Local Only"], ' +
+          '.action-label[title*="Show Local Only"], ' +
+          '.action-label[title*="Toggle Local Only"], ' +
+          'button[aria-label*="Show Local Only"], ' +
+          'button[aria-label*="Toggle Local Only"]'
+      )
+      .first();
+
+    const buttonVisible = await toggleButton.isVisible({ timeout: 2000 }).catch(() => false);
+    console.log(`[DEBUG] Toggle button visible check: ${buttonVisible}`);
+
+    let methodUsed = 'unknown';
+    if (buttonVisible) {
+      console.log('[DEBUG] Toggle button found, clicking...');
+      methodUsed = 'UI button';
+      await this.focusSidebar();
+      await toggleButton.click();
+      console.log('[DEBUG] Toggle button clicked successfully');
+    } else {
+      // Fallback to command palette
+      console.log('[DEBUG] Toggle button not found, using command palette fallback');
+      methodUsed = 'command palette';
+      await this.executeToggleLocalOnlyViaPalette();
+      // After command execution, wait a bit for state to update
+      await this.page.waitForTimeout(1000);
+    }
+
+    // Wait for state change - check message after toggle
+    console.log(`[DEBUG] Method used to toggle: ${methodUsed}`);
+    console.log('[DEBUG] Waiting for filter state to update...');
+
+    // Check state immediately after toggle attempt
+    await this.page.waitForTimeout(500);
+    const immediateMessage = await this.getTreeViewMessage();
+    console.log(`[DEBUG] Message immediately after toggle: "${immediateMessage}"`);
+
+    const finalMessage = await this.getTreeViewMessage();
+    console.log(`[DEBUG] Current message after toggle: "${finalMessage}"`);
+    console.log(`[DEBUG] Expected filter state: ${!wasFilterOnBefore ? 'ON' : 'OFF'}`);
+
     await expect(async () => {
       const message = await this.getTreeViewMessage();
       const hasMessage = message?.includes('Local files only') ?? false;
-      return hasMessage === !wasFilterOnBefore;
-    }, 'Filter message should update after toggle').toPass({ timeout: 5000 });
+      const expectedState = !wasFilterOnBefore;
+      console.log(
+        `[DEBUG] Checking state - hasMessage: ${hasMessage}, expected: ${expectedState}, method: ${methodUsed}`
+      );
+      return hasMessage === expectedState;
+    }, `Filter message should update after toggle (method: ${methodUsed})`).toPass({ timeout: 5000 });
   }
 
   /**
@@ -866,16 +1020,19 @@ export class OrgBrowserPage {
    * @returns True if item shows file is present locally
    */
   public async hasFilePresenceIndicator(item: Locator): Promise<boolean> {
-    // File presence is indicated by icon changes or checkmarks
-    // Use this.page to satisfy linter requirement for 'this' usage
-    const indicator = item.locator('.codicon-file, .codicon-check, [aria-label*="file"]');
-    return await indicator.isVisible({ timeout: 1000 }).catch(() =>
-      // Use this.page to satisfy linter
-      this.page
-        .locator('body')
-        .isVisible()
-        .then(() => false)
-    );
+    // File presence is indicated by codicon-pass-filled (filled circle with checkmark)
+    // File absence is indicated by codicon-circle-large-outline (empty circle)
+    // Use the same pattern as customTab test: check if icon container has codicon-pass-filled class
+    const iconContainer = item.locator('div.custom-view-tree-node-item-icon');
+    const isVisible = await iconContainer.isVisible({ timeout: 1000 }).catch(() => false);
+    if (!isVisible) {
+      return false;
+    }
+    // Check if the container has the pass-filled class (same as customTab test pattern)
+    const hasPassFilled = await iconContainer
+      .evaluate((el: HTMLElement) => el.classList.contains('codicon-pass-filled'))
+      .catch(() => false);
+    return hasPassFilled;
   }
 
   /**
