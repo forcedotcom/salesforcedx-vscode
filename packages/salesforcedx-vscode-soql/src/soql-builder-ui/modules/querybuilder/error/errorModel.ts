@@ -1,16 +1,6 @@
-/**
- * ERROR HANDLING UTILITIES
- * THIS CAN BE REPLACED WITH IMPORT FROM SOQL_MODEL ( Fernando work )
- */
-export enum ErrorType {
-  UNKNOWN = 'UNKNOWN',
-  EMPTY = 'EMPTY',
-  NOSELECT = 'NOSELECT',
-  NOSELECTIONS = 'NOSELECTIONS',
-  NOFROM = 'NOFROM',
-  INCOMPLETEFROM = 'INCOMPLETEFROM',
-  INCOMPLETELIMIT = 'INCOMPLETELIMIT'
-}
+import { ErrorType } from '../../../../soql-model/errorTypes';
+
+/** ERROR HANDLING UTILITIES - Using ErrorType from soql-model */
 
 // recoverable field errors
 export const recoverableFieldErrors: Partial<Record<ErrorType, boolean>> = {
@@ -43,5 +33,3 @@ export const recoverableErrors: Partial<Record<ErrorType, boolean>> = {
 export const unrecoverableErrors: Partial<Record<ErrorType, boolean>> = {
   [ErrorType.UNKNOWN]: true
 };
-
-// END ERROR HANDLING UTLIITIES
