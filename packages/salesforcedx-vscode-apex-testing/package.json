@@ -141,10 +141,6 @@
   ],
   "main": "./dist/index.js",
   "browser": "./dist/web/index.js",
-  "extensionKind": [
-    "workspace",
-    "web"
-  ],
   "types": "./out/src/index.d.ts",
   "contributes": {
     "viewsContainers": {
