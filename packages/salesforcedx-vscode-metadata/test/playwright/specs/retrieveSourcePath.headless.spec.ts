@@ -27,12 +27,14 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
+import { RETRIEVE_TIMEOUT } from '../../constants';
 
 // Skip on Mac desktop (right-click doesn't work)
-// eslint-disable-next-line jest/unbound-method
 (isMacDesktop() ? test.skip : test)(
   'Retrieve Source Path: retrieves file via explorer context menu',
   async ({ page }) => {
+    test.setTimeout(RETRIEVE_TIMEOUT);
+
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
 
@@ -95,7 +97,7 @@ import packageNls from '../../../package.nls.json';
       await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
       await saveScreenshot(page, 'step2.retrieve-started.png');
 
-      await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: 240_000 });
+      await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: RETRIEVE_TIMEOUT });
       await saveScreenshot(page, 'step2.retrieve-complete.png');
 
       // After retrieve, local count should decrease (file retrieved from org)

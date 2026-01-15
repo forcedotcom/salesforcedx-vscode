@@ -23,8 +23,11 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
+import { RETRIEVE_TIMEOUT } from '../../constants';
 
+test.setTimeout(RETRIEVE_TIMEOUT);
 test('Project Retrieve Start: retrieves source from org', async ({ page }) => {
+  // Desktop has 60s timeout by default, but retrieve can take up to 4 minutes
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -55,7 +58,8 @@ test('Project Retrieve Start: retrieves source from org', async ({ page }) => {
 
     // Prepare output channel before triggering command
     await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata');
+    await page.waitForTimeout(1000);
+    await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
 
     // Execute retrieve via command palette
     await executeCommandWithCommandPalette(page, packageNls.project_retrieve_start_default_org_text);
@@ -66,7 +70,7 @@ test('Project Retrieve Start: retrieves source from org', async ({ page }) => {
     await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
     await saveScreenshot(page, 'step1.retrieve-started.png');
 
-    await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: 240_000 });
+    await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: RETRIEVE_TIMEOUT });
     await saveScreenshot(page, 'step1.retrieve-complete.png');
 
     // Retrieve operation completed successfully (verified via output channel)

@@ -34,6 +34,9 @@ import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPag
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
+import { RETRIEVE_TIMEOUT } from '../../constants';
+
+test.setTimeout(RETRIEVE_TIMEOUT);
 
 // eslint-disable-next-line jest/unbound-method
 (isMacDesktop() ? test.skip : test)('Retrieve In Manifest: retrieves via all entry points', async ({ page }) => {
@@ -95,7 +98,7 @@ import packageNls from '../../../package.nls.json';
 
     // Verify deploy completes
     const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-    await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
+    await expect(deployingNotification).not.toBeVisible({ timeout: RETRIEVE_TIMEOUT });
 
     // Check for deploy error notifications
     const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);
@@ -129,7 +132,7 @@ import packageNls from '../../../package.nls.json';
 
     // Verify retrieve starts and completes via output channel
     await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
-    await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: 240_000 });
+    await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: RETRIEVE_TIMEOUT });
   });
 
   await test.step('2. Explorer context menu (file)', async () => {
@@ -145,7 +148,7 @@ import packageNls from '../../../package.nls.json';
 
     // Verify retrieve starts and completes via output channel
     await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
-    await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: 240_000 });
+    await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: RETRIEVE_TIMEOUT });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

@@ -121,10 +121,16 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await saveScreenshot(page, 'step2.delete-complete.png');
 
     // Verify file is no longer visible in explorer
-    const explorerFileAfter = page
-      .locator('[role="treeitem"]')
-      .filter({ hasText: new RegExp(`${className}\\.cls$`, 'i') });
-    await expect(explorerFileAfter).not.toBeVisible({ timeout: 30_000 });
+    // Wait for file to disappear - use longer timeout for desktop explorer refresh
+    await expect(async () => {
+      expect(
+        await page
+          .locator('[role="treeitem"]')
+          .filter({ hasText: new RegExp(`${className}\\.cls$`, 'i') })
+          .count(),
+        `File ${className}.cls should not be in explorer`
+      ).toBe(0);
+    }).toPass({ timeout: 60_000 });
     await saveScreenshot(page, 'step2.file-removed-from-explorer.png');
 
     // Note: Editor tab may remain open with strikethrough (normal VS Code behavior for deleted files)

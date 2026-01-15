@@ -45,7 +45,7 @@ test('View Changes Commands: each view changes command shows correct sections in
 
   await test.step('View All Changes shows source tracking details', async () => {
     await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata');
+    await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
     await clearOutputChannel(page);
     await page.screenshot({ path: 'test-results/01-after-clear.png' });
 
@@ -77,7 +77,7 @@ test('View Changes Commands: each view changes command shows correct sections in
 
   await test.step('View Local Changes shows local section title', async () => {
     await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata');
+    await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
     await clearOutputChannel(page);
     await executeCommandWithCommandPalette(page, packageNls.view_local_changes_text);
 
@@ -99,7 +99,7 @@ test('View Changes Commands: each view changes command shows correct sections in
 
   await test.step('View Remote Changes shows remote section title', async () => {
     await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata');
+    await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
     await clearOutputChannel(page);
     await executeCommandWithCommandPalette(page, packageNls.view_remote_changes_text);
 
