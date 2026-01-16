@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { createCustomFieldNode } from './customField';
-import { FilePresenceService, queueFilePresenceCheck } from './filePresenceService';
+import { FilePresenceService, queueFilePresenceCheck } from '../services/filePresenceService';
 import { isRetrievableComponent } from './filters';
 import { isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
 import {

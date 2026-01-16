@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { type FilePresenceService, FilePresenceServiceLive } from '../tree/filePresenceService';
+import { type FilePresenceService, FilePresenceServiceLive } from './filePresenceService';
 import { type OrgBrowserRetrieveService, OrgBrowserRetrieveServiceLive } from './orgBrowserMetadataRetrieveService';
 
 export type ExtensionProviderService = {

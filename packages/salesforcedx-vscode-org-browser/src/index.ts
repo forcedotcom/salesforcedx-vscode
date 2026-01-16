@@ -12,7 +12,7 @@ import { retrieveOrgBrowserTreeItemCommand } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
 import { type FilterState, FilterStateService } from './services/filterStateService';
-import { FilePresenceService } from './tree/filePresenceService';
+import { FilePresenceService } from './services/filePresenceService';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 

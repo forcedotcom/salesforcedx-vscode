@@ -13,8 +13,8 @@ import * as Layer from 'effect/Layer';
 import * as Queue from 'effect/Queue';
 import * as Stream from 'effect/Stream';
 import type * as vscode from 'vscode';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
-import { getIconPath, OrgBrowserTreeItem } from './orgBrowserNode';
+import { AllServicesLayer, ExtensionProviderService } from './extensionProvider';
+import { getIconPath, OrgBrowserTreeItem } from '../tree/orgBrowserNode';
 
 /** Request to check if a metadata component exists locally */
 export type FilePresenceRequest = {
