@@ -6,7 +6,7 @@
  */
 
 // Create a mutable tree view mock object
-const createMockTreeView = () => {
+const createMockTreeView = (): vscode.TreeView<unknown> => {
   const treeView = {
     onDidChangeVisibility: jest.fn(() => ({ dispose: jest.fn() })),
     visible: true,
@@ -14,7 +14,7 @@ const createMockTreeView = () => {
     description: undefined as string | undefined,
     dispose: jest.fn()
   };
-  return treeView;
+  return treeView as unknown as vscode.TreeView<unknown>;
 };
 
 // Mock vscode module (must be first)
@@ -91,7 +91,7 @@ const MockChannelServiceLayer = (_: string): Layer.Layer<ChannelService> =>
   );
 
 // Helper to create mock service with Default property
-const createMockServiceWithDefault = () => ({
+const createMockServiceWithDefault = (): { Default: Layer.Layer<never> } => ({
   Default: Layer.empty
 });
 
@@ -100,7 +100,7 @@ const mockServicesApi: SalesforceVSCodeServicesApi = {
   services: {
     ConnectionService: createMockServiceWithDefault() as unknown as SalesforceVSCodeServicesApi['services']['ConnectionService'],
     ProjectService: createMockServiceWithDefault() as unknown as SalesforceVSCodeServicesApi['services']['ProjectService'],
-    ChannelService: ChannelService,
+    ChannelService,
     ChannelServiceLayer: MockChannelServiceLayer,
     WorkspaceService: createMockServiceWithDefault() as unknown as SalesforceVSCodeServicesApi['services']['WorkspaceService'],
     FsService: createMockServiceWithDefault() as unknown as SalesforceVSCodeServicesApi['services']['FsService'],

@@ -87,6 +87,10 @@ test.describe('Org Browser - CustomObject retrieval', () => {
       }
       await page.waitForTimeout(500); // Wait for UI to settle and focus to clear
 
+      // Ensure CustomObject folder is expanded before trying to find Broker__c
+      // The tree may have collapsed after refreshType
+      await orgBrowserPage.expandFolder('CustomObject');
+
       // Wait for icon to update - use exact same pattern as customTab test
       // Re-find the item after retrieval to get fresh locator
       const brokerItemAfterRetrieval = await orgBrowserPage.getMetadataItem('CustomObject', 'Broker__c');

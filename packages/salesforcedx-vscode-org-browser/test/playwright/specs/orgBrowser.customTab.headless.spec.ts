@@ -79,9 +79,10 @@ test.describe('Org Browser - CustomTab retrieval', () => {
 
       await overwrite.getByRole('button', { name: /^Yes$/ }).click();
 
+      // Handle both chunked (for >50 components) and non-chunked retrieves
       const retrieving = page
         .locator('.monaco-workbench .notification-list-item')
-        .filter({ hasText: /Retrieving\s+CustomTab/i })
+        .filter({ hasText: /Retrieving\s+.*CustomTab/i })
         .first();
       await expect(retrieving).toBeVisible({ timeout: 60_000 });
 

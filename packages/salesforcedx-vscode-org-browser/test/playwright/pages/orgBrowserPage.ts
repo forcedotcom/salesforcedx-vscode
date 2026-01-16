@@ -176,7 +176,7 @@ export class OrgBrowserPage {
     // Sometimes VS Code needs the result to be explicitly selected
     await firstResult.click({ timeout: 2000 }).catch(() => {
       // If click fails, just press Enter - it should work if result is already highlighted
-      console.log(`[DEBUG] Could not click result, trying Enter directly`);
+      console.log('[DEBUG] Could not click result, trying Enter directly');
     });
 
     // Press Enter to execute the selected command
@@ -186,9 +186,9 @@ export class OrgBrowserPage {
     // Wait for command palette to close (indicates command was executed)
     try {
       await palette.waitFor({ state: 'hidden', timeout: 3000 });
-      console.log(`[DEBUG] Command palette closed - command executed successfully`);
-    } catch (e) {
-      console.log(`[DEBUG] WARNING: Command palette did not close within timeout, trying Escape`);
+      console.log('[DEBUG] Command palette closed - command executed successfully');
+    } catch {
+      console.log('[DEBUG] WARNING: Command palette did not close within timeout, trying Escape');
       // If palette didn't close, try pressing Escape to close it manually
       await this.page.keyboard.press('Escape');
       await palette.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
@@ -197,7 +197,7 @@ export class OrgBrowserPage {
     // Give VS Code time to process the async command handler and update state
     // The toggleShowLocalOnly() method does async work (updateContextKeys, saveState)
     await this.page.waitForTimeout(1000);
-    console.log(`[DEBUG] Command execution completed, waiting for state update...`);
+    console.log('[DEBUG] Command execution completed, waiting for state update...');
   }
 
   /**
@@ -1005,6 +1005,7 @@ export class OrgBrowserPage {
    * @param item The tree item locator
    * @returns True if item shows file is present locally
    */
+  // eslint-disable-next-line class-methods-use-this
   public async hasFilePresenceIndicator(item: Locator): Promise<boolean> {
     // File presence is indicated by codicon-pass-filled (filled circle with checkmark)
     // File absence is indicated by codicon-circle-large-outline (empty circle)

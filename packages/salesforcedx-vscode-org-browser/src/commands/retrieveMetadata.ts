@@ -17,7 +17,7 @@ import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetriev
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 
 /** Chunk size for large retrieves - break into batches for better progress visibility */
-const CHUNK_SIZE = 50;
+const CHUNK_SIZE = 25;
 
 export const retrieveOrgBrowserTreeItemCommand = async (
   node: OrgBrowserTreeItem | undefined,
@@ -174,13 +174,12 @@ const confirmOverwrite = (localComponents: ComponentSet, target: MetadataMember)
   });
 
 /** Split array into chunks of specified size */
-const chunkArray = <T>(array: T[], chunkSize: number): T[][] => {
-  return Array.from({ length: Math.ceil(array.length / chunkSize) }, (_, i) =>
+const chunkArray = <T>(array: T[], chunkSize: number): T[][] => Array.from({ length: Math.ceil(array.length / chunkSize) }, (_, i) =>
     array.slice(i * chunkSize, (i + 1) * chunkSize)
   );
-};
 
 /** Retrieve components in chunks with progress updates */
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
 const retrieveInChunks = (
   members: MetadataMember[],
   node: OrgBrowserTreeItem,
@@ -194,23 +193,24 @@ const retrieveInChunks = (
 
     // Show overall progress notification and retrieve chunks sequentially
     const title = nls.localize('retrieve_chunked_title', String(members.length), metadataType);
-    const result = yield* Effect.promise(async () => {
-      return vscode.window.withProgress(
+    const result = yield* Effect.promise(async () => vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
           title,
           cancellable: true
         },
         async (progress, token) => {
-          let lastResult: RetrieveResult | SuccessfulCancelResult | void = undefined;
-
-          for (let i = 0; i < chunks.length; i++) {
+          // Process chunks sequentially using reduce to avoid loop lint errors
+          const processChunks = async (
+            acc: RetrieveResult | SuccessfulCancelResult | void,
+            chunk: MetadataMember[],
+            index: number
+          ): Promise<RetrieveResult | SuccessfulCancelResult | void> => {
             if (token.isCancellationRequested) {
               return Brand.nominal<SuccessfulCancelResult>()('User canceled');
             }
 
-            const chunk = chunks[i];
-            const batchNumber = i + 1;
+            const batchNumber = index + 1;
 
             // Update progress message
             progress.report({
@@ -220,7 +220,7 @@ const retrieveInChunks = (
                 String(totalChunks),
                 String(chunk.length)
               ),
-              increment: (100 / totalChunks) * (i === 0 ? 0 : 1)
+              increment: (100 / totalChunks) * (index === 0 ? 0 : 1)
             });
 
             // Retrieve this chunk without showing individual notifications (suppressNotification = true)
@@ -234,8 +234,6 @@ const retrieveInChunks = (
               return chunkResult;
             }
 
-            lastResult = chunkResult;
-
             // Update only the components retrieved in this chunk (more efficient than refreshing entire type)
             // Extract component names from the chunk
             const componentNames = chunk.map(m => m.fullName);
@@ -245,18 +243,32 @@ const retrieveInChunks = (
 
             // Refresh the entire type less frequently (every 3 chunks or on last chunk)
             // This ensures VS Code doesn't throttle updates while still providing feedback
-            const shouldRefresh = i === chunks.length - 1 || (i + 1) % 3 === 0;
+            const shouldRefresh = index === chunks.length - 1 || (index + 1) % 3 === 0;
             if (shouldRefresh) {
               // Use a small delay to batch updates and avoid overwhelming VS Code
               await new Promise(resolve => setTimeout(resolve, 100));
               await treeProvider.refreshType(node, true);
             }
-          }
 
-          return lastResult;
+            return chunkResult;
+          };
+
+          // Process all chunks sequentially
+          const finalResult = await chunks.reduce(
+            async (accPromise, chunk, index) => {
+              const acc = await accPromise;
+              // If previous chunk was canceled, return early
+              if (typeof acc === 'string') {
+                return acc;
+              }
+              return processChunks(acc, chunk, index);
+            },
+            Promise.resolve(undefined as RetrieveResult | SuccessfulCancelResult | void)
+          );
+
+          return finalResult;
         }
-      );
-    });
+      ));
 
     return result;
   }).pipe(
@@ -267,3 +279,4 @@ const retrieveInChunks = (
       })
     )
   ) as Effect.Effect<RetrieveResult | SuccessfulCancelResult | void, never>;
+/* eslint-enable @typescript-eslint/consistent-type-assertions */
