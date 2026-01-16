@@ -36,6 +36,13 @@ const FOLDER_TYPES = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report'
 export const isFolderType = (xmlName: string): boolean => FOLDER_TYPES.has(xmlName);
 
 export class OrgBrowserTreeItem extends vscode.TreeItem {
+  // Explicitly declare inherited properties for better TypeScript support
+  // These are initialized in the constructor, so we use 'declare' to satisfy TypeScript
+  public declare readonly id: string;
+  public declare label: string;
+  public declare description: string | undefined;
+  public declare iconPath: vscode.ThemeIcon | undefined;
+
   public readonly kind: OrgBrowserTreeItemKind;
   /** Metadata Type that you could use to retrieve the node */
   public readonly xmlName: string;

@@ -12,7 +12,7 @@ import { AllServicesLayer, ExtensionProviderService } from '../services/extensio
 import { FilePresenceService, queueFilePresenceCheck } from '../services/filePresenceService';
 import { createCustomFieldNode } from './customField';
 import { isRetrievableComponent } from './filters';
-import { isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
+import { getIconPath, isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
 import {
   createErrorNode,
   describeResultToNode,
@@ -145,6 +145,35 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     parent.description = formatCountDescription(counts);
   }
 
+  /** Update specific components to mark them as present (for post-retrieve updates) */
+  public updateComponentsAsPresent(parentId: string, componentNames: string[]): void {
+    const children = this.childrenCache.get(parentId);
+    const parent = this.parentNodeCache.get(parentId);
+    if (!children || !parent) return;
+
+    const componentNameSet = new Set(componentNames);
+    const updated = children
+      .filter(child => componentNameSet.has(child.componentName ?? ''))
+      .map(child => {
+        if (child.filePresent !== true) {
+          child.filePresent = true;
+          child.iconPath = getIconPath(true);
+          // Fire change event for this specific item
+          this.fireChangeEvent(child);
+          return true;
+        }
+        return false;
+      })
+      .some(Boolean);
+
+    // Update parent counts if any children were updated
+    if (updated) {
+      const counts = calculateCounts(children);
+      parent.description = formatCountDescription(counts);
+      this.fireChangeEvent(parent);
+    }
+  }
+
   /** fire the onDidChangeTreeData event for the node to cause vscode ui to update */
   /** Fire the onDidChangeTreeData event immediately */
   public fireChangeEvent(node?: OrgBrowserTreeItem): void {
@@ -164,8 +193,10 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 
   /**
    * Refreshes only the given type node in the tree.  Fires the onDidChangeTreeData so you don't have to
+   * @param node - The node to refresh, or undefined for root
+   * @param markChildrenAsPresent - If true, mark all component children as present without file checks (optimization for post-retrieve)
    */
-  public async refreshType(node?: OrgBrowserTreeItem): Promise<void> {
+  public async refreshType(node?: OrgBrowserTreeItem, markChildrenAsPresent = false): Promise<void> {
     // Cancel any pending file presence checks for this node
     await Effect.runPromise(
       Effect.gen(function* () {
@@ -185,7 +216,28 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     const treeProvider = this;
     await Effect.runPromise(
       Effect.gen(function* () {
-        yield* Effect.promise(() => treeProvider.getChildren(node, true));
+        // Pass skipFileChecks flag to avoid file presence checks (optimization for post-retrieve)
+        const children = yield* Effect.promise(() => treeProvider.getChildren(node, true, markChildrenAsPresent));
+
+        // If marking children as present, clear cache and fire change events to force VS Code re-read
+        // VS Code caches TreeItem instances, so we need to clear cache and fire events for both parent and children
+        if (markChildrenAsPresent && children.length > 0) {
+          // Clear cache so VS Code re-reads children with updated icons
+          if (node?.id) {
+            treeProvider.childrenCache.delete(node.id);
+          }
+          // Fire change events after a short delay to ensure cache is cleared
+          setTimeout(() => {
+            // Fire for parent to trigger re-reading of children
+            treeProvider._onDidChangeTreeData.fire(node);
+            // Fire for individual children to ensure they're re-read with updated icons
+            children.forEach((child: OrgBrowserTreeItem) => {
+              if (child.id) {
+                treeProvider._onDidChangeTreeData.fire(child);
+              }
+            });
+          }, 0);
+        }
       }).pipe(
         Effect.ensuring(
           Effect.sync(() => {
@@ -202,7 +254,11 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     return element;
   }
 
-  public async getChildren(element?: OrgBrowserTreeItem, refresh = false): Promise<OrgBrowserTreeItem[]> {
+  public async getChildren(
+    element?: OrgBrowserTreeItem,
+    refresh = false,
+    skipFileChecks = false
+  ): Promise<OrgBrowserTreeItem[]> {
     // Return cached children if available and not explicitly refreshing
     // This prevents infinite loops when fireChangeEvent triggers getChildren
     if (!refresh && element?.id) {
@@ -215,7 +271,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     const treeProvider = this;
     return Effect.runPromise(
       Effect.gen(function* () {
-        const result = yield* getChildrenOfTreeItem(element, refresh, treeProvider);
+        const result = yield* getChildrenOfTreeItem(element, refresh, treeProvider, skipFileChecks);
 
         // Cache children and parent for count updates
         if (element?.id) {
@@ -232,6 +288,29 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
             treeProvider.allItemsCache.set(child.id, child);
           }
         });
+
+        // If we skipped file checks, cache children after firing change events
+        // This ensures VS Code re-reads children with updated icons before we cache them
+        if (skipFileChecks && element?.id && result.length > 0) {
+          // Fire change events first to trigger VS Code to re-read children
+          setTimeout(() => {
+            // Fire for parent to trigger re-reading of children
+            treeProvider._onDidChangeTreeData.fire(element);
+            // Also fire change events for individual children to ensure they're re-read
+            // This is necessary because VS Code may cache TreeItem instances
+            result.forEach((child: OrgBrowserTreeItem) => {
+              if (child.id) {
+                treeProvider._onDidChangeTreeData.fire(child);
+              }
+            });
+            // Now cache the children after VS Code has re-read them
+            setTimeout(() => {
+              if (element?.id) {
+                treeProvider.childrenCache.set(element.id, result);
+              }
+            }, 50);
+          }, 10);
+        }
 
         // Apply filters to component-level nodes
         const filtered = treeProvider.applyFilters(result, element);
@@ -305,10 +384,28 @@ const processWithBatchTracking = <T>(
     return nodes;
   });
 
+/** Create a component node without file presence check (for post-retrieve optimization) */
+const createComponentWithoutFileCheck = (
+  element: OrgBrowserTreeItem,
+  c: MetadataListResultItem
+): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
+  Effect.sync(() => {
+    const treeItem = listResultToComponentNode(element, c);
+    // Mark as present immediately (we know files exist after retrieve)
+    treeItem.filePresent = true;
+    treeItem.iconPath = getIconPath(true);
+    return treeItem;
+  }).pipe(
+    Effect.withSpan('createComponentWithoutFileCheck', {
+      attributes: { xmlName: element.xmlName, componentName: c.fullName }
+    })
+  );
+
 const getChildrenOfTreeItem = (
   element: OrgBrowserTreeItem | undefined,
   refresh: boolean,
-  treeProvider: MetadataTypeTreeProvider
+  treeProvider: MetadataTypeTreeProvider,
+  skipFileChecks = false
 ): Effect.Effect<OrgBrowserTreeItem[], Error, never> =>
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   Effect.gen(function* () {
@@ -332,7 +429,11 @@ const getChildrenOfTreeItem = (
         .toSorted((a: CustomObjectField, b: CustomObjectField) => (a.name < b.name ? -1 : 1));
       return yield* processWithBatchTracking(
         customFields,
-        createCustomFieldNode(filePresenceService, batchId, treeProvider.fireChangeEvent.bind(treeProvider))(element),
+        createCustomFieldNode(
+          filePresenceService,
+          batchId,
+          treeProvider.fireChangeEventDebounced.bind(treeProvider)
+        )(element),
         filePresenceService,
         batchId
       );
@@ -345,6 +446,15 @@ const getChildrenOfTreeItem = (
     if (element.kind === 'type') {
       const components = yield* describeService.listMetadata(element.xmlName);
       const retrievable: MetadataListResultItem[] = components.filter(isRetrievableComponent);
+
+      // Skip file presence checks if requested (optimization for post-retrieve)
+      if (skipFileChecks) {
+        return yield* Effect.all(
+          retrievable.map(c => createComponentWithoutFileCheck(element, c)),
+          { concurrency: 'unbounded' }
+        );
+      }
+
       return yield* processWithBatchTracking(
         retrievable,
         (c: MetadataListResultItem) =>
@@ -384,13 +494,13 @@ const createComponentWithFileCheck = (
 ): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
   Effect.gen(function* () {
     const treeItem = listResultToComponentNode(element, c);
-    // Use fireChangeEvent (not debounced) for individual node icon updates
+    // Use debounced change events to reduce re-renders during batch updates
     yield* queueFilePresenceCheck(
       filePresenceService,
       treeItem,
       c,
       batchId,
-      treeProvider.fireChangeEvent.bind(treeProvider)
+      treeProvider.fireChangeEventDebounced.bind(treeProvider)
     );
     return treeItem;
   }).pipe(
@@ -409,13 +519,13 @@ const createFolderItemWithFileCheck = (
 ): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
   Effect.gen(function* () {
     const treeItem = listResultToFolderItemNode(element, c);
-    // Use fireChangeEvent (not debounced) for individual node icon updates
+    // Use debounced change events to reduce re-renders during batch updates
     yield* queueFilePresenceCheck(
       filePresenceService,
       treeItem,
       c,
       batchId,
-      treeProvider.fireChangeEvent.bind(treeProvider)
+      treeProvider.fireChangeEventDebounced.bind(treeProvider)
     );
     return treeItem;
   }).pipe(

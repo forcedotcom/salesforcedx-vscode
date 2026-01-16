@@ -20,11 +20,13 @@ export type OrgBrowserRetrieveService = {
    * Retrieve metadata components and optionally open them in the editor
    * @param members - Array of MetadataMember to retrieve
    * @param openInEditor - Whether to open retrieved files in the editor
+   * @param suppressNotification - Whether to suppress progress notifications (useful for chunked retrieves)
    * @returns Effect that resolves to the retrieve result (dependencies provided via AllServicesLayer)
    */
   readonly retrieve: (
     members: MetadataMember[],
-    openInEditor?: boolean
+    openInEditor?: boolean,
+    suppressNotification?: boolean
   ) => Effect.Effect<RetrieveResult | SuccessfulCancelResult, Error>;
 };
 
@@ -33,7 +35,8 @@ export const OrgBrowserRetrieveService = Context.GenericTag<OrgBrowserRetrieveSe
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 const retrieve = (
   members: MetadataMember[],
-  openInEditor = false
+  openInEditor = false,
+  suppressNotification = false
 ): Effect.Effect<RetrieveResult | SuccessfulCancelResult, Error> =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -42,7 +45,7 @@ const retrieve = (
       { concurrency: 'unbounded' }
     );
 
-    const result = yield* retrieveService.retrieve(members);
+    const result = yield* retrieveService.retrieve(members, suppressNotification);
     if (typeof result === 'string') {
       return Brand.nominal<SuccessfulCancelResult>()('User canceled');
     }

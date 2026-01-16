@@ -54,7 +54,8 @@ const buildComponentSet = (
   }).pipe(Effect.withSpan('buildComponentSet'));
 
 const retrieve = (
-  members: MetadataMember[]
+  members: MetadataMember[],
+  suppressNotification = false
 ): Effect.Effect<
   RetrieveResult | SuccessfulCancelResult,
   Error,
@@ -94,6 +95,12 @@ const retrieve = (
             merge: true,
             registry: registryAccess
           });
+
+          // If suppressing notification, run retrieve directly without progress UI
+          if (suppressNotification) {
+            await retrieveOperation.start();
+            return await retrieveOperation.pollStatus();
+          }
 
           // Generate concise notification title
           const title =

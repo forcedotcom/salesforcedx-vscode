@@ -28,7 +28,14 @@ export const createCustomFieldNode =
         label: getFieldLabel(removeNamespacePrefix(element)(f))
       });
 
-      yield* queueFilePresenceCheck(filePresenceService, treeItem, fieldMetadata, batchId, fireChangeEvent);
+      // Use debounced change events to reduce re-renders during batch updates
+      yield* queueFilePresenceCheck(
+        filePresenceService,
+        treeItem,
+        fieldMetadata,
+        batchId,
+        fireChangeEvent
+      );
       return treeItem;
     }).pipe(
       Effect.withSpan('createCustomFieldNode', {

@@ -16,6 +16,9 @@ import { AllServicesLayer, ExtensionProviderService } from '../services/extensio
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 
+/** Chunk size for large retrieves - break into batches for better progress visibility */
+const CHUNK_SIZE = 50;
+
 export const retrieveOrgBrowserTreeItemCommand = async (
   node: OrgBrowserTreeItem | undefined,
   treeProvider: MetadataTypeTreeProvider
@@ -53,22 +56,24 @@ const retrieveEffect = (
 
     // When retrieving at type level (wildcard), explicitly list all components from the org
     // This ensures all components are retrieved instead of relying on wildcard expansion
-    let membersToRetrieve: MetadataMember[] = [target.value];
-    if (target.value.fullName === '*') {
-      const describeService = yield* api.services.MetadataDescribeService;
-      const components = yield* describeService.listMetadata(target.value.type);
-      // Convert listMetadata results to MetadataMember format
-      membersToRetrieve = components
-        .filter(c => c.fullName && c.type)
-        .map(c => ({ type: c.type, fullName: c.fullName! }));
+    const membersToRetrieve: MetadataMember[] =
+      target.value.fullName === '*'
+        ? (yield* Effect.gen(function* () {
+            const describeService = yield* api.services.MetadataDescribeService;
+            const components = yield* describeService.listMetadata(target.value.type);
+            // Convert listMetadata results to MetadataMember format
+            return components
+              .filter(c => c.fullName && c.type)
+              .map(c => ({ type: c.type, fullName: c.fullName! }));
+          }))
+        : [target.value];
 
-      // If no components found, return early
-      if (membersToRetrieve.length === 0) {
-        void vscode.window.showInformationMessage(
-          nls.localize('retrieve_no_components', `No ${target.value.type} components found in org`)
-        );
-        return;
-      }
+    // If no components found, return early
+    if (membersToRetrieve.length === 0) {
+      void vscode.window.showInformationMessage(
+        nls.localize('retrieve_no_components', `No ${target.value.type} components found in org`)
+      );
+      return;
     }
 
     const localComponents = yield* retrieveService.buildComponentSetFromSource(membersToRetrieve, dirs);
@@ -77,11 +82,17 @@ const retrieveEffect = (
       return Brand.nominal<SuccessfulCancelResult>()('User canceled');
     }
 
-    // Run the retrieve operation
-    const result = yield* (yield* OrgBrowserRetrieveService).retrieve(membersToRetrieve, target.value.fullName !== '*');
+    // For large retrieves, chunk into batches for better progress visibility
+    const shouldChunk = membersToRetrieve.length > CHUNK_SIZE && node.kind === 'type';
+    const result: RetrieveResult | SuccessfulCancelResult | void = shouldChunk
+      ? // Chunked retrieve with progress updates
+        yield* retrieveInChunks(membersToRetrieve, node, treeProvider, target.value.type)
+      : // Single retrieve operation
+        yield* (yield* OrgBrowserRetrieveService).retrieve(membersToRetrieve, target.value.fullName !== '*');
 
-    if (typeof result !== 'string')
-      // Handle post-retrieve UI updates
+    if (typeof result !== 'string' && !shouldChunk) {
+      // Handle post-retrieve UI updates for non-chunked retrieves
+      // (chunked retrieves handle updates incrementally)
       yield* Effect.gen(function* () {
         if (node.kind === 'component') {
           node.iconPath = getIconPath(true);
@@ -106,12 +117,19 @@ const retrieveEffect = (
               treeProvider.fireChangeEvent(node);
             }
           });
+        } else if (node.kind === 'type') {
+          // For type-level retrieves, skip file presence checks since we know files are present
+          // This significantly improves performance after large retrieves
+          yield* Effect.promise(async () => {
+            await treeProvider.refreshType(node, true);
+          });
         } else {
           yield* Effect.promise(async () => {
             await treeProvider.refreshType(node);
           });
         }
       }).pipe(Effect.provide(AllServicesLayer));
+    }
 
     return result;
   }).pipe(
@@ -154,3 +172,98 @@ const confirmOverwrite = (localComponents: ComponentSet, target: MetadataMember)
     );
     return answer === 'Yes';
   });
+
+/** Split array into chunks of specified size */
+const chunkArray = <T>(array: T[], chunkSize: number): T[][] => {
+  return Array.from({ length: Math.ceil(array.length / chunkSize) }, (_, i) =>
+    array.slice(i * chunkSize, (i + 1) * chunkSize)
+  );
+};
+
+/** Retrieve components in chunks with progress updates */
+const retrieveInChunks = (
+  members: MetadataMember[],
+  node: OrgBrowserTreeItem,
+  treeProvider: MetadataTypeTreeProvider,
+  metadataType: string
+): Effect.Effect<RetrieveResult | SuccessfulCancelResult | void, never> =>
+  Effect.gen(function* () {
+    const retrieveService = yield* OrgBrowserRetrieveService;
+    const chunks = chunkArray(members, CHUNK_SIZE);
+    const totalChunks = chunks.length;
+
+    // Show overall progress notification and retrieve chunks sequentially
+    const title = nls.localize('retrieve_chunked_title', String(members.length), metadataType);
+    const result = yield* Effect.promise(async () => {
+      return vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title,
+          cancellable: true
+        },
+        async (progress, token) => {
+          let lastResult: RetrieveResult | SuccessfulCancelResult | void = undefined;
+
+          for (let i = 0; i < chunks.length; i++) {
+            if (token.isCancellationRequested) {
+              return Brand.nominal<SuccessfulCancelResult>()('User canceled');
+            }
+
+            const chunk = chunks[i];
+            const batchNumber = i + 1;
+
+            // Update progress message
+            progress.report({
+              message: nls.localize(
+                'retrieve_batch_progress',
+                String(batchNumber),
+                String(totalChunks),
+                String(chunk.length)
+              ),
+              increment: (100 / totalChunks) * (i === 0 ? 0 : 1)
+            });
+
+            // Retrieve this chunk without showing individual notifications (suppressNotification = true)
+            // The overall progress is shown by the outer withProgress notification
+            const chunkResult = await Effect.runPromise(
+              retrieveService.retrieve(chunk, false, true).pipe(Effect.provide(AllServicesLayer))
+            );
+
+            if (typeof chunkResult === 'string') {
+              // User canceled
+              return chunkResult;
+            }
+
+            lastResult = chunkResult;
+
+            // Update only the components retrieved in this chunk (more efficient than refreshing entire type)
+            // Extract component names from the chunk
+            const componentNames = chunk.map(m => m.fullName);
+            if (node.id) {
+              treeProvider.updateComponentsAsPresent(node.id, componentNames);
+            }
+
+            // Refresh the entire type less frequently (every 3 chunks or on last chunk)
+            // This ensures VS Code doesn't throttle updates while still providing feedback
+            const shouldRefresh = i === chunks.length - 1 || (i + 1) % 3 === 0;
+            if (shouldRefresh) {
+              // Use a small delay to batch updates and avoid overwhelming VS Code
+              await new Promise(resolve => setTimeout(resolve, 100));
+              await treeProvider.refreshType(node, true);
+            }
+          }
+
+          return lastResult;
+        }
+      );
+    });
+
+    return result;
+  }).pipe(
+    Effect.provide(AllServicesLayer),
+    Effect.catchAll(error =>
+      Effect.sync(() => {
+        void vscode.window.showErrorMessage(nls.localize('retrieve_failed', String(error)));
+      })
+    )
+  ) as Effect.Effect<RetrieveResult | SuccessfulCancelResult | void, never>;
