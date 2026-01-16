@@ -153,64 +153,22 @@ export class WorkspaceContextUtil {
             console.log('workspaceContextUtil.ts getConnection() - 21');
             await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
             console.log('workspaceContextUtil.ts getConnection() - 22');
-            // After successful login, invalidate the cached connection and try again
+            // After login, clear cached connections so next call will create fresh ones
             this.sessionConnections.delete(this._username);
-            this.knownBadConnections.delete(this._username);
+            // Force reload so next getConnection() call will have fresh auth
+            await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
+            StateAggregator.clearInstance();
             console.log('workspaceContextUtil.ts getConnection() - 23');
-
-            // Wait for auth files to be written and state to update (login command runs async)
-            // Retry with delays to handle timing issues
-            const maxRetries = 5;
-            const initialDelay = 1000; // Start with 1 second initial delay
-            const retryDelay = 500; // 500ms between retries
-
-            for (let attempt = 0; attempt < maxRetries; attempt++) {
-              console.log(`workspaceContextUtil.ts getConnection() - 23A - attempt ${attempt + 1}`);
-
-              // Wait before each attempt to allow auth files to be written
-              // First attempt waits longer since the process just completed
-              const delay = attempt === 0 ? initialDelay : retryDelay;
-              console.log(`workspaceContextUtil.ts getConnection() - waiting ${delay}ms before attempt ${attempt + 1}`);
-              await new Promise(resolve => setTimeout(resolve, delay));
-
-              // Force reload of auth info after waiting
-              console.log('workspaceContextUtil.ts getConnection() - 23B - reloading auth cache');
-              await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
-              StateAggregator.clearInstance();
-
-              try {
-                console.log('workspaceContextUtil.ts getConnection() - 23C');
-                // Attempt to create a fresh connection with the new auth
-                const newConnection = await Connection.create({
-                  authInfo: await AuthInfo.create({ username: this._username })
-                });
-                console.log('workspaceContextUtil.ts getConnection() - 23D');
-                await newConnection.identity();
-                console.log('workspaceContextUtil.ts getConnection() - 23E - success!');
-                this.sessionConnections.set(this._username, {
-                  connection: newConnection,
-                  lastTokenValidationTimestamp: Date.now()
-                });
-                console.log('workspaceContextUtil.ts - exit 3 getConnection() after successful re-login');
-                return newConnection;
-              } catch (retryError) {
-                console.log(
-                  `workspaceContextUtil.ts getConnection() - 24 - attempt ${attempt + 1} failed:`,
-                  retryError instanceof Error ? retryError.message : retryError
-                );
-                // If this was the last attempt, fall through to mark as bad and throw
-                if (attempt === maxRetries - 1) {
-                  console.log('workspaceContextUtil.ts getConnection() - 25 - all retries exhausted');
-                }
-                // Otherwise, loop will retry
-              }
-            }
+            // Don't add to knownBadConnections - let next call try with fresh auth
+            // Throw error to fail current operation, but user can retry
+            throw new Error('Please retry your operation now that you have logged in.');
           }
+          console.log('workspaceContextUtil.ts getConnection() - 24');
+          // User dismissed without logging in, mark as bad to prevent repeated dialogs
+          this.knownBadConnections.add(this._username);
           console.log('workspaceContextUtil.ts getConnection() - 25');
         }
         console.log('workspaceContextUtil.ts getConnection() - 26');
-        this.knownBadConnections.add(this._username);
-        console.log('workspaceContextUtil.ts getConnection() - 27');
         throw new Error('Unable to refresh your access token.  Please login again.');
       }
       console.log('workspaceContextUtil.ts getConnection() - 28');
