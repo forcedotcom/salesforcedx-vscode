@@ -6,6 +6,8 @@
  */
 
 import { test } from '../fixtures';
+import { expect } from '@playwright/test';
+
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -23,6 +25,7 @@ import {
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
+import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 
 test('Deploy On Save: automatically deploys when file is saved', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
@@ -63,6 +66,8 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
   });
 
   await test.step('verify deploy triggers and completes', async () => {
+    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
+    await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
     // Wait for deploy-on-save to trigger (service has 1s delay, then deploy starts)
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
