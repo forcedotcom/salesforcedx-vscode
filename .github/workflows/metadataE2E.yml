@@ -109,6 +109,7 @@ jobs:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
       MINIMAL_ORG_ALIAS: minimalTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      VSCODE_DESKTOP: 1
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

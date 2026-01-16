@@ -13,7 +13,7 @@ import {
   waitForVSCodeWorkbench,
   assertWelcomeTabExists,
   closeWelcomeTabs,
-  createDreamhouseOrg,
+  createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
   upsertSettings,
   createApexClass,
@@ -46,8 +46,8 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
   let className: string;
   let statusBarPage: SourceTrackingStatusBarPage;
 
-  await test.step('setup dreamhouse org and disable deploy-on-save', async () => {
-    const createResult = await createDreamhouseOrg();
+  await test.step('setup minimal org and disable deploy-on-save', async () => {
+    const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
@@ -63,7 +63,7 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
   let initialLocalCount: number;
 
   await test.step('capture initial counts and create apex class', async () => {
-    // Get initial counts after Dreamhouse deployment
+    // Get initial counts
     const initialCounts = await statusBarPage.getCounts();
     initialLocalCount = initialCounts.local;
 

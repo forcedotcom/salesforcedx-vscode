@@ -12,7 +12,7 @@ import {
   waitForVSCodeWorkbench,
   assertWelcomeTabExists,
   closeWelcomeTabs,
-  createDreamhouseOrg,
+  createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
   createApexClass,
   editOpenFile,
@@ -41,8 +41,8 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
     let className: string;
     let statusBarPage: SourceTrackingStatusBarPage;
 
-    await test.step('setup dreamhouse org', async () => {
-      const createResult = await createDreamhouseOrg();
+    await test.step('setup minimal org', async () => {
+      const createResult = await createMinimalOrg();
       await waitForVSCodeWorkbench(page);
       await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);
@@ -101,8 +101,7 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
       await saveScreenshot(page, 'step2.retrieve-complete.png');
 
       // After retrieve, local count should decrease (file retrieved from org)
-      // We cannot assert exact counts since the Dreamhouse org state is variable
-      // But we verify the retrieve operation completed successfully
+      // We verify the retrieve operation completed successfully
       await saveScreenshot(page, 'step2.final-state.png');
     });
 

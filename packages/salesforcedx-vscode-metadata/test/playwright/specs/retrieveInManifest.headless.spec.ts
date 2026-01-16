@@ -13,7 +13,7 @@ import {
   waitForVSCodeWorkbench,
   assertWelcomeTabExists,
   closeWelcomeTabs,
-  createDreamhouseOrg,
+  createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
   createApexClass,
   openFileByName,
@@ -47,8 +47,8 @@ test.setTimeout(RETRIEVE_TIMEOUT);
     let className: string;
     let statusBarPage: SourceTrackingStatusBarPage;
 
-    await test.step('setup dreamhouse org', async () => {
-      const createResult = await createDreamhouseOrg();
+    await test.step('setup minimal org', async () => {
+      const createResult = await createMinimalOrg();
       await waitForVSCodeWorkbench(page);
       await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);

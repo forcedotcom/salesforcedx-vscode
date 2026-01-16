@@ -12,7 +12,7 @@ import {
   setupNetworkMonitoring,
   waitForVSCodeWorkbench,
   closeWelcomeTabs,
-  createDreamhouseOrg,
+  createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
   executeCommandWithCommandPalette,
   validateNoCriticalErrors,
@@ -32,8 +32,8 @@ test('Apex Generate Class: creates new Apex class via command palette', async ({
   let className: string;
   let statusBarPage: SourceTrackingStatusBarPage;
 
-  await test.step('setup dreamhouse org', async () => {
-    const createResult = await createDreamhouseOrg();
+  await test.step('setup minimal org', async () => {
+    const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);

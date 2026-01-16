@@ -13,7 +13,7 @@ import {
   waitForVSCodeWorkbench,
   assertWelcomeTabExists,
   closeWelcomeTabs,
-  createDreamhouseOrg,
+  createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
   executeCommandWithCommandPalette,
   ensureOutputPanelOpen,
@@ -32,7 +32,7 @@ test('View Changes Commands: each view changes command shows correct sections in
   const networkErrors = setupNetworkMonitoring(page);
 
   await test.step('setup scratch org and wait for status bar', async () => {
-    const createResult = await createDreamhouseOrg();
+    const createResult = await createMinimalOrg();
     await waitForVSCodeWorkbench(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
