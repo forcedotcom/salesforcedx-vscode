@@ -106,13 +106,13 @@ const retrieve = (
           const title =
             members.length === 1
               ? `Retrieving ${members[0].type}: ${members[0].fullName === '*' ? 'all' : members[0].fullName}`
-              : (() => {
+              : ((): string => {
                   // Group by type to create a more concise message
-                  const typeGroups = new Map<string, number>();
-                  for (const member of members) {
-                    const count = typeGroups.get(member.type) ?? 0;
-                    typeGroups.set(member.type, count + 1);
-                  }
+                  const typeGroups = members.reduce((acc, member) => {
+                    const count = acc.get(member.type) ?? 0;
+                    acc.set(member.type, count + 1);
+                    return acc;
+                  }, new Map<string, number>());
                   if (typeGroups.size === 1) {
                     // All same type - show count
                     const [type, count] = Array.from(typeGroups.entries())[0];

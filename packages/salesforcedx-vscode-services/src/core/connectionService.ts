@@ -106,14 +106,20 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             Effect.flatMap(cfgSvc => cfgSvc.getConfigAggregator),
             Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
             Effect.filterOrFail(
-              targetOrg => targetOrg != null,
+              (targetOrg): targetOrg is string => targetOrg != null,
               () => new Error('No target-org configured')
             )
           );
           const username = yield* Effect.tryPromise({
             try: async () => (await StateAggregator.getInstance()).aliases.resolveUsername(usernameOrAlias),
             catch: error => new Error('Failed to resolve username', { cause: error })
-          });
+          }).pipe(
+            Effect.flatMap(resolved =>
+              resolved !== undefined
+                ? Effect.succeed(resolved)
+                : Effect.fail(new Error('Failed to resolve username'))
+            )
+          );
           return yield* cache.get(username);
         }
       }).pipe(
@@ -151,7 +157,7 @@ const maybeUpdateDefaultOrgRef = (conn: Connection): Effect.Effect<typeof Defaul
                   const aliases = stateAgg.aliases.getAll(user);
                   return aliases && aliases.length > 0 ? aliases[0] : undefined;
                 },
-                catch: () => undefined as string | undefined
+                catch: () => new Error('Failed to get alias')
               })
             ),
             Effect.catchAll(() => Effect.succeed(undefined))
