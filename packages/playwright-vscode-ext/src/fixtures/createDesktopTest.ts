@@ -21,8 +21,8 @@ type CreateDesktopTestOptions = {
 };
 
 /** Creates a Playwright test instance configured for desktop Electron testing with services extension */
-export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOptions) =>
-  base.extend<TestFixtures, WorkerFixtures>({
+export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOptions) => {
+  const test = base.extend<TestFixtures, WorkerFixtures>({
     // Download VS Code once per worker (cached in ~/.vscode-test/ or the windows equivalent)
     vscodeExecutable: [
       async ({}, use): Promise<void> => {
@@ -112,3 +112,12 @@ export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOp
       await use(page);
     }
   });
+  test.afterEach(async ({ page }, testInfo) => {
+    if (process.env.DEBUG_MODE && testInfo.status !== 'passed') {
+      console.log('\n🔍 DEBUG_MODE: Test failed - pausing to keep VS Code window open.');
+      console.log('Press Resume in Playwright Inspector or close VS Code window to continue.');
+      await page.pause();
+    }
+  });
+  return test;
+};
