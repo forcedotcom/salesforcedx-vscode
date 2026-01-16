@@ -44,7 +44,8 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // Ensure widget and input are visible - if not, openCommandPalette should have handled it
   await expect(widget).toBeVisible({ timeout: 5000 });
   await expect(input).toBeVisible({ timeout: 5000 });
-  await input.focus({ timeout: 5000 });
+  // Click input directly to ensure focus (Windows needs explicit click, focus() alone may not work)
+  await input.click({ timeout: 5000 });
   await expect(input).toHaveValue(/^>/, { timeout: 5000 });
 
   // Type the command after the '>' prefix - retry if VS Code filtering interrupts typing
@@ -114,7 +115,8 @@ export const verifyCommandDoesNotExist = async (page: Page, commandText: string)
   const input = widget.locator('input.input');
 
   await expect(input).toBeVisible({ timeout: 5000 });
-  await input.focus({ timeout: 5000 });
+  // Click input directly to ensure focus (Windows needs explicit click, focus() alone may not work)
+  await input.click({ timeout: 5000 });
   await input.pressSequentially(commandText, { delay: 50 });
 
   // Wait for command list to appear
