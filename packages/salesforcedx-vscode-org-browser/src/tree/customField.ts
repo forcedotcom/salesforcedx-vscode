@@ -19,7 +19,7 @@ export const createCustomFieldNode =
       const fieldMetadata: MetadataListResultItem = {
         fullName: `${element.componentName}.${removeNamespacePrefix(element)(f).name}`,
         type: 'CustomField'
-      } as MetadataListResultItem;
+      };
 
       const treeItem = new OrgBrowserTreeItem({
         kind: 'component',

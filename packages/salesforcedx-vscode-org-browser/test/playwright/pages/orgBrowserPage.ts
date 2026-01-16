@@ -298,16 +298,23 @@ export class OrgBrowserPage {
     // View not active or actions not visible - try clicking on tree content to activate view context
     // This avoids clicking activity bar item which might close the view
     if (treeVisible) {
-      console.log('[DEBUG] Tree visible but actions not visible, clicking tree to activate view context...');
-      // Click on the first tree item or tree itself to activate view context
-      const firstTreeItem = this.sidebar.getByRole('treeitem', { level: 1 }).first();
-      const firstItemVisible = await firstTreeItem.isVisible({ timeout: 1000 }).catch(() => false);
+      // Always prefer clicking view header or tree container over individual tree items
+      // Tree items can be blocked by view headers, hover tooltips, or message overlays
+      // The view header is more reliable and doesn't have these interception issues
+      const viewHeader = this.sidebar.locator('.view-title, .view-header, .pane-header').first();
+      const headerVisible = await viewHeader.isVisible({ timeout: 1000 }).catch(() => false);
 
-      if (firstItemVisible) {
-        await firstTreeItem.click({ timeout: 2000 });
-        console.log('[DEBUG] Clicked first tree item to activate view context');
+      if (headerVisible) {
+        // Wait for any hover tooltips to disappear before clicking
+        await this.page.waitForTimeout(300);
+        // Scroll into view and click - view header is more reliable than tree items
+        await viewHeader.scrollIntoViewIfNeeded();
+        await viewHeader.click({ timeout: 2000 });
+        console.log('[DEBUG] Clicked view header to activate view context');
       } else {
-        // Fallback: click on tree container
+        // Fallback: click on tree container itself (not individual items)
+        // Tree container is less likely to be intercepted than individual tree items
+        await treeContent.scrollIntoViewIfNeeded();
         await treeContent.click({ timeout: 2000 });
         console.log('[DEBUG] Clicked tree container to activate view context');
       }
@@ -317,7 +324,7 @@ export class OrgBrowserPage {
 
       // Check if actions are now visible
       const actionsVisibleAfterClick = await viewActions.isVisible({ timeout: 2000 }).catch(() => false);
-      console.log(`[DEBUG] Actions visible after clicking tree: ${actionsVisibleAfterClick}`);
+      console.log(`[DEBUG] Actions visible after clicking: ${actionsVisibleAfterClick}`);
 
       // Focus sidebar to ensure focus is on the tree
       await this.focusSidebar();
@@ -399,7 +406,9 @@ export class OrgBrowserPage {
   }
 
   public async expandFolder(folderName: string): Promise<void> {
-    const folderItem = this.page.getByRole('treeitem', { name: folderName, exact: true });
+    // Use sidebar-scoped locator with level 1 to ensure we match metadata types, not child items
+    // This prevents matching wrong elements when search filters the tree
+    const folderItem = this.sidebar.getByRole('treeitem', { level: 1 }).filter({ hasText: folderName }).first();
     const twistie = folderItem.locator('.monaco-tl-twistie');
     await Promise.all([
       folderItem.click({ timeout: 5000, delay: 100 }),
@@ -429,23 +438,38 @@ export class OrgBrowserPage {
     await this.page.waitForTimeout(50);
 
     // locators get messed up because of the scroll
-    const folderItemAgain = this.page.getByRole('treeitem', { name: folderName, exact: true });
+    // Re-scope to sidebar with level 1 to ensure we match the correct metadata type
+    const folderItemAgain = this.sidebar.getByRole('treeitem', { level: 1 }).filter({ hasText: folderName }).first();
     const twistieAgain = folderItemAgain.locator('.monaco-tl-twistie');
 
-    // tapping to refocus;  But that also closes it.  So we need to tap twice to reopen and ensure it's open
-    await Promise.all([
-      folderItemAgain.click(),
-      expect(twistieAgain, 'should be collapsed after scrolling').toContainClass('collapsed')
-    ]);
+    // Wait for element to be stable after scrolling before clicking
+    await expect(folderItemAgain, 'Folder item should be visible after scroll').toBeVisible({ timeout: 2000 });
+    await expect(twistieAgain, 'Twistie should be visible after scroll').toBeVisible({ timeout: 2000 });
+
+    // Check current state before clicking
+    const isCurrentlyExpanded = await twistieAgain.evaluate(el => el.classList.contains('codicon-tree-item-expanded'));
+
+    // tapping to refocus; But that also closes it. So we need to tap twice to reopen and ensure it's open
+    if (isCurrentlyExpanded) {
+      // Only click to collapse if it's currently expanded
+      // Scroll into view first to ensure clickable
+      await folderItemAgain.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(100); // Brief wait for scroll to settle
+
+      await folderItemAgain.click({ timeout: 5000 });
+      await expect(twistieAgain, 'should be collapsed after clicking').toContainClass('collapsed', { timeout: 2000 });
+    } else {
+      // Already collapsed, just verify state
+      await expect(twistieAgain, 'should already be collapsed').toContainClass('collapsed', { timeout: 1000 });
+    }
 
     await expect(twistieAgain, 'should not be loading after collapse loading').not.toContainClass(
       'codicon-tree-item-loading'
     );
 
-    await Promise.all([
-      folderItemAgain.click(),
-      expect(twistieAgain, 'should not be collapssed').not.toContainClass('collapsed')
-    ]);
+    // Click again to expand
+    await folderItemAgain.click({ timeout: 5000 });
+    await expect(twistieAgain, 'should not be collapssed').not.toContainClass('collapsed', { timeout: 2000 });
 
     await saveScreenshot(this.page, `expandFolder.${await folderItemAgain.textContent()}.png`, true);
   }
@@ -780,10 +804,6 @@ export class OrgBrowserPage {
   public async toggleShowLocalOnly(): Promise<void> {
     await this.ensureViewActive();
 
-    // Get current state BEFORE toggling
-    const messageBefore = await this.getTreeViewMessage();
-    const wasFilterOnBefore = messageBefore?.includes('Local files only') ?? false;
-
     // Try UI button first - look for both the active and inactive button states
     // Actions are in .pane-header .actions-container with aria-label="Salesforce Org Browser actions"
     // Use the actions-container with aria-label to make it specific to Org Browser
@@ -850,28 +870,9 @@ export class OrgBrowserPage {
       await this.page.waitForTimeout(1000);
     }
 
-    // Wait for state change - check message after toggle
+    // Wait for state change
     console.log(`[DEBUG] Method used to toggle: ${methodUsed}`);
-    console.log('[DEBUG] Waiting for filter state to update...');
-
-    // Check state immediately after toggle attempt
     await this.page.waitForTimeout(500);
-    const immediateMessage = await this.getTreeViewMessage();
-    console.log(`[DEBUG] Message immediately after toggle: "${immediateMessage}"`);
-
-    const finalMessage = await this.getTreeViewMessage();
-    console.log(`[DEBUG] Current message after toggle: "${finalMessage}"`);
-    console.log(`[DEBUG] Expected filter state: ${!wasFilterOnBefore ? 'ON' : 'OFF'}`);
-
-    await expect(async () => {
-      const message = await this.getTreeViewMessage();
-      const hasMessage = message?.includes('Local files only') ?? false;
-      const expectedState = !wasFilterOnBefore;
-      console.log(
-        `[DEBUG] Checking state - hasMessage: ${hasMessage}, expected: ${expectedState}, method: ${methodUsed}`
-      );
-      return hasMessage === expectedState;
-    }, `Filter message should update after toggle (method: ${methodUsed})`).toPass({ timeout: 5000 });
   }
 
   /**
@@ -880,10 +881,6 @@ export class OrgBrowserPage {
    */
   public async toggleHideManaged(): Promise<void> {
     await this.ensureViewActive();
-
-    // Get current state BEFORE toggling
-    const messageBefore = await this.getTreeViewMessage();
-    const wasFilterOnBefore = messageBefore?.includes('Hiding managed packages') ?? false;
 
     // Try UI button first
     const toggleButton = this.sidebar
@@ -900,11 +897,7 @@ export class OrgBrowserPage {
     }
 
     // Wait for state change
-    await expect(async () => {
-      const message = await this.getTreeViewMessage();
-      const hasMessage = message?.includes('Hiding managed packages') ?? false;
-      return hasMessage === !wasFilterOnBefore;
-    }, 'Filter message should update after toggle').toPass({ timeout: 5000 });
+    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -931,7 +924,8 @@ export class OrgBrowserPage {
     await this.page.waitForSelector('.quick-input-widget input', { state: 'visible', timeout: 5000 });
     await this.page.locator('.quick-input-widget input').fill(query);
     await this.page.keyboard.press('Enter');
-    await this.waitForTreeViewMessage(`Searching: "${query}"`);
+    // Wait for search to apply
+    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -953,11 +947,8 @@ export class OrgBrowserPage {
       await this.executeClearSearchViaPalette();
     }
 
-    // Wait for search message to clear
-    await expect(async () => {
-      const message = await this.getTreeViewMessage();
-      return !message?.includes('Searching:');
-    }, 'Tree view message should clear search text').toPass({ timeout: 2000 });
+    // Wait for search to clear
+    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -965,23 +956,18 @@ export class OrgBrowserPage {
    * @returns True if search is active, false otherwise
    */
   public async isSearchActive(): Promise<boolean> {
-    // Method 1: Check if clear search button is visible (indicates active search)
+    // Check if clear search button is visible (indicates active search)
     try {
       await this.ensureViewActive();
       const clearButton = this.sidebar
         .locator('[aria-label*="Clear Search"], .action-label[title*="Clear Search"], .codicon-close')
         .first();
       const buttonVisible = await clearButton.isVisible({ timeout: 1000 }).catch(() => false);
-      if (buttonVisible) {
-        return true;
-      }
+      return buttonVisible;
     } catch {
-      // UI check failed, continue
+      // UI check failed
+      return false;
     }
-
-    // Method 2: Check root message for "Searching:" text
-    const message = await this.getTreeViewMessage();
-    return message?.includes('Searching:') ?? false;
   }
 
   /**

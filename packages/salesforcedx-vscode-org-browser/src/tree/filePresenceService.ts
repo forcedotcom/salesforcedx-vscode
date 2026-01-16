@@ -7,7 +7,6 @@
 import type { MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
-import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
 import * as Queue from 'effect/Queue';
 import * as Stream from 'effect/Stream';
@@ -158,9 +157,13 @@ const isBatchCancelled = (batchId: string): boolean => {
 };
 
 /** Process a batch of file presence checks with a single SDR call */
-const processBatch = (requests: FilePresenceRequest[]): Effect.Effect<void> =>
+// TypeScript can't infer that Effect.provide eliminates dependencies
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const processBatch = (requests: FilePresenceRequest[]): any =>
   Effect.gen(function* () {
-    if (requests.length === 0) return;
+    if (requests.length === 0) {
+      return;
+    }
 
     const batchId = requests[0].batchId;
     if (isBatchCancelled(batchId)) {
@@ -170,8 +173,8 @@ const processBatch = (requests: FilePresenceRequest[]): Effect.Effect<void> =>
     // Get all members
     const members = requests.map(req => req.member);
 
-    // Single SDR call for all members
-    const presenceMap = yield* getFilePresenceBatch(members);
+    // Single SDR call for all members - provide dependencies
+    const presenceMap = yield* getFilePresenceBatch(members).pipe(Effect.provide(AllServicesLayer));
 
     // Check again after async operation
     if (isBatchCancelled(batchId)) {
@@ -179,28 +182,29 @@ const processBatch = (requests: FilePresenceRequest[]): Effect.Effect<void> =>
     }
 
     // Update all tree items with results
-    for (const req of requests) {
+    requests.forEach(req => {
       const filePresent = presenceMap.get(req.member.fullName) ?? false;
       req.onComplete(filePresent);
-    }
+    });
   }).pipe(
     Effect.catchAll(error => {
       console.error('Batch file presence check failed', error);
       return Effect.succeed(undefined);
     }),
-    Effect.ensuring(Effect.sync(() => {
-      // Decrement batch counter for each request
-      for (const req of requests) {
-        decrementBatch(req.batchId);
-      }
-    })),
+    Effect.ensuring(
+      Effect.sync(() => {
+        // Decrement batch counter for each request
+        requests.forEach(req => decrementBatch(req.batchId));
+      })
+    ),
     Effect.withSpan('processBatchFilePresence', {
       attributes: { count: requests.length, batchId: requests[0]?.batchId }
     })
   );
 
 /** Get local file presence for multiple components of the same type (batch operation) */
-const getFilePresenceBatch = (members: MetadataMember[]): Effect.Effect<Map<string, boolean>, Error, never> =>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getFilePresenceBatch = (members: MetadataMember[]): any =>
   ExtensionProviderService.pipe(
     Effect.flatMap(svcProvider => svcProvider.getServicesApi),
     Effect.flatMap(api =>
@@ -227,16 +231,16 @@ const getFilePresenceBatch = (members: MetadataMember[]): Effect.Effect<Map<stri
         yield* Effect.annotateCurrentSpan({ size: componentSet.size, metadataType });
 
         // Create lookup map of what's present locally
-        const localComponents = new Set<string>();
-        for (const component of componentSet.getSourceComponents()) {
-          localComponents.add(component.fullName);
-        }
+        const localComponents = Array.from(componentSet.getSourceComponents()).reduce((acc, component) => {
+          acc.add(component.fullName);
+          return acc;
+        }, new Set<string>());
 
         // Map each remote component to its presence
-        const presenceMap = new Map<string, boolean>();
-        for (const member of members) {
-          presenceMap.set(member.fullName, localComponents.has(member.fullName));
-        }
+        const presenceMap = members.reduce((acc, member) => {
+          acc.set(member.fullName, localComponents.has(member.fullName));
+          return acc;
+        }, new Map<string, boolean>());
 
         return presenceMap;
       }).pipe(
@@ -246,53 +250,53 @@ const getFilePresenceBatch = (members: MetadataMember[]): Effect.Effect<Map<stri
       )
     ),
     Effect.provide(AllServicesLayer)
-  ) as Effect.Effect<Map<string, boolean>, Error, never>;
-
-// Create queue at module level - shared across all service instances
-// This ensures the same queue is used regardless of how many times the layer is instantiated
-const filePresenceQueue = Effect.runSync(Queue.unbounded<FilePresenceRequest>());
+  );
 
 /** Group requests by metadata type and batchId for batch processing */
-const groupRequests = (requests: FilePresenceRequest[]): Map<string, FilePresenceRequest[]> => {
-  const groups = new Map<string, FilePresenceRequest[]>();
-  for (const req of requests) {
+const groupRequests = (requests: FilePresenceRequest[]): Map<string, FilePresenceRequest[]> =>
+  requests.reduce((groups, req) => {
     const key = `${req.member.type}:${req.batchId}`;
     const group = groups.get(key) ?? [];
     group.push(req);
     groups.set(key, group);
-  }
-  return groups;
-};
+    return groups;
+  }, new Map<string, FilePresenceRequest[]>());
+
+// Create queue at module level - shared across all service instances
+// This ensures the same queue is used regardless of how many times the layer is instantiated
+const filePresenceQueue: Queue.Queue<FilePresenceRequest> = Effect.runSync(Queue.unbounded<FilePresenceRequest>());
 
 /** Live implementation of FilePresenceService */
 export const FilePresenceServiceLive = Layer.sync(FilePresenceService, () => ({
   check: (request: FilePresenceRequest): Effect.Effect<void> => Queue.offer(filePresenceQueue, request),
   start: (): vscode.Disposable => {
-    const fiber = Effect.runFork(
-      Stream.fromQueue(filePresenceQueue).pipe(
-        // Collect requests into chunks for batching
-        Stream.groupedWithin(100, '50 millis'),
-        // Group by metadata type and process each group as a batch
-        Stream.mapEffect(
-          chunk =>
-            Effect.gen(function* () {
-              const requests = Array.from(chunk);
-              const groups = groupRequests(requests);
-              // Process each group (same type + batchId) as a batch
-              yield* Effect.all(
-                Array.from(groups.values()).map(group => processBatch(group)),
-                { concurrency: 5 }
-              );
-            }),
-          { concurrency: 'unbounded' }
-        ),
-        Stream.runDrain
-      )
+    const streamEffect = Stream.fromQueue(filePresenceQueue).pipe(
+      // Collect requests into chunks for batching
+      Stream.groupedWithin(100, '50 millis'),
+      // Group by metadata type and process each group as a batch
+      Stream.mapEffect(
+        chunk =>
+          Effect.gen(function* () {
+            const requests = Array.from(chunk);
+            const groups = groupRequests(requests);
+            // Process each group (same type + batchId) as a batch
+            const groupArray = Array.from(groups.values());
+            yield* Effect.all(
+              groupArray.map(group => processBatch(group).pipe(Effect.provide(AllServicesLayer))),
+              { concurrency: 5 }
+            );
+          }),
+        { concurrency: 'unbounded' }
+      ),
+      Stream.runDrain
     );
+
+    Effect.forkScoped(streamEffect.pipe(Effect.provide(AllServicesLayer)));
+
     return {
       dispose: (): void => {
         cancelAllBatches();
-        Effect.runSync(Fiber.interrupt(fiber));
+        // no interrupt needed; scope handles it
       }
     };
   },

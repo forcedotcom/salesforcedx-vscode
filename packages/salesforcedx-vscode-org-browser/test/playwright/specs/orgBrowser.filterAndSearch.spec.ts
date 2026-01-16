@@ -67,37 +67,16 @@ test.describe('Org Browser - Filter and Search verification', () => {
       // ApexClass should already be expanded from setup
       // We'll verify filtering works by checking for PropertyController items
 
-      // Ensure filter is disabled at start (may be active if button was clicked)
-      const initialMessage = await orgBrowserPage.getTreeViewMessage();
-      if (initialMessage?.includes('Local files only')) {
-        console.log('[DEBUG] Filter was already enabled, disabling...');
-        await orgBrowserPage.toggleShowLocalOnly(); // Disable if already enabled
-        await expect(async () => {
-          const message = await orgBrowserPage.getTreeViewMessage();
-          return !message?.includes('Local files only');
-        }, 'Filter should be disabled after toggle').toPass({ timeout: 2000 });
-        console.log('[DEBUG] Filter disabled successfully');
-      }
-
       // Get baseline count
       const allItemsBefore = await orgBrowserPage.sidebar.getByRole('treeitem', { level: 2 }).allTextContents();
       expect(allItemsBefore.length, 'Should have items before filter').toBeGreaterThan(0);
       console.log(`[DEBUG] Baseline item count: ${allItemsBefore.length}`);
 
-      // Verify filter is now inactive (we just ensured it's disabled above)
-      const messageBefore = await orgBrowserPage.getTreeViewMessage();
-      expect(
-        (messageBefore ?? '').includes('Local files only'),
-        'Filter should be inactive after ensuring disabled state'
-      ).toBe(false);
-
       // Enable filter
       console.log('[DEBUG] Enabling local file filter...');
       await orgBrowserPage.toggleShowLocalOnly();
-
-      // Verify tree view message shows filter is active (primary verification)
-      await orgBrowserPage.waitForTreeViewMessage('Local files only');
-      console.log('[DEBUG] Filter enabled - tree view message confirmed');
+      // Wait for filter to apply
+      await orgBrowserPage.page.waitForTimeout(500);
 
       // Ensure ApexClass is expanded after filter is applied (it may have collapsed)
       // The filter causes tree refresh which can collapse expanded folders
@@ -119,15 +98,8 @@ test.describe('Org Browser - Filter and Search verification', () => {
       // Disable filter
       console.log('[DEBUG] Disabling local file filter...');
       await orgBrowserPage.toggleShowLocalOnly();
-
-      // Verify message cleared (primary verification)
-      await expect(async () => {
-        const message = await orgBrowserPage.getTreeViewMessage();
-        if (message?.includes('Local files only')) {
-          throw new Error(`Filter message still present: "${message}"`);
-        }
-        return message;
-      }, 'Tree view message should not contain "Local files only" when filter is disabled').toPass({ timeout: 2000 });
+      // Wait for filter to clear
+      await orgBrowserPage.page.waitForTimeout(500);
 
       // Verify all items restored
       const restoredItems = await orgBrowserPage.sidebar.getByRole('treeitem', { level: 2 }).count();
@@ -150,10 +122,8 @@ test.describe('Org Browser - Filter and Search verification', () => {
       // Search for ApexClass (unstructured)
       console.log('[DEBUG] Searching for "ApexClass"...');
       await orgBrowserPage.search('ApexClass');
-
-      // Verify tree view message
-      await orgBrowserPage.waitForTreeViewMessage('Searching: "ApexClass"');
-      console.log('[DEBUG] Search active - tree view message confirmed');
+      // Wait for search to apply
+      await orgBrowserPage.page.waitForTimeout(500);
 
       // Verify search filters metadata types
       const apexClassType = await orgBrowserPage.findMetadataType('ApexClass');
@@ -167,10 +137,8 @@ test.describe('Org Browser - Filter and Search verification', () => {
       await orgBrowserPage.expandFolder('ApexClass');
       await orgBrowserPage.clearSearch();
       await orgBrowserPage.search('Property');
-
-      // Verify tree view message
-      await orgBrowserPage.waitForTreeViewMessage('Searching: "Property"');
-      console.log('[DEBUG] Item-level search active - tree view message confirmed');
+      // Wait for search to apply
+      await orgBrowserPage.page.waitForTimeout(500);
 
       // Verify search filters items
       const classItem = orgBrowserPage.sidebar
@@ -189,15 +157,8 @@ test.describe('Org Browser - Filter and Search verification', () => {
 
       // Clear search
       await orgBrowserPage.clearSearch();
-
-      // Verify message cleared
-      await expect(async () => {
-        const message = await orgBrowserPage.getTreeViewMessage();
-        if (message?.includes('Searching:')) {
-          throw new Error(`Search message still present: "${message}"`);
-        }
-        return message;
-      }, 'Tree view message should not contain search text after clear').toPass({ timeout: 2000 });
+      // Wait for search to clear
+      await orgBrowserPage.page.waitForTimeout(500);
     });
 
     // ===== TEST 3: Structured Search =====
@@ -206,10 +167,8 @@ test.describe('Org Browser - Filter and Search verification', () => {
       // Search using structured format
       console.log('[DEBUG] Searching with structured format "ApexClass:Property"...');
       await orgBrowserPage.search('ApexClass:Property');
-
-      // Verify tree view message
-      await orgBrowserPage.waitForTreeViewMessage('Searching: "ApexClass:Property"');
-      console.log('[DEBUG] Structured search active - tree view message confirmed');
+      // Wait for search to apply
+      await orgBrowserPage.page.waitForTimeout(500);
 
       // Verify structured search filters correctly
       const apexClassType = await orgBrowserPage.findMetadataType('ApexClass');
@@ -232,15 +191,8 @@ test.describe('Org Browser - Filter and Search verification', () => {
 
       // Clear search
       await orgBrowserPage.clearSearch();
-
-      // Verify message cleared
-      await expect(async () => {
-        const message = await orgBrowserPage.getTreeViewMessage();
-        if (message?.includes('Searching:')) {
-          throw new Error(`Search message still present: "${message}"`);
-        }
-        return message;
-      }, 'Tree view message should not contain search text after clear').toPass({ timeout: 2000 });
+      // Wait for search to clear
+      await orgBrowserPage.page.waitForTimeout(500);
     });
 
     // ===== TEST 4: Filter + Unstructured Search Combination =====
@@ -254,30 +206,14 @@ test.describe('Org Browser - Filter and Search verification', () => {
       // Enable filter
       console.log('[DEBUG] Enabling local file filter...');
       await orgBrowserPage.toggleShowLocalOnly();
-
-      // Verify tree view message shows filter is active (primary verification)
-      await orgBrowserPage.waitForTreeViewMessage('Local files only');
-      console.log('[DEBUG] Filter enabled - tree view message confirmed');
+      // Wait for filter to apply
+      await orgBrowserPage.page.waitForTimeout(500);
 
       // Search for Property (unstructured)
       console.log('[DEBUG] Adding unstructured search for "Property"...');
       await orgBrowserPage.search('Property');
-
-      // Verify tree view message shows both filter and search
-      await expect(async () => {
-        const message = await orgBrowserPage.getTreeViewMessage();
-        if (!message) {
-          throw new Error('Tree view message not found');
-        }
-        if (!message.includes('Local files only')) {
-          throw new Error(`Message should contain "Local files only", got: "${message}"`);
-        }
-        if (!message.includes('Searching: "Property"')) {
-          throw new Error(`Message should contain 'Searching: "Property"', got: "${message}"`);
-        }
-        return message;
-      }, 'Tree view message should show both filter and search').toPass({ timeout: 2000 });
-      console.log('[DEBUG] Combined filter and search active - tree view message confirmed');
+      // Wait for search to apply
+      await orgBrowserPage.page.waitForTimeout(500);
 
       // Verify combined filter and search
       const classItem = orgBrowserPage.sidebar
@@ -311,30 +247,14 @@ test.describe('Org Browser - Filter and Search verification', () => {
       // Enable filter
       console.log('[DEBUG] Enabling local file filter...');
       await orgBrowserPage.toggleShowLocalOnly();
-
-      // Verify tree view message shows filter is active (primary verification)
-      await orgBrowserPage.waitForTreeViewMessage('Local files only');
-      console.log('[DEBUG] Filter enabled - tree view message confirmed');
+      // Wait for filter to apply
+      await orgBrowserPage.page.waitForTimeout(500);
 
       // Search using structured format
       console.log('[DEBUG] Adding structured search "ApexClass:Property"...');
       await orgBrowserPage.search('ApexClass:Property');
-
-      // Verify tree view message shows both filter and structured search
-      await expect(async () => {
-        const message = await orgBrowserPage.getTreeViewMessage();
-        if (!message) {
-          throw new Error('Tree view message not found');
-        }
-        if (!message.includes('Local files only')) {
-          throw new Error(`Message should contain "Local files only", got: "${message}"`);
-        }
-        if (!message.includes('Searching: "ApexClass:Property"')) {
-          throw new Error(`Message should contain 'Searching: "ApexClass:Property"', got: "${message}"`);
-        }
-        return message;
-      }, 'Tree view message should show both filter and structured search').toPass({ timeout: 2000 });
-      console.log('[DEBUG] Combined filter and structured search active - tree view message confirmed');
+      // Wait for search to apply
+      await orgBrowserPage.page.waitForTimeout(500);
 
       // Verify combined structured search and filter
       const apexClassType = await orgBrowserPage.findMetadataType('ApexClass');

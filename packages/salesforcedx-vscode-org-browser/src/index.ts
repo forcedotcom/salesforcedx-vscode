@@ -31,7 +31,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
 };
 
 export const deactivate = async (): Promise<void> =>
-  Effect.runPromise(Effect.provide(deactivateEffect, AllServicesLayer) as Effect.Effect<void | undefined, Error, never>);
+  Effect.runPromise(Effect.provide(deactivateEffect, AllServicesLayer));
 
 // export for testing
 export const activateEffect = (context: vscode.ExtensionContext) =>
@@ -58,45 +58,13 @@ export const activateEffect = (context: vscode.ExtensionContext) =>
     });
     context.subscriptions.push(treeView);
 
-    // Update message based on filter state
-    const updateTreeMessage = (): void => {
-      const state = filterService.getState();
-      const messages: string[] = [];
-
-      if (state.searchQuery) {
-        messages.push(`Searching: "${state.searchQuery}"`);
-      }
-      if (state.showLocalOnly) {
-        messages.push('Local files only');
-      }
-      if (state.hideManaged) {
-        messages.push('Hiding managed packages');
-      }
-
-      treeView.message = messages.length > 0 ? messages.join(' | ') : undefined;
-    };
-
-    // Show initial filter state on activation
-    updateTreeMessage();
-
     // Subscribe to filter state changes to refresh tree
     context.subscriptions.push(
       filterService.onChange(state => {
         treeProvider.updateFilterState(state);
-        updateTreeMessage();
         treeProvider.fireChangeEvent();
       })
     );
-
-    // Show progress in tree view message when checking local files
-    filePresenceService.setProgressCallback(busy => {
-      if (busy) {
-        treeView.message = 'Checking local files...';
-      } else {
-        // Restore filter message when done
-        updateTreeMessage();
-      }
-    });
 
     // Update count badges when file presence checks complete for a batch
     filePresenceService.setBatchCompleteCallback(batchId => {
@@ -125,7 +93,7 @@ export const activateEffect = (context: vscode.ExtensionContext) =>
           // First try: get from selection
           const selection = treeView.selection;
           if (selection.length > 0) {
-            node = selection[0] as OrgBrowserTreeItem;
+            node = selection[0];
           } else {
             // Second try: if args[0] is a string (ID), try to find it in cache
             if (args.length > 0 && typeof args[0] === 'string') {
