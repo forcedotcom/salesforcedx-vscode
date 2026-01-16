@@ -159,24 +159,24 @@ export class WorkspaceContextUtil {
             console.log('workspaceContextUtil.ts getConnection() - 23');
 
             // Wait for auth files to be written and state to update (login command runs async)
-            // Retry with exponential backoff to handle timing issues
+            // Retry with delays to handle timing issues
             const maxRetries = 5;
-            const baseDelay = 500; // Start with 500ms
+            const initialDelay = 1000; // Start with 1 second initial delay
+            const retryDelay = 500; // 500ms between retries
 
             for (let attempt = 0; attempt < maxRetries; attempt++) {
               console.log(`workspaceContextUtil.ts getConnection() - 23A - attempt ${attempt + 1}`);
 
-              if (attempt > 0) {
-                // Wait before retrying (exponential backoff)
-                const delay = baseDelay * Math.pow(2, attempt - 1);
-                console.log(`workspaceContextUtil.ts getConnection() - waiting ${delay}ms`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-              }
+              // Wait before each attempt to allow auth files to be written
+              // First attempt waits longer since the process just completed
+              const delay = attempt === 0 ? initialDelay : retryDelay;
+              console.log(`workspaceContextUtil.ts getConnection() - waiting ${delay}ms before attempt ${attempt + 1}`);
+              await new Promise(resolve => setTimeout(resolve, delay));
 
-              // Force reload of auth info
+              // Force reload of auth info after waiting
+              console.log('workspaceContextUtil.ts getConnection() - 23B - reloading auth cache');
               await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
               StateAggregator.clearInstance();
-              console.log('workspaceContextUtil.ts getConnection() - 23B');
 
               try {
                 console.log('workspaceContextUtil.ts getConnection() - 23C');
@@ -186,7 +186,7 @@ export class WorkspaceContextUtil {
                 });
                 console.log('workspaceContextUtil.ts getConnection() - 23D');
                 await newConnection.identity();
-                console.log('workspaceContextUtil.ts getConnection() - 23E');
+                console.log('workspaceContextUtil.ts getConnection() - 23E - success!');
                 this.sessionConnections.set(this._username, {
                   connection: newConnection,
                   lastTokenValidationTimestamp: Date.now()
