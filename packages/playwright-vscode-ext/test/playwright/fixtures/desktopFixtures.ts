@@ -7,4 +7,5 @@
 
 import { createDesktopTest } from '../../../src/fixtures/createDesktopTest';
 
+// here we don't need an org alias because we're not using any orgs
 export const test = createDesktopTest({ fixturesDir: __dirname });

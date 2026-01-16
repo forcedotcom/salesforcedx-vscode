@@ -5,9 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { createDesktopTest } from '@salesforce/playwright-vscode-ext';
+import {
+  createDesktopTest,
+  DREAMHOUSE_ORG_ALIAS,
+  MINIMAL_ORG_ALIAS,
+  NON_TRACKING_ORG_ALIAS
+} from '@salesforce/playwright-vscode-ext';
 
-export const test = createDesktopTest({ fixturesDir: __dirname });
+export const test = createDesktopTest({ fixturesDir: __dirname, orgAlias: MINIMAL_ORG_ALIAS });
+export const dreamhouseTest = createDesktopTest({ fixturesDir: __dirname, orgAlias: DREAMHOUSE_ORG_ALIAS });
+export const nonTrackingTest = createDesktopTest({ fixturesDir: __dirname, orgAlias: NON_TRACKING_ORG_ALIAS });
 
 // Keep VS Code window open on test failure when in debug mode
 test.afterEach(async ({ page }, testInfo) => {

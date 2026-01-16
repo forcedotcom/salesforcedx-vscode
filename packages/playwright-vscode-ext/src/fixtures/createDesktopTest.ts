@@ -17,10 +17,11 @@ import { createTestWorkspace } from './desktopWorkspace';
 type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */
   fixturesDir: string;
+  orgAlias?: string;
 };
 
 /** Creates a Playwright test instance configured for desktop Electron testing with services extension */
-export const createDesktopTest = ({ fixturesDir }: CreateDesktopTestOptions) =>
+export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOptions) =>
   base.extend<TestFixtures, WorkerFixtures>({
     // Download VS Code once per worker (cached in ~/.vscode-test/ or the windows equivalent)
     vscodeExecutable: [
@@ -33,7 +34,7 @@ export const createDesktopTest = ({ fixturesDir }: CreateDesktopTestOptions) =>
 
     // Launch fresh Electron instance per test
     electronApp: async ({ vscodeExecutable }, use): Promise<void> => {
-      const workspaceDir = await createTestWorkspace();
+      const workspaceDir = await createTestWorkspace(orgAlias);
       // Use subdirectory of workspace for user data (keeps everything isolated and together)
       const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
       await fs.mkdir(userDataDir, { recursive: true });

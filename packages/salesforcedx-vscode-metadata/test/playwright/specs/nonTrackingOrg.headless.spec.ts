@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { test } from '../fixtures';
+import { nonTrackingTest as test } from '../fixtures/desktopFixtures';
 import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
@@ -51,6 +51,7 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
 
     await test.step('setup non-tracking org', async () => {
       const createResult = await createNonTrackingOrg(isDesktop() ? NON_TRACKING_ORG_ALIAS : HUB_ORG_ALIAS);
+      console.log('createResult', createResult);
       await waitForVSCodeWorkbench(page);
       await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);
