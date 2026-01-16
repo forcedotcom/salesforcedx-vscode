@@ -38,7 +38,7 @@
     "@tsconfig/node22": "22.0.2",
     "@types/chai": "^4.3.17",
     "@types/cross-spawn": "6.0.6",
-    "@types/jest": "^29.5.5",
+    "@types/jest": "^29.5.12",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.15.1",
     "@types/semver": "7.5.8",
@@ -110,7 +110,7 @@
   },
   "scripts": {
     "build": "npm run compile",
-    "postinstall": "npm run check:peer-deps && npm run check:typescript-project-references",
+    "postinstall": "wireit",
     "bootstrap": "npm install",
     "changelog": "ts-node ./scripts/create-release-notes.ts",
     "clean": "npm run clean -ws --if-present && git clean -xfd",
@@ -127,8 +127,8 @@
     "capture:results": "shx mkdir -p ./test-results && npm run junit:report && npm run coverage:report",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "npx jscpd",
-    "check:peer-deps": "check-peer-dependencies --ignore picomatch",
-    "check:typescript-project-references": "workspaces-to-typescript-project-references --check",
+    "precommit": "wireit",
+    "prepush": "wireit",
     "vscode:bundle": "wireit",
     "vscode:package": "wireit",
     "vscode:package:modern": "wireit",
@@ -285,13 +285,56 @@
       "dependencies": [
         "vscode:package:modern"
       ]
+    },
+    "check:peer-deps": {
+      "command": "check-peer-dependencies --ignore picomatch",
+      "files": [
+        "**/package.json"
+      ],
+      "output": []
+    },
+    "check:typescript-project-references": {
+      "command": "workspaces-to-typescript-project-references --check",
+      "files": [
+        "**/tsconfig*.json",
+        "**/package.json"
+      ],
+      "output": []
+    },
+    "check:package-lock": {
+      "command": "ts-node scripts/package-lock.validation.ts",
+      "files": [
+        "package-lock.json",
+        "scripts/package-lock.validation.ts"
+      ],
+      "output": []
+    },
+    "precommit": {
+      "dependencies": [
+        "lint",
+        "check:peer-deps",
+        "check:typescript-project-references",
+        "check:package-lock"
+      ]
+    },
+    "prepush": {
+      "dependencies": [
+        "lint",
+        "test"
+      ]
+    },
+    "postinstall": {
+      "dependencies": [
+        "check:peer-deps",
+        "check:typescript-project-references"
+      ]
     }
   },
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "npm run compile && npm run lint && npm run check:peer-deps && npm run check:typescript-project-references && ts-node scripts/package-lock.validation.ts",
-      "pre-push": "npm run compile && npm run lint && npm run test"
+      "pre-commit": "npm run compile && npm run precommit",
+      "pre-push": "npm run compile && npm run prepush"
     }
   }
 }
