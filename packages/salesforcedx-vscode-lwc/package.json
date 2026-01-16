@@ -54,7 +54,9 @@
   "scripts": {
     "vscode:bundle": "wireit",
     "run:web": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --open-devtools --port 3001 --verbose --printServerLog --quality stable",
+    "run:web:with-org-browser": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-org-browser --extensionPath ../salesforcedx-vscode-services --open-devtools --port 3001 --verbose --printServerLog --quality stable",
     "bundle:web": "npm run vscode:bundle && npm run run:web",
+    "bundle:web:with-org-browser": "cd ../.. && npm run vscode:bundle -w packages/salesforcedx-vscode-org-browser && npm run vscode:bundle -w packages/salesforcedx-vscode-lwc && cd packages/salesforcedx-vscode-lwc && npm run run:web:with-org-browser",
     "vscode:prepublish": "npm prune --production",
     "vscode:package:legacy": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",

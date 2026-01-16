@@ -165,12 +165,15 @@ export default class Server {
   }
 
   public async onInitialize(params: InitializeParams): Promise<InitializeResult> {
+    console.log('[LWC Server] onInitialize called');
     this.workspaceFolders = params.workspaceFolders ?? [];
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     this.workspaceType = params.initializationOptions?.workspaceType ?? 'UNKNOWN';
+    console.log(`[LWC Server] Workspace type: ${this.workspaceType}, folders: ${this.workspaceFolders.length}`);
     // Normalize workspaceRoots at entry point to ensure all paths are consistent
     // This ensures all downstream code receives normalized paths
     this.workspaceRoots = this.workspaceFolders.map(folder => normalizePath(URI.parse(folder.uri).fsPath));
+    console.log(`[LWC Server] Workspace roots: ${this.workspaceRoots.join(', ')}`);
 
     // Set up document event handlers
     this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
@@ -195,6 +198,7 @@ export default class Server {
       useDefaultDataProvider: false
     });
 
+    console.log('[LWC Server] onInitialize complete, returning capabilities');
     return this.capabilities;
   }
 
@@ -221,6 +225,7 @@ export default class Server {
   }
 
   public async onInitialized(): Promise<void> {
+    console.log('[LWC Server] onInitialized called - server is now fully initialized');
     const hasTsEnabled = await this.isTsSupportEnabled();
     if (hasTsEnabled) {
       await this.context.configureProjectForTs();
@@ -377,6 +382,8 @@ export default class Server {
     const uri = document.uri;
     const content = document.getText();
 
+    console.log(`[LWC Server] onDidOpen called for: ${uri}`);
+
     // Normalize URI to fsPath before syncing (entry point for path normalization)
     const normalizedPath = normalizePath(URI.parse(uri).fsPath);
     await syncDocumentToTextDocumentsProvider(
@@ -386,11 +393,73 @@ export default class Server {
       this.workspaceRoots
     );
 
+    console.log(`[LWC Server] Document synced to provider: ${normalizedPath}`);
+
+    // Check if this is an LWC file (template or JavaScript)
+    // Use path-based check as fallback since context methods might not work before initialization
+    const isLwcPath =
+      normalizedPath.includes('/lwc/') &&
+      (normalizedPath.endsWith('.html') || normalizedPath.endsWith('.js') || normalizedPath.endsWith('.ts'));
+
+    let isLwcFile = false;
+    if (isLwcPath) {
+      isLwcFile = true;
+      console.log(`[LWC Server] Detected LWC file by path: ${normalizedPath}`);
+    } else if (this.isDelayedInitializationComplete) {
+      // Only check context methods if delayed init is complete (context is initialized)
+      try {
+        isLwcFile = (await this.context.isLWCTemplate(document)) || (await this.context.isLWCJavascript(document));
+      } catch (error) {
+        console.log(
+          `[LWC Server] Error checking if LWC file: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    }
+
     // Perform delayed initialization once file loading has stabilized
     // scheduleReinitialization waits for file count to stabilize (no changes for 1.5 seconds)
     // This ensures all files from bootstrapWorkspaceAwareness are loaded before initialization
     if (!this.isDelayedInitializationComplete) {
+      console.log('[LWC Server] Scheduling delayed initialization...');
       void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performDelayedInitialization());
+    } else if (isLwcFile) {
+      // Delayed initialization already complete - but if this is an LWC file, we may need to re-index
+      // Check if we have any components indexed - if not, delayed init ran too early
+      const componentCount = this.componentIndexer.getCustomData().length;
+      console.log(`[LWC Server] LWC file opened. Current component count: ${componentCount}`);
+
+      if (componentCount === 0) {
+        // Delayed initialization ran before any LWC files were available
+        // Schedule re-initialization to wait for files to accumulate
+        // The flag is already false (or will be kept false), so performDelayedInitialization will run
+        console.log('[LWC Server] No components indexed yet. Scheduling re-initialization to wait for files...');
+        void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performDelayedInitialization());
+      } else {
+        // We have some components, but this might be a new one
+        // Re-index to pick up any newly added files
+        console.log('[LWC Server] Re-indexing to pick up new components...');
+        const beforeCount = componentCount;
+        try {
+          await this.componentIndexer.init();
+          const afterCount = this.componentIndexer.getCustomData().length;
+          console.log(`[LWC Server] Re-indexing complete. Components indexed: ${beforeCount} -> ${afterCount}`);
+
+          if (afterCount > beforeCount) {
+            // New components were added - update language service
+            this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
+            this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
+            this.languageService = getLanguageService({
+              customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
+              useDefaultDataProvider: false
+            });
+            console.log('[LWC Server] Language service updated with new component data');
+          }
+        } catch (error) {
+          console.log(
+            `[LWC Server] Error during re-indexing: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
+      }
     }
   }
 
@@ -427,25 +496,37 @@ export default class Server {
   // TODO: Once the LWC custom module resolution plugin has been developed in the language server
   // this can be removed.
   public async onDidChangeWatchedFiles(changeEvent: DidChangeWatchedFilesParams): Promise<void> {
+    console.log('[LWC Server] onDidChangeWatchedFiles called');
+    console.log(`[LWC Server] onDidChangeWatchedFiles: ${changeEvent.changes.length} file change(s) detected`);
+    changeEvent.changes.forEach((change, index) => {
+      console.log(`[LWC Server] onDidChangeWatchedFiles: Change ${index + 1}: type=${change.type}, uri=${change.uri}`);
+    });
+
     if (this.context.type === 'SFDX') {
       try {
         const hasTsEnabled = await this.isTsSupportEnabled();
+        console.log(`[LWC Server] onDidChangeWatchedFiles: TypeScript support enabled: ${hasTsEnabled}`);
         if (hasTsEnabled) {
           const { changes } = changeEvent;
           if (isLWCRootDirectoryCreated(this.context, changes)) {
             // LWC directory created
-            await this.context.updateNamespaceRootTypeCache();
-            await this.componentIndexer.updateSfdxTsConfigPath();
+            console.log('[LWC Server] onDidChangeWatchedFiles: LWC root directory created');
+            this.context.updateNamespaceRootTypeCache();
+            this.componentIndexer.updateSfdxTsConfigPath();
           } else {
             const hasDeleteEvent = await containsDeletedLwcWatchedDirectory(this.context, changes);
             if (hasDeleteEvent) {
               // We need to scan the file system for deletion events as the change event does not include
               // information about the files that were deleted.
-              await this.componentIndexer.updateSfdxTsConfigPath();
+              console.log('[LWC Server] onDidChangeWatchedFiles: LWC watched directory deleted');
+              this.componentIndexer.updateSfdxTsConfigPath();
             } else {
               const filePaths = [];
               for (const event of changes) {
                 const insideLwcWatchedDirectory = await isLWCWatchedDirectory(this.context, event.uri);
+                console.log(
+                  `[LWC Server] onDidChangeWatchedFiles: Processing event: type=${event.type}, uri=${event.uri}, insideLwcWatchedDirectory=${insideLwcWatchedDirectory}`
+                );
                 if (event.type === FileChangeType.Created && insideLwcWatchedDirectory) {
                   // File creation
                   const filePath = toResolvedPath(event.uri);
@@ -454,22 +535,33 @@ export default class Server {
                   const parentFolder = basename(dirname(dir));
                   // Only update path mapping for newly created lwc modules
                   if (/.*(.ts|.js)$/.test(ext) && folderName === fileName && parentFolder === 'lwc') {
+                    console.log(`[LWC Server] onDidChangeWatchedFiles: New LWC module detected: ${filePath}`);
                     filePaths.push(filePath);
                   }
                 }
               }
               if (filePaths.length > 0) {
+                console.log(
+                  `[LWC Server] onDidChangeWatchedFiles: Updating tsconfig path mapping for ${filePaths.length} file(s)`
+                );
                 await this.componentIndexer.insertSfdxTsConfigPath(filePaths);
+              } else {
+                console.log('[LWC Server] onDidChangeWatchedFiles: No LWC module files to update in tsconfig');
               }
             }
           }
+        } else {
+          console.log('[LWC Server] onDidChangeWatchedFiles: TypeScript support not enabled, skipping');
         }
       } catch (e) {
+        console.error(`[LWC Server] onDidChangeWatchedFiles: Error: ${e instanceof Error ? e.message : String(e)}`);
         await this.connection.sendNotification(ShowMessageNotification.type, {
           type: MessageType.Error,
           message: `Error updating tsconfig.sfdx.json path mapping: ${e instanceof Error ? e.message : String(e)}`
         });
       }
+    } else {
+      console.log(`[LWC Server] onDidChangeWatchedFiles: Workspace type is ${this.context.type}, not SFDX - skipping`);
     }
   }
 
@@ -519,17 +611,29 @@ export default class Server {
   }
 
   public onDefinition(params: TextDocumentPositionParams): Location[] {
+    console.log('[LWC Server] onDefinition called');
     const cursorInfo: CursorInfo | null = this.cursorInfo(params);
     if (!cursorInfo) {
+      console.log('[LWC Server] onDefinition: No cursorInfo found');
       return [];
     }
+    console.log(`[LWC Server] onDefinition: cursorInfo type=${cursorInfo.type}, tag=${cursorInfo.tag ?? 'none'}`);
 
     const tag: Tag | null = cursorInfo.tag ? this.componentIndexer.findTagByName(cursorInfo.tag) : null;
+    console.log(`[LWC Server] onDefinition: Found tag: ${tag ? getTagName(tag) : 'none'}, file=${tag?.file ?? 'none'}`);
+
+    // Use textDocumentsFileSystemProvider in web mode since that's where files are synced
+    // After delayed initialization, componentIndexer uses textDocumentsFileSystemProvider
+    const fsProvider = this.textDocumentsFileSystemProvider ?? this.fileSystemProvider;
+    console.log(
+      `[LWC Server] onDefinition: Using ${fsProvider === this.textDocumentsFileSystemProvider ? 'textDocumentsFileSystemProvider' : 'fileSystemProvider'}`
+    );
 
     let result: Location[] = [];
     switch (cursorInfo.type) {
       case 'tag':
-        result = tag ? getAllLocations(tag, this.fileSystemProvider) : [];
+        result = tag ? getAllLocations(tag, fsProvider) : [];
+        console.log(`[LWC Server] onDefinition: Found ${result.length} location(s) for tag`);
         break;
 
       case 'attributeKey':
@@ -542,14 +646,42 @@ export default class Server {
 
       case 'dynamicContent':
       case 'dynamicAttributeValue':
-        const { uri } = params.textDocument;
+        const { uri: dynamicUri } = params.textDocument;
+        console.log(`[LWC Server] onDefinition: dynamicAttributeValue - uri=${dynamicUri}, name=${cursorInfo.name}`);
         if (cursorInfo.range) {
-          result = [Location.create(uri, cursorInfo.range)];
+          console.log('[LWC Server] onDefinition: Using range from cursorInfo');
+          result = [Location.create(dynamicUri, cursorInfo.range)];
         } else {
-          const component: Tag | null = this.componentIndexer.findTagByURI(uri);
-          const location = component ? getClassMemberLocation(component, cursorInfo.name) : null;
-          if (location) {
-            result = [location];
+          console.log(`[LWC Server] onDefinition: Finding component by URI: ${dynamicUri}`);
+          const component: Tag | null = this.componentIndexer.findTagByURI(dynamicUri);
+          console.log(
+            `[LWC Server] onDefinition: Component found: ${component ? getTagName(component) : 'none'}, file=${component?.file ?? 'none'}`
+          );
+          if (component) {
+            console.log(`[LWC Server] onDefinition: Looking for class member: ${cursorInfo.name}`);
+            const location = getClassMemberLocation(component, cursorInfo.name);
+            if (location) {
+              // In web mode, convert file:// URI to match the scheme of the original request (e.g., memfs://)
+              const originalScheme = URI.parse(dynamicUri).scheme;
+              const locationScheme = URI.parse(location.uri).scheme;
+              if (originalScheme !== locationScheme && originalScheme !== 'file') {
+                // Replace the scheme to match the original request
+                const adjustedUri = location.uri.replace(`${locationScheme}://`, `${originalScheme}://`);
+                console.log(
+                  `[LWC Server] onDefinition: Converting URI scheme from ${locationScheme}:// to ${originalScheme}://: ${adjustedUri}`
+                );
+                result = [Location.create(adjustedUri, location.range)];
+              } else {
+                console.log(
+                  `[LWC Server] onDefinition: Found class member location: ${location.uri}, range=${JSON.stringify(location.range)}`
+                );
+                result = [location];
+              }
+            } else {
+              console.log(`[LWC Server] onDefinition: Class member ${cursorInfo.name} not found in component`);
+            }
+          } else {
+            console.log(`[LWC Server] onDefinition: Component not found for URI: ${dynamicUri}`);
           }
         }
         break;
@@ -616,7 +748,11 @@ export default class Server {
         return { type: 'attributeKey', tag, name: content };
       }
       case TokenType.AttributeValue: {
+        console.log(`[LWC Server] cursorInfo: AttributeValue content="${content}", attributeName="${attributeName}"`);
         const match = propertyRegex.exec(content);
+        console.log(
+          `[LWC Server] cursorInfo: propertyRegex match=${match ? 'yes' : 'no'}, property=${match?.groups?.property ?? 'none'}`
+        );
         if (match) {
           const item = iterators.find(i => i.name === match?.groups?.property) ?? null;
           return {
@@ -626,6 +762,22 @@ export default class Server {
             tag
           };
         } else {
+          // Check if content looks like a function reference (e.g., {handleBeginScanClick} or handleBeginScanClick)
+          // The HTML scanner might strip quotes but keep braces, or vice versa
+          const functionMatch = content.match(/\{?([a-zA-Z_$][a-zA-Z0-9_$]*)\}?/);
+          if (
+            functionMatch &&
+            attributeName &&
+            ['onclick', 'onchange', 'onkeyup', 'onkeydown', 'onfocus', 'onblur'].includes(attributeName.toLowerCase())
+          ) {
+            console.log(`[LWC Server] cursorInfo: Detected function reference in event handler: ${functionMatch[1]}`);
+            return {
+              type: 'dynamicAttributeValue',
+              name: functionMatch[1],
+              range: undefined,
+              tag
+            };
+          }
           return { type: 'attributeValue', name: content, tag };
         }
       }
@@ -666,9 +818,11 @@ export default class Server {
    */
   private async performDelayedInitialization(): Promise<void> {
     if (this.isDelayedInitializationComplete) {
+      console.log('[LWC Server] performDelayedInitialization: Already complete, skipping');
       return;
     }
 
+    console.log('[LWC Server] performDelayedInitialization: Starting...');
     try {
       // Initialize workspace context now that essential files are loaded via onDidOpen
       // scheduleReinitialization waits for file loading to stabilize, so all files should be available
@@ -684,7 +838,21 @@ export default class Server {
         workspaceRoot: this.workspaceRoots[0],
         fileSystemProvider: this.textDocumentsFileSystemProvider
       });
+
+      const fileCount = this.textDocumentsFileSystemProvider.getAllFileUris().length;
+      console.log(`[LWC Server] performDelayedInitialization: Files in provider: ${fileCount}`);
+
       await this.componentIndexer.init();
+
+      const componentCount = this.componentIndexer.getCustomData().length;
+      console.log(`[LWC Server] performDelayedInitialization: Components indexed: ${componentCount}`);
+      if (componentCount === 0) {
+        console.log('[LWC Server] WARNING: No components indexed! This may cause hover/completion to fail.');
+        console.log(
+          '[LWC Server] Available files:',
+          this.textDocumentsFileSystemProvider.getAllFileUris().slice(0, 10).join(', ')
+        );
+      }
 
       // Update data providers to use the new indexer
       this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
@@ -695,13 +863,24 @@ export default class Server {
         useDefaultDataProvider: false
       });
 
-      this.isDelayedInitializationComplete = true;
+      // Only mark as complete if we actually indexed components
+      // If 0 components, keep the flag false so scheduleReinitialization can trigger again when more files arrive
+      if (componentCount > 0) {
+        this.isDelayedInitializationComplete = true;
+        console.log(`[LWC Server] performDelayedInitialization: Complete! ${componentCount} components indexed.`);
+      } else {
+        console.log(
+          '[LWC Server] performDelayedInitialization: Complete but no components indexed. Will retry when more files are available.'
+        );
+      }
 
-      // send notification that delayed initialization is complete
-      void this.connection.sendNotification(ShowMessageNotification.type, {
-        type: MessageType.Info,
-        message: 'LWC Language Server is ready'
-      });
+      // send notification that delayed initialization is complete (only if we have components)
+      if (componentCount > 0) {
+        void this.connection.sendNotification(ShowMessageNotification.type, {
+          type: MessageType.Info,
+          message: 'LWC Language Server is ready'
+        });
+      }
     } catch (error: unknown) {
       Logger.error(
         `Error during delayed initialization: ${error instanceof Error ? error.message : String(error)}`,

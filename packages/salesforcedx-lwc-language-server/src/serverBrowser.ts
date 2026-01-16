@@ -8,6 +8,10 @@
 // Uses vscode-languageserver/browser which works with web workers
 import Server from './lwcServerBrowser';
 
-const server = new Server();
-server.listen();
+// Log that the server module is loading (this will appear in web worker console)
+console.log('[LWC Server] Server module loading...');
 
+const server = new Server();
+console.log('[LWC Server] Server instance created, starting listen...');
+server.listen();
+console.log('[LWC Server] Server.listen() called - server should be ready');
