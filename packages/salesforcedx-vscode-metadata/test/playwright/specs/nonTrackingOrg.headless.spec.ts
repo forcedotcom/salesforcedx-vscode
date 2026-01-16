@@ -152,69 +152,6 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
       await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: RETRIEVE_TIMEOUT });
     });
 
-    await test.step('generate manifest from apex class', async () => {
-      await executeCommandWithCommandPalette(page, packageNls.project_generate_manifest_text);
-
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
-      await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'visible', timeout: 10_000 });
-
-      await page.keyboard.press('Enter');
-
-      const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
-      await manifestEditor.waitFor({ state: 'visible', timeout: 15_000 });
-    });
-
-    await test.step('deploy via manifest', async () => {
-      if (isMacDesktop()) {
-        console.log('Skipping "deploy via manifest" step on Mac Desktop (context menus not supported)');
-        return;
-      }
-
-      const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
-      await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
-      await manifestEditor.click();
-
-      await executeEditorContextMenuCommand(page, packageNls.deploy_in_manifest_text, 'manifest/package.xml');
-
-      const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-      await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
-
-      // Check for deploy error notifications
-      const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);
-      const deployErrorPattern = new RegExp(
-        `${messages.deploy_completed_with_errors_message}|${messages.deploy_failed.replaceAll('%s', '.*')}`,
-        'i'
-      );
-      const deployErrorNotification = postDeployNotifications.filter({ hasText: deployErrorPattern }).first();
-      const hasDeployError = await deployErrorNotification.isVisible({ timeout: 2000 }).catch(() => false);
-      if (hasDeployError) {
-        const errorText = await deployErrorNotification.textContent();
-        throw new Error(`Deploy failed with error notification: ${errorText}`);
-      }
-
-      await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: 30_000 });
-    });
-
-    await test.step('retrieve via manifest', async () => {
-      if (isMacDesktop()) {
-        console.log('Skipping "retrieve via manifest" step on Mac Desktop (context menus not supported)');
-        return;
-      }
-
-      const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
-      await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
-      await manifestEditor.click();
-
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Salesforce Metadata');
-
-      await executeEditorContextMenuCommand(page, packageNls.retrieve_in_manifest_text, 'manifest/package.xml');
-
-      await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
-      await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: RETRIEVE_TIMEOUT });
-    });
-
     await test.step('delete class from org', async () => {
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Salesforce Metadata');
@@ -273,6 +210,89 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
         }).toPass({ timeout: 30_000 });
       }
       // If file doesn't exist, it was already deleted when we deleted from org (expected behavior)
+    });
+
+    await validateNoCriticalErrors(test, consoleErrors, networkErrors);
+  }
+);
+
+(isDesktop() && !isMacDesktop() ? test : test.skip.bind(test))(
+  'Non-Tracking Org: deploy/retrieve via manifest work without tracking',
+  async ({ page }) => {
+    test.setTimeout(RETRIEVE_TIMEOUT);
+
+    const consoleErrors = setupConsoleMonitoring(page);
+    const networkErrors = setupNetworkMonitoring(page);
+
+    let className: string;
+
+    await test.step('setup non-tracking org', async () => {
+      const createResult = await createNonTrackingOrg();
+      await waitForVSCodeWorkbench(page);
+      await assertWelcomeTabExists(page);
+      await closeWelcomeTabs(page);
+      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+
+      // Disable deploy-on-save so test can control when deploys happen
+      await upsertSettings(page, { [`${METADATA_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
+    });
+
+    await test.step('create apex class', async () => {
+      className = `NonTrackingTest${Date.now()}`;
+      await createApexClass(page, className);
+    });
+
+    await test.step('generate manifest from apex class', async () => {
+      await executeCommandWithCommandPalette(page, packageNls.project_generate_manifest_text);
+
+      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      await quickInput.waitFor({ state: 'visible', timeout: 10_000 });
+      await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'visible', timeout: 10_000 });
+
+      await page.keyboard.press('Enter');
+
+      const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
+      await manifestEditor.waitFor({ state: 'visible', timeout: 15_000 });
+    });
+
+    await test.step('deploy via manifest', async () => {
+      const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
+      await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
+      await manifestEditor.click();
+
+      await executeEditorContextMenuCommand(page, packageNls.deploy_in_manifest_text, 'manifest/package.xml');
+
+      const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
+      await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
+
+      // Check for deploy error notifications
+      const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);
+      const deployErrorPattern = new RegExp(
+        `${messages.deploy_completed_with_errors_message}|${messages.deploy_failed.replaceAll('%s', '.*')}`,
+        'i'
+      );
+      const deployErrorNotification = postDeployNotifications.filter({ hasText: deployErrorPattern }).first();
+      const hasDeployError = await deployErrorNotification.isVisible({ timeout: 2000 }).catch(() => false);
+      if (hasDeployError) {
+        const errorText = await deployErrorNotification.textContent();
+        throw new Error(`Deploy failed with error notification: ${errorText}`);
+      }
+
+      await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: 30_000 });
+    });
+
+    await test.step('retrieve via manifest', async () => {
+      const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
+      await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
+      await manifestEditor.click();
+
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, 'Salesforce Metadata');
+
+      await executeEditorContextMenuCommand(page, packageNls.retrieve_in_manifest_text, 'manifest/package.xml');
+
+      await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
+      await waitForOutputChannelText(page, { expectedText: 'retrieved', timeout: RETRIEVE_TIMEOUT });
     });
 
     await validateNoCriticalErrors(test, consoleErrors, networkErrors);
