@@ -47,8 +47,12 @@ test.describe('Org Browser - CustomObject retrieval', () => {
       const brokerItemBeforeRetrieval = await orgBrowserPage.getMetadataItem('CustomObject', 'Broker__c');
 
       // Verify icon shows file not present (circle-large-outline)
-      const filePresenceIcon = brokerItemBeforeRetrieval.locator('.codicon-circle-large-outline, .codicon-pass-filled').first();
-      await expect(filePresenceIcon, 'File presence icon should be visible before retrieval').toBeVisible({ timeout: 5000 });
+      const filePresenceIcon = brokerItemBeforeRetrieval
+        .locator('.codicon-circle-large-outline, .codicon-pass-filled')
+        .first();
+      await expect(filePresenceIcon, 'File presence icon should be visible before retrieval').toBeVisible({
+        timeout: 5000
+      });
 
       // Verify it's the "not present" icon (circle-large-outline)
       const iconClass = await filePresenceIcon.getAttribute('class');
@@ -83,34 +87,13 @@ test.describe('Org Browser - CustomObject retrieval', () => {
       }
       await page.waitForTimeout(500); // Wait for UI to settle and focus to clear
 
-      // Wait for icon to update - use same selector pattern as "before retrieval" check
-      await expect(async () => {
-        // Re-find the item each attempt to get a fresh locator
-        const brokerItemAfterRetrieval = await orgBrowserPage.getMetadataItem('CustomObject', 'Broker__c');
-
-        // Use the same selector pattern as the "before retrieval" check
-        const filePresenceIcon = brokerItemAfterRetrieval.locator('.codicon-circle-large-outline, .codicon-pass-filled').first();
-        const isVisible = await filePresenceIcon.isVisible({ timeout: 500 }).catch(() => false);
-        if (!isVisible) {
-          // Check all icons in the item to see what's there
-          const allIcons = brokerItemAfterRetrieval.locator('.codicon');
-          const iconCount = await allIcons.count();
-          const iconClasses: string[] = [];
-          for (let i = 0; i < iconCount; i++) {
-            const icon = allIcons.nth(i);
-            const iconClass = await icon.getAttribute('class').catch(() => '');
-            if (iconClass) iconClasses.push(iconClass);
-          }
-          throw new Error(`File presence icon not visible yet. Found ${iconCount} icons with classes: ${iconClasses.join(', ')}`);
-        }
-
-        const iconClass = await filePresenceIcon.getAttribute('class');
-        if (!iconClass?.includes('pass-filled')) {
-          throw new Error(`Icon class is "${iconClass}", expected to contain "pass-filled"`);
-        }
-
-        return iconClass;
-      }, 'File presence icon should show pass-filled after retrieval').toPass({ timeout: 10_000, intervals: [100, 200, 500] });
+      // Wait for icon to update - use exact same pattern as customTab test
+      // Re-find the item after retrieval to get fresh locator
+      const brokerItemAfterRetrieval = await orgBrowserPage.getMetadataItem('CustomObject', 'Broker__c');
+      await expect(brokerItemAfterRetrieval.locator('div.custom-view-tree-node-item-icon')).toContainClass(
+        'codicon-pass-filled',
+        { timeout: 15_000 }
+      );
     });
 
     await test.step('override confirmation for Broker__c', async () => {
