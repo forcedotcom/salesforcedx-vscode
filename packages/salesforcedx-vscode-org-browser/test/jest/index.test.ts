@@ -62,7 +62,7 @@ import * as vscode from 'vscode';
 import { Effect, Layer } from 'effect';
 import { activateEffect, deactivateEffect } from '../../src/index';
 import { ExtensionProviderService } from '../../src/services/extensionProvider';
-import { FilePresenceService } from '../../src/tree/filePresenceService';
+import { FilePresenceService } from '../../src/services/filePresenceService';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 
