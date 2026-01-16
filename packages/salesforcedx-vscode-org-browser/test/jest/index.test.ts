@@ -59,7 +59,7 @@ jest.mock('vscode', () => ({
 }));
 
 import * as vscode from 'vscode';
-import { Effect, Layer } from 'effect';
+import { Effect, Layer, Stream } from 'effect';
 import { activateEffect, deactivateEffect } from '../../src/index';
 import { ExtensionProviderService } from '../../src/services/extensionProvider';
 import { FilePresenceService } from '../../src/services/filePresenceService';
@@ -112,7 +112,7 @@ const mockServicesApi: SalesforceVSCodeServicesApi = {
     SourceTrackingService: createMockServiceWithDefault() as unknown as SalesforceVSCodeServicesApi['services']['SourceTrackingService'],
     SdkLayer: Layer.empty as unknown as SalesforceVSCodeServicesApi['services']['SdkLayer'],
     TargetOrgRef: {
-      changes: Effect.never
+      changes: Stream.succeed({ orgId: undefined, username: undefined })
     } as unknown as SalesforceVSCodeServicesApi['services']['TargetOrgRef']
   } as unknown as SalesforceVSCodeServicesApi['services']
 };
@@ -137,8 +137,11 @@ const MockFilePresenceServiceLive = Layer.sync(FilePresenceService, () => ({
   setBatchCompleteCallback: (): void => {}
 }));
 
+let mockSubscriptions: vscode.Disposable[] = [];
 const mockContext = {
-  subscriptions: [],
+  get subscriptions() {
+    return mockSubscriptions;
+  },
   workspaceState: {
     get: jest.fn(),
     update: jest.fn().mockResolvedValue(undefined),
@@ -156,6 +159,8 @@ const MockServicesLayer = Layer.mergeAll(
 describe('Extension', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset subscriptions array for each test
+    mockSubscriptions = [];
     // Mock vscode.extensions.getExtension to return our mock API
     (vscode.extensions.getExtension as jest.Mock).mockReturnValue({
       isActive: true,
@@ -163,6 +168,16 @@ describe('Extension', () => {
     });
     // Ensure createTreeView returns a mutable object
     (vscode.window.createTreeView as jest.Mock).mockReturnValue(createMockTreeView());
+  });
+
+  afterEach(() => {
+    // Dispose of all subscriptions to clean up async operations
+    mockSubscriptions.forEach(subscription => {
+      if (subscription && typeof subscription.dispose === 'function') {
+        subscription.dispose();
+      }
+    });
+    mockSubscriptions = [];
   });
 
   it('should activate successfully', async () => {
