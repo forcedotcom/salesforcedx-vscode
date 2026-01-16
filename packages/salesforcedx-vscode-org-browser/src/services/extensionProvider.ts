@@ -10,8 +10,8 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { FilePresenceServiceLive } from '../tree/filePresenceService';
-import { OrgBrowserRetrieveServiceLive } from './orgBrowserMetadataRetrieveService';
+import { type FilePresenceService, FilePresenceServiceLive } from '../tree/filePresenceService';
+import { type OrgBrowserRetrieveService, OrgBrowserRetrieveServiceLive } from './orgBrowserMetadataRetrieveService';
 
 export type ExtensionProviderService = {
   /** Get the SalesforceVSCodeServicesApi, activating if needed */
@@ -24,22 +24,22 @@ const isSalesforceVSCodeServicesApi = (api: unknown): api is SalesforceVSCodeSer
   api !== null && api !== undefined && typeof api === 'object' && 'services' in api;
 
 /** Get the services API synchronously (extension must be active) */
-const getServicesApiSync = (): SalesforceVSCodeServicesApi => {
-  const ext = vscode.extensions.getExtension<SalesforceVSCodeServicesApi>(
-    'salesforce.salesforcedx-vscode-services'
+const getServicesApiSync = (): SalesforceVSCodeServicesApi =>
+  Effect.runSync(
+    Effect.sync(() =>
+      vscode.extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services')
+    ).pipe(
+      Effect.flatMap(ext => (ext ? Effect.succeed(ext) : Effect.fail(new Error('Services extension not found')))),
+      Effect.flatMap(ext =>
+        ext.isActive
+          ? Effect.succeed(ext.exports)
+          : Effect.fail(new Error('Services extension not active - ensure it is listed in extensionDependencies'))
+      ),
+      Effect.flatMap(api =>
+        isSalesforceVSCodeServicesApi(api) ? Effect.succeed(api) : Effect.fail(new Error('Invalid Services API'))
+      )
+    )
   );
-  if (!ext) {
-    throw new Error('Services extension not found');
-  }
-  if (!ext.isActive) {
-    throw new Error('Services extension not active - ensure it is listed in extensionDependencies');
-  }
-  const api = ext.exports;
-  if (!isSalesforceVSCodeServicesApi(api)) {
-    throw new Error('Invalid Services API');
-  }
-  return api;
-};
 
 /** connect to the Salesforce Services extension and get all of its API services */
 const getServicesApi = Effect.sync(() =>
@@ -58,10 +58,6 @@ const ExtensionProviderServiceLive = Layer.effect(
     getServicesApi
   }))
 );
-
-// Import service types for the return type annotation
-import type { OrgBrowserRetrieveService } from './orgBrowserMetadataRetrieveService';
-import type { FilePresenceService } from '../tree/filePresenceService';
 
 /** Create AllServicesLayer synchronously by manually constructing from individual service layers */
 const createAllServicesLayer = (): Layer.Layer<
@@ -90,20 +86,15 @@ const createAllServicesLayer = (): Layer.Layer<
     FilePresenceServiceLive
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return allServices as any;
+  return allServices;
 };
 
 /** Layer that provides all services - created lazily on first access */
-let _allServicesLayer: ReturnType<typeof createAllServicesLayer> | undefined;
+const cache: { value: ReturnType<typeof createAllServicesLayer> | undefined } = { value: undefined };
 export const getAllServicesLayer = (): ReturnType<typeof createAllServicesLayer> => {
-  if (!_allServicesLayer) {
-    _allServicesLayer = createAllServicesLayer();
-  }
-  return _allServicesLayer;
+  cache.value ??= createAllServicesLayer();
+  return cache.value;
 };
 
 // For backward compatibility - create layer lazily
-export const AllServicesLayer = Layer.unwrapEffect(
-  Effect.sync(() => getAllServicesLayer())
-);
+export const AllServicesLayer = Layer.unwrapEffect(Effect.sync(() => getAllServicesLayer()));

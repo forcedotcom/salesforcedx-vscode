@@ -35,6 +35,7 @@ const retrieveEffect = (
   treeProvider: MetadataTypeTreeProvider
   // void since we catch all the errors and show the vscode error message
 ): Effect.Effect<RetrieveResult | SuccessfulCancelResult | void, never> =>
+  /* eslint-disable @typescript-eslint/consistent-type-assertions */
   Effect.gen(function* () {
     const target = getRetrieveTarget(node);
     if (target._tag === 'None') {
@@ -102,9 +103,10 @@ const retrieveEffect = (
       })
     )
   ) as Effect.Effect<RetrieveResult | SuccessfulCancelResult | void, never>;
+/* eslint-enable @typescript-eslint/consistent-type-assertions */
 
 const getRetrieveTarget = (node: OrgBrowserTreeItem): Option.Option<MetadataMember> => {
-  if (!node || !node.kind) {
+  if (!node?.kind) {
     return Option.none();
   }
   if (node.kind === 'folderType') {

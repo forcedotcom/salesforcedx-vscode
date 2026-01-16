@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { MetadataListResultItem } from './types';
+import type { CustomObjectField, MetadataDescribeResultItem, MetadataListResultItem } from './types';
 import type { FilterState, FilterStateService } from '../services/filterStateService';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
@@ -84,9 +84,6 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   public readonly onDidChangeTreeData: vscode.Event<OrgBrowserTreeItem | undefined | void> =
     this._onDidChangeTreeData.event;
 
-  /** Tracks if the last fetch failed - used to show error state */
-  private lastError: Error | undefined;
-
   /** Current filter state */
   private filterState: FilterState = { showLocalOnly: false, hideManaged: false, searchQuery: '' };
 
@@ -115,7 +112,6 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     this.childrenCache.clear();
     this.parentNodeCache.clear();
     this.allItemsCache.clear();
-    this.lastError = undefined;
   }
 
   /** Find a tree item by its ID from the cache */
@@ -176,22 +172,29 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
         const filePresenceService = yield* FilePresenceService;
         const batchId = node?.id ?? 'root';
         filePresenceService.cancelBatch(batchId);
-      }).pipe(Effect.provide(AllServicesLayer))
-    ).catch(() => {
-      // Ignore errors cancelling batch
-    });
+      })
+        .pipe(Effect.provide(AllServicesLayer))
+        .pipe(Effect.catchAll(() => Effect.succeed(undefined)))
+    );
 
     // Clear cache for this node so we fetch fresh data
     if (node?.id) {
       this.childrenCache.delete(node.id);
     }
 
-    try {
-      await this.getChildren(node, true);
-    } finally {
-      // Always fire change event so tree updates (even on error, to clear stale data)
-      this._onDidChangeTreeData.fire(node);
-    }
+    const treeProvider = this;
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        yield* Effect.promise(() => treeProvider.getChildren(node, true));
+      }).pipe(
+        Effect.ensuring(
+          Effect.sync(() => {
+            // Always fire change event so tree updates (even on error, to clear stale data)
+            treeProvider._onDidChangeTreeData.fire(node);
+          })
+        )
+      )
+    );
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -209,40 +212,44 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
       }
     }
 
-    try {
-      const result = await Effect.runPromise(getChildrenOfTreeItem(element, refresh, this));
-      this.lastError = undefined;
+    const treeProvider = this;
+    return Effect.runPromise(
+      Effect.gen(function* () {
+        const result = yield* getChildrenOfTreeItem(element, refresh, treeProvider);
 
-      // Cache children and parent for count updates
-      if (element?.id) {
-        this.childrenCache.set(element.id, result);
-        this.parentNodeCache.set(element.id, element);
-        this.allItemsCache.set(element.id, element);
-        // Set initial count description
-        const counts = calculateCounts(result);
-        element.description = formatCountDescription(counts);
-      }
-      // Cache all child items by their IDs
-      for (const child of result) {
-        if (child.id) {
-          this.allItemsCache.set(child.id, child);
+        // Cache children and parent for count updates
+        if (element?.id) {
+          treeProvider.childrenCache.set(element.id, result);
+          treeProvider.parentNodeCache.set(element.id, element);
+          treeProvider.allItemsCache.set(element.id, element);
+          // Set initial count description
+          const counts = calculateCounts(result);
+          element.description = formatCountDescription(counts);
         }
-      }
+        // Cache all child items by their IDs
+        result.forEach((child: OrgBrowserTreeItem) => {
+          if (child.id) {
+            treeProvider.allItemsCache.set(child.id, child);
+          }
+        });
 
-      // Apply filters to component-level nodes
-      const filtered = this.applyFilters(result, element);
-      return filtered;
-    } catch (error) {
-      this.lastError = error instanceof Error ? error : new Error(String(error));
-      console.error('[Org Browser] Error fetching children:', this.lastError.message);
+        // Apply filters to component-level nodes
+        const filtered = treeProvider.applyFilters(result, element);
+        return filtered;
+      }).pipe(
+        Effect.catchAll((error: unknown) => {
+          const errorObj = error instanceof Error ? error : new Error(String(error));
+          console.error('[Org Browser] Error fetching children:', errorObj.message);
 
-      // For root level, show an error message node
-      if (!element) {
-        return [createErrorNode(this.lastError.message)];
-      }
-      // For child nodes, return empty (parent still shows, but no children)
-      return [];
-    }
+          // For root level, show an error message node
+          if (!element) {
+            return Effect.succeed([createErrorNode(errorObj.message)]);
+          }
+          // For child nodes, return empty (parent still shows, but no children)
+          return Effect.succeed([]);
+        })
+      )
+    );
   }
 
   /** Apply active filters to the result set */
@@ -303,6 +310,7 @@ const getChildrenOfTreeItem = (
   refresh: boolean,
   treeProvider: MetadataTypeTreeProvider
 ): Effect.Effect<OrgBrowserTreeItem[], Error, never> =>
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   Effect.gen(function* () {
     const [svcProvider, filePresenceService] = yield* Effect.all([ExtensionProviderService, FilePresenceService]);
     const api = yield* svcProvider.getServicesApi;
@@ -311,34 +319,36 @@ const getChildrenOfTreeItem = (
 
     if (!element) {
       const types = yield* describeService.describe(refresh);
-      return types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(describeResultToNode);
+      return types
+        .toSorted((a: MetadataDescribeResultItem, b: MetadataDescribeResultItem) => (a.xmlName < b.xmlName ? -1 : 1))
+        .map(describeResultToNode);
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
-      const objectName = element.namespace
-        ? `${element.namespace}__${element.componentName!}`
-        : element.componentName!;
+      const objectName = element.namespace ? `${element.namespace}__${element.componentName!}` : element.componentName!;
       const result = yield* describeService.describeCustomObject(objectName);
-      const customFields = result.fields.filter(f => f.custom).toSorted((a, b) => (a.name < b.name ? -1 : 1));
+      const customFields = result.fields
+        .filter((f: CustomObjectField) => f.custom)
+        .toSorted((a: CustomObjectField, b: CustomObjectField) => (a.name < b.name ? -1 : 1));
       return yield* processWithBatchTracking(
         customFields,
-        createCustomFieldNode(filePresenceService, batchId, treeProvider.fireChangeEvent.bind(treeProvider))(
-          element
-        ),
+        createCustomFieldNode(filePresenceService, batchId, treeProvider.fireChangeEvent.bind(treeProvider))(element),
         filePresenceService,
         batchId
       );
     }
     if (element.kind === 'folderType' || (element.kind === 'type' && isFolderType(element.xmlName))) {
       const folders = yield* describeService.listMetadata(`${element.xmlName}Folder`);
-      return folders.filter(isRetrievableComponent).map(c => listResultToFolderNode(element, c));
+      const retrievableFolders: MetadataListResultItem[] = folders.filter(isRetrievableComponent);
+      return retrievableFolders.map((c: MetadataListResultItem) => listResultToFolderNode(element, c));
     }
     if (element.kind === 'type') {
       const components = yield* describeService.listMetadata(element.xmlName);
-      const retrievable = components.filter(isRetrievableComponent);
+      const retrievable: MetadataListResultItem[] = components.filter(isRetrievableComponent);
       return yield* processWithBatchTracking(
         retrievable,
-        c => createComponentWithFileCheck(filePresenceService, treeProvider, element, c, batchId),
+        (c: MetadataListResultItem) =>
+          createComponentWithFileCheck(filePresenceService, treeProvider, element, c, batchId),
         filePresenceService,
         batchId
       );
@@ -347,10 +357,11 @@ const getChildrenOfTreeItem = (
       const { xmlName, folderName } = element;
       if (!xmlName || !folderName) return [];
       const components = yield* describeService.listMetadata(xmlName, folderName);
-      const retrievable = components.filter(isRetrievableComponent);
+      const retrievable: MetadataListResultItem[] = components.filter(isRetrievableComponent);
       return yield* processWithBatchTracking(
         retrievable,
-        c => createFolderItemWithFileCheck(filePresenceService, treeProvider, element, c, batchId),
+        (c: MetadataListResultItem) =>
+          createFolderItemWithFileCheck(filePresenceService, treeProvider, element, c, batchId),
         filePresenceService,
         batchId
       );
@@ -359,8 +370,8 @@ const getChildrenOfTreeItem = (
     return yield* Effect.die(new Error(`Unsupported node kind: ${element.kind}`));
   }).pipe(
     Effect.withSpan('getChildrenOfTreeItem', { attributes: { element: element?.xmlName, refresh } }),
+    Effect.mapError((error: unknown) => (error instanceof Error ? error : new Error(String(error)))),
     Effect.provide(AllServicesLayer)
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   ) as Effect.Effect<OrgBrowserTreeItem[], Error, never>;
 
 /** Create a component node and queue a file presence check */
@@ -374,7 +385,13 @@ const createComponentWithFileCheck = (
   Effect.gen(function* () {
     const treeItem = listResultToComponentNode(element, c);
     // Use fireChangeEvent (not debounced) for individual node icon updates
-    yield* queueFilePresenceCheck(filePresenceService, treeItem, c, batchId, treeProvider.fireChangeEvent.bind(treeProvider));
+    yield* queueFilePresenceCheck(
+      filePresenceService,
+      treeItem,
+      c,
+      batchId,
+      treeProvider.fireChangeEvent.bind(treeProvider)
+    );
     return treeItem;
   }).pipe(
     Effect.withSpan('createComponentWithFileCheck', {
@@ -393,7 +410,13 @@ const createFolderItemWithFileCheck = (
   Effect.gen(function* () {
     const treeItem = listResultToFolderItemNode(element, c);
     // Use fireChangeEvent (not debounced) for individual node icon updates
-    yield* queueFilePresenceCheck(filePresenceService, treeItem, c, batchId, treeProvider.fireChangeEvent.bind(treeProvider));
+    yield* queueFilePresenceCheck(
+      filePresenceService,
+      treeItem,
+      c,
+      batchId,
+      treeProvider.fireChangeEvent.bind(treeProvider)
+    );
     return treeItem;
   }).pipe(
     Effect.withSpan('createFolderItemWithFileCheck', {

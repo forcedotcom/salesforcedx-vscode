@@ -4,9 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { MetadataMember } from '@salesforce/source-deploy-retrieve';
+import type { SfProject } from '@salesforce/core/project';
+import type { ComponentSet, MetadataMember, SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
 import * as Queue from 'effect/Queue';
 import * as Stream from 'effect/Stream';
@@ -203,8 +205,8 @@ const processBatch = (requests: FilePresenceRequest[]): any =>
   );
 
 /** Get local file presence for multiple components of the same type (batch operation) */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getFilePresenceBatch = (members: MetadataMember[]): any =>
+const getFilePresenceBatch = (members: MetadataMember[]): Effect.Effect<Map<string, boolean>, Error, never> =>
+  /* eslint-disable @typescript-eslint/consistent-type-assertions */
   ExtensionProviderService.pipe(
     Effect.flatMap(svcProvider => svcProvider.getServicesApi),
     Effect.flatMap(api =>
@@ -214,30 +216,39 @@ const getFilePresenceBatch = (members: MetadataMember[]): any =>
         }
 
         const metadataType = members[0].type;
-        const [projectService, retrieveService] = yield* Effect.all(
-          [api.services.ProjectService, api.services.MetadataRetrieveService],
-          { concurrency: 'unbounded' }
-        );
+        const [projectService, retrieveService] = yield* Effect.all([
+          api.services.ProjectService,
+          api.services.MetadataRetrieveService
+        ]);
 
-        const dirs = (yield* projectService.getSfProject).getPackageDirectories().map(directory => directory.fullPath);
+        // TypeScript can't infer service instance types from service classes, so we use explicit types
+        // All dependencies are provided via AllServicesLayer, so we can safely cast
+        const typedProjectService = projectService;
+        const typedRetrieveService = retrieveService;
+
+        const sfProject: SfProject = yield* typedProjectService.getSfProject;
+        const dirs = sfProject.getPackageDirectories().map((directory: { fullPath: string }) => directory.fullPath);
         yield* Effect.annotateCurrentSpan({ packageDirectories: dirs });
 
         // Build component set from local files for this metadata type
         // Use wildcard to get all local components of this type
-        const componentSet = yield* retrieveService.buildComponentSetFromSource(
+        const componentSet: ComponentSet = yield* typedRetrieveService.buildComponentSetFromSource(
           [{ type: metadataType, fullName: '*' }],
           dirs
         );
         yield* Effect.annotateCurrentSpan({ size: componentSet.size, metadataType });
 
         // Create lookup map of what's present locally
-        const localComponents = Array.from(componentSet.getSourceComponents()).reduce((acc, component) => {
-          acc.add(component.fullName);
-          return acc;
-        }, new Set<string>());
+        const localComponents = Array.from(componentSet.getSourceComponents()).reduce(
+          (acc: Set<string>, component: SourceComponent) => {
+            acc.add(component.fullName);
+            return acc;
+          },
+          new Set<string>()
+        );
 
         // Map each remote component to its presence
-        const presenceMap = members.reduce((acc, member) => {
+        const presenceMap = members.reduce((acc: Map<string, boolean>, member: MetadataMember) => {
           acc.set(member.fullName, localComponents.has(member.fullName));
           return acc;
         }, new Map<string, boolean>());
@@ -249,8 +260,10 @@ const getFilePresenceBatch = (members: MetadataMember[]): any =>
         })
       )
     ),
-    Effect.provide(AllServicesLayer)
-  );
+    Effect.provide(AllServicesLayer),
+    Effect.mapError((error: unknown) => (error instanceof Error ? error : new Error(String(error))))
+  ) as Effect.Effect<Map<string, boolean>, Error, never>;
+/* eslint-enable @typescript-eslint/consistent-type-assertions */
 
 /** Group requests by metadata type and batchId for batch processing */
 const groupRequests = (requests: FilePresenceRequest[]): Map<string, FilePresenceRequest[]> =>
@@ -264,23 +277,27 @@ const groupRequests = (requests: FilePresenceRequest[]): Map<string, FilePresenc
 
 // Create queue at module level - shared across all service instances
 // This ensures the same queue is used regardless of how many times the layer is instantiated
+// Create queue at module level - shared across all service instances
+// This ensures the same queue is used regardless of how many times the layer is instantiated
 const filePresenceQueue: Queue.Queue<FilePresenceRequest> = Effect.runSync(Queue.unbounded<FilePresenceRequest>());
 
 /** Live implementation of FilePresenceService */
 export const FilePresenceServiceLive = Layer.sync(FilePresenceService, () => ({
   check: (request: FilePresenceRequest): Effect.Effect<void> => Queue.offer(filePresenceQueue, request),
+
   start: (): vscode.Disposable => {
     const streamEffect = Stream.fromQueue(filePresenceQueue).pipe(
       // Collect requests into chunks for batching
       Stream.groupedWithin(100, '50 millis'),
+
       // Group by metadata type and process each group as a batch
       Stream.mapEffect(
         chunk =>
           Effect.gen(function* () {
             const requests = Array.from(chunk);
             const groups = groupRequests(requests);
-            // Process each group (same type + batchId) as a batch
             const groupArray = Array.from(groups.values());
+
             yield* Effect.all(
               groupArray.map(group => processBatch(group).pipe(Effect.provide(AllServicesLayer))),
               { concurrency: 5 }
@@ -288,25 +305,35 @@ export const FilePresenceServiceLive = Layer.sync(FilePresenceService, () => ({
           }),
         { concurrency: 'unbounded' }
       ),
+
       Stream.runDrain
     );
 
-    Effect.forkScoped(streamEffect.pipe(Effect.provide(AllServicesLayer)));
+    // Fork into the global runtime (works at runtime)
+    // TypeScript can't infer that Effect.provide eliminates dependencies
+    const fiber = Effect.runFork(
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      streamEffect.pipe(Effect.provide(AllServicesLayer)) as Effect.Effect<void, unknown, never>
+    );
 
     return {
       dispose: (): void => {
         cancelAllBatches();
-        // no interrupt needed; scope handles it
+        // Interrupt fiber safely
+        Effect.runSync(Fiber.interrupt(fiber).pipe(Effect.provide(AllServicesLayer)));
       }
     };
   },
+
   startBatch,
   cancelBatch,
   cancelAllBatches,
   hasPendingBatches,
+
   setProgressCallback: (callback: ProgressCallback | undefined): void => {
     progressCallback = callback;
   },
+
   setBatchCompleteCallback: (callback: BatchCompleteCallback | undefined): void => {
     batchCompleteCallback = callback;
   }

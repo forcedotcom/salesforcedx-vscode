@@ -30,6 +30,7 @@ export type OrgBrowserRetrieveService = {
 
 export const OrgBrowserRetrieveService = Context.GenericTag<OrgBrowserRetrieveService>('OrgBrowserRetrieveService');
 
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
 const retrieve = (
   members: MetadataMember[],
   openInEditor = false
@@ -67,11 +68,13 @@ const retrieve = (
     Effect.provide(AllServicesLayer),
     Effect.mapError(e => new Error(`Retrieve failed: ${String(e)}`))
   ) as Effect.Effect<RetrieveResult | SuccessfulCancelResult, Error>;
+/* eslint-enable @typescript-eslint/consistent-type-assertions */
 
 const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> =>
   // for unknown reasons, the filePath is sometimes prefixed with a backslash
   Option.fromNullable(result.getFileResponses()?.[0]?.filePath?.replace(/^\\/, '/'));
 
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
 const openFileInEditor = (filePath: string): Effect.Effect<void, Error> =>
   Effect.gen(function* () {
     // Get scheme from workspace folders directly
@@ -98,5 +101,5 @@ const openFileInEditor = (filePath: string): Effect.Effect<void, Error> =>
       Effect.withSpan('openFileInEditor', { attributes: { filePath } }),
       Effect.provide(AllServicesLayer)
     ) as unknown as Effect.Effect<void, Error, never>;
-
+/* eslint-enable @typescript-eslint/consistent-type-assertions */
 export const OrgBrowserRetrieveServiceLive = Layer.effect(OrgBrowserRetrieveService, Effect.succeed({ retrieve }));

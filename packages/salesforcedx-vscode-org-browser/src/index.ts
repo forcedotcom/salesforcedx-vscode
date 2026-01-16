@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import { retrieveOrgBrowserTreeItemCommand } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
-import { FilterStateService } from './services/filterStateService';
+import { type FilterState, FilterStateService } from './services/filterStateService';
 import { FilePresenceService } from './tree/filePresenceService';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
@@ -25,16 +25,21 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
     return;
   }
 
+  // TypeScript can't infer that Effect.provide eliminates dependencies
   return Effect.runPromise(
-    Effect.provide(activateEffect(context), AllServicesLayer) as Effect.Effect<void, Error, never>
+    Effect.provide(activateEffect(context), AllServicesLayer) as Effect.Effect<void, Error, never> // eslint-disable-line @typescript-eslint/consistent-type-assertions
   );
 };
 
 export const deactivate = async (): Promise<void> =>
-  Effect.runPromise(Effect.provide(deactivateEffect, AllServicesLayer));
+  // TypeScript can't infer that Effect.provide eliminates dependencies
+  Effect.runPromise(
+    Effect.provide(deactivateEffect, AllServicesLayer) as Effect.Effect<void | undefined, Error, never> // eslint-disable-line @typescript-eslint/consistent-type-assertions
+  );
 
 // export for testing
-export const activateEffect = (context: vscode.ExtensionContext) =>
+// Type includes dependencies that will be provided via AllServicesLayer
+export const activateEffect = (context: vscode.ExtensionContext): Effect.Effect<void, Error, unknown> =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const svc = yield* api.services.ChannelService;
@@ -42,7 +47,6 @@ export const activateEffect = (context: vscode.ExtensionContext) =>
 
     // Start the file presence worker for background file checks
     const filePresenceService = yield* FilePresenceService;
-    context.subscriptions.push(filePresenceService.start());
 
     // Initialize filter state service with workspace persistence
     const filterService = new FilterStateService(context.workspaceState);
@@ -56,15 +60,15 @@ export const activateEffect = (context: vscode.ExtensionContext) =>
       treeDataProvider: treeProvider,
       showCollapseAll: true
     });
-    context.subscriptions.push(treeView);
 
     // Subscribe to filter state changes to refresh tree
-    context.subscriptions.push(
-      filterService.onChange(state => {
-        treeProvider.updateFilterState(state);
-        treeProvider.fireChangeEvent();
-      })
-    );
+    const filterChangeSubscription = filterService.onChange((state: FilterState) => {
+      treeProvider.updateFilterState(state);
+      treeProvider.fireChangeEvent();
+    });
+
+    // Register all subscriptions at once
+    context.subscriptions.push(filePresenceService.start(), treeView, filterChangeSubscription);
 
     // Update count badges when file presence checks complete for a batch
     filePresenceService.setBatchCompleteCallback(batchId => {
@@ -75,10 +79,10 @@ export const activateEffect = (context: vscode.ExtensionContext) =>
     // Register commands
     // Toggle handlers - both on/off variants do the same thing (toggle)
     // We register both so VS Code can show different icons based on state via when clauses
-    const toggleLocalOnlyHandler = async () => {
+    const toggleLocalOnlyHandler = async (): Promise<void> => {
       await filterService.toggleShowLocalOnly();
     };
-    const toggleHideManagedHandler = async () => {
+    const toggleHideManagedHandler = async (): Promise<void> => {
       await filterService.toggleHideManaged();
     };
 
@@ -86,26 +90,30 @@ export const activateEffect = (context: vscode.ExtensionContext) =>
       vscode.commands.registerCommand(`${TREE_VIEW_ID}.refreshType`, async (node: OrgBrowserTreeItem) => {
         await treeProvider.refreshType(node);
       }),
-      vscode.commands.registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, async (node: OrgBrowserTreeItem | undefined, ...args: unknown[]) => {
-        // VS Code should pass the tree item when clicking inline action buttons
-        // But if it's not provided, try fallbacks:
-        if (!node) {
-          // First try: get from selection
-          const selection = treeView.selection;
-          if (selection.length > 0) {
-            node = selection[0];
-          } else {
-            // Second try: if args[0] is a string (ID), try to find it in cache
-            if (args.length > 0 && typeof args[0] === 'string') {
-              const foundNode = treeProvider.findTreeItemById(args[0]);
-              if (foundNode) {
-                node = foundNode;
+      vscode.commands.registerCommand(
+        `${TREE_VIEW_ID}.retrieveMetadata`,
+        async (node: OrgBrowserTreeItem | undefined, ...args: unknown[]) => {
+          // VS Code should pass the tree item when clicking inline action buttons
+          // But if it's not provided, try fallbacks:
+          const resolvedNodeState: { value: OrgBrowserTreeItem | undefined } = { value: node };
+          if (!resolvedNodeState.value) {
+            // First try: get from selection
+            const selection = treeView.selection;
+            if (selection.length > 0) {
+              resolvedNodeState.value = selection[0];
+            } else {
+              // Second try: if args[0] is a string (ID), try to find it in cache
+              if (args.length > 0 && typeof args[0] === 'string') {
+                const foundNode = treeProvider.findTreeItemById(args[0]);
+                if (foundNode) {
+                  resolvedNodeState.value = foundNode;
+                }
               }
             }
           }
+          await retrieveOrgBrowserTreeItemCommand(resolvedNodeState.value, treeProvider);
         }
-        await retrieveOrgBrowserTreeItemCommand(node, treeProvider);
-      }),
+      ),
       vscode.commands.registerCommand(`${TREE_VIEW_ID}.toggleLocalOnly`, toggleLocalOnlyHandler),
       vscode.commands.registerCommand(`${TREE_VIEW_ID}.toggleLocalOnlyOff`, toggleLocalOnlyHandler),
       vscode.commands.registerCommand(`${TREE_VIEW_ID}.toggleHideManaged`, toggleHideManagedHandler),
@@ -125,7 +133,7 @@ export const activateEffect = (context: vscode.ExtensionContext) =>
       })
     );
 
-    let previousOrgId: string | undefined;
+    const previousOrgIdState: { value: string | undefined } = { value: undefined };
 
     yield* Effect.forkDaemon(
       api.services.TargetOrgRef.changes.pipe(
@@ -133,7 +141,7 @@ export const activateEffect = (context: vscode.ExtensionContext) =>
           Effect.gen(function* () {
             const currentOrgId = org.orgId ?? org.username;
             // Refresh when org actually changes (including from undefined to new org)
-            const orgChanged = currentOrgId !== previousOrgId;
+            const orgChanged = currentOrgId !== previousOrgIdState.value;
 
             yield* svc.appendToChannel(`Target org changed to ${JSON.stringify(org)}`);
 
@@ -171,7 +179,7 @@ export const activateEffect = (context: vscode.ExtensionContext) =>
               }
             }
 
-            previousOrgId = currentOrgId;
+            previousOrgIdState.value = currentOrgId;
           }).pipe(Effect.provide(AllServicesLayer))
         )
       )
