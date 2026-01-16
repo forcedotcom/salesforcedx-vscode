@@ -8,6 +8,9 @@
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execAsync = promisify(exec);
 
 // Schema for sf telemetry --json output
 const SfTelemetryResultSchema = Schema.Struct({
@@ -20,13 +23,12 @@ const SfTelemetryResultSchema = Schema.Struct({
 const fetchCliIdFromCli = () => {
   const command = 'sf telemetry --json';
   return Effect.tryPromise({
-    try: () =>
-      new Promise<string>((resolve, reject) => {
-        exec(command, (error, stdout) => (error ? reject(error) : resolve(stdout)));
-      }),
+    try: () => execAsync(command, { env: { ...process.env, NO_COLOR: '1' } }),
     catch: e => e
   }).pipe(
-    Effect.flatMap(output => Schema.decodeUnknown(SfTelemetryResultSchema)(JSON.parse(output))),
+    Effect.tap(output => Effect.log(`sf telemetry output: ${output.stdout}`)),
+    Effect.tapError(error => Effect.log(`sf telemetry error: ${String(error)}`)),
+    Effect.flatMap(output => Schema.decodeUnknown(SfTelemetryResultSchema)(JSON.parse(output.stdout))),
     Effect.map(parsed => parsed.result.cliId),
     Effect.catchAll(error => Effect.log(`Failed to fetch cliId: ${String(error)}`).pipe(Effect.as(undefined))),
     Effect.withSpan('fetchCliId', { attributes: { command } })
