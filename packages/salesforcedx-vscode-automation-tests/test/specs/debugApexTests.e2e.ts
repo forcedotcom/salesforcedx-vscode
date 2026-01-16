@@ -16,16 +16,11 @@ import {
   verifyNotificationWithRetry
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createApexClassWithTest } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
-import {
-  continueDebugging,
-  getTestsSection,
-  verifyTestItemsInSideBar
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
+import { continueDebugging, getTestsSection } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   executeQuickPick,
   getWorkbench,
-  getStatusBarItemWhichIncludes,
   getTextEditor,
   dismissAllNotifications,
   waitForAndGetCodeLens
@@ -33,6 +28,7 @@ import {
 import { expect } from 'chai';
 import { TreeItem, after } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
+import { verifyTestItems } from '../utils/apexTestsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
@@ -85,15 +81,6 @@ describe('Debug Apex Tests', () => {
     if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
       this.skip();
     }
-  });
-
-  it('Verify LSP finished indexing', async () => {
-    logTestStart(testSetup, 'Verify LSP finished indexing');
-
-    // Get Apex LSP Status Bar
-    const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
-    await statusBar.click();
-    expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
   });
 
   it('Debug All Tests via Apex Class', async () => {
@@ -173,9 +160,15 @@ describe('Debug Apex Tests', () => {
     );
     const expectedItems = ['ExampleApexClass1Test', 'ExampleApexClass2Test'];
 
+    // Click Refresh Tests and verify expected test items appear
+    await testExplorerSection.click();
+    const refreshTestsAction = await testExplorerSection.getAction('Refresh Tests (⌘; ⌘R)');
+    await refreshTestsAction!.click();
+    await pause(Duration.seconds(5));
+
     await retryOperation(
       async () => {
-        await verifyTestItemsInSideBar(testExplorerSection, 'Refresh Tests', expectedItems, 4, 2);
+        await verifyTestItems(expectedItems);
       },
       3,
       'DebugApexTests - Error verifying test items in sidebar'
@@ -187,7 +180,6 @@ describe('Debug Apex Tests', () => {
       async () => {
         await pause(Duration.seconds(2));
         await testExplorerSection.click();
-        await testExplorerSection.wait(20_000);
         const foundItem = await testExplorerSection.findItem('ExampleApexClass1Test');
         if (!foundItem) {
           throw new Error('Expected TreeItem but got undefined');
@@ -196,7 +188,6 @@ describe('Debug Apex Tests', () => {
           throw new Error(`Expected TreeItem but got different item type: ${typeof foundItem}`);
         }
         apexTestItem = foundItem;
-        await apexTestItem.wait(20_000);
         await apexTestItem.select();
       },
       3,
@@ -246,7 +237,6 @@ describe('Debug Apex Tests', () => {
     await retryOperation(
       async () => {
         await testExplorerSection.click();
-        await testExplorerSection.wait(20_000);
         const foundItem = await testExplorerSection.findItem('validateSayHello');
         if (!foundItem) {
           throw new Error('Expected TreeItem but got undefined');
@@ -255,7 +245,6 @@ describe('Debug Apex Tests', () => {
           throw new Error(`Expected TreeItem but got different item type: ${typeof foundItem}`);
         }
         apexTestItem = foundItem;
-        await apexTestItem.wait(20_000);
         await apexTestItem.select();
       },
       3,

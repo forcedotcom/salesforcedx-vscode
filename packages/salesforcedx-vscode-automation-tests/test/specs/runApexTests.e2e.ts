@@ -19,14 +19,10 @@ import {
   createApexClassWithBugs,
   createApexClassWithTest
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
-import {
-  getTestsSection,
-  runTestCaseFromSideBar,
-  verifyTestIconColor,
-  verifyTestItemsInSideBar
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
+import { getTestsSection } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
+  acceptNotification,
   attemptToFindOutputPanelText,
   clearOutputView,
   clickFilePathOkButton,
@@ -40,33 +36,16 @@ import {
   zoom
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { By, InputBox, QuickOpenBox } from 'vscode-extension-tester';
+import { By, InputBox, QuickOpenBox, TreeItem } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
+import {
+  findCheckboxElement,
+  getTestResultsTabText,
+  verifyTestItems,
+  verifyTestItemsIconColor
+} from '../utils/apexTestsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { logTestStart } from '../utils/loggingHelper';
-
-// Helper function to find a checkbox element using multiple selectors.
-// Tries different selectors in order until one works.
-const findCheckboxElement = async (prompt: InputBox | QuickOpenBox) => {
-  const selectors = [
-    'div.monaco-custom-toggle.monaco-checkbox', // VSCode 1.103.0
-    'div.monaco-custom-toggle.codicon.codicon-check.monaco-checkbox',
-    'input.quick-input-list-checkbox'
-  ];
-
-  for (const selector of selectors) {
-    try {
-      const element = await prompt.findElement(By.css(selector));
-      if (element) {
-        return element;
-      }
-    } catch {
-      continue;
-    }
-  }
-
-  throw new Error(`Could not find checkbox element with any of the selectors: ${selectors.join(', ')}`);
-};
 
 describe('Run Apex Tests', () => {
   let prompt: InputBox | QuickOpenBox;
@@ -256,7 +235,7 @@ describe('Run Apex Tests', () => {
     logTestStart(testSetup, 'Run All tests via Test Sidebar');
     const workbench = getWorkbench();
 
-    // Focus on Test Explorer view using command palette (more reliable than activity bar)
+    // Open the Test Sidebar - now uses VS Code's native Test Explorer
     await retryOperation(
       async () => {
         await executeQuickPick('Testing: Focus on Test Explorer View');
@@ -265,47 +244,63 @@ describe('Run Apex Tests', () => {
       'RunApexTests - Error focusing on test explorer view'
     );
 
-    // Open the Test Sidebar - now uses VS Code's native Test Explorer
-    const apexTestsSection = await retryOperation(
+    const testExplorerSection = await retryOperation(
       async () => await getTestsSection(workbench, 'Test Explorer'),
       3,
       'RunApexTests - Error getting test explorer section'
     );
-    await pause(Duration.seconds(10)); // Wait for test section to load
-    const expectedItems = ['ExampleApexClass1Test', 'ExampleApexClass2Test', 'ExampleApexClass3Test'];
-    const apexTestsItems = await verifyTestItemsInSideBar(apexTestsSection, 'Refresh Tests', expectedItems, 6, 3);
+    await testExplorerSection.click();
+
+    // Click Refresh Tests
+    const refreshTestsAction = await testExplorerSection.getAction('Refresh Tests (⌘; ⌘R)');
+    await refreshTestsAction!.click();
+    await pause(Duration.seconds(5)); // Wait for the tests to load
+
+    // Verify the expected test items appear
+    const expectedTestNames = ['ExampleApexClass1Test', 'ExampleApexClass2Test', 'ExampleApexClass3Test'];
+    const testItems = await verifyTestItems(expectedTestNames);
 
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
-
     // Click the run tests button on the top right corner of the Test sidebar
-    await apexTestsSection.click();
-    const runTestsAction = await apexTestsSection.getAction('Run Tests');
+    const runTestsAction = await testExplorerSection.getAction('Run Tests');
     await runTestsAction!.click();
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
     await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
-    // Verify test results are listed on vscode's Output section
-    // Also verify that all tests pass
-    const outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
-    const expectedTexts = [
+    // Verify the test report notification appears with dynamic runId
+    const notificationFound = await verifyNotificationWithRetry(
+      /Apex test report is ready: test-result-[a-zA-Z0-9]+\.md/,
+      Duration.seconds(30)
+    );
+    expect(notificationFound).to.equal(true);
+
+    // Click "Open Report" button on the notification (use partial match for the notification text)
+    const accepted = await acceptNotification('Apex test report is ready:', 'Open Report', Duration.seconds(5));
+    expect(accepted).to.equal(true);
+    await pause(Duration.seconds(3));
+
+    // Verify the markdown preview tab opens (tab label contains "Preview test-result-*.md")
+    const previewTab = await getWorkbench().findElement(By.css('div.tab-label[aria-label*="Preview test-result-"]'));
+    const tabLabel = await previewTab.getAttribute('aria-label');
+    expect(tabLabel).to.match(/Preview test-result-[a-zA-Z0-9]+\.md/);
+
+    // Verify test results in the Test Results tab (xterm terminal)
+    const testResultsText = await getTestResultsTabText();
+    const expectedTextsInTestResultsTab = [
       '=== Test Summary',
       'Outcome              Passed',
       'Tests Ran            3',
       'Pass Rate            100%',
-      'TEST NAME',
       'ExampleApexClass1Test.validateSayHello  Pass',
       'ExampleApexClass2Test.validateSayHello  Pass',
-      'ExampleApexClass3Test.validateSayHello  Pass',
-      'Ended SFDX: Run Apex Tests'
+      'ExampleApexClass3Test.validateSayHello  Pass'
     ];
-    await verifyOutputPanelText(outputPanelText, expectedTexts);
+    await verifyOutputPanelText(testResultsText, expectedTextsInTestResultsTab);
 
-    // Verify the tests that are passing are labeled with a green dot on the Test sidebar
-    for (const item of apexTestsItems) {
-      await verifyTestIconColor(item, 'testPass');
-    }
+    // Verify the tests that are passing are showing the right icon in Test Explorer
+    await verifyTestItemsIconColor(testItems, 'testPass');
   });
 
   it('Run All Tests on a Class via the Test Sidebar', async () => {
@@ -314,19 +309,48 @@ describe('Run Apex Tests', () => {
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
-    const terminalText = await runTestCaseFromSideBar(workbench, 'Test Explorer', 'ExampleApexClass2Test', 'Run Tests');
-    const expectedTexts = [
+
+    // Find and click on the test class in the Test Explorer
+    const testExplorerSection = await getTestsSection(workbench, 'Test Explorer');
+    await testExplorerSection.click();
+    await pause(Duration.seconds(5)); // Wait for the tests to load
+    const foundItem = await testExplorerSection.findItem('ExampleApexClass2Test');
+    if (!foundItem) {
+      throw new Error('Expected TreeItem but got undefined');
+    }
+    if (!(foundItem instanceof TreeItem)) {
+      throw new Error(`Expected TreeItem but got different item type: ${typeof foundItem}`);
+    }
+    const testClassItem = foundItem;
+    await pause(Duration.seconds(5));
+    await testClassItem.select();
+
+    // Click Run Test action on the test class
+    const runTestsAction = await testClassItem.getActionButton('Run Test');
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    expect(runTestsAction).to.not.be.undefined;
+    await runTestsAction!.click();
+
+    // Verify success notification
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
+
+    // Verify the test report notification appears
+    const notificationFound = await verifyNotificationWithRetry(
+      /Apex test report is ready: test-result-[a-zA-Z0-9]+\.md/,
+      Duration.seconds(30)
+    );
+    expect(notificationFound).to.equal(true);
+
+    // Verify test results in the Test Results tab
+    const testResultsText = await getTestResultsTabText();
+    const expectedTextsInTestResultsTab = [
       '=== Test Summary',
       'Outcome              Passed',
       'Tests Ran            1',
       'Pass Rate            100%',
-      'TEST NAME',
-      'ExampleApexClass2Test.validateSayHello  Pass',
-      'Ended SFDX: Run Apex Tests'
+      'ExampleApexClass2Test.validateSayHello  Pass'
     ];
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(terminalText).to.not.be.undefined;
-    await verifyOutputPanelText(terminalText!, expectedTexts);
+    await verifyOutputPanelText(testResultsText, expectedTextsInTestResultsTab);
   });
 
   it('Run Single Test via the Test Sidebar', async () => {
@@ -335,24 +359,48 @@ describe('Run Apex Tests', () => {
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
-    const terminalText = await runTestCaseFromSideBar(
-      workbench,
-      'Test Explorer',
-      'validateSayHello',
-      'Run Single Test'
+
+    // Find and click on the test method in the Test Explorer
+    const testExplorerSection = await getTestsSection(workbench, 'Test Explorer');
+    await testExplorerSection.click();
+    await pause(Duration.seconds(5)); // Wait for the tests to load
+    const foundItem = await testExplorerSection.findItem('validateSayHello');
+    if (!foundItem) {
+      throw new Error('Expected TreeItem but got undefined');
+    }
+    if (!(foundItem instanceof TreeItem)) {
+      throw new Error(`Expected TreeItem but got different item type: ${typeof foundItem}`);
+    }
+    const testMethodItem = foundItem;
+    await pause(Duration.seconds(5));
+    await testMethodItem.select();
+
+    // Click Run Test action on the test method
+    const runTestAction = await testMethodItem.getActionButton('Run Test');
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    expect(runTestAction).to.not.be.undefined;
+    await runTestAction!.click();
+
+    // Verify success notification
+    await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
+
+    // Verify the test report notification appears
+    const notificationFound = await verifyNotificationWithRetry(
+      /Apex test report is ready: test-result-[a-zA-Z0-9]+\.md/,
+      Duration.seconds(30)
     );
-    const expectedTexts = [
+    expect(notificationFound).to.equal(true);
+
+    // Verify test results in the Test Results tab
+    const testResultsText = await getTestResultsTabText();
+    const expectedTextsInTestResultsTab = [
       '=== Test Summary',
       'Outcome              Passed',
       'Tests Ran            1',
       'Pass Rate            100%',
-      'TEST NAME',
-      'ExampleApexClass1Test.validateSayHello  Pass',
-      'Ended SFDX: Run Apex Tests'
+      'ExampleApexClass1Test.validateSayHello  Pass'
     ];
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(terminalText).to.not.be.undefined;
-    await verifyOutputPanelText(terminalText!, expectedTexts);
+    await verifyOutputPanelText(testResultsText, expectedTextsInTestResultsTab);
   });
 
   it('Run a test that fails and fix it', async () => {
@@ -382,12 +430,13 @@ describe('Run Apex Tests', () => {
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
     await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
-    // Verify test results are listed on vscode's Output section
-    // Also verify that the test fails
-    let outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
-    let expectedTexts = ['Assertion Failed: incorrect ticker symbol', 'Expected: CRM, Actual: SFDC'];
+    // Verify the test report notification appears
+    await verifyNotificationWithRetry(/Apex test report is ready: test-result-[a-zA-Z0-9]+\.md/, Duration.seconds(30));
 
-    await verifyOutputPanelText(outputPanelText, expectedTexts);
+    // Verify test results in the Test Results tab - verify the test fails
+    let testResultsText = await getTestResultsTabText();
+    let expectedTexts = ['Assertion Failed: incorrect ticker symbol', 'Expected: CRM, Actual: SFDC'];
+    await verifyOutputPanelText(testResultsText, expectedTexts);
 
     // Fix test
     const accountServicePath = `${testSetup.projectFolderPath}/force-app/main/default/classes/AccountService.cls`;
@@ -414,19 +463,19 @@ describe('Run Apex Tests', () => {
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
     await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
-    // Verify test results are listed on vscode's Output section
-    outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
+    // Verify the test report notification appears
+    await verifyNotificationWithRetry(/Apex test report is ready: test-result-[a-zA-Z0-9]+\.md/, Duration.seconds(30));
+
+    // Verify test results in the Test Results tab - verify the test passes
+    testResultsText = await getTestResultsTabText();
     expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',
       'Tests Ran            1',
       'Pass Rate            100%',
-      'TEST NAME',
-      'AccountServiceTest.should_create_account  Pass',
-      'Ended SFDX: Run Apex Tests'
+      'AccountServiceTest.should_create_account  Pass'
     ];
-
-    await verifyOutputPanelText(outputPanelText, expectedTexts);
+    await verifyOutputPanelText(testResultsText, expectedTexts);
   });
 
   it('Create Apex Test Suite', async () => {

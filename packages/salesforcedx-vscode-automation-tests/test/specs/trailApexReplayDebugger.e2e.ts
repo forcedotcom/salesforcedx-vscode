@@ -34,6 +34,7 @@ import { expect } from 'chai';
 import * as path from 'node:path';
 import { By, InputBox, QuickOpenBox, TextEditor } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
+import { getTestResultsTabText } from '../utils/apexTestsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
@@ -102,10 +103,10 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
 
     await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
-    // Verify test results are listed on vscode's Output section
-    const outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
-    expect(outputPanelText).to.contain('Assertion Failed: incorrect ticker symbol');
-    expect(outputPanelText).to.contain('Expected: CRM, Actual: SFDC');
+    // Verify test results in the Test Results tab
+    const testResultsText = await getTestResultsTabText();
+    expect(testResultsText).to.contain('Assertion Failed: incorrect ticker symbol');
+    expect(testResultsText).to.contain('Expected: CRM, Actual: SFDC');
   });
 
   it('Set Breakpoints and Checkpoints', async () => {
@@ -264,10 +265,10 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
 
       await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
-      // Verify test results are listed on vscode's Output section
-      const outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
-      expect(outputPanelText).to.contain('AccountServiceTest.should_create_account');
-      expect(outputPanelText).to.contain('Pass');
+      // Verify test results in the Test Results tab
+      const testResultsText = await getTestResultsTabText();
+      expect(testResultsText).to.contain('AccountServiceTest.should_create_account');
+      expect(testResultsText).to.contain('Pass');
     }
   });
 
