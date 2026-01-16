@@ -17,7 +17,6 @@ import {
   upsertScratchOrgAuthFieldsToSettings,
   upsertSettings,
   createApexClass,
-  openFileByName,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
   executeCommandWithCommandPalette,
@@ -27,6 +26,7 @@ import {
   waitForOutputChannelText,
   verifyCommandDoesNotExist,
   isDesktop,
+  isMacDesktop,
   QUICK_INPUT_WIDGET,
   EDITOR,
   NOTIFICATION_LIST_ITEM,
@@ -92,7 +92,7 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
   }
 );
 
-(!isDesktop() ? test.skip.bind(test) : test)(
+(isDesktop() ? test : test.skip.bind(test))(
   'Non-Tracking Org: deploy/retrieve operations work without tracking',
   async ({ page }) => {
     test.setTimeout(RETRIEVE_TIMEOUT);
@@ -154,8 +154,6 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
     });
 
     await test.step('generate manifest from apex class', async () => {
-      await openFileByName(page, `${className}.cls`);
-
       await executeCommandWithCommandPalette(page, packageNls.project_generate_manifest_text);
 
       const quickInput = page.locator(QUICK_INPUT_WIDGET);
@@ -169,7 +167,10 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
     });
 
     await test.step('deploy via manifest', async () => {
-      await openFileByName(page, 'package.xml');
+      if (isMacDesktop()) {
+        console.log('Skipping "deploy via manifest" step on Mac Desktop (context menus not supported)');
+        return;
+      }
 
       const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
       await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
@@ -197,7 +198,10 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
     });
 
     await test.step('retrieve via manifest', async () => {
-      await openFileByName(page, 'package.xml');
+      if (isMacDesktop()) {
+        console.log('Skipping "retrieve via manifest" step on Mac Desktop (context menus not supported)');
+        return;
+      }
 
       const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
       await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
@@ -213,8 +217,6 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
     });
 
     await test.step('delete class from org', async () => {
-      await openFileByName(page, `${className}.cls`);
-
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Salesforce Metadata');
 
@@ -234,6 +236,11 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
     });
 
     await test.step('delete class locally', async () => {
+      if (isMacDesktop()) {
+        console.log('Skipping "delete class locally" step on Mac Desktop (context menus not supported)');
+        return;
+      }
+
       // After deleting from org, the file may have been deleted locally too
       // Check if file still exists before trying to delete it locally
       const explorerFile = page
