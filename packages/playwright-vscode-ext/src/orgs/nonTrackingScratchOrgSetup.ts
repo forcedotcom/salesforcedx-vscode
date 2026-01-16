@@ -12,16 +12,17 @@ import * as path from 'node:path';
 import { execAsync, env, tryUseExistingOrg, extractAuthFields, requireOrgInCI } from './shared';
 
 export const NON_TRACKING_ORG_ALIAS = 'nonTrackingTestOrg';
+export const HUB_ORG_ALIAS = 'hub';
 
 /** Create minimal scratch org without source tracking for e2e tests */
-export const createNonTrackingOrg = async (): Promise<OrgAuthResult> => {
+export const createNonTrackingOrg = async (alias: string = NON_TRACKING_ORG_ALIAS): Promise<OrgAuthResult> => {
   // Fast path: use provided org if it exists
-  const existingOrg = await tryUseExistingOrg(NON_TRACKING_ORG_ALIAS);
+  const existingOrg = await tryUseExistingOrg(alias);
   if (existingOrg) {
     return existingOrg;
   }
 
-  requireOrgInCI(NON_TRACKING_ORG_ALIAS);
+  requireOrgInCI(alias);
 
   // Create minimal scratch org without any deployment
   const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'non-tracking-org-'));
@@ -44,7 +45,7 @@ export const createNonTrackingOrg = async (): Promise<OrgAuthResult> => {
   );
 
   const { stdout: createStdout } = await execAsync(
-    `sf org create scratch -d -w 10 -a ${NON_TRACKING_ORG_ALIAS} --wait 30 --no-track-source --json`,
+    `sf org create scratch -d -w 10 -a ${alias} --wait 30 --no-track-source --json`,
     {
       cwd: projectDir,
       env
