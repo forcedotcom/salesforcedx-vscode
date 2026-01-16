@@ -45,6 +45,7 @@ jobs:
         run: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
       - name: Auth to dev hub (global)
         run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
+        shell: bash
 
       - name: create scratch org and set up dreamhouse
         # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
@@ -131,6 +132,7 @@ jobs:
 
       - name: Auth to dev hub (global)
         run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
+        shell: bash
       - name: Install dependencies
         run: npm ci
 
