@@ -7,10 +7,6 @@
 
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import { exec } from 'node:child_process';
-import { promisify } from 'node:util';
-
-const execAsync = promisify(exec);
 
 // Schema for sf telemetry --json output
 const SfTelemetryResultSchema = Schema.Struct({
@@ -23,7 +19,12 @@ const SfTelemetryResultSchema = Schema.Struct({
 const fetchCliIdFromCli = () => {
   const command = 'sf telemetry --json';
   return Effect.tryPromise({
-    try: () => execAsync(command, { env: { ...process.env, NO_COLOR: '1' } }),
+    try: async () => {
+      const { exec } = await import('node:child_process');
+      const { promisify } = await import('node:util');
+      const execAsync = promisify(exec);
+      return execAsync(command, { env: { ...process.env, NO_COLOR: '1' } });
+    },
     catch: e => e
   }).pipe(
     Effect.tap(output => Effect.log(`sf telemetry output: ${output.stdout}`)),
