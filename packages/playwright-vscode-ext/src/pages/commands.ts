@@ -106,3 +106,34 @@ export const executeCommandWithCommandPalette = async (
   await openCommandPalette(page);
   await executeCommand(page, command, hasNotText);
 };
+
+/** Verify a command does not exist in the command palette */
+export const verifyCommandDoesNotExist = async (page: Page, commandText: string): Promise<void> => {
+  await openCommandPalette(page);
+  const widget = page.locator(QUICK_INPUT_WIDGET);
+  const input = widget.locator('input.input');
+
+  await expect(input).toBeVisible({ timeout: 5000 });
+  await input.focus({ timeout: 5000 });
+  await input.pressSequentially(commandText, { delay: 50 });
+
+  // Wait for command list to appear
+  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
+
+  const listRows = widget.locator(QUICK_INPUT_LIST_ROW);
+  const first20Rows = (await listRows.all()).slice(0, 20);
+
+  // Check that the command is not in the list
+  for (const row of first20Rows) {
+    const rowText = await row.textContent();
+    if (rowText?.trim().toLowerCase().includes(commandText.toLowerCase())) {
+      throw new Error(`Command "${commandText}" should not exist but was found in command palette`);
+    }
+  }
+
+  // Close command palette
+  await page.keyboard.press('Escape');
+  await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+    // Ignore if already closed
+  });
+};
