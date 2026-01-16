@@ -51,7 +51,6 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
 
     await test.step('setup non-tracking org', async () => {
       const createResult = await createNonTrackingOrg(isDesktop() ? NON_TRACKING_ORG_ALIAS : HUB_ORG_ALIAS);
-      console.log('createResult', createResult);
       await waitForVSCodeWorkbench(page);
       await assertWelcomeTabExists(page);
       await closeWelcomeTabs(page);
