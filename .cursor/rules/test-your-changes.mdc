@@ -23,7 +23,7 @@ After ANY code change, run these in order from repo root. Avoid responding while
 Rules:
 
 - Don't change /src AND /test together (except imports/renames)
-- Be aware of nx caching; you may need `--skip-nx-cache` to really change the bundles. You can look in the bundle to see (and also turn off `minify` if that helps debug)
+- Be aware of wireit caching; You can look in the bundle to see (and also turn off `minify` if that helps debug)
 - Port 3001 for tests (not 3000 - Docker/Grafana uses that)
 - All commands run from salesforcedx-vscode root; use `-w` to specify runs for a single package. Never `cd` into a package.
 - do not say a test/compile/lint failure was "pre-existing" without running the same operation on a previous version of the code before the current un-pushed commits began.
@@ -31,4 +31,3 @@ Rules:
 Troubleshooting
 
 - if knip fails due to `ERR_MODULE_NOT_FOUND` you can `rm -rf ~/.npm/_npx` and re-run it. You'll have to agree to it (or pass `-y` to it)
-  .

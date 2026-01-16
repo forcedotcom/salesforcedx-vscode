@@ -5,15 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as S from 'effect/Schema';
-import { dirname } from 'node:path';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
+import { unknownToErrorCause } from '../core/shared';
 import { ChannelService } from '../vscode/channelService';
 
 // Capture vscode.workspace.fs at module level
 
+class FsServiceError extends Data.TaggedError('FsServiceError')<{
+  readonly cause: Error;
+  readonly function: string;
+  readonly filePath: string;
+}> {}
 /**
  * Convert path string or URI to URI, handling both file:// and other schemes like memfs://
  * @param filePath - Either a URI object, URI string (e.g., "memfs:/MyProject/file.txt"), or a file path (e.g., "/path/to/file" or "C:\path\to\file")
@@ -38,19 +44,24 @@ export const toUri = (filePath: string | vscode.Uri): vscode.Uri => {
     return URI.file(`/${normalizedPath}`);
   }
 
+  // In web environment, paths without a scheme should use memfs:
+  if (process.env.ESBUILD_PLATFORM === 'web') {
+    return URI.parse(`memfs:${filePath}`);
+  }
+
   // Otherwise treat as file path (including Windows paths like C:\)
   const fileUri = URI.file(filePath);
   return fileUri;
 };
 
 // capture readFile for use in readJSON
-const readFile = (filePath: string): Effect.Effect<string, Error, ChannelService> =>
+const readFile = (filePath: string) =>
   Effect.flatMap(ChannelService, channelService =>
     channelService.appendToChannel(`[FsService] readFile: ${filePath}`).pipe(
       Effect.flatMap(() =>
         Effect.tryPromise({
           try: async () => Buffer.from(await vscode.workspace.fs.readFile(toUri(filePath))).toString('utf8'),
-          catch: e => new Error(`Failed to read file ${filePath}: ${String(e)}`)
+          catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'readFile', filePath })
         })
       )
     )
@@ -60,32 +71,41 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
   succeed: {
     readFile,
     toUri,
-    writeFile: (filePath: string | vscode.Uri, content: string): Effect.Effect<void, Error, ChannelService> =>
+    /** Write file to filesystem, creating directories if they don't exist */
+    writeFile: (filePath: string | vscode.Uri, content: string) =>
       Effect.flatMap(ChannelService, channelService =>
         channelService
           .appendToChannel(
             `[FsService] writeFile: ${String(typeof filePath === 'string' ? filePath : filePath.toString())}`
           )
           .pipe(
+            Effect.withSpan('writeFile', {
+              attributes: { filePath }
+            }),
             Effect.flatMap(() =>
               Effect.tryPromise({
                 try: async () => {
                   const uri = toUri(filePath);
-                  const dirUri = uri.with({ path: dirname(uri.path) });
-                  await vscode.workspace.fs.createDirectory(dirUri);
-                  const encoder = new TextEncoder();
-                  const uint8Array = encoder.encode(content);
+                  await vscode.workspace.fs.createDirectory(Utils.dirname(uri));
+                  const uint8Array = new TextEncoder().encode(content);
                   await vscode.workspace.fs.writeFile(uri, uint8Array);
                 },
-                catch: e =>
-                  new Error(
-                    `Failed to write file ${typeof filePath === 'string' ? filePath : filePath.toString()}: ${String(e)}`
+                catch: e => e
+              }).pipe(
+                Effect.catchAll(e =>
+                  Effect.fail(
+                    new FsServiceError({
+                      ...unknownToErrorCause(e),
+                      function: 'writeFile',
+                      filePath: typeof filePath === 'string' ? filePath : filePath.toString()
+                    })
                   )
-              })
+                )
+              )
             )
           )
       ),
-    fileOrFolderExists: (filePath: string | vscode.Uri): Effect.Effect<boolean, Error, ChannelService> =>
+    fileOrFolderExists: (filePath: string | vscode.Uri) =>
       Effect.flatMap(ChannelService, channelService => {
         const uri = toUri(filePath);
         return Effect.tryPromise({
@@ -101,79 +121,65 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
           )
         );
       }),
-    isDirectory: (path: string | vscode.Uri): Effect.Effect<boolean, Error, never> =>
-      Effect.tryPromise({
-        try: async () => (await vscode.workspace.fs.stat(toUri(path))).type === vscode.FileType.Directory,
-        catch: e => new Error(String(e))
-      }).pipe(Effect.catchAll(() => Effect.succeed(false))),
-    isFile: (path: string | vscode.Uri): Effect.Effect<boolean, Error, never> =>
-      Effect.tryPromise({
-        try: async () => (await vscode.workspace.fs.stat(toUri(path))).type === vscode.FileType.File,
-        catch: e => new Error(String(e))
-      }).pipe(Effect.catchAll(() => Effect.succeed(false))),
-    createDirectory: (dirPath: string): Effect.Effect<void, Error, never> =>
+    isDirectory: (path: string | vscode.Uri) =>
+      Effect.tryPromise(
+        async () => (await vscode.workspace.fs.stat(toUri(path))).type === vscode.FileType.Directory
+      ).pipe(Effect.catchAll(() => Effect.succeed(false))),
+    isFile: (path: string | vscode.Uri) =>
+      Effect.tryPromise(async () => (await vscode.workspace.fs.stat(toUri(path))).type === vscode.FileType.File).pipe(
+        Effect.catchAll(() => Effect.succeed(false))
+      ),
+    createDirectory: (dirPath: string) =>
       Effect.tryPromise({
         try: async () => {
           await vscode.workspace.fs.createDirectory(toUri(dirPath));
         },
-        catch: e => new Error(`Failed to create directory ${dirPath}: ${String(e)}`)
+        catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'createDirectory', filePath: dirPath })
       }),
-    deleteFile: (filePath: string, options = {}): Effect.Effect<void, Error, never> =>
+    deleteFile: (filePath: string, options = {}) =>
       Effect.tryPromise({
         try: async () => {
           await vscode.workspace.fs.delete(toUri(filePath), options);
         },
-        catch: e => new Error(`Failed to delete file ${filePath}: ${String(e)}`)
+        catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'deleteFile', filePath })
       }),
-    readDirectory: (dirPath: string): Effect.Effect<string[], Error, never> =>
+    readDirectory: (dirPath: string) =>
       Effect.tryPromise({
         try: async () => (await vscode.workspace.fs.readDirectory(toUri(dirPath))).map(([name]) => name),
-        catch: e => new Error(`Failed to read directory ${dirPath}: ${String(e)}`)
+        catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'readDirectory', filePath: dirPath })
       }),
-    stat: (filePath: string): Effect.Effect<vscode.FileStat, Error, never> =>
+    stat: (filePath: string) =>
       Effect.tryPromise({
         try: async () => await vscode.workspace.fs.stat(toUri(filePath)),
-        catch: e => new Error(`Failed to get file stats for ${filePath}: ${String(e)}`)
+        catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'stat', filePath })
       }),
-    safeDelete: (filePath: string, options = {}): Effect.Effect<void, Error, never> =>
+    safeDelete: (filePath: string, options = {}) =>
       Effect.tryPromise({
         try: async () => {
-          const uri = toUri(filePath);
-          await vscode.workspace.fs.stat(uri);
-          return uri;
+          await vscode.workspace.fs.delete(toUri(filePath), options);
         },
-        catch: () => undefined
-      }).pipe(
-        Effect.flatMap(uri =>
-          uri
-            ? Effect.tryPromise({
-                try: async () => {
-                  await vscode.workspace.fs.delete(uri, options);
-                },
-                catch: e => new Error(String(e))
-              })
-            : Effect.succeed(undefined)
-        ),
-        Effect.catchAll(() => Effect.succeed(undefined))
-      ),
-    rename: (oldPath: string, newPath: string): Effect.Effect<void, Error, never> =>
+        catch: error => error
+      }).pipe(Effect.catchAll(() => Effect.succeed(undefined))),
+    rename: (oldPath: string, newPath: string) =>
       Effect.tryPromise({
         try: async () => {
           await vscode.workspace.fs.rename(toUri(oldPath), toUri(newPath));
         },
-        catch: e => new Error(`Failed to rename ${oldPath} to ${newPath}: ${String(e)}`)
+        catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'rename', filePath: oldPath })
       }),
-    readJSON: <A>(filePath: string, schema: S.Schema<A>): Effect.Effect<A, Error, ChannelService> =>
+    readJSON: <A>(filePath: string, schema: S.Schema<A>) =>
       readFile(filePath).pipe(
         Effect.flatMap(text =>
           Effect.try({
             try: () => JSON.parse(text),
-            catch: (e: unknown) => new Error(`Failed to parse JSON in ${filePath}: ${String(e)}`)
+            catch: (e: unknown) => new FsServiceError({ ...unknownToErrorCause(e), function: 'readJSON', filePath })
           })
         ),
         Effect.flatMap((obj: unknown) =>
           S.decodeUnknown(schema)(obj).pipe(
-            Effect.mapError((e: unknown) => new Error(`Failed to decode JSON in ${filePath}: ${String(e)}`))
+            Effect.mapError(
+              (e: unknown) => new FsServiceError({ ...unknownToErrorCause(e), function: 'readJSON', filePath })
+            )
           )
         )
       )

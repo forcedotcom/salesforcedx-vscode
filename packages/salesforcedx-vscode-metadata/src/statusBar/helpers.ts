@@ -6,6 +6,7 @@
  */
 
 import type { StatusOutputRow } from '@salesforce/source-tracking';
+import * as Order from 'effect/Order';
 import * as vscode from 'vscode';
 
 export type SourceTrackingCounts = {
@@ -20,20 +21,30 @@ export type SourceTrackingDetails = {
   conflicts: StatusOutputRow[];
 };
 
+export const statusRowOrder = Order.combine(
+  /** Sort by type (case-insensitive) */
+  Order.mapInput(Order.string, (row: StatusOutputRow) => row.type.toLowerCase()),
+  /** Sort by fullName (case-insensitive) */
+  Order.mapInput(Order.string, (row: StatusOutputRow) => row.fullName.toLowerCase())
+);
+
+/** Sort by conflict status (conflicts first) */
+const byConflict = Order.reverse(Order.mapInput(Order.boolean, (row: StatusOutputRow) => row.conflict ?? false));
+
 /** Deduplicate status rows by fullName and type */
 export const dedupeStatus = (status: StatusOutputRow[]): StatusOutputRow[] => {
   const seen = new Set<string>();
-  // priority is conflicts, always preserve those
-  const conflicts = status.filter(row => row.conflict);
-  const notConflicts = status.filter(row => !row.conflict);
-  return [...conflicts, ...notConflicts].filter(row => {
-    const key = `${row.fullName}:${row.type}`;
-    if (seen.has(key)) {
-      return false;
-    }
-    seen.add(key);
-    return true;
-  });
+  return status
+    .filter(row => !row.ignored)
+    .toSorted(byConflict) // prioritize conflicts
+    .filter(row => {
+      const key = `${row.fullName}:${row.type}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
 };
 
 export const calculateBackground = (counts: SourceTrackingCounts): vscode.ThemeColor | undefined => {
@@ -45,25 +56,32 @@ export const calculateBackground = (counts: SourceTrackingCounts): vscode.ThemeC
   return undefined;
 };
 
-/** Calculate counts from status output rows */
-export const calculateCounts = (status: StatusOutputRow[]): SourceTrackingCounts => {
-  const local = status.filter(row => row.origin === 'local' && !row.conflict && !row.ignored).length;
-  const remote = status.filter(row => row.origin === 'remote' && !row.conflict && !row.ignored).length;
-  const conflicts = status.filter(row => row.conflict && !row.ignored).length;
-
-  return { local, remote, conflicts };
-};
-
-/** Separate changes by type for hover details */
-export const separateChanges = (status: StatusOutputRow[]): SourceTrackingDetails => {
-  const localChanges = status.filter(row => row.origin === 'local' && !row.conflict && !row.ignored);
-  const remoteChanges = status.filter(row => row.origin === 'remote' && !row.conflict && !row.ignored);
-  const conflicts = status.filter(row => row.conflict && !row.ignored);
-
+const separateChangesByOriginAndConflict = (status: StatusOutputRow[]): SourceTrackingDetails => {
+  const nonIgnored = status.filter(row => !row.ignored);
+  const nonConflicts = nonIgnored.filter(row => !row.conflict);
+  const localChanges = nonConflicts.filter(row => row.origin === 'local');
+  const remoteChanges = nonConflicts.filter(row => row.origin === 'remote');
+  const conflicts = nonIgnored.filter(row => row.conflict);
   return { localChanges, remoteChanges, conflicts };
 };
 
-/** Get command based on counts */
+/** Calculate counts from status output rows */
+export const calculateCounts = (status: StatusOutputRow[]): SourceTrackingCounts => {
+  const { localChanges, remoteChanges, conflicts } = separateChangesByOriginAndConflict(status);
+  return { local: localChanges.length, remote: remoteChanges.length, conflicts: conflicts.length };
+};
+
+/** Separate changes by type for hover details, then sorts by type and name */
+export const separateChanges = (status: StatusOutputRow[]): SourceTrackingDetails => {
+  const { localChanges, remoteChanges, conflicts } = separateChangesByOriginAndConflict(status);
+  return {
+    localChanges: localChanges.toSorted(statusRowOrder),
+    remoteChanges: remoteChanges.toSorted(statusRowOrder),
+    conflicts: conflicts.toSorted(statusRowOrder)
+  };
+};
+
+/** Get command based on counts.  If there are only local or remote changes, it'll do that.  If there are both, it'll open the changes */
 export const getCommand = (counts: SourceTrackingCounts): string | undefined => {
   if (counts.remote > 0 && counts.local === 0 && counts.conflicts === 0) {
     return 'sf.project.retrieve.start';

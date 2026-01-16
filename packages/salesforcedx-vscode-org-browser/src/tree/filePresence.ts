@@ -27,7 +27,7 @@ type BackgroundFilePresenceCheckRequest = {
 export const backgroundFilePresenceCheckQueue = Effect.runSync(Queue.unbounded<BackgroundFilePresenceCheckRequest>());
 
 /** the function that processes the queued requests **/
-const backgroundFilePresenceCheck = (req: BackgroundFilePresenceCheckRequest): Effect.Effect<void> =>
+const backgroundFilePresenceCheck = (req: BackgroundFilePresenceCheckRequest) =>
   Effect.gen(function* () {
     const filePaths = yield* getFilePaths(req.c);
     const iconPath = getIconPath(filePaths.length > 0);
@@ -56,25 +56,24 @@ Effect.runSync(
 );
 
 // since we can't file search on the web, we'll use ComponentSet to find local file paths for the component
-const getFilePaths = (member: MetadataMember): Effect.Effect<string[], Error, never> =>
-  ExtensionProviderService.pipe(
-    Effect.flatMap(svcProvider => svcProvider.getServicesApi),
-    Effect.flatMap(api =>
-      Effect.gen(function* () {
-        const [projectService, retrieveService] = yield* Effect.all(
-          [api.services.ProjectService, api.services.MetadataRetrieveService],
-          { concurrency: 'unbounded' }
-        );
-        const dirs = (yield* projectService.getSfProject).getPackageDirectories().map(directory => directory.fullPath);
-        yield* Effect.annotateCurrentSpan({ packageDirectories: dirs });
-        const componentSet = yield* retrieveService.buildComponentSetFromSource([member], dirs);
-        yield* Effect.annotateCurrentSpan({ size: componentSet.size });
-        const paths = Array.from(componentSet.getSourceComponents()).flatMap(c =>
-          [c.xml, c.content].filter(f => f !== undefined)
-        );
-        yield* Effect.annotateCurrentSpan({ paths });
-        return paths;
-      }).pipe(Effect.withSpan('getFilePaths', { attributes: { type: member.type, fullName: member.fullName } }))
-    ),
+const getFilePaths = (member: MetadataMember) =>
+  Effect.gen(function* () {
+    const svcProvider = yield* ExtensionProviderService;
+    const api = yield* svcProvider.getServicesApi;
+    const [projectService, retrieveService] = yield* Effect.all(
+      [api.services.ProjectService, api.services.MetadataRetrieveService],
+      { concurrency: 'unbounded' }
+    );
+    const dirs = (yield* projectService.getSfProject).getPackageDirectories().map(directory => directory.fullPath);
+    yield* Effect.annotateCurrentSpan({ packageDirectories: dirs });
+    const componentSet = yield* retrieveService.buildComponentSetFromSource(dirs, [member]);
+    yield* Effect.annotateCurrentSpan({ size: componentSet.size });
+    const paths = Array.from(componentSet.getSourceComponents()).flatMap(c =>
+      [c.xml, c.content].filter(f => f !== undefined)
+    );
+    yield* Effect.annotateCurrentSpan({ paths });
+    return paths;
+  }).pipe(
+    Effect.withSpan('getFilePaths', { attributes: { type: member.type, fullName: member.fullName } }),
     Effect.provide(AllServicesLayer)
   );

@@ -7,6 +7,7 @@
 
 import { ActivationTracker } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
+import { dataQuery } from './commands/dataQuery';
 import { soqlBuilderToggle } from './commands/soqlBuilderToggle';
 import { soqlOpenNew } from './commands/soqlFileCreate';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
@@ -37,7 +38,9 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
         'salesforce.salesforcedx-vscode-soql#soqlWalkthrough',
         false
       );
-    })
+    }),
+    vscode.commands.registerCommand('sf.data.query.input', dataQuery),
+    vscode.commands.registerCommand('sf.data.query.selection', dataQuery)
   );
 
   await startLanguageClient(extensionContext);

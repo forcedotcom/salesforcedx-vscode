@@ -93,7 +93,7 @@ describe('TypingIndexer', () => {
 
   describe('#metaFilePaths', () => {
     test('it returns all the paths of meta files', () => {
-      const metaFilePaths: string[] = typingIndexer.metaFiles.sort();
+      const metaFilePaths: string[] = typingIndexer.metaFiles.toSorted();
       // metaFilePaths are normalized, so normalize expected paths for comparison
       const expectedMetaFilePaths: string[] = [
         normalizePath(path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/contentassets/logo.asset-meta.xml')),
@@ -111,7 +111,7 @@ describe('TypingIndexer', () => {
           path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/staticresources/todocss.resource-meta.xml')
         ),
         normalizePath(path.join(SFDX_WORKSPACE_ROOT, 'utils/meta/staticresources/todoutil.resource-meta.xml'))
-      ].sort();
+      ].toSorted();
 
       expect(metaFilePaths).toEqual(expectedMetaFilePaths);
     });

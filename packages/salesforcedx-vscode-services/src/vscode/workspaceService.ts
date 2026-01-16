@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
@@ -17,6 +18,10 @@ type WorkspaceInfo = {
   isEmpty: boolean;
   isVirtualFs: boolean;
   cwd: string;
+};
+
+type WorkspaceWithFolder = WorkspaceInfo & {
+  isEmpty: false;
 };
 
 const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
@@ -54,8 +59,18 @@ const globalCachedWorkspaceInfo = Effect.runSync(
 export class WorkspaceService extends Effect.Service<WorkspaceService>()('WorkspaceService', {
   succeed: {
     /** Get info about the workspace */
-    getWorkspaceInfo: globalCachedWorkspaceInfo
+    getWorkspaceInfo: globalCachedWorkspaceInfo,
+
+    /** GetWorkspaceInfo, throws if there is not one open */
+    getWorkspaceInfoOrThrow: globalCachedWorkspaceInfo.pipe(
+      Effect.flatMap(info =>
+        isNonEmptyWorkspace(info) ? Effect.succeed(info) : Effect.fail(new NoWorkspaceOpenError())
+      )
+    )
   } as const
 }) {}
 
+const isNonEmptyWorkspace = (info: WorkspaceInfo): info is WorkspaceWithFolder => !info.isEmpty;
 const getPathWithSchema = (uri: vscode.Uri): string => (uri.scheme === 'file' ? uri.fsPath : uri.toString());
+
+export class NoWorkspaceOpenError extends Data.TaggedError('NoWorkspaceOpenError')<{}> {}

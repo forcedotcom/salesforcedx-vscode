@@ -4,10 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { type FileResponse, type FileResponseSuccess, ComponentStatus } from '@salesforce/source-deploy-retrieve';
-
-export const isFileResponseSuccess = (fileResponse: FileResponse): fileResponse is FileResponseSuccess =>
-  fileResponse.state !== ComponentStatus.Failed;
+import { type FileResponseSuccess } from '@salesforce/source-deploy-retrieve';
 
 export const fileResponseHasPath = (
   fileResponse: FileResponseSuccess

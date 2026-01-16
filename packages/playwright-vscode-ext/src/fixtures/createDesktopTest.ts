@@ -68,7 +68,7 @@ export const createDesktopTest = ({ fixturesDir }: CreateDesktopTestOptions) =>
           workspaceDir
         ],
 
-        env: { ...process.env } as Record<string, string>,
+        env: { ...process.env, VSCODE_DESKTOP: '1' } as Record<string, string>,
         timeout: 60_000,
         recordVideo: {
           dir: videosDir,

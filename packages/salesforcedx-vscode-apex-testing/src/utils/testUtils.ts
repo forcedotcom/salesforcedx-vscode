@@ -27,7 +27,7 @@ export const isFlowTest = (cls: ToolingTestClass): boolean => cls.namespacePrefi
 /**
  * Checks if a ToolingTestClass has a non-empty namespace prefix
  */
-export const hasNamespace = (cls: ToolingTestClass): boolean => (cls.namespacePrefix?.trim() ?? '') !== '';
+const hasNamespace = (cls: ToolingTestClass): boolean => (cls.namespacePrefix?.trim() ?? '') !== '';
 
 /**
  * Fetch tests from the Language Server via the Apex extension

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import {
   CORE_CONFIG_SECTION,
@@ -21,22 +22,27 @@ const getExplicitValue = (
 ): boolean | undefined => inspect?.workspaceFolderValue ?? inspect?.workspaceValue ?? inspect?.globalValue;
 
 /** Check if deploy on save is enabled, respecting both core and metadata extension settings */
-export const getDeployOnSaveEnabled = (): boolean => {
-  if (process.env.ESBUILD_PLATFORM === 'web') return true;
+export const getDeployOnSaveEnabled = Effect.fn('getDeployOnSaveEnabled')(function* () {
   // Check vscode-core setting first
   const coreConfig = vscode.workspace.getConfiguration(CORE_CONFIG_SECTION);
   const coreInspect = coreConfig.inspect<boolean>(CORE_PUSH_OR_DEPLOY_ON_SAVE_ENABLED);
   const coreValue = getExplicitValue(coreInspect);
-  if (coreValue !== undefined) return coreValue;
-
+  if (coreValue !== undefined) {
+    yield* Effect.annotateCurrentSpan({ coreValue });
+    return coreValue;
+  }
   // Check metadata extension setting
   const metadataConfig = vscode.workspace.getConfiguration(METADATA_CONFIG_SECTION);
   const metadataInspect = metadataConfig.inspect<boolean>(DEPLOY_ON_SAVE_ENABLED);
   const metadataValue = getExplicitValue(metadataInspect);
-  if (metadataValue !== undefined) return metadataValue;
+  if (metadataValue !== undefined) {
+    yield* Effect.annotateCurrentSpan({ metadataValue });
+    return metadataValue;
+  }
 
+  yield* Effect.logInfo('No value found from any extension, returning false');
   return false;
-};
+});
 
 /** Check if conflicts should be ignored during deploy on save */
 export const getIgnoreConflicts = (): boolean => {

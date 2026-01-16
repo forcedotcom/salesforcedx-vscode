@@ -13,3 +13,19 @@ export const retrieveTestCodeCoverage = (): boolean =>
 
 export const retrieveTestRunConcise = (): boolean =>
   vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing').get<boolean>('test-run-concise', false);
+
+export const retrieveOutputFormat = (): 'markdown' | 'text' =>
+  vscode.workspace
+    .getConfiguration('salesforcedx-vscode-apex-testing')
+    .get<'markdown' | 'text'>('outputFormat', 'markdown');
+
+export const retrieveTestSortOrder = (): 'runtime' | 'coverage' | 'severity' =>
+  vscode.workspace
+    .getConfiguration('salesforcedx-vscode-apex-testing')
+    .get<'runtime' | 'coverage' | 'severity'>('testSortOrder', 'runtime');
+
+export const retrievePerformanceThreshold = (): number =>
+  vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing').get<number>('testPerformanceThresholdMs', 5000);
+
+export const retrieveCoverageThreshold = (): number =>
+  vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing').get<number>('testCoverageThresholdPercent', 75);

@@ -6,34 +6,14 @@
  */
 import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
-import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import type { SuccessfulCancelResult } from 'salesforcedx-vscode-services/src/vscode/cancellation';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { AllServicesLayer, ExtensionProviderService } from './extensionProvider';
+import { ExtensionProviderService } from './extensionProvider';
 
-export type OrgBrowserRetrieveService = {
-  /**
-   * Retrieve metadata components and optionally open them in the editor
-   * @param members - Array of MetadataMember to retrieve
-   * @param openInEditor - Whether to open retrieved files in the editor
-   * @returns Effect that resolves to the retrieve result
-   */
-  readonly retrieve: (
-    members: MetadataMember[],
-    openInEditor?: boolean
-  ) => Effect.Effect<RetrieveResult | SuccessfulCancelResult, Error, ExtensionProviderService>;
-};
-
-export const OrgBrowserRetrieveService = Context.GenericTag<OrgBrowserRetrieveService>('OrgBrowserRetrieveService');
-
-const retrieve = (
-  members: MetadataMember[],
-  openInEditor = false
-): Effect.Effect<RetrieveResult | SuccessfulCancelResult, Error, ExtensionProviderService> =>
+const retrieve = (members: MetadataMember[], openInEditor = false) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const [retrieveService, channel] = yield* Effect.all(
@@ -63,16 +43,13 @@ const retrieve = (
     }
 
     return result;
-  }).pipe(
-    Effect.provide(AllServicesLayer),
-    Effect.mapError(e => new Error(`Retrieve failed: ${String(e)}`))
-  );
+  }).pipe(Effect.mapError(e => new Error(`Retrieve failed: ${String(e)}`)));
 
 const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> =>
   // for unknown reasons, the filePath is sometimes prefixed with a backslash
-  Option.fromNullable(result.getFileResponses()?.[0]?.filePath?.replace(/^\\/, '\/'));
+  Option.fromNullable(result.getFileResponses()?.[0]?.filePath?.replace(/^\\/, '/'));
 
-const openFileInEditor = (filePath: string): Effect.Effect<void, Error> =>
+const openFileInEditor = (filePath: string) =>
   Effect.tryPromise({
     try: () =>
       vscode.workspace.openTextDocument(
@@ -92,4 +69,17 @@ const openFileInEditor = (filePath: string): Effect.Effect<void, Error> =>
     Effect.withSpan('openFileInEditor', { attributes: { filePath } })
   );
 
-export const OrgBrowserRetrieveServiceLive = Layer.effect(OrgBrowserRetrieveService, Effect.succeed({ retrieve }));
+export class OrgBrowserRetrieveService extends Effect.Service<OrgBrowserRetrieveService>()(
+  'OrgBrowserRetrieveService',
+  {
+    succeed: {
+      /**
+       * Retrieve metadata components and optionally open them in the editor
+       * @param members - Array of MetadataMember to retrieve
+       * @param openInEditor - Whether to open retrieved files in the editor
+       * @returns Effect that resolves to the retrieve result
+       */
+      retrieve
+    } as const
+  }
+) {}

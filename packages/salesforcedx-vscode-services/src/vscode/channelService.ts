@@ -20,10 +20,7 @@ export class ChannelService extends Effect.Service<ChannelService>()('ChannelSer
       getChannel: Effect.sync(() => channel),
       /** Append a message to this OutputChannel */
       appendToChannel: (message: string) =>
-        Effect.try({
-          try: () => channel.appendLine(message),
-          catch: e => new Error(`Failed to append to channel: ${String(e)}`)
-        }).pipe(
+        Effect.try(() => channel.appendLine(message)).pipe(
           // channelLogging is "best effort" and will not cause a failure
           Effect.catchAll(() => Effect.succeed(undefined))
         )

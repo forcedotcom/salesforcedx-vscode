@@ -15,9 +15,15 @@ import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { TelemetryReporter } from '@vscode/extension-telemetry';
+import * as Console from 'effect/Console';
+import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { workspace } from 'vscode';
+import { defaultOrgRef } from '../core/defaultOrgService';
+import { unknownToErrorCause } from '../core/shared';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
+import { convertAttributes, getExtensionNameAndVersionAttributes, isTopLevelSpan, spanDuration } from './spanUtils';
 // TODO: should this be in Effect?
 // Lazy initialization to avoid bundling issues
 const _webAppInsightsReporter: { instance: TelemetryReporter | undefined } = { instance: undefined };
@@ -36,13 +42,6 @@ const getSpanKindName = (kind: SpanKind): string =>
     Match.orElse(() => 'UNKNOWN')
   );
 
-const convertAttributes = (attributes: Record<string, unknown>): Record<string, string> =>
-  Object.fromEntries(
-    Object.entries(attributes)
-      .filter(([, value]) => value !== undefined && value !== null)
-      .map(([key, value]) => [key, String(value)])
-  );
-
 const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vscode-core.telemetry-tag');
 
 /**
@@ -55,21 +54,22 @@ const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vsc
 export class ApplicationInsightsWebExporter implements SpanExporter {
   // eslint-disable-next-line class-methods-use-this
   public export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
-    const result = ((): ExportResult => {
-      // eslint-disable-next-line functional/no-try-statements
-      try {
-        spans.filter(isTopLevelSpan).map(exportSpan);
-        return { code: ExportResultCode.SUCCESS };
-      } catch (error) {
-        console.error('ApplicationInsightsWebExporter export failed:', error);
-        return {
-          code: ExportResultCode.FAILED,
-          error: error instanceof Error ? error : new Error(String(error))
-        };
-      }
-    })();
-
-    resultCallback(result);
+    void Effect.runPromise(
+      Effect.all(spans.filter(isTopLevelSpan).map(exportSpan), { concurrency: 'unbounded' }).pipe(
+        Effect.map(() => {
+          resultCallback({ code: ExportResultCode.SUCCESS });
+        }),
+        Effect.catchAll(error => {
+          console.error('ApplicationInsightsWebExporter export failed:', error);
+          return Effect.sync(() => {
+            resultCallback({
+              code: ExportResultCode.FAILED,
+              error: unknownToErrorCause(error).cause
+            });
+          });
+        })
+      )
+    );
   }
 
   // eslint-disable-next-line class-methods-use-this
@@ -78,44 +78,43 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
   }
 }
 
-// span filters
-const isTopLevelSpan = (span: ReadableSpan): boolean => span.parentSpanContext === undefined;
+const exportSpan = (span: ReadableSpan) =>
+  Effect.gen(function* () {
+    const success = !span.status || span.status.code !== SpanStatusCode.ERROR;
 
-const exportSpan = (span: ReadableSpan): void => {
-  const success = !span.status || span.status.code !== SpanStatusCode.ERROR;
+    // Create distributed trace context from OpenTelemetry span context
+    const telemetryTrace = {
+      traceID: span.spanContext().traceId,
+      spanID: span.spanContext().spanId,
+      parentID: span.parentSpanContext?.spanId
+    };
 
-  // Create distributed trace context from OpenTelemetry span context
-  const telemetryTrace = {
-    traceID: span.spanContext().traceId,
-    spanID: span.spanContext().spanId,
-    parentID: span.parentSpanContext?.spanId
-  };
+    const { userId, webUserId } = yield* SubscriptionRef.get(defaultOrgRef);
 
-  const props = {
-    ...convertAttributes(span.resource.attributes),
-    ...convertAttributes(span.attributes),
-    ...telemetryTrace,
-    spanKind: getSpanKindName(span.kind),
-    telemetryTag,
-    startTime: String(span.startTime[0] * 1000 + span.startTime[1] / 1_000_000),
-    endTime: String(span.endTime[0] * 1000 + span.endTime[1] / 1_000_000)
-  };
+    const props = {
+      ...convertAttributes(span.resource.attributes),
+      ...getExtensionNameAndVersionAttributes(span.resource.attributes),
+      ...convertAttributes(span.attributes),
+      ...telemetryTrace,
+      spanKind: getSpanKindName(span.kind),
+      telemetryTag,
+      startTime: String(span.startTime[0] * 1000 + span.startTime[1] / 1_000_000),
+      endTime: String(span.endTime[0] * 1000 + span.endTime[1] / 1_000_000),
+      ...(userId ? { userId } : {}),
+      ...(webUserId ? { webUserId } : {})
+    };
 
-  const measurements = {
-    duration: span.duration ? span.duration[0] * 1000 + span.duration[1] / 1_000_000 : 0
-  };
+    const measurements = {
+      duration: spanDuration(span)
+    };
 
-  // eslint-disable-next-line functional/no-try-statements
-  try {
-    const reporter = getWebAppInsightsReporter();
-    if (success) {
-      // Use dangerous method to bypass telemetry level checks for development
-      reporter.sendDangerousTelemetryEvent(span.name, props, measurements);
-    } else {
-      // Use dangerous method to bypass telemetry level checks for development
-      reporter.sendDangerousTelemetryErrorEvent(span.name, props, measurements);
-    }
-  } catch (error) {
-    console.error('❌ Failed to send dangerous telemetry:', error);
-  }
-};
+    yield* Effect.try({
+      try: () =>
+        success
+          ? getWebAppInsightsReporter().sendDangerousTelemetryEvent(span.name, props, measurements)
+          : getWebAppInsightsReporter().sendDangerousTelemetryErrorEvent(span.name, props, measurements),
+      catch: error => unknownToErrorCause(error)
+    }).pipe(
+      Effect.catchAll(error => Console.error('❌ Failed to send dangerous telemetry:', JSON.stringify(error.cause)))
+    );
+  });

@@ -5,13 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import { VALID_METADATA_TYPES } from '../constants';
 import { MetadataDocumentationService } from './metadataDocumentationService';
 
 /**
  * Check if the document is likely a Salesforce metadata file
  */
-export const isMetadataFile = (document: vscode.TextDocument): boolean => {
+export const isMetadataFile = (
+  document: vscode.TextDocument,
+  documentationService: MetadataDocumentationService
+): boolean => {
   // Since we're now registered for all XML files, check if this is a Salesforce metadata file
   // by looking for the Salesforce metadata namespace or valid metadata types
   const documentText = document.getText();
@@ -31,7 +33,7 @@ export const isMetadataFile = (document: vscode.TextDocument): boolean => {
     const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
 
     // Check if this is a valid Salesforce metadata type
-    if (VALID_METADATA_TYPES.has(cleanElementName)) {
+    if (documentationService.isValidMetadataType(cleanElementName)) {
       return true;
     }
   }
@@ -42,7 +44,12 @@ export const isMetadataFile = (document: vscode.TextDocument): boolean => {
 /**
  * Extract metadata type or field from the current line and cursor position
  */
-export const extractMetadataType = (lineText: string, word: string, cursorPosition: number): string | null => {
+export const extractMetadataType = (
+  lineText: string,
+  word: string,
+  cursorPosition: number,
+  documentationService: MetadataDocumentationService
+): string | null => {
   // Look for XML element patterns - original logic for compatibility
   const xmlElementRegex = /<(\/?)([\w:]+)(\s|>|\/)/g;
   let match;
@@ -58,7 +65,7 @@ export const extractMetadataType = (lineText: string, word: string, cursorPositi
       const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
 
       // Check if this is a valid Salesforce metadata type
-      if (VALID_METADATA_TYPES.has(cleanElementName)) {
+      if (documentationService.isValidMetadataType(cleanElementName)) {
         return cleanElementName;
       }
     }
@@ -79,14 +86,14 @@ export const extractMetadataType = (lineText: string, word: string, cursorPositi
       const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
 
       // Check if this is a valid Salesforce metadata type
-      if (VALID_METADATA_TYPES.has(cleanElementName)) {
+      if (documentationService.isValidMetadataType(cleanElementName)) {
         return cleanElementName;
       }
     }
   }
 
   // Also check if the word itself is a valid metadata type
-  if (VALID_METADATA_TYPES.has(word)) {
+  if (documentationService.isValidMetadataType(word)) {
     return word;
   }
 
@@ -96,7 +103,11 @@ export const extractMetadataType = (lineText: string, word: string, cursorPositi
 /**
  * Find the parent metadata type by scanning upward from current line
  */
-export const findParentMetadataType = (document: vscode.TextDocument, startLine: number): string | null => {
+export const findParentMetadataType = (
+  document: vscode.TextDocument,
+  startLine: number,
+  documentationService: MetadataDocumentationService
+): string | null => {
   for (let i = startLine; i >= 0; i--) {
     const line = document.lineAt(i).text;
     const xmlElementRegex = /<([\w:]+)(\s|>)/g;
@@ -107,7 +118,7 @@ export const findParentMetadataType = (document: vscode.TextDocument, startLine:
       const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
 
       // Check if this is a valid Salesforce metadata type
-      if (VALID_METADATA_TYPES.has(cleanElementName)) {
+      if (documentationService.isValidMetadataType(cleanElementName)) {
         return cleanElementName;
       }
     }
@@ -121,7 +132,7 @@ export const findParentMetadataType = (document: vscode.TextDocument, startLine:
       const cleanElementName = elementName.includes(':') ? elementName.split(':')[1] : elementName;
 
       // Check if this is a valid Salesforce metadata type
-      if (VALID_METADATA_TYPES.has(cleanElementName)) {
+      if (documentationService.isValidMetadataType(cleanElementName)) {
         return cleanElementName;
       }
     }
@@ -135,7 +146,8 @@ export const findParentMetadataType = (document: vscode.TextDocument, startLine:
  */
 export const findParentMetadataTypeWithLayers = (
   document: vscode.TextDocument,
-  startLine: number
+  startLine: number,
+  documentationService: MetadataDocumentationService
 ): { metadataType: string; intermediateLayers: string[] } | null => {
   const elementStack: string[] = [];
   let inOpenTag = false;
@@ -213,7 +225,7 @@ export const findParentMetadataTypeWithLayers = (
     const elementName = elementStack[i];
 
     // Check if this is a valid Salesforce metadata type
-    if (VALID_METADATA_TYPES.has(elementName)) {
+    if (documentationService.isValidMetadataType(elementName)) {
       // Found the metadata type - collect all remaining elements as intermediate layers
       // Include all elements between the metadata type and the current position
       for (let j = i + 1; j < elementStack.length; j++) {
@@ -235,7 +247,8 @@ export const findParentMetadataTypeWithLayers = (
  */
 export const extractFieldInfo = (
   document: vscode.TextDocument,
-  position: vscode.Position
+  position: vscode.Position,
+  documentationService: MetadataDocumentationService
 ): { metadataType: string; fieldName: string; intermediateLayers: string[] } | null => {
   const line = document.lineAt(position.line);
   const wordRange = document.getWordRangeAtPosition(position);
@@ -261,7 +274,7 @@ export const extractFieldInfo = (
       // Check if this looks like a field (not a metadata type)
       if (!/^[A-Z]/.test(cleanElementName) && cleanElementName.length > 1) {
         // Find the parent metadata type and all intermediate layers by scanning upward
-        const parentInfo = findParentMetadataTypeWithLayers(document, position.line);
+        const parentInfo = findParentMetadataTypeWithLayers(document, position.line, documentationService);
         if (parentInfo) {
           // Filter out the current field name from intermediate layers to avoid duplication
           const filteredIntermediateLayers = parentInfo.intermediateLayers.filter(layer => layer !== cleanElementName);
@@ -292,7 +305,7 @@ export const extractFieldInfo = (
       // Check if this looks like a field (not a metadata type)
       if (!/^[A-Z]/.test(cleanElementName) && cleanElementName.length > 1) {
         // Find the parent metadata type and all intermediate layers by scanning upward
-        const parentInfo = findParentMetadataTypeWithLayers(document, position.line);
+        const parentInfo = findParentMetadataTypeWithLayers(document, position.line, documentationService);
         if (parentInfo) {
           // Filter out the current field name from intermediate layers to avoid duplication
           const filteredIntermediateLayers = parentInfo.intermediateLayers.filter(layer => layer !== cleanElementName);
@@ -336,7 +349,7 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
     _token: vscode.CancellationToken
   ): Promise<vscode.Hover | null> {
     // Only provide hover for XML files that are likely metadata files
-    if (!isMetadataFile(document)) {
+    if (!isMetadataFile(document, this.documentationService)) {
       return null;
     }
 
@@ -350,7 +363,7 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
     const lineText = line.text;
 
     // First, try to get metadata type documentation
-    const metadataType = extractMetadataType(lineText, word, position.character);
+    const metadataType = extractMetadataType(lineText, word, position.character, this.documentationService);
     if (metadataType) {
       const documentation = this.documentationService.getDocumentation(metadataType);
       if (documentation) {
@@ -374,11 +387,12 @@ export class MetadataHoverProvider implements vscode.HoverProvider {
     }
 
     // If not a metadata type, try to get field documentation
-    const fieldInfo = extractFieldInfo(document, position);
+    const fieldInfo = extractFieldInfo(document, position, this.documentationService);
     if (fieldInfo) {
       const fieldDocumentation = this.documentationService.getFieldDocumentation(
         fieldInfo.metadataType,
-        fieldInfo.fieldName
+        fieldInfo.fieldName,
+        fieldInfo.intermediateLayers
       );
 
       if (fieldDocumentation) {

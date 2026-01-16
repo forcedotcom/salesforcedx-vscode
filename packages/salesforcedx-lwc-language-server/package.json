@@ -27,7 +27,7 @@
   "scripts": {
     "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache",
     "compile": "wireit",
-    "test": "jest --coverage",
+    "test": "wireit",
     "lint": "wireit"
   },
   "wireit": {
@@ -35,7 +35,8 @@
       "command": "tsc -p . && node scripts/convert.js && node scripts/build.js",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-lightning-lsp-common:compile"
+        "../salesforcedx-lightning-lsp-common:compile",
+        "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -58,6 +59,20 @@
         "../../eslint.config.mjs"
       ],
       "output": []
+    },
+    "test": {
+      "command": "jest --coverage",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
     }
   },
   "dependencies": {
@@ -67,11 +82,13 @@
     "@lwc/template-compiler": "8.16.0",
     "@salesforce/apex": "0.0.21",
     "@salesforce/label": "0.0.21",
-    "@salesforce/salesforcedx-lightning-lsp-common": "64.16.1",
+    "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/schema": "0.0.21",
+    "@salesforce/vscode-i18n": "*",
     "babel-types": "^6.26.0",
     "change-case": "^4.1.1",
     "comment-parser": "^0.7.6",
+    "ejs": "^3.1.10",
     "minimatch": "^10.0.1",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageserver": "^9.0.1",
@@ -82,7 +99,14 @@
   "devDependencies": {
     "@lwc/old-compiler": "npm:@lwc/compiler@0.34.8",
     "@types/babel-types": "^7.0.8",
+    "@types/ejs": "^3.1.5",
     "@types/xml2js": "^0.4.14",
-    "jest-extended": "^0.11.5"
+    "colormin": "1.1.2",
+    "jest-extended": "^0.11.5",
+    "js-base64": "3.7.8",
+    "num2fraction": "1.2.2",
+    "rollup": "0.68.2",
+    "uniq": "1.0.1",
+    "uniqs": "2.0.0"
   }
 }

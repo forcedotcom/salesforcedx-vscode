@@ -3,10 +3,13 @@
   "version": "65.7.0",
   "private": true,
   "main": "./out/src/index.js",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
   "dependencies": {
-    "@playwright/test": "^1.54.1",
+    "@playwright/test": "^1.57.0",
     "@vscode/test-electron": "2.5.2",
-    "@vscode/test-web": "^0.0.71"
+    "@vscode/test-web": "^0.0.78"
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.3"
@@ -14,7 +17,12 @@
   "scripts": {
     "compile": "wireit",
     "clean": "shx rm -rf node_modules .wireit out .eslintcache tsconfig.tsbuildinfo",
-    "lint": "wireit"
+    "lint": "wireit",
+    "test:web": "wireit",
+    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
+    "test:web:debug": "npm run test:web -- --debug",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "npm run test:desktop -- --debug"
   },
   "wireit": {
     "compile": {
@@ -23,7 +31,8 @@
       "files": [
         "src/**/*.ts",
         "tsconfig.json",
-        "../../tsconfig.common.json"
+        "../../tsconfig.common.json",
+        "package.json"
       ],
       "output": [
         "out/**",
@@ -40,6 +49,32 @@
         "../../eslint.config.mjs"
       ],
       "output": []
+    },
+    "test:web": {
+      "command": "playwright test --config=playwright.config.web.ts",
+      "dependencies": [
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/playwright/**/*.ts",
+        "playwright.config.web.ts"
+      ]
+    },
+    "test:desktop": {
+      "env": {
+        "VSCODE_DESKTOP": "1"
+      },
+      "command": "playwright test --config=playwright.config.desktop.ts",
+      "dependencies": [
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "playwright.config.desktop.ts"
+      ]
     }
   }
 }

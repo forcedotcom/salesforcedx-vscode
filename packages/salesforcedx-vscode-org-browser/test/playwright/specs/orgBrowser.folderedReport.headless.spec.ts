@@ -9,110 +9,111 @@ import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
   upsertScratchOrgAuthFieldsToSettings,
-  create,
+  createDreamhouseOrg,
   NOTIFICATION_LIST_ITEM
 } from '@salesforce/playwright-vscode-ext';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
+import { RETRIEVE_TIMEOUT_MS } from '../constants';
 
 /** Headless-like test for foldered Report retrieval */
-test.describe('Org Browser - Foldered Report retrieval ', () => {
-  test.setTimeout(10 * 60 * 1000);
+test.setTimeout(RETRIEVE_TIMEOUT_MS);
 
-  test.beforeEach(async ({ page }) => {
-    const createResult = await create();
-    const orgBrowserPage = new OrgBrowserPage(page);
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
+test.beforeEach(async ({ page }) => {
+  const createResult = await createDreamhouseOrg();
+  const orgBrowserPage = new OrgBrowserPage(page);
+  await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
+});
+
+test('Org Browser - Foldered Report retrieval: foldered report headless: retrieve flow_orchestration_log from unfiled$public', async ({
+  page
+}) => {
+  const orgBrowserPage = new OrgBrowserPage(page);
+  const reportType = 'Report';
+  let reportName: string | undefined;
+
+  await test.step('open Org Browser', async () => {
+    await orgBrowserPage.openOrgBrowser();
   });
 
-  test('foldered report headless: retrieve flow_orchestration_log from unfiled$public', async ({ page }) => {
-    const orgBrowserPage = new OrgBrowserPage(page);
-    const reportType = 'Report';
-    let reportName: string | undefined;
+  await test.step('find Report type, download not available', async () => {
+    const locator = await orgBrowserPage.findMetadataType(reportType);
+    await locator.hover();
+    await expect(locator).toMatchAriaSnapshot({ name: 'report-found' });
+    await expect(locator.locator('.action-label[aria-label="Retrieve Metadata"]')).toBeHidden();
+  });
 
-    await test.step('open Org Browser', async () => {
-      await orgBrowserPage.openOrgBrowser();
-    });
+  const folderName = 'unfiled$public';
 
-    await test.step('find Report type, download not available', async () => {
-      const locator = await orgBrowserPage.findMetadataType(reportType);
-      await locator.hover();
-      await expect(locator).toMatchAriaSnapshot({ name: 'report-found' });
-      await expect(locator.locator('.action-label[aria-label="Retrieve Metadata"]')).toBeHidden();
-    });
+  await test.step('expand Report and locate unfiled$public folder, download not available', async () => {
+    await orgBrowserPage.findMetadataType(reportType);
+    await orgBrowserPage.expandFolder(reportType);
+    const folder = await orgBrowserPage.getMetadataItem('Report', folderName, 2);
+    await expect(folder).toBeVisible();
+    await expect(folder.locator('.action-label[aria-label="Retrieve Metadata"]')).toBeHidden();
+    await orgBrowserPage.expandFolder(folderName);
+  });
 
-    const folderName = 'unfiled$public';
+  await test.step('locate first report item in folder', async () => {
+    const level3 = await orgBrowserPage.getMetadataItem(
+      'unfiled$public',
+      'unfiled$public/flow_screen_prebuilt_report',
+      3
+    );
+    const txt = (await level3.textContent())?.trim() ?? '';
+    reportName = txt.split('/').pop();
+    await level3.hover({ timeout: 500 });
+    await expect(level3).toMatchAriaSnapshot({ name: 'report-first-item' });
+    return level3;
+  });
 
-    await test.step('expand Report and locate unfiled$public folder, download not available', async () => {
-      await orgBrowserPage.findMetadataType(reportType);
-      await orgBrowserPage.expandFolder(reportType);
-      const folder = await orgBrowserPage.getMetadataItem('Report', folderName, 2);
-      await expect(folder).toBeVisible();
-      await expect(folder.locator('.action-label[aria-label="Retrieve Metadata"]')).toBeHidden();
-      await orgBrowserPage.expandFolder(folderName);
-    });
+  await test.step('trigger retrieval on a single report', async () => {
+    const reportItem = await orgBrowserPage.getMetadataItem(
+      'unfiled$public',
+      'unfiled$public/flow_screen_prebuilt_report',
+      3
+    );
+    const clicked = await orgBrowserPage.clickRetrieveButton(reportItem);
+    expect(clicked).toBe(true);
+  });
 
-    await test.step('locate first report item in folder', async () => {
-      const level3 = await orgBrowserPage.getMetadataItem(
-        'unfiled$public',
-        'unfiled$public/flow_screen_prebuilt_report',
-        3
-      );
-      const txt = (await level3.textContent())?.trim() ?? '';
-      reportName = txt.split('/').pop();
-      await level3.hover({ timeout: 500 });
-      await expect(level3).toMatchAriaSnapshot({ name: 'report-first-item' });
-      return level3;
-    });
+  await test.step('wait for retrieval progress to appear', async () => {
+    await waitForRetrieveProgressNotificationToAppear(page, 60_000);
+  });
 
-    await test.step('trigger retrieval on a single report', async () => {
-      const reportItem = await orgBrowserPage.getMetadataItem(
-        'unfiled$public',
-        'unfiled$public/flow_screen_prebuilt_report',
-        3
-      );
-      const clicked = await orgBrowserPage.clickRetrieveButton(reportItem);
-      expect(clicked).toBe(true);
-    });
+  await test.step('wait for editor file to open (completion signal)', async () => {
+    await orgBrowserPage.waitForFileToOpenInEditor(RETRIEVE_TIMEOUT_MS);
+  });
 
-    await test.step('wait for retrieval progress to appear', async () => {
-      await waitForRetrieveProgressNotificationToAppear(page, 60_000);
-    });
+  await test.step('verify editor shows the report tab and capture', async () => {
+    const editorPart = page.locator('#workbench\\.parts\\.editor');
+    await expect(editorPart).toBeVisible();
+    const safeName = (reportName ?? '').replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const reportTab = page.getByRole('tab', { name: new RegExp(safeName, 'i') }).first();
+    await expect(reportTab).toBeVisible();
+    await expect(reportTab).toMatchAriaSnapshot({ name: 'report-editor-tab' });
+  });
 
-    await test.step('wait for editor file to open (completion signal)', async () => {
-      await orgBrowserPage.waitForFileToOpenInEditor(300_000);
-    });
+  await test.step('override confirmation for a single report', async () => {
+    const reportItem = await orgBrowserPage.getMetadataItem(
+      'unfiled$public',
+      'unfiled$public/flow_screen_prebuilt_report',
+      3
+    );
+    await orgBrowserPage.clickRetrieveButton(reportItem);
 
-    await test.step('verify editor shows the report tab and capture', async () => {
-      const editorPart = page.locator('#workbench\\.parts\\.editor');
-      await expect(editorPart).toBeVisible();
-      const safeName = (reportName ?? '').replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const reportTab = page.getByRole('tab', { name: new RegExp(safeName, 'i') }).first();
-      await expect(reportTab).toBeVisible();
-      await expect(reportTab).toMatchAriaSnapshot({ name: 'report-editor-tab' });
-    });
+    const overwrite = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /Overwrite\s+local\s+files\s+for/i })
+      .first();
+    await expect(overwrite).toBeVisible();
+    await expect(overwrite).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+Report\s*\?/i);
 
-    await test.step('override confirmation for a single report', async () => {
-      const reportItem = await orgBrowserPage.getMetadataItem(
-        'unfiled$public',
-        'unfiled$public/flow_screen_prebuilt_report',
-        3
-      );
-      await orgBrowserPage.clickRetrieveButton(reportItem);
+    await overwrite.getByRole('button', { name: /^Yes$/ }).click();
 
-      const overwrite = page
-        .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: /Overwrite\s+local\s+files\s+for/i })
-        .first();
-      await expect(overwrite).toBeVisible();
-      await expect(overwrite).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+Report\s*\?/i);
-
-      await overwrite.getByRole('button', { name: /^Yes$/ }).click();
-
-      const retrieving = page
-        .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: /Retrieving\s+Report/i })
-        .first();
-      await expect(retrieving).toBeVisible({ timeout: 60_000 });
-    });
+    const retrieving = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /Retrieving\s+Report/i })
+      .first();
+    await expect(retrieving).toBeVisible({ timeout: 60_000 });
   });
 });

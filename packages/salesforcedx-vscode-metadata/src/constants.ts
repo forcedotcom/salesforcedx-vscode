@@ -7,6 +7,9 @@
 
 export const EXTENSION_NAME = 'salesforcedx-vscode-metadata';
 
+// Output channel name
+export const OUTPUT_CHANNEL_NAME = 'Salesforce Metadata';
+
 // Configuration keys
 export const METADATA_CONFIG_SECTION = 'salesforcedx-vscode-metadata';
 export const CORE_CONFIG_SECTION = 'salesforcedx-vscode-core';

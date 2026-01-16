@@ -49,7 +49,7 @@ export const create = async (): Promise<
   await execAsync(`git clone --depth=1 ${DREAMHOUSE_REPO} ${repoDir}`);
 
   const { stdout: createStdout } = await execAsync(
-    `sf org create scratch -d -f config/project-scratch-def.json -a ${DREAMHOUSE_ORG_ALIAS} --json`,
+    `sf org create scratch -d -f config/project-scratch-def.json -a ${DREAMHOUSE_ORG_ALIAS} --json --wait 30`,
     { cwd: repoDir, env }
   );
 

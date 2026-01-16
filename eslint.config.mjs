@@ -27,6 +27,7 @@ import jsonPlugin from '@eslint/json';
 import localRulesPlugin from './packages/eslint-local-rules/out/index.js';
 
 const localRules = localRulesPlugin.rules;
+const localPlugin = { rules: localRules };
 
 export default [
   {
@@ -48,7 +49,8 @@ export default [
       'packages/salesforcedx-lightning-lsp-common/src/resources/**',
       'packages/salesforcedx-lightning-lsp-common/src/html-language-service/**',
       '**/.vscode-test-web/**',
-      '**/.vscode-test/**'
+      '**/.vscode-test/**',
+      '**/playwright-report/**'
     ]
   },
   {
@@ -73,7 +75,7 @@ export default [
       'prefer-arrow': eslintPluginPreferArrow,
       '@stylistic/eslint-plugin-ts': stylistic,
       unicorn: eslintPluginUnicorn,
-      local: { rules: localRules },
+      local: localPlugin,
       'barrel-files': eslintPluginBarrelFiles,
       functional: functional,
       workspaces: eslintPluginWorkspaces,
@@ -458,9 +460,11 @@ export default [
       'packages/salesforcedx-vscode-automation-tests/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
+    ignores: ['**/locators.ts'],
     plugins: {
       '@typescript-eslint': typescriptEslint,
-      jest: eslintPluginJest
+      jest: eslintPluginJest,
+      local: localPlugin
     },
     rules: {
       'unicorn/filename-case': 'off',
@@ -487,7 +491,8 @@ export default [
       'jest/unbound-method': 'error',
       'no-useless-constructor': 'off',
       'no-restricted-imports': 'off',
-      'no-param-reassign': 'off'
+      'no-param-reassign': 'off',
+      'local/no-duplicate-playwright-locators': 'error'
     }
   },
   {
@@ -530,8 +535,11 @@ export default [
       'functional/no-let': 'error',
       'functional/no-loop-statements': 'error',
       'functional/prefer-property-signatures': 'error',
-      '@typescript-eslint/explicit-function-return-type': 'error',
+      // let Effect figure it out.  This is especially helpful for Error typings
+      '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      'local/no-explicit-effect-return-type': 'error',
+
       // Effect code should always handle promises properly
       '@typescript-eslint/no-floating-promises': 'error',
 
@@ -570,6 +578,15 @@ export default [
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off'
+    }
+  },
+  {
+    // Prevent direct imports from services extension (except in services package itself)
+    // Only applies to src directories, not test directories
+    files: ['packages/**/src/**/*.ts'],
+    ignores: ['packages/salesforcedx-vscode-services/**/*.ts'],
+    rules: {
+      'local/no-direct-services-imports': 'error'
     }
   },
   {
@@ -625,7 +642,7 @@ export default [
     language: 'json/json',
     plugins: {
       json: jsonPlugin,
-      local: { rules: localRules }
+      local: localPlugin
     },
     rules: {
       ...jsonPlugin.configs.recommended.rules,

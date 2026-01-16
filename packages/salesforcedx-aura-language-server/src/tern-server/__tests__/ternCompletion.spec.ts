@@ -41,8 +41,6 @@ jest.mock('../../tern/defs/ecmascript.json', () => createMockJsonFromTernDefs('e
 
 // These imports are needed for the mock factory function and are hoisted, so import order doesn't matter
 
-import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
-
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { AuraWorkspaceContext } from '../../context/auraContext';
 import { onCompletion, onHover, onDefinition, onReferences } from '../ternServer';
@@ -52,7 +50,7 @@ const LIGHTNING_EXAMPLES_APP_PATH = `${SFDX_WORKSPACE_ROOT}/force-app/main/defau
 describe('tern completion', () => {
   it('tern completions', async () => {
     const ws = SFDX_WORKSPACE_ROOT;
-    const context = new AuraWorkspaceContext(ws, new FileSystemDataProvider());
+    const context = new AuraWorkspaceContext(ws, sfdxFileSystemProvider);
     context.initialize('SFDX');
     context.configureProject();
 

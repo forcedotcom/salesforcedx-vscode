@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.10.0",
+  "version": "65.13.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.5",
-    "esbuild": "0.25.10",
+    "esbuild": "0.25.12",
     "jest": "^29.7.0",
     "jest-junit": "14.0.1",
     "ts-jest": "^29.4.1"
@@ -65,7 +65,8 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
-        "../../tsconfig.common.json"
+        "../../tsconfig.common.json",
+        "package.json"
       ],
       "output": [
         "out/**",

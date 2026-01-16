@@ -39,7 +39,10 @@
       ],
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
+      "outFiles": [
+        "${workspaceFolder}/packages/*/out/src/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-apex-testing/dist/**/*.js"
+      ],
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
         "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
@@ -75,7 +78,10 @@
       "stopOnEntry": false,
       "sourceMaps": true,
       "smartStep": true,
-      "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js"],
+      "outFiles": [
+        "${workspaceFolder}/packages/*/out/src/**/*.js",
+        "${workspaceFolder}/packages/salesforcedx-vscode-apex-testing/dist/**/*.js"
+      ],
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
         "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",

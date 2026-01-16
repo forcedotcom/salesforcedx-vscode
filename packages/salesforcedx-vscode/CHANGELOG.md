@@ -1,19 +1,25 @@
-# 65.9.1 - December 19, 2025
+# 65.12.1 - January 9, 2026
 
-## Fixed
+## Added
 
-#### salesforcedx-vscode-apex
+#### salesforcedx-aura-language-server
+#### salesforcedx-lightning-lsp-common
+#### salesforcedx-lwc-language-server
 
-- We fixed an issue where code coverage highlights were not applied when navigating between Apex files. Coverage decorations now appear automatically when switching files, as long as Highlight Apex Code Coverage is enabled. ([PR #6721](https://github.com/forcedotcom/salesforcedx-vscode/pull/6721))
+- We refactored the Lightning language server into the monorepo to improve long-term maintainability. 
+- We removed `node:fs` and direct file system calls from the lightning-language-server in favor of asynchronously loading filesystem data into the server. ([PR #6620](https://github.com/forcedotcom/salesforcedx-vscode/pull/6620), ([PR #6658](https://github.com/forcedotcom/salesforcedx-vscode/pull/6658)), ([PR #6666](https://github.com/forcedotcom/salesforcedx-vscode/pull/6666)), ([PR #6711](https://github.com/forcedotcom/salesforcedx-vscode/pull/6711))
+- We added UX popups and hover text to clearly communicate the delayed server start. ([PR #6723](https://github.com/forcedotcom/salesforcedx-vscode/pull/6723))
 
 #### salesforcedx-vscode-apex-testing
 
-- We fixed an issue where the test panel did not automatically populate local Apex tests when opened. The test view now refreshes on activation and provides clearer feedback when the Apex Language Server is not ready, improving reliability and overall usability. ([PR #6722](https://github.com/forcedotcom/salesforcedx-vscode/pull/6722))
+- We introduced a new Apex test controller, including a redesigned Test Explorer UI, updated configuration settings, and improved test suite discovery and management. ([PR #6704](https://github.com/forcedotcom/salesforcedx-vscode/pull/6704))
 
-#### salesforcedx-vscode-org
+#### salesforcedx-vscode-core
 
-- We fixed an issue where org state was not refreshed after login, logout, or delete operations. You no longer need to reload the VS Code window after authorizing a Dev Hub before creating a scratch org- the extension now immediately reflects the latest org information. ([PR #6720](https://github.com/forcedotcom/salesforcedx-vscode/pull/6720))
+- We now scrape Metadata API Developer Guide metadata types using Playwright to power metadata XML hover documentation. This runs weekly via a GitHub Actions workflow. ([PR #6675](https://github.com/forcedotcom/salesforcedx-vscode/pull/6675))
 
-#### salesforcedx-utils-vscode
+- We moved `SFDX: Stop Apex Debugger Session` and `SFDX: Create and Set Up Project for ISV Debugging` from the CLI Integration extension to the Apex Interactive Debugger extension. ([PR #6727](https://github.com/forcedotcom/salesforcedx-vscode/pull/6727))
 
-- We made some changes under the hood. ([PR #6712](https://github.com/forcedotcom/salesforcedx-vscode/pull/6712))
+- We moved `SFDX: Execute SOQL Query…` and `SFDX: Execute SOQL Query with Currently Selected Text` from the CLI Integration extension to the SOQL extension. ([PR #6747](https://github.com/forcedotcom/salesforcedx-vscode/pull/6747))
+
+

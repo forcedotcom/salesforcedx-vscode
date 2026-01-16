@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider';
-import type { ComponentSet, MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import type { ComponentSet, MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -30,7 +30,7 @@ const retrieveEffect = (
   node: OrgBrowserTreeItem,
   treeProvider: MetadataTypeTreeProvider
   // void since we catch all the errors and show the vscode error message
-): Effect.Effect<RetrieveResult | SuccessfulCancelResult | void, never, never> =>
+) =>
   Effect.gen(function* () {
     const target = getRetrieveTarget(node);
     if (target._tag === 'None') {
@@ -46,7 +46,7 @@ const retrieveEffect = (
 
     const dirs = (yield* projectService.getSfProject).getPackageDirectories().map(directory => directory.fullPath);
 
-    const localComponents = yield* retrieveService.buildComponentSetFromSource([target.value], dirs);
+    const localComponents = yield* retrieveService.buildComponentSetFromSource(dirs, [target.value]);
 
     if (!(yield* confirmOverwrite(localComponents, target.value))) {
       return Brand.nominal<SuccessfulCancelResult>()('User canceled');
@@ -93,7 +93,7 @@ const getRetrieveTarget = (node: OrgBrowserTreeItem): Option.Option<MetadataMemb
   return Option.none();
 };
 
-const confirmOverwrite = (localComponents: ComponentSet, target: MetadataMember): Effect.Effect<boolean> =>
+const confirmOverwrite = (localComponents: ComponentSet, target: MetadataMember) =>
   Effect.promise(async () => {
     if (localComponents.size === 0) return true;
     const answer = await vscode.window.showWarningMessage(

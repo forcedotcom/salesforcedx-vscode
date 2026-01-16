@@ -8,17 +8,29 @@ import { Locator, Page, expect } from '@playwright/test';
 import type { AuthFields } from '@salesforce/core';
 import { ACCESS_TOKEN_KEY, API_VERSION_KEY, CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY } from '../constants';
 import { saveScreenshot } from '../shared/screenshotUtils';
-import { waitForVSCodeWorkbench } from '../utils/helpers';
+import {
+  waitForVSCodeWorkbench,
+  closeWelcomeTabs,
+  waitForWorkspaceReady,
+  isMacDesktop,
+  isDesktop
+} from '../utils/helpers';
 import { WORKBENCH, SETTINGS_SEARCH_INPUT } from '../utils/locators';
-import { executeCommandWithCommandPalette } from './commands';
 
 const settingsLocator = (page: Page): Locator => page.locator(SETTINGS_SEARCH_INPUT.join(','));
 
 export const openSettingsUI = async (page: Page): Promise<void> => {
+  await closeWelcomeTabs(page);
   await page.locator(WORKBENCH).click({ timeout: 60_000 });
-  await page.waitForTimeout(2000);
-  await executeCommandWithCommandPalette(page, 'Preferences: Open Settings (UI)');
+  // Use keyboard shortcut instead of command palette (more reliable)
+  // Mac desktop uses Meta (Command), all others use Control
+  const shortcut = isMacDesktop() ? 'Meta+,' : 'Control+,';
+  await page.keyboard.press(shortcut);
   await settingsLocator(page).first().waitFor({ timeout: 3000 });
+  // Always switch to Workspace settings tab
+  const workspaceTab = page.getByRole('tab', { name: 'Workspace' });
+  await workspaceTab.click();
+  await expect(workspaceTab).toHaveAttribute('aria-selected', 'true', { timeout: 3000 });
 };
 
 /** used for web, where auth fields need to be set to simulate what we'll receive from Core iframe.
@@ -27,11 +39,10 @@ export const openSettingsUI = async (page: Page): Promise<void> => {
 export const upsertScratchOrgAuthFieldsToSettings = async (
   page: Page,
   authFields: Required<Pick<AuthFields, 'instanceUrl' | 'accessToken' | 'instanceApiVersion'>>,
-  waitForProject?: () => Promise<void>
+  waitForProject: () => Promise<void> = () => waitForWorkspaceReady(page)
 ): Promise<void> => {
   // Desktop uses real CLI auth files, so just wait for workbench (no navigation, no settings)
-  const isDesktop = process.env.VSCODE_DESKTOP === '1';
-  if (isDesktop) {
+  if (isDesktop()) {
     // Page is already loaded by Electron fixture, just wait for project if callback provided
     if (waitForProject) {
       await waitForProject();
@@ -51,26 +62,27 @@ export const upsertScratchOrgAuthFieldsToSettings = async (
   });
 };
 
+const performSearch =
+  (page: Page) =>
+  async (query: string): Promise<void> => {
+    // Reset search by selecting all and clearing
+    const searchMonaco = settingsLocator(page).first();
+    await searchMonaco.click();
+    // seems to be necessary to avoid clearing the setting instead of the search box.
+    // TODO: figure out what to actually wait for (ex: can I tell if it's focused?)
+    await page.waitForTimeout(200);
+    // TODO: this works in headless tests with playwright on local mac, and ControlOrMeta+A doesn't work!
+    await page.keyboard.press('Control+KeyA');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.type(query);
+  };
+
 /** Upsert settings using Settings (UI) search and fill of each id.
  * For checkbox settings, pass "true" or "false" as the value.
  */
 export const upsertSettings = async (page: Page, settings: Record<string, string>): Promise<void> => {
   await openSettingsUI(page);
   const debugAria = process.env.E2E_ARIA_DEBUG === '1';
-
-  const searchMonaco = settingsLocator(page).first();
-
-  const performSearch = async (query: string): Promise<void> => {
-    // Reset search by selecting all and clearing
-    await searchMonaco.click();
-    // seems to be necessary to avoid clearing the setting instead of the search box.
-    // TODO: figure out what to actually wait for (ex: can I tell if it's focused?)
-    await page.waitForTimeout(100);
-    // TODO: this works in headless tests with playwright on local mac, and ControlOrMeta+A doesn't work!
-    await page.keyboard.press('Control+KeyA');
-    await page.keyboard.press('Backspace');
-    await page.keyboard.type(query);
-  };
 
   for (const [id, value] of Object.entries(settings)) {
     // Debug visibility: take screenshot and aria snapshot before each search
@@ -81,8 +93,10 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       } catch {}
     }
 
+    await settingsLocator(page).first().waitFor({ timeout: 3000 });
+
     // First try an exact search by full id (section.key)
-    await performSearch(id);
+    await performSearch(page)(id);
 
     // Wait for search results to appear - wait for any search result element to indicate search completed
     await page.locator('[data-id^="searchResultModel_"]').first().waitFor({ state: 'attached', timeout: 15_000 });
@@ -107,7 +121,6 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       } catch {}
     }
 
-    // Fail fast if the deterministic row isn't found — do not fall back to label-based heuristics
     await row.waitFor({ state: 'attached', timeout: 15_000 });
 
     await row.waitFor({ state: 'visible', timeout: 30_000 });
@@ -129,15 +142,24 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       const desiredChecked = value === 'true';
       if (isChecked !== desiredChecked) {
         await checkbox.click();
+        await expect(checkbox).toHaveAttribute('aria-checked', desiredChecked ? 'true' : 'false', { timeout: 10_000 });
       }
     } else {
-      // Handle textbox setting
+      // Handle textbox or spinbutton setting
       const roleTextbox = row.getByRole('textbox').first();
-      await roleTextbox.waitFor({ timeout: 30_000 });
-      await roleTextbox.click({ timeout: 5000 });
-      await roleTextbox.fill(value);
-      await expect(roleTextbox).toHaveValue(value, { timeout: 10_000 });
-      await roleTextbox.blur();
+      const roleSpinbutton = row.getByRole('spinbutton').first();
+
+      const textboxCount = await roleTextbox.count();
+
+      const inputElement = textboxCount > 0 ? roleTextbox : roleSpinbutton;
+      await inputElement.waitFor({ timeout: 30_000 });
+      await inputElement.click({ timeout: 5000 });
+      // Clear the input first, then type the new value
+      // This is more reliable than select-all + fill on desktop
+      await inputElement.clear();
+      await inputElement.fill(value);
+      await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
+      await inputElement.blur();
     }
 
     // Capture after state

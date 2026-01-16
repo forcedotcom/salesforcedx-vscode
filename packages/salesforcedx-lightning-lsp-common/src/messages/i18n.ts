@@ -30,5 +30,3 @@ export const messages = {
   relativeWorkspaceRoot_must_be_a_string_message: 'relativeWorkspaceRoot must be a string, got: type=%s, value=%s',
   jsconfigTemplate_not_found_message: 'jsconfigTemplate not found'
 } as const;
-
-export type MessageKey = keyof typeof messages;

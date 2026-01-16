@@ -16,7 +16,9 @@ import {
 import { getVscodeCoreExtension } from 'salesforcedx-vscode-apex/src/coreExtensionUtils';
 import { CancellationToken } from 'vscode';
 import { channelService } from '../channels';
+import * as settings from '../settings';
 import { telemetryService } from '../telemetry/telemetry';
+import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 
 type ApexTestRunOptions = {
   payload: AsyncTestConfiguration;
@@ -65,8 +67,38 @@ export const runApexTests = async (
     options.codeCoverage
   );
 
-  const humanOutput = new HumanReporter().format(result, options.codeCoverage, options.concise);
-  channelService.appendLine(humanOutput);
+  // Print test results to output channel
+  channelService.appendLine('\n=== Test Results ===\n');
+  const humanOutput = new HumanReporter().format(result, options.codeCoverage, false);
+  if (humanOutput) {
+    // Split by lines and add each line separately to preserve formatting
+    const lines = humanOutput.split('\n');
+    for (const line of lines) {
+      channelService.appendLine(line);
+    }
+  } else {
+    // Fallback if HumanReporter returns empty - at least show summary
+    channelService.appendLine(
+      `Test execution completed. Tests ran: ${result.summary.testsRan ?? 0}, Passed: ${result.summary.passing ?? 0}, Failed: ${result.summary.failing ?? 0}`
+    );
+  }
+
+  // Generate and open test report
+  const reportStartTime = Date.now();
+  const outputFormat = settings.retrieveOutputFormat();
+  const sortOrder = settings.retrieveTestSortOrder();
+  try {
+    await writeAndOpenTestReport(result, options.outputDir, outputFormat, options.codeCoverage, sortOrder);
+    const reportDurationMs = Date.now() - reportStartTime;
+    telemetryService.sendEventData(
+      'apexTestReportGenerated',
+      { outputFormat, trigger: options.telemetryTrigger },
+      { reportDurationMs }
+    );
+  } catch (error) {
+    console.error('Failed to generate test report:', error);
+    // Continue even if report generation fails
+  }
 
   const durationMs = Date.now() - startTime;
   const summary = result.summary;

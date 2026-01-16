@@ -87,10 +87,14 @@ export const activate = async (extensionContext: ExtensionContext) => {
     log(`Failed to bootstrap workspace awareness: ${String(error)}`);
   });
 
-  // Also load essential JSON files for workspace type detection
+  // Also load essential JSON/XML files for workspace type detection
+  // Only load the specific files checked by detectWorkspaceHelper at root level:
+  // - sfdx-project.json, workspace-user.xml, lwc.config.json, package.json, lerna.json (at root)
+  // Note: Parent workspace-user.xml check is handled by language server code, not via file glob
+  // Using patterns without **/ to match only at root level of each workspace folder
   void Effect.runPromise(
     bootstrapWorkspaceAwareness({
-      fileGlob: '**/*.{json,xml}',
+      fileGlob: '{sfdx-project.json,workspace-user.xml,lwc.config.json,package.json,lerna.json}',
       excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
       logger: log
     })
