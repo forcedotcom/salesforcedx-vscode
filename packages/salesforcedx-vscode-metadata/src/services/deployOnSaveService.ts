@@ -87,7 +87,7 @@ const handleDeployError = (error: unknown) =>
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const channelService = yield* api.services.ChannelService;
 
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error ? error.message : JSON.stringify(error, null, 2);
 
     // Check for specific error types
     if (errorMessage.includes('NoTargetOrgSet') || errorMessage.includes('No default org')) {
