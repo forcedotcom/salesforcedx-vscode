@@ -9,8 +9,8 @@ import type { FilterState, FilterStateService } from '../services/filterStateSer
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
-import { createCustomFieldNode } from './customField';
 import { FilePresenceService, queueFilePresenceCheck } from '../services/filePresenceService';
+import { createCustomFieldNode } from './customField';
 import { isRetrievableComponent } from './filters';
 import { isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
 import {

@@ -51,14 +51,34 @@ const retrieveEffect = (
 
     const dirs = (yield* projectService.getSfProject).getPackageDirectories().map(directory => directory.fullPath);
 
-    const localComponents = yield* retrieveService.buildComponentSetFromSource([target.value], dirs);
+    // When retrieving at type level (wildcard), explicitly list all components from the org
+    // This ensures all components are retrieved instead of relying on wildcard expansion
+    let membersToRetrieve: MetadataMember[] = [target.value];
+    if (target.value.fullName === '*') {
+      const describeService = yield* api.services.MetadataDescribeService;
+      const components = yield* describeService.listMetadata(target.value.type);
+      // Convert listMetadata results to MetadataMember format
+      membersToRetrieve = components
+        .filter(c => c.fullName && c.type)
+        .map(c => ({ type: c.type, fullName: c.fullName! }));
+
+      // If no components found, return early
+      if (membersToRetrieve.length === 0) {
+        void vscode.window.showInformationMessage(
+          nls.localize('retrieve_no_components', `No ${target.value.type} components found in org`)
+        );
+        return;
+      }
+    }
+
+    const localComponents = yield* retrieveService.buildComponentSetFromSource(membersToRetrieve, dirs);
 
     if (!(yield* confirmOverwrite(localComponents, target.value))) {
       return Brand.nominal<SuccessfulCancelResult>()('User canceled');
     }
 
     // Run the retrieve operation
-    const result = yield* (yield* OrgBrowserRetrieveService).retrieve([target.value], target.value.fullName !== '*');
+    const result = yield* (yield* OrgBrowserRetrieveService).retrieve(membersToRetrieve, target.value.fullName !== '*');
 
     if (typeof result !== 'string')
       // Handle post-retrieve UI updates

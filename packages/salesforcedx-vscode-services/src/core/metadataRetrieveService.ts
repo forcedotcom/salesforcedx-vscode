@@ -95,10 +95,31 @@ const retrieve = (
             registry: registryAccess
           });
 
+          // Generate concise notification title
+          const title =
+            members.length === 1
+              ? `Retrieving ${members[0].type}: ${members[0].fullName === '*' ? 'all' : members[0].fullName}`
+              : (() => {
+                  // Group by type to create a more concise message
+                  const typeGroups = new Map<string, number>();
+                  for (const member of members) {
+                    const count = typeGroups.get(member.type) ?? 0;
+                    typeGroups.set(member.type, count + 1);
+                  }
+                  if (typeGroups.size === 1) {
+                    // All same type - show count
+                    const [type, count] = Array.from(typeGroups.entries())[0];
+                    return `Retrieving ${count} ${type} ${count === 1 ? 'component' : 'components'}`;
+                  } else {
+                    // Multiple types - show summary
+                    return `Retrieving ${members.length} metadata components`;
+                  }
+                })();
+
           const retrieveResult = await vscode.window.withProgress(
             {
               location: vscode.ProgressLocation.Notification,
-              title: `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`,
+              title,
               cancellable: true
             },
             async (_, token) => {
