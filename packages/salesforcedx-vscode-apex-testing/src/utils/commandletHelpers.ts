@@ -127,7 +127,9 @@ export abstract class LibraryCommandletExecutor<T> implements CommandletExecutor
       if (!this.cancelled) {
         if (success) {
           void notificationService.showSuccessfulExecution(this.executionName, {
-            show: () => this.outputChannel.show()
+            show: async () => {
+              this.outputChannel.show();
+            }
           });
         } else {
           notificationService.showFailedExecution(this.executionName);

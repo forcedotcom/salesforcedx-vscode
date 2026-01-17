@@ -12,7 +12,7 @@ import { APEX_GROUP_RANGE, APEX_TESTS, FAIL_RESULT, PASS_RESULT, SKIP_RESULT } f
 import { nls } from '../messages';
 import { readFile } from '../utils/fileHelpers';
 import { getApexTests } from '../utils/testUtils';
-import { iconHelpers } from './icons';
+import { getIconPath } from './icons';
 import { ApexTestMethod } from './lspConverter';
 
 /**
@@ -243,8 +243,8 @@ export abstract class TestNode extends vscode.TreeItem {
   }
 
   public iconPath = {
-    light: iconHelpers.getIconPath('LIGHT_BLUE_BUTTON'),
-    dark: iconHelpers.getIconPath('DARK_BLUE_BUTTON')
+    light: getIconPath('LIGHT_BLUE_BUTTON'),
+    dark: getIconPath('DARK_BLUE_BUTTON')
   };
 
   // TODO: create a ticket to address this particular issue.
@@ -258,20 +258,20 @@ export abstract class TestNode extends vscode.TreeItem {
     if (outcome === PASS_RESULT) {
       // Passed Test
       this.iconPath = {
-        light: iconHelpers.getIconPath('LIGHT_GREEN_BUTTON'),
-        dark: iconHelpers.getIconPath('DARK_GREEN_BUTTON')
+        light: getIconPath('LIGHT_GREEN_BUTTON'),
+        dark: getIconPath('DARK_GREEN_BUTTON')
       };
     } else if (outcome === FAIL_RESULT) {
       // Failed test
       this.iconPath = {
-        light: iconHelpers.getIconPath('LIGHT_RED_BUTTON'),
-        dark: iconHelpers.getIconPath('DARK_RED_BUTTON')
+        light: getIconPath('LIGHT_RED_BUTTON'),
+        dark: getIconPath('DARK_RED_BUTTON')
       };
     } else if (outcome === SKIP_RESULT) {
       // Skipped test
       this.iconPath = {
-        light: iconHelpers.getIconPath('LIGHT_ORANGE_BUTTON'),
-        dark: iconHelpers.getIconPath('DARK_ORANGE_BUTTON')
+        light: getIconPath('LIGHT_ORANGE_BUTTON'),
+        dark: getIconPath('DARK_ORANGE_BUTTON')
       };
     }
 

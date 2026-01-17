@@ -8,10 +8,9 @@
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { ResultFormat, TestResult, TestService } from '@salesforce/apex-node';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { getServicesApi } from '../services/extensionProvider';
+import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { getUriPath } from '../utils/commandletHelpers';
 import { ApexTestMethod } from '../views/lspConverter';
@@ -222,52 +221,55 @@ const convertApiToApexTestMethods = async (classes: ToolingTestClass[]): Promise
   return tests;
 };
 
-/** Build an index of class baseName -> file URI by searching for specific class names */
+/** Build an index of class baseName -> file URI using ComponentSet (works on web and desktop) */
 export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<string, vscode.Uri>> => {
-  const folder = vscode.workspace.workspaceFolders?.[0];
-  if (!folder || classNames.length === 0) {
+  if (classNames.length === 0) {
     return new Map<string, vscode.Uri>();
   }
 
-  // In web mode with virtual file systems, findFiles might not work the same way
-  // Return empty map to allow org-only classes to work
-  if (process.env.ESBUILD_PLATFORM === 'web' && folder.uri.scheme !== 'file') {
-    return new Map<string, vscode.Uri>();
-  }
+  return Effect.runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const [projectService, retrieveService] = yield* Effect.all(
+        [api.services.ProjectService, api.services.MetadataRetrieveService],
+        { concurrency: 'unbounded' }
+      );
 
-  try {
-    const exclude = '{**/.sfdx/**,**/.sf/**,**/node_modules/**}';
-    // Search for .cls files matching the discovered class names
-    const pattern = new vscode.RelativePattern(folder, '**/*.cls');
-    const files = await vscode.workspace.findFiles(pattern, exclude);
+      // Get package directories from the project
+      const sfProject = yield* projectService.getSfProject;
+      const packageDirs = sfProject.getPackageDirectories().map(dir => dir.fullPath);
 
-    // Filter to only files whose base name matches one of the discovered class names
-    // In web mode, use path instead of fsPath
-    const matchingFiles = files.filter(f => {
-      const filePath = getUriPath(f);
-      const base = path.parse(filePath).name;
-      return classNames.includes(base);
-    });
+      // Build ComponentSet for all ApexClass files in the project
+      const componentSet = yield* retrieveService.buildComponentSetFromSource(
+        [{ type: 'ApexClass', fullName: '*' }],
+        packageDirs
+      );
 
-    // Sort by path length (shorter paths first) to prefer files closer to workspace root
-    // Then create map, handling potential duplicates by keeping the first (shortest path)
-    return new Map(
-      matchingFiles
-        .toSorted((a, b) => {
-          const aPath = getUriPath(a);
-          const bPath = getUriPath(b);
-          return aPath.length - bPath.length;
-        })
-        .map(f => {
-          const filePath = getUriPath(f);
-          const base = path.parse(filePath).name;
-          return [base, f];
-        })
-    );
-  } catch (error) {
-    console.error('[Apex Testing] Error building class to URI index:', error);
-    return new Map<string, vscode.Uri>();
-  }
+      // Build index from component name to file URI
+      const classNameSet = new Set(classNames);
+      const index = new Map<string, vscode.Uri>();
+
+      for (const component of componentSet.getSourceComponents()) {
+        // component.content is the .cls file path
+        if (component.content && classNameSet.has(component.name)) {
+          // Prefer shorter paths (files closer to workspace root)
+          const existingUri = index.get(component.name);
+          if (!existingUri || component.content.length < getUriPath(existingUri).length) {
+            index.set(component.name, vscode.Uri.file(component.content));
+          }
+        }
+      }
+
+      return index;
+    }).pipe(
+      Effect.withSpan('buildClassToUriIndex', { attributes: { classCount: classNames.length } }),
+      Effect.catchAll(error => {
+        console.error('[Apex Testing] Error building class to URI index:', error);
+        return Effect.succeed(new Map<string, vscode.Uri>());
+      }),
+      Effect.provide(AllServicesLayer)
+    )
+  );
 };
 
 /** Writes test result JSON file using FsService (works in both desktop and web modes) */
@@ -277,17 +279,12 @@ export const writeTestResultJson = async (result: TestResult, outputDir: string)
   const jsonFilePath = path.join(outputDir, jsonFilename);
   const jsonContent = JSON.stringify(result, null, 2);
 
-  const servicesApi = await getServicesApi();
-  const fsServiceLayer = Layer.mergeAll(
-    servicesApi.services.FsService.Default,
-    servicesApi.services.ChannelService.Default
-  );
-
   await Effect.runPromise(
-    servicesApi.services.FsService.pipe(
-      Effect.flatMap(service => service.writeFile(jsonFilePath, jsonContent)),
-      Effect.provide(fsServiceLayer)
-    )
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const svc = yield* api.services.FsService;
+      yield* svc.writeFile(jsonFilePath, jsonContent);
+    }).pipe(Effect.provide(AllServicesLayer))
   );
 };
 
@@ -298,25 +295,14 @@ export const writeTestResultJsonFile = async (
   codeCoverage: boolean,
   testService: TestService
 ): Promise<void> => {
-  // In web mode, use FsService since testService.writeResultFiles uses callback-style fs operations
-  // In desktop mode, use testService.writeResultFiles which works correctly
-  if (process.env.ESBUILD_PLATFORM === 'web') {
-    try {
-      await writeTestResultJson(result, outputDir);
-    } catch (error) {
-      // Log error but don't throw - test execution succeeded, just file writing failed
-      console.error('Failed to write JSON test result file:', error);
-    }
-  } else {
-    try {
-      await testService.writeResultFiles(
-        result,
-        { resultFormats: [ResultFormat.json], dirPath: outputDir },
-        codeCoverage
-      );
-    } catch (error) {
-      // Log error but don't throw - test execution succeeded, just file writing failed
-      console.error('Failed to write JSON test result file:', error);
-    }
+  try {
+    await testService.writeResultFiles(
+      result,
+      { resultFormats: [ResultFormat.json], dirPath: outputDir },
+      codeCoverage
+    );
+  } catch (error) {
+    // Log error but don't throw - test execution succeeded, just file writing failed
+    console.error('Failed to write JSON test result file:', error);
   }
 };

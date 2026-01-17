@@ -47,7 +47,7 @@ export class ApexTestRunner {
     });
   }
 
-  public showErrorMessage(test: TestNode) {
+  public async showErrorMessage(test: TestNode) {
     let testNode = test;
     let position: vscode.Range | number = test.location!.range;
     if (testNode instanceof ApexTestGroupNode) {
@@ -63,11 +63,11 @@ export class ApexTestRunner {
       if (errorMessage && errorMessage !== '') {
         const stackTrace = testNode.stackTrace;
         position = parseInt(stackTrace.substring(stackTrace.indexOf('line') + 4, stackTrace.indexOf(',')), 10) - 1; // Remove one because vscode location is zero based
-        channelService.appendLine('-----------------------------------------');
-        channelService.appendLine(stackTrace);
-        channelService.appendLine(errorMessage);
-        channelService.appendLine('-----------------------------------------');
-        channelService.show();
+        await channelService.appendLine('-----------------------------------------');
+        await channelService.appendLine(stackTrace);
+        await channelService.appendLine(errorMessage);
+        await channelService.appendLine('-----------------------------------------');
+        await channelService.show();
       }
     }
 

@@ -6,26 +6,17 @@
  */
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
-import { getServicesApi } from './services/extensionProvider';
+import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
 
 /**
  * Gets a Connection to the target org using the Services extension.
  * This works in both web and desktop environments.
  */
-export const getConnection = async (): Promise<Connection> => {
-  const servicesApi = await getServicesApi();
-  // Provide all required dependencies for ConnectionService
-  const connectionLayer = Layer.mergeAll(
-    servicesApi.services.ConnectionService.Default,
-    servicesApi.services.SettingsService.Default,
-    servicesApi.services.ConfigService.Default,
-    servicesApi.services.WorkspaceService.Default
+export const getConnection = async (): Promise<Connection> =>
+  Effect.runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const svc = yield* api.services.ConnectionService;
+      return yield* svc.getConnection;
+    }).pipe(Effect.provide(AllServicesLayer))
   );
-  return Effect.runPromise(
-    servicesApi.services.ConnectionService.pipe(
-      Effect.flatMap(service => service.getConnection),
-      Effect.provide(connectionLayer)
-    )
-  );
-};

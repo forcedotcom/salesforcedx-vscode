@@ -6,8 +6,8 @@
  */
 
 import { AsyncTestConfiguration, Progress, TestLevel, TestService } from '@salesforce/apex-node';
-import * as path from 'node:path';
 import { type CancellationToken, languages, type Uri, window, workspace } from 'vscode';
+import { Utils } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { APEX_CLASS_EXT, APEX_TESTSUITE_EXT } from '../constants';
 import { getConnection } from '../coreExtensionUtils';
@@ -24,11 +24,16 @@ import {
   SfCommandlet,
   SfWorkspaceChecker
 } from '../utils/commandletHelpers';
-import { ApexTestQuickPickItem, getTestInfo, TestType } from '../utils/fileHelpers';
+import { ApexTestQuickPickItem, getTestInfo } from '../utils/fileHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { runApexTests } from './apexTestRunUtils';
 
 const FILE_SEARCH_PATTERN = `{**/*${APEX_TESTSUITE_EXT},**/*${APEX_CLASS_EXT}}`;
+
+/** Remove the extension from a filename */
+const removeExtension = (filename: string, ext: string): string =>
+  filename.endsWith(ext) ? filename.slice(0, -ext.length) : filename;
+
 class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
     const { testSuites, apexClasses } = (await workspace.findFiles(FILE_SEARCH_PATTERN, SFDX_FOLDER))
@@ -45,21 +50,21 @@ class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
         { testSuites: [], apexClasses: [] }
       );
 
-    const fileItems = [
+    const fileItems: ApexTestQuickPickItem[] = [
       ...testSuites.map(testSuite => ({
-        label: path.basename(testSuite.toString(), '.testSuite-meta.xml'),
+        label: removeExtension(Utils.basename(testSuite), APEX_TESTSUITE_EXT),
         description: testSuite.fsPath,
-        type: TestType.Suite
+        type: 'Suite' as const
       })),
       {
         label: nls.localize('apex_test_run_all_local_test_label'),
         description: nls.localize('apex_test_run_all_local_tests_description_text'),
-        type: TestType.AllLocal
+        type: 'AllLocal' as const
       },
       {
         label: nls.localize('apex_test_run_all_test_label'),
         description: nls.localize('apex_test_run_all_tests_description_text'),
-        type: TestType.All
+        type: 'All' as const
       },
       ...(await Promise.all(apexClasses.map(getTestInfo))).filter(item => item !== undefined)
     ];
@@ -122,7 +127,7 @@ const buildTestPayload = async (
 ): Promise<AsyncTestConfiguration> => {
   const testLevel = TestLevel.RunSpecifiedTests;
   switch (data.type) {
-    case TestType.Class:
+    case 'Class':
       return await testService.buildAsyncPayload(
         testLevel,
         undefined,
@@ -131,7 +136,7 @@ const buildTestPayload = async (
         undefined,
         !settings.retrieveTestCodeCoverage() // the setting enables code coverage, so we need to pass false to disable it
       );
-    case TestType.Suite:
+    case 'Suite':
       return await testService.buildAsyncPayload(
         testLevel,
         undefined,
@@ -140,9 +145,9 @@ const buildTestPayload = async (
         undefined,
         !settings.retrieveTestCodeCoverage()
       );
-    case TestType.AllLocal:
+    case 'AllLocal':
       return { testLevel: TestLevel.RunLocalTests };
-    case TestType.All:
+    case 'All':
       return { testLevel: TestLevel.RunAllTestsInOrg };
     default:
       return { testLevel: TestLevel.RunAllTestsInOrg };

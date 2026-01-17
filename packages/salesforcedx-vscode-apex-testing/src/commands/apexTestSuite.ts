@@ -21,7 +21,7 @@ import {
   SfCommandlet,
   SfWorkspaceChecker
 } from '../utils/commandletHelpers';
-import { ApexTestQuickPickItem, getTestInfo, TestType } from '../utils/fileHelpers';
+import { ApexTestQuickPickItem, getTestInfo } from '../utils/fileHelpers';
 import { getTestController } from '../views/testController';
 import { ApexLibraryTestRunExecutor } from './apexTestRun';
 
@@ -40,7 +40,7 @@ const listApexTestSuiteItems = async (): Promise<ApexTestQuickPickItem[]> => {
   return (await testService.retrieveAllSuites()).map(testSuite => ({
     label: testSuite.TestSuiteName,
     description: testSuite.id,
-    type: TestType.Suite
+    type: 'Suite'
   }));
 };
 

@@ -17,7 +17,7 @@ import { telemetryService } from '../telemetry/telemetry';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { getUriPath } from '../utils/commandletHelpers';
 import { notificationService } from '../utils/notificationHelpers';
-import { createOrgApexClassUri, openOrgApexClass } from '../utils/orgApexClassProvider';
+import { createOrgApexClassUri, getOrgApexClassProvider, openOrgApexClass } from '../utils/orgApexClassProvider';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { buildTestPayload } from '../utils/payloadBuilder';
 import {
@@ -129,6 +129,9 @@ export class ApexTestController {
       // Initialize connection and testService
       await this.ensureInitialized();
 
+      // Clear existing test items before repopulating (important when switching orgs)
+      this.clearTestItems();
+
       // Populate suites first so they appear at the top
       await this.populateSuiteItems();
 
@@ -173,6 +176,11 @@ export class ApexTestController {
     this.methodItems.clear();
     this.suiteParentItem = undefined;
     this.suiteToClasses.clear();
+    // Clear cached connection and testService so they're re-fetched for the new org
+    this.connection = undefined;
+    this.testService = undefined;
+    // Clear org class body cache since we're switching orgs
+    getOrgApexClassProvider().clearAllCache();
   }
 
   /**
@@ -645,7 +653,14 @@ export class ApexTestController {
     }
 
     // Update test results in Test Explorer
-    updateTestRunResults(result, run, testsToRun, this.methodItems, this.classItems, codeCoverage);
+    updateTestRunResults({
+      result,
+      run,
+      testsToRun,
+      methodItems: this.methodItems,
+      classItems: this.classItems,
+      codeCoverage
+    });
 
     // Show success notification
     const totalCount = result.summary.testsRan ?? 0;
@@ -680,7 +695,14 @@ export class ApexTestController {
       // Reuse updateTestRunResults - pass empty array for testsToRun since we're loading from file
       // Use the code coverage setting to determine if coverage should be shown
       const codeCoverage = settings.retrieveTestCodeCoverage();
-      updateTestRunResults(resultContent, run, [], this.methodItems, this.classItems, codeCoverage);
+      updateTestRunResults({
+        result: resultContent,
+        run,
+        testsToRun: [],
+        methodItems: this.methodItems,
+        classItems: this.classItems,
+        codeCoverage
+      });
 
       run.end();
     } catch (error) {

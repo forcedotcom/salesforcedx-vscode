@@ -46,17 +46,24 @@ export const parseStackTrace = (
   return undefined;
 };
 
-/**
- * Updates test run results in the Test Explorer UI
- */
-export const updateTestRunResults = (
-  result: TestResult,
-  run: vscode.TestRun,
-  testsToRun: vscode.TestItem[],
-  methodItems: Map<string, vscode.TestItem>,
-  classItems: Map<string, vscode.TestItem>,
-  codeCoverage: boolean = false
-): void => {
+type UpdateTestRunResultsOptions = {
+  result: TestResult;
+  run: vscode.TestRun;
+  testsToRun: vscode.TestItem[];
+  methodItems: Map<string, vscode.TestItem>;
+  classItems: Map<string, vscode.TestItem>;
+  codeCoverage?: boolean;
+};
+
+/** Updates test run results in the Test Explorer UI */
+export const updateTestRunResults = ({
+  result,
+  run,
+  testsToRun,
+  methodItems,
+  classItems,
+  codeCoverage = false
+}: UpdateTestRunResultsOptions): void => {
   const humanOutput = new HumanReporter().format(result, codeCoverage, false);
   if (humanOutput) {
     // Split by lines and add each line separately with \r\n to ensure newlines are preserved

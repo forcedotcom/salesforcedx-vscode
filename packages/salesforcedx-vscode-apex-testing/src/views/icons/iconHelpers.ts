@@ -11,18 +11,9 @@ import { ICONS } from './iconsEnum';
 
 const VSCODE_APEX_TESTING_EXTENSION_NAME = 'salesforce.salesforcedx-vscode-apex-testing';
 
-/**
- * Get the Uri for an icon located in the resources directory.
- * @param key A key from the {@link IconsEnum}
- * @returns The Uri to the icon image.
- */
-const getIconPath = (key: keyof typeof ICONS) => {
+/** Get the Uri for an icon located in the resources directory */
+export const getIconPath = (key: keyof typeof ICONS): vscode.Uri => {
   const extension = vscode.extensions.getExtension(VSCODE_APEX_TESTING_EXTENSION_NAME);
   const baseExtensionPath = extension?.extensionUri ?? vscode.Uri.file('');
-  const iconUri = Utils.joinPath(baseExtensionPath, ...ICONS[key]);
-  return iconUri;
-};
-
-export const iconHelpers = {
-  getIconPath
+  return Utils.joinPath(baseExtensionPath, ...ICONS[key]);
 };

@@ -188,7 +188,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 1, failing: 0 }
       } as unknown as TestResult;
 
-      updateTestRunResults(result, run, [], methodItems, classItems, false);
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
       expect(run.passed).toHaveBeenCalledWith(methodItem, 100);
       expect(run.failed).not.toHaveBeenCalled();
@@ -216,7 +216,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 0, failing: 1 }
       } as unknown as TestResult;
 
-      updateTestRunResults(result, run, [], methodItems, classItems, false);
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
       expect(run.failed).toHaveBeenCalled();
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
@@ -248,7 +248,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 0, failing: 1 }
       } as unknown as TestResult;
 
-      updateTestRunResults(result, run, [], methodItems, classItems, false);
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
       expect(run.failed).toHaveBeenCalled();
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
@@ -276,7 +276,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 0, failing: 0 }
       } as unknown as TestResult;
 
-      updateTestRunResults(result, run, [], methodItems, classItems, false);
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
       expect(run.skipped).toHaveBeenCalledWith(methodItem);
       expect(run.passed).not.toHaveBeenCalled();
@@ -301,7 +301,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 1, failing: 0 }
       } as unknown as TestResult;
 
-      updateTestRunResults(result, run, [], methodItems, classItems, false);
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
       expect(run.passed).toHaveBeenCalledWith(methodItem, 100);
     });
@@ -324,7 +324,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 1, failing: 0 }
       } as unknown as TestResult;
 
-      updateTestRunResults(result, run, [methodItem], methodItems, classItems, false);
+      updateTestRunResults({ result, run, testsToRun: [methodItem], methodItems, classItems, codeCoverage: false });
 
       expect(run.passed).toHaveBeenCalledWith(methodItem, 100);
     });
@@ -347,7 +347,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 1, failing: 0 }
       } as unknown as TestResult;
 
-      updateTestRunResults(result, run, [], methodItems, classItems, false);
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
       expect(run.passed).not.toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalled();
@@ -367,7 +367,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 0, passing: 0, failing: 0 }
       } as unknown as TestResult;
 
-      updateTestRunResults(result, run, [], methodItems, classItems, false);
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
       // The output is split by lines and each line is added separately with \r\n
       // So we need to check if any call contains the HumanReporter output
@@ -389,7 +389,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 0, passing: 0, failing: 0 }
       } as unknown as TestResult;
 
-      updateTestRunResults(result, run, [], methodItems, classItems, false);
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
       expect(run.appendOutput).toHaveBeenCalledWith(expect.stringContaining('Test execution completed. Tests ran: 0'));
     });
@@ -407,7 +407,7 @@ describe('testResultProcessor', () => {
       // Reset mock to track calls
       mockFormat.mockClear();
 
-      updateTestRunResults(result, run, [], methodItems, classItems, true);
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: true });
 
       // Verify format was called with correct parameters (codeCoverage = true)
       expect(mockFormat).toHaveBeenCalledWith(result, true, false);
@@ -443,7 +443,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 2, passing: 1, failing: 1 }
       } as unknown as TestResult;
 
-      updateTestRunResults(result, run, [], methodItems, classItems, false);
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
       expect(run.passed).toHaveBeenCalledWith(method1, 100);
       expect(run.failed).toHaveBeenCalled();
@@ -469,7 +469,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 0, failing: 1 }
       } as unknown as TestResult;
 
-      updateTestRunResults(result, run, [], methodItems, classItems, false);
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
       const message = failedCall[1] as vscode.TestMessage;

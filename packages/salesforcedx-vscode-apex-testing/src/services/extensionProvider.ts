@@ -5,37 +5,61 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Context from 'effect/Context';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
 
-let servicesApi: SalesforceVSCodeServicesApi | undefined;
+const CHANNEL_NAME = nls.localize('channel_name');
 
-/**
- * Gets the Salesforce Services extension API, activating if needed.
- * This provides access to all services from the services extension.
- */
-export const getServicesApi = async (): Promise<SalesforceVSCodeServicesApi> => {
-  if (servicesApi) {
-    return servicesApi;
-  }
-
-  const extension = vscode.extensions.getExtension<SalesforceVSCodeServicesApi>(
-    'salesforce.salesforcedx-vscode-services'
-  );
-
-  if (!extension) {
-    throw new Error('Salesforce Services extension not found');
-  }
-
-  if (!extension.isActive) {
-    await extension.activate();
-  }
-
-  const api = extension.exports;
-  if (!api?.services) {
-    throw new Error('Invalid Services API');
-  }
-
-  servicesApi = api;
-  return servicesApi;
+export type ExtensionProviderService = {
+  /** Get the SalesforceVSCodeServicesApi, activating if needed */
+  readonly getServicesApi: Effect.Effect<SalesforceVSCodeServicesApi, Error, never>;
 };
+
+export const ExtensionProviderService = Context.GenericTag<ExtensionProviderService>('ExtensionProviderService');
+
+const isSalesforceVSCodeServicesApi = (api: unknown): api is SalesforceVSCodeServicesApi =>
+  api !== null && api !== undefined && typeof api === 'object' && 'services' in api;
+
+/** Connect to the Salesforce Services extension and get all of its API services */
+const getServicesApiEffect = Effect.sync(() =>
+  vscode.extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services')
+).pipe(
+  Effect.flatMap(ext => (ext ? Effect.succeed(ext) : Effect.fail(new Error('Services extension not found')))),
+  Effect.flatMap(ext => (ext.isActive ? Effect.sync(() => ext.exports) : Effect.tryPromise(() => ext.activate()))),
+  Effect.flatMap(api =>
+    isSalesforceVSCodeServicesApi(api) ? Effect.succeed(api) : Effect.fail(new Error('Invalid Services API'))
+  )
+);
+
+const ExtensionProviderServiceLive = Layer.effect(
+  ExtensionProviderService,
+  Effect.sync(() => ({
+    getServicesApi: getServicesApiEffect
+  }))
+);
+
+/** Layer that provides all services from the SalesforceVSCodeServicesApi */
+export const AllServicesLayer = Layer.unwrapEffect(
+  Effect.gen(function* () {
+    const extensionProvider = yield* ExtensionProviderService;
+    const api = yield* extensionProvider.getServicesApi;
+    // Merge all the service layers from the API
+    return Layer.mergeAll(
+      ExtensionProviderServiceLive,
+      api.services.ConfigService.Default,
+      api.services.ConnectionService.Default,
+      api.services.FsService.Default,
+      api.services.MetadataRegistryService.Default,
+      api.services.MetadataRetrieveService.Default,
+      api.services.ProjectService.Default,
+      api.services.SettingsService.Default,
+      api.services.WorkspaceService.Default,
+      api.services.SdkLayer,
+      api.services.ChannelServiceLayer(CHANNEL_NAME)
+    );
+  }).pipe(Effect.provide(ExtensionProviderServiceLive))
+);

@@ -70,6 +70,11 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
     const uri = vscode.Uri.parse(`${SCHEME}:${baseClassName}.cls`);
     this._onDidChange.fire(uri);
   }
+
+  /** Clear all cached class bodies (call when org changes) */
+  public clearAllCache(): void {
+    CLASS_BODY_CACHE.clear();
+  }
 }
 
 let providerInstance: OrgApexClassProvider | undefined;

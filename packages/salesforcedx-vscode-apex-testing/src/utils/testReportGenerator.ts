@@ -6,13 +6,11 @@
  */
 import { TestResult, MarkdownTextFormatTransformer, OutputFormat, TestSortOrder } from '@salesforce/apex-node';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as path from 'node:path';
-import { toUri } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import * as vscode from 'vscode';
 import { channelService } from '../channels';
 import { nls } from '../messages';
-import { getServicesApi } from '../services/extensionProvider';
+import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../settings';
 import { NewlineNormalizationState, normalizeTextChunkToLf } from './newlineUtils';
 
@@ -97,52 +95,29 @@ export const writeAndOpenTestReport = async (
   const uint8Array = await streamToNormalizedUtf8Bytes(transformer);
   const content = new TextDecoder('utf-8').decode(uint8Array);
 
-  // Use FsService.writeFile from the services extension
-  // It handles toUri conversion and directory creation internally
-  const servicesApi = await getServicesApi();
-  const fsServiceLayer = Layer.mergeAll(
-    servicesApi.services.FsService.Default,
-    servicesApi.services.ChannelService.Default
-  );
-
-  // Construct the URI for the report file
-  // On desktop, use vscode.Uri.file() for proper file:// URI
-  // On web, construct URI relative to workspace root to ensure correct scheme
-  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri;
-  let uri: vscode.Uri;
-
-  if (process.env.ESBUILD_PLATFORM === 'web' && workspaceRoot) {
-    // In web mode, construct URI relative to workspace root to ensure correct scheme
-    // reportPath is like /MyProject/.sfdx/tools/testresults/apex/test-result-xxx.md
-    // workspaceRoot.path is like /MyProject
-    if (reportPath.startsWith(workspaceRoot.path)) {
-      // Manually compute relative path to avoid path-browserify issues with path.relative
-      // Remove the workspace root path prefix and any leading slash
-      const relativePath = reportPath.slice(workspaceRoot.path.length).replace(/^\//, '');
-      uri = vscode.Uri.joinPath(workspaceRoot, relativePath);
-    } else {
-      // If reportPath doesn't start with workspace root, use toUri as fallback
-      uri = toUri(reportPath);
-    }
-  } else {
-    // Desktop mode - use vscode.Uri.file() for proper file:// URI
-    uri = vscode.Uri.file(reportPath);
-  }
-
-  // Write the file using FsService.writeFile
+  // Write the file using FsService.writeFile from the services extension
+  // Pass string path - FsService.writeFile handles URI conversion internally
   try {
-    const filePathToWrite = process.env.ESBUILD_PLATFORM === 'web' ? uri : reportPath;
     await Effect.runPromise(
-      servicesApi.services.FsService.pipe(
-        Effect.flatMap(service => service.writeFile(filePathToWrite, content)),
-        Effect.provide(fsServiceLayer)
-      )
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const svc = yield* api.services.FsService;
+        yield* svc.writeFile(reportPath, content);
+      }).pipe(Effect.provide(AllServicesLayer))
     );
   } catch (error) {
     console.error('Failed to write test report file:', error);
-    channelService.appendLine(`Failed to write test report: ${String(error)}`);
+    await channelService.appendLine(`Failed to write test report: ${String(error)}`);
     throw error;
   }
+
+  // Create URI for opening the file
+  // On desktop: use vscode.Uri.file() for proper file:// URI
+  // On web: construct URI relative to workspace root for correct scheme
+  const uri =
+    process.env.ESBUILD_PLATFORM === 'web'
+      ? vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, reportPath.replace(/^\/[^/]+/, ''))
+      : vscode.Uri.file(reportPath);
 
   const openAction = nls.localize('apex_test_report_open_action');
   const message = nls.localize('apex_test_report_ready_message', path.basename(reportPath));
@@ -150,10 +125,10 @@ export const writeAndOpenTestReport = async (
 
   // Always print the report location to the Apex Testing output channel so it's easy to find later.
   try {
-    channelService.appendLine(outputLine);
+    await channelService.appendLine(outputLine);
     // If markdown format, add a tip about viewing the preview
     if (format === 'markdown') {
-      channelService.appendLine(nls.localize('apex_test_report_markdown_preview_tip'));
+      await channelService.appendLine(nls.localize('apex_test_report_markdown_preview_tip'));
     }
   } catch (error) {
     console.error('Failed to append to output channel:', error);
@@ -183,7 +158,7 @@ export const writeAndOpenTestReport = async (
           }
         } catch (error) {
           console.error('Failed to open test report:', error, 'URI:', uri.toString(), 'Report path:', reportPath);
-          channelService.appendLine(
+          await channelService.appendLine(
             `Failed to open test report: ${String(error)} (URI: ${uri.toString()}, Path: ${reportPath})`
           );
         }

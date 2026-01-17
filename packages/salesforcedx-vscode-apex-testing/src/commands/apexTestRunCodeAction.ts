@@ -8,14 +8,13 @@ import { ApexTestResultData, TestLevel, TestResult, TestService } from '@salesfo
 import { ApexDiagnostic } from '@salesforce/apex-node/lib/src/utils';
 import { type NamedPackageDir } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
-import { getServicesApi } from '../services/extensionProvider';
+import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import * as settings from '../settings';
 import { apexTestRunCacheService, isEmpty } from '../testRunCache';
 import {
@@ -97,17 +96,12 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     }
 
     // Get project from services extension
-    const servicesApi = await getServicesApi();
-    // Provide all required dependencies for ProjectService
-    const projectLayer = Layer.mergeAll(
-      servicesApi.services.ProjectService.Default,
-      servicesApi.services.WorkspaceService.Default
-    );
     const sfProject = await Effect.runPromise(
-      servicesApi.services.ProjectService.pipe(
-        Effect.flatMap(service => service.getSfProject),
-        Effect.provide(projectLayer)
-      )
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const svc = yield* api.services.ProjectService;
+        return yield* svc.getSfProject;
+      }).pipe(Effect.provide(AllServicesLayer))
     );
 
     if (!sfProject) {

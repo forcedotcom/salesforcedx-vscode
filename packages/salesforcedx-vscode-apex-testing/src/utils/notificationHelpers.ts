@@ -19,9 +19,9 @@ export const notificationService = {
     vscode.window.showWarningMessage(message, ...items),
   showErrorMessage: (message: string, ...items: string[]): Thenable<string | undefined> =>
     vscode.window.showErrorMessage(message, ...items),
-  showSuccessfulExecution: (executionName: string, channelService: { show: () => void }): void => {
+  showSuccessfulExecution: async (executionName: string, channelService: { show: () => Promise<void> }): Promise<void> => {
     void vscode.window.showInformationMessage(nls.localize('apex_test_successful_execution_message', executionName));
-    channelService.show();
+    await channelService.show();
   },
   showFailedExecution: (executionName: string): void => {
     void vscode.window.showErrorMessage(nls.localize('apex_test_failed_execution_message', executionName));

@@ -69,11 +69,11 @@ export const runApexTests = async (
     // Split by lines and add each line separately to preserve formatting
     const lines = humanOutput.split('\n');
     for (const line of lines) {
-      channelService.appendLine(line);
+      await channelService.appendLine(line);
     }
   } else {
     // Fallback if HumanReporter returns empty - at least show summary
-    channelService.appendLine(
+    await channelService.appendLine(
       `Test execution completed. Tests ran: ${result.summary.testsRan ?? 0}, Passed: ${result.summary.passing ?? 0}, Failed: ${result.summary.failing ?? 0}`
     );
   }
