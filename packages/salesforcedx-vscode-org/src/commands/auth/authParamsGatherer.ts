@@ -123,14 +123,15 @@ export class AuthParamsGatherer implements ParametersGatherer<AuthParams> {
           prompt: nls.localize('parameter_gatherer_enter_alias_name'),
           placeHolder: DEFAULT_ALIAS
         });
-    // Hitting enter with no alias will default the alias to 'vscodeOrg'
+    // Closing the dialog (ESC/cancel) will cancel the operation
     if (alias === undefined) {
       return { type: 'CANCEL' };
     }
+    // Hitting enter with no alias will default the alias to 'vscodeOrg'
     return {
       type: 'CONTINUE',
       data: {
-        alias: alias ?? DEFAULT_ALIAS,
+        alias: alias || DEFAULT_ALIAS,
         loginUrl: this.instanceUrl ?? PRODUCTION_URL
       }
     };
@@ -145,7 +146,7 @@ export class AccessTokenParamsGatherer implements ParametersGatherer<AccessToken
     }
 
     const alias = await inputAlias();
-    // Hitting enter with no alias will default the alias to 'vscodeOrg'
+    // Closing the dialog (ESC/cancel) will cancel the operation
     if (alias === undefined) {
       return { type: 'CANCEL' };
     }
@@ -154,11 +155,12 @@ export class AccessTokenParamsGatherer implements ParametersGatherer<AccessToken
     if (accessToken === undefined) {
       return { type: 'CANCEL' };
     }
+    // Hitting enter with no alias will default the alias to 'vscodeOrg'
     return {
       type: 'CONTINUE',
       data: {
         accessToken,
-        alias: alias ?? DEFAULT_ALIAS,
+        alias: alias || DEFAULT_ALIAS,
         instanceUrl
       }
     };
