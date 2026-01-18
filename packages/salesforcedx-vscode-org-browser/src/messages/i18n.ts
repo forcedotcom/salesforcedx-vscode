@@ -8,5 +8,8 @@
 export const messages = {
   retrieve_canceled: 'Retrieve canceled',
   retrieve_failed: 'Retrieve failed: %s',
-  confirm_overwrite: 'Overwrite local files for %s %s?'
+  confirm_overwrite: 'Overwrite local files for %s %s?',
+  retrieve_no_components: 'No %s components found in org',
+  retrieve_batch_progress: 'Retrieving batch %s of %s (%s components)...',
+  retrieve_chunked_title: 'Retrieving %s %s components in batches'
 } as const;

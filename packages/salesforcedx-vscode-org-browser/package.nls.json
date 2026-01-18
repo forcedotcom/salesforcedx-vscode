@@ -5,5 +5,8 @@
   "orgBrowser.view.name": "Salesforce Org Browser",
   "orgBrowser.command.refreshType": "Refresh Type",
   "orgBrowser.command.retrieveMetadata": "Retrieve Metadata",
-  "orgBrowser.command.collapseAll": "Collapse All"
+  "orgBrowser.command.toggleLocalOnly": "Toggle Show Local Only",
+  "orgBrowser.command.toggleHideManaged": "Toggle Hide Managed Packages",
+  "orgBrowser.command.search": "Search Metadata",
+  "orgBrowser.command.clearSearch": "Clear Search"
 }

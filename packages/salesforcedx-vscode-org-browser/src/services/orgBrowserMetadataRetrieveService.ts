@@ -20,20 +20,24 @@ export type OrgBrowserRetrieveService = {
    * Retrieve metadata components and optionally open them in the editor
    * @param members - Array of MetadataMember to retrieve
    * @param openInEditor - Whether to open retrieved files in the editor
-   * @returns Effect that resolves to the retrieve result
+   * @param suppressNotification - Whether to suppress progress notifications (useful for chunked retrieves)
+   * @returns Effect that resolves to the retrieve result (dependencies provided via AllServicesLayer)
    */
   readonly retrieve: (
     members: MetadataMember[],
-    openInEditor?: boolean
-  ) => Effect.Effect<RetrieveResult | SuccessfulCancelResult, Error, ExtensionProviderService>;
+    openInEditor?: boolean,
+    suppressNotification?: boolean
+  ) => Effect.Effect<RetrieveResult | SuccessfulCancelResult, Error>;
 };
 
 export const OrgBrowserRetrieveService = Context.GenericTag<OrgBrowserRetrieveService>('OrgBrowserRetrieveService');
 
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
 const retrieve = (
   members: MetadataMember[],
-  openInEditor = false
-): Effect.Effect<RetrieveResult | SuccessfulCancelResult, Error, ExtensionProviderService> =>
+  openInEditor = false,
+  suppressNotification = false
+): Effect.Effect<RetrieveResult | SuccessfulCancelResult, Error> =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const [retrieveService, channel] = yield* Effect.all(
@@ -41,7 +45,7 @@ const retrieve = (
       { concurrency: 'unbounded' }
     );
 
-    const result = yield* retrieveService.retrieve(members);
+    const result = yield* retrieveService.retrieve(members, suppressNotification);
     if (typeof result === 'string') {
       return Brand.nominal<SuccessfulCancelResult>()('User canceled');
     }
@@ -66,30 +70,39 @@ const retrieve = (
   }).pipe(
     Effect.provide(AllServicesLayer),
     Effect.mapError(e => new Error(`Retrieve failed: ${String(e)}`))
-  );
+  ) as Effect.Effect<RetrieveResult | SuccessfulCancelResult, Error>;
+/* eslint-enable @typescript-eslint/consistent-type-assertions */
 
 const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> =>
   // for unknown reasons, the filePath is sometimes prefixed with a backslash
-  Option.fromNullable(result.getFileResponses()?.[0]?.filePath?.replace(/^\\/, '\/'));
+  Option.fromNullable(result.getFileResponses()?.[0]?.filePath?.replace(/^\\/, '/'));
 
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
 const openFileInEditor = (filePath: string): Effect.Effect<void, Error> =>
-  Effect.tryPromise({
-    try: () =>
-      vscode.workspace.openTextDocument(
-        URI.from({
-          scheme: vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file',
-          path: filePath
-        })
-      ),
-    catch: e => new Error(`Failed to open document at ${filePath}: ${String(e)}`)
-  }).pipe(
-    Effect.flatMap(document =>
-      Effect.tryPromise({
-        try: () => vscode.window.showTextDocument(document),
-        catch: e => new Error(`Failed to show document at ${filePath}: ${String(e)}`)
-      })
-    ),
-    Effect.withSpan('openFileInEditor', { attributes: { filePath } })
-  );
+  Effect.gen(function* () {
+    // Get scheme from workspace folders directly
+    const scheme = vscode.workspace.workspaceFolders?.[0]?.uri.scheme ?? 'file';
 
+    const document = yield* Effect.tryPromise({
+      try: () =>
+        vscode.workspace.openTextDocument(
+          URI.from({
+            scheme,
+            path: filePath
+          })
+        ),
+      catch: e => new Error(`Failed to open document at ${filePath}: ${String(e)}`)
+    });
+
+    yield* Effect.tryPromise({
+      try: () => vscode.window.showTextDocument(document),
+      catch: e => new Error(`Failed to show document at ${filePath}: ${String(e)}`)
+    });
+
+  })
+    .pipe(
+      Effect.withSpan('openFileInEditor', { attributes: { filePath } }),
+      Effect.provide(AllServicesLayer)
+    ) as unknown as Effect.Effect<void, Error, never>;
+/* eslint-enable @typescript-eslint/consistent-type-assertions */
 export const OrgBrowserRetrieveServiceLive = Layer.effect(OrgBrowserRetrieveService, Effect.succeed({ retrieve }));

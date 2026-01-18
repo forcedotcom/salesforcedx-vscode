@@ -1,0 +1,5 @@
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <!-- 3D box package - single path for clean corners -->
+  <path d="M8 2.5L13 5V11L8 13.5L3 11V5ZM8 7.5V13.5M8 7.5L13 5M8 7.5L3 5"
+        fill="none" stroke="#CCCCCC" stroke-width="1" stroke-linejoin="miter"/>
+</svg>

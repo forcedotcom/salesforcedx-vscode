@@ -190,23 +190,84 @@
         }
       },
       {
-        "command": "sfdxOrgBrowser.collapseAll",
-        "title": "%orgBrowser.command.collapseAll%",
+        "command": "sfdxOrgBrowser.toggleLocalOnly",
+        "title": "%orgBrowser.command.toggleLocalOnly%",
         "category": "Org Browser",
-        "icon": "$(collapse-all)"
+        "icon": "$(circle-large-outline)"
+      },
+      {
+        "command": "sfdxOrgBrowser.toggleLocalOnlyOff",
+        "title": "%orgBrowser.command.toggleLocalOnly%",
+        "category": "Org Browser",
+        "icon": "$(pass-filled)"
+      },
+      {
+        "command": "sfdxOrgBrowser.toggleHideManaged",
+        "title": "%orgBrowser.command.toggleHideManaged%",
+        "category": "Org Browser",
+        "icon": {
+          "light": "resources/light/package.svg",
+          "dark": "resources/dark/package.svg"
+        }
+      },
+      {
+        "command": "sfdxOrgBrowser.toggleHideManagedOff",
+        "title": "%orgBrowser.command.toggleHideManaged%",
+        "category": "Org Browser",
+        "icon": {
+          "light": "resources/light/package-filtered.svg",
+          "dark": "resources/dark/package-filtered.svg"
+        }
+      },
+      {
+        "command": "sfdxOrgBrowser.search",
+        "title": "%orgBrowser.command.search%",
+        "category": "Org Browser",
+        "icon": "$(search)"
+      },
+      {
+        "command": "sfdxOrgBrowser.clearSearch",
+        "title": "%orgBrowser.command.clearSearch%",
+        "category": "Org Browser",
+        "icon": "$(close)"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "sfdxOrgBrowser.refreshType",
-          "when": "view == sfdxOrgBrowser",
-          "group": "navigation@0"
+          "command": "sfdxOrgBrowser.clearSearch",
+          "when": "view == sfdxOrgBrowser && sfdxOrgBrowser.hasSearchQuery",
+          "group": "navigation@1"
         },
         {
-          "command": "sfdxOrgBrowser.collapseAll",
+          "command": "sfdxOrgBrowser.search",
           "when": "view == sfdxOrgBrowser",
-          "group": "navigation@1"
+          "group": "navigation@2"
+        },
+        {
+          "command": "sfdxOrgBrowser.refreshType",
+          "when": "view == sfdxOrgBrowser",
+          "group": "navigation@3"
+        },
+        {
+          "command": "sfdxOrgBrowser.toggleLocalOnly",
+          "when": "view == sfdxOrgBrowser && !sfdxOrgBrowser.showLocalOnly",
+          "group": "navigation@4"
+        },
+        {
+          "command": "sfdxOrgBrowser.toggleLocalOnlyOff",
+          "when": "view == sfdxOrgBrowser && sfdxOrgBrowser.showLocalOnly",
+          "group": "navigation@4"
+        },
+        {
+          "command": "sfdxOrgBrowser.toggleHideManaged",
+          "when": "view == sfdxOrgBrowser && !sfdxOrgBrowser.hideManaged",
+          "group": "navigation@5"
+        },
+        {
+          "command": "sfdxOrgBrowser.toggleHideManagedOff",
+          "when": "view == sfdxOrgBrowser && sfdxOrgBrowser.hideManaged",
+          "group": "navigation@5"
         }
       ],
       "view/item/context": [

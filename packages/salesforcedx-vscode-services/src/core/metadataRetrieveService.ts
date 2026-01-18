@@ -54,7 +54,8 @@ const buildComponentSet = (
   }).pipe(Effect.withSpan('buildComponentSet'));
 
 const retrieve = (
-  members: MetadataMember[]
+  members: MetadataMember[],
+  suppressNotification = false
 ): Effect.Effect<
   RetrieveResult | SuccessfulCancelResult,
   Error,
@@ -95,10 +96,37 @@ const retrieve = (
             registry: registryAccess
           });
 
+          // If suppressing notification, run retrieve directly without progress UI
+          if (suppressNotification) {
+            await retrieveOperation.start();
+            return await retrieveOperation.pollStatus();
+          }
+
+          // Generate concise notification title
+          const title =
+            members.length === 1
+              ? `Retrieving ${members[0].type}: ${members[0].fullName === '*' ? 'all' : members[0].fullName}`
+              : ((): string => {
+                  // Group by type to create a more concise message
+                  const typeGroups = members.reduce((acc, member) => {
+                    const count = acc.get(member.type) ?? 0;
+                    acc.set(member.type, count + 1);
+                    return acc;
+                  }, new Map<string, number>());
+                  if (typeGroups.size === 1) {
+                    // All same type - show count
+                    const [type, count] = Array.from(typeGroups.entries())[0];
+                    return `Retrieving ${count} ${type} ${count === 1 ? 'component' : 'components'}`;
+                  } else {
+                    // Multiple types - show summary
+                    return `Retrieving ${members.length} metadata components`;
+                  }
+                })();
+
           const retrieveResult = await vscode.window.withProgress(
             {
               location: vscode.ProgressLocation.Notification,
-              title: `Retrieving ${members.map(m => `${m.type}: ${m.fullName === '*' ? 'all' : m.fullName}`).join(', ')}`,
+              title,
               cancellable: true
             },
             async (_, token) => {

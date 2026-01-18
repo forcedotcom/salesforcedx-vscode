@@ -25,6 +25,7 @@
   ],
   "dependencies": {
     "@salesforce/core": "^8.23.3",
+    "@salesforce/salesforcedx-aura-language-server": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "*",
     "@salesforce/salesforcedx-lwc-language-server": "*",
     "@salesforce/salesforcedx-utils": "*",
@@ -68,6 +69,7 @@
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../salesforcedx-aura-language-server:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",

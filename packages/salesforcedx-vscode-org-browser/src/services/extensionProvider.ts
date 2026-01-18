@@ -10,7 +10,8 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { OrgBrowserRetrieveServiceLive } from './orgBrowserMetadataRetrieveService';
+import { type FilePresenceService, FilePresenceServiceLive } from './filePresenceService';
+import { type OrgBrowserRetrieveService, OrgBrowserRetrieveServiceLive } from './orgBrowserMetadataRetrieveService';
 
 export type ExtensionProviderService = {
   /** Get the SalesforceVSCodeServicesApi, activating if needed */
@@ -21,6 +22,24 @@ export const ExtensionProviderService = Context.GenericTag<ExtensionProviderServ
 
 const isSalesforceVSCodeServicesApi = (api: unknown): api is SalesforceVSCodeServicesApi =>
   api !== null && api !== undefined && typeof api === 'object' && 'services' in api;
+
+/** Get the services API synchronously (extension must be active) */
+const getServicesApiSync = (): SalesforceVSCodeServicesApi =>
+  Effect.runSync(
+    Effect.sync(() =>
+      vscode.extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services')
+    ).pipe(
+      Effect.flatMap(ext => (ext ? Effect.succeed(ext) : Effect.fail(new Error('Services extension not found')))),
+      Effect.flatMap(ext =>
+        ext.isActive
+          ? Effect.succeed(ext.exports)
+          : Effect.fail(new Error('Services extension not active - ensure it is listed in extensionDependencies'))
+      ),
+      Effect.flatMap(api =>
+        isSalesforceVSCodeServicesApi(api) ? Effect.succeed(api) : Effect.fail(new Error('Invalid Services API'))
+      )
+    )
+  );
 
 /** connect to the Salesforce Services extension and get all of its API services */
 const getServicesApi = Effect.sync(() =>
@@ -40,27 +59,42 @@ const ExtensionProviderServiceLive = Layer.effect(
   }))
 );
 
-/** Layer that provides all services from the SalesforceVSCodeServicesApi */
-export const AllServicesLayer = Layer.unwrapEffect(
-  Effect.gen(function* () {
-    const extensionProvider = yield* ExtensionProviderService;
-    const api = yield* extensionProvider.getServicesApi;
-    // Merge all the service layers from the API
-    return Layer.mergeAll(
-      ExtensionProviderServiceLive,
-      api.services.ConfigService.Default,
-      api.services.ConnectionService.Default,
-      api.services.FsService.Default,
-      api.services.MetadataRetrieveService.Default,
-      api.services.MetadataRegistryService.Default,
-      api.services.MetadataDescribeService.Default,
-      api.services.ProjectService.Default,
-      api.services.SdkLayer,
-      api.services.SettingsService.Default,
-      api.services.WorkspaceService.Default,
-      api.services.SourceTrackingService.Default,
-      api.services.ChannelServiceLayer('Salesforce Org Browser'),
-      OrgBrowserRetrieveServiceLive
-    );
-  }).pipe(Effect.provide(ExtensionProviderServiceLive))
-);
+/** Create AllServicesLayer synchronously by manually constructing from individual service layers */
+const createAllServicesLayer = (): Layer.Layer<
+  ExtensionProviderService | OrgBrowserRetrieveService | FilePresenceService,
+  never,
+  never
+> => {
+  const api = getServicesApiSync();
+
+  // Manually construct the layer from individual service Default layers
+  const allServices = Layer.mergeAll(
+    ExtensionProviderServiceLive,
+    api.services.ConfigService.Default,
+    api.services.ConnectionService.Default,
+    api.services.FsService.Default,
+    api.services.MetadataRetrieveService.Default,
+    api.services.MetadataRegistryService.Default,
+    api.services.MetadataDescribeService.Default,
+    api.services.ProjectService.Default,
+    api.services.SdkLayer,
+    api.services.SettingsService.Default,
+    api.services.WorkspaceService.Default,
+    api.services.SourceTrackingService.Default,
+    api.services.ChannelServiceLayer('Salesforce Org Browser'),
+    OrgBrowserRetrieveServiceLive,
+    FilePresenceServiceLive
+  );
+
+  return allServices;
+};
+
+/** Layer that provides all services - created lazily on first access */
+const cache: { value: ReturnType<typeof createAllServicesLayer> | undefined } = { value: undefined };
+export const getAllServicesLayer = (): ReturnType<typeof createAllServicesLayer> => {
+  cache.value ??= createAllServicesLayer();
+  return cache.value;
+};
+
+// For backward compatibility - create layer lazily
+export const AllServicesLayer = Layer.unwrapEffect(Effect.sync(() => getAllServicesLayer()));

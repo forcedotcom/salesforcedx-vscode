@@ -36,6 +36,13 @@ const FOLDER_TYPES = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report'
 export const isFolderType = (xmlName: string): boolean => FOLDER_TYPES.has(xmlName);
 
 export class OrgBrowserTreeItem extends vscode.TreeItem {
+  // Explicitly declare inherited properties for better TypeScript support
+  // These are initialized in the constructor, so we use 'declare' to satisfy TypeScript
+  public declare readonly id: string;
+  public declare label: string;
+  public declare description: string | undefined;
+  public declare iconPath: vscode.ThemeIcon | undefined;
+
   public readonly kind: OrgBrowserTreeItemKind;
   /** Metadata Type that you could use to retrieve the node */
   public readonly xmlName: string;
@@ -43,6 +50,8 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
   /** the name of the component that you could use to retrieve the node.  One of the [xmlName] */
   public readonly componentName?: string;
   public readonly namespace?: string;
+  /** Whether the file is present in the local workspace */
+  public filePresent?: boolean;
 
   constructor(inputs: OrgBrowserTreeItemInputs) {
     super(
@@ -54,6 +63,7 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
     this.xmlName = inputs.xmlName;
     this.folderName = inputs.folderName;
     this.componentName = inputs.componentName;
+    this.filePresent = inputs.filePresent;
 
     // not defined intentionally results in no icon.
     if (inputs.filePresent !== undefined) {

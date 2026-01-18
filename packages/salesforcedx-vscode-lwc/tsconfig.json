@@ -8,6 +8,9 @@
   "include": ["src/**/*.ts", "test/**/*.ts"],
   "references": [
     {
+      "path": "../salesforcedx-aura-language-server"
+    },
+    {
       "path": "../salesforcedx-lightning-lsp-common"
     },
     {
