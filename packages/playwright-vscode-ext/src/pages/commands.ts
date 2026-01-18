@@ -21,8 +21,15 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
 
   // Wrap the entire open sequence in retry logic
   await expect(async () => {
+    // Bring page to front to ensure VS Code window is active (critical on Windows)
+    await page.bringToFront();
+
     // Click workbench to ensure focus is not on walkthrough elements
     await workbench.click({ timeout: 5000 });
+
+    // Small delay to allow Windows to process focus change before F1 keypress
+    // On Windows, F1 can trigger Windows Search if VS Code doesn't have focus
+    await page.waitForTimeout(100);
 
     // Press F1 to open command palette
     await page.keyboard.press('F1');
