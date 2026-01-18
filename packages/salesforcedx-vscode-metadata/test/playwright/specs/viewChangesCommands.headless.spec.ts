@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { nonTrackingTest as test } from '../fixtures';
+import {  test } from '../fixtures';
 import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,

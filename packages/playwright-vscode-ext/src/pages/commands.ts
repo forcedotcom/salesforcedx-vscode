@@ -53,7 +53,7 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   const escapedCommand = command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   await expect(async () => {
     await page.keyboard.press('End');
-    await input.pressSequentially(command, { delay: 50 });
+    await input.pressSequentially(command, { delay: 5 });
     // Verify typing was successful
     await expect(input).toHaveValue(new RegExp(`>.*${escapedCommand}`, 'i'), { timeout: 5000 });
   }).toPass({ timeout: 15_000 });
@@ -117,7 +117,7 @@ export const verifyCommandDoesNotExist = async (page: Page, commandText: string)
   await expect(input).toBeVisible({ timeout: 5000 });
   // Click input directly to ensure focus (Windows needs explicit click, focus() alone may not work)
   await input.click({ timeout: 5000 });
-  await input.pressSequentially(commandText, { delay: 50 });
+  await input.pressSequentially(commandText, { delay: 5 });
 
   // Wait for command list to appear
   await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
