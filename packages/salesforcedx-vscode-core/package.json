@@ -29,7 +29,7 @@
     "@salesforce/salesforcedx-sobjects-faux-generator": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
-    "@salesforce/source-deploy-retrieve": "^12.29.1",
+    "@salesforce/source-deploy-retrieve": "^12.31.6",
     "@salesforce/source-tracking": "^7.8.0",
     "@salesforce/templates": "^65.1.1",
     "@salesforce/ts-types": "2.0.12",

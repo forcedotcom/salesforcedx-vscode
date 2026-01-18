@@ -25,7 +25,7 @@
     "zod": "^4.3.2"
   },
   "devDependencies": {
-    "@salesforce/source-deploy-retrieve": "^12.29.1",
+    "@salesforce/source-deploy-retrieve": "^12.31.6",
     "@types/cross-spawn": "6.0.6",
     "jest": "^29.7.0",
     "ts-jest": "^29.4.1"
