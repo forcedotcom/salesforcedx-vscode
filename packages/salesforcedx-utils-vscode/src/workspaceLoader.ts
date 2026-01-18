@@ -8,9 +8,16 @@ import { Effect } from 'effect';
 import * as vscode from 'vscode';
 
 // --- Configuration ---
-const MAX_CONCURRENCY = 50;
-const YIELD_INTERVAL = 50; // yield every N opens
-const YIELD_DELAY_MS = 25; // small sleep to avoid UI stutter
+// Opening too many documents simultaneously can cause:
+// - High memory usage (each document loaded into memory)
+// - UI freezing (too many concurrent file I/O operations)
+// - Poor user experience (IDE becomes unresponsive)
+//
+// Windows machines use smaller values due to performance characteristics
+const isWindows = typeof process !== 'undefined' && process.platform === 'win32';
+const MAX_CONCURRENCY = isWindows ? 2 : 10; // Concurrent files being processed
+const YIELD_INTERVAL = isWindows ? 5 : 10; // Yield every N files to let IDE catch up
+const YIELD_DELAY_MS = isWindows ? 150 : 50; // Delay when yielding (ms)
 
 /**
  * Options for bootstrapWorkspaceAwareness
@@ -103,7 +110,8 @@ export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.E
     );
     yield* Effect.log(`📁 Bootstrapping ${uris.length} files`);
 
-    // 2. Open all files in bounded parallel fashion
+    // 2. Process all files with limited concurrency and periodic yields
+    // This is simpler than batching but still provides regular pauses for the IDE
     const itemsWithIndex: { uri: vscode.Uri; idx: number }[] = uris.map((uri: vscode.Uri, idx: number) => ({
       uri,
       idx
@@ -113,7 +121,8 @@ export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.E
       itemsWithIndex,
       ({ uri, idx }) =>
         openDoc(uri).pipe(
-          Effect.tap(() => (idx % YIELD_INTERVAL === 0 ? Effect.sleep(YIELD_DELAY_MS) : Effect.void)),
+          // Yield periodically to let the IDE catch up
+          Effect.tap(() => (idx > 0 && idx % YIELD_INTERVAL === 0 ? Effect.sleep(YIELD_DELAY_MS) : Effect.void)),
           Effect.catchAll((err: unknown) => Effect.logError(String(err)))
         ),
       { concurrency: MAX_CONCURRENCY }

@@ -257,11 +257,14 @@ const performActivation = async (extensionContext: ExtensionContext) => {
       }
     });
 
-  // Also load essential JSON files for workspace type detection
-  // This includes sfdx-project.json which is needed for delayed initialization
+  // Also load essential JSON/XML files for workspace type detection
+  // Only load the specific files checked by detectWorkspaceHelper at root level:
+  // - sfdx-project.json, workspace-user.xml, lwc.config.json, package.json, lerna.json (at root)
+  // Note: Parent workspace-user.xml check is handled by language server code, not via file glob
+  // Using patterns without **/ to match only at root level of each workspace folder
   void Effect.runPromise(
     bootstrapWorkspaceAwareness({
-      fileGlob: '**/*.{json,xml}',
+      fileGlob: '{sfdx-project.json,workspace-user.xml,lwc.config.json,package.json,lerna.json}',
       excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
       logger: log
     })
