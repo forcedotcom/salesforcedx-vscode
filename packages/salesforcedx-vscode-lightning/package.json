@@ -79,7 +79,7 @@
   },
   "description": "Provides code-editing features for Aura Components",
   "devDependencies": {
-    "esbuild": "0.25.10"
+    "esbuild": "0.27.2"
   },
   "displayName": "Aura Components",
   "extensionDependencies": [
