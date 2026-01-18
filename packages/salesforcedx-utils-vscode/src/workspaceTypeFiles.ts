@@ -27,11 +27,53 @@ export const isLWC = (type: WorkspaceType): boolean =>
 export const getSfdxProjectFile = (root: string): string => path.join(root, SFDX_PROJECT);
 
 /**
- * Checks if a file exists using VS Code workspace API
+ * Gets the workspace folder URI for a given path, preserving the scheme (memfs, file, etc.)
+ * Handles both absolute paths and relative paths (including parent directory traversal)
  */
-const fileExists = async (filePath: string): Promise<boolean> => {
+const getWorkspaceFolderUriForPath = (filePath: string, baseRoot?: string): Uri | null => {
+  if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
+    return null;
+  }
+
+  // Normalize the path (resolve .. and . segments)
+  // In web mode, we need to handle paths relative to workspace folders
+  const normalizedPath = baseRoot ? path.resolve(baseRoot, filePath) : path.resolve(filePath);
+
+  // Find the workspace folder that contains this path
+  for (const folder of workspace.workspaceFolders) {
+    const folderPath = folder.uri.fsPath ?? folder.uri.path;
+    // Normalize folder path for comparison
+    const normalizedFolderPath = path.resolve(folderPath);
+
+    if (normalizedPath.startsWith(normalizedFolderPath + path.sep) || normalizedPath === normalizedFolderPath) {
+      // Use the workspace folder's URI scheme and join the relative path
+      const relativePath = path.relative(normalizedFolderPath, normalizedPath);
+      // Convert path separators to forward slashes for URI
+      const uriPath = relativePath.split(path.sep).join('/');
+      return Uri.joinPath(folder.uri, uriPath);
+    }
+  }
+
+  // If no matching workspace folder found, try to use the first one's scheme
+  const firstFolder = workspace.workspaceFolders[0];
+  // If the path is absolute and doesn't match any folder, use file:// scheme as fallback
+  if (path.isAbsolute(filePath)) {
+    return Uri.file(filePath);
+  }
+  // Otherwise, try to join with the first workspace folder
+  // Convert path separators to forward slashes for URI
+  const relativeUriPath = filePath.split(path.sep).join('/');
+  return Uri.joinPath(firstFolder.uri, relativeUriPath);
+};
+
+/**
+ * Checks if a file exists using VS Code workspace API
+ * In web mode, preserves the workspace folder's URI scheme (memfs, file, etc.)
+ */
+const fileExists = async (filePath: string, baseRoot?: string): Promise<boolean> => {
   try {
-    const fileUri = Uri.file(filePath);
+    // Try to use workspace folder URI to preserve scheme (memfs, file, etc.)
+    const fileUri = getWorkspaceFolderUriForPath(filePath, baseRoot) ?? Uri.file(filePath);
     const stat = await workspace.fs.stat(fileUri);
     return stat.type === FileType.File;
   } catch {
@@ -41,10 +83,12 @@ const fileExists = async (filePath: string): Promise<boolean> => {
 
 /**
  * Reads file content as string using VS Code workspace API
+ * In web mode, preserves the workspace folder's URI scheme (memfs, file, etc.)
  */
-const readFileContent = async (filePath: string): Promise<string | null> => {
+const readFileContent = async (filePath: string, baseRoot?: string): Promise<string | null> => {
   try {
-    const fileUri = Uri.file(filePath);
+    // Try to use workspace folder URI to preserve scheme (memfs, file, etc.)
+    const fileUri = getWorkspaceFolderUriForPath(filePath, baseRoot) ?? Uri.file(filePath);
     const fileContent = await workspace.fs.readFile(fileUri);
     return Buffer.from(fileContent).toString('utf8');
   } catch {
@@ -57,22 +101,22 @@ const readFileContent = async (filePath: string): Promise<string | null> => {
  * @returns WorkspaceType for singular root
  */
 const detectWorkspaceTypeHelper = async (root: string): Promise<WorkspaceType> => {
-  if (await fileExists(getSfdxProjectFile(root))) {
+  if (await fileExists(getSfdxProjectFile(root), root)) {
     return 'SFDX';
   }
-  if (await fileExists(path.join(root, 'workspace-user.xml'))) {
+  if (await fileExists(path.join(root, 'workspace-user.xml'), root)) {
     return 'CORE_ALL';
   }
-  if (await fileExists(path.join(root, '..', 'workspace-user.xml'))) {
+  if (await fileExists(path.join(root, '..', 'workspace-user.xml'), root)) {
     return 'CORE_PARTIAL';
   }
 
-  if (await fileExists(path.join(root, 'lwc.config.json'))) {
+  if (await fileExists(path.join(root, 'lwc.config.json'), root)) {
     return 'STANDARD_LWC';
   }
 
   const packageJson = path.join(root, 'package.json');
-  const packageJsonContent = await readFileContent(packageJson);
+  const packageJsonContent = await readFileContent(packageJson, root);
   if (packageJsonContent) {
     try {
       const packageInfo: unknown = JSON.parse(packageJsonContent);
@@ -120,7 +164,7 @@ const detectWorkspaceTypeHelper = async (root: string): Promise<WorkspaceType> =
           return 'MONOREPO';
         }
 
-        if (await fileExists(path.join(root, 'lerna.json'))) {
+        if (await fileExists(path.join(root, 'lerna.json'), root)) {
           return 'MONOREPO';
         }
 

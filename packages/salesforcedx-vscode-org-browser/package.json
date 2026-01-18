@@ -44,7 +44,7 @@
   ],
   "scripts": {
     "vscode:bundle": "wireit",
-    "run:web": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --open-devtools --port 3001",
+    "run:web": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --open-devtools --port 3001 --quality stable",
     "test:web": "npm run vscode:bundle && playwright test --config=playwright.config.web.ts --headed",
     "test:web:headless": "npm run vscode:bundle && playwright test --config=playwright.config.web.ts",
     "test:web:debug": "npm run vscode:bundle && playwright test --config=playwright.config.web.ts --debug",

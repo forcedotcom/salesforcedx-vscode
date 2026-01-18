@@ -8,10 +8,10 @@ import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provi
 import type { SalesforceVSCodeCoreApi } from 'salesforcedx-vscode-core';
 import * as vscode from 'vscode';
 
-const getCoreExtension = async (): Promise<vscode.Extension<SalesforceVSCodeCoreApi>> => {
+const getCoreExtension = async (): Promise<vscode.Extension<SalesforceVSCodeCoreApi> | undefined> => {
   const coreExtension = vscode.extensions.getExtension<SalesforceVSCodeCoreApi>('salesforce.salesforcedx-vscode-core');
   if (!coreExtension) {
-    throw new Error('Core extension not found');
+    return undefined;
   }
   if (!coreExtension.isActive) {
     await coreExtension.activate();
@@ -19,7 +19,10 @@ const getCoreExtension = async (): Promise<vscode.Extension<SalesforceVSCodeCore
   return coreExtension;
 };
 
-export const getCoreTelemetryService = async (extensionName: string): Promise<TelemetryServiceInterface> => {
+export const getCoreTelemetryService = async (extensionName: string): Promise<TelemetryServiceInterface | undefined> => {
   const coreExtension = await getCoreExtension();
+  if (!coreExtension) {
+    return undefined;
+  }
   return coreExtension.exports.services.TelemetryService.getInstance(extensionName);
 };

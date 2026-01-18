@@ -19,10 +19,11 @@ import {
 import { snakeCase, camelCase } from 'change-case';
 import { minimatch as minimatchFn } from 'minimatch';
 import * as path from 'node:path';
+import { URI } from 'vscode-uri';
 
 import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
 
-import { Tag, TagAttrs, createTag, createTagFromFile, getTagName, getTagUri } from './tag';
+import { Tag, TagAttrs, createTag, createTagFromFile, getTagName } from './tag';
 
 const CUSTOM_COMPONENT_INDEX_PATH = path.join('.sfdx', 'indexes', 'lwc');
 const CUSTOM_COMPONENT_INDEX_FILE = path.join(CUSTOM_COMPONENT_INDEX_PATH, 'custom-components.json');
@@ -225,8 +226,30 @@ export default class ComponentIndexer {
   }
 
   public findTagByURI(uri: string): Tag | null {
-    const uriText = uri.replace('.html', '.js');
-    return Array.from(this.tags.values()).find(tag => getTagUri(tag) === uriText) ?? null;
+    // Convert URI to file path for comparison
+    // Handle both file:// and memfs:// (or other) schemes
+    let filePath: string;
+    try {
+      const parsedUri = URI.parse(uri);
+      // Extract the path from the URI (removes leading slash for memfs://)
+      filePath = parsedUri.path;
+      // Convert .html to .js
+      filePath = filePath.replace(/\.html$/, '.js');
+    } catch {
+      // Fallback: if URI parsing fails, try string replacement
+      filePath = uri.replace(/^[^:]+:\/\//, '').replace(/\.html$/, '.js');
+    }
+
+    // Normalize the path for comparison (handle leading slashes)
+    const normalizedPath = normalizePath(filePath);
+
+    // Compare with tag.file (which is already normalized)
+    return (
+      Array.from(this.tags.values()).find(tag => {
+        const tagPath = normalizePath(tag.file);
+        return tagPath === normalizedPath || tagPath === filePath || tag.file === filePath;
+      }) ?? null
+    );
   }
 
   private async loadTagsFromIndex(): Promise<void> {
