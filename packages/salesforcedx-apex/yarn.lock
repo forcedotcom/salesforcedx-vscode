@@ -555,7 +555,7 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@jsforce/jsforce-node@^3.10.10", "@jsforce/jsforce-node@^3.10.13":
+"@jsforce/jsforce-node@^3.10.13":
   version "3.10.13"
   resolved "https://registry.yarnpkg.com/@jsforce/jsforce-node/-/jsforce-node-3.10.13.tgz#d1e832178e2e74646c75b952e629ac5b8ceff7d0"
   integrity sha512-Ft42/lp3WaVxijcX88Rb3yIxujk/u3LwL3913OTcB4WCpwjB9xTqP6jkVTKt2riXg+ZlNiS62SMpQeC3U1Efkw==
@@ -640,12 +640,12 @@
   resolved "https://registry.yarnpkg.com/@pkgr/core/-/core-0.2.9.tgz#d229a7b7f9dac167a156992ef23c7f023653f53b"
   integrity sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==
 
-"@salesforce/core@^8.24.0":
-  version "8.24.0"
-  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-8.24.0.tgz#13426f9f3b5ed0ec126b8009e5eda68e03db0401"
-  integrity sha512-8Ra5RT95bRkmHmaaFgABwkXbnHNSNS7l9gbJzJgO6VQpaEeytGPPyymnAE7TcTM2xp/QwlXn+PgX4biX7Lb7JA==
+"@salesforce/core@^8.24.3":
+  version "8.24.3"
+  resolved "https://registry.yarnpkg.com/@salesforce/core/-/core-8.24.3.tgz#c18fb2481ab212c460fd351520712a4fa8b4329f"
+  integrity sha512-E9k4G3S8svS6QtsPVhUvxr0VHWyzg7KxH8sYM0o5pk7QEUXZCKQEQE5VjQOa+Gl3jRyX6zv/8Cp4UpQ2ZszOVg==
   dependencies:
-    "@jsforce/jsforce-node" "^3.10.10"
+    "@jsforce/jsforce-node" "^3.10.13"
     "@salesforce/kit" "^3.2.4"
     "@salesforce/ts-types" "^2.0.12"
     ajv "^8.17.1"
