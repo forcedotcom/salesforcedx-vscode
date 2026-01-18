@@ -133,7 +133,7 @@ export const generateManifest = async (sourceUri: URI | undefined, uris: URI[] |
       Effect.catchAll(error =>
         Effect.promise(() =>
           vscode.window.showErrorMessage(
-            nls.localize('generate_manifest_failed', error instanceof Error ? error.message : String(error))
+            nls.localize('generate_manifest_failed', error instanceof Error ? error.message : JSON.stringify(error))
           )
         ).pipe(Effect.as(undefined))
       ),

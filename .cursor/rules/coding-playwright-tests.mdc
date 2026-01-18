@@ -58,4 +58,5 @@ Use f1 for commands, not meta-shift-P. Use `Control` for all. No ControlOrMeta
 
 ## Things to ignore
 
+TS extension activation: `Error: Activating extension 'vscode.typescript-language-features'`
 All installed extensions are temporarily disabled (this refers to other extensions, not the ones installed as part of our e2e)

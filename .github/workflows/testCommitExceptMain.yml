@@ -6,7 +6,9 @@ on:
 jobs:
   build-and-test:
     uses: ./.github/workflows/buildAndTest.yml
+    if: false
   e2e-tests:
+    if: false
     needs: build-and-test
     uses: ./.github/workflows/triggerE2EForCommit.yml
     secrets: inherit

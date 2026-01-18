@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { createDesktopTest } from '@salesforce/playwright-vscode-ext';
+import { createDesktopTest, DREAMHOUSE_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
 
-export const test = createDesktopTest({ fixturesDir: __dirname });
+// all tests use dreamhouse org
+export const test = createDesktopTest({ fixturesDir: __dirname, orgAlias: DREAMHOUSE_ORG_ALIAS });
