@@ -14,7 +14,7 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
 });
 
 jest.mock('../../../src/coreExtensionUtils', () => ({
-  getVscodeCoreExtension: jest.fn()
+  getConnection: jest.fn()
 }));
 
 jest.mock('../../../src/utils/testUtils', () => {
@@ -22,15 +22,12 @@ jest.mock('../../../src/utils/testUtils', () => {
   return {
     ...actual,
     getApexTests: jest.fn(),
-    getLanguageClientStatus: jest.fn(),
-    buildClassToUriIndex: jest.fn().mockResolvedValue(new Map()),
-    fetchFromLs: jest.fn().mockResolvedValue({ tests: [], durationMs: 0 })
+    buildClassToUriIndex: jest.fn().mockResolvedValue(new Map())
   };
 });
 
 jest.mock('../../../src/testDiscovery/testDiscovery', () => ({
-  discoverTests: jest.fn(),
-  sourceIsLS: jest.fn().mockReturnValue(false)
+  discoverTests: jest.fn()
 }));
 
 jest.mock('../../../src/telemetry/telemetry', () => ({
@@ -67,10 +64,10 @@ jest.mock('@salesforce/apex-node', () => ({
 
 import { TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import * as coreExtensionUtils from '../../../src/coreExtensionUtils';
 import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
+import { notificationService } from '../../../src/utils/notificationHelpers';
 import * as orgApexClassProvider from '../../../src/utils/orgApexClassProvider';
 import * as testUtils from '../../../src/utils/testUtils';
 import { ApexTestController, getTestController } from '../../../src/views/testController';
@@ -147,25 +144,11 @@ describe('ApexTestController', () => {
       request: jest.fn()
     };
 
-    (coreExtensionUtils.getVscodeCoreExtension as jest.Mock) = jest.fn().mockResolvedValue({
-      exports: {
-        WorkspaceContext: {
-          getInstance: jest.fn().mockReturnValue({
-            getConnection: jest.fn().mockResolvedValue(mockConnection)
-          })
-        }
-      }
-    });
+    (coreExtensionUtils.getConnection as jest.Mock) = jest.fn().mockResolvedValue(mockConnection);
 
     (testUtils.getApexTests as jest.Mock) = jest.fn().mockResolvedValue([]);
-    (testUtils.getLanguageClientStatus as jest.Mock) = jest.fn().mockResolvedValue({
-      isReady: jest.fn().mockReturnValue(true),
-      failedToInitialize: jest.fn().mockReturnValue(false),
-      getStatusMessage: jest.fn().mockReturnValue('')
-    });
     (testUtils.buildClassToUriIndex as jest.Mock) = jest.fn().mockResolvedValue(new Map());
     (testDiscovery.discoverTests as jest.Mock) = jest.fn().mockResolvedValue({ classes: [] });
-    (testDiscovery.sourceIsLS as jest.Mock) = jest.fn().mockReturnValue(false);
 
     // Reset TestService mock
     (TestService as jest.Mock).mockImplementation(() => mockTestServiceMethods);

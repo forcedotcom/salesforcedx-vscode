@@ -6,7 +6,7 @@
  */
 
 jest.mock('../../../src/coreExtensionUtils', () => ({
-  getVscodeCoreExtension: jest.fn()
+  getConnection: jest.fn()
 }));
 
 import type { Connection } from '@salesforce/core';
@@ -31,17 +31,7 @@ describe('orgApexClassProvider', () => {
       } as any
     };
 
-    (coreExtensionUtils.getVscodeCoreExtension as jest.Mock) = jest.fn().mockResolvedValue({
-      exports: {
-        services: {
-          WorkspaceContext: {
-            getInstance: jest.fn().mockReturnValue({
-              getConnection: jest.fn().mockResolvedValue(mockConnection)
-            })
-          }
-        }
-      }
-    });
+    (coreExtensionUtils.getConnection as jest.Mock) = jest.fn().mockResolvedValue(mockConnection);
 
     // Mock vscode.Uri.parse to return a proper URI object
     (vscode.Uri.parse as jest.Mock) = jest.fn((uriString: string) => {

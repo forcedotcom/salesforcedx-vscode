@@ -83,8 +83,13 @@ export const commonConfigBrowser = {
     'node:os': 'os-browserify',
     'node:buffer': 'buffer',
     'node:stream': 'readable-stream',
+    'node:stream/promises': emptyPolyfillsPath,
+    'readable-stream/promises': emptyPolyfillsPath,
     'node:util': 'util',
     'node:events': 'events',
+    'node:v8': emptyPolyfillsPath,
+    readline: emptyPolyfillsPath,
+    'node:readline': emptyPolyfillsPath,
 
     'node:url': urlPolyfillPath,
     'node:crypto': 'crypto-browserify',
@@ -125,7 +130,9 @@ export const commonConfigBrowser = {
         dns: 'empty',
         net: 'empty',
         tls: 'empty',
-        http2: 'empty'
+        http2: 'empty',
+        readline: 'empty',
+        v8: 'empty'
       },
       globals: {
         process: false,

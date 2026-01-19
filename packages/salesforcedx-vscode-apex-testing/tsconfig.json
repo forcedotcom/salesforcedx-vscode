@@ -8,18 +8,6 @@
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "references": [
     {
-      "path": "../salesforcedx-utils"
-    },
-    {
-      "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../salesforcedx-vscode-apex"
-    },
-    {
-      "path": "../salesforcedx-vscode-core"
-    },
-    {
       "path": "../salesforcedx-vscode-i18n"
     }
   ]

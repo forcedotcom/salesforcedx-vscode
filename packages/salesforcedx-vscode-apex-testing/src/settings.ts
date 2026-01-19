@@ -5,27 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 
+const APEX_TESTING_CONFIGURATION_NAME = 'salesforcedx-vscode-apex-testing';
+
 export const retrieveTestCodeCoverage = (): boolean =>
-  vscode.workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME).get<boolean>('retrieve-test-code-coverage', false);
+  vscode.workspace.getConfiguration(APEX_TESTING_CONFIGURATION_NAME).get<boolean>('retrieve-test-code-coverage', false);
 
 export const retrieveTestRunConcise = (): boolean =>
-  vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing').get<boolean>('test-run-concise', false);
+  vscode.workspace.getConfiguration(APEX_TESTING_CONFIGURATION_NAME).get<boolean>('test-run-concise', false);
 
 export const retrieveOutputFormat = (): 'markdown' | 'text' =>
   vscode.workspace
-    .getConfiguration('salesforcedx-vscode-apex-testing')
+    .getConfiguration(APEX_TESTING_CONFIGURATION_NAME)
     .get<'markdown' | 'text'>('outputFormat', 'markdown');
 
 export const retrieveTestSortOrder = (): 'runtime' | 'coverage' | 'severity' =>
   vscode.workspace
-    .getConfiguration('salesforcedx-vscode-apex-testing')
+    .getConfiguration(APEX_TESTING_CONFIGURATION_NAME)
     .get<'runtime' | 'coverage' | 'severity'>('testSortOrder', 'runtime');
 
 export const retrievePerformanceThreshold = (): number =>
-  vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing').get<number>('testPerformanceThresholdMs', 5000);
+  vscode.workspace.getConfiguration(APEX_TESTING_CONFIGURATION_NAME).get<number>('testPerformanceThresholdMs', 5000);
 
 export const retrieveCoverageThreshold = (): number =>
-  vscode.workspace.getConfiguration('salesforcedx-vscode-apex-testing').get<number>('testCoverageThresholdPercent', 75);
+  vscode.workspace.getConfiguration(APEX_TESTING_CONFIGURATION_NAME).get<number>('testCoverageThresholdPercent', 75);

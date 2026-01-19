@@ -41,17 +41,7 @@ const mockConnection = {
 describe('TestDiscovery', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(coreExtensionUtils, 'getVscodeCoreExtension').mockResolvedValue({
-      exports: {
-        services: {
-          WorkspaceContext: {
-            getInstance: () => ({
-              getConnection: jest.fn().mockImplementation(async () => mockConnection)
-            })
-          }
-        }
-      }
-    } as any);
+    jest.spyOn(coreExtensionUtils, 'getConnection').mockResolvedValue(mockConnection);
   });
 
   it('returns classes and methods from /tooling/tests endpoint', async () => {
