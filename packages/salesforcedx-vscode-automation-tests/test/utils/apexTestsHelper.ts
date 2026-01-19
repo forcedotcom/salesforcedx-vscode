@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Duration, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { executeQuickPick, getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { BottomBarPanel, By, InputBox, QuickOpenBox } from 'vscode-extension-tester';
 
@@ -63,7 +63,6 @@ export const verifyTestItemsIconColor = async (
 
 /** Clicks on the Test Results tab and returns the xterm output text */
 export const getTestResultsTabText = async (): Promise<string> => {
-  await executeQuickPick('Test Results: Focus on Test Results View', Duration.seconds(2));
   await new BottomBarPanel().openTab('Test Results');
   await pause(Duration.seconds(2));
 
