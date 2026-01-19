@@ -24,6 +24,7 @@ import {
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import packageNls from '../../../package.nls.json';
+import { DEPLOY_TIMEOUT } from '../../constants';
 
 test('Source Tracking Status Bar: tracks remote and local changes through full deploy cycle', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
@@ -72,7 +73,7 @@ test('Source Tracking Status Bar: tracks remote and local changes through full d
   await test.step('deploy changes and verify local count returns to 0', async () => {
     await executeCommandWithCommandPalette(page, packageNls.project_deploy_start_ignore_conflicts_default_org_text);
     const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-    await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
+    await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
 
     await statusBarPage.waitForCounts({ local: 0 }, 60_000);
   });

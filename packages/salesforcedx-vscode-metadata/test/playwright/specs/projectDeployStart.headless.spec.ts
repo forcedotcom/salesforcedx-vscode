@@ -24,7 +24,9 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
+import { DEPLOY_TIMEOUT } from '../../constants';
 
+test.setTimeout(DEPLOY_TIMEOUT);
 test('Project Deploy Start: deploys source to org', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
@@ -73,7 +75,7 @@ test('Project Deploy Start: deploys source to org', async ({ page }) => {
     await waitForOutputChannelText(page, { expectedText: 'Deploying', timeout: 30_000 });
     await saveScreenshot(page, 'step1.deploy-started.png');
 
-    await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: 240_000 });
+    await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: DEPLOY_TIMEOUT });
     await saveScreenshot(page, 'step1.deploy-complete.png');
 
     // Deploy operation completed successfully (verified via output channel)

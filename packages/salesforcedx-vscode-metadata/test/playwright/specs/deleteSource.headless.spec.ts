@@ -29,6 +29,9 @@ import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPag
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import packageNls from '../../../package.nls.json';
+import { DEPLOY_TIMEOUT } from '../../constants';
+
+test.setTimeout(DEPLOY_TIMEOUT);
 
 test('Delete Source: deletes file from project and org via command palette', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
@@ -76,7 +79,7 @@ test('Delete Source: deletes file from project and org via command palette', asy
     // Verify deploy starts and completes
     const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
     await saveScreenshot(page, 'step1.deploy-notification-appeared.png');
-    await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
+    await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
     await saveScreenshot(page, 'step1.deploy-complete.png');
 
     // Verify local count returns to 0
@@ -117,7 +120,7 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await saveScreenshot(page, 'step2.delete-started.png');
 
     // Delete uses deploy output format, so look for "deployed"
-    await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: 240_000 });
+    await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: DEPLOY_TIMEOUT });
     await saveScreenshot(page, 'step2.delete-complete.png');
 
     // Verify file is no longer visible in explorer

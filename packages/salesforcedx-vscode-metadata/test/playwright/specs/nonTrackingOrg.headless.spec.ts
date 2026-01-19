@@ -38,7 +38,7 @@ import { waitForDeployProgressNotificationToAppear } from '../pages/notification
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
-import { RETRIEVE_TIMEOUT } from '../../constants';
+import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
 
 // we skip this on the web, locally, because your hub might not be aliased as 'hub'.
 // It works without tracking, but there's no way to set that in the webfs auth files, even if it's set correctly locally
@@ -168,7 +168,7 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
       await deleteButton.click();
 
       await waitForOutputChannelText(page, { expectedText: 'Deleting', timeout: 30_000 });
-      await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: 240_000 });
+      await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: DEPLOY_TIMEOUT });
     });
 
     await test.step('delete class locally', async () => {
@@ -263,7 +263,7 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
       await executeEditorContextMenuCommand(page, packageNls.deploy_in_manifest_text, 'manifest/package.xml');
 
       const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-      await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
+      await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
 
       // Check for deploy error notifications
       const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);

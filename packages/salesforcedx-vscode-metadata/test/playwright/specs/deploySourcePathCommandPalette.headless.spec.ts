@@ -25,6 +25,7 @@ import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPag
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import packageNls from '../../../package.nls.json';
+import { DEPLOY_TIMEOUT } from '../../constants';
 
 test('Deploy Source Path: deploys via command palette (active editor)', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
@@ -69,7 +70,7 @@ test('Deploy Source Path: deploys via command palette (active editor)', async ({
     // Verify deploy progress notification appears then disappears
     const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
     await saveScreenshot(page, 'step1.deploy-notification-appeared.png');
-    await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
+    await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
 
     // Verify local count returns to 0
     await statusBarPage.waitForCounts({ local: 0 }, 60_000);

@@ -26,8 +26,10 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
+import { DEPLOY_TIMEOUT } from '../../constants';
 
 test('Deploy On Save: automatically deploys when file is saved', async ({ page }) => {
+  test.setTimeout(DEPLOY_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -75,7 +77,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
 
     // so we verify completion via output channel instead
     // Match the actual completion message which includes counts
-    await waitForOutputChannelText(page, { expectedText: 'Deploy on save complete:', timeout: 240_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Deploy on save complete:', timeout: DEPLOY_TIMEOUT });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
