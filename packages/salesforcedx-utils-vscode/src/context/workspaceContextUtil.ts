@@ -39,6 +39,7 @@ export class WorkspaceContextUtil {
   protected _devHubId?: string;
 
   private knownBadConnections: Set<string> = new Set();
+  private activeLoginPrompts: Map<string, Promise<void>> = new Map();
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
@@ -137,28 +138,53 @@ export class WorkspaceContextUtil {
         console.log('workspaceContextUtil.ts getConnection() - 17');
         this.sessionConnections.delete(this._username);
         console.log('workspaceContextUtil.ts getConnection() - 18');
+
+        // Check if there's already an active login prompt for this user
+        const existingPrompt = this.activeLoginPrompts.get(this._username);
+        if (existingPrompt) {
+          console.log('workspaceContextUtil.ts getConnection() - 18A (waiting for existing prompt)');
+          await existingPrompt;
+          console.log('workspaceContextUtil.ts getConnection() - 18B');
+          throw new Error('Unable to refresh your access token.  Please login again.');
+        }
+
         // we only want to display one message per username, even though many consumers are requesting connections.
         if (!this.knownBadConnections.has(this._username)) {
           console.log('workspaceContextUtil.ts getConnection() - 19');
           this.knownBadConnections.add(this._username);
-          console.log('workspaceContextUtil.ts getConnection() - 20');
-          const selection = await vscode.window.showErrorMessage(
-            nls.localize('error_access_token_expired'),
-            {
-              modal: true,
-              detail: nls.localize('error_access_token_expired_detail')
-            },
-            nls.localize('error_access_token_expired_login_button')
-          );
-          console.log('workspaceContextUtil.ts getConnection() - 21');
-          if (selection === 'Login') {
-            console.log('workspaceContextUtil.ts getConnection() - 22');
-            await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
-            console.log('workspaceContextUtil.ts getConnection() - 23');
-            // Clear from knownBadConnections after login attempt so that subsequent connection attempts can succeed or show new error
-            this.knownBadConnections.delete(this._username);
+
+          // Capture username for use in async closure
+          const username = this._username;
+
+          // Create and store the login prompt promise
+          const loginPrompt = (async () => {
+            console.log('workspaceContextUtil.ts getConnection() - 20');
+            const selection = await vscode.window.showErrorMessage(
+              nls.localize('error_access_token_expired'),
+              {
+                modal: true,
+                detail: nls.localize('error_access_token_expired_detail')
+              },
+              nls.localize('error_access_token_expired_login_button')
+            );
+            console.log('workspaceContextUtil.ts getConnection() - 21');
+            if (selection === 'Login') {
+              console.log('workspaceContextUtil.ts getConnection() - 22');
+              await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
+              console.log('workspaceContextUtil.ts getConnection() - 23');
+              // Clear from knownBadConnections after login attempt so that subsequent connection attempts can succeed or show new error
+              this.knownBadConnections.delete(username);
+            }
+            console.log('workspaceContextUtil.ts getConnection() - 24');
+          })();
+
+          this.activeLoginPrompts.set(username, loginPrompt);
+
+          try {
+            await loginPrompt;
+          } finally {
+            this.activeLoginPrompts.delete(username);
           }
-          console.log('workspaceContextUtil.ts getConnection() - 24');
         }
         console.log('workspaceContextUtil.ts getConnection() - 25');
         throw new Error('Unable to refresh your access token.  Please login again.');
