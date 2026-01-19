@@ -44,15 +44,14 @@ const generateManifestFromUris = (uris: Set<URI>) =>
     return yield* Effect.promise(() => componentSet.getPackageXml());
   });
 
-const saveManifestFile = (workspacePath: string, fileName: string, packageXML: string) =>
+const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: string) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const fsService = yield* api.services.FsService;
     const channelService = yield* api.services.ChannelService;
 
     // Build manifest directory path
-    const manifestDirUri = Utils.joinPath(URI.parse(workspacePath), 'manifest');
-    const manifestFileUri = Utils.joinPath(manifestDirUri, fileName);
+    const manifestFileUri = Utils.joinPath(workspacePath, 'manifest', fileName);
 
     const shouldWrite =
       // doesn't exist
@@ -116,12 +115,8 @@ const generateManifestEffect = Effect.fn('generateManifest')(function* (
     return;
   }
 
-  // Use path instead of fsPath for memfs URIs (web environments) to avoid backslash conversion issues
-  // For file:// URIs, path and fsPath are equivalent
-  const workspacePath = process.env.ESBUILD_PLATFORM === 'web' ? workspaceInfo.path : workspaceInfo.fsPath;
-
   // Save the manifest file
-  yield* saveManifestFile(workspacePath, fileName, packageXML);
+  yield* saveManifestFile(workspaceInfo.uri, fileName, packageXML);
 });
 
 /** Generate manifest from source paths */

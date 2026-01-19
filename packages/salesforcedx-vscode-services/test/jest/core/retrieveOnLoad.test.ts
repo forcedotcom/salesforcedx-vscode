@@ -8,6 +8,7 @@
 import { ComponentStatus, type FileResponse, type FileResponseSuccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import { URI } from 'vscode-uri';
 import { parseRetrieveOnLoad, filterFileResponses } from '../../../src/core/retrieveOnLoad';
 import { ComponentSetService } from '../../../src/core/componentSetService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
@@ -16,6 +17,7 @@ import { WorkspaceService } from '../../../src/vscode/workspaceService';
 /** Create a test layer for WorkspaceService with a mock workspace path */
 const createMockWorkspaceService = (workspacePath: string): Layer.Layer<WorkspaceService, never, never> => {
   const workspaceInfo = {
+    uri: URI.parse(`file://${workspacePath}`),
     path: `file://${workspacePath}`,
     fsPath: workspacePath,
     isEmpty: false as const,

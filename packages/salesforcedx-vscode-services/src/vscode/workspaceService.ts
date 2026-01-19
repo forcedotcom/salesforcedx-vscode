@@ -13,6 +13,7 @@ import { URI } from 'vscode-uri';
 import { getPathWithSchema } from './paths';
 
 type WorkspaceInfo = {
+  uri: URI;
   /** includes the file:// or other schemeprefix */
   path: string;
   /** the path without the scheme prefix */
@@ -31,6 +32,7 @@ const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
   const isVirtualFs = folders?.[0]?.uri.scheme !== 'file';
   const originalFsPath = folders?.[0]?.uri.fsPath ?? '';
   return {
+    uri: folders?.[0]?.uri ?? URI.parse(''),
     path: getPathWithSchema(folders?.[0]?.uri ?? URI.parse('')),
     isEmpty: folders?.length === 0,
     isVirtualFs,
