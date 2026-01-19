@@ -69,6 +69,7 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
       await saveScreenshot(page, 'step1.after-create-class.png');
 
       // Wait for local count to increment
+      await statusBarPage.waitForCounts({ local: 1 }, 60_000);
       const countsAfterCreate = await statusBarPage.getCounts();
       await saveScreenshot(
         page,
@@ -80,15 +81,15 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
       const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
       await saveScreenshot(page, 'step1.deploy-notification-appeared.png');
       await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
-      await statusBarPage.waitForCounts({ local: countsAfterCreate.local -1 }, 60_000);
+      await statusBarPage.waitForCounts({ local: 0 }, 60_000);
       await saveScreenshot(page, 'step1.after-deploy.png');
 
       // Simulate remote change by making a local edit
       // This creates a scenario where the file exists remotely but differs locally
       await openFileByName(page, `${className}.cls`);
       await editOpenFile(page, 'Remote change simulation');
+      await statusBarPage.waitForCounts({ local: 1 }, 60_000);
       await saveScreenshot(page, 'step1.after-edit.png');
-      await statusBarPage.waitForCounts({ local: countsAfterCreate.local  }, 60_000);
 
     });
 
