@@ -140,6 +140,8 @@ export class WorkspaceContextUtil {
         // we only want to display one message per username, even though many consumers are requesting connections.
         if (!this.knownBadConnections.has(this._username)) {
           console.log('workspaceContextUtil.ts getConnection() - 19');
+          this.knownBadConnections.add(this._username);
+          console.log('workspaceContextUtil.ts getConnection() - 20');
           const selection = await vscode.window.showErrorMessage(
             nls.localize('error_access_token_expired'),
             {
@@ -148,16 +150,14 @@ export class WorkspaceContextUtil {
             },
             nls.localize('error_access_token_expired_login_button')
           );
-          console.log('workspaceContextUtil.ts getConnection() - 20');
+          console.log('workspaceContextUtil.ts getConnection() - 21');
           if (selection === 'Login') {
-            console.log('workspaceContextUtil.ts getConnection() - 21');
-            await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
             console.log('workspaceContextUtil.ts getConnection() - 22');
+            await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
+            console.log('workspaceContextUtil.ts getConnection() - 23');
           }
-          console.log('workspaceContextUtil.ts getConnection() - 23');
+          console.log('workspaceContextUtil.ts getConnection() - 24');
         }
-        console.log('workspaceContextUtil.ts getConnection() - 24');
-        this.knownBadConnections.add(this._username);
         console.log('workspaceContextUtil.ts getConnection() - 25');
         throw new Error('Unable to refresh your access token.  Please login again.');
       }
