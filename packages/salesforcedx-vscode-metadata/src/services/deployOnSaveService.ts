@@ -40,7 +40,7 @@ export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (ur
 
 /** Deploy queued files using MetadataDeployService */
 
-const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* (paths: Set<string>) {
+const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* (uris: Set<URI>) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [channelService, deployService, componentSetService] = yield* Effect.all(
     [api.services.ChannelService, api.services.MetadataDeployService, api.services.ComponentSetService],
@@ -50,7 +50,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
   const ignoreConflicts = getIgnoreConflicts();
   yield* channelService.appendToChannel(`Deploy on save triggered (ignoreConflicts: ${ignoreConflicts})`);
 
-  const componentSet = yield* componentSetService.getComponentSetFromPaths(paths);
+  const componentSet = yield* componentSetService.getComponentSetFromUris(uris);
 
   if (componentSet.size === 0) {
     return yield* channelService.appendToChannel('Deploy on save: No changes to deploy');
@@ -123,7 +123,7 @@ export const createDeployOnSaveService = () =>
       ),
       Stream.groupedWithin(10_000, Duration.millis(ENQUEUE_DELAY_MS)),
       Stream.runForEach(chunk =>
-        deployQueuedFiles(new Set(Chunk.toReadonlyArray(chunk).map(uri => uri.path))).pipe(
+        deployQueuedFiles(new Set(Chunk.toReadonlyArray(chunk))).pipe(
           Effect.catchAll(handleDeployError)
         )
       ),

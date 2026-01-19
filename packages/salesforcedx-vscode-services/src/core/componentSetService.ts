@@ -21,6 +21,8 @@ import {
 import * as Brand from 'effect/Brand';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import { URI } from 'vscode-uri';
+import { uriToPath } from '../vscode/paths';
 import { ConfigService } from './configService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { FailedToResolveSfProjectError, ProjectService } from './projectService';
@@ -73,10 +75,14 @@ const getComponentSetDependencies = () =>
     { concurrency: 'unbounded' }
   );
 
-/** Get ComponentSet from source paths (files/directories) */
-export const getComponentSetFromPaths = (paths: Set<string>) =>
+const getComponentSetFromUris = (uris: Set<URI>) =>
   Effect.gen(function* () {
-    yield* Effect.annotateCurrentSpan({ paths: Array.from(paths).join(',') });
+    return yield* getComponentSetFromPaths(new Set(Array.from(uris).map(uriToPath)));
+  });
+
+/** Get ComponentSet from source paths (files/directories) */
+const getComponentSetFromPaths = (paths: Set<string>) =>
+  Effect.gen(function* () {
     const [registryAccess, project, configAggregator] = yield* getComponentSetDependencies();
 
     const componentSet = yield* Effect.try({
@@ -88,7 +94,7 @@ export const getComponentSetFromPaths = (paths: Set<string>) =>
 
     yield* Effect.annotateCurrentSpan({ size: componentSet.size });
     return componentSet;
-  }).pipe(Effect.withSpan('getComponentSetFromPaths'));
+  }).pipe(Effect.withSpan('getComponentSetFromPaths', {attributes: {paths: Array.from(paths).join(',')}}));
 
 /** Get ComponentSet from manifest file */
 const getComponentSetFromManifest = (manifestPath: string) =>
@@ -122,8 +128,8 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
     isSDRFailure,
     /** Effect that validates a ComponentSet is non-empty and returns NonEmptyComponentSet */
     ensureNonEmptyComponentSet,
-    /** Get ComponentSet from source paths (files/directories) */
-    getComponentSetFromPaths,
+    /** Get ComponentSet from source URIs (files/directories) */
+    getComponentSetFromUris,
     /** Get ComponentSet from manifest file */
     getComponentSetFromManifest
   } as const

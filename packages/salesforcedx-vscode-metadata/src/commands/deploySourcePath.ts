@@ -12,12 +12,12 @@ import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
-const deployPaths = (paths: Set<string>) =>
+const deployUris = (uris: Set<URI>) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const componentSetService = yield* api.services.ComponentSetService;
     const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-      yield* componentSetService.getComponentSetFromPaths(paths)
+      yield* componentSetService.getComponentSetFromUris(uris)
     );
     yield* deployComponentSet({ componentSet });
   });
@@ -26,14 +26,13 @@ const deployActiveEditorEffect = () =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const activeEditorUri = yield* (yield* api.services.EditorService).getActiveEditorUri;
-    return yield* deployPaths(new Set([activeEditorUri.path]));
+    return yield* deployUris(new Set([activeEditorUri]));
   }).pipe(Effect.withSpan('deployActiveEditor'), Effect.provide(AllServicesLayer));
 
 /** Deploy source paths to the default org */
 const deploySourcePathsEffect = Effect.fn('deploySourcePaths')(function* (sourceUri: URI, uris: URI[]) {
   yield* Effect.annotateCurrentSpan({ sourceUri, uris });
-  const paths = new Set([sourceUri.path, ...uris.map(uri => uri.path)]);
-  return yield* deployPaths(paths);
+  return yield* deployUris(new Set([sourceUri, ...uris]));
 });
 
 export const deployActiveEditor = async (): Promise<void> =>

@@ -36,11 +36,11 @@ const promptForOverwrite = (fileName: string) =>
     )
   );
 
-const generateManifestFromPaths = (paths: Set<string>) =>
+const generateManifestFromUris = (uris: Set<URI>) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const componentSetService = yield* api.services.ComponentSetService;
-    const componentSet = yield* componentSetService.getComponentSetFromPaths(paths);
+    const componentSet = yield* componentSetService.getComponentSetFromUris(uris);
     return yield* Effect.promise(() => componentSet.getPackageXml());
   });
 
@@ -104,11 +104,10 @@ const generateManifestEffect = Effect.fn('generateManifest')(function* (
   const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow;
 
   // Resolve URIs
-  const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
-  const paths = new Set(resolvedUris.map(uri => uri.path));
+  const resolvedUris = new Set(uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri]);
 
   // Prompt for filename and generate package XML in parallel so it's ready as soon as the user responds
-  const [fileName, packageXML] = yield* Effect.all([promptForFileName(), generateManifestFromPaths(paths)], {
+  const [fileName, packageXML] = yield* Effect.all([promptForFileName(), generateManifestFromUris(resolvedUris)], {
     concurrency: 'unbounded'
   });
 

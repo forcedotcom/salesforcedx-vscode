@@ -12,12 +12,12 @@ import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
 
-const retrievePaths = (paths: Set<string>) =>
+const retrievePaths = (uris: Set<URI>) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const componentSetService = yield* api.services.ComponentSetService;
     const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-      yield* componentSetService.getComponentSetFromPaths(paths)
+      yield* componentSetService.getComponentSetFromUris(uris)
     );
     yield* retrieveComponentSet({ componentSet });
   });
@@ -25,8 +25,7 @@ const retrievePaths = (paths: Set<string>) =>
 /** Retrieve source paths from the default org */
 const retrieveSourcePathsEffect = Effect.fn('retrieveSourcePaths')(function* (sourceUri: URI, uris: URI[]) {
   yield* Effect.annotateCurrentSpan({ sourceUri, uris });
-  const paths = new Set([sourceUri.path, ...uris.map(uri => uri.path)]);
-  return yield* retrievePaths(paths);
+  return yield* retrievePaths(new Set([sourceUri, ...uris]));
 });
 
 /** Retrieve source paths from the default org */
