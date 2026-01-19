@@ -39,7 +39,6 @@ export class WorkspaceContextUtil {
   protected _devHubId?: string;
 
   private knownBadConnections: Set<string> = new Set();
-  private recentLoginAttempts: Map<string, number> = new Map(); // username -> timestamp
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
@@ -119,7 +118,6 @@ export class WorkspaceContextUtil {
           // Therefore the workaround was to login again via CLI.
           console.log('workspaceContextUtil.ts getConnection() - 11');
           this.knownBadConnections.delete(this._username);
-          this.recentLoginAttempts.delete(this._username); // Clear login cooldown on success
           console.log('workspaceContextUtil.ts getConnection() - 12');
           this.sessionConnections.set(this._username, {
             connection: connectionDetails.connection,
@@ -139,19 +137,6 @@ export class WorkspaceContextUtil {
         console.log('workspaceContextUtil.ts getConnection() - 17');
         this.sessionConnections.delete(this._username);
         console.log('workspaceContextUtil.ts getConnection() - 18');
-
-        // Check if we recently attempted a login for this username
-        const recentLoginTime = this.recentLoginAttempts.get(this._username);
-        const loginCooldownMs = 10_000; // 10 seconds
-        if (recentLoginTime && Date.now() - recentLoginTime < loginCooldownMs) {
-          console.log(
-            'workspaceContextUtil.ts getConnection() - 18A - login attempted recently, waiting for auth to refresh'
-          );
-          // Login was attempted recently, auth files are still being written
-          // Don't show dialog again, just fail and let retry work
-          throw new Error('Authentication is being refreshed. Please retry your operation in a moment.');
-        }
-
         // we only want to display one message per username, even though many consumers are requesting connections.
         if (!this.knownBadConnections.has(this._username)) {
           console.log('workspaceContextUtil.ts getConnection() - 19');
@@ -166,29 +151,17 @@ export class WorkspaceContextUtil {
           console.log('workspaceContextUtil.ts getConnection() - 20');
           if (selection === 'Login') {
             console.log('workspaceContextUtil.ts getConnection() - 21');
-            // Record that we're attempting login now
-            this.recentLoginAttempts.set(this._username, Date.now());
             await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
             console.log('workspaceContextUtil.ts getConnection() - 22');
-            // After login, clear cached connections so next call will create fresh ones
-            this.sessionConnections.delete(this._username);
-            // Force reload so next getConnection() call will have fresh auth
-            await ConfigAggregatorProvider.getInstance().reloadConfigAggregators();
-            StateAggregator.clearInstance();
-            console.log('workspaceContextUtil.ts getConnection() - 23');
-            // Don't add to knownBadConnections - let next call try with fresh auth
-            // Throw error to fail current operation, but user can retry
-            throw new Error('Please retry your operation now that you have logged in.');
           }
-          console.log('workspaceContextUtil.ts getConnection() - 24');
-          // User dismissed without logging in, mark as bad to prevent repeated dialogs
-          this.knownBadConnections.add(this._username);
-          console.log('workspaceContextUtil.ts getConnection() - 25');
+          console.log('workspaceContextUtil.ts getConnection() - 23');
         }
-        console.log('workspaceContextUtil.ts getConnection() - 26');
+        console.log('workspaceContextUtil.ts getConnection() - 24');
+        this.knownBadConnections.add(this._username);
+        console.log('workspaceContextUtil.ts getConnection() - 25');
         throw new Error('Unable to refresh your access token.  Please login again.');
       }
-      console.log('workspaceContextUtil.ts getConnection() - 28');
+      console.log('workspaceContextUtil.ts getConnection() - 26');
     }
     console.log('workspaceContextUtil.ts - exit 2 getConnection()');
     return connectionDetails.connection;
