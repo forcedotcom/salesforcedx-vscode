@@ -7,7 +7,7 @@
 import { Duration, pause } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { executeQuickPick, getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { By, InputBox, QuickOpenBox } from 'vscode-extension-tester';
+import { BottomBarPanel, By, InputBox, QuickOpenBox } from 'vscode-extension-tester';
 
 /** Finds a checkbox element using multiple selectors for VS Code version compatibility */
 export const findCheckboxElement = async (prompt: InputBox | QuickOpenBox) => {
@@ -64,8 +64,7 @@ export const verifyTestItemsIconColor = async (
 /** Clicks on the Test Results tab and returns the xterm output text */
 export const getTestResultsTabText = async (): Promise<string> => {
   await executeQuickPick('Test Results: Focus on Test Results View', Duration.seconds(2));
-  const testResultsTab = await getWorkbench().findElement(By.css('a.action-label[aria-label="Test Results"]'));
-  await testResultsTab.click();
+  await new BottomBarPanel().openTab('Test Results');
   await pause(Duration.seconds(2));
 
   const xtermRows = await getWorkbench().findElement(By.css('.xterm-rows'));
