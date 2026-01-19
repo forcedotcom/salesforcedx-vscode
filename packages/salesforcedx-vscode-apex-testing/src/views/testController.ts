@@ -9,7 +9,6 @@ import { TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { channelService } from '../channels';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
@@ -662,9 +661,9 @@ export class ApexTestController {
       codeCoverage
     });
 
-    // Show success notification
+    // Show success notification if the command ran successfully (tests executed)
+    // The test results panel will show which tests passed/failed
     const totalCount = result.summary.testsRan ?? 0;
-    const failures = result.summary.failing ?? 0;
 
     // Determine execution name based on what was run (hasSuite and hasClass set above)
     let executionName: string;
@@ -675,10 +674,9 @@ export class ApexTestController {
     } else {
       executionName = nls.localize('apex_test_run_text');
     }
-    if (failures === 0 && totalCount > 0) {
-      void notificationService.showSuccessfulExecution(executionName, channelService);
-    } else if (totalCount > 0) {
-      notificationService.showFailedExecution(executionName);
+    // Show success notification if tests ran successfully (regardless of test results)
+    if (totalCount > 0) {
+      notificationService.showSuccessfulExecution(executionName);
     }
   }
 
