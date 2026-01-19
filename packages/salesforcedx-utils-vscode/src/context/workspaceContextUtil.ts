@@ -155,6 +155,8 @@ export class WorkspaceContextUtil {
             console.log('workspaceContextUtil.ts getConnection() - 22');
             await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
             console.log('workspaceContextUtil.ts getConnection() - 23');
+            // Clear from knownBadConnections after login attempt so that subsequent connection attempts can succeed or show new error
+            this.knownBadConnections.delete(this._username);
           }
           console.log('workspaceContextUtil.ts getConnection() - 24');
         }
