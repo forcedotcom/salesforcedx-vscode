@@ -311,7 +311,11 @@ describe('Run Apex Tests', () => {
     await clearOutputView(Duration.seconds(2));
 
     // Find and click on the test class in the Test Explorer
-    const testExplorerSection = await getTestsSection(workbench, 'Test Explorer');
+    const testExplorerSection = await retryOperation(
+      async () => await getTestsSection(workbench, 'Test Explorer'),
+      3,
+      'RunApexTests - Error getting test explorer section'
+    );
     await testExplorerSection.click();
     await pause(Duration.seconds(5)); // Wait for the tests to load
     const foundItem = await testExplorerSection.findItem('ExampleApexClass2Test');
@@ -361,7 +365,11 @@ describe('Run Apex Tests', () => {
     await clearOutputView(Duration.seconds(2));
 
     // Find and click on the test method in the Test Explorer
-    const testExplorerSection = await getTestsSection(workbench, 'Test Explorer');
+    const testExplorerSection = await retryOperation(
+      async () => await getTestsSection(workbench, 'Test Explorer'),
+      3,
+      'RunApexTests - Error getting test explorer section'
+    );
     await testExplorerSection.click();
     await pause(Duration.seconds(5)); // Wait for the tests to load
     const foundItem = await testExplorerSection.findItem('validateSayHello');
@@ -467,13 +475,14 @@ describe('Run Apex Tests', () => {
     await verifyNotificationWithRetry(/Apex test report is ready: test-result-[a-zA-Z0-9]+\.md/, Duration.seconds(30));
 
     // Verify test results in the Test Results tab - verify the test passes
-    testResultsText = await getTestResultsTabText();
+    testResultsText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
     expectedTexts = [
       '=== Test Summary',
       'Outcome              Passed',
       'Tests Ran            1',
       'Pass Rate            100%',
-      'AccountServiceTest.should_create_account  Pass'
+      'AccountServiceTest.should_create_account  Pass',
+      'Ended SFDX: Run Apex Tests'
     ];
     await verifyOutputPanelText(testResultsText, expectedTexts);
   });
