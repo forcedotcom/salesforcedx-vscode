@@ -14,6 +14,15 @@ import { ConfigUtil } from '../config/configUtil';
 import { projectPaths } from '../helpers/paths';
 import { nls } from '../messages/messages';
 
+// Global interception to track ALL showErrorMessage calls
+const originalShowErrorMessage = vscode.window.showErrorMessage;
+// @ts-ignore - Intercepting for debugging, intentionally bypassing type checks
+vscode.window.showErrorMessage = function (...args: any[]) {
+  console.log('🔴 showErrorMessage CALLED:', args[0], 'STACK:', new Error().stack);
+  // @ts-ignore
+  return originalShowErrorMessage.apply(vscode.window, args);
+};
+
 export type OrgUserInfo = {
   username?: string;
   alias?: string;
@@ -174,9 +183,12 @@ export class WorkspaceContextUtil {
           // Create and execute the login prompt
           const dialogId = Date.now();
           console.log(`workspaceContextUtil.ts getConnection() - 19.5 (DIALOG ID: ${dialogId})`);
+          console.log(`STACK TRACE FOR DIALOG ${dialogId}:`, new Error().stack);
           void (async () => {
             try {
-              console.log(`workspaceContextUtil.ts getConnection() - 20 (DIALOG ID: ${dialogId})`);
+              console.log(
+                `workspaceContextUtil.ts getConnection() - 20 (DIALOG ID: ${dialogId}) - ABOUT TO SHOW DIALOG`
+              );
               const selection = await vscode.window.showErrorMessage(
                 `${nls.localize('error_access_token_expired')} [${dialogId}]`,
                 {
