@@ -140,15 +140,17 @@ export class WorkspaceContextUtil {
         // we only want to display one message per username, even though many consumers are requesting connections.
         if (!this.knownBadConnections.has(this._username)) {
           console.log('workspaceContextUtil.ts getConnection() - 19');
+          const dialogId = Date.now();
+          console.log(`workspaceContextUtil.ts getConnection() - 19.5 (DIALOG ID: ${dialogId})`);
           const selection = await vscode.window.showErrorMessage(
-            nls.localize('error_access_token_expired'),
+            `${nls.localize('error_access_token_expired')} [${dialogId}]`,
             {
               modal: true,
               detail: nls.localize('error_access_token_expired_detail')
             },
             nls.localize('error_access_token_expired_login_button')
           );
-          console.log('workspaceContextUtil.ts getConnection() - 20');
+          console.log(`workspaceContextUtil.ts getConnection() - 20 (DIALOG ID: ${dialogId})`);
           if (selection === 'Login') {
             console.log('workspaceContextUtil.ts getConnection() - 21');
             await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
