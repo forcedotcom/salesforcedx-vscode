@@ -149,8 +149,11 @@ export class WorkspaceContextUtil {
         }
 
         // we only want to display one message per username, even though many consumers are requesting connections.
+        console.log(
+          `workspaceContextUtil.ts getConnection() - 18.9 (knownBad: ${this.knownBadConnections.has(this._username)}, activePrompt: ${this.activeLoginPrompts.has(this._username)})`
+        );
         if (!this.knownBadConnections.has(this._username) && !this.activeLoginPrompts.has(this._username)) {
-          console.log('workspaceContextUtil.ts getConnection() - 19');
+          console.log('workspaceContextUtil.ts getConnection() - 19 (CREATING DIALOG)');
           this.knownBadConnections.add(this._username);
 
           // Capture username for use in async closure
