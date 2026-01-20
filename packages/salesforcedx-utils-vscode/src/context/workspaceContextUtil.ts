@@ -158,22 +158,22 @@ export class WorkspaceContextUtil {
         // we only want to display one message per username, even though many consumers are requesting connections.
         // Check and set flags atomically to prevent race conditions
         if (!this.knownBadConnections.has(this._username) && !this.activeLoginPrompts.has(this._username)) {
-          // Set flag IMMEDIATELY to block concurrent calls
-          this.knownBadConnections.add(this._username);
-
-          console.log(
-            `workspaceContextUtil.ts getConnection() - 19 (CREATING DIALOG from instance ${this.instanceId})`
-          );
-
           // Capture username for use in async closure
           const username = this._username;
 
-          // Create placeholder promise and register it IMMEDIATELY to block other concurrent calls
+          // Create placeholder promise
           let resolvePromise: () => void;
           const placeholderPromise = new Promise<void>(resolve => {
             resolvePromise = resolve;
           });
+
+          // Set BOTH flags IMMEDIATELY to block concurrent calls (before any console.logs or other code)
+          this.knownBadConnections.add(username);
           this.activeLoginPrompts.set(username, placeholderPromise);
+
+          console.log(
+            `workspaceContextUtil.ts getConnection() - 19 (CREATING DIALOG from instance ${this.instanceId})`
+          );
 
           // Create and execute the login prompt
           const dialogId = Date.now();
