@@ -231,8 +231,18 @@ export default class ComponentIndexer {
     let filePath: string;
     try {
       const parsedUri = URI.parse(uri);
-      // Extract the path from the URI (removes leading slash for memfs://)
-      filePath = parsedUri.path;
+      // For file:// URIs, use fsPath which handles Windows paths correctly (no leading slash)
+      // For other schemes (memfs://, etc.), use path and remove leading slash if present
+      if (parsedUri.scheme === 'file') {
+        filePath = parsedUri.fsPath;
+      } else {
+        // Extract the path from the URI (removes leading slash for memfs://)
+        filePath = parsedUri.path;
+        // Remove leading slash for non-file schemes
+        if (filePath.startsWith('/')) {
+          filePath = filePath.substring(1);
+        }
+      }
       // Convert .html to .js
       filePath = filePath.replace(/\.html$/, '.js');
     } catch {
@@ -240,7 +250,7 @@ export default class ComponentIndexer {
       filePath = uri.replace(/^[^:]+:\/\//, '').replace(/\.html$/, '.js');
     }
 
-    // Normalize the path for comparison (handle leading slashes)
+    // Normalize the path for comparison (handle leading slashes and path separators)
     const normalizedPath = normalizePath(filePath);
 
     // Compare with tag.file (which is already normalized)
