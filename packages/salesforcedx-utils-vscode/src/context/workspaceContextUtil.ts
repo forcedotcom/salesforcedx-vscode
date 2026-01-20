@@ -96,8 +96,6 @@ export class WorkspaceContextUtil {
       });
       console.log('workspaceContextUtil.ts getConnection() - 4');
       this.sessionConnections.set(this._username, { connection });
-      // Clear from knownBadConnections since we successfully created a new connection
-      this.knownBadConnections.delete(this._username);
       console.log('workspaceContextUtil.ts getConnection() - 5');
     }
     console.log('workspaceContextUtil.ts getConnection() - 6');
@@ -184,6 +182,11 @@ export class WorkspaceContextUtil {
             await loginPrompt;
           } finally {
             this.activeLoginPrompts.delete(username);
+            // Delay clearing knownBadConnections to give time for any in-flight failing calls
+            // to reach the knownBadConnections check and be blocked, preventing additional dialogs
+            setTimeout(() => {
+              this.knownBadConnections.delete(username);
+            }, 1000);
           }
         }
         console.log('workspaceContextUtil.ts getConnection() - 25');
