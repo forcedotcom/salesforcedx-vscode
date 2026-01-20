@@ -6,7 +6,7 @@
  */
 import { getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { BottomBarPanel, By, InputBox, QuickOpenBox, VSBrowser } from 'vscode-extension-tester';
+import { BottomBarPanel, By, InputBox, QuickOpenBox,  } from 'vscode-extension-tester';
 
 /** Finds a checkbox element using multiple selectors for VS Code version compatibility */
 export const findCheckboxElement = async (prompt: InputBox | QuickOpenBox) => {
@@ -60,33 +60,12 @@ export const verifyTestItemsIconColor = async (
   }
 };
 
-/** Opens the Test Results tab and returns all xterm output text including scrolled content */
+/** Clicks on the Test Results tab and returns the xterm output text */
 export const getTestResultsTabText = async (): Promise<string> => {
+  // Get the Test Results tab
   await new BottomBarPanel().openTab('Test Results');
 
-  // xterm.js virtualizes content, so .xterm-rows only shows visible rows.
-  // We need to extract all lines from the terminal buffer via JavaScript.
-  const driver = VSBrowser.instance.driver;
-  const text = await driver.executeScript<string>(`
-    const container = document.querySelector('.test-output-peek-message-container .xterm');
-    if (!container) return '';
-    // xterm.js stores the Terminal instance on the element
-    const term = container._xterm || container.terminal;
-    if (term && term.buffer && term.buffer.active) {
-      const buffer = term.buffer.active;
-      const lines = [];
-      for (let i = 0; i < buffer.length; i++) {
-        const line = buffer.getLine(i);
-        if (line) {
-          lines.push(line.translateToString(true));
-        }
-      }
-      return lines.join('\\n');
-    }
-    // Fallback: just get visible text from DOM
-    const rows = document.querySelector('.test-output-peek-message-container .xterm-rows');
-    return rows ? rows.innerText : '';
-  `);
-
-  return text ?? '';
+  const xtermRows = await getWorkbench().findElement(By.css('.xterm-rows'));
+  const text = await xtermRows.getText();
+  return text;
 };

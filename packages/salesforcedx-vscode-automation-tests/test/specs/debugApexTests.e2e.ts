@@ -30,7 +30,6 @@ import { TreeItem, after } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
 import { verifyTestItems } from '../utils/apexTestsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
-import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Debug Apex Tests', () => {
@@ -50,8 +49,6 @@ describe('Debug Apex Tests', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
     classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
-    // Hide copilot
-    await tryToHideCopilot();
 
     // Create Apex class 1 and test
     await retryOperation(
@@ -194,7 +191,7 @@ describe('Debug Apex Tests', () => {
       'DebugApexTests - Error clicking apex tests section'
     );
 
-    const debugTestsAction = await apexTestItem!.getActionButton('Debug Tests');
+    const debugTestsAction = await apexTestItem!.getActionButton('Debug Test');
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(debugTestsAction).to.not.be.undefined;
     await retryOperation(
@@ -250,7 +247,7 @@ describe('Debug Apex Tests', () => {
       3,
       'DebugApexTests - Error selecting apex test item'
     );
-    const debugTestAction = await apexTestItem!.getActionButton('Debug Single Test');
+    const debugTestAction = await apexTestItem!.getActionButton('Debug Test');
     expect(debugTestAction).to.not.be.undefined;
     await retryOperation(
       async () => {
