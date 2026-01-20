@@ -26,9 +26,9 @@ import {
   waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { TreeItem, after } from 'vscode-extension-tester';
+import { after } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
-import { verifyTestItems } from '../utils/apexTestsHelper';
+import { findTestItemByName, TestTreeItem, verifyTestItems } from '../utils/apexTestsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
@@ -172,20 +172,13 @@ describe('Debug Apex Tests', () => {
     );
 
     // Click the debug tests button that is shown to the right when you hover a test class name on the Test sidebar
-    let apexTestItem: TreeItem;
+    let apexTestItem: TestTreeItem;
     await retryOperation(
       async () => {
         await pause(Duration.seconds(2));
         await testExplorerSection.click();
-        const foundItem = await testExplorerSection.findItem('ExampleApexClass1Test');
-        if (!foundItem) {
-          throw new Error('Expected TreeItem but got undefined');
-        }
-        if (!(foundItem instanceof TreeItem)) {
-          throw new Error(`Expected TreeItem but got different item type: ${typeof foundItem}`);
-        }
-        apexTestItem = foundItem;
-        await apexTestItem.select();
+        apexTestItem = await findTestItemByName('ExampleApexClass1Test');
+        await apexTestItem.click();
       },
       3,
       'DebugApexTests - Error clicking apex tests section'
@@ -230,19 +223,12 @@ describe('Debug Apex Tests', () => {
     );
 
     // Hover a test name under one of the test class sections and click the debug button that is shown to the right of the test name on the Test sidebar
-    let apexTestItem: TreeItem;
+    let apexTestItem: TestTreeItem;
     await retryOperation(
       async () => {
         await testExplorerSection.click();
-        const foundItem = await testExplorerSection.findItem('validateSayHello');
-        if (!foundItem) {
-          throw new Error('Expected TreeItem but got undefined');
-        }
-        if (!(foundItem instanceof TreeItem)) {
-          throw new Error(`Expected TreeItem but got different item type: ${typeof foundItem}`);
-        }
-        apexTestItem = foundItem;
-        await apexTestItem.select();
+        apexTestItem = await findTestItemByName('validateSayHello');
+        await apexTestItem.click();
       },
       3,
       'DebugApexTests - Error selecting apex test item'

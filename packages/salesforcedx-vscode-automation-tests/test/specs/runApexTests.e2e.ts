@@ -36,10 +36,11 @@ import {
   zoom
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { By, InputBox, QuickOpenBox, TreeItem } from 'vscode-extension-tester';
+import { By, InputBox, QuickOpenBox,  } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
 import {
   findCheckboxElement,
+  findTestItemByName,
   getTestResultsTabText,
   verifyTestItems,
   verifyTestItemsIconColor
@@ -305,29 +306,11 @@ describe('Run Apex Tests', () => {
 
   it('Run All Tests on a Class via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Run All Tests on a Class via the Test Sidebar');
-    const workbench = getWorkbench();
-    // Clear the Output view.
-    await dismissAllNotifications();
-    await clearOutputView(Duration.seconds(2));
 
-    // Find and click on the test class in the Test Explorer
-    const testExplorerSection = await retryOperation(
-      async () => await getTestsSection(workbench, 'Test Explorer'),
-      3,
-      'RunApexTests - Error getting test explorer section'
-    );
-    await testExplorerSection.click();
-    await pause(Duration.seconds(5)); // Wait for the tests to load
-    const foundItem = await testExplorerSection.findItem('ExampleApexClass2Test');
-    if (!foundItem) {
-      throw new Error('Expected TreeItem but got undefined');
-    }
-    if (!(foundItem instanceof TreeItem)) {
-      throw new Error(`Expected TreeItem but got different item type: ${typeof foundItem}`);
-    }
-    const testClassItem = foundItem;
+    // Find and click on the test method in the Test Explorer
+    const testClassItem = await findTestItemByName('ExampleApexClass2Test');
     await pause(Duration.seconds(5));
-    await testClassItem.select();
+    await testClassItem.click();
 
     // Click Run Test action on the test class
     const runTestsAction = await testClassItem.getActionButton('Run Test');
@@ -359,27 +342,10 @@ describe('Run Apex Tests', () => {
 
   it('Run Single Test via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Run Single Test via the Test Sidebar');
-    const workbench = getWorkbench();
-    // Clear the Output view.
-    await dismissAllNotifications();
-    await clearOutputView(Duration.seconds(2));
 
     // Find and click on the test method in the Test Explorer
-    const testExplorerSection = await retryOperation(
-      async () => await getTestsSection(workbench, 'Test Explorer'),
-      3,
-      'RunApexTests - Error getting test explorer section'
-    );
-    await testExplorerSection.click();
     await pause(Duration.seconds(5)); // Wait for the tests to load
-    const foundItem = await testExplorerSection.findItem('validateSayHello');
-    if (!foundItem) {
-      throw new Error('Expected TreeItem but got undefined');
-    }
-    if (!(foundItem instanceof TreeItem)) {
-      throw new Error(`Expected TreeItem but got different item type: ${typeof foundItem}`);
-    }
-    const testMethodItem = foundItem;
+    const testMethodItem = await findTestItemByName('validateSayHello');
     await pause(Duration.seconds(5));
     await testMethodItem.select();
 
@@ -425,10 +391,6 @@ describe('Run Apex Tests', () => {
     // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
     await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
 
-    // Clear the Output view.
-    await dismissAllNotifications();
-    await clearOutputView(Duration.seconds(2));
-
     // Run SFDX: Run Apex tests.
     prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(1));
 
@@ -456,10 +418,6 @@ describe('Run Apex Tests', () => {
 
     // Look for the success notification that appears which says, "SFDX: Push Source to Default Org successfully ran".
     await verifyNotificationWithRetry(/SFDX: Push Source to Default Org successfully ran/, Duration.TEN_MINUTES);
-
-    // Clear the Output view.
-    await dismissAllNotifications();
-    await clearOutputView(Duration.seconds(2));
 
     // Run SFDX: Run Apex tests to verify fix
     prompt = await executeQuickPick('SFDX: Run Apex Tests', Duration.seconds(1));

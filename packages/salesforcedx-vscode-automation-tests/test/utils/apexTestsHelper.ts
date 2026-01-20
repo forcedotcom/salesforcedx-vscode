@@ -7,7 +7,7 @@
 import { pause, Duration } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { BottomBarPanel, By, InputBox, QuickOpenBox } from 'vscode-extension-tester';
+import { BottomBarPanel, By, InputBox, QuickOpenBox, WebElement } from 'vscode-extension-tester';
 
 /** Finds a checkbox element using multiple selectors for VS Code version compatibility */
 export const findCheckboxElement = async (prompt: InputBox | QuickOpenBox) => {
@@ -59,6 +59,34 @@ export const verifyTestItemsIconColor = async (
     const classList = await iconElement.getAttribute('class');
     expect(classList).to.include(iconClass, `Expected ${testName} to have ${expectedIcon} icon`);
   }
+};
+
+/** Wrapper for test tree items with common actions */
+export type TestTreeItem = {
+  click: () => Promise<void>;
+  getActionButton: (label: string) => Promise<WebElement | undefined>;
+};
+
+/** Finds a test item in the Test Explorer by name using aria-label selector */
+export const findTestItemByName = async (testName: string): Promise<TestTreeItem> => {
+  const row = await getWorkbench().findElement(
+    By.css(`.monaco-list-row[role="treeitem"][aria-label*="${testName}"]`)
+  );
+
+  if (!row) {
+    throw new Error(`Could not find test item: ${testName}`);
+  }
+
+  return {
+    click: async () => await row.click(),
+    getActionButton: async (label: string) => {
+      try {
+        return await row.findElement(By.css(`a[aria-label="${label}"]`));
+      } catch {
+        return undefined;
+      }
+    }
+  };
 };
 
 /** Opens the Test Results tab, maximizes panel, and returns the xterm output text */
