@@ -130,7 +130,7 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
         await expect(explorerFile).toBeVisible();
 
         // Delete file using explorer context menu
-        await executeExplorerContextMenuCommand(page, new RegExp(`${className}\\.cls$`, 'i'), /Delete Permanently/i);
+        await executeExplorerContextMenuCommand(page, new RegExp(`${className}\\.cls$`, 'i'), /^Delete$/i);
 
         // Wait for VS Code delete confirmation dialog
         const deleteDialog = page

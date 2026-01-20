@@ -56,11 +56,11 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   await expect(input).toHaveValue(/^>/, { timeout: 5000 });
 
   // Type the command after the '>' prefix - retry if VS Code filtering interrupts typing
-  // eslint-disable-next-line unicorn/prefer-string-replace-all -- replaceAll doesn't support regex patterns
-  const escapedCommand = command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapedCommand = command.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
   await expect(async () => {
     await page.keyboard.press('End');
     await input.pressSequentially(command, { delay: 5 });
+    await page.waitForTimeout(50); // let the command filter complete
     // Verify typing was successful
     await expect(input).toHaveValue(new RegExp(`>.*${escapedCommand}`, 'i'), { timeout: 5000 });
   }).toPass({ timeout: 15_000 });

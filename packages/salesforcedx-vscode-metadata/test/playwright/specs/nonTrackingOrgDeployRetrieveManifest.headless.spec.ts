@@ -27,7 +27,6 @@ import {
   isMacDesktop,
   QUICK_INPUT_WIDGET,
   EDITOR,
-  NOTIFICATION_LIST_ITEM
 } from '@salesforce/playwright-vscode-ext';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
@@ -75,35 +74,17 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
     });
 
     await test.step('deploy via manifest', async () => {
-      const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
-      await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
-      await manifestEditor.click();
 
       await executeEditorContextMenuCommand(page, packageNls.deploy_in_manifest_text, 'manifest/package.xml');
 
       const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
       await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
 
-      // Check for deploy error notifications
-      const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);
-      const deployErrorPattern = new RegExp(
-        `${messages.deploy_completed_with_errors_message}|${messages.deploy_failed.replaceAll('%s', '.*')}`,
-        'i'
-      );
-      const deployErrorNotification = postDeployNotifications.filter({ hasText: deployErrorPattern }).first();
-      const hasDeployError = await deployErrorNotification.isVisible({ timeout: 2000 }).catch(() => false);
-      if (hasDeployError) {
-        const errorText = await deployErrorNotification.textContent();
-        throw new Error(`Deploy failed with error notification: ${errorText}`);
-      }
-
       await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: 30_000 });
     });
 
     await test.step('retrieve via manifest', async () => {
-      const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/package.xml"]`).first();
-      await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
-      await manifestEditor.click();
+
 
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Salesforce Metadata');

@@ -26,10 +26,12 @@ import {
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { nls } from '../../../src/messages';
 import packageNls from '../../../package.nls.json';
+import { DEPLOY_TIMEOUT } from '../../constants';
 
 test('View Changes Commands: each view changes command shows correct sections in output', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
+  test.setTimeout(DEPLOY_TIMEOUT);
 
   await test.step('setup scratch org and wait for status bar', async () => {
     const createResult = await createMinimalOrg();

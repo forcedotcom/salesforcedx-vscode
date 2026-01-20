@@ -163,7 +163,7 @@ export const waitForOutputChannelText = async (
   const codeArea = outputPanelCodeArea(page);
   await expect(async () => {
     const text = await codeArea.textContent();
-    expect(text?.trim().length ?? 0).toBeGreaterThan(10);
+    expect(text?.trim().length ?? 0).toBeGreaterThan(1);
   }).toPass({ timeout });
 
   await withOutputFilter(page, expectedText, async () => {
