@@ -58,7 +58,8 @@ export class WorkspaceContextUtil {
 
   protected constructor() {
     this.instanceId = ++WorkspaceContextUtil.instanceCounter;
-    console.log(`workspaceContextUtil.ts - enter constructor() [instance: ${this.instanceId}]`);
+    console.log(`workspaceContextUtil.ts - enter constructor() [instance: ${this.instanceId}] [GLOBAL SINGLETON]`);
+    console.log('STACK FOR CONSTRUCTOR:', new Error().stack);
     this.sessionConnections = new Map<string, ConnectionDetails>();
     console.log('workspaceContextUtil.ts constructor() - 1');
     this.onOrgChangeEmitter = new vscode.EventEmitter<OrgUserInfo>();
@@ -202,7 +203,7 @@ export class WorkspaceContextUtil {
                 `workspaceContextUtil.ts getConnection() - 20 (DIALOG ID: ${dialogId}) - ABOUT TO SHOW DIALOG`
               );
               const selection = await vscode.window.showErrorMessage(
-                `${nls.localize('error_access_token_expired')} [${dialogId}]`,
+                `${nls.localize('error_access_token_expired')} [Instance:${this.instanceId} Dialog:${dialogId}]`,
                 {
                   modal: true,
                   detail: nls.localize('error_access_token_expired_detail')
