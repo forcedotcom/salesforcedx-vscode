@@ -158,6 +158,9 @@ export class WorkspaceContextUtil {
         // we only want to display one message per username, even though many consumers are requesting connections.
         // Check and set flags atomically to prevent race conditions
         if (!this.knownBadConnections.has(this._username) && !this.activeLoginPrompts.has(this._username)) {
+          // Set knownBadConnections IMMEDIATELY - first line after check to prevent race
+          this.knownBadConnections.add(this._username);
+
           // Capture username for use in async closure
           const username = this._username;
 
@@ -167,8 +170,7 @@ export class WorkspaceContextUtil {
             resolvePromise = resolve;
           });
 
-          // Set BOTH flags IMMEDIATELY to block concurrent calls (before any console.logs or other code)
-          this.knownBadConnections.add(username);
+          // Set activeLoginPrompts after promise is created
           this.activeLoginPrompts.set(username, placeholderPromise);
 
           console.log(
