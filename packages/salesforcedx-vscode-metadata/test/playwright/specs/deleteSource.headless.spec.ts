@@ -28,7 +28,10 @@ import {
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
-import packageNls from '../../../package.nls.json';
+import { nls } from '../../../src/messages';
+import { DEPLOY_TIMEOUT } from '../../constants';
+
+test.setTimeout(DEPLOY_TIMEOUT);
 
 test('Delete Source: deletes file from project and org via command palette', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
@@ -70,13 +73,13 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await selectOutputChannel(page, 'Salesforce Metadata');
 
     // Deploy the class first so it exists in the org
-    await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
+    await executeCommandWithCommandPalette(page, nls.localize('deploy_this_source_text'));
     await saveScreenshot(page, 'step1.after-deploy-command.png');
 
     // Verify deploy starts and completes
     const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
     await saveScreenshot(page, 'step1.deploy-notification-appeared.png');
-    await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
+    await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
     await saveScreenshot(page, 'step1.deploy-complete.png');
 
     // Verify local count returns to 0
@@ -96,19 +99,19 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await saveScreenshot(page, 'step2.file-in-explorer-before-delete.png');
 
     // Execute delete command via command palette
-    await executeCommandWithCommandPalette(page, packageNls.delete_source_text);
+    await executeCommandWithCommandPalette(page, nls.localize('delete_source_text'));
     await saveScreenshot(page, 'step2.after-delete-command.png');
 
     // Wait for confirmation notification with "Delete Source" button
     const deleteConfirmation = page
       .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: /Are you sure you want to delete this source/i })
+      .filter({ hasText: nls.localize('delete_source_confirmation_message') })
       .first();
     await expect(deleteConfirmation).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'step2.confirmation-notification-visible.png');
 
     // Click "Delete Source" button to confirm
-    const deleteButton = deleteConfirmation.getByRole('button', { name: /Delete Source/i });
+    const deleteButton = deleteConfirmation.getByRole('button', { name: nls.localize('confirm_delete_source_button_text') });
     await deleteButton.click();
     await saveScreenshot(page, 'step2.after-confirm-deletion.png');
 
@@ -117,7 +120,7 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await saveScreenshot(page, 'step2.delete-started.png');
 
     // Delete uses deploy output format, so look for "deployed"
-    await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: 240_000 });
+    await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: DEPLOY_TIMEOUT });
     await saveScreenshot(page, 'step2.delete-complete.png');
 
     // Verify file is no longer visible in explorer

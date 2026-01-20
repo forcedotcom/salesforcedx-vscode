@@ -39,7 +39,8 @@ const NON_CRITICAL_ERROR_PATTERNS: readonly string[] = [
   'NO_COLOR', // Node.js color env var warnings
   'Content Security Policy', // CSP violations from VS Code webviews (non-critical UI errors)
   'Applying inline style violates', // CSP inline style errors from VS Code UI
-  'Unable to resolve resource walkThrough://' // VS Code walkthrough/getting started page errors (non-critical)
+  'Unable to resolve resource walkThrough://', // VS Code walkthrough/getting started page errors (non-critical)
+  'SourceMembers timed out after' // sourcemember polling warnings from source-tracking-library
 ] as const;
 
 const NON_CRITICAL_NETWORK_PATTERNS: readonly string[] = [

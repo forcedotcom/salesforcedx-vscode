@@ -21,8 +21,15 @@ export const openCommandPalette = async (page: Page): Promise<void> => {
 
   // Wrap the entire open sequence in retry logic
   await expect(async () => {
+    // Bring page to front to ensure VS Code window is active (critical on Windows)
+    await page.bringToFront();
+
     // Click workbench to ensure focus is not on walkthrough elements
     await workbench.click({ timeout: 5000 });
+
+    // Small delay to allow Windows to process focus change before F1 keypress
+    // On Windows, F1 can trigger Windows Search if VS Code doesn't have focus
+    await page.waitForTimeout(100);
 
     // Press F1 to open command palette
     await page.keyboard.press('F1');
@@ -44,15 +51,16 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   // Ensure widget and input are visible - if not, openCommandPalette should have handled it
   await expect(widget).toBeVisible({ timeout: 5000 });
   await expect(input).toBeVisible({ timeout: 5000 });
-  await input.focus({ timeout: 5000 });
+  // Click input directly to ensure focus (Windows needs explicit click, focus() alone may not work)
+  await input.click({ timeout: 5000 });
   await expect(input).toHaveValue(/^>/, { timeout: 5000 });
 
   // Type the command after the '>' prefix - retry if VS Code filtering interrupts typing
-  // eslint-disable-next-line unicorn/prefer-string-replace-all -- replaceAll doesn't support regex patterns
-  const escapedCommand = command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapedCommand = command.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
   await expect(async () => {
     await page.keyboard.press('End');
-    await input.pressSequentially(command, { delay: 50 });
+    await input.pressSequentially(command, { delay: 5 });
+    await page.waitForTimeout(50); // let the command filter complete
     // Verify typing was successful
     await expect(input).toHaveValue(new RegExp(`>.*${escapedCommand}`, 'i'), { timeout: 5000 });
   }).toPass({ timeout: 15_000 });
@@ -105,4 +113,36 @@ export const executeCommandWithCommandPalette = async (
 ): Promise<void> => {
   await openCommandPalette(page);
   await executeCommand(page, command, hasNotText);
+};
+
+/** Verify a command does not exist in the command palette */
+export const verifyCommandDoesNotExist = async (page: Page, commandText: string): Promise<void> => {
+  await openCommandPalette(page);
+  const widget = page.locator(QUICK_INPUT_WIDGET);
+  const input = widget.locator('input.input');
+
+  await expect(input).toBeVisible({ timeout: 5000 });
+  // Click input directly to ensure focus (Windows needs explicit click, focus() alone may not work)
+  await input.click({ timeout: 5000 });
+  await input.pressSequentially(commandText, { delay: 5 });
+
+  // Wait for command list to appear
+  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
+
+  const listRows = widget.locator(QUICK_INPUT_LIST_ROW);
+  const first20Rows = (await listRows.all()).slice(0, 20);
+
+  // Check that the command is not in the list
+  for (const row of first20Rows) {
+    const rowText = await row.textContent();
+    if (rowText?.trim().toLowerCase().includes(commandText.toLowerCase())) {
+      throw new Error(`Command "${commandText}" should not exist but was found in command palette`);
+    }
+  }
+
+  // Close command palette
+  await page.keyboard.press('Escape');
+  await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+    // Ignore if already closed
+  });
 };

@@ -42,11 +42,12 @@ export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSI
 
 export { createDreamhouseOrg, DREAMHOUSE_ORG_ALIAS } from './orgs/dreamhouseScratchOrgSetup';
 export { createMinimalOrg, MINIMAL_ORG_ALIAS } from './orgs/minimalScratchOrgSetup';
+export { createNonTrackingOrg, NON_TRACKING_ORG_ALIAS, HUB_ORG_ALIAS } from './orgs/nonTrackingScratchOrgSetup';
 
 // Pages
 export { upsertScratchOrgAuthFieldsToSettings, openSettingsUI, upsertSettings } from './pages/settings';
 
-export { executeCommandWithCommandPalette } from './pages/commands';
+export { executeCommandWithCommandPalette, openCommandPalette, verifyCommandDoesNotExist } from './pages/commands';
 
 export { executeEditorContextMenuCommand, executeExplorerContextMenuCommand } from './pages/contextMenu';
 

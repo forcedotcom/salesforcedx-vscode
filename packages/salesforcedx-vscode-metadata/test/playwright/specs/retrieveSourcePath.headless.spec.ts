@@ -6,6 +6,7 @@
  */
 
 import { test } from '../fixtures';
+import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -18,16 +19,19 @@ import {
   editOpenFile,
   openFileByName,
   executeExplorerContextMenuCommand,
+  executeCommandWithCommandPalette,
   isMacDesktop,
   validateNoCriticalErrors,
   saveScreenshot,
   ensureOutputPanelOpen,
   selectOutputChannel,
-  waitForOutputChannelText
+  waitForOutputChannelText,
+  upsertSettings
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
+import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import packageNls from '../../../package.nls.json';
-import { RETRIEVE_TIMEOUT } from '../../constants';
+import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
 
 // Skip on Mac desktop (right-click doesn't work)
 (isMacDesktop() ? test.skip.bind(test) : test)(
@@ -54,29 +58,39 @@ import { RETRIEVE_TIMEOUT } from '../../constants';
       await statusBarPage.waitForVisible(120_000);
       await saveScreenshot(page, 'setup.after-status-bar-visible.png');
       await saveScreenshot(page, 'setup.complete.png');
+      await upsertSettings(page, { 'salesforcedx-vscode-metadata.deployOnSave.enabled': 'false' });
+
     });
 
-    await test.step('create local apex class and make remote change', async () => {
+    await test.step('create local apex class, deploy to org, and make remote change', async () => {
       // Create apex class locally
       className = `RetrieveSourcePathTest${Date.now()}`;
       await createApexClass(page, className);
       await saveScreenshot(page, 'step1.after-create-class.png');
 
       // Wait for local count to increment
+      await statusBarPage.waitForCounts({ local: 1 }, 60_000);
       const countsAfterCreate = await statusBarPage.getCounts();
       await saveScreenshot(
         page,
         `step1.after-create-counts-${countsAfterCreate.local}-${countsAfterCreate.remote}.png`
       );
 
-      // Simulate remote change by making a local edit, then resetting locally
+      // Deploy class to org so it exists for retrieve
+      await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
+      const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
+      await saveScreenshot(page, 'step1.deploy-notification-appeared.png');
+      await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
+      await statusBarPage.waitForCounts({ local: 0 }, 60_000);
+      await saveScreenshot(page, 'step1.after-deploy.png');
+
+      // Simulate remote change by making a local edit
       // This creates a scenario where the file exists remotely but differs locally
       await openFileByName(page, `${className}.cls`);
       await editOpenFile(page, 'Remote change simulation');
+      await statusBarPage.waitForCounts({ local: 1 }, 60_000);
       await saveScreenshot(page, 'step1.after-edit.png');
 
-      // Note: We cannot easily simulate a true remote-only change without deploying
-      // So this test focuses on the retrieve mechanism itself working correctly
     });
 
     await test.step('retrieve file via explorer context menu', async () => {

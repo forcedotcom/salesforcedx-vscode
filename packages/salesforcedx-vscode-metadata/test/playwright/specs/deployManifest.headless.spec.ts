@@ -34,12 +34,14 @@ import { waitForDeployProgressNotificationToAppear } from '../pages/notification
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED, OUTPUT_CHANNEL_NAME } from '../../../src/constants';
 import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
+import { DEPLOY_TIMEOUT } from '../../constants';
 
 /** Escape regex special characters in a string for use in RegExp */
 // eslint-disable-next-line unicorn/prefer-string-replace-all -- regex escaping requires replace with regex pattern
 const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 (isMacDesktop() ? test.skip.bind(test) : test)('Deploy Manifest: deploys via all entry points', async ({ page }) => {
+  test.setTimeout(DEPLOY_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -124,7 +126,7 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
 
     // Verify deploy completes - look for deploying notification
     const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-    await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
+    await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
 
     // Check for deploy error notifications after deploy completes
     const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);
@@ -162,7 +164,7 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
 
     // Verify deploy completes
     const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-    await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
+    await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
 
     // Check for deploy error notifications after deploy completes
     const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);

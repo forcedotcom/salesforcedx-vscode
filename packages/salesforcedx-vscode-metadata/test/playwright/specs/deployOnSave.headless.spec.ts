@@ -6,6 +6,8 @@
  */
 
 import { test } from '../fixtures';
+import { expect } from '@playwright/test';
+
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -23,8 +25,11 @@ import {
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
+import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
+import { DEPLOY_TIMEOUT } from '../../constants';
 
 test('Deploy On Save: automatically deploys when file is saved', async ({ page }) => {
+  test.setTimeout(DEPLOY_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -63,16 +68,16 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
   });
 
   await test.step('verify deploy triggers and completes', async () => {
+    // Wait for deploy to complete - deploy-on-save doesn't show progress notifications
+    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
+    await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
     // Wait for deploy-on-save to trigger (service has 1s delay, then deploy starts)
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
-    // Match the actual message which includes ignoreConflicts flag
-    await waitForOutputChannelText(page, { expectedText: 'Deploy on save triggered', timeout: 30_000 });
 
-    // Wait for deploy to complete - deploy-on-save doesn't show progress notifications
     // so we verify completion via output channel instead
     // Match the actual completion message which includes counts
-    await waitForOutputChannelText(page, { expectedText: 'Deploy on save complete:', timeout: 240_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Deploy on save complete:', timeout: DEPLOY_TIMEOUT });
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

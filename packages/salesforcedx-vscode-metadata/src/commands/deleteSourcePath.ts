@@ -23,12 +23,12 @@ const showDeleteConfirmation = () =>
     return await vscode.window.showInformationMessage(prompt, PROCEED, CANCEL).then(response => response === PROCEED);
   });
 
-const deletePaths = (paths: Set<string>) =>
+const deletePaths = (uris: Set<URI>) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const componentSetService = yield* api.services.ComponentSetService;
     const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-      yield* componentSetService.getComponentSetFromPaths(paths)
+      yield* componentSetService.getComponentSetFromUris(uris)
     );
     yield* deleteComponentSet({ componentSet });
   });
@@ -61,11 +61,10 @@ export const deleteSourcePaths = async (sourceUri: URI | undefined, uris: URI[] 
       return;
     }
 
-    const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
-    const paths = new Set(resolvedUris.map(uri => uri.path));
+    const resolvedUris = new Set(uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri]);
 
     // Delete the paths
-    yield* deletePaths(paths).pipe(
+    yield* deletePaths(resolvedUris).pipe(
       Effect.catchTag('SourceTrackingConflictError', (error: SourceTrackingConflictError) => {
         const message = `${nls.localize('delete_source_conflicts_detected')} Conflicts: ${error.conflicts.join(', ')}`;
         return Effect.all([

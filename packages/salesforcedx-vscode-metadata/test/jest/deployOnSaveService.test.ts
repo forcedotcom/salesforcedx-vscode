@@ -34,8 +34,10 @@ const createMockChannelService = (): ChannelService =>
 
 const createMockWorkspaceService = (fsPath: string, isVirtualFs = false): WorkspaceService => {
   const workspacePath = isVirtualFs ? `memfs:${fsPath}` : URI.file(fsPath).toString();
+  const uri = isVirtualFs ? URI.parse(`memfs:${fsPath}`) : URI.file(fsPath);
   return new WorkspaceService({
     getWorkspaceInfo: Effect.succeed({
+      uri,
       path: workspacePath,
       fsPath,
       isEmpty: false,
@@ -43,6 +45,7 @@ const createMockWorkspaceService = (fsPath: string, isVirtualFs = false): Worksp
       cwd: fsPath
     }),
     getWorkspaceInfoOrThrow: Effect.succeed({
+      uri,
       path: workspacePath,
       fsPath,
       isEmpty: false,

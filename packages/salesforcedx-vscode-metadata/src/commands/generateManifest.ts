@@ -36,23 +36,22 @@ const promptForOverwrite = (fileName: string) =>
     )
   );
 
-const generateManifestFromPaths = (paths: Set<string>) =>
+const generateManifestFromUris = (uris: Set<URI>) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const componentSetService = yield* api.services.ComponentSetService;
-    const componentSet = yield* componentSetService.getComponentSetFromPaths(paths);
+    const componentSet = yield* componentSetService.getComponentSetFromUris(uris);
     return yield* Effect.promise(() => componentSet.getPackageXml());
   });
 
-const saveManifestFile = (workspacePath: string, fileName: string, packageXML: string) =>
+const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: string) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const fsService = yield* api.services.FsService;
     const channelService = yield* api.services.ChannelService;
 
     // Build manifest directory path
-    const manifestDirUri = Utils.joinPath(URI.parse(workspacePath), 'manifest');
-    const manifestFileUri = Utils.joinPath(manifestDirUri, fileName);
+    const manifestFileUri = Utils.joinPath(workspacePath, 'manifest', fileName);
 
     const shouldWrite =
       // doesn't exist
@@ -104,11 +103,10 @@ const generateManifestEffect = Effect.fn('generateManifest')(function* (
   const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow;
 
   // Resolve URIs
-  const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
-  const paths = new Set(resolvedUris.map(uri => uri.path));
+  const resolvedUris = new Set(uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri]);
 
   // Prompt for filename and generate package XML in parallel so it's ready as soon as the user responds
-  const [fileName, packageXML] = yield* Effect.all([promptForFileName(), generateManifestFromPaths(paths)], {
+  const [fileName, packageXML] = yield* Effect.all([promptForFileName(), generateManifestFromUris(resolvedUris)], {
     concurrency: 'unbounded'
   });
 
@@ -117,12 +115,8 @@ const generateManifestEffect = Effect.fn('generateManifest')(function* (
     return;
   }
 
-  // Use path instead of fsPath for memfs URIs (web environments) to avoid backslash conversion issues
-  // For file:// URIs, path and fsPath are equivalent
-  const workspacePath = process.env.ESBUILD_PLATFORM === 'web' ? workspaceInfo.path : workspaceInfo.fsPath;
-
   // Save the manifest file
-  yield* saveManifestFile(workspacePath, fileName, packageXML);
+  yield* saveManifestFile(workspaceInfo.uri, fileName, packageXML);
 });
 
 /** Generate manifest from source paths */
@@ -133,7 +127,7 @@ export const generateManifest = async (sourceUri: URI | undefined, uris: URI[] |
       Effect.catchAll(error =>
         Effect.promise(() =>
           vscode.window.showErrorMessage(
-            nls.localize('generate_manifest_failed', error instanceof Error ? error.message : String(error))
+            nls.localize('generate_manifest_failed', error instanceof Error ? error.message : JSON.stringify(error))
           )
         ).pipe(Effect.as(undefined))
       ),
