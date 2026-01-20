@@ -28,6 +28,8 @@ export const WORKSPACE_CONTEXT_ORG_ID_ERROR = 'workspace_context_org_id_error';
  */
 export class WorkspaceContextUtil {
   protected static instance?: WorkspaceContextUtil;
+  private static instanceCounter = 0;
+  private readonly instanceId: number;
 
   protected cliConfigWatcher: vscode.FileSystemWatcher;
   protected sessionConnections: Map<string, ConnectionDetails>;
@@ -39,10 +41,12 @@ export class WorkspaceContextUtil {
   protected _devHubId?: string;
 
   private knownBadConnections: Set<string> = new Set();
+  private activeLoginPrompts: Map<string, Promise<void>> = new Map();
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
-    console.log('workspaceContextUtil.ts - enter constructor()');
+    this.instanceId = ++WorkspaceContextUtil.instanceCounter;
+    console.log(`workspaceContextUtil.ts - enter constructor() [instance: ${this.instanceId}]`);
     this.sessionConnections = new Map<string, ConnectionDetails>();
     console.log('workspaceContextUtil.ts constructor() - 1');
     this.onOrgChangeEmitter = new vscode.EventEmitter<OrgUserInfo>();
@@ -82,7 +86,7 @@ export class WorkspaceContextUtil {
   }
 
   public async getConnection(): Promise<Connection> {
-    console.log('workspaceContextUtil.ts - enter getConnection()');
+    console.log(`workspaceContextUtil.ts - enter getConnection() [instance: ${this.instanceId}]`);
     if (!this._username) {
       console.log('workspaceContextUtil.ts getConnection() - 1');
       throw new Error(nls.localize('error_no_target_org'));
@@ -137,29 +141,71 @@ export class WorkspaceContextUtil {
         console.log('workspaceContextUtil.ts getConnection() - 17');
         this.sessionConnections.delete(this._username);
         console.log('workspaceContextUtil.ts getConnection() - 18');
+
+        // Check if there's already an active login prompt for this user
+        const existingPrompt = this.activeLoginPrompts.get(this._username);
+        if (existingPrompt) {
+          console.log('workspaceContextUtil.ts getConnection() - 18A (waiting for existing prompt)');
+          await existingPrompt;
+          console.log('workspaceContextUtil.ts getConnection() - 18B');
+          throw new Error('Unable to refresh your access token.  Please login again.');
+        }
+
         // we only want to display one message per username, even though many consumers are requesting connections.
-        if (!this.knownBadConnections.has(this._username)) {
-          console.log('workspaceContextUtil.ts getConnection() - 19');
+        console.log(
+          `workspaceContextUtil.ts getConnection() - 18.9 (instance: ${this.instanceId}, knownBad: ${this.knownBadConnections.has(this._username)}, activePrompt: ${this.activeLoginPrompts.has(this._username)})`
+        );
+        if (!this.knownBadConnections.has(this._username) && !this.activeLoginPrompts.has(this._username)) {
+          console.log(
+            `workspaceContextUtil.ts getConnection() - 19 (CREATING DIALOG from instance ${this.instanceId})`
+          );
+          this.knownBadConnections.add(this._username);
+
+          // Capture username for use in async closure
+          const username = this._username;
+
+          // Create placeholder promise and register it IMMEDIATELY to block other concurrent calls
+          let resolvePromise: () => void;
+          const placeholderPromise = new Promise<void>(resolve => {
+            resolvePromise = resolve;
+          });
+          this.activeLoginPrompts.set(username, placeholderPromise);
+
+          // Create and execute the login prompt
           const dialogId = Date.now();
           console.log(`workspaceContextUtil.ts getConnection() - 19.5 (DIALOG ID: ${dialogId})`);
-          const selection = await vscode.window.showErrorMessage(
-            `${nls.localize('error_access_token_expired')} [${dialogId}]`,
-            {
-              modal: true,
-              detail: nls.localize('error_access_token_expired_detail')
-            },
-            nls.localize('error_access_token_expired_login_button')
-          );
-          console.log(`workspaceContextUtil.ts getConnection() - 20 (DIALOG ID: ${dialogId})`);
-          if (selection === 'Login') {
-            console.log('workspaceContextUtil.ts getConnection() - 21');
-            await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
-            console.log('workspaceContextUtil.ts getConnection() - 22');
+          void (async () => {
+            try {
+              console.log(`workspaceContextUtil.ts getConnection() - 20 (DIALOG ID: ${dialogId})`);
+              const selection = await vscode.window.showErrorMessage(
+                `${nls.localize('error_access_token_expired')} [${dialogId}]`,
+                {
+                  modal: true,
+                  detail: nls.localize('error_access_token_expired_detail')
+                },
+                nls.localize('error_access_token_expired_login_button')
+              );
+              console.log('workspaceContextUtil.ts getConnection() - 21');
+              if (selection === 'Login') {
+                console.log('workspaceContextUtil.ts getConnection() - 22');
+                await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
+                console.log('workspaceContextUtil.ts getConnection() - 23');
+              } else {
+                // User dismissed or cancelled - clear knownBadConnections so they can see the dialog again if needed
+                this.knownBadConnections.delete(username);
+              }
+              console.log('workspaceContextUtil.ts getConnection() - 24');
+            } finally {
+              resolvePromise!();
+            }
+          })();
+
+          try {
+            await placeholderPromise;
+          } finally {
+            this.activeLoginPrompts.delete(username);
           }
-          console.log('workspaceContextUtil.ts getConnection() - 23');
         }
-        console.log('workspaceContextUtil.ts getConnection() - 24');
-        this.knownBadConnections.add(this._username);
         console.log('workspaceContextUtil.ts getConnection() - 25');
         throw new Error('Unable to refresh your access token.  Please login again.');
       }
