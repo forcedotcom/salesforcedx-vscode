@@ -149,44 +149,51 @@ export class WorkspaceContextUtil {
         }
 
         // we only want to display one message per username, even though many consumers are requesting connections.
-        if (!this.knownBadConnections.has(this._username)) {
+        if (!this.knownBadConnections.has(this._username) && !this.activeLoginPrompts.has(this._username)) {
           console.log('workspaceContextUtil.ts getConnection() - 19');
           this.knownBadConnections.add(this._username);
 
           // Capture username for use in async closure
           const username = this._username;
 
-          // Create and store the login prompt promise
-          const loginPrompt = (async () => {
-            console.log('workspaceContextUtil.ts getConnection() - 20');
-            const selection = await vscode.window.showErrorMessage(
-              nls.localize('error_access_token_expired'),
-              {
-                modal: true,
-                detail: nls.localize('error_access_token_expired_detail')
-              },
-              nls.localize('error_access_token_expired_login_button')
-            );
-            console.log('workspaceContextUtil.ts getConnection() - 21');
-            if (selection === 'Login') {
-              console.log('workspaceContextUtil.ts getConnection() - 22');
-              await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
-              console.log('workspaceContextUtil.ts getConnection() - 23');
+          // Create placeholder promise and register it IMMEDIATELY to block other concurrent calls
+          let resolvePromise: () => void;
+          const placeholderPromise = new Promise<void>(resolve => {
+            resolvePromise = resolve;
+          });
+          this.activeLoginPrompts.set(username, placeholderPromise);
+
+          // Create and execute the login prompt
+          void (async () => {
+            try {
+              console.log('workspaceContextUtil.ts getConnection() - 20');
+              const selection = await vscode.window.showErrorMessage(
+                nls.localize('error_access_token_expired'),
+                {
+                  modal: true,
+                  detail: nls.localize('error_access_token_expired_detail')
+                },
+                nls.localize('error_access_token_expired_login_button')
+              );
+              console.log('workspaceContextUtil.ts getConnection() - 21');
+              if (selection === 'Login') {
+                console.log('workspaceContextUtil.ts getConnection() - 22');
+                await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
+                console.log('workspaceContextUtil.ts getConnection() - 23');
+              } else {
+                // User dismissed or cancelled - clear knownBadConnections so they can see the dialog again if needed
+                this.knownBadConnections.delete(username);
+              }
+              console.log('workspaceContextUtil.ts getConnection() - 24');
+            } finally {
+              resolvePromise!();
             }
-            console.log('workspaceContextUtil.ts getConnection() - 24');
           })();
 
-          this.activeLoginPrompts.set(username, loginPrompt);
-
           try {
-            await loginPrompt;
+            await placeholderPromise;
           } finally {
             this.activeLoginPrompts.delete(username);
-            // Delay clearing knownBadConnections to give time for any in-flight failing calls
-            // to reach the knownBadConnections check and be blocked, preventing additional dialogs
-            setTimeout(() => {
-              this.knownBadConnections.delete(username);
-            }, 1000);
           }
         }
         console.log('workspaceContextUtil.ts getConnection() - 25');
