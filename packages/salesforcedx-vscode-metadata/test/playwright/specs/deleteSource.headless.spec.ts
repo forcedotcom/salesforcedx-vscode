@@ -28,7 +28,7 @@ import {
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
-import packageNls from '../../../package.nls.json';
+import { nls } from '../../../src/messages';
 import { DEPLOY_TIMEOUT } from '../../constants';
 
 test.setTimeout(DEPLOY_TIMEOUT);
@@ -73,7 +73,7 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await selectOutputChannel(page, 'Salesforce Metadata');
 
     // Deploy the class first so it exists in the org
-    await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
+    await executeCommandWithCommandPalette(page, nls.localize('deploy_this_source_text'));
     await saveScreenshot(page, 'step1.after-deploy-command.png');
 
     // Verify deploy starts and completes
@@ -99,19 +99,19 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await saveScreenshot(page, 'step2.file-in-explorer-before-delete.png');
 
     // Execute delete command via command palette
-    await executeCommandWithCommandPalette(page, packageNls.delete_source_text);
+    await executeCommandWithCommandPalette(page, nls.localize('delete_source_text'));
     await saveScreenshot(page, 'step2.after-delete-command.png');
 
     // Wait for confirmation notification with "Delete Source" button
     const deleteConfirmation = page
       .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: /Are you sure you want to delete this source/i })
+      .filter({ hasText: nls.localize('delete_source_confirmation_message') })
       .first();
     await expect(deleteConfirmation).toBeVisible({ timeout: 10_000 });
     await saveScreenshot(page, 'step2.confirmation-notification-visible.png');
 
     // Click "Delete Source" button to confirm
-    const deleteButton = deleteConfirmation.getByRole('button', { name: /Delete Source/i });
+    const deleteButton = deleteConfirmation.getByRole('button', { name: nls.localize('confirm_delete_source_button_text') });
     await deleteButton.click();
     await saveScreenshot(page, 'step2.after-confirm-deletion.png');
 

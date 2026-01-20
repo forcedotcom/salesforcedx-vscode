@@ -17,19 +17,17 @@ import {
   upsertScratchOrgAuthFieldsToSettings,
   upsertSettings,
   createApexClass,
-  executeExplorerContextMenuCommand,
   executeCommandWithCommandPalette,
   validateNoCriticalErrors,
   ensureOutputPanelOpen,
   selectOutputChannel,
   waitForOutputChannelText,
   isDesktop,
-  isMacDesktop,
   NOTIFICATION_LIST_ITEM
 } from '@salesforce/playwright-vscode-ext';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
-import { messages } from '../../../src/messages/i18n';
+import { nls } from '../../../src/messages';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
 
@@ -71,7 +69,7 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
       // Check for deploy error notifications
       const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);
       const deployErrorPattern = new RegExp(
-        `${messages.deploy_completed_with_errors_message}|${messages.deploy_failed.replaceAll('%s', '.*')}`,
+        `${nls.localize('deploy_completed_with_errors_message')}|${nls.localize('deploy_failed', '.*')}`,
         'i'
       );
       const deployErrorNotification = postDeployNotifications.filter({ hasText: deployErrorPattern }).first();
@@ -102,56 +100,24 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
 
       const deleteConfirmation = page
         .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: /Are you sure you want to delete this source/i })
+        .filter({ hasText: nls.localize('delete_source_confirmation_message') })
         .first();
       await expect(deleteConfirmation).toBeVisible({ timeout: 10_000 });
 
-      const deleteButton = deleteConfirmation.getByRole('button', { name: /Delete Source/i });
+      const deleteButton = deleteConfirmation.getByRole('button', { name: nls.localize('confirm_delete_source_button_text') });
       await deleteButton.click();
 
       await waitForOutputChannelText(page, { expectedText: 'Deleting', timeout: 30_000 });
       await waitForOutputChannelText(page, { expectedText: 'deployed', timeout: DEPLOY_TIMEOUT });
-    });
 
-    await test.step('delete class locally', async () => {
-      if (isMacDesktop()) {
-        console.log('Skipping "delete class locally" step on Mac Desktop (context menus not supported)');
-        return;
-      }
-
-      // After deleting from org, the file may have been deleted locally too
-      // Check if file still exists before trying to delete it locally
-      const explorerFile = page
-        .locator('[role="treeitem"]')
-        .filter({ hasText: new RegExp(`${className}\\.cls$`, 'i') });
-      const fileExists = await explorerFile.count().then(count => count > 0);
-
-      if (fileExists) {
-        await expect(explorerFile).toBeVisible();
-
-        // Delete file using explorer context menu
-        await executeExplorerContextMenuCommand(page, new RegExp(`${className}\\.cls$`, 'i'), /^Delete$/i);
-
-        // Wait for VS Code delete confirmation dialog
-        const deleteDialog = page
-          .getByRole('dialog')
-          .filter({ hasText: /Are you sure you want to permanently delete/i });
-        await expect(deleteDialog).toBeVisible({ timeout: 10_000 });
-
-        // Click Delete button in the dialog
-        const deleteButton = deleteDialog.getByRole('button', { name: /^Delete$/i });
-        await deleteButton.click();
-
-        // Wait for file to disappear from explorer
-        await expect(async () => {
-          const count = await page
-            .locator('[role="treeitem"]')
-            .filter({ hasText: new RegExp(`${className}\\.cls$`, 'i') })
-            .count();
-          expect(count, `File ${className}.cls should not be in explorer`).toBe(0);
-        }).toPass({ timeout: 30_000 });
-      }
-      // If file doesn't exist, it was already deleted when we deleted from org (expected behavior)
+      // Verify file was deleted from local filesystem (delete from org also deletes from project)
+      await expect(async () => {
+        const count = await page
+          .locator('[role="treeitem"]')
+          .filter({ hasText: new RegExp(`${className}\\.cls$`, 'i') })
+          .count();
+        expect(count, `File ${className}.cls should not be in explorer after delete from org`).toBe(0);
+      }).toPass({ timeout: 30_000 });
     });
 
     await validateNoCriticalErrors(test, consoleErrors, networkErrors);

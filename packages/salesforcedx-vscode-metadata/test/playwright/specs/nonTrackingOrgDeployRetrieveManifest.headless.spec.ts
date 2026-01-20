@@ -74,6 +74,8 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
     });
 
     await test.step('deploy via manifest', async () => {
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, 'Salesforce Metadata');
 
       await executeEditorContextMenuCommand(page, packageNls.deploy_in_manifest_text, 'manifest/package.xml');
 
