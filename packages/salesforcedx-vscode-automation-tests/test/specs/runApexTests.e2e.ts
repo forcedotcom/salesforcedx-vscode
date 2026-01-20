@@ -289,6 +289,7 @@ describe('Run Apex Tests', () => {
     // Verify test results in the Test Results tab (xterm terminal)
     const testResultsText = await getTestResultsTabText();
     const expectedTextsInTestResultsTab = [
+      '=== Test Summary',
       'Outcome              Passed',
       'Tests Ran            3',
       'Pass Rate            100%',
@@ -347,6 +348,7 @@ describe('Run Apex Tests', () => {
     // Verify test results in the Test Results tab
     const testResultsText = await getTestResultsTabText();
     const expectedTextsInTestResultsTab = [
+      '=== Test Summary',
       'Outcome              Passed',
       'Tests Ran            1',
       'Pass Rate            100%',
@@ -400,6 +402,7 @@ describe('Run Apex Tests', () => {
     // Verify test results in the Test Results tab
     const testResultsText = await getTestResultsTabText();
     const expectedTextsInTestResultsTab = [
+      '=== Test Summary',
       'Outcome              Passed',
       'Tests Ran            1',
       'Pass Rate            100%',

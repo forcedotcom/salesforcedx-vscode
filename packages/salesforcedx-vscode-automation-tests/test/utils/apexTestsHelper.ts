@@ -4,9 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { pause, Duration } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
 import { getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { BottomBarPanel, By, InputBox, QuickOpenBox,  } from 'vscode-extension-tester';
+import { BottomBarPanel, By, InputBox, QuickOpenBox } from 'vscode-extension-tester';
 
 /** Finds a checkbox element using multiple selectors for VS Code version compatibility */
 export const findCheckboxElement = async (prompt: InputBox | QuickOpenBox) => {
@@ -60,12 +61,20 @@ export const verifyTestItemsIconColor = async (
   }
 };
 
-/** Clicks on the Test Results tab and returns the xterm output text */
+/** Opens the Test Results tab, maximizes panel, and returns the xterm output text */
 export const getTestResultsTabText = async (): Promise<string> => {
-  // Get the Test Results tab
-  await new BottomBarPanel().openTab('Test Results');
+  const bottomBar = new BottomBarPanel();
+  await bottomBar.openTab('Test Results');
+
+  // Maximize the panel to ensure all content is visible (not hidden by scroll)
+  await bottomBar.maximize();
+  await pause(Duration.seconds(1));
 
   const xtermRows = await getWorkbench().findElement(By.css('.xterm-rows'));
   const text = await xtermRows.getText();
+
+  // Restore the panel to original size
+  await bottomBar.restore();
+
   return text;
 };
