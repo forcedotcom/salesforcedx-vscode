@@ -17,7 +17,7 @@ type CreateApexClassParams = {
   readonly name?: string;
   readonly outputDir?: URI;
 };
-class UserCancelledOverwriteError extends Data.TaggedError('UserCancelledOverwriteError')<{}> {}
+class UserCancelledOverwriteError extends Data.TaggedError('UserCancelledOverwriteError')<{}> { }
 
 const fromProject = Effect.fn('getApiVersion.fromProject')(function* (project: SfProject) {
   const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
@@ -43,16 +43,13 @@ const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) 
 const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow;
-  const fsService = yield* api.services.FsService;
 
-  const packageDirs = project.getPackageDirectories();
-  const workspaceUri = fsService.toUri(workspaceInfo.path);
 
   // Build Quick Pick items for each package directory
-  const items = packageDirs.map(pkg => ({
+  const items = (project.getPackageDirectories()).map(pkg => ({
     label: `${pkg.path}/main/default/classes`,
     description: pkg.default ? '(default)' : undefined,
-    uri: Utils.joinPath(workspaceUri, pkg.path, 'main', 'default', 'classes')
+    uri: Utils.joinPath(workspaceInfo.uri, pkg.path, 'main', 'default', 'classes')
   }));
 
   // Show Quick Pick - VS Code will automatically highlight the first item by default
