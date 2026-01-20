@@ -14,15 +14,6 @@ import { ConfigUtil } from '../config/configUtil';
 import { projectPaths } from '../helpers/paths';
 import { nls } from '../messages/messages';
 
-// Global interception to track ALL showErrorMessage calls
-const originalShowErrorMessage = vscode.window.showErrorMessage;
-// @ts-ignore - Intercepting for debugging, intentionally bypassing type checks
-vscode.window.showErrorMessage = function (...args: any[]) {
-  console.log('🔴 showErrorMessage CALLED:', args[0], 'STACK:', new Error().stack);
-  // @ts-ignore
-  return originalShowErrorMessage.apply(vscode.window, args);
-};
-
 export type OrgUserInfo = {
   username?: string;
   alias?: string;
@@ -35,9 +26,6 @@ export const WORKSPACE_CONTEXT_ORG_ID_ERROR = 'workspace_context_org_id_error';
 /**
  * Manages the context of a workspace during a session with an open SFDX Project.
  */
-// Use global symbol to ensure singleton across all bundles
-const WORKSPACE_CONTEXT_SYMBOL = Symbol.for('salesforce.workspaceContextUtil.singleton');
-
 export class WorkspaceContextUtil {
   protected static instance?: WorkspaceContextUtil;
   private static instanceCounter = 0;
@@ -54,14 +42,11 @@ export class WorkspaceContextUtil {
 
   private knownBadConnections: Set<string> = new Set();
   private activeLoginPrompts: Map<string, Promise<void>> = new Map();
-  // Track if a login command is currently executing to suppress errors during login
-  private loginInProgress = false;
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
     this.instanceId = ++WorkspaceContextUtil.instanceCounter;
-    console.log(`workspaceContextUtil.ts - enter constructor() [instance: ${this.instanceId}] [GLOBAL SINGLETON]`);
-    console.log('STACK FOR CONSTRUCTOR:', new Error().stack);
+    console.log(`workspaceContextUtil.ts - enter constructor() [instance: ${this.instanceId}]`);
     this.sessionConnections = new Map<string, ConnectionDetails>();
     console.log('workspaceContextUtil.ts constructor() - 1');
     this.onOrgChangeEmitter = new vscode.EventEmitter<OrgUserInfo>();
@@ -91,22 +76,13 @@ export class WorkspaceContextUtil {
 
   public static getInstance(forceNew = false): WorkspaceContextUtil {
     console.log('workspaceContextUtil.ts - enter getInstance()');
-
-    // Use global symbol to ensure singleton across all extension bundles
-    // @ts-ignore - Using global for cross-bundle singleton
-    const globalObj: Record<symbol, WorkspaceContextUtil> = global;
-
-    if (!globalObj[WORKSPACE_CONTEXT_SYMBOL] || forceNew) {
-      console.log('workspaceContextUtil.ts getInstance() - 1 (creating NEW global instance)');
-      globalObj[WORKSPACE_CONTEXT_SYMBOL] = new WorkspaceContextUtil();
+    if (!this.instance || forceNew) {
+      console.log('workspaceContextUtil.ts getInstance() - 1');
+      this.instance = new WorkspaceContextUtil();
       console.log('workspaceContextUtil.ts getInstance() - 2');
-    } else {
-      console.log('workspaceContextUtil.ts getInstance() - using EXISTING global instance');
     }
-
-    this.instance = globalObj[WORKSPACE_CONTEXT_SYMBOL];
     console.log('workspaceContextUtil.ts - exit getInstance()');
-    return this.instance!;
+    return this.instance;
   }
 
   public async getConnection(): Promise<Connection> {
@@ -177,13 +153,9 @@ export class WorkspaceContextUtil {
 
         // we only want to display one message per username, even though many consumers are requesting connections.
         console.log(
-          `workspaceContextUtil.ts getConnection() - 18.9 (instance: ${this.instanceId}, knownBad: ${this.knownBadConnections.has(this._username)}, activePrompt: ${this.activeLoginPrompts.has(this._username)}, loginInProgress: ${this.loginInProgress})`
+          `workspaceContextUtil.ts getConnection() - 18.9 (instance: ${this.instanceId}, knownBad: ${this.knownBadConnections.has(this._username)}, activePrompt: ${this.activeLoginPrompts.has(this._username)})`
         );
-        if (
-          !this.knownBadConnections.has(this._username) &&
-          !this.activeLoginPrompts.has(this._username) &&
-          !this.loginInProgress
-        ) {
+        if (!this.knownBadConnections.has(this._username) && !this.activeLoginPrompts.has(this._username)) {
           console.log(
             `workspaceContextUtil.ts getConnection() - 19 (CREATING DIALOG from instance ${this.instanceId})`
           );
@@ -202,14 +174,11 @@ export class WorkspaceContextUtil {
           // Create and execute the login prompt
           const dialogId = Date.now();
           console.log(`workspaceContextUtil.ts getConnection() - 19.5 (DIALOG ID: ${dialogId})`);
-          console.log(`STACK TRACE FOR DIALOG ${dialogId}:`, new Error().stack);
           void (async () => {
             try {
-              console.log(
-                `workspaceContextUtil.ts getConnection() - 20 (DIALOG ID: ${dialogId}) - ABOUT TO SHOW DIALOG`
-              );
+              console.log(`workspaceContextUtil.ts getConnection() - 20 (DIALOG ID: ${dialogId})`);
               const selection = await vscode.window.showErrorMessage(
-                `${nls.localize('error_access_token_expired')} [Instance:${this.instanceId} Dialog:${dialogId}]`,
+                `${nls.localize('error_access_token_expired')} [${dialogId}]`,
                 {
                   modal: true,
                   detail: nls.localize('error_access_token_expired_detail')
@@ -219,22 +188,8 @@ export class WorkspaceContextUtil {
               console.log('workspaceContextUtil.ts getConnection() - 21');
               if (selection === 'Login') {
                 console.log('workspaceContextUtil.ts getConnection() - 22');
-                // Set flag to suppress error dialogs during login process
-                this.loginInProgress = true;
-                console.log('workspaceContextUtil.ts getConnection() - 22.5 (loginInProgress = true)');
-                try {
-                  await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
-                  console.log('workspaceContextUtil.ts getConnection() - 23');
-                  // Keep loginInProgress flag for 3 seconds to allow auth to propagate
-                  setTimeout(() => {
-                    this.loginInProgress = false;
-                    console.log('workspaceContextUtil.ts - loginInProgress cleared after timeout');
-                  }, 3000);
-                } catch (err) {
-                  this.loginInProgress = false;
-                  console.log('workspaceContextUtil.ts - loginInProgress cleared after error');
-                  throw err;
-                }
+                await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
+                console.log('workspaceContextUtil.ts getConnection() - 23');
               } else {
                 // User dismissed or cancelled - clear knownBadConnections so they can see the dialog again if needed
                 this.knownBadConnections.delete(username);
