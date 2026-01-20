@@ -54,6 +54,8 @@ export class WorkspaceContextUtil {
 
   private knownBadConnections: Set<string> = new Set();
   private activeLoginPrompts: Map<string, Promise<void>> = new Map();
+  // Track if a login command is currently executing to suppress errors during login
+  private loginInProgress = false;
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
@@ -175,9 +177,13 @@ export class WorkspaceContextUtil {
 
         // we only want to display one message per username, even though many consumers are requesting connections.
         console.log(
-          `workspaceContextUtil.ts getConnection() - 18.9 (instance: ${this.instanceId}, knownBad: ${this.knownBadConnections.has(this._username)}, activePrompt: ${this.activeLoginPrompts.has(this._username)})`
+          `workspaceContextUtil.ts getConnection() - 18.9 (instance: ${this.instanceId}, knownBad: ${this.knownBadConnections.has(this._username)}, activePrompt: ${this.activeLoginPrompts.has(this._username)}, loginInProgress: ${this.loginInProgress})`
         );
-        if (!this.knownBadConnections.has(this._username) && !this.activeLoginPrompts.has(this._username)) {
+        if (
+          !this.knownBadConnections.has(this._username) &&
+          !this.activeLoginPrompts.has(this._username) &&
+          !this.loginInProgress
+        ) {
           console.log(
             `workspaceContextUtil.ts getConnection() - 19 (CREATING DIALOG from instance ${this.instanceId})`
           );
@@ -213,8 +219,22 @@ export class WorkspaceContextUtil {
               console.log('workspaceContextUtil.ts getConnection() - 21');
               if (selection === 'Login') {
                 console.log('workspaceContextUtil.ts getConnection() - 22');
-                await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
-                console.log('workspaceContextUtil.ts getConnection() - 23');
+                // Set flag to suppress error dialogs during login process
+                this.loginInProgress = true;
+                console.log('workspaceContextUtil.ts getConnection() - 22.5 (loginInProgress = true)');
+                try {
+                  await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
+                  console.log('workspaceContextUtil.ts getConnection() - 23');
+                  // Keep loginInProgress flag for 3 seconds to allow auth to propagate
+                  setTimeout(() => {
+                    this.loginInProgress = false;
+                    console.log('workspaceContextUtil.ts - loginInProgress cleared after timeout');
+                  }, 3000);
+                } catch (err) {
+                  this.loginInProgress = false;
+                  console.log('workspaceContextUtil.ts - loginInProgress cleared after error');
+                  throw err;
+                }
               } else {
                 // User dismissed or cancelled - clear knownBadConnections so they can see the dialog again if needed
                 this.knownBadConnections.delete(username);
