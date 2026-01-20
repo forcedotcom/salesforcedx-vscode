@@ -172,11 +172,13 @@ export class WorkspaceContextUtil {
           this.activeLoginPrompts.set(username, placeholderPromise);
 
           // Create and execute the login prompt
+          const dialogId = Date.now();
+          console.log(`workspaceContextUtil.ts getConnection() - 19.5 (DIALOG ID: ${dialogId})`);
           void (async () => {
             try {
-              console.log('workspaceContextUtil.ts getConnection() - 20');
+              console.log(`workspaceContextUtil.ts getConnection() - 20 (DIALOG ID: ${dialogId})`);
               const selection = await vscode.window.showErrorMessage(
-                nls.localize('error_access_token_expired'),
+                `${nls.localize('error_access_token_expired')} [${dialogId}]`,
                 {
                   modal: true,
                   detail: nls.localize('error_access_token_expired_detail')
