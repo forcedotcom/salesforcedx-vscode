@@ -11,7 +11,6 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as PubSub from 'effect/PubSub';
 import * as Schedule from 'effect/Schedule';
-import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -24,8 +23,7 @@ let fileWatcherSubscription: Fiber.RuntimeFiber<void, Error> | undefined;
 
 /** Handle org change events */
 const handleOrgChange =
-  (statusBarItem: vscode.StatusBarItem) =>
-  (orgInfo: { tracksSource?: boolean; orgId?: string }): Effect.Effect<void, Error, ExtensionProviderService> =>
+  (statusBarItem: vscode.StatusBarItem) => (orgInfo: { tracksSource?: boolean; orgId?: string }) =>
     Effect.gen(function* () {
       if (!statusBarItem || !orgInfo.tracksSource || !orgInfo.orgId) {
         statusBarItem?.hide();
@@ -38,9 +36,7 @@ const handleOrgChange =
     });
 
 /** Subscribe to the centralized file watcher PubSub with debouncing, plus polling for remote changes if active */
-const startFileWatcherSubscription = (
-  statusBarItem: vscode.StatusBarItem
-): Effect.Effect<void, Error, ExtensionProviderService> =>
+const startFileWatcherSubscription = (statusBarItem: vscode.StatusBarItem) =>
   Effect.gen(function* () {
     stopFileWatcherSubscription();
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -73,9 +69,8 @@ const stopFileWatcherSubscription = (): void => {
 };
 
 /** Refresh the status bar's data using data from tracking service */
-const refresh = (statusBarItem: vscode.StatusBarItem): Effect.Effect<void, never> =>
+const refresh = (statusBarItem: vscode.StatusBarItem) =>
   Effect.gen(function* () {
-    console.log('refresh source tracking status bar');
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const sourceTrackingService = yield* api.services.SourceTrackingService;
 
@@ -86,7 +81,13 @@ const refresh = (statusBarItem: vscode.StatusBarItem): Effect.Effect<void, never
       return;
     }
 
-    yield* Effect.promise(() => tracking.reReadLocalTrackingCache());
+    yield* Effect.all(
+      [
+        Effect.promise(() => tracking.reReadLocalTrackingCache()),
+        Effect.promise(() => tracking.reReadRemoteTracking())
+      ],
+      { concurrency: 'unbounded' }
+    );
     const status = yield* Effect.tryPromise(() => tracking.getStatus({ local: true, remote: true }));
     updateDisplay(statusBarItem)(dedupeStatus(status));
   }).pipe(
@@ -117,7 +118,7 @@ const updateDisplay =
   };
 
 /** Create and initialize source tracking status bar */
-export const createSourceTrackingStatusBar = (): Effect.Effect<void, Error, Scope.Scope> =>
+export const createSourceTrackingStatusBar = () =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
 

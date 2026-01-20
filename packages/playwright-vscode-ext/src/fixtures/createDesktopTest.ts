@@ -17,11 +17,12 @@ import { createTestWorkspace } from './desktopWorkspace';
 type CreateDesktopTestOptions = {
   /** __dirname from the calling extension's fixture file (e.g., '<pkg>/test/playwright/fixtures') */
   fixturesDir: string;
+  orgAlias?: string;
 };
 
 /** Creates a Playwright test instance configured for desktop Electron testing with services extension */
-export const createDesktopTest = ({ fixturesDir }: CreateDesktopTestOptions) =>
-  base.extend<TestFixtures, WorkerFixtures>({
+export const createDesktopTest = ({ fixturesDir, orgAlias }: CreateDesktopTestOptions) => {
+  const test = base.extend<TestFixtures, WorkerFixtures>({
     // Download VS Code once per worker (cached in ~/.vscode-test/ or the windows equivalent)
     vscodeExecutable: [
       async ({}, use): Promise<void> => {
@@ -33,7 +34,7 @@ export const createDesktopTest = ({ fixturesDir }: CreateDesktopTestOptions) =>
 
     // Launch fresh Electron instance per test
     electronApp: async ({ vscodeExecutable }, use): Promise<void> => {
-      const workspaceDir = await createTestWorkspace();
+      const workspaceDir = await createTestWorkspace(orgAlias);
       // Use subdirectory of workspace for user data (keeps everything isolated and together)
       const userDataDir = path.join(workspaceDir, '.vscode-test-user-data');
       await fs.mkdir(userDataDir, { recursive: true });
@@ -68,7 +69,7 @@ export const createDesktopTest = ({ fixturesDir }: CreateDesktopTestOptions) =>
           workspaceDir
         ],
 
-        env: { ...process.env } as Record<string, string>,
+        env: { ...process.env, VSCODE_DESKTOP: '1' } as Record<string, string>,
         timeout: 60_000,
         recordVideo: {
           dir: videosDir,
@@ -111,3 +112,12 @@ export const createDesktopTest = ({ fixturesDir }: CreateDesktopTestOptions) =>
       await use(page);
     }
   });
+  test.afterEach(async ({ page }, testInfo) => {
+    if (process.env.DEBUG_MODE && testInfo.status !== 'passed') {
+      console.log('\n🔍 DEBUG_MODE: Test failed - pausing to keep VS Code window open.');
+      console.log('Press Resume in Playwright Inspector or close VS Code window to continue.');
+      await page.pause();
+    }
+  });
+  return test;
+};

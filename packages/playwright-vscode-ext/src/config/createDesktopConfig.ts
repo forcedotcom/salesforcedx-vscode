@@ -29,6 +29,7 @@ export const createDesktopConfig = (options: DesktopConfigOptions = {}) =>
       viewport: { width: 1920, height: 1080 }
     },
     timeout: process.env.DEBUG_MODE ? 0 : 60 * 1000,
+    maxFailures: process.env.CI ? 3 : 0,
     projects: [
       {
         name: 'desktop-electron',

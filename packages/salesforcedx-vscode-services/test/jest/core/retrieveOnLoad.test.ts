@@ -8,24 +8,30 @@
 import { ComponentStatus, type FileResponse, type FileResponseSuccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import { URI } from 'vscode-uri';
 import { parseRetrieveOnLoad, filterFileResponses } from '../../../src/core/retrieveOnLoad';
+import { ComponentSetService } from '../../../src/core/componentSetService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import { WorkspaceService } from '../../../src/vscode/workspaceService';
 
 /** Create a test layer for WorkspaceService with a mock workspace path */
-const createMockWorkspaceService = (workspacePath: string): Layer.Layer<WorkspaceService, never, never> =>
-  Layer.succeed(
+const createMockWorkspaceService = (workspacePath: string): Layer.Layer<WorkspaceService, never, never> => {
+  const workspaceInfo = {
+    uri: URI.parse(`file://${workspacePath}`),
+    path: `file://${workspacePath}`,
+    fsPath: workspacePath,
+    isEmpty: false as const,
+    isVirtualFs: false,
+    cwd: workspacePath
+  };
+  return Layer.succeed(
     WorkspaceService,
     new WorkspaceService({
-      getWorkspaceInfo: Effect.succeed({
-        path: `file://${workspacePath}`,
-        fsPath: workspacePath,
-        isEmpty: false,
-        isVirtualFs: false,
-        cwd: workspacePath
-      })
+      getWorkspaceInfo: Effect.succeed(workspaceInfo),
+      getWorkspaceInfoOrThrow: Effect.succeed(workspaceInfo)
     })
   );
+};
 
 const createFileResponse = (
   type: string,
@@ -100,7 +106,11 @@ describe('parseRetrieveOnLoad', () => {
 describe('filterFileResponses', () => {
   const workspacePath = '/mock/workspace';
   const workspaceLayer = createMockWorkspaceService(workspacePath);
-  const testLayer = Layer.merge(Layer.provide(MetadataRegistryService.Default, workspaceLayer), workspaceLayer);
+  const testLayer = Layer.mergeAll(
+    ComponentSetService.Default,
+    Layer.provide(MetadataRegistryService.Default, workspaceLayer),
+    workspaceLayer
+  );
 
   it('should include .cls files for ApexClass and not include cls-meta.xml', async () => {
     const members = [{ type: 'ApexClass', fullName: 'Foo' }];

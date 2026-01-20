@@ -80,7 +80,7 @@ jest.mock('../../src/observability/spansNode', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const E = require('effect');
   return {
-    NodeSdkLayer: E.Layer.empty
+    NodeSdkLayerFor: () => E.Layer.empty
   };
 });
 
@@ -91,10 +91,10 @@ jest.mock('../../src/virtualFsProvider/indexedDbStorage', () => {
   const E = require('effect');
 
   const mockStorage = {
-    loadState: (): Effect.Effect<void, never, never> => E.Effect.succeed(undefined),
-    saveFile: (): Effect.Effect<void, never, never> => E.Effect.succeed(undefined),
-    deleteFile: (): Effect.Effect<void, never, never> => E.Effect.succeed(undefined),
-    loadFile: (): Effect.Effect<void, never, never> => E.Effect.succeed(undefined)
+    loadState: () => E.Effect.succeed(undefined),
+    saveFile: () => E.Effect.succeed(undefined),
+    deleteFile: () => E.Effect.succeed(undefined),
+    loadFile: () => E.Effect.succeed(undefined)
   };
 
   return {
@@ -122,7 +122,7 @@ jest.mock('../../src/virtualFsProvider/fileSystemProvider', () => ({
 
 // Mock memfsWatcher to avoid file watching in tests
 jest.mock('../../src/virtualFsProvider/memfsWatcher', () => ({
-  startWatch: (): Effect.Effect<void, never, never> => {
+  startWatch: () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const E = require('effect');
     return E.Effect.succeed(undefined);

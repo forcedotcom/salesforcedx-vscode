@@ -5,39 +5,27 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type DeployResult, ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { type SourceTracking } from '@salesforce/source-tracking';
+import { ComponentSet, RequestStatus } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
 import * as Cause from 'effect/Cause';
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
-import { ChannelService } from '../vscode/channelService';
-import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
-import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
-import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
+import { unknownToErrorCause } from './shared';
 import { type SourceTrackingOptions, SourceTrackingService } from './sourceTrackingService';
 
+export class MetadataDeployError extends Data.TaggedError('FailedToDeployMetadataError')<{
+  readonly cause: unknown;
+}> {}
+
 /** Get ComponentSet of local changes for deploy */
-const getComponentSetForDeploy = (
-  options?: SourceTrackingOptions
-): Effect.Effect<
-  ComponentSet,
-  Error,
-  | ConnectionService
-  | SettingsService
-  | ConfigService
-  | WorkspaceService
-  | ProjectService
-  | MetadataRegistryService
-  | SourceTrackingService
-  | ChannelService
-> =>
+const getComponentSetForDeploy = (options?: SourceTrackingOptions) =>
   Effect.gen(function* () {
     const tracking = yield* Effect.flatMap(SourceTrackingService, svc => svc.getSourceTracking(options));
     if (!tracking) {
@@ -50,7 +38,7 @@ const getComponentSetForDeploy = (
     );
 
     if (!options?.ignoreConflicts) {
-      yield* conflictCheck(tracking).pipe(Effect.provide(ChannelService.Default));
+      yield* Effect.flatMap(SourceTrackingService, svc => svc.checkConflicts(tracking));
     }
     const localComponentSets = yield* Effect.tryPromise(() => tracking.localChangesAsComponentSet(false)).pipe(
       Effect.withSpan('STL.LocalChangesAsComponentSet')
@@ -67,58 +55,18 @@ const getComponentSetForDeploy = (
     return localComponentSets[0] ?? new ComponentSet();
   }).pipe(Effect.withSpan('getComponentSetForDeploy'));
 
-const conflictCheck = (tracking: SourceTracking): Effect.Effect<void, Error, ChannelService> =>
-  Effect.gen(function* () {
-    const conflicts = yield* Effect.tryPromise(() => tracking.getConflicts()).pipe(Effect.withSpan('STL.GetConflicts'));
-    if (conflicts?.length > 0) {
-      yield* Effect.annotateCurrentSpan({
-        conflicts: true
-      });
-      yield* Effect.flatMap(ChannelService, channelService =>
-        channelService.appendToChannel(
-          [
-            'Conflicts detected',
-            ...conflicts.flatMap(c => [`  ${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`])
-          ].join('\n')
-        )
-      );
-      (yield* Effect.flatMap(ChannelService, channelService => channelService.getChannel)).show();
-      return yield* Effect.fail(
-        new Error(
-          'Local and remote changes detected on the same file(s).  See output channel for details. Run a push or pull with ignored conflicts to proceed.'
-        )
-      );
-    }
-  });
-
 /** Deploy metadata to the default org */
-const deploy = (
-  components: ComponentSet
-): Effect.Effect<
-  DeployResult | SuccessfulCancelResult,
-  Error,
-  | ConnectionService
-  | ProjectService
-  | WorkspaceService
-  | ConfigService
-  | SettingsService
-  | MetadataRegistryService
-  | SourceTrackingService
-> =>
+const deploy = (components: ComponentSet) =>
   Effect.gen(function* () {
-    const [connection, project, workspaceDescription] = yield* Effect.all(
+    const [connection, project] = yield* Effect.all(
       [
         Effect.flatMap(ConnectionService, service => service.getConnection),
         Effect.flatMap(ProjectService, service => service.getSfProject),
-        Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo),
-        Effect.annotateCurrentSpan({ components: components.size })
+        Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow),
+        Effect.annotateCurrentSpan({ components: components.map(c => `${c.type.name}:${c.fullName}`) })
       ],
       { concurrency: 'unbounded' }
     );
-
-    if (workspaceDescription.isEmpty) {
-      return yield* Effect.fail(new Error('No workspace path found'));
-    }
 
     components.projectDirectory = project.getPath();
 
@@ -140,7 +88,6 @@ const deploy = (
                 await deployOperation.cancel();
                 await Effect.runPromise(Fiber.interrupt(deployFiber));
               });
-              await deployOperation.start();
               return await deployOperation.pollStatus();
             }
           );
@@ -148,7 +95,7 @@ const deploy = (
         },
         catch: e => {
           console.error(e);
-          return new Error('Failed to deploy metadata', { cause: e });
+          return new MetadataDeployError(unknownToErrorCause(e));
         }
       }).pipe(Effect.withSpan('deploy (API call)'))
     );
@@ -161,8 +108,11 @@ const deploy = (
       onSuccess: outcome => Effect.succeed(outcome)
     });
 
-    if (typeof deployOutcome !== 'string') {
-      yield* Effect.annotateCurrentSpan({ fileResponses: deployOutcome.getFileResponses().map(r => r.filePath) });
+    if (typeof deployOutcome === 'string') {
+      return deployOutcome;
+    }
+    yield* Effect.annotateCurrentSpan({ fileResponses: deployOutcome.getFileResponses().map(r => r.filePath) });
+    if (deployOutcome.response?.status === RequestStatus.Succeeded) {
       yield* Effect.flatMap(SourceTrackingService, svc => svc.updateTrackingFromDeploy(deployOutcome)).pipe(
         Effect.withSpan('MetadataDeployService.updateTrackingFromDeploy')
       );
@@ -173,11 +123,7 @@ const deploy = (
 
 export class MetadataDeployService extends Effect.Service<MetadataDeployService>()('MetadataDeployService', {
   succeed: {
-    /**
-     * Deploy metadata to the default org.
-     * @param components - ComponentSet to deploy
-     * @returns Effect that resolves to SDR's DeployResult
-     */
+    /** Deploy metadata to the default org */
     deploy,
     getComponentSetForDeploy
   } as const

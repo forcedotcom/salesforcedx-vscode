@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Queue from 'effect/Queue';
-import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -21,7 +21,7 @@ const ENQUEUE_DELAY_MS = 1000;
 /** File filtering - exclude files that shouldn't be deployed */
 export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (uri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfo;
+  const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow;
 
   if (!uri.fsPath.startsWith(workspaceInfo.fsPath)) return false;
   const basename = uri.fsPath.split(/[/\\]/).pop() ?? '';
@@ -40,15 +40,17 @@ export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (ur
 
 /** Deploy queued files using MetadataDeployService */
 
-const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* () {
+const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* (uris: Set<URI>) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
-  const deployService = yield* api.services.MetadataDeployService;
+  const [channelService, deployService, componentSetService] = yield* Effect.all(
+    [api.services.ChannelService, api.services.MetadataDeployService, api.services.ComponentSetService],
+    { concurrency: 'unbounded' }
+  );
 
   const ignoreConflicts = getIgnoreConflicts();
   yield* channelService.appendToChannel(`Deploy on save triggered (ignoreConflicts: ${ignoreConflicts})`);
 
-  const componentSet = yield* deployService.getComponentSetForDeploy({ ignoreConflicts });
+  const componentSet = yield* componentSetService.getComponentSetFromUris(uris);
 
   if (componentSet.size === 0) {
     return yield* channelService.appendToChannel('Deploy on save: No changes to deploy');
@@ -80,12 +82,12 @@ const isInPackageDirectories = Effect.fn('deployOnSave:isInPackageDirectories')(
 });
 
 /** Handle errors from deploy on save */
-const handleDeployError = (error: unknown): Effect.Effect<void, never> =>
+const handleDeployError = (error: unknown) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const channelService = yield* api.services.ChannelService;
 
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error ? error.message : JSON.stringify(error, null, 2);
 
     // Check for specific error types
     if (errorMessage.includes('NoTargetOrgSet') || errorMessage.includes('No default org')) {
@@ -102,7 +104,7 @@ const handleDeployError = (error: unknown): Effect.Effect<void, never> =>
   );
 
 /** Create and start the deploy on save service */
-export const createDeployOnSaveService = (): Effect.Effect<vscode.Disposable, Error, Scope.Scope> =>
+export const createDeployOnSaveService = () =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const channelService = yield* api.services.ChannelService;
@@ -113,15 +115,17 @@ export const createDeployOnSaveService = (): Effect.Effect<vscode.Disposable, Er
     // Start the stream processor that batches and deploys
     yield* Stream.fromQueue(saveQueue).pipe(
       Stream.tap(uri => channelService.appendToChannel(`Deploy on save service received URI: ${uri.fsPath}`)),
-      Stream.filter(() => getDeployOnSaveEnabled()),
+      Stream.filterEffect(() => getDeployOnSaveEnabled()),
       Stream.filterEffect(shouldDeploy),
       Stream.filterEffect(isInPackageDirectories),
       Stream.tap(uri =>
         channelService.appendToChannel(`Passed shouldDeploy and isInPackageDirectories: ${uri.fsPath}`)
       ),
       Stream.groupedWithin(10_000, Duration.millis(ENQUEUE_DELAY_MS)),
-      Stream.runForEach(() =>
-        deployQueuedFiles().pipe(Effect.provide(AllServicesLayer), Effect.catchAll(handleDeployError))
+      Stream.runForEach(chunk =>
+        deployQueuedFiles(new Set(Chunk.toReadonlyArray(chunk))).pipe(
+          Effect.catchAll(handleDeployError)
+        )
       ),
       Effect.provide(AllServicesLayer),
       Effect.forkDaemon

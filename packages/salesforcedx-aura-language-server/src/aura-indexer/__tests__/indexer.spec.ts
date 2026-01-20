@@ -6,23 +6,6 @@
  */
 
 // Mock JSON imports from baseContext.ts - these are runtime require() calls in compiled code
-const mockJsonFromCommon = (relativePath: string) => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const fs = require('node:fs');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const pathModule = require('node:path');
-  let current = __dirname;
-  while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
-    const parent = pathModule.resolve(current, '..');
-    if (parent === current) break;
-    current = parent;
-  }
-  const packagesDir = pathModule.resolve(current, '..');
-  const filePath = pathModule.join(packagesDir, 'salesforcedx-lightning-lsp-common', 'src', relativePath);
-  const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  return { default: content, ...content };
-};
-
 // Mock JSON imports from indexer.ts
 const mockJsonFromAuraServer = (relativePath: string) => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -43,27 +26,6 @@ const mockJsonFromAuraServer = (relativePath: string) => {
 // Mock relative imports from baseContext.js - these need to match the exact paths Jest resolves when baseContext.js
 // executes require("./resources/..."). Since baseContext.js is in out/src/, the relative path
 // resolves to out/src/resources/... which we mock using paths relative to the test file.
-jest.mock(
-  '../../../../salesforcedx-lightning-lsp-common/out/src/resources/core/jsconfig-core.json',
-  () => mockJsonFromCommon('resources/core/jsconfig-core.json'),
-  {
-    virtual: true
-  }
-);
-jest.mock(
-  '../../../../salesforcedx-lightning-lsp-common/out/src/resources/core/settings-core.json',
-  () => mockJsonFromCommon('resources/core/settings-core.json'),
-  {
-    virtual: true
-  }
-);
-jest.mock(
-  '../../../../salesforcedx-lightning-lsp-common/out/src/resources/sfdx/jsconfig-sfdx.json',
-  () => mockJsonFromCommon('resources/sfdx/jsconfig-sfdx.json'),
-  {
-    virtual: true
-  }
-);
 
 // Mock JSON imports for aura indexer - from indexer.ts which is in src/aura-indexer/
 // So the relative path from indexer.ts is ../resources/, but from test file (src/aura-indexer/__tests__/) it's ../../resources/
@@ -72,7 +34,7 @@ jest.mock('../../resources/transformed-aura-system.json', () =>
   mockJsonFromAuraServer('resources/transformed-aura-system.json')
 );
 
-import { FileSystemDataProvider } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { FileSystemDataProvider, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import * as path from 'node:path';
 import URI from 'vscode-uri';
@@ -80,12 +42,11 @@ import { AuraWorkspaceContext } from '../../context/auraContext';
 import AuraIndexer from '../indexer';
 
 // Normalize paths for cross-platform test consistency
+// Converts absolute paths to relative paths from the workspace root
 const normalize = (start: string, p: string): string => {
-  // Convert backslashes to forward slashes and normalize to POSIX format
-  const normalizedStart = path.posix.normalize(start.replaceAll('\\', '/'));
-  const normalizedP = path.posix.normalize(p.replaceAll('\\', '/'));
+  const normalizedStart = normalizePath(start);
+  const normalizedP = normalizePath(p);
 
-  // Handle Windows case-insensitive paths by comparing lowercase
   if (normalizedP.toLowerCase().startsWith(normalizedStart.toLowerCase())) {
     return path.posix.relative(normalizedStart, normalizedP);
   }
@@ -96,16 +57,15 @@ const uriToFile = (uri: string): string => URI.parse(uri).fsPath;
 
 describe('indexer parsing content', () => {
   it('aura indexer', async () => {
-    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new FileSystemDataProvider());
+    const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider);
     context.initialize('SFDX');
-    await context.configureProject();
+    context.configureProject();
 
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();
     context.addIndexingProvider({ name: 'aura', indexer: auraIndexer });
 
-    let markup = await context.findAllAuraMarkup();
-    markup = markup.map(p => normalize(SFDX_WORKSPACE_ROOT, p)).toSorted();
+    const markup = (await context.findAllAuraMarkup()).map(p => normalize(SFDX_WORKSPACE_ROOT, p)).toSorted();
     expect(markup).toMatchSnapshot();
     const tags = auraIndexer.getAuraTags();
     tags.forEach(taginfo => {
@@ -134,7 +94,7 @@ describe('indexer parsing content', () => {
   it('should index a valid aura component', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, sfdxFileSystemProvider);
     context.initialize('SFDX');
-    await context.configureProject();
+    context.configureProject();
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();
     context.addIndexingProvider({ name: 'aura', indexer: auraIndexer });
@@ -155,7 +115,7 @@ describe('indexer parsing content', () => {
   xit('should handle indexing an invalid aura component', async () => {
     const context = new AuraWorkspaceContext(SFDX_WORKSPACE_ROOT, new FileSystemDataProvider());
     context.initialize('SFDX');
-    await context.configureProject();
+    context.configureProject();
     const auraIndexer = new AuraIndexer(context);
     await auraIndexer.configureAndIndex();
     context.addIndexingProvider({ name: 'aura', indexer: auraIndexer });

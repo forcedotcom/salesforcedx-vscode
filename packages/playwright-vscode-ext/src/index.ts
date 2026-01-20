@@ -10,13 +10,18 @@ export {
   filterErrors,
   filterNetworkErrors,
   waitForVSCodeWorkbench,
+  assertWelcomeTabExists,
   closeWelcomeTabs,
   closeSettingsTab,
   waitForWorkspaceReady,
-  typingSpeed
+  typingSpeed,
+  isDesktop,
+  isMacDesktop,
+  isWindowsDesktop,
+  validateNoCriticalErrors
 } from './utils/helpers';
 
-export { createFileWithContents } from './utils/fileHelpers';
+export { createFileWithContents, createApexClass, openFileByName, editOpenFile } from './utils/fileHelpers';
 
 export {
   WORKBENCH,
@@ -29,25 +34,30 @@ export {
   TAB_CLOSE_BUTTON,
   STATUS_BAR_ITEM_LABEL,
   NOTIFICATION_LIST_ITEM,
-  SETTINGS_SEARCH_INPUT
+  SETTINGS_SEARCH_INPUT,
+  CONTEXT_MENU
 } from './utils/locators';
 
 export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSION_KEY } from './constants';
 
-export { create, DREAMHOUSE_ORG_ALIAS } from './orgs/dreamhouseScratchOrgSetup';
+export { createDreamhouseOrg, DREAMHOUSE_ORG_ALIAS } from './orgs/dreamhouseScratchOrgSetup';
 export { createMinimalOrg, MINIMAL_ORG_ALIAS } from './orgs/minimalScratchOrgSetup';
+export { createNonTrackingOrg, NON_TRACKING_ORG_ALIAS, HUB_ORG_ALIAS } from './orgs/nonTrackingScratchOrgSetup';
 
 // Pages
 export { upsertScratchOrgAuthFieldsToSettings, openSettingsUI, upsertSettings } from './pages/settings';
 
-export { executeCommandWithCommandPalette, openCommandPalette, executeCommand, reloadWindow } from './pages/commands';
+export { executeCommandWithCommandPalette, openCommandPalette, verifyCommandDoesNotExist } from './pages/commands';
+
+export { executeEditorContextMenuCommand, executeExplorerContextMenuCommand } from './pages/contextMenu';
 
 export {
   ensureOutputPanelOpen,
   selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
-  outputChannelContains
+  outputChannelContains,
+  captureOutputChannelDetails
 } from './pages/outputChannel';
 
 // Shared

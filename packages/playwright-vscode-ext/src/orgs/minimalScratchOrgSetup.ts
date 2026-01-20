@@ -43,10 +43,13 @@ export const createMinimalOrg = async (): Promise<OrgAuthResult> => {
     )
   );
 
-  const { stdout: createStdout } = await execAsync(`sf org create scratch -d -w 10 -a ${MINIMAL_ORG_ALIAS} --json`, {
-    cwd: projectDir,
-    env
-  });
+  const { stdout: createStdout } = await execAsync(
+    `sf org create scratch -d -w 10 -a ${MINIMAL_ORG_ALIAS} --wait 30 --json`,
+    {
+      cwd: projectDir,
+      env
+    }
+  );
 
   return extractAuthFields(createStdout);
 };

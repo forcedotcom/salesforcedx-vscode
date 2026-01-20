@@ -9,72 +9,71 @@ import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
   upsertScratchOrgAuthFieldsToSettings,
-  create,
+  createDreamhouseOrg,
   NOTIFICATION_LIST_ITEM
 } from '@salesforce/playwright-vscode-ext';
 import { waitForRetrieveProgressNotificationToAppear } from '../pages/notifications';
+import { RETRIEVE_TIMEOUT_MS } from '../constants';
 
-test.describe('Org Browser - CustomObject retrieval', () => {
-  test.setTimeout(2 * 60 * 1000);
+test.setTimeout(RETRIEVE_TIMEOUT_MS);
 
-  test.beforeEach(async ({ page }) => {
-    const createResult = await create();
-    const orgBrowserPage = new OrgBrowserPage(page);
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
+test.beforeEach(async ({ page }) => {
+  const createResult = await createDreamhouseOrg();
+  const orgBrowserPage = new OrgBrowserPage(page);
+  await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
+});
+
+test('Org Browser - CustomObject retrieval: customobject headless: retrieve Broker__c', async ({ page }) => {
+  const orgBrowserPage = new OrgBrowserPage(page);
+
+  await test.step('open Org Browser', async () => {
+    await orgBrowserPage.openOrgBrowser();
   });
 
-  test('customobject headless: retrieve Broker__c', async ({ page }) => {
-    const orgBrowserPage = new OrgBrowserPage(page);
+  await test.step('find CustomObject type', async () => {
+    const locator = await orgBrowserPage.findMetadataType('CustomObject');
+    await locator.hover();
+    await expect(locator).toMatchAriaSnapshot({ name: 'customobject-found' });
+  });
 
-    await test.step('open Org Browser', async () => {
-      await orgBrowserPage.openOrgBrowser();
-    });
+  const brokerItem = await test.step('expand CustomObject and locate Broker__c', async () => {
+    await orgBrowserPage.expandFolder('CustomObject');
+    const item = await orgBrowserPage.getMetadataItem('CustomObject', 'Broker__c');
+    await item.hover();
+    await expect(item).toMatchAriaSnapshot({ name: 'customobject-broker__c' });
+    return item;
+  });
 
-    await test.step('find CustomObject type', async () => {
-      const locator = await orgBrowserPage.findMetadataType('CustomObject');
-      await locator.hover();
-      await expect(locator).toMatchAriaSnapshot({ name: 'customobject-found' });
-    });
+  await test.step('trigger retrieval', async () => {
+    const clicked = await orgBrowserPage.clickRetrieveButton(brokerItem);
+    expect(clicked).toBe(true);
+  });
 
-    const brokerItem = await test.step('expand CustomObject and locate Broker__c', async () => {
-      await orgBrowserPage.expandFolder('CustomObject');
-      const item = await orgBrowserPage.getMetadataItem('CustomObject', 'Broker__c');
-      await item.hover();
-      await expect(item).toMatchAriaSnapshot({ name: 'customobject-broker__c' });
-      return item;
-    });
+  await test.step('wait for retrieval progress to appear', async () => {
+    await waitForRetrieveProgressNotificationToAppear(page, 60_000);
+  });
 
-    await test.step('trigger retrieval', async () => {
-      const clicked = await orgBrowserPage.clickRetrieveButton(brokerItem);
-      expect(clicked).toBe(true);
-    });
+  await test.step('wait for editor file to open (completion signal)', async () => {
+    await orgBrowserPage.waitForFileToOpenInEditor(RETRIEVE_TIMEOUT_MS);
+  });
 
-    await test.step('wait for retrieval progress to appear', async () => {
-      await waitForRetrieveProgressNotificationToAppear(page, 60_000);
-    });
+  await test.step('override confirmation for Broker__c', async () => {
+    await orgBrowserPage.clickRetrieveButton(brokerItem);
 
-    await test.step('wait for editor file to open (completion signal)', async () => {
-      await orgBrowserPage.waitForFileToOpenInEditor(300_000);
-    });
+    const overwrite = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /Overwrite\s+local\s+files\s+for/i })
+      .first();
+    await expect(overwrite).toBeVisible();
+    await expect(overwrite).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+CustomObject\s*\?/i);
 
-    await test.step('override confirmation for Broker__c', async () => {
-      await orgBrowserPage.clickRetrieveButton(brokerItem);
+    await overwrite.getByRole('button', { name: /^Yes$/ }).click();
 
-      const overwrite = page
-        .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: /Overwrite\s+local\s+files\s+for/i })
-        .first();
-      await expect(overwrite).toBeVisible();
-      await expect(overwrite).toContainText(/Overwrite\s+local\s+files\s+for\s+\d+\s+CustomObject\s*\?/i);
-
-      await overwrite.getByRole('button', { name: /^Yes$/ }).click();
-
-      const retrieving = page
-        .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: /Retrieving\s+CustomObject/i })
-        .first();
-      await expect(retrieving).toBeVisible({ timeout: 60_000 });
-      await expect(retrieving).not.toBeVisible({ timeout: 60_000 });
-    });
+    const retrieving = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /Retrieving\s+CustomObject/i })
+      .first();
+    await expect(retrieving).toBeVisible({ timeout: 60_000 });
+    await expect(retrieving).not.toBeVisible({ timeout: RETRIEVE_TIMEOUT_MS });
   });
 });

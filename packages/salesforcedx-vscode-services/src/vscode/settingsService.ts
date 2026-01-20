@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import {
@@ -14,15 +15,20 @@ import {
   API_VERSION_KEY,
   RETRIEVE_ON_LOAD_KEY
 } from '../constants';
+import { unknownToErrorCause } from '../core/shared';
 
 const FALLBACK_API_VERSION = '64.0';
 
-const isNonEmptyString =
-  (key: string) =>
-  (value: string | undefined): Effect.Effect<string, Error, never> =>
-    value === undefined || value.length === 0
-      ? Effect.fail(new Error(`Value for ${key} is empty`))
-      : Effect.succeed(value);
+export class SettingsError extends Data.TaggedError('MissingSettingsError')<{
+  readonly cause: unknown;
+  readonly key: string;
+  readonly section?: string;
+}> {}
+
+const isNonEmptyString = (key: string) => (value: string | undefined) =>
+  value === undefined || value.length === 0
+    ? Effect.fail(new SettingsError({ cause: new Error(`Value for ${key} is empty`), key }))
+    : Effect.succeed(value);
 
 /** Static service for reading and writing VS Code settings */
 export class SettingsService extends Effect.Service<SettingsService>()('SettingsService', {
@@ -39,7 +45,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
           const config = vscode.workspace.getConfiguration(section);
           return defaultValue !== undefined ? config.get<T>(key, defaultValue) : config.get<T>(key);
         },
-        catch: error => new Error(`Failed to get setting ${section}.${key}: ${String(error)}`)
+        catch: error => new SettingsError({ cause: unknownToErrorCause(error), section, key })
       }),
 
     /**
@@ -54,7 +60,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
           const config = vscode.workspace.getConfiguration(section);
           await config.update(key, value, vscode.ConfigurationTarget.Global);
         },
-        catch: error => new Error(`Failed to set setting ${section}.${key}: ${String(error)}`)
+        catch: error => new SettingsError({ cause: unknownToErrorCause(error), section, key })
       }),
 
     /**
@@ -62,7 +68,12 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
      */
     getInstanceUrl: Effect.try({
       try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY)?.trim(),
-      catch: error => new Error(`Failed to get instanceUrl: ${String(error)}`)
+      catch: error =>
+        new SettingsError({
+          cause: unknownToErrorCause(error),
+          key: INSTANCE_URL_KEY,
+          section: CODE_BUILDER_WEB_SECTION
+        })
     }).pipe(Effect.flatMap(isNonEmptyString(INSTANCE_URL_KEY))),
 
     /**
@@ -70,7 +81,12 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
      */
     getAccessToken: Effect.try({
       try: () => vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(ACCESS_TOKEN_KEY)?.trim(),
-      catch: error => new Error(`Failed to get accessToken: ${String(error)}`)
+      catch: error =>
+        new SettingsError({
+          cause: unknownToErrorCause(error),
+          key: ACCESS_TOKEN_KEY,
+          section: CODE_BUILDER_WEB_SECTION
+        })
     }).pipe(Effect.flatMap(isNonEmptyString(ACCESS_TOKEN_KEY))),
 
     /**
@@ -82,7 +98,12 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
         const value = config.get<string>(API_VERSION_KEY) ?? FALLBACK_API_VERSION;
         return value.length > 0 ? value : FALLBACK_API_VERSION;
       },
-      catch: error => new Error(`Failed to get apiVersion: ${String(error)}`)
+      catch: error =>
+        new SettingsError({
+          cause: unknownToErrorCause(error),
+          key: API_VERSION_KEY,
+          section: CODE_BUILDER_WEB_SECTION
+        })
     }),
 
     /**
@@ -94,7 +115,12 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
           const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
           await config.update(INSTANCE_URL_KEY, url, vscode.ConfigurationTarget.Global);
         },
-        catch: error => new Error(`Failed to set instanceUrl: ${String(error)}`)
+        catch: error =>
+          new SettingsError({
+            cause: unknownToErrorCause(error),
+            key: INSTANCE_URL_KEY,
+            section: CODE_BUILDER_WEB_SECTION
+          })
       }),
 
     /**
@@ -106,7 +132,12 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
           const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
           await config.update(ACCESS_TOKEN_KEY, token, vscode.ConfigurationTarget.Global);
         },
-        catch: error => new Error(`Failed to set accessToken: ${String(error)}`)
+        catch: error =>
+          new SettingsError({
+            cause: unknownToErrorCause(error),
+            key: ACCESS_TOKEN_KEY,
+            section: CODE_BUILDER_WEB_SECTION
+          })
       }),
 
     /**
@@ -118,7 +149,12 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
           const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
           await config.update(API_VERSION_KEY, version, vscode.ConfigurationTarget.Global);
         },
-        catch: error => new Error(`Failed to set apiVersion: ${String(error)}`)
+        catch: error =>
+          new SettingsError({
+            cause: unknownToErrorCause(error),
+            key: API_VERSION_KEY,
+            section: CODE_BUILDER_WEB_SECTION
+          })
       }),
 
     /** Get the retrieve on load setting value */
@@ -127,7 +163,12 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
         const config = vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION);
         return config.get<string>(RETRIEVE_ON_LOAD_KEY)?.trim() ?? '';
       },
-      catch: error => new Error(`Failed to get retrieveOnLoad: ${String(error)}`)
+      catch: error =>
+        new SettingsError({
+          cause: unknownToErrorCause(error),
+          key: RETRIEVE_ON_LOAD_KEY,
+          section: CODE_BUILDER_WEB_SECTION
+        })
     })
   } as const),
   dependencies: []

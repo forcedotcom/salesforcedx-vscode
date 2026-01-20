@@ -16,6 +16,7 @@ jobs:
     env:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
       MINIMAL_ORG_ALIAS: minimalTestOrg
+      NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
     steps:
       - name: Checkout repository
@@ -42,13 +43,15 @@ jobs:
       - name: Clone dreamhouse
         shell: bash
         run: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
+      - name: Auth to dev hub (global)
+        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
+        shell: bash
 
       - name: create scratch org and set up dreamhouse
         # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
         shell: bash
         run: |
-          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
           sf project deploy start
           sf org assign permset -n dreamhouse
         working-directory: dreamhouse-lwc
@@ -61,14 +64,14 @@ jobs:
         # the tests expect a scratch org with a certain alias but don't use the directory directly
         shell: bash
         run: |
-          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json  --wait 30
         working-directory: minimal-project
 
       - name: Run Metadata headless tests (headless config)
         env:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           MINIMAL_ORG_ALIAS: minimalTestOrg
+          NON_TRACKING_ORG_ALIAS: hub
           CI: 1
         # compile the entire project to
         run: |
@@ -90,11 +93,12 @@ jobs:
           path: packages/salesforcedx-vscode-metadata/test-results
           if-no-files-found: ignore
 
-      - name: Cleanup scratch org
+      - name: Cleanup scratch orgs
         if: always()
         continue-on-error: true
         run: |
           sf org delete scratch -o "$DREAMHOUSE_ORG_ALIAS" --no-prompt || true
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
 
   e2e-desktop:
     runs-on: ${{ matrix.os }}
@@ -107,7 +111,9 @@ jobs:
     env:
       DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
       MINIMAL_ORG_ALIAS: minimalTestOrg
+      NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      VSCODE_DESKTOP: 1
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -124,6 +130,9 @@ jobs:
         run: |
           npm i -g @salesforce/cli
 
+      - name: Auth to dev hub (global)
+        run: echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin
+        shell: bash
       - name: Install dependencies
         run: npm ci
 
@@ -138,8 +147,7 @@ jobs:
         # the tests expect a scratch org with dreamhouse at a certain alias but don't use the directory directly
         shell: bash
         run: |
-          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
           sf project deploy start
           sf org assign permset -n dreamhouse
         working-directory: dreamhouse-lwc
@@ -152,13 +160,26 @@ jobs:
         # the tests expect a scratch org with a certain alias but don't use the directory directly
         shell: bash
         run: |
-          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30
         working-directory: minimal-project
+
+      - name: Generate non-tracking project
+        shell: bash
+        run: sf project generate -n non-tracking-project
+      - name: create non-tracking scratch org
+        # the tests expect a scratch org with a certain alias but don't use the directory directly
+        shell: bash
+        run: |
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source
+        working-directory: non-tracking-project
 
       - name: Run Metadata headless tests (headless config)
         env:
           CI: 1
+          VSCODE_DESKTOP: 1
+          DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
+          MINIMAL_ORG_ALIAS: minimalTestOrg
+          NON_TRACKING_ORG_ALIAS: nonTrackingTestOrg
         # compile the entire project to
         run: |
           npm run test:desktop -w salesforcedx-vscode-metadata -- --reporter=html
@@ -179,9 +200,11 @@ jobs:
           path: packages/salesforcedx-vscode-metadata/test-results
           if-no-files-found: ignore
 
-      - name: Cleanup scratch org
+      - name: Cleanup scratch orgs
         if: always()
         continue-on-error: true
         shell: bash
         run: |
           sf org delete scratch -o "$DREAMHOUSE_ORG_ALIAS" --no-prompt || true
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true
+          sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt || true

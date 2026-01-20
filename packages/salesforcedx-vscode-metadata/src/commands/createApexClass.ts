@@ -42,7 +42,7 @@ const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) 
 /** Prompt user to select output directory from available package directories */
 const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: SfProject) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfo;
+  const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow;
   const fsService = yield* api.services.FsService;
 
   const packageDirs = project.getPackageDirectories();
@@ -152,13 +152,12 @@ export const createApexClass = async (params?: CreateApexClassParams): Promise<v
   Effect.runPromise(
     commandEffect(params).pipe(
       Effect.provide(AllServicesLayer),
-      Effect.catchAll((error: Error) => {
-        if (error instanceof UserCancelledOverwriteError) {
-          return Effect.void; // not an error, they meant to cancel
-        }
-        void vscode.window.showErrorMessage(nls.localize('failed_to_create_apex_class', error.message));
-        return Effect.succeed(undefined);
-      })
+      Effect.catchTag('UserCancelledOverwriteError', () => Effect.void), // it's fine, they meant to
+      Effect.catchAll((error: Error) =>
+        Effect.promise(() =>
+          vscode.window.showErrorMessage(error instanceof Error ? error.message : String(error))
+        ).pipe(Effect.as(undefined))
+      )
     )
   );
 

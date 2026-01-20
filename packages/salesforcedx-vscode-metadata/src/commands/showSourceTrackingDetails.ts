@@ -9,6 +9,7 @@ import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as Effect from 'effect/Effect';
 import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { separateChanges } from '../statusBar/helpers';
 
 type ViewChangesOptions = { local: boolean; remote: boolean };
 
@@ -28,12 +29,7 @@ const viewChangesEffect = Effect.fn('viewChanges')(function* (options: ViewChang
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
   const channel = yield* channelService.getChannel;
-  const tracking = yield* Effect.flatMap(api.services.SourceTrackingService, svc => svc.getSourceTracking());
-
-  if (!tracking) {
-    yield* channelService.appendToChannel('No source tracking available for this org');
-    return;
-  }
+  const tracking = yield* Effect.flatMap(api.services.SourceTrackingService, svc => svc.getSourceTrackingOrThrow());
 
   // Re-read both remote and local tracking to ensure fresh data
   yield* Effect.all(
@@ -43,11 +39,11 @@ const viewChangesEffect = Effect.fn('viewChanges')(function* (options: ViewChang
     ],
     { concurrency: 'unbounded' }
   );
-  const status = (yield* Effect.tryPromise(() => tracking.getStatus(options))).filter(row => !row.ignored);
+  const status = yield* Effect.promise(() => tracking.getStatus(options));
+  const { localChanges: allLocalChanges, remoteChanges: allRemoteChanges, conflicts } = separateChanges(status);
 
-  const remoteChanges = options.remote ? status.filter(row => row.origin === 'remote' && !row.conflict) : undefined;
-  const localChanges = options.local ? status.filter(row => row.origin === 'local' && !row.conflict) : undefined;
-  const conflicts = status.filter(row => row.conflict);
+  const remoteChanges = options.remote ? allRemoteChanges : undefined;
+  const localChanges = options.local ? allLocalChanges : undefined;
 
   const title =
     options.local && options.remote

@@ -12,22 +12,19 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
-import { WorkspaceService } from '../vscode/workspaceService';
-import { ConfigService } from './configService';
-import { ConnectionService } from './connectionService';
+import { ComponentSetService } from './componentSetService';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { MetadataRetrieveService } from './metadataRetrieveService';
-import { ProjectService } from './projectService';
-import { fileResponseHasPath, isFileResponseSuccess } from './sdrGuards';
-import { SourceTrackingService } from './sourceTrackingService';
+import { fileResponseHasPath } from './sdrGuards';
 
 export const filterFileResponses = Effect.fn('filterFileResponses')(function* (
   fileResponses: FileResponse[],
   members: MetadataMember[]
 ) {
+  const componentSetService = yield* ComponentSetService;
   const allowedSuffixes = yield* getAllowedSuffixes(members);
   return fileResponses
-    .filter(isFileResponseSuccess)
+    .filter(componentSetService.isSDRSuccess)
     .filter(fileResponseHasPath)
     .map(fileResponse => fileResponse.filePath?.replaceAll('\\', '/'))
     .filter(filePath => allowedSuffixes.some(suffix => filePath.endsWith(suffix)));
@@ -65,19 +62,7 @@ const getAllowedSuffixes = Effect.fn('getAllowedSuffixes')(function* (members: M
 });
 
 /** Effect to retrieve metadata on load based on setting */
-export const retrieveOnLoadEffect = (): Effect.Effect<
-  void,
-  Error,
-  | SettingsService
-  | MetadataRetrieveService
-  | ChannelService
-  | WorkspaceService
-  | ConnectionService
-  | ProjectService
-  | ConfigService
-  | MetadataRegistryService
-  | SourceTrackingService
-> =>
+export const retrieveOnLoadEffect = () =>
   Effect.gen(function* () {
     const [settingsService, channelService] = yield* Effect.all([SettingsService, ChannelService], {
       concurrency: 'unbounded'

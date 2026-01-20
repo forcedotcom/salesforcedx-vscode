@@ -38,13 +38,51 @@ export const messages = {
   apex_class_already_exists: 'One or more files already exist. Do you want to overwrite them?',
   apex_generate_class_success: 'Apex class created successfully',
   deploy_no_local_changes_message: 'No local changes to deploy',
+  deploy_no_components_message: 'No components found to deploy',
   deploy_completed_with_errors_message: 'Deploy completed with errors. Check output for details.',
+  deploy_this_source_text: 'SFDX: Deploy This Source to Org',
+  deploy_in_manifest_text: 'SFDX: Deploy Source in Manifest to Org',
+  deploy_select_file_or_directory: 'You can run SFDX: Deploy This Source to Org only on a source file or directory.',
+  deploy_select_manifest: 'You can run SFDX: Deploy Source in Manifest to Org only on a manifest file.',
   failed_to_create_apex_class: 'Failed to create Apex class: %s',
 
   // Deploy on save
   deploy_on_save_error_no_target_org:
     'Error running deploy on save: No default org is set. Run "SFDX: Authorize an Org", then deploy the changes that you just saved.',
-  deploy_on_save_error_generic: 'Deploy on save failed: %s'
+  deploy_on_save_error_generic: 'Deploy on save failed: %s',
+  deploy_failed: 'Failed to deploy: %s',
+  retrieve_this_source_text: 'SFDX: Retrieve This Source from Org',
+  retrieve_in_manifest_text: 'SFDX: Retrieve Source in Manifest from Org',
+  retrieve_select_file_or_directory:
+    'You can run SFDX: Retrieve This Source from Org only on a source file or directory.',
+  retrieve_select_manifest: 'You can run SFDX: Retrieve Source in Manifest from Org only on a manifest file.',
+  retrieve_completed_with_errors_message: 'Retrieve completed with errors. Check output for details.',
+  retrieve_no_components_message: 'No components found to retrieve',
+  retrieve_source_conflicts_detected: 'Conflicts detected. Resolve conflicts before retrieving. \n Conflicts: %s',
+  retrieve_failed: 'Failed to retrieve: %s',
+  error_source_tracking_service_failed: 'Failed to initialize source tracking service.',
+  error_source_tracking_components_failed: 'Failed to retrieve components using source tracking: %s',
+  delete_source_text: 'SFDX: Delete from Project and Org',
+  delete_source_select_file_or_directory:
+    'You can run SFDX: Delete from Project and Org only on a source file or directory.',
+  delete_source_confirmation_message:
+    'Deleting source files deletes the files from your computer and removes the corresponding metadata from your default org. Are you sure you want to delete this source from your project and your org?',
+  confirm_delete_source_button_text: 'Delete Source',
+  cancel_delete_source_button_text: 'Cancel',
+  delete_source_conflicts_detected: 'Conflicts detected. Resolve conflicts before deleting.',
+  delete_source_no_components_found: 'No components found to delete',
+  delete_source_operation_failed: 'Delete operation failed',
+  delete_completed_with_errors_message: 'Delete completed with errors. Check output for details.',
+  delete_failed: 'Failed to delete: %s',
+  manifest_input_save_placeholder: 'Enter a unique manifest file name (without file extension)',
+  manifest_input_save_prompt: 'Press Enter to confirm your input or Escape to cancel and view unsaved manifest file',
+  manifest_generation_cancelled: 'SFDX: Generate Manifest File was cancelled.',
+  manifest_input_dupe_error: 'Manifest with the name %s already exists. Delete this manifest or use another name.',
+  manifest_overwrite_confirmation: 'Manifest file "%s" already exists. Do you want to overwrite it?',
+  project_generate_manifest_text: 'SFDX: Generate Manifest File',
+  generate_manifest_select_file_or_directory:
+    'You can run SFDX: Generate Manifest File only on a source file or directory.',
+  generate_manifest_failed: 'Generate manifest failed: %s'
 } as const;
 
 export type MessageKey = keyof typeof messages;

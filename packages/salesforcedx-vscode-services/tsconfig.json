@@ -10,7 +10,7 @@
     ]
   },
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
-  "include": ["src/**/*.ts", "test/**/*.ts", "playwright.config.web.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "playwright.config.web.ts", "scripts/**/*.ts"],
   "references": [
     {
       "path": "../playwright-vscode-ext"

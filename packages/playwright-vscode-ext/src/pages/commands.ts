@@ -5,28 +5,144 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Page } from '@playwright/test';
-import { QUICK_INPUT_WIDGET } from '../utils/locators';
+import { expect, Page } from '@playwright/test';
+import { closeWelcomeTabs, dismissAllQuickInputWidgets } from '../utils/helpers';
+import { QUICK_INPUT_WIDGET, QUICK_INPUT_LIST_ROW, WORKBENCH } from '../utils/locators';
 
 export const openCommandPalette = async (page: Page): Promise<void> => {
-  await page.keyboard.press('F1');
-  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 3000 });
+  const widget = page.locator(QUICK_INPUT_WIDGET);
+  const workbench = page.locator(WORKBENCH);
+
+  // Close welcome tabs before opening command palette
+  await closeWelcomeTabs(page);
+
+  // Dismiss any existing quick input widgets
+  await dismissAllQuickInputWidgets(page);
+
+  // Wrap the entire open sequence in retry logic
+  await expect(async () => {
+    // Bring page to front to ensure VS Code window is active (critical on Windows)
+    await page.bringToFront();
+
+    // Click workbench to ensure focus is not on walkthrough elements
+    await workbench.click({ timeout: 5000 });
+
+    // Small delay to allow Windows to process focus change before F1 keypress
+    // On Windows, F1 can trigger Windows Search if VS Code doesn't have focus
+    await page.waitForTimeout(100);
+
+    // Press F1 to open command palette
+    await page.keyboard.press('F1');
+
+    // Wait for widget to be visible (not just attached)
+    await expect(widget).toBeVisible({ timeout: 5000 });
+
+    // Verify input is ready
+    const input = widget.locator('input.input');
+    await expect(input).toBeVisible({ timeout: 5000 });
+    await expect(input).toHaveValue(/^>/, { timeout: 5000 });
+  }).toPass({ timeout: 20_000 });
 };
 
-export const executeCommand = async (page: Page, command: string): Promise<void> => {
-  await page.keyboard.type(command, { delay: 10 });
-  // Use text content matching to find exact command (bypasses MRU prioritization)
-  await page.locator('.monaco-list-row').filter({ hasText: command }).first().click();
+const executeCommand = async (page: Page, command: string, hasNotText?: string): Promise<void> => {
+  const widget = page.locator(QUICK_INPUT_WIDGET);
+  const input = widget.locator('input.input');
+
+  // Ensure widget and input are visible - if not, openCommandPalette should have handled it
+  await expect(widget).toBeVisible({ timeout: 5000 });
+  await expect(input).toBeVisible({ timeout: 5000 });
+  // Click input directly to ensure focus (Windows needs explicit click, focus() alone may not work)
+  await input.click({ timeout: 5000 });
+  await expect(input).toHaveValue(/^>/, { timeout: 5000 });
+
+  // Type the command after the '>' prefix - retry if VS Code filtering interrupts typing
+  const escapedCommand = command.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  await expect(async () => {
+    await page.keyboard.press('End');
+    await input.pressSequentially(command, { delay: 5 });
+    await page.waitForTimeout(50); // let the command filter complete
+    // Verify typing was successful
+    await expect(input).toHaveValue(new RegExp(`>.*${escapedCommand}`, 'i'), { timeout: 5000 });
+  }).toPass({ timeout: 15_000 });
+
+  // Wait for command list to appear and stabilize
+  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
+
+  const listRows = widget.locator(QUICK_INPUT_LIST_ROW);
+  await expect(async () => {
+    const count = await listRows.count();
+    expect(count, 'Command list should have at least one row').toBeGreaterThan(0);
+    const commandLower = command.toLowerCase();
+    const availableCommands: string[] = [];
+    for (let i = 0; i < Math.min(count, 20); i++) {
+      const rowText = await listRows.nth(i).textContent();
+      if (rowText) {
+        const text = rowText.trim();
+        availableCommands.push(text);
+        if (text.toLowerCase().includes(commandLower)) {
+          return;
+        }
+      }
+    }
+    throw new Error(
+      `Command "${command}" not found in filtered list. Available commands (first ${availableCommands.length}): ${availableCommands.join(' | ')}`
+    );
+  }).toPass({ timeout: 10_000 });
+
+  // Find and click the command row
+  const commandRow = widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: command, hasNotText }).first();
+
+  await expect(commandRow).toBeAttached({ timeout: 10_000 });
+
+  // For virtualized lists, use evaluate to scroll and click (more reliable than Playwright's click)
+  await commandRow.evaluate(el => {
+    el.scrollIntoView({ block: 'center', behavior: 'instant' });
+    (el as HTMLElement).click();
+  });
+
+  // Wait for the command palette to close after executing the command
+  await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+    // If it doesn't close (e.g., multi-step commands), that's ok
+  });
 };
 
-export const executeCommandWithCommandPalette = async (page: Page, command: string): Promise<void> => {
+export const executeCommandWithCommandPalette = async (
+  page: Page,
+  command: string,
+  hasNotText?: string
+): Promise<void> => {
   await openCommandPalette(page);
-  await executeCommand(page, command);
+  await executeCommand(page, command, hasNotText);
 };
 
-/** Reload VS Code window and wait for it to be ready */
-export const reloadWindow = async (page: Page): Promise<void> => {
-  await executeCommandWithCommandPalette(page, 'Developer: Reload Window');
-  // Wait for workbench to be visible again after reload
-  await page.locator('.monaco-workbench').waitFor({ state: 'visible', timeout: 60_000 });
+/** Verify a command does not exist in the command palette */
+export const verifyCommandDoesNotExist = async (page: Page, commandText: string): Promise<void> => {
+  await openCommandPalette(page);
+  const widget = page.locator(QUICK_INPUT_WIDGET);
+  const input = widget.locator('input.input');
+
+  await expect(input).toBeVisible({ timeout: 5000 });
+  // Click input directly to ensure focus (Windows needs explicit click, focus() alone may not work)
+  await input.click({ timeout: 5000 });
+  await input.pressSequentially(commandText, { delay: 5 });
+
+  // Wait for command list to appear
+  await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
+
+  const listRows = widget.locator(QUICK_INPUT_LIST_ROW);
+  const first20Rows = (await listRows.all()).slice(0, 20);
+
+  // Check that the command is not in the list
+  for (const row of first20Rows) {
+    const rowText = await row.textContent();
+    if (rowText?.trim().toLowerCase().includes(commandText.toLowerCase())) {
+      throw new Error(`Command "${commandText}" should not exist but was found in command palette`);
+    }
+  }
+
+  // Close command palette
+  await page.keyboard.press('Escape');
+  await widget.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+    // Ignore if already closed
+  });
 };

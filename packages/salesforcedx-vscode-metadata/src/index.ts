@@ -9,10 +9,17 @@ import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { createApexClass } from './commands/createApexClass';
-import { projectDeployStart } from './commands/deployStart/projectDeployStart';
+import { deleteSourcePaths } from './commands/deleteSourcePath';
+import { deployManifest } from './commands/deployManifest';
+import { deployActiveEditor, deploySourcePaths } from './commands/deploySourcePath';
+import { generateManifest } from './commands/generateManifest';
+import { projectDeployStart } from './commands/projectDeployStart';
+import { resetRemoteTracking } from './commands/resetRemoteTracking';
+import { retrieveManifest } from './commands/retrieveManifest';
+import { retrieveSourcePaths } from './commands/retrieveSourcePath';
 import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
 import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './commands/showSourceTrackingDetails';
-import { EXTENSION_NAME } from './constants';
+import { DEPLOY_ON_SAVE_ENABLED, EXTENSION_NAME, METADATA_CONFIG_SECTION } from './constants';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
 import { closeExtensionScope, getExtensionScope } from './services/extensionScope';
@@ -42,19 +49,37 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   // Register shared commands only if core extension is not installed or config enables it
   if (shouldRegisterSharedCommands()) {
-    vscode.commands.executeCommand('setContext', 'salesforcedx-vscode-metadata.showSharedCommands', true);
+    yield* Effect.promise(() =>
+      vscode.commands.executeCommand('setContext', 'salesforcedx-vscode-metadata.showSharedCommands', true)
+    );
 
     yield* svc.appendToChannel('Registering shared commands (core extension not present or config enabled)');
     context.subscriptions.push(
       vscode.commands.registerCommand('sf.project.deploy.start', async () => projectDeployStart(false)),
       vscode.commands.registerCommand('sf.project.deploy.start.ignore.conflicts', async () => projectDeployStart(true)),
-      vscode.commands.registerCommand('sf.project.retrieve.start', projectRetrieveStart),
+      vscode.commands.registerCommand('sf.project.retrieve.start', async () => projectRetrieveStart(false)),
+      vscode.commands.registerCommand('sf.project.retrieve.start.ignore.conflicts', async () =>
+        projectRetrieveStart(true)
+      ),
       vscode.commands.registerCommand('sf.view.all.changes', viewAllChanges),
       vscode.commands.registerCommand('sf.view.local.changes', viewLocalChanges),
       vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
-      vscode.commands.registerCommand('sf.apex.generate.class', createApexClass)
+      vscode.commands.registerCommand('sf.source.tracking.reset.remote', resetRemoteTracking),
+      vscode.commands.registerCommand('sf.apex.generate.class', createApexClass),
+      vscode.commands.registerCommand('sf.delete.source', deleteSourcePaths),
+      vscode.commands.registerCommand('sf.delete.source.current.file', deleteSourcePaths),
+      vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
+      vscode.commands.registerCommand('sf.deploy.active.editor', deployActiveEditor),
+      vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest),
+      vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths),
+      vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
+      vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest),
+      vscode.commands.registerCommand('sf.project.generate.manifest', generateManifest)
     );
 
+    if (process.env.ESBUILD_PLATFORM === 'web') {
+      vscode.workspace.getConfiguration(METADATA_CONFIG_SECTION).update(DEPLOY_ON_SAVE_ENABLED, true);
+    }
     // Start deploy on save service only if this extension handles shared commands
     yield* Effect.forkIn(createDeployOnSaveService(), yield* getExtensionScope());
   }

@@ -6,14 +6,23 @@
  */
 
 import { Org, Connection, ConfigAggregator } from '@salesforce/core';
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 
+export class GetOrgFromConnectionError extends Data.TaggedError('GetOrgFromConnectionError')<{
+  readonly cause: unknown;
+}> {}
+
 /** passing in a configAggregator is highly recommended to avoid sfdx-core creating a new one  */
-export const getOrgFromConnection = (
-  connection: Connection,
-  aggregator?: ConfigAggregator
-): Effect.Effect<Org, Error> =>
+export const getOrgFromConnection = (connection: Connection, aggregator?: ConfigAggregator) =>
   Effect.tryPromise({
     try: () => Org.create({ connection, aggregator }),
-    catch: error => new Error('Failed to create Org', { cause: error })
+    catch: error => new GetOrgFromConnectionError({ cause: error })
   }).pipe(Effect.withSpan('Org.create'));
+
+export const unknownToErrorCause = (error: unknown): { cause: Error } => {
+  if (error instanceof Error) {
+    return { cause: error };
+  }
+  return { cause: new Error(String(error)) };
+};
