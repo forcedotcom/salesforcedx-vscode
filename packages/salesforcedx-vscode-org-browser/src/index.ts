@@ -54,12 +54,12 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   yield* Effect.forkDaemon(
     api.services.TargetOrgRef.changes.pipe(
-      Stream.filter(org => org && typeof org === 'object' && 'orgId' in org),
       Stream.runForEach(org =>
         Effect.all([
           svc.appendToChannel(`Target org changed to ${JSON.stringify(org)}`),
-          // if the org is blanked, we'll refresh the tree to get it set again from a fresh config/connection
-          org.orgId ? Effect.void : Effect.promise(() => treeProvider.refreshType())
+          // Refresh the entire tree whenever the default org changes (SubscriptionRef.changes only emits on actual changes)
+          // Pass undefined to refreshType to refresh the root and fire change event to update the entire tree view
+          Effect.promise(() => treeProvider.refreshType())
         ])
       )
     )
