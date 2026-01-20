@@ -35,6 +35,9 @@ export const WORKSPACE_CONTEXT_ORG_ID_ERROR = 'workspace_context_org_id_error';
 /**
  * Manages the context of a workspace during a session with an open SFDX Project.
  */
+// Use global symbol to ensure singleton across all bundles
+const WORKSPACE_CONTEXT_SYMBOL = Symbol.for('salesforce.workspaceContextUtil.singleton');
+
 export class WorkspaceContextUtil {
   protected static instance?: WorkspaceContextUtil;
   private static instanceCounter = 0;
@@ -85,13 +88,22 @@ export class WorkspaceContextUtil {
 
   public static getInstance(forceNew = false): WorkspaceContextUtil {
     console.log('workspaceContextUtil.ts - enter getInstance()');
-    if (!this.instance || forceNew) {
-      console.log('workspaceContextUtil.ts getInstance() - 1');
-      this.instance = new WorkspaceContextUtil();
+
+    // Use global symbol to ensure singleton across all extension bundles
+    // @ts-ignore - Using global for cross-bundle singleton
+    const globalObj: Record<symbol, WorkspaceContextUtil> = global;
+
+    if (!globalObj[WORKSPACE_CONTEXT_SYMBOL] || forceNew) {
+      console.log('workspaceContextUtil.ts getInstance() - 1 (creating NEW global instance)');
+      globalObj[WORKSPACE_CONTEXT_SYMBOL] = new WorkspaceContextUtil();
       console.log('workspaceContextUtil.ts getInstance() - 2');
+    } else {
+      console.log('workspaceContextUtil.ts getInstance() - using EXISTING global instance');
     }
+
+    this.instance = globalObj[WORKSPACE_CONTEXT_SYMBOL];
     console.log('workspaceContextUtil.ts - exit getInstance()');
-    return this.instance;
+    return this.instance!;
   }
 
   public async getConnection(): Promise<Connection> {
