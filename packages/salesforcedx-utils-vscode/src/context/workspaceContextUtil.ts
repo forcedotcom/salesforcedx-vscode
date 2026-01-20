@@ -156,14 +156,14 @@ export class WorkspaceContextUtil {
         }
 
         // we only want to display one message per username, even though many consumers are requesting connections.
-        console.log(
-          `workspaceContextUtil.ts getConnection() - 18.9 (instance: ${this.instanceId}, knownBad: ${this.knownBadConnections.has(this._username)}, activePrompt: ${this.activeLoginPrompts.has(this._username)})`
-        );
+        // Check and set flags atomically to prevent race conditions
         if (!this.knownBadConnections.has(this._username) && !this.activeLoginPrompts.has(this._username)) {
+          // Set flag IMMEDIATELY to block concurrent calls
+          this.knownBadConnections.add(this._username);
+
           console.log(
             `workspaceContextUtil.ts getConnection() - 19 (CREATING DIALOG from instance ${this.instanceId})`
           );
-          this.knownBadConnections.add(this._username);
 
           // Capture username for use in async closure
           const username = this._username;
