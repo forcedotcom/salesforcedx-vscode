@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "65.13.1",
+  "version": "65.14.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -35,7 +35,6 @@
     "@salesforce/core": "^8.23.2",
     "@salesforce/salesforcedx-sobjects-faux-generator": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
-    "@salesforce/soql-builder-ui": "1.0.0",
     "@salesforce/soql-data-view": "0.1.0",
     "@salesforce/soql-language-server": "0.7.1",
     "@salesforce/soql-model": "1.0.0",
@@ -46,11 +45,20 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@lwc/eslint-plugin-lwc": "^0.12.2",
+    "@lwc/jest-preset": "^7.0.0",
+    "@salesforce/eslint-config-lwc": "^0.11.0",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/ts-types": "2.0.12",
+    "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
-    "esbuild": "0.25.12",
-    "salesforcedx-vscode-core": "*"
+    "esbuild": "0.25.10",
+    "immutable": "3.8.2",
+    "lwc-services": "^3.0.2",
+    "rxjs": "^6.6.2",
+    "salesforcedx-vscode-core": "*",
+    "terser-webpack-plugin": "^5.1.1",
+    "util": "^0.12.3"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-core"
@@ -59,8 +67,9 @@
     "vscode:bundle": "wireit",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist",
     "copy:grammars": "wireit",
+    "build:soql-builder-ui": "wireit",
     "test": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -98,16 +107,32 @@
         "grammars/soql.tmLanguage"
       ]
     },
+    "build:soql-builder-ui": {
+      "command": "cd src/soql-builder-ui && npm install && export NODE_OPTIONS=--openssl-legacy-provider && npx lwc-services build -w webpack.config.js -m production",
+      "files": [
+        "src/soql-builder-ui/*.{ts,html}",
+        "src/soql-builder-ui/modules/**",
+        "src/soql-builder-ui/webpack.config.js",
+        "src/soql-builder-ui/lwc.config.json",
+        "src/soql-builder-ui/lwc-services.config.js",
+        "src/soql-builder-ui/package.json"
+      ],
+      "output": [
+        "src/soql-builder-ui/dist/**"
+      ]
+    },
     "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
-        "copy:grammars"
+        "copy:grammars",
+        "build:soql-builder-ui"
       ],
       "files": [
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
-        "out/**"
+        "out/**",
+        "src/soql-builder-ui/dist/**"
       ],
       "output": [
         "dist"
@@ -129,7 +154,7 @@
       ]
     },
     "lint": {
-      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "command": "../../node_modules/.bin/eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
         "../eslint-local-rules:compile"
       ],

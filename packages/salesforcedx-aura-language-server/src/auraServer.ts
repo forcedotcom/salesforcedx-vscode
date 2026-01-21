@@ -430,6 +430,10 @@ export default class Server {
   public async onDidChangeWatchedFiles(change: DidChangeWatchedFilesParams): Promise<void> {
     const changes = change.changes;
 
+    if (!this.isDelayedInitializationComplete) {
+      return;
+    }
+
     try {
       if (isAuraRootDirectoryCreated(this.context, changes)) {
         this.context.getIndexingProvider('aura')?.resetIndex();

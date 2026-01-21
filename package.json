@@ -38,7 +38,7 @@
     "@tsconfig/node22": "22.0.2",
     "@types/chai": "^4.3.17",
     "@types/cross-spawn": "6.0.6",
-    "@types/jest": "^29.5.5",
+    "@types/jest": "^29.5.12",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.15.1",
     "@types/semver": "7.5.8",
@@ -316,7 +316,6 @@
     },
     "precommit": {
       "dependencies": [
-        "compile",
         "lint",
         "check:peer-deps",
         "check:typescript-project-references",
@@ -325,7 +324,6 @@
     },
     "prepush": {
       "dependencies": [
-        "compile",
         "lint",
         "test"
       ]

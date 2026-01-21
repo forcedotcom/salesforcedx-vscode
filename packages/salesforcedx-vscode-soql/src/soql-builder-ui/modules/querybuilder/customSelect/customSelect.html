@@ -1,0 +1,72 @@
+<template>
+  <main class="custom-select">
+    <div class="select__wrapper">
+      <input
+        class="select__input"
+        name="search-bar"
+        placeholder={placeholderText}
+        value={displayValue}
+        oninput={handleInputChange}
+        onclick={handleOpenOptions}
+        onkeydown={handleKeyDown}
+        onfocus={handleInputFocus}
+        onblur={handleInputFocus}
+        maxlength="40"
+      />
+      <template if:true={hasSearchTerm}>
+        <div
+          role="button"
+          onclick={handleClearSearch}
+          class="select__clear-search"
+        >
+          <!-- close icon '×' -->
+          &#10005;
+        </div>
+      </template>
+      <template if:false={hasSearchTerm}>
+        <!-- down arrow -->
+        <div
+          tabindex="0"
+          role="button"
+          onkeydown={handleKeyDown}
+          onclick={toggleOpenOptions}
+          class={dropDownArrowClassList}
+          data-el-chevron
+        >
+          <svg height="10" width="12">
+            <line
+              x1="2"
+              y1="2"
+              x2="5.5"
+              y2="5.5"
+              style="stroke-width: 1.75; stroke-linecap: square"
+            />
+            <line
+              x1="5.5"
+              y1="5.5"
+              x2="9"
+              y2="2"
+              style="stroke-width: 1.75; stroke-linecap: square"
+            />
+          </svg>
+        </div>
+      </template>
+    </div>
+    <div class="options__wrapper" aria-hidden={optionListIsHidden}>
+      <template for:each={_renderedOptions} for:item="optionName">
+        <p
+          onclick={handleOptionClickSelection}
+          key={optionName}
+          class="option"
+          data-option-value={optionName}
+        >
+          {optionName}
+        </p>
+      </template>
+      <template if:true={noResultsFound}>
+        <!-- i18n -->
+        <p class="option option--disabled">No results found.</p>
+      </template>
+    </div>
+  </main>
+</template>
