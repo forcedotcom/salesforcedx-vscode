@@ -139,7 +139,6 @@ describe('Debug Apex Tests', () => {
 
   it('Debug all Apex Methods on a Class via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Debug All Apex Methods on a Class via the Test Sidebar');
-    const workbench = getWorkbench();
 
     await retryOperation(
       async () => {
@@ -149,34 +148,21 @@ describe('Debug Apex Tests', () => {
       'DebugApexTests - Error focusing on test explorer view'
     );
 
-    // Open the Test Sidebar - now uses VS Code's native Test Explorer
-    const testExplorerSection = await retryOperation(
-      async () => await getTestsSection(workbench, 'Test Explorer'),
-      3,
-      'DebugApexTests - Error getting test explorer section'
-    );
-    const expectedItems = ['ExampleApexClass1Test', 'ExampleApexClass2Test'];
-
-    // Click Refresh Tests and verify expected test items appear
-    await testExplorerSection.click();
-    const refreshTestsAction = await testExplorerSection.getAction('Refresh Tests (⌘; ⌘R)');
-    await refreshTestsAction!.click();
-    await pause(Duration.seconds(5));
-
     await retryOperation(
-      async () => {
-        await verifyTestItems(expectedItems);
-      },
+      async () => executeQuickPick('Test: Refresh Tests', Duration.seconds(1)),
       3,
-      'DebugApexTests - Error verifying test items in sidebar'
+      'DebugApexTests - Error refreshing test explorer'
     );
+    await pause(Duration.seconds(20)); // Wait for the tests to load
+
+    const expectedItems = ['ExampleApexClass1Test', 'ExampleApexClass2Test'];
+    await verifyTestItems(expectedItems);
 
     // Click the debug tests button that is shown to the right when you hover a test class name on the Test sidebar
     let apexTestItem: TestTreeItem;
     await retryOperation(
       async () => {
         await pause(Duration.seconds(2));
-        await testExplorerSection.click();
         apexTestItem = await findTestItemByName('ExampleApexClass1Test');
         await apexTestItem.click();
       },

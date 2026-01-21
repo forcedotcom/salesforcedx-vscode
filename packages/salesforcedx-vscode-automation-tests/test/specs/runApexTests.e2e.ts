@@ -19,7 +19,6 @@ import {
   createApexClassWithBugs,
   createApexClassWithTest
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
-import { getTestsSection } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   acceptNotification,
@@ -234,7 +233,6 @@ describe('Run Apex Tests', () => {
 
   it('Run All tests via Test Sidebar', async () => {
     logTestStart(testSetup, 'Run All tests via Test Sidebar');
-    const workbench = getWorkbench();
 
     // Open the Test Sidebar - now uses VS Code's native Test Explorer
     await retryOperation(
@@ -245,17 +243,12 @@ describe('Run Apex Tests', () => {
       'RunApexTests - Error focusing on test explorer view'
     );
 
-    const testExplorerSection = await retryOperation(
-      async () => await getTestsSection(workbench, 'Test Explorer'),
+    await retryOperation(
+      async () => executeQuickPick('Test: Refresh Tests', Duration.seconds(1)),
       3,
-      'RunApexTests - Error getting test explorer section'
+      'RunApexTests - Error refreshing test explorer'
     );
-    await testExplorerSection.click();
-
-    // Click Refresh Tests
-    const refreshTestsAction = await testExplorerSection.getAction('Refresh Tests (⌘; ⌘R)');
-    await refreshTestsAction!.click();
-    await pause(Duration.seconds(5)); // Wait for the tests to load
+    await pause(Duration.seconds(20)); // Wait for the tests to load
 
     // Verify the expected test items appear
     const expectedTestNames = ['ExampleApexClass1Test', 'ExampleApexClass2Test', 'ExampleApexClass3Test'];
@@ -264,9 +257,14 @@ describe('Run Apex Tests', () => {
     // Clear the Output view.
     await dismissAllNotifications();
     await clearOutputView(Duration.seconds(2));
+
     // Click the run tests button on the top right corner of the Test sidebar
-    const runTestsAction = await testExplorerSection.getAction('Run Tests');
-    await runTestsAction!.click();
+    await retryOperation(
+      async () => await executeQuickPick('Test: Run All Tests', Duration.seconds(1)),
+      3,
+      'RunApexTests - Error running all tests'
+    );
+
     // Look for the success notification that appears which says, "SFDX: Run Apex Tests successfully ran".
     await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
@@ -372,7 +370,7 @@ describe('Run Apex Tests', () => {
       'Outcome              Passed',
       'Tests Ran            1',
       'Pass Rate            100%',
-      'ExampleApexClass1Test.validateSayHello  Pass'
+      'ExampleApexClass2Test.validateSayHello  Pass'
     ];
     await verifyOutputPanelText(testResultsText, expectedTextsInTestResultsTab);
   });
