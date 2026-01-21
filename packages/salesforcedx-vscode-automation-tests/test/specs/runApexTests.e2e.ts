@@ -347,7 +347,7 @@ describe('Run Apex Tests', () => {
     await pause(Duration.seconds(5)); // Wait for the tests to load
     const testMethodItem = await findTestItemByName('validateSayHello');
     await pause(Duration.seconds(5));
-    await testMethodItem.select();
+    await testMethodItem.click();
 
     // Click Run Test action on the test method
     const runTestAction = await testMethodItem.getActionButton('Run Test');
