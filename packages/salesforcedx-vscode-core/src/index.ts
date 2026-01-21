@@ -179,6 +179,7 @@ const setupOrgBrowser = async (extensionContext: vscode.ExtensionContext): Promi
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeCoreApi> => {
   const activationStartTime = TimingUtils.getCurrentTime();
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
+
   const rootWorkspacePath = getRootWorkspacePath();
   // Switch to the project directory so that the main @salesforce
   // node libraries work correctly.  @salesforce/core,
@@ -195,13 +196,18 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   setSfLogLevel();
   await telemetryService.initializeService(extensionContext);
   void showTelemetryMessage(extensionContext);
+
   // Task View
   const treeDataProvider = vscode.window.registerTreeDataProvider('sf.tasks.view', taskViewService);
   extensionContext.subscriptions.push(treeDataProvider);
+
   // Set internal dev context
   const internalDev = salesforceCoreSettings.getInternalDev();
   void vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
+
+  // Set shared Auth State
   const sharedAuthState = SharedAuthState.getInstance();
+
   const api: SalesforceVSCodeCoreApi = {
     channelService,
     getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
@@ -236,9 +242,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
       CommandEventDispatcher
     }
   };
+
   if (internalDev) {
     // Internal Dev commands
     extensionContext.subscriptions.push(registerInternalDevCommands());
+
     telemetryService.sendExtensionActivationEvent(activationStartTime);
     reportExtensionPackStatus();
     console.log('SF CLI Extension Activated (internal dev mode)');
@@ -247,22 +255,25 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   // Context
   const salesforceProjectOpened = (await isSalesforceProjectOpened()).result;
-  // TODO: move this and the replay debugger commands to the apex extension
 
+  // TODO: move this and the replay debugger commands to the apex extension
   void vscode.commands.executeCommand(
     'setContext',
     'sf:replay_debugger_extension',
     vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex-replay-debugger') !== undefined
   );
+
   void vscode.commands.executeCommand('setContext', 'sf:project_opened', salesforceProjectOpened);
+
   // Set Code Builder context
   const codeBuilderEnabled = process.env.CODE_BUILDER === 'true';
   void vscode.commands.executeCommand('setContext', 'sf:code_builder_enabled', codeBuilderEnabled);
 
   // Set initial context
   await checkPackageDirectoriesEditorView();
+
   if (salesforceProjectOpened) {
-    await initializeProject(extensionContext); // THIS LINE FAILED
+    await initializeProject(extensionContext);
   }
 
   extensionContext.subscriptions.push(
@@ -274,16 +285,19 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     registerConflictView(),
     CommandEventDispatcher.getInstance()
   );
+
   if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
     // Refresh SObject definitions if there aren't any faux classes
     const sobjectRefreshStartup: boolean = vscode.workspace
       .getConfiguration(SFDX_CORE_CONFIGURATION_NAME)
       .get<boolean>(ENABLE_SOBJECT_REFRESH_ON_STARTUP, false);
+
     await initSObjectDefinitions(vscode.workspace.workspaceFolders[0].uri.fsPath, sobjectRefreshStartup);
   }
 
   void activateTracker.markActivationStop();
   reportExtensionPackStatus();
+
   // Handle trace flag cleanup after setting target org
   try {
     await handleTraceFlagCleanup(extensionContext);
@@ -300,12 +314,14 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 };
 
 const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
-  // await WorkspaceContext.getInstance().initialize(extensionContext);
   PersistentStorageService.initialize(extensionContext);
+
   // Register file watcher for push or deploy on save
   registerPushOrDeployOnSave();
+
   // Initialize metadata hover provider
   const metadataHoverProvider = new MetadataHoverProvider();
+
   await Promise.all([
     setupOrgBrowser(extensionContext),
     setupConflictView(extensionContext),
@@ -314,6 +330,7 @@ const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
     // Initialize metadata hover provider
     metadataHoverProvider.initialize()
   ]);
+
   // Register hover provider for XML files
   extensionContext.subscriptions.push(
     vscode.languages.registerHoverProvider({ scheme: 'file', language: 'xml' }, metadataHoverProvider)
