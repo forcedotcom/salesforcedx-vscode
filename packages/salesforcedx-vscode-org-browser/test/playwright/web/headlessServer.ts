@@ -22,9 +22,9 @@ const startHeadlessServer = async (): Promise<void> => {
     console.log(`📦 Services extension path: ${servicesExtensionPath}`);
 
     // Start the server - the open() function starts the server and keeps it running
-    // It may not resolve until the process is terminated, which is fine for Playwright's webServer
-    // Playwright will detect when the URL is ready (up to 120s timeout)
-    const serverPromise = open({
+    // We await it to keep the process alive - it will not resolve until the process is terminated
+    // Playwright's webServer will detect when the URL is ready (up to 120s timeout)
+    await open({
       browserType: 'chromium',
       headless: true,
       port: 3001,
@@ -47,18 +47,6 @@ const startHeadlessServer = async (): Promise<void> => {
           : [])
       ]
     });
-
-    // Handle server promise errors
-    serverPromise.catch((error: unknown) => {
-      console.error('❌ Server error:', error);
-      process.exit(1);
-    });
-
-    // Give the server a moment to start before Playwright tries to connect
-    // The open() promise will keep the process alive
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    console.log('✅ Server startup initiated. Playwright will detect when ready.');
   } catch (error) {
     console.error('❌ Failed to start headless server:', error);
     process.exit(1);
