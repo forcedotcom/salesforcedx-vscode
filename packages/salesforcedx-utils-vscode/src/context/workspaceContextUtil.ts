@@ -76,14 +76,17 @@ export class WorkspaceContextUtil {
     if (!this._username) {
       throw new Error(nls.localize('error_no_target_org'));
     }
+
     if (!this.sessionConnections.has(this._username)) {
       const connection = await Connection.create({
         authInfo: await AuthInfo.create({ username: this._username })
       });
       this.sessionConnections.set(this._username, { connection });
     }
+
     // it was either present or we just created it.
     const connectionDetails = this.sessionConnections.get(this._username)!;
+
     // if we won't be able to refresh the connection because it's access-token only
     // validate that it still works and provide a good error message if it's not
     if (connectionDetails.connection.getAuthInfo().isAccessTokenFlow()) {
@@ -92,10 +95,7 @@ export class WorkspaceContextUtil {
           connectionDetails.lastTokenValidationTimestamp === undefined ||
           Date.now() - connectionDetails.lastTokenValidationTimestamp > 1000 * 60 * 5 // 5 minutes
         ) {
-          await connectionDetails.connection.identity(); // THIS LINE FAILED
-          // There was no identity because the user was logged out.
-          // The issue is that this step is *part of the initialization of the CLI Integration extension*.
-          // Therefore the workaround was to login again via CLI.
+          await connectionDetails.connection.identity();
           clearKnownBadConnection(this._username);
           this.sessionConnections.set(this._username, {
             connection: connectionDetails.connection,
@@ -107,6 +107,7 @@ export class WorkspaceContextUtil {
         const channel = ChannelService.getInstance('Salesforce Org Management');
         channel.appendLine(`Error refreshing access token: ${util.inspect(e, { depth: null, showHidden: true })}`);
         channel.showChannelOutput();
+
         this.sessionConnections.delete(this._username);
 
         // Check if there's already an active login prompt for this user (shared across all extensions)
@@ -175,6 +176,7 @@ export class WorkspaceContextUtil {
     StateAggregator.clearInstance();
 
     const targetOrgOrAlias = await ConfigUtil.getTargetOrgOrAlias();
+
     if (targetOrgOrAlias) {
       this._username = await ConfigUtil.getUsernameFor(targetOrgOrAlias);
       this._alias = targetOrgOrAlias !== this._username ? targetOrgOrAlias : undefined;
