@@ -197,10 +197,9 @@ export class WorkspaceContextUtil {
                 console.log('workspaceContextUtil.ts getConnection() - 22');
                 await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
                 console.log('workspaceContextUtil.ts getConnection() - 23');
-              } else {
-                // User dismissed or cancelled - clear knownBadConnections so they can see the dialog again if needed
-                clearKnownBadConnection(username);
               }
+              // Note: We keep the username in knownBadConnections regardless of Cancel/Login
+              // This prevents other extensions from showing duplicate popups
               console.log('workspaceContextUtil.ts getConnection() - 24');
             } finally {
               resolvePromise!();
