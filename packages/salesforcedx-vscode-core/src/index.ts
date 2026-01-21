@@ -24,6 +24,7 @@ import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { SharedAuthState } from './auth/sharedAuthState';
 import { channelService } from './channels';
 import {
   aliasList,
@@ -213,6 +214,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   console.log('salesforcedx-vscode-core index.ts activate() - 11');
   void vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
   console.log('salesforcedx-vscode-core index.ts activate() - 12');
+  const sharedAuthState = SharedAuthState.getInstance();
   const api: SalesforceVSCodeCoreApi = {
     channelService,
     getTargetOrgOrAlias: workspaceContextUtils.getTargetOrgOrAlias,
@@ -231,6 +233,13 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     taskViewService,
     telemetryService,
     workspaceContextUtils,
+    getSharedLoginPrompt: (username: string) => sharedAuthState.getLoginPrompt(username),
+    setSharedLoginPrompt: (username: string, promise: Promise<void>) =>
+      sharedAuthState.setLoginPrompt(username, promise),
+    clearSharedLoginPrompt: (username: string) => sharedAuthState.clearLoginPrompt(username),
+    isKnownBadConnection: (username: string) => sharedAuthState.isKnownBad(username),
+    addKnownBadConnection: (username: string) => sharedAuthState.addKnownBad(username),
+    clearKnownBadConnection: (username: string) => sharedAuthState.clearKnownBad(username),
     services: {
       RegistryAccess,
       ChannelService,
@@ -425,6 +434,12 @@ export type SalesforceVSCodeCoreApi = {
   taskViewService: typeof taskViewService;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
+  getSharedLoginPrompt: (username: string) => Promise<void> | undefined;
+  setSharedLoginPrompt: (username: string, promise: Promise<void>) => void;
+  clearSharedLoginPrompt: (username: string) => void;
+  isKnownBadConnection: (username: string) => boolean;
+  addKnownBadConnection: (username: string) => void;
+  clearKnownBadConnection: (username: string) => void;
   services: {
     RegistryAccess: typeof RegistryAccess;
     ChannelService: typeof ChannelService;

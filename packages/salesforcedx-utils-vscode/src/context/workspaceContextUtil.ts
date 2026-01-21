@@ -11,6 +11,14 @@ import * as vscode from 'vscode';
 import { ConfigAggregatorProvider, TelemetryService } from '..';
 import { ChannelService } from '../commands/channelService';
 import { ConfigUtil } from '../config/configUtil';
+import {
+  addKnownBadConnection,
+  clearKnownBadConnection,
+  clearSharedLoginPrompt,
+  getSharedLoginPrompt,
+  isKnownBadConnection,
+  setSharedLoginPrompt
+} from '../helpers/authUtils';
 import { projectPaths } from '../helpers/paths';
 import { nls } from '../messages/messages';
 
@@ -40,8 +48,6 @@ export class WorkspaceContextUtil {
   protected _orgShape?: OrgShape;
   protected _devHubId?: string;
 
-  private knownBadConnections: Set<string> = new Set();
-  private activeLoginPrompts: Map<string, Promise<void>> = new Map();
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
@@ -121,7 +127,7 @@ export class WorkspaceContextUtil {
           // The issue is that this step is *part of the initialization of the CLI Integration extension*.
           // Therefore the workaround was to login again via CLI.
           console.log('workspaceContextUtil.ts getConnection() - 11');
-          this.knownBadConnections.delete(this._username);
+          clearKnownBadConnection(this._username);
           console.log('workspaceContextUtil.ts getConnection() - 12');
           this.sessionConnections.set(this._username, {
             connection: connectionDetails.connection,
@@ -142,34 +148,35 @@ export class WorkspaceContextUtil {
         this.sessionConnections.delete(this._username);
         console.log('workspaceContextUtil.ts getConnection() - 18');
 
-        // Check if there's already an active login prompt for this user
-        const existingPrompt = this.activeLoginPrompts.get(this._username);
+        // Check if there's already an active login prompt for this user (shared across all extensions)
+        const existingPrompt = await getSharedLoginPrompt(this._username);
         if (existingPrompt) {
-          console.log('workspaceContextUtil.ts getConnection() - 18A (waiting for existing prompt)');
+          console.log('workspaceContextUtil.ts getConnection() - 18A (waiting for existing shared prompt)');
           await existingPrompt;
           console.log('workspaceContextUtil.ts getConnection() - 18B');
           throw new Error('Unable to refresh your access token.  Please login again.');
         }
 
-        // we only want to display one message per username, even though many consumers are requesting connections.
+        // we only want to display one message per username across ALL extensions, even though many consumers are requesting connections.
+        const isKnownBad = isKnownBadConnection(this._username);
         console.log(
-          `workspaceContextUtil.ts getConnection() - 18.9 (instance: ${this.instanceId}, knownBad: ${this.knownBadConnections.has(this._username)}, activePrompt: ${this.activeLoginPrompts.has(this._username)})`
+          `workspaceContextUtil.ts getConnection() - 18.9 (instance: ${this.instanceId}, knownBad: ${isKnownBad}, hasActivePrompt: ${existingPrompt !== undefined})`
         );
-        if (!this.knownBadConnections.has(this._username) && !this.activeLoginPrompts.has(this._username)) {
+        if (!isKnownBad && !existingPrompt) {
           console.log(
             `workspaceContextUtil.ts getConnection() - 19 (CREATING DIALOG from instance ${this.instanceId})`
           );
-          this.knownBadConnections.add(this._username);
+          addKnownBadConnection(this._username);
 
           // Capture username for use in async closure
           const username = this._username;
 
-          // Create placeholder promise and register it IMMEDIATELY to block other concurrent calls
+          // Create placeholder promise and register it IMMEDIATELY in shared state to block other concurrent calls from ALL extensions
           let resolvePromise: () => void;
           const placeholderPromise = new Promise<void>(resolve => {
             resolvePromise = resolve;
           });
-          this.activeLoginPrompts.set(username, placeholderPromise);
+          setSharedLoginPrompt(username, placeholderPromise);
 
           // Create and execute the login prompt
           const dialogId = Date.now();
@@ -192,7 +199,7 @@ export class WorkspaceContextUtil {
                 console.log('workspaceContextUtil.ts getConnection() - 23');
               } else {
                 // User dismissed or cancelled - clear knownBadConnections so they can see the dialog again if needed
-                this.knownBadConnections.delete(username);
+                clearKnownBadConnection(username);
               }
               console.log('workspaceContextUtil.ts getConnection() - 24');
             } finally {
@@ -203,7 +210,7 @@ export class WorkspaceContextUtil {
           try {
             await placeholderPromise;
           } finally {
-            this.activeLoginPrompts.delete(username);
+            clearSharedLoginPrompt(username);
           }
         }
         console.log('workspaceContextUtil.ts getConnection() - 25');

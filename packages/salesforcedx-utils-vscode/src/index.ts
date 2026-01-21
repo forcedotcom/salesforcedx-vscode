@@ -74,6 +74,14 @@ export { isAlphaNumSpaceString, isIntegerInRange, isRecordIdFormat } from './hel
 export { errorToString } from './helpers/errorUtils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
 export {
+  getSharedLoginPrompt,
+  setSharedLoginPrompt,
+  clearSharedLoginPrompt,
+  isKnownBadConnection,
+  addKnownBadConnection,
+  clearKnownBadConnection
+} from './helpers/authUtils';
+export {
   getDevHubIdFromScratchOrg,
   getTargetOrgOrAlias,
   isASandboxOrg,
