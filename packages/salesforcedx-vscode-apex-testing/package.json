@@ -135,7 +135,7 @@
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json",
-    "onStartupFinished"
+    "onFileSystem:memfs"
   ],
   "main": "./dist/index.js",
   "browser": "./dist/web/index.js",
