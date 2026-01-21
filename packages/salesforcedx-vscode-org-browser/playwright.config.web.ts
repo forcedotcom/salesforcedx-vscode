@@ -44,6 +44,8 @@ export default defineConfig({
     command: 'node out/test/playwright/web/headlessServer.js',
     url: 'http://localhost:3001',
     timeout: 120 * 1000,
-    reuseExistingServer: !process.env.CI
+    reuseExistingServer: !process.env.CI,
+    stdout: 'pipe',
+    stderr: 'pipe'
   }
 });

@@ -15,16 +15,22 @@ const startHeadlessServer = async (): Promise<void> => {
     const extensionDevelopmentPath = path.resolve(__dirname, '..', '..', '..', '..');
     const servicesExtensionPath = path.resolve(extensionDevelopmentPath, '..', 'salesforcedx-vscode-services');
 
+    // Flush stdout immediately to ensure logs appear in CI
     console.log('🌐 Starting VS Code Web (headless) for Org Browser tests...');
+    process.stdout.write('', () => {}); // Force flush
 
     console.log(`📁 Extension path: ${extensionDevelopmentPath}`);
-
     console.log(`📦 Services extension path: ${servicesExtensionPath}`);
+    console.log(`🔧 CI environment: ${process.env.CI ? 'yes' : 'no'}`);
+    console.log('🌐 Target URL: http://localhost:3001');
 
     // Start the server - the open() function starts the server and keeps it running
     // We await it to keep the process alive - it will not resolve until the process is terminated
     // Playwright's webServer will detect when the URL is ready (up to 120s timeout)
-    await open({
+    console.log('🚀 Calling @vscode/test-web open()...');
+    process.stdout.write('', () => {}); // Force flush
+
+    const serverPromise = open({
       browserType: 'chromium',
       headless: true,
       port: 3001,
@@ -47,6 +53,19 @@ const startHeadlessServer = async (): Promise<void> => {
           : [])
       ]
     });
+
+    // Log that we've initiated the server start
+    console.log('✅ Server startup initiated. Waiting for server to be ready...');
+    process.stdout.write('', () => {}); // Force flush
+
+    // Handle errors asynchronously
+    serverPromise.catch((error: unknown) => {
+      console.error('❌ Server error:', error);
+      process.exit(1);
+    });
+
+    // Await the server - this will keep the process alive
+    await serverPromise;
   } catch (error) {
     console.error('❌ Failed to start headless server:', error);
     process.exit(1);
@@ -68,6 +87,7 @@ if (require.main === module) {
   // The open() promise will keep running until the process is terminated
   startHeadlessServer().catch((error: unknown) => {
     console.error('❌ Failed to start server:', error);
+    process.stderr.write(String(error), () => {});
     process.exit(1);
   });
 }
