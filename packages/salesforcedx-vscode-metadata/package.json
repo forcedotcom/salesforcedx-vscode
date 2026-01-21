@@ -287,6 +287,10 @@
         {
           "command": "sf.project.generate.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.source.diff.current.file",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         }
       ],
       "editor/context": [
@@ -313,6 +317,10 @@
         {
           "command": "sf.project.generate.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.source.diff",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         }
       ],
       "explorer/context": [
@@ -339,6 +347,10 @@
         {
           "command": "sf.project.generate.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+        },
+        {
+          "command": "sf.source.diff",
+          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         }
       ]
     },
@@ -414,6 +426,14 @@
       {
         "command": "sf.project.generate.manifest",
         "title": "%project_generate_manifest_text%"
+      },
+      {
+        "command": "sf.source.diff",
+        "title": "%diff_source_against_org_text%"
+      },
+      {
+        "command": "sf.source.diff.current.file",
+        "title": "%diff_source_against_org_text%"
       }
     ]
   }

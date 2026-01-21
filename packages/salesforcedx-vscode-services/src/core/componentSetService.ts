@@ -39,11 +39,11 @@ const EnsureNonEmptyComponentSet = Brand.refined<NonEmptyComponentSet>(
 
 class EmptyComponentSetError extends Data.TaggedError('EmptyComponentSetError')<{
   readonly size: number;
-}> {}
+}> { }
 
 export class FailedToBuildComponentSetError extends Data.TaggedError('FailedToBuildComponentSetError')<{
   readonly cause?: Error;
-}> {}
+}> { }
 
 /** Type guard to check if a FileResponse is successful */
 const isSDRSuccess = (fileResponse: FileResponse): fileResponse is FileResponseSuccess =>
@@ -90,11 +90,11 @@ const getComponentSetFromPaths = (paths: Set<string>) =>
       catch: e => new FailedToBuildComponentSetError(unknownToErrorCause(e))
     });
 
-    yield* setComponentSetProperties(componentSet, project, configAggregator);
+    yield* setComponentSetProperties({ componentSet, project, configAggregator });
 
     yield* Effect.annotateCurrentSpan({ size: componentSet.size });
     return componentSet;
-  }).pipe(Effect.withSpan('getComponentSetFromPaths', {attributes: {paths: Array.from(paths).join(',')}}));
+  }).pipe(Effect.withSpan('getComponentSetFromPaths', { attributes: { paths: Array.from(paths).join(',') } }));
 
 /** Get ComponentSet from manifest file */
 const getComponentSetFromManifest = (manifestPath: string) =>
@@ -114,7 +114,7 @@ const getComponentSetFromManifest = (manifestPath: string) =>
       catch: e => new FailedToBuildComponentSetError(unknownToErrorCause(e))
     });
 
-    yield* setComponentSetProperties(componentSet, project, configAggregator);
+    yield* setComponentSetProperties({ componentSet, project, configAggregator });
 
     yield* Effect.annotateCurrentSpan({ size: componentSet.size });
     return componentSet;
@@ -133,19 +133,26 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
     /** Get ComponentSet from manifest file */
     getComponentSetFromManifest
   } as const
-}) {}
+}) { }
 
 /**
  * Set project directory, API version, and source API version on ComponentSet
  * side effect: mutates the componentSet in place.  There's not a good way to return a new componentSet with the properties set.
  */
-export const setComponentSetProperties = (
-  componentSet: ComponentSetType,
-  project: SfProject,
-  configAggregator: ConfigAggregator
-) =>
+export const setComponentSetProperties = ({
+  componentSet,
+  project,
+  configAggregator,
+  directory
+}: {
+  componentSet: ComponentSetType;
+  project: SfProject;
+  configAggregator: ConfigAggregator;
+  /** if not provied, uses the project path.  Useful it retrieving to a custom directory. */
+  directory?: URI;
+}) =>
   Effect.gen(function* () {
-    componentSet.projectDirectory = project.getPath();
+    componentSet.projectDirectory = directory ? uriToPath(directory) : project.getPath();
     const apiVersion = configAggregator.getPropertyValue<string>(OrgConfigProperties.ORG_API_VERSION);
     if (apiVersion) {
       componentSet.apiVersion = apiVersion;

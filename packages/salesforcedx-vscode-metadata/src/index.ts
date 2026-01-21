@@ -19,6 +19,7 @@ import { retrieveManifest } from './commands/retrieveManifest';
 import { retrieveSourcePaths } from './commands/retrieveSourcePath';
 import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
 import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './commands/showSourceTrackingDetails';
+import { sourceDiff } from './commands/sourceDiff';
 import { DEPLOY_ON_SAVE_ENABLED, EXTENSION_NAME, METADATA_CONFIG_SECTION } from './constants';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
@@ -74,7 +75,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths),
       vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
       vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest),
-      vscode.commands.registerCommand('sf.project.generate.manifest', generateManifest)
+      vscode.commands.registerCommand('sf.project.generate.manifest', generateManifest),
+      vscode.commands.registerCommand('sf.source.diff', sourceDiff),
+      vscode.commands.registerCommand('sf.source.diff.current.file', sourceDiff)
     );
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
