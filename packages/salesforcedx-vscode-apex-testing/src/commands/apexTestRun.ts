@@ -6,7 +6,7 @@
  */
 
 import { AsyncTestConfiguration, Progress, TestLevel, TestService } from '@salesforce/apex-node';
-import { type CancellationToken, languages, type Uri, window, workspace } from 'vscode';
+import { type CancellationToken, languages, window, workspace } from 'vscode';
 import { Utils } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { APEX_CLASS_EXT, APEX_TESTSUITE_EXT } from '../constants';
@@ -36,19 +36,12 @@ const removeExtension = (filename: string, ext: string): string =>
 
 class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
   public async gather(): Promise<CancelResponse | ContinueResponse<ApexTestQuickPickItem>> {
-    const { testSuites, apexClasses } = (await workspace.findFiles(FILE_SEARCH_PATTERN, SFDX_FOLDER))
-      .toSorted((a, b) => a.fsPath.localeCompare(b.fsPath))
-      .reduce(
-        (acc: { testSuites: Uri[]; apexClasses: Uri[] }, file) => {
-          if (file.path.endsWith('.cls')) {
-            acc.apexClasses.push(file);
-          } else {
-            acc.testSuites.push(file);
-          }
-          return acc;
-        },
-        { testSuites: [], apexClasses: [] }
-      );
+    const { testSuites = [], apexClasses = [] } = Object.groupBy(
+      (await workspace.findFiles(FILE_SEARCH_PATTERN, SFDX_FOLDER)).toSorted((a, b) =>
+        a.fsPath.localeCompare(b.fsPath)
+      ),
+      file => (file.path.endsWith('.cls') ? 'apexClasses' : 'testSuites')
+    );
 
     const fileItems: ApexTestQuickPickItem[] = [
       ...testSuites.map(testSuite => ({
