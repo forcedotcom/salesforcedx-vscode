@@ -403,7 +403,7 @@ describe('Run Apex Tests', () => {
 
     // Verify test results in the Test Results tab - verify the test fails
     let testResultsText = await getTestResultsTabText();
-    let expectedTexts = ['Assertion Fai', 'led: inco', 'rrect ticker symbol: Expected: CRM, Actual: SFDC'];
+    let expectedTexts = ['AccountServiceTest.should_create_account', 'Fail', 'System.AssertException: Assertion Fai', 'ticker symbol: Expected: CRM, Actual: SFDC'];
     await verifyOutputPanelText(testResultsText, expectedTexts);
 
     // Fix test
