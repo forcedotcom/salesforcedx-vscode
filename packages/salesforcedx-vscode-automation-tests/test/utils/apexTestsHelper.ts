@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { pause, Duration } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/core';
-import { getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
+import { dismissAllNotifications, getWorkbench } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
 import { BottomBarPanel, By, InputBox, QuickOpenBox, WebElement } from 'vscode-extension-tester';
 
@@ -91,6 +91,13 @@ export const findTestItemByName = async (testName: string): Promise<TestTreeItem
 
 /** Opens the Test Results tab, maximizes panel, and returns the xterm output text */
 export const getTestResultsTabText = async (): Promise<string> => {
+  // Dismiss notifications to prevent click interception on maximize button
+  try{
+    await dismissAllNotifications();
+  } catch {
+    console.log('getTestResultsTabText - Error dismissing notifications');
+  }
+
   const bottomBar = new BottomBarPanel();
   await bottomBar.openTab('Test Results');
 
