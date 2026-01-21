@@ -121,11 +121,7 @@ export class WorkspaceContextUtil {
           // The issue is that this step is *part of the initialization of the CLI Integration extension*.
           // Therefore the workaround was to login again via CLI.
           console.log('workspaceContextUtil.ts getConnection() - 11');
-          // Only clear knownBadConnections if there's no active login dialog
-          // This prevents duplicate dialogs when auth is still propagating after login
-          if (!this.activeLoginPrompts.has(this._username)) {
-            this.knownBadConnections.delete(this._username);
-          }
+          this.knownBadConnections.delete(this._username);
           console.log('workspaceContextUtil.ts getConnection() - 12');
           this.sessionConnections.set(this._username, {
             connection: connectionDetails.connection,
@@ -156,26 +152,24 @@ export class WorkspaceContextUtil {
         }
 
         // we only want to display one message per username, even though many consumers are requesting connections.
-        // Check and set flags atomically to prevent race conditions
+        console.log(
+          `workspaceContextUtil.ts getConnection() - 18.9 (instance: ${this.instanceId}, knownBad: ${this.knownBadConnections.has(this._username)}, activePrompt: ${this.activeLoginPrompts.has(this._username)})`
+        );
         if (!this.knownBadConnections.has(this._username) && !this.activeLoginPrompts.has(this._username)) {
-          // Set knownBadConnections IMMEDIATELY - first line after check to prevent race
+          console.log(
+            `workspaceContextUtil.ts getConnection() - 19 (CREATING DIALOG from instance ${this.instanceId})`
+          );
           this.knownBadConnections.add(this._username);
 
           // Capture username for use in async closure
           const username = this._username;
 
-          // Create placeholder promise
+          // Create placeholder promise and register it IMMEDIATELY to block other concurrent calls
           let resolvePromise: () => void;
           const placeholderPromise = new Promise<void>(resolve => {
             resolvePromise = resolve;
           });
-
-          // Set activeLoginPrompts after promise is created
           this.activeLoginPrompts.set(username, placeholderPromise);
-
-          console.log(
-            `workspaceContextUtil.ts getConnection() - 19 (CREATING DIALOG from instance ${this.instanceId})`
-          );
 
           // Create and execute the login prompt
           const dialogId = Date.now();
@@ -196,20 +190,9 @@ export class WorkspaceContextUtil {
                 console.log('workspaceContextUtil.ts getConnection() - 22');
                 await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
                 console.log('workspaceContextUtil.ts getConnection() - 23');
-                // Clear both flags after login completes + a delay
-                // The delay allows auth to propagate through all file watchers and config updates
-                // This prevents other extensions from showing duplicate dialogs after login
-                setTimeout(() => {
-                  this.knownBadConnections.delete(username);
-                  this.activeLoginPrompts.delete(username);
-                  console.log(
-                    'workspaceContextUtil.ts - knownBadConnections and activeLoginPrompts cleared after login propagation'
-                  );
-                }, 5000);
               } else {
-                // User dismissed or cancelled - clear both flags so they can see the dialog again if needed
+                // User dismissed or cancelled - clear knownBadConnections so they can see the dialog again if needed
                 this.knownBadConnections.delete(username);
-                this.activeLoginPrompts.delete(username);
               }
               console.log('workspaceContextUtil.ts getConnection() - 24');
             } finally {
@@ -217,10 +200,11 @@ export class WorkspaceContextUtil {
             }
           })();
 
-          // Wait for the dialog to be handled (resolved by the async IIFE above)
-          await placeholderPromise;
-          // Note: activeLoginPrompts is cleared in the setTimeout after login propagates
-          // This keeps the flag active to prevent premature clearing of knownBadConnections
+          try {
+            await placeholderPromise;
+          } finally {
+            this.activeLoginPrompts.delete(username);
+          }
         }
         console.log('workspaceContextUtil.ts getConnection() - 25');
         throw new Error('Unable to refresh your access token.  Please login again.');
