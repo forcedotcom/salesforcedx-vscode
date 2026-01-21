@@ -137,14 +137,12 @@ export class DeployQueue {
 }
 
 export const registerPushOrDeployOnSave = () => {
-  console.log('salesforcedx-vscode-core pushOrDeployOnSave.ts - enter registerPushOrDeployOnSave()');
   vscode.workspace.onDidSaveTextDocument(async (textDocument: vscode.TextDocument) => {
     const documentUri = textDocument.uri;
     if (salesforceCoreSettings.getPushOrDeployOnSaveEnabled() && !(await ignorePath(documentUri.fsPath))) {
       await DeployQueue.get().enqueue(documentUri);
     }
   });
-  console.log('salesforcedx-vscode-core pushOrDeployOnSave.ts - exit registerPushOrDeployOnSave()');
 };
 
 const displayError = (message: string) => {
