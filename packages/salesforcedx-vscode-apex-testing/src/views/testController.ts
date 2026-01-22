@@ -7,8 +7,10 @@
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
 import * as settings from '../settings';
@@ -135,7 +137,7 @@ export class ApexTestController {
       await this.populateSuiteItems();
 
       // Then populate test classes from org (all tests, not just local)
-      const discoveryResult = await discoverTests({ showAllMethods: true });
+      const discoveryResult = await Effect.runPromise(discoverTests());
       await this.populateTestItemsFromOrg(discoveryResult.classes);
     } catch (error) {
       console.debug('Failed to discover tests:', error);
@@ -147,7 +149,7 @@ export class ApexTestController {
     const fs = vscode.workspace.fs;
     let testRunId: string | undefined;
     try {
-      const testRunIdData = await fs.readFile(vscode.Uri.file(testRunIdFile));
+      const testRunIdData = await fs.readFile(URI.file(testRunIdFile));
       testRunId = Buffer.from(testRunIdData).toString('utf-8').trim();
     } catch {
       // test-run-id.txt might not exist
@@ -683,7 +685,7 @@ export class ApexTestController {
   private async updateTestResults(testResultFilePath: string): Promise<void> {
     try {
       const fs = vscode.workspace.fs;
-      const resultData = await fs.readFile(vscode.Uri.file(testResultFilePath));
+      const resultData = await fs.readFile(URI.file(testResultFilePath));
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
       const resultContent = JSON.parse(Buffer.from(resultData).toString('utf-8')) as TestResult;
 

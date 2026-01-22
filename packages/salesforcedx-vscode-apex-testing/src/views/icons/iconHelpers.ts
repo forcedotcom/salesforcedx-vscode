@@ -13,7 +13,7 @@ const VSCODE_APEX_TESTING_EXTENSION_NAME = 'salesforce.salesforcedx-vscode-apex-
 
 /** Get the Uri for an icon located in the resources directory */
 export const getIconPath = (key: keyof typeof ICONS): vscode.Uri => {
-  const extension = vscode.extensions.getExtension(VSCODE_APEX_TESTING_EXTENSION_NAME);
-  const baseExtensionPath = extension?.extensionUri ?? vscode.Uri.file('');
-  return Utils.joinPath(baseExtensionPath, ...ICONS[key]);
+  // Extension is guaranteed to exist since this code runs inside the extension
+  const extension = vscode.extensions.getExtension(VSCODE_APEX_TESTING_EXTENSION_NAME)!;
+  return Utils.joinPath(extension.extensionUri, ...ICONS[key]);
 };

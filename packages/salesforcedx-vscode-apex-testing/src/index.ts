@@ -7,9 +7,14 @@
 
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+
+/** File change event from FileWatcherService */
+type FileChangeEvent = {
+  readonly type: 'create' | 'change' | 'delete';
+  readonly uri: vscode.Uri;
+};
 import { channelService, initializeOutputChannel } from './channels';
 import {
   apexDebugClassRunCodeActionDelegate,
@@ -25,9 +30,7 @@ import {
 } from './commands';
 import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
 import { telemetryService } from './telemetry/telemetry';
-import { getUriPath } from './utils/commandletHelpers';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
-import { getTestResultsFolder } from './utils/pathHelpers';
 import { disposeTestController, getTestController } from './views/testController';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
 
@@ -86,72 +89,92 @@ const initializeTestDiscovery = (testController: ReturnType<typeof getTestContro
     );
 
 
+/** Normalize path separators to forward slashes for cross-platform comparison */
+const normalizePath = (p: string): string => p.replaceAll('\\', '/');
+
+/** Check if a file event is a test result JSON file */
+const isTestResultJsonFile = (event: FileChangeEvent): boolean => {
+  const uriPath = normalizePath(event.uri.path || event.uri.fsPath);
+  return (
+    (event.type === 'create' || event.type === 'change') &&
+    uriPath.includes('.sfdx/tools/testresults/apex') &&
+    uriPath.endsWith('.json')
+  );
+};
+
+/** Set up file watcher for test result JSON files using FileWatcherService */
+const setupTestResultsFileWatcher = (
+  testOutlineProvider: ReturnType<typeof getTestOutlineProvider>,
+  testController: ReturnType<typeof getTestController>
+) =>
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const fileWatcherService = yield* api.services.FileWatcherService;
+
+    // Subscribe to file events and filter for test result JSON files
+    yield* Effect.forkDaemon(
+      Stream.fromPubSub(fileWatcherService.pubsub).pipe(
+        Stream.filter(isTestResultJsonFile),
+        Stream.runForEach(event => {
+          const filePath = event.uri.fsPath || event.uri.path;
+          // Extract the apex test results directory from the file path (handle both / and \ separators)
+          const lastSepIndex = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
+          const apexDirPath = filePath.substring(0, lastSepIndex);
+          void testOutlineProvider.onResultFileCreate(apexDirPath, filePath);
+          void testController.onResultFileCreate(apexDirPath, filePath);
+          return Effect.void;
+        })
+      )
+    );
+  });
+
 /** Effect-based activation that provides automatic timing via span */
 const activateEffect = (context: vscode.ExtensionContext) =>
   Effect.gen(function* () {
     yield* Effect.log('Salesforce Apex Testing extension is activating...');
 
     // Initialize the shared output channel from services API
-    yield* Effect.promise(() => initializeOutputChannel());
+    yield* initializeOutputChannel;
 
-    // Check if we're in a Salesforce project and set context (side effect of isSalesforceProject)
+    // Check if we're in a Salesforce project (also sets VS Code context as side effect)
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const projectService = yield* api.services.ProjectService;
-    yield* projectService.isSalesforceProject.pipe(Effect.catchAll(() => Effect.void));
+    const isSalesforceProject = yield* projectService.isSalesforceProject.pipe(
+      Effect.catchAll(() => Effect.succeed(false))
+    );
 
-    const testOutlineProvider = getTestOutlineProvider();
-    const testController = getTestController();
-    yield* Effect.log('[Apex Testing] Test controller created');
+    // Only set up project-specific features if we're in a Salesforce project
+    if (isSalesforceProject && vscode.workspace?.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+      const testOutlineProvider = getTestOutlineProvider();
+      const testController = getTestController();
+      yield* Effect.log('[Apex Testing] Test controller created');
 
-    if (vscode.workspace?.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
-      const workspaceUri = vscode.workspace.workspaceFolders[0].uri;
-      // In web mode, only set up file watchers if we have a file scheme workspace
-      // Virtual file systems (memfs, etc.) don't support fsPath and file operations the same way
-      if (process.env.ESBUILD_PLATFORM !== 'web' || workspaceUri.scheme === 'file') {
-        const workspacePath = getUriPath(workspaceUri);
-        if (workspacePath) {
-          const apexDirPath = yield* Effect.promise(() => getTestResultsFolder(workspacePath, 'apex'));
-          const testResultFileWatcher = vscode.workspace.createFileSystemWatcher(path.join(apexDirPath, '*.json'));
-          testResultFileWatcher.onDidCreate(uri => {
-            void testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath || uri.path);
-            void testController.onResultFileCreate(apexDirPath, uri.fsPath || uri.path);
-          });
-          testResultFileWatcher.onDidChange(uri => {
-            void testOutlineProvider.onResultFileCreate(apexDirPath, uri.fsPath || uri.path);
-            void testController.onResultFileCreate(apexDirPath, uri.fsPath || uri.path);
-          });
+      // Set up file watcher for test result JSON files using FileWatcherService
+      yield* setupTestResultsFileWatcher(testOutlineProvider, testController);
 
-          context.subscriptions.push(testResultFileWatcher);
-        }
-      }
+      // Initialize test discovery when an org is available, and re-discover on org changes (runs in background)
+      yield* Effect.forkDaemon(initializeTestDiscovery(testController));
 
-      // Initialize test discovery when an org is available, and re-discover on org changes
-      yield* initializeTestDiscovery(testController);
+      // Register virtual document provider for org-only Apex classes
+      const orgApexClassProvider = getOrgApexClassProvider();
+      const providerRegistration = vscode.workspace.registerTextDocumentContentProvider(
+        'sf-org-apex',
+        orgApexClassProvider
+      );
+      context.subscriptions.push(providerRegistration);
+
+      // Initial refresh of test view to populate tests when extension activates (runs in background)
+      yield* Effect.forkDaemon(
+        Effect.tryPromise(() => refreshTestView()).pipe(
+          Effect.tapError(error => Effect.logDebug('Failed to refresh test outline on activation:', error)),
+          Effect.catchAll(() => Effect.void)
+        )
+      );
     }
 
-    // Register virtual document provider for org-only Apex classes
-    const orgApexClassProvider = getOrgApexClassProvider();
-    const providerRegistration = vscode.workspace.registerTextDocumentContentProvider(
-      'sf-org-apex',
-      orgApexClassProvider
-    );
-    context.subscriptions.push(providerRegistration);
-
-    // Register command to open org-only tests
-    const openOrgOnlyTestCmd = vscode.commands.registerCommand(
-      'sf.apex.test.openOrgOnlyTest',
-      async (test: vscode.TestItem) => {
-        await getTestController().openOrgOnlyTest(test);
-      }
-    );
-    context.subscriptions.push(openOrgOnlyTestCmd);
-
-    // Commands
-    const commands = registerCommands(context);
+    // Always register commands (they'll be no-ops if not in a project)
+    const commands = registerCommands();
     context.subscriptions.push(commands);
-
-    // Initial refresh of test view to populate tests when extension activates
-    void refreshTestViewOnActivation();
 
     yield* Effect.log('Salesforce Apex Testing extension is now active!');
 
@@ -173,7 +196,7 @@ const activateEffect = (context: vscode.ExtensionContext) =>
 
 export const activate = (context: vscode.ExtensionContext) => Effect.runPromise(activateEffect(context));
 
-const registerCommands = (_context: vscode.ExtensionContext): vscode.Disposable => {
+const registerCommands = (): vscode.Disposable => {
   // Customer-facing commands
   const apexTestClassRunDelegateCmd = vscode.commands.registerCommand(
     'sf.apex.test.class.run.delegate',
@@ -205,6 +228,9 @@ const registerCommands = (_context: vscode.ExtensionContext): vscode.Disposable 
   const apexTestSuiteRunCmd = vscode.commands.registerCommand('sf.apex.test.suite.run', apexTestSuiteRun);
   const apexTestSuiteAddCmd = vscode.commands.registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd);
   const apexTestRunCmd = vscode.commands.registerCommand('sf.apex.test.run', apexTestRun);
+  const openOrgOnlyTestCmd = vscode.commands.registerCommand('sf.apex.test.openOrgOnlyTest', async (test: vscode.TestItem) => {
+    await getTestController().openOrgOnlyTest(test);
+  });
 
   return vscode.Disposable.from(
     apexTestClassRunCmd,
@@ -218,17 +244,9 @@ const registerCommands = (_context: vscode.ExtensionContext): vscode.Disposable 
     apexTestRunCmd,
     apexTestSuiteCreateCmd,
     apexTestSuiteRunCmd,
-    apexTestSuiteAddCmd
+    apexTestSuiteAddCmd,
+    openOrgOnlyTestCmd
   );
-};
-
-const refreshTestViewOnActivation = async (): Promise<void> => {
-  try {
-    await refreshTestView();
-  } catch (error) {
-    // Ignore errors if Apex extension isn't ready yet
-    console.debug('Failed to refresh test outline on activation:', error);
-  }
 };
 
 export const deactivate = () => {

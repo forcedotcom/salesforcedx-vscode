@@ -15,17 +15,13 @@ const CHANNEL_NAME = nls.localize('channel_name');
 let _outputChannel: vscode.OutputChannel | undefined;
 
 /** Initialize the output channel from the services API. Call this during activation. */
-export const initializeOutputChannel = async (): Promise<void> => {
+export const initializeOutputChannel = Effect.gen(function* () {
   if (_outputChannel) return;
 
-  await Effect.runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const svc = yield* api.services.ChannelService;
-      _outputChannel = yield* svc.getChannel;
-    }).pipe(Effect.provide(AllServicesLayer))
-  );
-};
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const svc = yield* api.services.ChannelService;
+  _outputChannel = yield* svc.getChannel;
+});
 
 /** Get the output channel. Must call initializeOutputChannel first during activation. */
 const getOutputChannel = (): vscode.OutputChannel => {

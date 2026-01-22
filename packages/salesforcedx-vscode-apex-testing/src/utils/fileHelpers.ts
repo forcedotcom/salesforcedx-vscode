@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
 import type { QuickPickItem } from 'vscode';
-import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { APEX_CLASS_EXT, IS_TEST_REG_EXP } from '../constants';
+import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 
 export type TestType = 'All' | 'AllLocal' | 'Suite' | 'Class';
 
@@ -16,19 +17,15 @@ export type ApexTestQuickPickItem = QuickPickItem & {
   type: TestType;
 };
 
-/**
- * Reads a file and returns its contents as a string.
- * Replaces readFile from @salesforce/salesforcedx-utils-vscode
- */
-export const readFile = async (filePath: string): Promise<string> => {
-  try {
-    const uri = URI.file(filePath);
-    const data = await vscode.workspace.fs.readFile(uri);
-    return Buffer.from(data).toString('utf8');
-  } catch (error) {
-    throw new Error(`Failed to read file ${filePath}: ${error instanceof Error ? error.message : String(error)}`);
-  }
-};
+/** Reads a file using FsService (works in both desktop and web modes) */
+export const readFile = (filePath: string): Promise<string> =>
+  Effect.runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const fsService = yield* api.services.FsService;
+      return yield* fsService.readFile(filePath);
+    }).pipe(Effect.provide(AllServicesLayer))
+  );
 
 type QuickPickItemWithDescription = ApexTestQuickPickItem & Required<Pick<ApexTestQuickPickItem, 'description'>>;
 

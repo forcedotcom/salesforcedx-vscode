@@ -8,6 +8,7 @@ import { TestResult, MarkdownTextFormatTransformer, OutputFormat, TestSortOrder 
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI, Utils } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
@@ -112,12 +113,12 @@ export const writeAndOpenTestReport = async (
   }
 
   // Create URI for opening the file
-  // On desktop: use vscode.Uri.file() for proper file:// URI
+  // On desktop: use URI.file() for proper file:// URI
   // On web: construct URI relative to workspace root for correct scheme
   const uri =
     process.env.ESBUILD_PLATFORM === 'web'
-      ? vscode.Uri.joinPath(vscode.workspace.workspaceFolders![0].uri, reportPath.replace(/^\/[^/]+/, ''))
-      : vscode.Uri.file(reportPath);
+      ? Utils.joinPath(vscode.workspace.workspaceFolders![0].uri, reportPath.replace(/^\/[^/]+/, ''))
+      : URI.file(reportPath);
 
   const openAction = nls.localize('apex_test_report_open_action');
   const message = nls.localize('apex_test_report_ready_message', path.basename(reportPath));

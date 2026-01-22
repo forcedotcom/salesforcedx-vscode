@@ -8,8 +8,8 @@
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { ResultFormat, TestResult, TestService } from '@salesforce/apex-node';
 import * as Effect from 'effect/Effect';
-import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { URI, Utils } from 'vscode-uri';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { getUriPath } from '../utils/commandletHelpers';
@@ -38,11 +38,8 @@ const fetchFromApi = async (options?: {
   namespacePrefix?: string;
 }): Promise<{ tests: ApexTestMethod[]; durationMs: number }> => {
   const start = Date.now();
-  // API path already emits its own Start/End events with source=api internally
-  const result = await discoverTests({
-    showAllMethods: true,
-    namespacePrefix: options?.namespacePrefix
-  });
+  // Effect.withSpan handles telemetry automatically
+  const result = await Effect.runPromise(discoverTests({ namespacePrefix: options?.namespacePrefix }));
   const tests = await convertApiToApexTestMethods(result.classes ?? []);
   const durationMs = Date.now() - start;
   return { tests, durationMs };
@@ -255,7 +252,7 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
           // Prefer shorter paths (files closer to workspace root)
           const existingUri = index.get(component.name);
           if (!existingUri || component.content.length < getUriPath(existingUri).length) {
-            index.set(component.name, vscode.Uri.file(component.content));
+            index.set(component.name, URI.file(component.content));
           }
         }
       }
@@ -276,7 +273,7 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
 export const writeTestResultJson = async (result: TestResult, outputDir: string): Promise<void> => {
   const testRunId = result.summary?.testRunId;
   const jsonFilename = testRunId ? `test-result-${testRunId}.json` : 'test-result.json';
-  const jsonFilePath = path.join(outputDir, jsonFilename);
+  const jsonFilePath = Utils.joinPath(URI.file(outputDir), jsonFilename);
   const jsonContent = JSON.stringify(result, null, 2);
 
   await Effect.runPromise(

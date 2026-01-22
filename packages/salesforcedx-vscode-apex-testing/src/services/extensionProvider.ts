@@ -52,6 +52,7 @@ export const AllServicesLayer = Layer.unwrapEffect(
       ExtensionProviderServiceLive,
       api.services.ConfigService.Default,
       api.services.ConnectionService.Default,
+      api.services.FileWatcherService.Default,
       api.services.FsService.Default,
       api.services.MetadataRegistryService.Default,
       api.services.MetadataRetrieveService.Default,
