@@ -55,10 +55,11 @@ export const updateTestRunResults = (
   testsToRun: vscode.TestItem[],
   methodItems: Map<string, vscode.TestItem>,
   classItems: Map<string, vscode.TestItem>,
-  codeCoverage: boolean = false
+  codeCoverage: boolean = false,
+  concise: boolean = false
 ): void => {
   run.appendOutput('\r\n=== Test Results ===\r\n\r\n');
-  const humanOutput = new HumanReporter().format(result, codeCoverage, false);
+  const humanOutput = new HumanReporter().format(result, codeCoverage, concise);
   if (humanOutput) {
     // Split by lines and add each line separately with \r\n to ensure newlines are preserved
     // This is important for table formatting in VS Code's Test Results panel
