@@ -116,24 +116,14 @@ export class WorkspaceContextUtil {
         // we only want to display one message per username across ALL extensions, even though many consumers are requesting connections.
         const isKnownBad = isKnownBadConnection(this._username);
         if (!isKnownBad && !existingPrompt) {
-          addKnownBadConnection(this._username);
-
           // Capture username for use in async closure
           const username = this._username;
 
-          // Create placeholder promise and register it IMMEDIATELY in shared state to block other concurrent calls from ALL extensions
-          let resolvePromise: () => void;
-          const placeholderPromise = new Promise<void>(resolve => {
-            resolvePromise = resolve;
-          });
-          setSharedLoginPrompt(username, placeholderPromise);
-
-          // Create and execute the login prompt
-          const dialogId = Date.now();
-          void (async () => {
+          // Create and execute the login prompt with cleanup
+          const loginPromise = (async () => {
             try {
               const selection = await vscode.window.showErrorMessage(
-                `${nls.localize('error_access_token_expired')} [${dialogId}]`,
+                nls.localize('error_access_token_expired'),
                 {
                   modal: true,
                   detail: nls.localize('error_access_token_expired_detail')
@@ -143,18 +133,15 @@ export class WorkspaceContextUtil {
               if (selection === 'Login') {
                 await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
               }
-              // Note: We keep the username in knownBadConnections regardless of Cancel/Login
-              // This prevents other extensions from showing duplicate popups
             } finally {
-              resolvePromise!();
+              clearSharedLoginPrompt(username);
+              // Mark as known bad after dialog closes to prevent showing again
+              addKnownBadConnection(username);
             }
           })();
 
-          try {
-            await placeholderPromise;
-          } finally {
-            clearSharedLoginPrompt(username);
-          }
+          setSharedLoginPrompt(username, loginPromise);
+          await loginPromise;
         }
         throw new Error('Unable to refresh your access token.  Please login again.');
       }
