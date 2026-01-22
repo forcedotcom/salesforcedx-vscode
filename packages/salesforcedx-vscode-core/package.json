@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.12.1",
+  "version": "65.14.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -42,7 +42,6 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.5",
     "esbuild": "0.25.10",
     "jest": "^29.7.0",
     "jest-junit": "14.0.1",

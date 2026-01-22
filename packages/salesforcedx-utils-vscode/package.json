@@ -27,7 +27,6 @@
   "devDependencies": {
     "@salesforce/source-deploy-retrieve": "^12.29.1",
     "@types/cross-spawn": "6.0.6",
-    "@types/jest": "^29.5.5",
     "jest": "^29.7.0",
     "ts-jest": "^29.4.1"
   },

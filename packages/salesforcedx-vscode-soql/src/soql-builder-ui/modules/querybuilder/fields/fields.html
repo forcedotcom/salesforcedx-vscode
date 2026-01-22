@@ -1,0 +1,48 @@
+<!--
+  Copyright (c) 2020, salesforce.com, inc.
+  All rights reserved.
+  Licensed under the BSD 3-Clause license.
+  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+
+ -->
+
+<template>
+  <div class="section-container">
+    <div class="section_label-container">
+      <!-- TODO: i18n (maybe) -->
+      <label
+        >Fields
+        <template if:true={hasError}
+          ><span class="text-color-required" data-el-has-error
+            >*</span
+          ></template
+        ></label
+      >
+    </div>
+    <div class="section_selection-container">
+      <querybuilder-custom-select
+        is-loading={isLoading}
+        all-options={fields}
+        selected-options={selectedFields}
+        onoption__selection={handleFieldSelection}
+        placeholder-text={selectPlaceHolderText}
+        multiple="true"
+      ></querybuilder-custom-select>
+      <div class="selected-fields-container">
+        <template for:each={selectedFields} for:item="field">
+          <div class="selected-field" key={field}>
+            {field}
+            <span
+              role="button"
+              class="pointer delete-trigger"
+              onclick={handleFieldRemoved}
+              data-field={field}
+            >
+              X
+            </span>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+</template>
