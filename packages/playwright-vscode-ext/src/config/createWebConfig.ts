@@ -25,7 +25,7 @@ export const createWebConfig = (options: WebConfigOptions = {}) =>
     use: {
       viewport: { width: 1920, height: 1080 },
       baseURL: 'http://localhost:3001',
-      trace: process.env.CI ? 'retain-on-failure' : 'on-first-retry',
+      trace: process.env.CI ? 'on' : 'on-first-retry',
       screenshot: process.env.CI ? 'on' : 'only-on-failure',
       video: process.env.CI ? 'on' : 'retain-on-failure',
       actionTimeout: 15_000,
@@ -41,6 +41,7 @@ export const createWebConfig = (options: WebConfigOptions = {}) =>
       }
     },
     timeout: process.env.DEBUG_MODE ? 0 : 360 * 1000,
+    maxFailures: process.env.CI ? 3 : 0,
     projects: [
       {
         name: 'chromium',
