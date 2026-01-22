@@ -152,7 +152,7 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import Server, { findDynamicContent } from '../lwcServer';
+import Server, { findDynamicContent } from '../lwcServerNode';
 
 // File paths and URIs
 const filename = path.join(SFDX_WORKSPACE_ROOT, 'force-app', 'main', 'default', 'lwc', 'todo', 'todo.html');
@@ -410,7 +410,7 @@ jest.mock('vscode-languageserver', () => {
   };
 });
 
-describe('lwcServer', () => {
+describe('lwcServerNode', () => {
   // Initialize documents before running tests
   beforeAll(async () => {
     await setupDocuments();
