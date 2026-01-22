@@ -188,7 +188,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 1, failing: 0 }
       } as unknown as TestResult;
 
-      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false, concise: false });
 
       expect(run.passed).toHaveBeenCalledWith(methodItem, 100);
       expect(run.failed).not.toHaveBeenCalled();
@@ -216,7 +216,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 0, failing: 1 }
       } as unknown as TestResult;
 
-      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false, concise: false });
 
       expect(run.failed).toHaveBeenCalled();
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
@@ -248,7 +248,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 0, failing: 1 }
       } as unknown as TestResult;
 
-      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false, concise: false });
 
       expect(run.failed).toHaveBeenCalled();
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
@@ -301,7 +301,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 1, failing: 0 }
       } as unknown as TestResult;
 
-      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false, concise: false });
 
       expect(run.passed).toHaveBeenCalledWith(methodItem, 100);
     });
@@ -347,7 +347,7 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 1, failing: 0 }
       } as unknown as TestResult;
 
-      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
+      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false, concise: false });
 
       expect(run.passed).not.toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalled();

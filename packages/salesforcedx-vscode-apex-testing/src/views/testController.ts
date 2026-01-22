@@ -696,7 +696,15 @@ export class ApexTestController {
       // Use the code coverage setting to determine if coverage should be shown
       const codeCoverage = settings.retrieveTestCodeCoverage();
       const concise = settings.retrieveTestRunConcise();
-      updateTestRunResults(resultContent, run, [], this.methodItems, this.classItems, codeCoverage, concise);
+      updateTestRunResults({
+        result: resultContent,
+        run,
+        testsToRun: [],
+        methodItems: this.methodItems,
+        classItems: this.classItems,
+        codeCoverage,
+        concise
+      });
 
       run.end();
     } catch (error) {
