@@ -7,11 +7,10 @@
 
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { initializeOutputChannel } from './channels';
+import { channelService, initializeOutputChannel } from './channels';
 import {
   apexDebugClassRunCodeActionDelegate,
   apexDebugMethodRunCodeActionDelegate,
@@ -43,51 +42,49 @@ const hasOrgConnected = (orgInfo: { username?: string; orgId?: string }): boolea
   Boolean(orgInfo.username ?? orgInfo.orgId);
 
 /** Initialize test discovery when an org is available, and re-discover on org changes */
-const initializeTestDiscovery = (testController: ReturnType<typeof getTestController>): Promise<void> =>
-  Effect.runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const targetOrgRef = api.services.TargetOrgRef;
-      const connectionService = yield* api.services.ConnectionService;
+const initializeTestDiscovery = (testController: ReturnType<typeof getTestController>) =>
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const targetOrgRef = api.services.TargetOrgRef;
+    const connectionService = yield* api.services.ConnectionService;
 
-      // Track last discovered org to avoid duplicate discoveries
-      let lastDiscoveredOrg: string | undefined;
+    // Track last discovered org to avoid duplicate discoveries
+    // let lastDiscoveredOrg: string | undefined;
 
-      const discoverForOrg = (orgInfo: { username?: string; orgId?: string }) =>
-        Effect.gen(function* () {
-          const orgKey = orgInfo.username ?? orgInfo.orgId;
-          // Skip if we already discovered for this org
-          if (orgKey && orgKey === lastDiscoveredOrg) {
-            return;
-          }
-          lastDiscoveredOrg = orgKey;
-          console.log(`[Apex Testing] Discovering tests for org: ${orgKey}`);
-          yield* Effect.promise(() => testController.discoverTests());
-        });
+    const discoverForOrg = (orgInfo: { username?: string; orgId?: string }) =>
+      Effect.gen(function* () {
+        const orgKey = orgInfo.username ?? orgInfo.orgId;
+        // Skip if we already discovered for this org
+        // if (orgKey && orgKey === lastDiscoveredOrg) {
+        //   return;
+        // }
+        // lastDiscoveredOrg = orgKey;
+        console.log(`[Apex Testing] Discovering tests for org: ${orgKey}`);
+        yield* Effect.promise(() => testController.discoverTests());
+      });
 
-      // Subscribe to org changes and re-discover tests when org changes
-      yield* Effect.fork(
-        Stream.changes(targetOrgRef).pipe(Stream.filter(hasOrgConnected), Stream.runForEach(discoverForOrg))
-      );
+    // Subscribe to org changes and re-discover tests when org changes
+    yield* Effect.forkDaemon(
+      targetOrgRef.changes.pipe(
+        Stream.tap(org => Effect.promise(() => channelService.appendLine(`Target org changed to ${JSON.stringify(org)}`))),
+        // if we don't have an orgId, try to get the connection to cause another event to fire with it
+        Stream.tap(org => !org.orgId ? connectionService.getConnection : Effect.succeed(undefined)),
+        Stream.filter(hasOrgConnected),
+        Stream.tap(org => Effect.promise(() => channelService.appendLine(`Discovering tests for org: ${org.username ?? org.orgId}`))),
+        Stream.runForEach(discoverForOrg))
+    );
 
-      // Trigger connection which populates the TargetOrgRef, then discover tests
-      // This handles the startup case where the ref is empty
-      yield* connectionService.getConnection.pipe(
-        Effect.flatMap(() => SubscriptionRef.get(targetOrgRef)),
-        Effect.flatMap(orgInfo => (hasOrgConnected(orgInfo) ? discoverForOrg(orgInfo) : Effect.void)),
-        Effect.catchAll(error => {
-          console.debug('[Apex Testing] Initial connection failed (no org configured?):', error);
-          return Effect.void;
-        })
-      );
+    // Trigger connection which populates the TargetOrgRef, then discover tests
+    // This handles the startup case where the ref is empty
+    yield* connectionService.getConnection;
     }).pipe(
       Effect.catchAll(error => {
         console.debug('[Apex Testing] Test discovery setup failed:', error);
         return Effect.void;
       }),
       Effect.provide(AllServicesLayer)
-    )
-  );
+    );
+
 
 /** Effect-based activation that provides automatic timing via span */
 const activateEffect = (context: vscode.ExtensionContext) =>
@@ -129,7 +126,7 @@ const activateEffect = (context: vscode.ExtensionContext) =>
       }
 
       // Initialize test discovery when an org is available, and re-discover on org changes
-      void initializeTestDiscovery(testController);
+      yield* initializeTestDiscovery(testController);
     }
 
     // Register virtual document provider for org-only Apex classes

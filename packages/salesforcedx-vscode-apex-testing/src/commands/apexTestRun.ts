@@ -6,6 +6,7 @@
  */
 
 import { AsyncTestConfiguration, Progress, TestLevel, TestService } from '@salesforce/apex-node';
+import { isNotUndefined } from 'effect/Predicate';
 import { type CancellationToken, languages, window, workspace } from 'vscode';
 import { Utils } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
@@ -43,8 +44,8 @@ class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
       file => (file.path.endsWith('.cls') ? 'apexClasses' : 'testSuites')
     );
 
-    const fileItems: ApexTestQuickPickItem[] = [
-      ...testSuites.map(testSuite => ({
+    const fileItems = [
+      ...(testSuites ?? []).map((testSuite): ApexTestQuickPickItem => ({
         label: removeExtension(Utils.basename(testSuite), APEX_TESTSUITE_EXT),
         description: testSuite.fsPath,
         type: 'Suite' as const
@@ -59,7 +60,7 @@ class TestsSelector implements ParametersGatherer<ApexTestQuickPickItem> {
         description: nls.localize('apex_test_run_all_tests_description_text'),
         type: 'All' as const
       },
-      ...(await Promise.all(apexClasses.map(getTestInfo))).filter(item => item !== undefined)
+      ...(await Promise.all((apexClasses).map(getTestInfo))).filter(isNotUndefined)
     ];
 
     const selection = await window.showQuickPick<ApexTestQuickPickItem>(fileItems);

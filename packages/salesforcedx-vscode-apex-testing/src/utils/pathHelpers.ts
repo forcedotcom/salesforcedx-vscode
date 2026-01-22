@@ -23,6 +23,7 @@ export const getTestResultsFolder = async (vscodePath: string, testType: string)
       const fsService = yield* api.services.FsService;
       yield* fsService.createDirectory(pathToTestResultsFolder);
     }).pipe(
+      Effect.tapError(error => Effect.logError(error)),
       Effect.catchAll(() => Effect.void), // Ignore errors - directory may already exist
       Effect.provide(AllServicesLayer)
     )
