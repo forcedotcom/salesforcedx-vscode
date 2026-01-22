@@ -33,7 +33,7 @@ const lookupClassBody = (className: string): Effect.Effect<string, never, never>
     }
 
     const apexClass = result.records[0];
-    return apexClass.Body || `// Class '${className}' found but body is empty`;
+    return apexClass.Body ?? `// Class '${className}' found but body is empty`;
   }).pipe(
     Effect.provide(AllServicesLayer),
     Effect.catchAll((error: unknown) => {

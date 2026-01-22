@@ -116,7 +116,7 @@ const setupTestResultsFileWatcher = (
       Stream.fromPubSub(fileWatcherService.pubsub).pipe(
         Stream.filter(isTestResultJsonFile),
         Stream.runForEach(event => {
-          const filePath = event.uri.fsPath || event.uri.path;
+          const filePath = event.uri.fsPath ?? event.uri.path;
           // Extract the apex test results directory from the file path (handle both / and \ separators)
           const lastSepIndex = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
           const apexDirPath = filePath.substring(0, lastSepIndex);
