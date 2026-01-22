@@ -41,6 +41,11 @@ test('Org Browser - CustomTab retrieval: custom-tab headless: retrieve Broker__c
     await orgBrowserPage.expandFolder('CustomTab');
     const item = await orgBrowserPage.getMetadataItem('CustomTab', 'Broker__c');
     await item.hover();
+    // Wait for toolbar buttons to appear before taking snapshot
+    await expect(item.locator('.action-label[aria-label="Retrieve Metadata"]').first(), 'Retrieve button should be visible').toBeVisible({ timeout: 3000 });
+    // Wait for file presence icon to appear (set asynchronously via background check)
+    // Wait for aria snapshot which will wait for expected structure including the icon
+    // The snapshot expects two icons before "Broker__c" text
     await expect(item).toMatchAriaSnapshot({ name: 'customtab-broker__c' });
     return item;
   });

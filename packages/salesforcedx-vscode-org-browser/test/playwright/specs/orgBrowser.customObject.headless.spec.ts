@@ -40,6 +40,12 @@ test('Org Browser - CustomObject retrieval: customobject headless: retrieve Brok
     await orgBrowserPage.expandFolder('CustomObject');
     const item = await orgBrowserPage.getMetadataItem('CustomObject', 'Broker__c');
     await item.hover();
+    // Wait for toolbar buttons to appear before taking snapshot
+    await expect(item.locator('.action-label[aria-label="Retrieve Metadata"]').first(), 'Retrieve button should be visible').toBeVisible({ timeout: 3000 });
+    // Wait for file presence icon to appear (set asynchronously via background check)
+    // Use innerHTML to inspect structure - icon appears when file presence check completes
+    // Wait for aria snapshot which will wait for expected structure including the icon
+    // The snapshot expects two icons before "Broker__c" text
     await expect(item).toMatchAriaSnapshot({ name: 'customobject-broker__c' });
     return item;
   });

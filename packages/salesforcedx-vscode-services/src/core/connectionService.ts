@@ -145,11 +145,12 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             try: async () => (await StateAggregator.getInstance()).aliases.resolveUsername(usernameOrAlias),
             catch: error => new FailedToResolveUsernameError(unknownToErrorCause(error))
           });
-          return yield* cache.get(username);
+          const conn = yield* cache.get(username);
+          // update the org ref in the background
+          yield* Effect.forkDaemon(maybeUpdateDefaultOrgRef(conn));
+          return conn;
         }
       }).pipe(
-        // update the org ref in the background
-        Effect.tap(conn => maybeUpdateDefaultOrgRef(conn).pipe(Effect.forkDaemon)),
         Effect.withSpan('getConnection')
       )
     } as const;
@@ -225,7 +226,7 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
     );
 
     // Check if objects have the same content (deep equality using schema)
-    // otherwise, calling set on the ref counts as a change bu it's really not one.
+    // otherwise, calling set on the ref counts as a change but it's really not one.
     if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
       yield* Effect.annotateCurrentSpan({ changed: false });
       return updated;
