@@ -8,7 +8,7 @@ import { TestResult, MarkdownTextFormatTransformer, OutputFormat, TestSortOrder 
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { Utils } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
 import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
@@ -118,7 +118,7 @@ export const writeAndOpenTestReport = async (
   const uri =
     process.env.ESBUILD_PLATFORM === 'web'
       ? Utils.joinPath(vscode.workspace.workspaceFolders![0].uri, reportPath.replace(/^\/[^/]+/, ''))
-      : URI.file(reportPath);
+      : vscode.Uri.file(reportPath);
 
   const openAction = nls.localize('apex_test_report_open_action');
   const message = nls.localize('apex_test_report_ready_message', path.basename(reportPath));
