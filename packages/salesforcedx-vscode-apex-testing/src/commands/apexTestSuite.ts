@@ -6,6 +6,7 @@
  */
 
 import { TestService } from '@salesforce/apex-node';
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { OUTPUT_CHANNEL } from '../channels';
 import { APEX_CLASS_EXT } from '../constants';
@@ -30,7 +31,7 @@ type ApexTestSuiteOptions = { suitename: string; tests: string[] };
 const listApexClassItems = async (): Promise<ApexTestQuickPickItem[]> => {
   const apexClasses = await vscode.workspace.findFiles(`**/*${APEX_CLASS_EXT}`, SFDX_FOLDER);
   return (await Promise.all(apexClasses.map(getTestInfo)))
-    .filter(item => item !== undefined)
+    .filter(isNotUndefined)
     .toSorted((a, b) => a.label.localeCompare(b.label));
 };
 
