@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { retrieveOrgBrowserTreeItemCommand } from './commands/retrieveMetadata';
@@ -51,17 +52,16 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       await retrieveOrgBrowserTreeItemCommand(node, treeProvider);
     })
   );
-
+  const connectionService = yield* api.services.ConnectionService;
   yield* Effect.forkDaemon(
     api.services.TargetOrgRef.changes.pipe(
-      Stream.runForEach(org =>
-        Effect.all([
-          svc.appendToChannel(`Target org changed to ${JSON.stringify(org)}`),
-          // Refresh the entire tree whenever the default org changes (SubscriptionRef.changes only emits on actual changes)
-          // Pass undefined to refreshType to refresh the root and fire change event to update the entire tree view
-          Effect.promise(() => treeProvider.refreshType())
-        ])
-      )
+      Stream.map(org => org.orgId),
+      Stream.changes,
+      Stream.tap(orgId => svc.appendToChannel(`Target org changed to ${orgId ?? '<NOT SET>'}`)),
+      Stream.tap(orgId => orgId ? Effect.void : connectionService.getConnection.pipe(Effect.catchAll(() => Effect.void))),
+      Stream.filter(isNotUndefined),
+      Stream.tap(() => svc.appendToChannel('Org changed, will try to update OrgBrowser')),
+      Stream.runForEach(()=>Effect.promise(() => treeProvider.refreshType()))
     )
   );
 
