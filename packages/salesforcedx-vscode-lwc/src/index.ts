@@ -35,61 +35,41 @@ const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
   return telemetryModule.telemetryService;
 };
 
-// Track if we've already activated to avoid duplicate activation
-let isActivated = false;
-
-const performActivation = async (extensionContext: ExtensionContext) => {
-  console.log('[LWC] performActivation called, isActivated:', isActivated);
-  // If already activated, don't activate again
-  if (isActivated) {
-    const msg = '[DEBUG] Extension already activated, skipping duplicate activation';
-    console.log(msg);
-    log(msg);
-    return;
+export const activate = async (extensionContext: ExtensionContext) => {
+  try {
+    channelService.appendLine('Lightning Web Components extension activating...');
+  } catch (e) {
+    console.error('[LWC] Failed to append to channel:', e);
   }
+
+  // Register commands (only once)
+  const ourCommands = registerCommands(extensionContext);
+  extensionContext.subscriptions.push(ourCommands);
 
   // Get telemetry service (lazy load - no-op in web mode)
   const telemetryService = await getTelemetryService();
   const activateTracker = new ActivationTracker(extensionContext, telemetryService);
 
-  log(`Activation Mode: ${getActivationMode()}`);
-  channelService.appendLine(`Activation Mode: ${getActivationMode()}`);
   // Run our auto detection routine before we activate
   // If activationMode is off, don't startup no matter what
   if (getActivationMode() === 'off') {
-    const msg = 'LWC Language Server activationMode set to off, exiting...';
-    log(msg);
-    channelService.appendLine(msg);
+    channelService.appendLine('LWC Language Server activationMode set to off, exiting...');
     return;
   }
 
   // Initialize telemetry service (no-op in web mode)
-  if (process.env.ESBUILD_PLATFORM === 'web') {
-    log('Skipping telemetry initialization (web mode - AppInsights not available)');
-    channelService.appendLine('Skipping telemetry initialization (web mode - AppInsights not available)');
-  } else {
+  if (process.env.ESBUILD_PLATFORM !== 'web') {
     try {
       await telemetryService.initializeService(extensionContext);
     } catch (e) {
       const errorMsg = `Failed to initialize telemetry service: ${String(e)}`;
-      log(errorMsg);
       channelService.appendLine(errorMsg);
-      // Continue without telemetry if initialization fails
-      log('Continuing without telemetry service');
-      channelService.appendLine('Continuing without telemetry service');
     }
   }
-
-  // Debug workspace state
-  log(`[DEBUG] workspace.workspaceFolders: ${workspace.workspaceFolders ? 'exists' : 'undefined'}`);
-  log(`[DEBUG] workspace.workspaceFolders?.length: ${workspace.workspaceFolders?.length ?? 'N/A'}`);
-  log(`[DEBUG] workspace.name: ${workspace.name ?? 'undefined'}`);
-  log(`[DEBUG] workspace.workspaceFile: ${workspace.workspaceFile?.toString() ?? 'undefined'}`);
 
   // In web mode, workspace folders might not be available immediately
   // Wait a bit for them to load if they're not available yet
   if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
-    log('[DEBUG] No workspace folders found, waiting up to 2 seconds for them to load...');
     // Wait for workspace folders with a timeout
     const maxWaitTime = 2000; // 2 seconds
     const checkInterval = 100; // Check every 100ms
@@ -98,7 +78,6 @@ const performActivation = async (extensionContext: ExtensionContext) => {
       await new Promise(resolve => setTimeout(resolve, checkInterval));
       waited += checkInterval;
     }
-    log(`[DEBUG] After waiting ${waited}ms, workspace folders: ${workspace.workspaceFolders?.length ?? 0}`);
   }
 
   // if we have no workspace folders, exit
@@ -111,52 +90,31 @@ const performActivation = async (extensionContext: ExtensionContext) => {
 
   // Pass the workspace folder URIs to the language server
   const workspaceUris: string[] = [];
-  log(`[DEBUG] Workspace folders count: ${workspace.workspaceFolders.length}`);
-  workspace.workspaceFolders.forEach((folder, index) => {
+  workspace.workspaceFolders.forEach(folder => {
     // In web mode, fsPath might be undefined for non-file:// URIs
     // Use fsPath if available, otherwise fall back to URI path
     const folderPath = folder.uri.fsPath ?? folder.uri.path;
-    log(
-      `[DEBUG] Workspace folder ${index}: uri=${folder.uri.toString()}, fsPath=${folder.uri.fsPath ?? 'undefined'}, path=${folder.uri.path ?? 'undefined'}, extractedPath=${folderPath ?? 'undefined'}`
-    );
     if (folderPath) {
       workspaceUris.push(folderPath);
-    } else {
-      // If we can't get a path, log a warning but continue
-      log(`Warning: Could not determine path for workspace folder: ${folder.uri.toString()}`);
     }
   });
-
-  log(`[DEBUG] Workspace URIs to check: ${JSON.stringify(workspaceUris)}`);
-  log(`[DEBUG] Workspace URIs count: ${workspaceUris.length}`);
 
   // For workspace type detection, we still need to check the file system
   // Create a temporary provider just for detection
   // In web mode with no valid paths, default to UNKNOWN
-  let workspaceType: lspCommon.WorkspaceType;
-  if (workspaceUris.length > 0) {
-    log(`[DEBUG] Calling detectWorkspaceType with ${workspaceUris.length} workspace root(s)`);
-    workspaceType = await detectWorkspaceType(workspaceUris);
-    log(`[DEBUG] detectWorkspaceType returned: ${workspaceType}`);
-  } else {
-    log('[DEBUG] No workspace URIs available, defaulting to UNKNOWN');
-    workspaceType = 'UNKNOWN';
-  }
+  const workspaceType: lspCommon.WorkspaceType =
+    workspaceUris.length > 0 ? await detectWorkspaceType(workspaceUris) : 'UNKNOWN';
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {
     // If activationMode === autodetect and we don't have a valid workspace type, exit
-    const msg1 = 'LWC LSP - autodetect did not find a valid project structure, exiting....';
-    const msg2 = `WorkspaceType detected: ${workspaceType}`;
-    log(msg1);
-    log(msg2);
-    channelService.appendLine(msg1);
-    channelService.appendLine(msg2);
+    channelService.appendLine(
+      `LWC LSP - autodetect did not find a valid project structure, exiting. WorkspaceType detected: ${workspaceType}`
+    );
     return;
   }
 
   // Start the LWC Language Server
-  log('[LWC] Starting LWC Language Server...');
   const serverPath = extensionContext.extension.packageJSON.serverPath;
   let serverModule: string;
   if (process.env.ESBUILD_PLATFORM === 'web') {
@@ -164,31 +122,24 @@ const performActivation = async (extensionContext: ExtensionContext) => {
     const serverPathArray = ['dist', 'web', 'lwcServer.js'];
     const serverPathUri = Uri.joinPath(extensionContext.extensionUri, ...serverPathArray);
     serverModule = serverPathUri.toString();
-    log(`[LWC] Web mode: Server module URI: ${serverModule}`);
   } else {
     // For Node.js mode, use the file system path
     // Dynamically import path only in Node.js mode to avoid bundling issues in web mode
     const { join } = await import('node:path');
     serverModule = extensionContext.asAbsolutePath(join(...serverPath));
-    log(`[LWC] Node mode: Server module path: ${serverModule}`);
   }
 
   try {
-    log(`[LWC] Creating language client with workspaceType: ${workspaceType}`);
     const client = await createLanguageClient(serverModule, { workspaceType });
-    log('[LWC] Language client created successfully');
 
     // Start the client and add it to subscriptions
-    log('[LWC] Starting language client...');
     channelService.appendLine('Starting LWC Language Server...');
 
     try {
       await client.start();
-      log('[LWC] Language client started successfully');
       channelService.appendLine('LWC Language Server client started');
     } catch (startError) {
       const errorMsg = `[LWC] Failed to start client: ${startError instanceof Error ? startError.message : String(startError)}`;
-      log(errorMsg);
       channelService.appendLine(errorMsg);
       throw startError;
     }
@@ -204,28 +155,19 @@ const performActivation = async (extensionContext: ExtensionContext) => {
         'then' in traceResult &&
         typeof traceResult.then === 'function'
       ) {
-        void traceResult.catch((traceError: unknown) => {
-          log(`[LWC] Failed to set trace: ${traceError instanceof Error ? traceError.message : String(traceError)}`);
+        void traceResult.catch(() => {
+          // Tracing failed silently - it's optional
         });
       }
-      log('[LWC] Verbose tracing enabled');
-    } catch (traceError) {
-      log(`[LWC] Failed to set trace: ${traceError instanceof Error ? traceError.message : String(traceError)}`);
+    } catch {
       // Don't throw - tracing is optional
     }
 
     extensionContext.subscriptions.push(client);
-    isActivated = true;
-    log('[LWC] LWC Language Server started successfully');
     channelService.appendLine('LWC Language Server started successfully');
     channelService.appendLine('Check "LWC Language Server" output channel for server logs');
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : undefined;
-    log(`[LWC] ERROR: Failed to start LWC Language Server: ${errorMessage}`);
-    if (errorStack) {
-      log(`[LWC] ERROR Stack: ${errorStack}`);
-    }
     channelService.appendLine(`Failed to start LWC Language Server: ${errorMessage}`);
     throw error; // Re-throw to prevent silent failures
   }
@@ -233,28 +175,21 @@ const performActivation = async (extensionContext: ExtensionContext) => {
   // Trigger loading of workspace files into document cache after server initialization
   // This runs asynchronously and does not block extension activation
   // The language server uses scheduleReinitialization to wait for file loading to stabilize
-  log('[LWC] Starting bootstrapWorkspaceAwareness for LWC files...');
   void Effect.runPromise(
     bootstrapWorkspaceAwareness({
       fileGlob: '**/lwc/**/*.{js,ts,html}',
       excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
       logger: (msg: string) => {
-        log(`[LWC Bootstrap] ${msg}`);
         channelService.appendLine(`[LWC Bootstrap] ${msg}`);
       }
     })
   )
     .then(() => {
-      log('[LWC] bootstrapWorkspaceAwareness completed successfully');
       channelService.appendLine('[LWC] Workspace files loaded into document cache');
     })
     .catch((error: unknown) => {
       const errorMsg = `Failed to bootstrap workspace awareness: ${String(error)}`;
-      log(`[LWC] ERROR: ${errorMsg}`);
       channelService.appendLine(`[LWC] ERROR: ${errorMsg}`);
-      if (error instanceof Error && error.stack) {
-        log(`[LWC] ERROR Stack: ${error.stack}`);
-      }
     });
 
   // Also load essential JSON/XML files for workspace type detection
@@ -266,30 +201,26 @@ const performActivation = async (extensionContext: ExtensionContext) => {
     bootstrapWorkspaceAwareness({
       fileGlob: '{sfdx-project.json,workspace-user.xml,lwc.config.json,package.json,lerna.json}',
       excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
-      logger: log
-    })
-  )
-    .then(() => {
-      log('[LWC] Essential files bootstrap completed');
-    })
-    .catch((error: unknown) => {
-      log(`Failed to bootstrap essential files: ${String(error)}`);
-      // If findFiles fails (common in web mode), explicitly try to open sfdx-project.json
-      // This is critical for delayed initialization which needs to read the config
-      if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
-        for (const folder of workspace.workspaceFolders) {
-          const sfdxProjectUri = Uri.joinPath(folder.uri, 'sfdx-project.json');
-          void (async () => {
-            try {
-              await workspace.openTextDocument(sfdxProjectUri);
-              log('[LWC] sfdx-project.json opened successfully as fallback');
-            } catch {
-              // File might not exist - this is okay for non-SFDX projects
-            }
-          })();
-        }
+      logger: () => {
+        // Silent logger for essential files
       }
-    });
+    })
+  ).catch(() => {
+    // If findFiles fails (common in web mode), explicitly try to open sfdx-project.json
+    // This is critical for delayed initialization which needs to read the config
+    if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
+      for (const folder of workspace.workspaceFolders) {
+        const sfdxProjectUri = Uri.joinPath(folder.uri, 'sfdx-project.json');
+        void (async () => {
+          try {
+            await workspace.openTextDocument(sfdxProjectUri);
+          } catch {
+            // File might not exist - this is okay for non-SFDX projects
+          }
+        })();
+      }
+    }
+  });
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
@@ -303,17 +234,14 @@ const performActivation = async (extensionContext: ExtensionContext) => {
     // This ensures they're synced to the language server via onDidOpen
     // The server will trigger delayed initialization once files are available
     try {
-      log(`[LWC] Auto-opening newly created LWC file: ${uri.fsPath}`);
       await workspace.openTextDocument(uri);
       // Don't show the document, just open it in the background to sync to server
       // This ensures the file is available to the language server
-      log(`[LWC] File opened in background (synced to server): ${uri.fsPath}`);
-    } catch (error) {
-      log(`[LWC] Failed to auto-open file ${uri.fsPath}: ${error instanceof Error ? error.message : String(error)}`);
+    } catch {
+      // Failed to open file - continue silently
     }
   });
   extensionContext.subscriptions.push(lwcFileWatcher);
-  log('[LWC] File watcher set up to auto-open newly created LWC files');
 
   // Activate Test support (skip in web mode - test execution requires Node.js/terminal)
   if (process.env.ESBUILD_PLATFORM !== 'web') {
@@ -325,7 +253,6 @@ const performActivation = async (extensionContext: ExtensionContext) => {
         testSupport.activateLwcTestSupport(extensionContext, workspaceType);
       }
     } catch (e) {
-      log(`Failed to load test support: ${String(e)}`);
       channelService.appendLine(`Failed to load test support: ${String(e)}`);
     }
   }
@@ -336,51 +263,13 @@ const performActivation = async (extensionContext: ExtensionContext) => {
   // Notify telemetry that our extension is now active
   void activateTracker.markActivationStop();
 
-  const activationCompleteMsg = 'Lightning Web Components extension activation complete.';
-  log(activationCompleteMsg);
-  channelService.appendLine(activationCompleteMsg);
-};
-
-export const activate = async (extensionContext: ExtensionContext) => {
-  // Log immediately to browser console - this should always appear if extension loads
-  console.log('[LWC] Extension activate() called');
-  console.log('[LWC] Extension context:', extensionContext.extension.id);
-
-  log('Lightning Web Components extension activating...');
-  try {
-    channelService.appendLine('Lightning Web Components extension activating...');
-  } catch (e) {
-    console.error('[LWC] Failed to append to channel:', e);
-  }
-
-  // Register commands (only once)
-  const ourCommands = registerCommands(extensionContext);
-  extensionContext.subscriptions.push(ourCommands);
-
-  // Try to activate immediately if workspace folders are available
-  await performActivation(extensionContext);
-
-  // Listen for workspace folder changes (important for web mode where folders are added after initial activation)
-  extensionContext.subscriptions.push(
-    workspace.onDidChangeWorkspaceFolders(async event => {
-      const msg = `[DEBUG] Workspace folders changed. Added: ${event.added.length}, Removed: ${event.removed.length}`;
-      console.log(msg);
-      log(msg);
-      if (event.added.length > 0 && !isActivated) {
-        const activateMsg = '[DEBUG] Workspace folders added, attempting activation...';
-        console.log(activateMsg);
-        log(activateMsg);
-        await performActivation(extensionContext);
-      }
-    })
-  );
+  channelService.appendLine('Lightning Web Components extension activation complete.');
 };
 
 export const deactivate = async () => {
   if (DevServerService.instance.isServerHandlerRegistered()) {
     await DevServerService.instance.stopServer();
   }
-  log('Lightning Web Components Extension Deactivated');
   // Get telemetry service for deactivation (no-op in web mode)
   const telemetryService = await getTelemetryService();
   telemetryService.sendExtensionDeactivationEvent();
