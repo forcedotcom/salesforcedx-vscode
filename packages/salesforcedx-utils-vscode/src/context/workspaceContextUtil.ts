@@ -112,10 +112,6 @@ export class WorkspaceContextUtil {
 
         // Check if there's already an active login prompt for this user (shared across all extensions)
         const existingPrompt = await getSharedLoginPrompt(this._username);
-        if (existingPrompt) {
-          await existingPrompt;
-          throw new Error('Unable to refresh your access token.  Please login again.');
-        }
 
         // we only want to display one message per username across ALL extensions, even though many consumers are requesting connections.
         const isKnownBad = isKnownBadConnection(this._username);
