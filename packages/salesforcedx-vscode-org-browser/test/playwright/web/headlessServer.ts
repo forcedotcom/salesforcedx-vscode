@@ -18,9 +18,10 @@ const startHeadlessServer = async (): Promise<void> => {
     console.log('🌐 Starting VS Code Web (headless) for Org Browser tests...');
 
     console.log(`📁 Extension path: ${extensionDevelopmentPath}`);
+
     console.log(`📦 Services extension path: ${servicesExtensionPath}`);
 
-    void open({
+    await open({
       browserType: 'chromium',
       headless: true,
       port: 3001,
@@ -44,7 +45,6 @@ const startHeadlessServer = async (): Promise<void> => {
           : [])
       ]
     });
-
   } catch (error) {
     console.error('❌ Failed to start headless server:', error);
     process.exit(1);

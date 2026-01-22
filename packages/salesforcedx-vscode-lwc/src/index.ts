@@ -23,14 +23,8 @@ import { DevServerService } from './service/devServerService';
 // Test support is lazy-loaded to avoid bundling jest-editor-support in web mode
 import { WorkspaceUtils } from './util/workspaceUtils';
 
-// Lazy telemetry service getter - only loads telemetry module when not in web mode
+// Get telemetry service - now works in both Node.js and web mode
 const getTelemetryService = async (): Promise<TelemetryServiceInterface> => {
-  if (process.env.ESBUILD_PLATFORM === 'web') {
-    // Import web-specific no-op telemetry service (doesn't import applicationinsights)
-    const { telemetryService } = await import('./telemetry/web.js');
-    return telemetryService;
-  }
-  // Dynamically import telemetry only when needed (not in web mode)
   const telemetryModule = await import('./telemetry/index.js');
   return telemetryModule.telemetryService;
 };
@@ -57,14 +51,12 @@ export const activate = async (extensionContext: ExtensionContext) => {
     return;
   }
 
-  // Initialize telemetry service (no-op in web mode)
-  if (process.env.ESBUILD_PLATFORM !== 'web') {
-    try {
-      await telemetryService.initializeService(extensionContext);
-    } catch (e) {
-      const errorMsg = `Failed to initialize telemetry service: ${String(e)}`;
-      channelService.appendLine(errorMsg);
-    }
+  // Initialize telemetry service (now works in both Node.js and web mode)
+  try {
+    await telemetryService.initializeService(extensionContext);
+  } catch (e) {
+    const errorMsg = `Failed to initialize telemetry service: ${String(e)}`;
+    channelService.appendLine(errorMsg);
   }
 
   // In web mode, workspace folders might not be available immediately
