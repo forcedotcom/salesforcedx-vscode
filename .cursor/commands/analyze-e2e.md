@@ -51,7 +51,7 @@ When a user requests to analyze e2e tests:
    - **Never ask "should I continue monitoring?"** - always keep monitoring until completion
 
 4. **Handle Results**
-
+  NEVER RETURN BEFORE CI COMPLETES (SUCCESS OR FAILURE)
    **On Success:**
    - Report: "✓ E2E tests passed for workflow `<workflow-name>` on branch `<branch-name>`"
    - Provide workflow run URL: `gh run view <run-id> --web`
