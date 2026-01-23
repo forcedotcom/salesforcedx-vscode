@@ -51,27 +51,24 @@ const diffItems = (items: string[], compareItems: string[]): string[] => {
 // Utility function to create new meta typings
 const createNewMetaTypings = async (indexer: TypingIndexerData): Promise<void> => {
   const newFiles = diffItems(await getMetaFiles(indexer), getMetaTypings(indexer));
-  const typingFiles: { uri: string; content: string }[] = [];
 
+  // Process and write each typing file immediately
   for (const filename of newFiles) {
     const typing = fromMeta(filename);
     const uri = path.join(indexer.typingsBaseDir, typing.fileName);
     const content = getDeclaration(typing);
-    typingFiles.push({ uri, content });
-  }
 
-  // Write the actual typing files to the file system
-  for (const typingFile of typingFiles) {
     // Update file stat first
-    indexer.fileSystemProvider.updateFileStat(typingFile.uri, {
+    indexer.fileSystemProvider.updateFileStat(uri, {
       type: 'file',
       exists: true,
       ctime: Date.now(),
       mtime: Date.now(),
-      size: typingFile.content.length
+      size: content.length
     });
+
     // Use updateFileContent with connection to create file via LSP
-    await indexer.fileSystemProvider.updateFileContent(typingFile.uri, typingFile.content, indexer.connection);
+    await indexer.fileSystemProvider.updateFileContent(uri, content, indexer.connection);
   }
 };
 
@@ -220,8 +217,10 @@ export default class TypingIndexer {
   /**
    * Set the LSP connection for file operations (works in both Node.js and web)
    */
-  public setConnection(connection: Connection): void {
-    this.connection = connection;
+  public setConnection(connection?: Connection): void {
+    if (connection) {
+      this.connection = connection;
+    }
   }
 
   /**
@@ -233,9 +232,7 @@ export default class TypingIndexer {
     connection?: Connection
   ): Promise<TypingIndexer> {
     const indexer = new TypingIndexer(attributes, fileSystemProvider);
-    if (connection) {
-      indexer.setConnection(connection);
-    }
+    indexer.setConnection(connection);
     await indexer.initialize();
     return indexer;
   }

@@ -684,37 +684,11 @@ export default class Server {
       this.isDelayedInitializationComplete = true;
 
       // Configure TypeScript support now that files are loaded and context is initialized
-      // This ensures sfdx-project.json is available in the FileSystemDataProvider
-      try {
-        const hasTsEnabled = await this.isTsSupportEnabled();
-        if (hasTsEnabled) {
-          // Set connection for file operations (works in both Node.js and web)
-          this.context.setConnection(this.connection);
-          // Make tsconfig generation non-blocking to avoid connection disposal issues
-          // Fire and forget - if it fails, we'll continue without tsconfig
-          void this.context.configureProjectForTs().then(async () => {
-            // Ensure component indexer has the correct workspaceType before updating path mappings
-            // The component indexer's workspaceType is set in init(), but we want to ensure it's correct
-            if (this.componentIndexer.workspaceType === 'UNKNOWN') {
-              this.componentIndexer.workspaceType = this.workspaceType;
-            }
-            await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
-          }).catch((tsConfigError) => {
-            // Log error but don't crash the server - tsconfig generation is optional
-            Logger.error(
-              `Failed to configure TypeScript support: ${tsConfigError instanceof Error ? tsConfigError.message : String(tsConfigError)}`,
-              tsConfigError instanceof Error ? tsConfigError : undefined
-            );
-          });
-        } else {
-          Logger.info('TypeScript support is disabled, skipping tsconfig generation');
-        }
-      } catch (tsConfigError) {
-        // Log error but don't crash the server - tsconfig generation is optional
-        Logger.error(
-          `Failed to check TypeScript support: ${tsConfigError instanceof Error ? tsConfigError.message : String(tsConfigError)}`,
-          tsConfigError instanceof Error ? tsConfigError : undefined
-        );
+      const hasTsEnabled = await this.isTsSupportEnabled();
+      if (hasTsEnabled) {
+        this.context.setConnection(this.connection);
+        await this.context.configureProjectForTs();
+        await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
       }
 
       // send notification that delayed initialization is complete

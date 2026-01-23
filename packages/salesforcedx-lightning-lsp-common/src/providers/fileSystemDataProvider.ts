@@ -51,7 +51,6 @@ export class FileSystemDataProvider implements IFileSystemProvider {
     // If connection is available, use LSP workspace/applyEdit to create/write the file
     if (connection) {
       const fileUri = URI.file(normalizedUri).toString();
-      Logger.info(`[FileSystemProvider] Requesting client to create file: ${normalizedUri}`);
 
       const edit: WorkspaceEdit = {
         documentChanges: [
@@ -71,11 +70,9 @@ export class FileSystemDataProvider implements IFileSystemProvider {
 
         if (!result.applied) {
           const errorMsg = result.failureReason ?? 'Unknown error';
-          Logger.error(`[FileSystemProvider] Client rejected file creation: ${normalizedUri}. Reason: ${errorMsg}`);
           throw new Error(`Failed to create file ${normalizedUri}: ${errorMsg}`);
         }
 
-        Logger.info(`[FileSystemProvider] Successfully created file via LSP: ${normalizedUri}`);
       } catch (error) {
         // Handle connection disposal errors gracefully (server might be shutting down)
         const errorMessage = error instanceof Error ? error.message : String(error);
