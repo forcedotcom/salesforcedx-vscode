@@ -7,14 +7,19 @@
 
 import { extensions } from 'vscode';
 
+// Type definition for SharedAuthState
+interface SharedAuthState {
+  getLoginPrompt(username: string): Promise<void> | undefined;
+  setLoginPrompt(username: string, promise: Promise<void>): void;
+  clearLoginPrompt(username: string): void;
+  isKnownBad(username: string): boolean;
+  addKnownBad(username: string): void;
+  clearKnownBad(username: string): void;
+}
+
 // Type definition for the Core extension API's auth-related methods
 interface SalesforceVSCodeCoreAuthApi {
-  getSharedLoginPrompt?: (username: string) => Promise<void> | undefined;
-  setSharedLoginPrompt?: (username: string, promise: Promise<void>) => void;
-  clearSharedLoginPrompt?: (username: string) => void;
-  isKnownBadConnection?: (username: string) => boolean;
-  addKnownBadConnection?: (username: string) => void;
-  clearKnownBadConnection?: (username: string) => void;
+  sharedAuthState?: SharedAuthState;
 }
 
 /**
@@ -27,8 +32,8 @@ interface SalesforceVSCodeCoreAuthApi {
 export const getSharedLoginPrompt = async (username: string): Promise<Promise<void> | undefined> => {
   try {
     const coreExtension = extensions.getExtension<SalesforceVSCodeCoreAuthApi>('salesforce.salesforcedx-vscode-core');
-    if (coreExtension?.isActive && coreExtension.exports?.getSharedLoginPrompt) {
-      return coreExtension.exports.getSharedLoginPrompt(username);
+    if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
+      return coreExtension.exports.sharedAuthState.getLoginPrompt(username);
     }
   } catch (error) {
     console.log(`Failed to get shared login prompt: ${String(error)}`);
@@ -46,8 +51,8 @@ export const getSharedLoginPrompt = async (username: string): Promise<Promise<vo
 export const setSharedLoginPrompt = (username: string, promise: Promise<void>): void => {
   try {
     const coreExtension = extensions.getExtension<SalesforceVSCodeCoreAuthApi>('salesforce.salesforcedx-vscode-core');
-    if (coreExtension?.isActive && coreExtension.exports?.setSharedLoginPrompt) {
-      coreExtension.exports.setSharedLoginPrompt(username, promise);
+    if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
+      coreExtension.exports.sharedAuthState.setLoginPrompt(username, promise);
     }
   } catch (error) {
     console.log(`Failed to set shared login prompt: ${String(error)}`);
@@ -63,8 +68,8 @@ export const setSharedLoginPrompt = (username: string, promise: Promise<void>): 
 export const clearSharedLoginPrompt = (username: string): void => {
   try {
     const coreExtension = extensions.getExtension<SalesforceVSCodeCoreAuthApi>('salesforce.salesforcedx-vscode-core');
-    if (coreExtension?.isActive && coreExtension.exports?.clearSharedLoginPrompt) {
-      coreExtension.exports.clearSharedLoginPrompt(username);
+    if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
+      coreExtension.exports.sharedAuthState.clearLoginPrompt(username);
     }
   } catch (error) {
     console.log(`Failed to clear shared login prompt: ${String(error)}`);
@@ -81,8 +86,8 @@ export const clearSharedLoginPrompt = (username: string): void => {
 export const isKnownBadConnection = (username: string): boolean => {
   try {
     const coreExtension = extensions.getExtension<SalesforceVSCodeCoreAuthApi>('salesforce.salesforcedx-vscode-core');
-    if (coreExtension?.isActive && coreExtension.exports?.isKnownBadConnection) {
-      return coreExtension.exports.isKnownBadConnection(username);
+    if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
+      return coreExtension.exports.sharedAuthState.isKnownBad(username);
     }
   } catch (error) {
     console.log(`Failed to check known bad connection: ${String(error)}`);
@@ -99,8 +104,8 @@ export const isKnownBadConnection = (username: string): boolean => {
 export const addKnownBadConnection = (username: string): void => {
   try {
     const coreExtension = extensions.getExtension<SalesforceVSCodeCoreAuthApi>('salesforce.salesforcedx-vscode-core');
-    if (coreExtension?.isActive && coreExtension.exports?.addKnownBadConnection) {
-      coreExtension.exports.addKnownBadConnection(username);
+    if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
+      coreExtension.exports.sharedAuthState.addKnownBad(username);
     }
   } catch (error) {
     console.log(`Failed to add known bad connection: ${String(error)}`);
@@ -117,8 +122,8 @@ export const addKnownBadConnection = (username: string): void => {
 export const clearKnownBadConnection = (username: string): void => {
   try {
     const coreExtension = extensions.getExtension<SalesforceVSCodeCoreAuthApi>('salesforce.salesforcedx-vscode-core');
-    if (coreExtension?.isActive && coreExtension.exports?.clearKnownBadConnection) {
-      coreExtension.exports.clearKnownBadConnection(username);
+    if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
+      coreExtension.exports.sharedAuthState.clearKnownBad(username);
     }
   } catch (error) {
     console.log(`Failed to clear known bad connection: ${String(error)}`);

@@ -226,13 +226,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     taskViewService,
     telemetryService,
     workspaceContextUtils,
-    getSharedLoginPrompt: (username: string) => sharedAuthState.getLoginPrompt(username),
-    setSharedLoginPrompt: (username: string, promise: Promise<void>) =>
-      sharedAuthState.setLoginPrompt(username, promise),
-    clearSharedLoginPrompt: (username: string) => sharedAuthState.clearLoginPrompt(username),
-    isKnownBadConnection: (username: string) => sharedAuthState.isKnownBad(username),
-    addKnownBadConnection: (username: string) => sharedAuthState.addKnownBad(username),
-    clearKnownBadConnection: (username: string) => sharedAuthState.clearKnownBad(username),
+    sharedAuthState,
     services: {
       RegistryAccess,
       ChannelService,
@@ -404,12 +398,7 @@ export type SalesforceVSCodeCoreApi = {
   taskViewService: typeof taskViewService;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
-  getSharedLoginPrompt: (username: string) => Promise<void> | undefined;
-  setSharedLoginPrompt: (username: string, promise: Promise<void>) => void;
-  clearSharedLoginPrompt: (username: string) => void;
-  isKnownBadConnection: (username: string) => boolean;
-  addKnownBadConnection: (username: string) => void;
-  clearKnownBadConnection: (username: string) => void;
+  sharedAuthState: SharedAuthState;
   services: {
     RegistryAccess: typeof RegistryAccess;
     ChannelService: typeof ChannelService;
