@@ -81,6 +81,7 @@ export {
   addKnownBadConnection,
   clearKnownBadConnection
 } from './helpers/authUtils';
+export type { SharedAuthState } from './helpers/authUtils';
 export {
   getDevHubIdFromScratchOrg,
   getTargetOrgOrAlias,

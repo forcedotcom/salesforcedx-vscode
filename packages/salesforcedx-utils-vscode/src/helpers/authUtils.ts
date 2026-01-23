@@ -7,19 +7,18 @@
 
 import { extensions } from 'vscode';
 
-// Type definition for SharedAuthState
-interface SharedAuthState {
+/**
+ * Type definition for SharedAuthState.
+ * This interface describes the shared authentication state manager
+ * that is exported by the Core extension.
+ */
+export interface SharedAuthState {
   getLoginPrompt(username: string): Promise<void> | undefined;
   setLoginPrompt(username: string, promise: Promise<void>): void;
   clearLoginPrompt(username: string): void;
   isKnownBad(username: string): boolean;
   addKnownBad(username: string): void;
   clearKnownBad(username: string): void;
-}
-
-// Type definition for the Core extension API's auth-related methods
-interface SalesforceVSCodeCoreAuthApi {
-  sharedAuthState?: SharedAuthState;
 }
 
 /**
@@ -31,7 +30,7 @@ interface SalesforceVSCodeCoreAuthApi {
  */
 export const getSharedLoginPrompt = async (username: string): Promise<Promise<void> | undefined> => {
   try {
-    const coreExtension = extensions.getExtension<SalesforceVSCodeCoreAuthApi>('salesforce.salesforcedx-vscode-core');
+    const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>('salesforce.salesforcedx-vscode-core');
     if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
       return coreExtension.exports.sharedAuthState.getLoginPrompt(username);
     }
@@ -50,7 +49,7 @@ export const getSharedLoginPrompt = async (username: string): Promise<Promise<vo
  */
 export const setSharedLoginPrompt = (username: string, promise: Promise<void>): void => {
   try {
-    const coreExtension = extensions.getExtension<SalesforceVSCodeCoreAuthApi>('salesforce.salesforcedx-vscode-core');
+    const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>('salesforce.salesforcedx-vscode-core');
     if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
       coreExtension.exports.sharedAuthState.setLoginPrompt(username, promise);
     }
@@ -67,7 +66,7 @@ export const setSharedLoginPrompt = (username: string, promise: Promise<void>): 
  */
 export const clearSharedLoginPrompt = (username: string): void => {
   try {
-    const coreExtension = extensions.getExtension<SalesforceVSCodeCoreAuthApi>('salesforce.salesforcedx-vscode-core');
+    const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>('salesforce.salesforcedx-vscode-core');
     if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
       coreExtension.exports.sharedAuthState.clearLoginPrompt(username);
     }
@@ -85,7 +84,7 @@ export const clearSharedLoginPrompt = (username: string): void => {
  */
 export const isKnownBadConnection = (username: string): boolean => {
   try {
-    const coreExtension = extensions.getExtension<SalesforceVSCodeCoreAuthApi>('salesforce.salesforcedx-vscode-core');
+    const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>('salesforce.salesforcedx-vscode-core');
     if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
       return coreExtension.exports.sharedAuthState.isKnownBad(username);
     }
@@ -103,7 +102,7 @@ export const isKnownBadConnection = (username: string): boolean => {
  */
 export const addKnownBadConnection = (username: string): void => {
   try {
-    const coreExtension = extensions.getExtension<SalesforceVSCodeCoreAuthApi>('salesforce.salesforcedx-vscode-core');
+    const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>('salesforce.salesforcedx-vscode-core');
     if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
       coreExtension.exports.sharedAuthState.addKnownBad(username);
     }
@@ -121,7 +120,7 @@ export const addKnownBadConnection = (username: string): void => {
  */
 export const clearKnownBadConnection = (username: string): void => {
   try {
-    const coreExtension = extensions.getExtension<SalesforceVSCodeCoreAuthApi>('salesforce.salesforcedx-vscode-core');
+    const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>('salesforce.salesforcedx-vscode-core');
     if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
       coreExtension.exports.sharedAuthState.clearKnownBad(username);
     }

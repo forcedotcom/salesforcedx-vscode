@@ -5,12 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SharedAuthState as ISharedAuthState } from '@salesforce/salesforcedx-utils-vscode';
+
 /**
  * Manages shared authentication state across all extensions.
  * This prevents duplicate login prompts when multiple extensions
  * detect the same expired token simultaneously.
  */
-export class SharedAuthState {
+export class SharedAuthState implements ISharedAuthState {
   private static instance: SharedAuthState;
   private activeLoginPrompts: Map<string, Promise<void>> = new Map();
   private knownBadConnections: Set<string> = new Set();
