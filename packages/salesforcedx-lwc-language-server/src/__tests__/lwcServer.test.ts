@@ -271,6 +271,10 @@ const setupServerForTest = async (documentsToOpen: TextDocument[] = [], testServ
   // Component indexer should have indexed at least some components from the test workspace
   // The test workspace has multiple LWC components, so we expect at least a few tags
   expect(testServer.componentIndexer.tags.size).toBeGreaterThan(0);
+
+  // Add a small delay to allow any fire-and-forget promises to settle
+  // This ensures async operations like configureProjectForTs and updateSfdxTsConfigPath complete
+  await new Promise(resolve => setTimeout(resolve, 100));
 };
 
 // Helper function to delete a file or directory from the fileSystemProvider (replaces vscode.workspace.fs.delete)
@@ -378,6 +382,7 @@ jest.mock('vscode-languageserver', () => {
       onDefinition: (): boolean => true,
       onRequest: jest.fn(),
       onNotification: jest.fn(),
+      sendRequest: jest.fn().mockResolvedValue({ applied: true }),
       console: {
         log: jest.fn(),
         error: jest.fn(),
@@ -841,14 +846,27 @@ describe('lwcServer', () => {
         // Populate textDocumentsFileSystemProvider and trigger delayed initialization
         await setupServerForTest([], testServer);
 
-        // After delayed initialization, tsconfig is in textDocumentsFileSystemProvider
+        // Wait for the fire-and-forget promise to complete (configureProjectForTs creates tsconfig files)
+        // Poll until all tsconfig files are created (with timeout)
         const textDocumentsProvider = (testServer as any).textDocumentsFileSystemProvider;
-        expect(
-          textDocumentsProvider?.fileExists(baseTsconfigPath) ??
-            testServer.fileSystemProvider.fileExists(baseTsconfigPath)
-        ).toBe(true);
-        const tsconfigPaths = getTsConfigPaths(testServer);
+        const provider = textDocumentsProvider ?? testServer.fileSystemProvider;
+        let tsconfigPaths: string[] = [];
+        const maxAttempts = 50;
+        let attempts = 0;
+        while (attempts < maxAttempts) {
+          tsconfigPaths = getTsConfigPaths(testServer);
+          // If we have 3 tsconfig files, the update is complete
+          if (tsconfigPaths.length >= 3) {
+            break;
+          }
+          // Wait a bit before checking again
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
 
+        expect(
+          provider?.fileExists(baseTsconfigPath) ?? testServer.fileSystemProvider.fileExists(baseTsconfigPath)
+        ).toBe(true);
         // There are currently 3 LWC directories under SFDX_WORKSPACE_ROOT
         // (force-app/main/default/lwc, utils/meta/lwc, and registered-empty-folder/meta/lwc)
         expect(tsconfigPaths.length).toBe(3);
@@ -861,9 +879,29 @@ describe('lwcServer', () => {
         await server.onInitialize(initializeParams);
         await setupServerForTest([], server);
 
-        // After delayed initialization, tsconfig is in textDocumentsFileSystemProvider
+        // Wait for the fire-and-forget promise to complete (configureProjectForTs -> updateSfdxTsConfigPath)
+        // Poll until the path mappings are updated (with timeout)
         const textDocumentsProvider = (server as any).textDocumentsFileSystemProvider;
         const provider = textDocumentsProvider ?? server.fileSystemProvider;
+        let pathMappingLength = 0;
+        const maxAttempts = 50;
+        let attempts = 0;
+        while (attempts < maxAttempts) {
+          const tsConfigContent =
+            provider.getFileContent(baseTsconfigPath) ?? server.fileSystemProvider.getFileContent(baseTsconfigPath);
+          if (tsConfigContent) {
+            const tsConfig = JSON.parse(tsConfigContent);
+            pathMappingLength = Object.keys(tsConfig.compilerOptions?.paths ?? {}).length;
+            // If we have 12 path mappings, the update is complete
+            if (pathMappingLength >= 12) {
+              break;
+            }
+          }
+          // Wait a bit before checking again
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+
         const sfdxTsConfigContent =
           provider.getFileContent(baseTsconfigPath) ?? server.fileSystemProvider.getFileContent(baseTsconfigPath);
         expect(sfdxTsConfigContent).not.toBeUndefined();

@@ -19,6 +19,7 @@ import {
 import { snakeCase, camelCase } from 'change-case';
 import { minimatch as minimatchFn } from 'minimatch';
 import * as path from 'node:path';
+import { Connection } from 'vscode-languageserver';
 
 import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
 
@@ -291,7 +292,7 @@ export default class ComponentIndexer {
   // It is intended to update the path mapping in the .sfdx/tsconfig.sfdx.json file.
   // TODO: Once the LWC custom module resolution plugin has been developed in the language server
   // this can be removed.
-  public updateSfdxTsConfigPath(): void {
+  public async updateSfdxTsConfigPath(connection?: Connection): Promise<void> {
     const sfdxTsConfigPath = path.join(this.workspaceRoot, '.sfdx', 'tsconfig.sfdx.json');
 
     const fileExists = this.fileSystemProvider.fileExists(sfdxTsConfigPath);
@@ -308,7 +309,7 @@ export default class ComponentIndexer {
           sfdxTsConfig.compilerOptions.paths = this.getTsConfigPathMapping();
 
           // Update the actual tsconfig file
-          void this.fileSystemProvider.updateFileContent(sfdxTsConfigPath, JSON.stringify(sfdxTsConfig, null, 2));
+          await this.fileSystemProvider.updateFileContent(sfdxTsConfigPath, JSON.stringify(sfdxTsConfig, null, 2), connection);
         }
       } catch (err) {
         Logger.error(err);

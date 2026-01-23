@@ -417,13 +417,13 @@ export default class Server {
           if (isLWCRootDirectoryCreated(this.context, changes)) {
             // LWC directory created
             this.context.updateNamespaceRootTypeCache();
-            this.componentIndexer.updateSfdxTsConfigPath();
+            await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
           } else {
             const hasDeleteEvent = await containsDeletedLwcWatchedDirectory(this.context, changes);
             if (hasDeleteEvent) {
               // We need to scan the file system for deletion events as the change event does not include
               // information about the files that were deleted.
-              this.componentIndexer.updateSfdxTsConfigPath();
+              await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
             } else {
               const filePaths = [];
               for (const event of changes) {
@@ -694,9 +694,14 @@ export default class Server {
           this.context.setConnection(this.connection);
           // Make tsconfig generation non-blocking to avoid connection disposal issues
           // Fire and forget - if it fails, we'll continue without tsconfig
-          void this.context.configureProjectForTs().then(() => {
+          void this.context.configureProjectForTs().then(async () => {
             Logger.info('[LWC Server] Updating tsconfig.sfdx.json path mappings...');
-            this.componentIndexer.updateSfdxTsConfigPath();
+            // Ensure component indexer has the correct workspaceType before updating path mappings
+            // The component indexer's workspaceType is set in init(), but we want to ensure it's correct
+            if (this.componentIndexer.workspaceType === 'UNKNOWN') {
+              this.componentIndexer.workspaceType = this.workspaceType;
+            }
+            await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
             Logger.info('[LWC Server] TypeScript configuration complete');
           }).catch((tsConfigError) => {
             // Log error but don't crash the server - tsconfig generation is optional
