@@ -21,6 +21,10 @@ export interface SharedAuthState {
   clearKnownBad(username: string): void;
 }
 
+const getActiveCoreExtension = (): SharedAuthState | undefined => {
+  const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>('salesforce.salesforcedx-vscode-core');
+  return coreExtension?.isActive && coreExtension.exports?.sharedAuthState ? coreExtension.exports.sharedAuthState : undefined;
+};
 /**
  * Gets the shared login prompt promise for a username from the Core extension.
  * This ensures only one login dialog appears across all extensions for the same user.
@@ -30,10 +34,7 @@ export interface SharedAuthState {
  */
 export const getSharedLoginPrompt = async (username: string): Promise<Promise<void> | undefined> => {
   try {
-    const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>('salesforce.salesforcedx-vscode-core');
-    if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
-      return coreExtension.exports.sharedAuthState.getLoginPrompt(username);
-    }
+    return getActiveCoreExtension()?.getLoginPrompt(username);
   } catch (error) {
     console.log(`Failed to get shared login prompt: ${String(error)}`);
   }
@@ -49,10 +50,7 @@ export const getSharedLoginPrompt = async (username: string): Promise<Promise<vo
  */
 export const setSharedLoginPrompt = (username: string, promise: Promise<void>): void => {
   try {
-    const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>('salesforce.salesforcedx-vscode-core');
-    if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
-      coreExtension.exports.sharedAuthState.setLoginPrompt(username, promise);
-    }
+    getActiveCoreExtension()?.setLoginPrompt(username, promise);
   } catch (error) {
     console.log(`Failed to set shared login prompt: ${String(error)}`);
   }
@@ -66,10 +64,7 @@ export const setSharedLoginPrompt = (username: string, promise: Promise<void>): 
  */
 export const clearSharedLoginPrompt = (username: string): void => {
   try {
-    const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>('salesforce.salesforcedx-vscode-core');
-    if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
-      coreExtension.exports.sharedAuthState.clearLoginPrompt(username);
-    }
+    getActiveCoreExtension()?.clearLoginPrompt(username);
   } catch (error) {
     console.log(`Failed to clear shared login prompt: ${String(error)}`);
   }
@@ -84,10 +79,7 @@ export const clearSharedLoginPrompt = (username: string): void => {
  */
 export const isKnownBadConnection = (username: string): boolean => {
   try {
-    const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>('salesforce.salesforcedx-vscode-core');
-    if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
-      return coreExtension.exports.sharedAuthState.isKnownBad(username);
-    }
+    return getActiveCoreExtension()?.isKnownBad(username) ?? false;
   } catch (error) {
     console.log(`Failed to check known bad connection: ${String(error)}`);
   }
@@ -102,10 +94,7 @@ export const isKnownBadConnection = (username: string): boolean => {
  */
 export const addKnownBadConnection = (username: string): void => {
   try {
-    const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>('salesforce.salesforcedx-vscode-core');
-    if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
-      coreExtension.exports.sharedAuthState.addKnownBad(username);
-    }
+    getActiveCoreExtension()?.addKnownBad(username);
   } catch (error) {
     console.log(`Failed to add known bad connection: ${String(error)}`);
   }
@@ -120,10 +109,7 @@ export const addKnownBadConnection = (username: string): void => {
  */
 export const clearKnownBadConnection = (username: string): void => {
   try {
-    const coreExtension = extensions.getExtension<{ sharedAuthState?: SharedAuthState }>('salesforce.salesforcedx-vscode-core');
-    if (coreExtension?.isActive && coreExtension.exports?.sharedAuthState) {
-      coreExtension.exports.sharedAuthState.clearKnownBad(username);
-    }
+    getActiveCoreExtension()?.clearKnownBad(username);
   } catch (error) {
     console.log(`Failed to clear known bad connection: ${String(error)}`);
   }
