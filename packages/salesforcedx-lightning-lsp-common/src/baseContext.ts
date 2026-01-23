@@ -70,7 +70,9 @@ const updateConfigFile =
   (filePath: string, content: string): void => {
     const dir = path.dirname(filePath);
     fileSystemProvider.updateDirectoryListing(dir, []);
-    fileSystemProvider.updateFileContent(filePath, content);
+    // updateFileContent is now async, but this function is synchronous
+    // Since this is used in contexts without connection, the promise resolves immediately
+    void fileSystemProvider.updateFileContent(filePath, content);
   };
 
 const getCoreSettings = (workspaceRoots: string[]): Record<string, unknown> =>
@@ -122,7 +124,7 @@ export const updateForceIgnoreFile = (
   }
 
   // Always write the forceignore file, even if it's empty
-  fileSystemProvider.updateFileContent(forceignorePath, forceignoreContent.trim());
+  void fileSystemProvider.updateFileContent(forceignorePath, forceignoreContent.trim());
 };
 
 export const getModulesDirs = (
@@ -488,7 +490,7 @@ export abstract class BaseWorkspaceContext {
       const destPath = path.join(typingsDir, 'lds.d.ts');
       const content = this.fileSystemProvider.getFileContent(sourcePath);
       if (content) {
-        this.fileSystemProvider.updateFileContent(destPath, content);
+        void this.fileSystemProvider.updateFileContent(destPath, content);
       }
     } catch {
       // ignore
@@ -498,7 +500,7 @@ export abstract class BaseWorkspaceContext {
       const destPath = path.join(typingsDir, 'messageservice.d.ts');
       const content = this.fileSystemProvider.getFileContent(sourcePath);
       if (content) {
-        this.fileSystemProvider.updateFileContent(destPath, content);
+        void this.fileSystemProvider.updateFileContent(destPath, content);
       }
     } catch {
       // ignore
@@ -512,7 +514,7 @@ export abstract class BaseWorkspaceContext {
         const destPath = path.join(typingsDir, file.name);
         const content = this.fileSystemProvider.getFileContent(sourcePath);
         if (content) {
-          this.fileSystemProvider.updateFileContent(destPath, content);
+          void this.fileSystemProvider.updateFileContent(destPath, content);
         }
       } catch {
         // ignore

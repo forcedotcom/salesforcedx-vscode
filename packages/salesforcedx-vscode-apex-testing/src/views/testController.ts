@@ -765,7 +765,8 @@ export class ApexTestController {
       // Reuse updateTestRunResults - pass empty array for testsToRun since we're loading from file
       // Use the code coverage setting to determine if coverage should be shown
       const codeCoverage = settings.retrieveTestCodeCoverage();
-      updateTestRunResults(resultContent, run, [], this.methodItems, this.classItems, codeCoverage);
+      const concise = settings.retrieveTestRunConcise();
+      updateTestRunResults(resultContent, run, [], this.methodItems, this.classItems, codeCoverage, concise);
 
       run.end();
     } catch (error) {

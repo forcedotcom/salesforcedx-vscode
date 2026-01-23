@@ -548,7 +548,7 @@ export const populateFileSystemProvider = (
       mtime: 0,
       size: 0
     });
-    fileSystemProvider.updateFileContent(
+    void fileSystemProvider.updateFileContent(
       parentWorkspaceUserFile,
       '<?xml version="1.0" encoding="UTF-8"?><workspace></workspace>'
     );
@@ -577,7 +577,7 @@ export const populateFileSystemProvider = (
     mtime: 0,
     size: jsconfigSfdxTemplate.length
   });
-  fileSystemProvider.updateFileContent(jsconfigSfdxPath, jsconfigSfdxTemplate);
+  void fileSystemProvider.updateFileContent(jsconfigSfdxPath, jsconfigSfdxTemplate);
 
   // Add typings files that the test expects to be created
   const ldsTypingsPath = normalizePath(join(__dirname, '..', 'resources', 'sfdx', 'lds.d.ts'));
@@ -589,7 +589,7 @@ export const populateFileSystemProvider = (
     mtime: 0,
     size: ldsTypingsContent.length
   });
-  fileSystemProvider.updateFileContent(ldsTypingsPath, ldsTypingsContent);
+  void fileSystemProvider.updateFileContent(ldsTypingsPath, ldsTypingsContent);
 
   const engineTypingsPath = normalizePath(join(__dirname, '..', 'resources', 'sfdx', 'engine.d.ts'));
   const engineTypingsContent = 'declare module "@salesforce/engine" { /* Engine types */ }';
@@ -600,7 +600,7 @@ export const populateFileSystemProvider = (
     mtime: 0,
     size: engineTypingsContent.length
   });
-  fileSystemProvider.updateFileContent(engineTypingsPath, engineTypingsContent);
+  void fileSystemProvider.updateFileContent(engineTypingsPath, engineTypingsContent);
 
   const schemaTypingsPath = normalizePath(join(__dirname, '..', 'resources', 'sfdx', 'schema.d.ts'));
   const schemaTypingsContent = 'declare module "@salesforce/schema" { /* Schema types */ }';
@@ -611,7 +611,7 @@ export const populateFileSystemProvider = (
     mtime: 0,
     size: schemaTypingsContent.length
   });
-  fileSystemProvider.updateFileContent(schemaTypingsPath, schemaTypingsContent);
+  void fileSystemProvider.updateFileContent(schemaTypingsPath, schemaTypingsContent);
 
   const apexTypingsPath = normalizePath(join(__dirname, '..', 'resources', 'sfdx', 'apex.d.ts'));
   const apexTypingsContent = 'declare module "@salesforce/apex" { /* Apex types */ }';
@@ -622,7 +622,7 @@ export const populateFileSystemProvider = (
     mtime: 0,
     size: apexTypingsContent.length
   });
-  fileSystemProvider.updateFileContent(apexTypingsPath, apexTypingsContent);
+  void fileSystemProvider.updateFileContent(apexTypingsPath, apexTypingsContent);
 
   // Add Core template files
   const jsconfigCoreTemplate = JSON.stringify({
@@ -647,7 +647,7 @@ export const populateFileSystemProvider = (
     mtime: 0,
     size: jsconfigCoreTemplate.length
   });
-  fileSystemProvider.updateFileContent(jsconfigCorePath, jsconfigCoreTemplate);
+  void fileSystemProvider.updateFileContent(jsconfigCorePath, jsconfigCoreTemplate);
 
   // Add Core settings template
   const settingsCoreTemplate = JSON.stringify({
@@ -669,7 +669,7 @@ export const populateFileSystemProvider = (
     mtime: 0,
     size: settingsCoreTemplate.length
   });
-  fileSystemProvider.updateFileContent(settingsCorePath, settingsCoreTemplate);
+  void fileSystemProvider.updateFileContent(settingsCorePath, settingsCoreTemplate);
 
   // Add Core typings files for Core workspaces
   // For CORE_PARTIAL, the typings should be in the parent directory (CORE_ALL_ROOT)
@@ -699,7 +699,7 @@ export const populateFileSystemProvider = (
       mtime: 0,
       size: coreEngineContent.length
     });
-    fileSystemProvider.updateFileContent(coreEngineTypingsPath, coreEngineContent);
+    void fileSystemProvider.updateFileContent(coreEngineTypingsPath, coreEngineContent);
 
     // Create lds.d.ts
     fileSystemProvider.updateFileStat(coreLdsTypingsPath, {
@@ -709,7 +709,7 @@ export const populateFileSystemProvider = (
       mtime: 0,
       size: coreLdsContent.length
     });
-    fileSystemProvider.updateFileContent(coreLdsTypingsPath, coreLdsContent);
+    void fileSystemProvider.updateFileContent(coreLdsTypingsPath, coreLdsContent);
   }
 
   // Create directory entries and stats
@@ -780,7 +780,7 @@ export const populateFileSystemProvider = (
       size: content.length
     });
 
-    fileSystemProvider.updateFileContent(fullFilePath, content);
+    void fileSystemProvider.updateFileContent(fullFilePath, content);
   });
 };
 
@@ -829,7 +829,7 @@ coreMultiFileSystemProvider.updateFileStat(coreMultiParentWorkspaceUserFile, {
   mtime: 0,
   size: 0
 });
-coreMultiFileSystemProvider.updateFileContent(
+void coreMultiFileSystemProvider.updateFileContent(
   coreMultiParentWorkspaceUserFile,
   '<?xml version="1.0" encoding="UTF-8"?><workspace></workspace>'
 );
@@ -859,7 +859,7 @@ coreMultiFileSystemProvider.updateFileStat(coreMultiEngineTypingsPath, {
   mtime: 0,
   size: coreMultiEngineContent.length
 });
-coreMultiFileSystemProvider.updateFileContent(coreMultiEngineTypingsPath, coreMultiEngineContent);
+void coreMultiFileSystemProvider.updateFileContent(coreMultiEngineTypingsPath, coreMultiEngineContent);
 
 // Create lds.d.ts
 coreMultiFileSystemProvider.updateFileStat(coreMultiLdsTypingsPath, {
@@ -869,4 +869,4 @@ coreMultiFileSystemProvider.updateFileStat(coreMultiLdsTypingsPath, {
   mtime: 0,
   size: coreMultiLdsContent.length
 });
-coreMultiFileSystemProvider.updateFileContent(coreMultiLdsTypingsPath, coreMultiLdsContent);
+void coreMultiFileSystemProvider.updateFileContent(coreMultiLdsTypingsPath, coreMultiLdsContent);

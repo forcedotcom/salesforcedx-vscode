@@ -186,7 +186,7 @@ export default class Server {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
         for (const [uri, content] of Object.entries(serializedProvider.fileContents)) {
           if (typeof content === 'string') {
-            this.fileSystemProvider.updateFileContent(uri, content);
+            void this.fileSystemProvider.updateFileContent(uri, content);
           }
         }
       }
@@ -429,6 +429,10 @@ export default class Server {
 
   public async onDidChangeWatchedFiles(change: DidChangeWatchedFilesParams): Promise<void> {
     const changes = change.changes;
+
+    if (!this.isDelayedInitializationComplete) {
+      return;
+    }
 
     try {
       if (isAuraRootDirectoryCreated(this.context, changes)) {
