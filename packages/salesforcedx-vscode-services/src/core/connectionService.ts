@@ -145,12 +145,11 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             try: async () => (await StateAggregator.getInstance()).aliases.resolveUsername(usernameOrAlias),
             catch: error => new FailedToResolveUsernameError(unknownToErrorCause(error))
           });
-          const conn = yield* cache.get(username);
-          // update the org ref in the background
-          yield* Effect.forkDaemon(maybeUpdateDefaultOrgRef(conn));
-          return conn;
+          return yield* cache.get(username);
         }
       }).pipe(
+        // update the org ref in the background
+        Effect.tap(conn => maybeUpdateDefaultOrgRef(conn).pipe(Effect.forkDaemon)),
         Effect.withSpan('getConnection')
       )
     } as const;
