@@ -159,8 +159,8 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       await inputElement.clear();
       await expect(inputElement).toBeEmpty({ timeout: 10_000 });
       await inputElement.fill(value);
-      await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
       await inputElement.blur();
+      await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
     }
 
     // Capture after state
