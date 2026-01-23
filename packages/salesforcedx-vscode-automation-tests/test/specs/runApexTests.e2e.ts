@@ -402,8 +402,11 @@ describe('Run Apex Tests', () => {
     await verifyNotificationWithRetry(/Apex test report is ready: test-result-[a-zA-Z0-9]+\.md/, Duration.seconds(30));
 
     // Verify test results in the Test Results tab - verify the test fails
-    let testResultsText = await getTestResultsTabText();
-    let expectedTexts = ['AccountServiceTest.should_create_account', 'Fail', 'System.AssertException: Assertion Fai', 'ticker symbol: Expected: CRM, Actual: SFDC'];
+    let testResultsText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
+    let expectedTexts = [
+      'System.AssertException: Assertion Failed:',
+      'incorrect ticker symbol: Expected: CRM, Actual: SFDC'
+    ];
     await verifyOutputPanelText(testResultsText, expectedTexts);
 
     // Fix test

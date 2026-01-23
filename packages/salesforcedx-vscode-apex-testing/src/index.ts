@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -44,6 +45,10 @@ const refreshTestView = async (): Promise<void> => {
 const hasOrgConnected = (orgInfo: { username?: string; orgId?: string }): boolean =>
   Boolean(orgInfo.username ?? orgInfo.orgId);
 
+/** Helper to get a unique key for an org (for deduplication) */
+const getOrgKey = (orgInfo: { username?: string; orgId?: string }): string | undefined =>
+  orgInfo.username ?? orgInfo.orgId;
+
 /** Initialize test discovery when an org is available, and re-discover on org changes */
 const initializeTestDiscovery = (testController: ReturnType<typeof getTestController>) =>
   Effect.gen(function* () {
@@ -51,43 +56,56 @@ const initializeTestDiscovery = (testController: ReturnType<typeof getTestContro
     const targetOrgRef = api.services.TargetOrgRef;
     const connectionService = yield* api.services.ConnectionService;
 
-    // Track last discovered org to avoid duplicate discoveries
-    // let lastDiscoveredOrg: string | undefined;
+    // Track the last discovered org key to prevent duplicate discoveries
+    const lastDiscoveredOrgRef = yield* Ref.make<string | undefined>(undefined);
 
     const discoverForOrg = (orgInfo: { username?: string; orgId?: string }) =>
       Effect.gen(function* () {
-        const orgKey = orgInfo.username ?? orgInfo.orgId;
-        // Skip if we already discovered for this org
-        // if (orgKey && orgKey === lastDiscoveredOrg) {
-        //   return;
-        // }
-        // lastDiscoveredOrg = orgKey;
+        const orgKey = getOrgKey(orgInfo);
         console.log(`[Apex Testing] Discovering tests for org: ${orgKey}`);
         yield* Effect.promise(() => testController.discoverTests());
       });
 
     // Subscribe to org changes and re-discover tests when org changes
+    // Use filterEffect with Ref to deduplicate at stream level
     yield* Effect.forkDaemon(
       targetOrgRef.changes.pipe(
-        Stream.tap(org => Effect.promise(() => channelService.appendLine(`Target org changed to ${JSON.stringify(org)}`))),
         // if we don't have an orgId, try to get the connection to cause another event to fire with it
-        Stream.tap(org => !org.orgId ? connectionService.getConnection : Effect.succeed(undefined)),
+        Stream.tap(org => (!org.orgId ? connectionService.getConnection : Effect.succeed(undefined))),
         Stream.filter(hasOrgConnected),
-        Stream.tap(org => Effect.promise(() => channelService.appendLine(`Discovering tests for org: ${org.username ?? org.orgId}`))),
-        Stream.runForEach(discoverForOrg))
+        // Deduplicate: only emit when org key changes
+        Stream.filterEffect(org => {
+          const currentKey = getOrgKey(org);
+          return Effect.gen(function* () {
+            const lastKey = yield* Ref.get(lastDiscoveredOrgRef);
+            if (currentKey === lastKey) {
+              return false; // Skip duplicate
+            }
+            yield* Ref.set(lastDiscoveredOrgRef, currentKey);
+            return true; // Emit this org
+          });
+        }),
+        // Log after deduplication so we only see unique org changes
+        Stream.tap(org =>
+          Effect.promise(() => channelService.appendLine(`Target org changed to ${JSON.stringify(org)}`))
+        ),
+        Stream.tap(org =>
+          Effect.promise(() => channelService.appendLine(`Discovering tests for org: ${org.username ?? org.orgId}`))
+        ),
+        Stream.runForEach(discoverForOrg)
+      )
     );
 
     // Trigger connection which populates the TargetOrgRef, then discover tests
     // This handles the startup case where the ref is empty
     yield* connectionService.getConnection;
-    }).pipe(
-      Effect.catchAll(error => {
-        console.debug('[Apex Testing] Test discovery setup failed:', error);
-        return Effect.void;
-      }),
-      Effect.provide(AllServicesLayer)
-    );
-
+  }).pipe(
+    Effect.catchAll(error => {
+      console.debug('[Apex Testing] Test discovery setup failed:', error);
+      return Effect.void;
+    }),
+    Effect.provide(AllServicesLayer)
+  );
 
 /** Normalize path separators to forward slashes for cross-platform comparison */
 const normalizePath = (p: string): string => p.replaceAll('\\', '/');
@@ -228,9 +246,12 @@ const registerCommands = (): vscode.Disposable => {
   const apexTestSuiteRunCmd = vscode.commands.registerCommand('sf.apex.test.suite.run', apexTestSuiteRun);
   const apexTestSuiteAddCmd = vscode.commands.registerCommand('sf.apex.test.suite.add', apexTestSuiteAdd);
   const apexTestRunCmd = vscode.commands.registerCommand('sf.apex.test.run', apexTestRun);
-  const openOrgOnlyTestCmd = vscode.commands.registerCommand('sf.apex.test.openOrgOnlyTest', async (test: vscode.TestItem) => {
-    await getTestController().openOrgOnlyTest(test);
-  });
+  const openOrgOnlyTestCmd = vscode.commands.registerCommand(
+    'sf.apex.test.openOrgOnlyTest',
+    async (test: vscode.TestItem) => {
+      await getTestController().openOrgOnlyTest(test);
+    }
+  );
 
   return vscode.Disposable.from(
     apexTestClassRunCmd,
