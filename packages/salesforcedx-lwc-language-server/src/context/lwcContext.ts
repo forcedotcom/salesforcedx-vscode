@@ -12,7 +12,6 @@ import {
   memoize,
   relativePath,
   updateForceIgnoreFile,
-  FileSystemDataProvider,
   getExtension,
   toResolvedPath,
   pathStartsWith,
@@ -23,29 +22,21 @@ import {
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as ejs from 'ejs';
 import * as path from 'node:path';
+import { Connection } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-
-const updateConfigFile = (filePath: string, content: string, fileSystemProvider: FileSystemDataProvider): void => {
-  // FileSystemDataProvider.normalizePath() handles all normalization (unixify + drive letter case)
-  // So we can just pass the path directly - it will be normalized internally
-
-  // Create the file stat first
-  fileSystemProvider.updateFileStat(filePath, {
-    type: 'file',
-    exists: true,
-    ctime: Date.now(),
-    mtime: Date.now(),
-    size: content.length
-  });
-
-  // Store the file content
-  fileSystemProvider.updateFileContent(filePath, content);
-};
 
 /**
  * Holds information and utility methods for a LWC workspace
  */
 export class LWCWorkspaceContext extends BaseWorkspaceContext {
+  private connection?: Connection;
+
+  /**
+   * Set the LSP connection for file operations (works in both Node.js and web)
+   */
+  public setConnection(connection: Connection): void {
+    this.connection = connection;
+  }
   /**
    * Clear the memoized namespace cache to force re-detection
    */
@@ -141,8 +132,13 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
    */
   public async configureProjectForTs(): Promise<void> {
     try {
+      Logger.info('[LWC Context] configureProjectForTs() called');
+      if (!this.connection) {
+        throw new Error('LSP connection not set. Cannot create files.');
+      }
       // TODO: This should be moved into configureProject after dev preview
       await this.writeTsconfigJson();
+      Logger.info('[LWC Context] configureProjectForTs() completed successfully');
     } catch (error) {
       Logger.error('configureProjectForTs: Error occurred:', error);
       throw error;
@@ -152,17 +148,23 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
   /**
    * Writes TypeScript configuration files for the project
    */
-  protected writeTsconfigJson(): void {
+  protected async writeTsconfigJson(): Promise<void> {
     if (this.type !== 'SFDX') {
       return;
     }
-
     // Write tsconfig.sfdx.json first
     const baseTsConfigPath = path.join(this.workspaceRoots[0], '.sfdx', 'tsconfig.sfdx.json');
 
     try {
       const baseTsConfig = JSON.stringify(baseTsConfigJson, null, 4);
-      updateConfigFile(baseTsConfigPath, baseTsConfig, this.fileSystemProvider);
+      this.fileSystemProvider.updateFileStat(baseTsConfigPath, {
+        type: 'file',
+        exists: true,
+        ctime: Date.now(),
+        mtime: Date.now(),
+        size: baseTsConfig.length
+      });
+      await this.fileSystemProvider.updateFileContent(baseTsConfigPath, baseTsConfig, this.connection);
     } catch (error) {
       Logger.error('writeTsconfigJson: Error reading/writing base tsconfig:', error);
       throw error;
@@ -181,7 +183,15 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
       const tsConfigPath = path.join(modulesDir, 'tsconfig.json');
       const relativeWorkspaceRoot = relativePath(path.dirname(tsConfigPath), this.workspaceRoots[0]);
       const tsConfigContent = ejs.render(tsConfigTemplate, { project_root: relativeWorkspaceRoot });
-      updateConfigFile(tsConfigPath, tsConfigContent, this.fileSystemProvider);
+      // Update file stat first
+      this.fileSystemProvider.updateFileStat(tsConfigPath, {
+        type: 'file',
+        exists: true,
+        ctime: Date.now(),
+        mtime: Date.now(),
+        size: tsConfigContent.length
+      });
+      await this.fileSystemProvider.updateFileContent(tsConfigPath, tsConfigContent, this.connection);
       updateForceIgnoreFile(forceignore, true, this.fileSystemProvider);
     }
   }

@@ -361,7 +361,6 @@ const createServerWithTsSupport = async (initializeParams: InitializeParams): Pr
   // Populate textDocumentsFileSystemProvider and trigger delayed initialization
   // This ensures context is initialized before onInitialized() is called
   await setupServerForTest([], testServer);
-  await testServer.onInitialized();
   return testServer;
 };
 
@@ -371,7 +370,6 @@ jest.mock('vscode-languageserver', () => {
     ...actual,
     createConnection: jest.fn().mockImplementation(() => ({
       onInitialize: (): boolean => true,
-      onInitialized: (): boolean => true,
       onCompletion: (): boolean => true,
       onCompletionResolve: (): boolean => true,
       onDidChangeWatchedFiles: (): boolean => true,
@@ -820,7 +818,6 @@ describe('lwcServer', () => {
 
       it('skip tsconfig initialization when salesforcedx-vscode-lwc.preview.typeScriptSupport = false', async () => {
         await server.onInitialize(initializeParams);
-        await server.onInitialized();
 
         // Check both textDocumentsFileSystemProvider and fileSystemProvider
         const textDocumentsProvider = (server as any).textDocumentsFileSystemProvider;
@@ -843,7 +840,6 @@ describe('lwcServer', () => {
         await testServer.onInitialize(initializeParams);
         // Populate textDocumentsFileSystemProvider and trigger delayed initialization
         await setupServerForTest([], testServer);
-        await testServer.onInitialized();
 
         // After delayed initialization, tsconfig is in textDocumentsFileSystemProvider
         const textDocumentsProvider = (testServer as any).textDocumentsFileSystemProvider;
@@ -864,7 +860,6 @@ describe('lwcServer', () => {
 
         await server.onInitialize(initializeParams);
         await setupServerForTest([], server);
-        await server.onInitialized();
 
         // After delayed initialization, tsconfig is in textDocumentsFileSystemProvider
         const textDocumentsProvider = (server as any).textDocumentsFileSystemProvider;
@@ -1097,7 +1092,6 @@ describe('lwcServer', () => {
 
           await server.onInitialize(initializeParams);
           await setupServerForTest([], server);
-          await server.onInitialized();
 
           const initializedPathMapping = getPathMappingKeys(server);
           // Baseline is 12 (10 original .js + 1 .ts + 2 from utils/meta/lwc)
@@ -1132,7 +1126,6 @@ describe('lwcServer', () => {
         it("doesn't update path mapping when parent directory is not lwc", async () => {
           await server.onInitialize(initializeParams);
           await setupServerForTest([], server);
-          await server.onInitialized();
 
           const initializedPathMapping = getPathMappingKeys(server);
           // Note: There may be leftover files from previous tests, so count might be 11
@@ -1169,7 +1162,7 @@ describe('lwcServer', () => {
               mtime: 0,
               size: 0
             });
-            server.fileSystemProvider.updateFileContent(lwcComponentPath, '');
+            void server.fileSystemProvider.updateFileContent(lwcComponentPath, '');
             server.fileSystemProvider.updateFileStat(path.dirname(nonJsOrTsFilePath), {
               type: 'directory',
               exists: true,
@@ -1177,11 +1170,10 @@ describe('lwcServer', () => {
               mtime: 0,
               size: 0
             });
-            server.fileSystemProvider.updateFileContent(nonJsOrTsFilePath, '');
+            void server.fileSystemProvider.updateFileContent(nonJsOrTsFilePath, '');
 
             await server.onInitialize(initializeParams);
             await setupServerForTest([], server);
-            await server.onInitialized();
 
             const initializedPathMapping = getPathMappingKeys(server);
             // Baseline is 12 (10 original .js + 1 .ts + 2 from utils/meta/lwc)

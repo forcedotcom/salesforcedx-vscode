@@ -254,7 +254,7 @@ export default class ComponentIndexer {
     const indexJsonString = JSON.stringify(this.getCustomData());
 
     // Store the component index data for the client to process
-    this.fileSystemProvider.updateFileContent('lwc:componentIndex', indexJsonString);
+    void this.fileSystemProvider.updateFileContent('lwc:componentIndex', indexJsonString);
   }
 
   public async insertSfdxTsConfigPath(filePaths: string[]): Promise<void> {
@@ -308,7 +308,7 @@ export default class ComponentIndexer {
           sfdxTsConfig.compilerOptions.paths = this.getTsConfigPathMapping();
 
           // Update the actual tsconfig file
-          this.fileSystemProvider.updateFileContent(sfdxTsConfigPath, JSON.stringify(sfdxTsConfig, null, 2));
+          void this.fileSystemProvider.updateFileContent(sfdxTsConfigPath, JSON.stringify(sfdxTsConfig, null, 2));
         }
       } catch (err) {
         Logger.error(err);
