@@ -157,9 +157,10 @@ export const upsertSettings = async (page: Page, settings: Record<string, string
       // Clear the input first, then type the new value
       // This is more reliable than select-all + fill on desktop
       await inputElement.clear();
+      await expect(inputElement).toBeEmpty({ timeout: 10_000 });
       await inputElement.fill(value);
-      await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
       await inputElement.blur();
+      await expect(inputElement).toHaveValue(value, { timeout: 10_000 });
     }
 
     // Capture after state

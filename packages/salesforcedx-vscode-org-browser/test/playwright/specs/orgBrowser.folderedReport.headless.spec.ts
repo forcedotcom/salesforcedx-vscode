@@ -38,7 +38,12 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
   await test.step('find Report type, download not available', async () => {
     const locator = await orgBrowserPage.findMetadataType(reportType);
     await locator.hover();
-    await expect(locator).toMatchAriaSnapshot({ name: 'report-found' });
+    // Expected structure: treeitem at level 1 with accessible name containing "Report",
+    // toolbar containing Refresh Type button only (Retrieve Metadata button is hidden for folder types)
+    await expect(locator).toHaveRole('treeitem');
+    await expect(locator).toHaveAttribute('aria-level', '1');
+    await expect(locator).toHaveAccessibleName(/Report/);
+    await expect(locator.locator('[aria-label="Refresh Type"]')).toBeVisible();
     await expect(locator.locator('.action-label[aria-label="Retrieve Metadata"]')).toBeHidden();
   });
 
@@ -62,7 +67,10 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
     const txt = (await level3.textContent())?.trim() ?? '';
     reportName = txt.split('/').pop();
     await level3.hover({ timeout: 500 });
-    await expect(level3).toMatchAriaSnapshot({ name: 'report-first-item' });
+    // Expected structure: treeitem at level 3 (nested under folder) with toolbar containing Retrieve Metadata button
+    await expect(level3).toHaveRole('treeitem');
+    await expect(level3).toHaveAttribute('aria-level', '3');
+    await expect(level3.locator('[aria-label="Retrieve Metadata"]')).toBeVisible();
     return level3;
   });
 
@@ -90,7 +98,10 @@ test('Org Browser - Foldered Report retrieval: foldered report headless: retriev
     const safeName = (reportName ?? '').replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const reportTab = page.getByRole('tab', { name: new RegExp(safeName, 'i') }).first();
     await expect(reportTab).toBeVisible();
-    await expect(reportTab).toMatchAriaSnapshot({ name: 'report-editor-tab' });
+    // Expected structure: tab element that is selected, with accessible name containing ".report-meta.xml"
+    await expect(reportTab).toHaveRole('tab');
+    await expect(reportTab).toHaveAttribute('aria-selected', 'true');
+    await expect(reportTab).toHaveAccessibleName(/\.report-meta\.xml/);
   });
 
   await test.step('override confirmation for a single report', async () => {

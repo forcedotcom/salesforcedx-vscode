@@ -9,7 +9,7 @@ import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { ExtensionContext } from 'vscode';
-import { defaultOrgRef } from '../core/defaultOrgService';
+import {  getDefaultOrgRef } from '../core/defaultOrgRef';
 import { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
 import { getExtensionContext } from '../extensionContext';
 
@@ -48,7 +48,7 @@ export const updateTelemetryUserIds = Effect.fn('updateTelemetryUserIds')(functi
   const userId = extensionContext.globalState.get<string | undefined>(TELEMETRY_GLOBAL_USER_ID);
   const webUserId = extensionContext.globalState.get<string | undefined>(TELEMETRY_GLOBAL_WEB_USER_ID);
 
-  const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
+  const existingOrgInfo = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
   const updated = {
     ...existingOrgInfo,
     ...(userId ? { userId } : {}),
@@ -57,6 +57,6 @@ export const updateTelemetryUserIds = Effect.fn('updateTelemetryUserIds')(functi
 
   // Only update if values actually changed
   if (!Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
-    yield* SubscriptionRef.set(defaultOrgRef, updated);
+    yield* SubscriptionRef.set(yield* getDefaultOrgRef(), updated);
   }
 });

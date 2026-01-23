@@ -10,14 +10,14 @@ import * as Cache from 'effect/Cache';
 import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as Schema from 'effect/Schema';
-import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { getCliId } from '../observability/cliTelemetry';
 import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
 import { SettingsService } from '../vscode/settingsService';
 import { ConfigService } from './configService';
-import { defaultOrgRef } from './defaultOrgService';
+import { getDefaultOrgRef } from './defaultOrgRef';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
 
@@ -109,15 +109,15 @@ const createDesktopConnection = (username: string) =>
   }).pipe(Effect.withSpan('createDesktopConnection (cache miss)', { attributes: { username } }));
 
 const cache = Effect.runSync(
-  Cache.make({
-    capacity: 100,
-    timeToLive: Duration.infinity,
+  Cache.makeWith({
+    capacity: process.env.ESBUILD_PLATFORM === 'web' ? 1: 100,
+    timeToLive: Exit.match({
+      onSuccess: () => process.env.ESBUILD_PLATFORM === 'web' ? Duration.infinity : Duration.minutes(30),
+      onFailure: () => Duration.zero
+    }),
     lookup: process.env.ESBUILD_PLATFORM === 'web' ? createWebConnection : createDesktopConnection
   })
 );
-
-// when the org changes, invalidate the cache
-Effect.runSync(Effect.forkDaemon(defaultOrgRef.changes.pipe(Stream.runForEach(() => cache.invalidateAll))));
 
 export class ConnectionService extends Effect.Service<ConnectionService>()('ConnectionService', {
   effect: Effect.gen(function* () {
@@ -154,7 +154,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       )
     } as const;
   }),
-  dependencies: [ConfigService.Default]
+  dependencies: [ConfigService.Default, SettingsService.Default, ConfigService.Default]
 }) {}
 
 const getTracksSourceFromOrg = (conn: Connection) =>
@@ -172,7 +172,7 @@ const getTracksSourceFromOrg = (conn: Connection) =>
 const maybeUpdateDefaultOrgRef = (conn: Connection) =>
   Effect.gen(function* () {
     const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
-
+    const defaultOrgRef = yield* getDefaultOrgRef();
     const [{ username, user_id: userId }, devHubOrgId, existingOrgInfo, cliId] = yield* Effect.all(
       [
         Effect.tryPromise(() => conn.identity()).pipe(
@@ -225,7 +225,7 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
     );
 
     // Check if objects have the same content (deep equality using schema)
-    // otherwise, calling set on the ref counts as a change bu it's really not one.
+    // otherwise, calling set on the ref counts as a change but it's really not one.
     if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
       yield* Effect.annotateCurrentSpan({ changed: false });
       return updated;
