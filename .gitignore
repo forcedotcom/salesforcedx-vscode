@@ -129,6 +129,3 @@ jscpd-report/
 
 # Generated tern defs (copied during build from aura-language-server)
 packages/salesforcedx-vscode-lightning/tern/
-
-# SOQL parser library
-packages/salesforcedx-vscode-soql/src/soql-common/soql-parser.lib/

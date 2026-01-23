@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as os from 'node:os';
+// Note: Cannot use 'node:os' here because this file is bundled by webpack for browser (soql-builder-ui)
+// and webpack 4 (used by lwc-services) doesn't support the node: protocol
+// eslint-disable-next-line unicorn/prefer-node-protocol
+import * as os from 'os';
 import * as Soql from '../model';
 import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 

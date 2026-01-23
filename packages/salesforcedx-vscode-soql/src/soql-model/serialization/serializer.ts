@@ -9,7 +9,7 @@ import * as Soql from '../model/model';
 
 export class ModelSerializer {
   protected model: Soql.SoqlModelObject;
-  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+   
   constructor(model: Soql.SoqlModelObject) {
     this.model = model;
   }
