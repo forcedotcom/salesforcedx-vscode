@@ -246,7 +246,7 @@ describe('DeleteSource', () => {
     });
 
     it('should handle conflicts in source-tracked orgs', async () => {
-      const conflicts = [{ type: 'ApexClass', name: 'Test', filenames: ['Test.cls'] }] as ChangeResult[];
+      const conflicts = [{ type: 'ApexClass', name: 'Test', filenames: [testFilePath] }] as ChangeResult[];
 
       // Create a new tracking mock that returns conflicts
       const conflictTracking = {

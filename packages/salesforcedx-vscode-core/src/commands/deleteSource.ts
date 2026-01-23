@@ -74,7 +74,7 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
   ): Promise<boolean> {
     // Update progress notification instead of logging to output channel
     progress?.report({ message: 'Checking for conflicts...' });
-    await this.preChecks();
+    await this.preChecks(response.data.filePath);
 
     progress?.report({ message: 'Deploying delete to org...' });
     await this.delete(response.data.filePath);
@@ -97,7 +97,7 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
     return true;
   }
 
-  private async preChecks(): Promise<void> {
+  private async preChecks(filePath: string): Promise<void> {
     if (this.isSourceTracked) {
       this.project ??= await SfProject.resolve();
       const { SourceTracking } = await import('@salesforce/source-tracking');
@@ -107,13 +107,13 @@ export class DeleteSourceExecutor extends LibraryCommandletExecutor<{ filePath: 
         ignoreLocalCache: true
       });
       // Check for conflicts before proceeding
-      const conflicts = await this.tracking.getConflicts();
+      const conflicts = (await this.tracking.getConflicts())
+        .filter(c => c.filenames?.some(filename => filename.includes(filePath)))
+        .map((c: ChangeResult) => `${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`);
+
       if (conflicts?.length > 0) {
-        const conflictDetails = conflicts.map(
-          (c: ChangeResult) => `${c.type}:${c.name} (${(c.filenames ?? []).join(', ')})`
-        );
         throw new SfError(
-          `${nls.localize('delete_source_conflicts_detected')} Conflicts: ${conflictDetails.join(', ')}`,
+          `${nls.localize('delete_source_conflicts_detected')} Conflicts: ${conflicts.join(', ')}`,
           'SourceConflictDetected'
         );
       }
