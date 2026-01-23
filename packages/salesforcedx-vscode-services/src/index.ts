@@ -12,9 +12,10 @@ import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { SERVICES_CHANNEL_NAME } from './constants';
 import { ComponentSetService } from './core/componentSetService';
+import { watchConfigFiles } from './core/configFileWatcher';
 import { ConfigService } from './core/configService';
 import { ConnectionService } from './core/connectionService';
-import { defaultOrgRef, watchConfigFiles } from './core/defaultOrgService';
+import { getDefaultOrgRef } from './core/defaultOrgRef';
 import { subscribeLifecycleWarnings } from './core/lifecycleWarningListener';
 import { MetadataDeleteService } from './core/metadataDeleteService';
 import { MetadataDeployService } from './core/metadataDeployService';
@@ -59,7 +60,7 @@ export type SalesforceVSCodeServicesApi = {
     SdkLayerFor: typeof SdkLayerFor;
     SettingsService: typeof SettingsService;
     SourceTrackingService: typeof SourceTrackingService;
-    TargetOrgRef: typeof defaultOrgRef;
+    TargetOrgRef: typeof getDefaultOrgRef;
     WorkspaceService: typeof WorkspaceService;
   };
 };
@@ -72,6 +73,7 @@ export type { SourceTrackingConflictError } from './core/sourceTrackingService';
 /** Effect that runs when the extension is activated */
 const activationEffect = (context: vscode.ExtensionContext) =>
   Effect.gen(function* () {
+
     yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
@@ -80,13 +82,12 @@ const activationEffect = (context: vscode.ExtensionContext) =>
       yield* retrieveOnLoadEffect();
       yield* Effect.forkIn(watchSettingsService(), yield* getExtensionScope());
     }
-
+    // watch default org changes to update VS Code context variables and other services
+    yield* Effect.forkIn(watchDefaultOrgContext(), yield* getExtensionScope());
     // watch the config files for changes, which various serices use to invalidate caches
     yield* Effect.forkIn(watchConfigFiles(), yield* getExtensionScope());
     yield* updateTelemetryUserIds(context);
 
-    // watch default org changes to update VS Code context variables
-    yield* Effect.forkIn(watchDefaultOrgContext(), yield* getExtensionScope());
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**
@@ -160,7 +161,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       SdkLayerFor,
       SettingsService,
       SourceTrackingService,
-      TargetOrgRef: defaultOrgRef,
+      TargetOrgRef: getDefaultOrgRef,
       WorkspaceService
     }
   };

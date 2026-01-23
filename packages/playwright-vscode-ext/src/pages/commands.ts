@@ -56,43 +56,20 @@ const executeCommand = async (page: Page, command: string, hasNotText?: string):
   await expect(input).toHaveValue(/^>/, { timeout: 5000 });
 
   // Type the command after the '>' prefix - retry if VS Code filtering interrupts typing
-  const escapedCommand = command.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  await expect(async () => {
-    await page.keyboard.press('End');
-    await input.pressSequentially(command, { delay: 5 });
-    await page.waitForTimeout(50); // let the command filter complete
-    // Verify typing was successful
-    await expect(input).toHaveValue(new RegExp(`>.*${escapedCommand}`, 'i'), { timeout: 5000 });
-  }).toPass({ timeout: 15_000 });
+  await page.keyboard.press('End'); // so that we type AFTER the '>' prefix
+  await input.pressSequentially(command, { delay: 5 });
 
-  // Wait for command list to appear and stabilize
+  // Wait for command list to appear
   await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 10_000 });
 
-  const listRows = widget.locator(QUICK_INPUT_LIST_ROW);
-  await expect(async () => {
-    const count = await listRows.count();
-    expect(count, 'Command list should have at least one row').toBeGreaterThan(0);
-    const commandLower = command.toLowerCase();
-    const availableCommands: string[] = [];
-    for (let i = 0; i < Math.min(count, 20); i++) {
-      const rowText = await listRows.nth(i).textContent();
-      if (rowText) {
-        const text = rowText.trim();
-        availableCommands.push(text);
-        if (text.toLowerCase().includes(commandLower)) {
-          return;
-        }
-      }
-    }
-    throw new Error(
-      `Command "${command}" not found in filtered list. Available commands (first ${availableCommands.length}): ${availableCommands.join(' | ')}`
-    );
-  }).toPass({ timeout: 10_000 });
-
   // Find and click the command row
-  const commandRow = widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: command, hasNotText }).first();
+  // VS Code command palette items may have additional text after the command name (e.g., "similar commands")
+  // So we match the command name exactly at the start of the text
+  const escapedCommand = command.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&'); // for searching with regex since () are common
+  // Match command exactly at the start - this ensures exact match while allowing additional text after
+  const commandRow = widget.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: new RegExp(`^${escapedCommand}`), hasNotText }).first();
 
-  await expect(commandRow).toBeAttached({ timeout: 10_000 });
+  await expect(commandRow).toBeAttached({ timeout: 2000 });
 
   // For virtualized lists, use evaluate to scroll and click (more reliable than Playwright's click)
   await commandRow.evaluate(el => {

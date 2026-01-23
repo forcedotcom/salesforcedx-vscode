@@ -31,17 +31,17 @@ export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint 
       ...(getConsoleTracesEnabled() ? [new SpanTransformProcessor(new ConsoleSpanExporter())] : []),
       ...(isTelemetryExtensionConfigurationEnabled()
         ? [
-          new SpanTransformProcessor(
-            new AzureMonitorTraceExporter({
-              connectionString: DEFAULT_AI_CONNECTION_STRING,
-              storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
-            }),
-            {
-              exportTimeoutMillis: 15_000,
-              maxQueueSize: 1000
-            }
-          )
-        ]
+            new SpanTransformProcessor(
+              new AzureMonitorTraceExporter({
+                connectionString: DEFAULT_AI_CONNECTION_STRING,
+                storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
+              }),
+              {
+                exportTimeoutMillis: 15_000,
+                maxQueueSize: 1000
+              }
+            )
+          ]
         : []),
       ...(o11yEndpoint && (o11yEndpoint.includes('localhost') || isTelemetryExtensionConfigurationEnabled())
         ? [new SpanTransformProcessor(new O11ySpanExporter(extensionName, o11yEndpoint))]

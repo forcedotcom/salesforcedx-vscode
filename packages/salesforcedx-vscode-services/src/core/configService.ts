@@ -14,7 +14,7 @@ import { pipe } from 'effect/Function';
 import * as Stream from 'effect/Stream';
 import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';
-import { defaultOrgRef } from './defaultOrgService';
+import { getDefaultOrgRef } from './defaultOrgRef';
 import { unknownToErrorCause } from './shared';
 
 export class FailedToCreateConfigAggregatorError extends Data.TaggedError('FailedToCreateConfigAggregatorError')<{
@@ -37,7 +37,10 @@ const globalConfigCache = Effect.runSync(
 );
 
 // when the org changes, invalidate the cache
-Effect.runSync(Effect.forkDaemon(defaultOrgRef.changes.pipe(Stream.runForEach(() => globalConfigCache.invalidateAll))));
+Effect.runSync(Effect.forkDaemon(getDefaultOrgRef().pipe(
+  Effect.map(ref => ref.changes),
+  Stream.runForEach(() => globalConfigCache.invalidateAll)
+)));
 
 export class ConfigService extends Effect.Service<ConfigService>()('ConfigService', {
   succeed: {

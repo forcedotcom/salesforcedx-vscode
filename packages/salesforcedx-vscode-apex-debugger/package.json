@@ -14,7 +14,6 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.13.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -88,7 +87,8 @@
         "package.json"
       ],
       "output": [
-        "dist"
+        "dist/index.js",
+        "dist/index.js.map"
       ]
     },
     "vscode:bundle": {

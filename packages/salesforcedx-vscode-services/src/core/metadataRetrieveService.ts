@@ -34,7 +34,7 @@ import { SourceTrackingService, type SourceTrackingOptions } from './sourceTrack
 
 export class MetadataRetrieveError extends Data.TaggedError('MetadataRetrieveError')<{
   readonly cause: unknown;
-}> { }
+}> {}
 
 /** Build a ComponentSet from source paths.
  *

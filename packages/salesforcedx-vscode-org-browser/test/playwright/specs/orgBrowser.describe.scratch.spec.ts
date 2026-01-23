@@ -33,7 +33,11 @@ test('Org Browser high-level validation: a few types from describe', async ({ pa
 
   await test.step('CustomTab UI (not expanded)', async () => {
     await tabType.hover({ timeout: 500 });
-
-    await expect(tabType).toMatchAriaSnapshot({ name: 'customtab-found' });
+    await expect(tabType).toBeVisible();
+    // Expected structure: treeitem at level 1 with toolbar containing both Refresh Type and Retrieve Metadata buttons
+    await expect(tabType).toHaveRole('treeitem');
+    await expect(tabType).toHaveAttribute('aria-level', '1');
+    await expect(tabType.locator('[aria-label="Refresh Type"]')).toBeVisible();
+    await expect(tabType.locator('[aria-label="Retrieve Metadata"]')).toBeVisible();
   });
 });

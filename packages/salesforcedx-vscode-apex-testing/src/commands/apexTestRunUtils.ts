@@ -69,7 +69,7 @@ export const runApexTests = async (
 
   // Print test results to output channel
   channelService.appendLine('\n=== Test Results ===\n');
-  const humanOutput = new HumanReporter().format(result, options.codeCoverage, false);
+  const humanOutput = new HumanReporter().format(result, options.codeCoverage, options.concise);
   if (humanOutput) {
     // Split by lines and add each line separately to preserve formatting
     const lines = humanOutput.split('\n');

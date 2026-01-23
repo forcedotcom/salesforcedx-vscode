@@ -39,11 +39,11 @@ const EnsureNonEmptyComponentSet = Brand.refined<NonEmptyComponentSet>(
 
 class EmptyComponentSetError extends Data.TaggedError('EmptyComponentSetError')<{
   readonly size: number;
-}> { }
+}> {}
 
 export class FailedToBuildComponentSetError extends Data.TaggedError('FailedToBuildComponentSetError')<{
   readonly cause?: Error;
-}> { }
+}> {}
 
 /** Type guard to check if a FileResponse is successful */
 const isSDRSuccess = (fileResponse: FileResponse): fileResponse is FileResponseSuccess =>
@@ -133,7 +133,7 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
     /** Get ComponentSet from manifest file */
     getComponentSetFromManifest
   } as const
-}) { }
+}) {}
 
 /**
  * Set project directory, API version, and source API version on ComponentSet

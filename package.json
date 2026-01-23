@@ -24,7 +24,7 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@effect/eslint-plugin": "0.3.2",
-    "@effect/language-service": "0.64.1",
+    "@effect/language-service": "0.72.0",
     "@eslint/json": "^0.3.0",
     "@monorepo-utils/workspaces-to-typescript-project-references": "2.11.0",
     "@octokit/core": "^5",
@@ -38,7 +38,7 @@
     "@tsconfig/node22": "22.0.2",
     "@types/chai": "^4.3.17",
     "@types/cross-spawn": "6.0.6",
-    "@types/jest": "^29.5.5",
+    "@types/jest": "^29.5.12",
     "@types/mocha": "^10.0.10",
     "@types/node": "^22.15.1",
     "@types/semver": "7.5.8",
@@ -316,7 +316,6 @@
     },
     "precommit": {
       "dependencies": [
-        "compile",
         "lint",
         "check:peer-deps",
         "check:typescript-project-references",
@@ -325,7 +324,6 @@
     },
     "prepush": {
       "dependencies": [
-        "compile",
         "lint",
         "test"
       ]

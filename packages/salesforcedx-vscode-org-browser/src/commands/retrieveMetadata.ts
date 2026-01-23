@@ -58,7 +58,7 @@ const retrieveEffect = (
     if (typeof result !== 'string')
       // Handle post-retrieve UI updates
       yield* Effect.promise(async () => {
-        if (node.kind === 'component') {
+        if (node.kind === 'component' || node.kind === 'customObject') {
           node.iconPath = getIconPath(true);
           treeProvider.fireChangeEvent(node);
         } else {

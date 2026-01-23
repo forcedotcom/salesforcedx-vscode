@@ -30,6 +30,8 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-lwc",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-lightning",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-testing",
@@ -68,6 +70,8 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-lwc",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-lightning",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-testing",
@@ -381,13 +385,17 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-metadata",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core"
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
       ],
       "outFiles": [
         "${workspaceFolder}/packages/salesforcedx-vscode-services/dist/**/*.js",
         "${workspaceFolder}/packages/salesforcedx-vscode-org-browser/dist/**/*.js",
         "${workspaceFolder}/packages/salesforcedx-vscode-metadata/dist/**/*.js",
-        "${workspaceFolder}/packages/salesforcedx-vscode-core/dist/**/*.js"
+        "${workspaceFolder}/packages/salesforcedx-vscode-core/dist/**/*.js",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
       ]
     }
   ],

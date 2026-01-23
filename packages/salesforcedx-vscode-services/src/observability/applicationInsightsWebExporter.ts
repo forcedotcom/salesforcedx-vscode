@@ -20,7 +20,7 @@ import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { workspace } from 'vscode';
-import { defaultOrgRef } from '../core/defaultOrgService';
+import {  getDefaultOrgRef } from '../core/defaultOrgRef';
 import { unknownToErrorCause } from '../core/shared';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
 import { convertAttributes, getExtensionNameAndVersionAttributes, isTopLevelSpan, spanDuration } from './spanUtils';
@@ -89,7 +89,7 @@ const exportSpan = (span: ReadableSpan) =>
       parentID: span.parentSpanContext?.spanId
     };
 
-    const { userId, webUserId } = yield* SubscriptionRef.get(defaultOrgRef);
+    const { userId, webUserId } = yield* SubscriptionRef.get((yield* getDefaultOrgRef()));
 
     const props = {
       ...convertAttributes(span.resource.attributes),
