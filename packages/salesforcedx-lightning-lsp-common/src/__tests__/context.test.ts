@@ -170,7 +170,7 @@ describe('WorkspaceContext', () => {
     }
     try {
       const sourceContent = sfdxFileSystemProvider.getFileContent(jsconfigPathUtilsOrig) ?? '';
-      sfdxFileSystemProvider.updateFileContent(jsconfigPathUtils, sourceContent);
+      void sfdxFileSystemProvider.updateFileContent(jsconfigPathUtils, sourceContent);
     } catch {
       // File operations failed - this might be expected in test cleanup
     }
