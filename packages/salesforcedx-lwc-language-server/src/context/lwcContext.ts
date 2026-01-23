@@ -132,13 +132,11 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
    */
   public async configureProjectForTs(): Promise<void> {
     try {
-      Logger.info('[LWC Context] configureProjectForTs() called');
       if (!this.connection) {
         throw new Error('LSP connection not set. Cannot create files.');
       }
       // TODO: This should be moved into configureProject after dev preview
       await this.writeTsconfigJson();
-      Logger.info('[LWC Context] configureProjectForTs() completed successfully');
     } catch (error) {
       Logger.error('configureProjectForTs: Error occurred:', error);
       throw error;

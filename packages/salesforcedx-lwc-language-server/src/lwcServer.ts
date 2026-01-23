@@ -687,40 +687,34 @@ export default class Server {
       // This ensures sfdx-project.json is available in the FileSystemDataProvider
       try {
         const hasTsEnabled = await this.isTsSupportEnabled();
-        Logger.info(`[LWC Server] TypeScript support enabled: ${hasTsEnabled}`);
         if (hasTsEnabled) {
-          Logger.info('[LWC Server] Configuring project for TypeScript...');
           // Set connection for file operations (works in both Node.js and web)
           this.context.setConnection(this.connection);
           // Make tsconfig generation non-blocking to avoid connection disposal issues
           // Fire and forget - if it fails, we'll continue without tsconfig
           void this.context.configureProjectForTs().then(async () => {
-            Logger.info('[LWC Server] Updating tsconfig.sfdx.json path mappings...');
             // Ensure component indexer has the correct workspaceType before updating path mappings
             // The component indexer's workspaceType is set in init(), but we want to ensure it's correct
             if (this.componentIndexer.workspaceType === 'UNKNOWN') {
               this.componentIndexer.workspaceType = this.workspaceType;
             }
             await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
-            Logger.info('[LWC Server] TypeScript configuration complete');
           }).catch((tsConfigError) => {
             // Log error but don't crash the server - tsconfig generation is optional
             Logger.error(
-              `[LWC Server] Failed to configure TypeScript support: ${tsConfigError instanceof Error ? tsConfigError.message : String(tsConfigError)}`,
+              `Failed to configure TypeScript support: ${tsConfigError instanceof Error ? tsConfigError.message : String(tsConfigError)}`,
               tsConfigError instanceof Error ? tsConfigError : undefined
             );
-            Logger.info('[LWC Server] Continuing without TypeScript configuration');
           });
         } else {
-          Logger.info('[LWC Server] TypeScript support is disabled, skipping tsconfig generation');
+          Logger.info('TypeScript support is disabled, skipping tsconfig generation');
         }
       } catch (tsConfigError) {
         // Log error but don't crash the server - tsconfig generation is optional
         Logger.error(
-          `[LWC Server] Failed to check TypeScript support: ${tsConfigError instanceof Error ? tsConfigError.message : String(tsConfigError)}`,
+          `Failed to check TypeScript support: ${tsConfigError instanceof Error ? tsConfigError.message : String(tsConfigError)}`,
           tsConfigError instanceof Error ? tsConfigError : undefined
         );
-        Logger.info('[LWC Server] Continuing without TypeScript configuration');
       }
 
       // send notification that delayed initialization is complete
