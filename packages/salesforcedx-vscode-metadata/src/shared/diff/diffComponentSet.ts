@@ -33,7 +33,7 @@ const getCacheDirectoryUri = Effect.fn('getCacheDirectoryUri')(function* () {
   );
 
   const workspaceInfo = yield* workspaceService.getWorkspaceInfoOrThrow;
-  const orgId = (yield* SubscriptionRef.get(defaultOrgRef)).orgId;
+  const orgId = (yield* SubscriptionRef.get(yield* defaultOrgRef())).orgId;
 
   if (!orgId) {
     return yield* Effect.fail(new Error(nls.localize('missing_default_org')));
