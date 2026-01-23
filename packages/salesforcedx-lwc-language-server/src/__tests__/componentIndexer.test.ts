@@ -230,7 +230,7 @@ describe('ComponentIndexer', () => {
             mtime: Date.now(),
             size: tsconfigContent.length
           });
-          sfdxFileSystemProvider.updateFileContent(sfdxPath, tsconfigContent);
+          void sfdxFileSystemProvider.updateFileContent(sfdxPath, tsconfigContent);
 
           await componentIndexer.updateSfdxTsConfigPath();
 

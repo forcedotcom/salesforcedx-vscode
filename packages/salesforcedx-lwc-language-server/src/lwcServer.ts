@@ -144,7 +144,6 @@ export default class Server {
     this.textDocumentsFileSystemProvider = new FileSystemDataProvider();
 
     this.connection.onInitialize(params => this.onInitialize(params));
-    this.connection.onInitialized(() => void this.onInitialized());
     this.connection.onCompletion(params => this.onCompletion(params));
     this.connection.onCompletionResolve(item => this.onCompletionResolve(item));
     this.connection.onHover(params => this.onHover(params));
@@ -180,7 +179,7 @@ export default class Server {
     // Create data providers (will be re-initialized after delayed init)
     this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
     this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-    await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemProvider);
+    await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemProvider, this.connection);
     this.languageService = getLanguageService({
       customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
       useDefaultDataProvider: false
@@ -209,14 +208,6 @@ export default class Server {
         }
       }
     };
-  }
-
-  public async onInitialized(): Promise<void> {
-    const hasTsEnabled = await this.isTsSupportEnabled();
-    if (hasTsEnabled) {
-      await this.context.configureProjectForTs();
-      this.componentIndexer.updateSfdxTsConfigPath();
-    }
   }
 
   public async isTsSupportEnabled(): Promise<boolean> {
@@ -425,14 +416,14 @@ export default class Server {
           const { changes } = changeEvent;
           if (isLWCRootDirectoryCreated(this.context, changes)) {
             // LWC directory created
-            await this.context.updateNamespaceRootTypeCache();
-            await this.componentIndexer.updateSfdxTsConfigPath();
+            this.context.updateNamespaceRootTypeCache();
+            await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
           } else {
             const hasDeleteEvent = await containsDeletedLwcWatchedDirectory(this.context, changes);
             if (hasDeleteEvent) {
               // We need to scan the file system for deletion events as the change event does not include
               // information about the files that were deleted.
-              await this.componentIndexer.updateSfdxTsConfigPath();
+              await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
             } else {
               const filePaths = [];
               for (const event of changes) {
@@ -680,13 +671,25 @@ export default class Server {
       // Update data providers to use the new indexer
       this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
       this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-      await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.textDocumentsFileSystemProvider);
+      await TypingIndexer.create(
+        { workspaceRoot: this.workspaceRoots[0] },
+        this.textDocumentsFileSystemProvider,
+        this.connection
+      );
       this.languageService = getLanguageService({
         customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
         useDefaultDataProvider: false
       });
 
       this.isDelayedInitializationComplete = true;
+
+      // Configure TypeScript support now that files are loaded and context is initialized
+      const hasTsEnabled = await this.isTsSupportEnabled();
+      if (hasTsEnabled) {
+        this.context.setConnection(this.connection);
+        await this.context.configureProjectForTs();
+        await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
+      }
 
       // send notification that delayed initialization is complete
       void this.connection.sendNotification(ShowMessageNotification.type, {

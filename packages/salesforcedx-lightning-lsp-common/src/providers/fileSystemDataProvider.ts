@@ -5,6 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'node:path';
+import { Connection, ApplyWorkspaceEditRequest, CreateFile, Position, TextDocumentEdit, TextEdit, WorkspaceEdit } from 'vscode-languageserver';
+import { URI } from 'vscode-uri';
+import { Logger } from '../logger';
 import { FileStat, DirectoryEntry, WorkspaceConfig } from '../types/fileSystemTypes';
 import { NormalizedPath, normalizePath } from '../utils';
 
@@ -17,7 +21,14 @@ export interface IFileSystemProvider {
   getFileStat(uri: string): FileStat | undefined;
   fileExists(uri: string): boolean;
   directoryExists(uri: NormalizedPath): boolean;
-  updateFileContent(uri: string, content: string): void;
+  /**
+   * Update file content from client
+   * If connection is provided, uses LSP workspace/applyEdit to create/write the file (works in both Node.js and web)
+   * Otherwise, only updates the in-memory file system provider
+   *
+   * Promise resolves immediately if connection is not provided
+   */
+  updateFileContent(uri: string, content: string, connection?: Connection): Promise<void>;
   updateDirectoryListing(uri: string, entries: DirectoryEntry[]): void;
   updateFileStat(uri: string, stat: FileStat): void;
   updateWorkspaceConfig(config: WorkspaceConfig): void;
@@ -34,11 +45,49 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   private fileStats: Map<NormalizedPath, FileStat> = new Map();
   private workspaceConfig: WorkspaceConfig | null = null;
 
-  /**
-   * Update file content from client
-   */
-  public updateFileContent(uri: string, content: string): void {
-    this.fileContents.set(normalizePath(uri), content);
+  public async updateFileContent(uri: string, content: string, connection?: Connection): Promise<void> {
+    const normalizedUri = normalizePath(uri);
+
+    // If connection is available, use LSP workspace/applyEdit to create/write the file
+    if (connection) {
+      const fileUri = URI.file(normalizedUri).toString();
+
+      const edit: WorkspaceEdit = {
+        documentChanges: [
+          CreateFile.create(fileUri, { overwrite: true }),
+          TextDocumentEdit.create(
+            { uri: fileUri, version: null },
+            [TextEdit.insert(Position.create(0, 0), content)]
+          )
+        ]
+      };
+
+      try {
+        const result = await connection.sendRequest(ApplyWorkspaceEditRequest.type, {
+          label: `Create ${path.basename(normalizedUri)}`,
+          edit
+        });
+
+        if (!result.applied) {
+          const errorMsg = result.failureReason ?? 'Unknown error';
+          throw new Error(`Failed to create file ${normalizedUri}: ${errorMsg}`);
+        }
+
+      } catch (error) {
+        // Handle connection disposal errors gracefully (server might be shutting down)
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes('connection got disposed') || errorMessage.includes('Pending response rejected')) {
+          Logger.info(`[FileSystemProvider] Connection disposed while creating file ${normalizedUri} - server may be shutting down`);
+          // Don't throw - this is expected during shutdown, but still update in-memory provider
+        } else {
+          Logger.error(`[FileSystemProvider] Failed to create file via LSP: ${normalizedUri}`, error);
+          throw error;
+        }
+      }
+    }
+
+    // Always update the in-memory file system provider for consistency
+    this.fileContents.set(normalizedUri, content);
   }
 
   /**

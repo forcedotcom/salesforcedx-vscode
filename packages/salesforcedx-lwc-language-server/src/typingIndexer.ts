@@ -12,6 +12,7 @@ import {
   NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
+import { Connection } from 'vscode-languageserver';
 import { getWorkspaceRoot } from './baseIndexer';
 import { fromMeta, declarationsFromCustomLabels, getDeclaration } from './typing';
 
@@ -34,6 +35,7 @@ type TypingIndexerData = {
   typingsBaseDir: NormalizedPath;
   projectType: WorkspaceType;
   fileSystemProvider: IFileSystemProvider;
+  connection?: Connection;
 };
 
 // Utility function to diff items
@@ -45,36 +47,33 @@ const diffItems = (items: string[], compareItems: string[]): string[] => {
   });
 };
 
+
 // Utility function to create new meta typings
 const createNewMetaTypings = async (indexer: TypingIndexerData): Promise<void> => {
-  // Note: Directory creation and file writing will be handled by the client
-  // This function now just prepares the data for the client to process
   const newFiles = diffItems(await getMetaFiles(indexer), getMetaTypings(indexer));
-  const typingFiles: { uri: string; content: string }[] = [];
 
+  // Process and write each typing file immediately
   for (const filename of newFiles) {
     const typing = fromMeta(filename);
     const uri = path.join(indexer.typingsBaseDir, typing.fileName);
     const content = getDeclaration(typing);
-    typingFiles.push({ uri, content });
-  }
 
-  // Write the actual typing files to the file system
-  for (const typingFile of typingFiles) {
-    const filePath = typingFile.uri;
-    indexer.fileSystemProvider.updateFileContent(filePath, typingFile.content);
-    indexer.fileSystemProvider.updateFileStat(filePath, {
+    // Update file stat first
+    indexer.fileSystemProvider.updateFileStat(uri, {
       type: 'file',
       exists: true,
       ctime: Date.now(),
       mtime: Date.now(),
-      size: typingFile.content.length
+      size: content.length
     });
+
+    // Use updateFileContent with connection to create file via LSP
+    await indexer.fileSystemProvider.updateFileContent(uri, content, indexer.connection);
   }
 };
 
 // Utility function to delete stale meta typings
-const deleteStaleMetaTypings = async (indexer: TypingIndexerData): Promise<void> => {
+const deleteStaleMetaTypings = (indexer: TypingIndexerData): void => {
   const staleTypings = diffItems(getMetaTypings(indexer), getMetaFiles(indexer));
   const filesToDelete: string[] = [];
 
@@ -119,7 +118,7 @@ const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void>
     const customLabelTypingsPath = normalizePath(
       path.join(indexer.workspaceRoot, '.sfdx', 'typings', 'lwc', 'customlabels.d.ts')
     );
-    indexer.fileSystemProvider.updateFileContent(customLabelTypingsPath, fileContent);
+    // Update file stat first
     indexer.fileSystemProvider.updateFileStat(customLabelTypingsPath, {
       type: 'file',
       exists: true,
@@ -127,6 +126,8 @@ const saveCustomLabelTypings = async (indexer: TypingIndexerData): Promise<void>
       mtime: Date.now(),
       size: fileContent.length
     });
+    // Use updateFileContent with connection to create file via LSP
+    await indexer.fileSystemProvider.updateFileContent(customLabelTypingsPath, fileContent, indexer.connection);
   }
 };
 
@@ -200,6 +201,7 @@ export default class TypingIndexer {
   public projectType!: WorkspaceType;
   public metaFiles: string[] = [];
   public fileSystemProvider: IFileSystemProvider;
+  public connection?: Connection;
 
   // visible for testing
   public static diff(items: string[], compareItems: string[]): string[] {
@@ -213,13 +215,24 @@ export default class TypingIndexer {
   }
 
   /**
+   * Set the LSP connection for file operations (works in both Node.js and web)
+   */
+  public setConnection(connection?: Connection): void {
+    if (connection) {
+      this.connection = connection;
+    }
+  }
+
+  /**
    * Creates and initializes a TypingIndexer instance
    */
   public static async create(
     attributes: BaseIndexerAttributes,
-    fileSystemProvider: IFileSystemProvider
+    fileSystemProvider: IFileSystemProvider,
+    connection?: Connection
   ): Promise<TypingIndexer> {
     const indexer = new TypingIndexer(attributes, fileSystemProvider);
+    indexer.setConnection(connection);
     await indexer.initialize();
     return indexer;
   }
@@ -246,7 +259,7 @@ export default class TypingIndexer {
     if (this.projectType === 'SFDX') {
       this.metaFiles = await getMetaFiles(this);
       await this.createNewMetaTypings();
-      await this.deleteStaleMetaTypings();
+      this.deleteStaleMetaTypings();
       await this.saveCustomLabelTypings();
     }
   }
@@ -257,7 +270,7 @@ export default class TypingIndexer {
   }
 
   // visible for testing
-  public async deleteStaleMetaTypings(): Promise<void> {
+  public deleteStaleMetaTypings(): void {
     return deleteStaleMetaTypings(this);
   }
 

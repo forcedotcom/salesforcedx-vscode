@@ -97,7 +97,7 @@ export const syncDocumentToTextDocumentsProvider = async (
   workspaceRoots: string[]
 ): Promise<void> => {
   // Update TextDocuments FileSystemDataProvider with document content
-  provider.updateFileContent(filePath, content);
+  await provider.updateFileContent(filePath, content);
   provider.updateFileStat(filePath, {
     type: 'file',
     exists: true,

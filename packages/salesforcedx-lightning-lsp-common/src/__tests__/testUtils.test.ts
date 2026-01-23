@@ -11,16 +11,16 @@ const FORCE_APP_ROOT = 'test-workspaces/sfdx-workspace/force-app/main/default';
 
 it('readAsTextDocument()', () => {
     const fileSystemProvider = new FileSystemDataProvider();
-    fileSystemProvider.updateFileContent(
+    void fileSystemProvider.updateFileContent(
         `${FORCE_APP_ROOT}/lwc/hello_world/hello_world.js`,
         'import { LightningElement } from "lwc";\n\nexport default class LwcHelloWorld extends LightningElement {}',
     );
-    fileSystemProvider.updateFileContent(`${FORCE_APP_ROOT}/lwc/hello_world/hello_world.html`, '<template>Hello From a Lightning Web Component</template>\n');
-    fileSystemProvider.updateFileContent(
+    void fileSystemProvider.updateFileContent(`${FORCE_APP_ROOT}/lwc/hello_world/hello_world.html`, '<template>Hello From a Lightning Web Component</template>\n');
+    void fileSystemProvider.updateFileContent(
         `${FORCE_APP_ROOT}/aura/helloWorldApp/helloWorldApp.app`,
         '<aura:application xmlns:aura="http://soap.sforce.com/2006/04/metadata" xmlns:apex="http://soap.sforce.com/2006/04/metadata" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:js="http://soap.sforce.com/2006/04/metadata" xmlns:lwc="http://soap.sforce.com/2006/04/metadata" template="b1">Hello World</aura:application>',
     );
-    fileSystemProvider.updateFileContent(
+    void fileSystemProvider.updateFileContent(
         `${FORCE_APP_ROOT}/aura/wireLdsCmp/wireLdsCmp.cmp`,
         '<aura:component xmlns:aura="http://soap.sforce.com/2006/04/metadata" xmlns:apex="http://soap.sforce.com/2006/04/metadata" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:js="http://soap.sforce.com/2006/04/metadata" xmlns:lwc="http://soap.sforce.com/2006/04/metadata" template="b1">Hello World</aura:component>',
     );

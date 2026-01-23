@@ -186,7 +186,7 @@ export default class Server {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument
         for (const [uri, content] of Object.entries(serializedProvider.fileContents)) {
           if (typeof content === 'string') {
-            this.fileSystemProvider.updateFileContent(uri, content);
+            void this.fileSystemProvider.updateFileContent(uri, content);
           }
         }
       }
