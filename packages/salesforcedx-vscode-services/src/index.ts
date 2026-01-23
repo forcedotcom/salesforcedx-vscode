@@ -82,13 +82,13 @@ const activationEffect = (context: vscode.ExtensionContext) =>
       yield* retrieveOnLoadEffect();
       yield* Effect.forkIn(watchSettingsService(), yield* getExtensionScope());
     }
-
+    // watch default org changes to update VS Code context variables and other services
+    yield* Effect.forkIn(watchDefaultOrgContext(), yield* getExtensionScope());
     // watch the config files for changes, which various serices use to invalidate caches
     yield* Effect.forkIn(watchConfigFiles(), yield* getExtensionScope());
     yield* updateTelemetryUserIds(context);
 
-    // watch default org changes to update VS Code context variables
-    yield* Effect.forkIn(watchDefaultOrgContext(), yield* getExtensionScope());
+
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**

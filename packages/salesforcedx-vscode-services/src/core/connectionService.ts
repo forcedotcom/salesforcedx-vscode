@@ -10,8 +10,8 @@ import * as Cache from 'effect/Cache';
 import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as Schema from 'effect/Schema';
-import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { getCliId } from '../observability/cliTelemetry';
 import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
@@ -109,18 +109,15 @@ const createDesktopConnection = (username: string) =>
   }).pipe(Effect.withSpan('createDesktopConnection (cache miss)', { attributes: { username } }));
 
 const cache = Effect.runSync(
-  Cache.make({
-    capacity: 100,
-    timeToLive: Duration.infinity,
+  Cache.makeWith({
+    capacity: process.env.ESBUILD_PLATFORM === 'web' ? 1: 100,
+    timeToLive: Exit.match({
+      onSuccess: () => process.env.ESBUILD_PLATFORM === 'web' ? Duration.infinity : Duration.minutes(30),
+      onFailure: () => Duration.zero
+    }),
     lookup: process.env.ESBUILD_PLATFORM === 'web' ? createWebConnection : createDesktopConnection
   })
 );
-
-// when the org changes, invalidate the cache
-Effect.runSync(Effect.forkDaemon(getDefaultOrgRef().pipe(
-  Effect.map(ref => ref.changes),
-  Stream.runForEach(() => cache.invalidateAll)
-)));
 
 export class ConnectionService extends Effect.Service<ConnectionService>()('ConnectionService', {
   effect: Effect.gen(function* () {

@@ -27,7 +27,7 @@ const handleOrgChange =
     Effect.gen(function* () {
       if (!statusBarItem || !orgInfo.tracksSource || !orgInfo.orgId) {
         statusBarItem?.hide();
-        stopFileWatcherSubscription();
+        yield* stopFileWatcherSubscription;
         return;
       }
 
@@ -38,7 +38,7 @@ const handleOrgChange =
 /** Subscribe to the centralized file watcher PubSub with debouncing, plus polling for remote changes if active */
 const startFileWatcherSubscription = (statusBarItem: vscode.StatusBarItem) =>
   Effect.gen(function* () {
-    stopFileWatcherSubscription();
+    yield* stopFileWatcherSubscription;
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     fileWatcherSubscription = yield* Effect.scoped(
       Effect.gen(function* () {
@@ -59,14 +59,12 @@ const startFileWatcherSubscription = (statusBarItem: vscode.StatusBarItem) =>
   });
 
 /** Stop the file watcher subscription */
-const stopFileWatcherSubscription = (): void => {
+const stopFileWatcherSubscription = Effect.gen(function* () {
   if (fileWatcherSubscription) {
-    Effect.runPromise(Fiber.interrupt(fileWatcherSubscription)).catch(() => {
-      // Ignore errors when interrupting
-    });
+    yield* Fiber.interrupt(fileWatcherSubscription).pipe(Effect.ignore);
     fileWatcherSubscription = undefined;
   }
-};
+});
 
 /** Refresh the status bar's data using data from tracking service */
 const refresh = (statusBarItem: vscode.StatusBarItem) =>
@@ -136,10 +134,8 @@ export const createSourceTrackingStatusBar = () =>
     const targetOrgRef = yield* api.services.TargetOrgRef();
     yield* Effect.fork(
       Stream.concat(
-        Stream.fromEffect(SubscriptionRef.get(targetOrgRef)).pipe(
-          Stream.filter(org => org && typeof org === 'object' && 'tracksSource' in org)
-        ), //in case initial org state has already been set
-        targetOrgRef.changes // Second scenario: org state changes laster
+        Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), // if initial state has already been set
+        targetOrgRef.changes // ongoing org changes
       ).pipe(
         Stream.tap(orgInfo => channelService.appendToChannel(`target org change: ${JSON.stringify(orgInfo)}`)),
         Stream.filter(orgInfo => orgInfo && typeof orgInfo === 'object' && 'tracksSource' in orgInfo),
@@ -153,10 +149,9 @@ export const createSourceTrackingStatusBar = () =>
       Effect.catchAll(e => Effect.logError(e).pipe(Effect.as(undefined)))
     );
     yield* Effect.addFinalizer(() =>
-      Effect.sync(() => {
-        stopFileWatcherSubscription();
-        statusBarItem.dispose();
-      })
+      stopFileWatcherSubscription.pipe(
+        Effect.andThen(() => statusBarItem.dispose())
+      )
     );
     yield* Effect.sleep(Duration.infinity); // persist the ui component until the extensionscope closes
   }).pipe(Effect.provide(AllServicesLayer));
