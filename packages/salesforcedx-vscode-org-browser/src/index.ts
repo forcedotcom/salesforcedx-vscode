@@ -52,14 +52,13 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       await retrieveOrgBrowserTreeItemCommand(node, treeProvider);
     })
   );
-  const connectionService = yield* api.services.ConnectionService;
+  // const connectionService = yield* api.services.ConnectionService;
   const targetOrgRef = yield* api.services.TargetOrgRef();
   yield* Effect.forkDaemon(
     targetOrgRef.changes.pipe(
       Stream.map(org => org.orgId),
       Stream.changes,
       Stream.tap(orgId => svc.appendToChannel(`Target org changed to ${orgId ?? '<NOT SET>'}`)),
-      Stream.tap(orgId => orgId ? Effect.void : connectionService.getConnection.pipe(Effect.catchAll(() => Effect.void))),
       Stream.filter(isNotUndefined),
       Stream.tap(() => svc.appendToChannel('Org changed, will try to update OrgBrowser')),
       Stream.runForEach(()=>Effect.promise(() => treeProvider.refreshType()))
