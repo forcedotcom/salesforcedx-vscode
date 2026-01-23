@@ -269,34 +269,16 @@ export default class TypingIndexer {
 
   // visible for testing
   public async createNewMetaTypings(): Promise<void> {
-    return createNewMetaTypings({
-      workspaceRoot: this.workspaceRoot,
-      typingsBaseDir: this.typingsBaseDir,
-      projectType: this.projectType,
-      fileSystemProvider: this.fileSystemProvider,
-      connection: this.connection
-    });
+    return createNewMetaTypings(this);
   }
 
   // visible for testing
   public deleteStaleMetaTypings(): void {
-    return deleteStaleMetaTypings({
-      workspaceRoot: this.workspaceRoot,
-      typingsBaseDir: this.typingsBaseDir,
-      projectType: this.projectType,
-      fileSystemProvider: this.fileSystemProvider,
-      connection: this.connection
-    });
+    return deleteStaleMetaTypings(this);
   }
 
   // visible for testing
   public async saveCustomLabelTypings(): Promise<void> {
-    return saveCustomLabelTypings({
-      workspaceRoot: this.workspaceRoot,
-      typingsBaseDir: this.typingsBaseDir,
-      projectType: this.projectType,
-      fileSystemProvider: this.fileSystemProvider,
-      connection: this.connection
-    });
+    return saveCustomLabelTypings(this);
   }
 }
