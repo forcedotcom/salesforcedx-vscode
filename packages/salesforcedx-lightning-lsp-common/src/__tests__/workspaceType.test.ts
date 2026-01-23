@@ -76,7 +76,7 @@ describe('detectWorkspaceType', () => {
             mtime: 0,
             size: 0,
         });
-        fileSystemProvider.updateFileContent(
+        void fileSystemProvider.updateFileContent(
             'workspacedir/package.json',
             JSON.stringify({
                 dependencies: {
@@ -99,7 +99,7 @@ describe('detectWorkspaceType', () => {
             mtime: 0,
             size: 0,
         });
-        fileSystemProvider.updateFileContent(
+        void fileSystemProvider.updateFileContent(
             'workspacedir/package.json',
             JSON.stringify({
                 dependencies: {
@@ -122,7 +122,7 @@ describe('detectWorkspaceType', () => {
             mtime: 0,
             size: 0,
         });
-        fileSystemProvider.updateFileContent(
+        void fileSystemProvider.updateFileContent(
             'workspacedir/package.json',
             JSON.stringify({
                 devDependencies: {
@@ -144,7 +144,7 @@ describe('detectWorkspaceType', () => {
             mtime: 0,
             size: 0,
         });
-        fileSystemProvider.updateFileContent(
+        void fileSystemProvider.updateFileContent(
             'workspacedir/package.json',
             JSON.stringify({
                 dependencies: {
@@ -166,7 +166,7 @@ describe('detectWorkspaceType', () => {
             mtime: 0,
             size: 0,
         });
-        fileSystemProvider.updateFileContent(
+        void fileSystemProvider.updateFileContent(
             'workspacedir/package.json',
             JSON.stringify({
                 devDependencies: {
@@ -187,7 +187,7 @@ describe('detectWorkspaceType', () => {
             mtime: 0,
             size: 0,
         });
-        fileSystemProvider.updateFileContent(
+        void fileSystemProvider.updateFileContent(
             'workspacedir/package.json',
             JSON.stringify({
                 dependencies: {
@@ -209,7 +209,7 @@ describe('detectWorkspaceType', () => {
             mtime: 0,
             size: 0,
         });
-        fileSystemProvider.updateFileContent(
+        void fileSystemProvider.updateFileContent(
             'workspacedir/package.json',
             JSON.stringify({
                 devDependencies: {
@@ -230,7 +230,7 @@ describe('detectWorkspaceType', () => {
             mtime: 0,
             size: 0,
         });
-        fileSystemProvider.updateFileContent(
+        void fileSystemProvider.updateFileContent(
             'workspacedir/package.json',
             JSON.stringify({
                 lwc: {
@@ -253,7 +253,7 @@ describe('detectWorkspaceType', () => {
             mtime: 0,
             size: 0,
         });
-        fileSystemProvider.updateFileContent(
+        void fileSystemProvider.updateFileContent(
             'workspacedir/package.json',
             JSON.stringify({
                 workspaces: [],
@@ -281,8 +281,8 @@ describe('detectWorkspaceType', () => {
             mtime: 0,
             size: 0,
         });
-        fileSystemProvider.updateFileContent('workspacedir/package.json', '{}');
-        fileSystemProvider.updateFileContent('workspacedir/lerna.json', '{}');
+        void fileSystemProvider.updateFileContent('workspacedir/package.json', '{}');
+        void fileSystemProvider.updateFileContent('workspacedir/lerna.json', '{}');
 
         const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
 
@@ -298,7 +298,7 @@ describe('detectWorkspaceType', () => {
             mtime: 0,
             size: 0,
         });
-        fileSystemProvider.updateFileContent('workspacedir/package.json', '{}');
+        void fileSystemProvider.updateFileContent('workspacedir/package.json', '{}');
 
         const workspaceType = await detectWorkspaceType(['workspacedir'], fileSystemProvider);
 

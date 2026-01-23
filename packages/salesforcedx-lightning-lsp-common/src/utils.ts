@@ -125,7 +125,7 @@ export const readJsonSync = async (file: string, fileSystemProvider: IFileSystem
 
 export const writeJsonSync = (file: string, json: SfdxTsConfig, fileSystemProvider: IFileSystemProvider): void => {
   const content = JSON.stringify(json, null, 4);
-  fileSystemProvider.updateFileContent(`${file}`, content);
+  void fileSystemProvider.updateFileContent(`${file}`, content);
 };
 
 /**
