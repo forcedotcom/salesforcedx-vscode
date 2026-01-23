@@ -62,7 +62,7 @@ import { ConfigService } from 'salesforcedx-vscode-services/src/core/configServi
 import { SettingsService, SettingsError } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';
 import { FileWatcherService } from 'salesforcedx-vscode-services/src/vscode/fileWatcherService';
-import { defaultOrgRef } from 'salesforcedx-vscode-services/src/core/defaultOrgService';
+import { getDefaultOrgRef } from 'salesforcedx-vscode-services/src/core/defaultOrgRef';
 import { SdkLayerFor } from 'salesforcedx-vscode-services/src/observability/spans';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
@@ -187,7 +187,7 @@ const mockServicesApi = {
     SdkLayerFor: {} as typeof SdkLayerFor,
     SettingsService: {} as typeof SettingsService,
     SourceTrackingService: {} as typeof SourceTrackingService,
-    TargetOrgRef: defaultOrgRef,
+    TargetOrgRef: getDefaultOrgRef,
     WorkspaceService: {} as typeof WorkspaceService
   }
 } as unknown as SalesforceVSCodeServicesApi;

@@ -15,7 +15,7 @@ import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
-import { defaultOrgRef } from './defaultOrgService';
+import { getDefaultOrgRef } from './defaultOrgRef';
 import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
@@ -49,7 +49,7 @@ const getTracking = (options?: SourceTrackingOptions) =>
         Effect.flatMap(ConnectionService, svc => svc.getConnection),
         Effect.flatMap(ProjectService, svc => svc.getSfProject),
         Effect.flatMap(MetadataRegistryService, svc => svc.getRegistryAccess()),
-        SubscriptionRef.get(defaultOrgRef),
+        SubscriptionRef.get(yield* getDefaultOrgRef()),
         ConfigService.pipe(Effect.flatMap(svc => svc.getConfigAggregator))
       ],
       { concurrency: 'unbounded' }

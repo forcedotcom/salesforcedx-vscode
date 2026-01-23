@@ -7,11 +7,14 @@
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { defaultOrgRef } from '../core/defaultOrgService';
+import {  getDefaultOrgRef } from '../core/defaultOrgRef';
 
 /** Update VS Code context variables when the default org changes */
 export const watchDefaultOrgContext = () =>
-  Stream.runForEach(defaultOrgRef.changes, orgInfo =>
+  Effect.gen(function* () {
+    const ref = yield* getDefaultOrgRef();
+    return ref.changes.pipe(
+  Stream.runForEach( orgInfo =>
     Effect.all(
       [
         Effect.promise(() =>
@@ -26,5 +29,5 @@ export const watchDefaultOrgContext = () =>
         )
       ],
       { concurrency: 'unbounded' }
-    )
-  ).pipe(Effect.catchAll(() => Effect.void));
+    ).pipe(Effect.catchAll(() => Effect.void))));
+  });

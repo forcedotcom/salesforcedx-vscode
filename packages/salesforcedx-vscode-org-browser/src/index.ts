@@ -53,8 +53,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     })
   );
   const connectionService = yield* api.services.ConnectionService;
+  const targetOrgRef = yield* api.services.TargetOrgRef();
   yield* Effect.forkDaemon(
-    api.services.TargetOrgRef.changes.pipe(
+    targetOrgRef.changes.pipe(
       Stream.map(org => org.orgId),
       Stream.changes,
       Stream.tap(orgId => svc.appendToChannel(`Target org changed to ${orgId ?? '<NOT SET>'}`)),

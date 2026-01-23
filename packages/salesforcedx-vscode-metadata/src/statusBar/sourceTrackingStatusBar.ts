@@ -133,12 +133,13 @@ export const createSourceTrackingStatusBar = () =>
     );
     statusBarItem.name = 'Salesforce: Source Tracking';
 
+    const targetOrgRef = yield* api.services.TargetOrgRef();
     yield* Effect.fork(
       Stream.concat(
-        Stream.fromEffect(SubscriptionRef.get(api.services.TargetOrgRef)).pipe(
+        Stream.fromEffect(SubscriptionRef.get(targetOrgRef)).pipe(
           Stream.filter(org => org && typeof org === 'object' && 'tracksSource' in org)
         ), //in case initial org state has already been set
-        api.services.TargetOrgRef.changes // Second scenario: org state changes laster
+        targetOrgRef.changes // Second scenario: org state changes laster
       ).pipe(
         Stream.tap(orgInfo => channelService.appendToChannel(`target org change: ${JSON.stringify(orgInfo)}`)),
         Stream.filter(orgInfo => orgInfo && typeof orgInfo === 'object' && 'tracksSource' in orgInfo),

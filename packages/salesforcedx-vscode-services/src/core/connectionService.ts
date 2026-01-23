@@ -17,7 +17,7 @@ import { getCliId } from '../observability/cliTelemetry';
 import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
 import { SettingsService } from '../vscode/settingsService';
 import { ConfigService } from './configService';
-import { defaultOrgRef } from './defaultOrgService';
+import { getDefaultOrgRef } from './defaultOrgRef';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
 
@@ -117,7 +117,10 @@ const cache = Effect.runSync(
 );
 
 // when the org changes, invalidate the cache
-Effect.runSync(Effect.forkDaemon(defaultOrgRef.changes.pipe(Stream.runForEach(() => cache.invalidateAll))));
+Effect.runSync(Effect.forkDaemon(getDefaultOrgRef().pipe(
+  Effect.map(ref => ref.changes),
+  Stream.runForEach(() => cache.invalidateAll)
+)));
 
 export class ConnectionService extends Effect.Service<ConnectionService>()('ConnectionService', {
   effect: Effect.gen(function* () {
@@ -154,7 +157,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       )
     } as const;
   }),
-  dependencies: [ConfigService.Default]
+  dependencies: [ConfigService.Default, SettingsService.Default, ConfigService.Default]
 }) {}
 
 const getTracksSourceFromOrg = (conn: Connection) =>
@@ -172,7 +175,7 @@ const getTracksSourceFromOrg = (conn: Connection) =>
 const maybeUpdateDefaultOrgRef = (conn: Connection) =>
   Effect.gen(function* () {
     const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
-
+    const defaultOrgRef = yield* getDefaultOrgRef();
     const [{ username, user_id: userId }, devHubOrgId, existingOrgInfo, cliId] = yield* Effect.all(
       [
         Effect.tryPromise(() => conn.identity()).pipe(

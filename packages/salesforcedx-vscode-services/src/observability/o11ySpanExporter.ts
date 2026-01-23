@@ -10,7 +10,7 @@ import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { O11yService } from '@salesforce/o11y-reporter';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { defaultOrgRef } from '../core/defaultOrgService';
+import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { unknownToErrorCause } from '../core/shared';
 import { convertAttributes, getExtensionNameAndVersionAttributes, isTopLevelSpan, spanDuration } from './spanUtils';
 
@@ -50,7 +50,7 @@ export class O11ySpanExporter implements SpanExporter {
       Effect.tryPromise({
         try: async () => {
           await this.ensureInitialized();
-          const { cliId, webUserId } = Effect.runSync(SubscriptionRef.get(defaultOrgRef));
+          const { cliId, webUserId } = getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.get(ref)), Effect.runSync);
           spans.filter(isTopLevelSpan).forEach(span => {
             const success = !span.status || span.status.code !== SpanStatusCode.ERROR;
             const props = {

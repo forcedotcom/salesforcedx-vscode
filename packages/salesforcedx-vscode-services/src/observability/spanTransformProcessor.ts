@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
 import { env, UIKind, version, workspace } from 'vscode';
-import { defaultOrgRef } from '../core/defaultOrgService';
+import {  getDefaultOrgRef } from '../core/defaultOrgRef';
 
 /** Custom span processor that transforms spans before they're exported */
 export class SpanTransformProcessor extends BatchSpanProcessor {
@@ -37,8 +37,9 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
 type TelemetryAttribute = [string, string | undefined];
 
 const getAdditionalAttributes = (extensionName: unknown, extensionVersion: unknown): TelemetryAttribute[] => {
-  const { orgId, devHubOrgId, isSandbox, isScratch, tracksSource, webUserId, cliId } = Effect.runSync(
-    SubscriptionRef.get(defaultOrgRef)
+  const { orgId, devHubOrgId, isSandbox, isScratch, tracksSource, webUserId, cliId } = getDefaultOrgRef().pipe(
+    Effect.flatMap(ref => SubscriptionRef.get(ref)),
+    Effect.runSync
   );
   const commonAttrs: TelemetryAttribute[] = [];
   if (typeof extensionName === 'string') {
