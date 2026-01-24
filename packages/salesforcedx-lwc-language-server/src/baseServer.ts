@@ -164,6 +164,11 @@ export abstract class BaseServer {
     // This ensures all downstream code receives normalized paths
     this.workspaceRoots = this.workspaceFolders.map(folder => normalizePath(URI.parse(folder.uri).fsPath));
 
+    // Set workspace folder URIs in file system providers so they can use correct scheme (memfs:// vs file://)
+    const workspaceFolderUris = this.workspaceFolders.map(folder => folder.uri);
+    this.fileSystemProvider.setWorkspaceFolderUris(workspaceFolderUris);
+    this.textDocumentsFileSystemProvider.setWorkspaceFolderUris(workspaceFolderUris);
+
     // Set up document event handlers
     this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
     this.documents.onDidChangeContent(changeEvent => this.onDidChangeContent(changeEvent));
@@ -645,6 +650,19 @@ export abstract class BaseServer {
   }
 
   /**
+   * Configures TypeScript support for the project
+   * Can be overridden by subclasses to add custom logging or error handling
+   */
+  protected async configureTypeScriptSupport(): Promise<void> {
+    const hasTsEnabled = await this.isTsSupportEnabled();
+    if (hasTsEnabled) {
+      this.context.setConnection(this.connection);
+      await this.context.configureProjectForTs();
+      await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
+    }
+  }
+
+  /**
    * Performs delayed initialization of context and component indexer
    * using the populated textDocumentsFileSystemProvider
    */
@@ -686,12 +704,7 @@ export abstract class BaseServer {
       this.isDelayedInitializationComplete = true;
 
       // Configure TypeScript support now that files are loaded and context is initialized
-      const hasTsEnabled = await this.isTsSupportEnabled();
-      if (hasTsEnabled) {
-        this.context.setConnection(this.connection);
-        await this.context.configureProjectForTs();
-        await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
-      }
+      await this.configureTypeScriptSupport();
 
       // send notification that delayed initialization is complete
       void this.connection.sendNotification(ShowMessageNotification.type, {

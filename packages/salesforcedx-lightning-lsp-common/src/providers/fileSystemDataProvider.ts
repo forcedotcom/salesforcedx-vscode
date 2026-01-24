@@ -44,13 +44,57 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   private directoryListings: Map<NormalizedPath, DirectoryEntry[]> = new Map();
   private fileStats: Map<NormalizedPath, FileStat> = new Map();
   private workspaceConfig: WorkspaceConfig | null = null;
+  private workspaceFolderUris: string[] = [];
+
+  /**
+   * Set workspace folder URIs to use correct scheme when creating files
+   * In web mode with memfs://, we need to use the workspace folder's scheme instead of file://
+   */
+  public setWorkspaceFolderUris(uris: string[]): void {
+    this.workspaceFolderUris = uris;
+  }
+
+  /**
+   * Get the appropriate URI for a file path based on workspace folder schemes
+   * If the path is within a workspace folder, use that folder's scheme
+   * Otherwise, default to file://
+   */
+  private getFileUriForPath(filePath: NormalizedPath): string {
+    // Check if the file path is within any workspace folder
+    for (const workspaceFolderUri of this.workspaceFolderUris) {
+      const workspaceUri = URI.parse(workspaceFolderUri);
+      const workspacePath = normalizePath(workspaceUri.fsPath || workspaceUri.path);
+
+      // Check if file path starts with workspace path
+      if (filePath.startsWith(workspacePath)) {
+        // Use the workspace folder's scheme
+        if (workspaceUri.scheme === 'memfs') {
+          // For memfs://, preserve the full path structure
+          // workspaceUri.path is like "/MyProject", filePath is like "/MyProject/.sfdx/tsconfig.sfdx.json"
+          // We want: "memfs:///MyProject/.sfdx/tsconfig.sfdx.json"
+          const workspacePathFromUri = workspaceUri.path; // e.g., "/MyProject"
+          const relativePath = filePath.substring(workspacePath.length); // e.g., "/.sfdx/tsconfig.sfdx.json"
+          // Combine: workspace path + relative path
+          const fullPath = workspacePathFromUri + relativePath;
+          // memfs:// uses triple slash: memfs:///path
+          return `${workspaceUri.scheme}://${fullPath}`;
+        } else {
+          // For file://, use URI.file() which handles Windows paths correctly
+          return URI.file(filePath).toString();
+        }
+      }
+    }
+
+    // Default to file:// if not in any workspace folder
+    return URI.file(filePath).toString();
+  }
 
   public async updateFileContent(uri: string, content: string, connection?: Connection): Promise<void> {
     const normalizedUri = normalizePath(uri);
 
     // If connection is available, use LSP workspace/applyEdit to create/write the file
     if (connection) {
-      const fileUri = URI.file(normalizedUri).toString();
+      const fileUri = this.getFileUriForPath(normalizedUri);
 
       const edit: WorkspaceEdit = {
         documentChanges: [

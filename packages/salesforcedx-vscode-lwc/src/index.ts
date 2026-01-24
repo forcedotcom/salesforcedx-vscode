@@ -52,11 +52,11 @@ export const activate = async (extensionContext: ExtensionContext) => {
   }
 
   // Initialize telemetry service (now works in both Node.js and web mode)
-  try {
-    await telemetryService.initializeService(extensionContext);
-  } catch (e) {
-    const errorMsg = `Failed to initialize telemetry service: ${String(e)}`;
-    channelService.appendLine(errorMsg);
+    try {
+      await telemetryService.initializeService(extensionContext);
+    } catch (e) {
+      const errorMsg = `Failed to initialize telemetry service: ${String(e)}`;
+      channelService.appendLine(errorMsg);
   }
 
   // In web mode, workspace folders might not be available immediately
@@ -198,21 +198,21 @@ export const activate = async (extensionContext: ExtensionContext) => {
       }
     })
   ).catch(() => {
-    // If findFiles fails (common in web mode), explicitly try to open sfdx-project.json
-    // This is critical for delayed initialization which needs to read the config
-    if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
-      for (const folder of workspace.workspaceFolders) {
-        const sfdxProjectUri = Uri.joinPath(folder.uri, 'sfdx-project.json');
-        void (async () => {
-          try {
-            await workspace.openTextDocument(sfdxProjectUri);
-          } catch {
-            // File might not exist - this is okay for non-SFDX projects
-          }
-        })();
+      // If findFiles fails (common in web mode), explicitly try to open sfdx-project.json
+      // This is critical for delayed initialization which needs to read the config
+      if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
+        for (const folder of workspace.workspaceFolders) {
+          const sfdxProjectUri = Uri.joinPath(folder.uri, 'sfdx-project.json');
+          void (async () => {
+            try {
+              await workspace.openTextDocument(sfdxProjectUri);
+            } catch {
+              // File might not exist - this is okay for non-SFDX projects
+            }
+          })();
+        }
       }
-    }
-  });
+    });
 
   // Creates resources for js-meta.xml to work
   await metaSupport.getMetaSupport();
