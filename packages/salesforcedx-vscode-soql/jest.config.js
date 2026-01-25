@@ -5,5 +5,10 @@ module.exports = Object.assign({}, baseConfig, {
   testPathIgnorePatterns: [
     ...(baseConfig.testPathIgnorePatterns || []),
     '/test/jest/soql-builder-ui/'
-  ]
+  ],
+  // Enable isolatedModules for faster test execution
+  // This package doesn't use dynamic imports, so it's safe
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }]
+  }
 });

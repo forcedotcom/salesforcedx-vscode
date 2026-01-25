@@ -11,6 +11,14 @@ import * as vscode from 'vscode';
 import { ConfigAggregatorProvider, TelemetryService } from '..';
 import { ChannelService } from '../commands/channelService';
 import { ConfigUtil } from '../config/configUtil';
+import {
+  addKnownBadConnection,
+  clearKnownBadConnection,
+  clearSharedLoginPrompt,
+  getSharedLoginPrompt,
+  isKnownBadConnection,
+  setSharedLoginPrompt
+} from '../helpers/authUtils';
 import { projectPaths } from '../helpers/paths';
 import { nls } from '../messages/messages';
 
@@ -38,7 +46,6 @@ export class WorkspaceContextUtil {
   protected _orgShape?: OrgShape;
   protected _devHubId?: string;
 
-  private knownBadConnections: Set<string> = new Set();
   public readonly onOrgChange: vscode.Event<OrgUserInfo>;
 
   protected constructor() {
@@ -89,7 +96,7 @@ export class WorkspaceContextUtil {
           Date.now() - connectionDetails.lastTokenValidationTimestamp > 1000 * 60 * 5 // 5 minutes
         ) {
           await connectionDetails.connection.identity();
-          this.knownBadConnections.delete(this._username);
+          clearKnownBadConnection(this._username);
           this.sessionConnections.set(this._username, {
             connection: connectionDetails.connection,
             lastTokenValidationTimestamp: Date.now()
@@ -102,22 +109,40 @@ export class WorkspaceContextUtil {
         channel.showChannelOutput();
 
         this.sessionConnections.delete(this._username);
-        // we only want to display one message per username, even though many consumers are requesting connections.
-        if (!this.knownBadConnections.has(this._username)) {
-          const selection = await vscode.window.showErrorMessage(
-            nls.localize('error_access_token_expired'),
-            {
-              modal: true,
-              detail: nls.localize('error_access_token_expired_detail')
-            },
-            nls.localize('error_access_token_expired_login_button')
-          );
-          if (selection === 'Login') {
-            await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
-          }
-        }
-        this.knownBadConnections.add(this._username);
 
+        // Check if there's already an active login prompt for this user (shared across all extensions)
+        const existingPrompt = await getSharedLoginPrompt(this._username);
+
+        // we only want to display one message per username across ALL extensions, even though many consumers are requesting connections.
+        const isKnownBad = isKnownBadConnection(this._username);
+        if (!isKnownBad && !existingPrompt) {
+          // Capture username for use in async closure
+          const username = this._username;
+
+          // Create and execute the login prompt with cleanup
+          const loginPromise = (async () => {
+            try {
+              const selection = await vscode.window.showErrorMessage(
+                nls.localize('error_access_token_expired'),
+                {
+                  modal: true,
+                  detail: nls.localize('error_access_token_expired_detail')
+                },
+                nls.localize('error_access_token_expired_login_button')
+              );
+              if (selection === 'Login') {
+                await vscode.commands.executeCommand('sf.org.login.web', connectionDetails.connection.instanceUrl);
+              }
+            } finally {
+              clearSharedLoginPrompt(username);
+              // Mark as known bad after dialog closes to prevent showing again
+              addKnownBadConnection(username);
+            }
+          })();
+
+          setSharedLoginPrompt(username, loginPromise);
+          await loginPromise;
+        }
         throw new Error('Unable to refresh your access token.  Please login again.');
       }
     }
