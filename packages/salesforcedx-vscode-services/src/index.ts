@@ -73,13 +73,8 @@ const activationEffect = (
  */
 export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
   if (process.env.ESBUILD_PLATFORM === 'web') {
-    // set the theme as early as possible.  TODO: manage this from CBW instead of in an extension
-    const config = vscode.workspace.getConfiguration();
-    await config.update('workbench.colorTheme', 'Monokai', vscode.ConfigurationTarget.Global);
-    if (process.env.ESBUILD_PLATFORM === 'web') {
-      const { getWebAppInsightsReporter } = await import('./observability/applicationInsightsWebExporter.js');
-      context.subscriptions.push(getWebAppInsightsReporter());
-    }
+    const { getWebAppInsightsReporter } = await import('./observability/applicationInsightsWebExporter.js');
+    context.subscriptions.push(getWebAppInsightsReporter());
   }
 
   const extensionScope = Effect.runSync(getExtensionScope());

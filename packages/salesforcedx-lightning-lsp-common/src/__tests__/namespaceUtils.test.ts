@@ -75,7 +75,7 @@ describe('findNamespaceRoots', () => {
         mtime: 0,
         size: 0
       });
-      fileSystemProvider.updateFileContent(
+      void fileSystemProvider.updateFileContent(
         path.join(componentDir, 'myComponent.js'),
         'import { LightningElement } from "lwc";'
       );
@@ -129,7 +129,7 @@ describe('findNamespaceRoots', () => {
         mtime: 0,
         size: 0
       });
-      fileSystemProvider.updateFileContent(
+      void fileSystemProvider.updateFileContent(
         path.join(component1Dir, 'component1.js'),
         'import { LightningElement } from "lwc";'
       );
@@ -140,7 +140,7 @@ describe('findNamespaceRoots', () => {
         mtime: 0,
         size: 'import { LightningElement } from "lwc";'.length ?? 0
       });
-      fileSystemProvider.updateFileContent(
+      void fileSystemProvider.updateFileContent(
         path.join(component2Dir, 'component2.js'),
         'import { LightningElement } from "lwc";'
       );
@@ -211,7 +211,7 @@ describe('findNamespaceRoots', () => {
         mtime: 0,
         size: 0
       });
-      fileSystemProvider.updateFileContent(
+      void fileSystemProvider.updateFileContent(
         path.join(componentDir, 'myComponent.js'),
         'import { LightningElement } from "lwc";'
       );
@@ -285,7 +285,7 @@ describe('findNamespaceRoots', () => {
           uri: `${nodeModulesDir}/someComponent`
         }
       ]);
-      fileSystemProvider.updateFileContent(
+      void fileSystemProvider.updateFileContent(
         path.join(componentDir, 'someComponent.js'),
         'import { LightningElement } from "lwc";'
       );
@@ -316,7 +316,7 @@ describe('findNamespaceRoots', () => {
         fileSystemProvider.updateDirectoryListing(ignoredDir, [
           { name: 'someComponent', type: 'directory', uri: `${ignoredDir}/someComponent` }
         ]);
-        fileSystemProvider.updateFileContent(
+        void fileSystemProvider.updateFileContent(
           path.join(componentDir, 'someComponent.js'),
           'import { LightningElement } from "lwc";'
         );
@@ -354,7 +354,7 @@ describe('findNamespaceRoots', () => {
 
       const componentDir = path.join(currentPath, 'myComponent');
       fileSystemProvider.updateFileStat(componentDir, { type: 'directory', exists: true, ctime: 0, mtime: 0, size: 0 });
-      fileSystemProvider.updateFileContent(
+      void fileSystemProvider.updateFileContent(
         path.join(componentDir, 'myComponent.js'),
         'import { LightningElement } from "lwc";'
       );
@@ -403,7 +403,7 @@ describe('findNamespaceRoots', () => {
       fileSystemProvider.updateDirectoryListing(currentPath, [
         { name: 'myComponent', type: 'directory', uri: componentDir }
       ]);
-      fileSystemProvider.updateFileContent(
+      void fileSystemProvider.updateFileContent(
         path.join(componentDir, 'myComponent.js'),
         'import { LightningElement } from "lwc";'
       );
@@ -471,7 +471,7 @@ describe('findNamespaceRoots', () => {
       fileSystemProvider.updateDirectoryListing(level2Dir, [
         { name: 'myComponent', type: 'directory', uri: componentDir }
       ]);
-      fileSystemProvider.updateFileContent(
+      void fileSystemProvider.updateFileContent(
         path.join(componentDir, 'myComponent.js'),
         'import { LightningElement } from "lwc";'
       );
@@ -504,7 +504,7 @@ describe('findNamespaceRoots', () => {
       fileSystemProvider.updateDirectoryListing(componentDir, [
         { name: 'my-component_123.js', type: 'file', uri: `${componentDir}/my-component_123.js` }
       ]);
-      fileSystemProvider.updateFileContent(
+      void fileSystemProvider.updateFileContent(
         path.join(componentDir, 'my-component_123.js'),
         'import { LightningElement } from "lwc";'
       );
@@ -538,7 +538,7 @@ describe('findNamespaceRoots', () => {
       fileSystemProvider.updateDirectoryListing(realDir, [
         { name: 'real.js', type: 'file', uri: `${realDir}/real.js` }
       ]);
-      fileSystemProvider.updateFileContent(path.join(realDir, 'real.js'), 'import { LightningElement } from "lwc";');
+      void fileSystemProvider.updateFileContent(path.join(realDir, 'real.js'), 'import { LightningElement } from "lwc";');
       fileSystemProvider.updateFileStat(path.join(realDir, 'real.js'), {
         type: 'file',
         exists: true,
