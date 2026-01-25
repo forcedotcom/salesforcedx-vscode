@@ -62,38 +62,31 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
   public getChildren(element: TestNode): TestNode[] {
     if (element) {
       return element.children;
-    } else {
-      if (this.rootNode && this.rootNode.children.length > 0) {
-        return this.rootNode.children;
-      } else {
-        const message = NO_TESTS_MESSAGE;
-        const description = NO_TESTS_DESCRIPTION;
-        const emptyArray = new Array<ApexTestNode>();
-        const testToDisplay = new ApexTestNode(message, null);
-        testToDisplay.description = description;
-        emptyArray.push(testToDisplay);
-        return emptyArray;
-      }
     }
+    if (this.rootNode && this.rootNode.children.length > 0) {
+      return this.rootNode.children;
+    }
+    const message = NO_TESTS_MESSAGE;
+    const description = NO_TESTS_DESCRIPTION;
+    const testToDisplay = new ApexTestNode(message, null);
+    testToDisplay.description = description;
+    return [testToDisplay];
   }
 
   public getTreeItem(element: TestNode): vscode.TreeItem {
     if (element) {
       return element;
-    } else {
-      this.getAllApexTests();
-      const message = NO_TESTS_MESSAGE;
-      const description = NO_TESTS_DESCRIPTION;
-      const emptyArray = new Array<ApexTestNode>();
-      const testToDisplay = new ApexTestNode(message, null);
-      testToDisplay.description = description;
-      emptyArray.push(testToDisplay);
-      if (!(this.rootNode && this.rootNode.children.length > 0)) {
-        this.rootNode = new ApexTestNode(message, null);
-        this.rootNode.children.push(testToDisplay);
-      }
-      return this.rootNode;
     }
+    this.getAllApexTests();
+    const message = NO_TESTS_MESSAGE;
+    const description = NO_TESTS_DESCRIPTION;
+    const testToDisplay = new ApexTestNode(message, null);
+    testToDisplay.description = description;
+    if (!(this.rootNode && this.rootNode.children.length > 0)) {
+      this.rootNode = new ApexTestNode(message, null);
+      this.rootNode.children.push(testToDisplay);
+    }
+    return this.rootNode;
   }
 
   public async refresh(): Promise<void> {
