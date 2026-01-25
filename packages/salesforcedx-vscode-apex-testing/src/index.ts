@@ -133,8 +133,8 @@ const setupTestResultsFileWatcher = (
     yield* Effect.forkDaemon(
       Stream.fromPubSub(fileWatcherService.pubsub).pipe(
         Stream.filter(isTestResultJsonFile),
-        Stream.runForEach(event => {
-          const filePath = event.uri.fsPath ?? event.uri.path;
+        Stream.map(event => event.uri.fsPath ?? event.uri.path),
+        Stream.runForEach(filePath => {
           // Extract the apex test results directory from the file path (handle both / and \ separators)
           const lastSepIndex = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
           const apexDirPath = filePath.substring(0, lastSepIndex);
