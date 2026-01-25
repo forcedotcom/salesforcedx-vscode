@@ -44,12 +44,10 @@ const TEST_RESULT_JSON_FILE = 'test-result.json';
 
 export class ApexTestController {
   private controller: vscode.TestController;
-  private testItems: Map<string, vscode.TestItem> = new Map();
   private suiteItems: Map<string, vscode.TestItem> = new Map();
   private classItems: Map<string, vscode.TestItem> = new Map();
   private methodItems: Map<string, vscode.TestItem> = new Map();
   private suiteParentItem: vscode.TestItem | undefined;
-  private resultFileWatcher: vscode.FileSystemWatcher | undefined;
   private lastProcessedResultFile: string | null = null;
   private connection: Connection | undefined;
   private testService: TestService | undefined;
@@ -171,7 +169,6 @@ export class ApexTestController {
 
   private clearTestItems(): void {
     this.controller.items.replace([]);
-    this.testItems.clear();
     this.suiteItems.clear();
     this.classItems.clear();
     this.methodItems.clear();
@@ -261,7 +258,6 @@ export class ApexTestController {
       }
 
       this.controller.items.add(classItem);
-      this.testItems.set(createClassId(fullClassName), classItem);
     }
   }
 
@@ -292,7 +288,6 @@ export class ApexTestController {
         }
         this.suiteItems.set(suite.TestSuiteName, suiteItem);
         this.suiteParentItem.children.add(suiteItem);
-        this.testItems.set(suiteId, suiteItem);
       }
 
       // Add the parent item first so it appears at the top
@@ -725,7 +720,6 @@ export class ApexTestController {
   }
 
   public dispose(): void {
-    this.resultFileWatcher?.dispose();
     this.controller.dispose();
   }
 }
