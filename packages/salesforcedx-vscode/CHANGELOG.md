@@ -16,7 +16,7 @@
 
 #### salesforcedx-vscode-apex-testing
 
-- We fixed an issue where the `test-run-concise` option displayed both passing and failing test results instead of only failures. ([PR #6794](https://github.com/forcedotcom/salesforcedx-vscode/pull/6794))
+- We fixed an issue where the `test-run-concise` option displayed both passing and failing test results instead of only failures. Thank you [Kyle Capehart](https://github.com/k-capehart) for submitting this issue. ([PR #6794](https://github.com/forcedotcom/salesforcedx-vscode/pull/6794))
 
 #### salesforcedx-vscode-core
 
