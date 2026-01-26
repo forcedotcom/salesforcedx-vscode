@@ -7,10 +7,6 @@
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { build } from 'esbuild';
 import { mkdirSync, existsSync } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 await build({
   ...nodeConfig,

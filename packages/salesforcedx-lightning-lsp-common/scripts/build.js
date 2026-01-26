@@ -6,7 +6,7 @@ const { join } = require('node:path');
 // Copy typings
 try {
   execSync('node scripts/copy_typings.js', { stdio: 'inherit' });
-} catch (error) {
+} catch {
   console.error('Error:node scripts/copy_typings.js couldnt be executed');
   process.exit(1);
 }

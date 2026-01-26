@@ -533,7 +533,7 @@ AuraClientService.prototype.decode = function(response, timedOut) {
                 try {
                     $A.log("[AuraClientService.decode]: Communication error, status - " + status + ". Check for app cache updates using applicationCache.update()");
                     appCache.update();
-                } catch (ignore) {
+                } catch {
                     // appcache quirk: calling update() throws in some environments. we have no recovery
                     // so ignore it.
                 }
@@ -698,7 +698,7 @@ AuraClientService.prototype.handleInvalidSessionException = function(values) {
     var newToken = values["newToken"];
     try {
         this.invalidSession(newToken);
-    } catch (e) {
+    } catch {
         $A.log("[AuraClientService.handleInvalidSessionException]: Invalid session, reloading the page.");
         window.location.reload(true);
     }
@@ -1152,7 +1152,7 @@ AuraClientService.prototype.shouldPreventReload = function() {
 
         window.sessionStorage.setItem(AuraClientService.CONSECUTIVE_RELOAD_COUNTER_KEY, ""+(count+1));
         return false;
-    } catch (ignore) {
+    } catch {
         // intentional noop
     }
     return false;
@@ -1167,7 +1167,7 @@ AuraClientService.prototype.clearReloadCount = function() {
     }
     try {
         window.sessionStorage.removeItem(AuraClientService.CONSECUTIVE_RELOAD_COUNTER_KEY);
-    } catch (ignore) {
+    } catch {
         // intentional noop
     }
 };
@@ -1194,7 +1194,7 @@ AuraClientService.prototype.showErrorDialogWithReload = function(e, additionalLo
                 e.message = e.message + " " + additionalLoggedMessage;
             }
             $A.logger.reportError(e, undefined, "WARNING", true);
-        } catch (e2) {
+        } catch {
             // we've failed utterly. One possible scenario is if inline.js failed to load, since it defines the context / fwuid, which reportError relies upon
             // Let's try to manually send an XHR down, since we don't care about the response format
             // we can just use XMLHttpRequest which is available in IE too.
@@ -1223,7 +1223,7 @@ AuraClientService.prototype.showErrorDialogWithReload = function(e, additionalLo
             var context;
             try {
                 context = $A.getContext().encodeForServer(true);
-            } catch (ce) {
+            } catch {
                 // special "UNKNOWN" case will allow reportFailedAction's to be logged, but nothing else. This will return a COOSE, but we don't check the response here and there's little more we can do about it.
                 context = $A.util.json.encode({"fwuid": AuraClientService.UNKNOWN_FRAMEWORK_UID});
             }
@@ -1291,7 +1291,7 @@ AuraClientService.prototype.handleAppCache = function() {
             try {
                 // request the new appcache version be used. change isn't realized until the page is reloaded.
                 window.applicationCache.swapCache();
-            } catch(ignore) {
+            } catch {
                 // quirk: some browser's incorrectly throw InvalidStateError
             }
             // dump caches due to change in fwk and/or app.
@@ -1532,7 +1532,7 @@ AuraClientService.prototype.setOutdated = function() {
         try {
             $A.log("[" + logPrefix + "]: IDLE app cache status. Check for app cache updates using applicationCache.update()");
             appCache.update();
-        } catch (e) {
+        } catch {
             // appcache quirk: calling update() throws in some environments. take a more extreme
             // recovery of dumping caches and reloading .app from server to trigger appcache
             // population cycle.
@@ -1563,7 +1563,7 @@ AuraClientService.prototype.updateAppCacheIfOnlineAndIdle = function() {
             $A.log("[AuraClientService.updateAppCacheIfOnlineAndIdle]: Check for app cache updates using applicationCache.update()");
             window.applicationCache.update();
             return true;
-        } catch (ignore) {
+        } catch {
             // ignore
         }
     }
@@ -1935,7 +1935,7 @@ AuraClientService.prototype.runAfterBootstrapReady = function (callback) {
         if (boot["context"]) {
             $A.getContext()["merge"](boot["context"]);
         }
-    } catch(e) {
+    } catch {
         if (bootstrap.source === "cache" && this.getParallelBootstrapLoad() && Aura["appBootstrapStatus"] !== "failed") {
             $A.warning("Bootstrap cache merge failed, waiting for bootstrap.js from network");
             Aura["afterBootstrapReady"].push(this.runAfterBootstrapReady.bind(this, callback));
@@ -2737,7 +2737,7 @@ AuraClientService.prototype.executeClientAction = function(action) {
             action.runDeprecated();
             action.finishAction($A.getContext());
         }
-    } catch (ignore) {
+    } catch {
         // already handled in the action.
     }
 };
@@ -2978,7 +2978,7 @@ AuraClientService.prototype.deDupe = function(action, sending) {
     }
     try {
         key = action.getStorageKey();
-    } catch (e) {
+    } catch {
         return false;
     }
     entry = this.actionStoreMap[key];
@@ -3220,7 +3220,7 @@ AuraClientService.prototype.sendBeacon = function(action) {
                 "type" : "application/x-www-form-urlencoded; charset=ISO-8859-13"
             });
             return window.navigator["sendBeacon"](this._host + "/auraAnalytics", blobObj);
-        } catch (e) {
+        } catch {
             $A.warning('Unable to parse action payload');
         }
     } else {
@@ -3267,7 +3267,7 @@ AuraClientService.prototype.createXHR = function() {
         try {
             this.httpType = 'msxml2';
             return new ActiveXObject("Msxml2.XMLHTTP");
-        } catch (e) {
+        } catch {
             this.httpType = 'msxml';
             // If this throws, we are out of ideas anyway, so just "let it throw, let it throw, let it throw".
             return new ActiveXObject("Microsoft.XMLHTTP");

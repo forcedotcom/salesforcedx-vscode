@@ -1109,7 +1109,7 @@ AuraComponentService.prototype.loadComponentDefs = function(descriptorMap, callb
                     delete this.componentDefLoader.requestedDescriptors[descriptor];
                 }
             }
-        } catch (e) {
+        } catch {
             // ignore any exception raised
         }
     }

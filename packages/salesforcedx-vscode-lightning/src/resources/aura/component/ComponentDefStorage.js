@@ -407,11 +407,11 @@ ComponentDefStorage.prototype.enqueue = function(execute) {
     // when this promise resolves or rejects, unlock the mutex then run the next item in the queue
     promise["then"](
         function() {
-            try { that.mutexUnlock(); } catch (ignore) { /* ignored */ }
+            try { that.mutexUnlock(); } catch { /* ignored */ }
             executeQueue();
         },
         function() {
-            try { that.mutexUnlock(); } catch (ignore) { /* ignored */ }
+            try { that.mutexUnlock(); } catch { /* ignored */ }
             executeQueue();
         }
     );

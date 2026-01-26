@@ -18,7 +18,7 @@ for (const file of resourceFiles) {
 // copy tern
 try {
   rmSync('out/src/tern', { recursive: true, force: true });
-} catch (error) {
+} catch {
   // Directory doesn't exist, which is fine
 }
 mkdirSync('out/src/tern', { recursive: true });
