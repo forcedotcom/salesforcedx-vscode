@@ -67,7 +67,7 @@
     "vscode:bundle": "wireit",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist .circular-deps.json",
     "copy:grammars": "wireit",
     "build:soql-builder-ui": "wireit",
     "test": "wireit",
@@ -152,10 +152,21 @@
         "coverage"
       ]
     },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
+      "dependencies": ["compile"],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [".circular-deps.json"]
+    },
     "lint": {
       "command": "../../node_modules/.bin/eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "check:circular-deps"
       ],
       "files": [
         "src/**/*.ts",

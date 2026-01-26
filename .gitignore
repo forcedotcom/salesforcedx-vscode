@@ -64,6 +64,9 @@ jspm_packages/
 # Optional eslint cache
 .eslintcache
 
+# Circular dependency check output
+**/.circular-deps.json
+
 # nx cache
 .nx
 
