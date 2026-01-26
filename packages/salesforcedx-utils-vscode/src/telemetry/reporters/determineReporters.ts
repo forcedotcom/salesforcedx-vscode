@@ -12,7 +12,6 @@ import { LogStreamConfig } from './logStreamConfig';
 import { O11yReporter } from './o11yReporter';
 import { TelemetryFile } from './telemetryFile';
 import { TelemetryReporterConfig } from './telemetryReporterConfig';
-import { WebAppInsights } from './webAppInsights';
 
 const o11yReporterInstances: Map<string, O11yReporter> = new Map();
 const o11yInitializationPromises: Map<string, Promise<void>> = new Map();
@@ -48,11 +47,7 @@ const getAppInsightsReporter = (
   userId: string,
   webUserId: string
 ): TelemetryReporter[] => {
-  // Use web-compatible reporter in web mode, Node.js reporter otherwise
-  if (process.env.ESBUILD_PLATFORM === 'web') {
-    console.log(`adding WebAppInsights reporter for ${reporterName};${version}`);
-    return [new WebAppInsights(reporterName, version, aiKey, userId, webUserId, true)];
-  }
+  // AppInsights now handles both Node.js and web modes internally
   console.log(`adding AppInsights reporter for ${reporterName};${version}`);
   return [new AppInsights(reporterName, version, aiKey, userId, webUserId, true)];
 };

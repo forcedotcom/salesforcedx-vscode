@@ -54,50 +54,13 @@ export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.E
 
   return Effect.gen(function* () {
     // 1. Find all matching workspace files
-    logger(`🔍 Searching for files with pattern: ${fileGlob} (excluding: ${excludeGlob})`);
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (workspaceFolders && workspaceFolders.length > 0) {
-      logger(`📂 Workspace folders: ${workspaceFolders.map(f => `${f.uri.scheme}://${f.uri.path}`).join(', ')}`);
-    } else {
-      logger('⚠️ No workspace folders found');
-    }
-
-    // In web mode, findFiles may not work without a search provider
-    // Add timeout to detect if it's hanging
-    const findFilesWithTimeout = (): Promise<vscode.Uri[]> =>
-      Promise.race([
-        vscode.workspace.findFiles(fileGlob, excludeGlob),
-        new Promise<vscode.Uri[]>((_, reject) =>
-          setTimeout(() => reject(new Error('findFiles timed out after 10 seconds')), 10_000)
-        )
-      ]);
-
     const uris = yield* Effect.tryPromise({
-      try: async () => {
-        logger(`🔍 Calling vscode.workspace.findFiles(${fileGlob}, ${excludeGlob})...`);
-        const startTime = Date.now();
-        const result = await findFilesWithTimeout();
-        const duration = Date.now() - startTime;
-        logger(`⏱️ findFiles completed in ${duration}ms`);
-        return result;
-      },
-      catch: (e: unknown) => {
-        const errorMsg = `Failed to find workspace files: ${String(e)}`;
-        logger(`❌ ${errorMsg}`);
-        // In web mode, findFiles often fails - this is expected
-        if (process.env.ESBUILD_PLATFORM === 'web') {
-          logger('💡 In web mode, findFiles may not work without a search provider for the workspace scheme.');
-          logger('💡 Files will be loaded when opened manually by the user.');
-        }
-        return new Error(errorMsg);
-      }
+      try: () => vscode.workspace.findFiles(fileGlob, excludeGlob),
+      catch: (e: unknown) => new Error(`Failed to find workspace files: ${String(e)}`)
     });
 
-    logger(`📊 findFiles returned ${uris.length} files`);
     if (uris.length === 0) {
-      logger(`⚠️ No matching files found for pattern: ${fileGlob} (excluding: ${excludeGlob})`);
-      logger('💡 This might be because findFiles requires a search provider for the workspace scheme.');
-      logger('💡 In web mode with memfs, files may need to be opened manually.');
+      logger(`No matching files found for pattern: ${fileGlob} (excluding: ${excludeGlob})`);
       return;
     }
 
