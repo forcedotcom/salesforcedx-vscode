@@ -154,21 +154,11 @@ export const getMethodLocationsFromSymbols = async (
  */
 const convertApiToApexTestMethods = async (classes: ToolingTestClass[]): Promise<ApexTestMethod[]> => {
   // Extract class names from discovery results to drive file lookup
-  const classNames = classes
+  const nonNamespaceClassesWithTestMethods = classes
     .filter(cls => cls.testMethods?.length > 0)
-    .filter(cls => !hasNamespace(cls))
-    .map(cls => cls.name);
-
-  const classNameToUri = await buildClassToUriIndex(classNames);
-  const apiByClassName = new Map<string, ToolingTestClass[]>();
-  for (const cls of classes) {
-    if (cls.testMethods?.length === 0) continue;
-    // Only consider tests in the local (default) namespace; workspace index maps local files only
-    if (hasNamespace(cls)) continue;
-    const list = apiByClassName.get(cls.name) ?? [];
-    list.push(cls);
-    apiByClassName.set(cls.name, list);
-  }
+    .filter(cls => !hasNamespace(cls));
+  const classNameToUri = await buildClassToUriIndex(nonNamespaceClassesWithTestMethods.map(cls => cls.name));
+  const apiByClassName = Map.groupBy(nonNamespaceClassesWithTestMethods, cls => cls.name);
 
   const tests: ApexTestMethod[] = [];
   for (const [className, uri] of classNameToUri) {
