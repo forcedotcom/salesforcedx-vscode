@@ -21,7 +21,9 @@ import {
 import * as Brand from 'effect/Brand';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
 import { URI } from 'vscode-uri';
+import { HashableUri } from '../vscode/hashableUri';
 import { uriToPath } from '../vscode/paths';
 import { ConfigService } from './configService';
 import { MetadataRegistryService } from './metadataRegistryService';
@@ -75,18 +77,17 @@ const getComponentSetDependencies = () =>
     { concurrency: 'unbounded' }
   );
 
-const getComponentSetFromUris = (uris: Set<URI>) =>
-  Effect.gen(function* () {
-    return yield* getComponentSetFromPaths(new Set(Array.from(uris).map(uriToPath)));
-  });
-
-/** Get ComponentSet from source paths (files/directories) */
-const getComponentSetFromPaths = (paths: Set<string>) =>
+const getComponentSetFromUris = (uris: readonly URI[]) =>
   Effect.gen(function* () {
     const [registryAccess, project, configAggregator] = yield* getComponentSetDependencies();
-
+    const hashableUris = HashSet.fromIterable(uris.map(HashableUri.fromUri));
+    const paths = hashableUris.pipe(
+      HashSet.map(uri => uriToPath(uri)),
+      HashSet.toValues
+    );
+    yield* Effect.annotateCurrentSpan({ paths });
     const componentSet = yield* Effect.try({
-      try: () => ComponentSet.fromSource({ fsPaths: Array.from(paths), registry: registryAccess }),
+      try: () => ComponentSet.fromSource({ fsPaths: paths, registry: registryAccess }),
       catch: e => new FailedToBuildComponentSetError(unknownToErrorCause(e))
     });
 
@@ -94,7 +95,7 @@ const getComponentSetFromPaths = (paths: Set<string>) =>
 
     yield* Effect.annotateCurrentSpan({ size: componentSet.size });
     return componentSet;
-  }).pipe(Effect.withSpan('getComponentSetFromPaths', { attributes: { paths: Array.from(paths).join(',') } }));
+  }).pipe(Effect.withSpan('getComponentSetFromPaths'));
 
 /** Get ComponentSet from manifest file */
 const getComponentSetFromManifest = (manifestPath: string) =>
@@ -128,7 +129,7 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
     isSDRFailure,
     /** Effect that validates a ComponentSet is non-empty and returns NonEmptyComponentSet */
     ensureNonEmptyComponentSet,
-    /** Get ComponentSet from source URIs (files/directories) */
+    /** Get ComponentSet from source URIs (files/directories).  Handles deduplication of URIs */
     getComponentSetFromUris,
     /** Get ComponentSet from manifest file */
     getComponentSetFromManifest

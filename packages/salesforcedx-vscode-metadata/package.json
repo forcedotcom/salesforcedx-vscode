@@ -287,10 +287,6 @@
         {
           "command": "sf.project.generate.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
-        },
-        {
-          "command": "sf.source.diff.current.file",
-          "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         }
       ],
       "editor/context": [
@@ -429,10 +425,6 @@
       },
       {
         "command": "sf.source.diff",
-        "title": "%diff_source_against_org_text%"
-      },
-      {
-        "command": "sf.source.diff.current.file",
         "title": "%diff_source_against_org_text%"
       }
     ]

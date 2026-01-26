@@ -89,6 +89,7 @@ const refresh = (statusBarItem: vscode.StatusBarItem) =>
     const status = yield* Effect.tryPromise(() => tracking.getStatus({ local: true, remote: true }));
     updateDisplay(statusBarItem)(dedupeStatus(status));
   }).pipe(
+    Effect.withSpan('statusBarRefresh'),
     Effect.provide(AllServicesLayer),
     Effect.catchAll(() => Effect.succeed(undefined)) // ignore errors in refresh
   );
@@ -148,10 +149,6 @@ export const createSourceTrackingStatusBar = () =>
       // If there is no connection or an error, that's fine.
       Effect.catchAll(e => Effect.logError(e).pipe(Effect.as(undefined)))
     );
-    yield* Effect.addFinalizer(() =>
-      stopFileWatcherSubscription.pipe(
-        Effect.andThen(() => statusBarItem.dispose())
-      )
-    );
+    yield* Effect.addFinalizer(() => stopFileWatcherSubscription.pipe(Effect.andThen(() => statusBarItem.dispose())));
     yield* Effect.sleep(Duration.infinity); // persist the ui component until the extensionscope closes
   }).pipe(Effect.provide(AllServicesLayer));

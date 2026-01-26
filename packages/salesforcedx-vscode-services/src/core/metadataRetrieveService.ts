@@ -99,19 +99,21 @@ type PerformRetrieveOperationInput = {
   connection: Connection;
   registryAccess: RegistryAccess;
   title: string;
-} & ({
-  merge: true;
-  project: SfProject;
-} | {
-  merge: false;
-  outputPath: URI;
-});
+} & (
+  | {
+      merge: true;
+      project: SfProject;
+    }
+  | {
+      merge: false;
+      outputPath: URI;
+    }
+);
 
 /** Shared helper to perform the actual retrieve operation */
 const performRetrieveOperation = (input: PerformRetrieveOperationInput) =>
   Effect.gen(function* () {
     const output = input.merge ? input.project.getDefaultPackage().fullPath : uriToPath(input.outputPath);
-
     yield* Effect.annotateCurrentSpan({ output });
     const retrieveFiber = yield* Effect.tryPromise({
       try: async () => {
@@ -147,7 +149,6 @@ const performRetrieveOperation = (input: PerformRetrieveOperationInput) =>
       }
     }).pipe(Effect.withSpan('retrieve (API call)'), Effect.fork);
 
-
     const retrieveOutcome = yield* Effect.matchCauseEffect(Fiber.join(retrieveFiber), {
       onFailure: cause =>
         Cause.isInterruptedOnly(cause)
@@ -170,7 +171,6 @@ const performRetrieveOperation = (input: PerformRetrieveOperationInput) =>
     }
 
     return retrieveOutcome;
-
   }).pipe(Effect.withSpan('performRetrieveOperation'));
 
 /** Get common dependencies for retrieve operations */
@@ -206,14 +206,18 @@ const retrieveComponentSet = (components: ComponentSet, options?: SourceTracking
     }
 
     const title = `Retrieving ${components.size} component${components.size === 1 ? '' : 's'}`;
-    return yield* performRetrieveOperation({ componentSet: components, connection, registryAccess, title, merge: true, project });
+    return yield* performRetrieveOperation({
+      componentSet: components,
+      connection,
+      registryAccess,
+      title,
+      merge: true,
+      project
+    });
   }).pipe(Effect.withSpan('retrieveComponentSet', { attributes: { componentCount: components.size } }));
 
 /** Retrieve metadata using a ComponentSet directly to a custom output directory */
-const retrieveComponentSetToDirectory = (
-  components: NonEmptyComponentSet,
-  outputPath: URI
-) =>
+const retrieveComponentSetToDirectory = (components: NonEmptyComponentSet, outputPath: URI) =>
   Effect.gen(function* () {
     const [connection, project, registryAccess, configAggregator] = yield* getRetrieveDependencies();
     // Set API versions and use output directory as projectDirectory when merge is false
@@ -227,7 +231,11 @@ const retrieveComponentSetToDirectory = (
       merge: false,
       outputPath
     });
-  }).pipe(Effect.withSpan('retrieveComponentSetToDirectory', { attributes: { componentCount: components.size, outputPath: uriToPath(outputPath) } }));
+  }).pipe(
+    Effect.withSpan('retrieveComponentSetToDirectory', {
+      attributes: { componentCount: components.size, outputPath: uriToPath(outputPath) }
+    })
+  );
 
 export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()('MetadataRetrieveService', {
   succeed: {
@@ -248,4 +256,4 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     buildComponentSet,
     buildComponentSetFromSource
   } as const
-}) { }
+}) {}

@@ -17,7 +17,7 @@ const deployUris = (uris: Set<URI>) =>
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const componentSetService = yield* api.services.ComponentSetService;
     const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-      yield* componentSetService.getComponentSetFromUris(uris)
+      yield* componentSetService.getComponentSetFromUris(Array.from(uris))
     );
     yield* deployComponentSet({ componentSet });
   });

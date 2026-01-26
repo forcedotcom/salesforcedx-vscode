@@ -14,17 +14,19 @@ export class HashableUri extends URI {
     super(scheme, authority, path, query, fragment);
   }
 
-  private static fromUri(uri: URI): HashableUri {
+  public static fromUri(uri: URI): HashableUri {
     return new HashableUri(uri.scheme, uri.authority, uri.path, uri.query, uri.fragment);
   }
 
   public [Equal.symbol](that: Equal.Equal): boolean {
-    return that instanceof URI &&
+    return (
+      that instanceof URI &&
       this.scheme === that.scheme &&
       this.authority === that.authority &&
       this.path === that.path &&
       this.query === that.query &&
-      this.fragment === that.fragment;
+      this.fragment === that.fragment
+    );
   }
 
   public [Hash.symbol](): number {

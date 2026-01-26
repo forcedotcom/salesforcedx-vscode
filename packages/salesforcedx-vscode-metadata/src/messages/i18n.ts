@@ -91,6 +91,7 @@ export const messages = {
   source_diff_cancelled: 'Diff cancelled by user',
   source_diff_no_results: 'No components retrieved from org',
   source_diff_no_matching_files: 'No matching files found to diff',
+  source_diff_all_files_match: 'All Files Match',
   missing_default_org: 'No default org is set. Run "SFDX: Authorize an Org" to set a default org.'
 } as const;
 

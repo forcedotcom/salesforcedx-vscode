@@ -21,7 +21,7 @@ export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint 
     resource: {
       serviceName: extensionName,
       //manually bump this to cause rebuilds/bust cache
-      serviceVersion: '2026-01-20T04:39.304Z',
+      serviceVersion: '2026-01-26T04:39.304Z',
       attributes: {
         'extension.name': extensionName,
         'extension.version': extensionVersion

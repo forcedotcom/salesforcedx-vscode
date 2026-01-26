@@ -23,7 +23,7 @@ const showDeleteConfirmation = () =>
     return await vscode.window.showInformationMessage(prompt, PROCEED, CANCEL).then(response => response === PROCEED);
   });
 
-const deletePaths = (uris: Set<URI>) =>
+const deletePaths = (uris: URI[]) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const componentSetService = yield* api.services.ComponentSetService;
@@ -61,7 +61,7 @@ export const deleteSourcePaths = async (sourceUri: URI | undefined, uris: URI[] 
       return;
     }
 
-    const resolvedUris = new Set(uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri]);
+    const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
 
     // Delete the paths
     yield* deletePaths(resolvedUris).pipe(

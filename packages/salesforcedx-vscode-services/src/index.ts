@@ -69,6 +69,7 @@ export type { NoActiveEditorError } from './vscode/editorService';
 // export type { FailedToResolveSfProjectError } from './core/projectService';
 export type { GetOrgFromConnectionError } from './core/shared';
 export type { SourceTrackingConflictError } from './core/sourceTrackingService';
+export type { HashableUri } from './vscode/hashableUri';
 
 /** Effect that runs when the extension is activated */
 const activationEffect = (context: vscode.ExtensionContext) =>
