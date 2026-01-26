@@ -27,6 +27,7 @@ const startHeadlessServer = async (): Promise<void> => {
       port: 3001,
       printServerLog: true,
       verbose: true,
+      quality: 'stable',
       extensionDevelopmentPath,
       extensionPaths: [servicesExtensionPath],
       browserOptions: [
