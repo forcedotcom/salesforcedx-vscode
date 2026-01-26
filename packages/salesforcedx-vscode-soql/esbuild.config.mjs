@@ -8,13 +8,12 @@ import { build } from 'esbuild';
 import copy from 'esbuild-plugin-copy';
 import { nodeConfig } from '../../scripts/bundling/node.mjs';
 import { cpSync, mkdirSync } from 'fs';
-import * as path from 'path';
 
 // Plugin to rewrite soql-common imports to be relative to dist directory
 const rewriteSoqlCommonImports = {
   name: 'rewrite-soql-common-imports',
   setup(build) {
-    build.onLoad({ filter: /\.js$/ }, async (args) => {
+    build.onLoad({ filter: /\.js$/ }, async args => {
       const fs = await import('fs');
       let contents = await fs.promises.readFile(args.path, 'utf8');
 
@@ -85,7 +84,7 @@ const soqlParserLibSource = './out/src/soql-common/soql-parser.lib';
 const soqlParserLibFallback = './src/soql-common/soql-parser.lib';
 try {
   cpSync(soqlParserLibSource, './dist/soql-common/soql-parser.lib', { recursive: true });
-} catch (e) {
+} catch {
   console.warn(`Copying from ${soqlParserLibSource} failed, trying ${soqlParserLibFallback}`);
   cpSync(soqlParserLibFallback, './dist/soql-common/soql-parser.lib', { recursive: true });
 }
