@@ -28,7 +28,13 @@ export interface TsConfigPaths {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-export const toResolvedPath = (uri: string): string => resolve(URI.parse(uri).fsPath);
+export const toResolvedPath = (uri: string): string => {
+  const parsed = URI.parse(uri);
+  // For file:// URIs, use fsPath (handles Windows paths correctly)
+  // For other schemes (memfs://, etc.), use path property
+  const pathToResolve = parsed.scheme === 'file' ? parsed.fsPath : parsed.path;
+  return resolve(pathToResolve);
+};
 
 const isLWCRootDirectory = (context: BaseWorkspaceContext, uri: string): boolean => {
   if (context.type === 'SFDX') {

@@ -6,7 +6,15 @@
  */
 
 import * as path from 'node:path';
-import { Connection, ApplyWorkspaceEditRequest, CreateFile, Position, TextDocumentEdit, TextEdit, WorkspaceEdit } from 'vscode-languageserver';
+import {
+  Connection,
+  ApplyWorkspaceEditRequest,
+  CreateFile,
+  Position,
+  TextDocumentEdit,
+  TextEdit,
+  WorkspaceEdit
+} from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { Logger } from '../logger';
 import { FileStat, DirectoryEntry, WorkspaceConfig } from '../types/fileSystemTypes';
@@ -33,6 +41,16 @@ export interface IFileSystemProvider {
   updateFileStat(uri: string, stat: FileStat): void;
   updateWorkspaceConfig(config: WorkspaceConfig): void;
   getAllFileUris(): NormalizedPath[];
+  /**
+   * Convert a URI to a normalized file path
+   * Handles both file:// and memfs:// (or other) schemes based on workspace folder URIs
+   */
+  uriToNormalizedPath(uri: string): NormalizedPath;
+  /**
+   * Convert a normalized file path to a URI with the correct scheme (memfs:// or file://)
+   * Preserves the workspace folder's URI scheme for web compatibility
+   */
+  getFileUriForPath(filePath: NormalizedPath): string;
 }
 
 /**
@@ -59,23 +77,108 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   }
 
   /**
+   * Convert a URI to a normalized file path
+   * Handles both file:// and memfs:// (or other) schemes based on workspace folder URIs
+   */
+  public uriToNormalizedPath(uri: string): NormalizedPath {
+    try {
+      const parsedUri = URI.parse(uri);
+
+      // For file:// URIs, use fsPath which handles Windows paths correctly (no leading slash)
+      if (parsedUri.scheme === 'file') {
+        return normalizePath(parsedUri.fsPath);
+      }
+
+      // For other schemes (memfs://, etc.), check if we can match it to a workspace folder
+      // to determine the correct path extraction
+      for (const workspaceFolderUri of this.workspaceFolderUris) {
+        const workspaceUri = URI.parse(workspaceFolderUri);
+        if (workspaceUri.scheme === parsedUri.scheme) {
+          const workspacePath = normalizePath(workspaceUri.fsPath || workspaceUri.path);
+          const uriPath = parsedUri.path;
+
+          // If this is exactly the workspace folder URI, return the workspace path without leading slash
+          if (parsedUri.path === workspaceUri.path) {
+            // Remove leading slash for non-file schemes to get a relative path
+            return workspacePath.startsWith('/') ? normalizePath(workspacePath.substring(1)) : workspacePath;
+          }
+
+          // Check if the URI path starts with the workspace path
+          // For memfs:///MyProject/sfdx-project.json, uriPath is "/MyProject/sfdx-project.json"
+          // and workspacePath is "/MyProject", so we extract the relative part
+          if (uriPath.startsWith(workspaceUri.path)) {
+            // Extract the relative path after the workspace path
+            const relPathAfterWorkspace = uriPath.substring(workspaceUri.path.length);
+            // Remove leading slash if present
+            const cleanRelativePath = relPathAfterWorkspace.startsWith('/')
+              ? relPathAfterWorkspace.substring(1)
+              : relPathAfterWorkspace;
+            // Join workspace path (without leading slash) with relative path
+            const workspacePathNoSlash = workspacePath.startsWith('/') ? workspacePath.substring(1) : workspacePath;
+            return cleanRelativePath
+              ? normalizePath(path.join(workspacePathNoSlash, cleanRelativePath))
+              : normalizePath(workspacePathNoSlash);
+          }
+
+          // Fallback: remove leading slash and use as-is
+          const relativePath = uriPath.startsWith('/') ? uriPath.substring(1) : uriPath;
+          return normalizePath(relativePath);
+        }
+      }
+
+      // Fallback: extract path from URI and remove leading slash for non-file schemes
+      let filePath = parsedUri.path;
+      if (filePath.startsWith('/')) {
+        filePath = filePath.substring(1);
+      }
+      return normalizePath(filePath);
+    } catch {
+      // Fallback: if URI parsing fails, try string replacement
+      const filePath = uri.replace(/^[^:]+:\/\//, '');
+      return normalizePath(filePath);
+    }
+  }
+
+  /**
    * Get the appropriate URI for a file path based on workspace folder schemes i.e. memfs:// or file://
    * If the path is within a workspace folder, use that folder's scheme
-   * Default to file://
+   * Convert a normalized file path to a URI with the correct scheme (memfs:// or file://)
+   * Preserves the workspace folder's URI scheme for web compatibility
    */
-  private getFileUriForPath(filePath: NormalizedPath): string {
+  public getFileUriForPath(filePath: NormalizedPath): string {
     // Check if the file path is within any workspace folder
     for (const workspaceFolderUri of this.workspaceFolderUris) {
       const workspaceUri = URI.parse(workspaceFolderUri);
-      const workspacePath = normalizePath(workspaceUri.fsPath || workspaceUri.path);
+      // For memfs:// URIs, use path property; for file:// URIs, use fsPath
+      const workspacePath = workspaceUri.scheme === 'memfs' 
+        ? normalizePath(workspaceUri.path) 
+        : normalizePath(workspaceUri.fsPath || workspaceUri.path);
+      
+      // Remove leading slash from workspacePath for comparison (if present)
+      const normalizedWorkspacePath = workspacePath.startsWith('/') && !workspacePath.startsWith('//') 
+        ? workspacePath.substring(1) 
+        : workspacePath;
+      const normalizedFilePath = filePath.startsWith('/') && !filePath.startsWith('//') 
+        ? filePath.substring(1) 
+        : filePath;
 
       // Check if file path starts with workspace path
-      if (filePath.startsWith(workspacePath)) {
+      if (normalizedFilePath.startsWith(normalizedWorkspacePath)) {
         // Use the workspace folder's scheme i.e. memfs:// or file://
         if (workspaceUri.scheme === 'memfs') {
+          // For memfs:// URIs, construct the URI by joining with the workspace folder URI
+          // Calculate relative path from workspace to file
+          const relativePath = normalizedFilePath.substring(normalizedWorkspacePath.length);
+          // Remove leading slash from relative path if present
+          const cleanRelativePath = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
+          // Construct URI by joining workspace folder URI with relative path
+          // workspaceUri.path is like "/MyProject", so we append "/force-app/..." to get "/MyProject/force-app/..."
+          const fullPath = cleanRelativePath 
+            ? `${workspaceUri.path}/${cleanRelativePath}` 
+            : workspaceUri.path;
           return URI.from({
             scheme: workspaceUri.scheme,
-            path: filePath
+            path: fullPath
           }).toString();
         }
         // For other schemes (e.g., file://), fall through to default URI.file() at the end
@@ -96,10 +199,7 @@ export class FileSystemDataProvider implements IFileSystemProvider {
       const edit: WorkspaceEdit = {
         documentChanges: [
           CreateFile.create(fileUri, { overwrite: true }),
-          TextDocumentEdit.create(
-            { uri: fileUri, version: null },
-            [TextEdit.insert(Position.create(0, 0), content)]
-          )
+          TextDocumentEdit.create({ uri: fileUri, version: null }, [TextEdit.insert(Position.create(0, 0), content)])
         ]
       };
 
@@ -113,12 +213,13 @@ export class FileSystemDataProvider implements IFileSystemProvider {
           const errorMsg = result.failureReason ?? 'Unknown error';
           throw new Error(`Failed to create file ${normalizedUri}: ${errorMsg}`);
         }
-
       } catch (error) {
         // Handle connection disposal errors gracefully (server might be shutting down)
         const errorMessage = error instanceof Error ? error.message : String(error);
         if (errorMessage.includes('connection got disposed') || errorMessage.includes('Pending response rejected')) {
-          Logger.info(`[FileSystemProvider] Connection disposed while creating file ${normalizedUri} - server may be shutting down`);
+          Logger.info(
+            `[FileSystemProvider] Connection disposed while creating file ${normalizedUri} - server may be shutting down`
+          );
           // Don't throw - this is expected during shutdown, but still update in-memory provider
         } else {
           Logger.error(`[FileSystemProvider] Failed to create file via LSP: ${normalizedUri}`, error);

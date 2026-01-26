@@ -65,5 +65,39 @@ export const getSfdxPackageDirsPattern = (
   const config = getSfdxConfig(workspaceRoot, fileSystemProvider);
   const dirs = config.packageDirectories;
   const paths: string[] = dirs?.map(item => item.path) ?? [];
-  return paths.length === 1 ? paths[0] : `{${paths.join()}}`;
+
+  if (paths.length === 0) {
+    // Fallback: if no package directories found, use common default patterns
+    // Try to detect from existing files in the provider
+    const allFiles = fileSystemProvider.getAllFileUris();
+
+    // Look for common SFDX package directory patterns in file paths
+    const commonPatterns = ['force-app', 'force-app/main/default'];
+
+    for (const fileUri of allFiles) {
+      for (const pattern of commonPatterns) {
+        if (fileUri.includes(`/${pattern}/`)) {
+          return pattern;
+        }
+      }
+    }
+
+    // Also try to extract from file paths directly - look for force-app/main/default/lwc pattern
+    for (const fileUri of allFiles) {
+      const lwcMatch = fileUri.match(/([^/]+\/[^/]+\/[^/]+)\/lwc\//);
+      if (lwcMatch) {
+        const detectedPattern = lwcMatch[1]; // e.g., "force-app/main/default"
+        return detectedPattern;
+      }
+      // Also check for just force-app pattern
+      if (fileUri.includes('/force-app/')) {
+        return 'force-app';
+      }
+    }
+
+    // Last resort: use force-app as default
+    return 'force-app';
+  }
+
+  return paths.length === 1 ? paths[0] : `{${paths.join(',')}}`;
 };

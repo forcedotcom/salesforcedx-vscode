@@ -113,7 +113,14 @@ export const getLwcName = (tag: Tag): string => {
 export const getLwcTypingsName = (tag: Tag): string => `c/${getTagName(tag)}`;
 
 // Utility function to get tag URI
-export const getTagUri = (tag: Tag): string => URI.file(path.resolve(tag.file)).toString();
+// If fileSystemProvider is provided, uses it to preserve the correct URI scheme (memfs:// or file://)
+// Otherwise, falls back to URI.file() for backward compatibility
+export const getTagUri = (tag: Tag, fileSystemProvider?: IFileSystemProvider): string => {
+  if (fileSystemProvider) {
+    return fileSystemProvider.getFileUriForPath(normalizePath(tag.file));
+  }
+  return URI.file(path.resolve(tag.file)).toString();
+};
 
 // Utility function to get all attributes
 const getAllAttributes = (tag: Tag): { publicAttributes: AttributeInfo[]; privateAttributes: AttributeInfo[] } => {
@@ -148,7 +155,8 @@ export const getTagRange = (tag: Tag): Range =>
     : Range.create(Position.create(0, 0), Position.create(0, 0));
 
 // Utility function to get tag location
-export const getTagLocation = (tag: Tag): Location => Location.create(getTagUri(tag), getTagRange(tag));
+export const getTagLocation = (tag: Tag, fileSystemProvider?: IFileSystemProvider): Location =>
+  Location.create(getTagUri(tag, fileSystemProvider), getTagRange(tag));
 
 /**
  * Finds files matching a pattern in a directory using FileSystemDataProvider
@@ -185,7 +193,8 @@ export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvide
   const normalizedDir = normalizePath(dir);
 
   const convertFileToLocation = (file: string): Location => {
-    const uri = URI.file(file).toString();
+    // Use fileSystemProvider to get the correct URI scheme (memfs:// or file://)
+    const uri = fileSystemProvider.getFileUriForPath(normalizePath(file));
     const position = Position.create(0, 0);
     const range = Range.create(position, position);
     return Location.create(uri, range);
@@ -195,7 +204,7 @@ export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvide
   const pattern = new RegExp(`^${name.replaceAll(/[.+^${}()|[\]\\]/g, '\\$&')}\\.(html|css)$`);
   const filteredFiles = findFilesInDirectory(normalizedDir, pattern, fileSystemProvider);
   const locations = filteredFiles.map(convertFileToLocation);
-  const tagLocation = getTagLocation(tag);
+  const tagLocation = getTagLocation(tag, fileSystemProvider);
   locations.unshift(tagLocation);
 
   return locations;
@@ -216,12 +225,16 @@ export const getClassMembers = (tag: Tag): ClassMember[] => tag.metadata.classMe
 export const getAttribute = (tag: Tag, name: string): AttributeInfo | null => findAttribute(tag, name);
 
 // Utility function to get class member location
-export const getClassMemberLocation = (tag: Tag, name: string): Location | null => {
+export const getClassMemberLocation = (
+  tag: Tag,
+  name: string,
+  fileSystemProvider?: IFileSystemProvider
+): Location | null => {
   const classMember = findClassMember(tag, name);
   if (!classMember?.loc) {
     return null;
   }
-  return Location.create(getTagUri(tag), toVSCodeRange(classMember.loc));
+  return Location.create(getTagUri(tag, fileSystemProvider), toVSCodeRange(classMember.loc));
 };
 
 // Utility function to get tag description

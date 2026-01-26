@@ -14,7 +14,6 @@ import {
   BaseWorkspaceContext,
   syncDocumentToTextDocumentsProvider,
   scheduleReinitialization,
-  normalizePath,
   NormalizedPath,
   WorkspaceType
 } from '@salesforce/salesforcedx-lightning-lsp-common';
@@ -49,8 +48,6 @@ import {
   FileEvent
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-
-import { URI } from 'vscode-uri';
 import { AuraDataProvider } from './auraDataProvider';
 import ComponentIndexer from './componentIndexer';
 import { TYPESCRIPT_SUPPORT_SETTING } from './constants';
@@ -134,14 +131,12 @@ export abstract class BaseServer {
   public auraDataProvider!: AuraDataProvider;
   public lwcDataProvider!: LWCDataProvider;
   public fileSystemProvider: FileSystemDataProvider;
-  protected textDocumentsFileSystemProvider: FileSystemDataProvider;
   protected workspaceType: WorkspaceType;
   protected isDelayedInitializationComplete = false;
 
   constructor() {
     this.connection = this.createConnection();
     this.fileSystemProvider = new FileSystemDataProvider();
-    this.textDocumentsFileSystemProvider = new FileSystemDataProvider();
 
     this.connection.onInitialize(params => this.onInitialize(params));
     this.connection.onCompletion(params => this.onCompletion(params));
@@ -160,14 +155,15 @@ export abstract class BaseServer {
     this.workspaceFolders = params.workspaceFolders ?? [];
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     this.workspaceType = params.initializationOptions?.workspaceType ?? 'UNKNOWN';
-    // Normalize workspaceRoots at entry point to ensure all paths are consistent
-    // This ensures all downstream code receives normalized paths
-    this.workspaceRoots = this.workspaceFolders.map(folder => normalizePath(URI.parse(folder.uri).fsPath));
 
-    // Set workspace folder URIs in file system providers so they can use correct scheme (memfs:// vs file://)
+    // Set workspace folder URIs in file system provider first so it can convert URIs correctly
     const workspaceFolderUris = this.workspaceFolders.map(folder => folder.uri);
     this.fileSystemProvider.setWorkspaceFolderUris(workspaceFolderUris);
-    this.textDocumentsFileSystemProvider.setWorkspaceFolderUris(workspaceFolderUris);
+
+    // Normalize workspaceRoots at entry point to ensure all paths are consistent
+    // Use uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
+    // This ensures all downstream code receives normalized paths
+    this.workspaceRoots = this.workspaceFolders.map(folder => this.fileSystemProvider.uriToNormalizedPath(folder.uri));
 
     // Set up document event handlers
     this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
@@ -226,14 +222,24 @@ export abstract class BaseServer {
       position,
       textDocument: { uri }
     } = params;
+
     const doc = this.documents.get(uri);
     if (!doc) {
       return;
     }
 
+    if (!this.languageService) {
+      Logger.error('[LWC Server] onCompletion: languageService is not initialized');
+      return;
+    }
+
     const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
 
-    if (await this.context.isLWCTemplate(doc)) {
+    const isLWCTemplate = await this.context.isLWCTemplate(doc);
+    const isLWCJavascript = await this.context.isLWCJavascript(doc);
+    const isAuraMarkup = await this.context.isAuraMarkup(doc);
+
+    if (isLWCTemplate) {
       this.auraDataProvider.activated = false; // provide completions for lwc components in an Aura template
       this.lwcDataProvider.activated = true; // provide completions for lwc components in an LWC template
       const shouldProvideBindings = this.shouldProvideBindingsInHTML(params);
@@ -245,7 +251,7 @@ export abstract class BaseServer {
           items: customTags
         };
       }
-    } else if (await this.context.isLWCJavascript(doc)) {
+    } else if (isLWCJavascript) {
       const shouldComplete = this.shouldCompleteJavascript(params);
       if (shouldComplete) {
         const customData = this.componentIndexer.getCustomData();
@@ -260,7 +266,7 @@ export abstract class BaseServer {
       } else {
         return;
       }
-    } else if (await this.context.isAuraMarkup(doc)) {
+    } else if (isAuraMarkup) {
       this.auraDataProvider.activated = true;
       this.lwcDataProvider.activated = false;
     } else {
@@ -367,19 +373,15 @@ export abstract class BaseServer {
     const content = document.getText();
 
     // Normalize URI to fsPath before syncing (entry point for path normalization)
-    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
-    await syncDocumentToTextDocumentsProvider(
-      normalizedPath,
-      content,
-      this.textDocumentsFileSystemProvider,
-      this.workspaceRoots
-    );
+    // Use fileSystemProvider.uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
+    const normalizedPath = this.fileSystemProvider.uriToNormalizedPath(uri);
+    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
 
     // Perform delayed initialization once file loading has stabilized
     // scheduleReinitialization waits for file count to stabilize (no changes for 1.5 seconds)
     // This ensures all files from bootstrapWorkspaceAwareness are loaded before initialization
     if (!this.isDelayedInitializationComplete) {
-      void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performDelayedInitialization());
+      void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
     }
   }
 
@@ -389,13 +391,9 @@ export abstract class BaseServer {
     const content = document.getText();
 
     // Normalize URI to fsPath before syncing (entry point for path normalization)
-    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
-    await syncDocumentToTextDocumentsProvider(
-      normalizedPath,
-      content,
-      this.textDocumentsFileSystemProvider,
-      this.workspaceRoots
-    );
+    // Use fileSystemProvider.uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
+    const normalizedPath = this.fileSystemProvider.uriToNormalizedPath(uri);
+    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
 
     if (await this.context.isLWCTemplate(document)) {
       const diagnostics = templateLinter(document);
@@ -468,13 +466,9 @@ export abstract class BaseServer {
     const content = document.getText();
 
     // Normalize URI to fsPath before syncing (entry point for path normalization)
-    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
-    await syncDocumentToTextDocumentsProvider(
-      normalizedPath,
-      content,
-      this.textDocumentsFileSystemProvider,
-      this.workspaceRoots
-    );
+    // Use fileSystemProvider.uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
+    const normalizedPath = this.fileSystemProvider.uriToNormalizedPath(uri);
+    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
 
     if (await this.context.isLWCJavascript(document)) {
       const { metadata } = javascriptCompileDocument(document);
@@ -518,7 +512,9 @@ export abstract class BaseServer {
     let result: Location[] = [];
     switch (cursorInfo.type) {
       case 'tag':
-        result = tag ? getAllLocations(tag, this.fileSystemProvider) : [];
+        if (tag) {
+          result = getAllLocations(tag, this.fileSystemProvider);
+        }
         break;
 
       case 'attributeKey':
@@ -536,7 +532,7 @@ export abstract class BaseServer {
           result = [Location.create(uri, cursorInfo.range)];
         } else {
           const component: Tag | null = this.componentIndexer.findTagByURI(uri);
-          const location = component ? getClassMemberLocation(component, cursorInfo.name) : null;
+          const location = component ? getClassMemberLocation(component, cursorInfo.name, this.fileSystemProvider) : null;
           if (location) {
             result = [location];
           }
@@ -664,7 +660,7 @@ export abstract class BaseServer {
 
   /**
    * Performs delayed initialization of context and component indexer
-   * using the populated textDocumentsFileSystemProvider
+   * Files are loaded into fileSystemProvider via onDidOpen events
    */
   protected async performDelayedInitialization(): Promise<void> {
     if (this.isDelayedInitializationComplete) {
@@ -674,28 +670,24 @@ export abstract class BaseServer {
     try {
       // Initialize workspace context now that essential files are loaded via onDidOpen
       // scheduleReinitialization waits for file loading to stabilize, so all files should be available
-      this.context.fileSystemProvider = this.textDocumentsFileSystemProvider;
       this.context.initialize(this.workspaceType);
 
       // Clear namespace cache to force re-detection now that files are synced
       // This ensures directoryExists can infer directory existence from file paths
       this.context.clearNamespaceCache();
 
-      // Re-initialize component indexer with updated FileSystemProvider
+      // Re-initialize component indexer (files are now in fileSystemProvider)
       this.componentIndexer = new ComponentIndexer({
         workspaceRoot: this.workspaceRoots[0],
-        fileSystemProvider: this.textDocumentsFileSystemProvider
+        fileSystemProvider: this.fileSystemProvider,
+        workspaceType: this.workspaceType
       });
       await this.componentIndexer.init();
 
       // Update data providers to use the new indexer
       this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
       this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-      await TypingIndexer.create(
-        { workspaceRoot: this.workspaceRoots[0] },
-        this.textDocumentsFileSystemProvider,
-        this.connection
-      );
+      await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemProvider, this.connection);
       this.languageService = getLanguageService({
         customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
         useDefaultDataProvider: false

@@ -8,7 +8,6 @@
 // Overrides connection creation and adds browser-specific logic for web mode
 import {
   Logger,
-  normalizePath,
   syncDocumentToTextDocumentsProvider,
   scheduleReinitialization
 } from '@salesforce/salesforcedx-lightning-lsp-common';
@@ -18,19 +17,15 @@ import {
   BrowserMessageReader,
   BrowserMessageWriter,
   Connection,
-  TextDocumentPositionParams,
-  Location,
   ShowMessageNotification,
   MessageType
 } from 'vscode-languageserver/browser';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-import { URI } from 'vscode-uri';
 import { AuraDataProvider } from './auraDataProvider';
 import { BaseServer } from './baseServer';
 import ComponentIndexer from './componentIndexer';
 import { LWCDataProvider } from './lwcDataProvider';
-import { getAllLocations, getClassMemberLocation, getAttribute, Tag } from './tag';
 import TypingIndexer from './typingIndexer';
 
 export default class Server extends BaseServer {
@@ -48,13 +43,10 @@ export default class Server extends BaseServer {
     const content = document.getText();
 
     // Normalize URI to fsPath before syncing (entry point for path normalization)
-    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
-    await syncDocumentToTextDocumentsProvider(
-      normalizedPath,
-      content,
-      this.textDocumentsFileSystemProvider,
-      this.workspaceRoots
-    );
+    // Use fileSystemProvider.uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
+    const normalizedPath = this.fileSystemProvider.uriToNormalizedPath(uri);
+
+    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
 
     // Check if this is an LWC file (template or JavaScript)
     // Use path-based check as fallback since context methods might not work before initialization
@@ -78,7 +70,7 @@ export default class Server extends BaseServer {
     // scheduleReinitialization waits for file count to stabilize (no changes for 1.5 seconds)
     // This ensures all files from bootstrapWorkspaceAwareness are loaded before initialization
     if (!this.isDelayedInitializationComplete) {
-      void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performDelayedInitialization());
+      void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
     } else if (isLwcFile) {
       // Delayed initialization already complete - but if this is an LWC file, we may need to re-index
       // Check if we have any components indexed - if not, delayed init ran too early
@@ -86,9 +78,7 @@ export default class Server extends BaseServer {
 
       if (componentCount === 0) {
         // Delayed initialization ran before any LWC files were available
-        // Schedule re-initialization to wait for files to accumulate
-        // The flag is already false (or will be kept false), so performDelayedInitialization will run
-        void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performDelayedInitialization());
+        void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
       } else {
         // We have some components, but this might be a new one
         // Re-index to pick up any newly added files
@@ -105,66 +95,14 @@ export default class Server extends BaseServer {
               useDefaultDataProvider: false
             });
           }
-        } catch {
-          // Error during re-indexing - continue silently
+        } catch (error) {
+          Logger.error(
+            `[LWC Server Browser] onDidOpen: Error during re-indexing: ${error instanceof Error ? error.message : String(error)}`,
+            error instanceof Error ? error : undefined
+          );
         }
       }
     }
-  }
-
-  /**
-   * Override to add URI scheme conversion for web mode virtual file systems
-   */
-  public onDefinition(params: TextDocumentPositionParams): Location[] {
-    const cursorInfo = this.cursorInfo(params);
-    if (!cursorInfo) {
-      return [];
-    }
-
-    const tag = cursorInfo.tag ? this.componentIndexer.findTagByName(cursorInfo.tag) : null;
-
-    // Use textDocumentsFileSystemProvider in web mode since that's where files are synced
-    // After delayed initialization, componentIndexer uses textDocumentsFileSystemProvider
-    const fsProvider = this.textDocumentsFileSystemProvider ?? this.fileSystemProvider;
-
-    let result: Location[] = [];
-    switch (cursorInfo.type) {
-      case 'tag':
-        result = tag ? getAllLocations(tag, fsProvider) : [];
-        break;
-
-      case 'attributeKey':
-        const attr = tag ? getAttribute(tag, cursorInfo.name) : null;
-        if (attr?.location) {
-          result = [attr.location];
-        }
-        break;
-
-      case 'dynamicContent':
-      case 'dynamicAttributeValue':
-        const { uri: dynamicUri } = params.textDocument;
-        if (cursorInfo.range) {
-          result = [Location.create(dynamicUri, cursorInfo.range)];
-        } else {
-          const component: Tag | null = this.componentIndexer.findTagByURI(dynamicUri);
-          const location = component ? getClassMemberLocation(component, cursorInfo.name) : null;
-          if (location) {
-            // In web mode, convert file:// URI to match the scheme of the original request (e.g., memfs://)
-            const originalScheme = URI.parse(dynamicUri).scheme;
-            const locationScheme = URI.parse(location.uri).scheme;
-            if (originalScheme !== locationScheme && originalScheme !== 'file') {
-              // Replace the scheme to match the original request
-              const adjustedUri = location.uri.replace(`${locationScheme}://`, `${originalScheme}://`);
-              result = [Location.create(adjustedUri, location.range)];
-            } else {
-              result = [location];
-            }
-          }
-        }
-        break;
-    }
-
-    return result;
   }
 
   /**
@@ -178,17 +116,17 @@ export default class Server extends BaseServer {
     try {
       // Initialize workspace context now that essential files are loaded via onDidOpen
       // scheduleReinitialization waits for file loading to stabilize, so all files should be available
-      this.context.fileSystemProvider = this.textDocumentsFileSystemProvider;
       this.context.initialize(this.workspaceType);
 
       // Clear namespace cache to force re-detection now that files are synced
       // This ensures directoryExists can infer directory existence from file paths
       this.context.clearNamespaceCache();
 
-      // Re-initialize component indexer with updated FileSystemProvider
+      // Re-initialize component indexer (files are now in fileSystemProvider)
       this.componentIndexer = new ComponentIndexer({
         workspaceRoot: this.workspaceRoots[0],
-        fileSystemProvider: this.textDocumentsFileSystemProvider
+        fileSystemProvider: this.fileSystemProvider,
+        workspaceType: this.workspaceType
       });
 
       await this.componentIndexer.init();
@@ -198,11 +136,7 @@ export default class Server extends BaseServer {
       // Update data providers to use the new indexer
       this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
       this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-      await TypingIndexer.create(
-        { workspaceRoot: this.workspaceRoots[0] },
-        this.textDocumentsFileSystemProvider,
-        this.connection
-      );
+      await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemProvider, this.connection);
       this.languageService = getLanguageService({
         customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
         useDefaultDataProvider: false
@@ -215,7 +149,6 @@ export default class Server extends BaseServer {
       }
 
       // Configure TypeScript support now that files are loaded and context is initialized
-      // Use base class implementation but add browser-specific logging
       await this.configureTypeScriptSupport();
 
       // send notification that delayed initialization is complete (only if we have components)

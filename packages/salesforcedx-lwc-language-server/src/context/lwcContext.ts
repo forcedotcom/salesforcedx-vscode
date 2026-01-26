@@ -204,10 +204,19 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
 
   public async isInsideModulesRoots(document: TextDocument): Promise<boolean> {
     // Normalize file path to ensure consistent format (especially Windows drive letter casing and path separators)
-    const file = normalizePath(toResolvedPath(document.uri));
+    const resolvedPath = toResolvedPath(document.uri);
+    let file = normalizePath(resolvedPath);
+
+    // Remove leading slash to match workspace root format (workspace roots don't have leading slashes)
+    // This ensures consistent comparison between file paths and workspace roots
+    if (file.startsWith('/') && !file.startsWith('//')) {
+      file = normalizePath(file.substring(1));
+    }
 
     for (const ws of this.workspaceRoots) {
-      const startsWith = pathStartsWith(file, ws);
+      // Normalize workspace root to ensure consistent format (remove leading slash if present)
+      const normalizedWs = ws.startsWith('/') && !ws.startsWith('//') ? ws.substring(1) : ws;
+      const startsWith = pathStartsWith(file, normalizedWs);
       if (startsWith) {
         return await this.isFileInsideModulesRoots(file);
       }

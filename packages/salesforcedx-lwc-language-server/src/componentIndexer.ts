@@ -20,7 +20,6 @@ import { snakeCase, camelCase } from 'change-case';
 import { minimatch as minimatchFn } from 'minimatch';
 import * as path from 'node:path';
 import { Connection } from 'vscode-languageserver';
-import { URI } from 'vscode-uri';
 
 import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
 
@@ -33,6 +32,7 @@ const componentPrefixRegex = new RegExp(/^(?<type>c|lightning|interop){0,1}(?<de
 type ComponentIndexerAttributes = {
   workspaceRoot: NormalizedPath;
   fileSystemProvider: IFileSystemProvider;
+  workspaceType?: WorkspaceType;
 };
 
 const AURA_DELIMITER = ':';
@@ -165,6 +165,10 @@ export default class ComponentIndexer {
   constructor(private readonly attributes: ComponentIndexerAttributes) {
     this.workspaceRoot = getWorkspaceRoot(attributes.workspaceRoot);
     this.fileSystemProvider = attributes.fileSystemProvider;
+    // Use provided workspace type if available, otherwise will be detected in init()
+    if (attributes.workspaceType) {
+      this.workspaceType = attributes.workspaceType;
+    }
   }
 
   private getSfdxPackageDirsPattern(): string {
@@ -227,38 +231,14 @@ export default class ComponentIndexer {
   }
 
   public findTagByURI(uri: string): Tag | null {
-    // Convert URI to file path for comparison
-    // Handle both file:// and memfs:// (or other) schemes
-    let filePath: string;
-    try {
-      const parsedUri = URI.parse(uri);
-      // For file:// URIs, use fsPath which handles Windows paths correctly (no leading slash)
-      // For other schemes (memfs://, etc.), use path and remove leading slash if present
-      if (parsedUri.scheme === 'file') {
-        filePath = parsedUri.fsPath;
-      } else {
-        // Extract the path from the URI (removes leading slash for memfs://)
-        filePath = parsedUri.path;
-        // Remove leading slash for non-file schemes
-        if (filePath.startsWith('/')) {
-          filePath = filePath.substring(1);
-        }
-      }
-      // Convert .html to .js
-      filePath = filePath.replace(/\.html$/, '.js');
-    } catch {
-      // Fallback: if URI parsing fails, try string replacement
-      filePath = uri.replace(/^[^:]+:\/\//, '').replace(/\.html$/, '.js');
-    }
+    const normalizedPathString = this.fileSystemProvider.uriToNormalizedPath(uri);
 
-    // Normalize the path for comparison (handle leading slashes and path separators)
-    const normalizedPath = normalizePath(filePath);
+    const normalizedPath = normalizePath(normalizedPathString.replace(/\.html$/, '.js'));
 
-    // Compare with tag.file (which is already normalized)
     return (
       Array.from(this.tags.values()).find(tag => {
         const tagPath = normalizePath(tag.file);
-        return tagPath === normalizedPath || tagPath === filePath || tag.file === filePath;
+        return tagPath === normalizedPath;
       }) ?? null
     );
   }
@@ -342,7 +322,11 @@ export default class ComponentIndexer {
           sfdxTsConfig.compilerOptions.paths = this.getTsConfigPathMapping();
 
           // Update the actual tsconfig file
-          await this.fileSystemProvider.updateFileContent(sfdxTsConfigPath, JSON.stringify(sfdxTsConfig, null, 2), connection);
+          await this.fileSystemProvider.updateFileContent(
+            sfdxTsConfigPath,
+            JSON.stringify(sfdxTsConfig, null, 2),
+            connection
+          );
         }
       } catch (err) {
         Logger.error(err);
@@ -393,11 +377,15 @@ export default class ComponentIndexer {
   }
 
   public async init(): Promise<void> {
-    this.workspaceType = await detectWorkspaceHelper(this.attributes.workspaceRoot, this.fileSystemProvider);
+    // Only detect workspace type if not already provided
+    if (this.workspaceType === 'UNKNOWN' || !this.attributes.workspaceType) {
+      this.workspaceType = await detectWorkspaceHelper(this.attributes.workspaceRoot, this.fileSystemProvider);
+    }
 
     await this.loadTagsFromIndex();
 
     const unIndexedFilesResult = this.getUnIndexedFiles();
+
     const promises = unIndexedFilesResult.map(async entry => {
       const tag = await createTagFromFile(entry.path, this.fileSystemProvider, entry.stats?.mtime);
       return tag;
@@ -410,6 +398,7 @@ export default class ComponentIndexer {
         validTags.push(tag);
       }
     });
+
     validTags.forEach(tag => {
       const tagName = getTagName(tag);
       this.tags.set(tagName, tag);
