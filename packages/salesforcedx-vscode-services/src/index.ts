@@ -73,7 +73,6 @@ export type { SourceTrackingConflictError } from './core/sourceTrackingService';
 /** Effect that runs when the extension is activated */
 const activationEffect = (context: vscode.ExtensionContext) =>
   Effect.gen(function* () {
-
     yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
@@ -87,8 +86,6 @@ const activationEffect = (context: vscode.ExtensionContext) =>
     // watch the config files for changes, which various serices use to invalidate caches
     yield* Effect.forkIn(watchConfigFiles(), yield* getExtensionScope());
     yield* updateTelemetryUserIds(context);
-
-
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**

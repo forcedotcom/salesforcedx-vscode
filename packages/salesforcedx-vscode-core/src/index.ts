@@ -24,6 +24,7 @@ import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { SharedAuthState } from './auth/sharedAuthState';
 import { channelService } from './channels';
 import {
   aliasList,
@@ -212,12 +213,13 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   // Set internal dev context
   const internalDev = salesforceCoreSettings.getInternalDev();
-
   void vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
 
   // Set shared commands visibility context (inverse of useMetadataExtensionCommands)
   const useMetadataCommands = salesforceCoreSettings.getUseMetadataExtensionCommands();
   void vscode.commands.executeCommand('setContext', 'sf:show_shared_commands', !useMetadataCommands);
+  // Set shared Auth State
+  const sharedAuthState = SharedAuthState.getInstance();
 
   const api: SalesforceVSCodeCoreApi = {
     channelService,
@@ -237,6 +239,7 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
     taskViewService,
     telemetryService,
     workspaceContextUtils,
+    sharedAuthState,
     services: {
       RegistryAccess,
       ChannelService,
@@ -261,7 +264,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   const salesforceProjectOpened = (await isSalesforceProjectOpened()).result;
 
   // TODO: move this and the replay debugger commands to the apex extension
-
   void vscode.commands.executeCommand(
     'setContext',
     'sf:replay_debugger_extension',
@@ -327,8 +329,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 };
 
 const initializeProject = async (extensionContext: vscode.ExtensionContext) => {
-  await WorkspaceContext.getInstance().initialize(extensionContext);
-
   PersistentStorageService.initialize(extensionContext);
 
   // Register file watcher for push or deploy on save
@@ -419,6 +419,7 @@ export type SalesforceVSCodeCoreApi = {
   taskViewService: typeof taskViewService;
   telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
+  sharedAuthState: SharedAuthState;
   services: {
     RegistryAccess: typeof RegistryAccess;
     ChannelService: typeof ChannelService;
