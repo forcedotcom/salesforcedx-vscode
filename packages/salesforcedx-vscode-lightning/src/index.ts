@@ -228,7 +228,7 @@ const tryReadFile = async (provider: FileSystemDataProvider, filePath: string): 
     const fileContent = await workspace.fs.readFile(fileUri);
     const content = Buffer.from(fileContent).toString('utf8');
 
-    provider.updateFileContent(filePath, content);
+    void provider.updateFileContent(filePath, content);
     provider.updateFileStat(filePath, {
       type: 'file',
       exists: true,

@@ -62,7 +62,7 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
     "test": "wireit"
   },
   "wireit": {
@@ -116,10 +116,21 @@
         "coverage"
       ]
     },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
+      "dependencies": ["compile"],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [".circular-deps.json"]
+    },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "check:circular-deps"
       ],
       "files": [
         "src/**/*.ts",

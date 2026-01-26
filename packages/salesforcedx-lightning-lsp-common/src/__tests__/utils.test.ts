@@ -71,7 +71,7 @@ describe('utils', () => {
 
     it('should read json files', async () => {
       const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}.json`);
-      fileSystemProvider.updateFileContent(
+      void fileSystemProvider.updateFileContent(
         `${testFile}`,
         JSON.stringify({ compilerOptions: { paths: { foo: ['bar'] } } })
       );
@@ -83,7 +83,7 @@ describe('utils', () => {
 
     it('should read json files with comments', async () => {
       const testFile = join(os.tmpdir(), `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}.json`);
-      fileSystemProvider.updateFileContent(
+      void fileSystemProvider.updateFileContent(
         `${testFile}`,
         JSON.stringify({ compilerOptions: { paths: { foo: ['bar'] } } })
       );
@@ -96,7 +96,7 @@ describe('utils', () => {
           }
         }
       };
-      fileSystemProvider.updateFileContent(`${testFile}`, JSON.stringify(jsonWithComments));
+      void fileSystemProvider.updateFileContent(`${testFile}`, JSON.stringify(jsonWithComments));
 
       const settings = await utils.readJsonSync(testFile, fileSystemProvider);
 
