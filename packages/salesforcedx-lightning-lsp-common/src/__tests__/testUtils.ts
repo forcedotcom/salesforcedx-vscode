@@ -7,6 +7,7 @@
 import * as fs from 'node:fs';
 import { extname, join, resolve, dirname } from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { URI } from 'vscode-uri';
 import { FileSystemDataProvider } from '../providers/fileSystemDataProvider';
 import { DirectoryEntry } from '../types/fileSystemTypes';
 import { normalizePath } from '../utils';
@@ -137,8 +138,10 @@ const languageId = (path: string): string => {
 
 export const readAsTextDocument = (path: string, fileSystemProvider: FileSystemDataProvider): TextDocument => {
   // Normalize path for cross-platform compatibility
-  const uri = normalizePath(path);
-  const content = fileSystemProvider.getFileContent(uri) ?? '';
+  const normalizedPath = normalizePath(path);
+  // Create a proper file:// URI for the TextDocument
+  const uri = URI.file(normalizedPath).toString();
+  const content = fileSystemProvider.getFileContent(normalizedPath) ?? '';
   return TextDocument.create(uri, languageId(path), 0, content);
 };
 

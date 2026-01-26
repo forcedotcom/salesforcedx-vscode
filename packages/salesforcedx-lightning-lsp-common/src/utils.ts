@@ -32,7 +32,8 @@ export const toResolvedPath = (uri: string): string => {
   const parsed = URI.parse(uri);
   // For file:// URIs, use fsPath (handles Windows paths correctly)
   // For other schemes (memfs://, etc.), use path property
-  const pathToResolve = parsed.scheme === 'file' ? parsed.fsPath : parsed.path;
+  // If no scheme is present (plain path), treat it as a file path
+  const pathToResolve = parsed.scheme === 'file' ? parsed.fsPath : parsed.scheme ? parsed.path : uri;
   return resolve(pathToResolve);
 };
 
