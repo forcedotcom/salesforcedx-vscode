@@ -49,15 +49,19 @@ export class FileSystemDataProvider implements IFileSystemProvider {
   /**
    * Set workspace folder URIs to use correct scheme when creating files
    * In web mode with memfs://, we need to use the workspace folder's scheme instead of file://
+   *
+   * Takes an array because VS Code supports multi-root workspaces with multiple workspace folders.
+   * Each folder can have a different URI scheme (e.g., one file:// project and one memfs:// project).
+   * When creating a file, we need to find which workspace folder contains the file path and use that folder's scheme.
    */
   public setWorkspaceFolderUris(uris: string[]): void {
     this.workspaceFolderUris = uris;
   }
 
   /**
-   * Get the appropriate URI for a file path based on workspace folder schemes
+   * Get the appropriate URI for a file path based on workspace folder schemes i.e. memfs:// or file://
    * If the path is within a workspace folder, use that folder's scheme
-   * Otherwise, default to file://
+   * Default to file://
    */
   private getFileUriForPath(filePath: NormalizedPath): string {
     // Check if the file path is within any workspace folder
@@ -67,21 +71,14 @@ export class FileSystemDataProvider implements IFileSystemProvider {
 
       // Check if file path starts with workspace path
       if (filePath.startsWith(workspacePath)) {
-        // Use the workspace folder's scheme
+        // Use the workspace folder's scheme i.e. memfs:// or file://
         if (workspaceUri.scheme === 'memfs') {
-          // For memfs://, preserve the full path structure
-          // workspaceUri.path is like "/MyProject", filePath is like "/MyProject/.sfdx/tsconfig.sfdx.json"
-          // We want: "memfs:///MyProject/.sfdx/tsconfig.sfdx.json"
-          const workspacePathFromUri = workspaceUri.path; // e.g., "/MyProject"
-          const relativePath = filePath.substring(workspacePath.length); // e.g., "/.sfdx/tsconfig.sfdx.json"
-          // Combine: workspace path + relative path
-          const fullPath = workspacePathFromUri + relativePath;
-          // memfs:// uses triple slash: memfs:///path
-          return `${workspaceUri.scheme}://${fullPath}`;
-        } else {
-          // For file://, use URI.file() which handles Windows paths correctly
-          return URI.file(filePath).toString();
+          return URI.from({
+            scheme: workspaceUri.scheme,
+            path: filePath
+          }).toString();
         }
+        // For other schemes (e.g., file://), fall through to default URI.file() at the end
       }
     }
 

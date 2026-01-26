@@ -35,7 +35,7 @@ import TypingIndexer from './typingIndexer';
 
 export default class Server extends BaseServer {
   protected createConnection(): Connection {
-  // In a web worker, use globalThis (which is self in worker context)
+    // In a web worker, use globalThis (which is self in worker context)
     return createConnection(new BrowserMessageReader(globalThis), new BrowserMessageWriter(globalThis));
   }
 
@@ -148,14 +148,14 @@ export default class Server extends BaseServer {
         } else {
           const component: Tag | null = this.componentIndexer.findTagByURI(dynamicUri);
           const location = component ? getClassMemberLocation(component, cursorInfo.name) : null;
-            if (location) {
-              // In web mode, convert file:// URI to match the scheme of the original request (e.g., memfs://)
-              const originalScheme = URI.parse(dynamicUri).scheme;
-              const locationScheme = URI.parse(location.uri).scheme;
-              if (originalScheme !== locationScheme && originalScheme !== 'file') {
-                // Replace the scheme to match the original request
-                const adjustedUri = location.uri.replace(`${locationScheme}://`, `${originalScheme}://`);
-                result = [Location.create(adjustedUri, location.range)];
+          if (location) {
+            // In web mode, convert file:// URI to match the scheme of the original request (e.g., memfs://)
+            const originalScheme = URI.parse(dynamicUri).scheme;
+            const locationScheme = URI.parse(location.uri).scheme;
+            if (originalScheme !== locationScheme && originalScheme !== 'file') {
+              // Replace the scheme to match the original request
+              const adjustedUri = location.uri.replace(`${locationScheme}://`, `${originalScheme}://`);
+              result = [Location.create(adjustedUri, location.range)];
             } else {
               result = [location];
             }
@@ -165,33 +165,6 @@ export default class Server extends BaseServer {
     }
 
     return result;
-  }
-
-  /**
-   * Override TypeScript configuration to add browser-specific logging
-   */
-  protected async configureTypeScriptSupport(): Promise<void> {
-    const hasTsEnabled = await this.isTsSupportEnabled();
-    Logger.info(`[LWC Server Browser] TypeScript support enabled: ${hasTsEnabled}`);
-    if (hasTsEnabled) {
-      Logger.info('[LWC Server Browser] Configuring project for TypeScript...');
-      try {
-        this.context.setConnection(this.connection);
-        await this.context.configureProjectForTs();
-        Logger.info('[LWC Server Browser] Updating tsconfig.sfdx.json path mappings...');
-        await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
-        Logger.info('[LWC Server Browser] TypeScript configuration complete');
-      } catch (tsConfigError: unknown) {
-        // Log error but don't crash the server - tsconfig generation is optional
-        Logger.error(
-          `[LWC Server Browser] Failed to configure TypeScript support: ${tsConfigError instanceof Error ? tsConfigError.message : String(tsConfigError)}`,
-          tsConfigError instanceof Error ? tsConfigError : undefined
-        );
-        Logger.info('[LWC Server Browser] Continuing without TypeScript configuration');
-      }
-    } else {
-      Logger.info('[LWC Server Browser] TypeScript support is disabled, skipping tsconfig generation');
-    }
   }
 
   /**
@@ -225,7 +198,11 @@ export default class Server extends BaseServer {
       // Update data providers to use the new indexer
       this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
       this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-      await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.textDocumentsFileSystemProvider, this.connection);
+      await TypingIndexer.create(
+        { workspaceRoot: this.workspaceRoots[0] },
+        this.textDocumentsFileSystemProvider,
+        this.connection
+      );
       this.languageService = getLanguageService({
         customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
         useDefaultDataProvider: false

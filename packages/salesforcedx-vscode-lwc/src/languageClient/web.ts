@@ -22,36 +22,29 @@ export const createLanguageClient = (
   // Add error handling for worker creation
   let worker: Worker;
   try {
-    console.log('[LWC] Creating web worker from:', serverPath);
     worker = new Worker(serverPath);
 
     // Add error handlers to detect worker loading issues
     worker.onerror = error => {
       const errorMsg = `[LWC] Web Worker error: ${error.message || String(error)}`;
-      console.error(errorMsg);
       channelService.appendLine(errorMsg);
       channelService.appendLine(`Failed to load language server from: ${serverPath}`);
     };
 
     worker.onmessageerror = event => {
       const errorMsg = `[LWC] Web Worker message error: ${String(event)}`;
-      console.error(errorMsg);
       channelService.appendLine(errorMsg);
     };
 
     // Listen for messages from the worker to verify it's running
     worker.onmessage = event => {
-      console.log('[LWC] Web Worker message received:', event.data);
       // Log first message to confirm server is alive
       if (event.data && typeof event.data === 'object') {
         channelService.appendLine(`[LWC] Server message: ${JSON.stringify(event.data).substring(0, 200)}`);
       }
     };
-
-    console.log('[LWC] Web worker created successfully');
   } catch (error) {
     const errorMsg = `[LWC] Failed to create web worker: ${error instanceof Error ? error.message : String(error)}`;
-    console.error(errorMsg);
     channelService.appendLine(errorMsg);
     channelService.appendLine(`Server path: ${serverPath}`);
     throw new Error(errorMsg);
@@ -76,8 +69,6 @@ export const createLanguageClient = (
     { language: 'json', scheme },
     { language: 'xml', scheme }
   ]);
-
-  console.log(`[LWC] Document selector schemes: ${Array.from(schemes).join(', ')}`);
 
   const clientOptions: LanguageClientOptions = {
     documentSelector,
@@ -114,20 +105,14 @@ export const createLanguageClient = (
   client.onDidChangeState(event => {
     const state = event.newState;
     // State enum values: State.Initial = 0, State.Starting = 1, State.Running = 2, State.Stopping = 3
-    const stateValue = typeof state === 'number' ? state : String(state);
     const stateStr = String(state);
-    console.log(`[LWC] Language client state changed: ${stateStr} (value: ${stateValue})`);
     channelService.appendLine(`[LWC] Language client state: ${stateStr}`);
     outputChannel.appendLine(`[LWC] Language client state: ${stateStr}`);
   });
 
   client.onNotification('$/logTrace', (params: unknown) => {
-    console.log('[LWC] Server trace:', params);
     outputChannel.appendLine(`[Server Trace] ${JSON.stringify(params)}`);
   });
-
-  console.log('[LWC] Language client created, will log to output channel');
-  channelService.appendLine('[LWC] Language client created');
 
   return client;
 };
