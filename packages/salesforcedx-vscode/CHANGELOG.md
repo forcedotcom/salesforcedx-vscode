@@ -22,7 +22,7 @@
 
 - We fixed a reauthorization issue that would leave users stuck after an org session timed out. Required extensions now activate automatically, and clicking Login correctly opens the reauthorization flow in a new tab. ([PR #6797](https://github.com/forcedotcom/salesforcedx-vscode/pull/6797))
 
-- We fixed an issue where deleting a file using `SFDX: Delete This from Project and Org` incorrectly reported conflicts across the entire project rather than in just the file that is being deleted. The command now correctly handles file deletions and returns accurate errors when conflicts exist. Thank you [Nicky Torstensson](https://github.com/nickytorstensson) for submitting this issue. [ ([PR #6798](https://github.com/forcedotcom/salesforcedx-vscode/pull/6798))
+- We fixed an issue where `SFDX: Delete This from Project and Org` incorrectly reported project-wide conflicts. The command now properly isolates conflict detection to the specific file being deleted. Thank you [Nicky Torstensson](https://github.com/nickytorstensson) for submitting this issue. ([PR #6798](https://github.com/forcedotcom/salesforcedx-vscode/pull/6798))
 
 #### salesforcedx-vscode-org
 
