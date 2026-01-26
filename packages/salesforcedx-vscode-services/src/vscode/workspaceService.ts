@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
@@ -16,6 +17,11 @@ type WorkspaceInfo = {
   fsPath: string;
   isEmpty: boolean;
   isVirtualFs: boolean;
+  cwd: string;
+};
+
+type WorkspaceWithFolder = WorkspaceInfo & {
+  isEmpty: false;
 };
 
 const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
@@ -30,7 +36,8 @@ const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
     // vscode-uri implementation: https://github.com/microsoft/vscode-uri/blob/65786c7aef8aa1d142fedfde76073cc3549736d2/src/platform.ts#L19C18-L19C37
     // finds the string "windows" in the useragent in the runner.  I haven't found a way to set that to not have the word Windows in it
     // this could cause problems in other places, too.
-    fsPath: isVirtualFs ? originalFsPath.replaceAll('\\', '/') : originalFsPath
+    fsPath: isVirtualFs ? originalFsPath.replaceAll('\\', '/') : originalFsPath,
+    cwd: process.cwd()
   };
 }).pipe(
   Effect.tap(info => Effect.annotateCurrentSpan(info)),
@@ -52,8 +59,18 @@ const globalCachedWorkspaceInfo = Effect.runSync(
 export class WorkspaceService extends Effect.Service<WorkspaceService>()('WorkspaceService', {
   succeed: {
     /** Get info about the workspace */
-    getWorkspaceInfo: globalCachedWorkspaceInfo
+    getWorkspaceInfo: globalCachedWorkspaceInfo,
+
+    /** GetWorkspaceInfo, throws if there is not one open */
+    getWorkspaceInfoOrThrow: globalCachedWorkspaceInfo.pipe(
+      Effect.flatMap(info =>
+        isNonEmptyWorkspace(info) ? Effect.succeed(info) : Effect.fail(new NoWorkspaceOpenError())
+      )
+    )
   } as const
 }) {}
 
+const isNonEmptyWorkspace = (info: WorkspaceInfo): info is WorkspaceWithFolder => !info.isEmpty;
 const getPathWithSchema = (uri: vscode.Uri): string => (uri.scheme === 'file' ? uri.fsPath : uri.toString());
+
+export class NoWorkspaceOpenError extends Data.TaggedError('NoWorkspaceOpenError')<{}> {}

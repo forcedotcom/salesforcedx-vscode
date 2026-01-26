@@ -14,7 +14,7 @@ jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
 });
 
 jest.mock('../../../src/coreExtensionUtils', () => ({
-  getVscodeCoreExtension: jest.fn()
+  getConnection: jest.fn()
 }));
 
 jest.mock('../../../src/utils/testUtils', () => {
@@ -22,16 +22,10 @@ jest.mock('../../../src/utils/testUtils', () => {
   return {
     ...actual,
     getApexTests: jest.fn(),
-    getLanguageClientStatus: jest.fn(),
-    buildClassToUriIndex: jest.fn().mockResolvedValue(new Map()),
-    fetchFromLs: jest.fn().mockResolvedValue({ tests: [], durationMs: 0 })
+    buildClassToUriIndex: jest.fn().mockResolvedValue(new Map())
   };
 });
 
-jest.mock('../../../src/testDiscovery/testDiscovery', () => ({
-  discoverTests: jest.fn(),
-  sourceIsLS: jest.fn().mockReturnValue(false)
-}));
 
 jest.mock('../../../src/telemetry/telemetry', () => ({
   telemetryService: {
@@ -67,10 +61,10 @@ jest.mock('@salesforce/apex-node', () => ({
 
 import { TestResult, TestService } from '@salesforce/apex-node';
 import type { Connection } from '@salesforce/core';
-import { notificationService } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 import * as coreExtensionUtils from '../../../src/coreExtensionUtils';
 import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
+import { notificationService } from '../../../src/utils/notificationHelpers';
 import * as orgApexClassProvider from '../../../src/utils/orgApexClassProvider';
 import * as testUtils from '../../../src/utils/testUtils';
 import { ApexTestController, getTestController } from '../../../src/views/testController';
@@ -117,6 +111,7 @@ describe('ApexTestController', () => {
   let mockConnection: Partial<Connection>;
   let createOrgApexClassUriSpy: jest.SpyInstance;
   let openOrgApexClassSpy: jest.SpyInstance;
+  let discoverTestsSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -147,25 +142,12 @@ describe('ApexTestController', () => {
       request: jest.fn()
     };
 
-    (coreExtensionUtils.getVscodeCoreExtension as jest.Mock) = jest.fn().mockResolvedValue({
-      exports: {
-        WorkspaceContext: {
-          getInstance: jest.fn().mockReturnValue({
-            getConnection: jest.fn().mockResolvedValue(mockConnection)
-          })
-        }
-      }
-    });
+    (coreExtensionUtils.getConnection as jest.Mock) = jest.fn().mockResolvedValue(mockConnection);
 
     (testUtils.getApexTests as jest.Mock) = jest.fn().mockResolvedValue([]);
-    (testUtils.getLanguageClientStatus as jest.Mock) = jest.fn().mockResolvedValue({
-      isReady: jest.fn().mockReturnValue(true),
-      failedToInitialize: jest.fn().mockReturnValue(false),
-      getStatusMessage: jest.fn().mockReturnValue('')
-    });
     (testUtils.buildClassToUriIndex as jest.Mock) = jest.fn().mockResolvedValue(new Map());
-    (testDiscovery.discoverTests as jest.Mock) = jest.fn().mockResolvedValue({ classes: [] });
-    (testDiscovery.sourceIsLS as jest.Mock) = jest.fn().mockReturnValue(false);
+    const Effect = jest.requireActual('effect/Effect');
+    discoverTestsSpy = jest.spyOn(testDiscovery, 'discoverTests').mockReturnValue(Effect.succeed({ classes: [] }));
 
     // Reset TestService mock
     (TestService as jest.Mock).mockImplementation(() => mockTestServiceMethods);
@@ -268,7 +250,8 @@ describe('ApexTestController', () => {
         }
       ];
 
-      (testDiscovery.discoverTests as jest.Mock).mockResolvedValue({ classes: mockClasses });
+      const Effect = jest.requireActual('effect/Effect');
+      discoverTestsSpy.mockReturnValue(Effect.succeed({ classes: mockClasses }));
       (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(
         new Map([
           ['TestClass1', vscode.Uri.file('/workspace/TestClass1.cls')],
@@ -291,14 +274,15 @@ describe('ApexTestController', () => {
 
       await controller.discoverTests();
 
-      expect(testDiscovery.discoverTests).toHaveBeenCalledWith({ showAllMethods: true });
+      expect(discoverTestsSpy).toHaveBeenCalled();
       expect(mockTestController.createTestItem).toHaveBeenCalled();
       expect(mockTestController.items.add).toHaveBeenCalled();
     });
 
     it('should handle errors during discovery', async () => {
-      // Mock discoverTests to throw an error
-      (testDiscovery.discoverTests as jest.Mock).mockRejectedValue(new Error('Discovery failed'));
+      // Mock discoverTests to return a failing Effect
+      const Effect = jest.requireActual('effect/Effect');
+      discoverTestsSpy.mockReturnValue(Effect.fail(new Error('Discovery failed')));
 
       // discoverTests catches errors and logs them, so it should not throw
       await expect(controller.discoverTests()).resolves.not.toThrow();
@@ -314,7 +298,8 @@ describe('ApexTestController', () => {
         }
       ];
 
-      (testDiscovery.discoverTests as jest.Mock).mockResolvedValue({ classes: mockClasses });
+      const Effect = jest.requireActual('effect/Effect');
+      discoverTestsSpy.mockReturnValue(Effect.succeed({ classes: mockClasses }));
       // OrgOnlyClass does not exist locally, so buildClassToUriIndex returns empty map
       (testUtils.buildClassToUriIndex as jest.Mock).mockReset();
       (testUtils.buildClassToUriIndex as jest.Mock).mockResolvedValue(new Map());
@@ -611,12 +596,13 @@ describe('ApexTestController', () => {
 
   describe('refresh', () => {
     it('should clear and rediscover tests', async () => {
-      (testDiscovery.discoverTests as jest.Mock).mockResolvedValue({ classes: [] });
+      const Effect = jest.requireActual('effect/Effect');
+      discoverTestsSpy.mockReturnValue(Effect.succeed({ classes: [] }));
 
       await controller.refresh();
 
       expect(mockTestController.items.replace).toHaveBeenCalledWith([]);
-      expect(testDiscovery.discoverTests).toHaveBeenCalled();
+      expect(discoverTestsSpy).toHaveBeenCalled();
     });
   });
 

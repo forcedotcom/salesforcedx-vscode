@@ -8,6 +8,7 @@
 // we disable this rule so the methods match the vscode interface
 /* eslint-disable class-methods-use-this */
 /* eslint-disable functional/no-throw-statements */
+/* eslint-disable functional/no-try-statements */
 
 import { fs } from '@salesforce/core/fs';
 import * as Effect from 'effect/Effect';
@@ -16,6 +17,15 @@ import { Buffer } from 'node:buffer';
 import type { Dirent } from 'node:fs';
 import * as vscode from 'vscode';
 import { emitter } from './memfsWatcher';
+
+/** Convert ENOENT errors to VS Code FileSystemError.FileNotFound */
+const handleFileSystemError = (error: unknown, uri: vscode.Uri): never => {
+  if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+    throw vscode.FileSystemError.FileNotFound(uri);
+  }
+  throw error;
+};
+
 /**
  * the VSCode API doesn't store these anywhere by default.
  * This is hooked up to memfs right now, and its watcher handles everything else
@@ -28,21 +38,29 @@ export class FsProvider implements vscode.FileSystemProvider {
   }
 
   public stat(uri: vscode.Uri): vscode.FileStat {
-    const stats = fs.statSync(uri.path);
-    return {
-      type: stats.isDirectory() ? vscode.FileType.Directory : vscode.FileType.File,
-      ctime: stats.ctimeMs,
-      mtime: stats.mtimeMs,
-      size: stats.size
-    };
+    try {
+      const stats = fs.statSync(uri.path);
+      return {
+        type: stats.isDirectory() ? vscode.FileType.Directory : vscode.FileType.File,
+        ctime: stats.ctimeMs,
+        mtime: stats.mtimeMs,
+        size: stats.size
+      };
+    } catch (error) {
+      return handleFileSystemError(error, uri);
+    }
   }
 
   public readDirectory(uri: vscode.Uri): [string, vscode.FileType][] {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    return (fs.readdirSync(uri.path, { withFileTypes: true }) as Dirent[]).map(dirent => [
-      dirent.name,
-      dirent.isDirectory() ? vscode.FileType.Directory : vscode.FileType.File
-    ]);
+    try {
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      return (fs.readdirSync(uri.path, { withFileTypes: true }) as Dirent[]).map(dirent => [
+        dirent.name,
+        dirent.isDirectory() ? vscode.FileType.Directory : vscode.FileType.File
+      ]);
+    } catch (error) {
+      return handleFileSystemError(error, uri);
+    }
   }
 
   public async createDirectory(uri: vscode.Uri): Promise<void> {
@@ -51,9 +69,13 @@ export class FsProvider implements vscode.FileSystemProvider {
   }
 
   public readFile(uri: vscode.Uri): Uint8Array {
-    // memfs types are loose around readFileSync
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-    return new Uint8Array(fs.readFileSync(uri.path) as Buffer);
+    try {
+      // memfs types are loose around readFileSync
+      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+      return new Uint8Array(fs.readFileSync(uri.path) as Buffer);
+    } catch (error) {
+      return handleFileSystemError(error, uri);
+    }
   }
 
   public async writeFile(

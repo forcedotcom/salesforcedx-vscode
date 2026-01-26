@@ -9,16 +9,16 @@ import {
   AsyncTestConfiguration,
   HumanReporter,
   Progress,
-  ResultFormat,
   TestResult,
   TestService
 } from '@salesforce/apex-node';
-import { getVscodeCoreExtension } from 'salesforcedx-vscode-apex/src/coreExtensionUtils';
 import { CancellationToken } from 'vscode';
 import { channelService } from '../channels';
+import { getConnection } from '../coreExtensionUtils';
 import * as settings from '../settings';
 import { telemetryService } from '../telemetry/telemetry';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
+import { writeTestResultJsonFile } from '../utils/testUtils';
 
 type ApexTestRunOptions = {
   payload: AsyncTestConfiguration;
@@ -35,8 +35,7 @@ export const runApexTests = async (
   token?: CancellationToken
 ): Promise<TestResult | undefined> => {
   const startTime = Date.now();
-  const vscodeCoreExtension = await getVscodeCoreExtension();
-  const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
+  const connection = await getConnection();
   const testService = new TestService(connection);
 
   const progressReporter: Progress<ApexTestProgressValue> = {
@@ -61,24 +60,20 @@ export const runApexTests = async (
     return undefined;
   }
 
-  await testService.writeResultFiles(
-    result,
-    { resultFormats: [ResultFormat.json], dirPath: options.outputDir },
-    options.codeCoverage
-  );
+  // Write JSON test result file
+  await writeTestResultJsonFile(result, options.outputDir, options.codeCoverage, testService);
 
   // Print test results to output channel
-  channelService.appendLine('\n=== Test Results ===\n');
   const humanOutput = new HumanReporter().format(result, options.codeCoverage, options.concise);
   if (humanOutput) {
     // Split by lines and add each line separately to preserve formatting
     const lines = humanOutput.split('\n');
     for (const line of lines) {
-      channelService.appendLine(line);
+      await channelService.appendLine(line);
     }
   } else {
     // Fallback if HumanReporter returns empty - at least show summary
-    channelService.appendLine(
+    await channelService.appendLine(
       `Test execution completed. Tests ran: ${result.summary.testsRan ?? 0}, Passed: ${result.summary.passing ?? 0}, Failed: ${result.summary.failing ?? 0}`
     );
   }

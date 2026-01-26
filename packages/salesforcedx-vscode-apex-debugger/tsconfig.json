@@ -16,13 +16,13 @@
       "path": "../salesforcedx-utils-vscode"
     },
     {
-      "path": "../salesforcedx-vscode-core"
-    },
-    {
       "path": "../salesforcedx-vscode-i18n"
     },
     {
       "path": "../salesforcedx-vscode-apex"
+    },
+    {
+      "path": "../salesforcedx-vscode-core"
     }
   ]
 }

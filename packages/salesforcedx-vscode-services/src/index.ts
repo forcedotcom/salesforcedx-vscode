@@ -26,6 +26,7 @@ import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './virtua
 import { startWatch } from './virtualFsProvider/memfsWatcher';
 import { projectFiles } from './virtualFsProvider/projectInit';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
+import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { SettingsService } from './vscode/settingsService';
 import { WorkspaceService } from './vscode/workspaceService';
@@ -38,6 +39,7 @@ export type SalesforceVSCodeServicesApi = {
     ChannelServiceLayer: typeof ChannelServiceLayer;
     WorkspaceService: typeof WorkspaceService;
     FsService: typeof FsService;
+    FileWatcherService: typeof FileWatcherService;
     ConfigService: typeof ConfigService;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataRegistryService: typeof MetadataRegistryService;
@@ -56,12 +58,12 @@ const activationEffect = (
   Effect.gen(function* () {
     yield* (yield* ChannelService).appendToChannel('Salesforce Services extension is activating!');
 
-    if (process.env.ESBUILD_PLATFORM === 'web') {
-      yield* fileSystemSetup(context);
-    }
-
-    // watch the config files for changes, which various serices use to invalidate caches
-    yield* Effect.forkIn(watchConfigFiles(), yield* getExtensionScope());
+    // Web vs Desktop mode setup
+    // - Web: set up virtual file system
+    // - Desktop: watch config files for org changes (@salesforce/core APIs aren't available in web)
+    yield* process.env.ESBUILD_PLATFORM === 'web'
+      ? fileSystemSetup(context)
+      : Effect.flatMap(getExtensionScope(), scope => Effect.forkIn(watchConfigFiles(), scope));
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**
@@ -105,6 +107,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ChannelServiceLayer,
       WorkspaceService,
       FsService,
+      FileWatcherService,
       ConfigService,
       MetadataDescribeService,
       MetadataRegistryService,

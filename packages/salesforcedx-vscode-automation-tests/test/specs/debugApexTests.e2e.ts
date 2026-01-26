@@ -16,25 +16,20 @@ import {
   verifyNotificationWithRetry
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/retryUtils';
 import { createApexClassWithTest } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/salesforce-components';
-import {
-  continueDebugging,
-  getTestsSection,
-  verifyTestItemsInSideBar
-} from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
+import { continueDebugging, getTestsSection } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testing';
 import { TestSetup } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/testSetup';
 import {
   executeQuickPick,
   getWorkbench,
-  getStatusBarItemWhichIncludes,
   getTextEditor,
   dismissAllNotifications,
   waitForAndGetCodeLens
 } from '@salesforce/salesforcedx-vscode-test-tools/lib/src/ui-interaction';
 import { expect } from 'chai';
-import { TreeItem, after } from 'vscode-extension-tester';
+import { after } from 'vscode-extension-tester';
 import { apexTestExtensionConfigs } from '../testData/constants';
+import { findTestItemByName, TestTreeItem, verifyTestItems } from '../utils/apexTestsHelper';
 import { getFolderPath } from '../utils/buildFilePathHelper';
-import { tryToHideCopilot } from '../utils/copilotHidingHelper';
 import { logTestStart } from '../utils/loggingHelper';
 
 describe('Debug Apex Tests', () => {
@@ -54,8 +49,6 @@ describe('Debug Apex Tests', () => {
     testSetup = await TestSetup.setUp(testReqConfig);
     classesFolderPath = getFolderPath(testSetup.projectFolderPath!, 'classes');
 
-    // Hide copilot
-    await tryToHideCopilot();
 
     // Create Apex class 1 and test
     await retryOperation(
@@ -85,15 +78,6 @@ describe('Debug Apex Tests', () => {
     if (this.currentTest?.parent?.tests.some(test => test.state === 'failed')) {
       this.skip();
     }
-  });
-
-  it('Verify LSP finished indexing', async () => {
-    logTestStart(testSetup, 'Verify LSP finished indexing');
-
-    // Get Apex LSP Status Bar
-    const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
-    await statusBar.click();
-    expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
   });
 
   it('Debug All Tests via Apex Class', async () => {
@@ -155,55 +139,38 @@ describe('Debug Apex Tests', () => {
 
   it('Debug all Apex Methods on a Class via the Test Sidebar', async () => {
     logTestStart(testSetup, 'Debug All Apex Methods on a Class via the Test Sidebar');
-    const workbench = getWorkbench();
 
     await retryOperation(
       async () => {
-        await executeQuickPick('Testing: Focus on Apex Tests View');
+        await executeQuickPick('Testing: Focus on Test Explorer View');
       },
       3,
-      'DebugApexTests - Error focusing on apex tests view'
+      'DebugApexTests - Error focusing on test explorer view'
     );
 
-    // Open the Test Sidebar
-    const apexTestsSection = await retryOperation(
-      async () => await getTestsSection(workbench, 'Apex Tests'),
+    await retryOperation(
+      async () => executeQuickPick('Test: Refresh Tests', Duration.seconds(1)),
       3,
-      'DebugApexTests - Error getting apex tests section'
+      'DebugApexTests - Error refreshing test explorer'
     );
+    await pause(Duration.seconds(20)); // Wait for the tests to load
+
     const expectedItems = ['ExampleApexClass1Test', 'ExampleApexClass2Test'];
-
-    await retryOperation(
-      async () => {
-        await verifyTestItemsInSideBar(apexTestsSection, 'Refresh Tests', expectedItems, 4, 2);
-      },
-      3,
-      'DebugApexTests - Error verifying test items in sidebar'
-    );
+    await verifyTestItems(expectedItems);
 
     // Click the debug tests button that is shown to the right when you hover a test class name on the Test sidebar
-    let apexTestItem: TreeItem;
+    let apexTestItem: TestTreeItem;
     await retryOperation(
       async () => {
         await pause(Duration.seconds(2));
-        await apexTestsSection.click();
-        await apexTestsSection.wait(20_000);
-        const foundItem = await apexTestsSection.findItem('ExampleApexClass1Test');
-        if (!foundItem) {
-          throw new Error('Expected TreeItem but got undefined');
-        }
-        if (!(foundItem instanceof TreeItem)) {
-          throw new Error(`Expected TreeItem but got different item type: ${typeof foundItem}`);
-        }
-        apexTestItem = foundItem;
-        await apexTestItem.wait(20_000);
-        await apexTestItem.select();
+        apexTestItem = await findTestItemByName('ExampleApexClass1Test');
+        await apexTestItem.click();
       },
       3,
       'DebugApexTests - Error clicking apex tests section'
     );
 
-    const debugTestsAction = await apexTestItem!.getActionButton('Debug Tests');
+    const debugTestsAction = await apexTestItem!.getActionButton('Debug Test');
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(debugTestsAction).to.not.be.undefined;
     await retryOperation(
@@ -228,40 +195,31 @@ describe('Debug Apex Tests', () => {
 
     await retryOperation(
       async () => {
-        await executeQuickPick('Testing: Focus on Apex Tests View');
+        await executeQuickPick('Testing: Focus on Test Explorer View');
       },
       3,
-      'DebugApexTests - Error focusing on apex tests view'
+      'DebugApexTests - Error focusing on test explorer view'
     );
 
-    // Open the Test Sidebar
-    const apexTestsSection = await retryOperation(
-      async () => await getTestsSection(workbench, 'Apex Tests'),
+    // Open the Test Sidebar - now uses VS Code's native Test Explorer
+    const testExplorerSection = await retryOperation(
+      async () => await getTestsSection(workbench, 'Test Explorer'),
       3,
-      'DebugApexTests - Error getting apex tests section'
+      'DebugApexTests - Error getting test explorer section'
     );
 
     // Hover a test name under one of the test class sections and click the debug button that is shown to the right of the test name on the Test sidebar
-    let apexTestItem: TreeItem;
+    let apexTestItem: TestTreeItem;
     await retryOperation(
       async () => {
-        await apexTestsSection.click();
-        await apexTestsSection.wait(20_000);
-        const foundItem = await apexTestsSection.findItem('validateSayHello');
-        if (!foundItem) {
-          throw new Error('Expected TreeItem but got undefined');
-        }
-        if (!(foundItem instanceof TreeItem)) {
-          throw new Error(`Expected TreeItem but got different item type: ${typeof foundItem}`);
-        }
-        apexTestItem = foundItem;
-        await apexTestItem.wait(20_000);
-        await apexTestItem.select();
+        await testExplorerSection.click();
+        apexTestItem = await findTestItemByName('validateSayHello');
+        await apexTestItem.click();
       },
       3,
       'DebugApexTests - Error selecting apex test item'
     );
-    const debugTestAction = await apexTestItem!.getActionButton('Debug Single Test');
+    const debugTestAction = await apexTestItem!.getActionButton('Debug Test');
     expect(debugTestAction).to.not.be.undefined;
     await retryOperation(
       async () => {

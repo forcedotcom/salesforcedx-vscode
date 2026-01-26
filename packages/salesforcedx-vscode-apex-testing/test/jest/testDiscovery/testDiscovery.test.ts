@@ -7,29 +7,54 @@
 
 // Mocks are hoisted; static import is fine
 
-// Prefer spies over full module mocks for core utils
+jest.mock('../../../src/services/extensionProvider', () => {
+  const EffectLib = jest.requireActual('effect/Effect');
+  const Context = jest.requireActual('effect/Context');
+  const Layer = jest.requireActual('effect/Layer');
 
-jest.mock('@salesforce/salesforcedx-utils-vscode', () => {
-  const actual = jest.requireActual('@salesforce/salesforcedx-utils-vscode');
+  const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
+  const MockConnectionServiceTag = Context.GenericTag('ConnectionService');
+
+  // This will be set by tests via __setMockConnection
+  let mockConnectionRef: any;
+
+  const mockConnectionService = {
+    get getConnection() {
+      return EffectLib.succeed(mockConnectionRef);
+    }
+  };
+
+  const mockServicesApi = {
+    services: {
+      ConnectionService: MockConnectionServiceTag
+    }
+  };
+
+  const MockAllServicesLayer = Layer.mergeAll(
+    Layer.effect(
+      MockExtensionProviderService,
+      EffectLib.sync(() => ({
+        getServicesApi: EffectLib.succeed(mockServicesApi)
+      }))
+    ),
+    Layer.effect(
+      MockConnectionServiceTag,
+      EffectLib.sync(() => mockConnectionService)
+    )
+  );
+
   return {
-    ...actual,
-    ConfigUtil: {
-      getTargetOrgOrAlias: jest.fn().mockResolvedValue('test@org')
+    ExtensionProviderService: MockExtensionProviderService,
+    AllServicesLayer: MockAllServicesLayer,
+    // Export a function to set the mock connection
+    __setMockConnection: (conn: any) => {
+      mockConnectionRef = conn;
     }
   };
 });
 
-jest.mock('../../../src/telemetry/telemetry', () => {
-  const sendEventData = jest.fn();
-  return {
-    telemetryService: {
-      sendEventData
-    }
-  };
-});
-
-import * as coreExtensionUtils from '../../../src/coreExtensionUtils';
-import { telemetryService } from '../../../src/telemetry/telemetry';
+import * as Effect from 'effect/Effect';
+import * as extensionProvider from '../../../src/services/extensionProvider';
 import { discoverTests } from '../../../src/testDiscovery/testDiscovery';
 
 const mockConnection = {
@@ -41,17 +66,8 @@ const mockConnection = {
 describe('TestDiscovery', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(coreExtensionUtils, 'getVscodeCoreExtension').mockResolvedValue({
-      exports: {
-        services: {
-          WorkspaceContext: {
-            getInstance: () => ({
-              getConnection: jest.fn().mockImplementation(async () => mockConnection)
-            })
-          }
-        }
-      }
-    } as any);
+    // Set the mock connection for the extensionProvider mock
+    (extensionProvider as any).__setMockConnection(mockConnection);
   });
 
   it('returns classes and methods from /tooling/tests endpoint', async () => {
@@ -79,7 +95,7 @@ describe('TestDiscovery', () => {
     };
     (mockConnection.request as jest.Mock).mockResolvedValueOnce(page1).mockResolvedValueOnce(page2);
 
-    const result = await discoverTests();
+    const result = await Effect.runPromise(discoverTests());
 
     expect(result.classes).toHaveLength(2);
     expect(result.classes[0].name).toBe('MyTestClass');
@@ -90,63 +106,38 @@ describe('TestDiscovery', () => {
 
   it('gracefully returns empty when API returns no classes', async () => {
     (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
-    const result = await discoverTests();
+    const result = await Effect.runPromise(discoverTests());
     expect(result.classes).toHaveLength(0);
   });
 
-  it('gracefully returns empty on API error', async () => {
+  it('handles API errors', async () => {
     (mockConnection.request as jest.Mock).mockRejectedValueOnce(new Error('Boom'));
-    const result = await discoverTests();
-    expect(result.classes).toHaveLength(0);
+    await expect(Effect.runPromise(discoverTests())).rejects.toThrow('Failed to fetch test discovery page: Boom');
   });
 
-  it('gracefully returns empty when no default org is available', async () => {
-    const result = await discoverTests();
-    expect(result.classes).toHaveLength(0);
-  });
-
-  it('uses minimum API version 65.0 and defaults showAllMethods=true', async () => {
+  it('uses minimum API version 65.0 and always sets showAllMethods=true', async () => {
     (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
-    await discoverTests();
+    await Effect.runPromise(discoverTests());
     expect(mockConnection.request).toHaveBeenCalledTimes(1);
     const firstCallArg = (mockConnection.request as jest.Mock).mock.calls[0][0];
     expect(firstCallArg.method).toBe('GET');
     expect(firstCallArg.url).toMatch(/^\/services\/data\/v65\.0\/tooling\/tests\?/);
     expect(firstCallArg.url).toContain('showAllMethods=true');
     expect(firstCallArg.url).not.toContain('namespacePrefix=');
-    expect(firstCallArg.url).not.toContain('pageSize=');
   });
 
-  it('passes namespacePrefix, pageSize and showAllMethods=false when provided', async () => {
+  it('passes namespacePrefix when provided', async () => {
     (mockConnection.request as jest.Mock).mockResolvedValueOnce({ apexTestClasses: [], nextRecordsUrl: null });
-    await discoverTests({ namespacePrefix: 'MyNS', pageSize: 200, showAllMethods: false });
+    await Effect.runPromise(discoverTests({ namespacePrefix: 'MyNS' }));
     const firstCallArg = (mockConnection.request as jest.Mock).mock.calls[0][0];
     expect(firstCallArg.url).toContain('namespacePrefix=MyNS');
-    expect(firstCallArg.url).toContain('pageSize=200');
-    expect(firstCallArg.url).toContain('showAllMethods=false');
-  });
-
-  it('emits telemetry for end with class/method counts', async () => {
-    const page = {
-      apexTestClasses: [
-        { id: '01pA', name: 'A', testMethods: [{ name: 'm1' }] },
-        { id: '01pB', name: 'B', testMethods: [{ name: 'm2' }, { name: 'm3' }] }
-      ],
-      nextRecordsUrl: null
-    };
-    (mockConnection.request as jest.Mock).mockResolvedValueOnce(page);
-    await discoverTests();
-    expect(telemetryService.sendEventData).toHaveBeenCalledWith(
-      'apexTestDiscoveryEnd',
-      expect.any(Object),
-      expect.objectContaining({ numClasses: 2, numMethods: 3 })
-    );
+    expect(firstCallArg.url).toContain('showAllMethods=true');
   });
 
   it('handles unexpected response shape without throwing', async () => {
     // Missing apexTestClasses entirely
     (mockConnection.request as jest.Mock).mockResolvedValueOnce({ nextRecordsUrl: null });
-    const result = await discoverTests();
+    const result = await Effect.runPromise(discoverTests());
     expect(result.classes).toEqual([]);
   });
 });

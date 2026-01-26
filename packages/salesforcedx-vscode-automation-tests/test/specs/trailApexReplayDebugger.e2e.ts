@@ -23,7 +23,6 @@ import {
   clearOutputView,
   dismissAllNotifications,
   executeQuickPick,
-  getStatusBarItemWhichIncludes,
   getTextEditor,
   getWorkbench,
   moveCursorWithFallback,
@@ -82,15 +81,6 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
     }
   });
 
-  it('Verify LSP finished indexing', async () => {
-    logTestStart(testSetup, 'Verify LSP finished indexing');
-
-    // Get Apex LSP Status Bar
-    const statusBar = await getStatusBarItemWhichIncludes('Editor Language Status');
-    await statusBar.click();
-    expect(await statusBar.getAttribute('aria-label')).to.contain('Indexing complete');
-  });
-
   it('Run Apex Tests', async () => {
     logTestStart(testSetup, 'Run Apex Tests');
     // Run SFDX: Run Apex tests.
@@ -102,7 +92,7 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
 
     await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
-    // Verify test results are listed on vscode's Output section
+    // Verify test results in the Test Results tab
     const outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
     expect(outputPanelText).to.contain('Assertion Failed: incorrect ticker symbol');
     expect(outputPanelText).to.contain('Expected: CRM, Actual: SFDC');
@@ -264,10 +254,10 @@ describe('"Find and Fix Bugs with Apex Replay Debugger" Trailhead Module', () =>
 
       await verifyNotificationWithRetry(/SFDX: Run Apex Tests successfully ran/, Duration.TEN_MINUTES);
 
-      // Verify test results are listed on vscode's Output section
-      const outputPanelText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
-      expect(outputPanelText).to.contain('AccountServiceTest.should_create_account');
-      expect(outputPanelText).to.contain('Pass');
+      // Verify test results in the Test Results tab
+      const testResultsText = await attemptToFindOutputPanelText('Apex Testing', '=== Test Results', 10);
+      expect(testResultsText).to.contain('AccountServiceTest.should_create_account');
+      expect(testResultsText).to.contain('Pass');
     }
   });
 

@@ -36,18 +36,12 @@ export type ToolingTestsPage = {
 
 /**
  * Options for discovering tests via the Tooling API
- * - showAllMethods: If true, returns all test methods (not just @TestSetup);
- *   if false or omitted, returns only @TestSetup methods.
  * - namespacePrefix:
  *   - Omit (undefined) to retrieve tests in all namespaces (Apex and Flow).
  *   - Use 'FlowTesting' or 'FlowTesting.<Namespace>' to filter to flow tests (per docs).
  *   - Use '<Namespace>' to filter to a specific Apex namespace.
  *   - Supplying '' (empty string) is treated as omitted by this client and won't be sent.
- * - pageSize:
- *   - Number of classes per page; remote default is 1000; maximum 10000.
  */
 export type DiscoverTestsOptions = {
-  showAllMethods?: boolean;
   namespacePrefix?: string;
-  pageSize?: number;
 };
