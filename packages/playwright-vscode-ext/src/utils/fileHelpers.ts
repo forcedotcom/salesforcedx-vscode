@@ -133,7 +133,7 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
 };
 
 /** Edit the currently open file by adding a comment at the top */
-export const editOpenFile = async (page: Page, comment: string): Promise<void> => {
+export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<void> => {
   const editor = page.locator(EDITOR_WITH_URI).first();
   await editor.waitFor({ state: 'visible' });
 
