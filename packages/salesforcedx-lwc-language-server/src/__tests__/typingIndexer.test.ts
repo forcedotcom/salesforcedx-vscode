@@ -24,7 +24,7 @@ describe('TypingIndexer', () => {
 
   afterEach(async () => {
     // Clear the file system provider data for the typings directory
-    sfdxFileSystemProvider.updateFileContent(`${typingIndexer.typingsBaseDir}`, '');
+    void sfdxFileSystemProvider.updateFileContent(`${typingIndexer.typingsBaseDir}`, '');
   });
 
   describe('new', () => {
@@ -61,8 +61,8 @@ describe('TypingIndexer', () => {
       const staleTyping: string = path.join(typingIndexer.typingsBaseDir, 'extra.resource.d.ts');
 
       sfdxFileSystemProvider.updateDirectoryListing(`${typingIndexer.typingsBaseDir}`, []);
-      sfdxFileSystemProvider.updateFileContent(`${typing}`, 'foobar');
-      sfdxFileSystemProvider.updateFileContent(`${staleTyping}`, 'foobar');
+      void sfdxFileSystemProvider.updateFileContent(`${typing}`, 'foobar');
+      void sfdxFileSystemProvider.updateFileContent(`${staleTyping}`, 'foobar');
 
       await typingIndexer.deleteStaleMetaTypings();
 
@@ -73,7 +73,7 @@ describe('TypingIndexer', () => {
 
   describe('#saveCustomLabelTypings', () => {
     afterEach(async () => {
-      sfdxFileSystemProvider.updateFileContent(`${typingIndexer.typingsBaseDir}`, '');
+      void sfdxFileSystemProvider.updateFileContent(`${typingIndexer.typingsBaseDir}`, '');
     });
 
     it('saves the custom labels xml file to 1 typings file', async () => {
@@ -137,7 +137,7 @@ describe('TypingIndexer', () => {
       ].map(item => path.resolve(`${typingIndexer.workspaceRoot}/${item}`));
 
       for (const filePath of expectedMetaFileTypingPaths) {
-        sfdxFileSystemProvider.updateFileContent(`${filePath}`, 'foobar');
+        void sfdxFileSystemProvider.updateFileContent(`${filePath}`, 'foobar');
       }
 
       const metaFilePaths: string[] = getMetaTypings(typingIndexer);
