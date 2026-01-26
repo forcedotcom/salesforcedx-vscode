@@ -210,11 +210,21 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
     for (const ws of this.workspaceRoots) {
       // Normalize workspace root to ensure consistent format
       const normalizedWs = normalizePath(ws);
-      const startsWith = pathStartsWith(file, normalizedWs);
+
+      // For memfs:// URIs, workspace roots don't have leading slashes, but toResolvedPath returns paths with leading slashes
+      // For file:// URIs, both workspace roots and resolved paths have leading slashes
+      // So we need to match the file path format to the workspace root format
+      let normalizedFile = file;
+      if (!normalizedWs.startsWith('/') && file.startsWith('/') && !file.startsWith('//')) {
+        // Workspace root doesn't have leading slash (memfs case), but file path does - remove it
+        normalizedFile = normalizePath(file.substring(1));
+      }
+
+      const startsWith = pathStartsWith(normalizedFile, normalizedWs);
       if (startsWith) {
-        // Pass the normalized file path (with leading slash) to isFileInsideModulesRoots
+        // Pass the normalized file path to isFileInsideModulesRoots
         // which expects paths in the same format as namespace roots
-        return await this.isFileInsideModulesRoots(file);
+        return await this.isFileInsideModulesRoots(normalizedFile);
       }
     }
     return false;

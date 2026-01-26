@@ -288,7 +288,13 @@ export default class ComponentIndexer {
         for (const filePath of filePaths) {
           const { dir, name: fileName } = path.parse(filePath);
           const componentName = `c/${fileName}`;
-          const componentFilePath = path.join(dir, fileName);
+          let componentFilePath = normalizePath(path.join(dir, fileName));
+          // For memfs:// URIs, ensure paths have a leading slash so TypeScript web server can properly resolve them
+          // TypeScript web server needs absolute paths to convert to URIs for file watching
+          // Without a leading slash, paths like "MyProject/force-app/..." might be misinterpreted as schemes
+          if (!componentFilePath.startsWith('/') && !componentFilePath.startsWith('//')) {
+            componentFilePath = normalizePath(`/${componentFilePath}`);
+          }
           const paths = (sfdxTsConfig.compilerOptions.paths[componentName] ??= []);
           if (!paths.includes(componentFilePath)) {
             paths.push(componentFilePath);
@@ -352,7 +358,13 @@ export default class ComponentIndexer {
         if (folderName === fileName) {
           const componentName = `c/${fileName}`;
           // Normalize path to ensure consistent forward slashes (path.join uses backslashes on Windows)
-          const componentFilePath = normalizePath(path.join(dir, fileName));
+          let componentFilePath = normalizePath(path.join(dir, fileName));
+          // For memfs:// URIs, ensure paths have a leading slash so TypeScript web server can properly resolve them
+          // TypeScript web server needs absolute paths to convert to URIs for file watching
+          // Without a leading slash, paths like "MyProject/force-app/..." might be misinterpreted as schemes
+          if (!componentFilePath.startsWith('/') && !componentFilePath.startsWith('//')) {
+            componentFilePath = normalizePath(`/${componentFilePath}`);
+          }
           files[componentName] = files[componentName] ?? [];
           if (!files[componentName].includes(componentFilePath)) {
             files[componentName].push(componentFilePath);

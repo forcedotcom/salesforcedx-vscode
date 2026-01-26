@@ -146,47 +146,99 @@ export class FileSystemDataProvider implements IFileSystemProvider {
    * Preserves the workspace folder's URI scheme for web compatibility
    */
   public getFileUriForPath(filePath: NormalizedPath): string {
+    Logger.info(`[getFileUriForPath] Called with filePath: ${filePath}`);
+    Logger.info(
+      `[getFileUriForPath] workspaceFolderUris count: ${this.workspaceFolderUris.length}, URIs: ${JSON.stringify(this.workspaceFolderUris)}`
+    );
+
     // Check if the file path is within any workspace folder
     for (const workspaceFolderUri of this.workspaceFolderUris) {
-      const workspaceUri = URI.parse(workspaceFolderUri);
-      // For memfs:// URIs, use path property; for file:// URIs, use fsPath
-      const workspacePath = workspaceUri.scheme === 'memfs' 
-        ? normalizePath(workspaceUri.path) 
-        : normalizePath(workspaceUri.fsPath || workspaceUri.path);
-      
-      // Remove leading slash from workspacePath for comparison (if present)
-      const normalizedWorkspacePath = workspacePath.startsWith('/') && !workspacePath.startsWith('//') 
-        ? workspacePath.substring(1) 
-        : workspacePath;
-      const normalizedFilePath = filePath.startsWith('/') && !filePath.startsWith('//') 
-        ? filePath.substring(1) 
-        : filePath;
+      try {
+        Logger.info(`[getFileUriForPath] Checking workspaceFolderUri: ${workspaceFolderUri}`);
+        const workspaceUri = URI.parse(workspaceFolderUri);
+        Logger.info(
+          `[getFileUriForPath] Parsed workspaceUri - scheme: ${workspaceUri.scheme}, path: ${workspaceUri.path}, fsPath: ${workspaceUri.fsPath}`
+        );
 
-      // Check if file path starts with workspace path
-      if (normalizedFilePath.startsWith(normalizedWorkspacePath)) {
-        // Use the workspace folder's scheme i.e. memfs:// or file://
-        if (workspaceUri.scheme === 'memfs') {
-          // For memfs:// URIs, construct the URI by joining with the workspace folder URI
-          // Calculate relative path from workspace to file
-          const relativePath = normalizedFilePath.substring(normalizedWorkspacePath.length);
-          // Remove leading slash from relative path if present
-          const cleanRelativePath = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
-          // Construct URI by joining workspace folder URI with relative path
-          // workspaceUri.path is like "/MyProject", so we append "/force-app/..." to get "/MyProject/force-app/..."
-          const fullPath = cleanRelativePath 
-            ? `${workspaceUri.path}/${cleanRelativePath}` 
-            : workspaceUri.path;
-          return URI.from({
-            scheme: workspaceUri.scheme,
-            path: fullPath
-          }).toString();
+        // For memfs:// URIs, use path property; for file:// URIs, use fsPath
+        const workspacePath =
+          workspaceUri.scheme === 'memfs'
+            ? normalizePath(workspaceUri.path)
+            : normalizePath(workspaceUri.fsPath || workspaceUri.path);
+        Logger.info(`[getFileUriForPath] workspacePath: ${workspacePath}`);
+
+        // Remove leading slash from workspacePath for comparison (if present)
+        const normalizedWorkspacePath =
+          workspacePath.startsWith('/') && !workspacePath.startsWith('//') ? workspacePath.substring(1) : workspacePath;
+        const normalizedFilePath =
+          filePath.startsWith('/') && !filePath.startsWith('//') ? filePath.substring(1) : filePath;
+        Logger.info(
+          `[getFileUriForPath] normalizedWorkspacePath: ${normalizedWorkspacePath}, normalizedFilePath: ${normalizedFilePath}`
+        );
+
+        // Check if file path starts with workspace path
+        if (normalizedFilePath.startsWith(normalizedWorkspacePath)) {
+          Logger.info(`[getFileUriForPath] File path matches workspace, scheme: ${workspaceUri.scheme}`);
+
+          // Use the workspace folder's scheme i.e. memfs:// or file://
+          if (workspaceUri.scheme === 'memfs') {
+            // For memfs:// URIs, construct the URI by joining with the workspace folder URI
+            // Calculate relative path from workspace to file
+            const relativePath = normalizedFilePath.substring(normalizedWorkspacePath.length);
+            // Remove leading slash from relative path if present
+            const cleanRelativePath = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
+            // Construct URI by joining workspace folder URI with relative path
+            // workspaceUri.path is like "/MyProject", so we append "/force-app/..." to get "/MyProject/force-app/..."
+            const fullPath = cleanRelativePath ? `${workspaceUri.path}/${cleanRelativePath}` : workspaceUri.path;
+            Logger.info(
+              `[getFileUriForPath] memfs - relativePath: ${relativePath}, cleanRelativePath: ${cleanRelativePath}, fullPath: ${fullPath}`
+            );
+
+            try {
+              const result = URI.from({
+                scheme: workspaceUri.scheme,
+                path: fullPath
+              }).toString();
+              Logger.info(`[getFileUriForPath] Returning memfs URI: ${result}`);
+              return result;
+            } catch (error) {
+              Logger.error(
+                `[getFileUriForPath] Error creating memfs URI: ${error instanceof Error ? error.message : String(error)}`,
+                error
+              );
+              Logger.error(`[getFileUriForPath] scheme: ${workspaceUri.scheme}, path: ${fullPath}`);
+              // Continue to try other workspace folders or fallback
+            }
+          } else {
+            Logger.info(`[getFileUriForPath] Non-memfs scheme (${workspaceUri.scheme}), will fall through to default`);
+          }
+        } else {
+          Logger.info('[getFileUriForPath] File path does not match this workspace folder');
         }
-        // For other schemes (e.g., file://), fall through to default URI.file() at the end
+      } catch (error) {
+        Logger.error(
+          `[getFileUriForPath] Error processing workspaceFolderUri ${workspaceFolderUri}: ${error instanceof Error ? error.message : String(error)}`,
+          error
+        );
+        continue;
       }
     }
 
     // Default to file:// if not in any workspace folder
-    return URI.file(filePath).toString();
+    try {
+      const result = URI.file(filePath).toString();
+      Logger.info(`[getFileUriForPath] Returning default file:// URI: ${result}`);
+      return result;
+    } catch (error) {
+      Logger.error(
+        `[getFileUriForPath] Error creating default file:// URI for path ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
+        error
+      );
+      // Last resort fallback
+      const fallback = `file://${filePath}`;
+      Logger.warn(`[getFileUriForPath] Using fallback URI: ${fallback}`);
+      return fallback;
+    }
   }
 
   public async updateFileContent(uri: string, content: string, connection?: Connection): Promise<void> {

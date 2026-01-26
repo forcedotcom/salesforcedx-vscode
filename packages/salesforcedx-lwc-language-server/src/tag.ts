@@ -116,10 +116,37 @@ export const getLwcTypingsName = (tag: Tag): string => `c/${getTagName(tag)}`;
 // If fileSystemProvider is provided, uses it to preserve the correct URI scheme (memfs:// or file://)
 // Otherwise, falls back to URI.file() for backward compatibility
 export const getTagUri = (tag: Tag, fileSystemProvider?: IFileSystemProvider): string => {
+  Logger.info(`[getTagUri] Called with tag.file: ${tag.file}, has fileSystemProvider: ${!!fileSystemProvider}`);
+
   if (fileSystemProvider) {
-    return fileSystemProvider.getFileUriForPath(normalizePath(tag.file));
+    const normalizedPath = normalizePath(tag.file);
+    Logger.info(`[getTagUri] Normalized path: ${normalizedPath}`);
+    try {
+      const uri = fileSystemProvider.getFileUriForPath(normalizedPath);
+      Logger.info(`[getTagUri] getFileUriForPath returned: ${uri}`);
+      return uri;
+    } catch (error) {
+      Logger.error(
+        `[getTagUri] Error in getFileUriForPath: ${error instanceof Error ? error.message : String(error)}`,
+        error
+      );
+      throw error;
+    }
   }
-  return URI.file(path.resolve(tag.file)).toString();
+
+  try {
+    const resolvedPath = path.resolve(tag.file);
+    Logger.info(`[getTagUri] Resolved path: ${resolvedPath}`);
+    const uri = URI.file(resolvedPath).toString();
+    Logger.info(`[getTagUri] URI.file returned: ${uri}`);
+    return uri;
+  } catch (error) {
+    Logger.error(
+      `[getTagUri] Error creating URI.file: ${error instanceof Error ? error.message : String(error)}`,
+      error
+    );
+    throw error;
+  }
 };
 
 // Utility function to get all attributes
@@ -187,26 +214,57 @@ const findFilesInDirectory = (dirPath: string, pattern: RegExp, fileSystemProvid
 
 // Utility function to get all locations
 export const getAllLocations = (tag: Tag, fileSystemProvider: IFileSystemProvider): Location[] => {
+  Logger.info(`[getAllLocations] Called with tag.file: ${tag.file}`);
+
   // tag.file is already normalized (comes from entry.path which is normalized by FileSystemDataProvider)
   const { dir, name } = path.parse(tag.file);
   // Normalize dir because path.parse() returns backslashes on Windows
   const normalizedDir = normalizePath(dir);
+  Logger.info(`[getAllLocations] Parsed - dir: ${dir}, name: ${name}, normalizedDir: ${normalizedDir}`);
 
   const convertFileToLocation = (file: string): Location => {
-    // Use fileSystemProvider to get the correct URI scheme (memfs:// or file://)
-    const uri = fileSystemProvider.getFileUriForPath(normalizePath(file));
-    const position = Position.create(0, 0);
-    const range = Range.create(position, position);
-    return Location.create(uri, range);
+    try {
+      Logger.info(`[getAllLocations] Converting file to location: ${file}`);
+      // Use fileSystemProvider to get the correct URI scheme (memfs:// or file://)
+      const uri = fileSystemProvider.getFileUriForPath(normalizePath(file));
+      Logger.info(`[getAllLocations] getFileUriForPath returned URI: ${uri}`);
+      const position = Position.create(0, 0);
+      const range = Range.create(position, position);
+      const location = Location.create(uri, range);
+      Logger.info(`[getAllLocations] Created location with URI: ${location.uri}`);
+      return location;
+    } catch (error) {
+      Logger.error(
+        `[getAllLocations] Error converting file to location: ${file} - ${error instanceof Error ? error.message : String(error)}`,
+        error
+      );
+      throw error;
+    }
   };
 
   // Match files like name.html or name.css
   const pattern = new RegExp(`^${name.replaceAll(/[.+^${}()|[\]\\]/g, '\\$&')}\\.(html|css)$`);
+  Logger.info(`[getAllLocations] Searching for files matching pattern: ${pattern}`);
   const filteredFiles = findFilesInDirectory(normalizedDir, pattern, fileSystemProvider);
-  const locations = filteredFiles.map(convertFileToLocation);
-  const tagLocation = getTagLocation(tag, fileSystemProvider);
-  locations.unshift(tagLocation);
+  Logger.info(`[getAllLocations] Found ${filteredFiles.length} matching files: ${filteredFiles.join(', ')}`);
 
+  const locations = filteredFiles.map(convertFileToLocation);
+  Logger.info(`[getAllLocations] Converted ${locations.length} files to locations`);
+
+  try {
+    Logger.info(`[getAllLocations] Getting tag location for tag.file: ${tag.file}`);
+    const tagLocation = getTagLocation(tag, fileSystemProvider);
+    Logger.info(`[getAllLocations] Tag location URI: ${tagLocation.uri}`);
+    locations.unshift(tagLocation);
+  } catch (error) {
+    Logger.error(
+      `[getAllLocations] Error getting tag location: ${error instanceof Error ? error.message : String(error)}`,
+      error
+    );
+    throw error;
+  }
+
+  Logger.info(`[getAllLocations] Returning ${locations.length} total locations`);
   return locations;
 };
 
@@ -230,11 +288,33 @@ export const getClassMemberLocation = (
   name: string,
   fileSystemProvider?: IFileSystemProvider
 ): Location | null => {
+  Logger.info(`[getClassMemberLocation] Called with tag.file: ${tag.file}, name: ${name}`);
+
   const classMember = findClassMember(tag, name);
+  Logger.info(
+    `[getClassMemberLocation] Found classMember: ${classMember ? `loc=${JSON.stringify(classMember.loc)}` : 'null'}`
+  );
+
   if (!classMember?.loc) {
+    Logger.warn(`[getClassMemberLocation] No location found for class member: ${name}`);
     return null;
   }
-  return Location.create(getTagUri(tag, fileSystemProvider), toVSCodeRange(classMember.loc));
+
+  try {
+    const tagUri = getTagUri(tag, fileSystemProvider);
+    Logger.info(`[getClassMemberLocation] getTagUri returned: ${tagUri}`);
+    const range = toVSCodeRange(classMember.loc);
+    Logger.info(`[getClassMemberLocation] Range: ${JSON.stringify(range)}`);
+    const location = Location.create(tagUri, range);
+    Logger.info(`[getClassMemberLocation] Created location with URI: ${location.uri}`);
+    return location;
+  } catch (error) {
+    Logger.error(
+      `[getClassMemberLocation] Error creating location: ${error instanceof Error ? error.message : String(error)}`,
+      error
+    );
+    throw error;
+  }
 };
 
 // Utility function to get tag description

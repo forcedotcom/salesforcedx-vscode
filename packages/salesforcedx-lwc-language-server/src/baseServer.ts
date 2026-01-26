@@ -326,7 +326,10 @@ export abstract class BaseServer {
   }
 
   public async onHover(params: TextDocumentPositionParams): Promise<Hover | null> {
+    Logger.info(`[onHover] Called with params: ${JSON.stringify({ uri: params?.textDocument?.uri, position: params?.position })}`);
+    
     if (!params?.textDocument || !params.position) {
+      Logger.warn('[onHover] Missing params or position');
       return null;
     }
 
@@ -335,30 +338,68 @@ export abstract class BaseServer {
       textDocument: { uri }
     } = params;
 
+    Logger.info(`[onHover] Processing URI: ${uri}, position: ${position.line}:${position.character}`);
+
     const doc = this.documents.get(uri);
     if (!doc) {
+      Logger.warn(`[onHover] Document not found for URI: ${uri}`);
       return null;
     }
 
-    const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
+    Logger.info(`[onHover] Document found, languageId: ${doc.languageId}, uri: ${doc.uri}`);
 
-    if (await this.context.isLWCTemplate(doc)) {
-      if (!this.isDelayedInitializationComplete) {
-        return {
-          contents: nls.localize('server_initializing_message')
-        };
+    try {
+      const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
+      Logger.info('[onHover] HTML document parsed successfully');
+
+      try {
+        const isLWCTemplate = await this.context.isLWCTemplate(doc);
+        Logger.info(`[onHover] isLWCTemplate result: ${isLWCTemplate}`);
+        
+        if (isLWCTemplate) {
+          Logger.info(`[onHover] Document is LWC template, isDelayedInitializationComplete: ${this.isDelayedInitializationComplete}`);
+          if (!this.isDelayedInitializationComplete) {
+            Logger.info('[onHover] Returning initialization message');
+            return {
+              contents: nls.localize('server_initializing_message')
+            };
+          }
+          this.auraDataProvider.activated = false;
+          this.lwcDataProvider.activated = true;
+          Logger.info('[onHover] Calling languageService.doHover for LWC template');
+          const hoverResult = this.languageService.doHover(doc, position, htmlDoc);
+          Logger.info(`[onHover] doHover returned: ${hoverResult ? 'result' : 'null'}`);
+          return hoverResult;
+        }
+      } catch (error) {
+        Logger.error(`[onHover] Error checking isLWCTemplate: ${error instanceof Error ? error.message : String(error)}`, error);
       }
-      this.auraDataProvider.activated = false;
-      this.lwcDataProvider.activated = true;
-      return this.languageService.doHover(doc, position, htmlDoc);
-    } else if (await this.context.isAuraMarkup(doc)) {
-      if (!this.isDelayedInitializationComplete) {
-        return null;
+
+      try {
+        const isAuraMarkup = await this.context.isAuraMarkup(doc);
+        Logger.info(`[onHover] isAuraMarkup result: ${isAuraMarkup}`);
+        
+        if (isAuraMarkup) {
+          Logger.info(`[onHover] Document is Aura markup, isDelayedInitializationComplete: ${this.isDelayedInitializationComplete}`);
+          if (!this.isDelayedInitializationComplete) {
+            Logger.info('[onHover] Returning null (not initialized)');
+            return null;
+          }
+          this.auraDataProvider.activated = true;
+          this.lwcDataProvider.activated = false;
+          Logger.info('[onHover] Calling languageService.doHover for Aura markup');
+          const hoverResult = this.languageService.doHover(doc, position, htmlDoc);
+          Logger.info(`[onHover] doHover returned: ${hoverResult ? 'result' : 'null'}`);
+          return hoverResult;
+        }
+      } catch (error) {
+        Logger.error(`[onHover] Error checking isAuraMarkup: ${error instanceof Error ? error.message : String(error)}`, error);
       }
-      this.auraDataProvider.activated = true;
-      this.lwcDataProvider.activated = false;
-      return this.languageService.doHover(doc, position, htmlDoc);
-    } else {
+
+      Logger.info('[onHover] Document is neither LWC template nor Aura markup, returning null');
+      return null;
+    } catch (error) {
+      Logger.error(`[onHover] Unexpected error: ${error instanceof Error ? error.message : String(error)}`, error);
       return null;
     }
   }
@@ -502,48 +543,85 @@ export abstract class BaseServer {
   }
 
   public onDefinition(params: TextDocumentPositionParams): Location[] {
-    const cursorInfo: CursorInfo | null = this.cursorInfo(params);
-    if (!cursorInfo) {
+    Logger.info(`[onDefinition] Called with params: ${JSON.stringify({ uri: params?.textDocument?.uri, position: params?.position })}`);
+    
+    try {
+      const cursorInfo: CursorInfo | null = this.cursorInfo(params);
+      Logger.info(`[onDefinition] cursorInfo: ${cursorInfo ? JSON.stringify({ type: cursorInfo.type, name: cursorInfo.name, tag: cursorInfo.tag }) : 'null'}`);
+      
+      if (!cursorInfo) {
+        Logger.info('[onDefinition] No cursorInfo, returning empty array');
+        return [];
+      }
+
+      const tag: Tag | null = cursorInfo.tag ? this.componentIndexer.findTagByName(cursorInfo.tag) : null;
+      Logger.info(`[onDefinition] Found tag: ${tag ? `tag.file=${tag.file}` : 'null'}`);
+
+      let result: Location[] = [];
+      switch (cursorInfo.type) {
+        case 'tag':
+          if (tag) {
+            try {
+              Logger.info(`[onDefinition] Getting all locations for tag: ${cursorInfo.tag}, tag.file: ${tag.file}`);
+              result = getAllLocations(tag, this.fileSystemProvider);
+              Logger.info(`[onDefinition] getAllLocations returned ${result.length} locations: ${result.map(l => l.uri).join(', ')}`);
+            } catch (error) {
+              Logger.error(`[onDefinition] Error getting all locations for tag ${cursorInfo.tag}: ${error instanceof Error ? error.message : String(error)}`, error);
+              result = [];
+            }
+          } else {
+            Logger.warn(`[onDefinition] Tag not found for name: ${cursorInfo.tag}`);
+          }
+          break;
+
+        case 'attributeKey':
+          const attr: AttributeInfo | null = tag ? getAttribute(tag, cursorInfo.name) : null;
+          Logger.info(`[onDefinition] attributeKey case, attr: ${attr ? `location=${attr.location?.uri}` : 'null'}`);
+          if (attr?.location) {
+            result = [attr.location];
+            Logger.info(`[onDefinition] Returning attribute location: ${attr.location.uri}`);
+          } else {
+            Logger.warn(`[onDefinition] No location found for attribute: ${cursorInfo.name}`);
+          }
+          break;
+
+        case 'dynamicContent':
+        case 'dynamicAttributeValue':
+          const { uri } = params.textDocument;
+          Logger.info(`[onDefinition] ${cursorInfo.type} case, uri: ${uri}, cursorInfo.range: ${cursorInfo.range ? 'exists' : 'null'}`);
+          if (cursorInfo.range) {
+            result = [Location.create(uri, cursorInfo.range)];
+            Logger.info(`[onDefinition] Returning range location: ${uri}`);
+          } else {
+            try {
+              Logger.info(`[onDefinition] Finding component by URI: ${uri}`);
+              const component: Tag | null = this.componentIndexer.findTagByURI(uri);
+              Logger.info(`[onDefinition] Component found: ${component ? `tag.file=${component.file}` : 'null'}`);
+              if (component) {
+                Logger.info(`[onDefinition] Getting class member location for: ${cursorInfo.name}`);
+                const location = getClassMemberLocation(component, cursorInfo.name, this.fileSystemProvider);
+                Logger.info(`[onDefinition] Class member location: ${location ? location.uri : 'null'}`);
+                if (location) {
+                  result = [location];
+                }
+              }
+            } catch (error) {
+              Logger.error(`[onDefinition] Error getting class member location: ${error instanceof Error ? error.message : String(error)}`, error);
+            }
+          }
+          break;
+
+        default:
+          Logger.info(`[onDefinition] Unknown cursorInfo.type: ${cursorInfo.type}`);
+          break;
+      }
+
+      Logger.info(`[onDefinition] Returning ${result.length} locations`);
+      return result;
+    } catch (error) {
+      Logger.error(`[onDefinition] Unexpected error: ${error instanceof Error ? error.message : String(error)}`, error);
       return [];
     }
-
-    const tag: Tag | null = cursorInfo.tag ? this.componentIndexer.findTagByName(cursorInfo.tag) : null;
-
-    let result: Location[] = [];
-    switch (cursorInfo.type) {
-      case 'tag':
-        if (tag) {
-          result = getAllLocations(tag, this.fileSystemProvider);
-        }
-        break;
-
-      case 'attributeKey':
-        const attr: AttributeInfo | null = tag ? getAttribute(tag, cursorInfo.name) : null;
-        if (attr?.location) {
-          result = [attr.location];
-        } else {
-        }
-        break;
-
-      case 'dynamicContent':
-      case 'dynamicAttributeValue':
-        const { uri } = params.textDocument;
-        if (cursorInfo.range) {
-          result = [Location.create(uri, cursorInfo.range)];
-        } else {
-          const component: Tag | null = this.componentIndexer.findTagByURI(uri);
-          const location = component ? getClassMemberLocation(component, cursorInfo.name, this.fileSystemProvider) : null;
-          if (location) {
-            result = [location];
-          }
-        }
-        break;
-
-      default:
-        break;
-    }
-
-    return result;
   }
 
   public cursorInfo(
