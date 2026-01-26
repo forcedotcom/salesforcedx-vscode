@@ -3,8 +3,8 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-01-11T18:07:37.461Z
-Total metadata types: 1508
+Generated on: 2026-01-26T17:25:22.262Z
+Total metadata types: 1515
 -->
 <xsd:schema
  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -2181,6 +2181,12 @@ Total metadata types: 1508
       <xsd:annotation>
        <xsd:documentation>Required. The name of the action plan template.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="ParentTemplateId" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The ID of the parent Action Plan Template record. This field is a relationship field to the ParentTemplate and refers to ActionPlanTemplate. Available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: reference</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="sourceType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -8879,15 +8885,33 @@ Total metadata types: 1508
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableBillingDisputeManagement" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether to enable Dispute Management (true) or not (false). The default value is false. Available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableBillingSetup" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether to enable Billing setting (true) or not (false). The default value is false.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableCreditMemoSequenceService" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether to mandate the application of sequence policy for credit memos (true) or not (false). The default value is false.Available in API version 66.0 and later with Revenue Cloud Billing.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableCrMemoApplicationToPostedInvoices" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether to enable Apply Credits to Posted Invoices setting (true) or not (false). The default value is false. This setting automates settlement of invoices through application of credits to posted invoices. The credit application level determines whether credits are automatically applied to invoices or invoice lines.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableFailedPaymentsRetry" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether to retry failed payment schedule items automatically based on the defined payment retry rules (true) or not (false). The default value is false. Available in API version 66.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -8954,6 +8978,12 @@ Total metadata types: 1508
      <xsd:element name="realisedLossGlAccount" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Name of the general ledger account to record realized losses in transaction journals. Available in API version 64.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="ruleBasedCrAndPymtAppln" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Automates the settlement of the posted invoices by applying payments and credits that meet the specified application rules. The rules application level determines whether payments or credits are applied first to the invoices. The ruleset displays a list of selectable rules. Available in API version 66.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -14287,14 +14317,14 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="oauthPolicy" minOccurs="0" maxOccurs="unbounded" type="ConnectedAppOauthPolicy">
       <xsd:annotation>
-       <xsd:documentation>Specifies Oauth access policies associated with your connected app. Available in API version 49.0 and later.</xsd:documentation>
+       <xsd:documentation>Specifies OAuth access policies associated with your connected app. Available in API version 49.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: ConnectedAppOauthPolicy</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="permissionSetName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Specifies the permissions required to perform different functions with the connected app. Available in API version 46.0 and later.You can assign multiple permission sets to the connected app, but you must enter each permission set name on a separate line. You can’t enter the same permission set name more than one time for each connected app. You can also change a permission set by replacing the current permission set with a new permission set. Make sure that each permission set name assigned to the connected app is unique. You can delete individual permission sets or remove all permission sets from a connected app by entering an empty permissionSetName string on deployment of the connected app: (&lt;permissionSetName&gt;&lt;/permissionSetName&gt;). To use this field, the isAdminApproved field on the ConnectedAppOauthConfig subtype must be set to true.</xsd:documentation>
-       <xsd:appinfo>Type: string[]</xsd:appinfo>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="plugin" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -14340,7 +14370,7 @@ Total metadata types: 1508
  </xsd:complexType>
  <xsd:complexType name="ConnectedAppAttribute">
   <xsd:annotation>
-   <xsd:documentation>Represents the field names that make up a custom attribute when using SAML with a ConnectedApp. Tailor these values to a specific service provider.</xsd:documentation>
+   <xsd:documentation>Represents the field names that make up a custom attribute when using SAML with a ConnectedApp. Customize these values to a specific service provider.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -14391,7 +14421,7 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="locations" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Indicates where the canvas app can appear to the user. The valid values are: Aura—Reserved for future use. AppLauncher—Reserved for future use. Chatter—The canvas app can appear in the app navigation list on the Chatter tab. ChatterFeed—The canvas app can appear as a Chatter feed item. MobileNav—The canvas app can appear in a mobile card in the Salesforce mobile app. Available in API version 31.0 and later. None—The canvas app can appear only in the Canvas App Previewer. OpenCTI—The canvas app can appear in the call control tool. PageLayout—The canvas app can appear on a page layout. When viewed in the Salesforce mobile app, the canvas app appears in the record detail page. Available in API version 31.0 and later. Publisher—The canvas app can appear as a global action. ServiceDesk—The canvas app can appear in the footer or sidebars of a Salesforce console. UserProfile—Reserved for future use. Visualforce—The canvas app can appear on a Visualforce page.</xsd:documentation>
+       <xsd:documentation>Indicates where the canvas app can appear to the user. The valid values are: Aura—The canvas app can appear in a custom Lightning component. AppLauncher—Reserved for future use. Chatter—The canvas app can appear in the app navigation list on the Chatter tab in Salesforce Classic. ChatterFeed—The canvas app can appear as a Chatter feed item. MobileNav—The canvas app can appear in a mobile card in the Salesforce mobile app. Available in API version 31.0 and later. None—The canvas app can appear only in the Canvas App Previewer. OpenCTI—The canvas app can appear in the call control tool in Salesforce Classic. PageLayout—The canvas app can appear on a page layout. When viewed in the Salesforce mobile app, the canvas app appears in the record detail page. Available in API version 31.0 and later. Publisher—The canvas app can appear as a global action. ServiceDesk—The canvas app can appear in the footer or sidebars of a console in Salesforce Classic. UserProfile—Reserved for future use. Visualforce—The canvas app can appear on a Visualforce page.</xsd:documentation>
        <xsd:appinfo>Type: CanvasLocationOptions (enumeration of type string)[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -14885,7 +14915,7 @@ Total metadata types: 1508
  </xsd:complexType>
  <xsd:complexType name="ContactCenterChannel">
   <xsd:annotation>
-   <xsd:documentation>Represents a junction subtype that relates a Bring Your Own Channel for Contact Center as a Service (CCaaS) messaging channel to a CallCenter type for Bring Your Own Channel for CCaaS. This subtype also represents the routing details for a voicemail configuration. This subtype is available in API version 56.0 and later.</xsd:documentation>
+   <xsd:documentation>Represents a junction subtype that relates a Bring Your Own Channel for Contact Center as a Service (CCaaS) messaging channel to a CallCenter type for Bring Your Own Channel for CCaaS. This subtype also represents the routing details for a voicemail configuration and routing information for callback requests. This subtype is available in API version 56.0 and later.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_callcenter.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -14900,6 +14930,18 @@ Total metadata types: 1508
      <xsd:element name="contactCenter" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. For Bring Your Own Channel for CCaaS, this field represents the unique ID of the contact center (CallCenterId) that’s associated with the Bring Your Own Channel messaging channel (MessagingChannel). Available in API version 60.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="omniCallbackFallbackQueue" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>If callbacks are configured for the contact center and the contact center uses Omni-Channel Unified Routing, this field represents the unique ID of the fallback queue to use if contact request routing through an Omni-Channel flow fails. Don&apos;t change the value in this field. Instead, configure contact request routing in Lightning Experience. Available in API version 65.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="omniCallbackHandler" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>If callbacks are configured for the contact center and the contact center uses Omni-Channel Unified Routing, this field represents the unique ID of the flow or queue used to route contact requests. Don&apos;t change the value in this field. Instead, configure contact request routing in Lightning Experience. Available in API version 65.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -16194,13 +16236,13 @@ Total metadata types: 1508
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="connectedAppOauthLink" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>DO NOT SET OR CHANGE THIS VALUE. This value is automatically generated. This field represents the OAuth link for the connected app if the connectedAppType value is Partner. This is a string identifier to the connected app containing the partner Org ID and the consumer ID minus the key prefixes. Used to identify the connected app to use for the channel definition and channel at runtime.</xsd:documentation>
+       <xsd:documentation>DO NOT SET OR CHANGE THIS VALUE. This value is automatically generated. This field represents the OAuth link for the external client app (ECA) or connected app if the connectedAppType value is Partner. This is a string identifier to the ECA or connected app containing the partner Org ID and the consumer ID minus the key prefixes. Used to identify the ECA or connected app to use for the channel definition and channel at runtime.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="connectedAppType" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
-       <xsd:documentation>The owner of the connected app used to manage authentication between Salesforce Interaction Service and the Messaging or CCaaS partner’s system. Possible values are: Partner Customer The default value is Partner. If set to Partner, the partner creates the connected app and includes it in their managed package. If set to Customer, the admin creates the connected app. Available in API version 62.0 and later.</xsd:documentation>
+       <xsd:documentation>The owner of the external client app (ECA) or connected app used to manage authentication between Salesforce Interaction Service and the Messaging or CCaaS partner’s system. Possible values are: Partner Customer The default value is Partner. If set to Partner, the partner creates the ECA or connected app and includes it in their managed package. If set to Customer, the admin creates the ECA or connected app. Available in API version 62.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: CustomChannelConnectedAppType</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -16254,13 +16296,13 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="customerConnectedAppOauthLink" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>DO NOT SET OR CHANGE THIS VALUE. This value is automatically generated. This field represents the OAuth link for the connected app created by an admin if the ConnectedAppType is Customer. Available in API version 62.0 and later.</xsd:documentation>
+       <xsd:documentation>DO NOT SET OR CHANGE THIS VALUE. This value is automatically generated. This field represents the OAuth link for the external client app or connected app created by an admin if the ConnectedAppType is Customer. Available in API version 62.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="developerName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The unique name of the custom metadata type object in the API in the format &lt;Prefix&gt;_&lt;ConversationChannelDefinition&gt;, where Prefix matches the prefix you gave to the name of the interaction service connected app. For example, Partner1_ChannelDefinition1, where Partner1 is the prefix and ChannelDefinition1 is the given name.</xsd:documentation>
+       <xsd:documentation>The unique name of the custom metadata type object in the API in the format &lt;Prefix&gt;_&lt;ConversationChannelDefinition&gt;, where Prefix matches the prefix you gave to the name of the Interaction Service external client app or connected app. For example, Partner1_ChannelDefinition1, where Partner1 is the prefix and ChannelDefinition1 is the given name.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -16278,7 +16320,7 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="isInboundReceiptsEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the partner supports read receipts and delivery receipts for inbound messages (true) or whether the partner doesn’t support these inbound acknowledgements and the functionality is hidden from the Salesforce admin in the Messaging settings (false). The default value is false. This field is available in API version 63.0 and 64.0. The field is deprecated in API version 65.0 and will be removed in API version 66.0. Use isInboundAcknwOptionExposed instead.</xsd:documentation>
+       <xsd:documentation>Indicates whether the partner supports read receipts and delivery receipts for inbound messages (true) or whether the partner doesn’t support these inbound acknowledgements and the functionality is hidden from the Salesforce admin in the Messaging settings (false). The default value is false. Available in API versions 63.0 to 65.0. In API version 66.0 and later, this field is removed. Use isInboundAcknwOptionExposed instead.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -16290,7 +16332,7 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="isRoutingWorkResultEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the Routing Work Result event is sent as a Custom Platform event or not. The default value is false. Available in API version 64.0. This field is deprecated in API version 65.0 and will be removed in API version 66.0. Use isRoutingWorkResultSupported instead.</xsd:documentation>
+       <xsd:documentation>Indicates whether the Routing Work Result event is sent as a Custom Platform event or not. The default value is false. Available in API versions 64.0 and 65.0. In API version 66.0 and later, this field is removed. Use isRoutingWorkResultSupported instead.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -16302,7 +16344,7 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="isTypingIndicatorDisabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the partner doesn’t support typing indicators for outbound messages and the functionality is hidden from the Salesforce admin in the Messaging settings (true) or whether outbound typing indicators are supported by the partner (false). The default value is false, meaning the outbound typing indicator feature is supported by default. To disable the outbound typing indicator feature, set this value to true. This field is available in API version 63.0 and 64.0. The field is deprecated in API version 65.0 and will be removed in API version 66.0. Use isTypingIndicatorOptionHidden instead.</xsd:documentation>
+       <xsd:documentation>Indicates whether the partner doesn’t support typing indicators for outbound messages and the functionality is hidden from the Salesforce admin in the Messaging settings (true) or whether outbound typing indicators are supported by the partner (false). The default value is false, meaning the outbound typing indicator feature is supported by default. To disable the outbound typing indicator feature, set this value to true. Available in API versions 63.0 to 65.0. In API version 66.0 and later, this field is removed. Use isTypingIndicatorOptionHidden instead.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -18356,13 +18398,13 @@ Total metadata types: 1508
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The optional description text of the application translation.</xsd:documentation>
+       <xsd:documentation>Description text for the application translation.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. The translated custom application name. Maximum of 765 characters.</xsd:documentation>
+       <xsd:documentation>The translated custom application name. Maximum of 765 characters.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -19256,6 +19298,68 @@ Total metadata types: 1508
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="CustomNotificationActionDefinition">
+  <xsd:annotation>
+   <xsd:documentation>CustomNotificationActionDefinition represents the metadata that define an actionable notification.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customnotificationtype.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="actionLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the action seen in the push notification.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="actionName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Unique identifier of the action in an action group.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="actionTarget" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The name of the Apex class where the action is implemented.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="actionType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Type of action. Required. Values are: NotificationApiAction: Server-side action where client needs to make action API call. Share: Client-side action where the app shares notification content to any channel.</xsd:documentation>
+       <xsd:appinfo>Type: NotificationActionType (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="CustomNotificationActionGroup_Beta">
+  <xsd:annotation>
+   <xsd:documentation>CustomNotificationActionGroup represents the action group.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customnotificationtype.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="actions" minOccurs="0" maxOccurs="unbounded" type="CustomNotificationActionDefinition">
+      <xsd:annotation>
+       <xsd:documentation>Represents the actions within a mobile action group.</xsd:documentation>
+       <xsd:appinfo>Type: CustomNotificationActionDefinition[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="groupName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Unique name of the mobile action group.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="CustomNotificationType">
   <xsd:annotation>
    <xsd:documentation>Represents the metadata associated with a custom notification type. For more information about custom notifications, see Custom Notification Actions. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
@@ -19264,6 +19368,12 @@ Total metadata types: 1508
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="actionGroups_Beta" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+      <xsd:annotation>
+       <xsd:documentation>Optional. Indicates whether mobile action groups are enabled, allowing users to take actions directly from mobile notifications.actionGroups is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer&apos;s sole discretion.</xsd:documentation>
+       <xsd:appinfo>Type: CustomNotificationActionGroup[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="customNotifTypeName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>Required. Specifies a notification type name. Maximum number of characters: 80.</xsd:documentation>
@@ -20183,13 +20293,13 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="authorizationRequiredPage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the Visualforce page to be displayed when the guest user tries to access a page for which they are not authorized.</xsd:documentation>
+       <xsd:documentation>The name of the Visualforce page to display when the guest user tries to access a page for which they aren’t authorized.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="bandwidthExceededPage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the Visualforce page to be displayed when the site has exceeded its bandwidth quota.</xsd:documentation>
+       <xsd:documentation>The name of the Visualforce page to display when the site has exceeded its bandwidth quota.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -20207,37 +20317,37 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="changePasswordPage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the Visualforce page to be displayed when the portal user attempts to change their password for either the portal or for Chatter Answers, when enabled.</xsd:documentation>
+       <xsd:documentation>The name of the Visualforce page to display when the portal user attempts to change their password for either the portal or for Chatter Answers, when enabled.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="chatterAnswersForgotPasswordConfirmPage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the Visualforce page to be displayed that informs the user that an email has been sent to them with a temporary password. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.</xsd:documentation>
+       <xsd:documentation>The name of the Visualforce page that informs the user that an email has been sent to them with a temporary password. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="chatterAnswersForgotPasswordPage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the Visualforce page to be displayed when a user clicks the link to retrieve a forgotten password. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.</xsd:documentation>
+       <xsd:documentation>The name of the Visualforce page to display when a user clicks the link to retrieve a forgotten password. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="chatterAnswersHelpPage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the Visualforce page to be displayed when the user clicks the help link. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.</xsd:documentation>
+       <xsd:documentation>The name of the Visualforce page to display when the user clicks the help link. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="chatterAnswersLoginPage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the Visualforce page to be displayed to allow users to log in to the portal. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.</xsd:documentation>
+       <xsd:documentation>The name of the Visualforce page to display where users can log in to the portal. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="chatterAnswersRegistrationPage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the Visualforce page to be displayed to allow users to register themselves and access the portal. This field is available in API version 27.0 and later.</xsd:documentation>
+       <xsd:documentation>The name of the Visualforce page to display where users can register themselves and access the portal. This field is available in API version 27.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -20261,7 +20371,7 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="customWebAddresses" minOccurs="0" maxOccurs="unbounded" type="SiteWebAddress">
       <xsd:annotation>
-       <xsd:documentation>The root custom URLs associated with the site. Saving or deploying a CustomSite replaces all root custom URLs in the site with the root custom URLs in this list. Custom URLs that use a non-root path prefix are not included in this list and are not affected when saving or deploying a CustomSite. This field is available in API version 21.0 and later.</xsd:documentation>
+       <xsd:documentation>The root custom URLs associated with the site. Saving or deploying a CustomSite replaces all root custom URLs in the site with the root custom URLs in this list. Custom URLs that use a non-root path prefix aren’t included in this list and aren’t affected when saving or deploying a CustomSite. This field is available in API version 21.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: SiteWebAddress[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -20279,25 +20389,25 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="favoriteIcon" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the file to be used for the icon that appears in the browser&apos;s address field when visiting the site. Sets the favorite icon for the entire site.</xsd:documentation>
+       <xsd:documentation>The name of the static resource, without the extension, for the icon that appears in next to the site’s name in browser tabs, bookmarks, and search results. To update a site’s favorite icon, create a 16px by 16px ICO file. Then store that images a static resource at the base path for the site. For example, if the icon file name is favico.ico, https://myDomainName.my.site.com/store/favicon.ico is the required path for a site with the URL https://myDomainName.my.site.com/store. To use that icon, set favoriteIcon to favicon. If the specified the ICO file doesn’t exist in the required location, a 404 error is returned. Otherwise, if the file isn’t present, no favorite icon is used.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="fileNotFoundPage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the Visualforce page to be displayed when the guest user tries to access a non-existent page.</xsd:documentation>
+       <xsd:documentation>The name of the Visualforce page to display when the guest user tries to access a non-existent page.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="forgotPasswordPage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the Visualforce page to be displayed when a user clicks the Forgot Password link on the site’s login page. This field is only applicable for Experience Cloud sites.</xsd:documentation>
+       <xsd:documentation>The name of the Visualforce page to display when a user clicks the Forgot Password link on the site’s login page. This field is only applicable for Experience Cloud sites.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="genericErrorPage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the Visualforce page to be displayed for errors not otherwise specified.</xsd:documentation>
+       <xsd:documentation>The name of the Visualforce page to display for errors not otherwise specified.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -20309,7 +20419,7 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="inMaintenancePage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the Visualforce page to be displayed when the site is down for maintenance.</xsd:documentation>
+       <xsd:documentation>The name of the Visualforce page to display when the site is down for maintenance.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -20333,7 +20443,7 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="myProfilePage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the Visualforce page to be displayed as the site user’s profile page, where users can update their contact information. This field is available in API version 20.0 and later.</xsd:documentation>
+       <xsd:documentation>The name of the Visualforce page to display as the site user’s profile page, where users can update their contact information. This field is available in API version 20.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -20369,7 +20479,7 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="robotsTxtPage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The name of the Visualforce page to be displayed for the robots.txt file used by web crawlers.</xsd:documentation>
+       <xsd:documentation>The name of the Visualforce page to display for the robots.txt file used by web crawlers.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -30390,7 +30500,7 @@ Total metadata types: 1508
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="idTokenAudience" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The audience that this ID token is intended for.</xsd:documentation>
+       <xsd:documentation>The audience that this ID token is intended for. The value is an array of case-sensitive strings. If no audiences are specified, the client_id of the relying party is returned as the default audience. Otherwise, the other audiences are returned with the client_id in the aud value.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -30408,7 +30518,7 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="idTokenValidityInMinutes" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
       <xsd:annotation>
-       <xsd:documentation>The length of time that the ID token is valid for after it’s issued. The value can be 1–720 minutes.</xsd:documentation>
+       <xsd:documentation>The length of time that the ID token is valid for after it’s issued. The value can be 1–720 minutes. The default value is 2 minutes.</xsd:documentation>
        <xsd:appinfo>Type: int</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -31137,7 +31247,7 @@ Total metadata types: 1508
  </xsd:complexType>
  <xsd:complexType name="ExternalServiceRegistration">
   <xsd:annotation>
-   <xsd:documentation>Represents the External Service configuration for an org. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:documentation>Represents the external service configuration for an org. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externalserviceregistration.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -31167,7 +31277,7 @@ Total metadata types: 1508
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="NamedCredentialReferenceId" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+     <xsd:element name="namedCredentialReferenceId" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The reference by ID to be used for the named credential. When used, supersedes namedCredential. Available in API version 57.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: reference</xsd:appinfo>
@@ -31185,9 +31295,15 @@ Total metadata types: 1508
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="registrationProviderAsset" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>A polymorphic foreign key field that contains the name of the asset related to the external service registration. For an external service registration created for a named query, this field contains the named query API name. For an external service registration created for an Apex class that has methods exposed as REST resources or methods that are Aura-enabled, this field contains the Apex class name. Available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="registrationProviderType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Indicates the source of the API specification registered with the External Services wizard. Valid values include: Anypoint—The API spec is managed in MuleSoft Anypoint Platform. Available in API version 63.0 and later. ApexRest—The API spec was created from an Apex REST class. Available in API version 63.0 and later. Custom—The API spec was manually configured. ExternalConnector—The API spec represents an external connection. Heroku—The API spec represents a Heroku app. MuleSoft—The API spec was selected from MuleSoft. Use Anypoint for API Catalog MuleSoft sources. SchemaInferred—The API spec was provided during the HTTP Callout configuration process. Available in API version 57.0 and later. Standard—The API spec was defined when an external service was created.</xsd:documentation>
+       <xsd:documentation>Indicates the source of the API specification registered with the External Services wizard. Valid values include: AgentActionOutputs—Reserved for internal use. Anypoint—The API spec is managed in MuleSoft Anypoint Platform. Available in API version 63.0 and later. ApexRest—The API spec was created from an Apex REST class. Available in API version 63.0 and later. AuraEnabled—The API spec was created from an Apex class that has AuraEnabled methods. Available in API version 65.0 and later. Custom—The API spec was manually configured. DocumentProcessing—Reserved for internal use. ExternalConnector—The API spec represents an external connection. Heroku—The API spec represents a Heroku app. MuleSoft—The API spec was selected from MuleSoft. Use Anypoint for API Catalog MuleSoft sources. NamedQuery—The API spec represents a named query REST endpoint. Available in API version 64.0 and later. SchemaInferred—The API spec was provided during the HTTP Callout configuration process. Available in API version 57.0 and later. Standard—The API spec was defined when an external service was created.</xsd:documentation>
        <xsd:appinfo>Type: ExternalServiceRegistrationProviderType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -31355,6 +31471,67 @@ Total metadata types: 1508
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="ExtlClntAppCanvasSettings">
+  <xsd:annotation>
+   <xsd:documentation>Represents an external client app’s canvas app settings.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_extlclntappcanvassettings.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="accessMethod" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Indicates how the canvas app initiates the OAuth authentication flow. The valid values are: Get—OAuth authentication is used, and the user is prompted to allow the third-party application to access their information. When you use this access method, the canvas app must initiate the OAuth authentication flow. Post—OAuth authentication is used, but when the administrator installs the canvas app, they implicitly allow access for users. Therefore, the user isn’t prompted to allow the third party to access their user information. When you use this access method, the authentication is posted directly to the canvas app URL.</xsd:documentation>
+       <xsd:appinfo>Type: AccessMethod (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="canvasLocationOptions" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Indicates where the canvas app can appear to the user. The valid values are: Aura—The canvas app can appear in a custom Lightning component. ChatterFeed—The canvas app can appear as a Chatter feed item. MobileNav—The canvas app can appear in a mobile card in the Salesforce mobile app. None—The canvas app can appear only in the Canvas App Previewer. PageLayout—The canvas app can appear on a page layout. When viewed in the Salesforce mobile app, the canvas app appears in the record detail page. Publisher—The canvas app can appear as a global action. Visualforce—The canvas app can appear on a Visualforce page.</xsd:documentation>
+       <xsd:appinfo>Type: CanvasLocationOptions (enumeration of type string)[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="canvasOptions" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether to hide the Share button and header in the publisher for your canvas app. Valid values are: HideShare—The Share button is hidden in the publisher for the related canvas app. HideHeader—The header is hidden in the publisher for the related canvas app.</xsd:documentation>
+       <xsd:appinfo>Type: CanvasOptions (enumeration of type string)[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="canvasUrl" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The URL of the third-party app that’s exposed as a canvas app.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="externalClientApplication" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the associated external client app.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The name of the app.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="lifeCycleHandler" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The name of the lifecycle handler Apex class.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="samlInitiationMethod" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>If you’re using SAML single sign-on (SSO), indicates which provider initiates the SSO flow. IdpInitiated—Identity provider initiated. Salesforce makes the initial request to start the SSO flow. SpInitiated—Service provider initiated. The canvas app starts the SSO flow after it’s invoked. None—The canvas app isn’t using SAML SSO.</xsd:documentation>
+       <xsd:appinfo>Type: SamlInitiationMethod (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="ExtlClntAppConfigurablePolicies">
   <xsd:annotation>
    <xsd:documentation>Represents the policies for an external client app to disable or enable plugins.</xsd:documentation>
@@ -31375,33 +31552,39 @@ Total metadata types: 1508
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="isCanvasPluginEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>If true, the Canvas app plugin is enabled. If false, the Canvas app plugin is disabled. The default value is true. Available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="isMobilePluginEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>If true, the Mobile plugin is enabled. If false the Mobile plugin is disabled. The default value is true. Available in API version 63.0 and later.</xsd:documentation>
+       <xsd:documentation>If true, the Mobile plugin is enabled. If false, the Mobile plugin is disabled. The default value is true. Available in API version 63.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="isNotificationPluginEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>If true, the Notification plugin is enabled. If false the Notification plugin is disabled. The default value is true. Available in API version 63.0 and later.</xsd:documentation>
+       <xsd:documentation>If true, the Notification plugin is enabled. If false, the Notification plugin is disabled. The default value is true. Available in API version 63.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="isOauthPluginEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>If true, the OAuth plugin is enabled. If false the OAuth plugin is disabled. The default value is true. Available in API version 60.0 and later.</xsd:documentation>
+       <xsd:documentation>If true, the OAuth plugin is enabled. If false, the OAuth plugin is disabled. The default value is true. Available in API version 60.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="isPushPluginEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>If true, the Push Notification plugin is enabled. If false the Push Notification plugin is disabled. The default value is true. Available in API version 63.0 and later.</xsd:documentation>
+       <xsd:documentation>If true, the Push Notification plugin is enabled. If false, the Push Notification plugin is disabled. The default value is true. Available in API version 63.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="isSamlPluginEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>If true, the SAML plugin is enabled. If false the SAML plugin is disabled. The default value is true. Available in API version 63.0 and later.</xsd:documentation>
+       <xsd:documentation>If true, the SAML plugin is enabled. If false, the SAML plugin is disabled. The default value is true. Available in API version 63.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -31962,7 +32145,7 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="commaSeparatedOauthScopes" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>OAuth scopes for the external client app, written as a comma-separated list.</xsd:documentation>
+       <xsd:documentation>OAuth scopes for the external client app, written as a comma-separated list. Basic—Allows access to your identity URL service (the same behavior as deploying Address, Email, Phone, and Profile). Api—Allows access to the logged-in user&apos;s account over the APIs. Web—Allows use of the access_token on the web. This usage also includes visualforce, allowing access to Visualforce pages. Full—Allows access to all data accessible by the logged-in user. Chatter—Allows access to only the Connect REST API resources. CustomApplications—Provides access to custom applications, such as those using Visualforce. RefreshToken—Allows a refresh token to be returned if you’re eligible to receive one (the same behavior as deploying OfflineAccess). OpenID—Allows access to the logged-in user&apos;s unique identifier for OpenID Connect apps. Profile—Allows access to the logged-in user&apos;s profile (the same behavior as deploying Basic). Email—Allows access to the logged-in user&apos;s email address (the same behavior as deploying Basic). Address—Allows access to the logged-in user&apos;s street address (the same behavior as deploying Basic). Phone—Allows access to the logged-in user&apos;s phone number value (the same behavior as deploying Basic). OfflineAccess—Allows the app to interact with the user&apos;s data while the user is offline and get a refresh token (the same behavior as deploying RefreshToken). CustomPermissions—Allows access to the custom permissions in an organization associated with the external client app and shows whether the current user has each permission enabled. Wave—Allows access to the Analytics REST API resources. Eclair—Allows access to the Analytics REST API Charts Geodata resource. Pardot—Allows access to Pardot API services on behalf of the user. The full extent of accessible services is managed by the Pardot account. Lightning—Allows hybrid apps to directly obtain Lightning child sessions through the OAuth 2.0 hybrid app token flow and hybrid app refresh token flow. Content—Allows hybrid apps to directly obtain content child sessions through the OAuth 2.0 hybrid app token flow and hybrid app refresh token flow. CDPIngest—Allows access to Data Cloud ingest API services. Customers use these API services to upload and maintain external datasets in the Data 360. CDPProfile—Allows access to Data 360 profile. CDPQuery—Allows access to Data 360 metadata and query data. Chatbot—Allows access to Einstein Bot API services. CDPSegment—Allows access to Data 360 segments. CDPIdentityResolution—Allows access to Data 360 identity resolution. CDPCalculatedInsight—Allows access to Data 360 calculated insights. SFApiPlatform—Allows access to the Salesforce API Platform. Interaction—Allows access to Interaction Service API. EinsteinGPT—Allows access to Einstein Generative AI features in an org. PwdlessLogin—Allows access to Headless Passwordless Login API. Assign to an internal integration user to get an access token for authenticated requests to this API. ForgotPassword—Allows access to Headless Forgot Password API. Assign to an internal integration user to get an access token for authenticated requests to this API. UserRegistration—Allows access to Headless Registration API. Assign to an internal integration user to get an access token for authenticated requests to this API. MCP—Allows access to Model Context Protocol (MCP). SCRT—Allows access to Service Cloud Real-Time features.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -33350,6 +33533,30 @@ Total metadata types: 1508
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableAdvancementGenAI" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Advancement Generative AI features are enabled for Education Cloud. The default is false. Available in API version 64.0 and later in Developer, Enterprise, Performance and Unlimited editions.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableAdvisingAgent" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Advising Agent feature is enabled for Education Cloud. The default is false. Available in API version 64.0 and later in Developer, Enterprise, Performance and Unlimited editions.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableEduAdvncdAcadOper" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Advanced Academic Operations features are enabled for Education Cloud. The default is false. Available in API version 64.0 and later in Developer, Enterprise, Performance and Unlimited editions.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableStudentRecruitmentAgent" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Student Recruitment Agent feature is enabled for Education Cloud. The default is false. Available in API version 64.0 and later in Developer, Enterprise, Performance and Unlimited editions.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
    </xsd:extension>
@@ -33363,6 +33570,12 @@ Total metadata types: 1508
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="allowBenefitAssignmentWithInactiveProgramEnrollment" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether benefit assignment is allowed when the associated program enrollment is inactive. The default is false. This field is available in API version 65.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="allowMultipleProducersToWorkOnSamePolicy" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether multiple producers can be assigned to the same insurance policy. The default is false. This field is available in editions where Financial Services Cloud is enabled.</xsd:documentation>
@@ -34268,6 +34481,30 @@ Total metadata types: 1508
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="Fields_for_Nonprofit_Cloud">
+  <xsd:annotation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_industriessettings.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="enableGiftEntryGrid" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Gift Entry Grid feature is enabled for Nonprofit Cloud. The default is false. Available in API version 64.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enablePhilResearchAgent" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Philanthropic Research Agent feature is enabled for Nonprofit Cloud. The default is false. Available in API version 64.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="Fields_for_Public_Sector_Solutions_Features">
   <xsd:annotation>
    <xsd:documentation>Industries settings for Public Sector Solutions features are available in API version 57.0 and later.</xsd:documentation>
@@ -34975,6 +35212,12 @@ Total metadata types: 1508
       <xsd:annotation>
        <xsd:documentation>An array of static choice options.</xsd:documentation>
        <xsd:appinfo>Type: FlowChoice[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="collectionFilterCriteria" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+      <xsd:annotation>
+       <xsd:documentation>Reserved for future use.</xsd:documentation>
+       <xsd:appinfo>Type: FlowCollectionFilterCriteria[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="collectionProcessors" minOccurs="0" maxOccurs="unbounded" type="FlowCollectionProcessor">
@@ -37558,10 +37801,40 @@ Total metadata types: 1508
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="dayOfMonthToRun" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
+      <xsd:annotation>
+       <xsd:documentation>The number of the day of the month on which the flow runs. For example, 1 is the first day of the month, 2 is the second day of the month, and so on. You can use -1 for the last day of the month. This field is available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: int</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="daysOfWeekToRun" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The number of the days of the week on which the flow is to run. For example, 1, 2, 3, where 1 is Sunday, 2 is Monday, and so on. This field is available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="endDate" minOccurs="0" maxOccurs="unbounded" type="xsd:date">
+      <xsd:annotation>
+       <xsd:documentation>Reserved for future use.</xsd:documentation>
+       <xsd:appinfo>Type: date</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="endTime" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+      <xsd:annotation>
+       <xsd:documentation>Reserved for future use.</xsd:documentation>
+       <xsd:appinfo>Type: time</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="frequency" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Specifies how frequently to run the flow. Valid values are: Once Daily Weekly OnActivate—This value is available in API version 49.0 and later.</xsd:documentation>
+       <xsd:documentation>Specifies how frequently to run the flow. Valid values are: Once Daily Weekly OnActivate—For segment-triggered flows only. This value is available in API version 49.0 and later. Hourly—For segment-triggered flows only. This value is available in API version 66.0 and later. Monthly—For segment-triggered flows only. This value is available in API version 66.0 and later. Weekdays—For segment-triggered flows only. This value is available in API version 66.0 and later. Yearly—For segment-triggered flows only. This value is available in API version 66.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: FlowStartFrequency (enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="frequencyNumber" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
+      <xsd:annotation>
+       <xsd:documentation>For segment-triggered flows only. The number of times to run the flow for this schedule based on the frequency value. For example, if this field is 2, and frequency is Hourly, the flow runs every hour for 2 hours . When this number is met, the flow no longer runs for this schedule. This field is available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: int</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="startDate" minOccurs="0" maxOccurs="unbounded" type="xsd:date">
@@ -37737,6 +38010,12 @@ Total metadata types: 1508
       <xsd:annotation>
        <xsd:documentation>The API name of the stage resource that’s associated with the screen.</xsd:documentation>
        <xsd:appinfo>Type: FlowElementReferenceOrValue</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="styleSettings" minOccurs="0" maxOccurs="unbounded" type="FlowScreenStyleSetting">
+      <xsd:annotation>
+       <xsd:documentation>An array of flow screen style settings to customize the visual experience of a screen at run time. This field is available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: FlowScreenStyleSetting[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="triggers" minOccurs="0" maxOccurs="unbounded" type="FlowScreenTrigger">
@@ -38013,6 +38292,12 @@ Total metadata types: 1508
   <xsd:complexContent>
    <xsd:extension base="Metadata">
     <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="styleSettings" minOccurs="0" maxOccurs="unbounded" type="FlowScreenStyleSetting">
+      <xsd:annotation>
+       <xsd:documentation>An array of flow screen style settings to customize the visual experience of a screen component at run time. This field is available in API version 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: FlowScreenStyleSetting[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="width" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>The number of columns the width of the screen component fills up in a screen element&apos;s 12-column wide spatial grid. Valid values are numbers 1 through 12.</xsd:documentation>
@@ -38066,6 +38351,37 @@ Total metadata types: 1508
       <xsd:annotation>
        <xsd:documentation>Translated validation rule for the screen component.</xsd:documentation>
        <xsd:appinfo>Type: FlowInputValidationRuleTranslation</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="FlowScreenStyleSetting">
+  <xsd:annotation>
+   <xsd:documentation>A style setting for a flow screen or flow screen component. FlowScreenStyleSetting extends FlowBaseElement and inherits all its fields. FlowScreenStyleSetting is available in API version 66.0 and later.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="FlowBaseElement">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="propertyName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The name of the screen style property such as, --slds-c-input-color-border.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="propertyValue" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Defines the value for the screen style property such as, &lt;stringValue&gt;#4AC7CA&lt;/stringValue&gt;.</xsd:documentation>
+       <xsd:appinfo>Type: FlowElementReferenceOrValue</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="scope" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies where the style setting is applied on a screen. Valid values: Container Header NextOrFinish Previous Pause Not supported for screen components.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -38768,6 +39084,12 @@ Total metadata types: 1508
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="activationTemplate" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The name of the activation template that determines the contact point for each channel configured in the activation template for a segment-triggered flow. This field is available in 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="capabilityTypes" minOccurs="0" maxOccurs="unbounded" type="FlowCapability">
       <xsd:annotation>
        <xsd:documentation>An array of capabilities that can pass data with the flow. Only one capability is supported in API version 60.0 and later. This field is available in API version 60.0 and later.</xsd:documentation>
@@ -38828,6 +39150,12 @@ Total metadata types: 1508
        <xsd:appinfo>Type: InvocableActionType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="fanOutAction" minOccurs="0" maxOccurs="unbounded" type="FlowActionCall">
+      <xsd:annotation>
+       <xsd:documentation>The invocable action in the Start element of a broadcast flow. This field is available in 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: FlowActionCall</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="filterFormula" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
        <xsd:documentation>A formula that’s used to filter what records execute the flow during a save. Available only in record-triggered flows. This field is available in API version 55.0 and later.</xsd:documentation>
@@ -38870,6 +39198,12 @@ Total metadata types: 1508
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="prioritizedContactPointsList" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>A comma-separated list of channels used to choose the individual in the segment-triggered flow. The flow ranks these channels to select an individual. Valid values are: Email, Phone. If the flow finds contact points for both, it uses the higher-ranked channel. For example, if the list is Phone, Email and both exist, the flow selects the individual associated with the phone. This field is available in 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="publishSegment" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether to republish the segment and update segment membership before the flow runs or on the segment’s Data Cloud publish schedule. When the value is true, the segment is immediately republished before the flow runs, and ignores the segment&apos;s publish schedule. When the value is false, the segment is republished on the segment&apos;s Data Cloud publish schedule, but the segment isn&apos;t republished if the schedule is set to Do not refresh.The default value is false. This field is available in API version 60.0 and later.</xsd:documentation>
@@ -38898,6 +39232,12 @@ Total metadata types: 1508
       <xsd:annotation>
        <xsd:documentation>The segment used to trigger the flow. This field is available in API version 56.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="sendMsgToOneContactPtPerIndv" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether a segment-triggered flow sends a message to only one contact per individual (true) or multiple contacts (false). The default value is (false). If activationTemplate is set, this field must be true. This field is available in 66.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="TimeZoneSidKey" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -39094,7 +39434,7 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="flowTestFlowVersions" minOccurs="0" maxOccurs="unbounded" type="FlowTestFlowVersion">
       <xsd:annotation>
-       <xsd:documentation>Reserved for future use.</xsd:documentation>
+       <xsd:documentation>An array of flow versions that are associated with the flow test. This field is available in API version 66.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: FlowTestFlowVersion[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -39117,7 +39457,7 @@ Total metadata types: 1508
  </xsd:complexType>
  <xsd:complexType name="FlowTestAssertion">
   <xsd:annotation>
-   <xsd:documentation>Defines an assertion for a test point that is evaluated when a flow test runs. If one assertion evaluates to false, the test run fails.</xsd:documentation>
+   <xsd:documentation>Defines an assertion for a test point that Salesforce evaluates when a flow test runs. If one assertion evaluates to false, the test run fails.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -39131,7 +39471,7 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="errorMessage" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The custom message that appears in Flow Builder if its associated condition evaluates to false.</xsd:documentation>
+       <xsd:documentation>If the associated condition evaluates to false, this custom message appears in Flow Builder.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -39142,7 +39482,7 @@ Total metadata types: 1508
  </xsd:complexType>
  <xsd:complexType name="FlowTestCondition">
   <xsd:annotation>
-   <xsd:documentation>Defines a condition for an assertion that is evaluated when a flow test runs. If one condition evaluates to false, the assertion fails.</xsd:documentation>
+   <xsd:documentation>Defines a condition for an assertion that Salesforce evaluates when a flow test runs. If one condition evaluates to false, the assertion fails.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -39156,7 +39496,7 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="operator" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. The operation that is applied to the resource reference in the leftValueReference field.Possible values are: Contains EndsWith EqualTo GreaterThan GreaterThanOrEqualTo HasError—This value is available in API version 64.0 and later. In—This value is available in API version 56.0 and later. IsBlank—This value is available in API version 61.0 and later. IsChanged IsEmpty—This value is available in API version 61.0 and later. IsNull LessThan LessThanOrEqualTo NotEqualTo NotIn—This value is available in API version 56.0 and later. StartsWith WasSelected WasSet WasVisited</xsd:documentation>
+       <xsd:documentation>Required. The flow test uses this value to evaluate the resource reference in the leftValueReference field.Possible values are: Contains EndsWith EqualTo GreaterThan GreaterThanOrEqualTo HasError—This value is available in API version 64.0 and later. In—This value is available in API version 56.0 and later. IsBlank—This value is available in API version 61.0 and later. IsChanged IsEmpty—This value is available in API version 61.0 and later. IsNull LessThan LessThanOrEqualTo NotEqualTo NotIn—This value is available in API version 56.0 and later. StartsWith WasSelected WasSet WasVisited</xsd:documentation>
        <xsd:appinfo>Type: FlowComparisonOperator (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -39173,12 +39513,18 @@ Total metadata types: 1508
  </xsd:complexType>
  <xsd:complexType name="FlowTestFlowVersion">
   <xsd:annotation>
-   <xsd:documentation>Reserved for future use.</xsd:documentation>
+   <xsd:documentation>Defines the flow version for the flow test. This subtype is available in API version 66.0 and later.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="Metadata">
-    <xsd:choice>
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="flowVersionNumber" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The version number of the flow version that’s associated with the flow test.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
    </xsd:extension>
@@ -39217,7 +39563,7 @@ Total metadata types: 1508
  </xsd:complexType>
  <xsd:complexType name="FlowTestPoint">
   <xsd:annotation>
-   <xsd:documentation>Defines a flow test point that is evaluated when a flow test runs. Each test point is evaluated in the order that it’s listed.</xsd:documentation>
+   <xsd:documentation>Defines a flow test point that Salesforce evaluates when a flow test runs. Salesforce evaluates each test point in the order that it’s listed.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
@@ -39270,6 +39616,16 @@ Total metadata types: 1508
       <xsd:annotation>
        <xsd:documentation>Specifies a dateValue value.</xsd:documentation>
        <xsd:appinfo>Type: date</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="elementReference" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+      <xsd:annotation>
+       <xsd:documentation>Reserved for future use.</xsd:documentation>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="jsonValue" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+      <xsd:annotation>
+       <xsd:documentation>Reserved for future use.</xsd:documentation>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="numberValue" minOccurs="0" maxOccurs="unbounded" type="xsd:double">
@@ -39583,6 +39939,25 @@ Total metadata types: 1508
       <xsd:annotation>
        <xsd:documentation>A list of stage translations for the flow version. Available in API version 43.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: FlowStageTranslation[]</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="FlowValueMappingType">
+  <xsd:annotation>
+   <xsd:documentation>Defines the specific data transformation type that converts the value of a source action output parameter in valueMappingKey before assigning the result to the target output parameter in valueMappingTarget.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="FirstEntry" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>This configuration extracts the first item&apos;s object in valueMappingKey and assigns it to the target output parameter in valueMappingTarget.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -56245,6 +56620,37 @@ Total metadata types: 1508
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="ProductSpecificationTypeTranslation">
+  <xsd:annotation>
+   <xsd:documentation>ProductSpecificationTypeTranslation contains details for a translation of a product specification type. For more details, see ProductSpecificationType.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The translated product specification type description.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>The translated product specification type name.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="name" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The name of the product specification type.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="Profile">
   <xsd:annotation>
    <xsd:documentation>Represents a user profile. A profile defines a user’s permission to perform different functions within Salesforce. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
@@ -59777,7 +60183,7 @@ Total metadata types: 1508
      </xsd:element>
      <xsd:element name="crossFilters" minOccurs="0" maxOccurs="unbounded" type="ReportCrossFilter">
       <xsd:annotation>
-       <xsd:documentation>Defines a cross filter&apos;s object, related object, and condition (WITH or WITHOUT). This field is available in API version 65.0 and later.</xsd:documentation>
+       <xsd:documentation>Defines a cross filter&apos;s object, related object, and condition (WITH or WITHOUT). This field is available in API version 66.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: ReportCrossFilter[]</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -60535,6 +60941,12 @@ Total metadata types: 1508
       <xsd:annotation>
        <xsd:documentation>Required. The field name. For example, AGE or OPPORTUNITY_NAME</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="isExtendedColumn" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the column is extended (true) or not (false). Available in API version 65.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="reverseColors" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
@@ -63861,6 +64273,18 @@ Total metadata types: 1508
       <xsd:annotation>
        <xsd:documentation>Reserved for internal use.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="lockerTrustedMode" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Reserved for internal use.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="lockerTrustedResources" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Reserved for internal use.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="logoutURL" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -67890,6 +68314,12 @@ Total metadata types: 1508
        <xsd:appinfo>Type: PipelineInspMetricConfigTranslation</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="productSpecificationTypes" minOccurs="0" maxOccurs="unbounded" type="ProductSpecificationTypeTranslation">
+      <xsd:annotation>
+       <xsd:documentation>A list of product specification type translations. This field is available in API version 64.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: ProductSpecificationTypeTranslation</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="prompts" minOccurs="0" maxOccurs="unbounded" type="PromptTranslation">
       <xsd:annotation>
        <xsd:documentation>A list of In-App Guidance prompt translations. This field is available in API version 48.0 and later.</xsd:documentation>
@@ -68945,6 +69375,12 @@ Total metadata types: 1508
      <xsd:element name="userAccessPoliciesEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates if user access policies are enabled (true) or not (false). With user access policies, you can automate and migrate your users’ assignments to managed package licenses, permission sets, and other access mechanisms based on criteria that you set. The default value is false. This field is available in API version 58.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="userFieldHistoryTracking" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates if user field history tracking is enabled (true) or not (false). With user field history tracking, you can keep track of changes in user fields. The default value is false. This field is available in API version 64.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -72629,6 +73065,8 @@ Total metadata types: 1508
  <xsd:element name="CustomLabels" type="CustomLabels"/>
  <xsd:element name="CustomMetadata" type="CustomMetadata"/>
  <xsd:element name="CustomMetadataValue" type="CustomMetadataValue"/>
+ <xsd:element name="CustomNotificationActionDefinition" type="CustomNotificationActionDefinition"/>
+ <xsd:element name="CustomNotificationActionGroup_Beta" type="CustomNotificationActionGroup_Beta"/>
  <xsd:element name="CustomNotificationType" type="CustomNotificationType"/>
  <xsd:element name="CustomObject" type="CustomObject"/>
  <xsd:element name="CustomObjectCriteriaBasedSharingRule" type="CustomObjectCriteriaBasedSharingRule"/>
@@ -72856,6 +73294,7 @@ Total metadata types: 1508
  <xsd:element name="ExternalServicesSettings" type="ExternalServicesSettings"/>
  <xsd:element name="ExtlClntAppAndroidPushConfig" type="ExtlClntAppAndroidPushConfig"/>
  <xsd:element name="ExtlClntAppApplePushConfig" type="ExtlClntAppApplePushConfig"/>
+ <xsd:element name="ExtlClntAppCanvasSettings" type="ExtlClntAppCanvasSettings"/>
  <xsd:element name="ExtlClntAppConfigurablePolicies" type="ExtlClntAppConfigurablePolicies"/>
  <xsd:element name="ExtlClntAppGlobalOauthSettings" type="ExtlClntAppGlobalOauthSettings"/>
  <xsd:element name="ExtlClntAppMobileConfigurablePolicies" type="ExtlClntAppMobileConfigurablePolicies"/>
@@ -72901,6 +73340,7 @@ Total metadata types: 1508
  <xsd:element name="Fields_for_Health_Cloud" type="Fields_for_Health_Cloud"/>
  <xsd:element name="Fields_for_Life_Sciences_Cloud" type="Fields_for_Life_Sciences_Cloud"/>
  <xsd:element name="Fields_for_Net_Zero_Cloud" type="Fields_for_Net_Zero_Cloud"/>
+ <xsd:element name="Fields_for_Nonprofit_Cloud" type="Fields_for_Nonprofit_Cloud"/>
  <xsd:element name="Fields_for_Public_Sector_Solutions_Features" type="Fields_for_Public_Sector_Solutions_Features"/>
  <xsd:element name="Fields_for_Salesforce_Scheduler" type="Fields_for_Salesforce_Scheduler"/>
  <xsd:element name="FileTypeDispositionAssignmentBean" type="FileTypeDispositionAssignmentBean"/>
@@ -72989,6 +73429,7 @@ Total metadata types: 1508
  <xsd:element name="FlowScreenFieldOutputParameter" type="FlowScreenFieldOutputParameter"/>
  <xsd:element name="FlowScreenFieldStyleProperties" type="FlowScreenFieldStyleProperties"/>
  <xsd:element name="FlowScreenFieldTranslation" type="FlowScreenFieldTranslation"/>
+ <xsd:element name="FlowScreenStyleSetting" type="FlowScreenStyleSetting"/>
  <xsd:element name="FlowScreenTranslation" type="FlowScreenTranslation"/>
  <xsd:element name="FlowScreenTrigger" type="FlowScreenTrigger"/>
  <xsd:element name="FlowScreenTriggerHandler" type="FlowScreenTriggerHandler"/>
@@ -73024,6 +73465,7 @@ Total metadata types: 1508
  <xsd:element name="FlowTransformValueAction" type="FlowTransformValueAction"/>
  <xsd:element name="FlowTransformValueActionInputParameter" type="FlowTransformValueActionInputParameter"/>
  <xsd:element name="FlowTranslation" type="FlowTranslation"/>
+ <xsd:element name="FlowValueMappingType" type="FlowValueMappingType"/>
  <xsd:element name="FlowVariable" type="FlowVariable"/>
  <xsd:element name="FlowVisibilityRule" type="FlowVisibilityRule"/>
  <xsd:element name="FlowWait" type="FlowWait"/>
@@ -73382,6 +73824,7 @@ Total metadata types: 1508
  <xsd:element name="ProcessFlowMigration" type="ProcessFlowMigration"/>
  <xsd:element name="ProductAttributeSet" type="ProductAttributeSet"/>
  <xsd:element name="ProductSettings" type="ProductSettings"/>
+ <xsd:element name="ProductSpecificationTypeTranslation" type="ProductSpecificationTypeTranslation"/>
  <xsd:element name="Profile" type="Profile"/>
  <xsd:element name="ProfileActionOverride" type="ProfileActionOverride"/>
  <xsd:element name="ProfileAgentAccess" type="ProfileAgentAccess"/>

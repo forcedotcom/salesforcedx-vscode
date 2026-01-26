@@ -480,7 +480,7 @@ const scrapeInBatches = async (
 const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promise<void> => {
   const startTime = Date.now();
   const numBrowsers = parseInt(process.env.NUM_BROWSERS ?? '5', 10);
-  const concurrencyPerBrowser = parseInt(process.env.BATCH_SIZE ?? '20', 10);
+  const concurrencyPerBrowser = parseInt(process.env.BATCH_SIZE ?? '10', 10);
   const totalConcurrency = numBrowsers * concurrencyPerBrowser;
 
   console.log(`🚀 Starting Salesforce Metadata API scraper${isVisible ? ' (VISIBLE MODE)' : ''}...\n`);
@@ -655,7 +655,7 @@ Options:
 
 Environment Variables:
   NUM_BROWSERS=5                      # Number of parallel browser instances (default: 5)
-  BATCH_SIZE=20                       # Concurrency per browser (default: 20)
+  BATCH_SIZE=10                       # Concurrency per browser (default: 10)
                                       # Total concurrency = NUM_BROWSERS × BATCH_SIZE
                                       # Work is distributed dynamically via shared queue
 
