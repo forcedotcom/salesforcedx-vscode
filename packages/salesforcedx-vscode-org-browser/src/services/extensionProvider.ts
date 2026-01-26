@@ -5,28 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Context from 'effect/Context';
-import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { EXTENSION_NAME } from '../constants';
+import {
+  ExtensionProviderService,
+  InvalidServicesApiError,
+  ServicesExtensionNotFoundError
+} from './extensionProviderService';
 import { OrgBrowserRetrieveService } from './orgBrowserMetadataRetrieveService';
 
-export class ServicesExtensionNotFoundError extends Data.TaggedError('ServicesExtensionNotFoundError') {}
-export class InvalidServicesApiError extends Data.TaggedError('InvalidServicesApiError')<{ cause?: Error }> {}
-
-export type ExtensionProviderService = {
-  /** Get the SalesforceVSCodeServicesApi, activating if needed */
-  readonly getServicesApi: Effect.Effect<
-    SalesforceVSCodeServicesApi,
-    ServicesExtensionNotFoundError | InvalidServicesApiError,
-    never
-  >;
-};
-
-export const ExtensionProviderService = Context.GenericTag<ExtensionProviderService>('ExtensionProviderService');
+// Re-export for backward compatibility
+export { ExtensionProviderService, InvalidServicesApiError, ServicesExtensionNotFoundError } from './extensionProviderService';
 
 /** connect to the Salesforce Services extension and get all of its API services */
 const getServicesApi = Effect.sync(() =>

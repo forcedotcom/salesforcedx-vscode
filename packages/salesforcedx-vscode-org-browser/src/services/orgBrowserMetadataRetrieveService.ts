@@ -11,7 +11,7 @@ import * as Option from 'effect/Option';
 import type { SuccessfulCancelResult } from 'salesforcedx-vscode-services/src/vscode/cancellation';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { ExtensionProviderService } from './extensionProvider';
+import { ExtensionProviderService } from './extensionProviderService';
 
 const retrieve = (members: MetadataMember[], openInEditor = false) =>
   Effect.gen(function* () {
