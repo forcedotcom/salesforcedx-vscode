@@ -47,7 +47,6 @@ const getAppInsightsReporter = (
   userId: string,
   webUserId: string
 ): TelemetryReporter[] => {
-  // AppInsights now handles both Node.js and web modes internally
   console.log(`adding AppInsights reporter for ${reporterName};${version}`);
   return [new AppInsights(reporterName, version, aiKey, userId, webUserId, true)];
 };
