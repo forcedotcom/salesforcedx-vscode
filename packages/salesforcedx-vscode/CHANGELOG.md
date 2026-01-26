@@ -2,7 +2,6 @@
 
 ## Added
 
-#### salesforcedx-vscode-apex-debugger
 #### salesforcedx-vscode-apex-testing
 #### salesforcedx-vscode-services
 
