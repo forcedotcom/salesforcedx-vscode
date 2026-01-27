@@ -6,13 +6,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  Impl,
-  Soql,
-  SoqlModelUtils,
-  ModelSerializer,
-  ModelDeserializer
-} from '../../../../soql-model';
+import { Impl, Soql, SoqlModelUtils, ModelSerializer, ModelDeserializer } from '../../../../soql-model';
 import { SELECT_COUNT, ToolingModelJson } from './model';
 
 export function convertSoqlToUiModel(soql: string): ToolingModelJson {
@@ -22,20 +16,15 @@ export function convertSoqlToUiModel(soql: string): ToolingModelJson {
 }
 
 // eslint-disable-next-line complexity
-export function convertSoqlModelToUiModel(
-  queryModel: Soql.Query
-): ToolingModelJson {
+function convertSoqlModelToUiModel(queryModel: Soql.Query): ToolingModelJson {
   const unsupported = [];
-  const headerComments = queryModel.headerComments
-    ? queryModel.headerComments.text
-    : undefined;
+  const headerComments = queryModel.headerComments ? queryModel.headerComments.text : undefined;
 
   const fields =
-    queryModel.select &&
-    (queryModel.select as Soql.SelectExprs).selectExpressions
+    queryModel.select && (queryModel.select as Soql.SelectExprs).selectExpressions
       ? (queryModel.select as Soql.SelectExprs).selectExpressions
-          .filter((expr) => !SoqlModelUtils.containsUnmodeledSyntax(expr))
-          .map((expr) => {
+          .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
+          .map(expr => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             if (expr.field.fieldName) {
               // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
@@ -68,8 +57,8 @@ export function convertSoqlModelToUiModel(
   const orderBy = queryModel.orderBy
     ? queryModel.orderBy.orderByExpressions
         // TODO: Deal with empty OrderBy.  returns unmodelled syntax.
-        .filter((expr) => !SoqlModelUtils.containsUnmodeledSyntax(expr))
-        .map((expression) => {
+        .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
+        .map(expression => {
           return {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             field: expression.field.fieldName,
@@ -79,9 +68,7 @@ export function convertSoqlModelToUiModel(
         })
     : [];
 
-  const limit = queryModel.limit
-    ? queryModel.limit.limit.toString()
-    : undefined;
+  const limit = queryModel.limit ? queryModel.limit.limit.toString() : undefined;
 
   const errors = queryModel.errors;
   for (const key in queryModel) {
@@ -121,21 +108,17 @@ export function convertUiModelToSoql(uiModel: ToolingModelJson): string {
 
 function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
   let select: Soql.Select;
-  const isSelectCount =
-    uiModel.fields.length === 1 &&
-    uiModel.fields[0].toLowerCase() === SELECT_COUNT.toLowerCase();
+  const isSelectCount = uiModel.fields.length === 1 && uiModel.fields[0].toLowerCase() === SELECT_COUNT.toLowerCase();
   if (isSelectCount) {
     select = new Impl.SelectCountImpl();
   } else {
-    const selectExprs = uiModel.fields.map(
-      (field) => new Impl.FieldSelectionImpl(new Impl.FieldRefImpl(field))
-    );
+    const selectExprs = uiModel.fields.map(field => new Impl.FieldSelectionImpl(new Impl.FieldRefImpl(field)));
     select = new Impl.SelectExprsImpl(selectExprs);
   }
 
   let whereExprsImpl;
   if (uiModel.where && uiModel.where.conditions.length) {
-    const simpleGroupArray = uiModel.where.conditions.map((condition) => {
+    const simpleGroupArray = uiModel.where.conditions.map(condition => {
       const uiModelCondition = condition.condition;
       let returnCondition;
 
@@ -165,41 +148,24 @@ function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
       }
 
       const compareValue = uiModelCondition.compareValue
-        ? new Impl.LiteralImpl(
-            uiModelCondition.compareValue.type,
-            uiModelCondition.compareValue.value
-          )
+        ? new Impl.LiteralImpl(uiModelCondition.compareValue.type, uiModelCondition.compareValue.value)
         : uiModelCondition.values
-        ? uiModelCondition.values.map(
-            (value) => new Impl.LiteralImpl(value.type, value.value)
-          )
-        : undefined;
+          ? uiModelCondition.values.map(value => new Impl.LiteralImpl(value.type, value.value))
+          : undefined;
 
       if (field && compareValue) {
         // eslint-disable-next-line default-case
         switch (conditionType) {
           case ConditionType.FieldCompare: {
-            returnCondition = new Impl.FieldCompareConditionImpl(
-              field,
-              uiModelCondition.operator,
-              compareValue
-            );
+            returnCondition = new Impl.FieldCompareConditionImpl(field, uiModelCondition.operator, compareValue);
             break;
           }
           case ConditionType.In: {
-            returnCondition = new Impl.InListConditionImpl(
-              field,
-              uiModelCondition.operator,
-              compareValue
-            );
+            returnCondition = new Impl.InListConditionImpl(field, uiModelCondition.operator, compareValue);
             break;
           }
           case ConditionType.Includes: {
-            returnCondition = new Impl.IncludesConditionImpl(
-              field,
-              uiModelCondition.operator,
-              compareValue
-            );
+            returnCondition = new Impl.IncludesConditionImpl(field, uiModelCondition.operator, compareValue);
             break;
           }
         }
@@ -207,29 +173,16 @@ function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
 
       return returnCondition;
     });
-    whereExprsImpl = SoqlModelUtils.arrayToSimpleGroup(
-      simpleGroupArray,
-      uiModel.where.andOr
-    );
+    whereExprsImpl = SoqlModelUtils.arrayToSimpleGroup(simpleGroupArray, uiModel.where.andOr);
   }
 
-  const where =
-    whereExprsImpl && Object.keys(whereExprsImpl).length
-      ? new Impl.WhereImpl(whereExprsImpl)
-      : undefined;
+  const where = whereExprsImpl && Object.keys(whereExprsImpl).length ? new Impl.WhereImpl(whereExprsImpl) : undefined;
 
   const orderByExprs = uiModel.orderBy.map(
-    (orderBy) =>
-      new Impl.OrderByExpressionImpl(
-        new Impl.FieldRefImpl(orderBy.field),
-        orderBy.order,
-        orderBy.nulls
-      )
+    orderBy => new Impl.OrderByExpressionImpl(new Impl.FieldRefImpl(orderBy.field), orderBy.order, orderBy.nulls)
   );
-  const orderBy =
-    orderByExprs.length > 0 ? new Impl.OrderByImpl(orderByExprs) : undefined;
-  const limit =
-    uiModel.limit.length > 0 ? new Impl.LimitImpl(uiModel.limit) : undefined;
+  const orderBy = orderByExprs.length > 0 ? new Impl.OrderByImpl(orderByExprs) : undefined;
+  const limit = uiModel.limit.length > 0 ? new Impl.LimitImpl(uiModel.limit) : undefined;
   const queryModel = new Impl.QueryImpl(
     select,
     new Impl.FromImpl(uiModel.sObject),
@@ -240,9 +193,7 @@ function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
     limit
   );
   if (uiModel.headerComments) {
-    queryModel.headerComments = new Impl.HeaderCommentsImpl(
-      uiModel.headerComments
-    );
+    queryModel.headerComments = new Impl.HeaderCommentsImpl(uiModel.headerComments);
   }
   return queryModel;
 }
@@ -321,10 +272,7 @@ export function isLikeContains(value: string): boolean {
   return false;
 }
 
-export function addWildCardToValue(
-  operatorValue: Soql.UiOperatorValue,
-  rawValue: string
-): string {
+export function addWildCardToValue(operatorValue: Soql.UiOperatorValue, rawValue: string): string {
   let value = stripWildCardPadding(rawValue);
   switch (operatorValue) {
     case Soql.UiOperatorValue.LIKE_START:
