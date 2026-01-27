@@ -10,7 +10,12 @@
       }
     ]
   },
-  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out",
+    "dist"
+  ],
   "include": [
     "src/**/*.ts",
     "test/**/*.ts",
@@ -23,13 +28,13 @@
       "path": "../effect-ext-utils"
     },
     {
+      "path": "../salesforcedx-vscode-i18n"
+    },
+    {
       "path": "../playwright-vscode-ext"
     },
     {
       "path": "../salesforcedx-vscode-services"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
     }
   ]
 }

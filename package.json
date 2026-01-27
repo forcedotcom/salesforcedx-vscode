@@ -169,6 +169,7 @@
         "./packages/salesforcedx-vscode-apex-debugger:compile",
         "./packages/salesforcedx-vscode-apex-replay-debugger:compile",
         "./packages/salesforcedx-vscode-apex-oas:compile",
+        "./packages/salesforcedx-vscode-apex-testing:compile",
         "./packages/salesforcedx-vscode-lwc:compile",
         "./packages/salesforcedx-vscode-lightning:compile",
         "./packages/salesforcedx-vscode-soql:compile",

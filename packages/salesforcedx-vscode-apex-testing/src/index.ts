@@ -5,17 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 
-/** File change event from FileWatcherService */
-type FileChangeEvent = {
-  readonly type: 'create' | 'change' | 'delete';
-  readonly uri: vscode.Uri;
-};
 import { channelService, initializeOutputChannel } from './channels';
 import {
   apexDebugClassRunCodeActionDelegate,
@@ -29,11 +25,17 @@ import {
   apexTestSuiteCreate,
   apexTestSuiteRun
 } from './commands';
-import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
+import { AllServicesLayer } from './services/extensionProvider';
 import { telemetryService } from './telemetry/telemetry';
 import { getOrgApexClassProvider } from './utils/orgApexClassProvider';
 import { disposeTestController, getTestController } from './views/testController';
 import { getTestOutlineProvider } from './views/testOutlineProvider';
+
+/** File change event from FileWatcherService */
+type FileChangeEvent = {
+  readonly type: 'create' | 'change' | 'delete';
+  readonly uri: vscode.Uri;
+};
 
 /** Refresh the test view */
 const refreshTestView = async (): Promise<void> => {
@@ -53,7 +55,7 @@ const getOrgKey = (orgInfo: { username?: string; orgId?: string }): string | und
 const initializeTestDiscovery = (testController: ReturnType<typeof getTestController>) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const targetOrgRef = api.services.TargetOrgRef;
+    const targetOrgRef = yield* api.services.TargetOrgRef();
     const connectionService = yield* api.services.ConnectionService;
 
     // Track the last discovered org key to prevent duplicate discoveries
@@ -71,10 +73,12 @@ const initializeTestDiscovery = (testController: ReturnType<typeof getTestContro
     yield* Effect.forkDaemon(
       targetOrgRef.changes.pipe(
         // if we don't have an orgId, try to get the connection to cause another event to fire with it
-        Stream.tap(org => (!org.orgId ? connectionService.getConnection : Effect.succeed(undefined))),
+        Stream.tap((org: { username?: string; orgId?: string }) =>
+          !org.orgId ? connectionService.getConnection : Effect.succeed(undefined)
+        ),
         Stream.filter(hasOrgConnected),
         // Deduplicate: only emit when org key changes
-        Stream.filterEffect(org => {
+        Stream.filterEffect((org: { username?: string; orgId?: string }) => {
           const currentKey = getOrgKey(org);
           return Effect.gen(function* () {
             const lastKey = yield* Ref.get(lastDiscoveredOrgRef);
@@ -86,10 +90,10 @@ const initializeTestDiscovery = (testController: ReturnType<typeof getTestContro
           });
         }),
         // Log after deduplication so we only see unique org changes
-        Stream.tap(org =>
+        Stream.tap((org: { username?: string; orgId?: string }) =>
           Effect.promise(() => channelService.appendLine(`Target org changed to ${JSON.stringify(org)}`))
         ),
-        Stream.tap(org =>
+        Stream.tap((org: { username?: string; orgId?: string }) =>
           Effect.promise(() => channelService.appendLine(`Discovering tests for org: ${org.username ?? org.orgId}`))
         ),
         Stream.runForEach(discoverForOrg)
@@ -212,7 +216,18 @@ const activateEffect = (context: vscode.ExtensionContext) =>
     };
   }).pipe(Effect.withSpan('apex-testing.activation'), Effect.provide(AllServicesLayer));
 
-export const activate = (context: vscode.ExtensionContext) => Effect.runPromise(activateEffect(context));
+export const activate = (context: vscode.ExtensionContext) =>
+  Effect.runPromise(
+    activateEffect(context).pipe(
+      Effect.catchAll(error => {
+        console.error('[Apex Testing] Activation failed:', error);
+        return Effect.succeed({
+          getTestOutlineProvider,
+          getTestClassName: async (_uri: vscode.Uri) => undefined
+        });
+      })
+    )
+  );
 
 const registerCommands = (): vscode.Disposable => {
   // Customer-facing commands

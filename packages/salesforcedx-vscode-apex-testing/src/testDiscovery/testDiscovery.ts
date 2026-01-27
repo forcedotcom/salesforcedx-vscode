@@ -6,8 +6,9 @@
  */
 
 import type { DiscoverTestsOptions, ToolingTestClass, TestDiscoveryResult, ToolingTestsPage } from './schemas';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 
 /**
  * Discover Apex test classes and methods using the Tooling REST Test Discovery API.
@@ -40,7 +41,8 @@ export const discoverTests = (options: DiscoverTestsOptions = {}): Effect.Effect
     while (nextUrl) {
       const page = yield* Effect.tryPromise({
         try: () => connection.request<ToolingTestsPage>({ method: 'GET', url: nextUrl! }),
-        catch: error => new Error(`Failed to fetch test discovery page: ${error instanceof Error ? error.message : String(error)}`)
+        catch: error =>
+          new Error(`Failed to fetch test discovery page: ${error instanceof Error ? error.message : String(error)}`)
       });
       if (page?.apexTestClasses?.length) {
         classes.push(...page.apexTestClasses);
@@ -56,7 +58,9 @@ export const discoverTests = (options: DiscoverTestsOptions = {}): Effect.Effect
       }
     }),
     Effect.tap(result =>
-      Effect.log(`Discovered ${result.classes.length} test classes with ${result.classes.reduce((acc, c) => acc + (c.testMethods?.length ?? 0), 0)} total methods`)
+      Effect.log(
+        `Discovered ${result.classes.length} test classes with ${result.classes.reduce((acc, c) => acc + (c.testMethods?.length ?? 0), 0)} total methods`
+      )
     ),
     Effect.provide(AllServicesLayer)
   );

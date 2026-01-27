@@ -7,10 +7,11 @@
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import { ResultFormat, TestResult, TestService } from '@salesforce/apex-node';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { getUriPath } from '../utils/commandletHelpers';
 import { ApexTestMethod } from '../views/lspConverter';
@@ -227,10 +228,9 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
       const packageDirs = sfProject.getPackageDirectories().map(dir => dir.fullPath);
 
       // Build ComponentSet for all ApexClass files in the project
-      const componentSet = yield* retrieveService.buildComponentSetFromSource(
-        [{ type: 'ApexClass', fullName: '*' }],
-        packageDirs
-      );
+      const componentSet = yield* retrieveService.buildComponentSetFromSource(packageDirs, [
+        { type: 'ApexClass', fullName: '*' }
+      ]);
 
       // Build index from component name to file URI
       const classNameSet = new Set(classNames);

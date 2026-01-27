@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { URI, Utils } from 'vscode-uri';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 
 const STATE_FOLDER = '.sfdx';
 const TOOLS = 'tools';
@@ -16,13 +17,7 @@ const TEST_RESULTS = 'testresults';
 /** Gets the test results folder path and creates it if it doesn't exist */
 export const getTestResultsFolder = async (vscodePath: string, testType: string): Promise<string> => {
   // Build URI path using Utils.joinPath (stays in URI-land)
-  const testResultsFolderUri = Utils.joinPath(
-    URI.file(vscodePath),
-    STATE_FOLDER,
-    TOOLS,
-    TEST_RESULTS,
-    testType
-  );
+  const testResultsFolderUri = Utils.joinPath(URI.file(vscodePath), STATE_FOLDER, TOOLS, TEST_RESULTS, testType);
 
   await Effect.runPromise(
     Effect.gen(function* () {
