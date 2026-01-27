@@ -76,8 +76,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
       vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest),
       vscode.commands.registerCommand('sf.project.generate.manifest', generateManifest),
-      vscode.commands.registerCommand('sf.source.diff', sourceDiff),
-      vscode.commands.registerCommand('sf.source.diff.current.file', sourceDiff)
+      vscode.commands.registerCommand('sf.source.diff', sourceDiff)
     );
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
@@ -85,10 +84,11 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     }
     // Start deploy on save service only if this extension handles shared commands
     yield* Effect.forkIn(createDeployOnSaveService(), yield* getExtensionScope());
+
+    // Register source tracking status bar
+    yield* Effect.forkIn(createSourceTrackingStatusBar(), yield* getExtensionScope());
   }
 
-  // Register source tracking status bar
-  yield* Effect.forkIn(createSourceTrackingStatusBar(), yield* getExtensionScope());
   yield* svc.appendToChannel('Salesforce Metadata activation complete.');
 });
 
