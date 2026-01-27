@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { basename, extname, join, relative, resolve } from 'node:path';
+import { basename, extname, join, ParsedPath, parse as parsePath, relative, resolve, sep } from 'node:path';
 import { FileEvent, FileChangeType } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
@@ -169,3 +169,82 @@ export const extractJsonFromImport = <T = unknown>(jsonImport: unknown): T => {
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
   return jsonImport as T;
 };
+
+// TODO investigate more why this happens
+const splitPath = (filePath: ParsedPath): string[] => {
+  let pathElements = filePath.dir.split(sep);
+  // Somehow on windows paths are occassionally using forward slash
+  if (sep === '\\' && !filePath.dir.includes('\\')) {
+    pathElements = filePath.dir.split('/');
+  }
+  return pathElements;
+};
+
+/**
+ * Extracts a component name from a file path.
+ * For SFDX projects, uses namespace 'c'. For non-SFDX, extracts namespace from path.
+ * Returns null if the file name doesn't match the parent directory name.
+ *
+ * @param file - The file path
+ * @param sfdxProject - Whether this is an SFDX project
+ * @param converter - Function to convert namespace and tag to final component name
+ * @returns The component name or null if extraction fails
+ */
+export const nameFromFile = (
+  file: string,
+  sfdxProject: boolean,
+  converter: (a: string, b: string) => string
+): string | null => {
+  const filePath = parsePath(file);
+  const fileName = filePath.name;
+  const pathElements = splitPath(filePath);
+  const parentDirName = pathElements.pop();
+  if (fileName === parentDirName) {
+    const namespace = sfdxProject ? 'c' : pathElements.pop();
+    return converter(namespace ?? '', parentDirName);
+  }
+  return null;
+};
+
+/**
+ * Extracts a component name from a directory path.
+ * For SFDX projects, uses namespace 'c'. For non-SFDX, extracts namespace from path.
+ *
+ * @param file - The directory path
+ * @param sfdxProject - Whether this is an SFDX project
+ * @param converter - Function to convert namespace and tag to final component name
+ * @returns The component name
+ */
+export const nameFromDirectory = (
+  file: string,
+  sfdxProject: boolean,
+  converter: (a: string, b: string) => string
+): string => {
+  const filePath = parsePath(file);
+  return sfdxProject ? converter('c', filePath.name) : converter(splitPath(filePath).pop() ?? '', filePath.name);
+};
+
+const componentName = (namespace: string, tag: string): string => `${namespace}:${tag}`;
+
+/**
+ * Extracts a component name in "namespace:component" format from a file path.
+ * For SFDX projects, uses namespace 'c'. For non-SFDX, extracts namespace from path.
+ * Returns null if the file name doesn't match the parent directory name.
+ *
+ * @param file - The file path
+ * @param sfdxProject - Whether this is an SFDX project
+ * @returns The component name in "namespace:component" format or null if extraction fails
+ */
+export const componentFromFile = (file: string, sfdxProject: boolean): string | null =>
+  nameFromFile(file, sfdxProject, componentName);
+
+/**
+ * Extracts a component name in "namespace:component" format from a directory path.
+ * For SFDX projects, uses namespace 'c'. For non-SFDX, extracts namespace from path.
+ *
+ * @param file - The directory path
+ * @param sfdxProject - Whether this is an SFDX project
+ * @returns The component name in "namespace:component" format
+ */
+export const componentFromDirectory = (file: string, sfdxProject: boolean): string =>
+  nameFromDirectory(file, sfdxProject, componentName);

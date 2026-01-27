@@ -19,7 +19,11 @@ export {
   SfdxTsConfig,
   TsConfigPaths,
   normalizePath,
-  type NormalizedPath
+  type NormalizedPath,
+  nameFromFile,
+  nameFromDirectory,
+  componentFromFile,
+  componentFromDirectory
 } from './utils';
 
 // Re-export from base-context

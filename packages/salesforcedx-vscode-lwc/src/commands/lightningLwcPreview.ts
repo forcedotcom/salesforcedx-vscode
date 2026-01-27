@@ -8,7 +8,7 @@
 // leaving as is because this extension is being replaced
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { nameFromDirectory, nameFromFile } from '@salesforce/salesforcedx-aura-language-server/utils/componentUtil';
+import { nameFromDirectory, nameFromFile } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
 import {
   notificationService,
