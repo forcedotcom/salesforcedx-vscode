@@ -527,7 +527,8 @@ export default [
     files: [
       'packages/salesforcedx-vscode-services/**/*.ts',
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
-      'packages/salesforcedx-vscode-metadata/**/*.ts'
+      'packages/salesforcedx-vscode-metadata/**/*.ts',
+      'packages/effect-ext-utils/**/*.ts'
     ],
     rules: {
       'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
@@ -581,6 +582,13 @@ export default [
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off'
+    }
+  },
+  {
+    // Allow top-level src/index.ts files as barrel files (public API exports)
+    files: ['packages/**/src/index.ts'],
+    rules: {
+      'barrel-files/avoid-barrel-files': 'off'
     }
   },
   {

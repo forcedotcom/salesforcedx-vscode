@@ -1,0 +1,80 @@
+{
+  "name": "@salesforce/effect-ext-utils",
+  "version": "65.14.0",
+  "description": "Utility functions and helpers for Effect-based VS Code extensions",
+  "author": "Salesforce",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/effect-ext-utils",
+  "main": "out/src/index.js",
+  "types": "out/src/index.d.ts",
+  "files": [
+    "out/**/*.js",
+    "out/**/*.d.ts",
+    "out/**/*.d.ts.map"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "compile": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache",
+    "test": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --build --pretty",
+      "clean": "if-file-deleted",
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": [
+        "out/**",
+        "tsconfig.tsbuildinfo"
+      ]
+    },
+    "test": {
+      "command": "jest --coverage",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "jest.config.js",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs",
+        "package.json"
+      ],
+      "output": []
+    }
+  },
+  "dependencies": {
+    "effect": "^3.19.14",
+    "@types/vscode": "^1.90.0"
+  }
+}
