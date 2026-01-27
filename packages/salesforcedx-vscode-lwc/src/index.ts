@@ -52,11 +52,11 @@ export const activate = async (extensionContext: ExtensionContext) => {
   }
 
   // Initialize telemetry service (now works in both Node.js and web mode)
-    try {
-      await telemetryService.initializeService(extensionContext);
-    } catch (e) {
-      const errorMsg = `Failed to initialize telemetry service: ${String(e)}`;
-      channelService.appendLine(errorMsg);
+  try {
+    await telemetryService.initializeService(extensionContext);
+  } catch (e) {
+    const errorMsg = `Failed to initialize telemetry service: ${String(e)}`;
+    channelService.appendLine(errorMsg);
   }
 
   // In web mode, workspace folders might not be available immediately
@@ -158,6 +158,69 @@ export const activate = async (extensionContext: ExtensionContext) => {
     extensionContext.subscriptions.push(client);
     channelService.appendLine('LWC Language Server started successfully');
     channelService.appendLine('Check "LWC Language Server" output channel for server logs');
+
+    // Load essential JSON/XML files for workspace type detection
+    // This must run AFTER the language client is started so that didOpen notifications are sent
+    // Only load the specific files checked by detectWorkspaceHelper at root level:
+    // - sfdx-project.json, workspace-user.xml, lwc.config.json, package.json, lerna.json (at root)
+    // Note: Parent workspace-user.xml check is handled by language server code, not via file glob
+    const bootstrapConfigFiles = async () => {
+      channelService.appendLine('[LWC Bootstrap Config] Starting bootstrap for config files...');
+      channelService.appendLine(`[LWC Bootstrap Config] Workspace folders: ${workspace.workspaceFolders?.length ?? 0}`);
+
+      if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
+        // Bootstrap each workspace folder separately
+        const bootstrapPromises = workspace.workspaceFolders.map(async folder => {
+          channelService.appendLine(`[LWC Bootstrap Config] Workspace folder: ${folder.uri.toString()}`);
+
+          // In web mode, findFiles with memfs:// URIs can hang, so construct URIs directly
+          // and pass them to bootstrapWorkspaceAwareness to skip findFiles
+          const configFiles = [
+            'sfdx-project.json',
+            'workspace-user.xml',
+            'lwc.config.json',
+            'package.json',
+            'lerna.json'
+          ];
+          
+          // Construct URIs for config files and check which ones exist
+          const configUris: Uri[] = [];
+          for (const configFile of configFiles) {
+            const configUri = Uri.joinPath(folder.uri, configFile);
+            try {
+              await workspace.fs.stat(configUri);
+              configUris.push(configUri);
+              channelService.appendLine(`[LWC Bootstrap Config] ${folder.name}: Found ${configFile}`);
+            } catch {
+              // File doesn't exist - skip it
+            }
+          }
+          
+          if (configUris.length > 0) {
+            // Use bootstrapWorkspaceAwareness with provided URIs to skip findFiles
+            await Effect.runPromise(
+              bootstrapWorkspaceAwareness({
+                fileGlob: '{sfdx-project.json,workspace-user.xml,lwc.config.json,package.json,lerna.json}',
+                excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
+                uris: configUris,
+                logger: (msg: string) => {
+                  channelService.appendLine(`[LWC Bootstrap Config] ${folder.name}: ${msg}`);
+                }
+              })
+            );
+            channelService.appendLine(`[LWC Bootstrap Config] ${folder.name}: Config files bootstrap completed`);
+          } else {
+            channelService.appendLine(`[LWC Bootstrap Config] ${folder.name}: No config files found`);
+          }
+        });
+
+        await Promise.all(bootstrapPromises);
+        channelService.appendLine('[LWC Bootstrap Config] Config files bootstrap completed');
+      }
+    };
+
+    // Start bootstrap after client is started
+    void bootstrapConfigFiles();
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     channelService.appendLine(`Failed to start LWC Language Server: ${errorMessage}`);
@@ -182,36 +245,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
     .catch((error: unknown) => {
       const errorMsg = `Failed to bootstrap workspace awareness: ${String(error)}`;
       channelService.appendLine(`[LWC] ERROR: ${errorMsg}`);
-    });
-
-  // Also load essential JSON/XML files for workspace type detection
-  // Only load the specific files checked by detectWorkspaceHelper at root level:
-  // - sfdx-project.json, workspace-user.xml, lwc.config.json, package.json, lerna.json (at root)
-  // Note: Parent workspace-user.xml check is handled by language server code, not via file glob
-  // Using patterns without **/ to match only at root level of each workspace folder
-  void Effect.runPromise(
-    bootstrapWorkspaceAwareness({
-      fileGlob: '{sfdx-project.json,workspace-user.xml,lwc.config.json,package.json,lerna.json}',
-      excludeGlob: '**/{node_modules,.sfdx,.git,dist,out,lib,coverage}/**',
-      logger: () => {
-        // Silent logger for essential files
-      }
-    })
-  ).catch(() => {
-      // If findFiles fails (common in web mode), explicitly try to open sfdx-project.json
-      // This is critical for delayed initialization which needs to read the config
-      if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
-        for (const folder of workspace.workspaceFolders) {
-          const sfdxProjectUri = Uri.joinPath(folder.uri, 'sfdx-project.json');
-          void (async () => {
-            try {
-              await workspace.openTextDocument(sfdxProjectUri);
-            } catch {
-              // File might not exist - this is okay for non-SFDX projects
-            }
-          })();
-        }
-      }
     });
 
   // Creates resources for js-meta.xml to work

@@ -183,15 +183,27 @@ export default class ComponentIndexer {
       case 'SFDX':
         // workspaceRoot is already normalized by getWorkspaceRoot()
         const packageDirsPattern = this.getSfdxPackageDirsPattern();
+        // If packageDirsPattern is empty, sfdx-project.json hasn't been loaded yet
+        // Return empty array - component indexer should not be initialized until config is available
+        if (!packageDirsPattern) {
+          Logger.info('[getComponentEntries] packageDirsPattern is empty - sfdx-project.json not loaded yet');
+          return [];
+        }
         // Pattern matches: {packageDir}/**/*/lwc/**/*.js
         // The **/* before lwc requires at least one directory level (e.g., main/default/lwc or meta/lwc)
         const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.js`;
+        Logger.info(
+          `[getComponentEntries] Searching for components with pattern: ${sfdxPattern}, ` +
+            `workspaceRoot: ${this.workspaceRoot}, total files in provider: ${this.fileSystemProvider.getAllFileUris().length}`
+        );
         files = findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot);
+        Logger.info(`[getComponentEntries] Found ${files.length} files matching pattern before filtering`);
         const filteredFiles = files.filter((item: Entry): boolean => {
           const data = path.parse(item.path);
           const dirEndsWithName = data.dir.endsWith(data.name);
           return dirEndsWithName;
         });
+        Logger.info(`[getComponentEntries] After filtering (dir ends with name): ${filteredFiles.length} component entries`);
         return filteredFiles;
       default:
         // For CORE_ALL and CORE_PARTIAL
@@ -232,15 +244,35 @@ export default class ComponentIndexer {
 
   public findTagByURI(uri: string): Tag | null {
     const normalizedPathString = this.fileSystemProvider.uriToNormalizedPath(uri);
+    Logger.info(`[findTagByURI] Called with uri: ${uri}`);
+    Logger.info(`[findTagByURI] Normalized path string: ${normalizedPathString}`);
 
     const normalizedPath = normalizePath(normalizedPathString.replace(/\.html$/, '.js'));
+    Logger.info(`[findTagByURI] Looking for normalized path: ${normalizedPath}`);
+    Logger.info(`[findTagByURI] Total tags in indexer: ${this.tags.size}`);
 
-    return (
-      Array.from(this.tags.values()).find(tag => {
-        const tagPath = normalizePath(tag.file);
-        return tagPath === normalizedPath;
-      }) ?? null
-    );
+    if (this.tags.size > 0) {
+      const sampleTags = Array.from(this.tags.values()).slice(0, 5);
+      Logger.info(`[findTagByURI] Sample tags (first 5): ${sampleTags.map(t => `file=${t.file}`).join(', ')}`);
+    }
+
+    const found = Array.from(this.tags.values()).find(tag => {
+      const tagPath = normalizePath(tag.file);
+      const matches = tagPath === normalizedPath;
+      if (matches) {
+        Logger.info(`[findTagByURI] Found matching tag: ${tag.file}`);
+      }
+      return matches;
+    });
+
+    if (!found) {
+      Logger.info(`[findTagByURI] No matching tag found for path: ${normalizedPath}`);
+      // Log all tag paths for debugging
+      const allTagPaths = Array.from(this.tags.values()).map(t => normalizePath(t.file));
+      Logger.info(`[findTagByURI] All tag paths in indexer: ${JSON.stringify(allTagPaths.slice(0, 10))}`);
+    }
+
+    return found ?? null;
   }
 
   private async loadTagsFromIndex(): Promise<void> {
@@ -394,9 +426,25 @@ export default class ComponentIndexer {
       this.workspaceType = await detectWorkspaceHelper(this.attributes.workspaceRoot, this.fileSystemProvider);
     }
 
+    // For SFDX workspaces, ensure sfdx-project.json is loaded before initializing
+    if (this.workspaceType === 'SFDX') {
+      const sfdxProjectPath = normalizePath(path.join(this.attributes.workspaceRoot, 'sfdx-project.json'));
+      if (!this.fileSystemProvider.fileExists(sfdxProjectPath)) {
+        Logger.info(
+          `[ComponentIndexer.init] sfdx-project.json not found at ${sfdxProjectPath}, skipping initialization. ` +
+            'Will be initialized when file is available.'
+        );
+        return;
+      }
+    }
+
     await this.loadTagsFromIndex();
 
     const unIndexedFilesResult = this.getUnIndexedFiles();
+    Logger.info(
+      `[ComponentIndexer.init] Found ${unIndexedFilesResult.length} unindexed files to process, ` +
+        `workspaceType: ${this.workspaceType}, workspaceRoot: ${this.attributes.workspaceRoot}`
+    );
 
     const promises = unIndexedFilesResult.map(async entry => {
       const tag = await createTagFromFile(entry.path, this.fileSystemProvider, entry.stats?.mtime);
@@ -422,6 +470,11 @@ export default class ComponentIndexer {
         this.tags.delete(getTagName(tag));
       }
     });
+
+    Logger.info(
+      `[ComponentIndexer.init] Initialization complete: ${this.tags.size} components indexed ` +
+        `(${validTags.length} new, ${staleTags.length} stale removed)`
+    );
 
     this.persistCustomComponents();
   }

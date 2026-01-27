@@ -4,7 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { IFileSystemProvider, NormalizedPath, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  IFileSystemProvider,
+  Logger,
+  NormalizedPath,
+  normalizePath
+} from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 
 /** Package directory configuration in sfdx-project.json */
@@ -44,16 +49,81 @@ export const getWorkspaceRoot = (workspaceRoot: string): NormalizedPath => {
 /** Get SFDX configuration from sfdx-project.json */
 const getSfdxConfig = (root: NormalizedPath, fileSystemProvider: IFileSystemProvider): SfdxProjectConfig => {
   const filename = normalizePath(path.join(root, 'sfdx-project.json'));
+  Logger.info(`[getSfdxConfig] Looking for config at: ${filename}`);
+  Logger.info(`[getSfdxConfig] fileSystemProvider exists: ${!!fileSystemProvider}`);
 
   if (fileSystemProvider) {
+    // Check if file exists first
+    const fileExists = fileSystemProvider.fileExists(filename);
+    Logger.info(`[getSfdxConfig] fileExists(${filename}): ${fileExists}`);
+
+    // Also check with URI format in case that's needed
+    const allFileUris = fileSystemProvider.getAllFileUris();
+    const matchingFiles = allFileUris.filter(uri => uri.includes('sfdx-project.json'));
+    Logger.info(
+      `[getSfdxConfig] Found ${matchingFiles.length} files containing 'sfdx-project.json': ${JSON.stringify(matchingFiles)}`
+    );
+
+    // Try to find the exact match
+    const exactMatch = allFileUris.find(uri => normalizePath(uri) === filename);
+    Logger.info(`[getSfdxConfig] Exact match for ${filename}: ${exactMatch ?? 'not found'}`);
+
     const content = fileSystemProvider.getFileContent(filename);
-    if (content) {
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      return JSON.parse(content) as SfdxProjectConfig;
+    Logger.info(`[getSfdxConfig] File content exists: ${!!content}, length: ${content?.length ?? 0}`);
+
+    // If content not found with direct path, try with exact match URI if found
+    if (!content && exactMatch) {
+      Logger.info(`[getSfdxConfig] Trying to get content using exact match URI: ${exactMatch}`);
+      const contentFromUri = fileSystemProvider.getFileContent(exactMatch);
+      Logger.info(`[getSfdxConfig] Content from URI: ${!!contentFromUri}, length: ${contentFromUri?.length ?? 0}`);
+      if (contentFromUri) {
+        try {
+          const parsed = JSON.parse(contentFromUri);
+          Logger.info(`[getSfdxConfig] Parsed config from URI: ${JSON.stringify(parsed, null, 2)}`);
+          Logger.info(
+            `[getSfdxConfig] packageDirectories exists: ${!!parsed.packageDirectories}, length: ${parsed.packageDirectories?.length ?? 0}`
+          );
+          return parsed;
+        } catch (error) {
+          Logger.error(
+            `[getSfdxConfig] Error parsing JSON from URI: ${error instanceof Error ? error.message : String(error)}`,
+            error
+          );
+        }
+      }
     }
+
+    if (content) {
+      try {
+        const parsed = JSON.parse(content);
+        Logger.info(`[getSfdxConfig] Parsed config: ${JSON.stringify(parsed, null, 2)}`);
+        Logger.info(
+          `[getSfdxConfig] packageDirectories exists: ${!!parsed.packageDirectories}, length: ${parsed.packageDirectories?.length ?? 0}`
+        );
+        return parsed;
+      } catch (error) {
+        Logger.error(
+          `[getSfdxConfig] Error parsing JSON: ${error instanceof Error ? error.message : String(error)}`,
+          error
+        );
+        Logger.error(`[getSfdxConfig] Content preview: ${content.substring(0, 200)}`);
+      }
+    } else {
+      Logger.info('[getSfdxConfig] File content is null/undefined - file may not exist or not loaded yet');
+      Logger.info(`[getSfdxConfig] Total files in provider: ${allFileUris.length}`);
+      Logger.info(`[getSfdxConfig] Sample files (first 10): ${JSON.stringify(allFileUris.slice(0, 10))}`);
+      Logger.info(
+        '[getSfdxConfig] NOTE: sfdx-project.json exists in workspace but not yet loaded into file system provider. ' +
+          'This is expected during initial startup. The file will be loaded by bootstrapWorkspaceAwareness and ' +
+          'the config will be re-read during delayed initialization. Using fallback pattern detection for now.'
+      );
+    }
+  } else {
+    Logger.info('[getSfdxConfig] fileSystemProvider is null/undefined');
   }
 
   // Fallback - return empty config
+  Logger.info('[getSfdxConfig] Returning empty config as fallback');
   return {};
 };
 
@@ -62,42 +132,28 @@ export const getSfdxPackageDirsPattern = (
   workspaceRoot: NormalizedPath,
   fileSystemProvider: IFileSystemProvider
 ): string => {
+  Logger.info(`[getSfdxPackageDirsPattern] Called with workspaceRoot: ${workspaceRoot}`);
   const config = getSfdxConfig(workspaceRoot, fileSystemProvider);
+  Logger.info(`[getSfdxPackageDirsPattern] Config received: ${JSON.stringify(config)}`);
   const dirs = config.packageDirectories;
+  Logger.info(
+    `[getSfdxPackageDirsPattern] packageDirectories: ${dirs ? JSON.stringify(dirs) : 'undefined/null'}, type: ${typeof dirs}, isArray: ${Array.isArray(dirs)}`
+  );
   const paths: string[] = dirs?.map(item => item.path) ?? [];
+  Logger.info(`[getSfdxPackageDirsPattern] Extracted paths: ${JSON.stringify(paths)}, length: ${paths.length}`);
 
   if (paths.length === 0) {
-    // Fallback: if no package directories found, use common default patterns
-    // Try to detect from existing files in the provider
-    const allFiles = fileSystemProvider.getAllFileUris();
-
-    // Look for common SFDX package directory patterns in file paths
-    const commonPatterns = ['force-app', 'force-app/main/default'];
-
-    for (const fileUri of allFiles) {
-      for (const pattern of commonPatterns) {
-        if (fileUri.includes(`/${pattern}/`)) {
-          return pattern;
-        }
-      }
-    }
-
-    // Also try to extract from file paths directly - look for force-app/main/default/lwc pattern
-    for (const fileUri of allFiles) {
-      const lwcMatch = fileUri.match(/([^/]+\/[^/]+\/[^/]+)\/lwc\//);
-      if (lwcMatch) {
-        const detectedPattern = lwcMatch[1]; // e.g., "force-app/main/default"
-        return detectedPattern;
-      }
-      // Also check for just force-app pattern
-      if (fileUri.includes('/force-app/')) {
-        return 'force-app';
-      }
-    }
-
-    // Last resort: use force-app as default
-    return 'force-app';
+    Logger.info(
+      '[getSfdxPackageDirsPattern] No packageDirectories found in sfdx-project.json. ' +
+        "This is expected if the file hasn't been loaded yet. " +
+        'The component indexer will be initialized during performDelayedInitialization when the file is available.'
+    );
+    // Return empty pattern - component indexer should not be created until sfdx-project.json is available
+    // This will be handled during performDelayedInitialization
+    return '';
   }
 
-  return paths.length === 1 ? paths[0] : `{${paths.join(',')}}`;
+  const result = paths.length === 1 ? paths[0] : `{${paths.join(',')}}`;
+  Logger.info(`[getSfdxPackageDirsPattern] Returning pattern from config: ${result}`);
+  return result;
 };

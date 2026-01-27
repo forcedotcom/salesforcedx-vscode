@@ -394,6 +394,7 @@ export class FileSystemDataProvider implements IFileSystemProvider {
    * 1. It has a file stat with type 'directory', OR
    * 2. It has a directory listing (even if no explicit stat was created), OR
    * 3. Any files exist with paths that start with this directory path (inferred existence)
+   * - Checks both fileStats (files with stats) and fileContents (files with content)
    */
   public directoryExists(uri: NormalizedPath): boolean {
     const stat = this.fileStats.get(uri);
@@ -410,7 +411,13 @@ export class FileSystemDataProvider implements IFileSystemProvider {
     // the directory must exist. Ensure we check with a trailing slash to avoid partial matches.
     const dirPathWithSlash = uri.endsWith('/') ? uri : `${uri}/`;
 
-    return Array.from(this.fileStats.keys()).some(fileUri => fileUri.startsWith(dirPathWithSlash));
+    // Check both fileStats and fileContents to catch files that are loaded but don't have stats yet
+    const fileStatsKeys = Array.from(this.fileStats.keys());
+    const fileContentsKeys = Array.from(this.fileContents.keys());
+    const hasFileInStats = fileStatsKeys.some(fileUri => fileUri.startsWith(dirPathWithSlash));
+    const hasFileInContents = fileContentsKeys.some(fileUri => fileUri.startsWith(dirPathWithSlash));
+
+    return hasFileInStats || hasFileInContents;
   }
 
   /**

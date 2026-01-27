@@ -15,8 +15,10 @@ import {
   syncDocumentToTextDocumentsProvider,
   scheduleReinitialization,
   NormalizedPath,
-  WorkspaceType
+  WorkspaceType,
+  normalizePath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import * as path from 'node:path';
 import { basename, dirname, parse } from 'node:path';
 import {
   getLanguageService,
@@ -173,21 +175,6 @@ export abstract class BaseServer {
     // Create context but don't initialize yet - wait for files to be loaded via onDidOpen
     this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
 
-    // Create component indexer with fileSystemProvider (will be re-initialized after delayed init)
-    this.componentIndexer = new ComponentIndexer({
-      workspaceRoot: this.workspaceRoots[0],
-      fileSystemProvider: this.fileSystemProvider
-    });
-
-    // Create data providers (will be re-initialized after delayed init)
-    this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
-    this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-    await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemProvider, this.connection);
-    this.languageService = getLanguageService({
-      customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
-      useDefaultDataProvider: false
-    });
-
     return this.capabilities;
   }
 
@@ -253,7 +240,7 @@ export abstract class BaseServer {
       }
     } else if (isLWCJavascript) {
       const shouldComplete = this.shouldCompleteJavascript(params);
-      if (shouldComplete) {
+      if (shouldComplete && this.componentIndexer) {
         const customData = this.componentIndexer.getCustomData();
         const customTags = customData.map(tag => ({
           label: getLwcTypingsName(tag),
@@ -305,6 +292,9 @@ export abstract class BaseServer {
 
   public findBindItems(docBasename: string): CompletionItem[] {
     const customTags: CompletionItem[] = [];
+    if (!this.componentIndexer) {
+      return customTags;
+    }
     const allTags = this.componentIndexer.getCustomData();
     allTags.forEach(tag => {
       const tagName = getTagName(tag);
@@ -326,8 +316,6 @@ export abstract class BaseServer {
   }
 
   public async onHover(params: TextDocumentPositionParams): Promise<Hover | null> {
-    Logger.info(`[onHover] Called with params: ${JSON.stringify({ uri: params?.textDocument?.uri, position: params?.position })}`);
-    
     if (!params?.textDocument || !params.position) {
       Logger.warn('[onHover] Missing params or position');
       return null;
@@ -338,65 +326,57 @@ export abstract class BaseServer {
       textDocument: { uri }
     } = params;
 
-    Logger.info(`[onHover] Processing URI: ${uri}, position: ${position.line}:${position.character}`);
-
     const doc = this.documents.get(uri);
     if (!doc) {
       Logger.warn(`[onHover] Document not found for URI: ${uri}`);
       return null;
     }
 
-    Logger.info(`[onHover] Document found, languageId: ${doc.languageId}, uri: ${doc.uri}`);
-
     try {
       const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
-      Logger.info('[onHover] HTML document parsed successfully');
 
       try {
         const isLWCTemplate = await this.context.isLWCTemplate(doc);
-        Logger.info(`[onHover] isLWCTemplate result: ${isLWCTemplate}`);
-        
+
         if (isLWCTemplate) {
-          Logger.info(`[onHover] Document is LWC template, isDelayedInitializationComplete: ${this.isDelayedInitializationComplete}`);
-          if (!this.isDelayedInitializationComplete) {
-            Logger.info('[onHover] Returning initialization message');
+          // Allow hover to work if component indexer is initialized, even if delayed initialization isn't complete
+          // This is safe because namespace roots are already detected (isLWCTemplate returned true)
+          if (!this.isDelayedInitializationComplete && !this.componentIndexer) {
             return {
               contents: nls.localize('server_initializing_message')
             };
           }
           this.auraDataProvider.activated = false;
           this.lwcDataProvider.activated = true;
-          Logger.info('[onHover] Calling languageService.doHover for LWC template');
           const hoverResult = this.languageService.doHover(doc, position, htmlDoc);
-          Logger.info(`[onHover] doHover returned: ${hoverResult ? 'result' : 'null'}`);
           return hoverResult;
         }
       } catch (error) {
-        Logger.error(`[onHover] Error checking isLWCTemplate: ${error instanceof Error ? error.message : String(error)}`, error);
+        Logger.error(
+          `[onHover] Error checking isLWCTemplate: ${error instanceof Error ? error.message : String(error)}`,
+          error
+        );
       }
 
       try {
         const isAuraMarkup = await this.context.isAuraMarkup(doc);
-        Logger.info(`[onHover] isAuraMarkup result: ${isAuraMarkup}`);
-        
+
         if (isAuraMarkup) {
-          Logger.info(`[onHover] Document is Aura markup, isDelayedInitializationComplete: ${this.isDelayedInitializationComplete}`);
           if (!this.isDelayedInitializationComplete) {
-            Logger.info('[onHover] Returning null (not initialized)');
             return null;
           }
           this.auraDataProvider.activated = true;
           this.lwcDataProvider.activated = false;
-          Logger.info('[onHover] Calling languageService.doHover for Aura markup');
           const hoverResult = this.languageService.doHover(doc, position, htmlDoc);
-          Logger.info(`[onHover] doHover returned: ${hoverResult ? 'result' : 'null'}`);
           return hoverResult;
         }
       } catch (error) {
-        Logger.error(`[onHover] Error checking isAuraMarkup: ${error instanceof Error ? error.message : String(error)}`, error);
+        Logger.error(
+          `[onHover] Error checking isAuraMarkup: ${error instanceof Error ? error.message : String(error)}`,
+          error
+        );
       }
 
-      Logger.info('[onHover] Document is neither LWC template nor Aura markup, returning null');
       return null;
     } catch (error) {
       Logger.error(`[onHover] Unexpected error: ${error instanceof Error ? error.message : String(error)}`, error);
@@ -417,6 +397,20 @@ export abstract class BaseServer {
     // Use fileSystemProvider.uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
     const normalizedPath = this.fileSystemProvider.uriToNormalizedPath(uri);
     await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
+
+    // If this is an LWC file and delayed initialization hasn't completed yet,
+    // clear namespace cache to ensure namespace roots are recalculated as files are discovered.
+    // Once delayed initialization is complete, namespace roots are stable and don't need recalculation
+    // on every file open - they only change when directory structure changes.
+    const isLwcPath =
+      normalizedPath.includes('/lwc/') &&
+      (normalizedPath.endsWith('.html') || normalizedPath.endsWith('.js') || normalizedPath.endsWith('.ts'));
+    
+    if (isLwcPath && !this.isDelayedInitializationComplete) {
+      if (this.context) {
+        this.context.clearNamespaceCache();
+      }
+    }
 
     // Perform delayed initialization once file loading has stabilized
     // scheduleReinitialization waits for file count to stabilize (no changes for 1.5 seconds)
@@ -443,7 +437,7 @@ export abstract class BaseServer {
     if (await this.context.isLWCJavascript(document)) {
       const { metadata, diagnostics } = javascriptCompileDocument(document);
       diagnostics && (await this.connection.sendDiagnostics({ uri, diagnostics }));
-      if (metadata) {
+      if (metadata && this.componentIndexer) {
         const tag: Tag | null = this.componentIndexer.findTagByURI(uri);
         if (tag) {
           await updateTagMetadata(tag, metadata);
@@ -463,13 +457,17 @@ export abstract class BaseServer {
           if (isLWCRootDirectoryCreated(this.context, changes)) {
             // LWC directory created
             this.context.updateNamespaceRootTypeCache();
-            await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
+            if (this.componentIndexer) {
+              await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
+            }
           } else {
             const hasDeleteEvent = await containsDeletedLwcWatchedDirectory(this.context, changes);
             if (hasDeleteEvent) {
               // We need to scan the file system for deletion events as the change event does not include
               // information about the files that were deleted.
-              await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
+              if (this.componentIndexer) {
+                await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
+              }
             } else {
               const filePaths = [];
               for (const event of changes) {
@@ -486,7 +484,7 @@ export abstract class BaseServer {
                   }
                 }
               }
-              if (filePaths.length > 0) {
+              if (filePaths.length > 0 && this.componentIndexer) {
                 await this.componentIndexer.insertSfdxTsConfigPath(filePaths);
               }
             }
@@ -513,7 +511,7 @@ export abstract class BaseServer {
 
     if (await this.context.isLWCJavascript(document)) {
       const { metadata } = javascriptCompileDocument(document);
-      if (metadata) {
+      if (metadata && this.componentIndexer) {
         const tag: Tag | null = this.componentIndexer.findTagByURI(document.uri);
         if (tag) {
           void updateTagMetadata(tag, metadata);
@@ -524,7 +522,9 @@ export abstract class BaseServer {
 
   public async onShutdown(): Promise<void> {
     // Persist custom components for faster startup on next session
-    this.componentIndexer.persistCustomComponents();
+    if (this.componentIndexer) {
+      this.componentIndexer.persistCustomComponents();
+    }
 
     await this.connection.sendNotification(ShowMessageNotification.type, {
       type: MessageType.Info,
@@ -534,7 +534,9 @@ export abstract class BaseServer {
 
   public async onExit(): Promise<void> {
     // Persist custom components for faster startup on next session
-    this.componentIndexer.persistCustomComponents();
+    if (this.componentIndexer) {
+      this.componentIndexer.persistCustomComponents();
+    }
 
     await this.connection.sendNotification(ShowMessageNotification.type, {
       type: MessageType.Info,
@@ -543,30 +545,27 @@ export abstract class BaseServer {
   }
 
   public onDefinition(params: TextDocumentPositionParams): Location[] {
-    Logger.info(`[onDefinition] Called with params: ${JSON.stringify({ uri: params?.textDocument?.uri, position: params?.position })}`);
-    
     try {
       const cursorInfo: CursorInfo | null = this.cursorInfo(params);
-      Logger.info(`[onDefinition] cursorInfo: ${cursorInfo ? JSON.stringify({ type: cursorInfo.type, name: cursorInfo.name, tag: cursorInfo.tag }) : 'null'}`);
-      
+
       if (!cursorInfo) {
-        Logger.info('[onDefinition] No cursorInfo, returning empty array');
         return [];
       }
 
-      const tag: Tag | null = cursorInfo.tag ? this.componentIndexer.findTagByName(cursorInfo.tag) : null;
-      Logger.info(`[onDefinition] Found tag: ${tag ? `tag.file=${tag.file}` : 'null'}`);
+      const tag: Tag | null =
+        cursorInfo.tag && this.componentIndexer ? this.componentIndexer.findTagByName(cursorInfo.tag) : null;
 
       let result: Location[] = [];
       switch (cursorInfo.type) {
         case 'tag':
           if (tag) {
             try {
-              Logger.info(`[onDefinition] Getting all locations for tag: ${cursorInfo.tag}, tag.file: ${tag.file}`);
               result = getAllLocations(tag, this.fileSystemProvider);
-              Logger.info(`[onDefinition] getAllLocations returned ${result.length} locations: ${result.map(l => l.uri).join(', ')}`);
             } catch (error) {
-              Logger.error(`[onDefinition] Error getting all locations for tag ${cursorInfo.tag}: ${error instanceof Error ? error.message : String(error)}`, error);
+              Logger.error(
+                `[onDefinition] Error getting all locations for tag ${cursorInfo.tag}: ${error instanceof Error ? error.message : String(error)}`,
+                error
+              );
               result = [];
             }
           } else {
@@ -576,10 +575,8 @@ export abstract class BaseServer {
 
         case 'attributeKey':
           const attr: AttributeInfo | null = tag ? getAttribute(tag, cursorInfo.name) : null;
-          Logger.info(`[onDefinition] attributeKey case, attr: ${attr ? `location=${attr.location?.uri}` : 'null'}`);
           if (attr?.location) {
             result = [attr.location];
-            Logger.info(`[onDefinition] Returning attribute location: ${attr.location.uri}`);
           } else {
             Logger.warn(`[onDefinition] No location found for attribute: ${cursorInfo.name}`);
           }
@@ -588,25 +585,30 @@ export abstract class BaseServer {
         case 'dynamicContent':
         case 'dynamicAttributeValue':
           const { uri } = params.textDocument;
-          Logger.info(`[onDefinition] ${cursorInfo.type} case, uri: ${uri}, cursorInfo.range: ${cursorInfo.range ? 'exists' : 'null'}`);
           if (cursorInfo.range) {
             result = [Location.create(uri, cursorInfo.range)];
-            Logger.info(`[onDefinition] Returning range location: ${uri}`);
           } else {
             try {
-              Logger.info(`[onDefinition] Finding component by URI: ${uri}`);
+              if (!this.componentIndexer) {
+                Logger.warn('[onDefinition] Component indexer not available');
+                break;
+              }
               const component: Tag | null = this.componentIndexer.findTagByURI(uri);
-              Logger.info(`[onDefinition] Component found: ${component ? `tag.file=${component.file}` : 'null'}`);
               if (component) {
-                Logger.info(`[onDefinition] Getting class member location for: ${cursorInfo.name}`);
                 const location = getClassMemberLocation(component, cursorInfo.name, this.fileSystemProvider);
-                Logger.info(`[onDefinition] Class member location: ${location ? location.uri : 'null'}`);
                 if (location) {
                   result = [location];
                 }
+              } else {
+                Logger.warn(
+                  `[onDefinition] Component not found for URI: ${uri}. This may indicate the component indexer hasn't finished indexing yet.`
+                );
               }
             } catch (error) {
-              Logger.error(`[onDefinition] Error getting class member location: ${error instanceof Error ? error.message : String(error)}`, error);
+              Logger.error(
+                `[onDefinition] Error getting class member location: ${error instanceof Error ? error.message : String(error)}`,
+                error
+              );
             }
           }
           break;
@@ -615,8 +617,6 @@ export abstract class BaseServer {
           Logger.info(`[onDefinition] Unknown cursorInfo.type: ${cursorInfo.type}`);
           break;
       }
-
-      Logger.info(`[onDefinition] Returning ${result.length} locations`);
       return result;
     } catch (error) {
       Logger.error(`[onDefinition] Unexpected error: ${error instanceof Error ? error.message : String(error)}`, error);
@@ -732,9 +732,13 @@ export abstract class BaseServer {
     if (hasTsEnabled) {
       this.context.setConnection(this.connection);
       await this.context.configureProjectForTs();
-      await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
+      if (this.componentIndexer) {
+        await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
+      }
     }
   }
+
+  protected isInitializing = false;
 
   /**
    * Performs delayed initialization of context and component indexer
@@ -745,6 +749,15 @@ export abstract class BaseServer {
       return;
     }
 
+    // Prevent concurrent initialization attempts - check BEFORE any logging
+    if (this.isInitializing) {
+      Logger.info('[performDelayedInitialization] Already initializing, skipping duplicate call');
+      return;
+    }
+
+    this.isInitializing = true;
+    Logger.info('[performDelayedInitialization] Starting delayed initialization (guard passed)');
+
     try {
       // Initialize workspace context now that essential files are loaded via onDidOpen
       // scheduleReinitialization waits for file loading to stabilize, so all files should be available
@@ -752,7 +765,83 @@ export abstract class BaseServer {
 
       // Clear namespace cache to force re-detection now that files are synced
       // This ensures directoryExists can infer directory existence from file paths
-      this.context.clearNamespaceCache();
+      // But wait for LWC files to be loaded first - check if any LWC files exist
+      const allFiles = this.fileSystemProvider.getAllFileUris();
+      const hasLwcFiles = allFiles.some(
+        uri => uri.includes('/lwc/') && (uri.endsWith('.html') || uri.endsWith('.js') || uri.endsWith('.ts'))
+      );
+
+      if (hasLwcFiles) {
+        Logger.info('[performDelayedInitialization] LWC files detected, clearing namespace cache');
+        this.context.clearNamespaceCache();
+      } else {
+        Logger.info(
+          '[performDelayedInitialization] No LWC files detected yet, namespace cache will be cleared when LWC files are loaded'
+        );
+      }
+
+      // For SFDX workspaces, wait for sfdx-project.json to be loaded before initializing component indexer
+      if (this.workspaceType === 'SFDX') {
+        const sfdxProjectPath = normalizePath(path.join(this.workspaceRoots[0], 'sfdx-project.json'));
+        let attempts = 0;
+        const maxAttempts = 50; // Wait up to 5 seconds (50 * 100ms)
+
+        // Log what files are currently in the fileSystemProvider BEFORE waiting
+        Logger.info(`[performDelayedInitialization] Checking for sfdx-project.json at ${sfdxProjectPath}`);
+        Logger.info(`[performDelayedInitialization] Total files in fileSystemProvider: ${allFiles.length}`);
+        const matchingFiles = allFiles.filter(uri => uri.includes('sfdx-project.json'));
+        Logger.info(`[performDelayedInitialization] Files containing 'sfdx-project.json': ${matchingFiles.length}`);
+        if (matchingFiles.length > 0) {
+          Logger.info(`[performDelayedInitialization] Matching files: ${JSON.stringify(matchingFiles)}`);
+        }
+        // Show sample of files to understand what's loaded
+        const sampleFiles = allFiles.slice(0, 20);
+        Logger.info(`[performDelayedInitialization] Sample files (first 20): ${JSON.stringify(sampleFiles)}`);
+        Logger.info(
+          `[performDelayedInitialization] fileExists(${sfdxProjectPath}): ${this.fileSystemProvider.fileExists(sfdxProjectPath)}`
+        );
+        Logger.info('[performDelayedInitialization] Starting wait loop...');
+
+        while (attempts < maxAttempts && !this.fileSystemProvider.fileExists(sfdxProjectPath)) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+
+          // Log every 10 attempts to see if files are being added
+          if (attempts % 10 === 0) {
+            const currentFileCount = this.fileSystemProvider.getAllFileUris().length;
+            const currentMatching = this.fileSystemProvider
+              .getAllFileUris()
+              .filter(uri => uri.includes('sfdx-project.json'));
+            Logger.info(
+              `[performDelayedInitialization] Attempt ${attempts}/${maxAttempts}: ` +
+                `Total files: ${currentFileCount}, ` +
+                `Files with 'sfdx-project.json': ${currentMatching.length}, ` +
+                `fileExists(${sfdxProjectPath}): ${this.fileSystemProvider.fileExists(sfdxProjectPath)}`
+            );
+          }
+        }
+
+        // Final check and logging
+        const finalFileCount = this.fileSystemProvider.getAllFileUris().length;
+        const finalMatching = this.fileSystemProvider.getAllFileUris().filter(uri => uri.includes('sfdx-project.json'));
+        Logger.info(
+          '[performDelayedInitialization] Final state: ' +
+            `Total files: ${finalFileCount}, ` +
+            `Files with 'sfdx-project.json': ${finalMatching.length}, ` +
+            `fileExists(${sfdxProjectPath}): ${this.fileSystemProvider.fileExists(sfdxProjectPath)}`
+        );
+
+        if (!this.fileSystemProvider.fileExists(sfdxProjectPath)) {
+          Logger.info(
+            `[performDelayedInitialization] sfdx-project.json not found after ${maxAttempts * 100}ms. ` +
+              'Component indexer initialization will be retried when the file is loaded via onDidOpen.'
+          );
+          // Don't mark as complete - allow re-triggering when sfdx-project.json is loaded
+          this.isInitializing = false;
+          return;
+        }
+        Logger.info(`[performDelayedInitialization] sfdx-project.json found after ${attempts * 100}ms`);
+      }
 
       // Re-initialize component indexer (files are now in fileSystemProvider)
       this.componentIndexer = new ComponentIndexer({
@@ -771,8 +860,6 @@ export abstract class BaseServer {
         useDefaultDataProvider: false
       });
 
-      this.isDelayedInitializationComplete = true;
-
       // Configure TypeScript support now that files are loaded and context is initialized
       await this.configureTypeScriptSupport();
 
@@ -787,6 +874,9 @@ export abstract class BaseServer {
         error instanceof Error ? error : undefined
       );
       throw error;
+    } finally {
+      this.isDelayedInitializationComplete = true;
+      this.isInitializing = false;
     }
   }
 }

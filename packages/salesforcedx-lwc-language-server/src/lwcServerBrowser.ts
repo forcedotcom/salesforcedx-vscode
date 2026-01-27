@@ -9,8 +9,10 @@
 import {
   Logger,
   syncDocumentToTextDocumentsProvider,
-  scheduleReinitialization
+  scheduleReinitialization,
+  normalizePath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import * as path from 'node:path';
 import { getLanguageService } from 'vscode-html-languageservice';
 import {
   createConnection,
@@ -66,12 +68,28 @@ export default class Server extends BaseServer {
       }
     }
 
+    // If this is an LWC file and delayed initialization hasn't completed yet,
+    // clear namespace cache to ensure namespace roots are recalculated as files are discovered.
+    // Once delayed initialization is complete, namespace roots are stable and don't need recalculation
+    // on every file open - they only change when directory structure changes.
+    if (isLwcFile && !this.isDelayedInitializationComplete && this.context) {
+      this.context.clearNamespaceCache();
+    }
+
     // Perform delayed initialization once file loading has stabilized
     // scheduleReinitialization waits for file count to stabilize (no changes for 1.5 seconds)
     // This ensures all files from bootstrapWorkspaceAwareness are loaded before initialization
     if (!this.isDelayedInitializationComplete) {
       void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
-    } else if (isLwcFile) {
+    } else if (this.workspaceType === 'SFDX' && !this.componentIndexer) {
+      // If delayed initialization was skipped because sfdx-project.json wasn't loaded,
+      // check if this is the file being opened and re-trigger initialization
+      const sfdxProjectPath = normalizePath(path.join(this.workspaceRoots[0], 'sfdx-project.json'));
+      if (normalizedPath === sfdxProjectPath) {
+        Logger.info('[onDidOpen] sfdx-project.json opened, re-triggering delayed initialization');
+        void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
+      }
+    } else if (isLwcFile && this.componentIndexer) {
       // Delayed initialization already complete - but if this is an LWC file, we may need to re-index
       // Check if we have any components indexed - if not, delayed init ran too early
       const componentCount = this.componentIndexer.getCustomData().length;
@@ -113,6 +131,15 @@ export default class Server extends BaseServer {
       return;
     }
 
+    // Prevent concurrent initialization attempts - check BEFORE any logging
+    if (this.isInitializing) {
+      Logger.info('[performDelayedInitialization] Already initializing, skipping duplicate call');
+      return;
+    }
+
+    this.isInitializing = true;
+    Logger.info('[performDelayedInitialization] Starting delayed initialization (guard passed)');
+
     try {
       // Initialize workspace context now that essential files are loaded via onDidOpen
       // scheduleReinitialization waits for file loading to stabilize, so all files should be available
@@ -121,6 +148,70 @@ export default class Server extends BaseServer {
       // Clear namespace cache to force re-detection now that files are synced
       // This ensures directoryExists can infer directory existence from file paths
       this.context.clearNamespaceCache();
+
+      // For SFDX workspaces, wait for sfdx-project.json to be loaded before initializing component indexer
+      if (this.workspaceType === 'SFDX') {
+        const sfdxProjectPath = normalizePath(path.join(this.workspaceRoots[0], 'sfdx-project.json'));
+        let attempts = 0;
+        const maxAttempts = 50; // Wait up to 5 seconds (50 * 100ms)
+
+        // Log what files are currently in the fileSystemProvider BEFORE waiting
+        Logger.info(`[performDelayedInitialization] Checking for sfdx-project.json at ${sfdxProjectPath}`);
+        const allFiles = this.fileSystemProvider.getAllFileUris();
+        Logger.info(`[performDelayedInitialization] Total files in fileSystemProvider: ${allFiles.length}`);
+        const matchingFiles = allFiles.filter(uri => uri.includes('sfdx-project.json'));
+        Logger.info(`[performDelayedInitialization] Files containing 'sfdx-project.json': ${matchingFiles.length}`);
+        if (matchingFiles.length > 0) {
+          Logger.info(`[performDelayedInitialization] Matching files: ${JSON.stringify(matchingFiles)}`);
+        }
+        // Show sample of files to understand what's loaded
+        const sampleFiles = allFiles.slice(0, 20);
+        Logger.info(`[performDelayedInitialization] Sample files (first 20): ${JSON.stringify(sampleFiles)}`);
+        Logger.info(
+          `[performDelayedInitialization] fileExists(${sfdxProjectPath}): ${this.fileSystemProvider.fileExists(sfdxProjectPath)}`
+        );
+        Logger.info('[performDelayedInitialization] Starting wait loop...');
+
+        while (attempts < maxAttempts && !this.fileSystemProvider.fileExists(sfdxProjectPath)) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+
+          // Log every 10 attempts to see if files are being added
+          if (attempts % 10 === 0) {
+            const currentFileCount = this.fileSystemProvider.getAllFileUris().length;
+            const currentMatching = this.fileSystemProvider
+              .getAllFileUris()
+              .filter(uri => uri.includes('sfdx-project.json'));
+            Logger.info(
+              `[performDelayedInitialization] Attempt ${attempts}/${maxAttempts}: ` +
+                `Total files: ${currentFileCount}, ` +
+                `Files with 'sfdx-project.json': ${currentMatching.length}, ` +
+                `fileExists(${sfdxProjectPath}): ${this.fileSystemProvider.fileExists(sfdxProjectPath)}`
+            );
+          }
+        }
+
+        // Final check and logging
+        const finalFileCount = this.fileSystemProvider.getAllFileUris().length;
+        const finalMatching = this.fileSystemProvider.getAllFileUris().filter(uri => uri.includes('sfdx-project.json'));
+        Logger.info(
+          '[performDelayedInitialization] Final state: ' +
+            `Total files: ${finalFileCount}, ` +
+            `Files with 'sfdx-project.json': ${finalMatching.length}, ` +
+            `fileExists(${sfdxProjectPath}): ${this.fileSystemProvider.fileExists(sfdxProjectPath)}`
+        );
+
+        if (!this.fileSystemProvider.fileExists(sfdxProjectPath)) {
+          Logger.info(
+            `[performDelayedInitialization] sfdx-project.json not found after ${maxAttempts * 100}ms. ` +
+              'Component indexer initialization will be retried when the file is loaded via onDidOpen.'
+          );
+          // Don't mark as complete - allow re-triggering when sfdx-project.json is loaded
+          this.isInitializing = false;
+          return;
+        }
+        Logger.info(`[performDelayedInitialization] sfdx-project.json found after ${attempts * 100}ms`);
+      }
 
       // Re-initialize component indexer (files are now in fileSystemProvider)
       this.componentIndexer = new ComponentIndexer({
@@ -132,6 +223,10 @@ export default class Server extends BaseServer {
       await this.componentIndexer.init();
 
       const componentCount = this.componentIndexer.getCustomData().length;
+      Logger.info(
+        `[performDelayedInitialization] Component indexing complete: ${componentCount} components, ` +
+          `tags.size=${this.componentIndexer.tags.size}, isDelayedInitializationComplete will be set to: ${componentCount > 0}`
+      );
 
       // Update data providers to use the new indexer
       this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
@@ -146,6 +241,12 @@ export default class Server extends BaseServer {
       // If 0 components, keep the flag false so scheduleReinitialization can trigger again when more files arrive
       if (componentCount > 0) {
         this.isDelayedInitializationComplete = true;
+        Logger.info('[performDelayedInitialization] Marked isDelayedInitializationComplete = true');
+      } else {
+        Logger.info(
+          '[performDelayedInitialization] componentCount is 0, keeping isDelayedInitializationComplete = false ' +
+            'to allow reinitialization when more files are loaded'
+        );
       }
 
       // Configure TypeScript support now that files are loaded and context is initialized
@@ -153,10 +254,16 @@ export default class Server extends BaseServer {
 
       // send notification that delayed initialization is complete (only if we have components)
       if (componentCount > 0) {
+        Logger.info('[performDelayedInitialization] Sending "LWC Language Server is ready" notification');
         void this.connection.sendNotification(ShowMessageNotification.type, {
           type: MessageType.Info,
           message: 'LWC Language Server is ready'
         });
+        Logger.info('[performDelayedInitialization] Notification sent successfully');
+      } else {
+        Logger.info(
+          '[performDelayedInitialization] Skipping ready notification (componentCount=0, will retry when files are loaded)'
+        );
       }
     } catch (error: unknown) {
       Logger.error(
@@ -164,6 +271,10 @@ export default class Server extends BaseServer {
         error instanceof Error ? error : undefined
       );
       throw error;
+    } finally {
+      // Always reset isInitializing, even if initialization didn't complete successfully
+      // This allows retries when more files are loaded
+      this.isInitializing = false;
     }
   }
 }

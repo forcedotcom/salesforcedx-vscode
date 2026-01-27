@@ -23,12 +23,14 @@ const YIELD_DELAY_MS = isWindows ? 150 : 50; // Delay when yielding (ms)
  * Options for bootstrapWorkspaceAwareness
  */
 export interface BootstrapOptions {
-  /** Glob pattern for files to load */
+  /** Glob pattern for files to load (ignored if uris is provided) */
   fileGlob: string;
-  /** Glob pattern for files/directories to exclude */
+  /** Glob pattern for files/directories to exclude (ignored if uris is provided) */
   excludeGlob: string;
   /** Optional logger function - defaults to console.log */
   logger?: (message: string) => void;
+  /** Optional list of URIs to load directly - if provided, skips findFiles and uses these URIs */
+  uris?: vscode.Uri[];
 }
 
 // --- Effect-wrapped VSCode API ---
@@ -50,18 +52,26 @@ const openDoc = (uri: vscode.Uri): Effect.Effect<vscode.Uri, Error> =>
  * @param options Configuration options for file glob patterns and logging
  */
 export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.Effect<void, Error> => {
-  const { fileGlob, excludeGlob, logger = console.log } = options;
+  const { fileGlob, excludeGlob, logger = console.log, uris: providedUris } = options;
 
   return Effect.gen(function* () {
-    // 1. Find all matching workspace files
-    const uris = yield* Effect.tryPromise({
-      try: () => vscode.workspace.findFiles(fileGlob, excludeGlob),
-      catch: (e: unknown) => new Error(`Failed to find workspace files: ${String(e)}`)
-    });
+    // 1. Find all matching workspace files, or use provided URIs
+    let uris: vscode.Uri[];
+    if (providedUris && providedUris.length > 0) {
+      // Use provided URIs directly, skip findFiles
+      uris = providedUris;
+      logger(`Using ${uris.length} provided URIs (skipping findFiles)`);
+    } else {
+      // Use findFiles to discover files
+      uris = yield* Effect.tryPromise({
+        try: () => vscode.workspace.findFiles(fileGlob, excludeGlob),
+        catch: (e: unknown) => new Error(`Failed to find workspace files: ${String(e)}`)
+      });
 
-    if (uris.length === 0) {
-      logger(`No matching files found for pattern: ${fileGlob} (excluding: ${excludeGlob})`);
-      return;
+      if (uris.length === 0) {
+        logger(`No matching files found for pattern: ${fileGlob} (excluding: ${excludeGlob})`);
+        return;
+      }
     }
 
     logger(`📁 Bootstrapping ${uris.length} files into document cache...`);

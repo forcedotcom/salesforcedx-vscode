@@ -7,6 +7,7 @@
 
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { Logger } from './logger';
 import { nls } from './messages';
 import { FileSystemDataProvider, IFileSystemProvider } from './providers/fileSystemDataProvider';
 import { jsconfigCore } from './resources/core/jsconfig-core';
@@ -280,7 +281,15 @@ export abstract class BaseWorkspaceContext {
     // Normalize file path to ensure consistent format (especially Windows drive letter casing and path separators)
     const normalizedFile = utils.normalizePath(file);
     const namespaceRoots = await this.findNamespaceRootsUsingTypeCache();
-    return namespaceRoots.lwc.some(root => utils.pathStartsWith(normalizedFile, root));
+    Logger.info(`[isFileInsideModulesRoots] Checking file: ${normalizedFile}`);
+    Logger.info(`[isFileInsideModulesRoots] Namespace roots (lwc): ${JSON.stringify(namespaceRoots.lwc)}`);
+    const result = namespaceRoots.lwc.some(root => {
+      const matches = utils.pathStartsWith(normalizedFile, root);
+      Logger.info(`[isFileInsideModulesRoots] Checking against root: ${root}, matches: ${matches}`);
+      return matches;
+    });
+    Logger.info(`[isFileInsideModulesRoots] Final result: ${result}`);
+    return result;
   }
 
   public async isFileInsideAuraRoots(file: string): Promise<boolean> {
