@@ -6,18 +6,16 @@
  */
 
 import * as Impl from '../../../../../src/soql-model/model/impl';
-import { LiteralType } from '../../../../../src/soql-model/model/model';
-
 
 describe('LiteralImpl should', () => {
   it('store the literal type and value', () => {
-    const expected = { type: 'BOOLEAN', value: 'TRUE' };
-    const actual = new Impl.LiteralImpl(LiteralType.Boolean, 'TRUE');
+    const expected = { value: 'TRUE' };
+    const actual = new Impl.LiteralImpl('TRUE');
     expect(actual).toEqual(expected);
   });
   it('return the value of the literal for toSoqlSyntax()', () => {
     const expected = 'TRUE';
-    const actual = new Impl.LiteralImpl(LiteralType.Boolean, 'TRUE').toSoqlSyntax();
+    const actual = new Impl.LiteralImpl('TRUE').toSoqlSyntax();
     expect(actual).toEqual(expected);
   });
 });

@@ -205,7 +205,6 @@ export enum LiteralType {
 }
 
 export interface Literal extends CompareValue {
-  type: LiteralType;
   value: string;
 }
 

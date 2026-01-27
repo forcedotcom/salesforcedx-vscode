@@ -6,30 +6,26 @@
  */
 
 import * as Impl from '../../../../../src/soql-model/model/impl';
-import { ConditionOperator, LiteralType } from '../../../../../src/soql-model/model/model';
-
+import { ConditionOperator } from '../../../../../src/soql-model/model/model';
 
 describe('IncludesConditionImpl should', () => {
   it('store field, operator, and values', () => {
     const expected = {
       field: { fieldName: 'field' },
       operator: 'INCLUDES',
-      values: [
-        { type: 'STRING', value: "'abc'" },
-        { type: 'STRING', value: "'def'" },
-      ],
+      values: [{ value: "'abc'" }, { value: "'def'" }]
     };
     const actual = new Impl.IncludesConditionImpl(new Impl.FieldRefImpl('field'), ConditionOperator.Includes, [
-      new Impl.LiteralImpl(LiteralType.String, "'abc'"),
-      new Impl.LiteralImpl(LiteralType.String, "'def'"),
+      new Impl.LiteralImpl("'abc'"),
+      new Impl.LiteralImpl("'def'")
     ]);
     expect(actual).toEqual(expected);
   });
   it('return field, operator, and parenthesized comma-separated values separated by spaces for toSoqlSyntax()', () => {
     const expected = "field INCLUDES ( 'abc', 'def' )";
     const actual = new Impl.IncludesConditionImpl(new Impl.FieldRefImpl('field'), ConditionOperator.Includes, [
-      new Impl.LiteralImpl(LiteralType.String, "'abc'"),
-      new Impl.LiteralImpl(LiteralType.String, "'def'"),
+      new Impl.LiteralImpl("'abc'"),
+      new Impl.LiteralImpl("'def'")
     ]).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });

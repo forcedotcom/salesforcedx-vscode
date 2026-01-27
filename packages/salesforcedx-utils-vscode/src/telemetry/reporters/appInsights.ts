@@ -84,7 +84,7 @@ export class AppInsights
     }
 
     // check if it's an Asimov key to change the endpoint
-    if (key && key.indexOf('AIF-') === 0) {
+    if (key?.indexOf('AIF-') === 0) {
       this.appInsightsClient.config.endpointUrl = 'https://vortex.data.microsoft.com/collect/v1';
     }
   }

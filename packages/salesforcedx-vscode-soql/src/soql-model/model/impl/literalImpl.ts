@@ -9,7 +9,7 @@ import * as Soql from '../model';
 import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
 export class LiteralImpl extends SoqlModelObjectImpl implements Soql.Literal {
-  constructor(public type: Soql.LiteralType, public value: string) {
+  constructor(public value: string) {
     super();
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -10,7 +10,7 @@ import * as Soql from '../../../../src/soql-model/model/model';
 import { SoqlModelUtils } from '../../../../src/soql-model/model/util';
 
 const field = new Impl.FieldRefImpl('field');
-const literal = new Impl.LiteralImpl(Soql.LiteralType.String, "'Hello'");
+const literal = new Impl.LiteralImpl("'Hello'");
 const conditionFieldCompare = new Impl.FieldCompareConditionImpl(field, Soql.ConditionOperator.Equals, literal);
 const conditionLike = new Impl.FieldCompareConditionImpl(field, Soql.ConditionOperator.Like, literal);
 const conditionInList = new Impl.InListConditionImpl(field, Soql.ConditionOperator.In, [literal]);
@@ -34,7 +34,7 @@ describe('SoqlModelUtils should', () => {
           new Impl.FieldSelectionImpl(
             new Impl.FieldRefImpl('field1'),
             new Impl.UnmodeledSyntaxImpl('alias1', Soql.REASON_UNMODELED_ALIAS)
-          ),
+          )
         ]),
         new Impl.FromImpl('object1')
       )
@@ -48,7 +48,7 @@ describe('SoqlModelUtils should', () => {
           new Impl.FieldSelectionImpl(
             new Impl.FieldRefImpl('field1'),
             new Impl.UnmodeledSyntaxImpl('alias1', Soql.REASON_UNMODELED_ALIAS)
-          ),
+          )
         ]),
         new Impl.FromImpl('object1')
       )
@@ -58,11 +58,11 @@ describe('SoqlModelUtils should', () => {
   it('returns an array explaining what is unsupported', () => {
     const unmodeled1 = {
       syntax: 'alias',
-      reason: Soql.REASON_UNMODELED_ALIAS,
+      reason: Soql.REASON_UNMODELED_ALIAS
     };
     const unmodeled2 = {
       syntax: 'COUNT(Id) recordCount',
-      reason: Soql.REASON_UNMODELED_FUNCTIONREFERENCE,
+      reason: Soql.REASON_UNMODELED_FUNCTIONREFERENCE
     };
     const actual = SoqlModelUtils.getUnmodeledSyntax(
       new Impl.QueryImpl(
@@ -74,7 +74,7 @@ describe('SoqlModelUtils should', () => {
           new Impl.FieldSelectionImpl(
             new Impl.FieldRefImpl('field2'),
             new Impl.UnmodeledSyntaxImpl(unmodeled2.syntax, unmodeled2.reason)
-          ),
+          )
         ]),
         new Impl.FromImpl('object1')
       )
@@ -101,8 +101,8 @@ describe('SoqlModelUtils should', () => {
         type: Soql.ErrorType.UNKNOWN,
         message: 'ERROR',
         lineNumber: 1,
-        charInLine: 1,
-      },
+        charInLine: 1
+      }
     ];
 
     const actual = SoqlModelUtils.containsError(model);
@@ -124,20 +124,20 @@ describe('SoqlModelUtils should', () => {
       conditionIncludes,
       conditionInList,
       conditionUnmodeled,
-      conditionNested,
+      conditionNested
     ];
     let actual = true;
-    simpleConditions.forEach((condition) => (actual &&= SoqlModelUtils.isSimpleCondition(condition)));
+    simpleConditions.forEach(condition => (actual &&= SoqlModelUtils.isSimpleCondition(condition)));
     expect(actual).toBeTruthy();
   });
   it('return false from isSimpleCondition for non-simple conditions', () => {
     const complexConditions: Soql.Condition[] = [
       conditionAndOr,
       conditionNot,
-      new Impl.NestedConditionImpl(conditionAndOr),
+      new Impl.NestedConditionImpl(conditionAndOr)
     ];
     let actual = true;
-    complexConditions.forEach((condition) => (actual &&= !SoqlModelUtils.isSimpleCondition(condition)));
+    complexConditions.forEach(condition => (actual &&= !SoqlModelUtils.isSimpleCondition(condition)));
     expect(actual).toBeTruthy();
   });
   it('return true from isSimpleGroup for simple group of conditions', () => {
@@ -145,10 +145,10 @@ describe('SoqlModelUtils should', () => {
       conditionFieldCompare,
       conditionAndOr,
       new Impl.AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.And, conditionAndOr),
-      new Impl.NestedConditionImpl(conditionAndOr),
+      new Impl.NestedConditionImpl(conditionAndOr)
     ];
     let actual = true;
-    simpleGroups.forEach((condition) => (actual &&= SoqlModelUtils.isSimpleGroup(condition)));
+    simpleGroups.forEach(condition => (actual &&= SoqlModelUtils.isSimpleGroup(condition)));
     expect(actual).toBeTruthy();
   });
   it('return false from isSimpleGroup for non-simple group of conditions', () => {
@@ -162,10 +162,10 @@ describe('SoqlModelUtils should', () => {
         new Impl.NestedConditionImpl(conditionAndOr),
         Soql.AndOr.Or,
         new Impl.NestedConditionImpl(conditionAndOr)
-      ),
+      )
     ];
     let actual = true;
-    nonSimpleGroups.forEach((condition) => (actual &&= !SoqlModelUtils.isSimpleGroup(condition)));
+    nonSimpleGroups.forEach(condition => (actual &&= !SoqlModelUtils.isSimpleGroup(condition)));
     expect(actual).toBeTruthy();
   });
   it('throws from simpleGroupToArray if condition not simple group', () => {

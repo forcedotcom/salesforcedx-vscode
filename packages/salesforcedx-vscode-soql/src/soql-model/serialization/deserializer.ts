@@ -637,23 +637,23 @@ class QueryListener implements SoqlParserListener {
       ctx = ctx.soqlCommonLiterals();
     }
     if (ctx instanceof Parser.SoqlDateLiteralContext) {
-      return new Impl.LiteralImpl(Soql.LiteralType.Date, ctx.text);
+      return new Impl.LiteralImpl(ctx.text);
     } else if (ctx instanceof Parser.SoqlDateTimeLiteralContext) {
-      return new Impl.LiteralImpl(Soql.LiteralType.Date, ctx.text);
+      return new Impl.LiteralImpl(ctx.text);
     } else if (ctx instanceof Parser.SoqlTimeLiteralContext) {
-      return new Impl.LiteralImpl(Soql.LiteralType.Date, ctx.text);
+      return new Impl.LiteralImpl(ctx.text);
     } else if (ctx instanceof Parser.SoqlDateFormulaLiteralContext) {
-      return new Impl.LiteralImpl(Soql.LiteralType.Date, ctx.text);
+      return new Impl.LiteralImpl(ctx.text);
     } else if (ctx instanceof Parser.SoqlNumberLiteralContext) {
-      return new Impl.LiteralImpl(Soql.LiteralType.Number, ctx.text);
+      return new Impl.LiteralImpl(ctx.text);
     } else if (ctx instanceof Parser.SoqlNullLiteralContext) {
-      return new Impl.LiteralImpl(Soql.LiteralType.Null, ctx.text);
+      return new Impl.LiteralImpl(ctx.text);
     } else if (ctx instanceof Parser.SoqlBooleanLiteralContext) {
-      return new Impl.LiteralImpl(Soql.LiteralType.Boolean, ctx.text);
+      return new Impl.LiteralImpl(ctx.text);
     } else if (ctx instanceof Parser.SoqlMultiCurrencyContext) {
-      return new Impl.LiteralImpl(Soql.LiteralType.Currency, ctx.text);
+      return new Impl.LiteralImpl(ctx.text);
     }
-    return new Impl.LiteralImpl(Soql.LiteralType.String, ctx.text);
+    return new Impl.LiteralImpl(ctx.text);
   }
 
   protected exprsToCondition(ctx: Parser.SoqlWhereExprsContext): Soql.Condition {

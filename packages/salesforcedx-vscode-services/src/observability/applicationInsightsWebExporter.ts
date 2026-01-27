@@ -82,7 +82,7 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
 const isTopLevelSpan = (span: ReadableSpan): boolean => span.parentSpanContext === undefined;
 
 const exportSpan = (span: ReadableSpan): void => {
-  const success = !span.status || span.status.code !== SpanStatusCode.ERROR;
+  const success = span.status?.code !== SpanStatusCode.ERROR;
 
   // Create distributed trace context from OpenTelemetry span context
   const telemetryTrace = {

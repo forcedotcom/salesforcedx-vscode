@@ -6,27 +6,26 @@
  */
 
 import * as Impl from '../../../../../src/soql-model/model/impl';
-import { AndOr, ConditionOperator, LiteralType } from '../../../../../src/soql-model/model/model';
-
+import { AndOr, ConditionOperator } from '../../../../../src/soql-model/model/model';
 
 describe('AndOrConditionImpl should', () => {
   it('store left and right conditions and the AndOr operator', () => {
     const expected = {
-      leftCondition: { field: { fieldName: 'field' }, operator: '>', compareValue: { type: 'NUMBER', value: '1' } },
+      leftCondition: { field: { fieldName: 'field' }, operator: '>', compareValue: { value: '1' } },
       andOr: 'OR',
-      rightCondition: { field: { fieldName: 'field' }, operator: '<', compareValue: { type: 'NUMBER', value: '5' } },
+      rightCondition: { field: { fieldName: 'field' }, operator: '<', compareValue: { value: '5' } }
     };
     const actual = new Impl.AndOrConditionImpl(
       new Impl.FieldCompareConditionImpl(
         new Impl.FieldRefImpl('field'),
         ConditionOperator.GreaterThan,
-        new Impl.LiteralImpl(LiteralType.Number, '1')
+        new Impl.LiteralImpl('1')
       ),
       AndOr.Or,
       new Impl.FieldCompareConditionImpl(
         new Impl.FieldRefImpl('field'),
         ConditionOperator.LessThan,
-        new Impl.LiteralImpl(LiteralType.Number, '5')
+        new Impl.LiteralImpl('5')
       )
     );
     expect(actual).toEqual(expected);
@@ -37,13 +36,13 @@ describe('AndOrConditionImpl should', () => {
       new Impl.FieldCompareConditionImpl(
         new Impl.FieldRefImpl('field'),
         ConditionOperator.GreaterThan,
-        new Impl.LiteralImpl(LiteralType.Number, '1')
+        new Impl.LiteralImpl('1')
       ),
       AndOr.Or,
       new Impl.FieldCompareConditionImpl(
         new Impl.FieldRefImpl('field'),
         ConditionOperator.LessThan,
-        new Impl.LiteralImpl(LiteralType.Number, '5')
+        new Impl.LiteralImpl('5')
       )
     ).toSoqlSyntax();
     expect(actual).toEqual(expected);
