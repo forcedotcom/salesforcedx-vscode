@@ -31,7 +31,7 @@
   "devDependencies": {
     "@salesforce/core": "^8.23.3",
     "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/source-deploy-retrieve": "^12.31.5",
+    "@salesforce/source-deploy-retrieve": "^12.31.9",
     "esbuild": "0.25.12",
     "salesforcedx-vscode-services": "*"
   },
@@ -108,13 +108,17 @@
     },
     "check:circular-deps": {
       "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
-      "dependencies": ["compile"],
+      "dependencies": [
+        "compile"
+      ],
       "files": [
         "src/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json"
       ],
-      "output": [".circular-deps.json"]
+      "output": [
+        ".circular-deps.json"
+      ]
     },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
