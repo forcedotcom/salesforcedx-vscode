@@ -827,11 +827,6 @@
           "default": true,
           "description": "%show_cli_success_msg_description%"
         },
-        "salesforcedx-vscode-core.retrieve-test-code-coverage": {
-          "type": "boolean",
-          "default": false,
-          "description": "%retrieve_test_code_coverage_text%"
-        },
         "salesforcedx-vscode-core.telemetry.enabled": {
           "type": "boolean",
           "default": true,

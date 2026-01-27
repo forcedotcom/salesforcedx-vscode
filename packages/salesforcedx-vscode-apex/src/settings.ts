@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as vscode from 'vscode';
 
 // Eligibility for OpenAPI Document ONLY, should not be changed by users unless overwriting in settings.json
@@ -23,9 +22,6 @@ const APEX_ACTION_METHOD_ANNOTATION: string[] = ['AuraEnabled'];
 const DEFAULT_CLASS_ACCESS_MODIFIERS = ['global', 'public'];
 const DEFAULT_METHOD_ACCESS_MODIFIERS = ['global', 'public'];
 const DEFAULT_PROP_ACCESS_MODIFIERS = ['global', 'public'];
-
-export const retrieveTestCodeCoverage = (): boolean =>
-  vscode.workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME).get<boolean>('retrieve-test-code-coverage', false);
 
 export const retrieveEnableSyncInitJobs = (): boolean =>
   vscode.workspace.getConfiguration().get<boolean>('salesforcedx-vscode-apex.wait-init-jobs', true);
