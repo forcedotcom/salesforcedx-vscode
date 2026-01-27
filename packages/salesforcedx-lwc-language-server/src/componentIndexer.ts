@@ -302,7 +302,9 @@ export default class ComponentIndexer {
           // For memfs:// URIs, ensure paths have a leading slash so TypeScript web server can properly resolve them
           // TypeScript web server needs absolute paths to convert to URIs for file watching
           // Without a leading slash, paths like "MyProject/force-app/..." might be misinterpreted as schemes
-          if (!componentFilePath.startsWith('/') && !componentFilePath.startsWith('//')) {
+          // Windows absolute paths (e.g., "d:/path") should not get a leading slash added
+          const isWindowsAbsolute = /^[A-Za-z]:[/\\]/.test(componentFilePath);
+          if (!isWindowsAbsolute && !componentFilePath.startsWith('/') && !componentFilePath.startsWith('//')) {
             componentFilePath = normalizePath(`/${componentFilePath}`);
           }
           const paths = (sfdxTsConfig.compilerOptions.paths[componentName] ??= []);
@@ -372,7 +374,9 @@ export default class ComponentIndexer {
           // For memfs:// URIs, ensure paths have a leading slash so TypeScript web server can properly resolve them
           // TypeScript web server needs absolute paths to convert to URIs for file watching
           // Without a leading slash, paths like "MyProject/force-app/..." might be misinterpreted as schemes
-          if (!componentFilePath.startsWith('/') && !componentFilePath.startsWith('//')) {
+          // Windows absolute paths (e.g., "d:/path") should not get a leading slash added
+          const isWindowsAbsolute = /^[A-Za-z]:[/\\]/.test(componentFilePath);
+          if (!isWindowsAbsolute && !componentFilePath.startsWith('/') && !componentFilePath.startsWith('//')) {
             componentFilePath = normalizePath(`/${componentFilePath}`);
           }
           files[componentName] = files[componentName] ?? [];
