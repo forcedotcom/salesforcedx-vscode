@@ -26,6 +26,7 @@ import { IndexedDBStorageService, IndexedDBStorageServiceShared } from './virtua
 import { startWatch } from './virtualFsProvider/memfsWatcher';
 import { projectFiles } from './virtualFsProvider/projectInit';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
+import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { SettingsService } from './vscode/settingsService';
 import { WorkspaceService } from './vscode/workspaceService';
@@ -38,6 +39,7 @@ export type SalesforceVSCodeServicesApi = {
     ChannelServiceLayer: typeof ChannelServiceLayer;
     WorkspaceService: typeof WorkspaceService;
     FsService: typeof FsService;
+    FileWatcherService: typeof FileWatcherService;
     ConfigService: typeof ConfigService;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataRegistryService: typeof MetadataRegistryService;
@@ -56,12 +58,12 @@ const activationEffect = (
   Effect.gen(function* () {
     yield* (yield* ChannelService).appendToChannel('Salesforce Services extension is activating!');
 
-    if (process.env.ESBUILD_PLATFORM === 'web') {
-      yield* fileSystemSetup(context);
-    }
-
-    // watch the config files for changes, which various serices use to invalidate caches
-    yield* Effect.forkIn(watchConfigFiles(), yield* getExtensionScope());
+    // Web vs Desktop mode setup
+    // - Web: set up virtual file system
+    // - Desktop: watch config files for org changes (@salesforce/core APIs aren't available in web)
+    yield* process.env.ESBUILD_PLATFORM === 'web'
+      ? fileSystemSetup(context)
+      : Effect.flatMap(getExtensionScope(), scope => Effect.forkIn(watchConfigFiles(), scope));
   }).pipe(Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error))));
 
 /**
@@ -71,13 +73,8 @@ const activationEffect = (
  */
 export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
   if (process.env.ESBUILD_PLATFORM === 'web') {
-    // set the theme as early as possible.  TODO: manage this from CBW instead of in an extension
-    const config = vscode.workspace.getConfiguration();
-    await config.update('workbench.colorTheme', 'Monokai', vscode.ConfigurationTarget.Global);
-    if (process.env.ESBUILD_PLATFORM === 'web') {
-      const { getWebAppInsightsReporter } = await import('./observability/applicationInsightsWebExporter.js');
-      context.subscriptions.push(getWebAppInsightsReporter());
-    }
+    const { getWebAppInsightsReporter } = await import('./observability/applicationInsightsWebExporter.js');
+    context.subscriptions.push(getWebAppInsightsReporter());
   }
 
   const extensionScope = Effect.runSync(getExtensionScope());
@@ -110,6 +107,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ChannelServiceLayer,
       WorkspaceService,
       FsService,
+      FileWatcherService,
       ConfigService,
       MetadataDescribeService,
       MetadataRegistryService,

@@ -26,12 +26,12 @@ const pid = 1;
 // Process versions - provide minimal version info for browser compatibility
 // VS Code extensions may check process.versions.node to determine Node.js version
 const versions = {
-  node: '18.0.0', // Match the version property below
-  v8: '10.2.154.26-node.26', // Typical V8 version for Node 18
+  node: '18.0.0',
+  v8: '10.1.124.8',
+  modules: '108',
   uv: '1.43.0', // Typical libuv version for Node 18
   zlib: '1.2.11', // Typical zlib version
   openssl: '3.0.7', // Typical OpenSSL version for Node 18
-  modules: '108', // Node.js ABI version for Node 18
   nghttp2: '1.47.0', // Typical nghttp2 version
   napi: '9', // N-API version
   llhttp: '6.0.10', // Typical llhttp version

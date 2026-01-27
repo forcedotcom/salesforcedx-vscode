@@ -10,7 +10,14 @@ import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
+import * as vscode from 'vscode';
 import { WorkspaceService } from '../vscode/workspaceService';
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const setProjectOpenedContext = (value: boolean) =>
+  Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:project_opened', value)).pipe(
+    Effect.withSpan('setProjectOpenedContext', { attributes: { value } })
+  );
 
 const resolveSfProject = (fsPath: string): Effect.Effect<SfProject, Error, never> =>
   Effect.tryPromise({
@@ -29,28 +36,28 @@ const globalSfProjectCache = Effect.runSync(
 
 export class ProjectService extends Effect.Service<ProjectService>()('ProjectService', {
   succeed: {
-    /** Check if we're in a Salesforce project (sfdx-project.json exists) */
+    /** Check if we're in a Salesforce project (sfdx-project.json exists).  Side effect: sets the 'sf:project_opened' context to true or false */
     isSalesforceProject: pipe(
       WorkspaceService,
       Effect.flatMap(ws => ws.getWorkspaceInfo),
       Effect.flatMap(workspaceDescription =>
         workspaceDescription.isEmpty
-          ? Effect.succeed(false)
+          ? setProjectOpenedContext(false).pipe(Effect.as(false))
           : globalSfProjectCache.get(workspaceDescription.fsPath).pipe(
+              Effect.tap(() => setProjectOpenedContext(true)),
+              Effect.tapError(() => setProjectOpenedContext(false)),
               Effect.map(() => true),
               Effect.catchAll(() => Effect.succeed(false))
             )
       )
     ),
-    /** Get the SfProject instance for the workspace (fails if not a Salesforce project) */
+    /** Get the SfProject instance for the workspace (fails if not a Salesforce project).  Side effect: sets the 'sf:project_opened' context to true or false */
     getSfProject: WorkspaceService.pipe(
-      Effect.flatMap(ws => ws.getWorkspaceInfo),
-      Effect.flatMap(workspaceDescription =>
-        workspaceDescription.isEmpty
-          ? Effect.fail(new Error('No workspace open'))
-          : globalSfProjectCache.get(workspaceDescription.fsPath)
-      ),
-      Effect.withSpan('getSfProject')
+      Effect.flatMap(ws => ws.getWorkspaceInfoOrThrow),
+      Effect.flatMap(workspaceDescription => globalSfProjectCache.get(workspaceDescription.fsPath)),
+      Effect.withSpan('getSfProject'),
+      Effect.tap(() => setProjectOpenedContext(true)),
+      Effect.tapError(() => setProjectOpenedContext(false))
     )
   } as const,
   dependencies: [WorkspaceService.Default]

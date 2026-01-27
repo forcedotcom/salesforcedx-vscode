@@ -25,9 +25,9 @@ const startHeadlessServer = async (): Promise<void> => {
       browserType: 'chromium',
       headless: true,
       port: 3001,
-      quality: 'stable', // Use stable instead of insiders to match run:web script
       printServerLog: true,
       verbose: true,
+      quality: 'stable',
       extensionDevelopmentPath,
       extensionPaths: [servicesExtensionPath],
       browserOptions: [

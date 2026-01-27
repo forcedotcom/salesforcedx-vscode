@@ -5,10 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TestResult, MarkdownTextFormatTransformer, OutputFormat, TestSortOrder } from '@salesforce/apex-node';
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { Utils } from 'vscode-uri';
 import { channelService } from '../channels';
 import { nls } from '../messages';
+import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../settings';
 import { NewlineNormalizationState, normalizeTextChunkToLf } from './newlineUtils';
 
@@ -73,7 +76,6 @@ const generateReportFilename = (outputDir: string, testRunId: string | undefined
   const filename = testRunId ? `test-result-${testRunId}${extension}` : `test-result${extension}`;
   return path.join(outputDir, filename);
 };
-
 /** Writes test report to file and notifies the user when it's ready */
 export const writeAndOpenTestReport = async (
   result: TestResult,
@@ -90,42 +92,83 @@ export const writeAndOpenTestReport = async (
   const testRunId = result.summary?.testRunId;
   const reportPath = generateReportFilename(outputDir, testRunId, extension);
 
-  // Write file using vscode.workspace.fs
+  // Convert stream to UTF-8 string for FsService.writeFile
   const uint8Array = await streamToNormalizedUtf8Bytes(transformer);
-  const uri = vscode.Uri.file(reportPath);
-  await vscode.workspace.fs.writeFile(uri, uint8Array);
+  const content = new TextDecoder('utf-8').decode(uint8Array);
+
+  // Write the file using FsService.writeFile from the services extension
+  // Pass string path - FsService.writeFile handles URI conversion internally
+  try {
+    await Effect.runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const svc = yield* api.services.FsService;
+        yield* svc.writeFile(reportPath, content);
+      }).pipe(Effect.provide(AllServicesLayer))
+    );
+  } catch (error) {
+    console.error('Failed to write test report file:', error);
+    await channelService.appendLine(`Failed to write test report: ${String(error)}`);
+    throw error;
+  }
+
+  // Create URI for opening the file
+  // On desktop: use URI.file() for proper file:// URI
+  // On web: construct URI relative to workspace root for correct scheme
+  const uri =
+    process.env.ESBUILD_PLATFORM === 'web'
+      ? Utils.joinPath(vscode.workspace.workspaceFolders![0].uri, reportPath.replace(/^\/[^/]+/, ''))
+      : vscode.Uri.file(reportPath);
 
   const openAction = nls.localize('apex_test_report_open_action');
   const message = nls.localize('apex_test_report_ready_message', path.basename(reportPath));
   const outputLine = nls.localize('apex_test_report_written_to_message', reportPath);
+
   // Always print the report location to the Apex Testing output channel so it's easy to find later.
-  channelService.appendLine(outputLine);
-  // If markdown format, add a tip about viewing the preview
-  if (format === 'markdown') {
-    channelService.appendLine(nls.localize('apex_test_report_markdown_preview_tip'));
+  try {
+    await channelService.appendLine(outputLine);
+    // If markdown format, add a tip about viewing the preview
+    if (format === 'markdown') {
+      await channelService.appendLine(nls.localize('apex_test_report_markdown_preview_tip'));
+    }
+  } catch (error) {
+    console.error('Failed to append to output channel:', error);
   }
 
-  void Promise.resolve(vscode.window.showInformationMessage(message, openAction)).then(async selection => {
-    if (selection === openAction) {
-      // Only open the report if the user explicitly chooses to.
-      if (format === 'markdown') {
-        // Try to refresh the preview if it's already open (before opening a new one)
+  // Show notification with option to open the report
+  void vscode.window.showInformationMessage(message, openAction).then(
+    async selection => {
+      if (selection === openAction) {
+        // Only open the report if the user explicitly chooses to.
         try {
-          await vscode.commands.executeCommand('markdown.preview.refresh');
-        } catch {
-          // Preview refresh command might not be available, ignore
+          if (format === 'markdown') {
+            // Try to refresh the preview if it's already open (before opening a new one)
+            try {
+              await vscode.commands.executeCommand('markdown.preview.refresh');
+            } catch {
+              // Preview refresh command might not be available, ignore
+            }
+            // Then show the preview
+            await vscode.commands.executeCommand('markdown.showPreview', uri);
+          } else {
+            const document = await vscode.workspace.openTextDocument(uri);
+            await vscode.window.showTextDocument(document, {
+              preview: false,
+              preserveFocus: false
+            });
+          }
+        } catch (error) {
+          console.error('Failed to open test report:', error, 'URI:', uri.toString(), 'Report path:', reportPath);
+          await channelService.appendLine(
+            `Failed to open test report: ${String(error)} (URI: ${uri.toString()}, Path: ${reportPath})`
+          );
         }
-        // Then show the preview
-        await vscode.commands.executeCommand('markdown.showPreview', uri);
-      } else {
-        const document = await vscode.workspace.openTextDocument(uri);
-        await vscode.window.showTextDocument(document, {
-          preview: false,
-          preserveFocus: false
-        });
       }
+    },
+    error => {
+      console.error('[Test Report] Error in notification handler:', error);
     }
-  });
+  );
 
   return reportPath;
 };

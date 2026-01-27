@@ -49,16 +49,16 @@ export const parseStackTrace = (
 /**
  * Updates test run results in the Test Explorer UI
  */
-export const updateTestRunResults = (
-  result: TestResult,
-  run: vscode.TestRun,
-  testsToRun: vscode.TestItem[],
-  methodItems: Map<string, vscode.TestItem>,
-  classItems: Map<string, vscode.TestItem>,
-  codeCoverage: boolean = false,
-  concise: boolean = false
-): void => {
-  run.appendOutput('\r\n=== Test Results ===\r\n\r\n');
+export const updateTestRunResults = (params: {
+  result: TestResult;
+  run: vscode.TestRun;
+  testsToRun: vscode.TestItem[];
+  methodItems: Map<string, vscode.TestItem>;
+  classItems: Map<string, vscode.TestItem>;
+  codeCoverage?: boolean;
+  concise?: boolean;
+}): void => {
+  const { result, run, testsToRun, methodItems, classItems, codeCoverage = false, concise = false } = params;
   const humanOutput = new HumanReporter().format(result, codeCoverage, concise);
   if (humanOutput) {
     // Split by lines and add each line separately with \r\n to ensure newlines are preserved
