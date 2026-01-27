@@ -17,7 +17,6 @@ import {
   PUSH_OR_DEPLOY_ON_SAVE_ENABLED,
   PUSH_OR_DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
   DEPLOY_ON_SAVE_SHOW_OUTPUT_PANEL,
-  RETRIEVE_TEST_CODE_COVERAGE,
   SHOW_CLI_SUCCESS_INFO_MSG,
   TELEMETRY_ENABLED,
   ALL_EXCEPTION_CATCHER_ENABLED,
@@ -81,10 +80,6 @@ export class SalesforceCoreSettings {
 
   public getEnableSourceTrackingForDeployAndRetrieve(): boolean {
     return this.getConfigValue(ENABLE_SOURCE_TRACKING_FOR_DEPLOY_RETRIEVE, true);
-  }
-
-  public getRetrieveTestCodeCoverage(): boolean {
-    return this.getConfigValue(RETRIEVE_TEST_CODE_COVERAGE, false);
   }
 
   public getInternalDev(): boolean {
