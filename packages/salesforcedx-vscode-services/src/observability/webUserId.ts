@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getExtensionContext } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { ExtensionContext } from 'vscode';
 import {  getDefaultOrgRef } from '../core/defaultOrgRef';
 import { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
-import { getExtensionContext } from '../extensionContext';
 
 // Telemetry globalState keys (matching @salesforce/salesforcedx-utils-vscode constants)
 export const TELEMETRY_GLOBAL_USER_ID = 'telemetryUserId';
