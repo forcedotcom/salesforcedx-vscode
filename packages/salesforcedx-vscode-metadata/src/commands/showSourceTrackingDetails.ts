@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as Effect from 'effect/Effect';
 import { nls } from '../messages';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 import { separateChanges } from '../statusBar/helpers';
 
 type ViewChangesOptions = { local: boolean; remote: boolean };

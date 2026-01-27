@@ -14,6 +14,7 @@ export {
   ExtensionProviderService,
   InvalidServicesApiError,
   ServicesExtensionNotFoundError,
-  type ExtensionProviderService as ExtensionProviderServiceType
+  type ExtensionProviderService as ExtensionProviderServiceType,
+  getServicesApi
 } from './extensionProvider';
 export { closeExtensionScope, getExtensionScope } from './extensionScope';

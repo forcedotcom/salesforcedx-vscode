@@ -6,12 +6,13 @@
  */
 
 import type { SfProject } from '@salesforce/core/project';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 
 type CreateApexClassParams = {
   readonly name?: string;

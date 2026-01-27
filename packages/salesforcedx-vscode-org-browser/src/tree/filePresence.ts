@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { MetadataTypeTreeProvider } from './metadataTypeTreeProviderTypes';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Queue from 'effect/Queue';
 import * as Stream from 'effect/Stream';
 import type { AnySpan } from 'effect/Tracer';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 import { getIconPath, OrgBrowserTreeItem } from './orgBrowserNode';
 import { MetadataListResultItem } from './types';
 

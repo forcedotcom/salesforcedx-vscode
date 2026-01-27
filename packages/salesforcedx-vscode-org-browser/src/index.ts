@@ -5,13 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { retrieveOrgBrowserTreeItemCommand } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
-import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
+import { AllServicesLayer } from './services/extensionProvider';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
 

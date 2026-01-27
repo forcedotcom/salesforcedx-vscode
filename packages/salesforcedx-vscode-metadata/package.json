@@ -24,6 +24,7 @@
     "Other"
   ],
   "dependencies": {
+    "@salesforce/effect-ext-utils": "*",
     "effect": "^3.19.14",
     "@salesforce/vscode-i18n": "*",
     "vscode-uri": "^3.1.0"
@@ -60,6 +61,7 @@
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../effect-ext-utils:compile",
         "../salesforcedx-vscode-services:compile"
       ],
       "files": [

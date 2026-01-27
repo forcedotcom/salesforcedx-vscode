@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type { SourceTrackingConflictError } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 import { deleteComponentSet } from '../shared/delete/deleteComponentSet';
 import { type DeleteSourceFailedError } from '../shared/delete/deleteErrors';
 import { formatDeployOutput } from '../shared/deploy/formatDeployOutput';

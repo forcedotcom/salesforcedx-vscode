@@ -20,6 +20,9 @@
   ],
   "references": [
     {
+      "path": "../effect-ext-utils"
+    },
+    {
       "path": "../playwright-vscode-ext"
     },
     {

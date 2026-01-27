@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
@@ -16,7 +17,6 @@ import type { NonEmptyComponentSet, HashableUri } from 'salesforcedx-vscode-serv
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../../messages';
-import { ExtensionProviderService } from '../../services/extensionProvider';
 import { formatRetrieveOutput } from '../retrieve/formatRetrieveOutput';
 
 const createDiffFilePair = (props: { localUri: HashableUri; remoteUri: HashableUri; fileName: string }) =>
