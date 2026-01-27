@@ -186,7 +186,6 @@ export default class ComponentIndexer {
         // If packageDirsPattern is empty, sfdx-project.json hasn't been loaded yet
         // Return empty array - component indexer should not be initialized until config is available
         if (!packageDirsPattern) {
-          Logger.info('[getComponentEntries] packageDirsPattern is empty - sfdx-project.json not loaded yet');
           return [];
         }
         // Pattern matches: {packageDir}/**/*/lwc/**/*.js
@@ -409,10 +408,6 @@ export default class ComponentIndexer {
     if (this.workspaceType === 'SFDX') {
       const sfdxProjectPath = normalizePath(path.join(this.attributes.workspaceRoot, 'sfdx-project.json'));
       if (!this.fileSystemProvider.fileExists(sfdxProjectPath)) {
-        Logger.info(
-          `[ComponentIndexer.init] sfdx-project.json not found at ${sfdxProjectPath}, skipping initialization. ` +
-            'Will be initialized when file is available.'
-        );
         return;
       }
     }
@@ -420,10 +415,6 @@ export default class ComponentIndexer {
     await this.loadTagsFromIndex();
 
     const unIndexedFilesResult = this.getUnIndexedFiles();
-    Logger.info(
-      `[ComponentIndexer.init] Found ${unIndexedFilesResult.length} unindexed files to process, ` +
-        `workspaceType: ${this.workspaceType}, workspaceRoot: ${this.attributes.workspaceRoot}`
-    );
 
     const promises = unIndexedFilesResult.map(async entry => {
       const tag = await createTagFromFile(entry.path, this.fileSystemProvider, entry.stats?.mtime);
@@ -449,11 +440,6 @@ export default class ComponentIndexer {
         this.tags.delete(getTagName(tag));
       }
     });
-
-    Logger.info(
-      `[ComponentIndexer.init] Initialization complete: ${this.tags.size} components indexed ` +
-        `(${validTags.length} new, ${staleTags.length} stale removed)`
-    );
 
     this.persistCustomComponents();
   }

@@ -44,11 +44,7 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
     this.findNamespaceRootsUsingTypeCache = memoize(() => this.findNamespaceRootsUsingType());
 
     // Immediately call the new memoized function to populate the cache
-    void this.findNamespaceRootsUsingTypeCache().then(roots => {
-      Logger.info(
-        `[clearNamespaceCache] Recalculated namespace roots - lwc: ${JSON.stringify(roots.lwc)}, aura: ${JSON.stringify(roots.aura)}`
-      );
-    });
+    void this.findNamespaceRootsUsingTypeCache();
   }
 
   /**
@@ -85,9 +81,6 @@ export class LWCWorkspaceContext extends BaseWorkspaceContext {
             roots.aura.push(auraPath);
           }
         }
-        Logger.info(
-          `[findNamespaceRootsUsingType] Returning roots - lwc: ${JSON.stringify(roots.lwc)}, aura: ${JSON.stringify(roots.aura)}`
-        );
         return roots;
       case 'CORE_ALL':
         // optimization: search only inside project/modules/

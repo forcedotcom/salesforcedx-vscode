@@ -747,12 +747,10 @@ export abstract class BaseServer {
 
     // Prevent concurrent initialization attempts - check BEFORE any logging
     if (this.isInitializing) {
-      Logger.info('[performDelayedInitialization] Already initializing, skipping duplicate call');
       return;
     }
 
     this.isInitializing = true;
-    Logger.info('[performDelayedInitialization] Starting delayed initialization (guard passed)');
 
     try {
       // Initialize workspace context now that essential files are loaded via onDidOpen
@@ -768,56 +766,13 @@ export abstract class BaseServer {
       );
 
       if (hasLwcFiles) {
-        Logger.info('[performDelayedInitialization] LWC files detected, clearing namespace cache');
         this.context.clearNamespaceCache();
-      } else {
-        Logger.info(
-          '[performDelayedInitialization] No LWC files detected yet, namespace cache will be cleared when LWC files are loaded'
-        );
       }
 
       // For SFDX workspaces, wait for sfdx-project.json to be loaded before initializing component indexer
       if (this.workspaceType === 'SFDX') {
         const sfdxProjectPath = normalizePath(path.join(this.workspaceRoots[0], 'sfdx-project.json'));
-        let attempts = 0;
-        const maxAttempts = 50; // Wait up to 5 seconds (50 * 100ms)
-
-        // Log what files are currently in the fileSystemProvider BEFORE waiting
-        while (attempts < maxAttempts && !this.fileSystemProvider.fileExists(sfdxProjectPath)) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-          attempts++;
-
-          // Log every 10 attempts to see if files are being added
-          if (attempts % 10 === 0) {
-            const currentFileCount = this.fileSystemProvider.getAllFileUris().length;
-            const currentMatching = this.fileSystemProvider
-              .getAllFileUris()
-              .filter(uri => uri.includes('sfdx-project.json'));
-            Logger.info(
-              `[performDelayedInitialization] Attempt ${attempts}/${maxAttempts}: ` +
-                `Total files: ${currentFileCount}, ` +
-                `Files with 'sfdx-project.json': ${currentMatching.length}, ` +
-                `fileExists(${sfdxProjectPath}): ${this.fileSystemProvider.fileExists(sfdxProjectPath)}`
-            );
-          }
-        }
-
-        // Final check and logging
-        const finalFileCount = this.fileSystemProvider.getAllFileUris().length;
-        const finalMatching = this.fileSystemProvider.getAllFileUris().filter(uri => uri.includes('sfdx-project.json'));
-        Logger.info(
-          '[performDelayedInitialization] Final state: ' +
-            `Total files: ${finalFileCount}, ` +
-            `Files with 'sfdx-project.json': ${finalMatching.length}, ` +
-            `fileExists(${sfdxProjectPath}): ${this.fileSystemProvider.fileExists(sfdxProjectPath)}`
-        );
-
         if (!this.fileSystemProvider.fileExists(sfdxProjectPath)) {
-          Logger.info(
-            `[performDelayedInitialization] sfdx-project.json not found after ${maxAttempts * 100}ms. ` +
-              'Component indexer initialization will be retried when the file is loaded via onDidOpen.'
-          );
-          // Don't mark as complete - allow re-triggering when sfdx-project.json is loaded
           this.isInitializing = false;
           return;
         }
