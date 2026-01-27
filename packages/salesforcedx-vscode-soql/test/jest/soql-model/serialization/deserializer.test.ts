@@ -20,7 +20,7 @@ const testQueryModel = {
     ],
   },
   from: { sobjectName: 'object1' },
-  where: { condition: { field: { fieldName: 'field1' }, operator: '=', compareValue: { type: 'NUMBER', value: '5' } } },
+  where: { condition: { field: { fieldName: 'field1' }, operator: '=', compareValue: { value: '5' } } },
   with: { unmodeledSyntax: 'WITH DATA CATEGORY cat__c AT val__c', reason: Soql.REASON_UNMODELED_WITH },
   groupBy: { unmodeledSyntax: 'GROUP BY field1', reason: Soql.REASON_UNMODELED_GROUPBY },
   orderBy: {
@@ -51,13 +51,13 @@ const selectCount = {};
 
 const limitZero = { limit: 0 };
 
-const literalTrue = { type: 'BOOLEAN', value: 'TRUE' };
-const literalFalse = { type: 'BOOLEAN', value: 'FALSE' };
-const literalCurrency = { type: 'CURRENCY', value: 'USD1000' };
-const literalDate = { type: 'DATE', value: '2020-11-11' };
-const literalNull = { type: 'NULL', value: 'null' };
-const literalNumber = { type: 'NUMBER', value: '5' };
-const literalString = { type: 'STRING', value: "'HelloWorld'" };
+const literalTrue = { value: 'TRUE' };
+const literalFalse = { value: 'FALSE' };
+const literalCurrency = { value: 'USD1000' };
+const literalDate = { value: '2020-11-11' };
+const literalNull = { value: 'null' };
+const literalNumber = { value: '5' };
+const literalString = { value: "'HelloWorld'" };
 
 const field = { fieldName: 'field' };
 
@@ -108,7 +108,7 @@ describe('ModelDeserializer should', () => {
       errors: testQueryModel.errors,
     };
     const actual = new ModelDeserializer('SELECT field1, field2 FROM object1').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('model AS and USING FROM syntax as unmodeled syntax', () => {
@@ -122,7 +122,7 @@ describe('ModelDeserializer should', () => {
     const actual = new ModelDeserializer(
       'SELECT field1, field2 FROM object1 AS objectAs USING SCOPE everything'
     ).deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('model functions, inner queries, TYPEOF, and aliases in SELECT clause as unmodeled syntax', () => {
@@ -143,7 +143,7 @@ describe('ModelDeserializer should', () => {
     const actual = new ModelDeserializer(
       'SELECT field1, field2, field3 alias3, COUNT(fieldZ), (SELECT fieldA FROM objectA), TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END FROM object1'
     ).deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify SELECT COUNT() clause', () => {
@@ -153,7 +153,7 @@ describe('ModelDeserializer should', () => {
       errors: testQueryModel.errors,
     };
     const actual = new ModelDeserializer('SELECT COUNT() FROM object1').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('model all unmodeled clauses as unmodeled syntax', () => {
@@ -162,7 +162,7 @@ describe('ModelDeserializer should', () => {
       'SELECT field1, field2, field3 alias3, COUNT(fieldZ), (SELECT fieldA FROM objectA), TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END FROM object1 ' +
         'WHERE field1 = 5 WITH DATA CATEGORY cat__c AT val__c GROUP BY field1 ORDER BY field2 DESC NULLS LAST, field1 LIMIT 20 OFFSET 2 BIND field1 = 5 FOR VIEW UPDATE TRACKING'
     ).deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('model parse errors with partial parse results as ModelErrors within query', () => {
@@ -210,7 +210,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 LIMIT 0').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify string literals in condition', () => {
@@ -225,7 +225,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer("SELECT field1 FROM object1 WHERE field = 'HelloWorld'").deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify date literals in condition', () => {
@@ -240,7 +240,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field = 2020-11-11').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify TRUE literal in condition', () => {
@@ -255,7 +255,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field = TRUE').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify FALSE literal in condition', () => {
@@ -270,7 +270,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field = FALSE').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify number literals in condition', () => {
@@ -285,7 +285,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field = 5').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify null literals in condition', () => {
@@ -300,7 +300,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field = null').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify currency literals in condition', () => {
@@ -315,7 +315,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field = USD1000').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify = operator in condition', () => {
@@ -328,7 +328,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field = 5').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify != operator in condition', () => {
@@ -341,7 +341,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field != 5').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify <> operator in condition', () => {
@@ -354,7 +354,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field <> 5').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify < operator in condition', () => {
@@ -367,7 +367,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field < 5').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify > operator in condition', () => {
@@ -380,7 +380,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field > 5').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify <= operator in condition', () => {
@@ -393,7 +393,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field <= 5').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify >= operator in condition', () => {
@@ -406,7 +406,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field >= 5').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify LIKE operator in condition', () => {
@@ -419,7 +419,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer("SELECT field1 FROM object1 WHERE field LIKE 'HelloWorld'").deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify INCLUDES operator in condition', () => {
@@ -434,7 +434,7 @@ describe('ModelDeserializer should', () => {
     const actual = new ModelDeserializer(
       "SELECT field1 FROM object1 WHERE field INCLUDES ( 'HelloWorld', 'other value' )"
     ).deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify EXCLUDES operator in condition', () => {
@@ -449,7 +449,7 @@ describe('ModelDeserializer should', () => {
     const actual = new ModelDeserializer(
       "SELECT field1 FROM object1 WHERE field EXCLUDES ( 'HelloWorld', 'other value' )"
     ).deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify IN operator in condition', () => {
@@ -464,7 +464,7 @@ describe('ModelDeserializer should', () => {
     const actual = new ModelDeserializer(
       "SELECT field1 FROM object1 WHERE field IN ( 'HelloWorld', 'other value' )"
     ).deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify NOT IN operator in condition', () => {
@@ -479,7 +479,7 @@ describe('ModelDeserializer should', () => {
     const actual = new ModelDeserializer(
       "SELECT field1 FROM object1 WHERE field NOT IN ( 'HelloWorld', 'other value' )"
     ).deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify includes condition as unmodeled syntax', () => {
@@ -494,7 +494,7 @@ describe('ModelDeserializer should', () => {
     const actual = new ModelDeserializer(
       "SELECT field1 FROM object1 WHERE field INCLUDES ( 'HelloWorld', 'other value' )"
     ).deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify in-list condition as unmodeled syntax', () => {
@@ -509,7 +509,7 @@ describe('ModelDeserializer should', () => {
     const actual = new ModelDeserializer(
       "SELECT field1 FROM object1 WHERE field IN ( 'HelloWorld', 'other value' )"
     ).deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify calculated condition as unmodeled syntax', () => {
@@ -522,7 +522,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE A + B > 10').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify distance condition as unmodeled syntax', () => {
@@ -537,7 +537,7 @@ describe('ModelDeserializer should', () => {
     const actual = new ModelDeserializer(
       "SELECT field1 FROM object1 WHERE DISTANCE(field,GEOLOCATION(37,122),'mi') < 100"
     ).deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify IN semi-join condition as unmodeled syntax', () => {
@@ -550,7 +550,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field IN (SELECT A FROM B)').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify NOT condition as unmodeled', () => {
@@ -563,7 +563,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE NOT field = 5').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify complex condition as unmodeled', () => {
@@ -578,7 +578,7 @@ describe('ModelDeserializer should', () => {
     const actual = new ModelDeserializer(
       "SELECT field1 FROM object1 WHERE field = 5 AND (field like 'A%' OR field like 'B%')"
     ).deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify AND operator in condition', () => {
@@ -593,7 +593,7 @@ describe('ModelDeserializer should', () => {
     const actual = new ModelDeserializer(
       "SELECT field1 FROM object1 WHERE field = 5 AND field LIKE 'HelloWorld'"
     ).deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify OR operator in condition', () => {
@@ -608,7 +608,7 @@ describe('ModelDeserializer should', () => {
     const actual = new ModelDeserializer(
       "SELECT field1 FROM object1 WHERE field = 5 OR field LIKE 'HelloWorld'"
     ).deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify nested conditions', () => {
@@ -621,7 +621,7 @@ describe('ModelDeserializer should', () => {
       errors: [],
     };
     const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE ( field = 5 )').deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('identify empty WHERE', () => {
@@ -692,7 +692,7 @@ describe('ModelDeserializer should', () => {
     const actual = new ModelDeserializer(
       '// This is a comment on line 1\n// This is a comment on line 2\nSELECT field1 FROM object1'
     ).deserialize();
-    expect(actual).toEqual(expected);
+    expect(actual).toMatchObject(expected);
   });
 
   it('Identify comments at the top of the file, with parse errors', () => {

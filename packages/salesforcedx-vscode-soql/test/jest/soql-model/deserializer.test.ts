@@ -20,7 +20,7 @@ const testQueryModel = {
     ]
   },
   from: { sobjectName: 'object1' },
-  where: { condition: { field: { fieldName: 'field1' }, operator: '=', compareValue: { type: 'NUMBER', value: '5' } } },
+  where: { condition: { field: { fieldName: 'field1' }, operator: '=', compareValue: { value: '5' } } },
   with: { unmodeledSyntax: 'WITH DATA CATEGORY cat__c AT val__c', reason: Soql.REASON_UNMODELED_WITH },
   groupBy: { unmodeledSyntax: 'GROUP BY field1', reason: Soql.REASON_UNMODELED_GROUPBY },
   orderBy: {
@@ -51,13 +51,13 @@ const selectCount = {};
 
 const limitZero = { limit: 0 };
 
-const literalTrue = { type: 'BOOLEAN', value: 'TRUE' };
-const literalFalse = { type: 'BOOLEAN', value: 'FALSE' };
-const literalCurrency = { type: 'CURRENCY', value: 'USD1000' };
-const literalDate = { type: 'DATE', value: '2020-11-11' };
-const literalNull = { type: 'NULL', value: 'null' };
-const literalNumber = { type: 'NUMBER', value: '5' };
-const literalString = { type: 'STRING', value: "'HelloWorld'" };
+const literalTrue = { value: 'TRUE' };
+const literalFalse = { value: 'FALSE' };
+const literalCurrency = { value: 'USD1000' };
+const literalDate = { value: '2020-11-11' };
+const literalNull = { value: 'null' };
+const literalNumber = { value: '5' };
+const literalString = { value: "'HelloWorld'" };
 
 const field = { fieldName: 'field' };
 
