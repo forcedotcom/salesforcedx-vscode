@@ -7,23 +7,26 @@
 import { ApexTestResultData, TestLevel, TestResult, TestService } from '@salesforce/apex-node';
 import { ApexDiagnostic } from '@salesforce/apex-node/lib/src/utils';
 import { type NamedPackageDir } from '@salesforce/core';
-import {
-  type ContinueResponse,
-  EmptyParametersGatherer,
-  getTestResultsFolder,
-  LibraryCommandletExecutor,
-  notificationService,
-  SfCommandlet,
-  SfWorkspaceChecker
-} from '@salesforce/salesforcedx-utils-vscode';
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
-import { getVscodeCoreExtension } from '../coreExtensionUtils';
+import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
+import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
 import * as settings from '../settings';
 import { apexTestRunCacheService, isEmpty } from '../testRunCache';
+import {
+  EmptyParametersGatherer,
+  getUriPath,
+  LibraryCommandletExecutor,
+  SfCommandlet,
+  SfWorkspaceChecker,
+  type ContinueResponse
+} from '../utils/commandletHelpers';
+import { notificationService } from '../utils/notificationHelpers';
+import { getTestResultsFolder } from '../utils/pathHelpers';
 import { runApexTests } from './apexTestRunUtils';
 import { getZeroBasedRange } from './range';
 
@@ -53,8 +56,7 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
     progress?: vscode.Progress<{ message?: string }>,
     token?: vscode.CancellationToken
   ): Promise<boolean> {
-    const vscodeCoreExtension = await getVscodeCoreExtension();
-    const connection = await vscodeCoreExtension.exports.WorkspaceContext.getInstance().getConnection();
+    const connection = await getConnection();
     const testService = new TestService(connection);
     const payload = await testService.buildAsyncPayload(
       TestLevel.RunSpecifiedTests,
@@ -93,16 +95,20 @@ export class ApexLibraryTestRunExecutor extends LibraryCommandletExecutor<{}> {
       return;
     }
 
-    const vscodeCoreExtension = await getVscodeCoreExtension();
-    const project = await vscodeCoreExtension.exports.services.SalesforceProjectConfig.getInstance();
+    // Get project from services extension
+    const sfProject = await Effect.runPromise(
+      Effect.gen(function* () {
+        const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const svc = yield* api.services.ProjectService;
+        return yield* svc.getSfProject;
+      }).pipe(Effect.provide(AllServicesLayer))
+    );
 
-    if (!project) {
+    if (!sfProject) {
       return;
     }
-    const correlatedArtifacts = await this.mapApexArtifactToFilesystem(
-      testsWithDiagnostics,
-      await project.getUniquePackageDirectories()
-    );
+    const packageDirectories = sfProject.getUniquePackageDirectories();
+    const correlatedArtifacts = await this.mapApexArtifactToFilesystem(testsWithDiagnostics, packageDirectories);
 
     testsWithDiagnostics.forEach(test => {
       const diagnostic = test.diagnostic;
@@ -169,7 +175,10 @@ const apexTestRunCodeAction = async (tests: string[]) => {
 
 const getTempFolder = async (): Promise<string> => {
   if (vscode.workspace?.workspaceFolders) {
-    const apexDir = await getTestResultsFolder(vscode.workspace.workspaceFolders[0].uri.fsPath, 'apex');
+    const workspaceUri = vscode.workspace.workspaceFolders[0].uri;
+    // In web mode, use path instead of fsPath for virtual file systems
+    const workspacePath = getUriPath(workspaceUri);
+    const apexDir = await getTestResultsFolder(workspacePath, 'apex');
     return apexDir;
   } else {
     throw new Error(nls.localize('cannot_determine_workspace'));
