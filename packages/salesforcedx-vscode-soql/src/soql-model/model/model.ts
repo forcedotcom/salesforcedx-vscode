@@ -89,7 +89,6 @@ export interface SoqlModelObject {
 }
 
 export class SyntaxOptions {
-  public wrapColumn = 80;
   public indent = 2;
 }
 

@@ -14,7 +14,6 @@ describe('SoqlModelObjectImpl should', () => {
   it('use SyntaxOptions that are passed in', () => {
     const expectedSyntaxOptions = new SyntaxOptions();
     expectedSyntaxOptions.indent = 50;
-    expectedSyntaxOptions.wrapColumn = 50;
     const actualSyntaxOptions = testModelObject.getSyntaxOptions(expectedSyntaxOptions);
     expect(actualSyntaxOptions).toBe(expectedSyntaxOptions);
   });
