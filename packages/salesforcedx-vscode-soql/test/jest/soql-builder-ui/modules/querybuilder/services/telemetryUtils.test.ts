@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { Soql } from '../../../../../../../src/soql-model';
+import { Soql } from '../../../../../../src/soql-model';
 import { createQueryTelemetry } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/telemetryUtils';
 import { ToolingModelJson } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingModelService';
 
@@ -14,8 +14,7 @@ describe('Telemetry Utils', () => {
   };
   const error2 = {
     type: 'NOSELECT',
-    message:
-      'Incomplete SELECT clause. The SELECT clause must contain at least one SELECT expression.',
+    message: 'Incomplete SELECT clause. The SELECT clause must contain at least one SELECT expression.',
     lineNumber: 1,
     charInLine: 0,
     grammarRule: 'SoqlSelectClauseContext'

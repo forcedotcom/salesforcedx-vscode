@@ -8,7 +8,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { EOL } from 'os';
-import { Soql } from '../../../../../../../src/soql-model';
+import { Soql } from '../../../../../../src/soql-model';
 import {
   convertUiModelToSoql,
   convertSoqlToUiModel,
@@ -20,7 +20,10 @@ import {
   addWildCardToValue,
   stripWildCardPadding
 } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/soqlUtils';
-import { SELECT_COUNT, ToolingModelJson } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/model';
+import {
+  SELECT_COUNT,
+  ToolingModelJson
+} from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/model';
 
 describe('SoqlUtils', () => {
   const uiModelOne: ToolingModelJson = {
@@ -103,12 +106,8 @@ describe('SoqlUtils', () => {
     expect(transformedSoql).toContain(uiModelOne.fields[0]);
     expect(transformedSoql).toContain(uiModelOne.fields[1]);
     expect(transformedSoql).toContain(uiModelOne.sObject);
-    expect(transformedSoql).toContain(
-      uiModelOne.where.conditions[0].condition.compareValue.value
-    );
-    expect(transformedSoql).toContain(
-      uiModelOne.where.conditions[1].condition.compareValue.value
-    );
+    expect(transformedSoql).toContain(uiModelOne.where.conditions[0].condition.compareValue.value);
+    expect(transformedSoql).toContain(uiModelOne.where.conditions[1].condition.compareValue.value);
     expect(transformedSoql).toContain(uiModelOne.where.andOr);
     expect(transformedSoql).toContain('=');
     expect(transformedSoql).toContain(uiModelOne.orderBy[0].field);
@@ -124,9 +123,7 @@ describe('SoqlUtils', () => {
 
   it('transform UI Model to Soql but leaves out errors/unsupported', () => {
     const transformedSoql = convertUiModelToSoql(uiModelErrors);
-    expect(transformedSoql).not.toContain(
-      uiModelErrors.unsupported[0].unmodeledSyntax
-    );
+    expect(transformedSoql).not.toContain(uiModelErrors.unsupported[0].unmodeledSyntax);
     expect(transformedSoql).not.toContain(uiModelErrors.errors[0].type);
   });
 
@@ -144,33 +141,25 @@ describe('SoqlUtils', () => {
     };
     const transformedSoql = convertUiModelToSoql(modelWithComments);
     const transformedSoqlNormalized = transformedSoql.replace(/\n\s+/g, '\n');
-    expect(transformedSoqlNormalized).toEqual(
-      `// Comments here${EOL}SELECT Id${EOL}FROM Foo${EOL}`
-    );
+    expect(transformedSoqlNormalized).toEqual(`// Comments here${EOL}SELECT Id${EOL}FROM Foo${EOL}`);
   });
 
   it('transforms Soql to UI Model', () => {
     const transformedUiModel = convertSoqlToUiModel(soqlOne);
     const expectedUiModel = { ...uiModelOne } as any;
     delete expectedUiModel.originalSoqlStatement;
-    expect(JSON.stringify(transformedUiModel)).toEqual(
-      JSON.stringify(expectedUiModel)
-    );
+    expect(JSON.stringify(transformedUiModel)).toEqual(JSON.stringify(expectedUiModel));
   });
 
   it('transforms SOQL to UI Model with SELECT COUNT() clause', () => {
     const transformedUiModel = convertSoqlToUiModel(soqlCount);
     const expected = { ...uiModelCount } as any;
     delete expected.originalSoqlStatement;
-    expect(JSON.stringify(transformedUiModel)).toEqual(
-      JSON.stringify(expected)
-    );
+    expect(JSON.stringify(transformedUiModel)).toEqual(JSON.stringify(expected));
   });
 
   it('transforms Soql with comments to UI', () => {
-    const transformedUiModel = convertSoqlToUiModel(
-      `// Comments here${EOL}SELECT Id FROM Foo`
-    );
+    const transformedUiModel = convertSoqlToUiModel(`// Comments here${EOL}SELECT Id FROM Foo`);
     const expectedUiModel: ToolingModelJson = {
       headerComments: `// Comments here${EOL}`,
       sObject: 'Foo',
@@ -185,28 +174,20 @@ describe('SoqlUtils', () => {
     delete expectedUiModel.originalSoqlStatement;
     expect(transformedUiModel).toEqual(expectedUiModel);
 
-    expect(JSON.stringify(transformedUiModel)).toEqual(
-      JSON.stringify(expectedUiModel)
-    );
+    expect(JSON.stringify(transformedUiModel)).toEqual(JSON.stringify(expectedUiModel));
   });
 
   it('catches unsupported syntax in where', () => {
     const transformedUiModel = convertSoqlToUiModel(unsupportedWhereExpr);
     expect(transformedUiModel.where.conditions.length).toBe(0);
     expect(transformedUiModel.unsupported.length).toBe(1);
-    expect(transformedUiModel.unsupported[0].reason).toEqual(
-      Soql.REASON_UNMODELED_COMPLEXGROUP
-    );
+    expect(transformedUiModel.unsupported[0].reason).toEqual(Soql.REASON_UNMODELED_COMPLEXGROUP);
   });
 
   it('transforms Soql to UI Model with errors in soql syntax', () => {
     const transformedUiModel = convertSoqlToUiModel(soqlError);
-    expect(transformedUiModel.errors[0].type).toEqual(
-      uiModelErrors.errors[0].type
-    );
-    expect(transformedUiModel.unsupported[0].reason).toEqual(
-      uiModelErrors.unsupported[0].reason
-    );
+    expect(transformedUiModel.errors[0].type).toEqual(uiModelErrors.errors[0].type);
+    expect(transformedUiModel.unsupported[0].reason).toEqual(uiModelErrors.unsupported[0].reason);
   });
 
   describe('soqlStringLiteralToDisplayValue should', () => {
@@ -272,24 +253,12 @@ describe('SoqlUtils', () => {
 
     it('addWildCardToValue() should clean value & add % in right place', () => {
       const rawValue = 'ABC';
-      expect(
-        addWildCardToValue(Soql.UiOperatorValue.LIKE_START, rawValue)
-      ).toEqual('ABC%');
-      expect(
-        addWildCardToValue(Soql.UiOperatorValue.LIKE_END, rawValue)
-      ).toEqual('%ABC');
-      expect(
-        addWildCardToValue(Soql.UiOperatorValue.LIKE_CONTAINS, rawValue)
-      ).toEqual('%ABC%');
-      expect(addWildCardToValue(Soql.UiOperatorValue.LIKE, rawValue)).toEqual(
-        'ABC'
-      );
-      expect(addWildCardToValue(Soql.UiOperatorValue.EQ, rawValue)).toEqual(
-        'ABC'
-      );
-      expect(
-        addWildCardToValue(Soql.UiOperatorValue.LIKE_START, '%%A%%%BC')
-      ).toEqual('A%%%BC%');
+      expect(addWildCardToValue(Soql.UiOperatorValue.LIKE_START, rawValue)).toEqual('ABC%');
+      expect(addWildCardToValue(Soql.UiOperatorValue.LIKE_END, rawValue)).toEqual('%ABC');
+      expect(addWildCardToValue(Soql.UiOperatorValue.LIKE_CONTAINS, rawValue)).toEqual('%ABC%');
+      expect(addWildCardToValue(Soql.UiOperatorValue.LIKE, rawValue)).toEqual('ABC');
+      expect(addWildCardToValue(Soql.UiOperatorValue.EQ, rawValue)).toEqual('ABC');
+      expect(addWildCardToValue(Soql.UiOperatorValue.LIKE_START, '%%A%%%BC')).toEqual('A%%%BC%');
     });
 
     it('stripWildCardPadding() should remove any wildcards before the first non-wildcard char', () => {

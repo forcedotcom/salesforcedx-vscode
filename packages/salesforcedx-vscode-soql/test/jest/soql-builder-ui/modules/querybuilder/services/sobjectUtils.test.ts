@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Soql } from '../../../../../../../src/soql-model';
+import { Soql } from '../../../../../../src/soql-model';
 import { SObjectTypeUtils } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/sobjectUtils';
 
 describe('SObjectTypeUtils should', () => {
@@ -15,11 +15,7 @@ describe('SObjectTypeUtils should', () => {
       {
         name: 'AccountSource',
         type: 'picklist',
-        picklistValues: [
-          { value: 'apple' },
-          { value: 'banana' },
-          { value: 'cherry' }
-        ]
+        picklistValues: [{ value: 'apple' }, { value: 'banana' }, { value: 'cherry' }]
       },
       { name: 'AnnualRevenue', type: 'currency', picklistValues: [] },
       { name: 'BillingAddress', type: 'address', picklistValues: [] },
@@ -27,11 +23,7 @@ describe('SObjectTypeUtils should', () => {
       {
         name: 'CleanStatus',
         type: 'picklist',
-        picklistValues: [
-          { value: 'apple' },
-          { value: 'banana' },
-          { value: 'cherry' }
-        ]
+        picklistValues: [{ value: 'apple' }, { value: 'banana' }, { value: 'cherry' }]
       },
       { name: 'CreatedById', type: 'reference', picklistValues: [] },
       { name: 'DandbCompanyId', type: 'reference', picklistValues: [] },
@@ -39,11 +31,7 @@ describe('SObjectTypeUtils should', () => {
       {
         name: 'Industry',
         type: 'picklist',
-        picklistValues: [
-          { value: 'apple' },
-          { value: 'banana' },
-          { value: 'cherry' }
-        ]
+        picklistValues: [{ value: 'apple' }, { value: 'banana' }, { value: 'cherry' }]
       },
       { name: 'Phone', type: 'phone', picklistValues: [] }
     ]
@@ -65,9 +53,7 @@ describe('SObjectTypeUtils should', () => {
       Soql.SObjectFieldType.Phone
     ];
     const sobjectTypeUtils = new SObjectTypeUtils(sobjectMetadata);
-    const actual = sobjectMetadata.fields.map((field) =>
-      sobjectTypeUtils.getType(field.name)
-    );
+    const actual = sobjectMetadata.fields.map(field => sobjectTypeUtils.getType(field.name));
 
     expect(actual).toEqual(expected);
   });
@@ -95,9 +81,7 @@ describe('SObjectTypeUtils should', () => {
       []
     ];
     const sobjectTypeUtils = new SObjectTypeUtils(sobjectMetadata);
-    const actual = sobjectMetadata.fields.map((field) =>
-      sobjectTypeUtils.getPicklistValues(field.name)
-    );
+    const actual = sobjectMetadata.fields.map(field => sobjectTypeUtils.getPicklistValues(field.name));
 
     expect(actual).toEqual(expected);
   });
