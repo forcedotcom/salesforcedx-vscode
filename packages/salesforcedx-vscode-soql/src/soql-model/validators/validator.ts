@@ -67,12 +67,6 @@ export class OperatorValidator extends Validator {
   }
 }
 
-export class DefaultOperatorValidator extends OperatorValidator {
-  public getAcceptedOperators(): string[] {
-    return allOperators.map((operator) => operator.description);
-  }
-}
-
 export class MultipleInputValidator extends Validator {
   constructor(protected options: ValidateOptions, protected delegateValidator: Validator) {
     super(options);

@@ -7,8 +7,4 @@
 
 export * as Impl from './model/impl';
 export * as Soql from './model/model';
-export { SoqlModelUtils } from './model/util';
-export { ModelDeserializer } from './serialization/deserializer';
-export { ModelSerializer } from './serialization/serializer';
-export { SelectAnalyzer, Selection, ColumnData, Column } from './analyzers/selectAnalyzer';
-export { ValidateOptions, ValidateResult, Validator, ValidatorFactory, splitMultiInputValues } from './validators';
+export { SelectAnalyzer, ColumnData } from './analyzers/selectAnalyzer';

@@ -44,10 +44,6 @@ export const REASON_UNMODELED_COMPLEXGROUP: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:complex-group',
   message: Messages.unmodeled_complexgroup,
 };
-export const REASON_UNMODELED_COUNT: UnmodeledSyntaxReason = {
-  reasonCode: 'unmodeled:count',
-  message: Messages.unmodeled_count,
-};
 export const REASON_UNMODELED_WITH: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:with',
   message: Messages.unmodeled_with,

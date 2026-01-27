@@ -15,7 +15,7 @@ export class DateValidator extends Validator {
   }
 }
 
-export function isDateLiteral(s: string): boolean {
+function isDateLiteral(s: string): boolean {
   return isDatePattern(s) || isDateRangeLiteral(s);
 }
 
