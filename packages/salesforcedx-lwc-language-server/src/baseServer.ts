@@ -405,7 +405,7 @@ export abstract class BaseServer {
     const isLwcPath =
       normalizedPath.includes('/lwc/') &&
       (normalizedPath.endsWith('.html') || normalizedPath.endsWith('.js') || normalizedPath.endsWith('.ts'));
-    
+
     if (isLwcPath && !this.isDelayedInitializationComplete) {
       if (this.context) {
         this.context.clearNamespaceCache();
@@ -612,10 +612,6 @@ export abstract class BaseServer {
             }
           }
           break;
-
-        default:
-          Logger.info(`[onDefinition] Unknown cursorInfo.type: ${cursorInfo.type}`);
-          break;
       }
       return result;
     } catch (error) {
@@ -787,21 +783,6 @@ export abstract class BaseServer {
         const maxAttempts = 50; // Wait up to 5 seconds (50 * 100ms)
 
         // Log what files are currently in the fileSystemProvider BEFORE waiting
-        Logger.info(`[performDelayedInitialization] Checking for sfdx-project.json at ${sfdxProjectPath}`);
-        Logger.info(`[performDelayedInitialization] Total files in fileSystemProvider: ${allFiles.length}`);
-        const matchingFiles = allFiles.filter(uri => uri.includes('sfdx-project.json'));
-        Logger.info(`[performDelayedInitialization] Files containing 'sfdx-project.json': ${matchingFiles.length}`);
-        if (matchingFiles.length > 0) {
-          Logger.info(`[performDelayedInitialization] Matching files: ${JSON.stringify(matchingFiles)}`);
-        }
-        // Show sample of files to understand what's loaded
-        const sampleFiles = allFiles.slice(0, 20);
-        Logger.info(`[performDelayedInitialization] Sample files (first 20): ${JSON.stringify(sampleFiles)}`);
-        Logger.info(
-          `[performDelayedInitialization] fileExists(${sfdxProjectPath}): ${this.fileSystemProvider.fileExists(sfdxProjectPath)}`
-        );
-        Logger.info('[performDelayedInitialization] Starting wait loop...');
-
         while (attempts < maxAttempts && !this.fileSystemProvider.fileExists(sfdxProjectPath)) {
           await new Promise(resolve => setTimeout(resolve, 100));
           attempts++;
@@ -840,7 +821,6 @@ export abstract class BaseServer {
           this.isInitializing = false;
           return;
         }
-        Logger.info(`[performDelayedInitialization] sfdx-project.json found after ${attempts * 100}ms`);
       }
 
       // Re-initialize component indexer (files are now in fileSystemProvider)

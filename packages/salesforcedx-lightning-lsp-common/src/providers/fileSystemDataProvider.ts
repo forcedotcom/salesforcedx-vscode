@@ -146,40 +146,25 @@ export class FileSystemDataProvider implements IFileSystemProvider {
    * Preserves the workspace folder's URI scheme for web compatibility
    */
   public getFileUriForPath(filePath: NormalizedPath): string {
-    Logger.info(`[getFileUriForPath] Called with filePath: ${filePath}`);
-    Logger.info(
-      `[getFileUriForPath] workspaceFolderUris count: ${this.workspaceFolderUris.length}, URIs: ${JSON.stringify(this.workspaceFolderUris)}`
-    );
-
     // Check if the file path is within any workspace folder
     for (const workspaceFolderUri of this.workspaceFolderUris) {
       try {
-        Logger.info(`[getFileUriForPath] Checking workspaceFolderUri: ${workspaceFolderUri}`);
         const workspaceUri = URI.parse(workspaceFolderUri);
-        Logger.info(
-          `[getFileUriForPath] Parsed workspaceUri - scheme: ${workspaceUri.scheme}, path: ${workspaceUri.path}, fsPath: ${workspaceUri.fsPath}`
-        );
 
         // For memfs:// URIs, use path property; for file:// URIs, use fsPath
         const workspacePath =
           workspaceUri.scheme === 'memfs'
             ? normalizePath(workspaceUri.path)
             : normalizePath(workspaceUri.fsPath || workspaceUri.path);
-        Logger.info(`[getFileUriForPath] workspacePath: ${workspacePath}`);
 
         // Remove leading slash from workspacePath for comparison (if present)
         const normalizedWorkspacePath =
           workspacePath.startsWith('/') && !workspacePath.startsWith('//') ? workspacePath.substring(1) : workspacePath;
         const normalizedFilePath =
           filePath.startsWith('/') && !filePath.startsWith('//') ? filePath.substring(1) : filePath;
-        Logger.info(
-          `[getFileUriForPath] normalizedWorkspacePath: ${normalizedWorkspacePath}, normalizedFilePath: ${normalizedFilePath}`
-        );
 
         // Check if file path starts with workspace path
         if (normalizedFilePath.startsWith(normalizedWorkspacePath)) {
-          Logger.info(`[getFileUriForPath] File path matches workspace, scheme: ${workspaceUri.scheme}`);
-
           // Use the workspace folder's scheme i.e. memfs:// or file://
           if (workspaceUri.scheme === 'memfs') {
             // For memfs:// URIs, construct the URI by joining with the workspace folder URI
@@ -190,16 +175,12 @@ export class FileSystemDataProvider implements IFileSystemProvider {
             // Construct URI by joining workspace folder URI with relative path
             // workspaceUri.path is like "/MyProject", so we append "/force-app/..." to get "/MyProject/force-app/..."
             const fullPath = cleanRelativePath ? `${workspaceUri.path}/${cleanRelativePath}` : workspaceUri.path;
-            Logger.info(
-              `[getFileUriForPath] memfs - relativePath: ${relativePath}, cleanRelativePath: ${cleanRelativePath}, fullPath: ${fullPath}`
-            );
 
             try {
               const result = URI.from({
                 scheme: workspaceUri.scheme,
                 path: fullPath
               }).toString();
-              Logger.info(`[getFileUriForPath] Returning memfs URI: ${result}`);
               return result;
             } catch (error) {
               Logger.error(
@@ -209,11 +190,7 @@ export class FileSystemDataProvider implements IFileSystemProvider {
               Logger.error(`[getFileUriForPath] scheme: ${workspaceUri.scheme}, path: ${fullPath}`);
               // Continue to try other workspace folders or fallback
             }
-          } else {
-            Logger.info(`[getFileUriForPath] Non-memfs scheme (${workspaceUri.scheme}), will fall through to default`);
           }
-        } else {
-          Logger.info('[getFileUriForPath] File path does not match this workspace folder');
         }
       } catch (error) {
         Logger.error(
@@ -227,7 +204,6 @@ export class FileSystemDataProvider implements IFileSystemProvider {
     // Default to file:// if not in any workspace folder
     try {
       const result = URI.file(filePath).toString();
-      Logger.info(`[getFileUriForPath] Returning default file:// URI: ${result}`);
       return result;
     } catch (error) {
       Logger.error(
@@ -269,9 +245,6 @@ export class FileSystemDataProvider implements IFileSystemProvider {
         // Handle connection disposal errors gracefully (server might be shutting down)
         const errorMessage = error instanceof Error ? error.message : String(error);
         if (errorMessage.includes('connection got disposed') || errorMessage.includes('Pending response rejected')) {
-          Logger.info(
-            `[FileSystemProvider] Connection disposed while creating file ${normalizedUri} - server may be shutting down`
-          );
           // Don't throw - this is expected during shutdown, but still update in-memory provider
         } else {
           Logger.error(`[FileSystemProvider] Failed to create file via LSP: ${normalizedUri}`, error);

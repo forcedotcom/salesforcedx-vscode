@@ -192,18 +192,13 @@ export default class ComponentIndexer {
         // Pattern matches: {packageDir}/**/*/lwc/**/*.js
         // The **/* before lwc requires at least one directory level (e.g., main/default/lwc or meta/lwc)
         const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.js`;
-        Logger.info(
-          `[getComponentEntries] Searching for components with pattern: ${sfdxPattern}, ` +
-            `workspaceRoot: ${this.workspaceRoot}, total files in provider: ${this.fileSystemProvider.getAllFileUris().length}`
-        );
         files = findFilesWithGlob(sfdxPattern, this.fileSystemProvider, this.workspaceRoot);
-        Logger.info(`[getComponentEntries] Found ${files.length} files matching pattern before filtering`);
         const filteredFiles = files.filter((item: Entry): boolean => {
           const data = path.parse(item.path);
           const dirEndsWithName = data.dir.endsWith(data.name);
           return dirEndsWithName;
         });
-        Logger.info(`[getComponentEntries] After filtering (dir ends with name): ${filteredFiles.length} component entries`);
+
         return filteredFiles;
       default:
         // For CORE_ALL and CORE_PARTIAL
@@ -244,32 +239,16 @@ export default class ComponentIndexer {
 
   public findTagByURI(uri: string): Tag | null {
     const normalizedPathString = this.fileSystemProvider.uriToNormalizedPath(uri);
-    Logger.info(`[findTagByURI] Called with uri: ${uri}`);
-    Logger.info(`[findTagByURI] Normalized path string: ${normalizedPathString}`);
-
     const normalizedPath = normalizePath(normalizedPathString.replace(/\.html$/, '.js'));
-    Logger.info(`[findTagByURI] Looking for normalized path: ${normalizedPath}`);
-    Logger.info(`[findTagByURI] Total tags in indexer: ${this.tags.size}`);
-
-    if (this.tags.size > 0) {
-      const sampleTags = Array.from(this.tags.values()).slice(0, 5);
-      Logger.info(`[findTagByURI] Sample tags (first 5): ${sampleTags.map(t => `file=${t.file}`).join(', ')}`);
-    }
 
     const found = Array.from(this.tags.values()).find(tag => {
       const tagPath = normalizePath(tag.file);
       const matches = tagPath === normalizedPath;
-      if (matches) {
-        Logger.info(`[findTagByURI] Found matching tag: ${tag.file}`);
-      }
       return matches;
     });
 
     if (!found) {
-      Logger.info(`[findTagByURI] No matching tag found for path: ${normalizedPath}`);
-      // Log all tag paths for debugging
-      const allTagPaths = Array.from(this.tags.values()).map(t => normalizePath(t.file));
-      Logger.info(`[findTagByURI] All tag paths in indexer: ${JSON.stringify(allTagPaths.slice(0, 10))}`);
+      return null;
     }
 
     return found ?? null;
