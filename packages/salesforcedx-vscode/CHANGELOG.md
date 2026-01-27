@@ -32,3 +32,7 @@
 
 - We removed the hardcoded theme, ensuring the UI now adapts correctly to user-selected and system themes. ([PR #6776](https://github.com/forcedotcom/salesforcedx-vscode/pull/6776))
 
+#### salesforcedx-aura-language-server
+#### salesforcedx-lwc-language-server
+
+- Fixed the issue where tsconfig.json wasn't being created by lightning language server. ([PR #6800](https://github.com/forcedotcom/salesforcedx-vscode/pull/6800))
