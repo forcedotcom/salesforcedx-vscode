@@ -6,11 +6,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Impl from '../../../../soql-model/model/impl/index';
 import * as Soql from '../../../../soql-model/model/model';
 import { SoqlModelUtils } from '../../../../soql-model/model/util';
 import { ModelSerializer } from '../../../../soql-model/serialization/serializer';
 import { deserialize } from '../../../../soql-model/serialization/deserializer';
+import { SelectCountImpl } from '../../../../soql-model/model/impl/selectCountImpl';
+import { FieldSelectionImpl } from '../../../../soql-model/model/impl/fieldSelectionImpl';
+import { FieldRefImpl } from '../../../../soql-model/model/impl/fieldRefImpl';
+import { SelectExprsImpl } from '../../../../soql-model/model/impl/selectExprsImpl';
+import { LiteralImpl } from '../../../../soql-model/model/impl/literalImpl';
+import { FieldCompareConditionImpl } from '../../../../soql-model/model/impl/fieldCompareConditionImpl';
+import { InListConditionImpl } from '../../../../soql-model/model/impl/inListConditionImpl';
+import { IncludesConditionImpl } from '../../../../soql-model/model/impl/includesConditionImpl';
+import { WhereImpl } from '../../../../soql-model/model/impl/whereImpl';
+import { OrderByExpressionImpl } from '../../../../soql-model/model/impl/orderByExpressionImpl';
+import { OrderByImpl } from '../../../../soql-model/model/impl/orderByImpl';
+import { LimitImpl } from '../../../../soql-model/model/impl/limitImpl';
+import { QueryImpl } from '../../../../soql-model/model/impl/queryImpl';
+import { FromImpl } from '../../../../soql-model/model/impl/fromImpl';
+import { HeaderCommentsImpl } from '../../../../soql-model/model/impl/headerCommentsImpl';
 import { SELECT_COUNT, ToolingModelJson } from './model';
 
 export function convertSoqlToUiModel(soql: string): ToolingModelJson {
@@ -114,10 +128,10 @@ function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
   let select: Soql.Select;
   const isSelectCount = uiModel.fields.length === 1 && uiModel.fields[0].toLowerCase() === SELECT_COUNT.toLowerCase();
   if (isSelectCount) {
-    select = new Impl.SelectCountImpl();
+    select = new SelectCountImpl();
   } else {
-    const selectExprs = uiModel.fields.map(field => new Impl.FieldSelectionImpl(new Impl.FieldRefImpl(field)));
-    select = new Impl.SelectExprsImpl(selectExprs);
+    const selectExprs = uiModel.fields.map(field => new FieldSelectionImpl(new FieldRefImpl(field)));
+    select = new SelectExprsImpl(selectExprs);
   }
 
   let whereExprsImpl;
@@ -128,7 +142,7 @@ function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
 
       const field =
         uiModelCondition.field && uiModelCondition.field.fieldName
-          ? new Impl.FieldRefImpl(uiModelCondition.field.fieldName)
+          ? new FieldRefImpl(uiModelCondition.field.fieldName)
           : undefined;
 
       enum ConditionType {
@@ -152,24 +166,24 @@ function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
       }
 
       const compareValue = uiModelCondition.compareValue
-        ? new Impl.LiteralImpl(uiModelCondition.compareValue.value)
+        ? new LiteralImpl(uiModelCondition.compareValue.value)
         : uiModelCondition.values
-          ? uiModelCondition.values.map(value => new Impl.LiteralImpl(value.value))
+          ? uiModelCondition.values.map(value => new LiteralImpl(value.value))
           : undefined;
 
       if (field && compareValue) {
         // eslint-disable-next-line default-case
         switch (conditionType) {
           case ConditionType.FieldCompare: {
-            returnCondition = new Impl.FieldCompareConditionImpl(field, uiModelCondition.operator, compareValue);
+            returnCondition = new FieldCompareConditionImpl(field, uiModelCondition.operator, compareValue);
             break;
           }
           case ConditionType.In: {
-            returnCondition = new Impl.InListConditionImpl(field, uiModelCondition.operator, compareValue);
+            returnCondition = new InListConditionImpl(field, uiModelCondition.operator, compareValue);
             break;
           }
           case ConditionType.Includes: {
-            returnCondition = new Impl.IncludesConditionImpl(field, uiModelCondition.operator, compareValue);
+            returnCondition = new IncludesConditionImpl(field, uiModelCondition.operator, compareValue);
             break;
           }
         }
@@ -180,24 +194,16 @@ function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
     whereExprsImpl = SoqlModelUtils.arrayToSimpleGroup(simpleGroupArray, uiModel.where.andOr);
   }
 
-  const where = whereExprsImpl && Object.keys(whereExprsImpl).length ? new Impl.WhereImpl(whereExprsImpl) : undefined;
+  const where = whereExprsImpl && Object.keys(whereExprsImpl).length ? new WhereImpl(whereExprsImpl) : undefined;
 
   const orderByExprs = uiModel.orderBy.map(
-    orderBy => new Impl.OrderByExpressionImpl(new Impl.FieldRefImpl(orderBy.field), orderBy.order, orderBy.nulls)
+    orderBy => new OrderByExpressionImpl(new FieldRefImpl(orderBy.field), orderBy.order, orderBy.nulls)
   );
-  const orderBy = orderByExprs.length > 0 ? new Impl.OrderByImpl(orderByExprs) : undefined;
-  const limit = uiModel.limit.length > 0 ? new Impl.LimitImpl(uiModel.limit) : undefined;
-  const queryModel = new Impl.QueryImpl(
-    select,
-    new Impl.FromImpl(uiModel.sObject),
-    where,
-    undefined,
-    undefined,
-    orderBy,
-    limit
-  );
+  const orderBy = orderByExprs.length > 0 ? new OrderByImpl(orderByExprs) : undefined;
+  const limit = uiModel.limit.length > 0 ? new LimitImpl(uiModel.limit) : undefined;
+  const queryModel = new QueryImpl(select, new FromImpl(uiModel.sObject), where, undefined, undefined, orderBy, limit);
   if (uiModel.headerComments) {
-    queryModel.headerComments = new Impl.HeaderCommentsImpl(uiModel.headerComments);
+    queryModel.headerComments = new HeaderCommentsImpl(uiModel.headerComments);
   }
   return queryModel;
 }
