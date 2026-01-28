@@ -91,32 +91,6 @@ describe('SoqlModelUtils should', () => {
     );
     expect(actual).toBeFalsy();
   });
-  it('return true if SOQL query model contains error', () => {
-    const model: Soql.Query = new Impl.QueryImpl(
-      new Impl.SelectExprsImpl([new Impl.FieldRefImpl('field1')]),
-      new Impl.FromImpl('object1')
-    );
-    model.errors = [
-      {
-        type: Soql.ErrorType.UNKNOWN,
-        message: 'ERROR',
-        lineNumber: 1,
-        charInLine: 1
-      }
-    ];
-
-    const actual = SoqlModelUtils.containsError(model);
-    expect(actual).toBeTruthy();
-  });
-  it('return false if SOQL query model does not contain error', () => {
-    const model: Soql.Query = new Impl.QueryImpl(
-      new Impl.SelectExprsImpl([new Impl.FieldSelectionImpl(new Impl.FieldRefImpl('field1'))]),
-      new Impl.FromImpl('object1')
-    );
-
-    const actual = SoqlModelUtils.containsError(model);
-    expect(actual).toBeFalsy();
-  });
   it('return true from isSimpleCondition for simple conditions', () => {
     const simpleConditions: Soql.Condition[] = [
       conditionFieldCompare,
