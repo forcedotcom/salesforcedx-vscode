@@ -30,7 +30,7 @@
 
 #### salesforcedx-aura-language-server
 
-- We added a preventative check so the server doesn’t log errors before it’s ready to process requests. ([PR #6786](https://github.com/forcedotcom/salesforcedx-vscode/pull/6786))
+- We added a preventative check so the Aura Language Server doesn’t log errors before it’s ready to process requests. ([PR #6786](https://github.com/forcedotcom/salesforcedx-vscode/pull/6786))
 
 #### salesforcedx-lwc-language-server
 
