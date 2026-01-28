@@ -14,129 +14,130 @@ import { NestedConditionImpl } from './impl/nestedConditionImpl';
 import { UnmodeledSyntaxImpl } from './impl/unmodeledSyntaxImpl';
 import { AndOr, Condition } from './model';
 
+const stripNesting = (condition: Condition): Condition => {
+  while (condition instanceof NestedConditionImpl) {
+    condition = condition.condition;
+  }
+  return condition;
+};
 
-export namespace SoqlModelUtils {
-  /**
-   * This method returns quickly as soon as it finds unmodeled syntax.
-   *
-   * @param model
-   */
-
-  export function containsUnmodeledSyntax(model: Record<string, any>): boolean {
-    if (isUnmodeledSyntax(model)) {
-      return true;
-    }
-    for (const property in model) {
-      if (typeof model[property] === 'object') {
-        const hasUnmodeledSyntax = containsUnmodeledSyntax(model[property]);
-        if (hasUnmodeledSyntax) {
-          return true;
-        }
+/**
+ * This method returns quickly as soon as it finds unmodeled syntax.
+ *
+ * @param model
+ */
+const containsUnmodeledSyntax = (model: Record<string, any>): boolean => {
+  if (isUnmodeledSyntax(model)) {
+    return true;
+  }
+  for (const property in model) {
+    if (typeof model[property] === 'object') {
+      const hasUnmodeledSyntax = containsUnmodeledSyntax(model[property]);
+      if (hasUnmodeledSyntax) {
+        return true;
       }
     }
-    return false;
   }
+  return false;
+};
 
-  /**
-   * This method determins whether the model object is an instance of unmodeled syntax, without checking property objects.
-   *
-   * @param model
-   */
+/**
+ * This method determins whether the model object is an instance of unmodeled syntax, without checking property objects.
+ *
+ * @param model
+ */
+const isUnmodeledSyntax = (model: Record<string, any>): boolean => 'unmodeledSyntax' in model;
 
-  export function isUnmodeledSyntax(model: Record<string, any>): boolean {
-    return 'unmodeledSyntax' in model;
-  }
-
-  /**
-   * This method collects all the unmodelled syntax it finds into a collection and returns it.
-   *
-   * @param model
-   * @param collector
-   */
-  export function getUnmodeledSyntax(
-
-    model: Record<string, any>,
-    collector?: UnmodeledSyntaxImpl[]
-  ): UnmodeledSyntaxImpl[] {
-    collector = collector || [];
-    if ('unmodeledSyntax' in model) {
-      collector.push(model as UnmodeledSyntaxImpl);
-      return collector;
-    }
-    for (const property in model) {
-      if (typeof model[property] === 'object') {
-        getUnmodeledSyntax(model[property], collector);
-      }
-    }
+/**
+ * This method collects all the unmodelled syntax it finds into a collection and returns it.
+ *
+ * @param model
+ * @param collector
+ */
+const getUnmodeledSyntax = (
+  model: Record<string, any>,
+  collector?: UnmodeledSyntaxImpl[]
+): UnmodeledSyntaxImpl[] => {
+  collector = collector || [];
+  if ('unmodeledSyntax' in model) {
+    collector.push(model as UnmodeledSyntaxImpl);
     return collector;
   }
-
-
-  export function simpleGroupToArray(condition: Condition): { conditions: Condition[]; andOr?: AndOr } {
-    if (!isSimpleGroup(condition)) {
-      throw Error('not simple group');
+  for (const property in model) {
+    if (typeof model[property] === 'object') {
+      getUnmodeledSyntax(model[property], collector);
     }
-    condition = stripNesting(condition);
-    let conditions: Condition[] = [];
-    let andOr: AndOr | undefined;
-    if (condition instanceof AndOrConditionImpl) {
-      conditions = conditions.concat(simpleGroupToArray(condition.leftCondition).conditions);
-      conditions = conditions.concat(simpleGroupToArray(condition.rightCondition).conditions);
+  }
+  return collector;
+};
+
+const simpleGroupToArray = (condition: Condition): { conditions: Condition[]; andOr?: AndOr } => {
+  if (!isSimpleGroup(condition)) {
+    throw Error('not simple group');
+  }
+  condition = stripNesting(condition);
+  let conditions: Condition[] = [];
+  let andOr: AndOr | undefined;
+  if (condition instanceof AndOrConditionImpl) {
+    conditions = conditions.concat(simpleGroupToArray(condition.leftCondition).conditions);
+    conditions = conditions.concat(simpleGroupToArray(condition.rightCondition).conditions);
+    andOr = condition.andOr;
+  } else {
+    conditions.push(condition);
+  }
+  return { conditions, andOr };
+};
+
+const arrayToSimpleGroup = (conditions: Condition[], andOr?: AndOr): Condition => {
+  if (conditions.length > 1 && andOr === undefined) {
+    throw Error('no operator supplied for conditions');
+  }
+  if (conditions.length === 0) {
+    throw Error('no conditions');
+  }
+
+  if (conditions.length === 1) {
+    return conditions[0];
+  } else {
+    const [left, ...rest] = conditions;
+    return new AndOrConditionImpl(left, andOr as AndOr, arrayToSimpleGroup(rest, andOr));
+  }
+};
+
+const isSimpleGroup = (condition: Condition, andOr?: AndOr): boolean => {
+  // a simple group is a condition that can be expressed as an ANY or ALL group of conditions
+  // ANY: simple conditions all joined by OR
+  // ALL: simple conditions all joined by AND
+  condition = stripNesting(condition);
+  if (condition instanceof AndOrConditionImpl) {
+    if (!andOr) {
       andOr = condition.andOr;
-    } else {
-      conditions.push(condition);
     }
-    return { conditions, andOr };
-  }
-
-  export function arrayToSimpleGroup(conditions: Condition[], andOr?: AndOr): Condition {
-    if (conditions.length > 1 && andOr === undefined) {
-      throw Error('no operator supplied for conditions');
-    }
-    if (conditions.length === 0) {
-      throw Error('no conditions');
-    }
-
-    if (conditions.length === 1) {
-      return conditions[0];
-    } else {
-      const [left, ...rest] = conditions;
-      return new AndOrConditionImpl(left, andOr as AndOr, arrayToSimpleGroup(rest, andOr));
-    }
-  }
-
-  export function isSimpleGroup(condition: Condition, andOr?: AndOr): boolean {
-    // a simple group is a condition that can be expressed as an ANY or ALL group of conditions
-    // ANY: simple conditions all joined by OR
-    // ALL: simple conditions all joined by AND
-    condition = stripNesting(condition);
-    if (condition instanceof AndOrConditionImpl) {
-      if (!andOr) {
-        andOr = condition.andOr;
-      }
-      return (
-        condition.andOr === andOr &&
-        isSimpleGroup(condition.leftCondition, andOr) &&
-        isSimpleGroup(condition.rightCondition, andOr)
-      );
-    }
-    return isSimpleCondition(condition);
-  }
-
-  export function isSimpleCondition(condition: Condition): boolean {
-    condition = stripNesting(condition);
     return (
-      condition instanceof FieldCompareConditionImpl ||
-      condition instanceof IncludesConditionImpl ||
-      condition instanceof InListConditionImpl ||
-      condition instanceof UnmodeledSyntaxImpl
+      condition.andOr === andOr &&
+      isSimpleGroup(condition.leftCondition, andOr) &&
+      isSimpleGroup(condition.rightCondition, andOr)
     );
   }
+  return isSimpleCondition(condition);
+};
 
-  function stripNesting(condition: Condition): Condition {
-    while (condition instanceof NestedConditionImpl) {
-      condition = condition.condition;
-    }
-    return condition;
-  }
-}
+const isSimpleCondition = (condition: Condition): boolean => {
+  condition = stripNesting(condition);
+  return (
+    condition instanceof FieldCompareConditionImpl ||
+    condition instanceof IncludesConditionImpl ||
+    condition instanceof InListConditionImpl ||
+    condition instanceof UnmodeledSyntaxImpl
+  );
+};
+
+export const SoqlModelUtils = {
+  containsUnmodeledSyntax,
+  isUnmodeledSyntax,
+  getUnmodeledSyntax,
+  simpleGroupToArray,
+  arrayToSimpleGroup,
+  isSimpleGroup,
+  isSimpleCondition
+} as const;
