@@ -14,12 +14,13 @@ import {
   closeWelcomeTabs,
   waitForWorkspaceReady
 } from '../../../src/utils/helpers';
-import { EDITOR_WITH_URI, TAB } from '../../../src/utils/locators';
+import { EDITOR_WITH_URI, TAB, DIRTY_EDITOR, QUICK_INPUT_WIDGET } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
 test.describe('File Operations', () => {
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
+    await waitForWorkspaceReady(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
   });
@@ -132,31 +133,62 @@ test.describe('File Operations', () => {
   });
 
   test('should open file by name using Quick Open', async ({ page }) => {
+    const fileName = 'test-quick-open-file.json';
+    const fileContent = '{"test": "content"}';
+
     await test.step('Wait for workspace to be ready', async () => {
       await waitForWorkspaceReady(page);
     });
 
-    await test.step('Open sfdx-project.json using Quick Open', async () => {
-      // Close any open editors first
+    await test.step('Create a new file', async () => {
+      await createFileWithContents(page, fileName, fileContent);
+    });
+
+    await test.step('Save the file with a specific name', async () => {
+      // Use File: Save As to save the untitled file with a name
+      await executeCommandWithCommandPalette(page, 'File: Save As');
+
+      // Wait for the save dialog/input to appear
+      const quickInput = page.locator(QUICK_INPUT_WIDGET);
+      await expect(quickInput).toBeVisible({ timeout: 10_000 });
+
+      // Type the filename
+      await page.keyboard.type(fileName);
+      await page.keyboard.press('Enter');
+
+      // Wait for the file to be saved (dirty indicator should disappear)
+      await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 10_000 });
+    });
+
+    await test.step('Close the file', async () => {
       await executeCommandWithCommandPalette(page, 'View: Close All Editors');
 
-      // Use openFileByName to open sfdx-project.json (should exist in workspace)
-      await openFileByName(page, 'sfdx-project.json');
+      // Wait for editor to close
+      await page
+        .locator(EDITOR_WITH_URI)
+        .first()
+        .waitFor({ state: 'hidden', timeout: 5000 })
+        .catch(() => {
+          // Editor might already be closed, that's fine
+        });
+    });
+
+    await test.step('Open file using Quick Open', async () => {
+      await openFileByName(page, fileName);
     });
 
     await test.step('Verify file is open in editor', async () => {
       const editor = page.locator(EDITOR_WITH_URI).first();
       await expect(editor).toBeVisible({ timeout: 10_000 });
 
-      // Verify the file URI contains sfdx-project.json
+      // Verify the file URI contains the filename
       const editorUri = await editor.getAttribute('data-uri');
-      expect(editorUri).toContain('sfdx-project.json');
+      expect(editorUri).toContain(fileName);
     });
 
     await test.step('Verify file content is visible', async () => {
       const editor = page.locator(EDITOR_WITH_URI).first();
-      // sfdx-project.json should contain "packageDirectories" or "sourceApiVersion"
-      await expect(editor).toContainText(/packageDirectories|sourceApiVersion/, { timeout: 5000 });
+      await expect(editor).toContainText(fileContent, { timeout: 5000 });
     });
   });
 });

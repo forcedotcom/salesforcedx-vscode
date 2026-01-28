@@ -70,20 +70,24 @@ export const createApexClass = async (page: Page, className: string, content?: s
   }
 };
 
-/** Open a file using Quick Open */
+/**
+ * Open a file using Quick Open.
+ * Big caveat: on the web, this'll only work with files that have already been opened, in the editor (not just call didOpen on it!)
+ * that's a limitation of web fs on vscode because search/find files doesn't work yet.
+ */
 export const openFileByName = async (page: Page, fileName: string): Promise<void> => {
   const widget = page.locator(QUICK_INPUT_WIDGET);
-  
+
   if (isMacDesktop()) {
     // On macOS desktop, Control+P doesn't work reliably, use command palette instead
     await executeCommandWithCommandPalette(page, 'Go to File');
-    
+
     // Wait for Quick Open widget to be visible and ready
     await expect(widget).toBeVisible({ timeout: 10_000 });
     const input = widget.locator('input.input');
     await expect(input).toBeVisible({ timeout: 5000 });
     await input.click({ timeout: 5000 });
-    
+
     // Clear any existing text and ensure input is focused
     await page.keyboard.press('Control+a');
     await page.keyboard.press('Delete');

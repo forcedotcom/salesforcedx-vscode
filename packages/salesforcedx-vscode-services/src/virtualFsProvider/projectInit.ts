@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import { Buffer } from 'node:buffer';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
@@ -30,15 +31,25 @@ const getDirsToCreate = (): string[] => [
   ...metadataDirs.map(dir => `${sampleProjectPath}/force-app/main/default/${dir}`)
 ];
 
-const createConfigFiles = (fsp: FsProvider): void => {
-  Object.entries(TEMPLATES).forEach(([name, content]) => {
-    const uri = vscode.Uri.parse(`${sampleProjectPath}/${name}`);
-    fsp.writeFile(uri, new Uint8Array(Buffer.from(content.join('\n'))), {
-      create: true,
-      overwrite: true
-    });
-  });
-};
+const createConfigFiles = (fsp: FsProvider) =>
+  Stream.fromIterable(Object.entries(TEMPLATES)).pipe(
+    Stream.map(([name, content]: [string, string[]]) => ({
+      name,
+      content,
+      uri: vscode.Uri.parse(`${sampleProjectPath}/${name}`)
+    })),
+    Stream.tap(({ uri, content }) =>
+      Effect.promise(
+        async () =>
+          await fsp.writeFile(uri, new Uint8Array(Buffer.from(content.join('\n'))), {
+            create: true,
+            overwrite: true
+          })
+      )
+    ),
+    Stream.tap(({ uri }) => Effect.sync(() => console.log(`didOpen for file: ${uri.fsPath}`))),
+    Stream.runForEach(({ uri }) => Effect.promise(async () => await vscode.workspace.openTextDocument(uri)))
+  );
 
 /** Creates the project directory structure and files */
 const createProjectStructure = (fsp: FsProvider) =>
@@ -58,7 +69,7 @@ const createProjectStructure = (fsp: FsProvider) =>
       catch: (error: unknown) => new VirtualFsProviderError(unknownToErrorCause(error))
     });
 
-    yield* Effect.all([Effect.sync(() => createConfigFiles(fsp)), Effect.sync(() => createVSCodeFiles(fsp))], {
+    yield* Effect.all([createConfigFiles(fsp), Effect.sync(() => createVSCodeFiles(fsp))], {
       concurrency: 'unbounded'
     });
   }).pipe(Effect.withSpan('projectInit: createProjectStructure'));
