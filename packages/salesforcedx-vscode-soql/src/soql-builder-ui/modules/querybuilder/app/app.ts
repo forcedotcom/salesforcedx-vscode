@@ -5,6 +5,7 @@
  *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  *
  */
+/// <reference path="../../../types/ts-types.d.ts" />
 
 import { LightningElement, track } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
@@ -13,10 +14,7 @@ import { MessageServiceFactory } from '../services/message/messageServiceFactory
 
 import { ToolingModelService } from '../services/toolingModelService';
 import { IMessageService } from '../services/message/iMessageService';
-import {
-  MessageType,
-  SoqlEditorEvent
-} from '../services/message/soqlEditorEvent';
+import { MessageType, SoqlEditorEvent } from '../services/message/soqlEditorEvent';
 import {
   recoverableErrors,
   recoverableFieldErrors,
@@ -44,10 +42,7 @@ export default class App extends LightningElement {
   public notifications = [];
 
   public get shouldBlockQueryBuilder(): boolean {
-    return (
-      (this.hasUnrecoverableError || this.hasUnsupportedMessage) &&
-      this.dismissNotifications === false
-    );
+    return (this.hasUnrecoverableError || this.hasUnsupportedMessage) && this.dismissNotifications === false;
   }
   public get showUnsupportedNotification(): boolean {
     return !this.hasUnrecoverableError && this.hasUnsupportedMessage;
@@ -85,10 +80,7 @@ export default class App extends LightningElement {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.toolingSDK.sobjectMetadata.subscribe((sobjectMetadata: any) => {
       this.isFieldsLoading = false;
-      this.fields =
-        sobjectMetadata && sobjectMetadata.fields
-          ? sobjectMetadata.fields.map((f) => f.name).sort()
-          : [];
+      this.fields = sobjectMetadata && sobjectMetadata.fields ? sobjectMetadata.fields.map(f => f.name).sort() : [];
       this.sobjectMetadata = sobjectMetadata;
     });
 
@@ -140,11 +132,7 @@ export default class App extends LightningElement {
       this.onSObjectChanged(newSObject);
     }
     // if no fields have been downloaded yet
-    else if (
-      previousSObject === newSObject &&
-      this.fields.length === 0 &&
-      this.isFieldsLoading === false
-    ) {
+    else if (previousSObject === newSObject && this.fields.length === 0 && this.isFieldsLoading === false) {
       this.onSObjectChanged(newSObject);
     }
   }
@@ -156,7 +144,7 @@ export default class App extends LightningElement {
     this.hasRecoverableLimitError = false;
     this.hasUnrecoverableError = false;
     const messages = [];
-    errors.forEach((error) => {
+    errors.forEach(error => {
       if (recoverableErrors[error.type]) {
         this.hasRecoverableError = true;
         if (recoverableFieldErrors[error.type]) {
@@ -180,11 +168,13 @@ export default class App extends LightningElement {
   public inspectUnsupported(unsupported: JsonMap[]): any {
     const filteredUnsupported = unsupported
       // this reason is often associated with a parse error, so snuffing it out instead of double notifications
-      .filter(
-        (unsup) => unsup.reason.reasonCode !== 'unmodeled:empty-condition'
-      )
-      .map((unsup) => {
-        return unsup.reason.message;
+      .filter(unsup => {
+        const reason = unsup.reason as JsonMap;
+        return reason?.reasonCode !== 'unmodeled:empty-condition';
+      })
+      .map(unsup => {
+        const reason = unsup.reason as JsonMap;
+        return reason.message;
       });
     this.hasUnsupportedMessage = filteredUnsupported.length > 0;
     return filteredUnsupported;
@@ -201,7 +191,7 @@ export default class App extends LightningElement {
     if (sobjectName) {
       this.fields = [];
       this.isFieldsLoading = true;
-      this.toolingSDK.loadSObjectMetatada(sobjectName);
+      this.toolingSDK.loadSObjectMetadata(sobjectName);
     }
   }
   /* ---- FIELD HANDLERS ---- */

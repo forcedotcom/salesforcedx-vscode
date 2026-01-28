@@ -16,9 +16,7 @@ export class ToolingSDK {
   public sobjects: Observable = new BehaviorSubject<string[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public sobjectMetadata: Observable = new BehaviorSubject<any>({ fields: [] });
-  public queryRunState: Observable<boolean> = new BehaviorSubject<boolean>(
-    false
-  );
+  public queryRunState: Observable<boolean> = new BehaviorSubject<boolean>(false);
   private messageService: IMessageService;
   private latestSObjectName?: string;
 
@@ -31,7 +29,7 @@ export class ToolingSDK {
     this.messageService.sendMessage({ type: MessageType.SOBJECTS_REQUEST });
   }
 
-  public loadSObjectMetatada(sobjectName: string): void {
+  public loadSObjectMetadata(sobjectName: string): void {
     this.latestSObjectName = sobjectName;
     this.messageService.sendMessage({
       type: MessageType.SOBJECT_METADATA_REQUEST,
@@ -53,7 +51,7 @@ export class ToolingSDK {
         case MessageType.CONNECTION_CHANGED: {
           this.loadSObjectDefinitions();
           if (this.latestSObjectName) {
-            this.loadSObjectMetatada(this.latestSObjectName);
+            this.loadSObjectMetadata(this.latestSObjectName);
           }
           break;
         }

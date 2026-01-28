@@ -10,7 +10,7 @@ import { api, track, LightningElement } from 'lwc';
  * The list of options rendered will be all-options - selected-options
  * @attr placeholder-text: string - This is the value to be displayed as a placeholder for the input.
  * @property value: string[] - Will return the currently selected value(s).
- * @event option__selection - This is emitted everytime a valid option is selected. detail { value: optionValue }
+ * @event option__selection - This is emitted every time a valid option is selected. detail { value: optionValue }
  *
  */
 interface CustomSelectEvent extends CustomEvent {
@@ -20,6 +20,11 @@ interface CustomSelectEvent extends CustomEvent {
 }
 
 export default class CustomSelect extends LightningElement {
+  // LWC template property for DOM queries
+  public template!: {
+    querySelector(selector: string): Element | null;
+  };
+
   @api public multiple = false;
   @api public isLoading = false;
   @api public allOptions: string[];
@@ -112,48 +117,35 @@ export default class CustomSelect extends LightningElement {
 
   // close the options menu when user clicks outside component
   public connectedCallback(): void {
-    document.addEventListener(
-      this.customSelectEventName,
-      this.handleCloseOptions
-    );
+    document.addEventListener(this.customSelectEventName, this.handleCloseOptions);
     document.addEventListener('click', this.handleCloseOptions);
   }
 
   // prevent a memory leak
   public disconnectedCallback(): void {
-    document.removeEventListener(
-      this.customSelectEventName,
-      this.handleCloseOptions
-    );
+    document.removeEventListener(this.customSelectEventName, this.handleCloseOptions);
     document.addEventListener('click', this.handleCloseOptions);
   }
 
   public renderedCallback(): void {
-    this.optionsWrapper =
-      this.optionsWrapper || this.template.querySelector('.options__wrapper');
+    this.optionsWrapper = this.optionsWrapper || (this.template.querySelector('.options__wrapper') as HTMLElement);
     this.optionList = this.optionsWrapper.children;
-    this.selectInputEl =
-      this.selectInputEl || this.template.querySelector('.select__input');
-    this.dropdownArrow =
-      this.dropdownArrow ||
-      this.template.querySelector('.select__dropdown-arrow');
+    this.selectInputEl = this.selectInputEl || (this.template.querySelector('.select__input') as HTMLInputElement);
+    this.dropdownArrow = this.dropdownArrow || (this.template.querySelector('.select__dropdown-arrow') as HTMLElement);
   }
 
   /* ======= UTILITIES ======= */
 
   public calculateAvailableOptions(): void {
     this.availableOptions = this.allOptions.filter(
-      (baseOption) =>
-        !this.selectedOptions.some(
-          (selectedOption) =>
-            selectedOption.toLowerCase() === baseOption.toLowerCase()
-        )
+      baseOption =>
+        !this.selectedOptions.some(selectedOption => selectedOption.toLowerCase() === baseOption.toLowerCase())
     );
   }
 
   public filterOptionsBySearchTerm(): void {
     if (this.searchTerm) {
-      const filteredOptions = this.availableOptions.filter((option) => {
+      const filteredOptions = this.availableOptions.filter(option => {
         return option.toLowerCase().includes(this.searchTerm.toLowerCase());
       });
       this.numberOfSearchResults = filteredOptions.length;
@@ -165,9 +157,7 @@ export default class CustomSelect extends LightningElement {
 
   public getCurrentOptionValue(): string {
     return this.optionList[this.activeOptionIndex]
-      ? this.optionList[this.activeOptionIndex].getAttribute(
-          'data-option-value'
-        )
+      ? this.optionList[this.activeOptionIndex].getAttribute('data-option-value')
       : '';
   }
   /*
@@ -175,14 +165,12 @@ export default class CustomSelect extends LightningElement {
   - if the selection is a valid option
   - it will be up to the parent to handle/ignore
   - the state of _value will be updated either way
-  & can be queried independantly of the model.
+  & can be queried independently of the model.
  */
   public addSelectedOption(optionName: string = this.searchTerm): void {
-    const validOptionMatch: string[] = this.availableOptions.filter(
-      (option) => {
-        return option.toLowerCase() === optionName.toLowerCase();
-      }
-    );
+    const validOptionMatch: string[] = this.availableOptions.filter(option => {
+      return option.toLowerCase() === optionName.toLowerCase();
+    });
 
     if (validOptionMatch.length) {
       const optionValue = validOptionMatch[0];
@@ -204,18 +192,12 @@ export default class CustomSelect extends LightningElement {
   }
 
   public hasOptionsToNavigate(): boolean {
-    return (
-      this.optionListIsHidden === false &&
-      this.optionList.length > 0 &&
-      this.noResultsFound === false
-    );
+    return this.optionListIsHidden === false && this.optionList.length > 0 && this.noResultsFound === false;
   }
 
   public clearActiveHighlight(): void {
     if (this.optionList[this.activeOptionIndex]) {
-      this.optionList[this.activeOptionIndex].classList.remove(
-        'option--highlight'
-      );
+      this.optionList[this.activeOptionIndex].classList.remove('option--highlight');
     }
   }
 
@@ -391,9 +373,7 @@ export default class CustomSelect extends LightningElement {
           }
 
           this.activeOptionIndex =
-            this.activeOptionIndex < this.optionList.length - 1
-              ? ++this.activeOptionIndex
-              : this.optionList.length - 1;
+            this.activeOptionIndex < this.optionList.length - 1 ? ++this.activeOptionIndex : this.optionList.length - 1;
 
           this.addOptionHighlight(this.activeOptionIndex);
           this.searchTerm = this.getCurrentOptionValue();
@@ -415,8 +395,7 @@ export default class CustomSelect extends LightningElement {
             break;
           }
           // make sure the index is in range
-          this.activeOptionIndex =
-            this.activeOptionIndex > 0 ? --this.activeOptionIndex : -1;
+          this.activeOptionIndex = this.activeOptionIndex > 0 ? --this.activeOptionIndex : -1;
 
           if (this.activeOptionIndex >= 0) {
             this.addOptionHighlight(this.activeOptionIndex);

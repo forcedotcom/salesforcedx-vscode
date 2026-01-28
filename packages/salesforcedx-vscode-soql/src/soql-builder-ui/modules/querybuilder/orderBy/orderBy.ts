@@ -5,10 +5,16 @@
  *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  *
  */
+/// <reference path="../../../types/ts-types.d.ts" />
 
 import { LightningElement, api } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
 export default class OrderBy extends LightningElement {
+  // LWC template property for DOM queries
+  public template!: {
+    querySelector(selector: string): Element | null;
+  };
+
   @api public orderByFields: string[];
   @api public selectedOrderByFields: JsonMap[] = [];
   @api public hasError = false; // currently not used, no specific order by errors
@@ -25,9 +31,9 @@ export default class OrderBy extends LightningElement {
     e.preventDefault();
     const orderbyFieldEl = this.template.querySelector(
       'querybuilder-custom-select'
-    );
-    const orderEl = this.template.querySelector('[data-el-orderby-order]');
-    const nullsEl = this.template.querySelector('[data-el-orderby-nulls]');
+    ) as any;
+    const orderEl = this.template.querySelector('[data-el-orderby-order]') as HTMLSelectElement;
+    const nullsEl = this.template.querySelector('[data-el-orderby-nulls]') as HTMLSelectElement;
     if (
       orderbyFieldEl &&
       orderbyFieldEl.value[0] &&
@@ -47,7 +53,7 @@ export default class OrderBy extends LightningElement {
   public handleOrderByRemoved(e: Event): void {
     e.preventDefault();
     const orderByRemovedEvent = new CustomEvent('orderby__removed', {
-      detail: { field: e.target.dataset.field }
+      detail: { field: (e.target as HTMLElement).dataset.field }
     });
     this.dispatchEvent(orderByRemovedEvent);
   }

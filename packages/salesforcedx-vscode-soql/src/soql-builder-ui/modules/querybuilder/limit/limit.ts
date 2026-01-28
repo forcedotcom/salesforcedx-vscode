@@ -15,7 +15,7 @@ export default class Limit extends LightningElement {
   /* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access */
   public handleLimitChange(e: Event): void {
     e.preventDefault();
-    const limit = e.target.value;
+    const limit = (e.target as HTMLInputElement).value;
     const sObjectSelected = new CustomEvent('limit__changed', {
       detail: { limit }
     });
