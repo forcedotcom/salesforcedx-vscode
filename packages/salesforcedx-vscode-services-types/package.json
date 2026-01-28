@@ -63,7 +63,7 @@
     "@opentelemetry/sdk-trace-node": "2.2.0",
     "@opentelemetry/sdk-trace-web": "2.2.0",
     "@salesforce/core": "^8.23.4",
-    "@salesforce/source-deploy-retrieve": "^12.31.5",
+    "@salesforce/source-deploy-retrieve": "^12.31.9",
     "@salesforce/source-tracking": "^7.8.1",
     "@types/vscode": "^1.90.0",
     "effect": "^3.19.14",
