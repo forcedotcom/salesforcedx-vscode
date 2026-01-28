@@ -9,15 +9,12 @@ import * as Soql from '../model';
 import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
 export class OrderByExpressionImpl extends SoqlModelObjectImpl implements Soql.OrderByExpression {
-  public field: Soql.Field;
-  public order?: Soql.Order;
-  public nullsOrder?: Soql.NullsOrder;
-
-  constructor(field: Soql.Field, order?: Soql.Order, nullsOrder?: Soql.NullsOrder) {
+  constructor(
+    public field: Soql.Field,
+    public order?: Soql.Order,
+    public nullsOrder?: Soql.NullsOrder
+  ) {
     super();
-    this.field = field;
-    this.order = order;
-    this.nullsOrder = nullsOrder;
   }
 
   public toSoqlSyntax(options?: Soql.SyntaxOptions): string {
