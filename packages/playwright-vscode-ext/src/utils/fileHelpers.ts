@@ -7,7 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
-import { closeSettingsTab, closeWelcomeTabs, isMacDesktop } from './helpers';
+import { closeSettingsTab, closeWelcomeTabs, isDesktop } from './helpers';
 import { WORKBENCH, QUICK_INPUT_WIDGET, EDITOR_WITH_URI, DIRTY_EDITOR, QUICK_INPUT_LIST_ROW } from './locators';
 
 /**
@@ -78,7 +78,7 @@ export const createApexClass = async (page: Page, className: string, content?: s
 export const openFileByName = async (page: Page, fileName: string): Promise<void> => {
   const widget = page.locator(QUICK_INPUT_WIDGET);
 
-  if (isMacDesktop()) {
+  if (isDesktop()) {
     // On macOS desktop, Control+P doesn't work reliably, use command palette instead
     await executeCommandWithCommandPalette(page, 'Go to File');
 
@@ -92,7 +92,7 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
     await page.keyboard.press('Control+a');
     await page.keyboard.press('Delete');
   } else {
-    // On web and Windows desktop, Control+P works reliably (original working approach)
+    // On web Control+P works fine as long as file has been opened in the editor first
     await page.locator(WORKBENCH).click();
     await page.keyboard.press('Control+p');
     await widget.waitFor({ state: 'visible', timeout: 10_000 });
