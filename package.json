@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@actions/core": "^1.11.0",
-    "@actions/github": "^6.0.0",
+    "@actions/github": "^8.0.1",
     "@salesforce/vscode-service-provider": "1.5.0",
     "jsforce": "^3.10.10",
     "memfs": "^4.17.2",
