@@ -32,9 +32,7 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
-    "esbuild": "0.25.12",
-    "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-core": "*"
+    "esbuild": "0.25.12"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -59,8 +57,6 @@
         "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-core:compile",
-        "../salesforcedx-vscode-apex:compile",
         "../effect-ext-utils:compile"
       ],
       "files": [
