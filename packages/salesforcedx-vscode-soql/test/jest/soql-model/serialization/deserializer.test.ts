@@ -6,7 +6,7 @@
  */
 
 import * as Soql from '../../../../src/soql-model/model/model';
-import { ModelDeserializer } from '../../../../src/soql-model/serialization/deserializer';
+import { deserialize } from '../../../../src/soql-model/serialization/deserializer';
 
 const testQueryModel = {
   select: {
@@ -98,7 +98,7 @@ const conditionSemiJoin = {
   reason: Soql.REASON_UNMODELED_INSEMIJOINCONDITION,
 };
 
-describe('ModelDeserializer should', () => {
+describe('deserialize should', () => {
   it('model supported syntax as query objects', () => {
     const expected = {
       select: {
@@ -107,7 +107,7 @@ describe('ModelDeserializer should', () => {
       from: testQueryModel.from,
       errors: testQueryModel.errors,
     };
-    const actual = new ModelDeserializer('SELECT field1, field2 FROM object1').deserialize();
+    const actual = deserialize('SELECT field1, field2 FROM object1');
     expect(actual).toMatchObject(expected);
   });
 
@@ -119,9 +119,9 @@ describe('ModelDeserializer should', () => {
       from: fromWithUnmodeledSyntax,
       errors: testQueryModel.errors,
     };
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       'SELECT field1, field2 FROM object1 AS objectAs USING SCOPE everything'
-    ).deserialize();
+    );
     expect(actual).toMatchObject(expected);
   });
 
@@ -140,9 +140,9 @@ describe('ModelDeserializer should', () => {
       from: testQueryModel.from,
       errors: testQueryModel.errors,
     };
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       'SELECT field1, field2, field3 alias3, COUNT(fieldZ), (SELECT fieldA FROM objectA), TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END FROM object1'
-    ).deserialize();
+    );
     expect(actual).toMatchObject(expected);
   });
 
@@ -152,22 +152,22 @@ describe('ModelDeserializer should', () => {
       from: testQueryModel.from,
       errors: testQueryModel.errors,
     };
-    const actual = new ModelDeserializer('SELECT COUNT() FROM object1').deserialize();
+    const actual = deserialize('SELECT COUNT() FROM object1');
     expect(actual).toMatchObject(expected);
   });
 
   it('model all unmodeled clauses as unmodeled syntax', () => {
     const expected = testQueryModel;
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       'SELECT field1, field2, field3 alias3, COUNT(fieldZ), (SELECT fieldA FROM objectA), TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END FROM object1 ' +
         'WHERE field1 = 5 WITH DATA CATEGORY cat__c AT val__c GROUP BY field1 ORDER BY field2 DESC NULLS LAST, field1 LIMIT 20 OFFSET 2 BIND field1 = 5 FOR VIEW UPDATE TRACKING'
-    ).deserialize();
+    );
     expect(actual).toMatchObject(expected);
   });
 
   it('model parse errors with partial parse results as ModelErrors within query', () => {
     const expectedErrors = 1;
-    const model = new ModelDeserializer('SELECT FROM object1').deserialize();
+    const model = deserialize('SELECT FROM object1');
     expect(model.errors).toBeDefined();
     expect(model.errors?.length).toEqual(expectedErrors);
   });
@@ -209,7 +209,7 @@ describe('ModelDeserializer should', () => {
       limit: limitZero,
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 LIMIT 0').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 LIMIT 0');
     expect(actual).toMatchObject(expected);
   });
 
@@ -224,7 +224,7 @@ describe('ModelDeserializer should', () => {
       },
       errors: [],
     };
-    const actual = new ModelDeserializer("SELECT field1 FROM object1 WHERE field = 'HelloWorld'").deserialize();
+    const actual = deserialize("SELECT field1 FROM object1 WHERE field = 'HelloWorld'");
     expect(actual).toMatchObject(expected);
   });
 
@@ -239,7 +239,7 @@ describe('ModelDeserializer should', () => {
       },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field = 2020-11-11').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE field = 2020-11-11');
     expect(actual).toMatchObject(expected);
   });
 
@@ -254,7 +254,7 @@ describe('ModelDeserializer should', () => {
       },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field = TRUE').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE field = TRUE');
     expect(actual).toMatchObject(expected);
   });
 
@@ -269,7 +269,7 @@ describe('ModelDeserializer should', () => {
       },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field = FALSE').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE field = FALSE');
     expect(actual).toMatchObject(expected);
   });
 
@@ -284,7 +284,7 @@ describe('ModelDeserializer should', () => {
       },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field = 5').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE field = 5');
     expect(actual).toMatchObject(expected);
   });
 
@@ -299,7 +299,7 @@ describe('ModelDeserializer should', () => {
       },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field = null').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE field = null');
     expect(actual).toMatchObject(expected);
   });
 
@@ -314,7 +314,7 @@ describe('ModelDeserializer should', () => {
       },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field = USD1000').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE field = USD1000');
     expect(actual).toMatchObject(expected);
   });
 
@@ -327,7 +327,7 @@ describe('ModelDeserializer should', () => {
       where: { condition: { ...conditionFieldCompare, operator: '=' } },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field = 5').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE field = 5');
     expect(actual).toMatchObject(expected);
   });
 
@@ -340,7 +340,7 @@ describe('ModelDeserializer should', () => {
       where: { condition: { ...conditionFieldCompare, operator: '!=' } },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field != 5').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE field != 5');
     expect(actual).toMatchObject(expected);
   });
 
@@ -353,7 +353,7 @@ describe('ModelDeserializer should', () => {
       where: { condition: { ...conditionFieldCompare, operator: '<>' } },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field <> 5').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE field <> 5');
     expect(actual).toMatchObject(expected);
   });
 
@@ -366,7 +366,7 @@ describe('ModelDeserializer should', () => {
       where: { condition: { ...conditionFieldCompare, operator: '<' } },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field < 5').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE field < 5');
     expect(actual).toMatchObject(expected);
   });
 
@@ -379,7 +379,7 @@ describe('ModelDeserializer should', () => {
       where: { condition: { ...conditionFieldCompare, operator: '>' } },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field > 5').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE field > 5');
     expect(actual).toMatchObject(expected);
   });
 
@@ -392,7 +392,7 @@ describe('ModelDeserializer should', () => {
       where: { condition: { ...conditionFieldCompare, operator: '<=' } },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field <= 5').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE field <= 5');
     expect(actual).toMatchObject(expected);
   });
 
@@ -405,7 +405,7 @@ describe('ModelDeserializer should', () => {
       where: { condition: { ...conditionFieldCompare, operator: '>=' } },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field >= 5').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE field >= 5');
     expect(actual).toMatchObject(expected);
   });
 
@@ -418,7 +418,7 @@ describe('ModelDeserializer should', () => {
       where: { condition: conditionLike },
       errors: [],
     };
-    const actual = new ModelDeserializer("SELECT field1 FROM object1 WHERE field LIKE 'HelloWorld'").deserialize();
+    const actual = deserialize("SELECT field1 FROM object1 WHERE field LIKE 'HelloWorld'");
     expect(actual).toMatchObject(expected);
   });
 
@@ -431,9 +431,9 @@ describe('ModelDeserializer should', () => {
       where: { condition: { ...conditionIncludes, operator: 'INCLUDES' } },
       errors: [],
     };
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       "SELECT field1 FROM object1 WHERE field INCLUDES ( 'HelloWorld', 'other value' )"
-    ).deserialize();
+    );
     expect(actual).toMatchObject(expected);
   });
 
@@ -446,9 +446,9 @@ describe('ModelDeserializer should', () => {
       where: { condition: { ...conditionIncludes, operator: 'EXCLUDES' } },
       errors: [],
     };
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       "SELECT field1 FROM object1 WHERE field EXCLUDES ( 'HelloWorld', 'other value' )"
-    ).deserialize();
+    );
     expect(actual).toMatchObject(expected);
   });
 
@@ -461,9 +461,9 @@ describe('ModelDeserializer should', () => {
       where: { condition: { ...conditionInList, operator: 'IN' } },
       errors: [],
     };
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       "SELECT field1 FROM object1 WHERE field IN ( 'HelloWorld', 'other value' )"
-    ).deserialize();
+    );
     expect(actual).toMatchObject(expected);
   });
 
@@ -476,9 +476,9 @@ describe('ModelDeserializer should', () => {
       where: { condition: { ...conditionInList, operator: 'NOT IN' } },
       errors: [],
     };
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       "SELECT field1 FROM object1 WHERE field NOT IN ( 'HelloWorld', 'other value' )"
-    ).deserialize();
+    );
     expect(actual).toMatchObject(expected);
   });
 
@@ -491,9 +491,9 @@ describe('ModelDeserializer should', () => {
       where: { condition: conditionIncludes },
       errors: [],
     };
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       "SELECT field1 FROM object1 WHERE field INCLUDES ( 'HelloWorld', 'other value' )"
-    ).deserialize();
+    );
     expect(actual).toMatchObject(expected);
   });
 
@@ -506,9 +506,9 @@ describe('ModelDeserializer should', () => {
       where: { condition: conditionInList },
       errors: [],
     };
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       "SELECT field1 FROM object1 WHERE field IN ( 'HelloWorld', 'other value' )"
-    ).deserialize();
+    );
     expect(actual).toMatchObject(expected);
   });
 
@@ -521,7 +521,7 @@ describe('ModelDeserializer should', () => {
       where: { condition: conditionCalculated },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE A + B > 10').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE A + B > 10');
     expect(actual).toMatchObject(expected);
   });
 
@@ -534,9 +534,9 @@ describe('ModelDeserializer should', () => {
       where: { condition: conditionDistance },
       errors: [],
     };
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       "SELECT field1 FROM object1 WHERE DISTANCE(field,GEOLOCATION(37,122),'mi') < 100"
-    ).deserialize();
+    );
     expect(actual).toMatchObject(expected);
   });
 
@@ -549,7 +549,7 @@ describe('ModelDeserializer should', () => {
       where: { condition: conditionSemiJoin },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE field IN (SELECT A FROM B)').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE field IN (SELECT A FROM B)');
     expect(actual).toMatchObject(expected);
   });
 
@@ -562,7 +562,7 @@ describe('ModelDeserializer should', () => {
       where: { condition: conditionNot },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE NOT field = 5').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE NOT field = 5');
     expect(actual).toMatchObject(expected);
   });
 
@@ -575,9 +575,9 @@ describe('ModelDeserializer should', () => {
       where: { condition: conditionComplex },
       errors: [],
     };
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       "SELECT field1 FROM object1 WHERE field = 5 AND (field like 'A%' OR field like 'B%')"
-    ).deserialize();
+    );
     expect(actual).toMatchObject(expected);
   });
 
@@ -590,9 +590,9 @@ describe('ModelDeserializer should', () => {
       where: { condition: { ...conditionAndOr, andOr: 'AND' } },
       errors: [],
     };
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       "SELECT field1 FROM object1 WHERE field = 5 AND field LIKE 'HelloWorld'"
-    ).deserialize();
+    );
     expect(actual).toMatchObject(expected);
   });
 
@@ -605,9 +605,9 @@ describe('ModelDeserializer should', () => {
       where: { condition: { ...conditionAndOr, andOr: 'OR' } },
       errors: [],
     };
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       "SELECT field1 FROM object1 WHERE field = 5 OR field LIKE 'HelloWorld'"
-    ).deserialize();
+    );
     expect(actual).toMatchObject(expected);
   });
 
@@ -620,7 +620,7 @@ describe('ModelDeserializer should', () => {
       where: { condition: conditionNested },
       errors: [],
     };
-    const actual = new ModelDeserializer('SELECT field1 FROM object1 WHERE ( field = 5 )').deserialize();
+    const actual = deserialize('SELECT field1 FROM object1 WHERE ( field = 5 )');
     expect(actual).toMatchObject(expected);
   });
 
@@ -689,9 +689,9 @@ describe('ModelDeserializer should', () => {
       from: testQueryModel.from,
       errors: [],
     };
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       '// This is a comment on line 1\n// This is a comment on line 2\nSELECT field1 FROM object1'
-    ).deserialize();
+    );
     expect(actual).toMatchObject(expected);
   });
 
@@ -701,9 +701,9 @@ describe('ModelDeserializer should', () => {
         text: '// This is a comment on line 1\n// This is a comment on line 2\n',
       },
     };
-    const actual = new ModelDeserializer(
+    const actual = deserialize(
       '// This is a comment on line 1\n// This is a comment on line 2\nSELECT FROM object1'
-    ).deserialize();
+    );
 
     expect(actual.errors).toBeDefined();
     expect(actual.errors?.length).toEqual(1);
@@ -717,7 +717,7 @@ describe('ModelDeserializer should', () => {
   });
 
   const expectError = (query: string, expectedType: Soql.ErrorType): void => {
-    const model = new ModelDeserializer(query).deserialize();
+    const model = deserialize(query);
     if (model.errors?.length === 1) {
       expect(model.errors[0].type).toEqual(expectedType);
     } else {
