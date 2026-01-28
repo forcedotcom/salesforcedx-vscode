@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Messages } from '../../../../src/soql-model/messages/messages';
+import { messages } from '../../../../src/soql-model/messages/i18n';
 import { SObjectFieldType } from '../../../../src/soql-model/model/model';
 import { DateValidator } from '../../../../src/soql-model/validators/dateValidator';
 
 describe('DateValidator should', () => {
   const validator = new DateValidator({ type: SObjectFieldType.Date });
   const validResult = { isValid: true };
-  const notValidResult = { isValid: false, message: Messages.error_fieldInput_date };
+  const notValidResult = { isValid: false, message: messages.error_fieldInput_date };
   it('return valid result for date only patterns', () => {
     expect(validator.validate('2020-01-01')).toEqual(validResult);
   });

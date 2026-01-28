@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Messages } from '../messages/messages';
+import { messages } from '../messages/i18n';
 import { FloatValidator } from './floatValidator';
 import { ValidateResult } from './validator';
 
@@ -16,7 +16,7 @@ export class CurrencyValidator extends FloatValidator {
     }
 
     const isValid = isCurrencyLiteral(input);
-    const message = isValid ? undefined : Messages.error_fieldInput_currency;
+    const message = isValid ? undefined : messages.error_fieldInput_currency;
     return { isValid, message };
   }
 }

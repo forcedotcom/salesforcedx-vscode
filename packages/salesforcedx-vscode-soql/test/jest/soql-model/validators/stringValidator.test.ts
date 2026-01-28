@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Messages } from '../../../../src/soql-model/messages/messages';
+import { messages } from '../../../../src/soql-model/messages/i18n';
 import { SObjectFieldType } from '../../../../src/soql-model/model/model';
 import { StringValidator } from '../../../../src/soql-model/validators/stringValidator';
 
 describe('StringValidator should', () => {
   const validator = new StringValidator({ type: SObjectFieldType.String });
   const validResult = { isValid: true };
-  const notValidResult = { isValid: false, message: Messages.error_fieldInput_string };
+  const notValidResult = { isValid: false, message: messages.error_fieldInput_string };
 
   it('return valid result for string in single quotes', () => {
     expect(validator.validate("'foo'")).toEqual(validResult);

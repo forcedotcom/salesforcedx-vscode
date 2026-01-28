@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Messages } from '../messages/messages';
+import { messages } from '../messages/i18n';
 import { ValidateResult, Validator } from './validator';
 
 export class StringValidator extends Validator {
@@ -15,7 +15,7 @@ export class StringValidator extends Validator {
         input.endsWith("'") &&
         !this.isEscaped(input.substring(1, input.length - 1))) ||
       input.toLowerCase() === 'null';
-    const message = isValid ? undefined : Messages.error_fieldInput_string;
+    const message = isValid ? undefined : messages.error_fieldInput_string;
     return { isValid, message };
   }
 

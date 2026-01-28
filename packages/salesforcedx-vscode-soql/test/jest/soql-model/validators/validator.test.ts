@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Messages } from '../../../../src/soql-model/messages/messages';
+import { messages } from '../../../../src/soql-model/messages/i18n';
 import { SObjectFieldType } from '../../../../src/soql-model/model/model';
 import { StringValidator } from '../../../../src/soql-model/validators/stringValidator';
 import { DefaultValidator, MultipleInputValidator, OperatorValidator } from '../../../../src/soql-model/validators/validator';
@@ -33,14 +33,14 @@ describe('OperatorValidator should', () => {
     expect(stringOperatorValidator.validate('eq')).toEqual(expected);
   });
   it('return not valid result for not accepted operator', () => {
-    const expected = { isValid: false, message: Messages.error_operatorInput.replace('{0}', 'LIKE') };
+    const expected = { isValid: false, message: messages.error_operatorInput.replace('{0}', 'LIKE') };
     expect(booleanOperatorValidator.validate('like')).toEqual(expected);
     expect(currencyOperatorValidator.validate('like')).toEqual(expected);
     expect(dateOperatorValidator.validate('like')).toEqual(expected);
     expect(numericOperatorValidator.validate('like')).toEqual(expected);
   });
   it('return not valid result for unrecognized operator', () => {
-    const expected = { isValid: false, message: Messages.error_operatorInput.replace('{0}', 'unrecognized') };
+    const expected = { isValid: false, message: messages.error_operatorInput.replace('{0}', 'unrecognized') };
     expect(booleanOperatorValidator.validate('unrecognized')).toEqual(expected);
     expect(currencyOperatorValidator.validate('unrecognized')).toEqual(expected);
     expect(dateOperatorValidator.validate('unrecognized')).toEqual(expected);
@@ -53,13 +53,13 @@ describe('MultipleInputValidator should', () => {
   const stringOptions = { type: SObjectFieldType.String };
   const validator = new MultipleInputValidator(stringOptions, new StringValidator(stringOptions));
   it('return not valid result for empty input', () => {
-    const notValidResult = { isValid: false, message: Messages.error_fieldInput_list };
+    const notValidResult = { isValid: false, message: messages.error_fieldInput_list };
     expect(validator.validate('')).toEqual(notValidResult);
     expect(validator.validate('  ')).toEqual(notValidResult);
     expect(validator.validate(' , ,, ')).toEqual(notValidResult);
   });
   it('return not valid result for invalid input for type', () => {
-    const notValidResult = { isValid: false, message: Messages.error_fieldInput_string };
+    const notValidResult = { isValid: false, message: messages.error_fieldInput_string };
     expect(validator.validate("'good', bad")).toEqual(notValidResult);
   });
   it('return valid result for input that is valid as determined by delegate validator', () => {

@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Messages } from '../../../../src/soql-model/messages/messages';
+import { messages } from '../../../../src/soql-model/messages/i18n';
 import { SObjectFieldType } from '../../../../src/soql-model/model/model';
 import { CurrencyValidator } from '../../../../src/soql-model/validators/currencyValidator';
 
 describe('CurrencyValidator should', () => {
   const validator = new CurrencyValidator({ type: SObjectFieldType.Currency });
   const validResult = { isValid: true };
-  const notValidResult = { isValid: false, message: Messages.error_fieldInput_currency };
+  const notValidResult = { isValid: false, message: messages.error_fieldInput_currency };
   it('return valid result for floating point literals', () => {
     expect(validator.validate('+13.25')).toEqual(validResult);
     expect(validator.validate('-13')).toEqual(validResult);

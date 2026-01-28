@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Messages } from '../../../../src/soql-model/messages/messages';
+import { messages } from '../../../../src/soql-model/messages/i18n';
 import { SObjectFieldType } from '../../../../src/soql-model/model/model';
 import { FloatValidator } from '../../../../src/soql-model/validators/floatValidator';
 
 describe('FloatValidator should', () => {
   const validator = new FloatValidator({ type: SObjectFieldType.Double });
   const validResult = { isValid: true };
-  const notValidResult = { isValid: false, message: Messages.error_fieldInput_float };
+  const notValidResult = { isValid: false, message: messages.error_fieldInput_float };
   it('return valid result for signed floating point input', () => {
     expect(validator.validate(' +3.14')).toEqual(validResult);
   });

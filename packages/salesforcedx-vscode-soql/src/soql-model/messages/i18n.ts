@@ -5,9 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// prettier-ignore
-/* eslint-disable @typescript-eslint/naming-convention */
-export const Messages = {
+/**
+ * Conventions:
+ * _message: is for unformatted text that will be shown as-is to
+ * the user.
+ * _text: is for text that will appear in the UI, possibly with
+ * decorations, e.g., $(x) uses the https://octicons.github.com/ and should not
+ * be localized
+ *
+ * If omitted, we will assume _message.
+ */
+export const messages = {
   error_empty: 'Incomplete SOQL statement. The SELECT and FROM clauses are required.',
   error_noSelect: 'A SELECT clause is required.',
   error_noSelections: 'Incomplete SELECT clause. The SELECT clause must contain at least one SELECT expression.',
@@ -60,3 +68,5 @@ export const Messages = {
   unmodeled_incolonexpressioncondition: 'Colon expression as IN value',
   unmodeled_insemijoincondition: 'Subquery as IN value',
 } as const;
+
+export type MessageKey = keyof typeof messages;

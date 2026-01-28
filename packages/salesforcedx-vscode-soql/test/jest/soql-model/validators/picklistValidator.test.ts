@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Messages } from '../../../../src/soql-model/messages/messages';
+import { messages } from '../../../../src/soql-model/messages/i18n';
 import { SObjectFieldType } from '../../../../src/soql-model/model/model';
 import { PicklistValidator } from '../../../../src/soql-model/validators/picklistValidator';
 
@@ -25,7 +25,7 @@ describe('PicklistValidator should', () => {
     expect(actual).toEqual(expected);
   });
   it('return not valid result when input not contained in picklist values', () => {
-    const expected = { isValid: false, message: Messages.error_fieldInput_picklist.replace('{0}', "'A', 'B'") };
+    const expected = { isValid: false, message: messages.error_fieldInput_picklist.replace('{0}', "'A', 'B'") };
     const actual = new PicklistValidator(options).validate("'C'");
     expect(actual).toEqual(expected);
   });
@@ -37,7 +37,7 @@ describe('PicklistValidator should', () => {
   });
 
   it('return not valid for "null" when field is NOT nillable', () => {
-    const expected = { isValid: false, message: Messages.error_fieldInput_picklist.replace('{0}', "'A', 'B'") };
+    const expected = { isValid: false, message: messages.error_fieldInput_picklist.replace('{0}', "'A', 'B'") };
     const actual = new PicklistValidator({ ...options, nillable: false }).validate('null');
     expect(actual).toEqual(expected);
   });
