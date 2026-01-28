@@ -14,42 +14,22 @@ import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
 export class QueryImpl extends SoqlModelObjectImpl implements Soql.Query {
   public headerComments?: Soql.HeaderComments;
-  public select?: Soql.Select;
-  public from?: Soql.From;
-  public where?: Soql.Where;
   public with?: Soql.With;
-  public groupBy?: Soql.GroupBy;
-  public orderBy?: Soql.OrderBy;
-  public limit?: Soql.Limit;
-  public offset?: Soql.Offset;
-  public bind?: Soql.Bind;
-  public recordTrackingType?: Soql.RecordTrackingType;
-  public update?: Soql.Update;
   constructor(
-    select?: Soql.Select,
-    from?: Soql.From,
-    where?: Soql.Where,
+    public select?: Soql.Select,
+    public from?: Soql.From,
+    public where?: Soql.Where,
     soqlwith?: Soql.With,
-    groupBy?: Soql.GroupBy,
-    orderBy?: Soql.OrderBy,
-    limit?: Soql.Limit,
-    offset?: Soql.Offset,
-    bind?: Soql.Bind,
-    recordTrackingType?: Soql.RecordTrackingType,
-    update?: Soql.Update
+    public groupBy?: Soql.GroupBy,
+    public orderBy?: Soql.OrderBy,
+    public limit?: Soql.Limit,
+    public offset?: Soql.Offset,
+    public bind?: Soql.Bind,
+    public recordTrackingType?: Soql.RecordTrackingType,
+    public update?: Soql.Update
   ) {
     super();
-    this.select = select;
-    this.from = from;
-    this.where = where;
     this.with = soqlwith;
-    this.groupBy = groupBy;
-    this.orderBy = orderBy;
-    this.limit = limit;
-    this.offset = offset;
-    this.bind = bind;
-    this.recordTrackingType = recordTrackingType;
-    this.update = update;
   }
   public toSoqlSyntax(options?: Soql.SyntaxOptions): string {
     const opts = this.getSyntaxOptions(options);
