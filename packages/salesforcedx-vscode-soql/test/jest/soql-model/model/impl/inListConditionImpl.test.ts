@@ -5,7 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Impl from '../../../../../src/soql-model/model/impl';
+import { FieldRefImpl } from '../../../../../src/soql-model/model/impl/fieldRefImpl';
+import { InListConditionImpl } from '../../../../../src/soql-model/model/impl/inListConditionImpl';
+import { LiteralImpl } from '../../../../../src/soql-model/model/impl/literalImpl';
 import { ConditionOperator } from '../../../../../src/soql-model/model/model';
 
 describe('InListConditionImpl should', () => {
@@ -15,17 +17,17 @@ describe('InListConditionImpl should', () => {
       operator: 'NOT IN',
       values: [{ value: "'abc'" }, { value: "'def'" }]
     };
-    const actual = new Impl.InListConditionImpl(new Impl.FieldRefImpl('field'), ConditionOperator.NotIn, [
-      new Impl.LiteralImpl("'abc'"),
-      new Impl.LiteralImpl("'def'")
+    const actual = new InListConditionImpl(new FieldRefImpl('field'), ConditionOperator.NotIn, [
+      new LiteralImpl("'abc'"),
+      new LiteralImpl("'def'")
     ]);
     expect(actual).toEqual(expected);
   });
   it('return field, operator, and parenthesized comma-separated values separated by spaces for toSoqlSyntax()', () => {
     const expected = "field NOT IN ( 'abc', 'def' )";
-    const actual = new Impl.InListConditionImpl(new Impl.FieldRefImpl('field'), ConditionOperator.NotIn, [
-      new Impl.LiteralImpl("'abc'"),
-      new Impl.LiteralImpl("'def'")
+    const actual = new InListConditionImpl(new FieldRefImpl('field'), ConditionOperator.NotIn, [
+      new LiteralImpl("'abc'"),
+      new LiteralImpl("'def'")
     ]).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });

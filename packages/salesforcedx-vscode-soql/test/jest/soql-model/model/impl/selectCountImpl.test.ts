@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Impl from '../../../../../src/soql-model/model/impl';
+import { SelectCountImpl } from '../../../../../src/soql-model/model/impl/selectCountImpl';
 
 describe('SelectCountImpl should', () => {
   it('return "SELECT COUNT()" for toSoqlSyntax()', () => {
     const expected = 'SELECT COUNT()';
-    const actual = new Impl.SelectCountImpl().toSoqlSyntax();
+    const actual = new SelectCountImpl().toSoqlSyntax();
     expect(actual).toEqual(expected);
   });
 });
