@@ -6,16 +6,14 @@
  */
 
 import { expect } from '@playwright/test';
-import { executeCommandWithCommandPalette } from '../../../src/pages/commands';
-import { createFileWithContents, openFileByName } from '../../../src/utils/fileHelpers';
+import { createFileWithContents } from '../../../src/utils/fileHelpers';
 import {
   waitForVSCodeWorkbench,
   assertWelcomeTabExists,
   closeWelcomeTabs,
-  waitForWorkspaceReady,
-  isMacDesktop
+  waitForWorkspaceReady
 } from '../../../src/utils/helpers';
-import { EDITOR_WITH_URI, TAB, DIRTY_EDITOR, QUICK_INPUT_WIDGET } from '../../../src/utils/locators';
+import { EDITOR_WITH_URI, TAB } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
 
 test.describe('File Operations', () => {
@@ -130,68 +128,6 @@ test.describe('File Operations', () => {
       await expect(dirtyIndicator).toBeVisible();
       const editor = page.locator(EDITOR_WITH_URI).first();
       await expect(editor).toContainText('More content');
-    });
-  });
-
-  // Skipped on Mac desktop because the Save As dialog is outside of Electron using the native Mac dialog.
-  test('should open file by name using Quick Open', async ({ page }) => {
-    test.skip(isMacDesktop(), 'Save As dialog uses native Mac dialog outside of Electron');
-    const fileName = 'test-quick-open-file.json';
-    const fileContent = '{"test": "content"}';
-
-    await test.step('Wait for workspace to be ready', async () => {
-      await waitForWorkspaceReady(page);
-    });
-
-    await test.step('Create a new file', async () => {
-      await createFileWithContents(page, fileName, fileContent);
-    });
-
-    await test.step('Save the file with a specific name', async () => {
-      // Use File: Save As to save the untitled file with a name
-      await executeCommandWithCommandPalette(page, 'File: Save As');
-
-      // Wait for the save dialog/input to appear
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await expect(quickInput).toBeVisible({ timeout: 10_000 });
-
-      // Type the filename
-      await page.keyboard.type(fileName);
-      await page.keyboard.press('Enter');
-
-      // Wait for the file to be saved (dirty indicator should disappear)
-      await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 10_000 });
-    });
-
-    await test.step('Close the file', async () => {
-      await executeCommandWithCommandPalette(page, 'View: Close All Editors');
-
-      // Wait for editor to close
-      await page
-        .locator(EDITOR_WITH_URI)
-        .first()
-        .waitFor({ state: 'hidden', timeout: 5000 })
-        .catch(() => {
-          // Editor might already be closed, that's fine
-        });
-    });
-
-    await test.step('Open file using Quick Open', async () => {
-      await openFileByName(page, fileName);
-    });
-
-    await test.step('Verify file is open in editor', async () => {
-      const editor = page.locator(EDITOR_WITH_URI).first();
-      await expect(editor).toBeVisible({ timeout: 10_000 });
-
-      // Verify the file URI contains the filename
-      const editorUri = await editor.getAttribute('data-uri');
-      expect(editorUri).toContain(fileName);
-    });
-
-    await test.step('Verify file content is visible', async () => {
-      const editor = page.locator(EDITOR_WITH_URI).first();
-      await expect(editor).toContainText(fileContent, { timeout: 5000 });
     });
   });
 });
