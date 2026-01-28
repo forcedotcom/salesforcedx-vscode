@@ -6,7 +6,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Impl from '../../../../soql-model/model/impl';
+import * as Impl from '../../../../soql-model/model/impl/index';
 import * as Soql from '../../../../soql-model/model/model';
 import { SoqlModelUtils } from '../../../../soql-model/model/util';
 import { ModelSerializer } from '../../../../soql-model/serialization/serializer';
