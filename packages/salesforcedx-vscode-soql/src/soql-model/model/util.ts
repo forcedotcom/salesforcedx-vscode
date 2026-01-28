@@ -67,21 +67,6 @@ export namespace SoqlModelUtils {
   }
 
 
-  export function containsError(model: Record<string, any>): boolean {
-    if ('errors' in model && Array.isArray(model.errors) && model.errors.length > 0) {
-      return true;
-    }
-    for (const property in model) {
-      if (typeof model[property] === 'object') {
-        const hasError = containsError(model[property]);
-        if (hasError) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   export function simpleGroupToArray(condition: Condition): { conditions: Condition[]; andOr?: AndOr } {
     if (!isSimpleGroup(condition)) {
       throw Error('not simple group');
@@ -142,11 +127,6 @@ export namespace SoqlModelUtils {
       condition instanceof Impl.UnmodeledSyntaxImpl
     );
   }
-
-  export function getKeyByValue(object: { [key: string]: string }, value: string): string | undefined {
-    return Object.keys(object).find((key: string) => object[key] === value);
-  }
-
 
   function stripNesting(condition: Condition): Condition {
     while (condition instanceof Impl.NestedConditionImpl) {
