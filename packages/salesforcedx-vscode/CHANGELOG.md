@@ -10,10 +10,6 @@
 
 ## Fixed
 
-#### salesforcedx-aura-language-server
-
-- We added a preventative check so the server doesn’t log errors before it’s ready to process requests. ([PR #6786](https://github.com/forcedotcom/salesforcedx-vscode/pull/6786))
-
 #### salesforcedx-vscode-apex-testing
 
 - We fixed an issue where the `test-run-concise` option displayed both passing and failing test results instead of only failures. Thank you [Kyle Capehart](https://github.com/k-capehart) for submitting this issue. ([PR #6794](https://github.com/forcedotcom/salesforcedx-vscode/pull/6794))
@@ -33,6 +29,9 @@
 - We removed the hardcoded theme, ensuring the UI now adapts correctly to user-selected and system themes. ([PR #6776](https://github.com/forcedotcom/salesforcedx-vscode/pull/6776))
 
 #### salesforcedx-aura-language-server
+
+- We added a preventative check so the server doesn’t log errors before it’s ready to process requests. ([PR #6786](https://github.com/forcedotcom/salesforcedx-vscode/pull/6786))
+
 #### salesforcedx-lwc-language-server
 
 - We fixed an issue where `tsconfig.json` wasn't being created by the Lightning Language Server. ([PR #6800](https://github.com/forcedotcom/salesforcedx-vscode/pull/6800))
