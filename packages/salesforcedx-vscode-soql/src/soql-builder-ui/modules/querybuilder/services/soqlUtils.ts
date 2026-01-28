@@ -279,13 +279,13 @@ export function isLikeContains(value: string): boolean {
 export function addWildCardToValue(operatorValue: Soql.UiOperatorValue, rawValue: string): string {
   let value = stripWildCardPadding(rawValue);
   switch (operatorValue) {
-    case Soql.UiOperatorValue.LIKE_START:
+    case 'LIKE_START':
       value = `${value}${WILD_CARD}`;
       break;
-    case Soql.UiOperatorValue.LIKE_END:
+    case 'LIKE_END':
       value = `${WILD_CARD}${value}`;
       break;
-    case Soql.UiOperatorValue.LIKE_CONTAINS:
+    case 'LIKE_CONTAINS':
       value = `${WILD_CARD}${value}${WILD_CARD}`;
       break;
     default:

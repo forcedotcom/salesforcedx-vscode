@@ -16,26 +16,25 @@ export interface ModelError {
   grammarRule?: string;
 }
 
-export enum ErrorType {
-  UNKNOWN = 'UNKNOWN',
-  EMPTY = 'EMPTY',
-  NOSELECT = 'NOSELECT',
-  NOSELECTIONS = 'NOSELECTIONS',
-  NOFROM = 'NOFROM',
-  INCOMPLETEFROM = 'INCOMPLETEFROM',
-  INCOMPLETELIMIT = 'INCOMPLETELIMIT',
-  EMPTYWHERE = 'EMPTYWHERE',
-  INCOMPLETENESTEDCONDITION = 'INCOMPLETENESTEDCONDITION',
-  INCOMPLETEANDORCONDITION = 'INCOMPLETEANDORCONDITION',
-  INCOMPLETENOTCONDITION = 'INCOMPLETENOTCONDITION',
-  UNRECOGNIZEDCOMPAREVALUE = 'UNRECOGNIZEDCOMPAREVALUE',
-  UNRECOGNIZEDCOMPAREOPERATOR = 'UNRECOGNIZEDCOMPAREOPERATOR',
-  UNRECOGNIZEDCOMPAREFIELD = 'UNRECOGNIZEDCOMPAREFIELD',
-  NOCOMPAREVALUE = 'NOCOMPAREVALUE',
-  NOCOMPAREOPERATOR = 'NOCOMPAREOPERATOR',
-  INCOMPLETEMULTIVALUELIST = 'INCOMPLETEMULTIVALUELIST',
-  UNEXPECTEDEOF = 'UNEXPECTEDEOF',
-}
+export type ErrorType =
+  | 'UNKNOWN'
+  | 'EMPTY'
+  | 'NOSELECT'
+  | 'NOSELECTIONS'
+  | 'NOFROM'
+  | 'INCOMPLETEFROM'
+  | 'INCOMPLETELIMIT'
+  | 'EMPTYWHERE'
+  | 'INCOMPLETENESTEDCONDITION'
+  | 'INCOMPLETEANDORCONDITION'
+  | 'INCOMPLETENOTCONDITION'
+  | 'UNRECOGNIZEDCOMPAREVALUE'
+  | 'UNRECOGNIZEDCOMPAREOPERATOR'
+  | 'UNRECOGNIZEDCOMPAREFIELD'
+  | 'NOCOMPAREVALUE'
+  | 'NOCOMPAREOPERATOR'
+  | 'INCOMPLETEMULTIVALUELIST'
+  | 'UNEXPECTEDEOF';
 
 export enum SObjectFieldType {
   Address = 'address',
@@ -65,23 +64,22 @@ export enum SObjectFieldType {
   Url = 'url',
 }
 
-export enum UiOperatorValue {
-  EQ = 'EQ',
-  NOT_EQ = 'NOT_EQ',
-  ALT_NOT_EQ = 'ALT_NOT_EQ',
-  LT_EQ = 'LT_EQ',
-  GT_EQ = 'GT_EQ',
-  LT = 'LT',
-  GT = 'GT',
-  LIKE = 'LIKE',
-  LIKE_START = 'LIKE_START',
-  LIKE_END = 'LIKE_END',
-  LIKE_CONTAINS = 'LIKE_CONTAINS',
-  IN = 'IN',
-  NOT_IN = 'NOT_IN',
-  INCLUDES = 'INCLUDES',
-  EXCLUDES = 'EXCLUDES',
-}
+export type UiOperatorValue =
+  | 'EQ'
+  | 'NOT_EQ'
+  | 'ALT_NOT_EQ'
+  | 'LT_EQ'
+  | 'GT_EQ'
+  | 'LT'
+  | 'GT'
+  | 'LIKE'
+  | 'LIKE_START'
+  | 'LIKE_END'
+  | 'LIKE_CONTAINS'
+  | 'IN'
+  | 'NOT_IN'
+  | 'INCLUDES'
+  | 'EXCLUDES';
 
 export interface SoqlModelObject {
   errors?: ModelError[];
@@ -159,20 +157,11 @@ export interface OrderByExpression extends SoqlModelObject {
   nullsOrder?: NullsOrder;
 }
 
-export enum Order {
-  Ascending = 'ASC',
-  Descending = 'DESC',
-}
+export type Order = 'ASC' | 'DESC';
 
-export enum NullsOrder {
-  First = 'NULLS FIRST',
-  Last = 'NULLS LAST',
-}
+export type NullsOrder = 'NULLS FIRST' | 'NULLS LAST';
 
-export enum AndOr {
-  And = 'AND',
-  Or = 'OR',
-}
+export type AndOr = 'AND' | 'OR';
 
 export enum ConditionOperator {
   Equals = '=',
@@ -194,14 +183,13 @@ export interface CompareValue extends SoqlModelObject {
   // colon expression => UnmodeledSyntax
 }
 
-export enum LiteralType {
-  Boolean = 'BOOLEAN',
-  Currency = 'CURRENCY',
-  Date = 'DATE',
-  Null = 'NULL',
-  Number = 'NUMBER',
-  String = 'STRING',
-}
+export type LiteralType =
+  | 'BOOLEAN'
+  | 'CURRENCY'
+  | 'DATE'
+  | 'NULL'
+  | 'NUMBER'
+  | 'STRING';
 
 export interface Literal extends CompareValue {
   value: string;

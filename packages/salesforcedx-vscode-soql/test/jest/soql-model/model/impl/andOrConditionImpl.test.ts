@@ -9,7 +9,7 @@ import { AndOrConditionImpl } from '../../../../../src/soql-model/model/impl/and
 import { FieldCompareConditionImpl } from '../../../../../src/soql-model/model/impl/fieldCompareConditionImpl';
 import { FieldRefImpl } from '../../../../../src/soql-model/model/impl/fieldRefImpl';
 import { LiteralImpl } from '../../../../../src/soql-model/model/impl/literalImpl';
-import { AndOr, ConditionOperator } from '../../../../../src/soql-model/model/model';
+import { ConditionOperator } from '../../../../../src/soql-model/model/model';
 
 describe('AndOrConditionImpl should', () => {
   it('store left and right conditions and the AndOr operator', () => {
@@ -24,7 +24,7 @@ describe('AndOrConditionImpl should', () => {
         ConditionOperator.GreaterThan,
         new LiteralImpl('1')
       ),
-      AndOr.Or,
+      'OR',
       new FieldCompareConditionImpl(
         new FieldRefImpl('field'),
         ConditionOperator.LessThan,
@@ -41,7 +41,7 @@ describe('AndOrConditionImpl should', () => {
         ConditionOperator.GreaterThan,
         new LiteralImpl('1')
       ),
-      AndOr.Or,
+      'OR',
       new FieldCompareConditionImpl(
         new FieldRefImpl('field'),
         ConditionOperator.LessThan,

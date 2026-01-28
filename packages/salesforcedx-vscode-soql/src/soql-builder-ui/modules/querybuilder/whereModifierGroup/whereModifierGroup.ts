@@ -233,7 +233,7 @@ export default class WhereModifierGroup extends LightningElement {
     let displayValue = rawValue;
     // eslint-disable-next-line default-case
     switch (type) {
-      case Soql.LiteralType.String:
+      case 'STRING':
         displayValue = soqlStringLiteralToDisplayValue(rawValue);
         if (this.isSpecialLikeCondition(operatorValue)) {
           displayValue = stripWildCardPadding(displayValue);
@@ -299,31 +299,31 @@ export default class WhereModifierGroup extends LightningElement {
     type: Soql.SObjectFieldType,
     value: string
   ): Soql.LiteralType {
-    let criteriaType = Soql.LiteralType.String;
+    let criteriaType: Soql.LiteralType = 'STRING';
     if (value.toLowerCase() === 'null') {
-      return Soql.LiteralType.Null;
+      return 'NULL';
     }
     // eslint-disable-next-line default-case
     switch (type) {
       case Soql.SObjectFieldType.Boolean: {
-        criteriaType = Soql.LiteralType.Boolean;
+        criteriaType = 'BOOLEAN';
         break;
       }
       case Soql.SObjectFieldType.Currency: {
-        criteriaType = Soql.LiteralType.Currency;
+        criteriaType = 'CURRENCY';
         break;
       }
       case Soql.SObjectFieldType.DateTime:
       case Soql.SObjectFieldType.Date:
       case Soql.SObjectFieldType.Time: {
-        criteriaType = Soql.LiteralType.Date;
+        criteriaType = 'DATE';
         break;
       }
       case Soql.SObjectFieldType.Integer:
       case Soql.SObjectFieldType.Long:
       case Soql.SObjectFieldType.Percent:
       case Soql.SObjectFieldType.Double: {
-        criteriaType = Soql.LiteralType.Number;
+        criteriaType = 'NUMBER';
         break;
       }
     }

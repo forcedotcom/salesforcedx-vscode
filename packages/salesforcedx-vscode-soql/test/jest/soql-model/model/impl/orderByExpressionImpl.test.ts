@@ -7,7 +7,6 @@
 
 import { FieldRefImpl } from '../../../../../src/soql-model/model/impl/fieldRefImpl';
 import { OrderByExpressionImpl } from '../../../../../src/soql-model/model/impl/orderByExpressionImpl';
-import { NullsOrder, Order } from '../../../../../src/soql-model/model/model';
 
 
 describe('OrderByExpressionImpl should', () => {
@@ -19,8 +18,8 @@ describe('OrderByExpressionImpl should', () => {
     };
     const actual = new OrderByExpressionImpl(
       new FieldRefImpl('shattered'),
-      Order.Ascending,
-      NullsOrder.First
+      'ASC',
+      'NULLS FIRST'
     );
     expect(actual).toEqual(expected);
   });
@@ -28,8 +27,8 @@ describe('OrderByExpressionImpl should', () => {
     const expected = 'shattered ASC NULLS FIRST';
     const actual = new OrderByExpressionImpl(
       new FieldRefImpl('shattered'),
-      Order.Ascending,
-      NullsOrder.First
+      'ASC',
+      'NULLS FIRST'
     ).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });
