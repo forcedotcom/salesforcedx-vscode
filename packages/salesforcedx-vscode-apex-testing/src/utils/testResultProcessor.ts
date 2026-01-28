@@ -202,12 +202,41 @@ export const updateTestRunResults = (params: {
   // This ensures the checkmark appears on the suite/class, not just the methods
   for (const test of testsToRun) {
     if (isSuite(test.id)) {
-      // For suites, update the suite and all its class children
-      if (totalFailed > 0) {
-        run.failed(test, new vscode.TestMessage(`${totalFailed} test(s) failed`), totalDuration);
-      } else if (totalPassed > 0) {
-        run.passed(test, totalDuration);
-      } else if (totalSkipped > 0) {
+      // For suites, aggregate results only for classes that belong to THIS suite
+      let suitePassed = 0;
+      let suiteFailed = 0;
+      let suiteSkipped = 0;
+      let suiteDuration = 0;
+
+      test.children.forEach(child => {
+        // Try matching by label directly (e.g., "Class1")
+        let childResult = classResults.get(child.label);
+
+        // If not found, try matching with namespace prefix (e.g., "namespace.Class1")
+        if (!childResult) {
+          for (const [className, classResult] of classResults) {
+            // Check if the className ends with the child label (handles namespace.Class1 -> Class1)
+            if (className === child.label || className.endsWith(`.${child.label}`)) {
+              childResult = classResult;
+              break;
+            }
+          }
+        }
+
+        if (childResult) {
+          suitePassed += childResult.passed;
+          suiteFailed += childResult.failed;
+          suiteSkipped += childResult.skipped;
+          suiteDuration += childResult.duration;
+        }
+      });
+
+      // Mark the suite based on its own aggregate results
+      if (suiteFailed > 0) {
+        run.failed(test, new vscode.TestMessage(`${suiteFailed} test(s) failed`), suiteDuration);
+      } else if (suitePassed > 0) {
+        run.passed(test, suiteDuration);
+      } else if (suiteSkipped > 0) {
         run.skipped(test);
       }
       // Recursively update class items under the suite

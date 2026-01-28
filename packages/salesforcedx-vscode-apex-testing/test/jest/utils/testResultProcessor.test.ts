@@ -792,5 +792,76 @@ describe('testResultProcessor', () => {
       // Note: class1Item might not be updated if label doesn't match namespace.Class1
       // This is expected behavior - suite-class items use simple class names
     });
+
+    it('should mark only the failing suite as failed when running multiple suites', () => {
+      const run = createMockTestRun();
+
+      // Suite 1 with a passing test
+      const method1 = createMockTestItem('method:PassingClass.testPass', 'testPass');
+      const class1Item = createMockTestItem('suite-class:PassingSuite:PassingClass', 'PassingClass', undefined, [
+        method1
+      ]);
+      const passingSuite = createMockTestItem('suite:PassingSuite', 'PassingSuite', undefined, [class1Item]);
+
+      // Suite 2 with a failing test
+      const method2 = createMockTestItem('method:FailingClass.testFail', 'testFail');
+      const class2Item = createMockTestItem('suite-class:FailingSuite:FailingClass', 'FailingClass', undefined, [
+        method2
+      ]);
+      const failingSuite = createMockTestItem('suite:FailingSuite', 'FailingSuite', undefined, [class2Item]);
+
+      const methodItems = new Map([
+        ['PassingClass.testPass', method1],
+        ['FailingClass.testFail', method2]
+      ]);
+      const classItems = new Map([
+        ['PassingClass', createMockTestItem('class:PassingClass', 'PassingClass')],
+        ['FailingClass', createMockTestItem('class:FailingClass', 'FailingClass')]
+      ]);
+
+      const result: TestResult = {
+        tests: [
+          {
+            apexClass: { name: 'PassingClass', namespacePrefix: null },
+            methodName: 'testPass',
+            outcome: PASS_RESULT,
+            runTime: 100
+          },
+          {
+            apexClass: { name: 'FailingClass', namespacePrefix: null },
+            methodName: 'testFail',
+            outcome: FAIL_RESULT,
+            runTime: 50,
+            message: 'Test failed',
+            stackTrace: ''
+          }
+        ],
+        summary: { testsRan: 2, passing: 1, failing: 1 }
+      } as unknown as TestResult;
+
+      updateTestRunResults({
+        result,
+        run,
+        testsToRun: [passingSuite, failingSuite],
+        methodItems,
+        classItems,
+        codeCoverage: false
+      });
+
+      // Methods should be updated correctly
+      expect(run.passed).toHaveBeenCalledWith(method1, 100);
+      expect(run.failed).toHaveBeenCalledWith(method2, expect.any(Object), 50);
+
+      // CRITICAL: Only the failing suite should be marked as failed
+      expect(run.passed).toHaveBeenCalledWith(passingSuite, 100);
+      expect(run.failed).toHaveBeenCalledWith(failingSuite, expect.any(Object), 50);
+
+      // Verify passingSuite was NOT marked as failed
+      const failedCalls = (run.failed as jest.Mock).mock.calls;
+      const passingSuiteFailedCall = failedCalls.find(
+        (call: [vscode.TestItem, vscode.TestMessage, number]) => call[0].id === 'suite:PassingSuite'
+      );
+      expect(passingSuiteFailedCall).toBeUndefined();
+    });
   });
 });
