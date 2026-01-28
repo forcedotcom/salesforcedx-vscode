@@ -84,7 +84,9 @@ export const messages = {
   apex_test_successful_execution_message: '%s successfully ran',
   apex_test_failed_execution_message: '%s failed to run',
   test_view_refresh_failed_message:
-    'Failed to refresh test view, please make sure the Apex Language Server is running and try again. Apex LS status: %s'
+    'Failed to refresh test view, please make sure the Apex Language Server is running and try again. Apex LS status: %s',
+  apex_class_source_hidden:
+    "// Source code for class '%s' is hidden.\n// This is common for managed package classes whose source is protected."
 } as const;
 
 export type MessageKey = keyof typeof messages;
