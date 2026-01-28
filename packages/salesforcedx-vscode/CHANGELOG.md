@@ -35,4 +35,4 @@
 #### salesforcedx-aura-language-server
 #### salesforcedx-lwc-language-server
 
-- Fixed the issue where tsconfig.json wasn't being created by lightning language server. ([PR #6800](https://github.com/forcedotcom/salesforcedx-vscode/pull/6800))
+- We fixed an issue where `tsconfig.json` wasn't being created by the Lightning Language Server. ([PR #6800](https://github.com/forcedotcom/salesforcedx-vscode/pull/6800))
