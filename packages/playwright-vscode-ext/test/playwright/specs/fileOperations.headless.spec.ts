@@ -12,7 +12,8 @@ import {
   waitForVSCodeWorkbench,
   assertWelcomeTabExists,
   closeWelcomeTabs,
-  waitForWorkspaceReady
+  waitForWorkspaceReady,
+  isMacDesktop
 } from '../../../src/utils/helpers';
 import { EDITOR_WITH_URI, TAB, DIRTY_EDITOR, QUICK_INPUT_WIDGET } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
@@ -132,7 +133,9 @@ test.describe('File Operations', () => {
     });
   });
 
+  // Skipped on Mac desktop because the Save As dialog is outside of Electron using the native Mac dialog.
   test('should open file by name using Quick Open', async ({ page }) => {
+    test.skip(isMacDesktop(), 'Save As dialog uses native Mac dialog outside of Electron');
     const fileName = 'test-quick-open-file.json';
     const fileContent = '{"test": "content"}';
 
