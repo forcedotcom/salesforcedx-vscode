@@ -159,6 +159,31 @@ describe('payloadBuilder', () => {
       );
     });
 
+    it('should build payload for multiple suites', async () => {
+      const suite1 = createMockTestItem('suite:MySuite1', 'MySuite1');
+      const suite2 = createMockTestItem('suite:MySuite2', 'MySuite2');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: TestLevel.RunSpecifiedTests
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
+
+      const result = await buildTestPayload(mockTestService, [suite1, suite2], ['MySuite1', 'MySuite2'], false);
+
+      expect(result.hasSuite).toBe(true);
+      expect(result.hasClass).toBe(false);
+      expect(result.payload).toBe(mockPayload);
+      // Multiple suites should be passed as comma-separated string
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        TestLevel.RunSpecifiedTests,
+        undefined,
+        undefined,
+        'MySuite1,MySuite2',
+        undefined,
+        true
+      );
+    });
+
     it('should throw error if suite name cannot be determined', async () => {
       const suiteItem = createMockTestItem('suite:', 'InvalidSuite');
 
@@ -225,14 +250,8 @@ describe('payloadBuilder', () => {
 
     it('should build payload manually for namespaced methods', async () => {
       // Namespaced method: Namespace.Class.Method (3 parts)
-      const method1 = createMockTestItem(
-        'method:CodeBuilder.ApplicationTest.testMethod1',
-        'testMethod1'
-      );
-      const method2 = createMockTestItem(
-        'method:CodeBuilder.ApplicationTest.testMethod2',
-        'testMethod2'
-      );
+      const method1 = createMockTestItem('method:CodeBuilder.ApplicationTest.testMethod1', 'testMethod1');
+      const method2 = createMockTestItem('method:CodeBuilder.ApplicationTest.testMethod2', 'testMethod2');
 
       const result = await buildTestPayload(
         mockTestService,
@@ -260,10 +279,7 @@ describe('payloadBuilder', () => {
 
     it('should build payload manually for mixed namespaced and non-namespaced methods', async () => {
       const method1 = createMockTestItem('method:FooTest.testFoo', 'testFoo');
-      const method2 = createMockTestItem(
-        'method:CodeBuilder.ApplicationTest.testApp',
-        'testApp'
-      );
+      const method2 = createMockTestItem('method:CodeBuilder.ApplicationTest.testApp', 'testApp');
 
       const result = await buildTestPayload(
         mockTestService,

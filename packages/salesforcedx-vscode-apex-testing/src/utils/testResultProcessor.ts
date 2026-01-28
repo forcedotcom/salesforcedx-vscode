@@ -7,7 +7,7 @@
 import { HumanReporter, TestResult } from '@salesforce/apex-node';
 import * as vscode from 'vscode';
 import { FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
-import { getTestName, isMethod } from './testItemUtils';
+import { getTestName, isClass, isMethod, isSuite } from './testItemUtils';
 
 /**
  * Parses a stack trace string and returns a Location if the class and line number can be determined
@@ -91,6 +91,12 @@ export const updateTestRunResults = (params: {
     }
   }
 
+  // Track results for parent items (suites, classes)
+  let totalPassed = 0;
+  let totalFailed = 0;
+  let totalSkipped = 0;
+  let totalDuration = 0;
+
   // Update results from TestResult
   for (const testResult of result.tests) {
     const { name, namespacePrefix } = testResult.apexClass;
@@ -102,6 +108,8 @@ export const updateTestRunResults = (params: {
       const outcomeStr = testResult.outcome.toString();
       if (outcomeStr === PASS_RESULT) {
         run.passed(testItem, testResult.runTime);
+        totalPassed++;
+        totalDuration += testResult.runTime ?? 0;
       } else if (outcomeStr === FAIL_RESULT) {
         // Format the error message with both message and stack trace
         const errorMessage = testResult.message ?? '';
@@ -121,13 +129,31 @@ export const updateTestRunResults = (params: {
         }
 
         run.failed(testItem, message, testResult.runTime);
+        totalFailed++;
+        totalDuration += testResult.runTime ?? 0;
       } else if (outcomeStr === SKIP_RESULT) {
         run.skipped(testItem);
+        totalSkipped++;
       }
     } else {
       // Test result doesn't match any known test item
       // This can happen if the test was run as part of a suite but isn't in our tree
       console.debug(`Test result for ${fullTestName} doesn't match any test item. Available items: ${testMap.size}`);
+    }
+  }
+
+  // Update parent items (suites, classes) that were originally selected
+  // This ensures the checkmark appears on the suite/class, not just the methods
+  for (const test of testsToRun) {
+    if (isSuite(test.id) || isClass(test.id)) {
+      // Mark the parent item based on aggregate results
+      if (totalFailed > 0) {
+        run.failed(test, new vscode.TestMessage(`${totalFailed} test(s) failed`), totalDuration);
+      } else if (totalPassed > 0) {
+        run.passed(test, totalDuration);
+      } else if (totalSkipped > 0) {
+        run.skipped(test);
+      }
     }
   }
 };

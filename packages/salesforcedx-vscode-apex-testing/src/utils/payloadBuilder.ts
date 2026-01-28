@@ -30,23 +30,48 @@ export const buildTestPayload = async (
   let hasSuite = false;
   let hasClass = false;
 
-  // Handle single suite case
+  // Handle suite cases
   const suiteItems = testsToRun.filter(item => isSuite(item.id));
-  if (suiteItems.length === 1 && testsToRun.length === 1) {
-    hasSuite = true;
-    const suiteName = extractSuiteName(suiteItems[0].id);
-    if (!suiteName) {
-      throw new Error(nls.localize('apex_test_suite_name_not_determined_message'));
+  if (suiteItems.length > 0 && suiteItems.length === testsToRun.length) {
+    // All items are suites
+    if (suiteItems.length === 1) {
+      // Single suite - use suite parameter
+      hasSuite = true;
+      const suiteName = extractSuiteName(suiteItems[0].id);
+      if (!suiteName) {
+        throw new Error(nls.localize('apex_test_suite_name_not_determined_message'));
+      }
+      payload = await testService.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        undefined,
+        undefined,
+        suiteName,
+        undefined,
+        !codeCoverage
+      );
+      return { payload, hasSuite, hasClass };
+    } else {
+      // Multiple suites - extract suite names and build array payload
+      // The API doesn't support multiple suites directly, so we use suiteNames parameter
+      // which buildAsyncPayload will handle by running each suite
+      hasSuite = true;
+      const suiteNames = suiteItems.map(item => extractSuiteName(item.id)).filter((name): name is string => !!name);
+
+      if (suiteNames.length === 0) {
+        throw new Error(nls.localize('apex_test_suite_name_not_determined_message'));
+      }
+
+      // For multiple suites, pass comma-separated suite names
+      payload = await testService.buildAsyncPayload(
+        TestLevel.RunSpecifiedTests,
+        undefined,
+        undefined,
+        suiteNames.join(','),
+        undefined,
+        !codeCoverage
+      );
+      return { payload, hasSuite, hasClass };
     }
-    payload = await testService.buildAsyncPayload(
-      TestLevel.RunSpecifiedTests,
-      undefined,
-      undefined,
-      suiteName,
-      undefined,
-      !codeCoverage
-    );
-    return { payload, hasSuite, hasClass };
   }
 
   // Get method names by checking the test item IDs (not just by dot in name)
