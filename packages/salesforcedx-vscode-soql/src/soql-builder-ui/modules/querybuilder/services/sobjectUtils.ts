@@ -6,7 +6,7 @@
  *
  */
 
-import { Soql } from '../../../../soql-model';
+import * as Soql from '../../../../soql-model/model/model';
 
 interface SObjectField {
   name: string;

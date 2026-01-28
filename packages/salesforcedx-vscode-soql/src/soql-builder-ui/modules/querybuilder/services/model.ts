@@ -7,7 +7,7 @@
  */
 /// <reference path="../../../types/ts-types.d.ts" />
 
-import { Soql } from '../../../../soql-model';
+import * as Soql from '../../../../soql-model/model/model';
 import { List, Map } from 'immutable';
 import { JsonMap } from '@salesforce/ts-types';
 import { isLikeStart, isLikeEnds, isLikeContains } from '../services/soqlUtils';
