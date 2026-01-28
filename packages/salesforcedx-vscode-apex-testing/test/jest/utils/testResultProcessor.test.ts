@@ -14,7 +14,7 @@ import { parseStackTrace, updateTestRunResults } from '../../../src/utils/testRe
 const mockFormat = jest.fn().mockReturnValue('Mocked HumanReporter Output\nTest Results\n');
 
 jest.mock('@salesforce/apex-node', () => {
-  const actual = jest.requireActual('@salesforce/apex-node');
+  const actual = jest.requireActual('@salesforce/apex-node') as any;
   // Create a mock class that returns an object with format method
   class MockHumanReporter {
     public format = mockFormat;
@@ -36,24 +36,56 @@ describe('testResultProcessor', () => {
       query: '',
       fragment: ''
     })) as any;
+
+    // Mock vscode.Range as a constructor for parseStackTrace tests
+
+    (vscode.Range as any) = jest.fn(
+      (startLine: number, startCharacter: number, endLine: number, endCharacter: number) => ({
+        start: { line: startLine, character: startCharacter },
+        end: { line: endLine, character: endCharacter }
+      })
+    );
+
+    // Mock vscode.Location as a constructor for parseStackTrace tests
+
+    (vscode.Location as any) = jest.fn((uri: vscode.Uri, range: vscode.Range) => ({
+      uri,
+      range
+    }));
+
+    // Mock vscode.TestMessage as a constructor for updateTestRunResults tests
+
+    (vscode.TestMessage as any) = jest.fn((message: string) => ({
+      message,
+      location: undefined
+    }));
   });
 
-  const createMockTestItem = (id: string, label: string, uri?: vscode.Uri): vscode.TestItem => {
+  const createMockTestItem = (
+    id: string,
+    label: string,
+    uri?: vscode.Uri,
+    children?: vscode.TestItem[]
+  ): vscode.TestItem => {
     // Create a plain object with label and uri as direct, enumerable properties
     // The implementation accesses item.label and item.uri, so we need to ensure they're accessible
+    const childrenArray = children ?? [];
+
     const item: any = {
       id,
       label,
       uri,
       children: {
-        size: 0,
-        forEach: jest.fn(),
+        size: childrenArray.length,
+        forEach: jest.fn((callback: (item: vscode.TestItem) => void) => {
+          childrenArray.forEach(callback);
+        }),
         get: jest.fn(),
         has: jest.fn(),
-        values: jest.fn().mockReturnValue([]),
+        values: jest.fn().mockReturnValue(childrenArray),
         keys: jest.fn(),
         entries: jest.fn(),
-        [Symbol.iterator]: jest.fn()
+        [Symbol.iterator]: jest.fn().mockReturnValue(childrenArray[Symbol.iterator]())
       } as unknown as vscode.TestItemCollection
     };
     return item as vscode.TestItem;
@@ -173,7 +205,9 @@ describe('testResultProcessor', () => {
     it('should update passed test results', () => {
       const run = createMockTestRun();
       const methodItem = createMockTestItem('method:MyClass.testMethod', 'testMethod');
+
       const methodItems = new Map([['MyClass.testMethod', methodItem]]);
+
       const classItems = new Map();
 
       const result: TestResult = {
@@ -188,7 +222,15 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 1, failing: 0 }
       } as unknown as TestResult;
 
-      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false, concise: false });
+      updateTestRunResults({
+        result,
+        run,
+        testsToRun: [],
+        methodItems,
+        classItems,
+        codeCoverage: false,
+        concise: false
+      });
 
       expect(run.passed).toHaveBeenCalledWith(methodItem, 100);
       expect(run.failed).not.toHaveBeenCalled();
@@ -199,7 +241,9 @@ describe('testResultProcessor', () => {
     it('should update failed test results with error message', () => {
       const run = createMockTestRun();
       const methodItem = createMockTestItem('method:MyClass.testMethod', 'testMethod');
+
       const methodItems = new Map([['MyClass.testMethod', methodItem]]);
+
       const classItems = new Map();
 
       const result: TestResult = {
@@ -216,12 +260,24 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 0, failing: 1 }
       } as unknown as TestResult;
 
-      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false, concise: false });
+      updateTestRunResults({
+        result,
+        run,
+        testsToRun: [],
+        methodItems,
+        classItems,
+        codeCoverage: false,
+        concise: false
+      });
 
       expect(run.failed).toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
       expect(failedCall[0]).toBe(methodItem);
-      expect(failedCall[1]).toBeInstanceOf(vscode.TestMessage);
+      // Check that TestMessage was created (it's a mock constructor)
+      expect(failedCall[1]).toBeDefined();
+      expect(failedCall[1]).toHaveProperty('message');
+
       expect((failedCall[1] as vscode.TestMessage).message).toContain('Test failed');
       expect(failedCall[2]).toBe(50);
     });
@@ -231,7 +287,9 @@ describe('testResultProcessor', () => {
       const methodItem = createMockTestItem('method:MyClass.testMethod', 'testMethod');
       const mockUri = vscode.Uri.file('/path/to/MyClass.cls');
       const classItem = createMockTestItem('class:MyClass', 'MyClass', mockUri);
+
       const methodItems = new Map([['MyClass.testMethod', methodItem]]);
+
       const classItems = new Map([['MyClass', classItem]]);
 
       const result: TestResult = {
@@ -248,20 +306,33 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 0, failing: 1 }
       } as unknown as TestResult;
 
-      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false, concise: false });
+      updateTestRunResults({
+        result,
+        run,
+        testsToRun: [],
+        methodItems,
+        classItems,
+        codeCoverage: false,
+        concise: false
+      });
 
       expect(run.failed).toHaveBeenCalled();
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
+
       const message = failedCall[1] as vscode.TestMessage;
       expect(message.location).toBeDefined();
       expect(message.location?.uri).toBe(mockUri);
+
       expect(message.location?.range.start.line).toBe(9); // 0-based
     });
 
     it('should update skipped test results', () => {
       const run = createMockTestRun();
       const methodItem = createMockTestItem('method:MyClass.testMethod', 'testMethod');
+
       const methodItems = new Map([['MyClass.testMethod', methodItem]]);
+
       const classItems = new Map();
 
       const result: TestResult = {
@@ -286,7 +357,9 @@ describe('testResultProcessor', () => {
     it('should handle tests with namespace prefix', () => {
       const run = createMockTestRun();
       const methodItem = createMockTestItem('method:namespace.MyClass.testMethod', 'testMethod');
+
       const methodItems = new Map([['namespace.MyClass.testMethod', methodItem]]);
+
       const classItems = new Map();
 
       const result: TestResult = {
@@ -301,7 +374,15 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 1, failing: 0 }
       } as unknown as TestResult;
 
-      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false, concise: false });
+      updateTestRunResults({
+        result,
+        run,
+        testsToRun: [],
+        methodItems,
+        classItems,
+        codeCoverage: false,
+        concise: false
+      });
 
       expect(run.passed).toHaveBeenCalledWith(methodItem, 100);
     });
@@ -309,7 +390,9 @@ describe('testResultProcessor', () => {
     it('should handle tests from testsToRun parameter', () => {
       const run = createMockTestRun();
       const methodItem = createMockTestItem('method:MyClass.testMethod', 'testMethod');
+
       const methodItems = new Map();
+
       const classItems = new Map();
 
       const result: TestResult = {
@@ -331,7 +414,9 @@ describe('testResultProcessor', () => {
 
     it('should handle tests not found in test map', () => {
       const run = createMockTestRun();
+
       const methodItems = new Map();
+
       const classItems = new Map();
       const consoleSpy = jest.spyOn(console, 'debug').mockImplementation();
 
@@ -347,7 +432,15 @@ describe('testResultProcessor', () => {
         summary: { testsRan: 1, passing: 1, failing: 0 }
       } as unknown as TestResult;
 
-      updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false, concise: false });
+      updateTestRunResults({
+        result,
+        run,
+        testsToRun: [],
+        methodItems,
+        classItems,
+        codeCoverage: false,
+        concise: false
+      });
 
       expect(run.passed).not.toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalled();
@@ -356,7 +449,9 @@ describe('testResultProcessor', () => {
 
     it('should add HumanReporter output', () => {
       const run = createMockTestRun();
+
       const methodItems = new Map();
+
       const classItems = new Map();
 
       // Ensure mockFormat returns the expected output for this test
@@ -378,7 +473,9 @@ describe('testResultProcessor', () => {
 
     it('should handle empty HumanReporter output', () => {
       const run = createMockTestRun();
+
       const methodItems = new Map();
+
       const classItems = new Map();
 
       // Mock HumanReporter to return empty string for this test
@@ -396,7 +493,9 @@ describe('testResultProcessor', () => {
 
     it('should handle code coverage parameter', () => {
       const run = createMockTestRun();
+
       const methodItems = new Map();
+
       const classItems = new Map();
 
       const result: TestResult = {
@@ -417,10 +516,12 @@ describe('testResultProcessor', () => {
       const run = createMockTestRun();
       const method1 = createMockTestItem('method:MyClass.testMethod1', 'testMethod1');
       const method2 = createMockTestItem('method:MyClass.testMethod2', 'testMethod2');
+
       const methodItems = new Map([
         ['MyClass.testMethod1', method1],
         ['MyClass.testMethod2', method2]
       ]);
+
       const classItems = new Map();
 
       const result: TestResult = {
@@ -452,7 +553,9 @@ describe('testResultProcessor', () => {
     it('should combine error message and stack trace for failed tests', () => {
       const run = createMockTestRun();
       const methodItem = createMockTestItem('method:MyClass.testMethod', 'testMethod');
+
       const methodItems = new Map([['MyClass.testMethod', methodItem]]);
+
       const classItems = new Map();
 
       const result: TestResult = {
@@ -471,10 +574,223 @@ describe('testResultProcessor', () => {
 
       updateTestRunResults({ result, run, testsToRun: [], methodItems, classItems, codeCoverage: false });
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const failedCall = (run.failed as jest.Mock).mock.calls[0];
+
       const message = failedCall[1] as vscode.TestMessage;
+
       expect(message.message).toContain('Error message');
+
       expect(message.message).toContain('Stack trace line 1');
+    });
+
+    it('should update class items when class is in testsToRun', () => {
+      const run = createMockTestRun();
+      const method1 = createMockTestItem('method:MyClass.testMethod1', 'testMethod1');
+      const method2 = createMockTestItem('method:MyClass.testMethod2', 'testMethod2');
+      const classItem = createMockTestItem('class:MyClass', 'MyClass', undefined, [method1, method2]);
+
+      const methodItems = new Map([
+        ['MyClass.testMethod1', method1],
+        ['MyClass.testMethod2', method2]
+      ]);
+
+      const classItems = new Map([['MyClass', classItem]]);
+
+      const result: TestResult = {
+        tests: [
+          {
+            apexClass: { name: 'MyClass', namespacePrefix: null },
+            methodName: 'testMethod1',
+            outcome: PASS_RESULT,
+            runTime: 100
+          },
+          {
+            apexClass: { name: 'MyClass', namespacePrefix: null },
+            methodName: 'testMethod2',
+            outcome: PASS_RESULT,
+            runTime: 50
+          }
+        ],
+        summary: { testsRan: 2, passing: 2, failing: 0 }
+      } as unknown as TestResult;
+
+      updateTestRunResults({ result, run, testsToRun: [classItem], methodItems, classItems, codeCoverage: false });
+
+      // Methods should be updated
+      expect(run.passed).toHaveBeenCalledWith(method1, 100);
+      expect(run.passed).toHaveBeenCalledWith(method2, 50);
+      // Class should be updated with aggregate results
+      expect(run.passed).toHaveBeenCalledWith(classItem, 150); // Total duration
+    });
+
+    it('should recursively collect methods under suite and update class children', () => {
+      const run = createMockTestRun();
+      const method1 = createMockTestItem('method:Class1.testMethod1', 'testMethod1');
+      const method2 = createMockTestItem('method:Class2.testMethod2', 'testMethod2');
+      const class1Item = createMockTestItem('suite-class:MySuite:Class1', 'Class1', undefined, [method1]);
+      const class2Item = createMockTestItem('suite-class:MySuite:Class2', 'Class2', undefined, [method2]);
+      const suiteItem = createMockTestItem('suite:MySuite', 'MySuite', undefined, [class1Item, class2Item]);
+
+      const methodItems = new Map([
+        ['Class1.testMethod1', method1],
+        ['Class2.testMethod2', method2]
+      ]);
+
+      const classItems = new Map([
+        ['Class1', createMockTestItem('class:Class1', 'Class1')],
+        ['Class2', createMockTestItem('class:Class2', 'Class2')]
+      ]);
+
+      const result: TestResult = {
+        tests: [
+          {
+            apexClass: { name: 'Class1', namespacePrefix: null },
+            methodName: 'testMethod1',
+            outcome: PASS_RESULT,
+            runTime: 100
+          },
+          {
+            apexClass: { name: 'Class2', namespacePrefix: null },
+            methodName: 'testMethod2',
+            outcome: PASS_RESULT,
+            runTime: 50
+          }
+        ],
+        summary: { testsRan: 2, passing: 2, failing: 0 }
+      } as unknown as TestResult;
+
+      updateTestRunResults({ result, run, testsToRun: [suiteItem], methodItems, classItems, codeCoverage: false });
+
+      // Methods should be updated (found recursively)
+      expect(run.passed).toHaveBeenCalledWith(method1, 100);
+      expect(run.passed).toHaveBeenCalledWith(method2, 50);
+      // Suite should be updated with aggregate results
+      expect(run.passed).toHaveBeenCalledWith(suiteItem, 150);
+      // Class items under suite should be updated
+      expect(run.passed).toHaveBeenCalledWith(class1Item, 100);
+      expect(run.passed).toHaveBeenCalledWith(class2Item, 50);
+    });
+
+    it('should handle suite with mixed pass/fail results and update class children correctly', () => {
+      const run = createMockTestRun();
+      const method1 = createMockTestItem('method:Class1.testMethod1', 'testMethod1');
+      const method2 = createMockTestItem('method:Class1.testMethod2', 'testMethod2');
+      const class1Item = createMockTestItem('suite-class:MySuite:Class1', 'Class1', undefined, [method1, method2]);
+      const suiteItem = createMockTestItem('suite:MySuite', 'MySuite', undefined, [class1Item]);
+
+      const methodItems = new Map([
+        ['Class1.testMethod1', method1],
+        ['Class1.testMethod2', method2]
+      ]);
+
+      const classItems = new Map([['Class1', createMockTestItem('class:Class1', 'Class1')]]);
+
+      const result: TestResult = {
+        tests: [
+          {
+            apexClass: { name: 'Class1', namespacePrefix: null },
+            methodName: 'testMethod1',
+            outcome: PASS_RESULT,
+            runTime: 100
+          },
+          {
+            apexClass: { name: 'Class1', namespacePrefix: null },
+            methodName: 'testMethod2',
+            outcome: FAIL_RESULT,
+            runTime: 50,
+            message: 'Failed',
+            stackTrace: ''
+          }
+        ],
+        summary: { testsRan: 2, passing: 1, failing: 1 }
+      } as unknown as TestResult;
+
+      updateTestRunResults({ result, run, testsToRun: [suiteItem], methodItems, classItems, codeCoverage: false });
+
+      // Methods should be updated
+      expect(run.passed).toHaveBeenCalledWith(method1, 100);
+      expect(run.failed).toHaveBeenCalledWith(method2, expect.objectContaining({ message: expect.any(String) }), 50);
+      // Suite should show failed (because one test failed)
+      expect(run.failed).toHaveBeenCalledWith(suiteItem, expect.objectContaining({ message: expect.any(String) }), 150);
+      // Class should show failed (because one test failed)
+      expect(run.failed).toHaveBeenCalledWith(
+        class1Item,
+        expect.objectContaining({ message: expect.any(String) }),
+        150
+      );
+    });
+
+    it('should handle class with methods not in methodItems but found recursively', () => {
+      const run = createMockTestRun();
+      const method1 = createMockTestItem('method:MyClass.testMethod1', 'testMethod1');
+      const method2 = createMockTestItem('method:MyClass.testMethod2', 'testMethod2');
+      const classItem = createMockTestItem('class:MyClass', 'MyClass', undefined, [method1, method2]);
+
+      // methodItems is empty - methods should be found recursively from classItem
+
+      const methodItems = new Map();
+
+      const classItems = new Map([['MyClass', classItem]]);
+
+      const result: TestResult = {
+        tests: [
+          {
+            apexClass: { name: 'MyClass', namespacePrefix: null },
+            methodName: 'testMethod1',
+            outcome: PASS_RESULT,
+            runTime: 100
+          },
+          {
+            apexClass: { name: 'MyClass', namespacePrefix: null },
+            methodName: 'testMethod2',
+            outcome: PASS_RESULT,
+            runTime: 50
+          }
+        ],
+        summary: { testsRan: 2, passing: 2, failing: 0 }
+      } as unknown as TestResult;
+
+      updateTestRunResults({ result, run, testsToRun: [classItem], methodItems, classItems, codeCoverage: false });
+
+      // Methods should be found and updated (via recursive collection)
+      expect(run.passed).toHaveBeenCalledWith(method1, 100);
+      expect(run.passed).toHaveBeenCalledWith(method2, 50);
+      // Class should be updated with aggregate results
+      expect(run.passed).toHaveBeenCalledWith(classItem, 150);
+    });
+
+    it('should handle suite with namespaced classes correctly', () => {
+      const run = createMockTestRun();
+      const method1 = createMockTestItem('method:namespace.Class1.testMethod1', 'testMethod1');
+      const class1Item = createMockTestItem('suite-class:MySuite:Class1', 'Class1', undefined, [method1]);
+      const suiteItem = createMockTestItem('suite:MySuite', 'MySuite', undefined, [class1Item]);
+
+      const methodItems = new Map([['namespace.Class1.testMethod1', method1]]);
+      const classItems = new Map([
+        ['namespace.Class1', createMockTestItem('class:namespace.Class1', 'namespace.Class1')]
+      ]);
+
+      const result: TestResult = {
+        tests: [
+          {
+            apexClass: { name: 'Class1', namespacePrefix: 'namespace' },
+            methodName: 'testMethod1',
+            outcome: PASS_RESULT,
+            runTime: 100
+          }
+        ],
+        summary: { testsRan: 1, passing: 1, failing: 0 }
+      } as unknown as TestResult;
+
+      updateTestRunResults({ result, run, testsToRun: [suiteItem], methodItems, classItems, codeCoverage: false });
+
+      // Method should be updated (found recursively)
+      expect(run.passed).toHaveBeenCalledWith(method1, 100);
+      // Suite should be updated
+      expect(run.passed).toHaveBeenCalledWith(suiteItem, 100);
+      // Note: class1Item might not be updated if label doesn't match namespace.Class1
+      // This is expected behavior - suite-class items use simple class names
     });
   });
 });

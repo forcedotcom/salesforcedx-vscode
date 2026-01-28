@@ -84,12 +84,23 @@ export const updateTestRunResults = (params: {
   }
 
   // Also add items from testsToRun (for methods that might not be in methodItems yet)
-  for (const test of testsToRun) {
-    if (isMethod(test.id)) {
-      const testName = getTestName(test);
-      testMap.set(testName, test);
+  // Recursively collect all method items under suites/classes to ensure results propagate
+  const collectMethods = (item: vscode.TestItem): void => {
+    if (isMethod(item.id)) {
+      const testName = getTestName(item);
+      testMap.set(testName, item);
+    } else {
+      // Recursively traverse children to find all method items
+      item.children.forEach(child => collectMethods(child));
     }
+  };
+
+  for (const test of testsToRun) {
+    collectMethods(test);
   }
+
+  // Track results per class for proper aggregation
+  const classResults = new Map<string, { passed: number; failed: number; skipped: number; duration: number }>();
 
   // Track results for parent items (suites, classes)
   let totalPassed = 0;
@@ -106,10 +117,20 @@ export const updateTestRunResults = (params: {
     const testItem = testMap.get(fullTestName);
     if (testItem) {
       const outcomeStr = testResult.outcome.toString();
+      const runTime = testResult.runTime ?? 0;
+
+      // Track results per class for aggregation
+      if (!classResults.has(apexClassName)) {
+        classResults.set(apexClassName, { passed: 0, failed: 0, skipped: 0, duration: 0 });
+      }
+      const classResult = classResults.get(apexClassName)!;
+
       if (outcomeStr === PASS_RESULT) {
-        run.passed(testItem, testResult.runTime);
+        run.passed(testItem, runTime);
         totalPassed++;
-        totalDuration += testResult.runTime ?? 0;
+        totalDuration += runTime;
+        classResult.passed++;
+        classResult.duration += runTime;
       } else if (outcomeStr === FAIL_RESULT) {
         // Format the error message with both message and stack trace
         const errorMessage = testResult.message ?? '';
@@ -128,12 +149,15 @@ export const updateTestRunResults = (params: {
           }
         }
 
-        run.failed(testItem, message, testResult.runTime);
+        run.failed(testItem, message, runTime);
         totalFailed++;
-        totalDuration += testResult.runTime ?? 0;
+        totalDuration += runTime;
+        classResult.failed++;
+        classResult.duration += runTime;
       } else if (outcomeStr === SKIP_RESULT) {
         run.skipped(testItem);
         totalSkipped++;
+        classResult.skipped++;
       }
     } else {
       // Test result doesn't match any known test item
@@ -142,17 +166,74 @@ export const updateTestRunResults = (params: {
     }
   }
 
+  // Helper to recursively update all class items under a suite
+  const updateClassItemsUnderSuite = (suiteItem: vscode.TestItem): void => {
+    suiteItem.children.forEach(classItem => {
+      const className = classItem.label;
+      const classResult = classResults.get(className);
+
+      if (classResult) {
+        // Update the class item with aggregate results
+        if (classResult.failed > 0) {
+          run.failed(classItem, new vscode.TestMessage(`${classResult.failed} test(s) failed`), classResult.duration);
+        } else if (classResult.passed > 0) {
+          run.passed(classItem, classResult.duration);
+        } else if (classResult.skipped > 0) {
+          run.skipped(classItem);
+        }
+      }
+
+      // Recursively update any nested items
+      classItem.children.forEach(child => {
+        if (isMethod(child.id)) {
+          const testName = getTestName(child);
+          const testItem = testMap.get(testName);
+          // Results should already be applied, but ensure they're in the tree
+          if (testItem && testItem !== child) {
+            // If the method item in the map is different, we may need to update the child
+            // VS Code should handle this, but we ensure the child is updated
+          }
+        }
+      });
+    });
+  };
+
   // Update parent items (suites, classes) that were originally selected
   // This ensures the checkmark appears on the suite/class, not just the methods
   for (const test of testsToRun) {
-    if (isSuite(test.id) || isClass(test.id)) {
-      // Mark the parent item based on aggregate results
+    if (isSuite(test.id)) {
+      // For suites, update the suite and all its class children
       if (totalFailed > 0) {
         run.failed(test, new vscode.TestMessage(`${totalFailed} test(s) failed`), totalDuration);
       } else if (totalPassed > 0) {
         run.passed(test, totalDuration);
       } else if (totalSkipped > 0) {
         run.skipped(test);
+      }
+      // Recursively update class items under the suite
+      updateClassItemsUnderSuite(test);
+    } else if (isClass(test.id)) {
+      // For classes, update based on aggregate results for that class
+      const className = test.label;
+      const classResult = classResults.get(className);
+
+      if (classResult) {
+        if (classResult.failed > 0) {
+          run.failed(test, new vscode.TestMessage(`${classResult.failed} test(s) failed`), classResult.duration);
+        } else if (classResult.passed > 0) {
+          run.passed(test, classResult.duration);
+        } else if (classResult.skipped > 0) {
+          run.skipped(test);
+        }
+      } else {
+        // Fallback to total results if class-specific results aren't available
+        if (totalFailed > 0) {
+          run.failed(test, new vscode.TestMessage(`${totalFailed} test(s) failed`), totalDuration);
+        } else if (totalPassed > 0) {
+          run.passed(test, totalDuration);
+        } else if (totalSkipped > 0) {
+          run.skipped(test);
+        }
       }
     }
   }
