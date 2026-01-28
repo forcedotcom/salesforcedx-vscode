@@ -8,7 +8,7 @@
 
 import { api, LightningElement, track } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
-import { AndOr } from '../services/model';
+import * as Soql from '../../../../soql-model/model/model';
 
 interface ConditionTemplate {
   condition: JsonMap;
@@ -25,7 +25,7 @@ export default class Where extends LightningElement {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   @api public sobjectMetadata: any;
   @track public _conditionsStore: JsonMap[] = [];
-  public _andOr = AndOr.AND;
+  public _andOr: Soql.AndOr = 'AND';
   public conditionTemplate: ConditionTemplate = {
     condition: {
       operator: '='
@@ -57,14 +57,14 @@ export default class Where extends LightningElement {
   public headerSelectedClass = ' header__btn--selected';
   public get andBtnClassList(): string {
     let andClassList = 'header__btn header__btn--and';
-    andClassList += this._andOr === AndOr.AND ? this.headerSelectedClass : '';
+    andClassList += this._andOr === 'AND' ? this.headerSelectedClass : '';
 
     return andClassList;
   }
 
   public get orBtnClassList(): string {
     let orClassList = 'header__btn header__btn--or';
-    orClassList += this._andOr === AndOr.OR ? this.headerSelectedClass : '';
+    orClassList += this._andOr === 'OR' ? this.headerSelectedClass : '';
 
     return orClassList;
   }
@@ -112,7 +112,7 @@ export default class Where extends LightningElement {
     e.preventDefault();
     const selectedValue = e.target.value;
     const isValidValue =
-      selectedValue === AndOr.AND || selectedValue === AndOr.OR;
+      selectedValue === 'AND' || selectedValue === 'OR';
 
     if (isValidValue && selectedValue !== this._andOr) {
       this._andOr = selectedValue;

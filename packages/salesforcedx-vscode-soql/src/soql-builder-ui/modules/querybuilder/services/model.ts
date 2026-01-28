@@ -19,11 +19,6 @@ export enum ModelProps {
   WHERE_AND_OR = 'andOr'
 }
 
-export enum AndOr {
-  AND = 'AND',
-  OR = 'OR'
-}
-
 export const SELECT_COUNT = 'COUNT()';
 
 // This is to satisfy TS and stay dry
