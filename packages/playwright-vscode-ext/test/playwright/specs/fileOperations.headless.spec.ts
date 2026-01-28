@@ -6,8 +6,7 @@
  */
 
 import { expect } from '@playwright/test';
-import { executeCommandWithCommandPalette } from '../../../src/pages/commands';
-import { createFileWithContents, openFileByName } from '../../../src/utils/fileHelpers';
+import { createFileWithContents } from '../../../src/utils/fileHelpers';
 import {
   waitForVSCodeWorkbench,
   assertWelcomeTabExists,
@@ -20,6 +19,7 @@ import { test } from '../fixtures/index';
 test.describe('File Operations', () => {
   test.beforeEach(async ({ page }) => {
     await waitForVSCodeWorkbench(page);
+    await waitForWorkspaceReady(page);
     await assertWelcomeTabExists(page);
     await closeWelcomeTabs(page);
   });
@@ -128,35 +128,6 @@ test.describe('File Operations', () => {
       await expect(dirtyIndicator).toBeVisible();
       const editor = page.locator(EDITOR_WITH_URI).first();
       await expect(editor).toContainText('More content');
-    });
-  });
-
-  test('should open file by name using Quick Open', async ({ page }) => {
-    await test.step('Wait for workspace to be ready', async () => {
-      await waitForWorkspaceReady(page);
-    });
-
-    await test.step('Open sfdx-project.json using Quick Open', async () => {
-      // Close any open editors first
-      await executeCommandWithCommandPalette(page, 'View: Close All Editors');
-
-      // Use openFileByName to open sfdx-project.json (should exist in workspace)
-      await openFileByName(page, 'sfdx-project.json');
-    });
-
-    await test.step('Verify file is open in editor', async () => {
-      const editor = page.locator(EDITOR_WITH_URI).first();
-      await expect(editor).toBeVisible({ timeout: 10_000 });
-
-      // Verify the file URI contains sfdx-project.json
-      const editorUri = await editor.getAttribute('data-uri');
-      expect(editorUri).toContain('sfdx-project.json');
-    });
-
-    await test.step('Verify file content is visible', async () => {
-      const editor = page.locator(EDITOR_WITH_URI).first();
-      // sfdx-project.json should contain "packageDirectories" or "sourceApiVersion"
-      await expect(editor).toContainText(/packageDirectories|sourceApiVersion/, { timeout: 5000 });
     });
   });
 });

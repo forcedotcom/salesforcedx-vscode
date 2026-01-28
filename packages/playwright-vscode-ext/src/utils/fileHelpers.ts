@@ -7,7 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
-import { closeSettingsTab, closeWelcomeTabs, isMacDesktop } from './helpers';
+import { closeSettingsTab, closeWelcomeTabs, isDesktop } from './helpers';
 import { WORKBENCH, QUICK_INPUT_WIDGET, EDITOR_WITH_URI, DIRTY_EDITOR, QUICK_INPUT_LIST_ROW } from './locators';
 
 /**
@@ -70,25 +70,29 @@ export const createApexClass = async (page: Page, className: string, content?: s
   }
 };
 
-/** Open a file using Quick Open */
+/**
+ * Open a file using Quick Open.
+ * Big caveat: on the web, this'll only work with files that have already been opened, in the editor (not just call didOpen on it!)
+ * that's a limitation of web fs on vscode because search/find files doesn't work yet.
+ */
 export const openFileByName = async (page: Page, fileName: string): Promise<void> => {
   const widget = page.locator(QUICK_INPUT_WIDGET);
-  
-  if (isMacDesktop()) {
+
+  if (isDesktop()) {
     // On macOS desktop, Control+P doesn't work reliably, use command palette instead
     await executeCommandWithCommandPalette(page, 'Go to File');
-    
+
     // Wait for Quick Open widget to be visible and ready
     await expect(widget).toBeVisible({ timeout: 10_000 });
     const input = widget.locator('input.input');
     await expect(input).toBeVisible({ timeout: 5000 });
     await input.click({ timeout: 5000 });
-    
+
     // Clear any existing text and ensure input is focused
     await page.keyboard.press('Control+a');
     await page.keyboard.press('Delete');
   } else {
-    // On web and Windows desktop, Control+P works reliably (original working approach)
+    // On web Control+P works fine as long as file has been opened in the editor first
     await page.locator(WORKBENCH).click();
     await page.keyboard.press('Control+p');
     await widget.waitFor({ state: 'visible', timeout: 10_000 });
