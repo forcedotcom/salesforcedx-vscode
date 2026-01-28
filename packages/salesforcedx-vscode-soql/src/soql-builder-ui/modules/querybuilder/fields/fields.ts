@@ -7,7 +7,6 @@
  *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  *
  */
-/// <reference path="../../../types/lwc.d.ts" />
 
 import { LightningElement, api } from 'lwc';
 import { SELECT_COUNT } from '../services/model';
@@ -68,7 +67,7 @@ export default class Fields extends LightningElement {
     const fieldRemovedEvent = new CustomEvent('fields__selected', {
       detail: {
         fields: this.selectedFields.filter(
-          (value) => value !== (e.target as HTMLElement).dataset.field
+          (value) => value !== e.target.dataset.field
         )
       }
     });

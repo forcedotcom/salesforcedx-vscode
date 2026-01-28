@@ -7,7 +7,6 @@
  *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  *
  */
-/// <reference path="../../../types/ts-types.d.ts" />
 
 import { fromJS, List } from 'immutable';
 import { BehaviorSubject, Observable } from 'rxjs';

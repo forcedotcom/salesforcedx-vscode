@@ -5,9 +5,7 @@
  *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  *
  */
-/// <reference path="../../../types/ts-types.d.ts" />
-
-import * as Soql from '../../../../soql-model/model/model';
+import { Soql } from '../../../../soql-model';
 import { List, Map } from 'immutable';
 import { JsonMap } from '@salesforce/ts-types';
 import { isLikeStart, isLikeEnds, isLikeContains } from '../services/soqlUtils';

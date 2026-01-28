@@ -1,5 +1,3 @@
-/// <reference path="../../../types/ts-types.d.ts" />
-
 import { JsonMap } from '@salesforce/ts-types';
 import { ToolingModelJson } from './model';
 
