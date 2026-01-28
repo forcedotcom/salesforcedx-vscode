@@ -44,14 +44,8 @@ const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProv
   const configPath = getSfdxProjectFile(root);
   const configText = fileSystemProvider.getFileContent(configPath);
 
-  // If file is not found or empty, return empty config
-  // In web mode, files may not be loaded yet - this allows the server to continue initializing
-  // The file can be loaded later and the config will be re-read when needed
   if (!configText) {
-    return {
-      packageDirectories: [],
-      sfdxPackageDirsPattern: '{}'
-    };
+    throw new Error(nls.localize('config_file_not_found_message'));
   }
 
   try {

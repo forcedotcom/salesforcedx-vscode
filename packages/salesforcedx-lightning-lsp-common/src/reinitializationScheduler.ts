@@ -26,24 +26,6 @@ interface ReinitializationSchedulerOptions {
 }
 
 /**
- * Creates a setTimeout timer that doesn't keep the process alive in test environments.
- * Uses .unref() to allow the process to exit even when the timer is active (important for tests).
- * In production, the LSP connection keeps the process alive, so this is safe.
- */
-const createUnrefTimer = (callback: () => void, delay: number): ReturnType<typeof setTimeout> => {
-  const timer = setTimeout(callback, delay);
-  // In Node.js, setTimeout returns a NodeJS.Timeout object with unref()
-  // In browser environments, it returns a number, so we check before calling
-  // Use .unref() to prevent timers from keeping the process alive (important for tests)
-  // In production, the LSP connection (connection.listen()) keeps the process alive,
-  // so the timer won't cause premature exit even with .unref()
-  if (typeof timer === 'object' && 'unref' in timer) {
-    timer.unref();
-  }
-  return timer;
-};
-
-/**
  * Schedules re-initialization of language server components after waiting
  * for file loading to stabilize. Uses dynamic waiting based on file count changes.
  */
@@ -62,7 +44,7 @@ export const scheduleReinitialization = (
   };
 
   // Start the stability check
-  createUnrefTimer(() => checkStability(config, fileSystemProvider, reinitializationCallback), config.checkInterval);
+  setTimeout(() => checkStability(config, fileSystemProvider, reinitializationCallback), config.checkInterval);
 };
 
 /**
@@ -91,7 +73,7 @@ const checkStability = (
 
   // Continue checking if we haven't exceeded max wait time
   if (elapsed < config.maxWaitTime) {
-    createUnrefTimer(() => checkStability(config, fileSystemProvider, reinitializationCallback), config.checkInterval);
+    setTimeout(() => checkStability(config, fileSystemProvider, reinitializationCallback), config.checkInterval);
   } else {
     // Max wait time exceeded, proceed anyway
     void reinitializationCallback();
