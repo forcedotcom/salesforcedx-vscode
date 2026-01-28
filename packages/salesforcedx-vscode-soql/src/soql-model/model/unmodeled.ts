@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Messages } from '../messages/messages';
+import { messages } from '../messages/i18n';
 
 export interface UnmodeledSyntaxReason {
   reasonCode: string;
@@ -14,85 +14,85 @@ export interface UnmodeledSyntaxReason {
 
 export const REASON_UNMODELED_AS: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:as',
-  message: Messages.unmodeled_as,
+  message: messages.unmodeled_as,
 };
 export const REASON_UNMODELED_USING: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:using',
-  message: Messages.unmodeled_using,
+  message: messages.unmodeled_using,
 };
 export const REASON_UNMODELED_ALIAS: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:alias',
-  message: Messages.unmodeled_alias,
+  message: messages.unmodeled_alias,
 };
 export const REASON_UNMODELED_SEMIJOIN: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:semi-join',
-  message: Messages.unmodeled_semijoin,
+  message: messages.unmodeled_semijoin,
 };
 export const REASON_UNMODELED_TYPEOF: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:type-of',
-  message: Messages.unmodeled_typeof,
+  message: messages.unmodeled_typeof,
 };
 export const REASON_UNMODELED_DISTANCE: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:distance',
-  message: Messages.unmodeled_distance,
+  message: messages.unmodeled_distance,
 };
 export const REASON_UNMODELED_SELECT: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:select',
-  message: Messages.unmodeled_select,
+  message: messages.unmodeled_select,
 };
 export const REASON_UNMODELED_COMPLEXGROUP: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:complex-group',
-  message: Messages.unmodeled_complexgroup,
+  message: messages.unmodeled_complexgroup,
 };
 export const REASON_UNMODELED_WITH: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:with',
-  message: Messages.unmodeled_with,
+  message: messages.unmodeled_with,
 };
 export const REASON_UNMODELED_GROUPBY: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:group-by',
-  message: Messages.unmodeled_groupby,
+  message: messages.unmodeled_groupby,
 };
 export const REASON_UNMODELED_OFFSET: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:offset',
-  message: Messages.unmodeled_offset,
+  message: messages.unmodeled_offset,
 };
 export const REASON_UNMODELED_BIND: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:bind',
-  message: Messages.unmodeled_bind,
+  message: messages.unmodeled_bind,
 };
 export const REASON_UNMODELED_RECORDTRACKING: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:record-tracking',
-  message: Messages.unmodeled_recordtracking,
+  message: messages.unmodeled_recordtracking,
 };
 export const REASON_UNMODELED_UPDATE: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:update',
-  message: Messages.unmodeled_update,
+  message: messages.unmodeled_update,
 };
 export const REASON_UNMODELED_FUNCTIONREFERENCE: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:function-reference',
-  message: Messages.unmodeled_functionreference,
+  message: messages.unmodeled_functionreference,
 };
 export const REASON_UNMODELED_COLONEXPRESSION: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:colon-expression',
-  message: Messages.unmodeled_colonexpression,
+  message: messages.unmodeled_colonexpression,
 };
 export const REASON_UNMODELED_EMPTYCONDITION: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:empty-condition',
-  message: Messages.unmodeled_emptycondition,
+  message: messages.unmodeled_emptycondition,
 };
 export const REASON_UNMODELED_CALCULATEDCONDITION: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:calculated-condition',
-  message: Messages.unmodeled_calculatedcondition,
+  message: messages.unmodeled_calculatedcondition,
 };
 export const REASON_UNMODELED_DISTANCECONDITION: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:distance-condition',
-  message: Messages.unmodeled_distancecondition,
+  message: messages.unmodeled_distancecondition,
 };
 export const REASON_UNMODELED_INCOLONEXPRESSIONCONDITION: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:in-colon-expression-condition',
-  message: Messages.unmodeled_incolonexpressioncondition,
+  message: messages.unmodeled_incolonexpressioncondition,
 };
 export const REASON_UNMODELED_INSEMIJOINCONDITION: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:in-semi-join-condition',
-  message: Messages.unmodeled_insemijoincondition,
+  message: messages.unmodeled_insemijoincondition,
 };

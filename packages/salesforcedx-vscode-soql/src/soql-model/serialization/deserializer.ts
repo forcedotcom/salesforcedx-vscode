@@ -13,7 +13,7 @@ import { SOQLParser, ParserError } from '../../soql-common/soql-parser.lib';
 import * as Parser from '../../soql-common/soql-parser.lib/generated/SoqlParser';
 import { SoqlParserListener } from '../../soql-common/soql-parser.lib/generated/SoqlParserListener';
 import { parseHeaderComments } from '../../soql-common/soqlComments';
-import { Messages } from '../messages/messages';
+import { messages } from '../messages/i18n';
 import * as Impl from '../model/impl';
 import { HeaderCommentsImpl } from '../model/impl/headerCommentsImpl';
 import * as Soql from '../model/model';
@@ -65,13 +65,13 @@ class ErrorIdentifier {
   protected knownErrors: KnownError[] = [
     {
       type: Soql.ErrorType.EMPTY,
-      message: Messages.error_empty,
+      message: messages.error_empty,
       predicate: (error): boolean =>
         this.parseTree instanceof ParserRuleContext && this.parseTree.start.type === Token.EOF
     },
     {
       type: Soql.ErrorType.NOSELECT,
-      message: Messages.error_noSelect,
+      message: messages.error_noSelect,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlSelectClauseContext &&
         context.exception instanceof InputMismatchException &&
@@ -79,7 +79,7 @@ class ErrorIdentifier {
     },
     {
       type: Soql.ErrorType.NOSELECTIONS,
-      message: Messages.error_noSelections,
+      message: messages.error_noSelections,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlSelectClauseContext &&
         context.exception instanceof NoViableAltException &&
@@ -87,7 +87,7 @@ class ErrorIdentifier {
     },
     {
       type: Soql.ErrorType.NOFROM,
-      message: Messages.error_noFrom,
+      message: messages.error_noFrom,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlFromClauseContext &&
         context.exception instanceof InputMismatchException &&
@@ -95,7 +95,7 @@ class ErrorIdentifier {
     },
     {
       type: Soql.ErrorType.INCOMPLETEFROM,
-      message: Messages.error_incompleteFrom,
+      message: messages.error_incompleteFrom,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlIdentifierContext &&
         context.parent instanceof Parser.SoqlFromExprContext &&
@@ -103,26 +103,26 @@ class ErrorIdentifier {
     },
     {
       type: Soql.ErrorType.INCOMPLETELIMIT,
-      message: Messages.error_incompleteLimit,
+      message: messages.error_incompleteLimit,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlIntegerValueContext &&
         this.hasAncestorOfType(context, Parser.SoqlLimitClauseContext)
     },
     {
       type: Soql.ErrorType.EMPTYWHERE,
-      message: Messages.error_emptyWhere,
+      message: messages.error_emptyWhere,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlWhereExprsContext && context.childCount === 0
     },
     {
       type: Soql.ErrorType.INCOMPLETENESTEDCONDITION,
-      message: Messages.error_incompleteNestedCondition,
+      message: messages.error_incompleteNestedCondition,
       predicate: (error, context): boolean =>
         context instanceof ErrorNode && context.parent instanceof Parser.NestedWhereExprContext
     },
     {
       type: Soql.ErrorType.INCOMPLETEANDORCONDITION,
-      message: Messages.error_incompleteAndOrCondition,
+      message: messages.error_incompleteAndOrCondition,
       predicate: (error, context): boolean =>
         // trailing AND/OR
         (context instanceof Parser.SoqlWhereExprContext &&
@@ -136,7 +136,7 @@ class ErrorIdentifier {
     },
     {
       type: Soql.ErrorType.INCOMPLETENOTCONDITION,
-      message: Messages.error_incompleteNotCondition,
+      message: messages.error_incompleteNotCondition,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlWhereExprContext &&
         context.parent instanceof Parser.SoqlWhereNotExprContext &&
@@ -144,7 +144,7 @@ class ErrorIdentifier {
     },
     {
       type: Soql.ErrorType.UNRECOGNIZEDCOMPAREVALUE,
-      message: Messages.error_unrecognizedCompareValue,
+      message: messages.error_unrecognizedCompareValue,
       predicate: (error, context): boolean =>
         ((context instanceof Parser.SoqlLiteralValueContext &&
           (context.parent instanceof Parser.SimpleWhereExprContext ||
@@ -154,7 +154,7 @@ class ErrorIdentifier {
     },
     {
       type: Soql.ErrorType.UNRECOGNIZEDCOMPAREOPERATOR,
-      message: Messages.error_unrecognizedCompareOperator,
+      message: messages.error_unrecognizedCompareOperator,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlWhereExprContext &&
         context.childCount >= 2 &&
@@ -163,7 +163,7 @@ class ErrorIdentifier {
     },
     {
       type: Soql.ErrorType.UNRECOGNIZEDCOMPAREFIELD,
-      message: Messages.error_unrecognizedCompareField,
+      message: messages.error_unrecognizedCompareField,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlWhereExprsContext &&
         context.childCount >= 1 &&
@@ -172,7 +172,7 @@ class ErrorIdentifier {
     },
     {
       type: Soql.ErrorType.NOCOMPAREVALUE,
-      message: Messages.error_noCompareValue,
+      message: messages.error_noCompareValue,
       predicate: (error, context): boolean =>
         (((context instanceof Parser.SoqlLiteralValueContext &&
           context.parent instanceof Parser.SimpleWhereExprContext) ||
@@ -189,7 +189,7 @@ class ErrorIdentifier {
     },
     {
       type: Soql.ErrorType.NOCOMPAREOPERATOR,
-      message: Messages.error_noCompareOperator,
+      message: messages.error_noCompareOperator,
       predicate: (error, context): boolean =>
         context instanceof Parser.SoqlWhereExprContext &&
         context.childCount === 1 &&
@@ -198,7 +198,7 @@ class ErrorIdentifier {
     },
     {
       type: Soql.ErrorType.INCOMPLETEMULTIVALUELIST,
-      message: Messages.error_incompleteMultiValueList,
+      message: messages.error_incompleteMultiValueList,
       predicate: (error, context): boolean =>
         (context instanceof Parser.SoqlWhereExprContext &&
           context.childCount === 3 &&
@@ -215,7 +215,7 @@ class ErrorIdentifier {
     // unexpectedEOF is an EOF catch-all, make sure it is tested last
     {
       type: Soql.ErrorType.UNEXPECTEDEOF,
-      message: Messages.error_unexpectedEOF,
+      message: messages.error_unexpectedEOF,
       predicate: (error, context): boolean => error.getToken()?.type === Token.EOF
     }
   ];

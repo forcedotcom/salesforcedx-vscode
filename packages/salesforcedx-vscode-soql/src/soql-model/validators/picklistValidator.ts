@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Messages } from '../messages/messages';
+import { messages } from '../messages/i18n';
 import { ValidateResult, Validator } from './validator';
 
 export class PicklistValidator extends Validator {
@@ -28,7 +28,7 @@ export class PicklistValidator extends Validator {
           soFar += next;
           return soFar;
         });
-        message = Messages.error_fieldInput_picklist.replace('{0}', commaSeparatedValues);
+        message = messages.error_fieldInput_picklist.replace('{0}', commaSeparatedValues);
       }
     }
     return { isValid, message };

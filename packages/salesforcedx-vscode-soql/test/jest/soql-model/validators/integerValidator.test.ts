@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Messages } from '../../../../src/soql-model/messages/messages';
+import { messages } from '../../../../src/soql-model/messages/i18n';
 import { SObjectFieldType } from '../../../../src/soql-model/model/model';
 import { IntegerValidator } from '../../../../src/soql-model/validators/integerValidator';
 
 describe('IntegerValidator should', () => {
   const validator = new IntegerValidator({ type: SObjectFieldType.Integer });
   const validResult = { isValid: true };
-  const notValidResult = { isValid: false, message: Messages.error_fieldInput_integer };
+  const notValidResult = { isValid: false, message: messages.error_fieldInput_integer };
   it('return valid result for signed integer input', () => {
     expect(validator.validate(' -42')).toEqual(validResult);
   });
