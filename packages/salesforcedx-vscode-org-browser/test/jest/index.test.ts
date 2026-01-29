@@ -40,7 +40,10 @@ jest.mock('vscode', () => ({
   }
 }));
 
-import { ExtensionProviderService, type ExtensionProviderService as ExtensionProviderServiceType } from '@salesforce/effect-ext-utils';
+import {
+  ExtensionProviderService,
+  type ExtensionProviderService as ExtensionProviderServiceType
+} from '@salesforce/effect-ext-utils';
 import * as vscode from 'vscode';
 import { Effect, Layer } from 'effect';
 import { activateEffect, deactivateEffect } from '../../src/index';
@@ -62,23 +65,20 @@ import { FileWatcherService } from 'salesforcedx-vscode-services/src/vscode/file
 import { getDefaultOrgRef } from 'salesforcedx-vscode-services/src/core/defaultOrgRef';
 import { SdkLayerFor } from 'salesforcedx-vscode-services/src/observability/spans';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
+import { ErrorHandlerService } from 'salesforcedx-vscode-services/src/vscode/errorHandlerService';
+import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import { createMockOutputChannel } from 'salesforcedx-vscode-services/test/jest/testUtils';
+import { OrgBrowserRetrieveService } from '../../src/services/orgBrowserMetadataRetrieveService';
 import type { Connection } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';
 import { URI } from 'vscode-uri';
 
 // 1. Full OutputChannel mock
 const mockAppendLine = jest.fn();
-const mockOutputChannel: vscode.OutputChannel = {
-  name: 'mock',
-  append: jest.fn(),
-  appendLine: mockAppendLine,
-  replace: jest.fn(),
-  clear: jest.fn(),
-  show: jest.fn(),
-  hide: jest.fn(),
-  dispose: jest.fn()
-};
+const mockOutputChannel = createMockOutputChannel();
+// Override appendLine to use our tracked mock function
+mockOutputChannel.appendLine = mockAppendLine;
 
 // 2. ChannelService mock
 const MockChannelServiceLayer = (_: string): Layer.Layer<ChannelService> =>
@@ -164,7 +164,46 @@ const MockConnectionServiceLayer = Layer.succeed(
   } as const)
 );
 
-// 7. ExtensionProviderService mock
+// 7. Mock ExtensionContextService layer (needed by registerCommand)
+const MockExtensionContextServiceLayer = Layer.succeed(
+  ExtensionContextService,
+  new ExtensionContextService({
+    getContext: Effect.sync(() => mockContext),
+    getDisplayName: Effect.succeed('Test Extension')
+  })
+);
+
+// 8. Mock ErrorHandlerService layer (needed by registerCommand)
+const MockErrorHandlerServiceLayer = Layer.succeed(
+  ErrorHandlerService,
+  new ErrorHandlerService({
+    handleCause: () => Effect.void
+  })
+);
+
+// 9. Mock ProjectService layer (needed by retrieveOrgBrowserTreeItemCommand)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const MockProjectServiceLayer = ProjectService.Default as any as Layer.Layer<ProjectService>;
+
+// 10. Mock MetadataRetrieveService layer (needed by retrieveOrgBrowserTreeItemCommand)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const MockMetadataRetrieveServiceLayer = MetadataRetrieveService.Default as any as Layer.Layer<MetadataRetrieveService>;
+
+// 11. Mock MetadataRegistryService layer (needed by retrieveOrgBrowserTreeItemCommand)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const MockMetadataRegistryServiceLayer = MetadataRegistryService.Default as any as Layer.Layer<MetadataRegistryService>;
+
+// 12. Mock SourceTrackingService layer (needed by retrieveOrgBrowserTreeItemCommand)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const MockSourceTrackingServiceLayer = SourceTrackingService.Default as any as Layer.Layer<SourceTrackingService>;
+
+// 13. Mock OrgBrowserRetrieveService layer (needed by retrieveOrgBrowserTreeItemCommand)
+
+const MockOrgBrowserRetrieveServiceLayer =
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  OrgBrowserRetrieveService.Default as any as Layer.Layer<OrgBrowserRetrieveService>;
+
+// 14. ExtensionProviderService mock
 const mockServicesApi = {
   services: {
     ChannelService,
@@ -212,7 +251,14 @@ describe.skip('Extension', () => {
             MockWorkspaceServiceLayer,
             MockConfigServiceLayer,
             MockSettingsServiceLayer,
-            MockConnectionServiceLayer
+            MockConnectionServiceLayer,
+            MockExtensionContextServiceLayer,
+            MockErrorHandlerServiceLayer,
+            MockProjectServiceLayer,
+            MockMetadataRetrieveServiceLayer,
+            MockMetadataRegistryServiceLayer,
+            MockSourceTrackingServiceLayer,
+            MockOrgBrowserRetrieveServiceLayer
           )
         )
       )
