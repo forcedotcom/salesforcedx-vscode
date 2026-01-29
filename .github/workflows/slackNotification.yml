@@ -53,7 +53,6 @@ jobs:
           webhook-type: incoming-webhook
           errors: true
           payload: |
-            text: "${{ inputs.title }} — Success"
             blocks:
               - type: header
                 text:
