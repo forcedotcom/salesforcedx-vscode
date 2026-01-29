@@ -57,13 +57,13 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       vscode.commands.executeCommand('setContext', 'salesforcedx-vscode-metadata.showSharedCommands', true)
     );
 
+    yield* svc.appendToChannel('Registering shared commands (core extension not present or config enabled)');
     yield* api.services.registerCommand('sf.apex.generate.class', createApexClass);
     yield* api.services.registerCommand('sf.retrieve.in.manifest', retrieveManifest);
 
-    yield* svc.appendToChannel('Registering shared commands (core extension not present or config enabled)');
+    yield* api.services.registerCommand('sf.project.deploy.start', () => projectDeployStart(false));
+    yield* api.services.registerCommand('sf.project.deploy.start.ignore.conflicts', () => projectDeployStart(true));
     context.subscriptions.push(
-      vscode.commands.registerCommand('sf.project.deploy.start', async () => projectDeployStart(false)),
-      vscode.commands.registerCommand('sf.project.deploy.start.ignore.conflicts', async () => projectDeployStart(true)),
       vscode.commands.registerCommand('sf.project.retrieve.start', async () => projectRetrieveStart(false)),
       vscode.commands.registerCommand('sf.project.retrieve.start.ignore.conflicts', async () =>
         projectRetrieveStart(true)

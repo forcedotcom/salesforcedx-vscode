@@ -39,7 +39,7 @@ const EnsureNonEmptyComponentSet = Brand.refined<NonEmptyComponentSet>(
   componentSet => Brand.error(`Expected ComponentSet to be non-empty, but got size ${componentSet.size}`)
 );
 
-class EmptyComponentSetError extends Data.TaggedError('EmptyComponentSetError')<{
+export class EmptyComponentSetError extends Data.TaggedError('EmptyComponentSetError')<{
   readonly size: number;
 }> {}
 

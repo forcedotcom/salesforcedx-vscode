@@ -69,12 +69,37 @@ export type SalesforceVSCodeServicesApi = {
     WorkspaceService: typeof WorkspaceService;
   };
 };
-export type { NonEmptyComponentSet, ComponentSetService } from './core/componentSetService';
+export type {
+  NonEmptyComponentSet,
+  ComponentSetService,
+  FailedToBuildComponentSetError,
+  EmptyComponentSetError
+} from './core/componentSetService';
 export type { NoActiveEditorError, EditorService } from './vscode/editorService';
-// export type { FailedToResolveSfProjectError } from './core/projectService';
 export type { GetOrgFromConnectionError } from './core/shared';
-export type { SourceTrackingConflictError, SourceTrackingService } from './core/sourceTrackingService';
+export type {
+  SourceTrackingConflictError,
+  SourceTrackingError,
+  SourceTrackingNotEnabledError,
+  SourceTrackingService
+} from './core/sourceTrackingService';
 export type { HashableUri } from './vscode/hashableUri';
+export type { FailedToResolveSfProjectError, NoWorkspaceOpenError } from './core/projectService';
+export type { FailedToCreateConfigAggregatorError } from './core/configService';
+export type {
+  FailedToCreateAuthInfoError,
+  FailedToSaveAuthInfoError,
+  FailedToCreateConnectionError,
+  FailedToResolveUsernameError,
+  NoTargetOrgConfiguredError
+} from './core/connectionService';
+export type { MetadataDeployError } from './core/metadataDeployService';
+export type { MetadataRetrieveError } from './core/metadataRetrieveService';
+export type { MetadataDeleteError } from './core/metadataDeleteService';
+export type { MetadataDescribeError, ListMetadataError } from './core/metadataDescribeService';
+export type { GetRegistryAccessError } from './core/metadataRegistryService';
+export type { FsServiceError } from './vscode/fsService';
+export type { SettingsError } from './vscode/settingsService';
 
 /** Effect that runs when the extension is activated */
 const activationEffect = (context: vscode.ExtensionContext) =>
