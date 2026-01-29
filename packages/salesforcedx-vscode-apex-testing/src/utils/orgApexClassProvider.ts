@@ -34,7 +34,15 @@ const lookupClassBody = (className: string): Effect.Effect<string, never, never>
     }
 
     const apexClass = result.records[0];
-    return apexClass.Body ?? `// Class '${className}' found but body is empty`;
+    const isManaged = apexClass.NamespacePrefix && apexClass.NamespacePrefix.length > 0;
+    const fullName = isManaged ? `${apexClass.NamespacePrefix}.${apexClass.Name}` : className;
+    if (apexClass.Body?.includes('(hidden)')) {
+      // Managed package classes have their source code protected
+      return nls.localize('apex_class_source_hidden', fullName);
+    } else if (!apexClass.Body) {
+      return `// Class '${fullName}' found but body is empty`;
+    }
+    return apexClass.Body;
   }).pipe(
     Effect.provide(AllServicesLayer),
     Effect.catchAll((error: unknown) => {
