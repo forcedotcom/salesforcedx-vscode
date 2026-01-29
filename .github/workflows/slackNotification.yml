@@ -51,7 +51,9 @@ jobs:
         with:
           webhook: ${{ secrets.IDEE_RELEASE_SLACK_WEBHOOK }}
           webhook-type: incoming-webhook
+          errors: true
           payload: |
+            text: "${{ inputs.title }} — Success"
             blocks:
               - type: header
                 text:
@@ -77,7 +79,9 @@ jobs:
         with:
           webhook: ${{ secrets.IDEE_MAIN_SLACK_WEBHOOK }}
           webhook-type: incoming-webhook
+          errors: true
           payload: |
+            text: "${{ inputs.title }} — Failure: ${{ inputs.failedEvent }}"
             blocks:
               - type: header
                 text:
@@ -108,7 +112,9 @@ jobs:
         with:
           webhook: ${{ secrets.IDEE_MAIN_SLACK_WEBHOOK }}
           webhook-type: incoming-webhook
+          errors: true
           payload: |
+            text: "${{ inputs.title }}: ${{ inputs.notification }}"
             blocks:
               - type: header
                 text:
@@ -132,7 +138,9 @@ jobs:
         with:
           webhook: ${{ secrets.IDEE_E2E_SLACK_WEBHOOK }}
           webhook-type: incoming-webhook
+          errors: true
           payload: |
+            text: "${{ inputs.title }} — ${{ inputs.result }}"
             blocks:
               - type: header
                 text:
