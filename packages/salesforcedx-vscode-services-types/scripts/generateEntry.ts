@@ -18,7 +18,7 @@ const generateEntry = (): void => {
  */
 
 // This file is auto-generated. Do not edit manually.
-export type { SalesforceVSCodeServicesApi } from '../../salesforcedx-vscode-services/src/index.js';
+export type { SalesforceVSCodeServicesApi } from '../../salesforcedx-vscode-services/out/src/index.js';
 `;
 
   fs.writeFileSync(entryPath, content, 'utf8');

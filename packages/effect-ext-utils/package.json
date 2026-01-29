@@ -61,13 +61,17 @@
     },
     "check:circular-deps": {
       "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
-      "dependencies": ["compile"],
+      "dependencies": [
+        "compile"
+      ],
       "files": [
         "src/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json"
       ],
-      "output": [".circular-deps.json"]
+      "output": [
+        ".circular-deps.json"
+      ]
     },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
@@ -87,5 +91,8 @@
   "dependencies": {
     "effect": "^3.19.14",
     "@types/vscode": "^1.90.0"
+  },
+  "devDependencies": {
+    "@salesforce/vscode-services": "*"
   }
 }

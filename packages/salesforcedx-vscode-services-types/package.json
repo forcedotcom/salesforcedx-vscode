@@ -12,10 +12,10 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
   },
   "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-services-types",
-  "types": "out/salesforcedx-vscode-services-types/src/index.d.ts",
+  "types": "out/index.d.ts",
   "exports": {
     ".": {
-      "types": "./out/salesforcedx-vscode-services-types/src/index.d.ts"
+      "types": "./out/index.d.ts"
     }
   },
   "files": [

@@ -6,5 +6,9 @@
   },
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "include": ["src/**/*.ts", "test/**/*.ts"],
-  "references": []
+  "references": [
+    {
+      "path": "../salesforcedx-vscode-services-types"
+    }
+  ]
 }
