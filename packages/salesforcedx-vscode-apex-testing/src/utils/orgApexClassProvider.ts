@@ -5,13 +5,61 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Cache from 'effect/Cache';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { getVscodeCoreExtension } from '../coreExtensionUtils';
+import { URI } from 'vscode-uri';
 import { nls } from '../messages';
+import { AllServicesLayer } from '../services/extensionProvider';
 
 const SCHEME = 'sf-org-apex';
-const CLASS_BODY_CACHE = new Map<string, { content: string; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+/** Lookup function for fetching Apex class body from org */
+const lookupClassBody = (className: string): Effect.Effect<string, never, never> =>
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const connectionService = yield* api.services.ConnectionService;
+    const connection = yield* connectionService.getConnection;
+
+    // Query for the Apex class body using Tooling API
+    const query = `SELECT Id, Name, Body, NamespacePrefix FROM ApexClass WHERE Name = '${className.replaceAll("'", "''")}' LIMIT 1`;
+    const result = yield* Effect.promise(() =>
+      connection.tooling.query<{ Body: string; Name: string; NamespacePrefix?: string }>(query)
+    );
+
+    if (result.records.length === 0) {
+      return `// Error: Class '${className}' not found in org`;
+    }
+
+    const apexClass = result.records[0];
+    const isManaged = apexClass.NamespacePrefix && apexClass.NamespacePrefix.length > 0;
+    const fullName = isManaged ? `${apexClass.NamespacePrefix}.${apexClass.Name}` : className;
+    if (apexClass.Body?.includes('(hidden)')) {
+      // Managed package classes have their source code protected
+      return nls.localize('apex_class_source_hidden', fullName);
+    } else if (!apexClass.Body) {
+      return `// Class '${fullName}' found but body is empty`;
+    }
+    return apexClass.Body;
+  }).pipe(
+    Effect.provide(AllServicesLayer),
+    Effect.catchAll((error: unknown) => {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return Effect.succeed(`// Error retrieving class '${className}' from org: ${errorMessage}`);
+    })
+  );
+
+/** Create cache for Apex class bodies with 5 minute TTL */
+const createClassBodyCache = (): Effect.Effect<Cache.Cache<string, string>, never, never> =>
+  Cache.make({
+    capacity: 1000,
+    timeToLive: Duration.minutes(5),
+    lookup: lookupClassBody
+  });
+
+let classBodyCache: Cache.Cache<string, string> | undefined;
 
 /**
  * Virtual document provider for Apex classes that exist in the org but not locally.
@@ -33,43 +81,36 @@ class OrgApexClassProvider implements vscode.TextDocumentContentProvider {
       className = className.slice(0, -4);
     }
 
-    // Check cache first
-    const cached = CLASS_BODY_CACHE.get(className);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      return cached.content;
-    }
+    // Ensure cache is initialized and get cached or fetch class body
+    const cache = this.ensureCacheInitialized();
+    return Effect.runPromise(cache.get(className));
+  }
 
-    try {
-      const core = await getVscodeCoreExtension();
-      const connection = await core.exports.services.WorkspaceContext.getInstance().getConnection();
-
-      // Query for the Apex class body using Tooling API
-      const query = `SELECT Id, Name, Body, NamespacePrefix FROM ApexClass WHERE Name = '${className.replaceAll("'", "''")}' LIMIT 1`;
-      const result = await connection.tooling.query<{ Body: string; Name: string; NamespacePrefix?: string }>(query);
-
-      if (result.records.length === 0) {
-        return `// Error: Class '${className}' not found in org`;
-      }
-
-      const apexClass = result.records[0];
-      const content = apexClass.Body || `// Class '${className}' found but body is empty`;
-
-      // Cache the content
-      CLASS_BODY_CACHE.set(className, { content, timestamp: Date.now() });
-
-      return content;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      return `// Error retrieving class '${className}' from org: ${errorMessage}`;
-    }
+  private ensureCacheInitialized(): Cache.Cache<string, string> {
+    classBodyCache ??= Effect.runSync(createClassBodyCache());
+    return classBodyCache;
   }
 
   public invalidateCache(className: string): void {
-    CLASS_BODY_CACHE.delete(className);
+    // Only invalidate if cache exists (nothing to invalidate if cache hasn't been used yet)
+    if (classBodyCache) {
+      Effect.runSync(classBodyCache.invalidate(className));
+    }
     // Create URI with .cls extension for consistency
     const baseClassName = className.includes('.') ? className.split('.').pop()! : className;
-    const uri = vscode.Uri.parse(`${SCHEME}:${baseClassName}.cls`);
+    const uri = URI.parse(`${SCHEME}:${baseClassName}.cls`);
     this._onDidChange.fire(uri);
+  }
+
+  /** Clear all cached class bodies (call when org changes) */
+  public clearAllCache(): void {
+    const cache = this.ensureCacheInitialized();
+    Effect.runSync(cache.invalidateAll);
+  }
+
+  /** Reset the cache completely (useful for testing) */
+  public resetCache(): void {
+    classBodyCache = undefined;
   }
 }
 
@@ -92,7 +133,7 @@ export const createOrgApexClassUri = (className: string): vscode.Uri => {
   // Extract base class name if it includes namespace (e.g., "ns.ClassName" -> "ClassName")
   const baseClassName = className.includes('.') ? className.split('.').pop()! : className;
   // Add .cls extension for syntax highlighting
-  return vscode.Uri.parse(`${SCHEME}:${baseClassName}.cls`);
+  return URI.parse(`${SCHEME}:${baseClassName}.cls`);
 };
 
 /**

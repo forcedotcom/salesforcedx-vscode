@@ -4,8 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-// eslint-disable-next-line barrel-files/avoid-barrel-files
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Scope from 'effect/Scope';
@@ -25,8 +23,6 @@ import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
-import { setExtensionContext } from './extensionContext';
-import { closeExtensionScope, getExtensionScope } from './extensionScope';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
@@ -35,6 +31,8 @@ import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
 import { EditorService } from './vscode/editorService';
+import { setExtensionContext } from './vscode/extensionContext';
+import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope';
 import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { SettingsService } from './vscode/settingsService';
@@ -64,11 +62,11 @@ export type SalesforceVSCodeServicesApi = {
     WorkspaceService: typeof WorkspaceService;
   };
 };
-export type { NonEmptyComponentSet } from './core/componentSetService';
-export type { NoActiveEditorError } from './vscode/editorService';
+export type { NonEmptyComponentSet, ComponentSetService } from './core/componentSetService';
+export type { NoActiveEditorError, EditorService } from './vscode/editorService';
 // export type { FailedToResolveSfProjectError } from './core/projectService';
 export type { GetOrgFromConnectionError } from './core/shared';
-export type { SourceTrackingConflictError } from './core/sourceTrackingService';
+export type { SourceTrackingConflictError, SourceTrackingService } from './core/sourceTrackingService';
 export type { HashableUri } from './vscode/hashableUri';
 
 /** Effect that runs when the extension is activated */
@@ -182,4 +180,17 @@ const deactivateEffect = Effect.gen(function* () {
   Effect.provide(Layer.mergeAll(ChannelService.Default, ServicesSdkLayer()))
 );
 
-export { type ChannelService } from './vscode/channelService';
+export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';
+export { type ConfigService } from './core/configService';
+export { type ConnectionService } from './core/connectionService';
+export { type FileWatcherService } from './vscode/fileWatcherService';
+export { type FsService } from './vscode/fsService';
+export { type MetadataDeleteService } from './core/metadataDeleteService';
+export { type MetadataDescribeService } from './core/metadataDescribeService';
+export { type MetadataDeployService } from './core/metadataDeployService';
+export { type MetadataRegistryService } from './core/metadataRegistryService';
+export { type MetadataRetrieveService } from './core/metadataRetrieveService';
+export { type ProjectService } from './core/projectService';
+export { type SdkLayerFor } from './observability/spans';
+export { type SettingsService } from './vscode/settingsService';
+export { type WorkspaceService } from './vscode/workspaceService';

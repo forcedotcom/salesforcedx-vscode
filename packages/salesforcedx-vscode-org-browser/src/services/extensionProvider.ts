@@ -5,35 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { EXTENSION_NAME } from '../constants';
-import {
-  ExtensionProviderService,
-  InvalidServicesApiError,
-  ServicesExtensionNotFoundError
-} from './extensionProviderService';
 import { OrgBrowserRetrieveService } from './orgBrowserMetadataRetrieveService';
-
-// Re-export for backward compatibility
-export { ExtensionProviderService, InvalidServicesApiError, ServicesExtensionNotFoundError } from './extensionProviderService';
-
-/** connect to the Salesforce Services extension and get all of its API services */
-const getServicesApi = Effect.sync(() =>
-  vscode.extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services')
-).pipe(
-  Effect.flatMap(ext => (ext ? Effect.succeed(ext) : Effect.fail(new ServicesExtensionNotFoundError()))),
-  Effect.flatMap(ext =>
-    ext.isActive
-      ? Effect.sync(() => ext.exports)
-      : Effect.tryPromise({
-          try: () => ext.activate(),
-          catch: e => new InvalidServicesApiError(e instanceof Error ? { cause: e } : { cause: new Error(String(e)) })
-        })
-  )
-);
 
 const ExtensionProviderServiceLive = Layer.effect(
   ExtensionProviderService,

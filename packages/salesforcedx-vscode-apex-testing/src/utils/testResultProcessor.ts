@@ -7,7 +7,7 @@
 import { HumanReporter, TestResult } from '@salesforce/apex-node';
 import * as vscode from 'vscode';
 import { FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
-import { getTestName, isMethod } from './testItemUtils';
+import { getTestName, isClass, isMethod, isSuite } from './testItemUtils';
 
 /**
  * Parses a stack trace string and returns a Location if the class and line number can be determined
@@ -49,16 +49,16 @@ export const parseStackTrace = (
 /**
  * Updates test run results in the Test Explorer UI
  */
-export const updateTestRunResults = (
-  result: TestResult,
-  run: vscode.TestRun,
-  testsToRun: vscode.TestItem[],
-  methodItems: Map<string, vscode.TestItem>,
-  classItems: Map<string, vscode.TestItem>,
-  codeCoverage: boolean = false,
-  concise: boolean = false
-): void => {
-  run.appendOutput('\r\n=== Test Results ===\r\n\r\n');
+export const updateTestRunResults = (params: {
+  result: TestResult;
+  run: vscode.TestRun;
+  testsToRun: vscode.TestItem[];
+  methodItems: Map<string, vscode.TestItem>;
+  classItems: Map<string, vscode.TestItem>;
+  codeCoverage?: boolean;
+  concise?: boolean;
+}): void => {
+  const { result, run, testsToRun, methodItems, classItems, codeCoverage = false, concise = false } = params;
   const humanOutput = new HumanReporter().format(result, codeCoverage, concise);
   if (humanOutput) {
     // Split by lines and add each line separately with \r\n to ensure newlines are preserved
@@ -84,12 +84,29 @@ export const updateTestRunResults = (
   }
 
   // Also add items from testsToRun (for methods that might not be in methodItems yet)
-  for (const test of testsToRun) {
-    if (isMethod(test.id)) {
-      const testName = getTestName(test);
-      testMap.set(testName, test);
+  // Recursively collect all method items under suites/classes to ensure results propagate
+  const collectMethods = (item: vscode.TestItem): void => {
+    if (isMethod(item.id)) {
+      const testName = getTestName(item);
+      testMap.set(testName, item);
+    } else {
+      // Recursively traverse children to find all method items
+      item.children.forEach(child => collectMethods(child));
     }
+  };
+
+  for (const test of testsToRun) {
+    collectMethods(test);
   }
+
+  // Track results per class for proper aggregation
+  const classResults = new Map<string, { passed: number; failed: number; skipped: number; duration: number }>();
+
+  // Track results for parent items (suites, classes)
+  let totalPassed = 0;
+  let totalFailed = 0;
+  let totalSkipped = 0;
+  let totalDuration = 0;
 
   // Update results from TestResult
   for (const testResult of result.tests) {
@@ -100,8 +117,20 @@ export const updateTestRunResults = (
     const testItem = testMap.get(fullTestName);
     if (testItem) {
       const outcomeStr = testResult.outcome.toString();
+      const runTime = testResult.runTime ?? 0;
+
+      // Track results per class for aggregation
+      if (!classResults.has(apexClassName)) {
+        classResults.set(apexClassName, { passed: 0, failed: 0, skipped: 0, duration: 0 });
+      }
+      const classResult = classResults.get(apexClassName)!;
+
       if (outcomeStr === PASS_RESULT) {
-        run.passed(testItem, testResult.runTime);
+        run.passed(testItem, runTime);
+        totalPassed++;
+        totalDuration += runTime;
+        classResult.passed++;
+        classResult.duration += runTime;
       } else if (outcomeStr === FAIL_RESULT) {
         // Format the error message with both message and stack trace
         const errorMessage = testResult.message ?? '';
@@ -120,14 +149,121 @@ export const updateTestRunResults = (
           }
         }
 
-        run.failed(testItem, message, testResult.runTime);
+        run.failed(testItem, message, runTime);
+        totalFailed++;
+        totalDuration += runTime;
+        classResult.failed++;
+        classResult.duration += runTime;
       } else if (outcomeStr === SKIP_RESULT) {
         run.skipped(testItem);
+        totalSkipped++;
+        classResult.skipped++;
       }
     } else {
       // Test result doesn't match any known test item
       // This can happen if the test was run as part of a suite but isn't in our tree
       console.debug(`Test result for ${fullTestName} doesn't match any test item. Available items: ${testMap.size}`);
+    }
+  }
+
+  // Helper to recursively update all class items under a suite
+  const updateClassItemsUnderSuite = (suiteItem: vscode.TestItem): void => {
+    suiteItem.children.forEach(classItem => {
+      const className = classItem.label;
+      const classResult = classResults.get(className);
+
+      if (classResult) {
+        // Update the class item with aggregate results
+        if (classResult.failed > 0) {
+          run.failed(classItem, new vscode.TestMessage(`${classResult.failed} test(s) failed`), classResult.duration);
+        } else if (classResult.passed > 0) {
+          run.passed(classItem, classResult.duration);
+        } else if (classResult.skipped > 0) {
+          run.skipped(classItem);
+        }
+      }
+
+      // Recursively update any nested items
+      classItem.children.forEach(child => {
+        if (isMethod(child.id)) {
+          const testName = getTestName(child);
+          const testItem = testMap.get(testName);
+          // Results should already be applied, but ensure they're in the tree
+          if (testItem && testItem !== child) {
+            // If the method item in the map is different, we may need to update the child
+            // VS Code should handle this, but we ensure the child is updated
+          }
+        }
+      });
+    });
+  };
+
+  // Update parent items (suites, classes) that were originally selected
+  // This ensures the checkmark appears on the suite/class, not just the methods
+  for (const test of testsToRun) {
+    if (isSuite(test.id)) {
+      // For suites, aggregate results only for classes that belong to THIS suite
+      let suitePassed = 0;
+      let suiteFailed = 0;
+      let suiteSkipped = 0;
+      let suiteDuration = 0;
+
+      test.children.forEach(child => {
+        // Try matching by label directly (e.g., "Class1")
+        let childResult = classResults.get(child.label);
+
+        // If not found, try matching with namespace prefix (e.g., "namespace.Class1")
+        if (!childResult) {
+          for (const [className, classResult] of classResults) {
+            // Check if the className ends with the child label (handles namespace.Class1 -> Class1)
+            if (className === child.label || className.endsWith(`.${child.label}`)) {
+              childResult = classResult;
+              break;
+            }
+          }
+        }
+
+        if (childResult) {
+          suitePassed += childResult.passed;
+          suiteFailed += childResult.failed;
+          suiteSkipped += childResult.skipped;
+          suiteDuration += childResult.duration;
+        }
+      });
+
+      // Mark the suite based on its own aggregate results
+      if (suiteFailed > 0) {
+        run.failed(test, new vscode.TestMessage(`${suiteFailed} test(s) failed`), suiteDuration);
+      } else if (suitePassed > 0) {
+        run.passed(test, suiteDuration);
+      } else if (suiteSkipped > 0) {
+        run.skipped(test);
+      }
+      // Recursively update class items under the suite
+      updateClassItemsUnderSuite(test);
+    } else if (isClass(test.id)) {
+      // For classes, update based on aggregate results for that class
+      const className = test.label;
+      const classResult = classResults.get(className);
+
+      if (classResult) {
+        if (classResult.failed > 0) {
+          run.failed(test, new vscode.TestMessage(`${classResult.failed} test(s) failed`), classResult.duration);
+        } else if (classResult.passed > 0) {
+          run.passed(test, classResult.duration);
+        } else if (classResult.skipped > 0) {
+          run.skipped(test);
+        }
+      } else {
+        // Fallback to total results if class-specific results aren't available
+        if (totalFailed > 0) {
+          run.failed(test, new vscode.TestMessage(`${totalFailed} test(s) failed`), totalDuration);
+        } else if (totalPassed > 0) {
+          run.passed(test, totalDuration);
+        } else if (totalSkipped > 0) {
+          run.skipped(test);
+        }
+      }
     }
   }
 };

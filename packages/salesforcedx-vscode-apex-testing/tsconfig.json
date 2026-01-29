@@ -4,20 +4,19 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "include": ["src/**/*.ts", "test/**/*.ts"],
-  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out",
+    "dist"
+  ],
   "references": [
     {
-      "path": "../salesforcedx-utils"
-    },
-    {
-      "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../salesforcedx-vscode-apex"
-    },
-    {
-      "path": "../salesforcedx-vscode-core"
+      "path": "../effect-ext-utils"
     },
     {
       "path": "../salesforcedx-vscode-i18n"

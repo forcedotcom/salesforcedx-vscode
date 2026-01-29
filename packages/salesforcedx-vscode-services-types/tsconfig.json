@@ -2,11 +2,11 @@
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
     "outDir": "out",
+    "rootDir": "src",
     "declaration": true,
     "emitDeclarationOnly": true,
-    "skipLibCheck": true,
-    "composite": false
+    "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "../salesforcedx-vscode-services/src/**/*.ts"],
-  "exclude": ["node_modules", "out"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "out", "../salesforcedx-vscode-services"]
 }

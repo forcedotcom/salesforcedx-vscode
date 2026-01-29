@@ -8,9 +8,9 @@
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { URI } from 'vscode-uri';
 import { shouldDeploy } from '../../src/services/deployOnSaveService';
-import { ExtensionProviderService } from '../../src/services/extensionProvider';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';

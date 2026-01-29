@@ -5,6 +5,78 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Mock vscode.workspace.fs.writeFile - this is used by FsService internally
+const mockWriteFile = jest.fn().mockResolvedValue(undefined);
+const mockChannelAppendLine = jest.fn().mockResolvedValue(undefined);
+const mockChannelShow = jest.fn().mockResolvedValue(undefined);
+
+// Make mockWriteFile available globally for the extensionProvider mock to use
+
+(global as any).__mockWriteFile = mockWriteFile;
+
+// Mock the channels module
+jest.mock('../../../src/channels', () => ({
+  OUTPUT_CHANNEL: {
+    appendLine: jest.fn(),
+    show: jest.fn()
+  },
+  channelService: {
+    appendLine: (message: string) => mockChannelAppendLine(message),
+    show: () => mockChannelShow()
+  }
+}));
+
+// Mock the extensionProvider module before importing anything that uses it
+jest.mock('../../../src/services/extensionProvider', () => {
+  const Effect = jest.requireActual('effect/Effect');
+  const Context = jest.requireActual('effect/Context');
+  const Layer = jest.requireActual('effect/Layer');
+
+  const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
+  const mockFsService = {
+    writeFile: (pathOrUri: unknown, _content: string) =>
+      Effect.promise(async () => {
+        // Call the global mockWriteFile which is set up by the test
+        // Extract the path to pass to the mock
+        const filePath = typeof pathOrUri === 'string' ? pathOrUri : ((pathOrUri as { fsPath?: string })?.fsPath ?? '');
+        const mockUri = {
+          fsPath: filePath,
+          path: filePath,
+          scheme: 'file',
+          authority: '',
+          query: '',
+          fragment: '',
+          toString: () => `file://${filePath}`
+        };
+
+        await (global as any).__mockWriteFile(mockUri, new TextEncoder().encode(_content));
+      })
+  };
+  const MockFsServiceTag = Context.GenericTag('FsService');
+  const mockServicesApi = {
+    services: {
+      FsService: MockFsServiceTag
+    }
+  };
+  const MockAllServicesLayer = Layer.mergeAll(
+    Layer.effect(
+      MockExtensionProviderService,
+      Effect.sync(() => ({
+        getServicesApi: Effect.succeed(mockServicesApi)
+      }))
+    ),
+    Layer.effect(
+      MockFsServiceTag,
+      Effect.sync(() => mockFsService)
+    )
+  );
+
+  return {
+    ExtensionProviderService: MockExtensionProviderService,
+    AllServicesLayer: MockAllServicesLayer
+  };
+});
+
 import { TestResult, MarkdownTextFormatTransformer } from '@salesforce/apex-node';
 import { Global } from '@salesforce/core';
 import * as path from 'node:path';
@@ -14,8 +86,7 @@ import * as settings from '../../../src/settings';
 import { retrieveCoverageThreshold, retrievePerformanceThreshold } from '../../../src/settings';
 import { writeAndOpenTestReport } from '../../../src/utils/testReportGenerator';
 
-// Mock vscode.workspace.fs
-const mockWriteFile = jest.fn().mockResolvedValue(undefined);
+// Additional mock functions for vscode APIs
 const mockOpenTextDocument = jest.fn().mockResolvedValue({});
 const mockShowTextDocument = jest.fn().mockResolvedValue(undefined);
 const mockShowInformationMessage = jest.fn().mockResolvedValue(undefined);

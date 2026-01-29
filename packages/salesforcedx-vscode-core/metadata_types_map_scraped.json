@@ -2284,6 +2284,11 @@
         "Field Type": "string"
       },
       {
+        "Description": "The ID of the parent Action Plan Template record. This field is a relationship field to the ParentTemplate and refers to ActionPlanTemplate. Available in API version 66.0 and later.",
+        "Field Name": "ParentTemplateId",
+        "Field Type": "reference"
+      },
+      {
         "Description": "Source type of the action plan template. Available in API version 64.0 and later.",
         "Field Name": "sourceType",
         "Field Type": "string"
@@ -6455,13 +6460,28 @@
         "Field Type": "string"
       },
       {
+        "Description": "Indicates whether to enable Dispute Management (true) or not (false). The default value is false. Available in API version 66.0 and later.",
+        "Field Name": "enableBillingDisputeManagement",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether to enable Billing setting (true) or not (false). The default value is false.",
         "Field Name": "enableBillingSetup",
         "Field Type": "boolean"
       },
       {
+        "Description": "Indicates whether to mandate the application of sequence policy for credit memos (true) or not (false). The default value is false.Available in API version 66.0 and later with Revenue Cloud Billing.",
+        "Field Name": "enableCreditMemoSequenceService",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether to enable Apply Credits to Posted Invoices setting (true) or not (false). The default value is false. This setting automates settlement of invoices through application of credits to posted invoices. The credit application level determines whether credits are automatically applied to invoices or invoice lines.",
         "Field Name": "enableCrMemoApplicationToPostedInvoices",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether to retry failed payment schedule items automatically based on the defined payment retry rules (true) or not (false). The default value is false. Available in API version 66.0 and later.",
+        "Field Name": "enableFailedPaymentsRetry",
         "Field Type": "boolean"
       },
       {
@@ -6517,6 +6537,11 @@
       {
         "Description": "Name of the general ledger account to record realized losses in transaction journals. Available in API version 64.0 and later.",
         "Field Name": "realisedLossGlAccount",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Automates the settlement of the posted invoices by applying payments and credits that meet the specified application rules. The rules application level determines whether payments or credits are applied first to the invoices. The ruleset displays a list of selectable rules. Available in API version 66.0 and later.",
+        "Field Name": "ruleBasedCrAndPymtAppln",
         "Field Type": "string"
       },
       {
@@ -8149,6 +8174,16 @@
         "Field Type": "string"
       },
       {
+        "Description": "If callbacks are configured for the contact center and the contact center uses Omni-Channel Unified Routing, this field represents the unique ID of the fallback queue to use if contact request routing through an Omni-Channel flow fails. Don't change the value in this field. Instead, configure contact request routing in Lightning Experience. Available in API version 65.0 and later.",
+        "Field Name": "omniCallbackFallbackQueue",
+        "Field Type": "string"
+      },
+      {
+        "Description": "If callbacks are configured for the contact center and the contact center uses Omni-Channel Unified Routing, this field represents the unique ID of the flow or queue used to route contact requests. Don't change the value in this field. Instead, configure contact request routing in Lightning Experience. Available in API version 65.0 and later.",
+        "Field Name": "omniCallbackHandler",
+        "Field Type": "string"
+      },
+      {
         "Description": "If voicemail routing is configured for the contact center, this field represents the unique ID of the fallback queue to use if voicemail routing fails. Don't change the value in this field. Instead, configure voicemail routing in Lightning Experience.",
         "Field Name": "voiceMailFallbackQueue",
         "Field Type": "string"
@@ -8159,7 +8194,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents a junction subtype that relates a Bring Your Own Channel for Contact Center as a Service (CCaaS) messaging channel to a CallCenter type for Bring Your Own Channel for CCaaS. This subtype also represents the routing details for a voicemail configuration. This subtype is available in API version 56.0 and later.",
+    "short_description": "Represents a junction subtype that relates a Bring Your Own Channel for Contact Center as a Service (CCaaS) messaging channel to a CallCenter type for Bring Your Own Channel for CCaaS. This subtype also represents the routing details for a voicemail configuration and routing information for callback requests. This subtype is available in API version 56.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_callcenter.htm",
     "parent": "Metadata"
   },
@@ -9601,14 +9636,14 @@
         "Field Type": "connectedAppOauthConfig"
       },
       {
-        "Description": "Specifies Oauth access policies associated with your connected app. Available in API version 49.0 and later.",
+        "Description": "Specifies OAuth access policies associated with your connected app. Available in API version 49.0 and later.",
         "Field Name": "oauthPolicy",
         "Field Type": "ConnectedAppOauthPolicy"
       },
       {
         "Description": "Specifies the permissions required to perform different functions with the connected app. Available in API version 46.0 and later.You can assign multiple permission sets to the connected app, but you must enter each permission set name on a separate line. You can’t enter the same permission set name more than one time for each connected app. You can also change a permission set by replacing the current permission set with a new permission set. Make sure that each permission set name assigned to the connected app is unique. You can delete individual permission sets or remove all permission sets from a connected app by entering an empty permissionSetName string on deployment of the connected app: (<permissionSetName></permissionSetName>). To use this field, the isAdminApproved field on the ConnectedAppOauthConfig subtype must be set to true.",
         "Field Name": "permissionSetName",
-        "Field Type": "string[]"
+        "Field Type": "string"
       },
       {
         "Description": "The name of a custom Apex class that extends Auth.ConnectedAppPlugin to customize the behavior of the app.",
@@ -9658,7 +9693,7 @@
         "Field Type": "string"
       }
     ],
-    "short_description": "Represents the field names that make up a custom attribute when using SAML with a ConnectedApp. Tailor these values to a specific service provider.",
+    "short_description": "Represents the field names that make up a custom attribute when using SAML with a ConnectedApp. Customize these values to a specific service provider.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_connectedapp.htm",
     "parent": "Metadata"
   },
@@ -9680,7 +9715,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Indicates where the canvas app can appear to the user. The valid values are: Aura—Reserved for future use. AppLauncher—Reserved for future use. Chatter—The canvas app can appear in the app navigation list on the Chatter tab. ChatterFeed—The canvas app can appear as a Chatter feed item. MobileNav—The canvas app can appear in a mobile card in the Salesforce mobile app. Available in API version 31.0 and later. None—The canvas app can appear only in the Canvas App Previewer. OpenCTI—The canvas app can appear in the call control tool. PageLayout—The canvas app can appear on a page layout. When viewed in the Salesforce mobile app, the canvas app appears in the record detail page. Available in API version 31.0 and later. Publisher—The canvas app can appear as a global action. ServiceDesk—The canvas app can appear in the footer or sidebars of a Salesforce console. UserProfile—Reserved for future use. Visualforce—The canvas app can appear on a Visualforce page.",
+        "Description": "Indicates where the canvas app can appear to the user. The valid values are: Aura—The canvas app can appear in a custom Lightning component. AppLauncher—Reserved for future use. Chatter—The canvas app can appear in the app navigation list on the Chatter tab in Salesforce Classic. ChatterFeed—The canvas app can appear as a Chatter feed item. MobileNav—The canvas app can appear in a mobile card in the Salesforce mobile app. Available in API version 31.0 and later. None—The canvas app can appear only in the Canvas App Previewer. OpenCTI—The canvas app can appear in the call control tool in Salesforce Classic. PageLayout—The canvas app can appear on a page layout. When viewed in the Salesforce mobile app, the canvas app appears in the record detail page. Available in API version 31.0 and later. Publisher—The canvas app can appear as a global action. ServiceDesk—The canvas app can appear in the footer or sidebars of a console in Salesforce Classic. UserProfile—Reserved for future use. Visualforce—The canvas app can appear on a Visualforce page.",
         "Field Name": "locations",
         "Field Type": "CanvasLocationOptions (enumeration of type string)[]"
       },
@@ -12316,6 +12351,11 @@
   "CustomNotificationType": {
     "fields": [
       {
+        "Description": "Optional. Indicates whether mobile action groups are enabled, allowing users to take actions directly from mobile notifications.actionGroups is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer's sole discretion.",
+        "Field Name": "actionGroups (Beta)",
+        "Field Type": "CustomNotificationActionGroup[]"
+      },
+      {
         "Description": "Required. Specifies a notification type name. Maximum number of characters: 80.",
         "Field Name": "customNotifTypeName",
         "Field Type": "string"
@@ -12347,6 +12387,50 @@
       }
     ],
     "short_description": "Represents the metadata associated with a custom notification type. For more information about custom notifications, see Custom Notification Actions. This type extends the Metadata metadata type and inherits its fullName field.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customnotificationtype.htm",
+    "parent": "Metadata"
+  },
+  "CustomNotificationActionGroup (Beta)": {
+    "fields": [
+      {
+        "Description": "Represents the actions within a mobile action group.",
+        "Field Name": "actions",
+        "Field Type": "CustomNotificationActionDefinition[]"
+      },
+      {
+        "Description": "Required. Unique name of the mobile action group.",
+        "Field Name": "groupName",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "CustomNotificationActionGroup represents the action group.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customnotificationtype.htm",
+    "parent": "Metadata"
+  },
+  "CustomNotificationActionDefinition": {
+    "fields": [
+      {
+        "Description": "Required. The name of the action seen in the push notification.",
+        "Field Name": "actionLabel",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. Unique identifier of the action in an action group.",
+        "Field Name": "actionName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The name of the Apex class where the action is implemented.",
+        "Field Name": "actionTarget",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Type of action. Required. Values are: NotificationApiAction: Server-side action where client needs to make action API call. Share: Client-side action where the app shares notification content to any channel.",
+        "Field Name": "actionType",
+        "Field Type": "NotificationActionType (enumeration of type string)"
+      }
+    ],
+    "short_description": "CustomNotificationActionDefinition represents the metadata that define an actionable notification.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_customnotificationtype.htm",
     "parent": "Metadata"
   },
@@ -14576,12 +14660,12 @@
         "Field Type": "string"
       },
       {
-        "Description": "The name of the Visualforce page to be displayed when the guest user tries to access a page for which they are not authorized.",
+        "Description": "The name of the Visualforce page to display when the guest user tries to access a page for which they aren’t authorized.",
         "Field Name": "authorizationRequiredPage",
         "Field Type": "string"
       },
       {
-        "Description": "The name of the Visualforce page to be displayed when the site has exceeded its bandwidth quota.",
+        "Description": "The name of the Visualforce page to display when the site has exceeded its bandwidth quota.",
         "Field Name": "bandwidthExceededPage",
         "Field Type": "string"
       },
@@ -14596,32 +14680,32 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "The name of the Visualforce page to be displayed when the portal user attempts to change their password for either the portal or for Chatter Answers, when enabled.",
+        "Description": "The name of the Visualforce page to display when the portal user attempts to change their password for either the portal or for Chatter Answers, when enabled.",
         "Field Name": "changePasswordPage",
         "Field Type": "string"
       },
       {
-        "Description": "The name of the Visualforce page to be displayed that informs the user that an email has been sent to them with a temporary password. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.",
+        "Description": "The name of the Visualforce page that informs the user that an email has been sent to them with a temporary password. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.",
         "Field Name": "chatterAnswersForgotPasswordConfirmPage",
         "Field Type": "string"
       },
       {
-        "Description": "The name of the Visualforce page to be displayed when a user clicks the link to retrieve a forgotten password. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.",
+        "Description": "The name of the Visualforce page to display when a user clicks the link to retrieve a forgotten password. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.",
         "Field Name": "chatterAnswersForgotPasswordPage",
         "Field Type": "string"
       },
       {
-        "Description": "The name of the Visualforce page to be displayed when the user clicks the help link. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.",
+        "Description": "The name of the Visualforce page to display when the user clicks the help link. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.",
         "Field Name": "chatterAnswersHelpPage",
         "Field Type": "string"
       },
       {
-        "Description": "The name of the Visualforce page to be displayed to allow users to log in to the portal. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.",
+        "Description": "The name of the Visualforce page to display where users can log in to the portal. This field is available if Chatter Answers is enabled for your organization. This field is available in API version 27.0 and later.",
         "Field Name": "chatterAnswersLoginPage",
         "Field Type": "string"
       },
       {
-        "Description": "The name of the Visualforce page to be displayed to allow users to register themselves and access the portal. This field is available in API version 27.0 and later.",
+        "Description": "The name of the Visualforce page to display where users can register themselves and access the portal. This field is available in API version 27.0 and later.",
         "Field Name": "chatterAnswersRegistrationPage",
         "Field Type": "string"
       },
@@ -14641,7 +14725,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "The root custom URLs associated with the site. Saving or deploying a CustomSite replaces all root custom URLs in the site with the root custom URLs in this list. Custom URLs that use a non-root path prefix are not included in this list and are not affected when saving or deploying a CustomSite. This field is available in API version 21.0 and later.",
+        "Description": "The root custom URLs associated with the site. Saving or deploying a CustomSite replaces all root custom URLs in the site with the root custom URLs in this list. Custom URLs that use a non-root path prefix aren’t included in this list and aren’t affected when saving or deploying a CustomSite. This field is available in API version 21.0 and later.",
         "Field Name": "customWebAddresses",
         "Field Type": "SiteWebAddress[]"
       },
@@ -14656,22 +14740,22 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "The name of the file to be used for the icon that appears in the browser's address field when visiting the site. Sets the favorite icon for the entire site.",
+        "Description": "The name of the static resource, without the extension, for the icon that appears in next to the site’s name in browser tabs, bookmarks, and search results. To update a site’s favorite icon, create a 16px by 16px ICO file. Then store that images a static resource at the base path for the site. For example, if the icon file name is favico.ico, https://myDomainName.my.site.com/store/favicon.ico is the required path for a site with the URL https://myDomainName.my.site.com/store. To use that icon, set favoriteIcon to favicon. If the specified the ICO file doesn’t exist in the required location, a 404 error is returned. Otherwise, if the file isn’t present, no favorite icon is used.",
         "Field Name": "favoriteIcon",
         "Field Type": "string"
       },
       {
-        "Description": "The name of the Visualforce page to be displayed when the guest user tries to access a non-existent page.",
+        "Description": "The name of the Visualforce page to display when the guest user tries to access a non-existent page.",
         "Field Name": "fileNotFoundPage",
         "Field Type": "string"
       },
       {
-        "Description": "The name of the Visualforce page to be displayed when a user clicks the Forgot Password link on the site’s login page. This field is only applicable for Experience Cloud sites.",
+        "Description": "The name of the Visualforce page to display when a user clicks the Forgot Password link on the site’s login page. This field is only applicable for Experience Cloud sites.",
         "Field Name": "forgotPasswordPage",
         "Field Type": "string"
       },
       {
-        "Description": "The name of the Visualforce page to be displayed for errors not otherwise specified.",
+        "Description": "The name of the Visualforce page to display for errors not otherwise specified.",
         "Field Name": "genericErrorPage",
         "Field Type": "string"
       },
@@ -14681,7 +14765,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "The name of the Visualforce page to be displayed when the site is down for maintenance.",
+        "Description": "The name of the Visualforce page to display when the site is down for maintenance.",
         "Field Name": "inMaintenancePage",
         "Field Type": "string"
       },
@@ -14701,7 +14785,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "The name of the Visualforce page to be displayed as the site user’s profile page, where users can update their contact information. This field is available in API version 20.0 and later.",
+        "Description": "The name of the Visualforce page to display as the site user’s profile page, where users can update their contact information. This field is available in API version 20.0 and later.",
         "Field Name": "myProfilePage",
         "Field Type": "string"
       },
@@ -14731,7 +14815,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "The name of the Visualforce page to be displayed for the robots.txt file used by web crawlers.",
+        "Description": "The name of the Visualforce page to display for the robots.txt file used by web crawlers.",
         "Field Name": "robotsTxtPage",
         "Field Type": "string"
       },
@@ -20736,7 +20820,7 @@
       },
       {
         "Description": "The reference by ID to be used for the named credential. When used, supersedes namedCredential. Available in API version 57.0 and later.",
-        "Field Name": "NamedCredentialReferenceId",
+        "Field Name": "namedCredentialReferenceId",
         "Field Type": "reference"
       },
       {
@@ -20750,7 +20834,12 @@
         "Field Type": "string"
       },
       {
-        "Description": "Indicates the source of the API specification registered with the External Services wizard. Valid values include: Anypoint—The API spec is managed in MuleSoft Anypoint Platform. Available in API version 63.0 and later. ApexRest—The API spec was created from an Apex REST class. Available in API version 63.0 and later. Custom—The API spec was manually configured. ExternalConnector—The API spec represents an external connection. Heroku—The API spec represents a Heroku app. MuleSoft—The API spec was selected from MuleSoft. Use Anypoint for API Catalog MuleSoft sources. SchemaInferred—The API spec was provided during the HTTP Callout configuration process. Available in API version 57.0 and later. Standard—The API spec was defined when an external service was created.",
+        "Description": "A polymorphic foreign key field that contains the name of the asset related to the external service registration. For an external service registration created for a named query, this field contains the named query API name. For an external service registration created for an Apex class that has methods exposed as REST resources or methods that are Aura-enabled, this field contains the Apex class name. Available in API version 66.0 and later.",
+        "Field Name": "registrationProviderAsset",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Indicates the source of the API specification registered with the External Services wizard. Valid values include: AgentActionOutputs—Reserved for internal use. Anypoint—The API spec is managed in MuleSoft Anypoint Platform. Available in API version 63.0 and later. ApexRest—The API spec was created from an Apex REST class. Available in API version 63.0 and later. AuraEnabled—The API spec was created from an Apex class that has AuraEnabled methods. Available in API version 65.0 and later. Custom—The API spec was manually configured. DocumentProcessing—Reserved for internal use. ExternalConnector—The API spec represents an external connection. Heroku—The API spec represents a Heroku app. MuleSoft—The API spec was selected from MuleSoft. Use Anypoint for API Catalog MuleSoft sources. NamedQuery—The API spec represents a named query REST endpoint. Available in API version 64.0 and later. SchemaInferred—The API spec was provided during the HTTP Callout configuration process. Available in API version 57.0 and later. Standard—The API spec was defined when an external service was created.",
         "Field Name": "registrationProviderType",
         "Field Type": "ExternalServiceRegistrationProviderType (enumeration of type string)"
       },
@@ -20805,7 +20894,7 @@
         "Field Type": "int"
       }
     ],
-    "short_description": "Represents the External Service configuration for an org. This type extends the Metadata metadata type and inherits its fullName field.",
+    "short_description": "Represents the external service configuration for an org. This type extends the Metadata metadata type and inherits its fullName field.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externalserviceregistration.htm",
     "parent": "Metadata"
   },
@@ -20826,6 +20915,53 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_externalserviceregistration.htm",
     "parent": "Metadata"
   },
+  "ExtlClntAppCanvasSettings": {
+    "fields": [
+      {
+        "Description": "Required. Indicates how the canvas app initiates the OAuth authentication flow. The valid values are: Get—OAuth authentication is used, and the user is prompted to allow the third-party application to access their information. When you use this access method, the canvas app must initiate the OAuth authentication flow. Post—OAuth authentication is used, but when the administrator installs the canvas app, they implicitly allow access for users. Therefore, the user isn’t prompted to allow the third party to access their user information. When you use this access method, the authentication is posted directly to the canvas app URL.",
+        "Field Name": "accessMethod",
+        "Field Type": "AccessMethod (enumeration of type string)"
+      },
+      {
+        "Description": "Indicates where the canvas app can appear to the user. The valid values are: Aura—The canvas app can appear in a custom Lightning component. ChatterFeed—The canvas app can appear as a Chatter feed item. MobileNav—The canvas app can appear in a mobile card in the Salesforce mobile app. None—The canvas app can appear only in the Canvas App Previewer. PageLayout—The canvas app can appear on a page layout. When viewed in the Salesforce mobile app, the canvas app appears in the record detail page. Publisher—The canvas app can appear as a global action. Visualforce—The canvas app can appear on a Visualforce page.",
+        "Field Name": "canvasLocationOptions",
+        "Field Type": "CanvasLocationOptions (enumeration of type string)[]"
+      },
+      {
+        "Description": "Indicates whether to hide the Share button and header in the publisher for your canvas app. Valid values are: HideShare—The Share button is hidden in the publisher for the related canvas app. HideHeader—The header is hidden in the publisher for the related canvas app.",
+        "Field Name": "canvasOptions",
+        "Field Type": "CanvasOptions (enumeration of type string)[]"
+      },
+      {
+        "Description": "Required. The URL of the third-party app that’s exposed as a canvas app.",
+        "Field Name": "canvasUrl",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the associated external client app.",
+        "Field Name": "externalClientApplication",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The name of the app.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The name of the lifecycle handler Apex class.",
+        "Field Name": "lifeCycleHandler",
+        "Field Type": "string"
+      },
+      {
+        "Description": "If you’re using SAML single sign-on (SSO), indicates which provider initiates the SSO flow. IdpInitiated—Identity provider initiated. Salesforce makes the initial request to start the SSO flow. SpInitiated—Service provider initiated. The canvas app starts the SSO flow after it’s invoked. None—The canvas app isn’t using SAML SSO.",
+        "Field Name": "samlInitiationMethod",
+        "Field Type": "SamlInitiationMethod (enumeration of type string)"
+      }
+    ],
+    "short_description": "Represents an external client app’s canvas app settings.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_extlclntappcanvassettings.htm",
+    "parent": "Metadata"
+  },
   "ExtlClntAppConfigurablePolicies": {
     "fields": [
       {
@@ -20839,27 +20975,32 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "If true, the Mobile plugin is enabled. If false the Mobile plugin is disabled. The default value is true. Available in API version 63.0 and later.",
+        "Description": "If true, the Canvas app plugin is enabled. If false, the Canvas app plugin is disabled. The default value is true. Available in API version 66.0 and later.",
+        "Field Name": "isCanvasPluginEnabled",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "If true, the Mobile plugin is enabled. If false, the Mobile plugin is disabled. The default value is true. Available in API version 63.0 and later.",
         "Field Name": "isMobilePluginEnabled",
         "Field Type": "boolean"
       },
       {
-        "Description": "If true, the Notification plugin is enabled. If false the Notification plugin is disabled. The default value is true. Available in API version 63.0 and later.",
+        "Description": "If true, the Notification plugin is enabled. If false, the Notification plugin is disabled. The default value is true. Available in API version 63.0 and later.",
         "Field Name": "isNotificationPluginEnabled",
         "Field Type": "boolean"
       },
       {
-        "Description": "If true, the OAuth plugin is enabled. If false the OAuth plugin is disabled. The default value is true. Available in API version 60.0 and later.",
+        "Description": "If true, the OAuth plugin is enabled. If false, the OAuth plugin is disabled. The default value is true. Available in API version 60.0 and later.",
         "Field Name": "isOauthPluginEnabled",
         "Field Type": "boolean"
       },
       {
-        "Description": "If true, the Push Notification plugin is enabled. If false the Push Notification plugin is disabled. The default value is true. Available in API version 63.0 and later.",
+        "Description": "If true, the Push Notification plugin is enabled. If false, the Push Notification plugin is disabled. The default value is true. Available in API version 63.0 and later.",
         "Field Name": "isPushPluginEnabled",
         "Field Type": "boolean"
       },
       {
-        "Description": "If true, the SAML plugin is enabled. If false the SAML plugin is disabled. The default value is true. Available in API version 63.0 and later.",
+        "Description": "If true, the SAML plugin is enabled. If false, the SAML plugin is disabled. The default value is true. Available in API version 63.0 and later.",
         "Field Name": "isSamlPluginEnabled",
         "Field Type": "boolean"
       },
@@ -20998,7 +21139,7 @@
   "ExternalAppIdTokenConfig": {
     "fields": [
       {
-        "Description": "The audience that this ID token is intended for.",
+        "Description": "The audience that this ID token is intended for. The value is an array of case-sensitive strings. If no audiences are specified, the client_id of the relying party is returned as the default audience. Otherwise, the other audiences are returned with the client_id in the aud value.",
         "Field Name": "idTokenAudience",
         "Field Type": "string"
       },
@@ -21013,7 +21154,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "The length of time that the ID token is valid for after it’s issued. The value can be 1–720 minutes.",
+        "Description": "The length of time that the ID token is valid for after it’s issued. The value can be 1–720 minutes. The default value is 2 minutes.",
         "Field Name": "idTokenValidityInMinutes",
         "Field Type": "int"
       }
@@ -21297,7 +21438,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "OAuth scopes for the external client app, written as a comma-separated list.",
+        "Description": "OAuth scopes for the external client app, written as a comma-separated list. Basic—Allows access to your identity URL service (the same behavior as deploying Address, Email, Phone, and Profile). Api—Allows access to the logged-in user's account over the APIs. Web—Allows use of the access_token on the web. This usage also includes visualforce, allowing access to Visualforce pages. Full—Allows access to all data accessible by the logged-in user. Chatter—Allows access to only the Connect REST API resources. CustomApplications—Provides access to custom applications, such as those using Visualforce. RefreshToken—Allows a refresh token to be returned if you’re eligible to receive one (the same behavior as deploying OfflineAccess). OpenID—Allows access to the logged-in user's unique identifier for OpenID Connect apps. Profile—Allows access to the logged-in user's profile (the same behavior as deploying Basic). Email—Allows access to the logged-in user's email address (the same behavior as deploying Basic). Address—Allows access to the logged-in user's street address (the same behavior as deploying Basic). Phone—Allows access to the logged-in user's phone number value (the same behavior as deploying Basic). OfflineAccess—Allows the app to interact with the user's data while the user is offline and get a refresh token (the same behavior as deploying RefreshToken). CustomPermissions—Allows access to the custom permissions in an organization associated with the external client app and shows whether the current user has each permission enabled. Wave—Allows access to the Analytics REST API resources. Eclair—Allows access to the Analytics REST API Charts Geodata resource. Pardot—Allows access to Pardot API services on behalf of the user. The full extent of accessible services is managed by the Pardot account. Lightning—Allows hybrid apps to directly obtain Lightning child sessions through the OAuth 2.0 hybrid app token flow and hybrid app refresh token flow. Content—Allows hybrid apps to directly obtain content child sessions through the OAuth 2.0 hybrid app token flow and hybrid app refresh token flow. CDPIngest—Allows access to Data Cloud ingest API services. Customers use these API services to upload and maintain external datasets in the Data 360. CDPProfile—Allows access to Data 360 profile. CDPQuery—Allows access to Data 360 metadata and query data. Chatbot—Allows access to Einstein Bot API services. CDPSegment—Allows access to Data 360 segments. CDPIdentityResolution—Allows access to Data 360 identity resolution. CDPCalculatedInsight—Allows access to Data 360 calculated insights. SFApiPlatform—Allows access to the Salesforce API Platform. Interaction—Allows access to Interaction Service API. EinsteinGPT—Allows access to Einstein Generative AI features in an org. PwdlessLogin—Allows access to Headless Passwordless Login API. Assign to an internal integration user to get an access token for authenticated requests to this API. ForgotPassword—Allows access to Headless Forgot Password API. Assign to an internal integration user to get an access token for authenticated requests to this API. UserRegistration—Allows access to Headless Registration API. Assign to an internal integration user to get an access token for authenticated requests to this API. MCP—Allows access to Model Context Protocol (MCP). SCRT—Allows access to Service Cloud Real-Time features.",
         "Field Name": "commaSeparatedOauthScopes",
         "Field Type": "string"
       },
@@ -22241,6 +22382,11 @@
         "Description": "An array of static choice options.",
         "Field Name": "choices",
         "Field Type": "FlowChoice[]"
+      },
+      {
+        "Description": "Reserved for future use.",
+        "Field Name": "collectionFilterCriteria",
+        "Field Type": "FlowCollectionFilterCriteria[]"
       },
       {
         "Description": "An array of nodes that process collections. This field is available in API version 50.0 and later.",
@@ -23951,9 +24097,34 @@
   "FlowSchedule": {
     "fields": [
       {
-        "Description": "Specifies how frequently to run the flow. Valid values are: Once Daily Weekly OnActivate—This value is available in API version 49.0 and later.",
+        "Description": "The number of the day of the month on which the flow runs. For example, 1 is the first day of the month, 2 is the second day of the month, and so on. You can use -1 for the last day of the month. This field is available in API version 66.0 and later.",
+        "Field Name": "dayOfMonthToRun",
+        "Field Type": "int"
+      },
+      {
+        "Description": "The number of the days of the week on which the flow is to run. For example, 1, 2, 3, where 1 is Sunday, 2 is Monday, and so on. This field is available in API version 66.0 and later.",
+        "Field Name": "daysOfWeekToRun",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Reserved for future use.",
+        "Field Name": "endDate",
+        "Field Type": "date"
+      },
+      {
+        "Description": "Reserved for future use.",
+        "Field Name": "endTime",
+        "Field Type": "time"
+      },
+      {
+        "Description": "Specifies how frequently to run the flow. Valid values are: Once Daily Weekly OnActivate—For segment-triggered flows only. This value is available in API version 49.0 and later. Hourly—For segment-triggered flows only. This value is available in API version 66.0 and later. Monthly—For segment-triggered flows only. This value is available in API version 66.0 and later. Weekdays—For segment-triggered flows only. This value is available in API version 66.0 and later. Yearly—For segment-triggered flows only. This value is available in API version 66.0 and later.",
         "Field Name": "frequency",
         "Field Type": "FlowStartFrequency (enumeration of type string)"
+      },
+      {
+        "Description": "For segment-triggered flows only. The number of times to run the flow for this schedule based on the frequency value. For example, if this field is 2, and frequency is Hourly, the flow runs every hour for 2 hours . When this number is met, the flow no longer runs for this schedule. This field is available in API version 66.0 and later.",
+        "Field Name": "frequencyNumber",
+        "Field Type": "int"
       },
       {
         "Description": "The date when the flow runs, or when the flow’s run schedule starts recurring.",
@@ -24093,6 +24264,11 @@
         "Description": "The API name of the stage resource that’s associated with the screen.",
         "Field Name": "stageReference",
         "Field Type": "FlowElementReferenceOrValue"
+      },
+      {
+        "Description": "An array of flow screen style settings to customize the visual experience of a screen at run time. This field is available in API version 66.0 and later.",
+        "Field Name": "styleSettings",
+        "Field Type": "FlowScreenStyleSetting[]"
       },
       {
         "Description": "An array of triggers configured for a flow screen field or a flow screen field attribute.This field is available in API version 59.0 and later.",
@@ -24322,6 +24498,11 @@
   "FlowScreenFieldStyleProperties": {
     "fields": [
       {
+        "Description": "An array of flow screen style settings to customize the visual experience of a screen component at run time. This field is available in API version 66.0 and later.",
+        "Field Name": "styleSettings",
+        "Field Type": "FlowScreenStyleSetting[]"
+      },
+      {
         "Description": "The number of columns the width of the screen component fills up in a screen element's 12-column wide spatial grid. Valid values are numbers 1 through 12.",
         "Field Name": "width",
         "Field Type": "FlowElementReferenceOrValue"
@@ -24335,6 +24516,28 @@
     "short_description": "Defines how a screen component looks on a screen element at run time.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
     "parent": "Metadata"
+  },
+  "FlowScreenStyleSetting": {
+    "fields": [
+      {
+        "Description": "The name of the screen style property such as, --slds-c-input-color-border.",
+        "Field Name": "propertyName",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Defines the value for the screen style property such as, <stringValue>#4AC7CA</stringValue>.",
+        "Field Name": "propertyValue",
+        "Field Type": "FlowElementReferenceOrValue"
+      },
+      {
+        "Description": "Specifies where the style setting is applied on a screen. Valid values: Container Header NextOrFinish Previous Pause Not supported for screen components.",
+        "Field Name": "scope",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "A style setting for a flow screen or flow screen component. FlowScreenStyleSetting extends FlowBaseElement and inherits all its fields. FlowScreenStyleSetting is available in API version 66.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
+    "parent": "FlowBaseElement"
   },
   "FlowScreenTrigger": {
     "fields": [
@@ -24661,6 +24864,11 @@
         "Field Type": "string"
       },
       {
+        "Description": "The name of the activation template that determines the contact point for each channel configured in the activation template for a segment-triggered flow. This field is available in 66.0 and later.",
+        "Field Name": "activationTemplate",
+        "Field Type": "string"
+      },
+      {
         "Description": "An array of capabilities that can pass data with the flow. Only one capability is supported in API version 60.0 and later. This field is available in API version 60.0 and later.",
         "Field Name": "capabilityTypes",
         "Field Type": "FlowCapability[]"
@@ -24711,6 +24919,11 @@
         "Field Type": "InvocableActionType (enumeration of type string)"
       },
       {
+        "Description": "The invocable action in the Start element of a broadcast flow. This field is available in 66.0 and later.",
+        "Field Name": "fanOutAction",
+        "Field Type": "FlowActionCall"
+      },
+      {
         "Description": "A formula that’s used to filter what records execute the flow during a save. Available only in record-triggered flows. This field is available in API version 55.0 and later.",
         "Field Name": "filterFormula",
         "Field Type": "string"
@@ -24746,6 +24959,11 @@
         "Field Type": "string"
       },
       {
+        "Description": "A comma-separated list of channels used to choose the individual in the segment-triggered flow. The flow ranks these channels to select an individual. Valid values are: Email, Phone. If the flow finds contact points for both, it uses the higher-ranked channel. For example, if the list is Phone, Email and both exist, the flow selects the individual associated with the phone. This field is available in 66.0 and later.",
+        "Field Name": "prioritizedContactPointsList",
+        "Field Type": "string"
+      },
+      {
         "Description": "Indicates whether to republish the segment and update segment membership before the flow runs or on the segment’s Data Cloud publish schedule. When the value is true, the segment is immediately republished before the flow runs, and ignores the segment's publish schedule. When the value is false, the segment is republished on the segment's Data Cloud publish schedule, but the segment isn't republished if the schedule is set to Do not refresh.The default value is false. This field is available in API version 60.0 and later.",
         "Field Name": "publishSegment",
         "Field Type": "boolean"
@@ -24769,6 +24987,11 @@
         "Description": "The segment used to trigger the flow. This field is available in API version 56.0 and later.",
         "Field Name": "segment",
         "Field Type": "string"
+      },
+      {
+        "Description": "Indicates whether a segment-triggered flow sends a message to only one contact per individual (true) or multiple contacts (false). The default value is (false). If activationTemplate is set, this field must be true. This field is available in 66.0 and later.",
+        "Field Name": "sendMsgToOneContactPtPerIndv",
+        "Field Type": "boolean"
       },
       {
         "Description": "Reserved for future use.",
@@ -25089,6 +25312,18 @@
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
     "parent": "FlowElement"
   },
+  "FlowValueMappingType": {
+    "fields": [
+      {
+        "Description": "This configuration extracts the first item's object in valueMappingKey and assigns it to the target output parameter in valueMappingTarget.",
+        "Field Name": "FirstEntry",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Defines the specific data transformation type that converts the value of a source action output parameter in valueMappingKey before assigning the result to the target output parameter in valueMappingTarget.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_visual_workflow.htm",
+    "parent": "Metadata"
+  },
   "FlowVariable": {
     "fields": [
       {
@@ -25408,7 +25643,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Reserved for future use.",
+        "Description": "An array of flow versions that are associated with the flow test. This field is available in API version 66.0 and later.",
         "Field Name": "flowTestFlowVersions",
         "Field Type": "FlowTestFlowVersion[]"
       },
@@ -25424,6 +25659,18 @@
       }
     ],
     "short_description": "Represents the metadata associated with a flow test. Before you activate a record-triggered flow, you can test it to verify its expected results and identify flow run-time failures.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm",
+    "parent": "Metadata"
+  },
+  "FlowTestFlowVersion": {
+    "fields": [
+      {
+        "Description": "The version number of the flow version that’s associated with the flow test.",
+        "Field Name": "flowVersionNumber",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "Defines the flow version for the flow test. This subtype is available in API version 66.0 and later.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm",
     "parent": "Metadata"
   },
@@ -25445,7 +25692,7 @@
         "Field Type": "FlowTestParameter[]"
       }
     ],
-    "short_description": "Defines a flow test point that is evaluated when a flow test runs. Each test point is evaluated in the order that it’s listed.",
+    "short_description": "Defines a flow test point that Salesforce evaluates when a flow test runs. Salesforce evaluates each test point in the order that it’s listed.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm",
     "parent": "Metadata"
   },
@@ -25457,12 +25704,12 @@
         "Field Type": "FlowTestCondition[]"
       },
       {
-        "Description": "The custom message that appears in Flow Builder if its associated condition evaluates to false.",
+        "Description": "If the associated condition evaluates to false, this custom message appears in Flow Builder.",
         "Field Name": "errorMessage",
         "Field Type": "string"
       }
     ],
-    "short_description": "Defines an assertion for a test point that is evaluated when a flow test runs. If one assertion evaluates to false, the test run fails.",
+    "short_description": "Defines an assertion for a test point that Salesforce evaluates when a flow test runs. If one assertion evaluates to false, the test run fails.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm",
     "parent": "Metadata"
   },
@@ -25474,7 +25721,7 @@
         "Field Type": "string"
       },
       {
-        "Description": "Required. The operation that is applied to the resource reference in the leftValueReference field.Possible values are: Contains EndsWith EqualTo GreaterThan GreaterThanOrEqualTo HasError—This value is available in API version 64.0 and later. In—This value is available in API version 56.0 and later. IsBlank—This value is available in API version 61.0 and later. IsChanged IsEmpty—This value is available in API version 61.0 and later. IsNull LessThan LessThanOrEqualTo NotEqualTo NotIn—This value is available in API version 56.0 and later. StartsWith WasSelected WasSet WasVisited",
+        "Description": "Required. The flow test uses this value to evaluate the resource reference in the leftValueReference field.Possible values are: Contains EndsWith EqualTo GreaterThan GreaterThanOrEqualTo HasError—This value is available in API version 64.0 and later. In—This value is available in API version 56.0 and later. IsBlank—This value is available in API version 61.0 and later. IsChanged IsEmpty—This value is available in API version 61.0 and later. IsNull LessThan LessThanOrEqualTo NotEqualTo NotIn—This value is available in API version 56.0 and later. StartsWith WasSelected WasSet WasVisited",
         "Field Name": "operator",
         "Field Type": "FlowComparisonOperator (enumeration of type string)"
       },
@@ -25484,7 +25731,7 @@
         "Field Type": "FlowTestReferenceOrValue"
       }
     ],
-    "short_description": "Defines a condition for an assertion that is evaluated when a flow test runs. If one condition evaluates to false, the assertion fails.",
+    "short_description": "Defines a condition for an assertion that Salesforce evaluates when a flow test runs. If one condition evaluates to false, the assertion fails.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm",
     "parent": "Metadata"
   },
@@ -25504,6 +25751,16 @@
         "Description": "Specifies a dateValue value.",
         "Field Name": "dateValue",
         "Field Type": "date"
+      },
+      {
+        "Description": "Reserved for future use.",
+        "Field Name": "elementReference",
+        "Field Type": ""
+      },
+      {
+        "Description": "Reserved for future use.",
+        "Field Name": "jsonValue",
+        "Field Type": ""
       },
       {
         "Description": "Specifies a number value.",
@@ -25549,12 +25806,6 @@
       }
     ],
     "short_description": "Defines parameters for the triggering record in the Start test point.",
-    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm",
-    "parent": "Metadata"
-  },
-  "FlowTestFlowVersion": {
-    "fields": [],
-    "short_description": "Reserved for future use.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_flowtest.htm",
     "parent": "Metadata"
   },
@@ -37348,7 +37599,7 @@
         "Field Type": "ReportColumn[]"
       },
       {
-        "Description": "Defines a cross filter's object, related object, and condition (WITH or WITHOUT). This field is available in API version 65.0 and later.",
+        "Description": "Defines a cross filter's object, related object, and condition (WITH or WITHOUT). This field is available in API version 66.0 and later.",
         "Field Name": "crossFilters",
         "Field Type": "ReportCrossFilter[]"
       },
@@ -37840,6 +38091,11 @@
         "Description": "Required. The field name. For example, AGE or OPPORTUNITY_NAME",
         "Field Name": "field",
         "Field Type": "string"
+      },
+      {
+        "Description": "Indicates whether the column is extended (true) or not (false). Available in API version 65.0 and later.",
+        "Field Name": "isExtendedColumn",
+        "Field Type": "boolean"
       },
       {
         "Description": "In historical trend reports, displays greater Date values as green and greater Amount values as red, reversing the default colors.Available in API version 29.0 and later.",
@@ -41733,12 +41989,12 @@
   "ConversationChannelDefinition": {
     "fields": [
       {
-        "Description": "DO NOT SET OR CHANGE THIS VALUE. This value is automatically generated. This field represents the OAuth link for the connected app if the connectedAppType value is Partner. This is a string identifier to the connected app containing the partner Org ID and the consumer ID minus the key prefixes. Used to identify the connected app to use for the channel definition and channel at runtime.",
+        "Description": "DO NOT SET OR CHANGE THIS VALUE. This value is automatically generated. This field represents the OAuth link for the external client app (ECA) or connected app if the connectedAppType value is Partner. This is a string identifier to the ECA or connected app containing the partner Org ID and the consumer ID minus the key prefixes. Used to identify the ECA or connected app to use for the channel definition and channel at runtime.",
         "Field Name": "connectedAppOauthLink",
         "Field Type": "string"
       },
       {
-        "Description": "The owner of the connected app used to manage authentication between Salesforce Interaction Service and the Messaging or CCaaS partner’s system. Possible values are: Partner Customer The default value is Partner. If set to Partner, the partner creates the connected app and includes it in their managed package. If set to Customer, the admin creates the connected app. Available in API version 62.0 and later.",
+        "Description": "The owner of the external client app (ECA) or connected app used to manage authentication between Salesforce Interaction Service and the Messaging or CCaaS partner’s system. Possible values are: Partner Customer The default value is Partner. If set to Partner, the partner creates the ECA or connected app and includes it in their managed package. If set to Customer, the admin creates the ECA or connected app. Available in API version 62.0 and later.",
         "Field Name": "connectedAppType",
         "Field Type": "CustomChannelConnectedAppType"
       },
@@ -41783,12 +42039,12 @@
         "Field Type": "string"
       },
       {
-        "Description": "DO NOT SET OR CHANGE THIS VALUE. This value is automatically generated. This field represents the OAuth link for the connected app created by an admin if the ConnectedAppType is Customer. Available in API version 62.0 and later.",
+        "Description": "DO NOT SET OR CHANGE THIS VALUE. This value is automatically generated. This field represents the OAuth link for the external client app or connected app created by an admin if the ConnectedAppType is Customer. Available in API version 62.0 and later.",
         "Field Name": "customerConnectedAppOauthLink",
         "Field Type": "string"
       },
       {
-        "Description": "The unique name of the custom metadata type object in the API in the format <Prefix>_<ConversationChannelDefinition>, where Prefix matches the prefix you gave to the name of the interaction service connected app. For example, Partner1_ChannelDefinition1, where Partner1 is the prefix and ChannelDefinition1 is the given name.",
+        "Description": "The unique name of the custom metadata type object in the API in the format <Prefix>_<ConversationChannelDefinition>, where Prefix matches the prefix you gave to the name of the Interaction Service external client app or connected app. For example, Partner1_ChannelDefinition1, where Partner1 is the prefix and ChannelDefinition1 is the given name.",
         "Field Name": "developerName",
         "Field Type": "string"
       },
@@ -41803,7 +42059,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the partner supports read receipts and delivery receipts for inbound messages (true) or whether the partner doesn’t support these inbound acknowledgements and the functionality is hidden from the Salesforce admin in the Messaging settings (false). The default value is false. This field is available in API version 63.0 and 64.0. The field is deprecated in API version 65.0 and will be removed in API version 66.0. Use isInboundAcknwOptionExposed instead.",
+        "Description": "Indicates whether the partner supports read receipts and delivery receipts for inbound messages (true) or whether the partner doesn’t support these inbound acknowledgements and the functionality is hidden from the Salesforce admin in the Messaging settings (false). The default value is false. Available in API versions 63.0 to 65.0. In API version 66.0 and later, this field is removed. Use isInboundAcknwOptionExposed instead.",
         "Field Name": "isInboundReceiptsEnabled",
         "Field Type": "boolean"
       },
@@ -41813,7 +42069,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the Routing Work Result event is sent as a Custom Platform event or not. The default value is false. Available in API version 64.0. This field is deprecated in API version 65.0 and will be removed in API version 66.0. Use isRoutingWorkResultSupported instead.",
+        "Description": "Indicates whether the Routing Work Result event is sent as a Custom Platform event or not. The default value is false. Available in API versions 64.0 and 65.0. In API version 66.0 and later, this field is removed. Use isRoutingWorkResultSupported instead.",
         "Field Name": "isRoutingWorkResultEnabled",
         "Field Type": "boolean"
       },
@@ -41823,7 +42079,7 @@
         "Field Type": "boolean"
       },
       {
-        "Description": "Indicates whether the partner doesn’t support typing indicators for outbound messages and the functionality is hidden from the Salesforce admin in the Messaging settings (true) or whether outbound typing indicators are supported by the partner (false). The default value is false, meaning the outbound typing indicator feature is supported by default. To disable the outbound typing indicator feature, set this value to true. This field is available in API version 63.0 and 64.0. The field is deprecated in API version 65.0 and will be removed in API version 66.0. Use isTypingIndicatorOptionHidden instead.",
+        "Description": "Indicates whether the partner doesn’t support typing indicators for outbound messages and the functionality is hidden from the Salesforce admin in the Messaging settings (true) or whether outbound typing indicators are supported by the partner (false). The default value is false, meaning the outbound typing indicator feature is supported by default. To disable the outbound typing indicator feature, set this value to true. Available in API versions 63.0 to 65.0. In API version 66.0 and later, this field is removed. Use isTypingIndicatorOptionHidden instead.",
         "Field Name": "isTypingIndicatorDisabled",
         "Field Type": "boolean"
       },
@@ -44042,6 +44298,11 @@
   "Fields for Financial Services Cloud": {
     "fields": [
       {
+        "Description": "Indicates whether benefit assignment is allowed when the associated program enrollment is inactive. The default is false. This field is available in API version 65.0 and later.",
+        "Field Name": "allowBenefitAssignmentWithInactiveProgramEnrollment",
+        "Field Type": "boolean"
+      },
+      {
         "Description": "Indicates whether multiple producers can be assigned to the same insurance policy. The default is false. This field is available in editions where Financial Services Cloud is enabled.",
         "Field Name": "allowMultipleProducersToWorkOnSamePolicy",
         "Field Type": "boolean"
@@ -44943,6 +45204,43 @@
       {
         "Description": "Indicates whether Mentoring is enabled (true) or not (false). The default is false. Available in API version 60.0 and later in Developer, Enterprise, Performance and Unlimited editions.",
         "Field Name": "enableMentoring",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Advancement Generative AI features are enabled for Education Cloud. The default is false. Available in API version 64.0 and later in Developer, Enterprise, Performance and Unlimited editions.",
+        "Field Name": "enableAdvancementGenAI",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Advising Agent feature is enabled for Education Cloud. The default is false. Available in API version 64.0 and later in Developer, Enterprise, Performance and Unlimited editions.",
+        "Field Name": "enableAdvisingAgent",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether Advanced Academic Operations features are enabled for Education Cloud. The default is false. Available in API version 64.0 and later in Developer, Enterprise, Performance and Unlimited editions.",
+        "Field Name": "enableEduAdvncdAcadOper",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Student Recruitment Agent feature is enabled for Education Cloud. The default is false. Available in API version 64.0 and later in Developer, Enterprise, Performance and Unlimited editions.",
+        "Field Name": "enableStudentRecruitmentAgent",
+        "Field Type": "boolean"
+      }
+    ],
+    "short_description": "",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_industriessettings.htm",
+    "parent": "Metadata"
+  },
+  "Fields for Nonprofit Cloud": {
+    "fields": [
+      {
+        "Description": "Indicates whether the Gift Entry Grid feature is enabled for Nonprofit Cloud. The default is false. Available in API version 64.0 and later.",
+        "Field Name": "enableGiftEntryGrid",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates whether the Philanthropic Research Agent feature is enabled for Nonprofit Cloud. The default is false. Available in API version 64.0 and later.",
+        "Field Name": "enablePhilResearchAgent",
         "Field Type": "boolean"
       }
     ],
@@ -47692,6 +47990,16 @@
         "Field Type": "boolean"
       },
       {
+        "Description": "Reserved for internal use.",
+        "Field Name": "lockerTrustedMode",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Reserved for internal use.",
+        "Field Name": "lockerTrustedResources",
+        "Field Type": "string"
+      },
+      {
         "Description": "The URL to which users are redirected when they log out of Salesforce. If no value is specified, the default is https://MyDomainName.my.salesforce.com. Available in API version 34.0 and later.",
         "Field Name": "logoutURL",
         "Field Type": "string"
@@ -48660,6 +48968,11 @@
       {
         "Description": "Indicates if user access policies are enabled (true) or not (false). With user access policies, you can automate and migrate your users’ assignments to managed package licenses, permission sets, and other access mechanisms based on criteria that you set. The default value is false. This field is available in API version 58.0 and later.",
         "Field Name": "userAccessPoliciesEnabled",
+        "Field Type": "boolean"
+      },
+      {
+        "Description": "Indicates if user field history tracking is enabled (true) or not (false). With user field history tracking, you can keep track of changes in user fields. The default value is false. This field is available in API version 64.0 and later.",
+        "Field Name": "userFieldHistoryTracking",
         "Field Type": "boolean"
       }
     ],
@@ -51321,6 +51634,11 @@
         "Field Type": "PipelineInspMetricConfigTranslation"
       },
       {
+        "Description": "A list of product specification type translations. This field is available in API version 64.0 and later.",
+        "Field Name": "productSpecificationTypes",
+        "Field Type": "ProductSpecificationTypeTranslation"
+      },
+      {
         "Description": "A list of In-App Guidance prompt translations. This field is available in API version 48.0 and later.",
         "Field Name": "prompts",
         "Field Type": "PromptTranslation"
@@ -51539,12 +51857,12 @@
   "CustomApplicationTranslation": {
     "fields": [
       {
-        "Description": "The optional description text of the application translation.",
+        "Description": "Description text for the application translation.",
         "Field Name": "description",
         "Field Type": "string"
       },
       {
-        "Description": "Required. The translated custom application name. Maximum of 765 characters.",
+        "Description": "The translated custom application name. Maximum of 765 characters.",
         "Field Name": "label",
         "Field Type": "string"
       },
@@ -52024,6 +52342,28 @@
       }
     ],
     "short_description": "PipelineInspMetricConfigTranslation contains details for the translation of Pipeline Inspection forecast category metric settings. Available in API version 57.0 and later.",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
+    "parent": "Metadata"
+  },
+  "ProductSpecificationTypeTranslation": {
+    "fields": [
+      {
+        "Description": "The translated product specification type description.",
+        "Field Name": "description",
+        "Field Type": "string"
+      },
+      {
+        "Description": "The translated product specification type name.",
+        "Field Name": "label",
+        "Field Type": "string"
+      },
+      {
+        "Description": "Required. The name of the product specification type.",
+        "Field Name": "name",
+        "Field Type": "string"
+      }
+    ],
+    "short_description": "ProductSpecificationTypeTranslation contains details for a translation of a product specification type. For more details, see ProductSpecificationType.",
     "url": "https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_translations.htm",
     "parent": "Metadata"
   },

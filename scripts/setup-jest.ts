@@ -97,7 +97,7 @@ enum TreeItemCollapsibleState {
 }
 
 const getMockVSCode = () => {
-  return {
+  const vscodeMock: any = {
     CancellationTokenSource: class {
       public listeners: any[] = [];
       public token = {
@@ -375,6 +375,8 @@ const getMockVSCode = () => {
       Coverage: 3
     }
   };
+
+  return vscodeMock;
 };
 
 jest.mock(
@@ -384,6 +386,13 @@ jest.mock(
   },
   { virtual: true }
 );
+
+beforeEach(() => {
+  // resetMocks=true wipes mock implementations, so re-apply default extension mock here.
+  // Tests that need specific extension mocks should provide their own via Effect layers.
+  const vscodeMock: any = jest.requireMock('vscode');
+  vscodeMock?.extensions?.getExtension?.mockImplementation?.(() => undefined);
+});
 
 // Mock os module to ensure homedir() always returns a valid path
 jest.mock('node:os', () => ({

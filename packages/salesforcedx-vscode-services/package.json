@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.14.0",
+  "version": "65.15.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -32,7 +32,7 @@
     "@opentelemetry/exporter-trace-otlp-http": "0.209.0",
     "@opentelemetry/resources": "2.2.0",
     "@opentelemetry/sdk-logs": "0.203.0",
-    "@opentelemetry/sdk-metrics": "2.0.1",
+    "@opentelemetry/sdk-metrics": "2.5.0",
     "@opentelemetry/sdk-trace-base": "2.0.1",
     "@opentelemetry/sdk-trace-node": "2.2.0",
     "@opentelemetry/sdk-trace-web": "2.2.0",
@@ -47,7 +47,6 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "@effect/platform": "0.93.8",
     "@types/node": "^20.0.0",
     "browserify-zlib": "^0.2.0",
     "esbuild": "0.25.12",
