@@ -33,11 +33,21 @@
     "clean": "shx rm -rf src out dist node_modules .wireit .eslintcache *.tgz"
   },
   "wireit": {
+    "generate-src": {
+      "command": "ts-node scripts/generateEntry.ts && ts-node scripts/syncDeps.ts",
+      "files": [
+        "../salesforcedx-vscode-services/src/**/*.ts",
+        "scripts/*.ts"
+      ],
+      "output": [
+        "src/index.ts"
+      ]
+    },
     "compile": {
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-vscode-services:generate-types"
+        "generate-src"
       ],
       "files": [
         "src/**/*.ts",

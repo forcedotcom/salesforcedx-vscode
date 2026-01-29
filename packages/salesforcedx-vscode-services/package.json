@@ -81,7 +81,6 @@
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../effect-ext-utils:compile",
         "generate-types"
       ],
       "files": [
