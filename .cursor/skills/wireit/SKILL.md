@@ -23,11 +23,13 @@ Full documentation: https://github.com/google/wireit
 
 ## Using Wireit Scripts
 
-run commands with WIREIT_CACHE=none to avoid caching behaviors
-Agents should not run these (they won't exit)
-
-- any script with --watch
-- any `service:true` if you're an Agent, it won't exit
+- run commands with WIREIT_CACHE=none to avoid caching behaviors
+- Agents should not run these (they won't exit)
+  - any script with --watch
+  - any `service:true` if you're an Agent, it won't exit
+- wireit can't follow stuff that doesn't show up as changes that break the cache
+  - manually changing code in node_modules then running compile or bundle
+  - npm link'd packages (ex: symlinks to node libraries locally modified)
 
 ## Common Patterns
 
