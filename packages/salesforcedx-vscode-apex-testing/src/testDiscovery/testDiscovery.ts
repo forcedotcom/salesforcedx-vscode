@@ -16,7 +16,7 @@ import { AllServicesLayer } from '../services/extensionProvider';
  */
 const minApiVersion = 65.0;
 
-export const discoverTests = (options: DiscoverTestsOptions = {}): Effect.Effect<TestDiscoveryResult, Error, never> =>
+export const discoverTests = (options: DiscoverTestsOptions = {}) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const connectionService = yield* api.services.ConnectionService;
@@ -50,7 +50,7 @@ export const discoverTests = (options: DiscoverTestsOptions = {}): Effect.Effect
       nextUrl = page?.nextRecordsUrl ?? undefined;
     }
 
-    return { classes };
+    return { classes } satisfies TestDiscoveryResult;
   }).pipe(
     Effect.withSpan('apex-test-discovery', {
       attributes: {

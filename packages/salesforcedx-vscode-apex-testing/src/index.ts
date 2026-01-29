@@ -11,7 +11,6 @@ import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-
 import { channelService, initializeOutputChannel } from './channels';
 import {
   apexDebugClassRunCodeActionDelegate,

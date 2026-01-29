@@ -161,7 +161,7 @@ describe('orgApexClassProvider', () => {
       expect(content).toContain("Error: Class 'NonExistentClass' not found in org");
     });
 
-    it('should handle empty class body', async () => {
+    it('should handle null class body gracefully', async () => {
       const mockQueryResult = {
         records: [
           {
@@ -184,6 +184,33 @@ describe('orgApexClassProvider', () => {
       const content = await provider.provideTextDocumentContent(uri);
 
       expect(content).toContain("Class 'EmptyClass' found but body is empty");
+    });
+
+    it('should handle hidden class body for managed packages', async () => {
+      const mockQueryResult = {
+        records: [
+          {
+            Id: '01p000000000001AAA',
+            Name: 'ApplicationTest',
+            Body: '(hidden)',
+            NamespacePrefix: 'CodeBuilder'
+          }
+        ],
+        totalSize: 1
+      };
+
+      (mockConnection.tooling!.query as jest.Mock).mockResolvedValue(mockQueryResult);
+
+      const uri = {
+        scheme: 'sf-org-apex',
+        path: 'ApplicationTest.cls',
+        toString: () => 'sf-org-apex:ApplicationTest.cls'
+      } as vscode.Uri;
+      const content = await provider.provideTextDocumentContent(uri);
+
+      expect(content).toContain('Source code for class');
+      expect(content).toContain('CodeBuilder.ApplicationTest');
+      expect(content).toContain('managed package');
     });
 
     it.skip('should handle query errors', async () => {
