@@ -5,13 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  closeExtensionScope,
-  ExtensionProviderService,
-  getExtensionScope,
-  registerCommand,
-  setExtensionContext
-} from '@salesforce/effect-ext-utils';
+import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
@@ -29,17 +23,18 @@ import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './commands/
 import { sourceDiff } from './commands/sourceDiff';
 import { DEPLOY_ON_SAVE_ENABLED, EXTENSION_NAME, METADATA_CONFIG_SECTION } from './constants';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
-import { AllServicesLayer } from './services/extensionProvider';
+import { AllServicesLayerFor } from './services/extensionProvider';
 import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
-  setExtensionContext(context);
-  await Effect.runPromise(activateEffect(context).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope)));
+  await Effect.runPromise(
+    activateEffect(context).pipe(Effect.provide(AllServicesLayerFor(context)), Scope.extend(extensionScope))
+  );
 };
 
 export const deactivate = async (): Promise<void> =>
-  Effect.runPromise(deactivateEffect().pipe(Effect.provide(AllServicesLayer)));
+  Effect.runPromise(deactivateEffect().pipe(Effect.provide(AllServicesLayerFor())));
 
 /** Check if this extension should register shared commands (when core is not installed or config enables it) */
 const shouldRegisterSharedCommands = (): boolean => {
@@ -52,7 +47,8 @@ const shouldRegisterSharedCommands = (): boolean => {
 
 /** Activate the metadata extension */
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
-  const svc = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ChannelService;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Metadata extension activating');
 
   // Register shared commands only if core extension is not installed or config enables it
@@ -61,8 +57,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       vscode.commands.executeCommand('setContext', 'salesforcedx-vscode-metadata.showSharedCommands', true)
     );
 
-    yield* registerCommand('sf.apex.generate.class', createApexClass);
-    yield* registerCommand('sf.retrieve.in.manifest', retrieveManifest);
+    yield* api.services.registerCommand('sf.apex.generate.class', createApexClass);
+    yield* api.services.registerCommand('sf.retrieve.in.manifest', retrieveManifest);
 
     yield* svc.appendToChannel('Registering shared commands (core extension not present or config enabled)');
     context.subscriptions.push(

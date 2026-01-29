@@ -32,6 +32,7 @@ export const AllServicesLayer = Layer.unwrapEffect(
       ExtensionProviderServiceLive,
       api.services.ConfigService.Default,
       api.services.ConnectionService.Default,
+      api.services.ExtensionContextService.Default,
       api.services.FsService.Default,
       api.services.MetadataRetrieveService.Default,
       api.services.MetadataRegistryService.Default,

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { ExtensionContextNotAvailableError, getExtensionContext, setExtensionContext } from './extensionContext';
 export {
   ExtensionProviderService,
   InvalidServicesApiError,
@@ -14,5 +13,4 @@ export {
 } from './extensionProvider';
 
 export { closeExtensionScope, getExtensionScope } from './extensionScope';
-export { registerCommand } from './registerCommand';
 export type { SalesforceVSCodeServicesApi } from './extensionProvider';

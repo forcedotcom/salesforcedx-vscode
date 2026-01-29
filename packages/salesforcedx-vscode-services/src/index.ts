@@ -31,10 +31,12 @@ import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
 import { EditorService } from './vscode/editorService';
-import { setExtensionContext } from './vscode/extensionContext';
+import { ErrorHandlerService, getErrorMessage } from './vscode/errorHandlerService';
+import { ExtensionContextService, ExtensionContextServiceLayer } from './vscode/extensionContextService';
 import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope';
 import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
+import { registerCommand } from './vscode/registerCommand';
 import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherService } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
@@ -47,14 +49,19 @@ export type SalesforceVSCodeServicesApi = {
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
     EditorService: typeof EditorService;
+    ErrorHandlerService: typeof ErrorHandlerService;
+    ExtensionContextService: typeof ExtensionContextService;
+    ExtensionContextServiceLayer: typeof ExtensionContextServiceLayer;
     FileWatcherService: typeof FileWatcherService;
     FsService: typeof FsService;
+    getErrorMessage: typeof getErrorMessage;
     MetadataDeleteService: typeof MetadataDeleteService;
     MetadataDescribeService: typeof MetadataDescribeService;
     MetadataDeployService: typeof MetadataDeployService;
     MetadataRegistryService: typeof MetadataRegistryService;
     MetadataRetrieveService: typeof MetadataRetrieveService;
     ProjectService: typeof ProjectService;
+    registerCommand: typeof registerCommand;
     SdkLayerFor: typeof SdkLayerFor;
     SettingsService: typeof SettingsService;
     SourceTrackingService: typeof SourceTrackingService;
@@ -93,8 +100,6 @@ const activationEffect = (context: vscode.ExtensionContext) =>
  * Consumers should get both from the API, not via direct imports.
  */
 export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
-  setExtensionContext(context);
-
   if (process.env.ESBUILD_PLATFORM === 'web') {
     // test-web has this on by default. vscode-dev does not
     const autoSave = vscode.workspace.getConfiguration('files').get<boolean>('autoSave', false);
@@ -112,6 +117,8 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     ComponentSetService.Default,
     ConfigService.Default,
     ConnectionService.Default,
+    ErrorHandlerService.Default,
+    ExtensionContextServiceLayer(context),
     FileWatcherService.Default,
     IndexedDBStorageServiceShared,
     MetadataDeleteService.Default,
@@ -147,14 +154,19 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ConfigService,
       ConnectionService,
       EditorService,
+      ErrorHandlerService,
+      ExtensionContextService,
+      ExtensionContextServiceLayer,
       FileWatcherService,
       FsService,
+      getErrorMessage,
       MetadataDeleteService,
       MetadataDescribeService,
       MetadataDeployService,
       MetadataRegistryService,
       MetadataRetrieveService,
       ProjectService,
+      registerCommand,
       SdkLayerFor,
       SettingsService,
       SourceTrackingService,
@@ -183,6 +195,12 @@ const deactivateEffect = Effect.gen(function* () {
 export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';
 export { type ConfigService } from './core/configService';
 export { type ConnectionService } from './core/connectionService';
+export { type ErrorHandlerService } from './vscode/errorHandlerService';
+export {
+  type ExtensionContextService,
+  type ExtensionContextServiceLayer,
+  ExtensionContextNotAvailableError
+} from './vscode/extensionContextService';
 export { type FileWatcherService } from './vscode/fileWatcherService';
 export { type FsService } from './vscode/fsService';
 export { type MetadataDeleteService } from './core/metadataDeleteService';
