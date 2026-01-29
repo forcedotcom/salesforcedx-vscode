@@ -84,6 +84,7 @@ Filter `gh run list` JSON for `workflowName` containing "(Playwright)". Examples
 ## Examples
 
 **Running workflow → failure:**
+
 1. Branch: `feature/my-branch`
 2. Find "Metadata E2E (Playwright)" `in_progress`
 3. Monitor until `failure`
@@ -91,11 +92,13 @@ Filter `gh run list` JSON for `workflowName` containing "(Playwright)". Examples
 5. Report failure with artifact location, offer HTML report
 
 **Already completed successfully:**
+
 1. Find latest "Services E2E (Playwright)" `success`
 2. Skip monitoring
 3. Report success, provide workflow URL
 
 **No workflows found:**
+
 1. `gh run list` empty
 2. `git ls-remote --heads origin <branch>`
 3. Report branch may not be pushed or doesn't trigger workflows

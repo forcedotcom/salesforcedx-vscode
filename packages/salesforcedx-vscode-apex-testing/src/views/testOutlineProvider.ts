@@ -5,15 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TestResult } from '@salesforce/apex-node';
-import { readFile } from '@salesforce/salesforcedx-utils-vscode';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { APEX_GROUP_RANGE, APEX_TESTS, FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../constants';
 import { nls } from '../messages';
-import { sourceIsLS } from '../testDiscovery/testDiscovery';
-import { getApexTests, getLanguageClientStatus } from '../utils/testUtils';
-import { iconHelpers } from './icons';
+import { readFile } from '../utils/fileHelpers';
+import { getApexTests } from '../utils/testUtils';
+import { getIconPath } from './icons';
 import { ApexTestMethod } from './lspConverter';
 
 /**
@@ -63,52 +62,31 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
   public getChildren(element: TestNode): TestNode[] {
     if (element) {
       return element.children;
-    } else {
-      if (this.rootNode && this.rootNode.children.length > 0) {
-        return this.rootNode.children;
-      } else {
-        const message = NO_TESTS_MESSAGE;
-        const description = NO_TESTS_DESCRIPTION;
-        // Check language client status only if using LS discovery
-        if (sourceIsLS()) {
-          void getLanguageClientStatus()
-            .then(languageClientStatus => {
-              if (!languageClientStatus.isReady()) {
-                if (languageClientStatus.failedToInitialize()) {
-                  void vscode.window.showInformationMessage(languageClientStatus.getStatusMessage());
-                }
-              }
-            })
-            .catch(() => {
-              // Ignore errors when checking status
-            });
-        }
-        const emptyArray = new Array<ApexTestNode>();
-        const testToDisplay = new ApexTestNode(message, null);
-        testToDisplay.description = description;
-        emptyArray.push(testToDisplay);
-        return emptyArray;
-      }
     }
+    if (this.rootNode && this.rootNode.children.length > 0) {
+      return this.rootNode.children;
+    }
+    const message = NO_TESTS_MESSAGE;
+    const description = NO_TESTS_DESCRIPTION;
+    const testToDisplay = new ApexTestNode(message, null);
+    testToDisplay.description = description;
+    return [testToDisplay];
   }
 
   public getTreeItem(element: TestNode): vscode.TreeItem {
     if (element) {
       return element;
-    } else {
-      this.getAllApexTests();
-      const message = NO_TESTS_MESSAGE;
-      const description = NO_TESTS_DESCRIPTION;
-      const emptyArray = new Array<ApexTestNode>();
-      const testToDisplay = new ApexTestNode(message, null);
-      testToDisplay.description = description;
-      emptyArray.push(testToDisplay);
-      if (!(this.rootNode && this.rootNode.children.length > 0)) {
-        this.rootNode = new ApexTestNode(message, null);
-        this.rootNode.children.push(testToDisplay);
-      }
-      return this.rootNode;
     }
+    this.getAllApexTests();
+    const message = NO_TESTS_MESSAGE;
+    const description = NO_TESTS_DESCRIPTION;
+    const testToDisplay = new ApexTestNode(message, null);
+    testToDisplay.description = description;
+    if (!(this.rootNode && this.rootNode.children.length > 0)) {
+      this.rootNode = new ApexTestNode(message, null);
+      this.rootNode.children.push(testToDisplay);
+    }
+    return this.rootNode;
   }
 
   public async refresh(): Promise<void> {
@@ -182,7 +160,7 @@ export class ApexTestOutlineProvider implements vscode.TreeDataProvider<TestNode
         this.apexTestMap.set(test.definingType, apexGroup);
         const apexTest = new ApexTestNode(test.methodName, test.location);
 
-        apexTest.name = `${apexGroup.label}.${apexTest.label}`;
+        apexTest.name = `${apexGroup.name}.${apexTest.name}`;
         this.apexTestMap.set(apexTest.name, apexTest);
         apexGroup.children.push(apexTest);
         if (this.rootNode && !this.rootNode.children.includes(apexGroup)) {
@@ -258,8 +236,8 @@ export abstract class TestNode extends vscode.TreeItem {
   }
 
   public iconPath = {
-    light: iconHelpers.getIconPath('LIGHT_BLUE_BUTTON'),
-    dark: iconHelpers.getIconPath('DARK_BLUE_BUTTON')
+    light: getIconPath('LIGHT_BLUE_BUTTON'),
+    dark: getIconPath('DARK_BLUE_BUTTON')
   };
 
   // TODO: create a ticket to address this particular issue.
@@ -273,20 +251,20 @@ export abstract class TestNode extends vscode.TreeItem {
     if (outcome === PASS_RESULT) {
       // Passed Test
       this.iconPath = {
-        light: iconHelpers.getIconPath('LIGHT_GREEN_BUTTON'),
-        dark: iconHelpers.getIconPath('DARK_GREEN_BUTTON')
+        light: getIconPath('LIGHT_GREEN_BUTTON'),
+        dark: getIconPath('DARK_GREEN_BUTTON')
       };
     } else if (outcome === FAIL_RESULT) {
       // Failed test
       this.iconPath = {
-        light: iconHelpers.getIconPath('LIGHT_RED_BUTTON'),
-        dark: iconHelpers.getIconPath('DARK_RED_BUTTON')
+        light: getIconPath('LIGHT_RED_BUTTON'),
+        dark: getIconPath('DARK_RED_BUTTON')
       };
     } else if (outcome === SKIP_RESULT) {
       // Skipped test
       this.iconPath = {
-        light: iconHelpers.getIconPath('LIGHT_ORANGE_BUTTON'),
-        dark: iconHelpers.getIconPath('DARK_ORANGE_BUTTON')
+        light: getIconPath('LIGHT_ORANGE_BUTTON'),
+        dark: getIconPath('DARK_ORANGE_BUTTON')
       };
     }
 

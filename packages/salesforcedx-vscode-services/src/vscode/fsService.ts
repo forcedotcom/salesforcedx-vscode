@@ -25,7 +25,7 @@ class FsServiceError extends Data.TaggedError('FsServiceError')<{
  * @param filePath - Either a URI object, URI string (e.g., "memfs:/MyProject/file.txt"), or a file path (e.g., "/path/to/file" or "C:\path\to\file")
  * @returns A properly parsed VS Code URI
  */
-export const toUri = (filePath: string | vscode.Uri): vscode.Uri => {
+export const toUri = (filePath: string | URI): URI => {
   // If it's already a URI object, return it
   if (typeof filePath !== 'string') {
     return filePath;
@@ -72,7 +72,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
     readFile,
     toUri,
     /** Write file to filesystem, creating directories if they don't exist */
-    writeFile: (filePath: string | vscode.Uri, content: string) =>
+    writeFile: (filePath: string | URI, content: string) =>
       Effect.flatMap(ChannelService, channelService =>
         channelService
           .appendToChannel(
@@ -105,7 +105,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
             )
           )
       ),
-    fileOrFolderExists: (filePath: string | vscode.Uri) =>
+    fileOrFolderExists: (filePath: string | URI) =>
       Effect.flatMap(ChannelService, channelService => {
         const uri = toUri(filePath);
         return Effect.tryPromise({
@@ -121,11 +121,11 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
           )
         );
       }),
-    isDirectory: (path: string | vscode.Uri) =>
+    isDirectory: (path: string | URI) =>
       Effect.tryPromise(
         async () => (await vscode.workspace.fs.stat(toUri(path))).type === vscode.FileType.Directory
       ).pipe(Effect.catchAll(() => Effect.succeed(false))),
-    isFile: (path: string | vscode.Uri) =>
+    isFile: (path: string | URI) =>
       Effect.tryPromise(async () => (await vscode.workspace.fs.stat(toUri(path))).type === vscode.FileType.File).pipe(
         Effect.catchAll(() => Effect.succeed(false))
       ),
@@ -183,6 +183,5 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
           )
         )
       )
-  } as const,
-  dependencies: [ChannelService.Default]
+  } as const
 }) {}

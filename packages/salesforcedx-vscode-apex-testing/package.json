@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.14.0",
+  "version": "65.15.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -25,23 +25,20 @@
   ],
   "dependencies": {
     "@salesforce/apex-node": "^8.4.3",
-    "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
+    "effect": "^3.19.13",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
-    "esbuild": "0.25.12",
-    "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-core": "*"
+    "esbuild": "0.25.10"
   },
   "extensionDependencies": [
-    "salesforce.salesforcedx-vscode-core",
-    "salesforce.salesforcedx-vscode-apex"
+    "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
     "vscode:bundle": "wireit",
+    "run:web": "npm run vscode:bundle && npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-org-browser --open-devtools --port 3001 --quality=stable",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -77,11 +74,13 @@
     "vscode:bundle": {
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
-        "compile"
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle"
       ],
       "files": [
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
         "out/**"
       ],
       "output": [
@@ -136,9 +135,11 @@
     }
   },
   "activationEvents": [
-    "workspaceContains:sfdx-project.json"
+    "workspaceContains:sfdx-project.json",
+    "onFileSystem:memfs"
   ],
   "main": "./dist/index.js",
+  "browser": "./dist/web/index.js",
   "types": "./out/src/index.d.ts",
   "contributes": {
     "viewsContainers": {
@@ -151,13 +152,7 @@
       ]
     },
     "views": {
-      "test": [
-        {
-          "id": "sf.test.view",
-          "name": "%test_view_name%",
-          "when": "sf:project_opened && !config.salesforcedx-vscode-apex-testing.testing.useTestExplorer"
-        }
-      ]
+      "test": []
     },
     "menus": {
       "view/title": [
@@ -362,25 +357,6 @@
       "type": "object",
       "title": "%configuration_title%",
       "properties": {
-        "salesforcedx-vscode-apex-testing.discoverySource": {
-          "type": "string",
-          "enum": [
-            "ls",
-            "api"
-          ],
-          "default": "ls",
-          "description": "%apex_testing_discovery_source_description%",
-          "enumDescriptions": [
-            "%apex_testing_discovery_source_ls_description%",
-            "%apex_testing_discovery_source_api_description%"
-          ]
-        },
-        "salesforcedx-vscode-apex-testing.testing.useTestExplorer": {
-          "type": "boolean",
-          "default": false,
-          "description": "%apex_testing_use_test_explorer_description%",
-          "markdownDescription": "%apex_testing_use_test_explorer_description%"
-        },
         "salesforcedx-vscode-apex-testing.test-run-concise": {
           "type": "boolean",
           "default": false,
@@ -426,6 +402,11 @@
           "description": "%apex_test_coverage_threshold_description%",
           "minimum": 0,
           "maximum": 100
+        },
+        "salesforcedx-vscode-apex-testing.retrieve-test-code-coverage": {
+          "type": "boolean",
+          "default": false,
+          "description": "%retrieve_test_code_coverage_text%"
         }
       }
     }

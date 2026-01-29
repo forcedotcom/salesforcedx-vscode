@@ -42,6 +42,7 @@ ci-artifacts*/
 trace/
 data/
 test-results/
+.e2e-artifacts/
 # nyc test coverage
 .nyc_output
 
@@ -100,7 +101,6 @@ jspm_packages/
 # Project test data
 test-assets/
 .vscode-test-web
-.e2e-artifacts
 # Node lock files (actually causes issues with the symlinking that lerna does, so ignore)
 # package-lock.json
 
