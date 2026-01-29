@@ -7,6 +7,10 @@ alwaysApply: false
 
 before creating new utilities or PageObjects, look in the playwright ext for reuse opportunities
 
+## Structure
+
+Only put one Test per file. You can have many steps.
+
 ## Waiting and Timing
 
 Never use `waitForTimeout`. Always wait for something specific on the page:

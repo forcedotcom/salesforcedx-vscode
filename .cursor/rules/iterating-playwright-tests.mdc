@@ -5,7 +5,7 @@ alwaysApply: false
 
 ## sequence
 
-1. get a test to run for `web` locally by following "debugging" suggestions
+1. get a test to run for `web` locally by following "debugging" suggestions. Use `--retries 0`
 2. desktop (locally)
 3. edit github workflows if necessary
 4. CI (windows, gha)

@@ -9,7 +9,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "65.14.0",
+  "version": "65.15.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "icon": "images/VSCodeSoql.png",
@@ -52,7 +52,7 @@
     "@salesforce/ts-types": "2.0.12",
     "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
-    "esbuild": "0.25.10",
+    "esbuild": "0.25.12",
     "immutable": "3.8.2",
     "lwc-services": "^3.0.2",
     "rxjs": "^6.6.2",

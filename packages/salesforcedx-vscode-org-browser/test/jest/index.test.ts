@@ -40,13 +40,10 @@ jest.mock('vscode', () => ({
   }
 }));
 
+import { ExtensionProviderService, type ExtensionProviderService as ExtensionProviderServiceType } from '@salesforce/effect-ext-utils';
 import * as vscode from 'vscode';
 import { Effect, Layer } from 'effect';
 import { activateEffect, deactivateEffect } from '../../src/index';
-import {
-  ExtensionProviderService,
-  type ExtensionProviderService as ExtensionProviderServiceType
-} from '../../src/services/extensionProvider';
 import { ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
 import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
 import { ProjectService } from 'salesforcedx-vscode-services/src/core/projectService';

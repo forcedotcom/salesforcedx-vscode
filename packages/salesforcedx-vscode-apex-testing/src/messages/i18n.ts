@@ -81,8 +81,12 @@ export const messages = {
   apex_test_report_written_to_message: 'Apex test report saved to: %s',
   apex_test_report_markdown_preview_tip:
     'Tip: For the best experience viewing the markdown file, open it and run "Markdown: Open Preview" from the Command Palette.\n\n',
+  apex_test_successful_execution_message: '%s successfully ran',
+  apex_test_failed_execution_message: '%s failed to run',
   test_view_refresh_failed_message:
-    'Failed to refresh test view, please make sure the Apex Language Server is running and try again. Apex LS status: %s'
+    'Failed to refresh test view, please make sure the Apex Language Server is running and try again. Apex LS status: %s',
+  apex_class_source_hidden:
+    "// Source code for class '%s' is hidden.\n// This is common for managed package classes whose source is protected."
 } as const;
 
 export type MessageKey = keyof typeof messages;

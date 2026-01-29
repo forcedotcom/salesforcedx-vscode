@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/vscode-services",
-  "version": "65.14.0",
+  "version": "65.15.2",
   "description": "TypeScript type definitions for Salesforce VS Code Services extension API",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
@@ -12,10 +12,10 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
   },
   "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-services-types",
-  "types": "out/salesforcedx-vscode-services-types/src/index.d.ts",
+  "types": "out/index.d.ts",
   "exports": {
     ".": {
-      "types": "./out/salesforcedx-vscode-services-types/src/index.d.ts"
+      "types": "./out/index.d.ts"
     }
   },
   "files": [
@@ -33,11 +33,22 @@
     "clean": "shx rm -rf src out dist node_modules .wireit .eslintcache *.tgz"
   },
   "wireit": {
+    "generate-src": {
+      "command": "ts-node scripts/generateEntry.ts && ts-node scripts/syncDeps.ts",
+      "files": [
+        "../salesforcedx-vscode-services/src/**/*.ts",
+        "scripts/*.ts"
+      ],
+      "output": [
+        "src/index.ts"
+      ]
+    },
     "compile": {
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-vscode-services:generate-types"
+        "generate-src",
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -58,12 +69,12 @@
     "@opentelemetry/core": "2.0.1",
     "@opentelemetry/exporter-trace-otlp-http": "0.209.0",
     "@opentelemetry/sdk-logs": "0.203.0",
-    "@opentelemetry/sdk-metrics": "2.0.1",
+    "@opentelemetry/sdk-metrics": "2.5.0",
     "@opentelemetry/sdk-trace-base": "2.0.1",
     "@opentelemetry/sdk-trace-node": "2.2.0",
     "@opentelemetry/sdk-trace-web": "2.2.0",
     "@salesforce/core": "^8.23.4",
-    "@salesforce/source-deploy-retrieve": "^12.31.5",
+    "@salesforce/source-deploy-retrieve": "^12.31.9",
     "@salesforce/source-tracking": "^7.8.1",
     "@types/vscode": "^1.90.0",
     "effect": "^3.19.14",

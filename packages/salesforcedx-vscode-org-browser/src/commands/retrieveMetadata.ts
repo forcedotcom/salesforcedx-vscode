@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet, MetadataMember } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
@@ -12,7 +13,7 @@ import * as Option from 'effect/Option';
 import type { SuccessfulCancelResult } from 'salesforcedx-vscode-services/src/vscode/cancellation';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 

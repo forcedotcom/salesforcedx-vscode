@@ -12,7 +12,8 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { unknownToErrorCause } from '../core/shared';
 import { ChannelService } from '../vscode/channelService';
-
+import { HashableUri } from './hashableUri';
+import { uriToPath } from './paths';
 // Capture vscode.workspace.fs at module level
 
 class FsServiceError extends Data.TaggedError('FsServiceError')<{
@@ -25,7 +26,7 @@ class FsServiceError extends Data.TaggedError('FsServiceError')<{
  * @param filePath - Either a URI object, URI string (e.g., "memfs:/MyProject/file.txt"), or a file path (e.g., "/path/to/file" or "C:\path\to\file")
  * @returns A properly parsed VS Code URI
  */
-export const toUri = (filePath: string | vscode.Uri): vscode.Uri => {
+export const toUri = (filePath: string | URI): URI => {
   // If it's already a URI object, return it
   if (typeof filePath !== 'string') {
     return filePath;
@@ -55,24 +56,32 @@ export const toUri = (filePath: string | vscode.Uri): vscode.Uri => {
 };
 
 // capture readFile for use in readJSON
-const readFile = (filePath: string) =>
+const readFile = (filePath: string | URI) =>
   Effect.flatMap(ChannelService, channelService =>
-    channelService.appendToChannel(`[FsService] readFile: ${filePath}`).pipe(
+    channelService.appendToChannel(`[FsService] readFile: ${UriOrStringToString(filePath)}`).pipe(
       Effect.flatMap(() =>
         Effect.tryPromise({
           try: async () => Buffer.from(await vscode.workspace.fs.readFile(toUri(filePath))).toString('utf8'),
-          catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'readFile', filePath })
+          catch: e =>
+            new FsServiceError({
+              ...unknownToErrorCause(e),
+              function: 'readFile',
+              filePath: UriOrStringToString(filePath)
+            })
         })
       )
     )
   );
 
 export class FsService extends Effect.Service<FsService>()('FsService', {
+  dependencies: [ChannelService.Default],
   succeed: {
     readFile,
-    toUri,
+    toUri: (filePath: string | URI) => Effect.succeed(toUri(filePath)),
+    HashableUri,
+    uriToPath: (uri: URI) => Effect.succeed(uriToPath(uri)),
     /** Write file to filesystem, creating directories if they don't exist */
-    writeFile: (filePath: string | vscode.Uri, content: string) =>
+    writeFile: (filePath: string | URI, content: string) =>
       Effect.flatMap(ChannelService, channelService =>
         channelService
           .appendToChannel(
@@ -105,7 +114,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
             )
           )
       ),
-    fileOrFolderExists: (filePath: string | vscode.Uri) =>
+    fileOrFolderExists: (filePath: string | URI) =>
       Effect.flatMap(ChannelService, channelService => {
         const uri = toUri(filePath);
         return Effect.tryPromise({
@@ -121,11 +130,11 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
           )
         );
       }),
-    isDirectory: (path: string | vscode.Uri) =>
+    isDirectory: (path: string | URI) =>
       Effect.tryPromise(
         async () => (await vscode.workspace.fs.stat(toUri(path))).type === vscode.FileType.Directory
       ).pipe(Effect.catchAll(() => Effect.succeed(false))),
-    isFile: (path: string | vscode.Uri) =>
+    isFile: (path: string | URI) =>
       Effect.tryPromise(async () => (await vscode.workspace.fs.stat(toUri(path))).type === vscode.FileType.File).pipe(
         Effect.catchAll(() => Effect.succeed(false))
       ),
@@ -143,17 +152,26 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
         },
         catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'deleteFile', filePath })
       }),
-    readDirectory: (dirPath: string) =>
-      Effect.tryPromise({
-        try: async () => (await vscode.workspace.fs.readDirectory(toUri(dirPath))).map(([name]) => name),
-        catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'readDirectory', filePath: dirPath })
+    readDirectory: (dirPath: string | URI) =>
+      Effect.gen(function* () {
+        const uri = toUri(dirPath);
+        const entries = yield* Effect.tryPromise({
+          try: async () => await vscode.workspace.fs.readDirectory(uri),
+          catch: e =>
+            new FsServiceError({
+              ...unknownToErrorCause(e),
+              function: 'readDirectory',
+              filePath: typeof dirPath === 'string' ? dirPath : uriToPath(dirPath)
+            })
+        });
+        return entries.map(([name]) => Utils.joinPath(uri, name));
       }),
     stat: (filePath: string) =>
       Effect.tryPromise({
         try: async () => await vscode.workspace.fs.stat(toUri(filePath)),
         catch: e => new FsServiceError({ ...unknownToErrorCause(e), function: 'stat', filePath })
       }),
-    safeDelete: (filePath: string, options = {}) =>
+    safeDelete: (filePath: string | URI, options = {}) =>
       Effect.tryPromise({
         try: async () => {
           await vscode.workspace.fs.delete(toUri(filePath), options);
@@ -183,6 +201,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
           )
         )
       )
-  } as const,
-  dependencies: [ChannelService.Default]
+  } as const
 }) {}
+
+const UriOrStringToString = (uri: URI | string) => (typeof uri === 'string' ? uri : uri.toString());

@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import { ExtensionProviderService } from '../../services/extensionProvider';
 
 /** Format retrieve results for output */
 export const formatRetrieveOutput = Effect.fn('formatRetrieveOutput')(function* (result: RetrieveResult) {

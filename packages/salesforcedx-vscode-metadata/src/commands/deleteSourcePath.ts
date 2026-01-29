@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type { SourceTrackingConflictError } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 import { deleteComponentSet } from '../shared/delete/deleteComponentSet';
 import { type DeleteSourceFailedError } from '../shared/delete/deleteErrors';
 import { formatDeployOutput } from '../shared/deploy/formatDeployOutput';
@@ -23,7 +24,7 @@ const showDeleteConfirmation = () =>
     return await vscode.window.showInformationMessage(prompt, PROCEED, CANCEL).then(response => response === PROCEED);
   });
 
-const deletePaths = (uris: Set<URI>) =>
+const deletePaths = (uris: URI[]) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const componentSetService = yield* api.services.ComponentSetService;
@@ -61,7 +62,7 @@ export const deleteSourcePaths = async (sourceUri: URI | undefined, uris: URI[] 
       return;
     }
 
-    const resolvedUris = new Set(uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri]);
+    const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
 
     // Delete the paths
     yield* deletePaths(resolvedUris).pipe(

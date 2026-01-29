@@ -110,6 +110,13 @@ const exit = () => {};
 // Command line arguments - return empty array for browser
 const argv = [];
 
+// Versions object - mimics Node.js process.versions
+const versions = {
+  node: '18.0.0',
+  v8: '10.1.124.8',
+  modules: '108'
+};
+
 // The process object with complete EventEmitter API
 const process = {
   env,
@@ -118,6 +125,7 @@ const process = {
   platform,
   pid,
   version: 'v18.0.0',
+  versions,
   // EventEmitter methods
   on,
   addListener,

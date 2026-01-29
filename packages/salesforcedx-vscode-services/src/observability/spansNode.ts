@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { SdkLayerConfig } from './spans';
+import type { SdkLayerConfig } from './sdkLayerConfig';
 import { AzureMonitorTraceExporter } from '@azure/monitor-opentelemetry-exporter';
 import { NodeSdk } from '@effect/opentelemetry';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
@@ -21,7 +21,7 @@ export const NodeSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint 
     resource: {
       serviceName: extensionName,
       //manually bump this to cause rebuilds/bust cache
-      serviceVersion: '2026-01-07T10:12.004Z',
+      serviceVersion: '2026-01-26T04:39.304Z',
       attributes: {
         'extension.name': extensionName,
         'extension.version': extensionVersion

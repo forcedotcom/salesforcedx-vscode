@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
 const deployUris = (uris: Set<URI>) =>
@@ -17,7 +18,7 @@ const deployUris = (uris: Set<URI>) =>
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const componentSetService = yield* api.services.ComponentSetService;
     const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-      yield* componentSetService.getComponentSetFromUris(uris)
+      yield* componentSetService.getComponentSetFromUris(Array.from(uris))
     );
     yield* deployComponentSet({ componentSet });
   });

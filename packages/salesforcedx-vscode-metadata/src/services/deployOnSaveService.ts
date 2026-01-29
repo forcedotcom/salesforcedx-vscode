@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -14,7 +14,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { getDeployOnSaveEnabled, getIgnoreConflicts } from '../settings/deployOnSaveSettings';
-import { AllServicesLayer, ExtensionProviderService } from './extensionProvider';
+import { AllServicesLayer } from './extensionProvider';
 
 const ENQUEUE_DELAY_MS = 1000;
 
@@ -40,7 +40,7 @@ export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (ur
 
 /** Deploy queued files using MetadataDeployService */
 
-const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* (uris: Set<URI>) {
+const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* (uris: readonly URI[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [channelService, deployService, componentSetService] = yield* Effect.all(
     [api.services.ChannelService, api.services.MetadataDeployService, api.services.ComponentSetService],
@@ -123,9 +123,7 @@ export const createDeployOnSaveService = () =>
       ),
       Stream.groupedWithin(10_000, Duration.millis(ENQUEUE_DELAY_MS)),
       Stream.runForEach(chunk =>
-        deployQueuedFiles(new Set(Chunk.toReadonlyArray(chunk))).pipe(
-          Effect.catchAll(handleDeployError)
-        )
+        deployQueuedFiles(Chunk.toReadonlyArray(chunk)).pipe(Effect.catchAll(handleDeployError))
       ),
       Effect.provide(AllServicesLayer),
       Effect.forkDaemon
