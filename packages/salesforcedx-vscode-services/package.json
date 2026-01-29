@@ -47,7 +47,6 @@
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
-    "@effect/platform": "0.93.8",
     "@types/node": "^20.0.0",
     "browserify-zlib": "^0.2.0",
     "esbuild": "0.25.12",
