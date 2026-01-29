@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Effect } from 'effect';
+import { Chunk, Effect, Stream } from 'effect';
 import * as vscode from 'vscode';
 
 // --- Configuration ---
@@ -16,8 +16,9 @@ import * as vscode from 'vscode';
 // Windows machines use smaller values due to performance characteristics
 const isWindows = typeof process !== 'undefined' && process.platform === 'win32';
 const MAX_CONCURRENCY = isWindows ? 2 : 10; // Concurrent files being processed
-const YIELD_INTERVAL = isWindows ? 5 : 10; // Yield every N files to let IDE catch up
-const YIELD_DELAY_MS = isWindows ? 150 : 50; // Delay when yielding (ms)
+// Throttle: allow this many "tokens" per duration so the IDE can catch up
+const THROTTLE_UNITS = isWindows ? 5 : 10;
+const THROTTLE_DURATION_MS = isWindows ? 150 : 50;
 
 /**
  * Options for bootstrapWorkspaceAwareness
@@ -77,34 +78,23 @@ export const bootstrapWorkspaceAwareness = (options: BootstrapOptions): Effect.E
     }
 
     logger(`📁 Bootstrapping ${uris.length} files into document cache...`);
-    logger(
-      `Files found: ${uris
-        .slice(0, 10)
-        .map(uri => uri.fsPath)
-        .join(', ')}${uris.length > 10 ? '...' : ''}`
-    );
-    yield* Effect.log(`📁 Bootstrapping ${uris.length} files`);
 
-    // 2. Process all files with limited concurrency and periodic yields
-    // This is simpler than batching but still provides regular pauses for the IDE
-    const itemsWithIndex: { uri: vscode.Uri; idx: number }[] = uris.map((uri: vscode.Uri, idx: number) => ({
-      uri,
-      idx
-    }));
-
-    yield* Effect.forEach(
-      itemsWithIndex,
-      ({ uri, idx }) =>
-        openDoc(uri).pipe(
-          // Yield periodically to let the IDE catch up
-          Effect.tap(() => (idx > 0 && idx % YIELD_INTERVAL === 0 ? Effect.sleep(YIELD_DELAY_MS) : Effect.void)),
-          Effect.catchAll((err: unknown) => Effect.logError(String(err)))
-        ),
-      { concurrency: MAX_CONCURRENCY }
+    // 2. Process all files with limited concurrency and throttled rate
+    // Stream.throttle (token bucket) limits how many we pull per time window so the IDE can catch up
+    yield* Stream.fromIterable(uris).pipe(
+      Stream.rechunk(1),
+      Stream.throttle({
+        cost: Chunk.size,
+        duration: `${THROTTLE_DURATION_MS} millis`,
+        units: THROTTLE_UNITS
+      }),
+      Stream.mapEffect(uri => openDoc(uri).pipe(Effect.catchAll((err: unknown) => Effect.logError(String(err)))), {
+        concurrency: MAX_CONCURRENCY
+      }),
+      Stream.runDrain
     );
 
     // 3. Log completion
     logger(`✅ Workspace bootstrap complete (${uris.length} files loaded into document cache)`);
-    yield* Effect.log(`✅ Workspace bootstrap complete (${uris.length} files)`);
   });
 };
