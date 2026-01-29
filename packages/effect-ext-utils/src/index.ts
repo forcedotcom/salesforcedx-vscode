@@ -14,4 +14,4 @@ export {
 } from './extensionProvider';
 
 export { closeExtensionScope, getExtensionScope } from './extensionScope';
-export type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
+export type { SalesforceVSCodeServicesApi } from './extensionProvider';

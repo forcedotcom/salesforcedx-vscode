@@ -33,7 +33,7 @@
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-vscode-services-types:compile"
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",
@@ -94,8 +94,5 @@
   "dependencies": {
     "effect": "^3.19.14",
     "@types/vscode": "^1.90.0"
-  },
-  "devDependencies": {
-    "@salesforce/vscode-services": "*"
   }
 }

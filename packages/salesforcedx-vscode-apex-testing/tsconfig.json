@@ -4,8 +4,16 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "include": ["src/**/*.ts", "test/**/*.ts"],
-  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".vscode-test",
+    "out",
+    "dist"
+  ],
   "references": [
     {
       "path": "../effect-ext-utils"

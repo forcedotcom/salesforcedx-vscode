@@ -9,22 +9,9 @@
       }
     ]
   },
-  "exclude": [
-    "node_modules",
-    ".vscode-test",
-    "out",
-    "dist"
-  ],
-  "include": [
-    "src/**/*.ts",
-    "test/**/*.ts",
-    "playwright.config.web.ts",
-    "scripts/**/*.ts"
-  ],
+  "exclude": ["node_modules", ".vscode-test", "out", "dist"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "playwright.config.web.ts", "scripts/**/*.ts"],
   "references": [
-    {
-      "path": "../effect-ext-utils"
-    },
     {
       "path": "../playwright-vscode-ext"
     }

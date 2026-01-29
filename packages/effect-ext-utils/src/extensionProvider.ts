@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Context from 'effect/Context';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+// Import from the npm package (symlinked in workspace) - wireit ensures it's compiled first
+export type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 
 export class ServicesExtensionNotFoundError extends Data.TaggedError('ServicesExtensionNotFoundError') {}

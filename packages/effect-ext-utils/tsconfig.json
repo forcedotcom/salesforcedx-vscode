@@ -5,10 +5,5 @@
     "outDir": "out"
   },
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
-  "include": ["src/**/*.ts", "test/**/*.ts"],
-  "references": [
-    {
-      "path": "../salesforcedx-vscode-services-types"
-    }
-  ]
+  "include": ["src/**/*.ts", "test/**/*.ts"]
 }
