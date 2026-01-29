@@ -14,4 +14,5 @@ export {
 } from './extensionProvider';
 
 export { closeExtensionScope, getExtensionScope } from './extensionScope';
+export { registerCommand } from './registerCommand';
 export type { SalesforceVSCodeServicesApi } from './extensionProvider';

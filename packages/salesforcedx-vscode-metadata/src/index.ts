@@ -8,7 +8,9 @@
 import {
   closeExtensionScope,
   ExtensionProviderService,
-  getExtensionScope
+  getExtensionScope,
+  registerCommand,
+  setExtensionContext
 } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
@@ -32,6 +34,7 @@ import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusB
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
+  setExtensionContext(context);
   await Effect.runPromise(activateEffect(context).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope)));
 };
 
@@ -58,6 +61,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       vscode.commands.executeCommand('setContext', 'salesforcedx-vscode-metadata.showSharedCommands', true)
     );
 
+    yield* registerCommand('sf.apex.generate.class', createApexClass);
+    yield* registerCommand('sf.retrieve.in.manifest', retrieveManifest);
+
     yield* svc.appendToChannel('Registering shared commands (core extension not present or config enabled)');
     context.subscriptions.push(
       vscode.commands.registerCommand('sf.project.deploy.start', async () => projectDeployStart(false)),
@@ -70,7 +76,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       vscode.commands.registerCommand('sf.view.local.changes', viewLocalChanges),
       vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
       vscode.commands.registerCommand('sf.source.tracking.reset.remote', resetRemoteTracking),
-      vscode.commands.registerCommand('sf.apex.generate.class', createApexClass),
+      // vscode.commands.registerCommand('sf.apex.generate.class', createApexClass),
       vscode.commands.registerCommand('sf.delete.source', deleteSourcePaths),
       vscode.commands.registerCommand('sf.delete.source.current.file', deleteSourcePaths),
       vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
@@ -78,7 +84,6 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest),
       vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths),
       vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
-      vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest),
       vscode.commands.registerCommand('sf.project.generate.manifest', generateManifest),
       vscode.commands.registerCommand('sf.source.diff', sourceDiff)
     );

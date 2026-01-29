@@ -16,7 +16,7 @@ import { HashableUri } from './hashableUri';
 import { uriToPath } from './paths';
 // Capture vscode.workspace.fs at module level
 
-class FsServiceError extends Data.TaggedError('FsServiceError')<{
+export class FsServiceError extends Data.TaggedError('FsServiceError')<{
   readonly cause: Error;
   readonly function: string;
   readonly filePath: string;

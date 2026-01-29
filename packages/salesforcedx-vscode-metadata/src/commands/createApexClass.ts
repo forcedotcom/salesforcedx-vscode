@@ -14,11 +14,11 @@ import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { AllServicesLayer } from '../services/extensionProvider';
 
-type CreateApexClassParams = {
+export type CreateApexClassParams = {
   readonly name?: string;
   readonly outputDir?: URI;
 };
-class UserCancelledOverwriteError extends Data.TaggedError('UserCancelledOverwriteError')<{}> { }
+class UserCancelledOverwriteError extends Data.TaggedError('UserCancelledOverwriteError')<{}> {}
 
 const fromProject = Effect.fn('getApiVersion.fromProject')(function* (project: SfProject) {
   const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
@@ -46,7 +46,7 @@ const promptForOutputDir = Effect.fn('promptForOutputDir')(function* (project: S
   const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow;
 
   // Build Quick Pick items for each package directory
-  const items = (project.getPackageDirectories()).map(pkg => ({
+  const items = project.getPackageDirectories().map(pkg => ({
     label: `${pkg.path}/main/default/classes`,
     description: pkg.default ? '(default)' : undefined,
     uri: Utils.joinPath(workspaceInfo.uri, pkg.path, 'main', 'default', 'classes')
@@ -123,17 +123,13 @@ const createFiles = Effect.fn('createFiles')(function* (className: string, outpu
 
 }`;
 
-  // Create meta file
-  const metaContent = `<?xml version="1.0" encoding="UTF-8"?>
-<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-    <apiVersion>${apiVersion}</apiVersion>
-    <status>Active</status>
-</ApexClass>`;
-
   // Write both files - pass URI objects directly
-  yield* Effect.all([fsService.writeFile(clsUri, clsContent), fsService.writeFile(metaUri, metaContent)], {
-    concurrency: 'unbounded'
-  });
+  yield* Effect.all(
+    [fsService.writeFile(clsUri, clsContent), fsService.writeFile(metaUri, getMetaContent(apiVersion))],
+    {
+      concurrency: 'unbounded'
+    }
+  );
 
   yield* channelService.appendToChannel(nls.localize('apex_generate_class_success'));
 
@@ -145,40 +141,34 @@ const createFiles = Effect.fn('createFiles')(function* (className: string, outpu
 });
 
 /** Create Apex class command */
-export const createApexClass = async (params?: CreateApexClassParams): Promise<void> =>
-  Effect.runPromise(
-    commandEffect(params).pipe(
-      Effect.provide(AllServicesLayer),
-      Effect.catchTag('UserCancelledOverwriteError', () => Effect.void), // it's fine, they meant to
-      Effect.catchAll((error: Error) =>
-        Effect.promise(() =>
-          vscode.window.showErrorMessage(error instanceof Error ? error.message : String(error))
-        ).pipe(Effect.as(undefined))
-      )
-    )
+export const createApexClass = (commandParams?: CreateApexClassParams) =>
+  Effect.gen(function* () {
+    // Get class name
+    const className = commandParams?.name ?? (yield* Effect.promise(async () => await promptForClassName()));
+    if (!className) {
+      return yield* Effect.succeed(undefined);
+    }
+
+    const project = yield* (yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ProjectService)
+      .getSfProject;
+
+    const [outputDir, apiVersion] = yield* Effect.all([
+      Effect.suspend(() =>
+        commandParams?.outputDir ? Effect.succeed(commandParams.outputDir) : promptForOutputDir(project)
+      ),
+      getApiVersion(project)
+    ]);
+
+    return outputDir ? yield* createFiles(className, outputDir, apiVersion) : yield* Effect.succeed(undefined);
+  }).pipe(
+    Effect.provide(AllServicesLayer),
+    Effect.catchTag('UserCancelledOverwriteError', () => Effect.succeed(undefined)) // it's fine, they meant to
   );
 
-const commandEffect = Effect.fn('createApexClassCommand')(function* (commandParams?: CreateApexClassParams) {
-  // Get class name
-  const className = commandParams?.name ?? (yield* Effect.promise(async () => await promptForClassName()));
-  if (!className) {
-    return yield* Effect.succeed(undefined);
-  }
-
-  const project = yield* (yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ProjectService)
-    .getSfProject;
-
-  const [outputDir, apiVersion] = yield* Effect.all([
-    Effect.suspend(() =>
-      commandParams?.outputDir ? Effect.succeed(commandParams.outputDir) : promptForOutputDir(project)
-    ),
-    getApiVersion(project)
-  ]);
-
-  if (!outputDir) {
-    return yield* Effect.succeed(undefined); // User cancelled
-  }
-
-  // Create files
-  yield* createFiles(className, outputDir, apiVersion);
-});
+const getMetaContent = (apiVersion: string) =>
+  // Create meta file
+  `<?xml version="1.0" encoding="UTF-8"?>
+<ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>${apiVersion}</apiVersion>
+    <status>Active</status>
+</ApexClass>`;
