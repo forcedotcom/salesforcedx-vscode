@@ -47,68 +47,119 @@ jobs:
     if: inputs.result == 'success'
     steps:
       - name: Announce success
-        uses: slackapi/slack-github-action@v1.22.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
+          webhook: ${{ secrets.IDEE_RELEASE_SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          errors: true
           payload: |
-            {
-              "text": "${{ inputs.title }} successfully ${{ inputs.type }}",
-              "event": "${{ inputs.successfulEvent }}",
-              "repo": "${{ github.event.repository.name }}",
-              "result": "Success"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_RELEASE_SLACK_WEBHOOK }}
+            blocks:
+              - type: header
+                text:
+                  type: plain_text
+                  text: "${{ inputs.title }} — Success"
+              - type: section
+                fields:
+                  - type: mrkdwn
+                    text: "*Action:*\n${{ inputs.type }}"
+                  - type: mrkdwn
+                    text: "*Repository:*\n${{ github.event.repository.name }}"
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: "<${{ inputs.successfulEvent }}|View workflow run>"
 
   notification_on_failure:
     runs-on: ubuntu-latest
     if: inputs.result == 'failure'
     steps:
       - name: Announce failure
-        uses: slackapi/slack-github-action@v1.22.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
+          webhook: ${{ secrets.IDEE_MAIN_SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          errors: true
           payload: |
-            {
-              "text": "${{ inputs.title }} unsuccessfully ${{ inputs.type }}",
-              "event": "${{ inputs.failedEvent }}, run: ${{ github.event.repository.html_url }}/actions/workflows/${{ inputs.workflow }}",
-              "repo": "${{ github.event.repository.name }}",
-              "result": "Failure"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_MAIN_SLACK_WEBHOOK }}
+            text: "${{ inputs.title }} — Failure: ${{ inputs.failedEvent }}"
+            blocks:
+              - type: header
+                text:
+                  type: plain_text
+                  text: "${{ inputs.title }} — Failure"
+              - type: section
+                fields:
+                  - type: mrkdwn
+                    text: "*Action:*\n${{ inputs.type }}"
+                  - type: mrkdwn
+                    text: "*Repository:*\n${{ github.event.repository.name }}"
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: "*Failure Event:*\n${{ inputs.failedEvent }}"
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: "<${{ github.event.repository.html_url }}/actions/workflows/${{ inputs.workflow }}|View workflow run>"
 
   general_notification:
     runs-on: ubuntu-latest
     if: inputs.type == 'notification'
     steps:
       - name: General Notification
-        uses: slackapi/slack-github-action@v1.22.0
+        continue-on-error: true
+        uses: slackapi/slack-github-action@v2.1.1
         with:
+          webhook: ${{ secrets.IDEE_MAIN_SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          errors: true
           payload: |
-            {
-              "text": "${{ inputs.title }}",
-              "event": "${{ inputs.notification }}, run: ${{ github.event.repository.html_url }}/actions/workflows/${{ inputs.workflow }}",
-              "repo": "${{ github.event.repository.name }}",
-              "result": "Notification"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_MAIN_SLACK_WEBHOOK }}
+            text: "${{ inputs.title }}: ${{ inputs.notification }}"
+            blocks:
+              - type: header
+                text:
+                  type: plain_text
+                  text: "${{ inputs.title }}"
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: "${{ inputs.notification }}"
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: "<${{ github.event.repository.html_url }}/actions/workflows/${{ inputs.workflow }}|View workflow run>"
 
   e2e_notification:
     runs-on: ubuntu-latest
     if: inputs.type == 'e2e'
     steps:
       - name: E2E Tests slack notification
-        uses: slackapi/slack-github-action@v1.22.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
+          webhook: ${{ secrets.IDEE_E2E_SLACK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          errors: true
           payload: |
-            {
-              "category": "${{ inputs.title }}",
-              "vscodeVersion": "${{ inputs.vscodeVersion }}",
-              "branch": "${{ github.ref_name }}",
-              "testsBranch": "${{ inputs.testsBranch }}",
-              "summary": "${{ inputs.summary }}",
-              "event": "${{ github.event.repository.html_url }}/${{ inputs.workflow }}",
-              "result": "${{ inputs.result }}"
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_E2E_SLACK_WEBHOOK }}
+            text: "${{ inputs.title }} — ${{ inputs.result }}"
+            blocks:
+              - type: header
+                text:
+                  type: plain_text
+                  text: "${{ inputs.title }}"
+              - type: section
+                fields:
+                  - type: mrkdwn
+                    text: "*Result:*\n${{ inputs.result }}"
+                  - type: mrkdwn
+                    text: "*VSCode Version:*\n${{ inputs.vscodeVersion }}"
+                  - type: mrkdwn
+                    text: "*Source Branch:*\n${{ github.ref_name }}"
+                  - type: mrkdwn
+                    text: "*Tests Branch:*\n${{ inputs.testsBranch }}"
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: "*Summary:*\n${{ inputs.summary }}"
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: "<${{ github.event.repository.html_url }}/${{ inputs.workflow }}|View workflow run>"
