@@ -222,11 +222,7 @@ export abstract class BaseServer {
 
     const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
 
-    const isLWCTemplate = await this.context.isLWCTemplate(doc);
-    const isLWCJavascript = await this.context.isLWCJavascript(doc);
-    const isAuraMarkup = await this.context.isAuraMarkup(doc);
-
-    if (isLWCTemplate) {
+    if (await this.context.isLWCTemplate(doc)) {
       this.auraDataProvider.activated = false; // provide completions for lwc components in an Aura template
       this.lwcDataProvider.activated = true; // provide completions for lwc components in an LWC template
       const shouldProvideBindings = this.shouldProvideBindingsInHTML(params);
@@ -238,7 +234,7 @@ export abstract class BaseServer {
           items: customTags
         };
       }
-    } else if (isLWCJavascript) {
+    } else if (await this.context.isLWCJavascript(doc)) {
       const shouldComplete = this.shouldCompleteJavascript(params);
       if (shouldComplete && this.componentIndexer) {
         const customData = this.componentIndexer.getCustomData();
@@ -253,7 +249,7 @@ export abstract class BaseServer {
       } else {
         return;
       }
-    } else if (isAuraMarkup) {
+    } else if (await this.context.isAuraMarkup(doc)) {
       this.auraDataProvider.activated = true;
       this.lwcDataProvider.activated = false;
     } else {
@@ -336,9 +332,7 @@ export abstract class BaseServer {
       const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
 
       try {
-        const isLWCTemplate = await this.context.isLWCTemplate(doc);
-
-        if (isLWCTemplate) {
+        if (await this.context.isLWCTemplate(doc)) {
           // Allow hover to work if component indexer is initialized, even if delayed initialization isn't complete
           // This is safe because namespace roots are already detected (isLWCTemplate returned true)
           if (!this.isDelayedInitializationComplete && !this.componentIndexer) {
@@ -404,7 +398,7 @@ export abstract class BaseServer {
     // on every file open - they only change when directory structure changes.
     const isLwcPath =
       normalizedPath.includes('/lwc/') &&
-      (normalizedPath.endsWith('.html') || normalizedPath.endsWith('.js') || normalizedPath.endsWith('.ts'));
+      (normalizedPath.endsWith('.html') ?? normalizedPath.endsWith('.js') ?? normalizedPath.endsWith('.ts'));
 
     if (isLwcPath && !this.isDelayedInitializationComplete) {
       if (this.context) {
