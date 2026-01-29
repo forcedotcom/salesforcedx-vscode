@@ -122,6 +122,8 @@ const containsDeletedLwcWatchedDirectory = async (
   return false;
 };
 
+const shouldCompleteJavascript = (params: CompletionParams): boolean => params.context?.triggerCharacter !== '{';
+
 export abstract class BaseServer {
   public readonly connection: Connection;
   public readonly documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
@@ -235,7 +237,7 @@ export abstract class BaseServer {
         };
       }
     } else if (await this.context.isLWCJavascript(doc)) {
-      const shouldComplete = this.shouldCompleteJavascript(params);
+      const shouldComplete = shouldCompleteJavascript(params);
       if (shouldComplete && this.componentIndexer) {
         const customData = this.componentIndexer.getCustomData();
         const customTags = customData.map(tag => ({
@@ -280,10 +282,6 @@ export abstract class BaseServer {
       char = text.charAt(startIndex);
     }
     return char === '{';
-  }
-
-  public shouldCompleteJavascript(params: CompletionParams): boolean {
-    return params.context?.triggerCharacter !== '{';
   }
 
   public findBindItems(docBasename: string): CompletionItem[] {
