@@ -29,7 +29,9 @@ export interface BootstrapOptions {
   excludeGlob: string;
   /** Optional logger function - defaults to console.log */
   logger?: (message: string) => void;
-  /** Optional list of URIs to load directly - if provided, skips findFiles and uses these URIs */
+  /** Optional list of URIs to load directly - if provided, skips findFiles and uses these URIs
+   * this should be used in web mode to pass files directly to bootstrapWorkspaceAwareness to skip findFiles
+   */
   uris?: vscode.Uri[];
 }
 

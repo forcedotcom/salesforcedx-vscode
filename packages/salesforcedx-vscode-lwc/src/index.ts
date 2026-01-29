@@ -13,7 +13,8 @@ import {
 } from '@salesforce/salesforcedx-utils-vscode';
 import type { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { Effect } from 'effect';
-import { commands, Disposable, ExtensionContext, Uri, workspace } from 'vscode';
+import { commands, Disposable, ExtensionContext, workspace } from 'vscode';
+import { URI, Utils } from 'vscode-uri';
 import { channelService } from './channel';
 import { lightningLwcOpen, lightningLwcPreview, lightningLwcStart, lightningLwcStop } from './commands';
 import { log } from './constants';
@@ -59,19 +60,6 @@ export const activate = async (extensionContext: ExtensionContext) => {
     channelService.appendLine(errorMsg);
   }
 
-  // In web mode, workspace folders might not be available immediately
-  // Wait a bit for them to load if they're not available yet
-  if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
-    // Wait for workspace folders with a timeout
-    const maxWaitTime = 2000; // 2 seconds
-    const checkInterval = 100; // Check every 100ms
-    let waited = 0;
-    while ((!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) && waited < maxWaitTime) {
-      await new Promise(resolve => setTimeout(resolve, checkInterval));
-      waited += checkInterval;
-    }
-  }
-
   // if we have no workspace folders, exit
   if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
     const msg = 'No workspace folders found, exiting extension';
@@ -111,9 +99,8 @@ export const activate = async (extensionContext: ExtensionContext) => {
   let serverModule: string;
   if (process.env.ESBUILD_PLATFORM === 'web') {
     // For web mode, use the browser bundle and convert to URI
-    const serverPathArray = ['dist', 'web', 'lwcServer.js'];
-    const serverPathUri = Uri.joinPath(extensionContext.extensionUri, ...serverPathArray);
-    serverModule = serverPathUri.toString();
+    const baseUri = URI.from(extensionContext.extensionUri);
+    serverModule = Utils.joinPath(baseUri, 'dist', 'web', 'lwcServer.js').toString();
   } else {
     // For Node.js mode, use the file system path
     // Dynamically import path only in Node.js mode to avoid bundling issues in web mode
@@ -173,8 +160,8 @@ export const activate = async (extensionContext: ExtensionContext) => {
         const bootstrapPromises = workspace.workspaceFolders.map(async folder => {
           channelService.appendLine(`[LWC Bootstrap Config] Workspace folder: ${folder.uri.toString()}`);
 
-          // In web mode, findFiles with memfs:// URIs can hang, so construct URIs directly
-          // and pass them to bootstrapWorkspaceAwareness to skip findFiles
+          // In web mode, findFiles with memfs:// URIs does not work
+          // hence we pass files directly to bootstrapWorkspaceAwareness to skip findFiles
           const configFiles = [
             'sfdx-project.json',
             'workspace-user.xml',
@@ -182,11 +169,11 @@ export const activate = async (extensionContext: ExtensionContext) => {
             'package.json',
             'lerna.json'
           ];
-          
+
           // Construct URIs for config files and check which ones exist
-          const configUris: Uri[] = [];
+          const configUris: URI[] = [];
           for (const configFile of configFiles) {
-            const configUri = Uri.joinPath(folder.uri, configFile);
+            const configUri = Utils.joinPath(folder.uri, configFile);
             try {
               await workspace.fs.stat(configUri);
               configUris.push(configUri);
@@ -195,7 +182,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
               // File doesn't exist - skip it
             }
           }
-          
+
           if (configUris.length > 0) {
             // Use bootstrapWorkspaceAwareness with provided URIs to skip findFiles
             await Effect.runPromise(
