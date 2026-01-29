@@ -118,6 +118,7 @@
     "reinstall": "git checkout -- package-lock.json && npm run clean && npm install",
     "compile": "wireit",
     "compile:clean": "tsc  --build --clean && npm run compile",
+    "compile:github-actions": "wireit",
     "compile:watch": "npm run compile && tsc --build --watch",
     "lint": "wireit",
     "test": "wireit",
@@ -152,6 +153,7 @@
   "wireit": {
     "compile": {
       "dependencies": [
+        "compile:github-actions",
         "./packages/eslint-local-rules:compile",
         "./packages/salesforcedx-utils:compile",
         "./packages/salesforcedx-vscode-i18n:compile",
@@ -293,6 +295,17 @@
       },
       "dependencies": [
         "vscode:package:modern"
+      ]
+    },
+    "compile:github-actions": {
+      "command": "tsc -p .github/actions/new-issue/tsconfig.json && tsc -p .github/actions/validate-issue/tsconfig.json && tsc -p .github/actions/check-feature-request/tsconfig.json",
+      "files": [
+        ".github/actions/*/src/**/*.ts",
+        ".github/actions/*/tsconfig.json",
+        "tsconfig.common.json"
+      ],
+      "output": [
+        ".github/actions/*/lib/**"
       ]
     },
     "check:peer-deps": {
