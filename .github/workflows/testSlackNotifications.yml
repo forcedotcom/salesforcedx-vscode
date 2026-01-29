@@ -1,0 +1,100 @@
+name: Test Slack Notifications
+
+on:
+  workflow_dispatch:
+    inputs:
+      testType:
+        description: "Type of notification to test"
+        required: true
+        type: choice
+        options:
+          - success
+          - failure
+          - notification
+          - e2e
+      title:
+        description: "Title for the notification"
+        required: false
+        type: string
+        default: "Test Notification"
+      notification:
+        description: "The message to be displayed for a notification"
+        required: false
+        type: string
+        default: "This is a test notification"
+      successfulEvent:
+        description: "URL for the successful event"
+        required: false
+        type: string
+        default: "https://github.com/forcedotcom/salesforcedx-vscode/actions"
+      failedEvent:
+        description: "Name of the failed event"
+        required: false
+        type: string
+        default: "Test failure event"
+      workflow:
+        description: "Workflow name"
+        required: false
+        type: string
+        default: "testSlackNotifications.yml"
+      summary:
+        description: "Summary of e2e results"
+        required: false
+        type: string
+        default: "Test summary - All tests passed"
+      testsBranch:
+        description: "Branch from the E2E Automation Tests repo"
+        required: false
+        type: string
+        default: "main"
+      vscodeVersion:
+        description: "VSCode version that the tests were run on"
+        required: false
+        type: string
+        default: "latest"
+
+jobs:
+  test_success_notification:
+    if: inputs.testType == 'success'
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      result: "success"
+      title: ${{ inputs.title }}
+      type: "deployment"
+      successfulEvent: ${{ inputs.successfulEvent }}
+      workflow: ${{ inputs.workflow }}
+
+  test_failure_notification:
+    if: inputs.testType == 'failure'
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      result: "failure"
+      title: ${{ inputs.title }}
+      type: "deployment"
+      failedEvent: ${{ inputs.failedEvent }}
+      workflow: ${{ inputs.workflow }}
+
+  test_general_notification:
+    if: inputs.testType == 'notification'
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      type: "notification"
+      title: ${{ inputs.title }}
+      notification: ${{ inputs.notification }}
+      workflow: ${{ inputs.workflow }}
+
+  test_e2e_notification:
+    if: inputs.testType == 'e2e'
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      type: "e2e"
+      title: ${{ inputs.title }}
+      vscodeVersion: ${{ inputs.vscodeVersion }}
+      testsBranch: ${{ inputs.testsBranch }}
+      summary: ${{ inputs.summary }}
+      workflow: ${{ inputs.workflow }}
+      result: "success"
