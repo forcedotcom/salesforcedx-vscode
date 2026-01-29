@@ -32,6 +32,9 @@
     "compile": {
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-vscode-services-types:compile"
+      ],
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
