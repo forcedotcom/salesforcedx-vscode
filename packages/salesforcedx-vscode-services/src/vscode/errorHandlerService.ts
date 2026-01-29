@@ -66,15 +66,12 @@ export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('
             const fullMessage = `Error: ${baseMessage}\n\n${actions.join('\n')}`;
             yield* channelService.appendToChannel(fullMessage);
             const channel = yield* channelService.getChannel;
-            const selection = yield* Effect.promise(() =>
-              vscode.window.showErrorMessage(baseMessage, 'View Details')
-            );
+            const selection = yield* Effect.promise(() => vscode.window.showErrorMessage(baseMessage, 'View Details'));
             if (selection === 'View Details') channel.show();
           } else {
             yield* Effect.sync(() => void vscode.window.showErrorMessage(baseMessage));
           }
         })
     };
-  }),
-  dependencies: [ChannelService.Default]
+  })
 }) {}

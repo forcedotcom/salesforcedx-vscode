@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { ExtensionContext } from 'vscode';
 import * as vscode from 'vscode';
-import { EXTENSION_NAME, OUTPUT_CHANNEL_NAME } from '../constants';
+import { EXTENSION_NAME } from '../constants';
 
 const ExtensionProviderServiceLive = Layer.effect(
   ExtensionProviderService,
@@ -32,6 +32,10 @@ export const AllServicesLayerFor = (context?: ExtensionContext) =>
       const extension = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`);
       const extensionVersion = extension?.packageJSON?.version ?? 'unknown';
       const o11yEndpoint = process.env.O11Y_ENDPOINT ?? extension?.packageJSON?.o11yUploadEndpoint;
+      // ErrorHandlerService depends on ChannelService, provide the extension's channel
+      const channelLayer = api.services.ChannelServiceLayer(extension?.packageJSON.displayName);
+      const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
+
       // Merge all the service layers from the API
       return Layer.mergeAll(
         ExtensionProviderServiceLive,
@@ -40,7 +44,7 @@ export const AllServicesLayerFor = (context?: ExtensionContext) =>
         api.services.ConnectionService.Default,
         api.services.FsService.Default,
         api.services.EditorService.Default,
-        api.services.ErrorHandlerService.Default,
+        errorHandlerWithChannel,
         context ? api.services.ExtensionContextServiceLayer(context) : api.services.ExtensionContextService.Default,
         api.services.MetadataDeployService.Default,
         api.services.MetadataDeleteService.Default,
@@ -52,7 +56,7 @@ export const AllServicesLayerFor = (context?: ExtensionContext) =>
         api.services.SettingsService.Default,
         api.services.WorkspaceService.Default,
         api.services.SourceTrackingService.Default,
-        api.services.ChannelServiceLayer(OUTPUT_CHANNEL_NAME),
+        channelLayer,
         api.services.FileWatcherService.Default
       );
     }).pipe(Effect.provide(ExtensionProviderServiceLive))

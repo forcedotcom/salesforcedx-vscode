@@ -19,9 +19,12 @@ export class ExtensionContextNotAvailableError extends Data.TaggedError('Extensi
 export class ExtensionContextService extends Effect.Service<ExtensionContextService>()('ExtensionContextService', {
   sync: (): {
     getContext: Effect.Effect<ExtensionContext, ExtensionContextNotAvailableError>;
+    getDisplayName: Effect.Effect<string, ExtensionContextNotAvailableError>;
   } => ({
     /** Get the ExtensionContext */
-    getContext: Effect.fail(new ExtensionContextNotAvailableError())
+    getContext: Effect.fail(new ExtensionContextNotAvailableError()),
+    /** Get the extension's display name from package.json */
+    getDisplayName: Effect.fail(new ExtensionContextNotAvailableError())
   })
 }) {}
 
@@ -35,6 +38,7 @@ export const ExtensionContextServiceLayer = (context: ExtensionContext): Layer.L
   Layer.succeed(
     ExtensionContextService,
     new ExtensionContextService({
-      getContext: Effect.succeed(context)
+      getContext: Effect.succeed(context),
+      getDisplayName: Effect.succeed(context.extension.packageJSON.displayName)
     })
   );

@@ -112,12 +112,15 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 
   const extensionScope = Effect.runSync(getExtensionScope());
 
+  // ErrorHandlerService depends on ChannelService, so provide it explicitly
+  const errorHandlerWithChannel = Layer.provide(ErrorHandlerService.Default, ChannelService.Default);
+
   const requirements = Layer.mergeAll(
     ChannelService.Default,
     ComponentSetService.Default,
     ConfigService.Default,
     ConnectionService.Default,
-    ErrorHandlerService.Default,
+    errorHandlerWithChannel,
     ExtensionContextServiceLayer(context),
     FileWatcherService.Default,
     IndexedDBStorageServiceShared,

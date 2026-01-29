@@ -23,7 +23,7 @@ import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './commands/
 import { sourceDiff } from './commands/sourceDiff';
 import { DEPLOY_ON_SAVE_ENABLED, EXTENSION_NAME, METADATA_CONFIG_SECTION } from './constants';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
-import { AllServicesLayerFor } from './services/extensionProvider';
+import { AllServicesLayerFor, AllServicesLayer } from './services/extensionProvider';
 import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
@@ -34,7 +34,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
 };
 
 export const deactivate = async (): Promise<void> =>
-  Effect.runPromise(deactivateEffect().pipe(Effect.provide(AllServicesLayerFor())));
+  Effect.runPromise(deactivateEffect().pipe(Effect.provide(AllServicesLayer)));
 
 /** Check if this extension should register shared commands (when core is not installed or config enables it) */
 const shouldRegisterSharedCommands = (): boolean => {
