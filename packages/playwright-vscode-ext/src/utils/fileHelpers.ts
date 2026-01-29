@@ -7,7 +7,7 @@
 
 import { expect, type Page } from '@playwright/test';
 import { executeCommandWithCommandPalette } from '../pages/commands';
-import { closeSettingsTab, closeWelcomeTabs } from './helpers';
+import { closeSettingsTab, closeWelcomeTabs, isDesktop } from './helpers';
 import { WORKBENCH, QUICK_INPUT_WIDGET, EDITOR_WITH_URI, DIRTY_EDITOR, QUICK_INPUT_LIST_ROW } from './locators';
 
 /**
@@ -70,16 +70,36 @@ export const createApexClass = async (page: Page, className: string, content?: s
   }
 };
 
-/** Open a file using Quick Open (Ctrl+P) */
+/**
+ * Open a file using Quick Open.
+ * Big caveat: on the web, this'll only work with files that have already been opened, in the editor (not just call didOpen on it!)
+ * that's a limitation of web fs on vscode because search/find files doesn't work yet.
+ */
 export const openFileByName = async (page: Page, fileName: string): Promise<void> => {
-  // Ensure workbench is focused first
-  await page.locator(WORKBENCH).click();
+  const widget = page.locator(QUICK_INPUT_WIDGET);
 
-  // Open Quick Open with Ctrl+P
-  await page.keyboard.press('Control+p');
+  if (isDesktop()) {
+    // On macOS desktop, Control+P doesn't work reliably, use command palette instead
+    await executeCommandWithCommandPalette(page, 'Go to File');
 
-  // Wait for Quick Open to appear
-  await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 10_000 });
+    // Wait for Quick Open widget to be visible and ready
+    await expect(widget).toBeVisible({ timeout: 10_000 });
+    const input = widget.locator('input.input');
+    await expect(input).toBeVisible({ timeout: 5000 });
+    await input.click({ timeout: 5000 });
+
+    // Clear any existing text and ensure input is focused
+    await page.keyboard.press('Control+a');
+    await page.keyboard.press('Delete');
+  } else {
+    // On web Control+P works fine as long as file has been opened in the editor first
+    await page.locator(WORKBENCH).click();
+    await page.keyboard.press('Control+p');
+    await widget.waitFor({ state: 'visible', timeout: 10_000 });
+    // Ensure input is focused and ready (matching original behavior)
+    const input = widget.locator('input.input');
+    await expect(input).toBeVisible({ timeout: 5000 });
+  }
 
   // Type the filename
   await page.keyboard.type(fileName);
@@ -115,6 +135,13 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
       const text = await results.nth(i).textContent();
       if (text) allResults.push(text.trim());
     }
+    // Check if Quick Open might be showing command palette results instead of files
+    const firstResult = allResults[0] || '';
+    if (firstResult.toLowerCase().includes('similar commands') || firstResult.toLowerCase().includes('no matching')) {
+      throw new Error(
+        `Quick Open appears to be showing command palette results instead of files. Found ${resultCount} results. First few: ${allResults.join(' | ')}`
+      );
+    }
     throw new Error(
       `No exact match found for "${fileName}" in Quick Open. Found ${resultCount} results. First few: ${allResults.join(' | ')}`
     );
@@ -133,7 +160,7 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
 };
 
 /** Edit the currently open file by adding a comment at the top */
-export const editOpenFile = async (page: Page, comment: string): Promise<void> => {
+export const editAndSaveOpenFile = async (page: Page, comment: string): Promise<void> => {
   const editor = page.locator(EDITOR_WITH_URI).first();
   await editor.waitFor({ state: 'visible' });
 

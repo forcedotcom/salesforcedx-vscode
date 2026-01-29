@@ -78,7 +78,8 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-testing",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-oas",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-replay-debugger",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-debugger"
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-debugger",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-metadata"
       ],
       "stopOnEntry": false,
       "sourceMaps": true,
@@ -388,7 +389,7 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-metadata",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser"
       ],
       "outFiles": [
         "${workspaceFolder}/packages/salesforcedx-vscode-services/dist/**/*.js",
@@ -396,7 +397,7 @@
         "${workspaceFolder}/packages/salesforcedx-vscode-metadata/dist/**/*.js",
         "${workspaceFolder}/packages/salesforcedx-vscode-core/dist/**/*.js",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
-        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser"
       ]
     }
   ],

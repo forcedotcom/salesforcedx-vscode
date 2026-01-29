@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
-import { ExtensionProviderService } from '../../services/extensionProvider';
 import { formatRetrieveOutput } from './formatRetrieveOutput';
 
 /** Retrieve a ComponentSet, handling empty sets, cancellation, and output formatting */

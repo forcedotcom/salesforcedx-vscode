@@ -21,7 +21,12 @@ export {
   validateNoCriticalErrors
 } from './utils/helpers';
 
-export { createFileWithContents, createApexClass, openFileByName, editOpenFile } from './utils/fileHelpers';
+export {
+  createFileWithContents,
+  createApexClass,
+  openFileByName,
+  editAndSaveOpenFile as editOpenFile
+} from './utils/fileHelpers';
 
 export {
   WORKBENCH,

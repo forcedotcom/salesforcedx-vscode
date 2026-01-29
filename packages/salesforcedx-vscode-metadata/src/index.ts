@@ -5,6 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  closeExtensionScope,
+  ExtensionProviderService,
+  getExtensionScope
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
@@ -19,10 +24,10 @@ import { retrieveManifest } from './commands/retrieveManifest';
 import { retrieveSourcePaths } from './commands/retrieveSourcePath';
 import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
 import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './commands/showSourceTrackingDetails';
+import { sourceDiff } from './commands/sourceDiff';
 import { DEPLOY_ON_SAVE_ENABLED, EXTENSION_NAME, METADATA_CONFIG_SECTION } from './constants';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
-import { AllServicesLayer, ExtensionProviderService } from './services/extensionProvider';
-import { closeExtensionScope, getExtensionScope } from './services/extensionScope';
+import { AllServicesLayer } from './services/extensionProvider';
 import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
@@ -74,7 +79,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths),
       vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
       vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest),
-      vscode.commands.registerCommand('sf.project.generate.manifest', generateManifest)
+      vscode.commands.registerCommand('sf.project.generate.manifest', generateManifest),
+      vscode.commands.registerCommand('sf.source.diff', sourceDiff)
     );
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
@@ -82,10 +88,11 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     }
     // Start deploy on save service only if this extension handles shared commands
     yield* Effect.forkIn(createDeployOnSaveService(), yield* getExtensionScope());
+
+    // Register source tracking status bar
+    yield* Effect.forkIn(createSourceTrackingStatusBar(), yield* getExtensionScope());
   }
 
-  // Register source tracking status bar
-  yield* Effect.forkIn(createSourceTrackingStatusBar(), yield* getExtensionScope());
   yield* svc.appendToChannel('Salesforce Metadata activation complete.');
 });
 

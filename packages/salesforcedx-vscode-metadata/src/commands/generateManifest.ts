@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { parse } from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 
 const DEFAULT_MANIFEST = 'package.xml';
 
@@ -36,11 +37,11 @@ const promptForOverwrite = (fileName: string) =>
     )
   );
 
-const generateManifestFromUris = (uris: Set<URI>) =>
+const generateManifestFromUris = (uris: URI[]) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const componentSetService = yield* api.services.ComponentSetService;
-    const componentSet = yield* componentSetService.getComponentSetFromUris(uris);
+    const componentSet = yield* componentSetService.getComponentSetFromUris(Array.from(uris));
     return yield* Effect.promise(() => componentSet.getPackageXml());
   });
 
@@ -103,7 +104,7 @@ const generateManifestEffect = Effect.fn('generateManifest')(function* (
   const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow;
 
   // Resolve URIs
-  const resolvedUris = new Set(uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri]);
+  const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
 
   // Prompt for filename and generate package XML in parallel so it's ready as soon as the user responds
   const [fileName, packageXML] = yield* Effect.all([promptForFileName(), generateManifestFromUris(resolvedUris)], {

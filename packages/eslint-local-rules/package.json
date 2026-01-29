@@ -12,7 +12,7 @@
     "compile": "wireit",
     "test": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf out dist .wireit .eslintcache"
+    "clean": "shx rm -rf out dist .wireit .eslintcache .circular-deps.json"
   },
   "wireit": {
     "compile": {
@@ -43,10 +43,21 @@
       ],
       "output": []
     },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
+      "dependencies": ["compile"],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [".circular-deps.json"]
+    },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "compile"
+        "compile",
+        "check:circular-deps"
       ],
       "files": [
         "src/**/*.ts",

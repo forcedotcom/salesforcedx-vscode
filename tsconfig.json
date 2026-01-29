@@ -20,6 +20,9 @@
       "path": "packages/salesforcedx-utils-vscode"
     },
     {
+      "path": "packages/effect-ext-utils"
+    },
+    {
       "path": "packages/salesforcedx-vscode-i18n"
     },
     {

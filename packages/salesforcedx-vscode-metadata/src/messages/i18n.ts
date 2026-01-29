@@ -82,7 +82,17 @@ export const messages = {
   project_generate_manifest_text: 'SFDX: Generate Manifest File',
   generate_manifest_select_file_or_directory:
     'You can run SFDX: Generate Manifest File only on a source file or directory.',
-  generate_manifest_failed: 'Generate manifest failed: %s'
+  generate_manifest_failed: 'Generate manifest failed: %s',
+  source_diff_unsupported_type: 'Diff for this metadata type is currently not supported',
+  source_diff_title: '%s//%s ↔ local//%s',
+  source_diff_failed: 'Diff failed: %s',
+  source_diff_failed_for_file: 'Diff failed for %s: %s',
+  source_diff_no_components: 'No components found to diff',
+  source_diff_cancelled: 'Diff cancelled by user',
+  source_diff_no_results: 'No components retrieved from org',
+  source_diff_no_matching_files: 'No matching files found to diff',
+  source_diff_all_files_match: 'All Files Match',
+  missing_default_org: 'No default org is set. Run "SFDX: Authorize an Org" to set a default org.'
 } as const;
 
 export type MessageKey = keyof typeof messages;
