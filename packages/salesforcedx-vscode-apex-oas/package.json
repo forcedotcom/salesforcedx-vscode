@@ -35,7 +35,7 @@
     "@stoplight/spectral-rulesets": "1.22.0",
     "async-lock": "1.4.1",
     "ejs": "3.1.10",
-    "fast-xml-parser": "4.5.3",
+    "fast-xml-parser": "5.3.4",
     "jsonpath-plus": "10.3.0",
     "vscode-uri": "^3.1.0",
     "yaml": "2.8.1"
