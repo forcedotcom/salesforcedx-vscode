@@ -5,18 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Soql from '../model';
+import { OrderBy, OrderByExpression, SyntaxOptions } from '../model';
 import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class OrderByImpl extends SoqlModelObjectImpl implements Soql.OrderBy {
-  public orderByExpressions: Soql.OrderByExpression[];
+export class OrderByImpl extends SoqlModelObjectImpl implements OrderBy {
+  public orderByExpressions: OrderByExpression[];
 
-  constructor(orderByExpressions: Soql.OrderByExpression[]) {
+  constructor(orderByExpressions: OrderByExpression[]) {
     super();
     this.orderByExpressions = orderByExpressions;
   }
 
-  public toSoqlSyntax(options?: Soql.SyntaxOptions): string {
+  public toSoqlSyntax(options?: SyntaxOptions): string {
     let syntax = 'ORDER BY ';
     let first = true;
     if (this.orderByExpressions.length > 0) {

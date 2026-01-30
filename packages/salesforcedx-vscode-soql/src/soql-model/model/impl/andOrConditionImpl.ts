@@ -5,18 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Soql from '../model';
+import { AndOr, AndOrCondition, Condition, SyntaxOptions } from '../model';
 import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class AndOrConditionImpl extends SoqlModelObjectImpl implements Soql.AndOrCondition {
+export class AndOrConditionImpl extends SoqlModelObjectImpl implements AndOrCondition {
   constructor(
-    public leftCondition: Soql.Condition,
-    public andOr: Soql.AndOr,
-    public rightCondition: Soql.Condition
+    public leftCondition: Condition,
+    public andOr: AndOr,
+    public rightCondition: Condition
   ) {
     super();
   }
-  public toSoqlSyntax(options?: Soql.SyntaxOptions): string {
+  public toSoqlSyntax(options?: SyntaxOptions): string {
     return `${this.leftCondition.toSoqlSyntax(options)} ${this.andOr} ${this.rightCondition.toSoqlSyntax(options)}`;
   }
 }

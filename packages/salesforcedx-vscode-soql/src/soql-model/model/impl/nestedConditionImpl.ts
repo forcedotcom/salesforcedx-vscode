@@ -5,16 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Soql from '../model';
+import { Condition, NestedCondition, SyntaxOptions } from '../model';
 import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class NestedConditionImpl extends SoqlModelObjectImpl implements Soql.NestedCondition {
-  public condition: Soql.Condition;
-  constructor(condition: Soql.Condition) {
+export class NestedConditionImpl extends SoqlModelObjectImpl implements NestedCondition {
+  public condition: Condition;
+  constructor(condition: Condition) {
     super();
     this.condition = condition;
   }
-  public toSoqlSyntax(options?: Soql.SyntaxOptions): string {
+  public toSoqlSyntax(options?: SyntaxOptions): string {
     return `( ${this.condition.toSoqlSyntax(options)} )`;
   }
 }

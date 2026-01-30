@@ -5,20 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Soql from '../model';
+import { From, SyntaxOptions, UnmodeledSyntax } from '../model';
 import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class FromImpl extends SoqlModelObjectImpl implements Soql.From {
+export class FromImpl extends SoqlModelObjectImpl implements From {
   public sobjectName: string;
-  public as?: Soql.UnmodeledSyntax;
-  public using?: Soql.UnmodeledSyntax;
-  constructor(sobjectName: string, as?: Soql.UnmodeledSyntax, using?: Soql.UnmodeledSyntax) {
+  public as?: UnmodeledSyntax;
+  public using?: UnmodeledSyntax;
+  constructor(sobjectName: string, as?: UnmodeledSyntax, using?: UnmodeledSyntax) {
     super();
     this.sobjectName = sobjectName;
     this.as = as;
     this.using = using;
   }
-  public toSoqlSyntax(options?: Soql.SyntaxOptions): string {
+  public toSoqlSyntax(options?: SyntaxOptions): string {
     let syntax = `FROM ${this.sobjectName}`;
     if (this.as) {
       syntax += ` ${this.as.toSoqlSyntax(options)}`;

@@ -7,7 +7,7 @@
 
 import { FromImpl } from '../../../../../src/soql-model/model/impl/fromImpl';
 import { UnmodeledSyntaxImpl } from '../../../../../src/soql-model/model/impl/unmodeledSyntaxImpl';
-import * as Soql from '../../../../../src/soql-model/model/model';
+import { REASON_UNMODELED_AS, REASON_UNMODELED_USING } from '../../../../../src/soql-model/model/model';
 
 
 describe('FromImpl should', () => {
@@ -19,13 +19,13 @@ describe('FromImpl should', () => {
   it('store as and using clauses as unmodeled syntax', () => {
     const expected = {
       sobjectName: 'black',
-      as: { unmodeledSyntax: 'and', reason: Soql.REASON_UNMODELED_AS },
-      using: { unmodeledSyntax: 'blue', reason: Soql.REASON_UNMODELED_USING },
+      as: { unmodeledSyntax: 'and', reason: REASON_UNMODELED_AS },
+      using: { unmodeledSyntax: 'blue', reason: REASON_UNMODELED_USING },
     };
     const actual = new FromImpl(
       expected.sobjectName,
-      new UnmodeledSyntaxImpl(expected.as.unmodeledSyntax, Soql.REASON_UNMODELED_AS),
-      new UnmodeledSyntaxImpl(expected.using.unmodeledSyntax, Soql.REASON_UNMODELED_USING)
+      new UnmodeledSyntaxImpl(expected.as.unmodeledSyntax, REASON_UNMODELED_AS),
+      new UnmodeledSyntaxImpl(expected.using.unmodeledSyntax, REASON_UNMODELED_USING)
     );
     expect(actual).toEqual(expected);
   });
@@ -33,8 +33,8 @@ describe('FromImpl should', () => {
     const expected = 'FROM exile on main';
     const actual = new FromImpl(
       'exile',
-      new UnmodeledSyntaxImpl('on', Soql.REASON_UNMODELED_AS),
-      new UnmodeledSyntaxImpl('main', Soql.REASON_UNMODELED_USING)
+      new UnmodeledSyntaxImpl('on', REASON_UNMODELED_AS),
+      new UnmodeledSyntaxImpl('main', REASON_UNMODELED_USING)
     ).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });

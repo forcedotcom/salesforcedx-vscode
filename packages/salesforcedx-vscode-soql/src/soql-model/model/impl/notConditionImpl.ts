@@ -5,16 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Soql from '../model';
+import { Condition, NotCondition, SyntaxOptions } from '../model';
 import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class NotConditionImpl extends SoqlModelObjectImpl implements Soql.NotCondition {
-  public condition: Soql.Condition;
-  constructor(condition: Soql.Condition) {
+export class NotConditionImpl extends SoqlModelObjectImpl implements NotCondition {
+  public condition: Condition;
+  constructor(condition: Condition) {
     super();
     this.condition = condition;
   }
-  public toSoqlSyntax(options?: Soql.SyntaxOptions): string {
+  public toSoqlSyntax(options?: SyntaxOptions): string {
     return `NOT ${this.condition.toSoqlSyntax(options)}`;
   }
 }

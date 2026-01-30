@@ -5,7 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Soql from '../../../src/soql-model/model/model';
+import {
+  ErrorType,
+  REASON_UNMODELED_ALIAS,
+  REASON_UNMODELED_BIND,
+  REASON_UNMODELED_FUNCTIONREFERENCE,
+  REASON_UNMODELED_GROUPBY,
+  REASON_UNMODELED_OFFSET,
+  REASON_UNMODELED_RECORDTRACKING,
+  REASON_UNMODELED_SEMIJOIN,
+  REASON_UNMODELED_TYPEOF,
+  REASON_UNMODELED_UPDATE,
+  REASON_UNMODELED_USING,
+  REASON_UNMODELED_WITH,
+  REASON_UNMODELED_AS,
+  REASON_UNMODELED_CALCULATEDCONDITION,
+  REASON_UNMODELED_COMPLEXGROUP,
+  REASON_UNMODELED_DISTANCECONDITION,
+  REASON_UNMODELED_INSEMIJOINCONDITION
+} from '../../../src/soql-model/model/model';
 import { deserialize } from '../../../src/soql-model/serialization/deserializer';
 
 const testQueryModel = {
@@ -13,16 +31,16 @@ const testQueryModel = {
     selectExpressions: [
       { field: { fieldName: 'field1' } },
       { field: { fieldName: 'field2' } },
-      { field: { fieldName: 'field3' }, alias: { unmodeledSyntax: 'alias3', reason: Soql.REASON_UNMODELED_ALIAS } },
-      { unmodeledSyntax: 'COUNT(fieldZ)', reason: Soql.REASON_UNMODELED_FUNCTIONREFERENCE },
-      { unmodeledSyntax: '(SELECT fieldA FROM objectA)', reason: Soql.REASON_UNMODELED_SEMIJOIN },
-      { unmodeledSyntax: 'TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END', reason: Soql.REASON_UNMODELED_TYPEOF }
+      { field: { fieldName: 'field3' }, alias: { unmodeledSyntax: 'alias3', reason: REASON_UNMODELED_ALIAS } },
+      { unmodeledSyntax: 'COUNT(fieldZ)', reason: REASON_UNMODELED_FUNCTIONREFERENCE },
+      { unmodeledSyntax: '(SELECT fieldA FROM objectA)', reason: REASON_UNMODELED_SEMIJOIN },
+      { unmodeledSyntax: 'TYPEOF obj WHEN typeX THEN fieldX ELSE fieldY END', reason: REASON_UNMODELED_TYPEOF }
     ]
   },
   from: { sobjectName: 'object1' },
   where: { condition: { field: { fieldName: 'field1' }, operator: '=', compareValue: { value: '5' } } },
-  with: { unmodeledSyntax: 'WITH DATA CATEGORY cat__c AT val__c', reason: Soql.REASON_UNMODELED_WITH },
-  groupBy: { unmodeledSyntax: 'GROUP BY field1', reason: Soql.REASON_UNMODELED_GROUPBY },
+  with: { unmodeledSyntax: 'WITH DATA CATEGORY cat__c AT val__c', reason: REASON_UNMODELED_WITH },
+  groupBy: { unmodeledSyntax: 'GROUP BY field1', reason: REASON_UNMODELED_GROUPBY },
   orderBy: {
     orderByExpressions: [
       {
@@ -34,17 +52,17 @@ const testQueryModel = {
     ]
   },
   limit: { limit: 20 },
-  offset: { unmodeledSyntax: 'OFFSET 2', reason: Soql.REASON_UNMODELED_OFFSET },
-  bind: { unmodeledSyntax: 'BIND field1 = 5', reason: Soql.REASON_UNMODELED_BIND },
-  recordTrackingType: { unmodeledSyntax: 'FOR VIEW', reason: Soql.REASON_UNMODELED_RECORDTRACKING },
-  update: { unmodeledSyntax: 'UPDATE TRACKING', reason: Soql.REASON_UNMODELED_UPDATE },
+  offset: { unmodeledSyntax: 'OFFSET 2', reason: REASON_UNMODELED_OFFSET },
+  bind: { unmodeledSyntax: 'BIND field1 = 5', reason: REASON_UNMODELED_BIND },
+  recordTrackingType: { unmodeledSyntax: 'FOR VIEW', reason: REASON_UNMODELED_RECORDTRACKING },
+  update: { unmodeledSyntax: 'UPDATE TRACKING', reason: REASON_UNMODELED_UPDATE },
   errors: []
 };
 
 const fromWithUnmodeledSyntax = {
   sobjectName: 'object1',
-  as: { unmodeledSyntax: 'AS objectAs', reason: Soql.REASON_UNMODELED_AS },
-  using: { unmodeledSyntax: 'USING SCOPE everything', reason: Soql.REASON_UNMODELED_USING }
+  as: { unmodeledSyntax: 'AS objectAs', reason: REASON_UNMODELED_AS },
+  using: { unmodeledSyntax: 'USING SCOPE everything', reason: REASON_UNMODELED_USING }
 };
 
 const selectCount = {};
@@ -83,19 +101,19 @@ const conditionAndOr = {
   rightCondition: conditionLike
 };
 const conditionNested = { condition: conditionFieldCompare };
-const conditionNot = { unmodeledSyntax: 'NOT field = 5', reason: Soql.REASON_UNMODELED_COMPLEXGROUP };
+const conditionNot = { unmodeledSyntax: 'NOT field = 5', reason: REASON_UNMODELED_COMPLEXGROUP };
 const conditionComplex = {
   unmodeledSyntax: "field = 5 AND (field like 'A%' OR field like 'B%')",
-  reason: Soql.REASON_UNMODELED_COMPLEXGROUP
+  reason: REASON_UNMODELED_COMPLEXGROUP
 };
-const conditionCalculated = { unmodeledSyntax: 'A + B > 10', reason: Soql.REASON_UNMODELED_CALCULATEDCONDITION };
+const conditionCalculated = { unmodeledSyntax: 'A + B > 10', reason: REASON_UNMODELED_CALCULATEDCONDITION };
 const conditionDistance = {
   unmodeledSyntax: "DISTANCE(field,GEOLOCATION(37,122),'mi') < 100",
-  reason: Soql.REASON_UNMODELED_DISTANCECONDITION
+  reason: REASON_UNMODELED_DISTANCECONDITION
 };
 const conditionSemiJoin = {
   unmodeledSyntax: 'field IN (SELECT A FROM B)',
-  reason: Soql.REASON_UNMODELED_INSEMIJOINCONDITION
+  reason: REASON_UNMODELED_INSEMIJOINCONDITION
 };
 
 describe('deserialize should', () => {
@@ -172,31 +190,31 @@ describe('deserialize should', () => {
   });
 
   it('identify no selections error', () => {
-    expectError('SELECT FROM object1', Soql.ErrorType.NOSELECTIONS);
+    expectError('SELECT FROM object1', ErrorType.NOSELECTIONS);
   });
 
   it('identify no SELECT clause error', () => {
-    expectError('FROM object1', Soql.ErrorType.NOSELECT);
+    expectError('FROM object1', ErrorType.NOSELECT);
   });
 
   it('identify incomplete FROM clause error', () => {
-    expectError('SELECT A FROM ', Soql.ErrorType.INCOMPLETEFROM);
+    expectError('SELECT A FROM ', ErrorType.INCOMPLETEFROM);
   });
 
   it('identify no FROM clause error', () => {
-    expectError('SELECT A', Soql.ErrorType.NOFROM);
+    expectError('SELECT A', ErrorType.NOFROM);
   });
 
   it('identify empty statement error', () => {
-    expectError('', Soql.ErrorType.EMPTY);
+    expectError('', ErrorType.EMPTY);
   });
 
   it('identify incomplete LIMIT clause error when number missing', () => {
-    expectError('SELECT A FROM B LIMIT', Soql.ErrorType.INCOMPLETELIMIT);
+    expectError('SELECT A FROM B LIMIT', ErrorType.INCOMPLETELIMIT);
   });
 
   it('identify incomplete LIMIT clause error when value is not a number', () => {
-    expectError('SELECT A FROM B LIMIT X', Soql.ErrorType.INCOMPLETELIMIT);
+    expectError('SELECT A FROM B LIMIT X', ErrorType.INCOMPLETELIMIT);
   });
 
   it('identify LIMIT 0 as valid limit clause', () => {
@@ -622,57 +640,57 @@ describe('deserialize should', () => {
   });
 
   it('identify empty WHERE', () => {
-    expectError('SELECT field1 FROM object1 WHERE', Soql.ErrorType.EMPTYWHERE);
+    expectError('SELECT field1 FROM object1 WHERE', ErrorType.EMPTYWHERE);
   });
 
   it('identify incomplete nested WHERE condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE ( field = 5', Soql.ErrorType.INCOMPLETENESTEDCONDITION);
+    expectError('SELECT field1 FROM object1 WHERE ( field = 5', ErrorType.INCOMPLETENESTEDCONDITION);
   });
 
   it('identify incomplete AND/OR condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE field = 5 AND', Soql.ErrorType.INCOMPLETEANDORCONDITION);
-    expectError('SELECT field1 FROM object1 WHERE OR field = 5', Soql.ErrorType.INCOMPLETEANDORCONDITION);
+    expectError('SELECT field1 FROM object1 WHERE field = 5 AND', ErrorType.INCOMPLETEANDORCONDITION);
+    expectError('SELECT field1 FROM object1 WHERE OR field = 5', ErrorType.INCOMPLETEANDORCONDITION);
   });
 
   it('identify incomplete NOT condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE NOT', Soql.ErrorType.INCOMPLETENOTCONDITION);
+    expectError('SELECT field1 FROM object1 WHERE NOT', ErrorType.INCOMPLETENOTCONDITION);
   });
 
   it('identify unrecognized literal value in condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE field = foo', Soql.ErrorType.UNRECOGNIZEDCOMPAREVALUE);
-    expectError('SELECT field1 FROM object1 WHERE field LIKE foo', Soql.ErrorType.UNRECOGNIZEDCOMPAREVALUE);
-    expectError('SELECT field1 FROM object1 WHERE field IN ( foo )', Soql.ErrorType.UNRECOGNIZEDCOMPAREVALUE);
-    expectError('SELECT field1 FROM object1 WHERE field INCLUDES ( foo )', Soql.ErrorType.UNRECOGNIZEDCOMPAREVALUE);
+    expectError('SELECT field1 FROM object1 WHERE field = foo', ErrorType.UNRECOGNIZEDCOMPAREVALUE);
+    expectError('SELECT field1 FROM object1 WHERE field LIKE foo', ErrorType.UNRECOGNIZEDCOMPAREVALUE);
+    expectError('SELECT field1 FROM object1 WHERE field IN ( foo )', ErrorType.UNRECOGNIZEDCOMPAREVALUE);
+    expectError('SELECT field1 FROM object1 WHERE field INCLUDES ( foo )', ErrorType.UNRECOGNIZEDCOMPAREVALUE);
   });
 
   it('identify unrecognized compare operator in condition', () => {
-    expectError("SELECT field1 FROM object1 WHERE field LIK 'foo'", Soql.ErrorType.UNRECOGNIZEDCOMPAREOPERATOR);
+    expectError("SELECT field1 FROM object1 WHERE field LIK 'foo'", ErrorType.UNRECOGNIZEDCOMPAREOPERATOR);
   });
 
   it('identify unrecognized compare field in condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE 5 = 5', Soql.ErrorType.UNRECOGNIZEDCOMPAREFIELD);
+    expectError('SELECT field1 FROM object1 WHERE 5 = 5', ErrorType.UNRECOGNIZEDCOMPAREFIELD);
   });
 
   it('identify missing compare value in condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE field =', Soql.ErrorType.NOCOMPAREVALUE);
-    expectError('SELECT field1 FROM object1 WHERE field LIKE', Soql.ErrorType.NOCOMPAREVALUE);
-    expectError('SELECT field1 FROM object1 WHERE field IN', Soql.ErrorType.NOCOMPAREVALUE);
-    expectError('SELECT field1 FROM object1 WHERE field INCLUDES', Soql.ErrorType.NOCOMPAREVALUE);
+    expectError('SELECT field1 FROM object1 WHERE field =', ErrorType.NOCOMPAREVALUE);
+    expectError('SELECT field1 FROM object1 WHERE field LIKE', ErrorType.NOCOMPAREVALUE);
+    expectError('SELECT field1 FROM object1 WHERE field IN', ErrorType.NOCOMPAREVALUE);
+    expectError('SELECT field1 FROM object1 WHERE field INCLUDES', ErrorType.NOCOMPAREVALUE);
   });
 
   it('identify missing compare operator in condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE field', Soql.ErrorType.NOCOMPAREOPERATOR);
+    expectError('SELECT field1 FROM object1 WHERE field', ErrorType.NOCOMPAREOPERATOR);
   });
 
   it('identify incomplete multi-value list', () => {
-    expectError('SELECT field1 FROM object1 WHERE field IN (', Soql.ErrorType.INCOMPLETEMULTIVALUELIST);
-    expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo'", Soql.ErrorType.INCOMPLETEMULTIVALUELIST);
-    expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo',", Soql.ErrorType.INCOMPLETEMULTIVALUELIST);
-    expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo', )", Soql.ErrorType.INCOMPLETEMULTIVALUELIST);
-    expectError('SELECT field1 FROM object1 WHERE field INCLUDES (', Soql.ErrorType.INCOMPLETEMULTIVALUELIST);
-    expectError("SELECT field1 FROM object1 WHERE field INCLUDES ( 'foo'", Soql.ErrorType.INCOMPLETEMULTIVALUELIST);
-    expectError("SELECT field1 FROM object1 WHERE field INCLUDES ( 'foo',", Soql.ErrorType.INCOMPLETEMULTIVALUELIST);
-    expectError("SELECT field1 FROM object1 WHERE field INCLUDES ( 'foo', )", Soql.ErrorType.INCOMPLETEMULTIVALUELIST);
+    expectError('SELECT field1 FROM object1 WHERE field IN (', ErrorType.INCOMPLETEMULTIVALUELIST);
+    expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo'", ErrorType.INCOMPLETEMULTIVALUELIST);
+    expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo',", ErrorType.INCOMPLETEMULTIVALUELIST);
+    expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo', )", ErrorType.INCOMPLETEMULTIVALUELIST);
+    expectError('SELECT field1 FROM object1 WHERE field INCLUDES (', ErrorType.INCOMPLETEMULTIVALUELIST);
+    expectError("SELECT field1 FROM object1 WHERE field INCLUDES ( 'foo'", ErrorType.INCOMPLETEMULTIVALUELIST);
+    expectError("SELECT field1 FROM object1 WHERE field INCLUDES ( 'foo',", ErrorType.INCOMPLETEMULTIVALUELIST);
+    expectError("SELECT field1 FROM object1 WHERE field INCLUDES ( 'foo', )", ErrorType.INCOMPLETEMULTIVALUELIST);
   });
 
   it('Identify comments at the top of the file', () => {
@@ -707,11 +725,11 @@ describe('deserialize should', () => {
   });
 
   it('identify unexpected end of file', () => {
-    expectError("SELECT field1 FROM obejct1 WHERE field = '", Soql.ErrorType.UNEXPECTEDEOF);
-    expectError('SELECT field1 FROM object1 GROUP BY', Soql.ErrorType.UNEXPECTEDEOF);
+    expectError("SELECT field1 FROM obejct1 WHERE field = '", ErrorType.UNEXPECTEDEOF);
+    expectError('SELECT field1 FROM object1 GROUP BY', ErrorType.UNEXPECTEDEOF);
   });
 
-  function expectError(query: string, expectedType: Soql.ErrorType): void {
+  function expectError(query: string, expectedType: ErrorType): void {
     const model = deserialize(query);
     if (model.errors?.length === 1) {
       expect(model.errors[0].type).toEqual(expectedType);

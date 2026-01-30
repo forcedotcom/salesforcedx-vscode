@@ -17,7 +17,15 @@ import { QueryImpl } from '../../../../../src/soql-model/model/impl/queryImpl';
 import { SelectExprsImpl } from '../../../../../src/soql-model/model/impl/selectExprsImpl';
 import { UnmodeledSyntaxImpl } from '../../../../../src/soql-model/model/impl/unmodeledSyntaxImpl';
 import { WhereImpl } from '../../../../../src/soql-model/model/impl/whereImpl';
-import * as Soql from '../../../../../src/soql-model/model/model';
+import {
+  ConditionOperator,
+  REASON_UNMODELED_BIND,
+  REASON_UNMODELED_GROUPBY,
+  REASON_UNMODELED_OFFSET,
+  REASON_UNMODELED_RECORDTRACKING,
+  REASON_UNMODELED_UPDATE,
+  REASON_UNMODELED_WITH
+} from '../../../../../src/soql-model/model/model';
 
 describe('QueryImpl should', () => {
   it('store query components as appropriate model objects', () => {
@@ -33,26 +41,26 @@ describe('QueryImpl should', () => {
       },
       with: {
         unmodeledSyntax: 'gimme shelter',
-        reason: Soql.REASON_UNMODELED_WITH
+        reason: REASON_UNMODELED_WITH
       },
       groupBy: {
         unmodeledSyntax: 'start me up',
-        reason: Soql.REASON_UNMODELED_GROUPBY
+        reason: REASON_UNMODELED_GROUPBY
       },
       orderBy: { orderByExpressions: [{ field: { fieldName: 'angie' } }] },
       limit: { limit: 5 },
       offset: {
         unmodeledSyntax: 'wild horses',
-        reason: Soql.REASON_UNMODELED_OFFSET
+        reason: REASON_UNMODELED_OFFSET
       },
-      bind: { unmodeledSyntax: 'miss you', reason: Soql.REASON_UNMODELED_BIND },
+      bind: { unmodeledSyntax: 'miss you', reason: REASON_UNMODELED_BIND },
       recordTrackingType: {
         unmodeledSyntax: 'satisfaction',
-        reason: Soql.REASON_UNMODELED_RECORDTRACKING
+        reason: REASON_UNMODELED_RECORDTRACKING
       },
       update: {
         unmodeledSyntax: 'under my thumb',
-        reason: Soql.REASON_UNMODELED_UPDATE
+        reason: REASON_UNMODELED_UPDATE
       }
     };
     const actual = new QueryImpl(
@@ -61,20 +69,20 @@ describe('QueryImpl should', () => {
       new WhereImpl(
         new FieldCompareConditionImpl(
           new FieldRefImpl(expected.where.condition.field.fieldName),
-          Soql.ConditionOperator.Equals,
+          ConditionOperator.Equals,
           new LiteralImpl(expected.where.condition.compareValue.value)
         )
       ),
-      new UnmodeledSyntaxImpl(expected.with.unmodeledSyntax, Soql.REASON_UNMODELED_WITH),
-      new UnmodeledSyntaxImpl(expected.groupBy.unmodeledSyntax, Soql.REASON_UNMODELED_GROUPBY),
+      new UnmodeledSyntaxImpl(expected.with.unmodeledSyntax, REASON_UNMODELED_WITH),
+      new UnmodeledSyntaxImpl(expected.groupBy.unmodeledSyntax, REASON_UNMODELED_GROUPBY),
       new OrderByImpl([
         new OrderByExpressionImpl(new FieldRefImpl(expected.orderBy.orderByExpressions[0].field.fieldName))
       ]),
       new LimitImpl(expected.limit.limit),
-      new UnmodeledSyntaxImpl(expected.offset.unmodeledSyntax, Soql.REASON_UNMODELED_OFFSET),
-      new UnmodeledSyntaxImpl(expected.bind.unmodeledSyntax, Soql.REASON_UNMODELED_BIND),
-      new UnmodeledSyntaxImpl(expected.recordTrackingType.unmodeledSyntax, Soql.REASON_UNMODELED_RECORDTRACKING),
-      new UnmodeledSyntaxImpl(expected.update.unmodeledSyntax, Soql.REASON_UNMODELED_UPDATE)
+      new UnmodeledSyntaxImpl(expected.offset.unmodeledSyntax, REASON_UNMODELED_OFFSET),
+      new UnmodeledSyntaxImpl(expected.bind.unmodeledSyntax, REASON_UNMODELED_BIND),
+      new UnmodeledSyntaxImpl(expected.recordTrackingType.unmodeledSyntax, REASON_UNMODELED_RECORDTRACKING),
+      new UnmodeledSyntaxImpl(expected.update.unmodeledSyntax, REASON_UNMODELED_UPDATE)
     );
     expect(actual).toEqual(expected);
   });
@@ -86,7 +94,7 @@ describe('QueryImpl should', () => {
       new WhereImpl(
         new FieldCompareConditionImpl(
           new FieldRefImpl('paint_it'),
-          Soql.ConditionOperator.Equals,
+          ConditionOperator.Equals,
           new LiteralImpl("'black'")
         )
       )

@@ -5,18 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Soql from '../model';
+import { ConditionOperator, CompareValue, Field, FieldCompareCondition, SyntaxOptions } from '../model';
 import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class FieldCompareConditionImpl extends SoqlModelObjectImpl implements Soql.FieldCompareCondition {
+export class FieldCompareConditionImpl extends SoqlModelObjectImpl implements FieldCompareCondition {
   constructor(
-    public field: Soql.Field,
-    public operator: Soql.ConditionOperator,
-    public compareValue: Soql.CompareValue
+    public field: Field,
+    public operator: ConditionOperator,
+    public compareValue: CompareValue
   ) {
     super();
   }
-  public toSoqlSyntax(options?: Soql.SyntaxOptions): string {
+  public toSoqlSyntax(options?: SyntaxOptions): string {
     return `${this.field.toSoqlSyntax(options)} ${this.operator} ${this.compareValue.toSoqlSyntax(options)}`;
   }
 }

@@ -5,16 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Soql from '../model';
+import { SelectExprs, SelectExpression, SyntaxOptions } from '../model';
 import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class SelectExprsImpl extends SoqlModelObjectImpl implements Soql.SelectExprs {
-  public selectExpressions: Soql.SelectExpression[];
-  constructor(selectExpressions: Soql.SelectExpression[]) {
+export class SelectExprsImpl extends SoqlModelObjectImpl implements SelectExprs {
+  public selectExpressions: SelectExpression[];
+  constructor(selectExpressions: SelectExpression[]) {
     super();
     this.selectExpressions = selectExpressions;
   }
-  public toSoqlSyntax(options?: Soql.SyntaxOptions): string {
+  public toSoqlSyntax(options?: SyntaxOptions): string {
     let syntax = 'SELECT ';
     let first = true;
     if (this.selectExpressions.length > 0) {

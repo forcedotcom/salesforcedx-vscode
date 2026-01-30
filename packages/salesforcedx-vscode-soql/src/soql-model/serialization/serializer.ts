@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Soql from '../model/model';
+import { SoqlModelObject, SyntaxOptions } from '../model/model';
 
 export class ModelSerializer {
-  protected model: Soql.SoqlModelObject;
-   
-  constructor(model: Soql.SoqlModelObject) {
+  protected model: SoqlModelObject;
+
+  constructor(model: SoqlModelObject) {
     this.model = model;
   }
-  public serialize(options?: Soql.SyntaxOptions): string {
+  public serialize(options?: SyntaxOptions): string {
     return this.model.toSoqlSyntax(options);
   }
 }

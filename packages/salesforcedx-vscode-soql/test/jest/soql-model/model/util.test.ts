@@ -18,17 +18,24 @@ import { NotConditionImpl } from '../../../../src/soql-model/model/impl/notCondi
 import { QueryImpl } from '../../../../src/soql-model/model/impl/queryImpl';
 import { SelectExprsImpl } from '../../../../src/soql-model/model/impl/selectExprsImpl';
 import { UnmodeledSyntaxImpl } from '../../../../src/soql-model/model/impl/unmodeledSyntaxImpl';
-import * as Soql from '../../../../src/soql-model/model/model';
+import {
+  AndOr,
+  Condition,
+  ConditionOperator,
+  REASON_UNMODELED_ALIAS,
+  REASON_UNMODELED_CALCULATEDCONDITION,
+  REASON_UNMODELED_FUNCTIONREFERENCE
+} from '../../../../src/soql-model/model/model';
 import { SoqlModelUtils } from '../../../../src/soql-model/model/util';
 
 const field = new FieldRefImpl('field');
 const literal = new LiteralImpl("'Hello'");
-const conditionFieldCompare = new FieldCompareConditionImpl(field, Soql.ConditionOperator.Equals, literal);
-const conditionLike = new FieldCompareConditionImpl(field, Soql.ConditionOperator.Like, literal);
-const conditionInList = new InListConditionImpl(field, Soql.ConditionOperator.In, [literal]);
-const conditionIncludes = new IncludesConditionImpl(field, Soql.ConditionOperator.Includes, [literal]);
-const conditionUnmodeled = new UnmodeledSyntaxImpl('A + B > 10', Soql.REASON_UNMODELED_CALCULATEDCONDITION);
-const conditionAndOr = new AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.And, conditionLike);
+const conditionFieldCompare = new FieldCompareConditionImpl(field, ConditionOperator.Equals, literal);
+const conditionLike = new FieldCompareConditionImpl(field, ConditionOperator.Like, literal);
+const conditionInList = new InListConditionImpl(field, ConditionOperator.In, [literal]);
+const conditionIncludes = new IncludesConditionImpl(field, ConditionOperator.Includes, [literal]);
+const conditionUnmodeled = new UnmodeledSyntaxImpl('A + B > 10', REASON_UNMODELED_CALCULATEDCONDITION);
+const conditionAndOr = new AndOrConditionImpl(conditionFieldCompare, AndOr.And, conditionLike);
 const conditionNested = new NestedConditionImpl(conditionFieldCompare);
 const conditionNot = new NotConditionImpl(conditionFieldCompare);
 
@@ -45,7 +52,7 @@ describe('SoqlModelUtils should', () => {
         new SelectExprsImpl([
           new FieldSelectionImpl(
             new FieldRefImpl('field1'),
-            new UnmodeledSyntaxImpl('alias1', Soql.REASON_UNMODELED_ALIAS)
+            new UnmodeledSyntaxImpl('alias1', REASON_UNMODELED_ALIAS)
           )
         ]),
         new FromImpl('object1')
@@ -59,7 +66,7 @@ describe('SoqlModelUtils should', () => {
         new SelectExprsImpl([
           new FieldSelectionImpl(
             new FieldRefImpl('field1'),
-            new UnmodeledSyntaxImpl('alias1', Soql.REASON_UNMODELED_ALIAS)
+            new UnmodeledSyntaxImpl('alias1', REASON_UNMODELED_ALIAS)
           )
         ]),
         new FromImpl('object1')
@@ -70,11 +77,11 @@ describe('SoqlModelUtils should', () => {
   it('returns an array explaining what is unsupported', () => {
     const unmodeled1 = {
       syntax: 'alias',
-      reason: Soql.REASON_UNMODELED_ALIAS
+      reason: REASON_UNMODELED_ALIAS
     };
     const unmodeled2 = {
       syntax: 'COUNT(Id) recordCount',
-      reason: Soql.REASON_UNMODELED_FUNCTIONREFERENCE
+      reason: REASON_UNMODELED_FUNCTIONREFERENCE
     };
     const actual = SoqlModelUtils.getUnmodeledSyntax(
       new QueryImpl(
@@ -104,7 +111,7 @@ describe('SoqlModelUtils should', () => {
     expect(actual).toBeFalsy();
   });
   it('return true from isSimpleCondition for simple conditions', () => {
-    const simpleConditions: Soql.Condition[] = [
+    const simpleConditions: Condition[] = [
       conditionFieldCompare,
       conditionLike,
       conditionIncludes,
@@ -117,16 +124,16 @@ describe('SoqlModelUtils should', () => {
     expect(actual).toBeTruthy();
   });
   it('return false from isSimpleCondition for non-simple conditions', () => {
-    const complexConditions: Soql.Condition[] = [conditionAndOr, conditionNot, new NestedConditionImpl(conditionAndOr)];
+    const complexConditions: Condition[] = [conditionAndOr, conditionNot, new NestedConditionImpl(conditionAndOr)];
     let actual = true;
     complexConditions.forEach(condition => (actual &&= !SoqlModelUtils.isSimpleCondition(condition)));
     expect(actual).toBeTruthy();
   });
   it('return true from isSimpleGroup for simple group of conditions', () => {
-    const simpleGroups: Soql.Condition[] = [
+    const simpleGroups: Condition[] = [
       conditionFieldCompare,
       conditionAndOr,
-      new AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.And, conditionAndOr),
+      new AndOrConditionImpl(conditionFieldCompare, AndOr.And, conditionAndOr),
       new NestedConditionImpl(conditionAndOr)
     ];
     let actual = true;
@@ -134,15 +141,15 @@ describe('SoqlModelUtils should', () => {
     expect(actual).toBeTruthy();
   });
   it('return false from isSimpleGroup for non-simple group of conditions', () => {
-    const nonSimpleGroups: Soql.Condition[] = [
+    const nonSimpleGroups: Condition[] = [
       // NOT
       conditionNot,
       // mixing AND and OR
-      new AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.Or, conditionAndOr),
+      new AndOrConditionImpl(conditionFieldCompare, AndOr.Or, conditionAndOr),
       // combined simple groups
       new AndOrConditionImpl(
         new NestedConditionImpl(conditionAndOr),
-        Soql.AndOr.Or,
+        AndOr.Or,
         new NestedConditionImpl(conditionAndOr)
       )
     ];
@@ -151,26 +158,26 @@ describe('SoqlModelUtils should', () => {
     expect(actual).toBeTruthy();
   });
   it('throws from simpleGroupToArray if condition not simple group', () => {
-    const nonSimpleGroup = new AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.Or, conditionAndOr);
+    const nonSimpleGroup = new AndOrConditionImpl(conditionFieldCompare, AndOr.Or, conditionAndOr);
     expect(() => SoqlModelUtils.simpleGroupToArray(nonSimpleGroup)).toThrow();
   });
   it('returns array and operator from simpleGroupToArray for simple group', () => {
-    const simpleGroup = new AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.And, conditionAndOr);
+    const simpleGroup = new AndOrConditionImpl(conditionFieldCompare, AndOr.And, conditionAndOr);
     const { conditions, andOr } = SoqlModelUtils.simpleGroupToArray(simpleGroup);
     expect(conditions.length).toEqual(3);
-    expect(andOr).toEqual(Soql.AndOr.And);
+    expect(andOr).toEqual(AndOr.And);
   });
   it('throws from arrayToSimpleGroup if conditions array empty', () => {
-    const conditions: Soql.Condition[] = [];
+    const conditions: Condition[] = [];
     expect(() => SoqlModelUtils.arrayToSimpleGroup(conditions)).toThrow();
   });
   it('throws from arrayToSimpleGroup if >1 condition and operator missing', () => {
-    const conditions: Soql.Condition[] = [conditionFieldCompare, conditionLike];
+    const conditions: Condition[] = [conditionFieldCompare, conditionLike];
     expect(() => SoqlModelUtils.arrayToSimpleGroup(conditions)).toThrow();
   });
   it('returns simple group condition from arrayToSimpleGroup', () => {
     const conditions = [conditionFieldCompare, conditionLike, conditionInList];
-    const andOr = Soql.AndOr.Or;
+    const andOr = AndOr.Or;
 
     const expected = new AndOrConditionImpl(
       conditions[0],

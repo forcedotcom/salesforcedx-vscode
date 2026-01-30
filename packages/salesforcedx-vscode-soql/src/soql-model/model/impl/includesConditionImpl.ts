@@ -5,18 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Soql from '../model';
+import { ConditionOperator, CompareValue, Field, IncludesCondition, SyntaxOptions } from '../model';
 import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class IncludesConditionImpl extends SoqlModelObjectImpl implements Soql.IncludesCondition {
+export class IncludesConditionImpl extends SoqlModelObjectImpl implements IncludesCondition {
   constructor(
-    public field: Soql.Field,
-    public operator: Soql.ConditionOperator,
-    public values: Soql.CompareValue[]
+    public field: Field,
+    public operator: ConditionOperator,
+    public values: CompareValue[]
   ) {
     super();
   }
-  public toSoqlSyntax(options?: Soql.SyntaxOptions): string {
+  public toSoqlSyntax(options?: SyntaxOptions): string {
     let valuesSyntax = '';
     this.values.forEach((value) => (valuesSyntax = `${valuesSyntax}, ${value.toSoqlSyntax(options)}`));
     if (valuesSyntax.length > 2) {

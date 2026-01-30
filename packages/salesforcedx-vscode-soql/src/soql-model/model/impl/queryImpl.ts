@@ -9,29 +9,29 @@
 // and webpack 4 (used by lwc-services) doesn't support the node: protocol
 // eslint-disable-next-line unicorn/prefer-node-protocol
 import * as os from 'os';
-import * as Soql from '../model';
+import { Bind, From, GroupBy, HeaderComments, Limit, Offset, OrderBy, Query, RecordTrackingType, Select, SyntaxOptions, Update, Where, With } from '../model';
 import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class QueryImpl extends SoqlModelObjectImpl implements Soql.Query {
-  public headerComments?: Soql.HeaderComments;
-  public with?: Soql.With;
+export class QueryImpl extends SoqlModelObjectImpl implements Query {
+  public headerComments?: HeaderComments;
+  public with?: With;
   constructor(
-    public select?: Soql.Select,
-    public from?: Soql.From,
-    public where?: Soql.Where,
-    soqlwith?: Soql.With,
-    public groupBy?: Soql.GroupBy,
-    public orderBy?: Soql.OrderBy,
-    public limit?: Soql.Limit,
-    public offset?: Soql.Offset,
-    public bind?: Soql.Bind,
-    public recordTrackingType?: Soql.RecordTrackingType,
-    public update?: Soql.Update
+    public select?: Select,
+    public from?: From,
+    public where?: Where,
+    soqlwith?: With,
+    public groupBy?: GroupBy,
+    public orderBy?: OrderBy,
+    public limit?: Limit,
+    public offset?: Offset,
+    public bind?: Bind,
+    public recordTrackingType?: RecordTrackingType,
+    public update?: Update
   ) {
     super();
     this.with = soqlwith;
   }
-  public toSoqlSyntax(options?: Soql.SyntaxOptions): string {
+  public toSoqlSyntax(options?: SyntaxOptions): string {
     const opts = this.getSyntaxOptions(options);
     let syntax = '';
     if (this.headerComments) {

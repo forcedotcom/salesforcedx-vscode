@@ -8,7 +8,7 @@
 import { FieldRefImpl } from '../../../../../src/soql-model/model/impl/fieldRefImpl';
 import { FieldSelectionImpl } from '../../../../../src/soql-model/model/impl/fieldSelectionImpl';
 import { UnmodeledSyntaxImpl } from '../../../../../src/soql-model/model/impl/unmodeledSyntaxImpl';
-import * as Soql from '../../../../../src/soql-model/model/model';
+import { REASON_UNMODELED_ALIAS } from '../../../../../src/soql-model/model/model';
 
 
 describe('FieldSelectionImpl should', () => {
@@ -20,11 +20,11 @@ describe('FieldSelectionImpl should', () => {
   it('store an unmodeled syntax object as the alias', () => {
     const expected = {
       field: { fieldName: 'brian' },
-      alias: { unmodeledSyntax: 'bill', reason: Soql.REASON_UNMODELED_ALIAS },
+      alias: { unmodeledSyntax: 'bill', reason: REASON_UNMODELED_ALIAS },
     };
     const actual = new FieldSelectionImpl(
       new FieldRefImpl(expected.field.fieldName),
-      new UnmodeledSyntaxImpl(expected.alias.unmodeledSyntax, Soql.REASON_UNMODELED_ALIAS)
+      new UnmodeledSyntaxImpl(expected.alias.unmodeledSyntax, REASON_UNMODELED_ALIAS)
     );
     expect(actual).toEqual(expected);
   });
@@ -32,7 +32,7 @@ describe('FieldSelectionImpl should', () => {
     const expected = 'rolling stones';
     const actual = new FieldSelectionImpl(
       new FieldRefImpl('rolling'),
-      new UnmodeledSyntaxImpl('stones', Soql.REASON_UNMODELED_ALIAS)
+      new UnmodeledSyntaxImpl('stones', REASON_UNMODELED_ALIAS)
     ).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });
