@@ -13,11 +13,9 @@
  */
 import { api, LightningElement, track } from 'lwc';
 import { debounce } from 'debounce';
-import {
-  Soql,
-  ValidatorFactory,
-  splitMultiInputValues
-} from '../../../../soql-model';
+import * as Soql from '../../../../soql-model/model/model';
+import { ValidatorFactory } from '../../../../soql-model/validators/validatorFactory';
+import { splitMultiInputValues } from '../../../../soql-model/validators/inputUtils';
 import { JsonMap } from '@salesforce/types';
 import { OperatorOption, operatorOptions } from '../services/model';
 import { SObjectTypeUtils } from '../services/sobjectUtils';
