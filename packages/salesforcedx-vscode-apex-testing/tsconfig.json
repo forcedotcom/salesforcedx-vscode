@@ -4,21 +4,9 @@
     "rootDir": ".",
     "outDir": "out"
   },
-  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
   "references": [
-    {
-      "path": "../salesforcedx-utils"
-    },
-    {
-      "path": "../salesforcedx-utils-vscode"
-    },
-    {
-      "path": "../salesforcedx-vscode-apex"
-    },
-    {
-      "path": "../salesforcedx-vscode-core"
-    },
     {
       "path": "../salesforcedx-vscode-i18n"
     }

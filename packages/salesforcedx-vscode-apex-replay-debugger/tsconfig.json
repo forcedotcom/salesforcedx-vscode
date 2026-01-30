@@ -5,7 +5,7 @@
     "outDir": "out"
   },
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
-  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "include": ["src/**/*.ts"],
   "references": [
     {
       "path": "../salesforcedx-apex-replay-debugger"
@@ -17,13 +17,13 @@
       "path": "../salesforcedx-utils-vscode"
     },
     {
+      "path": "../salesforcedx-vscode-i18n"
+    },
+    {
       "path": "../salesforcedx-vscode-apex"
     },
     {
       "path": "../salesforcedx-vscode-core"
-    },
-    {
-      "path": "../salesforcedx-vscode-i18n"
     }
   ]
 }

@@ -38,7 +38,7 @@ junit-custom.xml
 junit-custom-unitTests.xml
 junit-custom-integrationTests.xml
 junit-custom-vscodeIntegrationTests.xml
-
+.e2e-artifacts/
 # nyc test coverage
 .nyc_output
 

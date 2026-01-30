@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.15.0",
+  "version": "65.15.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -54,6 +54,7 @@
     "salesforce.salesforcedx-vscode-org",
     "salesforce.salesforcedx-vscode-visualforce",
     "salesforce.salesforcedx-vscode-lwc",
+    "salesforce.salesforcedx-vscode-services",
     "salesforce.salesforcedx-vscode-soql",
     "salesforce.salesforce-vscode-slds",
     "salesforce.sfdx-code-analyzer-vscode",

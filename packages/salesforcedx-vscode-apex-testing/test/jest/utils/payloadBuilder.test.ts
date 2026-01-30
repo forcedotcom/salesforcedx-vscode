@@ -159,6 +159,31 @@ describe('payloadBuilder', () => {
       );
     });
 
+    it('should build payload for multiple suites', async () => {
+      const suite1 = createMockTestItem('suite:MySuite1', 'MySuite1');
+      const suite2 = createMockTestItem('suite:MySuite2', 'MySuite2');
+      const mockPayload: AsyncTestConfiguration = {
+        testLevel: TestLevel.RunSpecifiedTests
+      } as AsyncTestConfiguration;
+
+      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
+
+      const result = await buildTestPayload(mockTestService, [suite1, suite2], ['MySuite1', 'MySuite2'], false);
+
+      expect(result.hasSuite).toBe(true);
+      expect(result.hasClass).toBe(false);
+      expect(result.payload).toBe(mockPayload);
+      // Multiple suites should be passed as comma-separated string
+      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
+        TestLevel.RunSpecifiedTests,
+        undefined,
+        undefined,
+        'MySuite1,MySuite2',
+        undefined,
+        true
+      );
+    });
+
     it('should throw error if suite name cannot be determined', async () => {
       const suiteItem = createMockTestItem('suite:', 'InvalidSuite');
 
@@ -171,30 +196,14 @@ describe('payloadBuilder', () => {
       await expect(buildTestPayload(mockTestService, [], [], false)).rejects.toThrow();
     });
 
-    it('should prioritize suite over classes', async () => {
+    it('should throw error when mixing suite and class without methods', async () => {
       const suiteItem = createMockTestItem('suite:MySuite', 'MySuite');
       const classItem = createMockTestItem('class:MyClass', 'MyClass');
-      const mockPayload: AsyncTestConfiguration = {
-        testLevel: TestLevel.RunSpecifiedTests
-      } as AsyncTestConfiguration;
 
-      (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
-
-      const result = await buildTestPayload(mockTestService, [suiteItem, classItem], ['MySuite', 'MyClass'], false);
-
-      expect(result.hasSuite).toBe(false);
-      expect(result.hasClass).toBe(true);
-      // When suite and class are mixed, it falls through to method/class handling
-      // The suite name is filtered out, leaving just the class name
-      // So it uses the class name parameter
-      expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
-        TestLevel.RunSpecifiedTests,
-        undefined,
-        'MyClass',
-        undefined,
-        undefined,
-        true
-      );
+      // When mixing suite and class without method expansion, payload cannot be built
+      await expect(
+        buildTestPayload(mockTestService, [suiteItem, classItem], ['MySuite', 'MyClass'], false)
+      ).rejects.toThrow();
     });
 
     it('should handle empty test names array', async () => {
@@ -237,6 +246,61 @@ describe('payloadBuilder', () => {
         undefined,
         true
       );
+    });
+
+    it('should build payload manually for namespaced methods', async () => {
+      // Namespaced method: Namespace.Class.Method (3 parts)
+      const method1 = createMockTestItem('method:CodeBuilder.ApplicationTest.testMethod1', 'testMethod1');
+      const method2 = createMockTestItem('method:CodeBuilder.ApplicationTest.testMethod2', 'testMethod2');
+
+      const result = await buildTestPayload(
+        mockTestService,
+        [method1, method2],
+        ['CodeBuilder.ApplicationTest.testMethod1', 'CodeBuilder.ApplicationTest.testMethod2'],
+        false
+      );
+
+      expect(result.hasSuite).toBe(false);
+      expect(result.hasClass).toBe(false);
+      // Should construct payload manually, NOT call buildAsyncPayload
+      expect(mockTestService.buildAsyncPayload).not.toHaveBeenCalled();
+      // Payload should have the full class name (Namespace.Class) in className field
+      expect(result.payload).toEqual({
+        tests: [
+          {
+            className: 'CodeBuilder.ApplicationTest',
+            testMethods: ['testMethod1', 'testMethod2']
+          }
+        ],
+        testLevel: TestLevel.RunSpecifiedTests,
+        skipCodeCoverage: true
+      });
+    });
+
+    it('should build payload manually for mixed namespaced and non-namespaced methods', async () => {
+      const method1 = createMockTestItem('method:FooTest.testFoo', 'testFoo');
+      const method2 = createMockTestItem('method:CodeBuilder.ApplicationTest.testApp', 'testApp');
+
+      const result = await buildTestPayload(
+        mockTestService,
+        [method1, method2],
+        ['FooTest.testFoo', 'CodeBuilder.ApplicationTest.testApp'],
+        true // code coverage enabled
+      );
+
+      expect(result.hasSuite).toBe(false);
+      expect(result.hasClass).toBe(false);
+      // Should construct payload manually because there are namespaced methods
+      expect(mockTestService.buildAsyncPayload).not.toHaveBeenCalled();
+      // Payload should have entries for both classes
+      expect(result.payload).toEqual({
+        tests: [
+          { className: 'FooTest', testMethods: ['testFoo'] },
+          { className: 'CodeBuilder.ApplicationTest', testMethods: ['testApp'] }
+        ],
+        testLevel: TestLevel.RunSpecifiedTests,
+        skipCodeCoverage: false // code coverage enabled
+      });
     });
   });
 });
