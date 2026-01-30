@@ -8,7 +8,7 @@
     "strictNullChecks": true
   },
   "exclude": ["node_modules", ".vscode-test", "out", "dist"],
-  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "include": ["src/**/*.ts"],
   "references": [
     {
       "path": "../salesforcedx-utils-vscode"

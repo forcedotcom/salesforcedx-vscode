@@ -11,8 +11,7 @@
     "dist"
   ],
   "include": [
-    "src/**/*.ts",
-    "test/**/*.ts"
+    "src/**/*.ts"
   ],
   "references": [
     {
