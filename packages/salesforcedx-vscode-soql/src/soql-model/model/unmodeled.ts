@@ -7,10 +7,10 @@
 
 import { messages } from '../messages/i18n';
 
-export interface UnmodeledSyntaxReason {
+export type UnmodeledSyntaxReason = {
   reasonCode: string;
   message: string;
-}
+};
 
 export const REASON_UNMODELED_AS: UnmodeledSyntaxReason = {
   reasonCode: 'unmodeled:as',

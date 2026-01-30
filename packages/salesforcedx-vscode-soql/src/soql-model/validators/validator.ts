@@ -8,16 +8,16 @@ import { messages } from '../messages/i18n';
 import { SObjectFieldType, UiOperatorValue } from '../model/model';
 import { splitMultiInputValues } from './inputUtils';
 
-export interface ValidateOptions {
+export type ValidateOptions = {
   type: SObjectFieldType;
   nillable?: boolean;
   picklistValues?: string[];
-}
+};
 
-export interface ValidateResult {
+export type ValidateResult = {
   isValid: boolean;
   message?: string;
-}
+};
 
 export abstract class Validator {
   constructor(protected options: ValidateOptions) {}
@@ -30,11 +30,11 @@ export class DefaultValidator extends Validator {
     return { isValid: true };
   }
 }
-interface Operator {
+type Operator = {
   description: UiOperatorValue;
   display: string;
   types: string[];
-}
+};
 // prettier-ignore
 const LIKE_TYPES = [SObjectFieldType.Address, SObjectFieldType.AnyType, SObjectFieldType.Combobox, SObjectFieldType.ComplexValue, SObjectFieldType.Email, SObjectFieldType.EncryptedString, SObjectFieldType.Id, SObjectFieldType.Location, SObjectFieldType.MultiPicklist, SObjectFieldType.Phone, SObjectFieldType.Picklist, SObjectFieldType.Reference, SObjectFieldType.String, SObjectFieldType.TextArea, SObjectFieldType.Url];
 // prettier-ignore

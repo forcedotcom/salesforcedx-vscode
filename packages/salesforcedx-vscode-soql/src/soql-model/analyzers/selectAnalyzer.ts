@@ -11,24 +11,24 @@ import * as Parser from '../../soql-common/soql-parser.lib/generated/SoqlParser'
 import { SoqlParserVisitor } from '../../soql-common/soql-parser.lib/generated/SoqlParserVisitor';
 import { parseHeaderComments } from '../../soql-common/soqlComments';
 
-export interface Selection {
+export type Selection = {
   selectionQueryText: string;
   queryResultsPath: string[];
   objectName: string;
   columnName: string;
   isSubQuerySelection: boolean;
-}
+};
 
-export interface ColumnData {
+export type ColumnData = {
   objectName: string;
   columns: Column[];
   subTables: ColumnData[];
-}
+};
 
-export interface Column {
+export type Column = {
   title: string;
   fieldHelper: string[];
-}
+};
 export class SelectAnalyzer {
   protected parseTree: ParseTree;
   constructor(protected queryText: string) {

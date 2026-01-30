@@ -4,17 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/* eslint-disable @typescript-eslint/no-empty-interface */
 
 import { UnmodeledSyntaxReason } from './unmodeled';
 
-export interface ModelError {
+export type ModelError = {
   type: ErrorType;
   message: string;
   lineNumber: number;
   charInLine: number;
   grammarRule?: string;
-}
+};
 
 export enum ErrorType {
   UNKNOWN = 'UNKNOWN',
@@ -34,7 +33,7 @@ export enum ErrorType {
   NOCOMPAREVALUE = 'NOCOMPAREVALUE',
   NOCOMPAREOPERATOR = 'NOCOMPAREOPERATOR',
   INCOMPLETEMULTIVALUELIST = 'INCOMPLETEMULTIVALUELIST',
-  UNEXPECTEDEOF = 'UNEXPECTEDEOF',
+  UNEXPECTEDEOF = 'UNEXPECTEDEOF'
 }
 
 export enum SObjectFieldType {
@@ -62,7 +61,7 @@ export enum SObjectFieldType {
   String = 'string',
   TextArea = 'textarea',
   Time = 'time',
-  Url = 'url',
+  Url = 'url'
 }
 
 export enum UiOperatorValue {
@@ -80,19 +79,19 @@ export enum UiOperatorValue {
   IN = 'IN',
   NOT_IN = 'NOT_IN',
   INCLUDES = 'INCLUDES',
-  EXCLUDES = 'EXCLUDES',
+  EXCLUDES = 'EXCLUDES'
 }
 
-export interface SoqlModelObject {
+export type SoqlModelObject = {
   errors?: ModelError[];
   toSoqlSyntax(options?: SyntaxOptions): string;
-}
+};
 
 export class SyntaxOptions {
   public indent = 2;
 }
 
-export interface Query extends SoqlModelObject {
+export type Query = SoqlModelObject & {
   headerComments?: HeaderComments;
   select?: Select;
   from?: From;
@@ -105,73 +104,73 @@ export interface Query extends SoqlModelObject {
   bind?: Bind;
   recordTrackingType?: RecordTrackingType;
   update?: Update;
-}
+};
 
-export interface From extends SoqlModelObject {
+export type From = SoqlModelObject & {
   sobjectName: string;
   as?: UnmodeledSyntax;
   using?: UnmodeledSyntax;
-}
+};
 
-export interface Select extends SoqlModelObject {
+export type Select = SoqlModelObject & {
   // SELECT COUNT() => SelectCount
   // SELECT [field] [subquery] [typeof] [distance] => SelectExprs
-}
+};
 
-export interface SelectCount extends Select {}
+export type SelectCount = Select;
 
-export interface SelectExprs extends Select {
+export type SelectExprs = Select & {
   selectExpressions: SelectExpression[];
-}
+};
 
-export interface SelectExpression extends SoqlModelObject {
+export type SelectExpression = SoqlModelObject & {
   // field => Field
   // subquery => UnmodeledSyntax
   // typeof => UnmodeledSyntax
   alias?: UnmodeledSyntax;
-}
+};
 
-export interface FieldSelection extends SelectExpression {
+export type FieldSelection = SelectExpression & {
   field: Field;
-}
+};
 
-export interface Field extends SoqlModelObject {
+export type Field = SoqlModelObject & {
   // field name => FieldRef
   // function reference => UnmodeledSyntax
   // distance => UnmodeledSyntax
-}
+};
 
-export interface FieldRef extends Field {
+export type FieldRef = Field & {
   fieldName: string;
-}
+};
 
-export interface Limit extends SoqlModelObject {
+export type Limit = SoqlModelObject & {
   limit: number;
-}
+};
 
-export interface OrderBy extends SoqlModelObject {
+export type OrderBy = SoqlModelObject & {
   orderByExpressions: OrderByExpression[];
-}
+};
 
-export interface OrderByExpression extends SoqlModelObject {
+export type OrderByExpression = SoqlModelObject & {
   field: Field;
   order?: Order;
   nullsOrder?: NullsOrder;
-}
+};
 
 export enum Order {
   Ascending = 'ASC',
-  Descending = 'DESC',
+  Descending = 'DESC'
 }
 
 export enum NullsOrder {
   First = 'NULLS FIRST',
-  Last = 'NULLS LAST',
+  Last = 'NULLS LAST'
 }
 
 export enum AndOr {
   And = 'AND',
-  Or = 'OR',
+  Or = 'OR'
 }
 
 export enum ConditionOperator {
@@ -186,13 +185,13 @@ export enum ConditionOperator {
   In = 'IN',
   NotIn = 'NOT IN',
   Includes = 'INCLUDES',
-  Excludes = 'EXCLUDES',
+  Excludes = 'EXCLUDES'
 }
 
-export interface CompareValue extends SoqlModelObject {
+export type CompareValue = SoqlModelObject & {
   // literal => Literal
   // colon expression => UnmodeledSyntax
-}
+};
 
 export enum LiteralType {
   Boolean = 'BOOLEAN',
@@ -200,14 +199,14 @@ export enum LiteralType {
   Date = 'DATE',
   Null = 'NULL',
   Number = 'NUMBER',
-  String = 'STRING',
+  String = 'STRING'
 }
 
-export interface Literal extends CompareValue {
+export type Literal = CompareValue & {
   value: string;
-}
+};
 
-export interface Condition extends SoqlModelObject {
+export type Condition = SoqlModelObject & {
   // ( nested-condition ) => NestedCondition
   // NOT condition => NotCondition
   // condition-1 AndOr condition-2 => AndOrCondition
@@ -217,67 +216,66 @@ export interface Condition extends SoqlModelObject {
   // field [Includes|Excludes] ( values ) => IncludesCondition
   // field [In|NotIn] ( semi-join ) => UnmodeledSyntax
   // field [In|NotIn] ( values ) => InListCondition
-}
+};
 
-export interface NestedCondition extends Condition {
+export type NestedCondition = Condition & {
   condition: Condition;
-}
+};
 
-export interface NotCondition extends Condition {
+export type NotCondition = Condition & {
   condition: Condition;
-}
+};
 
-export interface AndOrCondition extends Condition {
+export type AndOrCondition = Condition & {
   leftCondition: Condition;
   andOr: AndOr;
   rightCondition: Condition;
-}
+};
 
-export interface FieldCompareCondition extends Condition {
+export type FieldCompareCondition = Condition & {
   field: Field;
   operator: ConditionOperator;
   compareValue: CompareValue;
-}
+};
 
-export interface IncludesCondition extends Condition {
+export type IncludesCondition = Condition & {
   field: Field;
   operator: ConditionOperator;
   values: CompareValue[];
-}
+};
 
-export interface InListCondition extends Condition {
+export type InListCondition = Condition & {
   field: Field;
   operator: ConditionOperator;
   values: CompareValue[];
-}
+};
 
-export interface Where extends SoqlModelObject {
+export type Where = SoqlModelObject & {
   condition: Condition;
-}
-export interface HeaderComments extends SoqlModelObject {
+};
+export type HeaderComments = SoqlModelObject & {
   text: string;
-}
+};
 
-export interface With extends SoqlModelObject {}
-export interface GroupBy extends SoqlModelObject {}
-export interface Offset extends SoqlModelObject {}
-export interface Bind extends SoqlModelObject {}
-export interface RecordTrackingType extends SoqlModelObject {}
-export interface Update extends SoqlModelObject {}
+export type With = SoqlModelObject;
+export type GroupBy = SoqlModelObject;
+export type Offset = SoqlModelObject;
+export type Bind = SoqlModelObject;
+export type RecordTrackingType = SoqlModelObject;
+export type Update = SoqlModelObject;
 
-export interface UnmodeledSyntax
-  extends SelectExpression,
-    Field,
-    Condition,
-    CompareValue,
-    With,
-    GroupBy,
-    Offset,
-    Bind,
-    RecordTrackingType,
-    Update {
-  unmodeledSyntax: string;
-  reason: UnmodeledSyntaxReason;
-}
+export type UnmodeledSyntax = SelectExpression &
+  Field &
+  Condition &
+  CompareValue &
+  With &
+  GroupBy &
+  Offset &
+  Bind &
+  RecordTrackingType &
+  Update & {
+    unmodeledSyntax: string;
+    reason: UnmodeledSyntaxReason;
+  };
 
 export * from './unmodeled';

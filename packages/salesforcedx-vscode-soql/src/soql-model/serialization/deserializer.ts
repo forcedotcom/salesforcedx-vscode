@@ -117,11 +117,11 @@ export const deserialize = (soqlSyntax: string): Query => {
   return query;
 };
 
-interface KnownError {
+type KnownError = {
   type: ErrorType;
   message: string;
   predicate: (error: ParserError, context?: ParseTree) => boolean;
-}
+};
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 class ErrorIdentifier {
