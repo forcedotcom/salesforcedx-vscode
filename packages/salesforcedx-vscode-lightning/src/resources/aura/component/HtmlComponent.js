@@ -705,7 +705,7 @@ HtmlComponent.prototype["helper"] = {
                 if ($A.util.isIE && element.tagName === "INPUT" && lowerName === "type") {
                     try {
                         element.setAttribute("type", value);
-                    } catch (e) {
+                    } catch {
                         return undefined;
                     }
                 }

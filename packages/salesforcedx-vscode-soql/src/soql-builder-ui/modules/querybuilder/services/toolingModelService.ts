@@ -12,10 +12,7 @@ import { fromJS, List } from 'immutable';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { JsonMap } from '@salesforce/ts-types';
-import {
-  convertUiModelToSoql,
-  convertSoqlToUiModel
-} from '../services/soqlUtils';
+import { convertUiModelToSoql, convertSoqlToUiModel } from '../services/soqlUtils';
 import { IMessageService } from './message/iMessageService';
 import { SoqlEditorEvent, MessageType } from './message/soqlEditorEvent';
 import { IMap, ToolingModel, ToolingModelJson, ModelProps } from './model';
@@ -38,13 +35,11 @@ export class ToolingModelService {
   public constructor(messageService: IMessageService) {
     this.messageService = messageService;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    this.immutableModel = new BehaviorSubject(
-      fromJS(ToolingModelService.toolingModelTemplate)
-    );
+    this.immutableModel = new BehaviorSubject(fromJS(ToolingModelService.toolingModelTemplate));
     this.immutableModel.subscribe(this.saveViewState.bind(this));
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this.UIModel = this.immutableModel.pipe(
-      map((soqlQueryModel) => {
+      map(soqlQueryModel => {
         try {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-return
           return (soqlQueryModel as IMap).toJS();
@@ -56,9 +51,7 @@ export class ToolingModelService {
       })
     );
 
-    this.messageService.messagesToUI.subscribe(
-      this.onIncommingMessage.bind(this)
-    );
+    this.messageService.messagesToUI.subscribe(this.onIncommingMessage.bind(this));
   }
 
   public getModel(): IMap {
@@ -70,13 +63,9 @@ export class ToolingModelService {
   // This method is destructive, will clear any selections except sObject.
   public setSObject(sObject: string): void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const newModelJS = Object.assign(
-      this.getModel().toJS(),
-      ToolingModelService.toolingModelTemplate,
-      {
-        sObject
-      }
-    );
+    const newModelJS = Object.assign(this.getModel().toJS(), ToolingModelService.toolingModelTemplate, {
+      sObject
+    });
     this.changeModel(fromJS(newModelJS));
   }
 
@@ -99,23 +88,17 @@ export class ToolingModelService {
     } else {
       updatedOrderBy = this.getOrderBy().push(fromJS(orderByObj));
     }
-    const newModel = currentModel.set(
-      ModelProps.ORDER_BY,
-      updatedOrderBy
-    ) as ToolingModel;
+    const newModel = currentModel.set(ModelProps.ORDER_BY, updatedOrderBy) as ToolingModel;
     this.changeModel(newModel);
   }
 
   public removeOrderByField(field: string): void {
     const currentModel = this.getModel();
     const orderBy = this.getOrderBy();
-    const filteredOrderBy = orderBy.filter((item) => {
+    const filteredOrderBy = orderBy.filter(item => {
       return item.get('field') !== field;
     }) as List<JsonMap>;
-    const newModelWithFieldRemoved = currentModel.set(
-      ModelProps.ORDER_BY,
-      filteredOrderBy
-    ) as ToolingModel;
+    const newModelWithFieldRemoved = currentModel.set(ModelProps.ORDER_BY, filteredOrderBy) as ToolingModel;
 
     this.changeModel(newModelWithFieldRemoved);
   }
@@ -131,33 +114,26 @@ export class ToolingModelService {
   }
 
   private hasOrderByField(field: string): number {
-    return this.getOrderBy().findIndex((item) => item.get('field') === field);
+    return this.getOrderBy().findIndex(item => item.get('field') === field);
   }
 
   /* ---- WHERE ---- */
 
   private getWhereConditions(): List<JsonMap> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    return this.getModel()
-      .get(ModelProps.WHERE)
-      .get(ModelProps.WHERE_CONDITIONS) as List<JsonMap>;
+    return this.getModel().get(ModelProps.WHERE).get(ModelProps.WHERE_CONDITIONS) as List<JsonMap>;
   }
 
   private hasWhereConditionBy(index: string): boolean {
     if (this.getWhereConditions().count() > 0) {
-      return this.getWhereConditions().find(
-        (item) => item.get('index') === index
-      );
+      return this.getWhereConditions().find(item => item.get('index') === index);
     }
     return false;
   }
 
   public setAndOr(andOr: string): void {
     const currentModel = this.getModel();
-    const newModel = currentModel.setIn(
-      [ModelProps.WHERE, ModelProps.WHERE_AND_OR],
-      andOr
-    );
+    const newModel = currentModel.setIn([ModelProps.WHERE, ModelProps.WHERE_AND_OR], andOr);
 
     this.changeModel(newModel);
   }
@@ -168,31 +144,20 @@ export class ToolingModelService {
     const { fieldCompareExpr, andOr } = whereObj;
     const existingExpr = this.hasWhereConditionBy(fieldCompareExpr.index);
     if (existingExpr) {
-      updatedWhereCondition = this.getWhereConditions().update(
-        fieldCompareExpr.index,
-        () => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-          return fromJS(fieldCompareExpr);
-        }
-      );
+      updatedWhereCondition = this.getWhereConditions().update(fieldCompareExpr.index, () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return fromJS(fieldCompareExpr);
+      });
     } else {
-      updatedWhereCondition = this.getWhereConditions().push(
-        fromJS(fieldCompareExpr)
-      );
+      updatedWhereCondition = this.getWhereConditions().push(fromJS(fieldCompareExpr));
     }
 
-    let newModel = currentModel.setIn(
-      [ModelProps.WHERE, ModelProps.WHERE_CONDITIONS],
-      updatedWhereCondition
-    );
+    let newModel = currentModel.setIn([ModelProps.WHERE, ModelProps.WHERE_CONDITIONS], updatedWhereCondition);
     /*
     The UI model should always be aware
     of andOr UI state when expr is updated.
     */
-    newModel = newModel.setIn(
-      [ModelProps.WHERE, ModelProps.WHERE_AND_OR],
-      andOr
-    );
+    newModel = newModel.setIn([ModelProps.WHERE, ModelProps.WHERE_AND_OR], andOr);
 
     this.changeModel(newModel);
   }
@@ -200,14 +165,11 @@ export class ToolingModelService {
   public removeWhereFieldCondition(fieldCompareExpr: JsonMap): void {
     const currentModel = this.getModel();
     const whereConditions = this.getWhereConditions();
-    const filteredConditions = whereConditions.filter((item) => {
+    const filteredConditions = whereConditions.filter(item => {
       return item.get('index') !== fieldCompareExpr.index;
     });
 
-    const newModel = currentModel.setIn(
-      [ModelProps.WHERE, ModelProps.WHERE_CONDITIONS],
-      filteredConditions
-    );
+    const newModel = currentModel.setIn([ModelProps.WHERE, ModelProps.WHERE_CONDITIONS], filteredConditions);
 
     this.changeModel(newModel);
   }
@@ -232,10 +194,7 @@ export class ToolingModelService {
           const updatedModel = fromJS(soqlJSModel);
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
           if (!updatedModel.equals(this.immutableModel.getValue())) {
-            if (
-              originalSoqlStatement.length &&
-              (soqlJSModel.errors.length || soqlJSModel.unsupported.length)
-            ) {
+            if (originalSoqlStatement.length && (soqlJSModel.errors.length || soqlJSModel.unsupported.length)) {
               this.sendTelemetryToBackend(soqlJSModel);
             }
             this.immutableModel.next(updatedModel);
@@ -261,10 +220,7 @@ export class ToolingModelService {
   private changeModel(newModel): void {
     const newSoqlQuery = convertUiModelToSoql((newModel as IMap).toJS());
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call
-    const newModelWithSoqlQuery = newModel.set(
-      'originalSoqlStatement',
-      newSoqlQuery
-    );
+    const newModelWithSoqlQuery = newModel.set('originalSoqlStatement', newSoqlQuery);
     this.immutableModel.next(newModelWithSoqlQuery);
     this.sendMessageToBackend(newSoqlQuery);
   }
@@ -302,3 +258,5 @@ export class ToolingModelService {
     return fromJS(savedState || ToolingModelService.toolingModelTemplate);
   }
 }
+
+export { ToolingModelJson };

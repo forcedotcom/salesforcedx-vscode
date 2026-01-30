@@ -106,7 +106,7 @@ TransportMetricsPlugin.prototype.parseServerTimingHeader = function (serverTimin
                 }
             }
         }
-    } catch (e) {
+    } catch {
         // ignore the exception and bail out on parsing server timing header
     }
     return serverTiming;
@@ -159,7 +159,7 @@ TransportMetricsPlugin.prototype.receiveOverride = function(/* config, auraXHR *
     // set to 0 if can't access it
     try {
         endMark["context"]["responseLength"] = auraXHR.request.responseText.length;
-    } catch (ex) {
+    } catch {
         endMark["context"]["responseLength"] = 0;
     }
 

@@ -383,7 +383,7 @@ export class HeapDumpService {
           const keyContainer = new ApexVariableContainer(KEY_VALUE_PAIR_KEY, '', mapKeyType);
           if (keyIsRef) {
             const keyRef = this.logContext.getRefsMap().get(extentValueEntry.keyDisplayValue);
-            if (keyRef && keyRef.type.toLowerCase() === LC_APEX_PRIMITIVE_STRING) {
+            if (keyRef?.type.toLowerCase() === LC_APEX_PRIMITIVE_STRING) {
               keyIsRef = false;
               keyContainer.value = keyRef.value;
             } else {
@@ -396,7 +396,7 @@ export class HeapDumpService {
           const valContainer = new ApexVariableContainer(KEY_VALUE_PAIR_VALUE, '', valueCollectionType);
           if (valueIsRef) {
             const valueRef = this.logContext.getRefsMap().get(extentValueEntry.value.value);
-            if (valueRef && valueRef.type.toLowerCase() === LC_APEX_PRIMITIVE_STRING) {
+            if (valueRef?.type.toLowerCase() === LC_APEX_PRIMITIVE_STRING) {
               valueIsRef = false;
               valContainer.value = valueRef.value;
             } else {
@@ -427,7 +427,7 @@ export class HeapDumpService {
           if (this.isAddress(values[i].value)) {
             let valString = values[i].value;
             const valRef = this.logContext.getRefsMap().get(values[i].value);
-            if (valRef && valRef.type.toLowerCase() === LC_APEX_PRIMITIVE_STRING) {
+            if (valRef?.type.toLowerCase() === LC_APEX_PRIMITIVE_STRING) {
               valString = valRef.value;
             } else {
               hasInnerRefs = true;
@@ -458,7 +458,7 @@ export class HeapDumpService {
         if (valueIsRef) {
           let valString = extentValueEntry.value.value;
           const valRef = this.logContext.getRefsMap().get(extentValueEntry.value.value);
-          if (valRef && valRef.type.toLowerCase() === LC_APEX_PRIMITIVE_STRING) {
+          if (valRef?.type.toLowerCase() === LC_APEX_PRIMITIVE_STRING) {
             valString = valRef.value;
           } else {
             hasInnerRefs = true;
