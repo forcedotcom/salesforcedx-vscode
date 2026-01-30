@@ -54,7 +54,7 @@ export default class Server extends BaseServer {
     // Use path-based check as fallback since context methods might not work before initialization
     const isLwcPath =
       normalizedPath.includes('/lwc/') &&
-      (normalizedPath.endsWith('.html') || normalizedPath.endsWith('.js') || normalizedPath.endsWith('.ts'));
+      (normalizedPath.endsWith('.html') ?? normalizedPath.endsWith('.js') ?? normalizedPath.endsWith('.ts'));
 
     let isLwcFile = false;
     if (isLwcPath) {
@@ -81,43 +81,49 @@ export default class Server extends BaseServer {
     // This ensures all files from bootstrapWorkspaceAwareness are loaded before initialization
     if (!this.isDelayedInitializationComplete) {
       void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
-    } else if (this.workspaceType === 'SFDX' && !this.componentIndexer) {
-      // If delayed initialization was skipped because sfdx-project.json wasn't loaded,
-      // check if this is the file being opened and re-trigger initialization
+      return;
+    }
+
+    // If delayed initialization was skipped because sfdx-project.json wasn't loaded,
+    // check if this is the file ibeing opened and re-trigger initialization
+    if (this.workspaceType === 'SFDX' && !this.componentIndexer) {
       const sfdxProjectPath = normalizePath(path.join(this.workspaceRoots[0], 'sfdx-project.json'));
       if (normalizedPath === sfdxProjectPath) {
         void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
       }
-    } else if (isLwcFile && this.componentIndexer) {
-      // Delayed initialization already complete - but if this is an LWC file, we may need to re-index
-      // Check if we have any components indexed - if not, delayed init ran too early
+      return;
+    }
+
+    // Delayed initialization already complete - but if this is an LWC file, we may need to re-index
+    // Check if we have any components indexed - if not, delayed init ran too early
+    if (isLwcFile && this.componentIndexer) {
       const componentCount = this.componentIndexer.getCustomData().length;
-
+      // Delayed initialization ran before any LWC files were available
       if (componentCount === 0) {
-        // Delayed initialization ran before any LWC files were available
         void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
-      } else {
-        // We have some components, but this might be a new one
-        // Re-index to pick up any newly added files
-        try {
-          await this.componentIndexer.init();
-          const afterCount = this.componentIndexer.getCustomData().length;
+        return;
+      }
 
-          if (afterCount > componentCount) {
-            // New components were added - update language service
-            this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
-            this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-            this.languageService = getLanguageService({
-              customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
-              useDefaultDataProvider: false
-            });
-          }
-        } catch (error) {
-          Logger.error(
-            `[LWC Server Browser] onDidOpen: Error during re-indexing: ${error instanceof Error ? error.message : String(error)}`,
-            error instanceof Error ? error : undefined
-          );
+      // We have some components, but this might be a new one
+      // Re-index to pick up any newly added files
+      try {
+        await this.componentIndexer.init();
+        const afterCount = this.componentIndexer.getCustomData().length;
+
+        if (afterCount > componentCount) {
+          // New components were added - update language service
+          this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
+          this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
+          this.languageService = getLanguageService({
+            customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
+            useDefaultDataProvider: false
+          });
         }
+      } catch (error) {
+        Logger.error(
+          `[LWC Server Browser] onDidOpen: Error during re-indexing: ${error instanceof Error ? error.message : String(error)}`,
+          error instanceof Error ? error : undefined
+        );
       }
     }
   }
