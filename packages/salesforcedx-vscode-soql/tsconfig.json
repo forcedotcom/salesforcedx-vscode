@@ -15,7 +15,7 @@
     "src/soql-builder-ui",
     "test/jest/soql-builder-ui"
   ],
-  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "include": ["src/**/*.ts"],
   "references": [
     {
       "path": "../salesforcedx-sobjects-faux-generator"
