@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-export function splitMultiInputValues(input: string): string[] {
+export const splitMultiInputValues = (input: string): string[] => {
   const values: string[] = [];
 
   // split at comma; for string input, watch out for commas in quotes
@@ -53,4 +53,4 @@ export function splitMultiInputValues(input: string): string[] {
   }
 
   return values;
-}
+};

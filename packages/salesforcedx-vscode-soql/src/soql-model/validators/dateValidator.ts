@@ -15,9 +15,7 @@ export class DateValidator extends Validator {
   }
 }
 
-function isDateLiteral(s: string): boolean {
-  return isDatePattern(s) || isDateRangeLiteral(s);
-}
+const isDateLiteral = (s: string): boolean => isDatePattern(s) || isDateRangeLiteral(s);
 
 const staticDateRangeLiterals = new Set([
   'yesterday',
@@ -42,7 +40,7 @@ const staticDateRangeLiterals = new Set([
   'next_fiscal_quarter',
   'last_fiscal_year',
   'this_fiscal_year',
-  'next_fiscal_year',
+  'next_fiscal_year'
 ]);
 
 const parameterizedDateRangeLiteralPrefixes = new Set([
@@ -59,10 +57,10 @@ const parameterizedDateRangeLiteralPrefixes = new Set([
   'last_n_fiscal_quarters:',
   'next_n_fiscal_quarters:',
   'last_n_fiscal_years:',
-  'next_n_fiscal_years:',
+  'next_n_fiscal_years:'
 ]);
 
-function isDatePattern(s: string): boolean {
+const isDatePattern = (s: string): boolean => {
   const DATE_ONLY_PATTERN = /^[1-4][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]$/;
   const DATE_TIME_UTC_PATTERN = /^[1-4][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9][tT][0-2][0-9]:[0-5][0-9]:[0-5][0-9][zZ]$/;
   const DATE_TIME_OFFSET_PATTERN =
@@ -70,17 +68,13 @@ function isDatePattern(s: string): boolean {
   return (
     DATE_ONLY_PATTERN.test(s.trim()) || DATE_TIME_UTC_PATTERN.test(s.trim()) || DATE_TIME_OFFSET_PATTERN.test(s.trim())
   );
-}
+};
 
-function isDateRangeLiteral(s: string): boolean {
-  return isStaticDateRangeLiteral(s) || isParameterizedDateRangeLiteral(s);
-}
+const isDateRangeLiteral = (s: string): boolean => isStaticDateRangeLiteral(s) || isParameterizedDateRangeLiteral(s);
 
-function isStaticDateRangeLiteral(s: string): boolean {
-  return staticDateRangeLiterals.has(s.trim().toLowerCase());
-}
+const isStaticDateRangeLiteral = (s: string): boolean => staticDateRangeLiterals.has(s.trim().toLowerCase());
 
-function isParameterizedDateRangeLiteral(s: string): boolean {
+const isParameterizedDateRangeLiteral = (s: string): boolean => {
   let isMatch = false;
   const trimmed = s.trim();
   const colonIdx = trimmed.indexOf(':');
@@ -92,4 +86,4 @@ function isParameterizedDateRangeLiteral(s: string): boolean {
     }
   }
   return isMatch;
-}
+};

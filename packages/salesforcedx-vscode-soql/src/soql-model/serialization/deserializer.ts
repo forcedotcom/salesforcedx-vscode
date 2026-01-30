@@ -84,7 +84,7 @@ import {
 } from '../model/model';
 import { SoqlModelUtils } from '../model/util';
 
-export function deserialize(soqlSyntax: string): Query {
+export const deserialize = (soqlSyntax: string): Query => {
   let query: Query | undefined;
 
   const parser = SOQLParser({
@@ -115,7 +115,7 @@ export function deserialize(soqlSyntax: string): Query {
     throw Error(JSON.stringify(modelErrors));
   }
   return query;
-}
+};
 
 interface KnownError {
   type: ErrorType;

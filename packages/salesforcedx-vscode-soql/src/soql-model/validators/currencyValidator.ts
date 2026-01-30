@@ -21,6 +21,4 @@ export class CurrencyValidator extends FloatValidator {
   }
 }
 
-function isCurrencyLiteral(s: string): boolean {
-  return /^[a-zA-Z]{3}[+-]?[0-9]*[.]?[0-9]+$/.test(s.trim());
-}
+const isCurrencyLiteral = (s: string): boolean => /^[a-zA-Z]{3}[+-]?[0-9]*[.]?[0-9]+$/.test(s.trim());
