@@ -10,12 +10,14 @@ import * as Layer from 'effect/Layer';
 import { Buffer } from 'node:buffer';
 import { dirname } from 'node:path';
 import * as vscode from 'vscode';
+import { unknownToErrorCause } from '../core/shared';
 import {
   isSerializedDirectoryWithPath,
   isSerializedFileWithPath,
   SerializedEntryWithPath,
   SerializedFileWithPath
 } from './fsTypes';
+import { VirtualFsProviderError } from './virtualFsProviderError';
 
 const DB_NAME = 'fsProviderDB';
 const STORE_NAME = 'files';
@@ -59,11 +61,8 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
       })
     );
 
-    const withStore = <A>(
-      mode: IDBTransactionMode,
-      f: (store: IDBObjectStore) => IDBRequest<A>
-    ): Effect.Effect<A, Error> =>
-      Effect.async<A, Error>(resume => {
+    const withStore = <A>(mode: IDBTransactionMode, f: (store: IDBObjectStore) => IDBRequest<A>) =>
+      Effect.async<A, VirtualFsProviderError>(resume => {
         // eslint-disable-next-line functional/no-try-statements
         try {
           const transaction = db.transaction(STORE_NAME, mode);
@@ -77,22 +76,26 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
           request.onerror = (): void => {
             resume(
               Effect.fail(
-                new Error(`Transaction failed with mode "${mode}" with cause: ${String(request.error)}`, {
-                  cause: request.error
+                new VirtualFsProviderError({
+                  message: `Transaction failed with mode "${mode}"`,
+                  ...unknownToErrorCause(request.error)
                 })
               )
             );
           };
-        } catch (error) {
+        } catch (error: unknown) {
           resume(
             Effect.fail(
-              new Error(`Transaction failed with mode "${mode}" with cause: ${String(error)}`, { cause: error })
+              new VirtualFsProviderError({
+                message: `Transaction failed with mode "${mode}"`,
+                ...unknownToErrorCause(error)
+              })
             )
           );
         }
       });
 
-    const loadState = (): Effect.Effect<void, Error> =>
+    const loadState = () =>
       withStore('readonly', store => store.getAll()).pipe(
         Effect.tap((entries: SerializedEntryWithPath[]) => {
           entries.filter(isSerializedDirectoryWithPath).forEach(entry => {
@@ -104,16 +107,16 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
         Effect.withSpan('loadState')
       );
 
-    const saveFile = (path: string): Effect.Effect<void, Error> =>
+    const saveFile = (path: string) =>
       // Provide the key explicitly since the store uses out-of-line keys
       withStore('readwrite', store => store.put(buildFileEntry(path), path)).pipe(
         Effect.withSpan('saveFile', { attributes: { path } })
       );
 
-    const deleteFile = (path: string): Effect.Effect<void, Error> =>
+    const deleteFile = (path: string) =>
       withStore('readwrite', store => store.delete(path)).pipe(Effect.withSpan('deleteFile', { attributes: { path } }));
 
-    const loadFile = (path: string): Effect.Effect<void, Error> =>
+    const loadFile = (path: string) =>
       withStore<SerializedEntryWithPath | undefined>('readonly', store => store.get(path)).pipe(
         Effect.tap(entry => {
           if (!entry) {
@@ -144,8 +147,8 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
 const IndexedDBStorageServicesNoop: Layer.Layer<IndexedDBStorageService, never> = Layer.succeed(
   IndexedDBStorageService,
   new IndexedDBStorageService({
-    loadState: () => Effect.succeed(undefined),
-    saveFile: () => Effect.succeed(undefined),
+    loadState: () => Effect.succeed([]),
+    saveFile: () => Effect.succeed('foo'),
     deleteFile: () => Effect.succeed(undefined),
     loadFile: () => Effect.succeed(undefined)
   })
@@ -159,7 +162,8 @@ export const IndexedDBStorageServiceShared =
 
 const writeFileWithOrWithoutDir = (entry: SerializedFileWithPath): void => {
   fs.mkdirSync(dirname(entry.path), { recursive: true });
-  fs.writeFileSync(entry.path, Buffer.from(entry.data, 'utf-8'));
+  // Use base64 to preserve binary data (e.g., git objects)
+  fs.writeFileSync(entry.path, Buffer.from(entry.data, 'base64'));
 };
 
 const buildFileEntry = (path: string): SerializedEntryWithPath => {
@@ -172,7 +176,8 @@ const buildFileEntry = (path: string): SerializedEntryWithPath => {
     ...(stats.isDirectory()
       ? { entries: {}, type: vscode.FileType.Directory }
       : {
-          data: fs.readFileSync(path).toString('utf-8'),
+          // Use base64 to preserve binary data (e.g., git objects)
+          data: fs.readFileSync(path).toString('base64'),
           type: vscode.FileType.File
         })
   };

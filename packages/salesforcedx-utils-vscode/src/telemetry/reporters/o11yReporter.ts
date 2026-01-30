@@ -50,7 +50,7 @@ export class O11yReporter
     // Enable automatic batching with 30-second periodic flush
     this.batchingCleanup = this.o11yService.enableAutoBatching({
       flushInterval: 30_000, // 30 seconds
-      enableShutdownHook: true, // Ensure events are flushed on shutdown
+      enableShutdownHook: true // Ensure events are flushed on shutdown
     });
   }
 

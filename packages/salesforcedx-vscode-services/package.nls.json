@@ -5,6 +5,7 @@
   "configuration.instanceUrl.description": "Salesforce instance URL for web extensions. Only valid in browser",
   "configuration.accessToken.description": "Salesforce access token for web extensions. Only valid in browser",
   "configuration.apiVersion.description": "Salesforce api version (example: 65.0). Only valid in browser",
+  "configuration.retrieveOnLoad.description": "Comma-separated list of metadata to retrieve on load (format: MetadataType:FullName, e.g. ApexClass:Foo,CustomObject:Account). Web only.",
   "configuration.otelLocal.description": "Enable local OpenTelemetry traces for debugging and performance monitoring. Start the trace viewer using docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm",
   "configuration.otelConsole.description": "Send OpenTelemetry traces for debugging and performance monitoring to the console (browser or electron)."
 }

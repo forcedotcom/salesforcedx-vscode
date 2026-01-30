@@ -1,0 +1,16 @@
+---
+globs: *.ts
+alwaysApply: false
+---
+
+do not create barrel files
+do not add code with the keyword `void` to run async code within synchronous contexts. use async or effect
+do not create `export *`. explicitly name the exports
+
+prefer `undefined` over null unless the server response requires/includes nulls.
+prefer `undefined` over empty string
+
+prefer map/filter over loops and conditionals
+avoid array and object mutation
+
+never create an enum or a namespace

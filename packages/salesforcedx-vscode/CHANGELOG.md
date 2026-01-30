@@ -3,12 +3,12 @@
 ## Added
 
 #### salesforcedx-vscode-apex-testing
+
 #### salesforcedx-vscode-services
 
--   We modernized the Apex testing extension to improve modularity and prepare it for browser-based (web) environments. This update removes legacy dependencies, streamlines configuration and activation behavior, and introduces a new setting to control retrieval of Apex test code coverage results. These changes improve maintainability today and enable broader platform support going forward. ([PR #6774](https://github.com/forcedotcom/salesforcedx-vscode/pull/6774))
+- We modernized the Apex testing extension to improve modularity and prepare it for browser-based (web) environments. This update removes legacy dependencies, streamlines configuration and activation behavior, and introduces a new setting to control retrieval of Apex test code coverage results. These changes improve maintainability today and enable broader platform support going forward. ([PR #6774](https://github.com/forcedotcom/salesforcedx-vscode/pull/6774))
 
-
-## Fixed
+## Added
 
 #### salesforcedx-vscode-apex-testing
 

@@ -278,9 +278,10 @@ const getMockVSCode = () => {
       onDidChangeConfiguration: jest.fn(),
       findFiles: jest.fn().mockResolvedValue([]),
       createFileSystemWatcher: jest.fn().mockReturnValue({
-        onDidChange: jest.fn(),
-        onDidCreate: jest.fn(),
-        onDidDelete: jest.fn()
+        onDidChange: jest.fn().mockReturnValue({ dispose: jest.fn() }),
+        onDidCreate: jest.fn().mockReturnValue({ dispose: jest.fn() }),
+        onDidDelete: jest.fn().mockReturnValue({ dispose: jest.fn() }),
+        dispose: jest.fn()
       }),
       workspaceFolders: [],
       textDocuments: [],

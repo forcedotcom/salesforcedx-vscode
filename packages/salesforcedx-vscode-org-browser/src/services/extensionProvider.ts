@@ -5,33 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Context from 'effect/Context';
+import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { OrgBrowserRetrieveServiceLive } from './orgBrowserMetadataRetrieveService';
-
-export type ExtensionProviderService = {
-  /** Get the SalesforceVSCodeServicesApi, activating if needed */
-  readonly getServicesApi: Effect.Effect<SalesforceVSCodeServicesApi, Error, never>;
-};
-
-export const ExtensionProviderService = Context.GenericTag<ExtensionProviderService>('ExtensionProviderService');
-
-const isSalesforceVSCodeServicesApi = (api: unknown): api is SalesforceVSCodeServicesApi =>
-  api !== null && api !== undefined && typeof api === 'object' && 'services' in api;
-
-/** connect to the Salesforce Services extension and get all of its API services */
-const getServicesApi = Effect.sync(() =>
-  vscode.extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services')
-).pipe(
-  Effect.flatMap(ext => (ext ? Effect.succeed(ext) : Effect.fail(new Error('Services extension not found')))),
-  Effect.flatMap(ext => (ext.isActive ? Effect.sync(() => ext.exports) : Effect.tryPromise(() => ext.activate()))),
-  Effect.flatMap(api =>
-    isSalesforceVSCodeServicesApi(api) ? Effect.succeed(api) : Effect.fail(new Error('Invalid Services API'))
-  )
-);
+import { EXTENSION_NAME } from '../constants';
+import { OrgBrowserRetrieveService } from './orgBrowserMetadataRetrieveService';
 
 const ExtensionProviderServiceLive = Layer.effect(
   ExtensionProviderService,
@@ -45,6 +24,9 @@ export const AllServicesLayer = Layer.unwrapEffect(
   Effect.gen(function* () {
     const extensionProvider = yield* ExtensionProviderService;
     const api = yield* extensionProvider.getServicesApi;
+    const extension = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`);
+    const extensionVersion = extension?.packageJSON?.version ?? 'unknown';
+    const o11yEndpoint = process.env.O11Y_ENDPOINT ?? extension?.packageJSON?.o11yUploadEndpoint;
     // Merge all the service layers from the API
     return Layer.mergeAll(
       ExtensionProviderServiceLive,
@@ -55,12 +37,12 @@ export const AllServicesLayer = Layer.unwrapEffect(
       api.services.MetadataRegistryService.Default,
       api.services.MetadataDescribeService.Default,
       api.services.ProjectService.Default,
-      api.services.SdkLayer,
+      api.services.SdkLayerFor({ extensionName: EXTENSION_NAME, extensionVersion, o11yEndpoint }),
       api.services.SettingsService.Default,
       api.services.WorkspaceService.Default,
       api.services.SourceTrackingService.Default,
       api.services.ChannelServiceLayer('Salesforce Org Browser'),
-      OrgBrowserRetrieveServiceLive
+      OrgBrowserRetrieveService.Default
     );
   }).pipe(Effect.provide(ExtensionProviderServiceLive))
 );

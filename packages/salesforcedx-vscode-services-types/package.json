@@ -12,10 +12,10 @@
     "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
   },
   "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/salesforcedx-vscode-services-types",
-  "types": "out/salesforcedx-vscode-services-types/src/index.d.ts",
+  "types": "out/index.d.ts",
   "exports": {
     ".": {
-      "types": "./out/salesforcedx-vscode-services-types/src/index.d.ts"
+      "types": "./out/index.d.ts"
     }
   },
   "files": [
@@ -33,16 +33,28 @@
     "clean": "shx rm -rf src out dist node_modules .wireit .eslintcache *.tgz"
   },
   "wireit": {
+    "generate-src": {
+      "command": "ts-node scripts/generateEntry.ts && ts-node scripts/syncDeps.ts",
+      "files": [
+        "../salesforcedx-vscode-services/src/**/*.ts",
+        "scripts/*.ts"
+      ],
+      "output": [
+        "src/index.ts"
+      ]
+    },
     "compile": {
       "command": "tsc --build --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-vscode-services:generate-types"
+        "generate-src",
+        "../salesforcedx-vscode-services:compile"
       ],
       "files": [
         "src/**/*.ts",
         "tsconfig.json",
-        "../../tsconfig.common.json"
+        "../../tsconfig.common.json",
+        "package.json"
       ],
       "output": [
         "out/**",
@@ -52,7 +64,7 @@
   },
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.32",
-    "@effect/opentelemetry": "0.59.2",
+    "@effect/opentelemetry": "0.60.0",
     "@opentelemetry/api": "1.9.0",
     "@opentelemetry/core": "2.0.1",
     "@opentelemetry/exporter-trace-otlp-http": "0.209.0",
@@ -61,18 +73,16 @@
     "@opentelemetry/sdk-trace-base": "2.0.1",
     "@opentelemetry/sdk-trace-node": "2.2.0",
     "@opentelemetry/sdk-trace-web": "2.2.0",
-    "@salesforce/core": "^8.23.3",
-    "@salesforce/source-deploy-retrieve": "^12.25.0",
-    "@salesforce/source-tracking": "^7.8.0",
+    "@salesforce/core": "^8.23.4",
+    "@salesforce/source-deploy-retrieve": "^12.31.9",
+    "@salesforce/source-tracking": "^7.8.1",
     "@types/vscode": "^1.90.0",
-    "effect": "^3.19.13",
+    "effect": "^3.19.14",
     "jsforce": "^3.10.2",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "shx": "^0.4.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.4.2"
+    "shx": "^0.3.4",
+    "ts-node": "^10.9.2"
   }
 }

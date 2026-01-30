@@ -1,0 +1,79 @@
+name: Services E2E (Playwright)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'packages/salesforcedx-vscode-services/**'
+      - 'packages/playwright-vscode-ext/**'
+      - '.github/workflows/servicesE2E.yml'
+
+jobs:
+  e2e-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      MINIMAL_ORG_ALIAS: minimalTestOrg
+      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Salesforce CLI
+        run: |
+          npm i -g @salesforce/cli
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers and OS deps
+        run: npx playwright install chromium --with-deps
+
+      - name: Generate minimal project
+        shell: bash
+        run: sf project generate -n minimal-project
+
+      - name: create scratch org
+        # the tests expect a scratch org with a certain alias but don't use the directory directly
+        shell: bash
+        run: |
+          echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json
+        working-directory: minimal-project
+
+      - name: Run Services headless tests (headless config)
+        env:
+          CI: 1
+        # compile the entire project to
+        run: |
+          npm run test:web -w salesforcedx-vscode-services -- --reporter=html
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-web
+          path: packages/salesforcedx-vscode-services/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-web
+          path: packages/salesforcedx-vscode-services/test-results
+          if-no-files-found: ignore
+
+      - name: Cleanup scratch org
+        if: always()
+        continue-on-error: true
+        run: |
+          sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt || true

@@ -3,7 +3,7 @@
 ## Pre-requisites
 
 1.  We are requiring Node 22 and npm v10 at a minimum. If you need to work with multiple versions of Node, you might consider using [nvm](https://github.com/creationix/nvm).
-1.  This repository uses [npm workspaces](https://docs.npmjs.com/cli/using-npm/workspaces) and [wireit](https://github.com/nicolo-ribaudo/wireit) to manage it as a _monorepo_.
+1.  This repository uses [npm workspaces](https://docs.npmjs.com/cli/using-npm/workspaces) and [wireit](https://github.com/google/wireit) to manage it as a _monorepo_.
 1.  We use `eslint` so please install it using `npm install --global eslint`.
 1.  It is preferred, though not required, that you use the Insiders version of VS
     Code from [here](https://code.visualstudio.com/insiders).

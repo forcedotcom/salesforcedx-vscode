@@ -25,7 +25,8 @@
   ],
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.32",
-    "@effect/opentelemetry": "0.59.2",
+    "@effect/opentelemetry": "0.60.0",
+    "@effect/platform": "^0.94.1",
     "@opentelemetry/api": "1.9.0",
     "@opentelemetry/core": "2.0.1",
     "@opentelemetry/exporter-trace-otlp-http": "0.209.0",
@@ -35,19 +36,20 @@
     "@opentelemetry/sdk-trace-base": "2.0.1",
     "@opentelemetry/sdk-trace-node": "2.2.0",
     "@opentelemetry/sdk-trace-web": "2.2.0",
-    "@salesforce/core": "^8.23.3",
-    "@salesforce/source-deploy-retrieve": "^12.25.0",
-    "@salesforce/source-tracking": "^7.8.0",
+    "@salesforce/core": "^8.23.4",
+    "@salesforce/o11y-reporter": "1.6.0",
+    "@salesforce/source-deploy-retrieve": "^12.31.9",
+    "@salesforce/source-tracking": "^7.8.1",
     "@vscode/extension-telemetry": "^1.0.0",
-    "effect": "^3.19.13",
+    "effect": "^3.19.14",
     "jsforce": "^3.10.2",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@effect/platform": "0.93.8",
+    "@salesforce/playwright-vscode-ext": "*",
     "@types/node": "^20.0.0",
     "browserify-zlib": "^0.2.0",
-    "esbuild": "0.25.0",
+    "esbuild": "0.25.12",
     "https-browserify": "^1.0.0",
     "jsforce": "^3.9.4",
     "nyc": "^15",
@@ -63,8 +65,14 @@
     "compile": "wireit",
     "generate-types": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
-    "test": "wireit"
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
+    "test": "wireit",
+    "run:web": "wireit",
+    "test:web": "wireit",
+    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
+    "test:web:debug": "npm run test:web -- --debug",
+    "test:e2e": "wireit",
+    "o11y:debug": "wireit"
   },
   "wireit": {
     "compile": {
@@ -77,7 +85,8 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
-        "../../tsconfig.common.json"
+        "../../tsconfig.common.json",
+        "package.json"
       ],
       "output": [
         "out/**",
@@ -122,10 +131,25 @@
         "coverage"
       ]
     },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
-        "../eslint-local-rules:compile"
+        "../eslint-local-rules:compile",
+        "check:circular-deps"
       ],
       "files": [
         "src/**/*.ts",
@@ -151,6 +175,38 @@
       ],
       "output": [
         "*.vsix"
+      ]
+    },
+    "test:web": {
+      "command": "playwright test --config=playwright.config.web.ts",
+      "dependencies": [
+        "vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.web.ts"
+      ]
+    },
+    "test:e2e": {
+      "dependencies": [
+        "test:web"
+      ]
+    },
+    "run:web": {
+      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "service": true,
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "test/playwright/**/*.ts"
+      ]
+    },
+    "o11y:debug": {
+      "command": "ts-node scripts/o11yDebugServer.ts",
+      "service": true,
+      "files": [
+        "scripts/o11yDebugServer.ts"
       ]
     }
   },
@@ -178,6 +234,11 @@
           "type": "string",
           "default": "64.0",
           "description": "%configuration.apiVersion.description%"
+        },
+        "salesforcedx-vscode-code-builder-web.retrieveOnLoad": {
+          "type": "string",
+          "default": "",
+          "description": "%configuration.retrieveOnLoad.description%"
         },
         "salesforcedx-vscode-salesforcedx.enableLocalTraces": {
           "type": "boolean",

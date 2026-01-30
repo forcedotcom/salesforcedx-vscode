@@ -7,35 +7,37 @@
 import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
-import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
-import { create } from '../utils/dreamhouseScratchOrgSetup';
+import { upsertScratchOrgAuthFieldsToSettings, createDreamhouseOrg } from '@salesforce/playwright-vscode-ext';
 
-test.describe('Org Browser high-level validation', () => {
-  test.setTimeout(10 * 60 * 1000);
+test.setTimeout(10 * 60 * 1000);
 
-  test.beforeEach(async ({ page }) => {
-    const createResult = await create();
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+test.beforeEach(async ({ page }) => {
+  const createResult = await createDreamhouseOrg();
+  const orgBrowserPage = new OrgBrowserPage(page);
+  await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
+});
+
+test('Org Browser high-level validation: a few types from describe', async ({ page }) => {
+  const orgBrowserPage = new OrgBrowserPage(page);
+  await orgBrowserPage.openOrgBrowser();
+  await test.step('validate CustomObject', async () => {
+    await orgBrowserPage.findMetadataType('CustomObject');
   });
 
-  test('a few types from describe', async ({ page }) => {
-    const orgBrowserPage = new OrgBrowserPage(page);
-    await orgBrowserPage.openOrgBrowser();
-    await test.step('validate CustomObject', async () => {
-      await orgBrowserPage.findMetadataType('CustomObject');
-    });
+  await test.step('validate StaticResource', async () => {
+    // pick a node that will scroll a bit
+    await orgBrowserPage.findMetadataType('StaticResource');
+  });
 
-    await test.step('validate StaticResource', async () => {
-      // pick a node that will scroll a bit
-      await orgBrowserPage.findMetadataType('StaticResource');
-    });
+  const tabType = await orgBrowserPage.findMetadataType('CustomTab');
 
-    const tabType = await orgBrowserPage.findMetadataType('CustomTab');
-
-    await test.step('CustomTab UI (not expanded)', async () => {
-      await tabType.hover({ timeout: 500 });
-
-      await expect(tabType).toMatchAriaSnapshot({ name: 'customtab-found' });
-    });
+  await test.step('CustomTab UI (not expanded)', async () => {
+    await tabType.hover({ timeout: 500 });
+    await expect(tabType).toBeVisible();
+    // Expected structure: treeitem at level 1 with toolbar containing both Refresh Type and Retrieve Metadata buttons
+    await expect(tabType).toHaveRole('treeitem');
+    await expect(tabType).toHaveAttribute('aria-level', '1');
+    await expect(tabType.locator('[aria-label="Refresh Type"]')).toBeVisible();
+    await expect(tabType.locator('[aria-label="Retrieve Metadata"]')).toBeVisible();
   });
 });

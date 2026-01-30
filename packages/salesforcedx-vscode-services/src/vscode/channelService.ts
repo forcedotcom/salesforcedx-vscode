@@ -9,20 +9,18 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
+import { SERVICES_CHANNEL_NAME } from '../constants';
 
 export class ChannelService extends Effect.Service<ChannelService>()('ChannelService', {
   sync: () => {
     // Default implementation with a generic channel name
-    const channel = Effect.runSync(cache.get('Salesforce Services'));
+    const channel = Effect.runSync(cache.get(SERVICES_CHANNEL_NAME));
     return {
       /** Get the OutputChannel for this ChannelService */
       getChannel: Effect.sync(() => channel),
       /** Append a message to this OutputChannel */
       appendToChannel: (message: string) =>
-        Effect.try({
-          try: () => channel.appendLine(message),
-          catch: e => new Error(`Failed to append to channel: ${String(e)}`)
-        }).pipe(
+        Effect.try(() => channel.appendLine(message)).pipe(
           // channelLogging is "best effort" and will not cause a failure
           Effect.catchAll(() => Effect.succeed(undefined))
         )

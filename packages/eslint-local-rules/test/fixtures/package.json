@@ -1,0 +1,15 @@
+{
+  "name": "test-fixture",
+  "contributes": {
+    "commands": [
+      {
+        "command": "sf.test.command",
+        "title": "Test Command"
+      },
+      {
+        "command": "sf.another.command",
+        "title": "Another Command"
+      }
+    ]
+  }
+}

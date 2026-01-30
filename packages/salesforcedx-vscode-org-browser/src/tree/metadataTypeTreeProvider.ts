@@ -4,10 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Queue from 'effect/Queue';
 import * as vscode from 'vscode';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 import { createCustomFieldNode } from './customField';
 import { backgroundFilePresenceCheckQueue } from './filePresence';
 import { isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
@@ -45,75 +46,74 @@ const getChildrenOfTreeItem = (
   element: OrgBrowserTreeItem | undefined,
   refresh: boolean,
   treeProvider: MetadataTypeTreeProvider
-): Effect.Effect<OrgBrowserTreeItem[], Error, never> =>
-  ExtensionProviderService.pipe(
-    Effect.flatMap(svcProvider => svcProvider.getServicesApi),
-    Effect.flatMap(api => api.services.MetadataDescribeService),
-    Effect.flatMap(describeService => {
-      if (!element) {
-        return describeService
-          .describe(refresh)
-          .pipe(
-            Effect.map(types =>
-              types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode)
-            )
-          );
-      }
-      if (element.kind === 'customObject') {
-        // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
-        return describeService
-          .describeCustomObject(
-            element.namespace ? `${element.namespace}__${element.componentName!}` : element.componentName!
-          )
-          .pipe(
-            Effect.flatMap(result =>
-              Effect.all(
-                result.fields
-                  // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
-                  .filter(f => f.custom)
-                  .toSorted((a, b) => (a.name < b.name ? -1 : 1))
-                  .map(createCustomFieldNode(treeProvider)(element)),
-                { concurrency: 'unbounded' }
-              )
-            )
-          );
-      }
-      if (element.kind === 'folderType' || (element.kind === 'type' && isFolderType(element.xmlName))) {
-        return describeService
-          .listMetadata(`${element.xmlName}Folder`)
-          .pipe(Effect.map(folders => folders.filter(globalMetadataFilter).map(listMetadataToFolder(element))));
-      }
-      if (element.kind === 'type') {
-        return describeService.listMetadata(element.xmlName).pipe(
-          Effect.flatMap(components =>
-            Effect.all(components.filter(globalMetadataFilter).map(listMetadataToComponent(treeProvider)(element)), {
-              concurrency: 'unbounded'
-            })
-          )
-        );
-      }
-      if (element.kind === 'folder') {
-        const { xmlName, folderName } = element;
-        if (!xmlName || !folderName) return Effect.succeed([]);
-        return describeService.listMetadata(xmlName, folderName).pipe(
-          Effect.flatMap(components =>
-            Effect.all(components.filter(globalMetadataFilter).map(listMetadataToFolderItem(treeProvider)(element)), {
-              concurrency: 'unbounded'
-            })
-          )
-        );
-      }
+) =>
+  Effect.gen(function* () {
+    const svcProvider = yield* ExtensionProviderService;
+    const api = yield* svcProvider.getServicesApi;
+    const describeService = yield* api.services.MetadataDescribeService;
 
-      return Effect.die(new Error(`Unsupported node kind: ${element.kind}`));
-    }),
+    if (!element) {
+      return yield* describeService
+        .describe(refresh)
+        .pipe(
+          Effect.map(types =>
+            types.toSorted((a, b) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode)
+          )
+        );
+    }
+    if (element.kind === 'customObject') {
+      // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that
+      return yield* describeService
+        .describeCustomObject(
+          element.namespace ? `${element.namespace}__${element.componentName!}` : element.componentName!
+        )
+        .pipe(
+          Effect.flatMap(result =>
+            Effect.all(
+              result.fields
+                // TO REVIEW: only custom fields can be retrieved.  Is it useful to show the standard fields?  If so, we could hide the retrieve icon
+                .filter(f => f.custom)
+                .toSorted((a, b) => (a.name < b.name ? -1 : 1))
+                .map(createCustomFieldNode(treeProvider)(element)),
+              { concurrency: 'unbounded' }
+            )
+          )
+        );
+    }
+    if (element.kind === 'folderType' || (element.kind === 'type' && isFolderType(element.xmlName))) {
+      return yield* describeService
+        .listMetadata(`${element.xmlName}Folder`)
+        .pipe(Effect.map(folders => folders.filter(globalMetadataFilter).map(listMetadataToFolder(element))));
+    }
+    if (element.kind === 'type') {
+      return yield* describeService.listMetadata(element.xmlName).pipe(
+        Effect.flatMap(components =>
+          Effect.all(components.filter(globalMetadataFilter).map(listMetadataToComponent(treeProvider)(element)), {
+            concurrency: 'unbounded'
+          })
+        )
+      );
+    }
+    if (element.kind === 'folder') {
+      const { xmlName, folderName } = element;
+      if (!xmlName || !folderName) return yield* Effect.succeed([]);
+      return yield* describeService.listMetadata(xmlName, folderName).pipe(
+        Effect.flatMap(components =>
+          Effect.all(components.filter(globalMetadataFilter).map(listMetadataToFolderItem(treeProvider)(element)), {
+            concurrency: 'unbounded'
+          })
+        )
+      );
+    }
+
+    return yield* Effect.die(new Error(`Unsupported node kind: ${JSON.stringify(element)}`));
+  }).pipe(
     Effect.withSpan('getChildrenOfTreeItem', { attributes: { element: element?.xmlName, refresh } }),
     Effect.provide(AllServicesLayer)
   );
 
 const listMetadataToComponent =
-  (treeProvider: MetadataTypeTreeProvider) =>
-  (element: OrgBrowserTreeItem) =>
-  (c: MetadataListResultItem): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
+  (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) => (c: MetadataListResultItem) =>
     Effect.gen(function* () {
       const treeItem = new OrgBrowserTreeItem({
         kind: element.xmlName === 'CustomObject' ? 'customObject' : 'component',
@@ -148,9 +148,7 @@ const listMetadataToFolder =
     });
 
 const listMetadataToFolderItem =
-  (treeProvider: MetadataTypeTreeProvider) =>
-  (element: OrgBrowserTreeItem) =>
-  (c: MetadataListResultItem): Effect.Effect<OrgBrowserTreeItem, Error, never> =>
+  (treeProvider: MetadataTypeTreeProvider) => (element: OrgBrowserTreeItem) => (c: MetadataListResultItem) =>
     Effect.gen(function* () {
       const treeItem = new OrgBrowserTreeItem({
         kind: 'component',
