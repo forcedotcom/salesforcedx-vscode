@@ -8,16 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish-start-notification:
-    name: 'Publish in Open VSX Start Notification'
-    uses: ./.github/workflows/slackNotification.yml
-    secrets: inherit
-    with:
-      title: 'Publish in Open VSX waiting for approval in github.'
-      notification: 'New Release triggered publish build and job is ready for approval.'
-      type: 'notification'
-      workflow: 'publishOpenVSX.yml'
-
   prepare-environment-from-main:
     name: 'Get Release Version'
     runs-on: ubuntu-latest
