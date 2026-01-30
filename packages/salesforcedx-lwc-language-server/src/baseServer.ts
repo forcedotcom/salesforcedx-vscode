@@ -14,10 +14,11 @@ import {
   BaseWorkspaceContext,
   syncDocumentToTextDocumentsProvider,
   scheduleReinitialization,
-  normalizePath,
   NormalizedPath,
-  WorkspaceType
+  WorkspaceType,
+  normalizePath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import * as path from 'node:path';
 import { basename, dirname, parse } from 'node:path';
 import {
   getLanguageService,
@@ -30,7 +31,6 @@ import {
   CompletionItemKind
 } from 'vscode-html-languageservice';
 import {
-  createConnection,
   Connection,
   TextDocuments,
   TextDocumentChangeEvent,
@@ -48,10 +48,8 @@ import {
   Range,
   TextDocumentSyncKind,
   FileEvent
-} from 'vscode-languageserver/node';
+} from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-
-import { URI } from 'vscode-uri';
 import { AuraDataProvider } from './auraDataProvider';
 import ComponentIndexer from './componentIndexer';
 import { TYPESCRIPT_SUPPORT_SETTING } from './constants';
@@ -124,24 +122,25 @@ const containsDeletedLwcWatchedDirectory = async (
   return false;
 };
 
-export default class Server {
-  public readonly connection: Connection = createConnection();
+const shouldCompleteJavascript = (params: CompletionParams): boolean => params.context?.triggerCharacter !== '{';
+
+export abstract class BaseServer {
+  public readonly connection: Connection;
   public readonly documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
-  private context!: LWCWorkspaceContext;
-  private workspaceFolders!: WorkspaceFolder[];
-  private workspaceRoots!: NormalizedPath[];
+  protected context!: LWCWorkspaceContext;
+  protected workspaceFolders!: WorkspaceFolder[];
+  protected workspaceRoots!: NormalizedPath[];
   public componentIndexer!: ComponentIndexer;
   public languageService!: LanguageService;
   public auraDataProvider!: AuraDataProvider;
   public lwcDataProvider!: LWCDataProvider;
   public fileSystemProvider: FileSystemDataProvider;
-  private textDocumentsFileSystemProvider: FileSystemDataProvider;
-  private workspaceType: WorkspaceType;
-  private isDelayedInitializationComplete = false;
+  protected workspaceType: WorkspaceType;
+  protected isDelayedInitializationComplete = false;
 
   constructor() {
+    this.connection = this.createConnection();
     this.fileSystemProvider = new FileSystemDataProvider();
-    this.textDocumentsFileSystemProvider = new FileSystemDataProvider();
 
     this.connection.onInitialize(params => this.onInitialize(params));
     this.connection.onCompletion(params => this.onCompletion(params));
@@ -154,13 +153,21 @@ export default class Server {
     this.documents.listen(this.connection);
   }
 
+  protected abstract createConnection(): Connection;
+
   public async onInitialize(params: InitializeParams): Promise<InitializeResult> {
     this.workspaceFolders = params.workspaceFolders ?? [];
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     this.workspaceType = params.initializationOptions?.workspaceType ?? 'UNKNOWN';
+
+    // Set workspace folder URIs in file system provider first so it can convert URIs correctly
+    const workspaceFolderUris = this.workspaceFolders.map(folder => folder.uri);
+    this.fileSystemProvider.setWorkspaceFolderUris(workspaceFolderUris);
+
     // Normalize workspaceRoots at entry point to ensure all paths are consistent
+    // Use uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
     // This ensures all downstream code receives normalized paths
-    this.workspaceRoots = this.workspaceFolders.map(folder => normalizePath(URI.parse(folder.uri).fsPath));
+    this.workspaceRoots = this.workspaceFolders.map(folder => this.fileSystemProvider.uriToNormalizedPath(folder.uri));
 
     // Set up document event handlers
     this.documents.onDidOpen(changeEvent => this.onDidOpen(changeEvent));
@@ -169,21 +176,6 @@ export default class Server {
 
     // Create context but don't initialize yet - wait for files to be loaded via onDidOpen
     this.context = new LWCWorkspaceContext(this.workspaceRoots, this.fileSystemProvider);
-
-    // Create component indexer with fileSystemProvider (will be re-initialized after delayed init)
-    this.componentIndexer = new ComponentIndexer({
-      workspaceRoot: this.workspaceRoots[0],
-      fileSystemProvider: this.fileSystemProvider
-    });
-
-    // Create data providers (will be re-initialized after delayed init)
-    this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
-    this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-    await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemProvider, this.connection);
-    this.languageService = getLanguageService({
-      customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
-      useDefaultDataProvider: false
-    });
 
     return this.capabilities;
   }
@@ -219,8 +211,14 @@ export default class Server {
       position,
       textDocument: { uri }
     } = params;
+
     const doc = this.documents.get(uri);
     if (!doc) {
+      return;
+    }
+
+    if (!this.languageService) {
+      Logger.error('[LWC Server] onCompletion: languageService is not initialized');
       return;
     }
 
@@ -239,8 +237,8 @@ export default class Server {
         };
       }
     } else if (await this.context.isLWCJavascript(doc)) {
-      const shouldComplete = this.shouldCompleteJavascript(params);
-      if (shouldComplete) {
+      const shouldComplete = shouldCompleteJavascript(params);
+      if (shouldComplete && this.componentIndexer) {
         const customData = this.componentIndexer.getCustomData();
         const customTags = customData.map(tag => ({
           label: getLwcTypingsName(tag),
@@ -286,12 +284,11 @@ export default class Server {
     return char === '{';
   }
 
-  public shouldCompleteJavascript(params: CompletionParams): boolean {
-    return params.context?.triggerCharacter !== '{';
-  }
-
   public findBindItems(docBasename: string): CompletionItem[] {
     const customTags: CompletionItem[] = [];
+    if (!this.componentIndexer) {
+      return customTags;
+    }
     const allTags = this.componentIndexer.getCustomData();
     allTags.forEach(tag => {
       const tagName = getTagName(tag);
@@ -314,6 +311,7 @@ export default class Server {
 
   public async onHover(params: TextDocumentPositionParams): Promise<Hover | null> {
     if (!params?.textDocument || !params.position) {
+      Logger.warn('[onHover] Missing params or position');
       return null;
     }
 
@@ -324,28 +322,56 @@ export default class Server {
 
     const doc = this.documents.get(uri);
     if (!doc) {
+      Logger.warn(`[onHover] Document not found for URI: ${uri}`);
       return null;
     }
 
-    const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
+    try {
+      const htmlDoc: HTMLDocument = this.languageService.parseHTMLDocument(doc);
 
-    if (await this.context.isLWCTemplate(doc)) {
-      if (!this.isDelayedInitializationComplete) {
-        return {
-          contents: nls.localize('server_initializing_message')
-        };
+      try {
+        if (await this.context.isLWCTemplate(doc)) {
+          // Allow hover to work if component indexer is initialized, even if delayed initialization isn't complete
+          // This is safe because namespace roots are already detected (isLWCTemplate returned true)
+          if (!this.isDelayedInitializationComplete && !this.componentIndexer) {
+            return {
+              contents: nls.localize('server_initializing_message')
+            };
+          }
+          this.auraDataProvider.activated = false;
+          this.lwcDataProvider.activated = true;
+          const hoverResult = this.languageService.doHover(doc, position, htmlDoc);
+          return hoverResult;
+        }
+      } catch (error) {
+        Logger.error(
+          `[onHover] Error checking isLWCTemplate: ${error instanceof Error ? error.message : String(error)}`,
+          error
+        );
       }
-      this.auraDataProvider.activated = false;
-      this.lwcDataProvider.activated = true;
-      return this.languageService.doHover(doc, position, htmlDoc);
-    } else if (await this.context.isAuraMarkup(doc)) {
-      if (!this.isDelayedInitializationComplete) {
-        return null;
+
+      try {
+        const isAuraMarkup = await this.context.isAuraMarkup(doc);
+
+        if (isAuraMarkup) {
+          if (!this.isDelayedInitializationComplete) {
+            return null;
+          }
+          this.auraDataProvider.activated = true;
+          this.lwcDataProvider.activated = false;
+          const hoverResult = this.languageService.doHover(doc, position, htmlDoc);
+          return hoverResult;
+        }
+      } catch (error) {
+        Logger.error(
+          `[onHover] Error checking isAuraMarkup: ${error instanceof Error ? error.message : String(error)}`,
+          error
+        );
       }
-      this.auraDataProvider.activated = true;
-      this.lwcDataProvider.activated = false;
-      return this.languageService.doHover(doc, position, htmlDoc);
-    } else {
+
+      return null;
+    } catch (error) {
+      Logger.error(`[onHover] Unexpected error: ${error instanceof Error ? error.message : String(error)}`, error);
       return null;
     }
   }
@@ -354,25 +380,35 @@ export default class Server {
    * Syncs FileSystemDataProvider from TextDocuments when a document is opened.
    * This avoids duplicate reads - TextDocuments is the source of truth for open files.
    */
-  private async onDidOpen(changeEvent: { document: TextDocument }): Promise<void> {
+  protected async onDidOpen(changeEvent: { document: TextDocument }): Promise<void> {
     const { document } = changeEvent;
     const uri = document.uri;
     const content = document.getText();
 
     // Normalize URI to fsPath before syncing (entry point for path normalization)
-    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
-    await syncDocumentToTextDocumentsProvider(
-      normalizedPath,
-      content,
-      this.textDocumentsFileSystemProvider,
-      this.workspaceRoots
-    );
+    // Use fileSystemProvider.uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
+    const normalizedPath = this.fileSystemProvider.uriToNormalizedPath(uri);
+    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
+
+    // If this is an LWC file and delayed initialization hasn't completed yet,
+    // clear namespace cache to ensure namespace roots are recalculated as files are discovered.
+    // Once delayed initialization is complete, namespace roots are stable and don't need recalculation
+    // on every file open - they only change when directory structure changes.
+    const isLwcPath =
+      normalizedPath.includes('/lwc/') &&
+      (normalizedPath.endsWith('.html') ?? normalizedPath.endsWith('.js') ?? normalizedPath.endsWith('.ts'));
+
+    if (isLwcPath && !this.isDelayedInitializationComplete) {
+      if (this.context) {
+        this.context.clearNamespaceCache();
+      }
+    }
 
     // Perform delayed initialization once file loading has stabilized
     // scheduleReinitialization waits for file count to stabilize (no changes for 1.5 seconds)
     // This ensures all files from bootstrapWorkspaceAwareness are loaded before initialization
     if (!this.isDelayedInitializationComplete) {
-      void scheduleReinitialization(this.textDocumentsFileSystemProvider, () => this.performDelayedInitialization());
+      void scheduleReinitialization(this.fileSystemProvider, () => this.performDelayedInitialization());
     }
   }
 
@@ -382,13 +418,9 @@ export default class Server {
     const content = document.getText();
 
     // Normalize URI to fsPath before syncing (entry point for path normalization)
-    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
-    await syncDocumentToTextDocumentsProvider(
-      normalizedPath,
-      content,
-      this.textDocumentsFileSystemProvider,
-      this.workspaceRoots
-    );
+    // Use fileSystemProvider.uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
+    const normalizedPath = this.fileSystemProvider.uriToNormalizedPath(uri);
+    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
 
     if (await this.context.isLWCTemplate(document)) {
       const diagnostics = templateLinter(document);
@@ -397,7 +429,7 @@ export default class Server {
     if (await this.context.isLWCJavascript(document)) {
       const { metadata, diagnostics } = javascriptCompileDocument(document);
       diagnostics && (await this.connection.sendDiagnostics({ uri, diagnostics }));
-      if (metadata) {
+      if (metadata && this.componentIndexer) {
         const tag: Tag | null = this.componentIndexer.findTagByURI(uri);
         if (tag) {
           await updateTagMetadata(tag, metadata);
@@ -417,13 +449,17 @@ export default class Server {
           if (isLWCRootDirectoryCreated(this.context, changes)) {
             // LWC directory created
             this.context.updateNamespaceRootTypeCache();
-            await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
+            if (this.componentIndexer) {
+              await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
+            }
           } else {
             const hasDeleteEvent = await containsDeletedLwcWatchedDirectory(this.context, changes);
             if (hasDeleteEvent) {
               // We need to scan the file system for deletion events as the change event does not include
               // information about the files that were deleted.
-              await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
+              if (this.componentIndexer) {
+                await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
+              }
             } else {
               const filePaths = [];
               for (const event of changes) {
@@ -440,7 +476,7 @@ export default class Server {
                   }
                 }
               }
-              if (filePaths.length > 0) {
+              if (filePaths.length > 0 && this.componentIndexer) {
                 await this.componentIndexer.insertSfdxTsConfigPath(filePaths);
               }
             }
@@ -461,17 +497,13 @@ export default class Server {
     const content = document.getText();
 
     // Normalize URI to fsPath before syncing (entry point for path normalization)
-    const normalizedPath = normalizePath(URI.parse(uri).fsPath);
-    await syncDocumentToTextDocumentsProvider(
-      normalizedPath,
-      content,
-      this.textDocumentsFileSystemProvider,
-      this.workspaceRoots
-    );
+    // Use fileSystemProvider.uriToNormalizedPath to handle both file:// and memfs:// schemes correctly
+    const normalizedPath = this.fileSystemProvider.uriToNormalizedPath(uri);
+    await syncDocumentToTextDocumentsProvider(normalizedPath, content, this.fileSystemProvider, this.workspaceRoots);
 
     if (await this.context.isLWCJavascript(document)) {
       const { metadata } = javascriptCompileDocument(document);
-      if (metadata) {
+      if (metadata && this.componentIndexer) {
         const tag: Tag | null = this.componentIndexer.findTagByURI(document.uri);
         if (tag) {
           void updateTagMetadata(tag, metadata);
@@ -482,7 +514,9 @@ export default class Server {
 
   public async onShutdown(): Promise<void> {
     // Persist custom components for faster startup on next session
-    this.componentIndexer.persistCustomComponents();
+    if (this.componentIndexer) {
+      this.componentIndexer.persistCustomComponents();
+    }
 
     await this.connection.sendNotification(ShowMessageNotification.type, {
       type: MessageType.Info,
@@ -492,7 +526,9 @@ export default class Server {
 
   public async onExit(): Promise<void> {
     // Persist custom components for faster startup on next session
-    this.componentIndexer.persistCustomComponents();
+    if (this.componentIndexer) {
+      this.componentIndexer.persistCustomComponents();
+    }
 
     await this.connection.sendNotification(ShowMessageNotification.type, {
       type: MessageType.Info,
@@ -501,46 +537,79 @@ export default class Server {
   }
 
   public onDefinition(params: TextDocumentPositionParams): Location[] {
-    const cursorInfo: CursorInfo | null = this.cursorInfo(params);
-    if (!cursorInfo) {
+    try {
+      const cursorInfo: CursorInfo | null = this.cursorInfo(params);
+
+      if (!cursorInfo) {
+        return [];
+      }
+
+      const tag: Tag | null =
+        cursorInfo.tag && this.componentIndexer ? this.componentIndexer.findTagByName(cursorInfo.tag) : null;
+
+      let result: Location[] = [];
+      switch (cursorInfo.type) {
+        case 'tag':
+          if (tag) {
+            try {
+              result = getAllLocations(tag, this.fileSystemProvider);
+            } catch (error) {
+              Logger.error(
+                `[onDefinition] Error getting all locations for tag ${cursorInfo.tag}: ${error instanceof Error ? error.message : String(error)}`,
+                error
+              );
+              result = [];
+            }
+          } else {
+            Logger.warn(`[onDefinition] Tag not found for name: ${cursorInfo.tag}`);
+          }
+          break;
+
+        case 'attributeKey':
+          const attr: AttributeInfo | null = tag ? getAttribute(tag, cursorInfo.name) : null;
+          if (attr?.location) {
+            result = [attr.location];
+          } else {
+            Logger.warn(`[onDefinition] No location found for attribute: ${cursorInfo.name}`);
+          }
+          break;
+
+        case 'dynamicContent':
+        case 'dynamicAttributeValue':
+          const { uri } = params.textDocument;
+          if (cursorInfo.range) {
+            result = [Location.create(uri, cursorInfo.range)];
+          } else {
+            try {
+              if (!this.componentIndexer) {
+                Logger.warn('[onDefinition] Component indexer not available');
+                break;
+              }
+              const component: Tag | null = this.componentIndexer.findTagByURI(uri);
+              if (component) {
+                const location = getClassMemberLocation(component, cursorInfo.name, this.fileSystemProvider);
+                if (location) {
+                  result = [location];
+                }
+              } else {
+                Logger.warn(
+                  `[onDefinition] Component not found for URI: ${uri}. This may indicate the component indexer hasn't finished indexing yet.`
+                );
+              }
+            } catch (error) {
+              Logger.error(
+                `[onDefinition] Error getting class member location: ${error instanceof Error ? error.message : String(error)}`,
+                error
+              );
+            }
+          }
+          break;
+      }
+      return result;
+    } catch (error) {
+      Logger.error(`[onDefinition] Unexpected error: ${error instanceof Error ? error.message : String(error)}`, error);
       return [];
     }
-
-    const tag: Tag | null = cursorInfo.tag ? this.componentIndexer.findTagByName(cursorInfo.tag) : null;
-
-    let result: Location[] = [];
-    switch (cursorInfo.type) {
-      case 'tag':
-        result = tag ? getAllLocations(tag, this.fileSystemProvider) : [];
-        break;
-
-      case 'attributeKey':
-        const attr: AttributeInfo | null = tag ? getAttribute(tag, cursorInfo.name) : null;
-        if (attr?.location) {
-          result = [attr.location];
-        } else {
-        }
-        break;
-
-      case 'dynamicContent':
-      case 'dynamicAttributeValue':
-        const { uri } = params.textDocument;
-        if (cursorInfo.range) {
-          result = [Location.create(uri, cursorInfo.range)];
-        } else {
-          const component: Tag | null = this.componentIndexer.findTagByURI(uri);
-          const location = component ? getClassMemberLocation(component, cursorInfo.name) : null;
-          if (location) {
-            result = [location];
-          }
-        }
-        break;
-
-      default:
-        break;
-    }
-
-    return result;
   }
 
   public cursorInfo(
@@ -643,53 +712,83 @@ export default class Server {
   }
 
   /**
-   * Performs delayed initialization of context and component indexer
-   * using the populated textDocumentsFileSystemProvider
+   * Configures TypeScript support for the project
+   * Can be overridden by subclasses to add custom logging or error handling
    */
-  private async performDelayedInitialization(): Promise<void> {
+  protected async configureTypeScriptSupport(): Promise<void> {
+    const hasTsEnabled = await this.isTsSupportEnabled();
+    if (hasTsEnabled) {
+      this.context.setConnection(this.connection);
+      await this.context.configureProjectForTs();
+      if (this.componentIndexer) {
+        await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
+      }
+    }
+  }
+
+  protected isInitializing = false;
+
+  /**
+   * Performs delayed initialization of context and component indexer
+   * Files are loaded into fileSystemProvider via onDidOpen events
+   */
+  protected async performDelayedInitialization(): Promise<void> {
     if (this.isDelayedInitializationComplete) {
       return;
     }
 
+    // Prevent concurrent initialization attempts - check BEFORE any logging
+    if (this.isInitializing) {
+      return;
+    }
+
+    this.isInitializing = true;
+
     try {
       // Initialize workspace context now that essential files are loaded via onDidOpen
       // scheduleReinitialization waits for file loading to stabilize, so all files should be available
-      this.context.fileSystemProvider = this.textDocumentsFileSystemProvider;
       this.context.initialize(this.workspaceType);
 
       // Clear namespace cache to force re-detection now that files are synced
       // This ensures directoryExists can infer directory existence from file paths
-      this.context.clearNamespaceCache();
+      // But wait for LWC files to be loaded first - check if any LWC files exist
+      const allFiles = this.fileSystemProvider.getAllFileUris();
+      const hasLwcFiles = allFiles.some(
+        uri => uri.includes('/lwc/') && (uri.endsWith('.html') || uri.endsWith('.js') || uri.endsWith('.ts'))
+      );
 
-      // Re-initialize component indexer with updated FileSystemProvider
+      if (hasLwcFiles) {
+        this.context.clearNamespaceCache();
+      }
+
+      // For SFDX workspaces, wait for sfdx-project.json to be loaded before initializing component indexer
+      if (this.workspaceType === 'SFDX') {
+        const sfdxProjectPath = normalizePath(path.join(this.workspaceRoots[0], 'sfdx-project.json'));
+        if (!this.fileSystemProvider.fileExists(sfdxProjectPath)) {
+          this.isInitializing = false;
+          return;
+        }
+      }
+
+      // Re-initialize component indexer (files are now in fileSystemProvider)
       this.componentIndexer = new ComponentIndexer({
         workspaceRoot: this.workspaceRoots[0],
-        fileSystemProvider: this.textDocumentsFileSystemProvider
+        fileSystemProvider: this.fileSystemProvider,
+        workspaceType: this.workspaceType
       });
       await this.componentIndexer.init();
 
       // Update data providers to use the new indexer
       this.lwcDataProvider = new LWCDataProvider({ indexer: this.componentIndexer });
       this.auraDataProvider = new AuraDataProvider({ indexer: this.componentIndexer });
-      await TypingIndexer.create(
-        { workspaceRoot: this.workspaceRoots[0] },
-        this.textDocumentsFileSystemProvider,
-        this.connection
-      );
+      await TypingIndexer.create({ workspaceRoot: this.workspaceRoots[0] }, this.fileSystemProvider, this.connection);
       this.languageService = getLanguageService({
         customDataProviders: [this.lwcDataProvider, this.auraDataProvider],
         useDefaultDataProvider: false
       });
 
-      this.isDelayedInitializationComplete = true;
-
       // Configure TypeScript support now that files are loaded and context is initialized
-      const hasTsEnabled = await this.isTsSupportEnabled();
-      if (hasTsEnabled) {
-        this.context.setConnection(this.connection);
-        await this.context.configureProjectForTs();
-        await this.componentIndexer.updateSfdxTsConfigPath(this.connection);
-      }
+      await this.configureTypeScriptSupport();
 
       // send notification that delayed initialization is complete
       void this.connection.sendNotification(ShowMessageNotification.type, {
@@ -702,6 +801,9 @@ export default class Server {
         error instanceof Error ? error : undefined
       );
       throw error;
+    } finally {
+      this.isDelayedInitializationComplete = true;
+      this.isInitializing = false;
     }
   }
 }

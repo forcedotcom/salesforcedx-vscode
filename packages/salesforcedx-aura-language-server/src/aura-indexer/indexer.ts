@@ -4,7 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Indexer, TagInfo, extractJsonFromImport, Logger } from '@salesforce/salesforcedx-lightning-lsp-common';
+import {
+  Indexer,
+  TagInfo,
+  extractJsonFromImport,
+  Logger,
+  componentFromFile,
+  componentFromDirectory
+} from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as LineColumnFinderModule from 'line-column';
 import { EventEmitter as EventsEmitter } from 'node:events';
 import { Node } from 'vscode-html-languageservice';
@@ -14,7 +21,6 @@ import { parse, elapsedMillis } from '../auraUtils';
 import { AuraWorkspaceContext } from '../context/auraContext';
 import * as auraStandardImport from '../resources/aura-standard.json';
 import * as transformedAuraSystemImport from '../resources/transformed-aura-system.json';
-import { componentFromFile, componentFromDirectory } from '../util/componentUtil';
 
 // Handle both ES module (default export) and CommonJS (namespace export) module resolution.
 // This is needed because Jest resolves modules differently than TypeScript's runtime,

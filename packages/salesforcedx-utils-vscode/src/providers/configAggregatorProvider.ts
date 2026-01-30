@@ -36,7 +36,15 @@ export class ConfigAggregatorProvider {
     const rootWorkspacePath = workspaceUtils.getRootWorkspacePath();
     let configAggregator = this.configAggregators.get(rootWorkspacePath);
     if (!configAggregator) {
-      configAggregator = await this.createConfigAggregator();
+      if (process.env.ESBUILD_PLATFORM === 'web') {
+        try {
+          configAggregator = await this.createConfigAggregator();
+        } catch {
+          configAggregator = await ConfigAggregator.create({});
+        }
+      } else {
+        configAggregator = await this.createConfigAggregator();
+      }
       this.configAggregators.set(rootWorkspacePath, configAggregator);
     }
     return configAggregator;
@@ -74,6 +82,11 @@ export class ConfigAggregatorProvider {
   }
 
   private getCurrentDirectory() {
+    // process.cwd() may not work correctly in browser environments
+    // Return a default value in web mode
+    if (process.env.ESBUILD_PLATFORM === 'web') {
+      return ConfigAggregatorProvider.defaultBaseProcessDirectoryInVSCE;
+    }
     const currentWorkingDirectory = process.cwd();
     return currentWorkingDirectory;
   }
@@ -87,6 +100,11 @@ export class ConfigAggregatorProvider {
 
   private changeCurrentDirectoryTo(path: string) {
     if (path) {
+      // process.chdir is not available in browser environments
+      // Skip directory change in web mode - ConfigAggregator may not work correctly in web mode anyway
+      if (process.env.ESBUILD_PLATFORM === 'web') {
+        return;
+      }
       process.chdir(path);
     }
   }

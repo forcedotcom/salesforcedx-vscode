@@ -159,6 +159,10 @@ export const safeDelete = async (
  * @param rootWorkspacePath The path to the root workspace
  */
 export const ensureCurrentWorkingDirIsProjectPath = async (rootWorkspacePath: string): Promise<void> => {
+  // process.chdir is not available in browser environments
+  if (process.env.ESBUILD_PLATFORM === 'web') {
+    return;
+  }
   if (rootWorkspacePath && process.cwd() !== rootWorkspacePath) {
     try {
       const uri = URI.file(rootWorkspacePath);

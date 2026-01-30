@@ -16,6 +16,7 @@
     "@salesforce/source-tracking": "^7.8.0",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",
+    "@vscode/extension-telemetry": "^1.0.0",
     "applicationinsights": "1.0.7",
     "cross-spawn": "7.0.6",
     "effect": "^3.19.13",

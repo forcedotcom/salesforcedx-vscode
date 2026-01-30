@@ -41,11 +41,14 @@ const isSfdxPackageDirectoryConfig = (value: unknown): value is SfdxPackageDirec
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 
 const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProvider): SfdxProjectConfig => {
+  const configPath = getSfdxProjectFile(root);
+  const configText = fileSystemProvider.getFileContent(configPath);
+
+  if (!configText) {
+    throw new Error(nls.localize('config_file_not_found_message'));
+  }
+
   try {
-    const configText = fileSystemProvider.getFileContent(getSfdxProjectFile(root));
-    if (!configText) {
-      throw new Error(nls.localize('config_file_not_found_message'));
-    }
     const config: unknown = JSON.parse(configText);
     if (!isRecord(config)) {
       throw new Error(nls.localize('invalid_config_format_message'));
@@ -60,8 +63,9 @@ const readSfdxProjectConfig = (root: string, fileSystemProvider: IFileSystemProv
       sfdxPackageDirsPattern: `{${sfdxPackageDirsPattern}}`
     };
   } catch (e) {
+    // JSON parsing errors are real problems - throw them
     const errorMessage = e instanceof Error ? e.message : String(e);
-    throw new Error(nls.localize('sfdx_project_file_invalid_message', getSfdxProjectFile(root), errorMessage));
+    throw new Error(nls.localize('sfdx_project_file_invalid_message', configPath, errorMessage));
   }
 };
 
@@ -269,7 +273,8 @@ export abstract class BaseWorkspaceContext {
   public async isFileInsideModulesRoots(file: string): Promise<boolean> {
     // Normalize file path to ensure consistent format (especially Windows drive letter casing and path separators)
     const normalizedFile = utils.normalizePath(file);
-    return (await this.findNamespaceRootsUsingTypeCache()).lwc.some(root => utils.pathStartsWith(normalizedFile, root));
+    const namespaceRoots = await this.findNamespaceRootsUsingTypeCache();
+    return namespaceRoots.lwc.some(root => utils.pathStartsWith(normalizedFile, root));
   }
 
   public async isFileInsideAuraRoots(file: string): Promise<boolean> {

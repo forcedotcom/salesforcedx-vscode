@@ -15,11 +15,6 @@
       "import": "./out/src/index.js",
       "require": "./out/src/index.js",
       "types": "./out/src/index.d.ts"
-    },
-    "./utils/componentUtil": {
-      "import": "./out/src/util/componentUtil.js",
-      "require": "./out/src/util/componentUtil.js",
-      "types": "./out/src/util/componentUtil.d.ts"
     }
   },
   "license": "BSD-3-Clause",

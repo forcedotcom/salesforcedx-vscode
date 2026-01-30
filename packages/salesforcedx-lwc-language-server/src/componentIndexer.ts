@@ -23,7 +23,7 @@ import { Connection } from 'vscode-languageserver';
 
 import { getWorkspaceRoot, getSfdxPackageDirsPattern } from './baseIndexer';
 
-import { Tag, TagAttrs, createTag, createTagFromFile, getTagName, getTagUri } from './tag';
+import { Tag, TagAttrs, createTag, createTagFromFile, getTagName } from './tag';
 
 const CUSTOM_COMPONENT_INDEX_PATH = path.join('.sfdx', 'indexes', 'lwc');
 const CUSTOM_COMPONENT_INDEX_FILE = path.join(CUSTOM_COMPONENT_INDEX_PATH, 'custom-components.json');
@@ -32,6 +32,7 @@ const componentPrefixRegex = new RegExp(/^(?<type>c|lightning|interop){0,1}(?<de
 type ComponentIndexerAttributes = {
   workspaceRoot: NormalizedPath;
   fileSystemProvider: IFileSystemProvider;
+  workspaceType?: WorkspaceType;
 };
 
 const AURA_DELIMITER = ':';
@@ -164,6 +165,10 @@ export default class ComponentIndexer {
   constructor(private readonly attributes: ComponentIndexerAttributes) {
     this.workspaceRoot = getWorkspaceRoot(attributes.workspaceRoot);
     this.fileSystemProvider = attributes.fileSystemProvider;
+    // Use provided workspace type if available, otherwise will be detected in init()
+    if (attributes.workspaceType) {
+      this.workspaceType = attributes.workspaceType;
+    }
   }
 
   private getSfdxPackageDirsPattern(): string {
@@ -178,6 +183,11 @@ export default class ComponentIndexer {
       case 'SFDX':
         // workspaceRoot is already normalized by getWorkspaceRoot()
         const packageDirsPattern = this.getSfdxPackageDirsPattern();
+        // If packageDirsPattern is empty, sfdx-project.json hasn't been loaded yet
+        // Return empty array - component indexer should not be initialized until config is available
+        if (!packageDirsPattern) {
+          return [];
+        }
         // Pattern matches: {packageDir}/**/*/lwc/**/*.js
         // The **/* before lwc requires at least one directory level (e.g., main/default/lwc or meta/lwc)
         const sfdxPattern = `${packageDirsPattern}/**/*/lwc/**/*.js`;
@@ -187,6 +197,7 @@ export default class ComponentIndexer {
           const dirEndsWithName = data.dir.endsWith(data.name);
           return dirEndsWithName;
         });
+
         return filteredFiles;
       default:
         // For CORE_ALL and CORE_PARTIAL
@@ -226,8 +237,20 @@ export default class ComponentIndexer {
   }
 
   public findTagByURI(uri: string): Tag | null {
-    const uriText = uri.replace('.html', '.js');
-    return Array.from(this.tags.values()).find(tag => getTagUri(tag) === uriText) ?? null;
+    const normalizedPathString = this.fileSystemProvider.uriToNormalizedPath(uri);
+    const normalizedPath = normalizePath(normalizedPathString.replace(/\.html$/, '.js'));
+
+    const found = Array.from(this.tags.values()).find(tag => {
+      const tagPath = normalizePath(tag.file);
+      const matches = tagPath === normalizedPath;
+      return matches;
+    });
+
+    if (!found) {
+      return null;
+    }
+
+    return found ?? null;
   }
 
   private async loadTagsFromIndex(): Promise<void> {
@@ -275,7 +298,15 @@ export default class ComponentIndexer {
         for (const filePath of filePaths) {
           const { dir, name: fileName } = path.parse(filePath);
           const componentName = `c/${fileName}`;
-          const componentFilePath = path.join(dir, fileName);
+          let componentFilePath = normalizePath(path.join(dir, fileName));
+          // For memfs:// URIs, ensure paths have a leading slash so TypeScript web server can properly resolve them
+          // TypeScript web server needs absolute paths to convert to URIs for file watching
+          // Without a leading slash, paths like "MyProject/force-app/..." might be misinterpreted as schemes
+          // Windows absolute paths (e.g., "d:/path") should not get a leading slash added
+          const isWindowsAbsolute = /^[A-Za-z]:[/\\]/.test(componentFilePath);
+          if (!isWindowsAbsolute && !componentFilePath.startsWith('/') && !componentFilePath.startsWith('//')) {
+            componentFilePath = normalizePath(`/${componentFilePath}`);
+          }
           const paths = (sfdxTsConfig.compilerOptions.paths[componentName] ??= []);
           if (!paths.includes(componentFilePath)) {
             paths.push(componentFilePath);
@@ -309,7 +340,11 @@ export default class ComponentIndexer {
           sfdxTsConfig.compilerOptions.paths = this.getTsConfigPathMapping();
 
           // Update the actual tsconfig file
-          await this.fileSystemProvider.updateFileContent(sfdxTsConfigPath, JSON.stringify(sfdxTsConfig, null, 2), connection);
+          await this.fileSystemProvider.updateFileContent(
+            sfdxTsConfigPath,
+            JSON.stringify(sfdxTsConfig, null, 2),
+            connection
+          );
         }
       } catch (err) {
         Logger.error(err);
@@ -335,7 +370,15 @@ export default class ComponentIndexer {
         if (folderName === fileName) {
           const componentName = `c/${fileName}`;
           // Normalize path to ensure consistent forward slashes (path.join uses backslashes on Windows)
-          const componentFilePath = normalizePath(path.join(dir, fileName));
+          let componentFilePath = normalizePath(path.join(dir, fileName));
+          // For memfs:// URIs, ensure paths have a leading slash so TypeScript web server can properly resolve them
+          // TypeScript web server needs absolute paths to convert to URIs for file watching
+          // Without a leading slash, paths like "MyProject/force-app/..." might be misinterpreted as schemes
+          // Windows absolute paths (e.g., "d:/path") should not get a leading slash added
+          const isWindowsAbsolute = /^[A-Za-z]:[/\\]/.test(componentFilePath);
+          if (!isWindowsAbsolute && !componentFilePath.startsWith('/') && !componentFilePath.startsWith('//')) {
+            componentFilePath = normalizePath(`/${componentFilePath}`);
+          }
           files[componentName] = files[componentName] ?? [];
           if (!files[componentName].includes(componentFilePath)) {
             files[componentName].push(componentFilePath);
@@ -360,11 +403,23 @@ export default class ComponentIndexer {
   }
 
   public async init(): Promise<void> {
-    this.workspaceType = await detectWorkspaceHelper(this.attributes.workspaceRoot, this.fileSystemProvider);
+    // Only detect workspace type if not already provided
+    if (this.workspaceType === 'UNKNOWN' || !this.attributes.workspaceType) {
+      this.workspaceType = await detectWorkspaceHelper(this.attributes.workspaceRoot, this.fileSystemProvider);
+    }
+
+    // For SFDX workspaces, ensure sfdx-project.json is loaded before initializing
+    if (this.workspaceType === 'SFDX') {
+      const sfdxProjectPath = normalizePath(path.join(this.attributes.workspaceRoot, 'sfdx-project.json'));
+      if (!this.fileSystemProvider.fileExists(sfdxProjectPath)) {
+        return;
+      }
+    }
 
     await this.loadTagsFromIndex();
 
     const unIndexedFilesResult = this.getUnIndexedFiles();
+
     const promises = unIndexedFilesResult.map(async entry => {
       const tag = await createTagFromFile(entry.path, this.fileSystemProvider, entry.stats?.mtime);
       return tag;
@@ -377,6 +432,7 @@ export default class ComponentIndexer {
         validTags.push(tag);
       }
     });
+
     validTags.forEach(tag => {
       const tagName = getTagName(tag);
       this.tags.set(tagName, tag);
