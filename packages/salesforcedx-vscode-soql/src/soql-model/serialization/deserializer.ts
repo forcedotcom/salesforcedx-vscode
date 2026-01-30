@@ -19,43 +19,37 @@ import { HeaderCommentsImpl } from '../model/impl/headerCommentsImpl';
 import * as Soql from '../model/model';
 import { SoqlModelUtils } from '../model/util';
 
-export class ModelDeserializer {
-  protected soqlSyntax: string;
-  constructor(soqlSyntax: string) {
-    this.soqlSyntax = soqlSyntax;
-  }
-  public deserialize(): Soql.Query {
-    let query: Soql.Query | undefined;
+export function deserialize(soqlSyntax: string): Soql.Query {
+  let query: Soql.Query | undefined;
 
-    const parser = SOQLParser({
-      isApex: true,
-      isMultiCurrencyEnabled: true,
-      apiVersion: 50.0
-    });
+  const parser = SOQLParser({
+    isApex: true,
+    isMultiCurrencyEnabled: true,
+    apiVersion: 50.0
+  });
 
-    const { headerComments, headerPaddedSoqlText } = parseHeaderComments(this.soqlSyntax);
+  const { headerComments, headerPaddedSoqlText } = parseHeaderComments(soqlSyntax);
 
-    const result = parser.parseQuery(headerPaddedSoqlText);
-    const parseTree = result.getParseTree();
-    const errors = result.getParserErrors();
-    if (parseTree) {
-      const queryListener = new QueryListener();
-      parseTree.enterRule(queryListener as ParseTreeListener);
-      query = queryListener.getQuery();
-      if (query && headerComments) {
-        query.headerComments = new HeaderCommentsImpl(headerComments);
-      }
+  const result = parser.parseQuery(headerPaddedSoqlText);
+  const parseTree = result.getParseTree();
+  const errors = result.getParserErrors();
+  if (parseTree) {
+    const queryListener = new QueryListener();
+    parseTree.enterRule(queryListener as ParseTreeListener);
+    query = queryListener.getQuery();
+    if (query && headerComments) {
+      query.headerComments = new HeaderCommentsImpl(headerComments);
     }
-
-    const errorIdentifer = new ErrorIdentifier(parseTree);
-    const modelErrors = errors.map(error => errorIdentifer.identifyError(error));
-    if (query) {
-      query.errors = modelErrors;
-    } else {
-      throw Error(JSON.stringify(modelErrors));
-    }
-    return query;
   }
+
+  const errorIdentifer = new ErrorIdentifier(parseTree);
+  const modelErrors = errors.map(error => errorIdentifer.identifyError(error));
+  if (query) {
+    query.errors = modelErrors;
+  } else {
+    throw Error(JSON.stringify(modelErrors));
+  }
+  return query;
 }
 
 interface KnownError {

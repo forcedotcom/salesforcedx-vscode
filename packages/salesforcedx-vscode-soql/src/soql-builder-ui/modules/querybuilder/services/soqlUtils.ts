@@ -6,11 +6,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Impl, Soql, SoqlModelUtils, ModelSerializer, ModelDeserializer } from '../../../../soql-model';
+import { Impl, Soql, SoqlModelUtils, ModelSerializer, deserialize } from '../../../../soql-model';
 import { SELECT_COUNT, ToolingModelJson } from './model';
 
 export function convertSoqlToUiModel(soql: string): ToolingModelJson {
-  const queryModel = new ModelDeserializer(soql).deserialize();
+  const queryModel = deserialize(soql);
   const uimodel = convertSoqlModelToUiModel(queryModel);
   return uimodel;
 }
