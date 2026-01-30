@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import * as Soql from '../../../../../../src/soql-model/model/model';
+import { REASON_UNMODELED_FUNCTIONREFERENCE, REASON_UNMODELED_GROUPBY } from '../../../../../../src/soql-model/model/model';
 import { createQueryTelemetry } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/telemetryUtils';
 import { ToolingModelJson } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/toolingModelService';
 
@@ -21,11 +21,11 @@ describe('Telemetry Utils', () => {
   };
   const unsupported1 = {
     unmodeledSyntax: 'GROUP BY\n  ORDER',
-    reason: Soql.REASON_UNMODELED_GROUPBY
+    reason: REASON_UNMODELED_GROUPBY
   };
   const unsupported2 = {
     unmodeledSyntax: 'COUNT(Id) recordCount',
-    reason: Soql.REASON_UNMODELED_FUNCTIONREFERENCE
+    reason: REASON_UNMODELED_FUNCTIONREFERENCE
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

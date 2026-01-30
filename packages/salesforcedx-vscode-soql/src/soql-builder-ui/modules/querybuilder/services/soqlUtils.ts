@@ -6,7 +6,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Soql from '../../../../soql-model/model/model';
+import { ConditionOperator, Query, Select, SelectExprs, UiOperatorValue } from '../../../../soql-model/model/model';
 import { SoqlModelUtils } from '../../../../soql-model/model/util';
 import { ModelSerializer } from '../../../../soql-model/serialization/serializer';
 import { deserialize } from '../../../../soql-model/serialization/deserializer';
@@ -34,13 +34,13 @@ export function convertSoqlToUiModel(soql: string): ToolingModelJson {
 }
 
 // eslint-disable-next-line complexity
-function convertSoqlModelToUiModel(queryModel: Soql.Query): ToolingModelJson {
+function convertSoqlModelToUiModel(queryModel: Query): ToolingModelJson {
   const unsupported = [];
   const headerComments = queryModel.headerComments ? queryModel.headerComments.text : undefined;
 
   const fields =
-    queryModel.select && (queryModel.select as Soql.SelectExprs).selectExpressions
-      ? (queryModel.select as Soql.SelectExprs).selectExpressions
+    queryModel.select && (queryModel.select as SelectExprs).selectExpressions
+      ? (queryModel.select as SelectExprs).selectExpressions
           .filter(expr => !SoqlModelUtils.containsUnmodeledSyntax(expr))
           .map(expr => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -124,8 +124,8 @@ export function convertUiModelToSoql(uiModel: ToolingModelJson): string {
   return soql;
 }
 
-function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
-  let select: Soql.Select;
+function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Query {
+  let select: Select;
   const isSelectCount = uiModel.fields.length === 1 && uiModel.fields[0].toLowerCase() === SELECT_COUNT.toLowerCase();
   if (isSelectCount) {
     select = new SelectCountImpl();
@@ -153,13 +153,13 @@ function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
       let conditionType = ConditionType.FieldCompare;
       // eslint-disable-next-line default-case
       switch (uiModelCondition.operator) {
-        case Soql.ConditionOperator.In:
-        case Soql.ConditionOperator.NotIn: {
+        case ConditionOperator.In:
+        case ConditionOperator.NotIn: {
           conditionType = ConditionType.In;
           break;
         }
-        case Soql.ConditionOperator.Includes:
-        case Soql.ConditionOperator.Excludes: {
+        case ConditionOperator.Includes:
+        case ConditionOperator.Excludes: {
           conditionType = ConditionType.Includes;
           break;
         }
@@ -216,7 +216,7 @@ function convertUiModelToSoqlModel(uiModel: ToolingModelJson): Soql.Query {
   return queryModel;
 }
 
-function convertSoqlModelToSoql(soqlModel: Soql.Query): string {
+function convertSoqlModelToSoql(soqlModel: Query): string {
   const serializer = new ModelSerializer(soqlModel);
   const query = serializer.serialize();
   return query;
@@ -290,16 +290,16 @@ export function isLikeContains(value: string): boolean {
   return false;
 }
 
-export function addWildCardToValue(operatorValue: Soql.UiOperatorValue, rawValue: string): string {
+export function addWildCardToValue(operatorValue: UiOperatorValue, rawValue: string): string {
   let value = stripWildCardPadding(rawValue);
   switch (operatorValue) {
-    case Soql.UiOperatorValue.LIKE_START:
+    case UiOperatorValue.LIKE_START:
       value = `${value}${WILD_CARD}`;
       break;
-    case Soql.UiOperatorValue.LIKE_END:
+    case UiOperatorValue.LIKE_END:
       value = `${WILD_CARD}${value}`;
       break;
-    case Soql.UiOperatorValue.LIKE_CONTAINS:
+    case UiOperatorValue.LIKE_CONTAINS:
       value = `${WILD_CARD}${value}${WILD_CARD}`;
       break;
     default:

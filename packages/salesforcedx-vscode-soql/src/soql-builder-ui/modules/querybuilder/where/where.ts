@@ -8,7 +8,7 @@
 
 import { api, LightningElement, track } from 'lwc';
 import { JsonMap } from '@salesforce/ts-types';
-import * as Soql from '../../../../soql-model/model/model';
+import { AndOr } from '../../../../soql-model/model/model';
 
 interface ConditionTemplate {
   condition: JsonMap;
@@ -25,7 +25,7 @@ export default class Where extends LightningElement {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   @api public sobjectMetadata: any;
   @track public _conditionsStore: JsonMap[] = [];
-  public _andOr: Soql.AndOr = 'AND';
+  public _andOr: AndOr = 'AND';
   public conditionTemplate: ConditionTemplate = {
     condition: {
       operator: '='

@@ -8,7 +8,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { EOL } from 'os';
-import * as Soql from '../../../../../../src/soql-model/model/model';
+import { REASON_UNMODELED_COMPLEXGROUP, REASON_UNMODELED_GROUPBY, UiOperatorValue } from '../../../../../../src/soql-model/model/model';
 import {
   convertUiModelToSoql,
   convertSoqlToUiModel,
@@ -89,7 +89,7 @@ describe('SoqlUtils', () => {
     unsupported: [
       {
         unmodeledSyntax: 'GROUP BY',
-        reason: Soql.REASON_UNMODELED_GROUPBY
+        reason: REASON_UNMODELED_GROUPBY
       }
     ],
     originalSoqlStatement: ''
@@ -181,7 +181,7 @@ describe('SoqlUtils', () => {
     const transformedUiModel = convertSoqlToUiModel(unsupportedWhereExpr);
     expect(transformedUiModel.where.conditions.length).toBe(0);
     expect(transformedUiModel.unsupported.length).toBe(1);
-    expect(transformedUiModel.unsupported[0].reason).toEqual(Soql.REASON_UNMODELED_COMPLEXGROUP);
+    expect(transformedUiModel.unsupported[0].reason).toEqual(REASON_UNMODELED_COMPLEXGROUP);
   });
 
   it('transforms Soql to UI Model with errors in soql syntax', () => {
@@ -253,12 +253,12 @@ describe('SoqlUtils', () => {
 
     it('addWildCardToValue() should clean value & add % in right place', () => {
       const rawValue = 'ABC';
-      expect(addWildCardToValue(Soql.UiOperatorValue.LIKE_START, rawValue)).toEqual('ABC%');
-      expect(addWildCardToValue(Soql.UiOperatorValue.LIKE_END, rawValue)).toEqual('%ABC');
-      expect(addWildCardToValue(Soql.UiOperatorValue.LIKE_CONTAINS, rawValue)).toEqual('%ABC%');
-      expect(addWildCardToValue(Soql.UiOperatorValue.LIKE, rawValue)).toEqual('ABC');
-      expect(addWildCardToValue(Soql.UiOperatorValue.EQ, rawValue)).toEqual('ABC');
-      expect(addWildCardToValue(Soql.UiOperatorValue.LIKE_START, '%%A%%%BC')).toEqual('A%%%BC%');
+      expect(addWildCardToValue(UiOperatorValue.LIKE_START, rawValue)).toEqual('ABC%');
+      expect(addWildCardToValue(UiOperatorValue.LIKE_END, rawValue)).toEqual('%ABC');
+      expect(addWildCardToValue(UiOperatorValue.LIKE_CONTAINS, rawValue)).toEqual('%ABC%');
+      expect(addWildCardToValue(UiOperatorValue.LIKE, rawValue)).toEqual('ABC');
+      expect(addWildCardToValue(UiOperatorValue.EQ, rawValue)).toEqual('ABC');
+      expect(addWildCardToValue(UiOperatorValue.LIKE_START, '%%A%%%BC')).toEqual('A%%%BC%');
     });
 
     it('stripWildCardPadding() should remove any wildcards before the first non-wildcard char', () => {

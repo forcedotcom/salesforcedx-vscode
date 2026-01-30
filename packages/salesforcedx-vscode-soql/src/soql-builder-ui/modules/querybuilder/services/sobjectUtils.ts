@@ -6,7 +6,7 @@
  *
  */
 
-import * as Soql from '../../../../soql-model/model/model';
+import { SObjectFieldType } from '../../../../soql-model/model/model';
 
 interface SObjectField {
   name: string;
@@ -21,7 +21,7 @@ interface SObjectField {
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 export class SObjectTypeUtils {
   protected fieldMap: { [key: string]: SObjectField };
-  protected typeMap: { [key: string]: Soql.SObjectFieldType };
+  protected typeMap: { [key: string]: SObjectFieldType };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public constructor(protected sobjectMetadata: any) {
     this.fieldMap = {};
@@ -43,14 +43,14 @@ export class SObjectTypeUtils {
       });
     }
     this.typeMap = {};
-    Object.keys(Soql.SObjectFieldType).forEach((key) => {
-      this.typeMap[Soql.SObjectFieldType[key].toLowerCase()] =
-        Soql.SObjectFieldType[key];
+    Object.keys(SObjectFieldType).forEach((key) => {
+      this.typeMap[SObjectFieldType[key].toLowerCase()] =
+        SObjectFieldType[key];
     });
   }
 
-  public getType(fieldName: string): Soql.SObjectFieldType {
-    let type = Soql.SObjectFieldType.AnyType;
+  public getType(fieldName: string): SObjectFieldType {
+    let type = SObjectFieldType.AnyType;
     const field = this.fieldMap[fieldName.toLowerCase()];
     if (field) {
       const fieldType = this.typeMap[field.type.toLowerCase()];

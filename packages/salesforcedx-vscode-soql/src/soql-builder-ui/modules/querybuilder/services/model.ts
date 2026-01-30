@@ -5,7 +5,7 @@
  *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  *
  */
-import * as Soql from '../../../../soql-model/model/model';
+import { ConditionOperator } from '../../../../soql-model/model/model';
 import { List, Map } from 'immutable';
 import { JsonMap } from '@salesforce/ts-types';
 import { isLikeStart, isLikeEnds, isLikeContains } from '../services/soqlUtils';
@@ -51,7 +51,7 @@ export interface ToolingModelJson extends JsonMap {
 export interface OperatorOption {
   value: string;
   displayValue: string;
-  modelValue: Soql.ConditionOperator;
+  modelValue: ConditionOperator;
   predicate: (condition: JsonMap) => boolean;
 }
 
@@ -59,72 +59,72 @@ export const operatorOptions: OperatorOption[] = [
   {
     value: 'EQ',
     displayValue: '=',
-    modelValue: Soql.ConditionOperator.Equals,
-    predicate: (condition: JsonMap): boolean => condition.operator === Soql.ConditionOperator.Equals
+    modelValue: ConditionOperator.Equals,
+    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.Equals
   },
   {
     value: 'NOT_EQ',
     displayValue: '≠',
-    modelValue: Soql.ConditionOperator.NotEquals,
-    predicate: (condition: JsonMap): boolean => condition.operator === Soql.ConditionOperator.NotEquals
+    modelValue: ConditionOperator.NotEquals,
+    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.NotEquals
   },
   {
     value: 'LT',
     displayValue: '<',
-    modelValue: Soql.ConditionOperator.LessThan,
-    predicate: (condition: JsonMap): boolean => condition.operator === Soql.ConditionOperator.LessThan
+    modelValue: ConditionOperator.LessThan,
+    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.LessThan
   },
   {
     value: 'LT_EQ',
     displayValue: '≤',
-    modelValue: Soql.ConditionOperator.LessThanOrEqual,
-    predicate: (condition: JsonMap): boolean => condition.operator === Soql.ConditionOperator.LessThanOrEqual
+    modelValue: ConditionOperator.LessThanOrEqual,
+    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.LessThanOrEqual
   },
   {
     value: 'GT',
     displayValue: '>',
-    modelValue: Soql.ConditionOperator.GreaterThan,
-    predicate: (condition: JsonMap): boolean => condition.operator === Soql.ConditionOperator.GreaterThan
+    modelValue: ConditionOperator.GreaterThan,
+    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.GreaterThan
   },
   {
     value: 'GT_EQ',
     displayValue: '≥',
-    modelValue: Soql.ConditionOperator.GreaterThanOrEqual,
-    predicate: (condition: JsonMap): boolean => condition.operator === Soql.ConditionOperator.GreaterThanOrEqual
+    modelValue: ConditionOperator.GreaterThanOrEqual,
+    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.GreaterThanOrEqual
   },
   {
     value: 'IN',
     displayValue: 'in',
-    modelValue: Soql.ConditionOperator.In,
-    predicate: (condition: JsonMap): boolean => condition.operator === Soql.ConditionOperator.In
+    modelValue: ConditionOperator.In,
+    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.In
   },
   {
     value: 'NOT_IN',
     displayValue: 'not in',
-    modelValue: Soql.ConditionOperator.NotIn,
-    predicate: (condition: JsonMap): boolean => condition.operator === Soql.ConditionOperator.NotIn
+    modelValue: ConditionOperator.NotIn,
+    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.NotIn
   },
   {
     value: 'INCLUDES',
     displayValue: 'includes',
-    modelValue: Soql.ConditionOperator.Includes,
-    predicate: (condition: JsonMap): boolean => condition.operator === Soql.ConditionOperator.Includes
+    modelValue: ConditionOperator.Includes,
+    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.Includes
   },
   {
     value: 'EXCLUDES',
     displayValue: 'excludes',
-    modelValue: Soql.ConditionOperator.Excludes,
-    predicate: (condition: JsonMap): boolean => condition.operator === Soql.ConditionOperator.Excludes
+    modelValue: ConditionOperator.Excludes,
+    predicate: (condition: JsonMap): boolean => condition.operator === ConditionOperator.Excludes
   },
   {
     value: 'LIKE',
     displayValue: 'like',
-    modelValue: Soql.ConditionOperator.Like,
+    modelValue: ConditionOperator.Like,
     predicate: (condition: JsonMap): boolean => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const value = condition.compareValue.value;
       return (
-        condition.operator === Soql.ConditionOperator.Like &&
+        condition.operator === ConditionOperator.Like &&
         !(isLikeStart(value) || isLikeEnds(value) || isLikeContains(value))
       );
     }
@@ -132,31 +132,31 @@ export const operatorOptions: OperatorOption[] = [
   {
     value: 'LIKE_START',
     displayValue: 'starts with',
-    modelValue: Soql.ConditionOperator.Like,
+    modelValue: ConditionOperator.Like,
     predicate: (condition: JsonMap): boolean => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const value = condition.compareValue.value;
-      return condition.operator === Soql.ConditionOperator.Like && isLikeStart(value);
+      return condition.operator === ConditionOperator.Like && isLikeStart(value);
     }
   },
   {
     value: 'LIKE_END',
     displayValue: 'ends with',
-    modelValue: Soql.ConditionOperator.Like,
+    modelValue: ConditionOperator.Like,
     predicate: (condition: JsonMap): boolean => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const value = condition.compareValue.value;
-      return condition.operator === Soql.ConditionOperator.Like && isLikeEnds(value);
+      return condition.operator === ConditionOperator.Like && isLikeEnds(value);
     }
   },
   {
     value: 'LIKE_CONTAINS',
     displayValue: 'contains',
-    modelValue: Soql.ConditionOperator.Like,
+    modelValue: ConditionOperator.Like,
     predicate: (condition: JsonMap): boolean => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const value = condition.compareValue.value;
-      return condition.operator === Soql.ConditionOperator.Like && isLikeContains(value);
+      return condition.operator === ConditionOperator.Like && isLikeContains(value);
     }
   }
 ];
