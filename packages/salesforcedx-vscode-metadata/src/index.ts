@@ -23,14 +23,13 @@ import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './commands/
 import { sourceDiff } from './commands/sourceDiff';
 import { DEPLOY_ON_SAVE_ENABLED, EXTENSION_NAME, METADATA_CONFIG_SECTION } from './constants';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
-import { AllServicesLayerFor, AllServicesLayer } from './services/extensionProvider';
+import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
-  await Effect.runPromise(
-    activateEffect(context).pipe(Effect.provide(AllServicesLayerFor(context)), Scope.extend(extensionScope))
-  );
+  setAllServicesLayer(buildAllServicesLayer(context));
+  await Effect.runPromise(activateEffect(context).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope)));
 };
 
 export const deactivate = async (): Promise<void> =>

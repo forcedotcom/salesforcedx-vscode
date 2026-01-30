@@ -24,7 +24,7 @@ const ExtensionProviderServiceLive = Layer.effect(
  * Pass the ExtensionContext to include a working ExtensionContextServiceLayer.
  * When context is not provided, ExtensionContextService.Default is used (fails if getContext is called).
  */
-export const AllServicesLayerFor = (context?: ExtensionContext) =>
+export const buildAllServicesLayer = (context: ExtensionContext) =>
   Layer.unwrapEffect(
     Effect.gen(function* () {
       const extensionProvider = yield* ExtensionProviderService;
@@ -35,7 +35,6 @@ export const AllServicesLayerFor = (context?: ExtensionContext) =>
       // ErrorHandlerService depends on ChannelService, provide the extension's channel
       const channelLayer = api.services.ChannelServiceLayer(extension?.packageJSON.displayName);
       const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
-
       // Merge all the service layers from the API
       return Layer.mergeAll(
         ExtensionProviderServiceLive,
@@ -45,7 +44,7 @@ export const AllServicesLayerFor = (context?: ExtensionContext) =>
         api.services.FsService.Default,
         api.services.EditorService.Default,
         errorHandlerWithChannel,
-        context ? api.services.ExtensionContextServiceLayer(context) : api.services.ExtensionContextService.Default,
+        api.services.ExtensionContextServiceLayer(context),
         api.services.MetadataDeployService.Default,
         api.services.MetadataDeleteService.Default,
         api.services.MetadataRetrieveService.Default,
@@ -67,4 +66,9 @@ export const AllServicesLayerFor = (context?: ExtensionContext) =>
  * Uses ExtensionContextService.Default (fails if getContext is called).
  * Use AllServicesLayerFor(context) to provide a working ExtensionContextService.
  */
-export const AllServicesLayer = AllServicesLayerFor();
+// eslint-disable-next-line functional/no-let
+export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
+
+export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
+  AllServicesLayer = layer;
+};
