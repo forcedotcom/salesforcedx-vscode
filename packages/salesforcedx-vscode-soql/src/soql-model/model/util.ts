@@ -6,11 +6,16 @@
  */
 
 /* eslint-disable no-param-reassign, @typescript-eslint/consistent-type-assertions */
-import * as Impl from './impl';
+import { AndOrConditionImpl } from './impl/andOrConditionImpl';
+import { FieldCompareConditionImpl } from './impl/fieldCompareConditionImpl';
+import { IncludesConditionImpl } from './impl/includesConditionImpl';
+import { InListConditionImpl } from './impl/inListConditionImpl';
+import { NestedConditionImpl } from './impl/nestedConditionImpl';
+import { UnmodeledSyntaxImpl } from './impl/unmodeledSyntaxImpl';
 import { AndOr, Condition } from './model';
 
 const stripNesting = (condition: Condition): Condition => {
-  while (condition instanceof Impl.NestedConditionImpl) {
+  while (condition instanceof NestedConditionImpl) {
     condition = condition.condition;
   }
   return condition;
@@ -51,11 +56,11 @@ const isUnmodeledSyntax = (model: Record<string, any>): boolean => 'unmodeledSyn
  */
 const getUnmodeledSyntax = (
   model: Record<string, any>,
-  collector?: Impl.UnmodeledSyntaxImpl[]
-): Impl.UnmodeledSyntaxImpl[] => {
+  collector?: UnmodeledSyntaxImpl[]
+): UnmodeledSyntaxImpl[] => {
   collector = collector || [];
   if ('unmodeledSyntax' in model) {
-    collector.push(model as Impl.UnmodeledSyntaxImpl);
+    collector.push(model as UnmodeledSyntaxImpl);
     return collector;
   }
   for (const property in model) {
@@ -73,7 +78,7 @@ const simpleGroupToArray = (condition: Condition): { conditions: Condition[]; an
   condition = stripNesting(condition);
   let conditions: Condition[] = [];
   let andOr: AndOr | undefined;
-  if (condition instanceof Impl.AndOrConditionImpl) {
+  if (condition instanceof AndOrConditionImpl) {
     conditions = conditions.concat(simpleGroupToArray(condition.leftCondition).conditions);
     conditions = conditions.concat(simpleGroupToArray(condition.rightCondition).conditions);
     andOr = condition.andOr;
@@ -95,7 +100,7 @@ const arrayToSimpleGroup = (conditions: Condition[], andOr?: AndOr): Condition =
     return conditions[0];
   } else {
     const [left, ...rest] = conditions;
-    return new Impl.AndOrConditionImpl(left, andOr as AndOr, arrayToSimpleGroup(rest, andOr));
+    return new AndOrConditionImpl(left, andOr as AndOr, arrayToSimpleGroup(rest, andOr));
   }
 };
 
@@ -104,7 +109,7 @@ const isSimpleGroup = (condition: Condition, andOr?: AndOr): boolean => {
   // ANY: simple conditions all joined by OR
   // ALL: simple conditions all joined by AND
   condition = stripNesting(condition);
-  if (condition instanceof Impl.AndOrConditionImpl) {
+  if (condition instanceof AndOrConditionImpl) {
     if (!andOr) {
       andOr = condition.andOr;
     }
@@ -120,10 +125,10 @@ const isSimpleGroup = (condition: Condition, andOr?: AndOr): boolean => {
 const isSimpleCondition = (condition: Condition): boolean => {
   condition = stripNesting(condition);
   return (
-    condition instanceof Impl.FieldCompareConditionImpl ||
-    condition instanceof Impl.IncludesConditionImpl ||
-    condition instanceof Impl.InListConditionImpl ||
-    condition instanceof Impl.UnmodeledSyntaxImpl
+    condition instanceof FieldCompareConditionImpl ||
+    condition instanceof IncludesConditionImpl ||
+    condition instanceof InListConditionImpl ||
+    condition instanceof UnmodeledSyntaxImpl
   );
 };
 

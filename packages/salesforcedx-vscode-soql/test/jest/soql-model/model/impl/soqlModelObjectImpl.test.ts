@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Impl from '../../../../../src/soql-model/model/impl';
+import { UnmodeledSyntaxImpl } from '../../../../../src/soql-model/model/impl/unmodeledSyntaxImpl';
 import { SyntaxOptions } from '../../../../../src/soql-model/model/model';
 
 
 describe('SoqlModelObjectImpl should', () => {
-  const testModelObject = new Impl.UnmodeledSyntaxImpl('mick', { reasonCode: 'unmodeled:fake', message: 'fake SOQL' });
+  const testModelObject = new UnmodeledSyntaxImpl('mick', { reasonCode: 'unmodeled:fake', message: 'fake SOQL' });
   it('use SyntaxOptions that are passed in', () => {
     const expectedSyntaxOptions = new SyntaxOptions();
     expectedSyntaxOptions.indent = 50;

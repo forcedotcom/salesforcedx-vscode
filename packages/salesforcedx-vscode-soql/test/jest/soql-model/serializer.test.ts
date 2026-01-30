@@ -6,15 +6,18 @@
  */
 
 import { EOL } from 'node:os';
-import * as Impl from '../../../src/soql-model/model/impl';
+import { FieldRefImpl } from '../../../src/soql-model/model/impl/fieldRefImpl';
+import { FromImpl } from '../../../src/soql-model/model/impl/fromImpl';
 import { HeaderCommentsImpl } from '../../../src/soql-model/model/impl/headerCommentsImpl';
+import { QueryImpl } from '../../../src/soql-model/model/impl/queryImpl';
+import { SelectExprsImpl } from '../../../src/soql-model/model/impl/selectExprsImpl';
 import { ModelSerializer } from '../../../src/soql-model/serialization/serializer';
 
 describe('ModelSerializer should', () => {
   it('transform model to SOQL syntax', () => {
     const expected = `SELECT field${EOL}  FROM object${EOL}`;
     const actual = new ModelSerializer(
-      new Impl.QueryImpl(new Impl.SelectExprsImpl([new Impl.FieldRefImpl('field')]), new Impl.FromImpl('object'))
+      new QueryImpl(new SelectExprsImpl([new FieldRefImpl('field')]), new FromImpl('object'))
     ).serialize();
     expect(actual).toEqual(expected);
   });
@@ -22,9 +25,9 @@ describe('ModelSerializer should', () => {
   it('transform model with comments to SOQL syntax', () => {
     const expected = `// Comment 1${EOL}// Comment 2${EOL}SELECT field${EOL}  FROM object${EOL}`;
 
-    const query = new Impl.QueryImpl(
-      new Impl.SelectExprsImpl([new Impl.FieldRefImpl('field')]),
-      new Impl.FromImpl('object')
+    const query = new QueryImpl(
+      new SelectExprsImpl([new FieldRefImpl('field')]),
+      new FromImpl('object')
     );
     query.headerComments = new HeaderCommentsImpl(`// Comment 1${EOL}// Comment 2${EOL}`);
     const actual = new ModelSerializer(query).serialize();

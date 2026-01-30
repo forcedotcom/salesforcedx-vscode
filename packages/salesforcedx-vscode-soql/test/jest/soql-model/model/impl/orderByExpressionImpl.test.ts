@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Impl from '../../../../../src/soql-model/model/impl';
+import { FieldRefImpl } from '../../../../../src/soql-model/model/impl/fieldRefImpl';
+import { OrderByExpressionImpl } from '../../../../../src/soql-model/model/impl/orderByExpressionImpl';
 import { NullsOrder, Order } from '../../../../../src/soql-model/model/model';
 
 
@@ -16,8 +17,8 @@ describe('OrderByExpressionImpl should', () => {
       order: 'ASC',
       nullsOrder: 'NULLS FIRST',
     };
-    const actual = new Impl.OrderByExpressionImpl(
-      new Impl.FieldRefImpl('shattered'),
+    const actual = new OrderByExpressionImpl(
+      new FieldRefImpl('shattered'),
       Order.Ascending,
       NullsOrder.First
     );
@@ -25,8 +26,8 @@ describe('OrderByExpressionImpl should', () => {
   });
   it('return field, order, and nulls order separated by spaces for toSoqlSyntax()', () => {
     const expected = 'shattered ASC NULLS FIRST';
-    const actual = new Impl.OrderByExpressionImpl(
-      new Impl.FieldRefImpl('shattered'),
+    const actual = new OrderByExpressionImpl(
+      new FieldRefImpl('shattered'),
       Order.Ascending,
       NullsOrder.First
     ).toSoqlSyntax();

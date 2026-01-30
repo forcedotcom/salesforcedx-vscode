@@ -6,7 +6,17 @@
  */
 
 import { EOL } from 'node:os';
-import * as Impl from '../../../../../src/soql-model/model/impl';
+import { FieldCompareConditionImpl } from '../../../../../src/soql-model/model/impl/fieldCompareConditionImpl';
+import { FieldRefImpl } from '../../../../../src/soql-model/model/impl/fieldRefImpl';
+import { FromImpl } from '../../../../../src/soql-model/model/impl/fromImpl';
+import { LimitImpl } from '../../../../../src/soql-model/model/impl/limitImpl';
+import { LiteralImpl } from '../../../../../src/soql-model/model/impl/literalImpl';
+import { OrderByExpressionImpl } from '../../../../../src/soql-model/model/impl/orderByExpressionImpl';
+import { OrderByImpl } from '../../../../../src/soql-model/model/impl/orderByImpl';
+import { QueryImpl } from '../../../../../src/soql-model/model/impl/queryImpl';
+import { SelectExprsImpl } from '../../../../../src/soql-model/model/impl/selectExprsImpl';
+import { UnmodeledSyntaxImpl } from '../../../../../src/soql-model/model/impl/unmodeledSyntaxImpl';
+import { WhereImpl } from '../../../../../src/soql-model/model/impl/whereImpl';
 import * as Soql from '../../../../../src/soql-model/model/model';
 
 describe('QueryImpl should', () => {
@@ -45,39 +55,39 @@ describe('QueryImpl should', () => {
         reason: Soql.REASON_UNMODELED_UPDATE
       }
     };
-    const actual = new Impl.QueryImpl(
-      new Impl.SelectExprsImpl([]),
-      new Impl.FromImpl(expected.from.sobjectName),
-      new Impl.WhereImpl(
-        new Impl.FieldCompareConditionImpl(
-          new Impl.FieldRefImpl(expected.where.condition.field.fieldName),
+    const actual = new QueryImpl(
+      new SelectExprsImpl([]),
+      new FromImpl(expected.from.sobjectName),
+      new WhereImpl(
+        new FieldCompareConditionImpl(
+          new FieldRefImpl(expected.where.condition.field.fieldName),
           Soql.ConditionOperator.Equals,
-          new Impl.LiteralImpl(expected.where.condition.compareValue.value)
+          new LiteralImpl(expected.where.condition.compareValue.value)
         )
       ),
-      new Impl.UnmodeledSyntaxImpl(expected.with.unmodeledSyntax, Soql.REASON_UNMODELED_WITH),
-      new Impl.UnmodeledSyntaxImpl(expected.groupBy.unmodeledSyntax, Soql.REASON_UNMODELED_GROUPBY),
-      new Impl.OrderByImpl([
-        new Impl.OrderByExpressionImpl(new Impl.FieldRefImpl(expected.orderBy.orderByExpressions[0].field.fieldName))
+      new UnmodeledSyntaxImpl(expected.with.unmodeledSyntax, Soql.REASON_UNMODELED_WITH),
+      new UnmodeledSyntaxImpl(expected.groupBy.unmodeledSyntax, Soql.REASON_UNMODELED_GROUPBY),
+      new OrderByImpl([
+        new OrderByExpressionImpl(new FieldRefImpl(expected.orderBy.orderByExpressions[0].field.fieldName))
       ]),
-      new Impl.LimitImpl(expected.limit.limit),
-      new Impl.UnmodeledSyntaxImpl(expected.offset.unmodeledSyntax, Soql.REASON_UNMODELED_OFFSET),
-      new Impl.UnmodeledSyntaxImpl(expected.bind.unmodeledSyntax, Soql.REASON_UNMODELED_BIND),
-      new Impl.UnmodeledSyntaxImpl(expected.recordTrackingType.unmodeledSyntax, Soql.REASON_UNMODELED_RECORDTRACKING),
-      new Impl.UnmodeledSyntaxImpl(expected.update.unmodeledSyntax, Soql.REASON_UNMODELED_UPDATE)
+      new LimitImpl(expected.limit.limit),
+      new UnmodeledSyntaxImpl(expected.offset.unmodeledSyntax, Soql.REASON_UNMODELED_OFFSET),
+      new UnmodeledSyntaxImpl(expected.bind.unmodeledSyntax, Soql.REASON_UNMODELED_BIND),
+      new UnmodeledSyntaxImpl(expected.recordTrackingType.unmodeledSyntax, Soql.REASON_UNMODELED_RECORDTRACKING),
+      new UnmodeledSyntaxImpl(expected.update.unmodeledSyntax, Soql.REASON_UNMODELED_UPDATE)
     );
     expect(actual).toEqual(expected);
   });
   it('return query string, one line per clause with all but SELECT clause indented for toSoqlSyntax()', () => {
     const expected = `SELECT ${EOL}` + `  FROM songs${EOL}` + `  WHERE paint_it = 'black'${EOL}`;
-    const actual = new Impl.QueryImpl(
-      new Impl.SelectExprsImpl([]),
-      new Impl.FromImpl('songs'),
-      new Impl.WhereImpl(
-        new Impl.FieldCompareConditionImpl(
-          new Impl.FieldRefImpl('paint_it'),
+    const actual = new QueryImpl(
+      new SelectExprsImpl([]),
+      new FromImpl('songs'),
+      new WhereImpl(
+        new FieldCompareConditionImpl(
+          new FieldRefImpl('paint_it'),
           Soql.ConditionOperator.Equals,
-          new Impl.LiteralImpl("'black'")
+          new LiteralImpl("'black'")
         )
       )
     ).toSoqlSyntax();

@@ -5,25 +5,27 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Impl from '../../../../../src/soql-model/model/impl';
+import { FieldCompareConditionImpl } from '../../../../../src/soql-model/model/impl/fieldCompareConditionImpl';
+import { FieldRefImpl } from '../../../../../src/soql-model/model/impl/fieldRefImpl';
+import { LiteralImpl } from '../../../../../src/soql-model/model/impl/literalImpl';
 import { ConditionOperator } from '../../../../../src/soql-model/model/model';
 
 describe('FieldCompareConditionImpl should', () => {
   it('store field, operator, and value', () => {
     const expected = { field: { fieldName: 'field' }, operator: '=', compareValue: { value: "'abc'" } };
-    const actual = new Impl.FieldCompareConditionImpl(
-      new Impl.FieldRefImpl('field'),
+    const actual = new FieldCompareConditionImpl(
+      new FieldRefImpl('field'),
       ConditionOperator.Equals,
-      new Impl.LiteralImpl("'abc'")
+      new LiteralImpl("'abc'")
     );
     expect(actual).toEqual(expected);
   });
   it('return field, operator, and value separated by spaces for toSoqlSyntax()', () => {
     const expected = "field = 'abc'";
-    const actual = new Impl.FieldCompareConditionImpl(
-      new Impl.FieldRefImpl('field'),
+    const actual = new FieldCompareConditionImpl(
+      new FieldRefImpl('field'),
       ConditionOperator.Equals,
-      new Impl.LiteralImpl("'abc'")
+      new LiteralImpl("'abc'")
     ).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });

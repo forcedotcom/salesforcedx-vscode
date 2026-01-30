@@ -5,14 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Impl from '../../../../../src/soql-model/model/impl';
+import { FromImpl } from '../../../../../src/soql-model/model/impl/fromImpl';
+import { UnmodeledSyntaxImpl } from '../../../../../src/soql-model/model/impl/unmodeledSyntaxImpl';
 import * as Soql from '../../../../../src/soql-model/model/model';
 
 
 describe('FromImpl should', () => {
   it('store SObject name as a string', () => {
     const expected = { sobjectName: 'ian' };
-    const actual = new Impl.FromImpl('ian');
+    const actual = new FromImpl('ian');
     expect(actual).toEqual(expected);
   });
   it('store as and using clauses as unmodeled syntax', () => {
@@ -21,19 +22,19 @@ describe('FromImpl should', () => {
       as: { unmodeledSyntax: 'and', reason: Soql.REASON_UNMODELED_AS },
       using: { unmodeledSyntax: 'blue', reason: Soql.REASON_UNMODELED_USING },
     };
-    const actual = new Impl.FromImpl(
+    const actual = new FromImpl(
       expected.sobjectName,
-      new Impl.UnmodeledSyntaxImpl(expected.as.unmodeledSyntax, Soql.REASON_UNMODELED_AS),
-      new Impl.UnmodeledSyntaxImpl(expected.using.unmodeledSyntax, Soql.REASON_UNMODELED_USING)
+      new UnmodeledSyntaxImpl(expected.as.unmodeledSyntax, Soql.REASON_UNMODELED_AS),
+      new UnmodeledSyntaxImpl(expected.using.unmodeledSyntax, Soql.REASON_UNMODELED_USING)
     );
     expect(actual).toEqual(expected);
   });
   it('return FROM sobject name followed by as and using clauses for toSoqlSyntax()', () => {
     const expected = 'FROM exile on main';
-    const actual = new Impl.FromImpl(
+    const actual = new FromImpl(
       'exile',
-      new Impl.UnmodeledSyntaxImpl('on', Soql.REASON_UNMODELED_AS),
-      new Impl.UnmodeledSyntaxImpl('main', Soql.REASON_UNMODELED_USING)
+      new UnmodeledSyntaxImpl('on', Soql.REASON_UNMODELED_AS),
+      new UnmodeledSyntaxImpl('main', Soql.REASON_UNMODELED_USING)
     ).toSoqlSyntax();
     expect(actual).toEqual(expected);
   });

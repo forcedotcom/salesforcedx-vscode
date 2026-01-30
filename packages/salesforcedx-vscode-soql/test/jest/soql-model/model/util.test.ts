@@ -5,52 +5,64 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Impl from '../../../../src/soql-model/model/impl';
+import { AndOrConditionImpl } from '../../../../src/soql-model/model/impl/andOrConditionImpl';
+import { FieldCompareConditionImpl } from '../../../../src/soql-model/model/impl/fieldCompareConditionImpl';
+import { FieldRefImpl } from '../../../../src/soql-model/model/impl/fieldRefImpl';
+import { FieldSelectionImpl } from '../../../../src/soql-model/model/impl/fieldSelectionImpl';
+import { FromImpl } from '../../../../src/soql-model/model/impl/fromImpl';
+import { IncludesConditionImpl } from '../../../../src/soql-model/model/impl/includesConditionImpl';
+import { InListConditionImpl } from '../../../../src/soql-model/model/impl/inListConditionImpl';
+import { LiteralImpl } from '../../../../src/soql-model/model/impl/literalImpl';
+import { NestedConditionImpl } from '../../../../src/soql-model/model/impl/nestedConditionImpl';
+import { NotConditionImpl } from '../../../../src/soql-model/model/impl/notConditionImpl';
+import { QueryImpl } from '../../../../src/soql-model/model/impl/queryImpl';
+import { SelectExprsImpl } from '../../../../src/soql-model/model/impl/selectExprsImpl';
+import { UnmodeledSyntaxImpl } from '../../../../src/soql-model/model/impl/unmodeledSyntaxImpl';
 import * as Soql from '../../../../src/soql-model/model/model';
 import { SoqlModelUtils } from '../../../../src/soql-model/model/util';
 
-const field = new Impl.FieldRefImpl('field');
-const literal = new Impl.LiteralImpl("'Hello'");
-const conditionFieldCompare = new Impl.FieldCompareConditionImpl(field, Soql.ConditionOperator.Equals, literal);
-const conditionLike = new Impl.FieldCompareConditionImpl(field, Soql.ConditionOperator.Like, literal);
-const conditionInList = new Impl.InListConditionImpl(field, Soql.ConditionOperator.In, [literal]);
-const conditionIncludes = new Impl.IncludesConditionImpl(field, Soql.ConditionOperator.Includes, [literal]);
-const conditionUnmodeled = new Impl.UnmodeledSyntaxImpl('A + B > 10', Soql.REASON_UNMODELED_CALCULATEDCONDITION);
-const conditionAndOr = new Impl.AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.And, conditionLike);
-const conditionNested = new Impl.NestedConditionImpl(conditionFieldCompare);
-const conditionNot = new Impl.NotConditionImpl(conditionFieldCompare);
+const field = new FieldRefImpl('field');
+const literal = new LiteralImpl("'Hello'");
+const conditionFieldCompare = new FieldCompareConditionImpl(field, Soql.ConditionOperator.Equals, literal);
+const conditionLike = new FieldCompareConditionImpl(field, Soql.ConditionOperator.Like, literal);
+const conditionInList = new InListConditionImpl(field, Soql.ConditionOperator.In, [literal]);
+const conditionIncludes = new IncludesConditionImpl(field, Soql.ConditionOperator.Includes, [literal]);
+const conditionUnmodeled = new UnmodeledSyntaxImpl('A + B > 10', Soql.REASON_UNMODELED_CALCULATEDCONDITION);
+const conditionAndOr = new AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.And, conditionLike);
+const conditionNested = new NestedConditionImpl(conditionFieldCompare);
+const conditionNot = new NotConditionImpl(conditionFieldCompare);
 
 describe('SoqlModelUtils should', () => {
   it('isUnmodeledSyntax should return true if the model object is unmodeled syntax', () => {
     const actual = SoqlModelUtils.isUnmodeledSyntax(
-      new Impl.UnmodeledSyntaxImpl('foo', { reasonCode: 'unmodeled:foo', message: 'foo' })
+      new UnmodeledSyntaxImpl('foo', { reasonCode: 'unmodeled:foo', message: 'foo' })
     );
     expect(actual).toBeTruthy();
   });
   it('isUnmodeledSyntax should return false if the model object is not unmodeled syntax, even if child objects are unmodeled', () => {
     const actual = SoqlModelUtils.isUnmodeledSyntax(
-      new Impl.QueryImpl(
-        new Impl.SelectExprsImpl([
-          new Impl.FieldSelectionImpl(
-            new Impl.FieldRefImpl('field1'),
-            new Impl.UnmodeledSyntaxImpl('alias1', Soql.REASON_UNMODELED_ALIAS)
+      new QueryImpl(
+        new SelectExprsImpl([
+          new FieldSelectionImpl(
+            new FieldRefImpl('field1'),
+            new UnmodeledSyntaxImpl('alias1', Soql.REASON_UNMODELED_ALIAS)
           )
         ]),
-        new Impl.FromImpl('object1')
+        new FromImpl('object1')
       )
     );
     expect(actual).toBeFalsy();
   });
   it('return true if SOQL query model contains unmodeled syntax', () => {
     const actual = SoqlModelUtils.containsUnmodeledSyntax(
-      new Impl.QueryImpl(
-        new Impl.SelectExprsImpl([
-          new Impl.FieldSelectionImpl(
-            new Impl.FieldRefImpl('field1'),
-            new Impl.UnmodeledSyntaxImpl('alias1', Soql.REASON_UNMODELED_ALIAS)
+      new QueryImpl(
+        new SelectExprsImpl([
+          new FieldSelectionImpl(
+            new FieldRefImpl('field1'),
+            new UnmodeledSyntaxImpl('alias1', Soql.REASON_UNMODELED_ALIAS)
           )
         ]),
-        new Impl.FromImpl('object1')
+        new FromImpl('object1')
       )
     );
     expect(actual).toBeTruthy();
@@ -65,18 +77,18 @@ describe('SoqlModelUtils should', () => {
       reason: Soql.REASON_UNMODELED_FUNCTIONREFERENCE
     };
     const actual = SoqlModelUtils.getUnmodeledSyntax(
-      new Impl.QueryImpl(
-        new Impl.SelectExprsImpl([
-          new Impl.FieldSelectionImpl(
-            new Impl.FieldRefImpl('field1'),
-            new Impl.UnmodeledSyntaxImpl(unmodeled1.syntax, unmodeled1.reason)
+      new QueryImpl(
+        new SelectExprsImpl([
+          new FieldSelectionImpl(
+            new FieldRefImpl('field1'),
+            new UnmodeledSyntaxImpl(unmodeled1.syntax, unmodeled1.reason)
           ),
-          new Impl.FieldSelectionImpl(
-            new Impl.FieldRefImpl('field2'),
-            new Impl.UnmodeledSyntaxImpl(unmodeled2.syntax, unmodeled2.reason)
+          new FieldSelectionImpl(
+            new FieldRefImpl('field2'),
+            new UnmodeledSyntaxImpl(unmodeled2.syntax, unmodeled2.reason)
           )
         ]),
-        new Impl.FromImpl('object1')
+        new FromImpl('object1')
       )
     );
     expect(actual.length).toEqual(2);
@@ -87,7 +99,7 @@ describe('SoqlModelUtils should', () => {
   });
   it('return false if SOQL query model does not contain unmodeled syntax', () => {
     const actual = SoqlModelUtils.containsUnmodeledSyntax(
-      new Impl.QueryImpl(new Impl.SelectExprsImpl([new Impl.FieldRefImpl('field1')]), new Impl.FromImpl('object1'))
+      new QueryImpl(new SelectExprsImpl([new FieldRefImpl('field1')]), new FromImpl('object1'))
     );
     expect(actual).toBeFalsy();
   });
@@ -105,11 +117,7 @@ describe('SoqlModelUtils should', () => {
     expect(actual).toBeTruthy();
   });
   it('return false from isSimpleCondition for non-simple conditions', () => {
-    const complexConditions: Soql.Condition[] = [
-      conditionAndOr,
-      conditionNot,
-      new Impl.NestedConditionImpl(conditionAndOr)
-    ];
+    const complexConditions: Soql.Condition[] = [conditionAndOr, conditionNot, new NestedConditionImpl(conditionAndOr)];
     let actual = true;
     complexConditions.forEach(condition => (actual &&= !SoqlModelUtils.isSimpleCondition(condition)));
     expect(actual).toBeTruthy();
@@ -118,8 +126,8 @@ describe('SoqlModelUtils should', () => {
     const simpleGroups: Soql.Condition[] = [
       conditionFieldCompare,
       conditionAndOr,
-      new Impl.AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.And, conditionAndOr),
-      new Impl.NestedConditionImpl(conditionAndOr)
+      new AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.And, conditionAndOr),
+      new NestedConditionImpl(conditionAndOr)
     ];
     let actual = true;
     simpleGroups.forEach(condition => (actual &&= SoqlModelUtils.isSimpleGroup(condition)));
@@ -130,12 +138,12 @@ describe('SoqlModelUtils should', () => {
       // NOT
       conditionNot,
       // mixing AND and OR
-      new Impl.AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.Or, conditionAndOr),
+      new AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.Or, conditionAndOr),
       // combined simple groups
-      new Impl.AndOrConditionImpl(
-        new Impl.NestedConditionImpl(conditionAndOr),
+      new AndOrConditionImpl(
+        new NestedConditionImpl(conditionAndOr),
         Soql.AndOr.Or,
-        new Impl.NestedConditionImpl(conditionAndOr)
+        new NestedConditionImpl(conditionAndOr)
       )
     ];
     let actual = true;
@@ -143,11 +151,11 @@ describe('SoqlModelUtils should', () => {
     expect(actual).toBeTruthy();
   });
   it('throws from simpleGroupToArray if condition not simple group', () => {
-    const nonSimpleGroup = new Impl.AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.Or, conditionAndOr);
+    const nonSimpleGroup = new AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.Or, conditionAndOr);
     expect(() => SoqlModelUtils.simpleGroupToArray(nonSimpleGroup)).toThrow();
   });
   it('returns array and operator from simpleGroupToArray for simple group', () => {
-    const simpleGroup = new Impl.AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.And, conditionAndOr);
+    const simpleGroup = new AndOrConditionImpl(conditionFieldCompare, Soql.AndOr.And, conditionAndOr);
     const { conditions, andOr } = SoqlModelUtils.simpleGroupToArray(simpleGroup);
     expect(conditions.length).toEqual(3);
     expect(andOr).toEqual(Soql.AndOr.And);
@@ -164,10 +172,10 @@ describe('SoqlModelUtils should', () => {
     const conditions = [conditionFieldCompare, conditionLike, conditionInList];
     const andOr = Soql.AndOr.Or;
 
-    const expected = new Impl.AndOrConditionImpl(
+    const expected = new AndOrConditionImpl(
       conditions[0],
       andOr,
-      new Impl.AndOrConditionImpl(conditions[1], andOr, conditions[2])
+      new AndOrConditionImpl(conditions[1], andOr, conditions[2])
     );
     const actual = SoqlModelUtils.arrayToSimpleGroup(conditions, andOr);
     expect(actual).toEqual(expected);
