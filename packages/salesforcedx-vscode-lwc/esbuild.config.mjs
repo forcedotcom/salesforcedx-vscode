@@ -45,7 +45,7 @@ const browserBuild = await build({
 });
 
 // Bundle the LWC language server for Node.js (desktop VS Code)
-// This matches the pattern used by Visualforce and SOQL extensions
+// Single entry server.js; define ESBUILD_PLATFORM so only ServerNode is included (ServerBrowser tree-shaken)
 // Note: vscode-html-languageservice must be external because it uses dynamic requires
 // that esbuild cannot resolve (e.g., './parser/htmlScanner')
 await build({
@@ -64,10 +64,12 @@ await build({
   outfile: './dist/lwcServer.js',
   bundle: true,
   platform: 'node',
-  target: 'node18'
+  target: 'node18',
+  define: { 'process.env.ESBUILD_PLATFORM': '"node"' }
 });
 
 // Bundle the LWC language server for browser/web worker (VS Code for the Web)
+// Single entry server.js; define ESBUILD_PLATFORM so only ServerBrowser is included (ServerNode tree-shaken)
 // The language server runs in a web worker, so we need a browser-compatible bundle
 // Note: vscode-html-languageservice must be bundled (not external) for browser to avoid dynamic require errors
 // We configure esbuild to prefer the ESM version which doesn't use dynamic requires
@@ -84,12 +86,13 @@ await build({
     // tty is NOT external - it needs to be aliased to empty polyfill (handled via alias in commonConfigBrowser)
     // vscode-html-languageservice is NOT external - it needs to be bundled for browser
   ],
-  entryPoints: ['../salesforcedx-lwc-language-server/src/serverBrowser.ts'],
+  entryPoints: ['../salesforcedx-lwc-language-server/out/src/server.js'],
   outfile: './dist/web/lwcServer.js',
   bundle: true,
   platform: 'browser',
   format: 'iife', // IIFE format for web workers
   target: 'es2020',
+  define: { ...commonConfigBrowser.define, 'process.env.ESBUILD_PLATFORM': '"web"' },
   // Prefer ESM version to avoid dynamic requires in UMD version
   mainFields: ['module', 'main'],
   plugins: [
