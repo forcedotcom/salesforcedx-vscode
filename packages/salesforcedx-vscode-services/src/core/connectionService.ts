@@ -179,7 +179,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
-            const usernameOrAlias = yield* configService.getConfigAggregator.pipe(
+            const usernameOrAlias = yield* configService.getConfigAggregator().pipe(
               Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
               Effect.filterOrFail(
                 targetOrg => targetOrg != null,

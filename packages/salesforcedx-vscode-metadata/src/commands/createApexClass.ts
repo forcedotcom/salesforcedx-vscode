@@ -149,8 +149,8 @@ export const createApexClass = (commandParams?: CreateApexClassParams) =>
       return yield* Effect.succeed(undefined);
     }
 
-    const project = yield* (yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ProjectService)
-      .getSfProject;
+    const project = yield* (yield* (yield* (yield* ExtensionProviderService).getServicesApi).services
+      .ProjectService).getSfProject();
 
     const [outputDir, apiVersion] = yield* Effect.all([
       Effect.suspend(() =>

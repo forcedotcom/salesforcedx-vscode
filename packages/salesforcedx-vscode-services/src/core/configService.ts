@@ -7,24 +7,33 @@
 
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import * as Cache from 'effect/Cache';
-import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { pipe } from 'effect/Function';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { getDefaultOrgRef } from './defaultOrgRef';
 import { unknownToErrorCause } from './shared';
 
-export class FailedToCreateConfigAggregatorError extends Data.TaggedError('FailedToCreateConfigAggregatorError')<{
-  readonly cause: unknown;
-}> {}
+export class FailedToCreateConfigAggregatorError extends Schema.TaggedError<FailedToCreateConfigAggregatorError>()(
+  'FailedToCreateConfigAggregatorError',
+  {
+    message: Schema.String,
+    cause: Schema.optional(Schema.instanceOf(Error))
+  }
+) {}
 
 const createConfigAggregator = (projectPath: string) =>
   Effect.tryPromise({
     try: () => ConfigAggregator.create({ projectPath }),
-    catch: error => new FailedToCreateConfigAggregatorError(unknownToErrorCause(error))
+    catch: error => {
+      const { cause } = unknownToErrorCause(error);
+      return new FailedToCreateConfigAggregatorError({
+        message: `Failed to create config aggregator: ${cause.message}`,
+        cause
+      });
+    }
   }).pipe(Effect.withSpan('createConfigAggregator (cache miss)', { attributes: { projectPath } }));
 
 // Global cache - created once at module level, not scoped to any consumer
@@ -43,23 +52,28 @@ Effect.runSync(Effect.forkDaemon(getDefaultOrgRef().pipe(
 )));
 
 export class ConfigService extends Effect.Service<ConfigService>()('ConfigService', {
-  succeed: {
+  accessors: true,
+  dependencies: [WorkspaceService.Default],
+  effect: Effect.gen(function* () {
+    const workspaceService = yield* WorkspaceService;
+
     /** Get a ConfigAggregator for the current workspace */
-    getConfigAggregator: pipe(
-      WorkspaceService,
-      Effect.flatMap(ws => ws.getWorkspaceInfoOrThrow),
-      Effect.flatMap(workspaceDescription =>
-        Effect.succeed(workspaceDescription.path.replace(fsPrefix, '').replace(':/', ''))
-      ),
-      Effect.tap(projectPath => Effect.annotateCurrentSpan({ projectPath })),
-      Effect.flatMap(projectPath => globalConfigCache.get(projectPath)),
+    const getConfigAggregator = Effect.fn('ConfigService.getConfigAggregator')(function* () {
+      const workspaceDescription = yield* workspaceService.getWorkspaceInfoOrThrow;
+      const projectPath = workspaceDescription.path.replace(fsPrefix, '').replace(':/', '');
+      
+      yield* Effect.annotateCurrentSpan({ projectPath });
+      const agg = yield* globalConfigCache.get(projectPath);
+      
       // stateless when org can change: always reload only on desktop
-      Effect.flatMap(agg =>
-        process.env.ESBUILD_PLATFORM === 'web' ? Effect.succeed(agg) : Effect.promise(() => agg.reload())
-      ),
-      Effect.tap(agg => Effect.annotateCurrentSpan({ ...agg.getConfig() })),
-      Effect.withSpan('getConfigAggregator')
-    )
-  } as const,
-  dependencies: [WorkspaceService.Default]
+      const reloadedAgg = yield* process.env.ESBUILD_PLATFORM === 'web'
+        ? Effect.succeed(agg)
+        : Effect.promise(() => agg.reload());
+      
+      yield* Effect.annotateCurrentSpan({ ...reloadedAgg.getConfig() });
+      return reloadedAgg;
+    });
+
+    return { getConfigAggregator } as const;
+  })
 }) {}

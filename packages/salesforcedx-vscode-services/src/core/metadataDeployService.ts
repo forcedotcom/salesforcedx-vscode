@@ -61,7 +61,7 @@ const deploy = (components: ComponentSet) =>
     const [connection, project] = yield* Effect.all(
       [
         ConnectionService.getConnection(),
-        Effect.flatMap(ProjectService, service => service.getSfProject),
+        ProjectService.getSfProject(),
         Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow),
         Effect.annotateCurrentSpan({ components: components.map(c => `${c.type.name}:${c.fullName}`) })
       ],

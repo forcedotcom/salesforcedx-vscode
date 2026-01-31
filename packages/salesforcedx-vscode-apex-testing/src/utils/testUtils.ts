@@ -224,7 +224,7 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
       );
 
       // Get package directories from the project
-      const sfProject = yield* projectService.getSfProject;
+      const sfProject = yield* projectService.getSfProject();
       const packageDirs = sfProject.getPackageDirectories().map(dir => dir.fullPath);
 
       // Build ComponentSet for all ApexClass files in the project

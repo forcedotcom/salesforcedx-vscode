@@ -47,10 +47,10 @@ const getTracking = (options?: SourceTrackingOptions) =>
     const [connection, project, registryAccess, ref, configAggregator] = yield* Effect.all(
       [
         ConnectionService.getConnection(),
-        Effect.flatMap(ProjectService, svc => svc.getSfProject),
+        ProjectService.getSfProject(),
         Effect.flatMap(MetadataRegistryService, svc => svc.getRegistryAccess()),
         SubscriptionRef.get(yield* getDefaultOrgRef()),
-        ConfigService.pipe(Effect.flatMap(svc => svc.getConfigAggregator))
+        ConfigService.getConfigAggregator()
       ],
       { concurrency: 'unbounded' }
     );

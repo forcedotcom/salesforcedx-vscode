@@ -77,7 +77,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
 
 const isInPackageDirectories = Effect.fn('deployOnSave:isInPackageDirectories')(function* (uri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const packageDirs = (yield* (yield* api.services.ProjectService).getSfProject).getPackageDirectories();
+  const packageDirs = (yield* (yield* api.services.ProjectService).getSfProject()).getPackageDirectories();
   return packageDirs.some(dir => uri.fsPath.startsWith(dir.fullPath));
 });
 

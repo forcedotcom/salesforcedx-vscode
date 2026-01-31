@@ -75,7 +75,8 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
   yield* deleteService.deleteLocalFiles(componentSet, result);
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 
-  if (result.getFileResponses().some(componentSetService.isSDRFailure)) {
+  const { isSDRFailure } = componentSetService;
+  if (result.getFileResponses().some(isSDRFailure)) {
     yield* Effect.promise(() => vscode.window.showErrorMessage(nls.localize('delete_completed_with_errors_message')));
   }
 });

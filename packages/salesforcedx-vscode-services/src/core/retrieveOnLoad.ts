@@ -21,10 +21,10 @@ export const filterFileResponses = Effect.fn('filterFileResponses')(function* (
   fileResponses: FileResponse[],
   members: MetadataMember[]
 ) {
-  const componentSetService = yield* ComponentSetService;
+  const { isSDRSuccess } = yield* ComponentSetService;
   const allowedSuffixes = yield* getAllowedSuffixes(members);
   return fileResponses
-    .filter(componentSetService.isSDRSuccess)
+    .filter(isSDRSuccess)
     .filter(fileResponseHasPath)
     .map(fileResponse => fileResponse.filePath?.replaceAll('\\', '/'))
     .filter(filePath => allowedSuffixes.some(suffix => filePath.endsWith(suffix)));

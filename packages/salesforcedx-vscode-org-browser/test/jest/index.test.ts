@@ -115,7 +115,7 @@ const mockConfigAggregator: ConfigAggregator = {
 const MockConfigServiceLayer = Layer.succeed(
   ConfigService,
   new ConfigService({
-    getConfigAggregator: Effect.sync(() => mockConfigAggregator)
+    getConfigAggregator: () => Effect.sync(() => mockConfigAggregator)
   } as const)
 );
 

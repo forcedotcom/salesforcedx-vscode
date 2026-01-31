@@ -65,7 +65,9 @@ const getFilePaths = (member: MetadataMember) =>
       [api.services.ProjectService, api.services.MetadataRetrieveService],
       { concurrency: 'unbounded' }
     );
-    const dirs = (yield* projectService.getSfProject).getPackageDirectories().map(directory => directory.fullPath);
+    const dirs = (yield* projectService.getSfProject())
+      .getPackageDirectories()
+      .map((directory: { fullPath: string }) => directory.fullPath);
     yield* Effect.annotateCurrentSpan({ packageDirectories: dirs });
     const componentSet = yield* retrieveService.buildComponentSetFromSource(dirs, [member]);
     yield* Effect.annotateCurrentSpan({ size: componentSet.size });

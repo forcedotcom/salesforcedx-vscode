@@ -19,9 +19,9 @@ import {
   type MetadataComponent
 } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
-import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
+import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
 import { HashableUri } from '../vscode/hashableUri';
 import { uriToPath } from '../vscode/paths';
@@ -39,13 +39,25 @@ const EnsureNonEmptyComponentSet = Brand.refined<NonEmptyComponentSet>(
   componentSet => Brand.error(`Expected ComponentSet to be non-empty, but got size ${componentSet.size}`)
 );
 
-export class EmptyComponentSetError extends Data.TaggedError('EmptyComponentSetError')<{
-  readonly size: number;
-}> {}
+export class EmptyComponentSetError extends Schema.TaggedError<EmptyComponentSetError>()(
+  'EmptyComponentSetError',
+  {
+    message: Schema.String,
+    size: Schema.Number
+  }
+) {}
 
-export class FailedToBuildComponentSetError extends Data.TaggedError('FailedToBuildComponentSetError')<{
-  readonly cause?: Error;
-}> {}
+export class FailedToBuildComponentSetError extends Schema.TaggedError<FailedToBuildComponentSetError>()(
+  'FailedToBuildComponentSetError',
+  {
+    message: Schema.String,
+    cause: Schema.optional(Schema.instanceOf(Error))
+  }
+) {}
+
+/** Type guard to check if a MetadataComponent is a SourceComponent */
+export const isSourceComponent = (component: MetadataComponent): component is SourceComponent =>
+  component instanceof SourceComponent;
 
 /** Type guard to check if a FileResponse is successful */
 const isSDRSuccess = (fileResponse: FileResponse): fileResponse is FileResponseSuccess =>
@@ -55,85 +67,107 @@ const isSDRSuccess = (fileResponse: FileResponse): fileResponse is FileResponseS
 const isSDRFailure = (fileResponse: FileResponse): fileResponse is FileResponseFailure =>
   fileResponse.state === ComponentStatus.Failed;
 
-/** Type guard to check if a MetadataComponent is a SourceComponent */
-export const isSourceComponent = (component: MetadataComponent): component is SourceComponent =>
-  component instanceof SourceComponent;
-
-/** Effect that validates a ComponentSet is non-empty and returns NonEmptyComponentSet */
-const ensureNonEmptyComponentSet = (componentSet: ComponentSetType) =>
-  Effect.try({
-    try: () => EnsureNonEmptyComponentSet(componentSet),
-    catch: () => new EmptyComponentSetError({ size: componentSet.size })
-  });
-
-/** Get required services for building ComponentSets */
-const getComponentSetDependencies = () =>
-  Effect.all(
-    [
-      Effect.flatMap(MetadataRegistryService, svc => svc.getRegistryAccess()),
-      Effect.flatMap(ProjectService, svc => svc.getSfProject),
-      Effect.flatMap(ConfigService, svc => svc.getConfigAggregator)
-    ],
-    { concurrency: 'unbounded' }
-  );
-
-const getComponentSetFromUris = (uris: readonly URI[]) =>
-  Effect.gen(function* () {
-    const [registryAccess, project, configAggregator] = yield* getComponentSetDependencies();
-    const hashableUris = HashSet.fromIterable(uris.map(HashableUri.fromUri));
-    const paths = hashableUris.pipe(
-      HashSet.map(uri => uriToPath(uri)),
-      HashSet.toValues
-    );
-    yield* Effect.annotateCurrentSpan({ paths });
-    const componentSet = yield* Effect.try({
-      try: () => ComponentSet.fromSource({ fsPaths: paths, registry: registryAccess }),
-      catch: e => new FailedToBuildComponentSetError(unknownToErrorCause(e))
-    });
-
-    yield* setComponentSetProperties({ componentSet, project, configAggregator });
-
-    yield* Effect.annotateCurrentSpan({ size: componentSet.size });
-    return componentSet;
-  }).pipe(Effect.withSpan('getComponentSetFromPaths'));
-
-/** Get ComponentSet from manifest file */
-const getComponentSetFromManifest = (manifestPath: string) =>
-  Effect.gen(function* () {
-    yield* Effect.annotateCurrentSpan({ manifestPath });
-    const [registryAccess, project, configAggregator] = yield* getComponentSetDependencies();
-
-    const componentSet = yield* Effect.tryPromise({
-      try: async () =>
-        ComponentSet.fromManifest({
-          manifestPath,
-          // Get package directories as full paths
-          resolveSourcePaths: project.getPackageDirectories().map(pkgDir => pkgDir.fullPath),
-          forceAddWildcards: true,
-          registry: registryAccess
-        }),
-      catch: e => new FailedToBuildComponentSetError(unknownToErrorCause(e))
-    });
-
-    yield* setComponentSetProperties({ componentSet, project, configAggregator });
-
-    yield* Effect.annotateCurrentSpan({ size: componentSet.size });
-    return componentSet;
-  }).pipe(Effect.withSpan('getComponentSetFromManifest'));
-
 export class ComponentSetService extends Effect.Service<ComponentSetService>()('ComponentSetService', {
-  succeed: {
-    /** Type guard to check if a FileResponse is successful */
-    isSDRSuccess,
-    /** Type guard to check if a FileResponse is a failure */
-    isSDRFailure,
+  accessors: true,
+  dependencies: [MetadataRegistryService.Default, ProjectService.Default, ConfigService.Default],
+  effect: Effect.gen(function* () {
+    const metadataRegistryService = yield* MetadataRegistryService;
+    const projectService = yield* ProjectService;
+    const configService = yield* ConfigService;
+
     /** Effect that validates a ComponentSet is non-empty and returns NonEmptyComponentSet */
-    ensureNonEmptyComponentSet,
+    const ensureNonEmptyComponentSet = Effect.fn('ComponentSetService.ensureNonEmptyComponentSet')(
+      function* (componentSet: ComponentSetType) {
+        return yield* Effect.try({
+          try: () => EnsureNonEmptyComponentSet(componentSet),
+          catch: () =>
+            new EmptyComponentSetError({
+              message: `Expected ComponentSet to be non-empty, but got size ${componentSet.size}`,
+              size: componentSet.size
+            })
+        });
+      }
+    );
+
     /** Get ComponentSet from source URIs (files/directories).  Handles deduplication of URIs */
-    getComponentSetFromUris,
+    const getComponentSetFromUris = Effect.fn('ComponentSetService.getComponentSetFromUris')(
+      function* (uris: readonly URI[]) {
+        return yield* Effect.gen(function* () {
+          const [registryAccess, project, configAggregator] = yield* Effect.all(
+            [
+              metadataRegistryService.getRegistryAccess(),
+              projectService.getSfProject(),
+              configService.getConfigAggregator()
+            ],
+            { concurrency: 'unbounded' }
+          );
+          const hashableUris = HashSet.fromIterable(uris.map(HashableUri.fromUri));
+          const paths = hashableUris.pipe(
+            HashSet.map(uri => uriToPath(uri)),
+            HashSet.toValues
+          );
+          yield* Effect.annotateCurrentSpan({ paths });
+          const componentSet = yield* Effect.try({
+            try: () => ComponentSet.fromSource({ fsPaths: paths, registry: registryAccess }),
+            catch: e => {
+              const { cause } = unknownToErrorCause(e);
+              return new FailedToBuildComponentSetError({
+                message: `Failed to build ComponentSet from URIs: ${cause.message}`,
+                cause
+              });
+            }
+          });
+
+          yield* setComponentSetProperties({ componentSet, project, configAggregator });
+
+          yield* Effect.annotateCurrentSpan({ size: componentSet.size });
+          return componentSet;
+        }).pipe(Effect.withSpan('getComponentSetFromPaths'));
+      }
+    );
+
     /** Get ComponentSet from manifest file */
-    getComponentSetFromManifest
-  } as const
+    const getComponentSetFromManifest = Effect.fn('ComponentSetService.getComponentSetFromManifest')(
+      function* (manifestPath: string) {
+        return yield* Effect.gen(function* () {
+          yield* Effect.annotateCurrentSpan({ manifestPath });
+          const [registryAccess, project, configAggregator] = yield* Effect.all(
+            [
+              metadataRegistryService.getRegistryAccess(),
+              projectService.getSfProject(),
+              configService.getConfigAggregator()
+            ],
+            { concurrency: 'unbounded' }
+          );
+
+          const componentSet = yield* Effect.tryPromise({
+            try: async () =>
+              ComponentSet.fromManifest({
+                manifestPath,
+                // Get package directories as full paths
+                resolveSourcePaths: project.getPackageDirectories().map(pkgDir => pkgDir.fullPath),
+                forceAddWildcards: true,
+                registry: registryAccess
+              }),
+            catch: e => {
+              const { cause } = unknownToErrorCause(e);
+              return new FailedToBuildComponentSetError({
+                message: `Failed to build ComponentSet from manifest: ${cause.message}`,
+                cause
+              });
+            }
+          });
+
+          yield* setComponentSetProperties({ componentSet, project, configAggregator });
+
+          yield* Effect.annotateCurrentSpan({ size: componentSet.size });
+          return componentSet;
+        }).pipe(Effect.withSpan('getComponentSetFromManifest'));
+      }
+    );
+
+    return { isSDRSuccess, isSDRFailure, ensureNonEmptyComponentSet, getComponentSetFromUris, getComponentSetFromManifest } as const;
+  })
 }) {}
 
 /**
@@ -160,7 +194,13 @@ export const setComponentSetProperties = ({
     }
     const projectJson = yield* Effect.tryPromise({
       try: () => project.retrieveSfProjectJson(),
-      catch: e => new FailedToResolveSfProjectError(unknownToErrorCause(e))
+      catch: e => {
+        const { cause } = unknownToErrorCause(e);
+        return new FailedToResolveSfProjectError({
+          message: `Failed to resolve SfProject: ${cause.message}`,
+          cause
+        });
+      }
     });
     const sourceApiVersion = projectJson.get<string>('sourceApiVersion');
     if (sourceApiVersion) {

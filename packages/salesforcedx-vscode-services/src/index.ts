@@ -84,7 +84,8 @@ export type {
   SourceTrackingService
 } from './core/sourceTrackingService';
 export type { HashableUri } from './vscode/hashableUri';
-export type { FailedToResolveSfProjectError, NoWorkspaceOpenError } from './core/projectService';
+export type { FailedToResolveSfProjectError } from './core/projectService';
+export type { NoWorkspaceOpenError } from './vscode/workspaceService';
 export type { FailedToCreateConfigAggregatorError } from './core/configService';
 export type {
   FailedToCreateAuthInfoError,

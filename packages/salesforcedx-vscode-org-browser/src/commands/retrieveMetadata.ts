@@ -45,7 +45,9 @@ export const retrieveEffect = (
       api.services.MetadataRetrieveService
     ]);
 
-    const dirs = (yield* projectService.getSfProject).getPackageDirectories().map(directory => directory.fullPath);
+    const dirs = (yield* projectService.getSfProject())
+      .getPackageDirectories()
+      .map((directory: { fullPath: string }) => directory.fullPath);
 
     const localComponents = yield* retrieveService.buildComponentSetFromSource(dirs, [target.value]);
 

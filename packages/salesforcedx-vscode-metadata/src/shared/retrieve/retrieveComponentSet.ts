@@ -38,7 +38,8 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
 
   yield* channelService.appendToChannel(yield* formatRetrieveOutput(result));
 
-  if (result.getFileResponses().some(componentSetService.isSDRFailure)) {
+  const { isSDRFailure } = componentSetService;
+  if (result.getFileResponses().some(isSDRFailure)) {
     const channel = yield* channelService.getChannel;
     yield* Effect.sync(() => channel.show());
     yield* Effect.promise(() => vscode.window.showErrorMessage(nls.localize('retrieve_completed_with_errors_message')));

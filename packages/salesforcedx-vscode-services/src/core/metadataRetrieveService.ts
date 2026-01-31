@@ -50,7 +50,13 @@ const buildComponentSetFromSource = (sourcePaths: string[], filterMembers: Metad
     const registryAccess = yield* (yield* MetadataRegistryService).getRegistryAccess();
     const cs = yield* Effect.try({
       try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
-      catch: e => new FailedToBuildComponentSetError(unknownToErrorCause(e))
+      catch: e => {
+        const { cause } = unknownToErrorCause(e);
+        return new FailedToBuildComponentSetError({
+          message: `Failed to build ComponentSet from source: ${cause.message}`,
+          cause
+        });
+      }
     });
     yield* Effect.annotateCurrentSpan({ size: cs.size });
     return cs;
@@ -61,7 +67,13 @@ const buildComponentSet = (members: MetadataMember[]) =>
     const registryAccess = yield* (yield* MetadataRegistryService).getRegistryAccess();
     return yield* Effect.try({
       try: () => new ComponentSet(members, registryAccess),
-      catch: e => new FailedToBuildComponentSetError(unknownToErrorCause(e))
+      catch: e => {
+        const { cause } = unknownToErrorCause(e);
+        return new FailedToBuildComponentSetError({
+          message: `Failed to build ComponentSet: ${cause.message}`,
+          cause
+        });
+      }
     });
   }).pipe(Effect.withSpan('buildComponentSet'));
 
@@ -70,7 +82,7 @@ const retrieve = (members: MetadataMember[], options?: SourceTrackingOptions) =>
     const [connection, project, registryAccess] = yield* Effect.all(
       [
         ConnectionService.getConnection(),
-        Effect.flatMap(ProjectService, service => service.getSfProject),
+        ProjectService.getSfProject(),
         Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess()),
         Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow)
       ],
@@ -178,9 +190,9 @@ const getRetrieveDependencies = () =>
   Effect.all(
     [
       ConnectionService.getConnection(),
-      Effect.flatMap(ProjectService, service => service.getSfProject),
+      ProjectService.getSfProject(),
       Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess()),
-      Effect.flatMap(ConfigService, service => service.getConfigAggregator),
+      ConfigService.getConfigAggregator(),
       Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow)
     ],
     { concurrency: 'unbounded' }
