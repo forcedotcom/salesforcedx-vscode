@@ -101,7 +101,7 @@ export const generateManifestEffect = Effect.fn('generateManifest')(function* (
   }
 
   // Get workspace info for manifest directory
-  const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow;
+  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   // Resolve URIs
   const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];

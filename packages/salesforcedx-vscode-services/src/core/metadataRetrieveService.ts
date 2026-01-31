@@ -84,7 +84,7 @@ const retrieve = (members: MetadataMember[], options?: SourceTrackingOptions) =>
         ConnectionService.getConnection(),
         ProjectService.getSfProject(),
         MetadataRegistryService.getRegistryAccess(),
-        Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow)
+        WorkspaceService.getWorkspaceInfoOrThrow()
       ],
       { concurrency: 'unbounded' }
     );
@@ -193,7 +193,7 @@ const getRetrieveDependencies = () =>
       ProjectService.getSfProject(),
       MetadataRegistryService.getRegistryAccess(),
       ConfigService.getConfigAggregator(),
-      Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow)
+      WorkspaceService.getWorkspaceInfoOrThrow()
     ],
     { concurrency: 'unbounded' }
   );

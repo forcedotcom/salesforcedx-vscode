@@ -27,8 +27,8 @@ const createMockWorkspaceService = (workspacePath: string): Layer.Layer<Workspac
   return Layer.succeed(
     WorkspaceService,
     new WorkspaceService({
-      getWorkspaceInfo: Effect.succeed(workspaceInfo),
-      getWorkspaceInfoOrThrow: Effect.succeed(workspaceInfo)
+      getWorkspaceInfo: () => Effect.succeed(workspaceInfo),
+      getWorkspaceInfoOrThrow: () => Effect.succeed(workspaceInfo)
     })
   );
 };

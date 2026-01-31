@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -60,20 +60,33 @@ const globalCachedWorkspaceInfo = Effect.runSync(
   Effect.cached(getWorkspaceInfoTask).pipe(Effect.withSpan('getWorkspaceInfo'))
 );
 
-export class WorkspaceService extends Effect.Service<WorkspaceService>()('WorkspaceService', {
-  succeed: {
-    /** Get info about the workspace */
-    getWorkspaceInfo: globalCachedWorkspaceInfo,
-
-    /** GetWorkspaceInfo, throws if there is not one open */
-    getWorkspaceInfoOrThrow: globalCachedWorkspaceInfo.pipe(
-      Effect.flatMap(info =>
-        isNonEmptyWorkspace(info) ? Effect.succeed(info) : Effect.fail(new NoWorkspaceOpenError())
-      )
-    )
-  } as const
-}) {}
-
 const isNonEmptyWorkspace = (info: WorkspaceInfo): info is WorkspaceWithFolder => !info.isEmpty;
 
-export class NoWorkspaceOpenError extends Data.TaggedError('NoWorkspaceOpenError')<{}> {}
+export class NoWorkspaceOpenError extends Schema.TaggedError<NoWorkspaceOpenError>()(
+  'NoWorkspaceOpenError',
+  {
+    message: Schema.String
+  }
+) {}
+
+export class WorkspaceService extends Effect.Service<WorkspaceService>()('WorkspaceService', {
+  accessors: true,
+  effect: Effect.gen(function* () {
+    /** Get info about the workspace */
+    const getWorkspaceInfo = Effect.fn('WorkspaceService.getWorkspaceInfo')(function* () {
+      return yield* globalCachedWorkspaceInfo;
+    });
+
+    /** GetWorkspaceInfo, throws if there is not one open */
+    const getWorkspaceInfoOrThrow = Effect.fn('WorkspaceService.getWorkspaceInfoOrThrow')(function* () {
+      const info = yield* globalCachedWorkspaceInfo;
+      return yield* (
+        isNonEmptyWorkspace(info)
+          ? Effect.succeed(info)
+          : Effect.fail(new NoWorkspaceOpenError({ message: 'No workspace is currently open' }))
+      );
+    });
+
+    return { getWorkspaceInfo, getWorkspaceInfoOrThrow } as const;
+  })
+}) {}

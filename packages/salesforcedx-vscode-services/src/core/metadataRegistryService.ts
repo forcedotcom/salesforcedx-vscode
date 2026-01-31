@@ -25,8 +25,7 @@ export class MetadataRegistryService extends Effect.Service<MetadataRegistryServ
     /** Create a new RegistryAccess instance */
     const createRegistryAccess = () =>
       Effect.gen(function* () {
-        const workspaceService = yield* WorkspaceService;
-        const workspaceInfo = yield* workspaceService.getWorkspaceInfoOrThrow;
+        const workspaceInfo = yield* WorkspaceService.getWorkspaceInfoOrThrow();
         return yield* Effect.try({
           try: () => new RegistryAccess(undefined, workspaceInfo.fsPath),
           catch: error => new GetRegistryAccessError({ cause: unknownToErrorCause(error).cause })

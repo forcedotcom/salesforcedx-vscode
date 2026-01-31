@@ -21,7 +21,7 @@ const ENQUEUE_DELAY_MS = 1000;
 /** File filtering - exclude files that shouldn't be deployed */
 export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (uri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const workspaceInfo = yield* (yield* api.services.WorkspaceService).getWorkspaceInfoOrThrow;
+  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   if (!uri.fsPath.startsWith(workspaceInfo.fsPath)) return false;
   const basename = uri.fsPath.split(/[/\\]/).pop() ?? '';

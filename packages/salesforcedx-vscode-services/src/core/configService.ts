@@ -59,7 +59,7 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
 
     /** Get a ConfigAggregator for the current workspace */
     const getConfigAggregator = Effect.fn('ConfigService.getConfigAggregator')(function* () {
-      const workspaceDescription = yield* workspaceService.getWorkspaceInfoOrThrow;
+      const workspaceDescription = yield* workspaceService.getWorkspaceInfoOrThrow();
       const projectPath = workspaceDescription.path.replace(fsPrefix, '').replace(':/', '');
       
       yield* Effect.annotateCurrentSpan({ projectPath });

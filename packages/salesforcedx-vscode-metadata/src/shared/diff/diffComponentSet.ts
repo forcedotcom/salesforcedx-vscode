@@ -27,12 +27,13 @@ type DiffFilePair = ReturnType<typeof createDiffFilePair>;
 /** Get cache directory URI for retrieved metadata */
 const getCacheDirectoryUri = Effect.fn('getCacheDirectoryUri')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [workspaceService, defaultOrgRef] = yield* Effect.all(
-    [api.services.WorkspaceService, Effect.succeed(api.services.TargetOrgRef)],
-    { concurrency: 'unbounded' }
+  const [workspaceInfo, defaultOrgRef] = yield* Effect.all(
+    [api.services.WorkspaceService.getWorkspaceInfoOrThrow(), Effect.succeed(api.services.TargetOrgRef)],
+    {
+      concurrency: 'unbounded'
+    }
   );
 
-  const workspaceInfo = yield* workspaceService.getWorkspaceInfoOrThrow;
   const orgId = (yield* SubscriptionRef.get(yield* defaultOrgRef())).orgId;
 
   if (!orgId) {

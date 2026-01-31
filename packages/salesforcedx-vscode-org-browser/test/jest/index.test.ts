@@ -103,8 +103,8 @@ const mockWorkspaceInfo = {
 const MockWorkspaceServiceLayer = Layer.succeed(
   WorkspaceService,
   new WorkspaceService({
-    getWorkspaceInfo: Effect.sync(() => mockWorkspaceInfo),
-    getWorkspaceInfoOrThrow: Effect.sync(() => mockWorkspaceInfo)
+    getWorkspaceInfo: () => Effect.sync(() => mockWorkspaceInfo),
+    getWorkspaceInfoOrThrow: () => Effect.sync(() => mockWorkspaceInfo)
   } as const)
 );
 

@@ -56,7 +56,7 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
 
     /** Check if we're in a Salesforce project (sfdx-project.json exists).  Side effect: sets the 'sf:project_opened' context to true or false */
     const isSalesforceProject = Effect.fn('ProjectService.isSalesforceProject')(function* () {
-      const workspaceDescription = yield* workspaceService.getWorkspaceInfo;
+      const workspaceDescription = yield* workspaceService.getWorkspaceInfo();
       
       if (workspaceDescription.isEmpty) {
         yield* setProjectOpenedContext(false);
@@ -73,7 +73,7 @@ export class ProjectService extends Effect.Service<ProjectService>()('ProjectSer
 
     /** Get the SfProject instance for the workspace (fails if not a Salesforce project).  Side effect: sets the 'sf:project_opened' context to true or false */
     const getSfProject = Effect.fn('ProjectService.getSfProject')(function* () {
-      const workspaceDescription = yield* workspaceService.getWorkspaceInfoOrThrow;
+      const workspaceDescription = yield* workspaceService.getWorkspaceInfoOrThrow();
       const project = yield* globalSfProjectCache.get(workspaceDescription.fsPath).pipe(
         Effect.tapError(() => setProjectOpenedContext(false))
       );

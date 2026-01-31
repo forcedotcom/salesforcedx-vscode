@@ -36,7 +36,7 @@ const createMockWorkspaceService = (fsPath: string, isVirtualFs = false): Worksp
   const workspacePath = isVirtualFs ? `memfs:${fsPath}` : URI.file(fsPath).toString();
   const uri = isVirtualFs ? URI.parse(`memfs:${fsPath}`) : URI.file(fsPath);
   return new WorkspaceService({
-    getWorkspaceInfo: Effect.succeed({
+    getWorkspaceInfo: () => Effect.succeed({
       uri,
       path: workspacePath,
       fsPath,
@@ -44,7 +44,7 @@ const createMockWorkspaceService = (fsPath: string, isVirtualFs = false): Worksp
       isVirtualFs,
       cwd: fsPath
     }),
-    getWorkspaceInfoOrThrow: Effect.succeed({
+    getWorkspaceInfoOrThrow: () => Effect.succeed({
       uri,
       path: workspacePath,
       fsPath,

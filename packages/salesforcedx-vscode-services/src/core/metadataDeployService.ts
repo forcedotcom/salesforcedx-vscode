@@ -62,7 +62,7 @@ const deploy = (components: ComponentSet) =>
       [
         ConnectionService.getConnection(),
         ProjectService.getSfProject(),
-        Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow),
+        WorkspaceService.getWorkspaceInfoOrThrow(),
         Effect.annotateCurrentSpan({ components: components.map(c => `${c.type.name}:${c.fullName}`) })
       ],
       { concurrency: 'unbounded' }
