@@ -150,7 +150,7 @@ const createDesktopConnection = (username: string) =>
     return yield* createConnection(authInfo);
   }).pipe(Effect.withSpan('createDesktopConnection (cache miss)', { attributes: { username } }));
 
-const cache = Effect.runSync(
+const connectionCache = Effect.runSync(
   Cache.makeWith({
     capacity: process.env.ESBUILD_PLATFORM === 'web' ? 1 : 100,
     timeToLive: Exit.match({
@@ -176,7 +176,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             const instanceUrl = yield* settingsService.getInstanceUrl;
             const accessToken = yield* settingsService.getAccessToken;
             const apiVersion = yield* settingsService.getApiVersion;
-            return yield* cache.get(toKey(instanceUrl, accessToken, apiVersion));
+            return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
             const usernameOrAlias = yield* configService.getConfigAggregator.pipe(
@@ -196,7 +196,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
                 });
               }
             });
-            return yield* cache.get(username);
+            return yield* connectionCache.get(username);
           });
 
       // update the org ref in the background
