@@ -14,12 +14,8 @@ import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 export const projectDeployStart = (ignoreConflicts = false) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const [deployService, componentSetService] = yield* Effect.all(
-      [api.services.MetadataDeployService, api.services.ComponentSetService],
-      { concurrency: 'unbounded' }
-    );
-    const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-      yield* deployService.getComponentSetForDeploy({ ignoreConflicts })
+    const componentSet = yield* (yield* api.services.ComponentSetService).ensureNonEmptyComponentSet(
+      yield* api.services.MetadataDeployService.getComponentSetForDeploy({ ignoreConflicts })
     );
 
     yield* deployComponentSet({ componentSet });

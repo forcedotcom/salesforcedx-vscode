@@ -18,8 +18,8 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
 }) {
   const { componentSet } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [channelService, deployService, componentSetService] = yield* Effect.all(
-    [api.services.ChannelService, api.services.MetadataDeployService, api.services.ComponentSetService],
+  const [channelService, componentSetService] = yield* Effect.all(
+    [api.services.ChannelService, api.services.ComponentSetService],
     { concurrency: 'unbounded' }
   );
 
@@ -27,7 +27,7 @@ export const deployComponentSet = Effect.fn('deployComponentSet')(function* (opt
     `Deploying ${componentSet.size} component${componentSet.size === 1 ? '' : 's'}...`
   );
 
-  const result = yield* deployService.deploy(componentSet);
+  const result = yield* api.services.MetadataDeployService.deploy(componentSet);
 
   // Handle cancellation
   if (typeof result === 'string') {

@@ -42,8 +42,8 @@ export const shouldDeploy = Effect.fn('deployOnSave:shouldDeploy')(function* (ur
 
 const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* (uris: readonly URI[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [channelService, deployService, componentSetService] = yield* Effect.all(
-    [api.services.ChannelService, api.services.MetadataDeployService, api.services.ComponentSetService],
+  const [channelService, componentSetService] = yield* Effect.all(
+    [api.services.ChannelService, api.services.ComponentSetService],
     { concurrency: 'unbounded' }
   );
 
@@ -60,7 +60,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
     `Deploying ${componentSet.size} component${componentSet.size === 1 ? '' : 's'}...`
   );
 
-  const result = yield* deployService.deploy(componentSet);
+  const result = yield* api.services.MetadataDeployService.deploy(componentSet);
 
   // Handle cancellation
   if (typeof result === 'string') {

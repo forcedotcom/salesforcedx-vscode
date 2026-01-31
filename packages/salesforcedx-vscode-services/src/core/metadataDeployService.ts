@@ -8,10 +8,10 @@
 import { ComponentSet, RequestStatus } from '@salesforce/source-deploy-retrieve';
 import * as Brand from 'effect/Brand';
 import * as Cause from 'effect/Cause';
-import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import { isString } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { SuccessfulCancelResult } from '../vscode/cancellation';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -20,9 +20,10 @@ import { ProjectService } from './projectService';
 import { unknownToErrorCause } from './shared';
 import { type SourceTrackingOptions, SourceTrackingService } from './sourceTrackingService';
 
-export class MetadataDeployError extends Data.TaggedError('FailedToDeployMetadataError')<{
-  readonly cause: unknown;
-}> {}
+export class MetadataDeployError extends Schema.TaggedError<MetadataDeployError>()('FailedToDeployMetadataError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.Unknown)
+}) {}
 
 /** Get ComponentSet of local changes for deploy */
 const getComponentSetForDeploy = (options?: SourceTrackingOptions) =>
@@ -94,8 +95,11 @@ const deploy = (components: ComponentSet) =>
           return deployResult;
         },
         catch: e => {
-          console.error(e);
-          return new MetadataDeployError(unknownToErrorCause(e));
+          const { cause } = unknownToErrorCause(e);
+          return new MetadataDeployError({
+            message: `Failed to deploy metadata: ${cause.message}`,
+            cause: cause.cause
+          });
         }
       }).pipe(Effect.withSpan('deploy (API call)'))
     );
@@ -122,9 +126,18 @@ const deploy = (components: ComponentSet) =>
   }).pipe(Effect.withSpan('deploy', { attributes: { componentCount: components.size } }));
 
 export class MetadataDeployService extends Effect.Service<MetadataDeployService>()('MetadataDeployService', {
-  succeed: {
-    /** Deploy metadata to the default org */
-    deploy,
-    getComponentSetForDeploy
-  } as const
+  accessors: true,
+  dependencies: [
+    ConnectionService.Default,
+    ProjectService.Default,
+    WorkspaceService.Default,
+    SourceTrackingService.Default
+  ],
+  effect: Effect.gen(function* () {
+    const deployFn = Effect.fn('MetadataDeployService.deploy')(deploy);
+    const getComponentSetForDeployFn = Effect.fn('MetadataDeployService.getComponentSetForDeploy')(
+      getComponentSetForDeploy
+    );
+    return { deploy: deployFn, getComponentSetForDeploy: getComponentSetForDeployFn } as const;
+  })
 }) {}

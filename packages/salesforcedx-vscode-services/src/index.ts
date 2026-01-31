@@ -151,6 +151,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     FileWatcherService.Default,
     IndexedDBStorageServiceShared,
     MetadataDeleteService.Default,
+    MetadataDeployService.Default,
     MetadataRegistryService.Default,
     MetadataRetrieveService.Default,
     ProjectService.Default,
@@ -234,7 +235,7 @@ export { type FileWatcherService } from './vscode/fileWatcherService';
 export { type FsService } from './vscode/fsService';
 export { type MetadataDeleteService } from './core/metadataDeleteService';
 export { type MetadataDescribeService } from './core/metadataDescribeService';
-export { type MetadataDeployService } from './core/metadataDeployService';
+export { MetadataDeployService, type MetadataDeployService as MetadataDeployServiceType } from './core/metadataDeployService';
 export { type MetadataRegistryService } from './core/metadataRegistryService';
 export { type MetadataRetrieveService } from './core/metadataRetrieveService';
 export { type ProjectService } from './core/projectService';

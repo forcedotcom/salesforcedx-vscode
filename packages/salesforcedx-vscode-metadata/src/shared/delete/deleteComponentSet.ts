@@ -33,10 +33,9 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 }) {
   const { componentSet } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [channelService, deployService, deleteService, componentSetService] = yield* Effect.all(
+  const [channelService, deleteService, componentSetService] = yield* Effect.all(
     [
       api.services.ChannelService,
-      api.services.MetadataDeployService,
       api.services.MetadataDeleteService,
       api.services.ComponentSetService
     ],
@@ -52,7 +51,7 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 
   yield* channelService.appendToChannel(`Deleting ${deleteSet.size} component${deleteSet.size === 1 ? '' : 's'}...`);
 
-  const result = yield* deployService.deploy(deleteSet);
+  const result = yield* api.services.MetadataDeployService.deploy(deleteSet);
 
   // Handle cancellation
   if (typeof result === 'string') {
