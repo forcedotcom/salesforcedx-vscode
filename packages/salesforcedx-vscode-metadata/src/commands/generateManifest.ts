@@ -78,7 +78,7 @@ const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: stri
     return manifestFileUri;
   });
 
-const generateManifestEffect = Effect.fn('generateManifest')(function* (
+export const generateManifestEffect = Effect.fn('generateManifest')(function* (
   sourceUri: URI | undefined,
   uris: URI[] | undefined
 ) {

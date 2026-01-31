@@ -8,7 +8,6 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { AllServicesLayer } from '../../services/extensionProvider';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
@@ -22,7 +21,8 @@ const isApplyResult = (
   'componentSetFromNonDeletes' in value &&
   'fileResponsesFromDelete' in value;
 
-const projectRetrieveStartEffect = (ignoreConflicts: boolean) =>
+/** Retrieve remote changes from the default org */
+export const projectRetrieveStartEffect = (ignoreConflicts: boolean) =>
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ ignoreConflicts });
 
@@ -74,16 +74,4 @@ const projectRetrieveStartEffect = (ignoreConflicts: boolean) =>
   }).pipe(
     Effect.withSpan('projectRetrieveStart', { attributes: { ignoreConflicts } }),
     Effect.provide(AllServicesLayer)
-  );
-
-/** Retrieve remote changes from the default org */
-export const projectRetrieveStart = async (ignoreConflicts = false): Promise<void> =>
-  Effect.runPromise(
-    projectRetrieveStartEffect(ignoreConflicts).pipe(
-      Effect.catchAll(error =>
-        Effect.promise(() =>
-          vscode.window.showErrorMessage(error instanceof Error ? error.message : String(error))
-        ).pipe(Effect.as(undefined))
-      )
-    )
   );

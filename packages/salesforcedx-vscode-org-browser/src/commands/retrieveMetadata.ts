@@ -27,7 +27,7 @@ export const retrieveOrgBrowserTreeItemCommand = async (
   }
 };
 
-const retrieveEffect = (
+export const retrieveEffect = (
   node: OrgBrowserTreeItem,
   treeProvider: MetadataTypeTreeProvider
   // void since we catch all the errors and show the vscode error message

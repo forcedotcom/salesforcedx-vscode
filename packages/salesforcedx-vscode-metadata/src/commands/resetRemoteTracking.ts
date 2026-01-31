@@ -15,7 +15,7 @@ class ResetRemoteTrackingError extends Data.TaggedError('ResetRemoteTrackingErro
   readonly cause: Error;
 }> {}
 
-const resetRemoteTrackingEffect = Effect.fn('resetRemoteTracking')(function* () {
+export const resetRemoteTrackingEffect = Effect.fn('resetRemoteTracking')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [channelService, sourceTrackingService] = yield* Effect.all(
     [api.services.ChannelService, api.services.SourceTrackingService],

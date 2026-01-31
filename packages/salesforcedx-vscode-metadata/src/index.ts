@@ -9,18 +9,19 @@ import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { createApexClass } from './commands/createApexClass';
-import { deleteSourcePaths } from './commands/deleteSourcePath';
-import { deployManifest } from './commands/deployManifest';
-import { deployActiveEditor, deploySourcePaths } from './commands/deploySourcePath';
-import { generateManifest } from './commands/generateManifest';
+import { deleteSourcePathsEffect } from './commands/deleteSourcePath';
+import { deployManifestEffect } from './commands/deployManifest';
+import { deployActiveEditorEffect, deploySourcePathsEffect } from './commands/deploySourcePath';
+import { generateManifestEffect } from './commands/generateManifest';
 import { projectDeployStart } from './commands/projectDeployStart';
-import { resetRemoteTracking } from './commands/resetRemoteTracking';
+import { resetRemoteTrackingEffect } from './commands/resetRemoteTracking';
 import { retrieveManifest } from './commands/retrieveManifest';
-import { retrieveSourcePaths } from './commands/retrieveSourcePath';
-import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
-import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './commands/showSourceTrackingDetails';
-import { sourceDiff } from './commands/sourceDiff';
+import { retrieveSourcePathsEffect } from './commands/retrieveSourcePath';
+import { projectRetrieveStartEffect } from './commands/retrieveStart/projectRetrieveStart';
+import { viewChangesEffect } from './commands/showSourceTrackingDetails';
+import { sourceDiffEffect } from './commands/sourceDiff';
 import { DEPLOY_ON_SAVE_ENABLED, EXTENSION_NAME, METADATA_CONFIG_SECTION } from './constants';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
 import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
@@ -45,7 +46,7 @@ const shouldRegisterSharedCommands = (): boolean => {
 };
 
 /** Activate the metadata extension */
-export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
+export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (_context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Metadata extension activating');
@@ -62,25 +63,32 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
     yield* api.services.registerCommand('sf.project.deploy.start', () => projectDeployStart(false));
     yield* api.services.registerCommand('sf.project.deploy.start.ignore.conflicts', () => projectDeployStart(true));
-    context.subscriptions.push(
-      vscode.commands.registerCommand('sf.project.retrieve.start', async () => projectRetrieveStart(false)),
-      vscode.commands.registerCommand('sf.project.retrieve.start.ignore.conflicts', async () =>
-        projectRetrieveStart(true)
-      ),
-      vscode.commands.registerCommand('sf.view.all.changes', viewAllChanges),
-      vscode.commands.registerCommand('sf.view.local.changes', viewLocalChanges),
-      vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
-      vscode.commands.registerCommand('sf.source.tracking.reset.remote', resetRemoteTracking),
-      // vscode.commands.registerCommand('sf.apex.generate.class', createApexClass),
-      vscode.commands.registerCommand('sf.delete.source', deleteSourcePaths),
-      vscode.commands.registerCommand('sf.delete.source.current.file', deleteSourcePaths),
-      vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
-      vscode.commands.registerCommand('sf.deploy.active.editor', deployActiveEditor),
-      vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest),
-      vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths),
-      vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
-      vscode.commands.registerCommand('sf.project.generate.manifest', generateManifest),
-      vscode.commands.registerCommand('sf.source.diff', sourceDiff)
+    yield* api.services.registerCommand('sf.project.retrieve.start', () => projectRetrieveStartEffect(false));
+    yield* api.services.registerCommand('sf.project.retrieve.start.ignore.conflicts', () =>
+      projectRetrieveStartEffect(true)
+    );
+    yield* api.services.registerCommand('sf.view.all.changes', () => viewChangesEffect({ local: true, remote: true }));
+    yield* api.services.registerCommand('sf.view.local.changes', () => viewChangesEffect({ local: true, remote: false }));
+    yield* api.services.registerCommand('sf.view.remote.changes', () => viewChangesEffect({ local: false, remote: true }));
+    yield* api.services.registerCommand('sf.source.tracking.reset.remote', () => resetRemoteTrackingEffect());
+    yield* api.services.registerCommand('sf.delete.source', (sourceUri?: URI, uris?: URI[]) =>
+      deleteSourcePathsEffect(sourceUri, uris)
+    );
+    yield* api.services.registerCommand('sf.delete.source.current.file', () => deleteSourcePathsEffect(undefined, undefined));
+    yield* api.services.registerCommand('sf.deploy.source.path', (sourceUri: URI, uris: URI[] = []) =>
+      deploySourcePathsEffect(sourceUri, uris)
+    );
+    yield* api.services.registerCommand('sf.deploy.active.editor', () => deployActiveEditorEffect());
+    yield* api.services.registerCommand('sf.deploy.in.manifest', (manifestUri?: URI) => deployManifestEffect(manifestUri));
+    yield* api.services.registerCommand('sf.retrieve.source.path', (sourceUri?: URI, uris?: URI[]) =>
+      retrieveSourcePathsEffect(sourceUri, uris)
+    );
+    yield* api.services.registerCommand('sf.retrieve.current.source.file', () => retrieveSourcePathsEffect(undefined, undefined));
+    yield* api.services.registerCommand('sf.project.generate.manifest', (sourceUri?: URI, uris?: URI[]) =>
+      generateManifestEffect(sourceUri, uris)
+    );
+    yield* api.services.registerCommand('sf.source.diff', (sourceUri?: URI, uris?: URI[]) =>
+      sourceDiffEffect(sourceUri, uris)
     );
 
     if (process.env.ESBUILD_PLATFORM === 'web') {

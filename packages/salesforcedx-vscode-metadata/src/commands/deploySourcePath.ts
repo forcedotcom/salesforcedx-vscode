@@ -23,31 +23,19 @@ const deployUris = (uris: Set<URI>) =>
     yield* deployComponentSet({ componentSet });
   });
 
-const deployActiveEditorEffect = () =>
+export const deployActiveEditorEffect = () =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const activeEditorUri = yield* (yield* api.services.EditorService).getActiveEditorUri;
     return yield* deployUris(new Set([activeEditorUri]));
-  }).pipe(Effect.withSpan('deployActiveEditor'), Effect.provide(AllServicesLayer));
-
-/** Deploy source paths to the default org */
-const deploySourcePathsEffect = Effect.fn('deploySourcePaths')(function* (sourceUri: URI, uris: URI[]) {
-  yield* Effect.annotateCurrentSpan({ sourceUri, uris });
-  return yield* deployUris(new Set([sourceUri, ...uris]));
-});
-
-export const deployActiveEditor = async (): Promise<void> =>
-  deployActiveEditorEffect().pipe(
+  }).pipe(
+    Effect.provide(AllServicesLayer),
     Effect.catchTag('NoActiveEditorError', () =>
       Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_select_file_or_directory'))).pipe(
         Effect.as(undefined)
       )
-    ),
-    Effect.provide(AllServicesLayer),
-    Effect.runPromise
+    )
   );
-
-/** Deploy source paths to the default org */
 
 // When a single file is selected and "Deploy Source from Org" is executed,
 // sourceUri is passed, and the uris array contains a single element, the same
@@ -60,5 +48,9 @@ export const deployActiveEditor = async (): Promise<void> =>
 // When editing a file and "Deploy This Source from Org" is executed,
 // sourceUri is passed, but uris is undefined.
 
-export const deploySourcePaths = async (sourceUri: URI, uris: URI[] = []): Promise<void> =>
-  deploySourcePathsEffect(sourceUri, uris).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);
+/** Deploy source paths to the default org */
+export const deploySourcePathsEffect = (sourceUri: URI, uris: URI[] = []) =>
+  Effect.gen(function* () {
+    yield* Effect.annotateCurrentSpan({ sourceUri, uris });
+    return yield* deployUris(new Set([sourceUri, ...uris]));
+  }).pipe(Effect.provide(AllServicesLayer));
