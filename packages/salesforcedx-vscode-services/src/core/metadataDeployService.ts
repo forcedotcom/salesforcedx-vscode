@@ -27,7 +27,7 @@ export class MetadataDeployError extends Data.TaggedError('FailedToDeployMetadat
 /** Get ComponentSet of local changes for deploy */
 const getComponentSetForDeploy = (options?: SourceTrackingOptions) =>
   Effect.gen(function* () {
-    const tracking = yield* Effect.flatMap(SourceTrackingService, svc => svc.getSourceTracking(options));
+    const tracking = yield* SourceTrackingService.getSourceTracking(options);
     if (!tracking) {
       return yield* Effect.die(
         'Source tracking not enabled.  The command should not have appeared in the Command Palette.'
@@ -38,7 +38,7 @@ const getComponentSetForDeploy = (options?: SourceTrackingOptions) =>
     );
 
     if (!options?.ignoreConflicts) {
-      yield* Effect.flatMap(SourceTrackingService, svc => svc.checkConflicts(tracking));
+      yield* SourceTrackingService.checkConflicts(tracking);
     }
     const localComponentSets = yield* Effect.tryPromise(() => tracking.localChangesAsComponentSet(false)).pipe(
       Effect.withSpan('STL.LocalChangesAsComponentSet')
@@ -113,7 +113,7 @@ const deploy = (components: ComponentSet) =>
     }
     yield* Effect.annotateCurrentSpan({ fileResponses: deployOutcome.getFileResponses().map(r => r.filePath) });
     if (deployOutcome.response?.status === RequestStatus.Succeeded) {
-      yield* Effect.flatMap(SourceTrackingService, svc => svc.updateTrackingFromDeploy(deployOutcome)).pipe(
+      yield* SourceTrackingService.updateTrackingFromDeploy(deployOutcome).pipe(
         Effect.withSpan('MetadataDeployService.updateTrackingFromDeploy')
       );
     }

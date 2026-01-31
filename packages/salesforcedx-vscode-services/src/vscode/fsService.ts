@@ -203,5 +203,4 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
       )
   } as const
 }) {}
-
 const UriOrStringToString = (uri: URI | string) => (typeof uri === 'string' ? uri : uri.toString());

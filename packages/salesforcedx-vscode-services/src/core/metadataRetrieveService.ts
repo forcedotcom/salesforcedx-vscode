@@ -91,14 +91,14 @@ const retrieve = (members: MetadataMember[], options?: SourceTrackingOptions) =>
 
     const componentSet = yield* buildComponentSet(members);
 
-    const tracking = yield* Effect.flatMap(SourceTrackingService, svc => svc.getSourceTracking(options));
+    const tracking = yield* SourceTrackingService.getSourceTracking(options);
     if (tracking) {
       yield* Effect.promise(() => tracking.reReadLocalTrackingCache()).pipe(
         Effect.withSpan('STL.ReReadLocalTrackingCache')
       );
 
       if (!options?.ignoreConflicts) {
-        yield* Effect.flatMap(SourceTrackingService, svc => svc.checkConflicts(tracking));
+        yield* SourceTrackingService.checkConflicts(tracking);
       }
     }
 
@@ -177,7 +177,7 @@ const performRetrieveOperation = (input: PerformRetrieveOperationInput) =>
     yield* Effect.annotateCurrentSpan({ fileResponses: retrieveOutcome.getFileResponses().map(r => r.filePath) });
     // only do tracking in the case where we retrieve to project
     if (input.merge) {
-      yield* Effect.flatMap(SourceTrackingService, svc => svc.updateTrackingFromRetrieve(retrieveOutcome)).pipe(
+      yield* SourceTrackingService.updateTrackingFromRetrieve(retrieveOutcome).pipe(
         Effect.withSpan('MetadataRetrieveService.updateTrackingFromRetrieve')
       );
     }
@@ -206,14 +206,14 @@ const retrieveComponentSet = (components: ComponentSet, options?: SourceTracking
 
     yield* setComponentSetProperties({ componentSet: components, project, configAggregator });
 
-    const tracking = yield* Effect.flatMap(SourceTrackingService, svc => svc.getSourceTracking(options));
+    const tracking = yield* SourceTrackingService.getSourceTracking(options);
     if (tracking) {
       yield* Effect.promise(() => tracking.reReadLocalTrackingCache()).pipe(
         Effect.withSpan('STL.ReReadLocalTrackingCache')
       );
 
       if (!options?.ignoreConflicts) {
-        yield* Effect.flatMap(SourceTrackingService, svc => svc.checkConflicts(tracking));
+        yield* SourceTrackingService.checkConflicts(tracking);
       }
     }
 

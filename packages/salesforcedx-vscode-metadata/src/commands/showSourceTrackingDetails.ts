@@ -30,7 +30,7 @@ export const viewChangesEffect = Effect.fn('viewChanges')(function* (options: Vi
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
   const channel = yield* channelService.getChannel;
-  const tracking = yield* Effect.flatMap(api.services.SourceTrackingService, svc => svc.getSourceTrackingOrThrow());
+  const tracking = yield* api.services.SourceTrackingService.getSourceTrackingOrThrow();
 
   // Re-read both remote and local tracking to ensure fresh data
   yield* Effect.all(
