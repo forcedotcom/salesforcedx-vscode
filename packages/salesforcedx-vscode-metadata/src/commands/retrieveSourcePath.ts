@@ -37,7 +37,7 @@ export const retrieveSourcePathsEffect = (sourceUri: URI | undefined, uris: URI[
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const resolvedSourceUri =
       sourceUri ??
-      (yield* (yield* api.services.EditorService).getActiveEditorUri.pipe(
+      (yield* api.services.EditorService.getActiveEditorUri().pipe(
         Effect.catchTag('NoActiveEditorError', () =>
           Effect.promise(() => vscode.window.showErrorMessage(nls.localize('retrieve_select_file_or_directory'))).pipe(
             Effect.as(undefined)

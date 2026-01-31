@@ -46,7 +46,7 @@ export const deleteSourcePathsEffect = Effect.fn('deleteSourcePaths')(function* 
   // Resolve source URI from parameter or active editor
   const resolvedSourceUri =
     sourceUri ??
-    (yield* (yield* api.services.EditorService).getActiveEditorUri.pipe(
+    (yield* api.services.EditorService.getActiveEditorUri().pipe(
       Effect.catchTag('NoActiveEditorError', () =>
         Effect.promise(() =>
           vscode.window.showErrorMessage(nls.localize('delete_source_select_file_or_directory'))

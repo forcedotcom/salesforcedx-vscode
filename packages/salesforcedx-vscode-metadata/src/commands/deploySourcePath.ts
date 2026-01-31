@@ -26,7 +26,7 @@ const deployUris = (uris: Set<URI>) =>
 export const deployActiveEditorEffect = () =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const activeEditorUri = yield* (yield* api.services.EditorService).getActiveEditorUri;
+    const activeEditorUri = yield* api.services.EditorService.getActiveEditorUri();
     return yield* deployUris(new Set([activeEditorUri]));
   }).pipe(
     Effect.provide(AllServicesLayer),

@@ -59,7 +59,7 @@ export const sourceDiffEffect = Effect.fn('sourceDiff')(function* (sourceUri: UR
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const resolvedSourceUri =
     sourceUri ??
-    (yield* (yield* api.services.EditorService).getActiveEditorUri.pipe(
+    (yield* api.services.EditorService.getActiveEditorUri().pipe(
       Effect.withSpan('resolveSourceUri', { attributes: { sourceUri, uris } }),
       Effect.catchTag('NoActiveEditorError', () =>
         Effect.promise(() => vscode.window.showErrorMessage(nls.localize('source_diff_unsupported_type'))).pipe(

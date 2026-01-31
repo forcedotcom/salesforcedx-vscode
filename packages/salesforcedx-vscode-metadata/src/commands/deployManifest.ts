@@ -18,7 +18,7 @@ export const deployManifestEffect = (manifestUri?: URI) =>
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const resolved =
       manifestUri ??
-      (yield* (yield* api.services.EditorService).getActiveEditorUri.pipe(
+      (yield* api.services.EditorService.getActiveEditorUri().pipe(
         Effect.catchTag('NoActiveEditorError', () => Effect.fail(new Error(nls.localize('deploy_select_manifest'))))
       ));
     // Use path instead of fsPath for memfs URIs (web environments) to avoid backslash conversion issues
