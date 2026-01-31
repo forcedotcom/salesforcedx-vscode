@@ -320,6 +320,7 @@
     },
     "precommit": {
       "dependencies": [
+        "compile",
         "lint",
         "check:peer-deps",
         "check:typescript-project-references",
