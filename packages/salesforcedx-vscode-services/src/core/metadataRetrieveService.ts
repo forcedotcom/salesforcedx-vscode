@@ -69,7 +69,7 @@ const retrieve = (members: MetadataMember[], options?: SourceTrackingOptions) =>
   Effect.gen(function* () {
     const [connection, project, registryAccess] = yield* Effect.all(
       [
-        Effect.flatMap(ConnectionService, service => service.getConnection),
+        ConnectionService.getConnection(),
         Effect.flatMap(ProjectService, service => service.getSfProject),
         Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess()),
         Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow)
@@ -177,7 +177,7 @@ const performRetrieveOperation = (input: PerformRetrieveOperationInput) =>
 const getRetrieveDependencies = () =>
   Effect.all(
     [
-      Effect.flatMap(ConnectionService, service => service.getConnection),
+      ConnectionService.getConnection(),
       Effect.flatMap(ProjectService, service => service.getSfProject),
       Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess()),
       Effect.flatMap(ConfigService, service => service.getConfigAggregator),

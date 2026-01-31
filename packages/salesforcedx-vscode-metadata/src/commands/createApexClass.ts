@@ -27,7 +27,7 @@ const fromProject = Effect.fn('getApiVersion.fromProject')(function* (project: S
 
 const fromConnection = Effect.fn('getApiVersion.fromConnection')(function* () {
   const connectionService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.ConnectionService;
-  const connection = yield* connectionService.getConnection;
+  const connection = yield* connectionService.getConnection();
   return connection.version;
 });
 

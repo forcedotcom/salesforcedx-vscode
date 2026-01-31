@@ -25,8 +25,8 @@ export const watchSettingsService = () =>
   Effect.gen(function* () {
     console.log('watchSettingsService starting');
 
-    const [settingsWatcherService, connectionService, channelService] = yield* Effect.all(
-      [SettingsWatcherService, ConnectionService, ChannelService],
+    const [settingsWatcherService, channelService] = yield* Effect.all(
+      [SettingsWatcherService, ChannelService],
       {
         concurrency: 'unbounded'
       }
@@ -38,7 +38,7 @@ export const watchSettingsService = () =>
         Stream.filter(event => authSettings.some(s => event.affectsConfiguration(s))),
         Stream.debounce(Duration.millis(100)),
         Stream.tap(() => channelService.appendToChannel('ConfigChaged: Web Auth')),
-        Stream.runForEach(() => connectionService.getConnection.pipe(Effect.catchAll(() => Effect.void))) // it's possible for the connection to fail and that's ok.  Some other event will try to get a connection and display a real error
+        Stream.runForEach(() => ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void))) // it's possible for the connection to fail and that's ok.  Some other event will try to get a connection and display a real error
       )
     );
 

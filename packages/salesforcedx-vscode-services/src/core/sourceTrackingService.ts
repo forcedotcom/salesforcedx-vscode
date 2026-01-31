@@ -46,7 +46,7 @@ const getTracking = (options?: SourceTrackingOptions) =>
   Effect.gen(function* () {
     const [connection, project, registryAccess, ref, configAggregator] = yield* Effect.all(
       [
-        Effect.flatMap(ConnectionService, svc => svc.getConnection),
+        ConnectionService.getConnection(),
         Effect.flatMap(ProjectService, svc => svc.getSfProject),
         Effect.flatMap(MetadataRegistryService, svc => svc.getRegistryAccess()),
         SubscriptionRef.get(yield* getDefaultOrgRef()),

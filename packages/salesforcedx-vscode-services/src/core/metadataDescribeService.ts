@@ -32,7 +32,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
   effect: Effect.gen(function* () {
     // a task that can be cached - uses the key parameter for caching
     const cacheableDescribe = (_key: string = 'cached') =>
-      Effect.flatMap(ConnectionService, svc => svc.getConnection).pipe(
+      ConnectionService.getConnection().pipe(
         Effect.flatMap(conn =>
           Effect.tryPromise({
             try: () => conn.metadata.describe(),
@@ -57,7 +57,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
 
     // TODO: write the result in a common place that other services can use.  Probably do the same with mdapi describe and list
     const describeCustomObject = (objectName: string) =>
-      Effect.flatMap(ConnectionService, svc => svc.getConnection).pipe(
+      ConnectionService.getConnection().pipe(
         Effect.flatMap(conn =>
           Effect.tryPromise({
             try: () => conn.sobject(objectName).describe(),
@@ -70,7 +70,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       );
 
     const listMetadata = (type: string, folder?: string) =>
-      Effect.flatMap(ConnectionService, svc => svc.getConnection).pipe(
+      ConnectionService.getConnection().pipe(
         Effect.flatMap(conn =>
           Effect.tryPromise({
             try: () => conn.metadata.list({ type, ...(folder ? { folder } : {}) }),

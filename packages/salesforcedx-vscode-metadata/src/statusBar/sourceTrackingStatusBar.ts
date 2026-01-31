@@ -146,7 +146,7 @@ export const createSourceTrackingStatusBar = () =>
     );
 
     // Now that the pubsub is running, if the org ref is not set, get the connection which will set it
-    yield* connectionService.getConnection.pipe(
+    yield* connectionService.getConnection().pipe(
       // If there is no connection or an error, that's fine.
       Effect.catchAll(e => Effect.logError(e).pipe(Effect.as(undefined)))
     );
