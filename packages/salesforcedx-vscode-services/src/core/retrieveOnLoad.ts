@@ -64,11 +64,9 @@ const getAllowedSuffixes = Effect.fn('getAllowedSuffixes')(function* (members: M
 /** Effect to retrieve metadata on load based on setting */
 export const retrieveOnLoadEffect = () =>
   Effect.gen(function* () {
-    const [settingsService, channelService] = yield* Effect.all([SettingsService, ChannelService], {
-      concurrency: 'unbounded'
-    });
+    const channelService = yield* ChannelService;
 
-    const retrieveOnLoadValue = yield* settingsService.getRetrieveOnLoad;
+    const retrieveOnLoadValue = yield* SettingsService.getRetrieveOnLoad();
 
     if (retrieveOnLoadValue.length === 0) {
       return;

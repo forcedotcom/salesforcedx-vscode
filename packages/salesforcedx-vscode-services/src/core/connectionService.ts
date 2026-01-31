@@ -166,16 +166,15 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
   dependencies: [ConfigService.Default, SettingsService.Default],
   effect: Effect.gen(function* () {
     const configService = yield* ConfigService;
-    const settingsService = yield* SettingsService;
 
     /** Get a Connection to the target org */
     const getConnection = Effect.fn('ConnectionService.getConnection')(function* () {
       const conn = yield* process.env.ESBUILD_PLATFORM === 'web'
         ? Effect.gen(function* () {
             // Web environment - get connection from settings
-            const instanceUrl = yield* settingsService.getInstanceUrl;
-            const accessToken = yield* settingsService.getAccessToken;
-            const apiVersion = yield* settingsService.getApiVersion;
+            const instanceUrl = yield* SettingsService.getInstanceUrl();
+            const accessToken = yield* SettingsService.getAccessToken();
+            const apiVersion = yield* SettingsService.getApiVersion();
             return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {

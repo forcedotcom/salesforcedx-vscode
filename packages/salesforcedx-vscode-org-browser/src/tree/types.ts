@@ -4,11 +4,17 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as Effect from 'effect/Effect';
-import type { MetadataDescribeService } from 'salesforcedx-vscode-services/src/core/metadataDescribeService';
+import type { Connection } from '@salesforce/core';
+import * as S from 'effect/Schema';
+import type { DescribeMetadataObject } from 'salesforcedx-vscode-services/src/core/schemas/describeMetadataObject';
+import type { FilePropertiesSchema } from 'salesforcedx-vscode-services/src/core/schemas/fileProperties';
 
-export type MetadataDescribeResultItem = Effect.Effect.Success<ReturnType<MetadataDescribeService['describe']>>[number];
-export type CustomObjectField = Effect.Effect.Success<
-  ReturnType<MetadataDescribeService['describeCustomObject']>
->['fields'][number];
-export type MetadataListResultItem = Effect.Effect.Success<ReturnType<MetadataDescribeService['listMetadata']>>[number];
+export type MetadataDescribeResultItem = DescribeMetadataObject;
+export type CustomObjectField = Connection['sobject'] extends (name: string) => infer SObject
+  ? SObject extends { describe: () => Promise<infer Desc> }
+    ? Desc extends { fields: (infer F)[] }
+      ? F
+      : never
+    : never
+  : never;
+export type MetadataListResultItem = S.Schema.Type<typeof FilePropertiesSchema>;

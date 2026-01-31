@@ -126,32 +126,32 @@ const MockSettingsServiceLayer = Layer.succeed(
     getValue: <T>(_section: string, _key: string, defaultValue?: T) =>
       Effect.try({
         try: () => defaultValue ?? undefined,
-        catch: () => new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key })
+        catch: () => new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
       }),
     setValue: <T>(_section: string, _key: string, _value: T) =>
       Effect.tryPromise({
         try: async () => undefined,
-        catch: () => new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key })
+        catch: () => new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
       }),
-    getInstanceUrl: Effect.succeed('https://test.salesforce.com'),
-    getAccessToken: Effect.succeed('mock-token'),
-    getApiVersion: Effect.succeed('60.0'),
+    getInstanceUrl: () => Effect.succeed('https://test.salesforce.com'),
+    getAccessToken: () => Effect.succeed('mock-token'),
+    getApiVersion: () => Effect.succeed('60.0'),
     setInstanceUrl: (_url: string) =>
       Effect.tryPromise({
         try: async () => undefined,
-        catch: () => new SettingsError({ cause: new Error('Mock error'), section: '', key: '' })
+        catch: () => new SettingsError({ cause: new Error('Mock error'), section: '', key: '', message: 'Mock error' })
       }),
     setAccessToken: (_token: string) =>
       Effect.tryPromise({
         try: async () => undefined,
-        catch: () => new SettingsError({ cause: new Error('Mock error'), section: '', key: '' })
+        catch: () => new SettingsError({ cause: new Error('Mock error'), section: '', key: '', message: 'Mock error' })
       }),
     setApiVersion: (_version: string) =>
       Effect.tryPromise({
         try: async () => undefined,
-        catch: () => new SettingsError({ cause: new Error('Mock error'), section: '', key: '' })
+        catch: () => new SettingsError({ cause: new Error('Mock error'), section: '', key: '', message: 'Mock error' })
       }),
-    getRetrieveOnLoad: Effect.succeed('')
+    getRetrieveOnLoad: () => Effect.succeed('')
   } as const)
 );
 
