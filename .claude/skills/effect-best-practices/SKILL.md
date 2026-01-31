@@ -20,7 +20,7 @@ This skill enforces opinionated, consistent patterns for Effect-TS codebases. Th
 | IDs | `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string` for entity IDs |
 | Functions | `Effect.fn("Service.method")` | Anonymous generators |
 | Logging | `Effect.log` with structured data | `console.log` |
-| Config | `Config.*` with validation | `process.env` directly |
+| Config | `Config.*` with validation | `process.env` directly (except build-time vars like `ESBUILD_*`) |
 | Options | `Option.match` with both cases | `Option.getOrThrow` |
 | Nullability | `Option<T>` in domain types | `null`/`undefined` |
 | Atoms | `Atom.make` outside components | Creating atoms inside render |
@@ -388,8 +388,11 @@ yield* effect.pipe(Effect.catchAll(() => Effect.fail(new GenericError())))
 // FORBIDDEN - console.log
 console.log("debug") // Use Effect.log
 
-// FORBIDDEN - process.env directly
+// FORBIDDEN - process.env directly (runtime config)
 const key = process.env.API_KEY // Use Config.string("API_KEY")
+
+// EXCEPTION - build-time/bundle-time variables (e.g., ESBUILD_*)
+const platform = process.env.ESBUILD_PLATFORM === 'web' ? webImpl : desktopImpl // OK - build-time conditional
 
 // FORBIDDEN - null/undefined in domain types
 type User = { name: string | null } // Use Option<string>
