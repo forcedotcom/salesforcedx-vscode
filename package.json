@@ -298,15 +298,18 @@
     "check:peer-deps": {
       "command": "check-peer-dependencies --ignore picomatch",
       "files": [
-        "**/package.json"
+        "package.json",
+        "packages/*/package.json"
       ],
       "output": []
     },
     "check:typescript-project-references": {
       "command": "workspaces-to-typescript-project-references --check",
       "files": [
-        "**/tsconfig*.json",
-        "**/package.json"
+        "tsconfig*.json",
+        "packages/*/tsconfig*.json",
+        "package.json",
+        "packages/*/package.json"
       ],
       "output": []
     },
