@@ -46,7 +46,7 @@ export const parseRetrieveOnLoad = (value: string): MetadataMember[] =>
 
 /** Get unique file suffixes for metadata types */
 const getAllowedSuffixes = Effect.fn('getAllowedSuffixes')(function* (members: MetadataMember[]) {
-  const registry = yield* (yield* MetadataRegistryService).getRegistryAccess();
+  const registry = yield* MetadataRegistryService.getRegistryAccess();
 
   const suffixes = Array.from(new Set(members.map(member => member.type)))
     .map(mdType => registry.getTypeByName(mdType))

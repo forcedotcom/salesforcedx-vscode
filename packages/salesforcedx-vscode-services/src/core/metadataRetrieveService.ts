@@ -47,7 +47,7 @@ const buildComponentSetFromSource = (sourcePaths: string[], filterMembers: Metad
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ filterMembers, sourcePaths });
     const include = filterMembers.length > 0 ? yield* buildComponentSet(filterMembers) : undefined;
-    const registryAccess = yield* (yield* MetadataRegistryService).getRegistryAccess();
+    const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
     const cs = yield* Effect.try({
       try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
       catch: e => {
@@ -64,7 +64,7 @@ const buildComponentSetFromSource = (sourcePaths: string[], filterMembers: Metad
 
 const buildComponentSet = (members: MetadataMember[]) =>
   Effect.gen(function* () {
-    const registryAccess = yield* (yield* MetadataRegistryService).getRegistryAccess();
+    const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
     return yield* Effect.try({
       try: () => new ComponentSet(members, registryAccess),
       catch: e => {
@@ -83,7 +83,7 @@ const retrieve = (members: MetadataMember[], options?: SourceTrackingOptions) =>
       [
         ConnectionService.getConnection(),
         ProjectService.getSfProject(),
-        Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess()),
+        MetadataRegistryService.getRegistryAccess(),
         Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow)
       ],
       { concurrency: 'unbounded' }
@@ -191,7 +191,7 @@ const getRetrieveDependencies = () =>
     [
       ConnectionService.getConnection(),
       ProjectService.getSfProject(),
-      Effect.flatMap(MetadataRegistryService, service => service.getRegistryAccess()),
+      MetadataRegistryService.getRegistryAccess(),
       ConfigService.getConfigAggregator(),
       Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow)
     ],

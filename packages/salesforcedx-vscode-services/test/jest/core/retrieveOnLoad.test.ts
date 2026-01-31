@@ -106,9 +106,10 @@ describe('parseRetrieveOnLoad', () => {
 describe('filterFileResponses', () => {
   const workspacePath = '/mock/workspace';
   const workspaceLayer = createMockWorkspaceService(workspacePath);
+  const metadataRegistryLayer = MetadataRegistryService.Default.pipe(Layer.provide(workspaceLayer));
   const testLayer = Layer.mergeAll(
-    ComponentSetService.Default,
-    Layer.provide(MetadataRegistryService.Default, workspaceLayer),
+    ComponentSetService.Default.pipe(Layer.provide(metadataRegistryLayer)),
+    metadataRegistryLayer,
     workspaceLayer
   );
 

@@ -48,7 +48,7 @@ const getTracking = (options?: SourceTrackingOptions) =>
       [
         ConnectionService.getConnection(),
         ProjectService.getSfProject(),
-        Effect.flatMap(MetadataRegistryService, svc => svc.getRegistryAccess()),
+        MetadataRegistryService.getRegistryAccess(),
         SubscriptionRef.get(yield* getDefaultOrgRef()),
         ConfigService.getConfigAggregator()
       ],

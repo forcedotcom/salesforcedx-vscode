@@ -30,7 +30,7 @@ const isNonDecomposedCustomLabel = (component: MetadataComponent): boolean =>
 const markComponentsForDeletion = Effect.fn('MetadataDeleteService:markComponentsForDeletion')(function* (
   componentSet: ComponentSet
 ) {
-  const registry = yield* (yield* MetadataRegistryService).getRegistryAccess();
+  const registry = yield* MetadataRegistryService.getRegistryAccess();
   const deleteSet = new ComponentSet([], registry);
 
   componentSet
