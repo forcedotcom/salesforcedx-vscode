@@ -54,7 +54,10 @@ const sourceDiffCoreEffect = Effect.fn('sourceDiffCore')(function* (sourceUri: U
   yield* diffComponentSet({ componentSet, initialUris: hashableUris });
 });
 
-export const sourceDiffEffect = Effect.fn('sourceDiff')(function* (sourceUri: URI | undefined, uris: URI[] | undefined) {
+export const sourceDiffEffect = Effect.fn('sourceDiff')(function* (
+  sourceUri: URI | undefined,
+  uris: URI[] | undefined
+) {
   yield* Effect.annotateCurrentSpan({ sourceUri, uris });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const resolvedSourceUri =
