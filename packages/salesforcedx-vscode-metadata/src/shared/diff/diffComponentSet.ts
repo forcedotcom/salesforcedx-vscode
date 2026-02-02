@@ -47,16 +47,15 @@ const getCacheDirectoryUri = Effect.fn('getCacheDirectoryUri')(function* () {
 const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(function* (componentSet: NonEmptyComponentSet) {
   yield* Effect.logDebug('before retrieveToCacheDirectory');
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [cacheDirUri, fsService, retrieveService] = yield* Effect.all(
-    [getCacheDirectoryUri(), api.services.FsService, api.services.MetadataRetrieveService],
-    { concurrency: 'unbounded' }
-  );
+  const [cacheDirUri, fsService] = yield* Effect.all([getCacheDirectoryUri(), api.services.FsService], {
+    concurrency: 'unbounded'
+  });
 
   // Clean up cache directory before retrieving
   yield* fsService.safeDelete(cacheDirUri, { recursive: true });
 
   // Perform retrieve operation to cache directory
-  const result = yield* retrieveService.retrieveComponentSetToDirectory(componentSet, cacheDirUri);
+  const result = yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(componentSet, cacheDirUri);
 
   // Handle cancellation
   if (typeof result === 'string') {

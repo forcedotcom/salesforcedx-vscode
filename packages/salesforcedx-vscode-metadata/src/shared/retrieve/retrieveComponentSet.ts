@@ -20,15 +20,12 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
 }) {
   const { componentSet, ignoreConflicts } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [channelService, retrieveService, componentSetService] = yield* Effect.all(
-    [api.services.ChannelService, api.services.MetadataRetrieveService, api.services.ComponentSetService],
-    { concurrency: 'unbounded' }
-  );
+  const channelService = yield* api.services.ChannelService;
 
   const componentCount = componentSet.size;
   yield* channelService.appendToChannel(`Retrieving ${componentCount} component${componentCount === 1 ? '' : 's'}...`);
 
-  const result = yield* retrieveService.retrieveComponentSet(componentSet, { ignoreConflicts });
+  const result = yield* api.services.MetadataRetrieveService.retrieveComponentSet(componentSet, { ignoreConflicts });
 
   // Handle cancellation
   if (typeof result === 'string') {
@@ -38,7 +35,7 @@ export const retrieveComponentSet = Effect.fn('retrieveComponentSet')(function* 
 
   yield* channelService.appendToChannel(yield* formatRetrieveOutput(result));
 
-  const { isSDRFailure } = componentSetService;
+  const { isSDRFailure } = yield* api.services.ComponentSetService;
   if (result.getFileResponses().some(isSDRFailure)) {
     const channel = yield* channelService.getChannel;
     yield* Effect.sync(() => channel.show());

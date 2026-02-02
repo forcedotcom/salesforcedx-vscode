@@ -250,6 +250,7 @@ const retrieveComponentSetToDirectory = (components: NonEmptyComponentSet, outpu
   );
 
 export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()('MetadataRetrieveService', {
+  accessors: true,
   succeed: {
     /**
      * Retrieve one or more metadata components from the default org.

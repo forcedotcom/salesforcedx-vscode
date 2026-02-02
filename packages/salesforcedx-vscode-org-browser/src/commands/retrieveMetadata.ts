@@ -40,23 +40,21 @@ export const retrieveEffect = (
 
     yield* Effect.annotateCurrentSpan({ target: target.value.fullName });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const [projectService, retrieveService] = yield* Effect.all([
-      api.services.ProjectService,
-      api.services.MetadataRetrieveService
-    ]);
 
-    const dirs = (yield* projectService.getSfProject())
+    const dirs = (yield* api.services.ProjectService.getSfProject())
       .getPackageDirectories()
       .map((directory: { fullPath: string }) => directory.fullPath);
 
-    const localComponents = yield* retrieveService.buildComponentSetFromSource(dirs, [target.value]);
+    const localComponents = yield* api.services.MetadataRetrieveService.buildComponentSetFromSource(dirs, [
+      target.value
+    ]);
 
     if (!(yield* confirmOverwrite(localComponents, target.value))) {
       return Brand.nominal<SuccessfulCancelResult>()('User canceled');
     }
 
     // Run the retrieve operation
-    const result = yield* (yield* OrgBrowserRetrieveService).retrieve([target.value], target.value.fullName !== '*');
+    const result = yield* OrgBrowserRetrieveService.retrieve([target.value], target.value.fullName !== '*');
 
     if (typeof result !== 'string')
       // Handle post-retrieve UI updates

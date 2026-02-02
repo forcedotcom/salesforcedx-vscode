@@ -59,17 +59,12 @@ Effect.runSync(
 // since we can't file search on the web, we'll use ComponentSet to find local file paths for the component
 const getFilePaths = (member: MetadataMember) =>
   Effect.gen(function* () {
-    const svcProvider = yield* ExtensionProviderService;
-    const api = yield* svcProvider.getServicesApi;
-    const [projectService, retrieveService] = yield* Effect.all(
-      [api.services.ProjectService, api.services.MetadataRetrieveService],
-      { concurrency: 'unbounded' }
-    );
-    const dirs = (yield* projectService.getSfProject())
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const dirs = (yield* api.services.ProjectService.getSfProject())
       .getPackageDirectories()
       .map((directory: { fullPath: string }) => directory.fullPath);
     yield* Effect.annotateCurrentSpan({ packageDirectories: dirs });
-    const componentSet = yield* retrieveService.buildComponentSetFromSource(dirs, [member]);
+    const componentSet = yield* api.services.MetadataRetrieveService.buildComponentSetFromSource(dirs, [member]);
     yield* Effect.annotateCurrentSpan({ size: componentSet.size });
     const paths = Array.from(componentSet.getSourceComponents()).flatMap(c =>
       [c.xml, c.content].filter(f => f !== undefined)

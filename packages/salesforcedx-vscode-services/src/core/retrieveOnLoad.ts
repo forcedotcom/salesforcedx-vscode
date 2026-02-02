@@ -82,7 +82,7 @@ export const retrieveOnLoadEffect = () =>
       `Retrieving metadata on load: ${members.map(m => `${m.type}:${m.fullName}`).join(', ')}`
     );
 
-    const result = yield* (yield* MetadataRetrieveService).retrieve(members);
+    const result = yield* MetadataRetrieveService.retrieve(members);
 
     if (typeof result === 'string') {
       return yield* channelService.appendToChannel(`Retrieve canceled: ${result}`);

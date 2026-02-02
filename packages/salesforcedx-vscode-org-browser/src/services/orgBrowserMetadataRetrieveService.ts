@@ -16,12 +16,9 @@ import { URI } from 'vscode-uri';
 const retrieve = (members: MetadataMember[], openInEditor = false) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const [retrieveService, channel] = yield* Effect.all(
-      [api.services.MetadataRetrieveService, api.services.ChannelService],
-      { concurrency: 'unbounded' }
-    );
+    const channel = yield* api.services.ChannelService;
 
-    const result = yield* retrieveService.retrieve(members);
+    const result = yield* api.services.MetadataRetrieveService.retrieve(members);
     if (typeof result === 'string') {
       return Brand.nominal<SuccessfulCancelResult>()('User canceled');
     }
@@ -72,6 +69,7 @@ const openFileInEditor = (filePath: string) =>
 export class OrgBrowserRetrieveService extends Effect.Service<OrgBrowserRetrieveService>()(
   'OrgBrowserRetrieveService',
   {
+    accessors: true,
     succeed: {
       /**
        * Retrieve metadata components and optionally open them in the editor

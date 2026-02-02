@@ -218,17 +218,13 @@ export const buildClassToUriIndex = async (classNames: string[]): Promise<Map<st
   return Effect.runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const [projectService, retrieveService] = yield* Effect.all(
-        [api.services.ProjectService, api.services.MetadataRetrieveService],
-        { concurrency: 'unbounded' }
-      );
 
       // Get package directories from the project
-      const sfProject = yield* projectService.getSfProject();
+      const sfProject = yield* api.services.ProjectService.getSfProject();
       const packageDirs = sfProject.getPackageDirectories().map(dir => dir.fullPath);
 
       // Build ComponentSet for all ApexClass files in the project
-      const componentSet = yield* retrieveService.buildComponentSetFromSource(packageDirs, [
+      const componentSet = yield* api.services.MetadataRetrieveService.buildComponentSetFromSource(packageDirs, [
         { type: 'ApexClass', fullName: '*' }
       ]);
 
