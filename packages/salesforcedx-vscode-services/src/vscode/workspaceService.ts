@@ -62,12 +62,9 @@ const globalCachedWorkspaceInfo = Effect.runSync(
 
 const isNonEmptyWorkspace = (info: WorkspaceInfo): info is WorkspaceWithFolder => !info.isEmpty;
 
-export class NoWorkspaceOpenError extends Schema.TaggedError<NoWorkspaceOpenError>()(
-  'NoWorkspaceOpenError',
-  {
-    message: Schema.String
-  }
-) {}
+export class NoWorkspaceOpenError extends Schema.TaggedError<NoWorkspaceOpenError>()('NoWorkspaceOpenError', {
+  message: Schema.String
+}) {}
 
 export class WorkspaceService extends Effect.Service<WorkspaceService>()('WorkspaceService', {
   accessors: true,
@@ -80,13 +77,11 @@ export class WorkspaceService extends Effect.Service<WorkspaceService>()('Worksp
     /** GetWorkspaceInfo, throws if there is not one open */
     const getWorkspaceInfoOrThrow = Effect.fn('WorkspaceService.getWorkspaceInfoOrThrow')(function* () {
       const info = yield* globalCachedWorkspaceInfo;
-      return yield* (
-        isNonEmptyWorkspace(info)
-          ? Effect.succeed(info)
-          : Effect.fail(new NoWorkspaceOpenError({ message: 'No workspace is currently open' }))
-      );
+      return yield* isNonEmptyWorkspace(info)
+        ? Effect.succeed(info)
+        : Effect.fail(new NoWorkspaceOpenError({ message: 'No workspace is currently open' }));
     });
 
-    return { getWorkspaceInfo, getWorkspaceInfoOrThrow } as const;
+    return { getWorkspaceInfo, getWorkspaceInfoOrThrow };
   })
 }) {}

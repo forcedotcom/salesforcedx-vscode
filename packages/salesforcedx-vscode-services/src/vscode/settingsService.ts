@@ -242,6 +242,6 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       setAccessToken,
       setApiVersion,
       getRetrieveOnLoad
-    } as const;
+    };
   })
 }) {}

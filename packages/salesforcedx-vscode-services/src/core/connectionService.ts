@@ -205,7 +205,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       return conn;
     });
 
-    return { getConnection } as const;
+    return { getConnection };
   })
 }) {}
 

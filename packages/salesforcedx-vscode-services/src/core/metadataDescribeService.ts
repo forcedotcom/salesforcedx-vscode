@@ -166,7 +166,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
        */
       listMetadata,
       describeCustomObject
-    } as const;
+    };
   })
 }) {}
 

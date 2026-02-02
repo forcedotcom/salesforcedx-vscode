@@ -78,6 +78,6 @@ export class OrgBrowserRetrieveService extends Effect.Service<OrgBrowserRetrieve
        * @returns Effect that resolves to the retrieve result
        */
       retrieve
-    } as const
+    }
   }
 ) {}

@@ -53,6 +53,6 @@ export class MetadataRegistryService extends Effect.Service<MetadataRegistryServ
       return yield* cachedGetRegistryAccessEffect;
     });
 
-    return { getRegistry, getRegistryAccess } as const;
+    return { getRegistry, getRegistryAccess };
   })
 }) {}

@@ -46,10 +46,14 @@ const globalConfigCache = Effect.runSync(
 );
 
 // when the org changes, invalidate the cache
-Effect.runSync(Effect.forkDaemon(getDefaultOrgRef().pipe(
-  Effect.map(ref => ref.changes),
-  Stream.runForEach(() => globalConfigCache.invalidateAll)
-)));
+Effect.runSync(
+  Effect.forkDaemon(
+    getDefaultOrgRef().pipe(
+      Effect.map(ref => ref.changes),
+      Stream.runForEach(() => globalConfigCache.invalidateAll)
+    )
+  )
+);
 
 export class ConfigService extends Effect.Service<ConfigService>()('ConfigService', {
   accessors: true,
@@ -61,19 +65,19 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
     const getConfigAggregator = Effect.fn('ConfigService.getConfigAggregator')(function* () {
       const workspaceDescription = yield* workspaceService.getWorkspaceInfoOrThrow();
       const projectPath = workspaceDescription.path.replace(fsPrefix, '').replace(':/', '');
-      
+
       yield* Effect.annotateCurrentSpan({ projectPath });
       const agg = yield* globalConfigCache.get(projectPath);
-      
+
       // stateless when org can change: always reload only on desktop
       const reloadedAgg = yield* process.env.ESBUILD_PLATFORM === 'web'
         ? Effect.succeed(agg)
         : Effect.promise(() => agg.reload());
-      
+
       yield* Effect.annotateCurrentSpan({ ...reloadedAgg.getConfig() });
       return reloadedAgg;
     });
 
-    return { getConfigAggregator } as const;
+    return { getConfigAggregator };
   })
 }) {}

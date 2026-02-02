@@ -93,6 +93,6 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
       );
     });
 
-    return { markComponentsForDeletion, deleteLocalFiles } as const;
+    return { markComponentsForDeletion, deleteLocalFiles };
   })
 }) {}

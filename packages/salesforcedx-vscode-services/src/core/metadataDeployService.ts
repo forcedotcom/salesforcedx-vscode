@@ -137,6 +137,6 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       return deployOutcome;
     });
 
-    return { deploy, getComponentSetForDeploy } as const;
+    return { deploy, getComponentSetForDeploy };
   })
 }) {}

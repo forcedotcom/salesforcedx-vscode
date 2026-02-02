@@ -286,6 +286,6 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       retrieveComponentSetToDirectory,
       buildComponentSet,
       buildComponentSetFromSource
-    } as const;
+    };
   })
 }) {}

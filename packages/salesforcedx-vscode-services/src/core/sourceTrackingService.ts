@@ -189,6 +189,6 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       checkConflicts,
       updateTrackingFromRetrieve,
       updateTrackingFromDeploy
-    } as const;
+    };
   })
 }) {}

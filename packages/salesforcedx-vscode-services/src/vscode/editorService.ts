@@ -10,12 +10,9 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 
-export class NoActiveEditorError extends Schema.TaggedError<NoActiveEditorError>()(
-  'NoActiveEditorError',
-  {
-    message: Schema.String
-  }
-) {}
+export class NoActiveEditorError extends Schema.TaggedError<NoActiveEditorError>()('NoActiveEditorError', {
+  message: Schema.String
+}) {}
 
 export class EditorService extends Effect.Service<EditorService>()('EditorService', {
   accessors: true,
@@ -25,11 +22,9 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
       const editor = vscode.window.activeTextEditor;
       return editor
         ? URI.parse(editor.document.uri.toString())
-        : yield* Effect.fail(
-            new NoActiveEditorError({ message: 'No active text editor is currently open' })
-          );
+        : yield* Effect.fail(new NoActiveEditorError({ message: 'No active text editor is currently open' }));
     });
 
-    return { getActiveEditorUri } as const;
+    return { getActiveEditorUri };
   })
 }) {}

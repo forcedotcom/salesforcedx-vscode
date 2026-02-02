@@ -39,13 +39,10 @@ const EnsureNonEmptyComponentSet = Brand.refined<NonEmptyComponentSet>(
   componentSet => Brand.error(`Expected ComponentSet to be non-empty, but got size ${componentSet.size}`)
 );
 
-export class EmptyComponentSetError extends Schema.TaggedError<EmptyComponentSetError>()(
-  'EmptyComponentSetError',
-  {
-    message: Schema.String,
-    size: Schema.Number
-  }
-) {}
+export class EmptyComponentSetError extends Schema.TaggedError<EmptyComponentSetError>()('EmptyComponentSetError', {
+  message: Schema.String,
+  size: Schema.Number
+}) {}
 
 export class FailedToBuildComponentSetError extends Schema.TaggedError<FailedToBuildComponentSetError>()(
   'FailedToBuildComponentSetError',
@@ -76,97 +73,103 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
     const configService = yield* ConfigService;
 
     /** Effect that validates a ComponentSet is non-empty and returns NonEmptyComponentSet */
-    const ensureNonEmptyComponentSet = Effect.fn('ComponentSetService.ensureNonEmptyComponentSet')(
-      function* (componentSet: ComponentSetType) {
-        return yield* Effect.try({
-          try: () => EnsureNonEmptyComponentSet(componentSet),
-          catch: () =>
-            new EmptyComponentSetError({
-              message: `Expected ComponentSet to be non-empty, but got size ${componentSet.size}`,
-              size: componentSet.size
-            })
-        });
-      }
-    );
+    const ensureNonEmptyComponentSet = Effect.fn('ComponentSetService.ensureNonEmptyComponentSet')(function* (
+      componentSet: ComponentSetType
+    ) {
+      return yield* Effect.try({
+        try: () => EnsureNonEmptyComponentSet(componentSet),
+        catch: () =>
+          new EmptyComponentSetError({
+            message: `Expected ComponentSet to be non-empty, but got size ${componentSet.size}`,
+            size: componentSet.size
+          })
+      });
+    });
 
     /** Get ComponentSet from source URIs (files/directories).  Handles deduplication of URIs */
-    const getComponentSetFromUris = Effect.fn('ComponentSetService.getComponentSetFromUris')(
-      function* (uris: readonly URI[]) {
-        return yield* Effect.gen(function* () {
-          const [registryAccess, project, configAggregator] = yield* Effect.all(
-            [
-              metadataRegistryService.getRegistryAccess(),
-              projectService.getSfProject(),
-              configService.getConfigAggregator()
-            ],
-            { concurrency: 'unbounded' }
-          );
-          const hashableUris = HashSet.fromIterable(uris.map(HashableUri.fromUri));
-          const paths = hashableUris.pipe(
-            HashSet.map(uri => uriToPath(uri)),
-            HashSet.toValues
-          );
-          yield* Effect.annotateCurrentSpan({ paths });
-          const componentSet = yield* Effect.try({
-            try: () => ComponentSet.fromSource({ fsPaths: paths, registry: registryAccess }),
-            catch: e => {
-              const { cause } = unknownToErrorCause(e);
-              return new FailedToBuildComponentSetError({
-                message: `Failed to build ComponentSet from URIs: ${cause.message}`,
-                cause
-              });
-            }
-          });
+    const getComponentSetFromUris = Effect.fn('ComponentSetService.getComponentSetFromUris')(function* (
+      uris: readonly URI[]
+    ) {
+      return yield* Effect.gen(function* () {
+        const [registryAccess, project, configAggregator] = yield* Effect.all(
+          [
+            metadataRegistryService.getRegistryAccess(),
+            projectService.getSfProject(),
+            configService.getConfigAggregator()
+          ],
+          { concurrency: 'unbounded' }
+        );
+        const hashableUris = HashSet.fromIterable(uris.map(HashableUri.fromUri));
+        const paths = hashableUris.pipe(
+          HashSet.map(uri => uriToPath(uri)),
+          HashSet.toValues
+        );
+        yield* Effect.annotateCurrentSpan({ paths });
+        const componentSet = yield* Effect.try({
+          try: () => ComponentSet.fromSource({ fsPaths: paths, registry: registryAccess }),
+          catch: e => {
+            const { cause } = unknownToErrorCause(e);
+            return new FailedToBuildComponentSetError({
+              message: `Failed to build ComponentSet from URIs: ${cause.message}`,
+              cause
+            });
+          }
+        });
 
-          yield* setComponentSetProperties({ componentSet, project, configAggregator });
+        yield* setComponentSetProperties({ componentSet, project, configAggregator });
 
-          yield* Effect.annotateCurrentSpan({ size: componentSet.size });
-          return componentSet;
-        }).pipe(Effect.withSpan('getComponentSetFromPaths'));
-      }
-    );
+        yield* Effect.annotateCurrentSpan({ size: componentSet.size });
+        return componentSet;
+      }).pipe(Effect.withSpan('getComponentSetFromPaths'));
+    });
 
     /** Get ComponentSet from manifest file */
-    const getComponentSetFromManifest = Effect.fn('ComponentSetService.getComponentSetFromManifest')(
-      function* (manifestPath: string) {
-        return yield* Effect.gen(function* () {
-          yield* Effect.annotateCurrentSpan({ manifestPath });
-          const [registryAccess, project, configAggregator] = yield* Effect.all(
-            [
-              metadataRegistryService.getRegistryAccess(),
-              projectService.getSfProject(),
-              configService.getConfigAggregator()
-            ],
-            { concurrency: 'unbounded' }
-          );
+    const getComponentSetFromManifest = Effect.fn('ComponentSetService.getComponentSetFromManifest')(function* (
+      manifestPath: string
+    ) {
+      return yield* Effect.gen(function* () {
+        yield* Effect.annotateCurrentSpan({ manifestPath });
+        const [registryAccess, project, configAggregator] = yield* Effect.all(
+          [
+            metadataRegistryService.getRegistryAccess(),
+            projectService.getSfProject(),
+            configService.getConfigAggregator()
+          ],
+          { concurrency: 'unbounded' }
+        );
 
-          const componentSet = yield* Effect.tryPromise({
-            try: async () =>
-              ComponentSet.fromManifest({
-                manifestPath,
-                // Get package directories as full paths
-                resolveSourcePaths: project.getPackageDirectories().map(pkgDir => pkgDir.fullPath),
-                forceAddWildcards: true,
-                registry: registryAccess
-              }),
-            catch: e => {
-              const { cause } = unknownToErrorCause(e);
-              return new FailedToBuildComponentSetError({
-                message: `Failed to build ComponentSet from manifest: ${cause.message}`,
-                cause
-              });
-            }
-          });
+        const componentSet = yield* Effect.tryPromise({
+          try: async () =>
+            ComponentSet.fromManifest({
+              manifestPath,
+              // Get package directories as full paths
+              resolveSourcePaths: project.getPackageDirectories().map(pkgDir => pkgDir.fullPath),
+              forceAddWildcards: true,
+              registry: registryAccess
+            }),
+          catch: e => {
+            const { cause } = unknownToErrorCause(e);
+            return new FailedToBuildComponentSetError({
+              message: `Failed to build ComponentSet from manifest: ${cause.message}`,
+              cause
+            });
+          }
+        });
 
-          yield* setComponentSetProperties({ componentSet, project, configAggregator });
+        yield* setComponentSetProperties({ componentSet, project, configAggregator });
 
-          yield* Effect.annotateCurrentSpan({ size: componentSet.size });
-          return componentSet;
-        }).pipe(Effect.withSpan('getComponentSetFromManifest'));
-      }
-    );
+        yield* Effect.annotateCurrentSpan({ size: componentSet.size });
+        return componentSet;
+      }).pipe(Effect.withSpan('getComponentSetFromManifest'));
+    });
 
-    return { isSDRSuccess, isSDRFailure, ensureNonEmptyComponentSet, getComponentSetFromUris, getComponentSetFromManifest } as const;
+    return {
+      isSDRSuccess,
+      isSDRFailure,
+      ensureNonEmptyComponentSet,
+      getComponentSetFromUris,
+      getComponentSetFromManifest
+    };
   })
 }) {}
 
