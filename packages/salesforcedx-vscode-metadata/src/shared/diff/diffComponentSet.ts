@@ -47,12 +47,10 @@ const getCacheDirectoryUri = Effect.fn('getCacheDirectoryUri')(function* () {
 const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(function* (componentSet: NonEmptyComponentSet) {
   yield* Effect.logDebug('before retrieveToCacheDirectory');
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [cacheDirUri, fsService] = yield* Effect.all([getCacheDirectoryUri(), api.services.FsService], {
-    concurrency: 'unbounded'
-  });
+  const cacheDirUri = yield* getCacheDirectoryUri();
 
   // Clean up cache directory before retrieving
-  yield* fsService.safeDelete(cacheDirUri, { recursive: true });
+  yield* api.services.FsService.safeDelete(cacheDirUri, { recursive: true });
 
   // Perform retrieve operation to cache directory
   const result = yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(componentSet, cacheDirUri);
@@ -104,7 +102,9 @@ const createMatchedPair = Effect.fn('createMatchedPair')(function* (props: {
   return matchingPath
     ? createDiffFilePair({
         localUri: initialUri,
-        remoteUri: yield* fsService.toUri(matchingPath).pipe(Effect.map(uri => fsService.HashableUri.fromUri(uri))),
+        remoteUri: yield* api.services.FsService.toUri(matchingPath).pipe(
+          Effect.map(uri => fsService.HashableUri.fromUri(uri))
+        ),
         fileName
       })
     : yield* Effect.succeed(undefined);
@@ -113,9 +113,8 @@ const createMatchedPair = Effect.fn('createMatchedPair')(function* (props: {
 const filesAreNotIdentical = (pair: DiffFilePair) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const fsService = yield* api.services.FsService;
     const [buffer1, buffer2] = yield* Effect.all(
-      [fsService.readFile(pair.remoteUri), fsService.readFile(pair.localUri)],
+      [api.services.FsService.readFile(pair.remoteUri), api.services.FsService.readFile(pair.localUri)],
       {
         concurrency: 'unbounded'
       }

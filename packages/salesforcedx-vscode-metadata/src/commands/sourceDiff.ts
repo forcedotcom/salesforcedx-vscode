@@ -23,11 +23,10 @@ const getAllFileUrisFromMaybeDirectory: (
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ uri });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const fsService = yield* api.services.FsService;
-    if (!(yield* fsService.isDirectory(uri))) {
+    if (!(yield* api.services.FsService.isDirectory(uri))) {
       return [uri];
     }
-    const childUris = yield* fsService.readDirectory(uri);
+    const childUris = yield* api.services.FsService.readDirectory(uri);
 
     const subdirFiles = yield* Effect.all(
       childUris.map(child => getAllFileUrisFromMaybeDirectory(child)),

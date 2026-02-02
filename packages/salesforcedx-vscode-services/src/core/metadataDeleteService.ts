@@ -33,7 +33,6 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
   effect: Effect.gen(function* () {
     const registry = yield* MetadataRegistryService.getRegistryAccess();
     const fsService = yield* FsService;
-
     /** Mark components for deletion */
     const markComponentsForDeletion = Effect.fn('MetadataDeleteService.markComponentsForDeletion')(function* (
       componentSet: ComponentSet
@@ -83,7 +82,6 @@ export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>
 
       // Delete other files
       // Use safeDelete to handle cases where files might not exist (already deleted, wrong paths, etc.)
-
       yield* Effect.all(
         components
           .filter(isSourceComponent)

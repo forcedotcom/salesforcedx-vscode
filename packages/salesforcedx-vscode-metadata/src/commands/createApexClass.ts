@@ -84,10 +84,9 @@ const promptForClassName = async (): Promise<string | undefined> => {
 /** Check if files exist and prompt for overwrite if needed */
 const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (clsUri: URI, metaUri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
 
   const [clsExists, metaExists] = yield* Effect.all(
-    [fsService.fileOrFolderExists(clsUri), fsService.fileOrFolderExists(metaUri)],
+    [api.services.FsService.fileOrFolderExists(clsUri), api.services.FsService.fileOrFolderExists(metaUri)],
     { concurrency: 'unbounded' }
   );
 
@@ -107,7 +106,6 @@ const checkAndPromptOverwrite = Effect.fn('checkAndPromptOverwrite')(function* (
 /** Create Apex class files */
 const createFiles = Effect.fn('createFiles')(function* (className: string, outputDir: URI, apiVersion: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
   const channelService = yield* api.services.ChannelService;
 
   const clsUri = Utils.joinPath(outputDir, `${className}.cls`);
@@ -125,7 +123,10 @@ const createFiles = Effect.fn('createFiles')(function* (className: string, outpu
 
   // Write both files - pass URI objects directly
   yield* Effect.all(
-    [fsService.writeFile(clsUri, clsContent), fsService.writeFile(metaUri, getMetaContent(apiVersion))],
+    [
+      api.services.FsService.writeFile(clsUri, clsContent),
+      api.services.FsService.writeFile(metaUri, getMetaContent(apiVersion))
+    ],
     {
       concurrency: 'unbounded'
     }

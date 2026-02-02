@@ -265,8 +265,7 @@ export const writeTestResultJson = async (result: TestResult, outputDir: string)
   await Effect.runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const svc = yield* api.services.FsService;
-      yield* svc.writeFile(jsonFilePath, jsonContent);
+      yield* api.services.FsService.writeFile(jsonFilePath, jsonContent);
     }).pipe(Effect.provide(AllServicesLayer))
   );
 };

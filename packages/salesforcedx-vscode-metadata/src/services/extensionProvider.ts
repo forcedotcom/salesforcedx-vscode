@@ -39,7 +39,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       return Layer.mergeAll(
         ExtensionProviderServiceLive,
         api.services.ComponentSetService.Default,
-        api.services.ConfigService.Default,
+        // api.services.ConfigService.Default,
         api.services.ConnectionService.Default,
         api.services.FsService.Default,
         api.services.EditorService.Default,
@@ -48,7 +48,6 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         api.services.MetadataDeployService.Default,
         api.services.MetadataDeleteService.Default,
         api.services.MetadataRetrieveService.Default,
-        api.services.MetadataRegistryService.Default,
         api.services.ProjectService.Default,
         api.services.SdkLayerFor({ extensionName: EXTENSION_NAME, extensionVersion, o11yEndpoint }),
         api.services.WorkspaceService.Default,

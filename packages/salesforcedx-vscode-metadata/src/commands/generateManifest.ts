@@ -48,7 +48,6 @@ const generateManifestFromUris = (uris: URI[]) =>
 const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: string) =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const fsService = yield* api.services.FsService;
     const channelService = yield* api.services.ChannelService;
 
     // Build manifest directory path
@@ -56,7 +55,7 @@ const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: stri
 
     const shouldWrite =
       // doesn't exist
-      !(yield* fsService.fileOrFolderExists(manifestFileUri)) ||
+      !(yield* api.services.FsService.fileOrFolderExists(manifestFileUri)) ||
       // exists and user wants to overwrite
       (yield* promptForOverwrite(fileName)) === 'Overwrite';
 
@@ -66,7 +65,7 @@ const saveManifestFile = (workspacePath: URI, fileName: string, packageXML: stri
     }
 
     // Write the manifest file (FsService.writeFile automatically creates directories)
-    yield* fsService.writeFile(manifestFileUri, packageXML);
+    yield* api.services.FsService.writeFile(manifestFileUri, packageXML);
     yield* channelService.appendToChannel(`Manifest file created: ${manifestFileUri.toString()}`);
 
     // Open the generated manifest file
