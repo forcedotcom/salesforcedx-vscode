@@ -5,9 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Cache from 'effect/Cache';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as S from 'effect/Schema';
 import { ChannelService } from '../vscode/channelService';
+import { ExtensionContextService } from '../vscode/extensionContextService';
+import { SettingsService } from '../vscode/settingsService';
 import { ConnectionService } from './connectionService';
 import { FilePropertiesSchema } from './schemas/fileProperties';
 import { unknownToErrorCause } from './shared';
@@ -30,39 +35,71 @@ export class ListMetadataError extends S.TaggedError<ListMetadataError>()('ListM
 
 export class MetadataDescribeService extends Effect.Service<MetadataDescribeService>()('MetadataDescribeService', {
   accessors: true,
-  dependencies: [ConnectionService.Default],
+  dependencies: [
+    ConnectionService.Default,
+    SettingsService.Default,
+    ExtensionContextService.Default,
+    ChannelService.Default
+  ],
   effect: Effect.gen(function* () {
-    // a task that can be cached - uses the key parameter for caching
-    const cacheableDescribe = (_key: string = 'cached') =>
-      ConnectionService.getConnection().pipe(
-        Effect.flatMap(conn =>
-          Effect.tryPromise({
-            try: () => conn.metadata.describe(),
-            catch: e => {
-              const { cause } = unknownToErrorCause(e);
-              return new MetadataDescribeError({
-                cause,
-                function: 'describe',
-                message: `Failed to describe metadata: ${cause.message ?? String(cause)}`
-              });
-            }
-          }).pipe(
-            Effect.withSpan('describe (API call)'),
-            Effect.map(result => result.metadataObjects.filter(obj => !NON_SUPPORTED_TYPES.has(obj.xmlName))),
-            Effect.tap(result =>
-              Effect.flatMap(ChannelService, channel =>
-                channel.appendToChannel(`Metadata describe call completed. Found ${result.length} metadata types.`)
+    const performDescribe = (orgId: string) =>
+      Effect.gen(function* () {
+        const conn = yield* ConnectionService.getConnection();
+        const result = yield* Effect.tryPromise({
+          try: () => conn.metadata.describe(),
+          catch: e => {
+            const { cause } = unknownToErrorCause(e);
+            return new MetadataDescribeError({
+              cause,
+              function: 'describe',
+              message: `Failed to describe metadata: ${cause.message ?? String(cause)}`
+            });
+          }
+        }).pipe(
+          Effect.withSpan('describe (API call)'),
+          Effect.map(describeResult =>
+            describeResult.metadataObjects.filter(obj => !NON_SUPPORTED_TYPES.has(obj.xmlName))
+          ),
+          Effect.tap(filteredResult =>
+            Effect.flatMap(ChannelService, channel =>
+              channel.appendToChannel(
+                `Metadata describe call completed. Found ${filteredResult.length} metadata types.`
               )
             )
           )
-        ),
-        Effect.withSpan('cacheableDescribe')
-      );
+        );
+        return result;
+      }).pipe(Effect.withSpan('performDescribe', { attributes: { orgId } }));
 
-    const cachedDescribe = yield* Effect.cachedFunction(cacheableDescribe);
+    const describeCache = yield* Cache.makeWith({
+      capacity: 20, // Maximum number of cached describe results (one per org)
+      timeToLive: Exit.match({
+        onSuccess: () => Duration.minutes(30),
+        onFailure: () => Duration.zero
+      }),
+      lookup: (orgId: string) =>
+        performDescribe(orgId).pipe(Effect.withSpan('performDescribe lookup', { attributes: { orgId } }))
+    });
 
     const describe = Effect.fn('MetadataDescribeService.describe')(function* (forceRefresh = false) {
-      return yield* forceRefresh ? cacheableDescribe(`fresh-${Date.now()}`) : cachedDescribe('cached');
+      const conn = yield* ConnectionService.getConnection();
+      const orgId = conn.getAuthInfoFields().orgId;
+
+      if (!orgId) {
+        return yield* Effect.fail(
+          new MetadataDescribeError({
+            cause: new Error('No orgId found in connection'),
+            function: 'describe',
+            message: 'Failed to describe metadata: No orgId found in connection'
+          })
+        );
+      }
+
+      if (forceRefresh) {
+        yield* describeCache.invalidate(orgId);
+      }
+
+      return yield* describeCache.get(orgId);
     });
 
     // TODO: write the result in a common place that other services can use.  Probably do the same with mdapi describe and list

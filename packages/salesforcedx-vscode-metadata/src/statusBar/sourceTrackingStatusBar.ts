@@ -9,7 +9,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as Fiber from 'effect/Fiber';
 import * as PubSub from 'effect/PubSub';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
@@ -18,54 +17,6 @@ import * as vscode from 'vscode';
 import { AllServicesLayer } from '../services/extensionProvider';
 import { calculateBackground, calculateCounts, dedupeStatus, getCommand, separateChanges } from './helpers';
 import { buildCombinedHoverText } from './hover';
-
-/* eslint-disable functional/no-let */
-let fileWatcherSubscription: Fiber.RuntimeFiber<void, Error> | undefined;
-
-/** Handle org change events */
-const handleOrgChange =
-  (statusBarItem: vscode.StatusBarItem) => (orgInfo: { tracksSource?: boolean; orgId?: string }) =>
-    Effect.gen(function* () {
-      if (!statusBarItem || !orgInfo.tracksSource || !orgInfo.orgId) {
-        statusBarItem?.hide();
-        yield* stopFileWatcherSubscription;
-        return;
-      }
-
-      yield* startFileWatcherSubscription(statusBarItem);
-      yield* refresh(statusBarItem);
-    });
-
-/** Subscribe to the centralized file watcher PubSub with debouncing, plus polling for remote changes if active */
-const startFileWatcherSubscription = (statusBarItem: vscode.StatusBarItem) =>
-  Effect.gen(function* () {
-    yield* stopFileWatcherSubscription;
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    fileWatcherSubscription = yield* Effect.scoped(
-      Effect.gen(function* () {
-        const fileWatcherService = yield* api.services.FileWatcherService;
-        const dequeue = yield* PubSub.subscribe(fileWatcherService.pubsub);
-
-        yield* Stream.merge(
-          // Subscribe to file changes TODO: maybe filter out some changes by type or uri
-          Stream.fromQueue(dequeue).pipe(Stream.debounce(Duration.millis(500))),
-          // poll for remote changes TODO: make this a configurable Setting for polling frequency
-          Stream.fromSchedule(Schedule.fixed(Duration.minutes(1))).pipe(Stream.filter(() => vscode.window.state.active))
-        ).pipe(
-          Stream.debounce(Duration.millis(500)),
-          Stream.runForEach(() => refresh(statusBarItem))
-        );
-      })
-    ).pipe(Effect.provide(AllServicesLayer), Effect.forkDaemon);
-  });
-
-/** Stop the file watcher subscription */
-const stopFileWatcherSubscription = Effect.gen(function* () {
-  if (fileWatcherSubscription) {
-    yield* Fiber.interrupt(fileWatcherSubscription).pipe(Effect.ignore);
-    fileWatcherSubscription = undefined;
-  }
-});
 
 /** Refresh the status bar's data using data from tracking service */
 const refresh = (statusBarItem: vscode.StatusBarItem) =>
@@ -121,35 +72,62 @@ const updateDisplay =
 export const createSourceTrackingStatusBar = () =>
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const channelService = yield* api.services.ChannelService;
 
-    const [channelService, connectionService] = yield* Effect.all(
-      [api.services.ChannelService, api.services.ConnectionService],
-      { concurrency: 'unbounded' }
-    );
     const statusBarItem = vscode.window.createStatusBarItem(
       'source-tracking-status-bar',
       vscode.StatusBarAlignment.Left,
       47
     );
     statusBarItem.name = 'Salesforce: Source Tracking';
+    const fileWatcherService = yield* api.services.FileWatcherService;
+    const dequeue = yield* PubSub.subscribe(fileWatcherService.pubsub);
 
     const targetOrgRef = yield* api.services.TargetOrgRef();
+    const orgChangeStream = Stream.concat(
+      Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), // if initial state has already been set
+      targetOrgRef.changes // ongoing org changes
+    ).pipe(
+      Stream.tap(orgInfo => channelService.appendToChannel(`target org change: ${JSON.stringify(orgInfo)}`)),
+      Stream.filter(orgInfo => orgInfo && typeof orgInfo === 'object' && 'tracksSource' in orgInfo),
+      Stream.tap(orgInfo =>
+        Effect.sync(() => {
+          if (!orgInfo.tracksSource || !orgInfo.orgId) {
+            statusBarItem.hide();
+          }
+        })
+      ),
+      Stream.map(orgInfo => orgInfo.orgId),
+      Stream.changes,
+      Stream.as('orgChange')
+    );
+
+    const fileChangeStream = Stream.merge(
+      // Subscribe to file changes TODO: maybe filter out some changes by type or uri
+      Stream.fromQueue(dequeue).pipe(Stream.debounce(Duration.millis(500))),
+      // poll for remote changes TODO: make this a configurable Setting for polling frequency
+      Stream.fromSchedule(Schedule.fixed(Duration.minutes(1))).pipe(Stream.filter(() => vscode.window.state.active))
+    ).pipe(
+      Stream.debounce(Duration.millis(500)),
+      // we don't care about file events if source tracking is not enabled
+      Stream.filterEffect(() =>
+        SubscriptionRef.get(targetOrgRef).pipe(Effect.andThen(orgInfo => Boolean(orgInfo.tracksSource)))
+      ),
+      Stream.as('refresh')
+    );
+
     yield* Effect.fork(
-      Stream.concat(
-        Stream.fromEffect(SubscriptionRef.get(targetOrgRef)), // if initial state has already been set
-        targetOrgRef.changes // ongoing org changes
-      ).pipe(
-        Stream.tap(orgInfo => channelService.appendToChannel(`target org change: ${JSON.stringify(orgInfo)}`)),
-        Stream.filter(orgInfo => orgInfo && typeof orgInfo === 'object' && 'tracksSource' in orgInfo),
-        Stream.runForEach(orgInfo => handleOrgChange(statusBarItem)(orgInfo).pipe(Effect.catchAll(() => Effect.void)))
+      Stream.merge(orgChangeStream, fileChangeStream).pipe(
+        Stream.debounce(Duration.millis(500)),
+        Stream.runForEach(() => refresh(statusBarItem))
       )
     );
 
     // Now that the pubsub is running, if the org ref is not set, get the connection which will set it
-    yield* connectionService.getConnection().pipe(
+    yield* api.services.ConnectionService.getConnection().pipe(
       // If there is no connection or an error, that's fine.
       Effect.catchAll(e => Effect.logError(e).pipe(Effect.as(undefined)))
     );
-    yield* Effect.addFinalizer(() => stopFileWatcherSubscription.pipe(Effect.andThen(() => statusBarItem.dispose())));
+    yield* Effect.addFinalizer(() => Effect.sync(() => statusBarItem.dispose()));
     yield* Effect.sleep(Duration.infinity); // persist the ui component until the extensionscope closes
   }).pipe(Effect.provide(AllServicesLayer));

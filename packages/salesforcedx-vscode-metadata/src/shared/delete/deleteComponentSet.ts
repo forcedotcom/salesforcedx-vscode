@@ -16,15 +16,14 @@ import { DeleteSourceFailedError } from './deleteErrors';
 /** Check for conflicts if source-tracked */
 const maybeCheckConflicts = Effect.fn('deleteComponentSet:checkConflicts')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const sourceTrackingService = yield* api.services.SourceTrackingService;
-  const tracking = yield* sourceTrackingService.getSourceTracking();
+  const tracking = yield* api.services.SourceTrackingService.getSourceTracking();
 
   if (!tracking) {
     return; // Not source-tracked, no conflict check needed
   }
 
   // Use service method to check conflicts (displays in channel and returns typed error)
-  yield* sourceTrackingService.checkConflicts(tracking);
+  yield* api.services.SourceTrackingService.checkConflicts(tracking);
 });
 
 /** Delete a ComponentSet, handling conflict checking, cancellation, and local file deletion */

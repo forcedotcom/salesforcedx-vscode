@@ -16,6 +16,7 @@ import {
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { FsService } from '../vscode/fsService';
+import { WorkspaceService } from '../vscode/workspaceService';
 import { isSourceComponent } from './componentSetService';
 import { MetadataRegistryService } from './metadataRegistryService';
 
@@ -89,7 +90,12 @@ const deleteLocalFiles = (componentSet: ComponentSet, deployResult: DeployResult
 
 export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>()('MetadataDeleteService', {
   accessors: true,
-  dependencies: [FsService.Default, MetadataRegistryService.Default],
+  dependencies: [
+    FsService.Default,
+    MetadataRegistryService.Default,
+    WorkspaceService.Default,
+    MetadataRegistryService.Default
+  ],
   effect: Effect.gen(function* () {
     const markComponentsForDeletionFn = Effect.fn('MetadataDeleteService.markComponentsForDeletion')(
       markComponentsForDeletion

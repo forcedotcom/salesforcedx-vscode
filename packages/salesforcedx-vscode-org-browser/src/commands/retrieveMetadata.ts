@@ -13,19 +13,8 @@ import * as Option from 'effect/Option';
 import type { SuccessfulCancelResult } from 'salesforcedx-vscode-services/src/vscode/cancellation';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
 import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
-
-export const retrieveOrgBrowserTreeItemCommand = async (
-  node: OrgBrowserTreeItem,
-  treeProvider: MetadataTypeTreeProvider
-): Promise<void> => {
-  const result = await Effect.runPromise(retrieveEffect(node, treeProvider));
-  if (typeof result === 'string') {
-    void vscode.window.showInformationMessage(nls.localize('retrieve_canceled'));
-  }
-};
 
 export const retrieveEffect = (
   node: OrgBrowserTreeItem,
@@ -69,8 +58,8 @@ export const retrieveEffect = (
 
     return result;
   }).pipe(
-    Effect.withSpan('orgBrowserRetrieveMetadataCommand'),
-    Effect.provide(AllServicesLayer),
+    // Note: Don't provide AllServicesLayer here - the runtime from registerCommand already has it.
+    // Adding it here would create a separate tracer context, breaking span hierarchy.
     Effect.catchAll(error =>
       Effect.sync(() => {
         void vscode.window.showErrorMessage(nls.localize('retrieve_failed', String(error)));

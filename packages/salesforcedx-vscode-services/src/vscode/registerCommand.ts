@@ -24,8 +24,8 @@ export const registerCommand = <R, E, A>(command: string, f: (...args: any[]) =>
     context.subscriptions.push(
       vscode.commands.registerCommand(command, (...args) =>
         f(...args).pipe(
-          // command property will be unique to commands
-          Effect.withSpan(command, { attributes: { command, args } }),
+          // command property will be unique to commands, root: true ensures proper trace root.
+          Effect.withSpan(command, { attributes: { command, args }, root: true }),
           Effect.catchAllCause(errorHandler.handleCause),
           run
         )

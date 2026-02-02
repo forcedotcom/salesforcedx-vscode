@@ -229,15 +229,21 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
   Effect.gen(function* () {
     const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
     const defaultOrgRef = yield* getDefaultOrgRef();
-    const [{ username, user_id: userId }, devHubOrgId, existingOrgInfo, cliId] = yield* Effect.all(
+    const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
+    const orgIdChanged = existingOrgInfo.orgId !== orgId;
+    const [{ username, user_id: userId }, devHubOrgId, cliId] = yield* Effect.all(
       [
-        Effect.tryPromise(() => conn.identity()).pipe(
-          // best efforts, its just telemetry
-          Effect.catchAll(() => Effect.succeed({ username: undefined, user_id: undefined }))
-        ),
-        Effect.flatten(getDevHubId(devHubUsername)),
-        SubscriptionRef.get(defaultOrgRef),
-        Effect.flatten(getCliId())
+        orgIdChanged
+          ? Effect.tryPromise(() => conn.identity()).pipe(
+              // best efforts, it's just telemetry
+              Effect.catchAll(() => Effect.succeed({ username: undefined, user_id: undefined })),
+              Effect.withSpan('getIdentity', { attributes: { refOrgId: existingOrgInfo.orgId, connOrgId: orgId } })
+            )
+          : Effect.succeed({ username: existingOrgInfo.username, user_id: existingOrgInfo.userId }),
+        existingOrgInfo.devHubOrgId
+          ? Effect.succeed(existingOrgInfo.devHubOrgId)
+          : Effect.flatten(getDevHubId(devHubUsername)),
+        existingOrgInfo.cliId ? Effect.succeed(existingOrgInfo.cliId) : Effect.flatten(getCliId())
       ],
       { concurrency: 'unbounded' }
     );
@@ -296,11 +302,11 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
   }).pipe(Effect.withSpan('maybeUpdateDefaultOrgRef'));
 
 /** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */
-const getDevHubId = (scratchOrgUsername?: string) =>
-  (scratchOrgUsername
-    ? createAuthInfoFromUsername(scratchOrgUsername).pipe(Effect.map(authInfo => authInfo.getFields().orgId))
+const getDevHubId = (devHubUsername?: string) =>
+  (devHubUsername
+    ? createAuthInfoFromUsername(devHubUsername).pipe(Effect.map(authInfo => authInfo.getFields().orgId))
     : Effect.succeed(undefined)
-  ).pipe(Effect.cached);
+  ).pipe(Effect.cached, Effect.withSpan('getDevHubId'));
 
 const createAuthInfoFromUsername = (username: string) =>
   Effect.tryPromise({

@@ -38,7 +38,9 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   }
 
   public async getChildren(element?: OrgBrowserTreeItem, refresh = false): Promise<OrgBrowserTreeItem[]> {
-    return await Effect.runPromise(getChildrenOfTreeItem(element, refresh, this));
+    return await Effect.runPromise(
+      getChildrenOfTreeItem(element, refresh, this).pipe(Effect.provide(AllServicesLayer))
+    );
   }
 }
 

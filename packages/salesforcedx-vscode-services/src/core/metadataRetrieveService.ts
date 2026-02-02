@@ -251,22 +251,32 @@ const retrieveComponentSetToDirectory = (components: NonEmptyComponentSet, outpu
 
 export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()('MetadataRetrieveService', {
   accessors: true,
-  succeed: {
-    /**
-     * Retrieve one or more metadata components from the default org.
-     */
-    retrieve,
-    /**
-     * Retrieve metadata using a ComponentSet directly.
-     * Sets project directory and API versions on the ComponentSet before retrieving.
-     */
-    retrieveComponentSet,
-    /**
-     * Retrieve metadata using a ComponentSet directly to a custom output directory.
-     * Sets project directory and API versions on the ComponentSet before retrieving.
-     */
-    retrieveComponentSetToDirectory,
-    buildComponentSet,
-    buildComponentSetFromSource
-  } as const
+  dependencies: [
+    WorkspaceService.Default,
+    ConnectionService.Default,
+    SourceTrackingService.Default,
+    MetadataRegistryService.Default,
+    ProjectService.Default,
+    ConfigService.Default
+  ],
+  effect: Effect.gen(function* () {
+    return {
+      /**
+       * Retrieve one or more metadata components from the default org.
+       */
+      retrieve,
+      /**
+       * Retrieve metadata using a ComponentSet directly.
+       * Sets project directory and API versions on the ComponentSet before retrieving.
+       */
+      retrieveComponentSet,
+      /**
+       * Retrieve metadata using a ComponentSet directly to a custom output directory.
+       * Sets project directory and API versions on the ComponentSet before retrieving.
+       */
+      retrieveComponentSetToDirectory,
+      buildComponentSet,
+      buildComponentSetFromSource
+    } as const;
+  })
 }) {}
