@@ -28,11 +28,13 @@ export class SettingsError extends S.TaggedError<SettingsError>()('MissingSettin
 
 const isNonEmptyString = (key: string) => (value: string | undefined) =>
   value === undefined || value.length === 0
-    ? Effect.fail(new SettingsError({
-        cause: new Error(`Value for ${key} is empty`),
-        key,
-        message: `Value for ${key} is empty`
-      }))
+    ? Effect.fail(
+        new SettingsError({
+          cause: new Error(`Value for ${key} is empty`),
+          key,
+          message: `Value for ${key} is empty`
+        })
+      )
     : Effect.succeed(value);
 
 /** Static service for reading and writing VS Code settings */

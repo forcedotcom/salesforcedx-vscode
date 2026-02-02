@@ -23,7 +23,6 @@ export class MetadataDescribeError extends S.TaggedError<MetadataDescribeError>(
 
 export class ListMetadataError extends S.TaggedError<ListMetadataError>()('ListMetadataError', {
   cause: S.Unknown,
-  function: S.String,
   metadataType: S.String,
   folder: S.optional(S.String),
   message: S.String
@@ -63,11 +62,13 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     const cachedDescribe = yield* Effect.cachedFunction(cacheableDescribe);
 
     const describe = Effect.fn('MetadataDescribeService.describe')(function* (forceRefresh = false) {
-      return yield* (forceRefresh ? cacheableDescribe(`fresh-${Date.now()}`) : cachedDescribe('cached'));
+      return yield* forceRefresh ? cacheableDescribe(`fresh-${Date.now()}`) : cachedDescribe('cached');
     });
 
     // TODO: write the result in a common place that other services can use.  Probably do the same with mdapi describe and list
-    const describeCustomObject = Effect.fn('MetadataDescribeService.describeCustomObject')(function* (objectName: string) {
+    const describeCustomObject = Effect.fn('MetadataDescribeService.describeCustomObject')(function* (
+      objectName: string
+    ) {
       return yield* ConnectionService.getConnection().pipe(
         Effect.flatMap(conn =>
           Effect.tryPromise({
@@ -97,7 +98,6 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
               const { cause } = unknownToErrorCause(e);
               return new ListMetadataError({
                 cause,
-                function: 'listMetadata',
                 metadataType: type,
                 folder,
                 message: `Failed to list metadata type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
@@ -109,18 +109,15 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
             Effect.map(ensureArray),
             Effect.map(arr => arr.toSorted((a, b) => a.fullName.localeCompare(b.fullName))),
             Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
-            Effect.mapError(
-              e => {
-                const { cause } = unknownToErrorCause(e);
-                return new ListMetadataError({
-                  cause,
-                  function: 'listMetadata',
-                  metadataType: type,
-                  folder,
-                  message: `Failed to decode list metadata result for type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
-                });
-              }
-            )
+            Effect.mapError(e => {
+              const { cause } = unknownToErrorCause(e);
+              return new ListMetadataError({
+                cause,
+                metadataType: type,
+                folder,
+                message: `Failed to decode list metadata result for type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
+              });
+            })
           )
         ),
         Effect.withSpan('listMetadata', { attributes: { metadataType: type, folder } })

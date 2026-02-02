@@ -126,12 +126,14 @@ const MockSettingsServiceLayer = Layer.succeed(
     getValue: <T>(_section: string, _key: string, defaultValue?: T) =>
       Effect.try({
         try: () => defaultValue ?? undefined,
-        catch: () => new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
+        catch: () =>
+          new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
       }),
     setValue: <T>(_section: string, _key: string, _value: T) =>
       Effect.tryPromise({
         try: async () => undefined,
-        catch: () => new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
+        catch: () =>
+          new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
       }),
     getInstanceUrl: () => Effect.succeed('https://test.salesforce.com'),
     getAccessToken: () => Effect.succeed('mock-token'),

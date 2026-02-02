@@ -233,7 +233,7 @@ export {
 } from './vscode/extensionContextService';
 export { type FileWatcherService } from './vscode/fileWatcherService';
 export { type FsService } from './vscode/fsService';
-export { type MetadataDeleteService } from './core/metadataDeleteService';
+export { MetadataDeleteService, type MetadataDeleteService as MetadataDeleteServiceType } from './core/metadataDeleteService';
 export { type MetadataDescribeService } from './core/metadataDescribeService';
 export { MetadataDeployService, type MetadataDeployService as MetadataDeployServiceType } from './core/metadataDeployService';
 export { type MetadataRegistryService } from './core/metadataRegistryService';

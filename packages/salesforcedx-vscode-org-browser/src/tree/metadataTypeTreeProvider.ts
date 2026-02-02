@@ -53,7 +53,9 @@ const getChildrenOfTreeItem = (
 
     if (!element) {
       const types = yield* api.services.MetadataDescribeService.describe(refresh);
-      return types.toSorted((a: MetadataDescribeResultItem, b: MetadataDescribeResultItem) => (a.xmlName < b.xmlName ? -1 : 1)).map(mdapiDescribeToOrgBrowserNode);
+      return types
+        .toSorted((a: MetadataDescribeResultItem, b: MetadataDescribeResultItem) => (a.xmlName < b.xmlName ? -1 : 1))
+        .map(mdapiDescribeToOrgBrowserNode);
     }
     if (element.kind === 'customObject') {
       // assertion: componentName is not undefined for customObject nodes.  TODO: clever TS to enforce that

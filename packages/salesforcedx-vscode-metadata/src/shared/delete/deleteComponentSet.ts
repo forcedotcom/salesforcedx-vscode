@@ -33,12 +33,8 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 }) {
   const { componentSet } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [channelService, deleteService, componentSetService] = yield* Effect.all(
-    [
-      api.services.ChannelService,
-      api.services.MetadataDeleteService,
-      api.services.ComponentSetService
-    ],
+  const [channelService, componentSetService] = yield* Effect.all(
+    [api.services.ChannelService, api.services.ComponentSetService],
     { concurrency: 'unbounded' }
   );
 
@@ -47,7 +43,7 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
   yield* maybeCheckConflicts();
 
   // Mark components for deletion
-  const deleteSet = yield* deleteService.markComponentsForDeletion(componentSet);
+  const deleteSet = yield* api.services.MetadataDeleteService.markComponentsForDeletion(componentSet);
 
   yield* channelService.appendToChannel(`Deleting ${deleteSet.size} component${deleteSet.size === 1 ? '' : 's'}...`);
 
@@ -71,7 +67,7 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
   }
 
   // Delete local files after successful deploy
-  yield* deleteService.deleteLocalFiles(componentSet, result);
+  yield* api.services.MetadataDeleteService.deleteLocalFiles(componentSet, result);
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 
   const { isSDRFailure } = componentSetService;
