@@ -16,7 +16,6 @@ import {
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { FsService } from '../vscode/fsService';
-import { WorkspaceService } from '../vscode/workspaceService';
 import { isSourceComponent } from './componentSetService';
 import { MetadataRegistryService } from './metadataRegistryService';
 
@@ -28,79 +27,74 @@ export class MetadataDeleteError extends Schema.TaggedError<MetadataDeleteError>
 const isNonDecomposedCustomLabel = (component: MetadataComponent): boolean =>
   component.type.name === 'CustomLabel' && !component.type.strategies?.adapter;
 
-/** Mark components for deletion */
-const markComponentsForDeletion = (componentSet: ComponentSet) =>
-  Effect.gen(function* () {
-    const registry = yield* MetadataRegistryService.getRegistryAccess();
-    const deleteSet = new ComponentSet([], registry);
-
-    componentSet
-      .toArray()
-      .map(c => (isSourceComponent(c) ? c : new SourceComponent({ name: c.fullName, type: c.type })))
-      .map(c => {
-        deleteSet.add(c, DestructiveChangesType.POST);
-      });
-
-    // transfer the props from the original
-    deleteSet.projectDirectory = componentSet.projectDirectory;
-    deleteSet.apiVersion = componentSet.apiVersion;
-    deleteSet.sourceApiVersion = componentSet.sourceApiVersion;
-    yield* Effect.annotateCurrentSpan({ deleteSet: deleteSet.toArray().map(c => `${c.type.name}:${c.fullName}`) });
-    return deleteSet;
-  });
-
-/** Delete local files after successful deploy */
-const deleteLocalFiles = (componentSet: ComponentSet, deployResult: DeployResult) =>
-  Effect.gen(function* () {
-    // Only proceed if deploy was successful
-    if (deployResult.response?.status !== RequestStatus.Succeeded) {
-      return;
-    }
-
-    const fsService = yield* FsService;
-    const components = componentSet.getSourceComponents().toArray();
-
-    // Handle custom labels specially
-    const customLabels = components.filter(isNonDecomposedCustomLabel);
-    if (customLabels.length > 0 && isSourceComponent(customLabels[0]) && customLabels[0].xml) {
-      const { deleteCustomLabels } = yield* Effect.promise(() => import('@salesforce/source-tracking'));
-      yield* Effect.tryPromise({
-        try: () => deleteCustomLabels(customLabels[0].xml!, customLabels.filter(isSourceComponent)),
-        catch: error =>
-          new MetadataDeleteError({
-            message: `Failed to delete custom labels: ${error instanceof Error ? error.message : String(error)}`,
-            cause: error
-          })
-      });
-    }
-
-    // Delete other files
-    // Use safeDelete to handle cases where files might not exist (already deleted, wrong paths, etc.)
-
-    yield* Effect.all(
-      components
-        .filter(isSourceComponent)
-        .flatMap(c => [
-          ...(c.content ? [fsService.safeDelete(c.content, { recursive: true })] : []),
-          ...(c.xml && !isNonDecomposedCustomLabel(c) ? [fsService.safeDelete(c.xml)] : [])
-        ]),
-      { concurrency: 'unbounded' }
-    );
-  });
-
 export class MetadataDeleteService extends Effect.Service<MetadataDeleteService>()('MetadataDeleteService', {
   accessors: true,
-  dependencies: [
-    FsService.Default,
-    MetadataRegistryService.Default,
-    WorkspaceService.Default,
-    MetadataRegistryService.Default
-  ],
+  dependencies: [FsService.Default, MetadataRegistryService.Default],
   effect: Effect.gen(function* () {
-    const markComponentsForDeletionFn = Effect.fn('MetadataDeleteService.markComponentsForDeletion')(
-      markComponentsForDeletion
-    );
-    const deleteLocalFilesFn = Effect.fn('MetadataDeleteService.deleteLocalFiles')(deleteLocalFiles);
-    return { markComponentsForDeletion: markComponentsForDeletionFn, deleteLocalFiles: deleteLocalFilesFn } as const;
+    const registry = yield* MetadataRegistryService.getRegistryAccess();
+    const fsService = yield* FsService;
+
+    /** Mark components for deletion */
+    const markComponentsForDeletion = Effect.fn('MetadataDeleteService.markComponentsForDeletion')(function* (
+      componentSet: ComponentSet
+    ) {
+      const deleteSet = new ComponentSet([], registry);
+
+      componentSet
+        .toArray()
+        .map(c => (isSourceComponent(c) ? c : new SourceComponent({ name: c.fullName, type: c.type })))
+        .map(c => {
+          deleteSet.add(c, DestructiveChangesType.POST);
+        });
+
+      // transfer the props from the original
+      deleteSet.projectDirectory = componentSet.projectDirectory;
+      deleteSet.apiVersion = componentSet.apiVersion;
+      deleteSet.sourceApiVersion = componentSet.sourceApiVersion;
+      yield* Effect.annotateCurrentSpan({ deleteSet: deleteSet.toArray().map(c => `${c.type.name}:${c.fullName}`) });
+      return deleteSet;
+    });
+
+    /** Delete local files after successful deploy */
+    const deleteLocalFiles = Effect.fn('MetadataDeleteService.deleteLocalFiles')(function* (
+      componentSet: ComponentSet,
+      deployResult: DeployResult
+    ) {
+      // Only proceed if deploy was successful
+      if (deployResult.response?.status !== RequestStatus.Succeeded) {
+        return;
+      }
+
+      const components = componentSet.getSourceComponents().toArray();
+
+      // Handle custom labels specially
+      const customLabels = components.filter(isNonDecomposedCustomLabel);
+      if (customLabels.length > 0 && isSourceComponent(customLabels[0]) && customLabels[0].xml) {
+        const { deleteCustomLabels } = yield* Effect.promise(() => import('@salesforce/source-tracking'));
+        yield* Effect.tryPromise({
+          try: () => deleteCustomLabels(customLabels[0].xml!, customLabels.filter(isSourceComponent)),
+          catch: error =>
+            new MetadataDeleteError({
+              message: `Failed to delete custom labels: ${error instanceof Error ? error.message : String(error)}`,
+              cause: error
+            })
+        });
+      }
+
+      // Delete other files
+      // Use safeDelete to handle cases where files might not exist (already deleted, wrong paths, etc.)
+
+      yield* Effect.all(
+        components
+          .filter(isSourceComponent)
+          .flatMap(c => [
+            ...(c.content ? [fsService.safeDelete(c.content, { recursive: true })] : []),
+            ...(c.xml && !isNonDecomposedCustomLabel(c) ? [fsService.safeDelete(c.xml)] : [])
+          ]),
+        { concurrency: 'unbounded' }
+      );
+    });
+
+    return { markComponentsForDeletion, deleteLocalFiles } as const;
   })
 }) {}

@@ -42,9 +42,9 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     ChannelService.Default
   ],
   effect: Effect.gen(function* () {
+    const conn = yield* ConnectionService.getConnection();
     const performDescribe = (orgId: string) =>
       Effect.gen(function* () {
-        const conn = yield* ConnectionService.getConnection();
         const result = yield* Effect.tryPromise({
           try: () => conn.metadata.describe(),
           catch: e => {
@@ -82,7 +82,6 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     });
 
     const describe = Effect.fn('MetadataDescribeService.describe')(function* (forceRefresh = false) {
-      const conn = yield* ConnectionService.getConnection();
       const orgId = conn.getAuthInfoFields().orgId;
 
       if (!orgId) {
@@ -106,59 +105,53 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     const describeCustomObject = Effect.fn('MetadataDescribeService.describeCustomObject')(function* (
       objectName: string
     ) {
-      return yield* ConnectionService.getConnection().pipe(
-        Effect.flatMap(conn =>
-          Effect.tryPromise({
-            try: () => conn.sobject(objectName).describe(),
-            catch: e => {
-              const { cause } = unknownToErrorCause(e);
-              return new MetadataDescribeError({
-                cause,
-                function: 'describeCustomObject',
-                objectName,
-                message: `Failed to describe custom object ${objectName}: ${cause.message ?? String(cause)}`
-              });
-            }
-          })
-        ),
-        Effect.tap(result => Effect.log(result.fields.map(f => f.name).join(', '))),
-        Effect.withSpan('describeCustomObject', { attributes: { objectName } })
-      );
+      const result = yield* Effect.tryPromise({
+        try: () => conn.sobject(objectName).describe(),
+        catch: e => {
+          const { cause } = unknownToErrorCause(e);
+          return new MetadataDescribeError({
+            cause,
+            function: 'describeCustomObject',
+            objectName,
+            message: `Failed to describe custom object ${objectName}: ${cause.message ?? String(cause)}`
+          });
+        }
+      });
+
+      Effect.log(result.fields.map(f => f.name).join(', '));
+      return result;
     });
 
     const listMetadata = Effect.fn('MetadataDescribeService.listMetadata')(function* (type: string, folder?: string) {
-      return yield* ConnectionService.getConnection().pipe(
-        Effect.flatMap(conn =>
-          Effect.tryPromise({
-            try: () => conn.metadata.list({ type, ...(folder ? { folder } : {}) }),
-            catch: e => {
-              const { cause } = unknownToErrorCause(e);
-              return new ListMetadataError({
-                cause,
-                metadataType: type,
-                folder,
-                message: `Failed to list metadata type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
-              });
-            }
-          }).pipe(
-            Effect.tap(result => Effect.annotateCurrentSpan({ result })),
-            Effect.withSpan('listMetadata (API call)'),
-            Effect.map(ensureArray),
-            Effect.map(arr => arr.toSorted((a, b) => a.fullName.localeCompare(b.fullName))),
-            Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
-            Effect.mapError(e => {
-              const { cause } = unknownToErrorCause(e);
-              return new ListMetadataError({
-                cause,
-                metadataType: type,
-                folder,
-                message: `Failed to decode list metadata result for type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
-              });
-            })
-          )
-        ),
-        Effect.withSpan('listMetadata', { attributes: { metadataType: type, folder } })
+      return yield* Effect.tryPromise({
+        try: () => conn.metadata.list({ type, ...(folder ? { folder } : {}) }),
+        catch: e => {
+          const { cause } = unknownToErrorCause(e);
+          return new ListMetadataError({
+            cause,
+            metadataType: type,
+            folder,
+            message: `Failed to list metadata type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
+          });
+        }
+      }).pipe(
+        Effect.tap(result => Effect.annotateCurrentSpan({ result })),
+        Effect.withSpan('listMetadata (API call)'),
+        Effect.map(ensureArray),
+        Effect.map(arr => arr.toSorted((a, b) => a.fullName.localeCompare(b.fullName))),
+        Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
+        Effect.mapError(e => {
+          const { cause } = unknownToErrorCause(e);
+          return new ListMetadataError({
+            cause,
+            metadataType: type,
+            folder,
+            message: `Failed to decode list metadata result for type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
+          });
+        })
       );
+
+      // Effect.withSpan('listMetadata', { attributes: { metadataType: type, folder } })
     });
 
     return {

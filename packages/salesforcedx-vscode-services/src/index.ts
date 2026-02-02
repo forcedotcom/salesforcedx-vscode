@@ -23,10 +23,10 @@ import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
+import { globalLayers } from './layers';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
-import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
@@ -38,7 +38,6 @@ import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { registerCommand } from './vscode/registerCommand';
 import { SettingsService } from './vscode/settingsService';
-import { SettingsWatcherService } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
 
 export type SalesforceVSCodeServicesApi = {
@@ -142,24 +141,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   const errorHandlerWithChannel = Layer.provide(ErrorHandlerService.Default, ChannelService.Default);
 
   const requirements = Layer.mergeAll(
+    globalLayers,
     ChannelService.Default,
-    ComponentSetService.Default,
-    ConfigService.Default,
-    ConnectionService.Default,
     errorHandlerWithChannel,
-    ExtensionContextServiceLayer(context),
-    FileWatcherService.Default,
-    IndexedDBStorageServiceShared,
-    MetadataDeleteService.Default,
-    MetadataDeployService.Default,
-    MetadataRegistryService.Default,
-    MetadataRetrieveService.Default,
-    ProjectService.Default,
-    ServicesSdkLayer(),
-    SettingsService.Default,
-    SettingsWatcherService.Default,
-    SourceTrackingService.Default,
-    WorkspaceService.Default
+    ServicesSdkLayer()
   );
 
   // Build the layer with extensionScope - scoped services live until extension deactivates

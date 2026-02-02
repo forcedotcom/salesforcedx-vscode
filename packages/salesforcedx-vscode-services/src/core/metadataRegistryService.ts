@@ -11,21 +11,19 @@ import * as Schema from 'effect/Schema';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { unknownToErrorCause } from './shared';
 
-export class GetRegistryAccessError extends Schema.TaggedError<GetRegistryAccessError>()(
-  'GetRegistryAccessError',
-  {
-    cause: Schema.Unknown
-  }
-) {}
+export class GetRegistryAccessError extends Schema.TaggedError<GetRegistryAccessError>()('GetRegistryAccessError', {
+  cause: Schema.Unknown
+}) {}
 
 export class MetadataRegistryService extends Effect.Service<MetadataRegistryService>()('MetadataRegistryService', {
   accessors: true,
   dependencies: [WorkspaceService.Default],
   effect: Effect.gen(function* () {
+    const workspaceInfo = yield* WorkspaceService.getWorkspaceInfoOrThrow();
+
     /** Create a new RegistryAccess instance */
     const createRegistryAccess = () =>
       Effect.gen(function* () {
-        const workspaceInfo = yield* WorkspaceService.getWorkspaceInfoOrThrow();
         return yield* Effect.try({
           try: () => new RegistryAccess(undefined, workspaceInfo.fsPath),
           catch: error => new GetRegistryAccessError({ cause: unknownToErrorCause(error).cause })

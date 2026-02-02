@@ -14,6 +14,7 @@ import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { getCliId } from '../observability/cliTelemetry';
 import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
+import { ExtensionContextService } from '../vscode/extensionContextService';
 import { SettingsService } from '../vscode/settingsService';
 import { ConfigService } from './configService';
 import { getDefaultOrgRef } from './defaultOrgRef';
@@ -166,15 +167,16 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
   dependencies: [ConfigService.Default, SettingsService.Default],
   effect: Effect.gen(function* () {
     const configService = yield* ConfigService;
+    const settingsService = yield* SettingsService;
 
     /** Get a Connection to the target org */
     const getConnection = Effect.fn('ConnectionService.getConnection')(function* () {
       const conn = yield* process.env.ESBUILD_PLATFORM === 'web'
         ? Effect.gen(function* () {
             // Web environment - get connection from settings
-            const instanceUrl = yield* SettingsService.getInstanceUrl();
-            const accessToken = yield* SettingsService.getAccessToken();
-            const apiVersion = yield* SettingsService.getApiVersion();
+            const instanceUrl = yield* settingsService.getInstanceUrl();
+            const accessToken = yield* settingsService.getAccessToken();
+            const apiVersion = yield* settingsService.getApiVersion();
             return yield* connectionCache.get(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
@@ -261,8 +263,9 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
 
     const webUserId =
       existingOrgInfo.webUserId === UNAUTHENTICATED_USER && orgId && userId
-        ? // ooh, now we know who they are, so we set that
-          yield* setWebUserId(orgId, userId)
+        ? // ooh, now we know who they are, so we set that.
+          // Pipe the extension context in for ServicesExtension so we don't get context from another ext
+          yield* setWebUserId(orgId, userId).pipe(Effect.provide(ExtensionContextService.Default))
         : (existingOrgInfo.webUserId ?? UNAUTHENTICATED_USER);
 
     const updates = Object.fromEntries(
