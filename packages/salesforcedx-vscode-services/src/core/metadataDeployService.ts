@@ -35,7 +35,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
   ],
   effect: Effect.gen(function* () {
     const trackingService = yield* SourceTrackingService;
-    const connection = yield* ConnectionService.getConnection();
+    const connectionService = yield* ConnectionService;
     const project = yield* ProjectService.getSfProject();
     const workspaceService = yield* WorkspaceService;
 
@@ -81,6 +81,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
         { concurrency: 'unbounded' }
       );
 
+      const connection = yield* connectionService.getConnection();
       components.projectDirectory = project.getPath();
 
       const deployFiber = yield* Effect.fork(

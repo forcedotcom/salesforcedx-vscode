@@ -235,17 +235,15 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
     const orgIdChanged = existingOrgInfo.orgId !== orgId;
     const [{ username, user_id: userId }, devHubOrgId, cliId] = yield* Effect.all(
       [
-        orgIdChanged
+        orgIdChanged || existingOrgInfo.username === undefined || existingOrgInfo.userId === undefined
           ? Effect.tryPromise(() => conn.identity()).pipe(
               // best efforts, it's just telemetry
               Effect.catchAll(() => Effect.succeed({ username: undefined, user_id: undefined })),
               Effect.withSpan('getIdentity', { attributes: { refOrgId: existingOrgInfo.orgId, connOrgId: orgId } })
             )
           : Effect.succeed({ username: existingOrgInfo.username, user_id: existingOrgInfo.userId }),
-        existingOrgInfo.devHubOrgId
-          ? Effect.succeed(existingOrgInfo.devHubOrgId)
-          : Effect.flatten(getDevHubId(devHubUsername)),
-        existingOrgInfo.cliId ? Effect.succeed(existingOrgInfo.cliId) : Effect.flatten(getCliId())
+        existingOrgInfo.devHubOrgId ? Effect.succeed(existingOrgInfo.devHubOrgId) : getDevHubId(devHubUsername),
+        existingOrgInfo.cliId ? Effect.succeed(existingOrgInfo.cliId) : getCliId()
       ],
       { concurrency: 'unbounded' }
     );
@@ -309,7 +307,7 @@ const getDevHubId = (devHubUsername?: string) =>
   (devHubUsername
     ? createAuthInfoFromUsername(devHubUsername).pipe(Effect.map(authInfo => authInfo.getFields().orgId))
     : Effect.succeed(undefined)
-  ).pipe(Effect.cached, Effect.withSpan('getDevHubId'));
+  ).pipe(Effect.cached, Effect.withSpan('getDevHubId'), Effect.flatten);
 
 const createAuthInfoFromUsername = (username: string) =>
   Effect.tryPromise({

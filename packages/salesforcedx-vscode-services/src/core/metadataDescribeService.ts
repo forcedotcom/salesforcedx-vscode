@@ -42,9 +42,10 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     ChannelService.Default
   ],
   effect: Effect.gen(function* () {
-    const conn = yield* ConnectionService.getConnection();
+    const connectionService = yield* ConnectionService;
     const performDescribe = (orgId: string) =>
       Effect.gen(function* () {
+        const conn = yield* connectionService.getConnection();
         const result = yield* Effect.tryPromise({
           try: () => conn.metadata.describe(),
           catch: e => {
@@ -82,7 +83,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     });
 
     const describe = Effect.fn('MetadataDescribeService.describe')(function* (forceRefresh = false) {
-      const orgId = conn.getAuthInfoFields().orgId;
+      const orgId = (yield* connectionService.getConnection()).getAuthInfoFields().orgId;
 
       if (!orgId) {
         return yield* Effect.fail(
@@ -105,6 +106,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     const describeCustomObject = Effect.fn('MetadataDescribeService.describeCustomObject')(function* (
       objectName: string
     ) {
+      const conn = yield* connectionService.getConnection();
       const result = yield* Effect.tryPromise({
         try: () => conn.sobject(objectName).describe(),
         catch: e => {
@@ -123,6 +125,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     });
 
     const listMetadata = Effect.fn('MetadataDescribeService.listMetadata')(function* (type: string, folder?: string) {
+      const conn = yield* connectionService.getConnection();
       return yield* Effect.tryPromise({
         try: () => conn.metadata.list({ type, ...(folder ? { folder } : {}) }),
         catch: e => {

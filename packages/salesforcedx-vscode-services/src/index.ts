@@ -23,10 +23,10 @@ import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { SourceTrackingService } from './core/sourceTrackingService';
-import { globalLayers } from './layers';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
 import { updateTelemetryUserIds } from './observability/webUserId';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
+import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
 import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
@@ -38,6 +38,7 @@ import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
 import { registerCommand } from './vscode/registerCommand';
 import { SettingsService } from './vscode/settingsService';
+import { SettingsWatcherService } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
 
 export type SalesforceVSCodeServicesApi = {
@@ -101,14 +102,13 @@ export type { GetRegistryAccessError } from './core/metadataRegistryService';
 export type { FsServiceError } from './vscode/fsService';
 export type { SettingsError } from './vscode/settingsService';
 
-/** Effect that runs when the extension is activated */
+/** Effect that runs when the extension is activated after FS setup */
 const activationEffect = (context: vscode.ExtensionContext) =>
   Effect.gen(function* () {
     yield* (yield* ChannelService).appendToChannel(`${SERVICES_CHANNEL_NAME} extension is activating!`);
 
     if (process.env.ESBUILD_PLATFORM === 'web') {
       yield* Effect.forkIn(subscribeLifecycleWarnings(), yield* getExtensionScope());
-      yield* fileSystemSetup(context);
       yield* retrieveOnLoadEffect();
       yield* Effect.forkIn(watchSettingsService(), yield* getExtensionScope());
     }
@@ -125,7 +125,17 @@ const activationEffect = (context: vscode.ExtensionContext) =>
  * Consumers should get both from the API, not via direct imports.
  */
 export const activate = async (context: vscode.ExtensionContext): Promise<SalesforceVSCodeServicesApi> => {
+  const extensionScope = Effect.runSync(getExtensionScope());
+
   if (process.env.ESBUILD_PLATFORM === 'web') {
+    // first, before all other things, get the FS running.
+    await Effect.runPromise(
+      fileSystemSetup(context).pipe(
+        Effect.provide(ChannelService.Default),
+        Effect.provide(IndexedDBStorageServiceShared),
+        Scope.extend(extensionScope)
+      )
+    );
     // test-web has this on by default. vscode-dev does not
     const autoSave = vscode.workspace.getConfiguration('files').get<boolean>('autoSave', false);
     if (autoSave) {
@@ -135,10 +145,26 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     context.subscriptions.push(getWebAppInsightsReporter());
   }
 
-  const extensionScope = Effect.runSync(getExtensionScope());
-
   // ErrorHandlerService depends on ChannelService, so provide it explicitly
   const errorHandlerWithChannel = Layer.provide(ErrorHandlerService.Default, ChannelService.Default);
+
+  /** they're global in the sense that they should be the same for all extension */
+  const globalLayers = Layer.mergeAll(
+    ComponentSetService.Default,
+    ConfigService.Default,
+    ConnectionService.Default,
+    FileWatcherService.Default,
+    MetadataDeleteService.Default,
+    MetadataDeployService.Default,
+    MetadataRegistryService.Default,
+    MetadataRetrieveService.Default,
+    ProjectService.Default,
+    ServicesSdkLayer(),
+    SettingsService.Default,
+    SettingsWatcherService.Default,
+    SourceTrackingService.Default,
+    WorkspaceService.Default
+  );
 
   const requirements = Layer.mergeAll(
     globalLayers,
