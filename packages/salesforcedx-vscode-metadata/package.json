@@ -219,214 +219,214 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "sf.project.deploy.start",
+          "command": "sf.metadata.project.deploy.start",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
-          "command": "sf.project.deploy.start.ignore.conflicts",
+          "command": "sf.metadata.project.deploy.start.ignore.conflicts",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
-          "command": "sf.project.retrieve.start",
+          "command": "sf.metadata.project.retrieve.start",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
-          "command": "sf.view.all.changes",
+          "command": "sf.metadata.view.all.changes",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
-          "command": "sf.view.local.changes",
+          "command": "sf.metadata.view.local.changes",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
-          "command": "sf.view.remote.changes",
+          "command": "sf.metadata.view.remote.changes",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
-          "command": "sf.source.tracking.reset.remote",
+          "command": "sf.metadata.source.tracking.reset.remote",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
-          "command": "sf.apex.generate.class",
+          "command": "sf.metadata.apex.generate.class",
           "when": "salesforcedx-vscode-metadata.showSharedCommands"
         },
         {
-          "command": "sf.delete.source",
+          "command": "sf.metadata.delete.source",
           "when": "never"
         },
         {
-          "command": "sf.delete.source.current.file",
+          "command": "sf.metadata.delete.source.current.file",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sf.deploy.source.path",
+          "command": "sf.metadata.deploy.source.path",
           "when": "never"
         },
         {
-          "command": "sf.deploy.active.editor",
+          "command": "sf.metadata.deploy.active.editor",
           "when": "salesforcedx-vscode-metadata.showSharedCommands&& sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sf.deploy.in.manifest",
+          "command": "sf.metadata.deploy.in.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sf.project.retrieve.start.ignore.conflicts",
+          "command": "sf.metadata.project.retrieve.start.ignore.conflicts",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:target_org_has_change_tracking"
         },
         {
-          "command": "sf.retrieve.source.path",
+          "command": "sf.metadata.retrieve.source.path",
           "when": "never"
         },
         {
-          "command": "sf.retrieve.current.source.file",
+          "command": "sf.metadata.retrieve.current.source.file",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sf.retrieve.in.manifest",
+          "command": "sf.metadata.retrieve.in.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sf.project.generate.manifest",
+          "command": "sf.metadata.project.generate.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         }
       ],
       "editor/context": [
         {
-          "command": "sf.delete.source",
+          "command": "sf.metadata.delete.source",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sf.deploy.source.path",
+          "command": "sf.metadata.deploy.source.path",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sf.deploy.in.manifest",
+          "command": "sf.metadata.deploy.in.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sf.retrieve.source.path",
+          "command": "sf.metadata.retrieve.source.path",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sf.retrieve.in.manifest",
+          "command": "sf.metadata.retrieve.in.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sf.project.generate.manifest",
+          "command": "sf.metadata.project.generate.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sf.source.diff",
+          "command": "sf.metadata.source.diff",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         }
       ],
       "explorer/context": [
         {
-          "command": "sf.delete.source",
+          "command": "sf.metadata.delete.source",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sf.deploy.source.path",
+          "command": "sf.metadata.deploy.source.path",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sf.deploy.in.manifest",
+          "command": "sf.metadata.deploy.in.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sf.retrieve.source.path",
+          "command": "sf.metadata.retrieve.source.path",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sf.retrieve.in.manifest",
+          "command": "sf.metadata.retrieve.in.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId == 'forcesourcemanifest'"
         },
         {
-          "command": "sf.project.generate.manifest",
+          "command": "sf.metadata.project.generate.manifest",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:project_opened && resourceLangId != 'forcesourcemanifest'"
         },
         {
-          "command": "sf.source.diff",
+          "command": "sf.metadata.source.diff",
           "when": "salesforcedx-vscode-metadata.showSharedCommands && sf:has_target_org && resourceLangId != 'forcesourcemanifest'"
         }
       ]
     },
     "commands": [
       {
-        "command": "sf.project.deploy.start",
+        "command": "sf.metadata.project.deploy.start",
         "title": "%project_deploy_start_default_org_text%"
       },
       {
-        "command": "sf.project.deploy.start.ignore.conflicts",
+        "command": "sf.metadata.project.deploy.start.ignore.conflicts",
         "title": "%project_deploy_start_ignore_conflicts_default_org_text%"
       },
       {
-        "command": "sf.project.retrieve.start",
+        "command": "sf.metadata.project.retrieve.start",
         "title": "%project_retrieve_start_default_org_text%"
       },
       {
-        "command": "sf.view.all.changes",
+        "command": "sf.metadata.view.all.changes",
         "title": "%view_all_changes_text%"
       },
       {
-        "command": "sf.view.local.changes",
+        "command": "sf.metadata.view.local.changes",
         "title": "%view_local_changes_text%"
       },
       {
-        "command": "sf.view.remote.changes",
+        "command": "sf.metadata.view.remote.changes",
         "title": "%view_remote_changes_text%"
       },
       {
-        "command": "sf.source.tracking.reset.remote",
+        "command": "sf.metadata.source.tracking.reset.remote",
         "title": "%reset_remote_tracking_text%"
       },
       {
-        "command": "sf.apex.generate.class",
+        "command": "sf.metadata.apex.generate.class",
         "title": "%apex_generate_class_text%"
       },
       {
-        "command": "sf.delete.source",
+        "command": "sf.metadata.delete.source",
         "title": "%delete_source_text%"
       },
       {
-        "command": "sf.delete.source.current.file",
+        "command": "sf.metadata.delete.source.current.file",
         "title": "%delete_source_text%"
       },
       {
-        "command": "sf.deploy.source.path",
+        "command": "sf.metadata.deploy.source.path",
         "title": "%deploy_this_source_text%"
       },
       {
-        "command": "sf.deploy.in.manifest",
+        "command": "sf.metadata.deploy.in.manifest",
         "title": "%deploy_in_manifest_text%"
       },
       {
-        "command": "sf.deploy.active.editor",
+        "command": "sf.metadata.deploy.active.editor",
         "title": "%deploy_this_source_text%"
       },
       {
-        "command": "sf.project.retrieve.start.ignore.conflicts",
+        "command": "sf.metadata.project.retrieve.start.ignore.conflicts",
         "title": "%project_retrieve_start_ignore_conflicts_default_org_text%"
       },
       {
-        "command": "sf.retrieve.source.path",
+        "command": "sf.metadata.retrieve.source.path",
         "title": "%retrieve_this_source_text%"
       },
       {
-        "command": "sf.retrieve.current.source.file",
+        "command": "sf.metadata.retrieve.current.source.file",
         "title": "%retrieve_this_source_text%"
       },
       {
-        "command": "sf.retrieve.in.manifest",
+        "command": "sf.metadata.retrieve.in.manifest",
         "title": "%retrieve_in_manifest_text%"
       },
       {
-        "command": "sf.project.generate.manifest",
+        "command": "sf.metadata.project.generate.manifest",
         "title": "%project_generate_manifest_text%"
       },
       {
-        "command": "sf.source.diff",
+        "command": "sf.metadata.source.diff",
         "title": "%diff_source_against_org_text%"
       }
     ]

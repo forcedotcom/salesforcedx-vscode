@@ -84,11 +84,11 @@ export const separateChanges = (status: StatusOutputRow[]): SourceTrackingDetail
 /** Get command based on counts.  If there are only local or remote changes, it'll do that.  If there are both, it'll open the changes */
 export const getCommand = (counts: SourceTrackingCounts): string | undefined => {
   if (counts.remote > 0 && counts.local === 0 && counts.conflicts === 0) {
-    return 'sf.project.retrieve.start';
+    return 'sf.metadata.project.retrieve.start';
   } else if (counts.local > 0 && counts.remote === 0 && counts.conflicts === 0) {
-    return 'sf.project.deploy.start';
+    return 'sf.metadata.project.deploy.start';
   } else if ((counts.remote > 0 && counts.local > 0) || counts.conflicts > 0) {
-    return 'sf.view.all.changes';
+    return 'sf.metadata.view.all.changes';
   }
   return undefined;
 };

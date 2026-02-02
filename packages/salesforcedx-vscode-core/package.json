@@ -14,7 +14,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "65.15.2",
+  "version": "65.16.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -268,7 +268,7 @@
         },
         {
           "command": "sf.diff",
-          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && sf:has_target_org"
+          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:in_package_directories && sf:has_target_org  && sf:show_shared_commands"
         },
         {
           "command": "sf.launch.apex.replay.debugger.with.current.file",
@@ -294,7 +294,7 @@
         },
         {
           "command": "sf.folder.diff",
-          "when": "explorerResourceIsFolder && sf:project_opened && sf:has_target_org"
+          "when": "explorerResourceIsFolder && sf:project_opened && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.analytics.generate.template",
@@ -346,7 +346,7 @@
         },
         {
           "command": "sf.diff",
-          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org"
+          "when": "!explorerResourceIsFolder && sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:has_target_org && sf:show_shared_commands"
         },
         {
           "command": "sf.retrieve.source.path",
@@ -370,7 +370,7 @@
         },
         {
           "command": "sf.project.generate.manifest",
-          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest'"
+          "when": "sf:project_opened && resourceLangId != 'forcesourcemanifest' && sf:show_shared_commands"
         },
         {
           "command": "sf.rename.lightning.component",

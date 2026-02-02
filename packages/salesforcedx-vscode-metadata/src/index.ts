@@ -23,6 +23,7 @@ import { projectRetrieveStartEffect } from './commands/retrieveStart/projectRetr
 import { viewChangesEffect } from './commands/showSourceTrackingDetails';
 import { sourceDiffEffect } from './commands/sourceDiff';
 import { DEPLOY_ON_SAVE_ENABLED, EXTENSION_NAME, METADATA_CONFIG_SECTION } from './constants';
+import { getShowSharedCommands, watchUseMetadataExtensionCommands } from './services/configWatcher';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
 import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { createSourceTrackingStatusBar } from './statusBar/sourceTrackingStatusBar';
@@ -36,70 +37,78 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
 export const deactivate = async (): Promise<void> =>
   Effect.runPromise(deactivateEffect().pipe(Effect.provide(AllServicesLayer)));
 
-/** Check if this extension should register shared commands (when core is not installed or config enables it) */
-const shouldRegisterSharedCommands = (): boolean => {
-  const coreExtension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-core');
-  const useMetadataCommands = vscode.workspace
-    .getConfiguration('salesforcedx-vscode-core')
-    .get<boolean>('useMetadataExtensionCommands', false);
-  return !coreExtension || useMetadataCommands;
-};
-
 /** Activate the metadata extension */
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (_context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Metadata extension activating');
 
-  // Register shared commands only if core extension is not installed or config enables it
-  if (shouldRegisterSharedCommands()) {
-    yield* Effect.promise(() =>
-      vscode.commands.executeCommand('setContext', 'salesforcedx-vscode-metadata.showSharedCommands', true)
-    );
+  // you don't have the core ext (ex: web) OR you have it and have the setting to use the metadata extension commands
+  yield* Effect.promise(() =>
+    vscode.commands.executeCommand('setContext', `${EXTENSION_NAME}.showSharedCommands`, getShowSharedCommands())
+  );
 
-    yield* svc.appendToChannel('Registering shared commands (core extension not present or config enabled)');
-    yield* api.services.registerCommand('sf.apex.generate.class', createApexClass);
-    yield* api.services.registerCommand('sf.retrieve.in.manifest', retrieveManifest);
+  yield* Effect.all(
+    [
+      svc.appendToChannel('Registering metadata commands'),
+      api.services.registerCommand('sf.metadata.apex.generate.class', createApexClass),
+      api.services.registerCommand('sf.metadata.retrieve.in.manifest', retrieveManifest),
+      api.services.registerCommand('sf.metadata.project.deploy.start', () => projectDeployStart(false)),
+      api.services.registerCommand('sf.metadata.project.deploy.start.ignore.conflicts', () => projectDeployStart(true)),
+      api.services.registerCommand('sf.metadata.project.retrieve.start', () => projectRetrieveStartEffect(false)),
+      api.services.registerCommand('sf.metadata.project.retrieve.start.ignore.conflicts', () =>
+        projectRetrieveStartEffect(true)
+      ),
+      api.services.registerCommand('sf.metadata.view.all.changes', () =>
+        viewChangesEffect({ local: true, remote: true })
+      ),
+      api.services.registerCommand('sf.metadata.view.local.changes', () =>
+        viewChangesEffect({ local: true, remote: false })
+      ),
+      api.services.registerCommand('sf.metadata.view.remote.changes', () =>
+        viewChangesEffect({ local: false, remote: true })
+      ),
+      api.services.registerCommand('sf.metadata.source.tracking.reset.remote', () => resetRemoteTrackingEffect()),
+      api.services.registerCommand('sf.metadata.delete.source', (sourceUri?: URI, uris?: URI[]) =>
+        deleteSourcePathsEffect(sourceUri, uris)
+      ),
+      api.services.registerCommand('sf.metadata.delete.source.current.file', () =>
+        deleteSourcePathsEffect(undefined, undefined)
+      ),
+      api.services.registerCommand('sf.metadata.deploy.source.path', (sourceUri: URI, uris: URI[] = []) =>
+        deploySourcePathsEffect(sourceUri, uris)
+      ),
+      api.services.registerCommand('sf.metadata.deploy.active.editor', () => deployActiveEditorEffect()),
+      api.services.registerCommand('sf.metadata.deploy.in.manifest', (manifestUri?: URI) =>
+        deployManifestEffect(manifestUri)
+      ),
+      api.services.registerCommand('sf.metadata.retrieve.source.path', (sourceUri?: URI, uris?: URI[]) =>
+        retrieveSourcePathsEffect(sourceUri, uris)
+      ),
+      api.services.registerCommand('sf.metadata.retrieve.current.source.file', () =>
+        retrieveSourcePathsEffect(undefined, undefined)
+      ),
+      api.services.registerCommand('sf.metadata.project.generate.manifest', (sourceUri?: URI, uris?: URI[]) =>
+        generateManifestEffect(sourceUri, uris)
+      ),
+      api.services.registerCommand('sf.metadata.source.diff', (sourceUri?: URI, uris?: URI[]) =>
+        sourceDiffEffect(sourceUri, uris)
+      )
+    ],
+    { concurrency: 'unbounded' }
+  );
 
-    yield* api.services.registerCommand('sf.project.deploy.start', () => projectDeployStart(false));
-    yield* api.services.registerCommand('sf.project.deploy.start.ignore.conflicts', () => projectDeployStart(true));
-    yield* api.services.registerCommand('sf.project.retrieve.start', () => projectRetrieveStartEffect(false));
-    yield* api.services.registerCommand('sf.project.retrieve.start.ignore.conflicts', () =>
-      projectRetrieveStartEffect(true)
-    );
-    yield* api.services.registerCommand('sf.view.all.changes', () => viewChangesEffect({ local: true, remote: true }));
-    yield* api.services.registerCommand('sf.view.local.changes', () => viewChangesEffect({ local: true, remote: false }));
-    yield* api.services.registerCommand('sf.view.remote.changes', () => viewChangesEffect({ local: false, remote: true }));
-    yield* api.services.registerCommand('sf.source.tracking.reset.remote', () => resetRemoteTrackingEffect());
-    yield* api.services.registerCommand('sf.delete.source', (sourceUri?: URI, uris?: URI[]) =>
-      deleteSourcePathsEffect(sourceUri, uris)
-    );
-    yield* api.services.registerCommand('sf.delete.source.current.file', () => deleteSourcePathsEffect(undefined, undefined));
-    yield* api.services.registerCommand('sf.deploy.source.path', (sourceUri: URI, uris: URI[] = []) =>
-      deploySourcePathsEffect(sourceUri, uris)
-    );
-    yield* api.services.registerCommand('sf.deploy.active.editor', () => deployActiveEditorEffect());
-    yield* api.services.registerCommand('sf.deploy.in.manifest', (manifestUri?: URI) => deployManifestEffect(manifestUri));
-    yield* api.services.registerCommand('sf.retrieve.source.path', (sourceUri?: URI, uris?: URI[]) =>
-      retrieveSourcePathsEffect(sourceUri, uris)
-    );
-    yield* api.services.registerCommand('sf.retrieve.current.source.file', () => retrieveSourcePathsEffect(undefined, undefined));
-    yield* api.services.registerCommand('sf.project.generate.manifest', (sourceUri?: URI, uris?: URI[]) =>
-      generateManifestEffect(sourceUri, uris)
-    );
-    yield* api.services.registerCommand('sf.source.diff', (sourceUri?: URI, uris?: URI[]) =>
-      sourceDiffEffect(sourceUri, uris)
-    );
-
-    if (process.env.ESBUILD_PLATFORM === 'web') {
-      vscode.workspace.getConfiguration(METADATA_CONFIG_SECTION).update(DEPLOY_ON_SAVE_ENABLED, true);
-    }
-    // Start deploy on save service only if this extension handles shared commands
-    yield* Effect.forkIn(createDeployOnSaveService(), yield* getExtensionScope());
-
-    // Register source tracking status bar
-    yield* Effect.forkIn(createSourceTrackingStatusBar(), yield* getExtensionScope());
+  if (process.env.ESBUILD_PLATFORM === 'web') {
+    vscode.workspace.getConfiguration(METADATA_CONFIG_SECTION).update(DEPLOY_ON_SAVE_ENABLED, true);
   }
+  yield* Effect.all([
+    // Start deploy on save service
+    Effect.forkIn(createDeployOnSaveService(), yield* getExtensionScope()),
+    // Register source tracking status bar
+    Effect.forkIn(createSourceTrackingStatusBar(), yield* getExtensionScope()),
+    // Watch for config changes to update showSharedCommands context
+    Effect.forkIn(watchUseMetadataExtensionCommands(), yield* getExtensionScope())
+  ]);
 
   yield* svc.appendToChannel('Salesforce Metadata activation complete.');
 });

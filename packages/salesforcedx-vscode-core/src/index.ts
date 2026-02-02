@@ -90,13 +90,11 @@ import { reportExtensionPackStatus } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel } from './util';
 import { getUserId, getAuthFields } from './util/orgAuthInfoExtensions';
 
-/** Commands shared with metadata extension - only register if config doesn't delegate to metadata extension */
-const registerSharedCommands = (): vscode.Disposable => {
-  const useMetadataCommands = salesforceCoreSettings.getUseMetadataExtensionCommands();
-  if (useMetadataCommands) {
-    return vscode.Disposable.from();
-  }
-  return vscode.Disposable.from(
+/** Commands shared with metadata extension */
+const registerSharedCommands = (): vscode.Disposable =>
+  vscode.Disposable.from(
+    vscode.commands.registerCommand('sf.deploy.current.source.file', deploySourcePaths),
+    vscode.commands.registerCommand('sf.deploy.multiple.source.paths', deploySourcePaths),
     vscode.commands.registerCommand('sf.project.deploy.start', async (isDeployOnSave: boolean) =>
       projectDeployStart(isDeployOnSave, false)
     ),
@@ -115,21 +113,18 @@ const registerSharedCommands = (): vscode.Disposable => {
     vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest),
     vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths),
     vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
-    vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest)
+    vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest),
+    vscode.commands.registerCommand('sf.project.generate.manifest', projectGenerateManifest)
   );
-};
 
 /** Customer-facing commands */
 const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable =>
   vscode.Disposable.from(
-    vscode.commands.registerCommand('sf.project.generate.manifest', projectGenerateManifest),
     vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
     vscode.commands.registerCommand('sf.folder.diff', sourceFolderDiff),
     vscode.commands.registerCommand('sf.diff', sourceDiff),
     vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
     vscode.commands.registerCommand('sf.internal.refreshsobjects', refreshSObjects),
-    vscode.commands.registerCommand('sf.deploy.current.source.file', deploySourcePaths),
-    vscode.commands.registerCommand('sf.deploy.multiple.source.paths', deploySourcePaths),
     vscode.commands.registerCommand('sf.task.stop', taskStop),
     vscode.commands.registerCommand('sf.apex.generate.unit.test.class', apexGenerateUnitTestClass),
     vscode.commands.registerCommand('sf.analytics.generate.template', analyticsGenerateTemplate),
@@ -213,11 +208,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   // Set internal dev context
   const internalDev = salesforceCoreSettings.getInternalDev();
-  void vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
+  await vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
 
   // Set shared commands visibility context (inverse of useMetadataExtensionCommands)
   const useMetadataCommands = salesforceCoreSettings.getUseMetadataExtensionCommands();
-  void vscode.commands.executeCommand('setContext', 'sf:show_shared_commands', !useMetadataCommands);
+  await vscode.commands.executeCommand('setContext', 'sf:show_shared_commands', !useMetadataCommands);
   // Set shared Auth State
   const sharedAuthState = SharedAuthState.getInstance();
 
