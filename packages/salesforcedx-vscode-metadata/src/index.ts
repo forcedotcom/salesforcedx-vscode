@@ -49,7 +49,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   );
 
   // Create registerCommand pre-loaded with AllServicesLayer for proper tracing
-  const registerCommand = api.services.createRegisterCommand(AllServicesLayer);
+  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
 
   yield* Effect.all(
     [

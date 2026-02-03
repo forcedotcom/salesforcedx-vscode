@@ -58,8 +58,7 @@ export const retrieveEffect = (
 
     return result;
   }).pipe(
-    // Note: Don't provide AllServicesLayer here - the runtime from registerCommand already has it.
-    // Adding it here would create a separate tracer context, breaking span hierarchy.
+    // Note: Don't provide AllServicesLayer here - registerCommandWithLayer already provides it.
     Effect.catchAll(error =>
       Effect.sync(() => {
         void vscode.window.showErrorMessage(nls.localize('retrieve_failed', String(error)));

@@ -45,14 +45,17 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   // Register the tree provider
   vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider);
 
+  // Create registerCommand pre-loaded with AllServicesLayer for proper tracing
+  const registerCommand = api.services.registerCommandWithLayer(AllServicesLayer);
+
   // Register commands
-  yield* api.services.registerCommand(`${TREE_VIEW_ID}.refreshType`, (node: OrgBrowserTreeItem) =>
+  yield* registerCommand(`${TREE_VIEW_ID}.refreshType`, (node: OrgBrowserTreeItem) =>
     Effect.promise(() => treeProvider.refreshType(node))
   );
-  yield* api.services.registerCommand(`${TREE_VIEW_ID}.collapseAll`, () =>
+  yield* registerCommand(`${TREE_VIEW_ID}.collapseAll`, () =>
     Effect.promise(() => vscode.commands.executeCommand(`workbench.actions.treeView.${TREE_VIEW_ID}.collapseAll`))
   );
-  yield* api.services.registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, (node: OrgBrowserTreeItem) =>
+  yield* registerCommand(`${TREE_VIEW_ID}.retrieveMetadata`, (node: OrgBrowserTreeItem) =>
     retrieveEffect(node, treeProvider).pipe(
       Effect.tap(result =>
         typeof result === 'string'

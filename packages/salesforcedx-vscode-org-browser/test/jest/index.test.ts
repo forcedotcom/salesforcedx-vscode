@@ -222,6 +222,7 @@ const mockServicesApi = {
     MetadataRegistryService: {} as typeof MetadataRegistryService,
     MetadataRetrieveService: {} as typeof MetadataRetrieveService,
     ProjectService: {} as typeof ProjectService,
+    registerCommandWithLayer: () => () => Effect.void,
     SdkLayerFor: {} as typeof SdkLayerFor,
     SettingsService: {} as typeof SettingsService,
     SourceTrackingService: {} as typeof SourceTrackingService,
