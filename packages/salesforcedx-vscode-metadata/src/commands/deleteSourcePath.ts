@@ -11,7 +11,6 @@ import type { SourceTrackingConflictError } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
 import { deleteComponentSet } from '../shared/delete/deleteComponentSet';
 import { type DeleteSourceFailedError } from '../shared/delete/deleteErrors';
 import { formatDeployOutput } from '../shared/deploy/formatDeployOutput';
@@ -97,6 +96,3 @@ export const deleteSourcePathsEffect = Effect.fn('deleteSourcePaths')(function* 
     })
   );
 });
-
-export const deleteSourcePaths = async (sourceUri: URI | undefined, uris: URI[] | undefined): Promise<void> =>
-  deleteSourcePathsEffect(sourceUri, uris).pipe(Effect.provide(AllServicesLayer), Effect.runPromise);

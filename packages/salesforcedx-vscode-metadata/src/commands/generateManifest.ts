@@ -11,7 +11,6 @@ import { parse } from 'node:path';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
 
 const DEFAULT_MANIFEST = 'package.xml';
 
@@ -118,20 +117,3 @@ export const generateManifestEffect = Effect.fn('generateManifest')(function* (
   // Save the manifest file
   yield* saveManifestFile(workspaceInfo.uri, fileName, packageXML);
 });
-
-/** Generate manifest from source paths */
-export const generateManifest = async (sourceUri: URI | undefined, uris: URI[] | undefined): Promise<void> => {
-  await Effect.runPromise(
-    generateManifestEffect(sourceUri, uris).pipe(
-      Effect.tapError(error => Effect.sync(() => console.error(JSON.stringify(error, null, 2)))),
-      Effect.catchAll(error =>
-        Effect.promise(() =>
-          vscode.window.showErrorMessage(
-            nls.localize('generate_manifest_failed', error instanceof Error ? error.message : JSON.stringify(error))
-          )
-        ).pipe(Effect.as(undefined))
-      ),
-      Effect.provide(AllServicesLayer)
-    )
-  );
-};

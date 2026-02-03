@@ -9,7 +9,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
 
 /** Retrieve from the default org using a a manifest file*/
@@ -32,4 +31,4 @@ export const retrieveManifest = (manifestUri?: URI) =>
     );
 
     yield* retrieveComponentSet({ componentSet, ignoreConflicts: false });
-  }).pipe(Effect.withSpan('retrieveManifest', { attributes: { manifestUri } }), Effect.provide(AllServicesLayer));
+  });

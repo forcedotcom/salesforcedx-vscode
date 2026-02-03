@@ -9,7 +9,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import { nls } from '../../messages';
-import { AllServicesLayer } from '../../services/extensionProvider';
 import { retrieveComponentSet } from '../../shared/retrieve/retrieveComponentSet';
 
 // Type guard function to ensure result has expected shape
@@ -71,7 +70,4 @@ export const projectRetrieveStartEffect = (ignoreConflicts: boolean) =>
     }
 
     yield* retrieveComponentSet({ componentSet, ignoreConflicts: true });
-  }).pipe(
-    Effect.withSpan('projectRetrieveStart', { attributes: { ignoreConflicts } }),
-    Effect.provide(AllServicesLayer)
-  );
+  });

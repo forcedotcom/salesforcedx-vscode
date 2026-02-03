@@ -12,7 +12,6 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils, URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
 
 export type CreateApexClassParams = {
   readonly name?: string;
@@ -35,7 +34,6 @@ const fromConnection = Effect.fn('getApiVersion.fromConnection')(function* () {
 const getApiVersion = Effect.fn('getApiVersion')(function* (project: SfProject) {
   return yield* fromProject(project).pipe(
     Effect.orElse(() => fromConnection()),
-    Effect.provide(AllServicesLayer),
     Effect.catchAll(() => Effect.succeed('65.0'))
   );
 });
@@ -161,10 +159,7 @@ export const createApexClass = (commandParams?: CreateApexClassParams) =>
     ]);
 
     return outputDir ? yield* createFiles(className, outputDir, apiVersion) : yield* Effect.succeed(undefined);
-  }).pipe(
-    Effect.provide(AllServicesLayer),
-    Effect.catchTag('UserCancelledOverwriteError', () => Effect.succeed(undefined)) // it's fine, they meant to
-  );
+  }).pipe(Effect.catchTag('UserCancelledOverwriteError', () => Effect.succeed(undefined)));
 
 const getMetaContent = (apiVersion: string) =>
   // Create meta file

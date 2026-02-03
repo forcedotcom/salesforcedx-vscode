@@ -8,8 +8,6 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
-import { AllServicesLayer } from '../services/extensionProvider';
 
 class ResetRemoteTrackingError extends Data.TaggedError('ResetRemoteTrackingError')<{
   readonly cause: Error;
@@ -38,18 +36,3 @@ export const resetRemoteTrackingEffect = Effect.fn('resetRemoteTracking')(functi
     `Successfully reset remote tracking. ${resetCount} file${resetCount === 1 ? '' : 's'} updated.`
   );
 });
-
-/** Reset remote tracking so remote changes go to zero and only changes after this point are tracked */
-export const resetRemoteTracking = async (): Promise<void> =>
-  resetRemoteTrackingEffect().pipe(
-    Effect.catchTag('ResetRemoteTrackingError', (error: ResetRemoteTrackingError) =>
-      Effect.promise(() => vscode.window.showErrorMessage(error.cause.message)).pipe(Effect.as(undefined))
-    ),
-    Effect.catchAll(error =>
-      Effect.promise(() => vscode.window.showErrorMessage(error instanceof Error ? error.message : String(error))).pipe(
-        Effect.as(undefined)
-      )
-    ),
-    Effect.provide(AllServicesLayer),
-    Effect.runPromise
-  );

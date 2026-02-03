@@ -7,7 +7,6 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { AllServicesLayer } from '../services/extensionProvider';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
 /** Deploy local changes to the default org */
@@ -19,4 +18,4 @@ export const projectDeployStart = (ignoreConflicts = false) =>
     );
 
     yield* deployComponentSet({ componentSet });
-  }).pipe(Effect.withSpan('projectDeployStart', { attributes: { ignoreConflicts } }), Effect.provide(AllServicesLayer));
+  });

@@ -9,7 +9,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as Effect from 'effect/Effect';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
 import { separateChanges } from '../statusBar/helpers';
 
 type ViewChangesOptions = { local: boolean; remote: boolean };
@@ -64,15 +63,3 @@ export const viewChangesEffect = Effect.fn('viewChanges')(function* (options: Vi
   yield* channelService.appendToChannel(output);
   yield* Effect.sync(() => channel.show());
 });
-
-/** Show detailed source tracking changes in the output channel */
-export const viewAllChanges = async (): Promise<void> =>
-  Effect.runPromise(viewChangesEffect({ local: true, remote: true }).pipe(Effect.provide(AllServicesLayer)));
-
-/** Show local changes only in the output channel */
-export const viewLocalChanges = async (): Promise<void> =>
-  Effect.runPromise(viewChangesEffect({ local: true, remote: false }).pipe(Effect.provide(AllServicesLayer)));
-
-/** Show remote changes only in the output channel */
-export const viewRemoteChanges = async (): Promise<void> =>
-  Effect.runPromise(viewChangesEffect({ local: false, remote: true }).pipe(Effect.provide(AllServicesLayer)));

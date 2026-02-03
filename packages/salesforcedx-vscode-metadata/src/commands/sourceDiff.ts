@@ -12,7 +12,6 @@ import type { FsService } from 'salesforcedx-vscode-services/src/vscode/fsServic
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
 import { diffComponentSet } from '../shared/diff/diffComponentSet';
 
 // TODO: this might belong on fsService as an option for readDirectory
@@ -94,21 +93,3 @@ export const sourceDiffEffect = Effect.fn('sourceDiff')(function* (
     )
   );
 });
-
-/** Diff source paths from the default org */
-// When a single file is selected and "Diff Source Against Org" is executed,
-// sourceUri is passed, and the uris array contains a single element, the same
-// path as sourceUri.
-//
-// When multiple files are selected and "Diff Source Against Org" is executed,
-// sourceUri is passed, and is the path to the first selected file, and the uris
-// array contains an array of all paths that were selected.
-//
-// When editing a file and "Diff This Source Against Org" is executed,
-// sourceUri is passed, but uris is undefined.
-
-export const sourceDiff = async (sourceUri: URI | undefined, uris: URI[] | undefined): Promise<void> =>
-  sourceDiffEffect(sourceUri, uris)
-    .pipe(Effect.withSpan('sourceDiff', { attributes: { sourceUri, uris } }))
-    .pipe(Effect.provide(AllServicesLayer))
-    .pipe(Effect.runPromise);

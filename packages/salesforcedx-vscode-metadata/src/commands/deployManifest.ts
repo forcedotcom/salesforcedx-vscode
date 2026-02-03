@@ -9,7 +9,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
 export const deployManifestEffect = (manifestUri?: URI) =>
@@ -31,4 +30,4 @@ export const deployManifestEffect = (manifestUri?: URI) =>
     );
 
     yield* deployComponentSet({ componentSet });
-  }).pipe(Effect.withSpan('deployManifest', { attributes: { manifestUri } }), Effect.provide(AllServicesLayer));
+  });

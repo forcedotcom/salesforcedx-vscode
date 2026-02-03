@@ -10,7 +10,6 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
 import { retrieveComponentSet } from '../shared/retrieve/retrieveComponentSet';
 
 const displayErrorMessage = Effect.fn('displayErrorMessage')(function* (msg: string) {
@@ -59,6 +58,5 @@ export const retrieveSourcePathsEffect = (sourceUri: URI | undefined, uris: URI[
   }).pipe(
     Effect.catchTag('SourceTrackingConflictError', error =>
       displayErrorMessage(nls.localize('retrieve_source_conflicts_detected', error.conflicts.join(',')))
-    ),
-    Effect.provide(AllServicesLayer)
+    )
   );

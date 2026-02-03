@@ -10,7 +10,6 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
-import { AllServicesLayer } from '../services/extensionProvider';
 import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 
 const deployUris = (uris: Set<URI>) =>
@@ -29,7 +28,6 @@ export const deployActiveEditorEffect = () =>
     const activeEditorUri = yield* api.services.EditorService.getActiveEditorUri();
     return yield* deployUris(new Set([activeEditorUri]));
   }).pipe(
-    Effect.provide(AllServicesLayer),
     Effect.catchTag('NoActiveEditorError', () =>
       Effect.promise(() => vscode.window.showErrorMessage(nls.localize('deploy_select_file_or_directory'))).pipe(
         Effect.as(undefined)
@@ -53,4 +51,4 @@ export const deploySourcePathsEffect = (sourceUri: URI, uris: URI[] = []) =>
   Effect.gen(function* () {
     yield* Effect.annotateCurrentSpan({ sourceUri, uris });
     return yield* deployUris(new Set([sourceUri, ...uris]));
-  }).pipe(Effect.provide(AllServicesLayer));
+  });

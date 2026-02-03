@@ -162,6 +162,26 @@ const connectionCache = Effect.runSync(
   })
 );
 
+type IdentityResult = { username: string; userId: string };
+
+const identityCache = new Map<string, IdentityResult>();
+
+const getIdentity = (orgId: string, conn: Connection) => {
+  const cached = identityCache.get(orgId);
+  if (cached) {
+    return Effect.succeed(cached);
+  }
+  return Effect.tryPromise(() => conn.identity()).pipe(
+    Effect.map(({ username, user_id }) => {
+      const result = { username, userId: user_id };
+      identityCache.set(orgId, result);
+      return result;
+    }),
+    Effect.catchAll(() => Effect.succeed(undefined)),
+    Effect.withSpan('getIdentity', { attributes: { orgId } })
+  );
+};
+
 export class ConnectionService extends Effect.Service<ConnectionService>()('ConnectionService', {
   accessors: true,
   dependencies: [ConfigService.Default, SettingsService.Default],
@@ -233,15 +253,15 @@ const maybeUpdateDefaultOrgRef = (conn: Connection) =>
     const defaultOrgRef = yield* getDefaultOrgRef();
     const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
     const orgIdChanged = existingOrgInfo.orgId !== orgId;
-    const [{ username, user_id: userId }, devHubOrgId, cliId] = yield* Effect.all(
+    const [{ username, userId }, devHubOrgId, cliId] = yield* Effect.all(
       [
         orgIdChanged || existingOrgInfo.username === undefined || existingOrgInfo.userId === undefined
-          ? Effect.tryPromise(() => conn.identity()).pipe(
-              // best efforts, it's just telemetry
-              Effect.catchAll(() => Effect.succeed({ username: undefined, user_id: undefined })),
-              Effect.withSpan('getIdentity', { attributes: { refOrgId: existingOrgInfo.orgId, connOrgId: orgId } })
-            )
-          : Effect.succeed({ username: existingOrgInfo.username, user_id: existingOrgInfo.userId }),
+          ? orgId
+            ? (getIdentity(orgId, conn).pipe(
+                Effect.map(identity => identity ?? { username: undefined, userId: undefined })
+              ) ?? { username: undefined, userId: undefined })
+            : Effect.succeed({ username: undefined, userId: undefined })
+          : Effect.succeed({ username: existingOrgInfo.username, userId: existingOrgInfo.userId }),
         existingOrgInfo.devHubOrgId ? Effect.succeed(existingOrgInfo.devHubOrgId) : getDevHubId(devHubUsername),
         existingOrgInfo.cliId ? Effect.succeed(existingOrgInfo.cliId) : getCliId()
       ],

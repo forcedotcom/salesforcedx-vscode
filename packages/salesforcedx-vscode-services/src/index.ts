@@ -36,7 +36,7 @@ import { ExtensionContextService, ExtensionContextServiceLayer } from './vscode/
 import { closeExtensionScope, getExtensionScope } from './vscode/extensionScope';
 import { FileWatcherService } from './vscode/fileWatcherService';
 import { FsService } from './vscode/fsService';
-import { registerCommand } from './vscode/registerCommand';
+import { createRegisterCommand, registerCommand } from './vscode/registerCommand';
 import { SettingsService } from './vscode/settingsService';
 import { SettingsWatcherService } from './vscode/settingsWatcherService';
 import { WorkspaceService } from './vscode/workspaceService';
@@ -48,6 +48,7 @@ export type SalesforceVSCodeServicesApi = {
     ComponentSetService: typeof ComponentSetService;
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
+    createRegisterCommand: typeof createRegisterCommand;
     EditorService: typeof EditorService;
     ErrorHandlerService: typeof ErrorHandlerService;
     ExtensionContextService: typeof ExtensionContextService;
@@ -194,6 +195,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       ComponentSetService,
       ConfigService,
       ConnectionService,
+      createRegisterCommand,
       EditorService,
       ErrorHandlerService,
       ExtensionContextService,
