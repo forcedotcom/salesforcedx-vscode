@@ -6,12 +6,9 @@
  */
 
 import { Condition, SyntaxOptions, Where } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class WhereImpl extends SoqlModelObjectImpl implements Where {
-  constructor(public condition: Condition) {
-    super();
-  }
+export class WhereImpl implements Where {
+  constructor(public condition: Condition) { }
   public toSoqlSyntax(options?: SyntaxOptions): string {
     return `WHERE ${this.condition.toSoqlSyntax(options)}`;
   }

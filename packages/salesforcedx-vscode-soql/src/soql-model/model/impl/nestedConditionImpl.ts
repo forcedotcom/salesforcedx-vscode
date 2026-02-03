@@ -6,12 +6,10 @@
  */
 
 import { Condition, NestedCondition, SyntaxOptions } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class NestedConditionImpl extends SoqlModelObjectImpl implements NestedCondition {
+export class NestedConditionImpl implements NestedCondition {
   public condition: Condition;
   constructor(condition: Condition) {
-    super();
     this.condition = condition;
   }
   public toSoqlSyntax(options?: SyntaxOptions): string {

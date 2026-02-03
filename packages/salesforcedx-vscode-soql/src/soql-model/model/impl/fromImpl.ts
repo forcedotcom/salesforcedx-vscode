@@ -6,14 +6,12 @@
  */
 
 import { From, SyntaxOptions, UnmodeledSyntax } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class FromImpl extends SoqlModelObjectImpl implements From {
+export class FromImpl implements From {
   public sobjectName: string;
   public as?: UnmodeledSyntax;
   public using?: UnmodeledSyntax;
   constructor(sobjectName: string, as?: UnmodeledSyntax, using?: UnmodeledSyntax) {
-    super();
     this.sobjectName = sobjectName;
     this.as = as;
     this.using = using;

@@ -6,16 +6,13 @@
  */
 
 import { ConditionOperator, CompareValue, Field, IncludesCondition, SyntaxOptions } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class IncludesConditionImpl extends SoqlModelObjectImpl implements IncludesCondition {
+export class IncludesConditionImpl implements IncludesCondition {
   constructor(
     public field: Field,
     public operator: ConditionOperator,
     public values: CompareValue[]
-  ) {
-    super();
-  }
+  ) { }
   public toSoqlSyntax(options?: SyntaxOptions): string {
     let valuesSyntax = '';
     this.values.forEach((value) => (valuesSyntax = `${valuesSyntax}, ${value.toSoqlSyntax(options)}`));

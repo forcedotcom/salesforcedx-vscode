@@ -6,12 +6,10 @@
  */
 
 import { Condition, NotCondition, SyntaxOptions } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class NotConditionImpl extends SoqlModelObjectImpl implements NotCondition {
+export class NotConditionImpl implements NotCondition {
   public condition: Condition;
   constructor(condition: Condition) {
-    super();
     this.condition = condition;
   }
   public toSoqlSyntax(options?: SyntaxOptions): string {

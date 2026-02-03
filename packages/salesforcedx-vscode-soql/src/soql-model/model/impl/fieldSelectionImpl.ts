@@ -6,13 +6,11 @@
  */
 
 import { Field, FieldSelection, SyntaxOptions, UnmodeledSyntax } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class FieldSelectionImpl extends SoqlModelObjectImpl implements FieldSelection {
+export class FieldSelectionImpl implements FieldSelection {
   public field: Field;
   public alias?: UnmodeledSyntax;
   constructor(field: Field, alias?: UnmodeledSyntax) {
-    super();
     this.field = field;
     this.alias = alias;
   }

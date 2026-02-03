@@ -6,16 +6,13 @@
  */
 
 import { ConditionOperator, CompareValue, Field, InListCondition, SyntaxOptions } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class InListConditionImpl extends SoqlModelObjectImpl implements InListCondition {
+export class InListConditionImpl implements InListCondition {
   constructor(
     public field: Field,
     public operator: ConditionOperator,
     public values: CompareValue[]
-  ) {
-    super();
-  }
+  ) { }
   public toSoqlSyntax(options?: SyntaxOptions): string {
     let valuesSyntax = '';
     this.values.forEach((value) => (valuesSyntax = `${valuesSyntax}, ${value.toSoqlSyntax(options)}`));

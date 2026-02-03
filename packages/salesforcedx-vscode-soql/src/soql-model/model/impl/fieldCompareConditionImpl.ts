@@ -6,16 +6,13 @@
  */
 
 import { ConditionOperator, CompareValue, Field, FieldCompareCondition, SyntaxOptions } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class FieldCompareConditionImpl extends SoqlModelObjectImpl implements FieldCompareCondition {
+export class FieldCompareConditionImpl implements FieldCompareCondition {
   constructor(
     public field: Field,
     public operator: ConditionOperator,
     public compareValue: CompareValue
-  ) {
-    super();
-  }
+  ) { }
   public toSoqlSyntax(options?: SyntaxOptions): string {
     return `${this.field.toSoqlSyntax(options)} ${this.operator} ${this.compareValue.toSoqlSyntax(options)}`;
   }

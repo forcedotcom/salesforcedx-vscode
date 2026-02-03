@@ -6,12 +6,10 @@
  */
 
 import { SelectExprs, SelectExpression, SyntaxOptions } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class SelectExprsImpl extends SoqlModelObjectImpl implements SelectExprs {
+export class SelectExprsImpl implements SelectExprs {
   public selectExpressions: SelectExpression[];
   constructor(selectExpressions: SelectExpression[]) {
-    super();
     this.selectExpressions = selectExpressions;
   }
   public toSoqlSyntax(options?: SyntaxOptions): string {

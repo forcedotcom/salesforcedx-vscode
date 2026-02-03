@@ -6,12 +6,10 @@
  */
 
 import { FieldRef, SyntaxOptions } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class FieldRefImpl extends SoqlModelObjectImpl implements FieldRef {
+export class FieldRefImpl implements FieldRef {
   public fieldName: string;
   constructor(fieldName: string) {
-    super();
     this.fieldName = fieldName;
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

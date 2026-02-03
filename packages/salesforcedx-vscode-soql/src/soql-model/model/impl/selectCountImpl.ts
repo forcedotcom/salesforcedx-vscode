@@ -6,13 +6,10 @@
  */
 
 import { SelectCount, SyntaxOptions } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class SelectCountImpl extends SoqlModelObjectImpl implements SelectCount {
+export class SelectCountImpl implements SelectCount {
   // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-  constructor() {
-    super();
-  }
+  constructor() { }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public toSoqlSyntax(options?: SyntaxOptions): string {
     return 'SELECT COUNT()';

@@ -6,16 +6,13 @@
  */
 
 import { AndOr, AndOrCondition, Condition, SyntaxOptions } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class AndOrConditionImpl extends SoqlModelObjectImpl implements AndOrCondition {
+export class AndOrConditionImpl implements AndOrCondition {
   constructor(
     public leftCondition: Condition,
     public andOr: AndOr,
     public rightCondition: Condition
-  ) {
-    super();
-  }
+  ) { }
   public toSoqlSyntax(options?: SyntaxOptions): string {
     return `${this.leftCondition.toSoqlSyntax(options)} ${this.andOr} ${this.rightCondition.toSoqlSyntax(options)}`;
   }

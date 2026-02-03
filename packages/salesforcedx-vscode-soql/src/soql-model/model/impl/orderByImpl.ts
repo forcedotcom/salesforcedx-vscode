@@ -6,13 +6,11 @@
  */
 
 import { OrderBy, OrderByExpression, SyntaxOptions } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class OrderByImpl extends SoqlModelObjectImpl implements OrderBy {
+export class OrderByImpl implements OrderBy {
   public orderByExpressions: OrderByExpression[];
 
   constructor(orderByExpressions: OrderByExpression[]) {
-    super();
     this.orderByExpressions = orderByExpressions;
   }
 

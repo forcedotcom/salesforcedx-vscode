@@ -6,12 +6,9 @@
  */
 
 import { HeaderComments, SyntaxOptions } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class HeaderCommentsImpl extends SoqlModelObjectImpl implements HeaderComments {
-  constructor(public text: string) {
-    super();
-  }
+export class HeaderCommentsImpl implements HeaderComments {
+  constructor(public text: string) { }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public toSoqlSyntax(options?: SyntaxOptions): string {

@@ -10,9 +10,8 @@
 // eslint-disable-next-line unicorn/prefer-node-protocol
 import * as os from 'os';
 import { Bind, From, GroupBy, HeaderComments, Limit, Offset, OrderBy, Query, RecordTrackingType, Select, SyntaxOptions, Update, Where, With } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class QueryImpl extends SoqlModelObjectImpl implements Query {
+export class QueryImpl implements Query {
   public headerComments?: HeaderComments;
   public with?: With;
   constructor(
@@ -28,11 +27,10 @@ export class QueryImpl extends SoqlModelObjectImpl implements Query {
     public recordTrackingType?: RecordTrackingType,
     public update?: Update
   ) {
-    super();
     this.with = soqlwith;
   }
   public toSoqlSyntax(options?: SyntaxOptions): string {
-    const opts = this.getSyntaxOptions(options);
+    const opts = options ?? new SyntaxOptions();
     let syntax = '';
     if (this.headerComments) {
       syntax += `${this.headerComments.toSoqlSyntax(opts)}`;

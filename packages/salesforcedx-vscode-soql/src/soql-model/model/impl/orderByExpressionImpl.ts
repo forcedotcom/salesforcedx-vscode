@@ -6,24 +6,21 @@
  */
 
 import { Field, NullsOrder, Order, OrderByExpression, SyntaxOptions } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class OrderByExpressionImpl extends SoqlModelObjectImpl implements OrderByExpression {
+export class OrderByExpressionImpl implements OrderByExpression {
   constructor(
     public field: Field,
     public order?: Order,
     public nullsOrder?: NullsOrder
-  ) {
-    super();
-  }
+  ) { }
 
   public toSoqlSyntax(options?: SyntaxOptions): string {
     let syntax: string = this.field.toSoqlSyntax(options);
     if (this.order) {
-      syntax = `${syntax  } ${this.order}`;
+      syntax = `${syntax} ${this.order}`;
     }
     if (this.nullsOrder) {
-      syntax = `${syntax  } ${this.nullsOrder}`;
+      syntax = `${syntax} ${this.nullsOrder}`;
     }
     return syntax;
   }

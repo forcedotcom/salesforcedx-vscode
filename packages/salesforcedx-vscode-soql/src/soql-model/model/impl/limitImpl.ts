@@ -6,12 +6,10 @@
  */
 
 import { Limit, SyntaxOptions } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class LimitImpl extends SoqlModelObjectImpl implements Limit {
+export class LimitImpl implements Limit {
   public limit: number;
   constructor(limit: number) {
-    super();
     this.limit = limit;
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

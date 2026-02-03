@@ -6,12 +6,9 @@
  */
 
 import { Literal, SyntaxOptions } from '../model';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class LiteralImpl extends SoqlModelObjectImpl implements Literal {
-  constructor(public value: string) {
-    super();
-  }
+export class LiteralImpl implements Literal {
+  constructor(public value: string) { }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public toSoqlSyntax(options?: SyntaxOptions): string {
     return this.value;

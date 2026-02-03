@@ -7,12 +7,9 @@
 
 import { SyntaxOptions, UnmodeledSyntax } from '../model';
 import { UnmodeledSyntaxReason } from '../unmodeled';
-import { SoqlModelObjectImpl } from './soqlModelObjectImpl';
 
-export class UnmodeledSyntaxImpl extends SoqlModelObjectImpl implements UnmodeledSyntax {
-  constructor(public unmodeledSyntax: string, public reason: UnmodeledSyntaxReason) {
-    super();
-  }
+export class UnmodeledSyntaxImpl implements UnmodeledSyntax {
+  constructor(public unmodeledSyntax: string, public reason: UnmodeledSyntaxReason) { }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public toSoqlSyntax(options?: SyntaxOptions): string {
     return this.unmodeledSyntax;
