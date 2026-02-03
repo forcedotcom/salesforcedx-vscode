@@ -15,6 +15,7 @@
  */
 
 import { api, createElement, LightningElement } from 'lwc';
+import { AndOr } from '../../../../../../src/soql-model/model/model';
 import Where from '../../../../../../src/soql-builder-ui/modules/querybuilder/where/where';
 
 class WhereExpressionManager {
@@ -56,7 +57,7 @@ class WhereExpressionManager {
     };
   }
 
-  public setAndOr(value: string): void {
+  public setAndOr(value: AndOr): void {
     this.andOr = value;
   }
 
@@ -174,7 +175,7 @@ describe('Where', () => {
   describe('AND | OR should', () => {
     it('default to AND', () => {
       document.body.appendChild(whereCmp);
-      expect(whereCmp.testAndOr).toBe('AND');
+      expect(whereCmp.testAndOr).toBe(AndOr.And);
 
       const andButton: HTMLButtonElement = whereCmp.shadowRoot.querySelector('button[value=AND]');
       const orButton: HTMLButtonElement = whereCmp.shadowRoot.querySelector('button[value=OR]');
@@ -183,10 +184,10 @@ describe('Where', () => {
     });
 
     it('be selected based on UI model', () => {
-      modelManager.setAndOr('OR');
+      modelManager.setAndOr(AndOr.Or);
       whereCmp.whereExpr = modelManager.getModelWithOneCondition();
       document.body.appendChild(whereCmp);
-      expect(whereCmp.testAndOr).toBe('OR');
+      expect(whereCmp.testAndOr).toBe(AndOr.Or);
 
       const andButton: HTMLButtonElement = whereCmp.shadowRoot.querySelector('button[value=AND]');
       const orButton: HTMLButtonElement = whereCmp.shadowRoot.querySelector('button[value=OR]');
@@ -223,14 +224,14 @@ describe('Where', () => {
 
       expect(modfierGroups.length).toBe(3);
       expect(whereCmp.testLastModifierGroupIsComplete).toBe(false);
-      expect(whereCmp.testAndOr).toBe('AND');
+      expect(whereCmp.testAndOr).toBe(AndOr.And);
       orButton.click();
 
       expect(handler).not.toHaveBeenCalled();
     });
 
     it('add state of AndOr to modifier selection event', () => {
-      modelManager.setAndOr('OR');
+      modelManager.setAndOr(AndOr.Or);
       whereCmp.whereExpr = modelManager.getModelWithTwoConditions();
       document.body.appendChild(whereCmp);
       const modGroupHandler = jest.fn();

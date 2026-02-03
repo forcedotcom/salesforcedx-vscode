@@ -10,6 +10,7 @@
  */
 
 import { BehaviorSubject } from 'rxjs';
+import { AndOr } from '../../../../../../src/soql-model/model/model';
 import {
   ToolingModelService,
   ToolingModelJson
@@ -38,7 +39,7 @@ describe('Tooling Model Service', () => {
         },
         index: 0
       },
-      andOr: 'AND'
+      andOr: AndOr.And
     };
   };
   let query: ToolingModelJson;
@@ -257,11 +258,11 @@ describe('Tooling Model Service', () => {
 
       expect(query.where.andOr).toBeUndefined();
 
-      modelService.setAndOr('AND');
-      expect(query.where.andOr).toContain('AND');
+      modelService.setAndOr(AndOr.And);
+      expect(query.where.andOr).toContain(AndOr.And);
 
-      modelService.setAndOr('OR');
-      expect(query.where.andOr).toContain('OR');
+      modelService.setAndOr(AndOr.Or);
+      expect(query.where.andOr).toContain(AndOr.Or);
     });
   });
 

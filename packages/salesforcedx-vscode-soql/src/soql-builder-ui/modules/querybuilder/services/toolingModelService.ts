@@ -12,6 +12,7 @@ import { fromJS, List } from 'immutable';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { JsonMap } from '@salesforce/ts-types';
+import { AndOr } from '../../../../soql-model/model/model';
 import { convertUiModelToSoql, convertSoqlToUiModel } from '../services/soqlUtils';
 import { IMessageService } from './message/iMessageService';
 import { SoqlEditorEvent, MessageType } from './message/soqlEditorEvent';
@@ -131,7 +132,7 @@ export class ToolingModelService {
     return false;
   }
 
-  public setAndOr(andOr: string): void {
+  public setAndOr(andOr: AndOr): void {
     const currentModel = this.getModel();
     const newModel = currentModel.setIn([ModelProps.WHERE, ModelProps.WHERE_AND_OR], andOr);
 
