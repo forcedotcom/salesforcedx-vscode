@@ -69,13 +69,13 @@ export const activate = async (extensionContext: ExtensionContext) => {
   }
 
   // Pass the workspace folder URIs to the language server
-  const workspaceUris: string[] = [];
+  const workspaceFolderPaths: string[] = [];
   workspace.workspaceFolders.forEach(folder => {
     // In web mode, fsPath might be undefined for non-file:// URIs
     // Use fsPath if available, otherwise fall back to URI path
     const folderPath = folder.uri.fsPath ?? folder.uri.path;
     if (folderPath) {
-      workspaceUris.push(folderPath);
+      workspaceFolderPaths.push(folderPath);
     }
   });
 
@@ -83,7 +83,7 @@ export const activate = async (extensionContext: ExtensionContext) => {
   // Create a temporary provider just for detection
   // In web mode with no valid paths, default to UNKNOWN
   const workspaceType: lspCommon.WorkspaceType =
-    workspaceUris.length > 0 ? await detectWorkspaceType(workspaceUris) : 'UNKNOWN';
+    workspaceFolderPaths.length > 0 ? await detectWorkspaceType(workspaceFolderPaths) : 'UNKNOWN';
 
   // Check if we have a valid project structure
   if (getActivationMode() === 'autodetect' && !lspCommon.isLWC(workspaceType)) {

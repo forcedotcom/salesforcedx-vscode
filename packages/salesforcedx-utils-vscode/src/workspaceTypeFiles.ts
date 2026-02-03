@@ -20,7 +20,7 @@ const toUri = async (filePath: string): Promise<Uri> => {
 
 const SFDX_PROJECT = 'sfdx-project.json';
 
-export type WorkspaceType =
+type WorkspaceType =
   | 'STANDARD'
   | 'STANDARD_LWC'
   | 'MONOREPO'
@@ -29,9 +29,6 @@ export type WorkspaceType =
   | 'CORE_ALL'
   | 'CORE_PARTIAL'
   | 'UNKNOWN';
-
-export const isLWC = (type: WorkspaceType): boolean =>
-  type === 'SFDX' || type === 'STANDARD_LWC' || type === 'CORE_ALL' || type === 'CORE_PARTIAL';
 
 export const getSfdxProjectFile = (root: string): string => path.join(root, SFDX_PROJECT);
 
