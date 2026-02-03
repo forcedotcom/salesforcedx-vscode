@@ -115,11 +115,11 @@ describe('ErrorHandlerService', () => {
         error.actions = ['Action 1', 'Action 2'];
         const cause = Cause.fail(error);
 
-        showErrorMessageSpy.mockResolvedValue('View Details');
+        showErrorMessageSpy.mockResolvedValue('View Suggestions');
 
         await Effect.runPromise(errorHandler.handleCause(cause));
 
-        expect(showErrorMessageSpy).toHaveBeenCalledWith('Base error message', 'View Details');
+        expect(showErrorMessageSpy).toHaveBeenCalledWith('Base error message', 'View Suggestions');
         expect(mockChannel.appendLine).toHaveBeenCalledWith('Error: Base error message\n\nAction 1\nAction 2');
         expect(mockChannel.show).toHaveBeenCalled();
       });
@@ -133,7 +133,7 @@ describe('ErrorHandlerService', () => {
 
         await Effect.runPromise(errorHandler.handleCause(cause));
 
-        expect(showErrorMessageSpy).toHaveBeenCalledWith('Base error message', 'View Details');
+        expect(showErrorMessageSpy).toHaveBeenCalledWith('Base error message', 'View Suggestions');
         expect(mockChannel.appendLine).toHaveBeenCalledWith('Error: Base error message\n\nAction 1');
         expect(mockChannel.show).not.toHaveBeenCalled();
       });
@@ -173,7 +173,7 @@ describe('ErrorHandlerService', () => {
 
         await Effect.runPromise(errorHandler.handleCause(cause));
 
-        expect(showErrorMessageSpy).toHaveBeenCalledWith('Inner error', 'View Details');
+        expect(showErrorMessageSpy).toHaveBeenCalledWith('Inner error', 'View Suggestions');
         expect(mockChannel.appendLine).toHaveBeenCalledWith('Error: Inner error\n\nOuter action\nInner action');
       });
 
@@ -187,7 +187,7 @@ describe('ErrorHandlerService', () => {
 
         await Effect.runPromise(errorHandler.handleCause(cause));
 
-        expect(showErrorMessageSpy).toHaveBeenCalledWith('Inner message', 'View Details');
+        expect(showErrorMessageSpy).toHaveBeenCalledWith('Inner message', 'View Suggestions');
         expect(mockChannel.appendLine).toHaveBeenCalledWith('Error: Inner message\n\nOuter action\nInner action');
       });
     });
@@ -220,7 +220,7 @@ describe('ErrorHandlerService', () => {
 
         await Effect.runPromise(errorHandler.handleCause(cause));
 
-        expect(showErrorMessageSpy).toHaveBeenCalledWith('Inner error', 'View Details');
+        expect(showErrorMessageSpy).toHaveBeenCalledWith('Inner error', 'View Suggestions');
         expect(mockChannel.appendLine).toHaveBeenCalledWith('Error: Inner error\n\nAction from cause');
       });
     });
@@ -239,7 +239,7 @@ describe('ErrorHandlerService', () => {
 
         await Effect.runPromise(errorHandler.handleCause(cause));
 
-        expect(showErrorMessageSpy).toHaveBeenCalledWith('Level 3', 'View Details');
+        expect(showErrorMessageSpy).toHaveBeenCalledWith('Level 3', 'View Suggestions');
         expect(mockChannel.appendLine).toHaveBeenCalledWith('Error: Level 3\n\nAction 1\nAction 2\nAction 3');
       });
 

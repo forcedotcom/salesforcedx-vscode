@@ -8,6 +8,7 @@
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
 import { ChannelService } from './channelService';
 
 /** Type guard for errors with actions array (e.g., SfError) */
@@ -66,8 +67,10 @@ export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('
             const fullMessage = `Error: ${baseMessage}\n\n${actions.join('\n')}`;
             yield* channelService.appendToChannel(fullMessage);
             const channel = yield* channelService.getChannel;
-            const selection = yield* Effect.promise(() => vscode.window.showErrorMessage(baseMessage, 'View Details'));
-            if (selection === 'View Details') channel.show();
+            const viewSuggestions = nls.localize('view_suggestions');
+            const selection = yield* Effect.promise(() => vscode.window.showErrorMessage(baseMessage, viewSuggestions));
+            console.log('selection', selection);
+            if (selection === viewSuggestions) channel.show();
           } else {
             yield* Effect.sync(() => void vscode.window.showErrorMessage(baseMessage));
           }

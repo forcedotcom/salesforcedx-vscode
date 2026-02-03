@@ -8,6 +8,7 @@
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
+import { ErrorHandlerService } from './errorHandlerService';
 import { ExtensionContextService } from './extensionContextService';
 
 // TODO: command cancellation...where is that handled?  From inside the effect?  If so, let's create a pattern for it.
@@ -27,14 +28,15 @@ export const registerCommandWithLayer =
     Effect.gen(function* () {
       const contextService = yield* ExtensionContextService;
       const context = yield* contextService.getContext;
-
+      const errorHandler = yield* ErrorHandlerService;
       context.subscriptions.push(
         vscode.commands.registerCommand(command, (...args) =>
           Effect.runPromise(
             f(...args).pipe(
               // root: true ensures proper trace root (not orphaned child of activation)
               Effect.withSpan(command, { attributes: { command, args }, root: true }),
-              Effect.tapErrorCause(cause => Effect.logError('Command failed', cause)),
+              // fork the error handler so it doesn't block the command but does show the message
+              Effect.catchAllCause(cause => errorHandler.handleCause(cause)),
               Effect.provide(layer)
             )
           )

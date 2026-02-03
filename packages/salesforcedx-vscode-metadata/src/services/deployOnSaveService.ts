@@ -14,6 +14,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { getDeployOnSaveEnabled, getIgnoreConflicts } from '../settings/deployOnSaveSettings';
+import { deployComponentSet } from '../shared/deploy/deployComponentSet';
 import { getShowSharedCommands } from './configWatcher';
 import { AllServicesLayer } from './extensionProvider';
 
@@ -51,29 +52,11 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles')(function* 
   const ignoreConflicts = getIgnoreConflicts();
   yield* channelService.appendToChannel(`Deploy on save triggered (ignoreConflicts: ${ignoreConflicts})`);
 
-  const componentSet = yield* componentSetService.getComponentSetFromUris(uris);
-
-  if (componentSet.size === 0) {
-    return yield* channelService.appendToChannel('Deploy on save: No changes to deploy');
-  }
-
-  yield* channelService.appendToChannel(
-    `Deploying ${componentSet.size} component${componentSet.size === 1 ? '' : 's'}...`
+  const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
+    yield* componentSetService.getComponentSetFromUris(uris)
   );
 
-  const result = yield* api.services.MetadataDeployService.deploy(componentSet);
-
-  // Handle cancellation
-  if (typeof result === 'string') {
-    return yield* channelService.appendToChannel('Deploy on save cancelled');
-  }
-
-  const failedCount = result.getFileResponses().filter(r => String(r.state) === 'Failed').length;
-  const successCount = result.getFileResponses().length - failedCount;
-
-  yield* channelService.appendToChannel(
-    `Deploy on save complete: ${successCount} succeeded${failedCount > 0 ? `, ${failedCount} failed` : ''}`
-  );
+  return yield* deployComponentSet({ componentSet });
 });
 
 const isInPackageDirectories = Effect.fn('deployOnSave:isInPackageDirectories')(function* (uri: URI) {
@@ -121,13 +104,12 @@ export const createDeployOnSaveService = () =>
       Stream.tap(uri => channelService.appendToChannel(`Deploy on save service received URI: ${uri.fsPath}`)),
       Stream.filterEffect(shouldDeploy),
       Stream.filterEffect(isInPackageDirectories),
-      Stream.tap(uri =>
-        channelService.appendToChannel(`Passed shouldDeploy and isInPackageDirectories: ${uri.fsPath}`)
-      ),
+      Stream.tap(uri => channelService.appendToChannel(`Will deploy: ${uri.fsPath}`)),
       Stream.groupedWithin(10_000, Duration.millis(ENQUEUE_DELAY_MS)),
       Stream.runForEach(chunk =>
         deployQueuedFiles(Chunk.toReadonlyArray(chunk)).pipe(Effect.catchAll(handleDeployError))
       ),
+      Stream.runDrain,
       Effect.provide(AllServicesLayer),
       Effect.forkDaemon
     );

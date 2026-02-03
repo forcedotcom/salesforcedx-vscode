@@ -21,13 +21,10 @@ export const retrieveManifest = (manifestUri?: URI) =>
       (yield* api.services.EditorService.getActiveEditorUri().pipe(
         Effect.catchTag('NoActiveEditorError', () => Effect.fail(new Error(nls.localize('retrieve_select_manifest'))))
       ));
-    // Use path instead of fsPath for memfs URIs (web environments) to avoid backslash conversion issues
-    // For file:// URIs, path and fsPath are equivalent
-    const manifestPath = process.env.ESBUILD_PLATFORM === 'web' ? resolved.path : resolved.fsPath;
 
     const componentSetService = yield* api.services.ComponentSetService;
     const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
-      yield* componentSetService.getComponentSetFromManifest(manifestPath)
+      yield* componentSetService.getComponentSetFromManifest(resolved)
     );
 
     yield* retrieveComponentSet({ componentSet, ignoreConflicts: false });

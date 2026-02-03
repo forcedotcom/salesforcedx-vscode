@@ -125,10 +125,11 @@ export class ComponentSetService extends Effect.Service<ComponentSetService>()('
 
     /** Get ComponentSet from manifest file */
     const getComponentSetFromManifest = Effect.fn('ComponentSetService.getComponentSetFromManifest')(function* (
-      manifestPath: string
+      manifestUri: URI
     ) {
       return yield* Effect.gen(function* () {
-        yield* Effect.annotateCurrentSpan({ manifestPath });
+        const manifestPath = uriToPath(manifestUri);
+        yield* Effect.annotateCurrentSpan({ manifestUri: manifestUri.toString() });
         const [registryAccess, project, configAggregator] = yield* Effect.all(
           [
             metadataRegistryService.getRegistryAccess(),

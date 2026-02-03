@@ -14,6 +14,7 @@ import {
 } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import { URI } from 'vscode-uri';
 import { parseRetrieveOnLoad, filterFileResponses } from '../../../src/core/retrieveOnLoad';
 import { ComponentSetService, type NonEmptyComponentSet } from '../../../src/core/componentSetService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
@@ -29,7 +30,7 @@ const createMockComponentSetService = (): Layer.Layer<ComponentSetService, never
         fileResponse.state === ComponentStatus.Failed,
       ensureNonEmptyComponentSet: () => Effect.succeed({} as NonEmptyComponentSet),
       getComponentSetFromUris: () => Effect.succeed({} as never),
-      getComponentSetFromManifest: () => Effect.succeed({} as never)
+      getComponentSetFromManifest: (_manifestUri: URI) => Effect.succeed({} as never)
     })
   );
 
