@@ -285,7 +285,8 @@
         "./packages/salesforcedx-vscode-soql:vscode:package",
         "./packages/salesforcedx-vscode-org:vscode:package",
         "./packages/salesforcedx-vscode-services:vscode:package",
-        "./packages/salesforcedx-vscode-org-browser:vscode:package"
+        "./packages/salesforcedx-vscode-org-browser:vscode:package",
+        "./packages/salesforcedx-vscode-metadata:vscode:package"
       ]
     },
     "vscode:package": {

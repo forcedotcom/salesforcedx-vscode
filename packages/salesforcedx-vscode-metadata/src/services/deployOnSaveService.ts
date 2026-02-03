@@ -14,6 +14,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import { getDeployOnSaveEnabled, getIgnoreConflicts } from '../settings/deployOnSaveSettings';
+import { getShowSharedCommands } from './configWatcher';
 import { AllServicesLayer } from './extensionProvider';
 
 const ENQUEUE_DELAY_MS = 1000;
@@ -114,8 +115,10 @@ export const createDeployOnSaveService = () =>
 
     // Start the stream processor that batches and deploys
     yield* Stream.fromQueue(saveQueue).pipe(
-      Stream.tap(uri => channelService.appendToChannel(`Deploy on save service received URI: ${uri.fsPath}`)),
+      //we only want them if we're using the new ext.  Otherwise, let the old one manage deployOnSave
+      Stream.filter(() => getShowSharedCommands()),
       Stream.filterEffect(() => getDeployOnSaveEnabled()),
+      Stream.tap(uri => channelService.appendToChannel(`Deploy on save service received URI: ${uri.fsPath}`)),
       Stream.filterEffect(shouldDeploy),
       Stream.filterEffect(isInPackageDirectories),
       Stream.tap(uri =>
