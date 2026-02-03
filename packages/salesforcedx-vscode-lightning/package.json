@@ -73,13 +73,13 @@
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",
     "applicationinsights": "1.0.7",
-    "effect": "^3.19.13",
+    "effect": "^3.19.14",
     "vscode-html-languageservice": "^5.5.1",
     "vscode-languageclient": "^9.0.1"
   },
   "description": "Provides code-editing features for Aura Components",
   "devDependencies": {
-    "esbuild": "0.25.10"
+    "esbuild": "0.25.12"
   },
   "displayName": "Aura Components",
   "extensionDependencies": [
@@ -149,7 +149,8 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
-        "../../tsconfig.common.json"
+        "../../tsconfig.common.json",
+        "package.json"
       ],
       "output": [
         "out/**",

@@ -5,9 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Effect from 'effect/Effect';
 import { workspace } from 'vscode';
-import { ChannelService } from '../vscode/channelService';
 
 /** instrumention key / connection string for test-otel-effect */
 export const DEFAULT_AI_CONNECTION_STRING =
@@ -18,17 +16,5 @@ export const isTelemetryExtensionConfigurationEnabled = (): boolean => {
   const enabled =
     workspace.getConfiguration('telemetry').get<string>('telemetryLevel', 'all') !== 'off' &&
     workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('telemetry.enabled', false);
-  Effect.runSync(
-    Effect.gen(function* () {
-      const channelService = yield* ChannelService;
-      yield* channelService.appendToChannel('checking telemetry configuration');
-      yield* channelService.appendToChannel(
-        `telemetryLevel: ${workspace.getConfiguration('telemetry').get<string>('telemetryLevel', 'all')}`
-      );
-      yield* channelService.appendToChannel(
-        `telemetry.enabled: ${workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('telemetry.enabled', false)}`
-      );
-    }).pipe(Effect.provide(ChannelService.Default))
-  );
   return enabled;
 };

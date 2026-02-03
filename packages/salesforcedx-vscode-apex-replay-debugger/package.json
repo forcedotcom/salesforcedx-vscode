@@ -29,12 +29,12 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
-    "effect": "^3.19.13",
+    "effect": "^3.19.14",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
-    "esbuild": "0.25.10",
+    "esbuild": "0.25.12",
     "salesforcedx-vscode-apex": "*",
     "salesforcedx-vscode-core": "*"
   },
@@ -68,7 +68,8 @@
         "src/**/*.ts",
         "test/**/*.ts",
         "tsconfig.json",
-        "../../tsconfig.common.json"
+        "../../tsconfig.common.json",
+        "package.json"
       ],
       "output": [
         "out/**",
