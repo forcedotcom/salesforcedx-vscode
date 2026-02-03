@@ -22,7 +22,7 @@ import { retrieveSourcePathsEffect } from './commands/retrieveSourcePath';
 import { projectRetrieveStartEffect } from './commands/retrieveStart/projectRetrieveStart';
 import { viewChangesEffect } from './commands/showSourceTrackingDetails';
 import { sourceDiffEffect } from './commands/sourceDiff';
-import { DEPLOY_ON_SAVE_ENABLED, EXTENSION_NAME, METADATA_CONFIG_SECTION } from './constants';
+import { CORE_CONFIG_SECTION, EXTENSION_NAME, DEPLOY_ON_SAVE_ENABLED } from './constants';
 import { getShowSharedCommands, watchUseMetadataExtensionCommands } from './services/configWatcher';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
 import { AllServicesLayer, buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
@@ -88,7 +88,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   );
 
   if (process.env.ESBUILD_PLATFORM === 'web') {
-    vscode.workspace.getConfiguration(METADATA_CONFIG_SECTION).update(DEPLOY_ON_SAVE_ENABLED, true);
+    vscode.workspace.getConfiguration(CORE_CONFIG_SECTION).update(DEPLOY_ON_SAVE_ENABLED, true);
   }
   yield* Effect.all([
     // Start deploy on save service

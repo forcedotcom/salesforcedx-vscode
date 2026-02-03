@@ -27,7 +27,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
-import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { DEPLOY_TIMEOUT } from '../../constants';
 
@@ -54,7 +54,7 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await saveScreenshot(page, 'setup.after-status-bar-visible.png');
 
     // Disable deploy-on-save to control when deploys happen
-    await upsertSettings(page, { [`${METADATA_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
+    await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
     await saveScreenshot(page, 'setup.after-disable-deploy-on-save.png');
     await saveScreenshot(page, 'setup.complete.png');
   });
@@ -111,7 +111,9 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await saveScreenshot(page, 'step2.confirmation-notification-visible.png');
 
     // Click "Delete Source" button to confirm
-    const deleteButton = deleteConfirmation.getByRole('button', { name: nls.localize('confirm_delete_source_button_text') });
+    const deleteButton = deleteConfirmation.getByRole('button', {
+      name: nls.localize('confirm_delete_source_button_text')
+    });
     await deleteButton.click();
     await saveScreenshot(page, 'step2.after-confirm-deletion.png');
 
