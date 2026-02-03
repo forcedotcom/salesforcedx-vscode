@@ -11,9 +11,8 @@ import { WorkspaceContextUtil } from '../../context/workspaceContextUtil';
 import { isInternalHost } from '../utils/isInternal';
 import { getCommonProperties, getInternalProperties } from './telemetryUtils';
 
-// Connection string for Application Insights
-// Shared with salesforcedx-vscode-services for consistency
-const DEFAULT_AI_CONNECTION_STRING =
+/** Same connection string as telemetry (salesforcedx-vscode-services observability). */
+const DEFAULT_AI_CONNECTION_STRING: string =
   'InstrumentationKey=f5cbbeba-e06b-4657-b99c-62024c9d36bf;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=1485438c-5495-43dc-8c0a-b51e860b6cba';
 
 // Conditionally import applicationinsights only in Node.js mode
@@ -21,6 +20,8 @@ let appInsights: typeof import('applicationinsights') | undefined;
 if (process.env.ESBUILD_PLATFORM !== 'web') {
   appInsights = require('applicationinsights');
 }
+
+const isWebMode = process.env.ESBUILD_PLATFORM === 'web';
 
 export class AppInsights
   extends Disposable
@@ -33,7 +34,6 @@ export class AppInsights
   private userOptIn: boolean = false;
   private toDispose: Disposable[] = [];
   private uniqueUserMetrics: boolean = false;
-  private readonly isWebMode: boolean;
 
   private static TELEMETRY_CONFIG_ID = 'telemetry';
   private static TELEMETRY_CONFIG_ENABLED_ID = 'enableTelemetry';
@@ -50,7 +50,6 @@ export class AppInsights
     enableUniqueMetrics?: boolean
   ) {
     super(() => this.toDispose.forEach(d => d?.dispose()));
-    this.isWebMode = process.env.ESBUILD_PLATFORM === 'web';
     if (enableUniqueMetrics) {
       this.uniqueUserMetrics = true;
     }
@@ -64,7 +63,7 @@ export class AppInsights
     if (this.userOptIn !== config.get<boolean>(AppInsights.TELEMETRY_CONFIG_ENABLED_ID, true)) {
       this.userOptIn = config.get<boolean>(AppInsights.TELEMETRY_CONFIG_ENABLED_ID, true);
       if (this.userOptIn) {
-        if (this.isWebMode) {
+        if (isWebMode) {
           this.createWebReporter();
         } else {
           this.createAppInsightsClient(key);
@@ -136,7 +135,7 @@ export class AppInsights
     const baseProps = getBaseProps();
     const finalProps = this.applyTelemetryTag({ ...baseProps, ...properties, webUserId: this.webUserId });
 
-    if (this.isWebMode) {
+    if (isWebMode) {
       if (this.webReporter) {
         try {
           // Add extension metadata to properties for web mode
@@ -174,7 +173,7 @@ export class AppInsights
     const baseProps = getBaseProps();
     const finalProps = this.applyTelemetryTag({ ...baseProps, webUserId: this.webUserId });
 
-    if (this.isWebMode) {
+    if (isWebMode) {
       if (this.webReporter) {
         try {
           const properties = {
@@ -206,7 +205,7 @@ export class AppInsights
   }
 
   public dispose(): Promise<any> {
-    if (this.isWebMode) {
+    if (isWebMode) {
       if (this.webReporter) {
         this.webReporter = undefined;
         return Promise.resolve(void 0);
