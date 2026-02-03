@@ -31,11 +31,10 @@ export const registerCommandWithLayer =
       const errorHandler = yield* ErrorHandlerService;
       context.subscriptions.push(
         vscode.commands.registerCommand(command, (...args) =>
-          Effect.runPromise(
+          Effect.runFork(
             f(...args).pipe(
               // root: true ensures proper trace root (not orphaned child of activation)
               Effect.withSpan(command, { attributes: { command, args }, root: true }),
-              // fork the error handler so it doesn't block the command but does show the message
               Effect.catchAllCause(cause => errorHandler.handleCause(cause)),
               Effect.provide(layer)
             )
