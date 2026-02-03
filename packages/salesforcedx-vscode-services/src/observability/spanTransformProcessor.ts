@@ -5,37 +5,64 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Context } from '@opentelemetry/api';
-import { Span, BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
+import { Span, BatchSpanProcessor, SpanExporter, BufferConfig } from '@opentelemetry/sdk-trace-base';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
 import { env, UIKind, version, workspace } from 'vscode';
-import { defaultOrgRef } from '../core/defaultOrgService';
+import {  getDefaultOrgRef } from '../core/defaultOrgRef';
 
 /** Custom span processor that transforms spans before they're exported */
 export class SpanTransformProcessor extends BatchSpanProcessor {
+  // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+  constructor(exporter: SpanExporter, options?: BufferConfig) {
+    super(exporter, options);
+  }
+
   public onStart(span: Span, parentContext: Context): void {
-    getAdditionalAttributes()
-      .concat(Effect.runSync(memoized('everySpanIsTheSame'))) // it seems to want a key
-      .filter(isNotUndefined)
-      .map(([k, v]) => span.setAttribute(k, v));
+    // for top level spans, add additional attributes
+    if (!span.parentSpanContext) {
+      const resourceAttrs = span.resource.attributes;
+      const extensionName = resourceAttrs['extension.name'];
+      const extensionVersion = resourceAttrs['extension.version'];
+      getAdditionalAttributes(extensionName, extensionVersion)
+        .concat(Effect.runSync(memoized('everySpanIsTheSame'))) // it seems to want a key
+        .filter(isNotUndefined)
+        .map(([k, v]) => span.setAttribute(k, v));
+    }
     super.onStart(span, parentContext);
   }
 }
 
-const getAdditionalAttributes = (): [string, string | undefined][] => {
-  const { orgId, devHubOrgId, isSandbox, isScratch, tracksSource } = Effect.runSync(SubscriptionRef.get(defaultOrgRef));
+type TelemetryAttribute = [string, string | undefined];
+
+const getAdditionalAttributes = (extensionName: unknown, extensionVersion: unknown): TelemetryAttribute[] => {
+  const { orgId, devHubOrgId, isSandbox, isScratch, tracksSource, webUserId, cliId } = getDefaultOrgRef().pipe(
+    Effect.flatMap(ref => SubscriptionRef.get(ref)),
+    Effect.runSync
+  );
+  const commonAttrs: TelemetryAttribute[] = [];
+  if (typeof extensionName === 'string') {
+    commonAttrs.push(['common.extname', extensionName]);
+  }
+  if (typeof extensionVersion === 'string') {
+    commonAttrs.push(['common.extversion', extensionVersion]);
+  }
   return [
+    // Add common.* attributes for AppInsights (AzureMonitorTraceExporter includes span attributes)
+    ...commonAttrs,
     ['orgId', orgId],
     ['devHubOrgId', devHubOrgId],
     ['isSandbox', optionalBooleanToString(isSandbox)],
     ['isScratch', optionalBooleanToString(isScratch)],
     ['tracksSource', optionalBooleanToString(tracksSource)],
+    ['userId', cliId],
+    ['webUserId', webUserId],
     ['telemetryTag', workspace.getConfiguration('salesforcedx-vscode-core')?.get('telemetry-tag')]
   ];
 };
 
-const getPermanentAttributes = (): Effect.Effect<[string, string | undefined][]> => {
+const getPermanentAttributes = () => {
   const { machineId, sessionId, uiKind } = env ?? {};
   const uiKindString = uiKind ? UIKind[uiKind] : undefined;
   return Effect.succeed([
@@ -50,8 +77,8 @@ const getPermanentAttributes = (): Effect.Effect<[string, string | undefined][]>
           ['common.systemmemory', `${(os?.totalmem?.() ?? 0 / (1024 * 1024 * 1024)).toFixed(2)} GB`],
           ['common.cpus', getCPUs()]
         ]
-      : []) satisfies [string, string][])
-  ]);
+      : []) satisfies TelemetryAttribute[])
+  ] satisfies TelemetryAttribute[]);
 };
 
 const memoized = Effect.runSync(Effect.cachedFunction(getPermanentAttributes));

@@ -75,7 +75,7 @@ import { SelectFileName, SelectOutputDir, SfCommandletExecutor } from './command
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { PersistentStorageService, registerConflictView, setupConflictView } from './conflict';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, USE_METADATA_EXTENSION_COMMANDS } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { checkPackageDirectoriesEditorView } from './context/packageDirectoriesContext';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
@@ -90,21 +90,11 @@ import { reportExtensionPackStatus } from './telemetry/metricsReporter';
 import { isCLIInstalled, setNodeExtraCaCerts, setSfLogLevel } from './util';
 import { getUserId, getAuthFields } from './util/orgAuthInfoExtensions';
 
-/** Customer-facing commands */
-const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable =>
+/** Commands shared with metadata extension */
+const registerSharedCommands = (): vscode.Disposable =>
   vscode.Disposable.from(
-    vscode.commands.registerCommand('sf.project.generate.manifest', projectGenerateManifest),
-    vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
-    vscode.commands.registerCommand('sf.folder.diff', sourceFolderDiff),
-    vscode.commands.registerCommand('sf.diff', sourceDiff),
-    vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
-    vscode.commands.registerCommand('sf.internal.refreshsobjects', refreshSObjects),
-    vscode.commands.registerCommand('sf.delete.source', deleteSource),
-    vscode.commands.registerCommand('sf.delete.source.current.file', deleteSource),
     vscode.commands.registerCommand('sf.deploy.current.source.file', deploySourcePaths),
-    vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest),
     vscode.commands.registerCommand('sf.deploy.multiple.source.paths', deploySourcePaths),
-    vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
     vscode.commands.registerCommand('sf.project.deploy.start', async (isDeployOnSave: boolean) =>
       projectDeployStart(isDeployOnSave, false)
     ),
@@ -113,14 +103,29 @@ const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Dis
     ),
     vscode.commands.registerCommand('sf.project.retrieve.start', projectRetrieveStart),
     vscode.commands.registerCommand('sf.project.retrieve.start.ignore.conflicts', () => projectRetrieveStart(true)),
-    vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths),
-    vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
-    vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest),
     vscode.commands.registerCommand('sf.view.all.changes', viewAllChanges),
     vscode.commands.registerCommand('sf.view.local.changes', viewLocalChanges),
     vscode.commands.registerCommand('sf.view.remote.changes', viewRemoteChanges),
-    vscode.commands.registerCommand('sf.task.stop', taskStop),
     vscode.commands.registerCommand('sf.apex.generate.class', apexGenerateClass),
+    vscode.commands.registerCommand('sf.delete.source', deleteSource),
+    vscode.commands.registerCommand('sf.delete.source.current.file', deleteSource),
+    vscode.commands.registerCommand('sf.deploy.source.path', deploySourcePaths),
+    vscode.commands.registerCommand('sf.deploy.in.manifest', deployManifest),
+    vscode.commands.registerCommand('sf.retrieve.source.path', retrieveSourcePaths),
+    vscode.commands.registerCommand('sf.retrieve.current.source.file', retrieveSourcePaths),
+    vscode.commands.registerCommand('sf.retrieve.in.manifest', retrieveManifest),
+    vscode.commands.registerCommand('sf.project.generate.manifest', projectGenerateManifest)
+  );
+
+/** Customer-facing commands */
+const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable =>
+  vscode.Disposable.from(
+    vscode.commands.registerCommand('sf.rename.lightning.component', renameLightningComponent),
+    vscode.commands.registerCommand('sf.folder.diff', sourceFolderDiff),
+    vscode.commands.registerCommand('sf.diff', sourceDiff),
+    vscode.commands.registerCommand('sf.open.documentation', openDocumentation),
+    vscode.commands.registerCommand('sf.internal.refreshsobjects', refreshSObjects),
+    vscode.commands.registerCommand('sf.task.stop', taskStop),
     vscode.commands.registerCommand('sf.apex.generate.unit.test.class', apexGenerateUnitTestClass),
     vscode.commands.registerCommand('sf.analytics.generate.template', analyticsGenerateTemplate),
     vscode.commands.registerCommand('sf.visualforce.generate.component', visualforceGenerateComponent),
@@ -203,8 +208,11 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   // Set internal dev context
   const internalDev = salesforceCoreSettings.getInternalDev();
-  void vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
+  await vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev);
 
+  // Set shared commands visibility context (inverse of useMetadataExtensionCommands)
+  const useMetadataCommands = salesforceCoreSettings.getUseMetadataExtensionCommands();
+  await vscode.commands.executeCommand('setContext', 'sf:show_shared_commands', !useMetadataCommands);
   // Set shared Auth State
   const sharedAuthState = SharedAuthState.getInstance();
 
@@ -272,9 +280,17 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
 
   extensionContext.subscriptions.push(
     registerCommands(extensionContext),
+    registerSharedCommands(),
     // Register editor change listener
     vscode.window.onDidChangeActiveTextEditor(async () => {
       await checkPackageDirectoriesEditorView();
+    }),
+    // Register configuration change listener for shared commands visibility
+    vscode.workspace.onDidChangeConfiguration(e => {
+      if (e.affectsConfiguration(`${SFDX_CORE_CONFIGURATION_NAME}.${USE_METADATA_EXTENSION_COMMANDS}`)) {
+        const updatedUseMetadataCommands = salesforceCoreSettings.getUseMetadataExtensionCommands();
+        void vscode.commands.executeCommand('setContext', 'sf:show_shared_commands', !updatedUseMetadataCommands);
+      }
     }),
     registerConflictView(),
     CommandEventDispatcher.getInstance()

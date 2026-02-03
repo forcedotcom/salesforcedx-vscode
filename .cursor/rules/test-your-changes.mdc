@@ -17,12 +17,13 @@ After ANY code change, run these in order from repo root. Avoid responding while
    - Run with `--retries 0` to get quicker feedback
    - If there are failures, be sure to look at the screenshots produced
    - unzip traces.zip for more screenshots and json results
+   - if you encounter auth or org setup issues, ask the user to set up an org like the CI does
 7. check for dupes `npm run check:dupes` and then look in `jscpd-report` to make sure none of your changes are flagged.
 
 Rules:
 
 - Don't change /src AND /test together (except imports/renames)
-- Be aware of nx caching; you may need `--skip-nx-cache` to really change the bundles. You can look in the bundle to see (and also turn off `minify` if that helps debug)
+- Be aware of wireit caching; You can look in the bundle to see (and also turn off `minify` if that helps debug)
 - Port 3001 for tests (not 3000 - Docker/Grafana uses that)
 - All commands run from salesforcedx-vscode root; use `-w` to specify runs for a single package. Never `cd` into a package.
 - do not say a test/compile/lint failure was "pre-existing" without running the same operation on a previous version of the code before the current un-pushed commits began.

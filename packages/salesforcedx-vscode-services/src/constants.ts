@@ -13,3 +13,5 @@ export const SALESFORCE_DX_SECTION = 'salesforcedx-vscode-salesforcedx';
 export const INSTANCE_URL_KEY = 'instanceUrl';
 export const ACCESS_TOKEN_KEY = 'accessToken';
 export const API_VERSION_KEY = 'apiVersion';
+export const RETRIEVE_ON_LOAD_KEY = 'retrieveOnLoad';
+export const SERVICES_CHANNEL_NAME = 'Salesforce Services';

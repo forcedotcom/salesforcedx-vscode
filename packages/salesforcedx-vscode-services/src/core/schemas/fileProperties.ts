@@ -21,5 +21,3 @@ export const FilePropertiesSchema = S.Struct({
   manageableState: S.optional(S.String),
   namespacePrefix: S.optional(S.String)
 });
-
-export type FileProperties = S.Schema.Type<typeof FilePropertiesSchema>;

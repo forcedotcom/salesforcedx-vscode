@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type { QuickPickItem } from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { APEX_CLASS_EXT, IS_TEST_REG_EXP } from '../constants';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 
 export type TestType = 'All' | 'AllLocal' | 'Suite' | 'Class';
 

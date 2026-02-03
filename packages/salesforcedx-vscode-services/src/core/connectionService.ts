@@ -7,14 +7,19 @@
 
 import { AuthInfo, Connection, StateAggregator, OrgConfigProperties } from '@salesforce/core';
 import * as Cache from 'effect/Cache';
+import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import * as Schema from 'effect/Schema';
-import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { getCliId } from '../observability/cliTelemetry';
+import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
 import { SettingsService } from '../vscode/settingsService';
 import { ConfigService } from './configService';
-import { DefaultOrgInfoSchema, defaultOrgRef } from './defaultOrgService';
+import { getDefaultOrgRef } from './defaultOrgRef';
+import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
+import { getOrgFromConnection, unknownToErrorCause } from './shared';
 
 type WebConnectionKey = {
   instanceUrl: string;
@@ -23,14 +28,36 @@ type WebConnectionKey = {
 
 type WebConnectionKeyAndApiVersion = WebConnectionKey & { apiVersion: string };
 
+export class FailedToCreateAuthInfoError extends Data.TaggedError('FailedToCreateAuthInfoError')<{
+  readonly cause: unknown;
+}> {}
+
+export class FailedToSaveAuthInfoError extends Data.TaggedError('FailedToSaveAuthInfoError')<{
+  readonly cause: unknown;
+}> {}
+
+export class FailedToCreateConnectionError extends Data.TaggedError('FailedToCreateConnectionError')<{
+  readonly cause: unknown;
+}> {}
+
+export class FailedToResolveUsernameError extends Data.TaggedError('FailedToResolveUsernameError')<{
+  readonly cause: unknown;
+}> {}
+
+export class NoTargetOrgConfiguredError extends Data.TaggedError('NoTargetOrgConfiguredError')<{}> {}
+
+class FailedToGetTracksSourceError extends Data.TaggedError('FailedToGetTracksSourceError')<{
+  readonly cause: unknown;
+}> {}
+
 /** side effect: save the auth info in the background */
-const createAuthInfo = (instanceUrl: string, accessToken: string): Effect.Effect<AuthInfo, Error> =>
+const createWebAuthInfo = (instanceUrl: string, accessToken: string) =>
   Effect.tryPromise({
     try: () =>
       AuthInfo.create({
         accessTokenOptions: { accessToken, loginUrl: instanceUrl, instanceUrl }
       }),
-    catch: error => new Error('Failed to create AuthInfo', { cause: error })
+    catch: error => new FailedToCreateAuthInfoError(unknownToErrorCause(error))
   }).pipe(
     Effect.tap(authInfo => Effect.annotateCurrentSpan(authInfo.getFields())),
     Effect.tap(authInfo =>
@@ -38,26 +65,30 @@ const createAuthInfo = (instanceUrl: string, accessToken: string): Effect.Effect
       Effect.fork(
         Effect.tryPromise({
           try: () => authInfo.save(),
-          catch: error => new Error('Failed to save AuthInfo', { cause: error })
-        }).pipe(Effect.withSpan('saveAuthInfo'))
+          catch: error => new FailedToSaveAuthInfoError(unknownToErrorCause(error))
+        }).pipe(
+          Effect.tap(savedAuthInfo => Effect.annotateCurrentSpan({ authFields: savedAuthInfo.getFields() })),
+          Effect.withSpan('saveAuthInfo')
+        )
       )
     ),
-    Effect.withSpan('createAuthInfo')
+
+    Effect.withSpan('createWebAuthInfo')
   );
 
-const createConnection = (authInfo: AuthInfo, apiVersion?: string): Effect.Effect<Connection, Error> =>
+const createConnection = (authInfo: AuthInfo, apiVersion?: string) =>
   Effect.tryPromise({
     // calling the org to get the API version really slows things down, so we want it in config
     try: () => Connection.create({ authInfo, ...(apiVersion ? { connectionOptions: { version: apiVersion } } : {}) }),
-    catch: error => new Error('Failed to create Connection', { cause: error })
+    catch: error => new FailedToCreateConnectionError(unknownToErrorCause(error))
   }).pipe(Effect.withSpan('createConnection', { attributes: { apiVersion: apiVersion ?? 'default' } }));
 
-const createWebConnection = (key: string): Effect.Effect<Connection, Error> => {
+const createWebConnection = (key: string) => {
   const { instanceUrl, accessToken, apiVersion } = fromKey(key);
-  return createAuthInfo(instanceUrl, accessToken).pipe(
+  return createWebAuthInfo(instanceUrl, accessToken).pipe(
     Effect.flatMap(authInfo => createConnection(authInfo, apiVersion)),
     Effect.withSpan('createWebConnection (cache miss)', {
-      attributes: { apiVersion }
+      attributes: { apiVersion, instanceUrl }
     })
   );
 };
@@ -71,22 +102,22 @@ const fromKey = (key: string): WebConnectionKeyAndApiVersion => {
   return { instanceUrl, accessToken, apiVersion };
 };
 
-const createDesktopConnection = (username: string): Effect.Effect<Connection, Error> =>
+const createDesktopConnection = (username: string) =>
   Effect.gen(function* () {
     const authInfo = yield* createAuthInfoFromUsername(username);
     return yield* createConnection(authInfo);
   }).pipe(Effect.withSpan('createDesktopConnection (cache miss)', { attributes: { username } }));
 
 const cache = Effect.runSync(
-  Cache.make({
-    capacity: 100,
-    timeToLive: Duration.infinity,
+  Cache.makeWith({
+    capacity: process.env.ESBUILD_PLATFORM === 'web' ? 1: 100,
+    timeToLive: Exit.match({
+      onSuccess: () => process.env.ESBUILD_PLATFORM === 'web' ? Duration.infinity : Duration.minutes(30),
+      onFailure: () => Duration.zero
+    }),
     lookup: process.env.ESBUILD_PLATFORM === 'web' ? createWebConnection : createDesktopConnection
   })
 );
-
-// when the org changes, invalidate the cache
-Effect.runSync(Effect.forkDaemon(defaultOrgRef.changes.pipe(Stream.runForEach(() => cache.invalidateAll))));
 
 export class ConnectionService extends Effect.Service<ConnectionService>()('ConnectionService', {
   effect: Effect.gen(function* () {
@@ -107,41 +138,83 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             Effect.map(agg => agg.getPropertyValue<string>(OrgConfigProperties.TARGET_ORG)),
             Effect.filterOrFail(
               targetOrg => targetOrg != null,
-              () => new Error('No target-org configured')
+              () => new NoTargetOrgConfiguredError()
             )
           );
           const username = yield* Effect.tryPromise({
             try: async () => (await StateAggregator.getInstance()).aliases.resolveUsername(usernameOrAlias),
-            catch: error => new Error('Failed to resolve username', { cause: error })
+            catch: error => new FailedToResolveUsernameError(unknownToErrorCause(error))
           });
           return yield* cache.get(username);
         }
       }).pipe(
-        Effect.tap(conn => maybeUpdateDefaultOrgRef(conn)),
+        // update the org ref in the background
+        Effect.tap(conn => maybeUpdateDefaultOrgRef(conn).pipe(Effect.forkDaemon)),
         Effect.withSpan('getConnection')
       )
     } as const;
   }),
-  dependencies: [SettingsService.Default, ConfigService.Default]
+  dependencies: [ConfigService.Default, SettingsService.Default, ConfigService.Default]
 }) {}
 
+const getTracksSourceFromOrg = (conn: Connection) =>
+  getOrgFromConnection(conn).pipe(
+    Effect.andThen(org =>
+      Effect.tryPromise({
+        try: () => org.tracksSource(),
+        catch: error => new FailedToGetTracksSourceError(unknownToErrorCause(error))
+      })
+    ),
+    Effect.withSpan('getTracksSourceFromOrg')
+  );
+
 //** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
-const maybeUpdateDefaultOrgRef = (conn: Connection): Effect.Effect<typeof DefaultOrgInfoSchema.Type, Error> =>
+const maybeUpdateDefaultOrgRef = (conn: Connection) =>
   Effect.gen(function* () {
     const { orgId, devHubUsername, isScratch, isSandbox, tracksSource } = conn.getAuthInfoFields();
+    const defaultOrgRef = yield* getDefaultOrgRef();
+    const [{ username, user_id: userId }, devHubOrgId, existingOrgInfo, cliId] = yield* Effect.all(
+      [
+        Effect.tryPromise(() => conn.identity()).pipe(
+          // best efforts, its just telemetry
+          Effect.catchAll(() => Effect.succeed({ username: undefined, user_id: undefined }))
+        ),
+        Effect.flatten(getDevHubId(devHubUsername)),
+        SubscriptionRef.get(defaultOrgRef),
+        Effect.flatten(getCliId())
+      ],
+      { concurrency: 'unbounded' }
+    );
 
-    const devHubOrgId = yield* yield* Effect.cached(getDevHubId(devHubUsername));
-    const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
+    yield* Effect.annotateCurrentSpan({
+      orgId,
+      devHubUsername,
+      isScratch,
+      isSandbox,
+      tracksSource,
+      username,
+      userId,
+      devHubOrgId
+    });
+
+    const webUserId =
+      existingOrgInfo.webUserId === UNAUTHENTICATED_USER && orgId && userId
+        ? // ooh, now we know who they are, so we set that
+          yield* setWebUserId(orgId, userId)
+        : (existingOrgInfo.webUserId ?? UNAUTHENTICATED_USER);
 
     const updates = Object.fromEntries(
       Object.entries({
         orgId,
         devHubUsername,
-        tracksSource,
+        tracksSource: tracksSource ?? (yield* getTracksSourceFromOrg(conn)),
         isScratch,
         isSandbox,
-        devHubOrgId
-      }).filter(([, v]) => v !== undefined)
+        devHubOrgId,
+        userId,
+        webUserId,
+        ...(typeof cliId === 'string' ? { cliId } : {})
+      } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => v !== undefined)
     );
 
     const updated = Object.fromEntries(
@@ -150,7 +223,9 @@ const maybeUpdateDefaultOrgRef = (conn: Connection): Effect.Effect<typeof Defaul
         ...updates
       })
     );
+
     // Check if objects have the same content (deep equality using schema)
+    // otherwise, calling set on the ref counts as a change but it's really not one.
     if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
       yield* Effect.annotateCurrentSpan({ changed: false });
       return updated;
@@ -165,13 +240,14 @@ const maybeUpdateDefaultOrgRef = (conn: Connection): Effect.Effect<typeof Defaul
   }).pipe(Effect.withSpan('maybeUpdateDefaultOrgRef'));
 
 /** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */
-const getDevHubId = (scratchOrgUsername?: string): Effect.Effect<string | undefined, Error> =>
-  scratchOrgUsername
+const getDevHubId = (scratchOrgUsername?: string) =>
+  (scratchOrgUsername
     ? createAuthInfoFromUsername(scratchOrgUsername).pipe(Effect.map(authInfo => authInfo.getFields().orgId))
-    : Effect.succeed(undefined);
+    : Effect.succeed(undefined)
+  ).pipe(Effect.cached);
 
-const createAuthInfoFromUsername = (username: string): Effect.Effect<AuthInfo, Error> =>
+const createAuthInfoFromUsername = (username: string) =>
   Effect.tryPromise({
     try: () => AuthInfo.create({ username }),
-    catch: error => new Error('Failed to create AuthInfo', { cause: error })
+    catch: error => new FailedToCreateAuthInfoError(unknownToErrorCause(error))
   }).pipe(Effect.withSpan('createAuthInfoFromUsername', { attributes: { username } }));

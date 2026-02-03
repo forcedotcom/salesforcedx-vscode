@@ -20,6 +20,9 @@
       "path": "packages/salesforcedx-utils-vscode"
     },
     {
+      "path": "packages/effect-ext-utils"
+    },
+    {
       "path": "packages/salesforcedx-vscode-i18n"
     },
     {
@@ -69,6 +72,21 @@
     },
     {
       "path": "packages/salesforcedx-vscode-automation-tests"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-metadata"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-org-browser"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-org"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-services"
+    },
+    {
+      "path": "packages/salesforcedx-vscode-services-types"
     },
     {
       "path": "packages/salesforcedx-aura-language-server"

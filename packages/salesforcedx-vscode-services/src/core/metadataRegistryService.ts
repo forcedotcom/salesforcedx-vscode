@@ -5,18 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type MetadataRegistry, RegistryAccess } from '@salesforce/source-deploy-retrieve';
-
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import { WorkspaceService } from '../vscode/workspaceService';
+import { unknownToErrorCause } from './shared';
+
+export class GetRegistryAccessError extends Data.TaggedError('GetRegistryAccessError')<{
+  readonly cause: unknown;
+}> {}
 
 /** Create a new RegistryAccess instance */
-const getRegistryAccess = (): Effect.Effect<RegistryAccess, Error, WorkspaceService> =>
-  Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfo).pipe(
+const getRegistryAccess = () =>
+  Effect.flatMap(WorkspaceService, service => service.getWorkspaceInfoOrThrow).pipe(
     Effect.flatMap(workspaceInfo =>
       Effect.try({
         try: () => new RegistryAccess(undefined, workspaceInfo.fsPath),
-        catch: (error: unknown) => new Error(`Failed to create RegistryAccess: ${String(error)}`)
+        catch: error => new GetRegistryAccessError(unknownToErrorCause(error))
       })
     ),
     Effect.withSpan('getRegistryAccess')
@@ -32,16 +37,16 @@ export class MetadataRegistryService extends Effect.Service<MetadataRegistryServ
       Effect.flatMap(cachedGetRegistryAccessEffect, registryAccess =>
         Effect.try({
           try: () => registryAccess.getRegistry(),
-          catch: (error: unknown) => new Error(`Failed to get registry: ${String(error)}`)
+          catch: error => new GetRegistryAccessError(unknownToErrorCause(error))
         })
       ).pipe(Effect.withSpan('getRegistry (cached)'))
     );
 
     return {
       /** Get the metadata registry (cached) */
-      getRegistry: (): Effect.Effect<Readonly<MetadataRegistry>, Error, WorkspaceService> => cachedGetRegistryEffect,
+      getRegistry: () => cachedGetRegistryEffect,
       /** Get the registry access (cached) */
-      getRegistryAccess: (): Effect.Effect<RegistryAccess, Error, WorkspaceService> => cachedGetRegistryAccessEffect
+      getRegistryAccess: () => cachedGetRegistryAccessEffect
     } as const;
   })
 }) {}

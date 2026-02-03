@@ -9,8 +9,11 @@ import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as os from 'node:os';
 import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
+import { getPathWithSchema } from './paths';
 
 type WorkspaceInfo = {
+  uri: URI;
   /** includes the file:// or other schemeprefix */
   path: string;
   /** the path without the scheme prefix */
@@ -29,7 +32,8 @@ const getWorkspaceInfoTask = Effect.sync((): WorkspaceInfo => {
   const isVirtualFs = folders?.[0]?.uri.scheme !== 'file';
   const originalFsPath = folders?.[0]?.uri.fsPath ?? '';
   return {
-    path: getPathWithSchema(folders?.[0]?.uri ?? vscode.Uri.parse('')),
+    uri: folders?.[0]?.uri ?? URI.parse(''),
+    path: getPathWithSchema(folders?.[0]?.uri ?? URI.parse('')),
     isEmpty: folders?.length === 0,
     isVirtualFs,
     // in e2e tests, but not on local runs, the path had windows-style \\ separators
@@ -71,6 +75,5 @@ export class WorkspaceService extends Effect.Service<WorkspaceService>()('Worksp
 }) {}
 
 const isNonEmptyWorkspace = (info: WorkspaceInfo): info is WorkspaceWithFolder => !info.isEmpty;
-const getPathWithSchema = (uri: vscode.Uri): string => (uri.scheme === 'file' ? uri.fsPath : uri.toString());
 
 export class NoWorkspaceOpenError extends Data.TaggedError('NoWorkspaceOpenError')<{}> {}

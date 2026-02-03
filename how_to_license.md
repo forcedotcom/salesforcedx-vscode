@@ -1,6 +1,6 @@
 # How to License
 
-This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE.txt) file for details.
 
 ## License Headers
 
@@ -63,4 +63,4 @@ All contributors to this project must ensure that their contributions comply wit
 3. Documenting any third-party dependencies and their licenses
 4. Following the terms of the BSD 3-Clause License for all contributions
 
-For questions about licensing, please contact the project maintainers or refer to the [LICENSE](LICENSE) file.
+For questions about licensing, please contact the project maintainers or refer to the [LICENSE](LICENSE.txt) file.

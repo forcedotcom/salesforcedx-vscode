@@ -27,6 +27,7 @@ import jsonPlugin from '@eslint/json';
 import localRulesPlugin from './packages/eslint-local-rules/out/index.js';
 
 const localRules = localRulesPlugin.rules;
+const localPlugin = { rules: localRules };
 
 export default [
   {
@@ -51,7 +52,8 @@ export default [
       'packages/salesforcedx-lightning-lsp-common/src/resources/**',
       'packages/salesforcedx-lightning-lsp-common/src/html-language-service/**',
       '**/.vscode-test-web/**',
-      '**/.vscode-test/**'
+      '**/.vscode-test/**',
+      '**/playwright-report/**'
     ]
   },
   {
@@ -76,13 +78,36 @@ export default [
       'prefer-arrow': eslintPluginPreferArrow,
       '@stylistic/eslint-plugin-ts': stylistic,
       unicorn: eslintPluginUnicorn,
-      local: { rules: localRules },
+      local: localPlugin,
       'barrel-files': eslintPluginBarrelFiles,
       functional: functional,
       workspaces: eslintPluginWorkspaces,
       effect: effectPlugin
     },
     rules: {
+      'local/command-must-be-in-package-json': [
+        'error',
+        {
+          ignorePatterns: [
+            // Internal commands not shown in command palette
+            '\\.internal\\.',
+            // Telemetry API exposed for other extensions
+            '\\.get\\.telemetry$',
+            // Called programmatically by pushOrDeployOnSave, not user-facing
+            '^sf\\.deploy\\.multiple\\.source\\.paths$',
+            // Delegate commands invoked by code lens, not command palette
+            '\\.delegate$',
+            // Debug adapter protocol commands
+            '^extension\\.replay-debugger\\.',
+            // Programmatic launch commands
+            '^sf\\.launch\\.',
+            // Internal toggle/config commands
+            '^sf\\.apex\\.toggle\\.',
+            '^sf\\.apex\\.debug\\.document$',
+            '^sf\\.config\\.set$'
+          ]
+        }
+      ],
       'local/no-duplicate-i18n-values': 'error',
       'local/no-vscode-message-literals': 'error',
       'workspaces/no-relative-imports': 'error',
@@ -435,11 +460,14 @@ export default [
       'packages/salesforcedx**/src/**/*.test.ts',
       'packages/salesforcedx**/test/web/**/*',
       'packages/salesforcedx**/test/playwright/**/*',
-      'packages/salesforcedx-vscode-automation-tests/**/*'
+      'packages/salesforcedx-vscode-automation-tests/**/*',
+      'packages/playwright-vscode-ext/**/*.ts'
     ],
+    ignores: ['**/locators.ts'],
     plugins: {
       '@typescript-eslint': typescriptEslint,
-      jest: eslintPluginJest
+      jest: eslintPluginJest,
+      local: localPlugin
     },
     rules: {
       'unicorn/filename-case': 'off',
@@ -466,7 +494,8 @@ export default [
       'jest/unbound-method': 'error',
       'no-useless-constructor': 'off',
       'no-restricted-imports': 'off',
-      'no-param-reassign': 'off'
+      'no-param-reassign': 'off',
+      'local/no-duplicate-playwright-locators': 'error'
     }
   },
   {
@@ -495,7 +524,12 @@ export default [
   },
   {
     // Effect-specific rules for new Effect services-based packages
-    files: ['packages/salesforcedx-vscode-services/**/*.ts', 'packages/salesforcedx-vscode-org-browser/**/*.ts'],
+    files: [
+      'packages/salesforcedx-vscode-services/**/*.ts',
+      'packages/salesforcedx-vscode-org-browser/**/*.ts',
+      'packages/salesforcedx-vscode-metadata/**/*.ts',
+      'packages/effect-ext-utils/**/*.ts'
+    ],
     rules: {
       'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
       'barrel-files/avoid-barrel-files': 'error',
@@ -505,8 +539,11 @@ export default [
       'functional/no-let': 'error',
       'functional/no-loop-statements': 'error',
       'functional/prefer-property-signatures': 'error',
-      '@typescript-eslint/explicit-function-return-type': 'error',
+      // let Effect figure it out.  This is especially helpful for Error typings
+      '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      'local/no-explicit-effect-return-type': 'error',
+
       // Effect code should always handle promises properly
       '@typescript-eslint/no-floating-promises': 'error',
 
@@ -548,12 +585,30 @@ export default [
     }
   },
   {
+    // Allow top-level src/index.ts files as barrel files (public API exports)
+    files: ['packages/**/src/index.ts'],
+    rules: {
+      'barrel-files/avoid-barrel-files': 'off'
+    }
+  },
+  {
+    // Prevent direct imports from services extension (except in services package itself)
+    // Only applies to src directories, not test directories
+    files: ['packages/**/src/**/*.ts'],
+    ignores: ['packages/salesforcedx-vscode-services/**/*.ts'],
+    rules: {
+      'local/no-direct-services-imports': 'error'
+    }
+  },
+  {
     // Relaxed rules for test files in services and org-browser packages
     files: [
       'packages/salesforcedx-vscode-services/test/**/*.ts',
       'packages/salesforcedx-vscode-org-browser/test/**/*.ts',
+      'packages/salesforcedx-vscode-metadata/test/**/*.ts',
       'packages/salesforcedx-vscode-services/playwright*.ts',
-      'packages/salesforcedx-vscode-org-browser/playwright*.ts'
+      'packages/salesforcedx-vscode-org-browser/playwright*.ts',
+      'packages/salesforcedx-vscode-metadata/playwright*.ts'
     ],
     rules: {
       // Deactivate import-order for tests to allow for mock-before-import
@@ -598,7 +653,7 @@ export default [
     language: 'json/json',
     plugins: {
       json: jsonPlugin,
-      local: { rules: localRules }
+      local: localPlugin
     },
     rules: {
       ...jsonPlugin.configs.recommended.rules,

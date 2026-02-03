@@ -6,6 +6,7 @@ on:
     paths:
       - 'packages/salesforcedx-vscode-org-browser/**'
       - 'packages/salesforcedx-vscode-services/**'
+      - 'packages/playwright-vscode-ext/**'
       - '.github/workflows/orgBrowserE2E.yml'
 
 jobs:
@@ -46,7 +47,7 @@ jobs:
         shell: bash
         run: |
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
           sf project deploy start
           sf org assign permset -n dreamhouse
         working-directory: dreamhouse-lwc
@@ -56,8 +57,7 @@ jobs:
           DREAMHOUSE_ORG_ALIAS: orgBrowserDreamhouseTestOrg
           CI: 1
         run: |
-          npm run vscode:bundle -w salesforcedx-vscode-services && npm run vscode:bundle -w salesforcedx-vscode-org-browser
-          npm run test:web:headless:ci -w salesforcedx-vscode-org-browser -- --reporter=html
+          npm run test:web -w salesforcedx-vscode-org-browser -- --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()
@@ -115,7 +115,7 @@ jobs:
         shell: bash
         run: |
           echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --sfdx-url-stdin
-          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json
+          sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
           sf project deploy start
           sf org assign permset -n dreamhouse
         working-directory: dreamhouse-lwc
@@ -126,8 +126,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
         run: |
-          npm run vscode:bundle -w salesforcedx-vscode-services && npm run vscode:bundle -w salesforcedx-vscode-org-browser
-          npm run test:desktop:ci -w salesforcedx-vscode-org-browser -- --reporter=html
+          npm run test:desktop -w salesforcedx-vscode-org-browser -- --reporter=html
 
       - name: Upload Playwright HTML report
         if: always()

@@ -7,6 +7,7 @@
 import { ApexTestResultData, TestLevel, TestResult, TestService } from '@salesforce/apex-node';
 import { ApexDiagnostic } from '@salesforce/apex-node/lib/src/utils';
 import { type NamedPackageDir } from '@salesforce/core';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -14,7 +15,7 @@ import { URI } from 'vscode-uri';
 import { OUTPUT_CHANNEL } from '../channels';
 import { getConnection } from '../coreExtensionUtils';
 import { nls } from '../messages';
-import { AllServicesLayer, ExtensionProviderService } from '../services/extensionProvider';
+import { AllServicesLayer } from '../services/extensionProvider';
 import * as settings from '../settings';
 import { apexTestRunCacheService, isEmpty } from '../testRunCache';
 import {
