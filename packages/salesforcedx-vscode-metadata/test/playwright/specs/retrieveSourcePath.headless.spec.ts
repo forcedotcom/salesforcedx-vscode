@@ -58,8 +58,7 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
       await statusBarPage.waitForVisible(120_000);
       await saveScreenshot(page, 'setup.after-status-bar-visible.png');
       await saveScreenshot(page, 'setup.complete.png');
-      await upsertSettings(page, { 'salesforcedx-vscode-metadata.deployOnSave.enabled': 'false' });
-
+      await upsertSettings(page, { 'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': 'false' });
     });
 
     await test.step('create local apex class, deploy to org, and make remote change', async () => {
@@ -90,7 +89,6 @@ import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
       await editOpenFile(page, 'Remote change simulation');
       await statusBarPage.waitForCounts({ local: 1 }, 60_000);
       await saveScreenshot(page, 'step1.after-edit.png');
-
     });
 
     await test.step('retrieve file via explorer context menu', async () => {

@@ -819,11 +819,6 @@
           "default": false,
           "description": "%setting_clear_output_tab_description%"
         },
-        "salesforcedx-vscode-core.push-or-deploy-on-save.ignoreConflictsOnPush": {
-          "type": "boolean",
-          "default": false,
-          "description": "%ignore_conflicts_on_push_description%"
-        },
         "salesforcedx-vscode-core.show-cli-success-msg": {
           "type": "boolean",
           "default": true,
@@ -833,11 +828,6 @@
           "type": "boolean",
           "default": true,
           "description": "%telemetry_enabled_description%"
-        },
-        "salesforcedx-vscode-core.push-or-deploy-on-save.enabled": {
-          "type": "boolean",
-          "default": false,
-          "description": "%push_or_deploy_on_save_enabled_description%"
         },
         "salesforcedx-vscode-core.push-or-deploy-on-save.preferDeployOnSave": {
           "type": "boolean",

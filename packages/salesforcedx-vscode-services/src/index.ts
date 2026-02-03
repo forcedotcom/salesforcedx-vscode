@@ -184,7 +184,7 @@ export { type ChannelService, type ChannelServiceLayer } from './vscode/channelS
 export { type ConfigService } from './core/configService';
 export { type ConnectionService } from './core/connectionService';
 export { type FileWatcherService } from './vscode/fileWatcherService';
-export { type FsService, toUri } from './vscode/fsService';
+export { type FsService } from './vscode/fsService';
 export { type MetadataDeleteService } from './core/metadataDeleteService';
 export { type MetadataDescribeService } from './core/metadataDescribeService';
 export { type MetadataDeployService } from './core/metadataDeployService';
