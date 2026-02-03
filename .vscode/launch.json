@@ -32,6 +32,7 @@
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-core",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-services",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org-browser",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-metadata",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-org",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/salesforcedx-vscode-apex-testing",

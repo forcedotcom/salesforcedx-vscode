@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@salesforce/core": "^8.23.2",
+    "@salesforce/playwright-vscode-ext": "*",
     "esbuild": "0.25.12"
   },
   "extensionDependencies": [
@@ -40,6 +41,12 @@
   "scripts": {
     "vscode:bundle": "wireit",
     "run:web": "wireit",
+    "test:web": "wireit",
+    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
+    "test:web:debug": "npm run test:web -- --debug",
+    "test:desktop": "wireit",
+    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:e2e": "wireit",
     "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -143,6 +150,37 @@
       ],
       "files": [
         "test/**/*.ts"
+      ]
+    },
+    "test:web": {
+      "command": "playwright test --config=playwright.config.web.ts",
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.web.ts"
+      ]
+    },
+    "test:desktop": {
+      "command": "playwright test --config=playwright.config.desktop.ts",
+      "env": {
+        "VSCODE_DESKTOP": "1"
+      },
+      "dependencies": [
+        "vscode:bundle",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "playwright.config.desktop.ts"
+      ]
+    },
+    "test:e2e": {
+      "dependencies": [
+        "test:web",
+        "test:desktop"
       ]
     }
   },
