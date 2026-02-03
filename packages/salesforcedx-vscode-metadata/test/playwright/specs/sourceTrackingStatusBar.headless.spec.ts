@@ -39,7 +39,7 @@ test('Source Tracking Status Bar: tracks remote and local changes through full d
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
     // Disable deploy-on-save so test can control when deploys happen
-    await upsertSettings(page, { 'salesforcedx-vscode-metadata.deployOnSave.enabled': 'false' });
+    await upsertSettings(page, { 'salesforcedx-vscode-core.push-or-deploy-on-save.enabled': 'false' });
 
     const statusBar = new SourceTrackingStatusBarPage(page);
     await statusBar.waitForVisible(120_000);

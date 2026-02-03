@@ -21,7 +21,7 @@ import { retrieveSourcePaths } from './commands/retrieveSourcePath';
 import { projectRetrieveStart } from './commands/retrieveStart/projectRetrieveStart';
 import { viewAllChanges, viewLocalChanges, viewRemoteChanges } from './commands/showSourceTrackingDetails';
 import { sourceDiff } from './commands/sourceDiff';
-import { DEPLOY_ON_SAVE_ENABLED, EXTENSION_NAME, METADATA_CONFIG_SECTION } from './constants';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED, EXTENSION_NAME } from './constants';
 import { getShowSharedCommands, watchUseMetadataExtensionCommands } from './services/configWatcher';
 import { createDeployOnSaveService } from './services/deployOnSaveService';
 import { AllServicesLayer } from './services/extensionProvider';
@@ -73,7 +73,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   );
 
   if (process.env.ESBUILD_PLATFORM === 'web') {
-    vscode.workspace.getConfiguration(METADATA_CONFIG_SECTION).update(DEPLOY_ON_SAVE_ENABLED, true);
+    vscode.workspace.getConfiguration(CORE_CONFIG_SECTION).update(DEPLOY_ON_SAVE_ENABLED, true);
   }
   // Start deploy on save service
   yield* Effect.forkIn(createDeployOnSaveService(), yield* getExtensionScope());

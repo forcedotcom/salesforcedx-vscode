@@ -24,7 +24,7 @@ import {
   editOpenFile,
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
-import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { DEPLOY_TIMEOUT } from '../../constants';
 
@@ -51,7 +51,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
     // Enable deploy-on-save (web already enabled by default, desktop needs this)
     const isDesktop = process.env.VSCODE_DESKTOP === '1';
     if (isDesktop) {
-      await upsertSettings(page, { [`${METADATA_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'true' });
+      await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'true' });
     }
 
     // Verify deploy-on-save service is initialized by checking output channel

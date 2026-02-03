@@ -204,15 +204,15 @@
     "configuration": {
       "title": "%configuration_title%",
       "properties": {
-        "salesforcedx-vscode-metadata.deployOnSave.enabled": {
+        "salesforcedx-vscode-core.push-or-deploy-on-save.enabled": {
           "type": "boolean",
           "default": false,
-          "description": "%deploy_on_save_enabled_description%"
+          "description": "%push_or_deploy_on_save_enabled_description%"
         },
-        "salesforcedx-vscode-metadata.deployOnSave.ignoreConflicts": {
+        "salesforcedx-vscode-core.push-or-deploy-on-save.ignoreConflictsOnPush": {
           "type": "boolean",
-          "default": true,
-          "description": "%deploy_on_save_ignore_conflicts_description%"
+          "default": false,
+          "description": "%ignore_conflicts_on_push_description%"
         }
       }
     },

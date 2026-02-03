@@ -31,7 +31,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
-import { METADATA_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED, OUTPUT_CHANNEL_NAME } from '../../../src/constants';
+import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED, OUTPUT_CHANNEL_NAME } from '../../../src/constants';
 import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
@@ -59,7 +59,7 @@ const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, 
     await statusBarPage.waitForVisible(120_000);
 
     // Disable deploy-on-save so test can control when deploys happen
-    await upsertSettings(page, { [`${METADATA_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
+    await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
   });
 
   let initialLocalCount: number;
