@@ -23,8 +23,9 @@ export const SELECT_COUNT = 'COUNT()';
 
 // This is to satisfy TS and stay dry
 export type IMap = Map<string, string | List<string>>;
+
 // Private immutable interface
-export interface ToolingModel extends IMap {
+export type ToolingModel = IMap & {
   headerComments?: string;
   sObject: string;
   fields: List<string>;
@@ -35,8 +36,9 @@ export interface ToolingModel extends IMap {
   unsupported: List<Map>;
   originalSoqlStatement: string;
 }
+
 // Public interface for accessing modelService.query
-export interface ToolingModelJson extends JsonMap {
+export type ToolingModelJson = JsonMap & {
   headerComments?: string;
   sObject: string;
   fields: string[];
@@ -48,7 +50,7 @@ export interface ToolingModelJson extends JsonMap {
   originalSoqlStatement: string;
 }
 
-export interface OperatorOption {
+export type OperatorOption = {
   value: UiOperatorValue;
   displayValue: string;
   modelValue: ConditionOperator;
