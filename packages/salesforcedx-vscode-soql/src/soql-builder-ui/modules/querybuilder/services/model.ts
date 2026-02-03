@@ -5,7 +5,7 @@
  *  For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  *
  */
-import { ConditionOperator } from '../../../../soql-model/model/model';
+import { ConditionOperator, UiOperatorValue } from '../../../../soql-model/model/model';
 import { List, Map } from 'immutable';
 import { JsonMap } from '@salesforce/ts-types';
 import { isLikeStart, isLikeEnds, isLikeContains } from '../services/soqlUtils';
@@ -49,7 +49,7 @@ export interface ToolingModelJson extends JsonMap {
 }
 
 export interface OperatorOption {
-  value: string;
+  value: UiOperatorValue;
   displayValue: string;
   modelValue: ConditionOperator;
   predicate: (condition: JsonMap) => boolean;
